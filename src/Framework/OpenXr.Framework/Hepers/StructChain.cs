@@ -8,7 +8,7 @@ namespace OpenXr.Framework
         {
             fixed (void* ptr = &obj)
             {
-                var objPtr = (BaseInStructure*)ptr;
+                BaseInStructure* objPtr = (BaseInStructure*)ptr;
 
                 while (objPtr->Next != null)
                 {
@@ -23,10 +23,10 @@ namespace OpenXr.Framework
 
         public static unsafe void AddNextStruct<T>(ref T obj, void* next) where T : unmanaged
         {
-            var nextBase = (BaseInStructure*)next;
+            BaseInStructure* nextBase = (BaseInStructure*)next;
             fixed (void* ptr = &obj)
             {
-                var objPtr = (BaseInStructure*)ptr;
+                BaseInStructure* objPtr = (BaseInStructure*)ptr;
 
                 while (objPtr->Next != null && objPtr->Next->Type != nextBase->Type)
                     objPtr = objPtr->Next;

@@ -50,7 +50,7 @@ namespace XrEngine.OpenGL
 
             _fooVa = _gl.GenVertexArray();
 
-            var maxMipLevels = (uint)MathF.Floor(MathF.Log2(Resolution));
+            uint maxMipLevels = (uint)MathF.Floor(MathF.Log2(Resolution));
 
             if (MipLevelCount == 0 || MipLevelCount > maxMipLevels)
                 MipLevelCount = maxMipLevels;
@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(GlState.Current != null);
 
-            var mipCount = distribution == Distribution.Lambertian ? 1 : MipLevelCount;
+            uint mipCount = distribution == Distribution.Lambertian ? 1 : MipLevelCount;
 
             envTexId = CreateCubeMap(mipCount > 1);
             lutTexId = CreateLutTexture();
@@ -105,7 +105,7 @@ namespace XrEngine.OpenGL
             _filterProg!.Use();
             _filterProg.SetUniform("uDistribution", (int)distribution);
 
-            for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
+            for (int mipLevel = 0; mipLevel < mipCount; ++mipLevel)
             {
                 ApplyFilter(
                     distribution,
@@ -142,7 +142,7 @@ namespace XrEngine.OpenGL
         {
             GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, _frameBufferId);
 
-            for (var i = 0; i < 6; ++i)
+            for (int i = 0; i < 6; ++i)
             {
                 _gl.FramebufferTexture2D(
                      FramebufferTarget.Framebuffer,
@@ -161,9 +161,9 @@ namespace XrEngine.OpenGL
 
         protected void ApplyFilter(Distribution distribution, int mipLevel, uint envTexId, uint lutTexId)
         {
-            var currentTextureSize = Resolution >> mipLevel;
+            uint currentTextureSize = Resolution >> mipLevel;
 
-            var roughness = (mipLevel) / (MipLevelCount - 1f);
+            float roughness = (mipLevel) / (MipLevelCount - 1f);
 
             _filterProg!.SetUniform("uRoughness", (float)roughness);
             _filterProg.SetUniform("uCurrentMipLevel", mipLevel);
@@ -201,8 +201,8 @@ namespace XrEngine.OpenGL
             }
 
 
-            var buf = new Vector2[sampleCount];
-            for (var i = 0; i < sampleCount; i++)
+            Vector2[] buf = new Vector2[sampleCount];
+            for (int i = 0; i < sampleCount; i++)
                 buf[i] = new Vector2(i / (float)sampleCount, radicalInverse_VdC((uint)i));
 
             return buf;
@@ -210,7 +210,7 @@ namespace XrEngine.OpenGL
 
         protected GlTexture LoadHdr(TextureData data)
         {
-            var res = new GlTexture(_gl)
+            GlTexture res = new GlTexture(_gl)
             {
                 MinFilter = TextureMinFilter.Linear,
                 MagFilter = TextureMagFilter.Linear,
@@ -236,7 +236,7 @@ namespace XrEngine.OpenGL
 
         protected unsafe uint CreateLutTexture()
         {
-            var targetTexture = _gl.GenTexture();
+            uint targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.Texture2D, targetTexture);
 
             _gl.TexStorage2D(
@@ -258,7 +258,7 @@ namespace XrEngine.OpenGL
 
         protected unsafe uint CreateCubeMap(bool withMipmaps)
         {
-            var targetTexture = _gl.GenTexture();
+            uint targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
 
 

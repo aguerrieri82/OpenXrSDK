@@ -30,10 +30,10 @@ namespace XrEngine.Audio
         {
             Debug.Assert(Loop?.Format != null);
 
-            var duration = Loop.Duration();
+            float duration = Loop.Duration();
 
-            var fadeStartSample = Loop.Format.TimeToSample(duration - FadeSize);
-            var fadeSizeSamples = Loop.Format.TimeToSample(FadeSize);
+            int fadeStartSample = Loop.Format.TimeToSample(duration - FadeSize);
+            int fadeSizeSamples = Loop.Format.TimeToSample(FadeSize);
 
             fixed (byte* pLoop = Loop.Buffer, pData = data, pNext = _nextBuffer)
             {
@@ -41,21 +41,21 @@ namespace XrEngine.Audio
                 short* sData = (short*)pData;
                 short* sNext = (short*)pNext;
 
-                var count = data.Length / 2;
+                int count = data.Length / 2;
 
-                var l = _lastSample;
+                int l = _lastSample;
 
 
-                for (var i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     if (l >= fadeStartSample)
                     {
                         if (l == fadeStartSample)
                             LoadNextBuffer();
 
-                        var fadeSample = (l - fadeStartSample);
-                        var fadeFactor = fadeSample / (float)fadeSizeSamples;
-                        var mixWith = sNext != null ? sNext[fadeSample] : sLoop[fadeSample];
+                        int fadeSample = (l - fadeStartSample);
+                        float fadeFactor = fadeSample / (float)fadeSizeSamples;
+                        short mixWith = sNext != null ? sNext[fadeSample] : sLoop[fadeSample];
                         sData[i] = (short)((sLoop[l] * (1 - fadeFactor)) + (mixWith * fadeFactor));
                     }
                     else

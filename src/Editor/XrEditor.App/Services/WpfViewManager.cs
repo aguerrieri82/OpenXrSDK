@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Reflection;
+using System.Windows;
 using XrEngine;
 
 namespace XrEditor.Services
@@ -7,9 +8,9 @@ namespace XrEditor.Services
     {
         public void AddView<T>(string path) where T : IModule
         {
-            var assembly = typeof(T).Assembly;
-            var name = assembly.GetName().Name;
-            var resId = $"/{name};component/{path}";
+            Assembly assembly = typeof(T).Assembly;
+            string? name = assembly.GetName().Name;
+            string resId = $"/{name};component/{path}";
             Resources.Add((ResourceDictionary)Application.LoadComponent(new Uri(resId, UriKind.Relative)));
         }
 

@@ -39,7 +39,7 @@ namespace XrEditor
         {
             Context.Implement<IUserInteraction>(this);
 
-            var surface = ((IRenderSurfaceProvider)XrPlatform.Current!).CreateRenderSurface(driver);
+            IRenderSurface surface = ((IRenderSurfaceProvider)XrPlatform.Current!).CreateRenderSurface(driver);
 
             Context.Implement(surface);
 
@@ -55,13 +55,13 @@ namespace XrEditor
 
             Log = new LogPanel();
 
-            var pm = Context.Require<PanelManager>();
+            PanelManager pm = Context.Require<PanelManager>();
 
             Plotter = pm.Panel(Guid.Parse("cf183da2-a88f-499c-bea4-b286644d4e78"))!;
 
-            var draw = pm.Panel(Guid.Parse("58cd65ac-f832-4cad-84ae-4bfcb3375c77"))!;
+            IPanel draw = pm.Panel(Guid.Parse("58cd65ac-f832-4cad-84ae-4bfcb3375c77"))!;
 
-            var loopEditor = pm.Panel(Guid.Parse("c219f3ab-392d-49f6-8afc-df69d2c6d283"))!;
+            IPanel loopEditor = pm.Panel(Guid.Parse("c219f3ab-392d-49f6-8afc-df69d2c6d283"))!;
 
             Content = new SplitView
             {
@@ -91,14 +91,14 @@ namespace XrEditor
         {
             Context.Require<IMainDispatcher>().ExecuteAsync(async () =>
             {
-                var color = type switch
+                string color = type switch
                 {
                     MessageType.Error => "red",
                     MessageType.Info => "blue",
                     _ => throw new NotSupportedException()
                 };
 
-                var msg = new MessageView(this, message, color);
+                MessageView msg = new MessageView(this, message, color);
 
                 Messages.Add(msg);
 
@@ -126,9 +126,9 @@ namespace XrEditor
 
         public void SaveState()
         {
-            var container = new JsonStateContainer();
+            JsonStateContainer container = new JsonStateContainer();
             GetState(container);
-            var json = container.AsJson();
+            string json = container.AsJson();
             File.WriteAllText("layout.json", json);
         }
 
@@ -136,8 +136,8 @@ namespace XrEditor
         {
             if (!File.Exists("layout.json"))
                 return;
-            var json = File.ReadAllText("layout.json");
-            var container = new JsonStateContainer(json);
+            string json = File.ReadAllText("layout.json");
+            JsonStateContainer container = new JsonStateContainer(json);
             SetState(container);
         }
 

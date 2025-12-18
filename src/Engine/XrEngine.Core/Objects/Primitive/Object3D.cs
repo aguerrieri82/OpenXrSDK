@@ -70,7 +70,7 @@ namespace XrEngine
 
         bool IsNotifyChangedScene()
         {
-            var curItem = this;
+            Object3D? curItem = this;
 
             while (curItem != null)
             {
@@ -181,16 +181,16 @@ namespace XrEngine
 
         internal void SetParent(Group3D? value, bool preserveTransform)
         {
-            var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
+            ObjectChangeType changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
 
-            var curWorldMatrix = WorldMatrix;
+            Matrix4x4 curWorldMatrix = WorldMatrix;
 
             _parent = value;
 
             if (_scene == null && value != null)
                 changeType |= ObjectChangeType.SceneAdd;
 
-            var oldScene = _scene;
+            Scene3D? oldScene = _scene;
 
             _scene = _parent == null ? null : this.FindAncestor<Scene3D>();
 

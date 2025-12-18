@@ -21,9 +21,9 @@ namespace XrEngine
 
         public static SKBitmap ApplyGaussianBlur(SKBitmap bitmap, float radius)
         {
-            using var surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
+            using SKSurface surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
 
-            using var paint = new SKPaint
+            using SKPaint paint = new SKPaint
             {
                 ImageFilter = SKImageFilter.CreateBlur(radius, radius),
             };
@@ -42,15 +42,15 @@ namespace XrEngine
 
         public static Texture2D MergeMetalRaugh(TextureData metal, TextureData roughness)
         {
-            var mrImage = MemoryBuffer.Create<byte>(metal.Width * metal.Height * 4);
+            IMemoryBuffer<byte> mrImage = MemoryBuffer.Create<byte>(metal.Width * metal.Height * 4);
 
-            using var pMetal = metal.Data!.MemoryLock();
-            using var pRough = roughness.Data!.MemoryLock();
-            using var pDst = mrImage.MemoryLock();
+            using MemoryLock<byte> pMetal = metal.Data!.MemoryLock();
+            using MemoryLock<byte> pRough = roughness.Data!.MemoryLock();
+            using MemoryLock<byte> pDst = mrImage.MemoryLock();
             EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width * GetPixelSizeByte(metal.Format), metal.Width * 4, 0, 2, 1);
             EngineNativeLib.ImageCopyChannel(pRough, pDst, roughness.Width, roughness.Height, roughness.Width * GetPixelSizeByte(roughness.Format), metal.Width * 4, 0, 1, 1);
 
-            var tex = new Texture2D
+            Texture2D tex = new Texture2D
             {
                 MipLevelCount = 20,
                 MinFilter = ScaleFilter.LinearMipmapLinear
@@ -68,10 +68,10 @@ namespace XrEngine
 
         public static Texture2D MergeMetalRaugh(Texture2D roughness)
         {
-            var metalData = MemoryBuffer.Create<byte>(roughness.Width * roughness.Height * 1);
+            IMemoryBuffer<byte> metalData = MemoryBuffer.Create<byte>(roughness.Width * roughness.Height * 1);
             metalData.AsSpan().Fill(255);
 
-            var texData = new TextureData
+            TextureData texData = new TextureData
             {
                 Data = metalData,
                 Width = roughness.Width,
@@ -125,9 +125,9 @@ namespace XrEngine
             if (data.Height == 0 || data.Width == 0)
                 return null;
 
-            var pixelSize = GetPixelSizeByte(data.Format);
+            uint pixelSize = GetPixelSizeByte(data.Format);
 
-            var image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), SKAlphaType.Opaque);
+            SKBitmap image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), SKAlphaType.Opaque);
 
             Debug.Assert(data.Data != null);
 
@@ -135,16 +135,16 @@ namespace XrEngine
 
             if (flipY)
             {
-                var dst = MemoryBuffer.Create<byte>(data.Height * data.Width * pixelSize);
+                IMemoryBuffer<byte> dst = MemoryBuffer.Create<byte>(data.Height * data.Width * pixelSize);
 
-                using var pData = data.Data.MemoryLock();
-                using var pDst = dst.MemoryLock();
+                using MemoryLock<byte> pData = data.Data.MemoryLock();
+                using MemoryLock<byte> pDst = dst.MemoryLock();
                 EngineNativeLib.ImageFlipY(pData, pDst, data.Width, data.Height, data.Width * pixelSize);
                 image.SetPixels(pDst);
             }
             else
             {
-                using var pData = data.Data.MemoryLock();
+                using MemoryLock<byte> pData = data.Data.MemoryLock();
                 image.SetPixels(pData);
             }
 
@@ -157,23 +157,23 @@ namespace XrEngine
             int length = (int)data.Size / 2;
             int vectorSize = Vector128<short>.Count;
 
-            var result = MemoryBuffer.Create<byte>((uint)length * sizeof(float));
+            IMemoryBuffer<byte> result = MemoryBuffer.Create<byte>((uint)length * sizeof(float));
 
-            using var src = data.MemoryLock();
-            using var dst = result.MemoryLock();
+            using MemoryLock<byte> src = data.MemoryLock();
+            using MemoryLock<byte> dst = result.MemoryLock();
 
-            var dstFloat = (float*)dst.Data;
-            var srcShort = (short*)src.Data;
+            float* dstFloat = (float*)dst.Data;
+            short* srcShort = (short*)src.Data;
 
             if (Avx2.IsSupported)
             {
                 for (; i <= length - vectorSize; i += vectorSize)
                 {
-                    var shortVector = Unsafe.Read<Vector128<short>>(srcShort + i);
+                    Vector128<short> shortVector = Unsafe.Read<Vector128<short>>(srcShort + i);
 
-                    var intVector = Avx2.ConvertToVector256Int32(shortVector);
+                    Vector256<int> intVector = Avx2.ConvertToVector256Int32(shortVector);
 
-                    var floatVector = Avx2.ConvertToVector256Single(intVector);
+                    Vector256<float> floatVector = Avx2.ConvertToVector256Single(intVector);
 
                     floatVector.Store(dstFloat + i);
                 }
@@ -194,15 +194,15 @@ namespace XrEngine
                 return src;
             */
 
-            var newInfo = new SKImageInfo(src.Info.Width, src.Info.Height, dest, SKAlphaType.Unpremul, src.Info.ColorSpace);
+            SKImageInfo newInfo = new SKImageInfo(src.Info.Width, src.Info.Height, dest, SKAlphaType.Unpremul, src.Info.ColorSpace);
 
-            var newBitmap = new SKBitmap(newInfo);
+            SKBitmap newBitmap = new SKBitmap(newInfo);
 
-            using var canvas = new SKCanvas(newBitmap);
+            using SKCanvas canvas = new SKCanvas(newBitmap);
 
             canvas.Clear(new SKColor(1, 1, 1, 1));
 
-            using var paint = new SKPaint();
+            using SKPaint paint = new SKPaint();
             paint.BlendMode = SKBlendMode.DstOver;
 
             canvas.DrawBitmap(src, 0, 0, paint);

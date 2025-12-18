@@ -72,11 +72,11 @@ namespace Sfizz
             int i = 0;
             int line = 0;
             int col = 0;
-            var curText = new StringBuilder();
+            StringBuilder curText = new StringBuilder();
 
             Token CreateToken(TokenType type)
             {
-                var result = new Token
+                Token result = new Token
                 {
                     Value = curText.ToString(),
                     Line = line,
@@ -91,7 +91,7 @@ namespace Sfizz
 
             while (i <= data.Length)
             {
-                var c = i == data.Length ? (char)0 : data[i];
+                char c = i == data.Length ? (char)0 : data[i];
 
                 if (c == '\r')
                 {
@@ -305,7 +305,7 @@ namespace Sfizz
         public long SamplesSize()
         {
             long result = 0;
-            foreach (var sample in _samples)
+            foreach (string sample in _samples)
                 result += new FileInfo(sample).Length;
             return result;
         }
@@ -316,13 +316,13 @@ namespace Sfizz
                 return string.Empty;
 
             // Split all paths into directory segments
-            var splitPaths = paths.Select(path => Path.GetFullPath(path)
+            string[][] splitPaths = paths.Select(path => Path.GetFullPath(path)
                                                        .TrimEnd(Path.DirectorySeparatorChar)
                                                        .Split(Path.DirectorySeparatorChar))
                                   .ToArray();
 
             // Find the common segments
-            var commonSegments = splitPaths
+            string[] commonSegments = splitPaths
                 .Aggregate((previous, current) => previous.Zip(current, (prev, curr) => prev == curr ? prev : null)
                                                           .TakeWhile(segment => segment != null)
                                                           .Cast<string>()
@@ -336,13 +336,13 @@ namespace Sfizz
 
         public void CopyTo(string destPath)
         {
-            var files = _includes.Keys.Concat(_samples).Distinct();
+            IEnumerable<string> files = _includes.Keys.Concat(_samples).Distinct();
 
-            var basePath = FindCommonBasePath(files);
-            foreach (var file in files)
+            string basePath = FindCommonBasePath(files);
+            foreach (string? file in files)
             {
-                var relPath = file.Substring(basePath.Length);
-                var newPath = Path.Join(destPath, relPath);
+                string relPath = file.Substring(basePath.Length);
+                string newPath = Path.Join(destPath, relPath);
                 Directory.CreateDirectory(Path.GetDirectoryName(newPath)!);
                 File.Copy(file, newPath, true);
             }
@@ -351,7 +351,7 @@ namespace Sfizz
 
         public void Parse(string fileName)
         {
-            var fullPath = Path.GetFullPath(fileName);
+            string fullPath = Path.GetFullPath(fileName);
 
             if (_basePath == null)
             {
@@ -360,7 +360,7 @@ namespace Sfizz
             }
 
 
-            if (!_includes.TryGetValue(fullPath, out var tokens))
+            if (!_includes.TryGetValue(fullPath, out Token[]? tokens))
             {
                 tokens = Tokenize(File.ReadAllText(fileName), fileName).ToArray();
                 _includes[fileName] = tokens;
@@ -374,7 +374,7 @@ namespace Sfizz
                 {
                     while (i < tokens.Length)
                     {
-                        var curToken = tokens[i++];
+                        Token curToken = tokens[i++];
                         if (curToken.Type != TokenType.Whitespace && curToken.Type != TokenType.Comment)
                             return curToken;
                     }
@@ -388,15 +388,15 @@ namespace Sfizz
 
             string ReadValueUntil(Func<Token, bool> cond)
             {
-                var result = new StringBuilder();
+                StringBuilder result = new StringBuilder();
 
                 while (true)
                 {
-                    var token = tokens[i];
+                    Token token = tokens[i];
 
                     if (token.Type == TokenType.Var)
                     {
-                        if (!_defines.TryGetValue(token.Value!, out var value))
+                        if (!_defines.TryGetValue(token.Value!, out string? value))
                         {
                             _logger.LogWarning("Undefined var {var}", token.Value);
                             value = token.Value;
@@ -421,7 +421,7 @@ namespace Sfizz
 
             while (i < tokens.Length)
             {
-                var token = NextToken();
+                Token token = NextToken();
 
                 if (token == null)
                     break;
@@ -430,19 +430,19 @@ namespace Sfizz
                 {
                     if (token.Value == "define")
                     {
-                        var name = NextToken();
+                        Token name = NextToken();
 
                         if (name.Type != TokenType.Var)
                             throw new Exception("Expected var");
 
-                        var value = ReadValueUntil(a => a.Type == TokenType.Whitespace).Trim();
+                        string value = ReadValueUntil(a => a.Type == TokenType.Whitespace).Trim();
                         _defines[name.Value!] = value;
 
                     }
                     else if (token.Value == "include")
                     {
-                        var name = NextToken();
-                        var incPath = FullPath(name.Value!);
+                        Token name = NextToken();
+                        string incPath = FullPath(name.Value!);
                         Parse(incPath);
                     }
                     else
@@ -465,14 +465,14 @@ namespace Sfizz
 
                     i--;
 
-                    var name = ReadValueUntil(a => a.Type != TokenType.Identifier && a.Type != TokenType.Var).Trim();
+                    string name = ReadValueUntil(a => a.Type != TokenType.Identifier && a.Type != TokenType.Var).Trim();
 
-                    var op = NextToken();
+                    Token op = NextToken();
 
                     if (op.Value != "=")
                         throw new Exception("Expected '='");
 
-                    var value = ReadValueUntil(a => a.Type == TokenType.Whitespace);
+                    string value = ReadValueUntil(a => a.Type == TokenType.Whitespace);
 
                     _curSection.Properties[name] = value;
 

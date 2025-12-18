@@ -21,7 +21,7 @@ namespace XrEngine
 
         public void Build()
         {
-            var vertices = new List<VertexData>();
+            List<VertexData> vertices = new List<VertexData>();
 
             for (int lat = 0; lat <= Subs; lat++)
             {
@@ -39,7 +39,7 @@ namespace XrEngine
                     float y = cosTheta;
                     float z = sinTheta * sinPhi;
 
-                    var tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
+                    Vector3 tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
 
                     vertices.Add(new VertexData
                     {
@@ -51,7 +51,7 @@ namespace XrEngine
                 }
             }
 
-            var indices = new List<uint>();
+            List<uint> indices = new List<uint>();
 
             for (uint lat = 0; lat < Subs; lat++)
             {

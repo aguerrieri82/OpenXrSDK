@@ -127,7 +127,7 @@ namespace XrEngine
 
         public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, BufferStore store) where T : struct
         {
-            IBuffer<T>? buffer = null;  
+            IBuffer<T>? buffer = null;
 
             _result.BufferUpdates!.Add((ctx) =>
             {
@@ -135,7 +135,7 @@ namespace XrEngine
 
                 ctx.CurrentBuffer = buffer;
 
-                var curValue = value(ctx);
+                T? curValue = value(ctx);
 
                 if (curValue != null)
                     buffer.Update(curValue.Value);
@@ -207,17 +207,17 @@ namespace XrEngine
 
         public readonly void SetUniformConstStruct(string name, object obj, bool optional = false)
         {
-            foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
+            foreach (FieldInfo field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
             {
-                var fullName = $"{name}.{field.Name}";
+                string fullName = $"{name}.{field.Name}";
                 SetUniformConst(fullName, () => field.GetValue(obj)!, field.FieldType, optional);
             }
         }
 
         public readonly void SetUniformConstStructArray(string name, ICollection collection, bool optional = false)
         {
-            var i = 0;
-            foreach (var item in collection)
+            int i = 0;
+            foreach (object? item in collection)
             {
                 SetUniformConstStruct($"{name}[{i}]", item, optional);
                 i++;
@@ -254,10 +254,10 @@ namespace XrEngine
 
                 else if (typeof(ICollection).IsAssignableFrom(objType))
                 {
-                    var gen = objType.GetInterfaces()
+                    Type gen = objType.GetInterfaces()
                             .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(ICollection<>));
 
-                    var elType = gen.GetGenericArguments()[0];
+                    Type elType = gen.GetGenericArguments()[0];
 
                     if (elType.IsValueType && !elType.IsEnum && !elType.IsPrimitive)
                         SetUniformConstStructArray(name, (ICollection)getValue(), optional);

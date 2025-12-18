@@ -70,7 +70,7 @@ namespace XrEngine.OpenGL
 
             if (depth != null)
             {
-                var attachment = GlUtils.IsDepthStencil(depth.InternalFormat) ?
+                FramebufferAttachment attachment = GlUtils.IsDepthStencil(depth.InternalFormat) ?
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
@@ -83,7 +83,7 @@ namespace XrEngine.OpenGL
                         0,
                         (int)depthIndex);
 
-                    _isDirty = true; 
+                    _isDirty = true;
                 }
                 else
                     BindAttachment(depth, attachment, false);
@@ -109,7 +109,7 @@ namespace XrEngine.OpenGL
 
             if (Depth != null)
             {
-                var attachment = GlUtils.IsDepthStencil(Depth.InternalFormat) ?
+                FramebufferAttachment attachment = GlUtils.IsDepthStencil(Depth.InternalFormat) ?
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
                 BindAttachment(Depth, attachment, false);
@@ -167,7 +167,7 @@ namespace XrEngine.OpenGL
             if (useDraw)
                 _drawBuffers.Add((DrawBufferMode)slot);
 
-            _isDirty = true; 
+            _isDirty = true;
         }
 
         public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
@@ -175,9 +175,9 @@ namespace XrEngine.OpenGL
             if (Color == null)
                 throw new NotSupportedException();
 
-            if (!_attachments.TryGetValue(slot, out var obj))
+            if (!_attachments.TryGetValue(slot, out IGlRenderAttachment? obj))
             {
-                var glTex = Color.Clone(false);
+                GlTexture glTex = Color.Clone(false);
                 glTex.MaxLevel = 0;
 
                 Bind();
@@ -196,7 +196,7 @@ namespace XrEngine.OpenGL
 
             if (attachment == FramebufferAttachment.ColorAttachment0 || Depth is GlTexture)
             {
-                var target = attachment == FramebufferAttachment.ColorAttachment0 ? Color!.Target : ((GlTexture)Depth!).Target;
+                TextureTarget target = attachment == FramebufferAttachment.ColorAttachment0 ? Color!.Target : ((GlTexture)Depth!).Target;
 
                 _gl.FramebufferTexture2D(
                         Target,
@@ -207,7 +207,7 @@ namespace XrEngine.OpenGL
             else
                 throw new NotSupportedException();
 
-            var status = _gl.CheckFramebufferStatus(Target);
+            GLEnum status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -217,8 +217,8 @@ namespace XrEngine.OpenGL
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
-            var color = colorTex == 0 ? null : GlTexture.Attach(_gl, colorTex);
-            var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex);
+            GlTexture? color = colorTex == 0 ? null : GlTexture.Attach(_gl, colorTex);
+            GlTexture? depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex);
 
             Configure(color, depth, sampleCount);
         }
@@ -240,7 +240,7 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
-            using var pData = data.Data.MemoryLock();
+            using MemoryLock<byte> pData = data.Data.MemoryLock();
 
             _gl.ReadPixels(0, 0, Color!.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
 
@@ -249,7 +249,7 @@ namespace XrEngine.OpenGL
 
         public unsafe TextureData ReadColor()
         {
-            var data = new TextureData();
+            TextureData data = new TextureData();
 
             ReadColor(data);
 
@@ -277,8 +277,8 @@ namespace XrEngine.OpenGL
                 dst.SetDrawBuffers(DrawBufferMode.ColorAttachment0);
             }
 
-            var srcTex = mask == ClearBufferMask.ColorBufferBit ? Color : Depth;
-            var dstTex = mask == ClearBufferMask.ColorBufferBit ? dst.Color : dst.Depth;
+            IGlRenderAttachment? srcTex = mask == ClearBufferMask.ColorBufferBit ? Color : Depth;
+            IGlRenderAttachment? dstTex = mask == ClearBufferMask.ColorBufferBit ? dst.Color : dst.Depth;
 
             _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
         }

@@ -48,10 +48,10 @@ namespace XrEngine.OpenGL
             DrawBuffers = null;
             VertexArray = null;
 
-            for (var i = 0; i < TexturesSlots.Length; i++)
+            for (int i = 0; i < TexturesSlots.Length; i++)
                 TexturesSlots[i] = 0;
 
-            for (var i = 0; i < BufferSlots.Length; i++)
+            for (int i = 0; i < BufferSlots.Length; i++)
                 BufferSlots[i] = 0;
         }
 
@@ -102,13 +102,13 @@ namespace XrEngine.OpenGL
             if (VertexArray.HasValue)
                 BindVertexArray(VertexArray.Value, true);
 
-            foreach (var feature in Features)
+            foreach (KeyValuePair<EnableCap, bool> feature in Features)
                 EnableFeature(feature.Key, feature.Value, true);
 
-            foreach (var fb in FrameBufferTargets)
+            foreach (KeyValuePair<FramebufferTarget, uint> fb in FrameBufferTargets)
                 BindFrameBuffer(fb.Key, fb.Value, true);
 
-            foreach (var fb in BufferTargets)
+            foreach (KeyValuePair<BufferTargetARB, uint> fb in BufferTargets)
                 BindBuffer(fb.Key, fb.Value, true);
 
 
@@ -187,7 +187,7 @@ namespace XrEngine.OpenGL
         {
             ActiveTexture ??= (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
 
-            var curSlotValue = TexturesSlots[ActiveTexture.Value];
+            uint curSlotValue = TexturesSlots[ActiveTexture.Value];
 
             if (curSlotValue == texId && !force)
                 return;
@@ -208,7 +208,7 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
-            var curSlotValue = TexturesSlots[slot];
+            uint curSlotValue = TexturesSlots[slot];
 
             if (curSlotValue == texId && !force)
                 return;
@@ -226,7 +226,7 @@ namespace XrEngine.OpenGL
 
         public void EnableFeature(EnableCap cap, bool value, bool force = false)
         {
-            if (Features.TryGetValue(cap, out var enabled) && enabled == value && !force)
+            if (Features.TryGetValue(cap, out bool enabled) && enabled == value && !force)
                 return;
 
             if (value)
@@ -362,7 +362,7 @@ namespace XrEngine.OpenGL
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
 
-            if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
+            if (!FrameBufferTargets.TryGetValue(target, out uint cur) || cur != value || force)
             {
                 FrameBufferTargets[target] = value;
 
@@ -372,7 +372,7 @@ namespace XrEngine.OpenGL
                     FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
                     FrameBufferTargets[FramebufferTarget.DrawFramebuffer] = value;
                 }
-                else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue != value)
+                else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out uint curValue) && curValue != value)
                     FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
 
 
@@ -382,7 +382,7 @@ namespace XrEngine.OpenGL
 
         public void BindBuffer(BufferTargetARB target, uint value, bool force = false)
         {
-            if (!BufferTargets.TryGetValue(target, out var cur) || cur != value || force)
+            if (!BufferTargets.TryGetValue(target, out uint cur) || cur != value || force)
             {
                 BufferTargets[target] = value;
 
@@ -437,7 +437,7 @@ namespace XrEngine.OpenGL
 
         internal void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
         {
-            var curSlotValue = BufferSlots[slot];
+            uint curSlotValue = BufferSlots[slot];
 
             if (curSlotValue == buffer.Handle && !force)
                 return;
@@ -450,7 +450,7 @@ namespace XrEngine.OpenGL
 
         public void ResetTextures()
         {
-            for (var i = 0; i < TexturesSlots.Length; i++)
+            for (int i = 0; i < TexturesSlots.Length; i++)
                 TexturesSlots[i] = 0;
 
             ActiveTexture = null;

@@ -19,7 +19,7 @@ namespace XrEngine
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
         {
-            var result = new AlignSize();
+            AlignSize result = new AlignSize();
 
             if (comp == TextureCompressionFormat.Etc2)
             {
@@ -79,20 +79,20 @@ namespace XrEngine
 
         protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format)
         {
-            var padding = GetFormatAlign(comp, format);
+            AlignSize padding = GetFormatAlign(comp, format);
 
             static uint Align(uint value, uint align)
             {
                 return (uint)MathF.Ceiling(value / (float)align) * align;
             }
 
-            var results = new List<TextureData>();
+            List<TextureData> results = new List<TextureData>();
 
-            for (var mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
-                for (var face = 0; face < faceCount; face++)
+                for (int face = 0; face < faceCount; face++)
                 {
-                    var item = new TextureData
+                    TextureData item = new TextureData
                     {
                         Width = (uint)MathF.Max(1, width >> mipLevel),
                         Height = (uint)MathF.Max(1, height >> mipLevel),
@@ -102,7 +102,7 @@ namespace XrEngine
                         Compression = comp,
                     };
 
-                    var size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
+                    uint size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
 
                     item.Data = MemoryBuffer.Create<byte>(size);
 
@@ -120,11 +120,11 @@ namespace XrEngine
         {
             Log.Info(this, "Begin load texture '{0}'", uri);
 
-            var fsPath = GetFilePath(uri);
-            using var file = File.OpenRead(fsPath);
-            var data = LoadTexture(file, (TextureLoadOptions?)options);
+            string fsPath = GetFilePath(uri);
+            using FileStream file = File.OpenRead(fsPath);
+            IList<TextureData> data = LoadTexture(file, (TextureLoadOptions?)options);
 
-            var result = (Texture?)dstObj;
+            Texture? result = (Texture?)dstObj;
 
             result ??= (Texture)Activator.CreateInstance(resType)!;
 

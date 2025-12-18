@@ -9,11 +9,11 @@
             if (!container.Contains(key))
                 return default;
 
-            var id = container.Read<ObjectId>(key);
+            ObjectId id = container.Read<ObjectId>(key);
 
-            var refTable = container.Context.RefTable;
+            RefTable refTable = container.Context.RefTable;
 
-            if (!refTable.Resolved.TryGetValue(id, out var result))
+            if (!refTable.Resolved.TryGetValue(id, out object? result))
             {
                 if (destObj == null)
                     result = refTable.Container!.CreateTypedObject<IStateObject>(id.ToString())!;
@@ -36,8 +36,8 @@
 
             value.EnsureId();
 
-            var refTable = container.Context.RefTable;
-            var idKey = value.Id.ToString();
+            RefTable refTable = container.Context.RefTable;
+            string idKey = value.Id.ToString();
 
             if (!refTable.Container!.Contains(idKey))
                 refTable.Container!.WriteTypedObject(idKey, value);

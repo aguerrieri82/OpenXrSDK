@@ -87,7 +87,7 @@ namespace XrEngine.OpenGL
 
         public static GlRenderBuffer Attach(GL gl, uint handle, RenderbufferTarget target = RenderbufferTarget.Renderbuffer)
         {
-            if (!_attached.TryGetValue(handle, out var texture))
+            if (!_attached.TryGetValue(handle, out GlRenderBuffer? texture))
                 texture = new GlRenderBuffer(gl, handle, target);
             return texture;
         }

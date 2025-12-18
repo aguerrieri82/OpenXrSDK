@@ -119,7 +119,7 @@ namespace OpenXr.Framework
 
                     LayersInvoke(a => a.Initialize(this, _extensions));
 
-                    var supportedExtensions = GetSupportedExtensions();
+                    IList<string> supportedExtensions = GetSupportedExtensions();
 
                     for (int i = 0; i < _extensions.Count; i++)
                     {
@@ -193,7 +193,7 @@ namespace OpenXr.Framework
 
             CreateActions();
 
-            foreach (var hand in _hands)
+            foreach (KeyValuePair<HandEXT, XrHandInput> hand in _hands)
                 hand.Value.Initialize(hand.Key);
 
             if (mode == XrAppStartMode.Render)
@@ -212,10 +212,10 @@ namespace OpenXr.Framework
 
         protected void DestroyInstance()
         {
-            foreach (var haptic in _haptics)
+            foreach (KeyValuePair<string, XrHaptic> haptic in _haptics)
                 haptic.Value.Destroy();
 
-            foreach (var input in _inputs)
+            foreach (KeyValuePair<string, IXrInput> input in _inputs)
                 input.Value.Destroy();
 
             /*
@@ -276,12 +276,12 @@ namespace OpenXr.Framework
             uint propCount = 0;
             CheckResult(_xr!.EnumerateInstanceExtensionProperties((byte*)null, 0, &propCount, null), "EnumerateInstanceExtensionProperties");
 
-            var props = CreateStructArray<ExtensionProperties>((int)propCount, StructureType.ExtensionProperties);
+            ExtensionProperties[] props = CreateStructArray<ExtensionProperties>((int)propCount, StructureType.ExtensionProperties);
 
             fixed (ExtensionProperties* pProps = props)
                 CheckResult(_xr.EnumerateInstanceExtensionProperties((byte*)null, propCount, ref propCount, pProps), "EnumerateInstanceExtensionProperties");
 
-            var result = new List<string>();
+            List<string> result = new List<string>();
             for (int i = 0; i < props.Length; i++)
             {
                 fixed (void* pExtName = props[i].ExtensionName)
@@ -293,7 +293,7 @@ namespace OpenXr.Framework
 
         protected InstanceProperties GetInstanceProperties()
         {
-            var props = new InstanceProperties(StructureType.InstanceProperties);
+            InstanceProperties props = new InstanceProperties(StructureType.InstanceProperties);
 
             CheckResult(_xr!.GetInstanceProperties(_instance, ref props), "GetInstanceProperties");
 
@@ -303,20 +303,20 @@ namespace OpenXr.Framework
 
         protected Instance CreateInstance(string appName, string engineName, IList<string> extensions)
         {
-            var appInfo = new ApplicationInfo()
+            ApplicationInfo appInfo = new ApplicationInfo()
             {
                 ApiVersion = new Version64(1, 0, 30)
             };
 
-            var appNameSpan = new Span<byte>(appInfo.ApplicationName, 128);
-            var engNameSpan = new Span<byte>(appInfo.EngineName, 128);
+            Span<byte> appNameSpan = new Span<byte>(appInfo.ApplicationName, 128);
+            Span<byte> engNameSpan = new Span<byte>(appInfo.EngineName, 128);
 
             SilkMarshal.StringIntoSpan(appName, appNameSpan);
             SilkMarshal.StringIntoSpan(engineName, engNameSpan);
 
-            var requestedExtensions = SilkMarshal.StringArrayToPtr(extensions.ToArray());
+            nint requestedExtensions = SilkMarshal.StringArrayToPtr(extensions.ToArray());
 
-            var instanceCreateInfo = new InstanceCreateInfo
+            InstanceCreateInfo instanceCreateInfo = new InstanceCreateInfo
             (
                 applicationInfo: appInfo,
                 enabledExtensionCount: (uint)extensions.Count,
@@ -330,7 +330,7 @@ namespace OpenXr.Framework
 
         protected ulong GetSystemId(FormFactor formFactor = FormFactor.HeadMountedDisplay)
         {
-            var getInfo = new SystemGetInfo(formFactor: formFactor);
+            SystemGetInfo getInfo = new SystemGetInfo(formFactor: formFactor);
 
             CheckResult(_xr!.GetSystem(_instance, in getInfo, ref _systemId), "GetSystem");
 
@@ -341,7 +341,7 @@ namespace OpenXr.Framework
         {
             fixed (T* pProps = &other)
             {
-                var result = new SystemProperties
+                SystemProperties result = new SystemProperties
                 {
                     Type = StructureType.SystemProperties,
                     Next = pProps
@@ -353,7 +353,7 @@ namespace OpenXr.Framework
 
         protected SystemProperties GetSystemProperties()
         {
-            var result = new SystemProperties
+            SystemProperties result = new SystemProperties
             {
                 Type = StructureType.SystemProperties
             };
@@ -370,18 +370,18 @@ namespace OpenXr.Framework
         [MemberNotNull(nameof(_viewInfo))]
         protected void CollectAndSelectView()
         {
-            var views = new List<XrViewInfo>();
+            List<XrViewInfo> views = new List<XrViewInfo>();
 
-            var swapchainFormats = EnumerateSwapchainFormats();
+            long[] swapchainFormats = EnumerateSwapchainFormats();
 
-            foreach (var type in EnumerateViewConfiguration())
+            foreach (ViewConfigurationType type in EnumerateViewConfiguration())
             {
-                var props = GetViewConfigurationProperties(type);
+                ViewConfigurationProperties props = GetViewConfigurationProperties(type);
 
-                var blendModes = EnumerateBlendModes(type);
+                EnvironmentBlendMode[] blendModes = EnumerateBlendModes(type);
 
-                var viewsConfig = EnumerateViewConfigurationView(type);
-                var view = viewsConfig.First();
+                ViewConfigurationView[] viewsConfig = EnumerateViewConfigurationView(type);
+                ViewConfigurationView view = viewsConfig.First();
 
                 views.Add(new XrViewInfo
                 {
@@ -414,7 +414,7 @@ namespace OpenXr.Framework
             uint count = 0;
             CheckResult(_xr!.EnumerateEnvironmentBlendModes(Instance, _systemId, type, ref count, null), "EnumerateEnvironmentBlendModes");
 
-            var result = new EnvironmentBlendMode[count];
+            EnvironmentBlendMode[] result = new EnvironmentBlendMode[count];
 
             fixed (EnvironmentBlendMode* pResult = result)
                 CheckResult(_xr!.EnumerateEnvironmentBlendModes(Instance, _systemId, type, count, ref count, pResult), "EnumerateEnvironmentBlendModes");
@@ -424,7 +424,7 @@ namespace OpenXr.Framework
 
         protected ViewConfigurationProperties GetViewConfigurationProperties(ViewConfigurationType viewType)
         {
-            var result = new ViewConfigurationProperties()
+            ViewConfigurationProperties result = new ViewConfigurationProperties()
             {
                 Type = StructureType.ViewConfigurationProperties
             };
@@ -440,7 +440,7 @@ namespace OpenXr.Framework
 
             CheckResult(_xr!.EnumerateViewConfiguration(_instance, _systemId, 0, ref count, null), "EnumerateViewConfiguration");
 
-            var result = new ViewConfigurationType[count];
+            ViewConfigurationType[] result = new ViewConfigurationType[count];
 
             fixed (ViewConfigurationType* pResult = result)
                 CheckResult(_xr!.EnumerateViewConfiguration(_instance, _systemId, count, ref count, pResult), "EnumerateViewConfiguration");
@@ -469,7 +469,7 @@ namespace OpenXr.Framework
 
         protected Space CreateReferenceSpace(ReferenceSpaceType type, Posef pose)
         {
-            var refSpace = new ReferenceSpaceCreateInfo()
+            ReferenceSpaceCreateInfo refSpace = new ReferenceSpaceCreateInfo()
             {
                 Type = StructureType.ReferenceSpaceCreateInfo,
                 ReferenceSpaceType = type,
@@ -490,7 +490,7 @@ namespace OpenXr.Framework
         {
             Debug.Assert(_viewInfo != null);
 
-            var info = new ViewLocateInfo()
+            ViewLocateInfo info = new ViewLocateInfo()
             {
                 Type = StructureType.ViewLocateInfo,
                 Space = space,
@@ -498,7 +498,7 @@ namespace OpenXr.Framework
                 ViewConfigurationType = _viewInfo.Type
             };
 
-            var state = new ViewState()
+            ViewState state = new ViewState()
             {
                 Type = StructureType.ViewState
             };
@@ -515,10 +515,10 @@ namespace OpenXr.Framework
 
         public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
         {
-            var result = new SpaceLocation();
+            SpaceLocation result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
 
-            var vel = new SpaceVelocity();
+            SpaceVelocity vel = new SpaceVelocity();
             vel.Type = StructureType.SpaceVelocity;
 
             result.Next = &vel;
@@ -537,12 +537,12 @@ namespace OpenXr.Framework
         [Obsolete("Oculus throws access violation")]
         public unsafe XrSpaceLocation[] LocateSpaces(Space[] spaces, Space baseSpace, long time = 0)
         {
-            var locations = new SpaceLocationData[spaces.Length];
+            SpaceLocationData[] locations = new SpaceLocationData[spaces.Length];
 
             fixed (Space* pSpaces = spaces)
             fixed (SpaceLocationData* pLocations = locations)
             {
-                var result = new SpaceLocations
+                SpaceLocations result = new SpaceLocations
                 {
                     Type = StructureType.SpaceLocations,
                     Locations = pLocations,
@@ -550,7 +550,7 @@ namespace OpenXr.Framework
                     LocationCount = (uint)locations.Length
                 };
 
-                var info = new SpacesLocateInfo
+                SpacesLocateInfo info = new SpacesLocateInfo
                 {
                     Type = StructureType.SpacesLocateInfo,
                     BaseSpace = baseSpace,
@@ -595,7 +595,7 @@ namespace OpenXr.Framework
 
         protected void BeginSession(ViewConfigurationType viewType)
         {
-            var sessionBeginInfo = new SessionBeginInfo()
+            SessionBeginInfo sessionBeginInfo = new SessionBeginInfo()
             {
                 Type = StructureType.SessionBeginInfo,
                 PrimaryViewConfigurationType = viewType
@@ -621,11 +621,11 @@ namespace OpenXr.Framework
         {
             _systemProps = GetSystemProperties();
 
-            var graphic = _plugins.OfType<IXrGraphicDriver>().First();
+            IXrGraphicDriver graphic = _plugins.OfType<IXrGraphicDriver>().First();
 
-            var binding = graphic.CreateBinding();
+            GraphicsBinding binding = graphic.CreateBinding();
 
-            var sessionInfo = new SessionCreateInfo()
+            SessionCreateInfo sessionInfo = new SessionCreateInfo()
             {
                 Type = StructureType.SessionCreateInfo,
                 SystemId = _systemId,
@@ -684,7 +684,7 @@ namespace OpenXr.Framework
             uint count = 0;
             CheckResult(_xr!.EnumerateSwapchainFormats(Session, 0, ref count, null), "EnumerateSwapchainFormats");
 
-            var result = new long[count];
+            long[] result = new long[count];
 
             fixed (long* pResult = result)
                 CheckResult(_xr!.EnumerateSwapchainFormats(Session, count, ref count, pResult), "EnumerateSwapchainFormats");
@@ -698,10 +698,10 @@ namespace OpenXr.Framework
 
             CheckResult(_xr!.EnumerateSwapchainImages(swapchain, 0, ref count, null), "EnumerateSwapchainImages");
 
-            var imageType = Plugin<IXrGraphicDriver>().SwapChainImageType;
-            var images = new NativeArray<SwapchainImageBaseHeader>((int)count, imageType.Type!);
+            XrDynamicType imageType = Plugin<IXrGraphicDriver>().SwapChainImageType;
+            NativeArray<SwapchainImageBaseHeader> images = new NativeArray<SwapchainImageBaseHeader>((int)count, imageType.Type!);
 
-            for (var i = 0; i < images.Length; i++)
+            for (int i = 0; i < images.Length; i++)
             {
                 images.Item(i).Type = imageType.StructureType;
                 images.Item(i).Next = null;
@@ -714,7 +714,7 @@ namespace OpenXr.Framework
 
         public uint AcquireSwapchainImage(Swapchain swapchain)
         {
-            var acquireInfo = new SwapchainImageAcquireInfo()
+            SwapchainImageAcquireInfo acquireInfo = new SwapchainImageAcquireInfo()
             {
                 Type = StructureType.SwapchainImageAcquireInfo
             };
@@ -728,7 +728,7 @@ namespace OpenXr.Framework
 
         public void WaitSwapchainImage(Swapchain swapchain, long timeout = DurationInfinite)
         {
-            var info = new SwapchainImageWaitInfo()
+            SwapchainImageWaitInfo info = new SwapchainImageWaitInfo()
             {
                 Type = StructureType.SwapchainImageWaitInfo,
                 Timeout = timeout
@@ -740,7 +740,7 @@ namespace OpenXr.Framework
 
         public void ReleaseSwapchainImage(Swapchain swapchain)
         {
-            var info = new SwapchainImageReleaseInfo()
+            SwapchainImageReleaseInfo info = new SwapchainImageReleaseInfo()
             {
                 Type = StructureType.SwapchainImageReleaseInfo,
             };
@@ -753,23 +753,23 @@ namespace OpenXr.Framework
             if (_renderOptions == null)
                 throw new ArgumentNullException("renderOptions");
 
-            var size = _renderOptions.Size;
+            Extent2Di size = _renderOptions.Size;
 
             if (_renderOptions.RenderMode == XrRenderMode.Stereo)
                 size.Width *= 2;
 
-            var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
+            uint arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
 
-            var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
+            long format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
 
-            var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);/* | SwapchainUsageFlags.SampledBit;*/
+            SwapchainUsageFlags usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);/* | SwapchainUsageFlags.SampledBit;*/
 
             return CreateSwapChain(size, format, arraySize, usage);
         }
 
         public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = true)
         {
-            var info = new SwapchainCreateInfo
+            SwapchainCreateInfo info = new SwapchainCreateInfo
             {
                 Type = StructureType.SwapchainCreateInfo,
                 Width = (uint)size.Width,
@@ -785,7 +785,7 @@ namespace OpenXr.Framework
             if (mainSwapChain)
                 PluginInvoke(p => p.ConfigureSwapchain(ref info));
 
-            var result = new Swapchain();
+            Swapchain result = new Swapchain();
             CheckResult(_xr!.CreateSwapchain(Session, in info, ref result), "CreateSwapchain");
 
             return result;
@@ -833,9 +833,9 @@ namespace OpenXr.Framework
                 return false;
             }
 
-            var state = WaitFrame();
+            FrameState state = WaitFrame();
 
-            var frameTime = state.PredictedDisplayTime;
+            long frameTime = state.PredictedDisplayTime;
 
             FramePredictedDisplayTime = frameTime;
 
@@ -855,15 +855,15 @@ namespace OpenXr.Framework
 
                     TrySyncActions(space, frameTime);
 
-                    foreach (var hand in _hands)
+                    foreach (KeyValuePair<HandEXT, XrHandInput> hand in _hands)
                         hand.Value.LocateHandJoints(space, frameTime);
 
                     ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame(space, frameTime));
 
-                    var viewsState = LocateViews(space, frameTime);
+                    ViewState viewsState = LocateViews(space, frameTime);
 
 
-                    var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
+                    bool isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                     if (isPosValid)
@@ -889,7 +889,7 @@ namespace OpenXr.Framework
 
         protected void BeginFrame()
         {
-            var info = new FrameBeginInfo()
+            FrameBeginInfo info = new FrameBeginInfo()
             {
                 Type = StructureType.FrameBeginInfo,
             };
@@ -898,12 +898,12 @@ namespace OpenXr.Framework
 
         protected FrameState WaitFrame()
         {
-            var info = new FrameWaitInfo()
+            FrameWaitInfo info = new FrameWaitInfo()
             {
                 Type = StructureType.FrameWaitInfo,
             };
 
-            var result = new FrameState
+            FrameState result = new FrameState
             {
                 Type = StructureType.FrameState
             };
@@ -918,7 +918,7 @@ namespace OpenXr.Framework
 
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {
-                var frameEndInfo = new FrameEndInfo()
+                FrameEndInfo frameEndInfo = new FrameEndInfo()
                 {
                     Type = StructureType.FrameEndInfo,
                     EnvironmentBlendMode = _renderOptions.BlendMode,
@@ -942,10 +942,10 @@ namespace OpenXr.Framework
 
         public T AddHand<T>(HandEXT type) where T : XrHandInput
         {
-            if (_hands.TryGetValue(type, out var value))
+            if (_hands.TryGetValue(type, out XrHandInput? value))
                 return (T)value;
 
-            var instance = (T)Activator.CreateInstance(typeof(T), this)!;
+            T instance = (T)Activator.CreateInstance(typeof(T), this)!;
             if (_session.Handle != 0)
                 instance.Initialize(type);
 
@@ -960,22 +960,22 @@ namespace OpenXr.Framework
 
         public void AddActions(IXrActionBuilder builder)
         {
-            foreach (var item in builder.Inputs)
+            foreach (IXrInput item in builder.Inputs)
                 AddInput(item);
 
-            foreach (var item in builder.Haptics)
+            foreach (XrHaptic item in builder.Haptics)
                 AddHaptic(item);
 
-            foreach (var item in builder.Profiles)
+            foreach (string item in builder.Profiles)
                 _interactionProfiles.Add(item);
 
         }
 
         public object WithInteractionProfile(Type type, Action<IXrActionBuilder> build)
         {
-            var builderType = typeof(XrActionsBuilder<>).MakeGenericType(type);
+            Type builderType = typeof(XrActionsBuilder<>).MakeGenericType(type);
 
-            var builder = (IXrActionBuilder)Activator.CreateInstance(builderType, this)!;
+            IXrActionBuilder builder = (IXrActionBuilder)Activator.CreateInstance(builderType, this)!;
 
             build(builder);
 
@@ -986,7 +986,7 @@ namespace OpenXr.Framework
 
         public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : IXrBasicInteractionProfile, new()
         {
-            var builder = new XrActionsBuilder<T>(this);
+            XrActionsBuilder<T> builder = new XrActionsBuilder<T>(this);
 
             build(builder);
 
@@ -998,7 +998,7 @@ namespace OpenXr.Framework
 
         public XrInput<T> AddInput<T>(string path, string name)
         {
-            var input = XrInput<T>.Create(this, path, name);
+            XrInput<T> input = XrInput<T>.Create(this, path, name);
 
             AddInput(input);
 
@@ -1024,13 +1024,13 @@ namespace OpenXr.Framework
 
         protected void CreateActions()
         {
-            var suggBindings = new List<ActionSuggestedBinding>();
+            List<ActionSuggestedBinding> suggBindings = new List<ActionSuggestedBinding>();
 
-            foreach (var input in _inputs.Values.Cast<IXrAction>().Union(_haptics.Values))
+            foreach (IXrAction? input in _inputs.Values.Cast<IXrAction>().Union(_haptics.Values))
             {
                 try
                 {
-                    var res = input.Initialize();
+                    ActionSuggestedBinding res = input.Initialize();
                     suggBindings.Add(res);
                 }
                 catch (Exception ex)
@@ -1042,7 +1042,7 @@ namespace OpenXr.Framework
 
             if (suggBindings.Count > 0)
             {
-                foreach (var profile in _interactionProfiles)
+                foreach (string profile in _interactionProfiles)
                 {
                     try
                     {
@@ -1060,14 +1060,14 @@ namespace OpenXr.Framework
 
         protected ActionSet CreateActionSet(string name, string localizedName)
         {
-            var info = new ActionSetCreateInfo()
+            ActionSetCreateInfo info = new ActionSetCreateInfo()
             {
                 Type = StructureType.ActionSetCreateInfo,
                 Priority = 0
             };
 
-            var nameSpan = new Span<byte>(info.ActionSetName, 64);
-            var localizedNameSpan = new Span<byte>(info.LocalizedActionSetName, 128);
+            Span<byte> nameSpan = new Span<byte>(info.ActionSetName, 64);
+            Span<byte> localizedNameSpan = new Span<byte>(info.LocalizedActionSetName, 128);
 
             SilkMarshal.StringIntoSpan(name, nameSpan);
             SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
@@ -1079,19 +1079,19 @@ namespace OpenXr.Framework
 
         protected internal Action CreateAction(string name, string localizedName, ActionType type, params ulong[] paths)
         {
-            var info = new ActionCreateInfo
+            ActionCreateInfo info = new ActionCreateInfo
             {
                 Type = StructureType.ActionCreateInfo,
                 ActionType = type,
                 CountSubactionPaths = (uint)paths.Length,
             };
 
-            var nameSpan = new Span<byte>(info.ActionName, 64);
-            var localizedNameSpan = new Span<byte>(info.LocalizedActionName, 128);
+            Span<byte> nameSpan = new Span<byte>(info.ActionName, 64);
+            Span<byte> localizedNameSpan = new Span<byte>(info.LocalizedActionName, 128);
 
             SilkMarshal.StringIntoSpan(name.ToLower(), nameSpan);
             SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
-            var result = new Action();
+            Action result = new Action();
 
             if (paths.Length > 0)
             {
@@ -1121,7 +1121,7 @@ namespace OpenXr.Framework
 
             fixed (ActionSuggestedBinding* pBindings = bindings)
             {
-                var info = new InteractionProfileSuggestedBinding
+                InteractionProfileSuggestedBinding info = new InteractionProfileSuggestedBinding
                 {
                     Type = StructureType.InteractionProfileSuggestedBinding,
                     InteractionProfile = ipPath,
@@ -1137,7 +1137,7 @@ namespace OpenXr.Framework
         {
             fixed (ActionSet* pSet = &_actionSet)
             {
-                var info = new SessionActionSetsAttachInfo()
+                SessionActionSetsAttachInfo info = new SessionActionSetsAttachInfo()
                 {
                     Type = StructureType.SessionActionSetsAttachInfo,
                     ActionSets = pSet,
@@ -1153,13 +1153,13 @@ namespace OpenXr.Framework
             if (_actionSet.Handle == 0)
                 return;
 
-            var activeActionSet = new ActiveActionSet
+            ActiveActionSet activeActionSet = new ActiveActionSet
             {
                 ActionSet = _actionSet,
                 SubactionPath = 0
             };
 
-            var info = new ActionsSyncInfo
+            ActionsSyncInfo info = new ActionsSyncInfo
             {
                 Type = StructureType.ActionsSyncInfo,
                 CountActiveActionSets = 1,
@@ -1171,14 +1171,14 @@ namespace OpenXr.Framework
 
         protected internal Space CreateActionSpace(Action action, ulong subPath)
         {
-            var info = new ActionSpaceCreateInfo()
+            ActionSpaceCreateInfo info = new ActionSpaceCreateInfo()
             {
                 Type = StructureType.ActionSpaceCreateInfo,
                 Action = action,
                 SubactionPath = subPath,
             };
             info.PoseInActionSpace.Orientation.W = 1;
-            var result = new Space();
+            Space result = new Space();
             CheckResult(_xr!.CreateActionSpace(_session, in info, ref result), "CreateActionSpace");
             return result;
         }
@@ -1186,14 +1186,14 @@ namespace OpenXr.Framework
 
         protected internal ActionStateFloat GetActionStateFloat(Action action, ulong subActionPath = 0)
         {
-            var info = new ActionStateGetInfo
+            ActionStateGetInfo info = new ActionStateGetInfo
             {
                 Type = StructureType.ActionStateGetInfo,
                 Action = action,
                 SubactionPath = subActionPath,
             };
 
-            var state = new ActionStateFloat(StructureType.ActionStateFloat);
+            ActionStateFloat state = new ActionStateFloat(StructureType.ActionStateFloat);
 
             CheckResult(_xr!.GetActionStateFloat(_session, in info, ref state), "GetActionStateFloat");
 
@@ -1202,14 +1202,14 @@ namespace OpenXr.Framework
 
         protected internal ActionStateVector2f GetActionStateVector2(Action action, ulong subActionPath = 0)
         {
-            var info = new ActionStateGetInfo
+            ActionStateGetInfo info = new ActionStateGetInfo
             {
                 Type = StructureType.ActionStateGetInfo,
                 Action = action,
                 SubactionPath = subActionPath,
             };
 
-            var state = new ActionStateVector2f(StructureType.ActionStateVector2f);
+            ActionStateVector2f state = new ActionStateVector2f(StructureType.ActionStateVector2f);
 
             CheckResult(_xr!.GetActionStateVector2(_session, in info, ref state), "GetActionStateVector2");
 
@@ -1218,14 +1218,14 @@ namespace OpenXr.Framework
 
         protected internal ActionStateBoolean GetActionStateBoolean(Action action, ulong subActionPath = 0)
         {
-            var info = new ActionStateGetInfo
+            ActionStateGetInfo info = new ActionStateGetInfo
             {
                 Type = StructureType.ActionStateGetInfo,
                 Action = action,
                 SubactionPath = subActionPath,
             };
 
-            var state = new ActionStateBoolean(StructureType.ActionStateBoolean);
+            ActionStateBoolean state = new ActionStateBoolean(StructureType.ActionStateBoolean);
 
             CheckResult(_xr!.GetActionStateBoolean(_session, in info, ref state), "ActionStateBoolean");
 
@@ -1234,7 +1234,7 @@ namespace OpenXr.Framework
 
         protected internal bool GetActionPoseIsActive(Action action, ulong subActionPath = 0)
         {
-            var info = new ActionStateGetInfo
+            ActionStateGetInfo info = new ActionStateGetInfo
             {
                 Type = StructureType.ActionStateGetInfo,
                 Action = action,
@@ -1242,7 +1242,7 @@ namespace OpenXr.Framework
             };
 
 
-            var state = new ActionStatePose(StructureType.ActionStatePose);
+            ActionStatePose state = new ActionStatePose(StructureType.ActionStatePose);
 
             CheckResult(_xr!.GetActionStatePose(_session, in info, ref state), "ActionStatePose");
 
@@ -1254,13 +1254,13 @@ namespace OpenXr.Framework
             if (_xr == null)
                 return;
 
-            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            HapticActionInfo info = new HapticActionInfo(StructureType.HapticActionInfo)
             {
                 Action = action,
                 SubactionPath = subActionPath
             };
 
-            var vibration = new HapticVibration(StructureType.HapticVibration)
+            HapticVibration vibration = new HapticVibration(StructureType.HapticVibration)
             {
                 Duration = (long)duration.TotalNanoseconds,
                 Amplitude = amplitude,
@@ -1275,7 +1275,7 @@ namespace OpenXr.Framework
             if (_xr == null)
                 return;
 
-            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            HapticActionInfo info = new HapticActionInfo(StructureType.HapticActionInfo)
             {
                 Action = action,
                 SubactionPath = subActionPath
@@ -1291,7 +1291,7 @@ namespace OpenXr.Framework
 
         public bool PoolEvents()
         {
-            var buffer = new EventDataBuffer();
+            EventDataBuffer buffer = new EventDataBuffer();
 
             while (_xr != null)
             {
@@ -1299,7 +1299,7 @@ namespace OpenXr.Framework
 
                 try
                 {
-                    var result = _xr.PollEvent(_instance, ref buffer);
+                    Result result = _xr.PollEvent(_instance, ref buffer);
                     if (result != Result.Success)
                         return false;
 
@@ -1309,7 +1309,7 @@ namespace OpenXr.Framework
                     switch (buffer.Type)
                     {
                         case StructureType.EventDataSessionStateChanged:
-                            var sessionChanged = buffer.Convert().To<EventDataSessionStateChanged>();
+                            EventDataSessionStateChanged sessionChanged = buffer.Convert().To<EventDataSessionStateChanged>();
                             _session = sessionChanged.Session;
                             OnSessionChanged(sessionChanged.State, sessionChanged.Time);
 
@@ -1340,7 +1340,7 @@ namespace OpenXr.Framework
 
         protected static T[] CreateStructArray<T>(int count, StructureType type) where T : unmanaged
         {
-            var result = new T[count];
+            T[] result = new T[count];
             fixed (T* pResult = result)
             {
                 while (count-- > 0)
@@ -1364,7 +1364,7 @@ namespace OpenXr.Framework
         {
             Exception? lastEx = null;
 
-            foreach (var plugin in items.OfType<T>())
+            foreach (T? plugin in items.OfType<T>())
             {
                 try
                 {

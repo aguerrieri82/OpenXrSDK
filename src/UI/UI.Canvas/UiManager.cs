@@ -27,15 +27,15 @@ namespace CanvasUI
             if (element == _hoverElement)
                 return;
 
-            var curParents = _hoverElement.VisualAncestorsAndSelf().ToArray();
+            UiElement[] curParents = _hoverElement.VisualAncestorsAndSelf().ToArray();
 
-            var newParents = element.VisualAncestorsAndSelf().ToArray();
+            UiElement[] newParents = element.VisualAncestorsAndSelf().ToArray();
 
-            foreach (var item in curParents)
+            foreach (UiElement? item in curParents)
             {
                 if (!newParents.Contains(item))
                 {
-                    var ev = AcquireEvent<UiPointerEvent>();
+                    UiPointerEvent ev = AcquireEvent<UiPointerEvent>();
                     ev.Buttons = buttons;
                     ev.WindowPosition = screenPos;
                     ev.Dispatch = UiEventDispatch.Direct;
@@ -45,11 +45,11 @@ namespace CanvasUI
                 }
             }
 
-            foreach (var item in newParents)
+            foreach (UiElement? item in newParents)
             {
                 if (!curParents.Contains(item))
                 {
-                    var ev = AcquireEvent<UiPointerEvent>();
+                    UiPointerEvent ev = AcquireEvent<UiPointerEvent>();
                     ev.Buttons = buttons;
                     ev.WindowPosition = screenPos;
                     ev.Dispatch = UiEventDispatch.Direct;
@@ -71,7 +71,7 @@ namespace CanvasUI
 
             if (_activeFocus != null)
             {
-                var ev = AcquireEvent<UiRoutedEvent>();
+                UiRoutedEvent ev = AcquireEvent<UiRoutedEvent>();
                 ev.Source = _activeFocus;
                 ev.Type = UiEventType.LostFocus;
                 ev.Dispatch = UiEventDispatch.Bubble;
@@ -82,7 +82,7 @@ namespace CanvasUI
 
             if (_activeFocus != null)
             {
-                var ev = AcquireEvent<UiRoutedEvent>();
+                UiRoutedEvent ev = AcquireEvent<UiRoutedEvent>();
                 ev.Source = _activeFocus;
                 ev.Type = UiEventType.GotFocus;
                 ev.Dispatch = UiEventDispatch.Bubble;
@@ -92,7 +92,7 @@ namespace CanvasUI
 
         public static T AcquireEvent<T>() where T : UiEvent, new()
         {
-            if (!_eventPool.TryGetValue(typeof(T), out var pool))
+            if (!_eventPool.TryGetValue(typeof(T), out Queue<UiEvent>? pool))
             {
                 pool = [];
                 _eventPool[typeof(T)] = pool;
@@ -101,14 +101,14 @@ namespace CanvasUI
             if (pool.Count == 0)
                 pool.Enqueue(new T());
 
-            var res = (T)pool.Dequeue();
+            T res = (T)pool.Dequeue();
             res.Timestamp = DateTime.UtcNow.Ticks;
             return res;
         }
 
         public static void ReleaseEvent(UiEvent ev)
         {
-            var pool = _eventPool[ev.GetType()];
+            Queue<UiEvent> pool = _eventPool[ev.GetType()];
             if (!pool.Contains(ev))
                 pool.Enqueue(ev);
         }

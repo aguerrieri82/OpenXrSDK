@@ -155,13 +155,13 @@ namespace XrEngine.Video
                     //return null;
                 }
 
-                var nalUnitHeader = packet[12];
+                byte nalUnitHeader = packet[12];
 
                 int fragment_type = nalUnitHeader & 0x1F;
 
                 if (fragment_type == 28)
                 {
-                    var fuHeader = packet[13];
+                    byte fuHeader = packet[13];
 
                     int start_bit = fuHeader & 0x80;
                     int end_bit = fuHeader & 0x40;
@@ -184,7 +184,7 @@ namespace XrEngine.Video
 
                         isStarted = true;
 
-                        var nalType = (nalUnitHeader & 0xE0) | (fuHeader & 0x1F);
+                        int nalType = (nalUnitHeader & 0xE0) | (fuHeader & 0x1F);
 
                         _readStream.Write(NAL_START);
                         _readStream.WriteByte((byte)nalType);
@@ -207,10 +207,10 @@ namespace XrEngine.Video
                 {
                     if (fragment_type == 7)
                     {
-                        var frameData = new byte[packet.Length - 12];
+                        byte[] frameData = new byte[packet.Length - 12];
                         Buffer.BlockCopy(packet, 12, frameData, 0, packet.Length - 12);
 
-                        var format = new VideoFormat();
+                        VideoFormat format = new VideoFormat();
                         SpsDecoder.Decode(frameData, ref format);
                         Format = format;
 
@@ -259,7 +259,7 @@ namespace XrEngine.Video
             }
             */
 
-            var result = _readStream.ToArray();
+            byte[] result = _readStream.ToArray();
 
             return result;
 

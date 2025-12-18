@@ -49,35 +49,35 @@ namespace XrSamples.Earth
 
         (Vector3 direction, Vector3 up) ComputeCameraDirectionAndUp(Vector3 cameraPosition, float azimuth, float elevation)
         {
-            var localUp = Vector3.Normalize(cameraPosition);
+            Vector3 localUp = Vector3.Normalize(cameraPosition);
 
-            var worldNorthAxis = new Vector3(0, 1, 0)
+            Vector3 worldNorthAxis = new Vector3(0, 1, 0)
                 .Transform(_host!.Earth.Transform.Orientation)
                 .Normalize();
 
-            var localEast = Vector3.Cross(worldNorthAxis, localUp).Normalize();
-            var localNorth = Vector3.Cross(localUp, localEast).Normalize();
+            Vector3 localEast = Vector3.Cross(worldNorthAxis, localUp).Normalize();
+            Vector3 localNorth = Vector3.Cross(localUp, localEast).Normalize();
 
-            var cosE = MathF.Cos(elevation);
-            var sinE = MathF.Sin(elevation);
-            var cosA = MathF.Cos(azimuth);
-            var sinA = MathF.Sin(azimuth);
+            float cosE = MathF.Cos(elevation);
+            float sinE = MathF.Sin(elevation);
+            float cosA = MathF.Cos(azimuth);
+            float sinA = MathF.Sin(azimuth);
 
-            var dirHoriz = cosE * (cosA * localNorth + sinA * localEast);
+            Vector3 dirHoriz = cosE * (cosA * localNorth + sinA * localEast);
 
-            var cameraDir = Vector3.Normalize(dirHoriz + sinE * localUp);
-            var cameraRight = Vector3.Cross(cameraDir, localUp).Normalize();
-            var cameraUp = Vector3.Cross(cameraRight, cameraDir).Normalize();
+            Vector3 cameraDir = Vector3.Normalize(dirHoriz + sinE * localUp);
+            Vector3 cameraRight = Vector3.Cross(cameraDir, localUp).Normalize();
+            Vector3 cameraUp = Vector3.Cross(cameraRight, cameraDir).Normalize();
 
             return (cameraDir, cameraUp);
         }
 
         Vector3 ComputePosition(Vector2 latLng, float altitude)
         {
-            var lonRad = (latLng.X * MathF.PI / 180.0f);
-            var latRad = (latLng.Y * MathF.PI / 180.0f);
+            float lonRad = (latLng.X * MathF.PI / 180.0f);
+            float latRad = (latLng.Y * MathF.PI / 180.0f);
 
-            var radius = (_host!.Earth.SphereRadius + Unit(altitude));
+            float radius = (_host!.Earth.SphereRadius + Unit(altitude));
 
 
             // Compute Cartesian coordinates
@@ -115,7 +115,7 @@ namespace XrSamples.Earth
 
             if (_posDirty || true)
             {
-                var earthPos = _host.Earth.Orbit.GetPosition(_dateTime);
+                Vector3 earthPos = _host.Earth.Orbit.GetPosition(_dateTime);
 
                 _host.Moon.Transform.Position = _host.Moon.Orbit!.GetPosition(_dateTime);
 
@@ -130,7 +130,7 @@ namespace XrSamples.Earth
                 if (_sunAtOrigin)
                     _host.Earth.Transform.Position = earthPos;
 
-                foreach (var item in _host.Children)
+                foreach (Object3D item in _host.Children)
                 {
                     if (item == _host.Earth ||
                         item is Camera ||
@@ -148,16 +148,16 @@ namespace XrSamples.Earth
                 _posDirty = false;
             }
 
-            var camera = (PerspectiveCamera)_host.ActiveCamera!;
+            PerspectiveCamera camera = (PerspectiveCamera)_host.ActiveCamera!;
 
             if (LockCamera)
             {
                 camera.FovDegree = 45f * (1f / Zoom);
                 camera.UpdateProjection();
 
-                var cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
+                Vector3 cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
 
-                var normal = cameraPos.Normalize();
+                Vector3 normal = cameraPos.Normalize();
 
                 Vector3 cameraDir, cameraUp;
 
@@ -179,7 +179,7 @@ namespace XrSamples.Earth
                 else
                     throw new NotImplementedException();
 
-                var cameraTarget = cameraPos + cameraDir * Unit(10);
+                Vector3 cameraTarget = cameraPos + cameraDir * Unit(10);
 
                 if (XrApp.Current != null && XrApp.Current.IsStarted)
                     XrApp.Current.ReferenceFrame = camera.GetWorldPose();

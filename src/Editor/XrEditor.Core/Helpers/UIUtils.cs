@@ -8,7 +8,7 @@ namespace XrEditor
 
         public static Task DelayAsync(TimeSpan delay)
         {
-            var source = new TaskCompletionSource();
+            TaskCompletionSource source = new TaskCompletionSource();
 
             void OnTimer(object? state)
             {

@@ -245,13 +245,13 @@ namespace XrEditor.Audio
             _statusText = ToolBar.AddText("");
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_insights", () => Task.Run(GenerateLoops));
-           // LoadWaveAsset("CarSound.wav");
+            // LoadWaveAsset("CarSound.wav");
         }
 
         public void GenerateLoops()
         {
             _settings.Offset = 0;
-            var slices = new List<AudioSlice>();
+            List<AudioSlice> slices = new List<AudioSlice>();
 
             while (_settings.Offset + _settings.Duration < _clip!.Range.Duration)
             {
@@ -260,13 +260,13 @@ namespace XrEditor.Audio
                 FindBestLoop();
                 UpdateDftPlot();
 
-                var range = new AudioRange(_clip.Format);
+                AudioRange range = new AudioRange(_clip.Format);
                 range.StartTime = _settings.Offset;
                 range.Duration = _settings.Duration;
                 range.StartSample += (int)_settings.LoopStartOffset;
                 range.EndSample -= (int)_settings.LoopEndOffset;
 
-                var best = _dft.Points.OrderByDescending(a => a.Y).Take(3);
+                IEnumerable<Vector2> best = _dft.Points.OrderByDescending(a => a.Y).Take(3);
 
                 slices.Add(new AudioSlice
                 {
@@ -278,7 +278,7 @@ namespace XrEditor.Audio
                 _settings.Offset += _settings.Duration / 2;
             }
 
-            var json = JsonConvert.SerializeObject(slices);
+            string json = JsonConvert.SerializeObject(slices);
 
             _mainDispatcher.Execute(() => Context.Require<IClipboard>().Copy(json, "text/json"));
         }
@@ -312,11 +312,11 @@ namespace XrEditor.Audio
 
                     _audioOut.Reset();
 
-                    var curClip = _settings.ShowPitch ? _pitchClip! : _loopClip!;
+                    AudioClip curClip = _settings.ShowPitch ? _pitchClip! : _loopClip!;
 
-                    for (var i = 0; i < buffers.Count; i++)
+                    for (int i = 0; i < buffers.Count; i++)
                     {
-                        var buffer = buffers[i];
+                        byte[] buffer = buffers[i];
 
                         Array.Resize(ref buffer, curClip.Range.Size);
 
@@ -331,7 +331,7 @@ namespace XrEditor.Audio
                     lastVersion = _version;
                 }
 
-                var nextBuf = _audioOut.Dequeue(500);
+                byte[]? nextBuf = _audioOut.Dequeue(500);
 
                 if (nextBuf != null)
                     _audioOut.Enqueue(nextBuf);
@@ -344,7 +344,7 @@ namespace XrEditor.Audio
         {
             if (_playTask != null)
             {
-                var task = _playTask;
+                Task task = _playTask;
                 _playTask = null;
                 await task;
             }
@@ -354,11 +354,11 @@ namespace XrEditor.Audio
 
         public void LoadWaveAsset(string path)
         {
-            var asset = Context.Require<IAssetStore>();
-            var soundPath = asset.GetPath(path);
-            var reader = new WavReader();
-            using var stream = File.OpenRead(soundPath);
-            var data = reader.Decode(stream);
+            IAssetStore asset = Context.Require<IAssetStore>();
+            string soundPath = asset.GetPath(path);
+            WavReader reader = new WavReader();
+            using FileStream stream = File.OpenRead(soundPath);
+            AudioData data = reader.Decode(stream);
             Load(data);
         }
 
@@ -380,20 +380,20 @@ namespace XrEditor.Audio
 
         public unsafe void FindBestLoop()
         {
-            var clip = _clip!.SubClipDuration(_settings.Offset, _settings.Duration);
-            var clipLen = clip.Range.Length;
-            var corLen = clipLen / 4;
+            AudioClip clip = _clip!.SubClipDuration(_settings.Offset, _settings.Duration);
+            int clipLen = clip.Range.Length;
+            int corLen = clipLen / 4;
             clip.Range.Length += corLen;
-            var data = clip.ToFloat();
+            float[] data = clip.ToFloat();
 
             fixed (float* pData = data)
             {
                 //First sample that cross 0 line
-                var i = 0;
-                var lastValue = pData[0];
+                int i = 0;
+                float lastValue = pData[0];
                 while (i < clipLen)
                 {
-                    var curValue = pData[i];
+                    float curValue = pData[i];
                     if ((lastValue < 0 && curValue > 0) ||
                         (lastValue > 0 && curValue < 0))
                     {
@@ -405,13 +405,13 @@ namespace XrEditor.Audio
                 }
 
                 //best correlation with the end of the first 1/4 of the loop;
-                var maxSum = float.MinValue;
-                var maxOfs = 0;
-                var testLen = (clipLen / 2) - _settings.LoopStartOffset;
+                float maxSum = float.MinValue;
+                int maxOfs = 0;
+                float testLen = (clipLen / 2) - _settings.LoopStartOffset;
 
                 for (i = 0; i < testLen; i++)
                 {
-                    var sum = ComputeCorrelation(i, data, corLen, clipLen);
+                    float sum = ComputeCorrelation(i, data, corLen, clipLen);
                     if (sum > maxSum)
                     {
                         maxSum = sum;
@@ -419,7 +419,7 @@ namespace XrEditor.Audio
                     }
                 }
 
-                var start = clipLen - maxOfs;
+                int start = clipLen - maxOfs;
                 int forward = 0;
                 int backward = 0;
 
@@ -429,7 +429,7 @@ namespace XrEditor.Audio
 
                 while (i < clipLen)
                 {
-                    var curValue = pData[i];
+                    float curValue = pData[i];
                     if ((lastValue < 0 && curValue > 0) ||
                         (lastValue > 0 && curValue < 0))
                     {
@@ -446,7 +446,7 @@ namespace XrEditor.Audio
 
                 while (i > _settings.LoopStartOffset)
                 {
-                    var curValue = pData[i];
+                    float curValue = pData[i];
                     if ((lastValue < 0 && curValue > 0) ||
                         (lastValue > 0 && curValue < 0))
                     {
@@ -469,11 +469,11 @@ namespace XrEditor.Audio
 
         protected float ComputeCorrelation(int endOfs, float[] data, int corLen, int clipLen)
         {
-            var s1 = (int)_settings.LoopStartOffset;
-            var s2 = clipLen - endOfs;
+            int s1 = (int)_settings.LoopStartOffset;
+            int s2 = clipLen - endOfs;
 
-            var sum = 0f;
-            for (var j = 0; j < corLen; j++)
+            float sum = 0f;
+            for (int j = 0; j < corLen; j++)
                 sum += data[s1 + j] * data[s2 + j];
 
             return sum;
@@ -481,13 +481,13 @@ namespace XrEditor.Audio
 
         protected void ComputeCorrelation()
         {
-            var clip = _clip!.SubClipDuration(_settings.Offset, _settings.Duration);
-            var clipLen = clip.Range.Length;
-            var corLen = clipLen / 4;
+            AudioClip clip = _clip!.SubClipDuration(_settings.Offset, _settings.Duration);
+            int clipLen = clip.Range.Length;
+            int corLen = clipLen / 4;
             clip.Range.Length += corLen;
-            var data = clip.ToFloat();
+            float[] data = clip.ToFloat();
 
-            var sum = ComputeCorrelation((int)_settings.LoopEndOffset, data, corLen, clipLen);
+            float sum = ComputeCorrelation((int)_settings.LoopEndOffset, data, corLen, clipLen);
 
             _statusText.Text = MathF.Round(sum, 1).ToString();
         }
@@ -497,13 +497,13 @@ namespace XrEditor.Audio
             if (!_settings.ShowSmooth)
                 return;
 
-            var smooth = _settings.SmoothFactor / 1000f;
+            float smooth = _settings.SmoothFactor / 1000f;
 
-            var outData = new float[_loopClipData!.Length];
+            float[] outData = new float[_loopClipData!.Length];
 
-            var curSample = _loopClipData[0];
+            float curSample = _loopClipData[0];
 
-            for (var i = 0; i < _loopClipData.Length; i++)
+            for (int i = 0; i < _loopClipData.Length; i++)
             {
                 curSample += (_loopClipData[i] - curSample) * smooth;
                 outData[i] = curSample;
@@ -522,9 +522,9 @@ namespace XrEditor.Audio
             if (!_settings.ShowPitch)
                 return;
 
-            var sampleRate = _loopClip!.Format.SampleRate;
-            var len = _loopClip.Range.Length;
-            var output = new float[len];
+            int sampleRate = _loopClip!.Format.SampleRate;
+            int len = _loopClip.Range.Length;
+            float[] output = new float[len];
 
             _pitchFilter.FFtSize = len;
             _pitchFilter.Factor = (float)Math.Exp(_settings.PitchFactor / 10);
@@ -593,23 +593,23 @@ namespace XrEditor.Audio
             if (_loopClip == null)
                 return;
 
-            var dftSize = (int)(MathF.Round(_loopClip.Range.Length / 32) * 32);
+            int dftSize = (int)(MathF.Round(_loopClip.Range.Length / 32) * 32);
 
-            using var aIn = new FftwBuffer<double>(dftSize);
-            using var aOut = new FftwBuffer<Complex>(dftSize / 2 + 1);
+            using FftwBuffer<double> aIn = new FftwBuffer<double>(dftSize);
+            using FftwBuffer<Complex> aOut = new FftwBuffer<Complex>(dftSize / 2 + 1);
 
-            for (var j = 0; j < dftSize; j++)
+            for (int j = 0; j < dftSize; j++)
                 aIn.Pointer[j] = _loopClipData![j];
 
             FftwLib.Dft(aIn, aOut);
 
-            var freqStep = (float)_loopClip.Format.SampleRate / dftSize;
+            float freqStep = (float)_loopClip.Format.SampleRate / dftSize;
 
-            var maxLen = Math.Min(aOut.Length, (int)(4000f / freqStep));
+            int maxLen = Math.Min(aOut.Length, (int)(4000f / freqStep));
 
-            var array = new Vector2[maxLen];
+            Vector2[] array = new Vector2[maxLen];
 
-            for (var i = 0; i < maxLen; i++)
+            for (int i = 0; i < maxLen; i++)
                 array[i] = new Vector2(i * freqStep, (float)Math.Log10(aOut.Pointer[i].Magnitude));
 
             _dft.Points = array;
@@ -623,7 +623,7 @@ namespace XrEditor.Audio
 
         public override void OnActivate()
         {
-            var toolProps = Context.Require<PanelManager>().Panels
+            PropertiesEditor? toolProps = Context.Require<PanelManager>().Panels
                  .OfType<PropertiesEditor>()
                  .FirstOrDefault(a => a.Mode == PropertiesEditorMode.Custom);
 

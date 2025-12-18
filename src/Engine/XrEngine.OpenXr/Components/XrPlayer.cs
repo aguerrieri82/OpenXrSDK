@@ -10,10 +10,10 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            if (XrApp.Current == null || !XrApp.Current.IsStarted) 
+            if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
-            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+            XrSpaceLocation local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
 
             if (local != null)
             {
@@ -35,7 +35,7 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
-            var newRef = new Pose3()
+            Pose3 newRef = new Pose3()
             {
                 Position = position,
                 Orientation = Quaternion.Identity
@@ -45,7 +45,7 @@ namespace XrEngine.OpenXr
 
             XrApp.Current.ReferenceFrame = Pose3.Identity;
 
-            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+            XrSpaceLocation local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
 
             if (local != null)
             {

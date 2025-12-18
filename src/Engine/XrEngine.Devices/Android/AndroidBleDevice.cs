@@ -162,7 +162,7 @@ namespace XrEngine.Devices.Android
 
             _gatt = _device.ConnectGatt(Application.Context, true, _gattCb);
 
-            var res = await _gattCb.ConnectTask;
+            GattStatus res = await _gattCb.ConnectTask;
 
             if (res != GattStatus.Success)
                 throw new InvalidOperationException(res.ToString());
@@ -190,12 +190,12 @@ namespace XrEngine.Devices.Android
 
             while (true)
             {
-                var task = _gattCb.DiscoverServicesTask;
+                Task<GattStatus> task = _gattCb.DiscoverServicesTask;
 
                 if (timeoutMs > 0)
                     task = task.WaitAsync(TimeSpan.FromMilliseconds(timeoutMs));
 
-                var res = await task;
+                GattStatus res = await task;
                 if (res == GattStatus.Success)
                     break;
 
@@ -209,7 +209,7 @@ namespace XrEngine.Devices.Android
         {
             Debug.Assert(_gattCb != null && _gatt != null);
 
-            var desc = cts.GetDescriptor(UUID.FromString("00002901-0000-1000-8000-00805f9b34fb"));
+            BluetoothGattDescriptor? desc = cts.GetDescriptor(UUID.FromString("00002901-0000-1000-8000-00805f9b34fb"));
 
             if (desc == null)
                 return null;
@@ -219,7 +219,7 @@ namespace XrEngine.Devices.Android
             if (!_gatt.ReadDescriptor(desc))
                 return null;
 
-            var value = await _gattCb.ReadTask;
+            byte[] value = await _gattCb.ReadTask;
 
             if (value == null)
                 return null;
@@ -232,12 +232,12 @@ namespace XrEngine.Devices.Android
             if (_gatt == null || _gattCb == null)
                 throw new InvalidOperationException("Not connected");
 
-            var service = _gatt.GetService(ToUUID(serviceInfo.Id)) ??
+            BluetoothGattService service = _gatt.GetService(ToUUID(serviceInfo.Id)) ??
                 throw new InvalidOperationException("Service not found");
 
-            var result = new List<BleCharacteristicInfo>();
+            List<BleCharacteristicInfo> result = new List<BleCharacteristicInfo>();
 
-            foreach (var a in service.Characteristics!)
+            foreach (BluetoothGattCharacteristic a in service.Characteristics!)
             {
                 result.Add(new BleCharacteristicInfo
                 {
@@ -252,7 +252,7 @@ namespace XrEngine.Devices.Android
 
         public async Task<byte[]> ReadCharacteristicAsync(BleCharacteristicInfo characteristicInfo)
         {
-            var cts = GetCharacteristicInternal(characteristicInfo);
+            BluetoothGattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
 
             if ((cts.Properties & GattProperty.Read) == 0)
                 throw new InvalidOperationException("Characteristic is not readable");
@@ -280,7 +280,7 @@ namespace XrEngine.Devices.Android
         {
             Debug.Assert(_gattCb != null);
 
-            var cts = GetCharacteristicInternal(characteristicInfo);
+            BluetoothGattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
 
             _gattCb.BeginWrite(cts);
 
@@ -294,12 +294,12 @@ namespace XrEngine.Devices.Android
 
         public Task WriteCharacteristicConfigurationAsync(BleCharacteristicInfo characteristicInfo, BleCharacteristicConfig value)
         {
-            var cts = GetCharacteristicInternal(characteristicInfo);
+            BluetoothGattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
 
             if (value == BleCharacteristicConfig.Notify)
                 _gatt.SetCharacteristicNotification(cts, true);
 
-            var descriptor = cts.GetDescriptor(
+            BluetoothGattDescriptor? descriptor = cts.GetDescriptor(
                 UUID.FromString("00002902-0000-1000-8000-00805f9b34fb")
             );
 
@@ -347,7 +347,7 @@ namespace XrEngine.Devices.Android
 
         protected virtual void OnCharacteristicChanged(Guid ctsId, byte[] value)
         {
-            foreach (var handler in _changedHandlers.Where(a => a.Info.Id == ctsId))
+            foreach (ValueChangedHandler handler in _changedHandlers.Where(a => a.Info.Id == ctsId))
                 handler.Handler(handler.Info, value);
         }
 

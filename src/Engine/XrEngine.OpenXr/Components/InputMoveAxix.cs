@@ -1,9 +1,5 @@
 ﻿using OpenXr.Framework;
-using Silk.NET.OpenXR;
-using System.Net.NetworkInformation;
 using System.Numerics;
-using System.Threading;
-using XrEngine;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -44,8 +40,8 @@ namespace XrEngine.OpenXr
             if (!Input.IsActive || !Click.IsActive)
                 return;
 
-            var curInverse = _status.IsMoving ? _status.WorldInverse : _host!.WorldMatrixInverse;
-            var curPos = Input.Value.Position.Transform(curInverse);
+            Matrix4x4 curInverse = _status.IsMoving ? _status.WorldInverse : _host!.WorldMatrixInverse;
+            Vector3 curPos = Input.Value.Position.Transform(curInverse);
 
             _status.LastInputPos = curPos;
 
@@ -54,7 +50,7 @@ namespace XrEngine.OpenXr
                 if (!Click.Value)
                     return;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (ICollider3D? collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(Input.Value.Position, 0.04f))
                     {
@@ -74,12 +70,12 @@ namespace XrEngine.OpenXr
                 return;
             }
 
-            var handDelta = curPos - _status.StartInputPos;
-            var deltaLen = Vector3.Dot(handDelta, Axis);
+            Vector3 handDelta = curPos - _status.StartInputPos;
+            float deltaLen = Vector3.Dot(handDelta, Axis);
 
-            var startLen = (_status.StartPos - _startPosition).Length();
+            float startLen = (_status.StartPos - _startPosition).Length();
 
-            var absLen = startLen + deltaLen;
+            float absLen = startLen + deltaLen;
 
             absLen = Math.Clamp(absLen, MinDistance, MaxDistance);
 

@@ -1,6 +1,4 @@
-﻿using Common.Interop;
-using SkiaSharp;
-using System.Runtime.InteropServices;
+﻿using SkiaSharp;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -29,7 +27,7 @@ namespace XrEditor.Nodes
 
             try
             {
-                var preview = Context.Require<RenderPreviewCreator>();
+                RenderPreviewCreator preview = Context.Require<RenderPreviewCreator>();
 
                 return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateTexture(_value));
             }
@@ -48,10 +46,10 @@ namespace XrEditor.Nodes
                 IsEnabled = true,
                 ExecuteCommand = new Command(async () =>
                 {
-                    var preview = await CreatePreviewAsync();
+                    SKBitmap? preview = await CreatePreviewAsync();
                     if (preview != null)
                     {
-                        using var file = File.OpenWrite("d:\\out.png");
+                        using FileStream file = File.OpenWrite("d:\\out.png");
                         preview.Encode(SKEncodedImageFormat.Png, 100).SaveTo(file);
                     }
                 })

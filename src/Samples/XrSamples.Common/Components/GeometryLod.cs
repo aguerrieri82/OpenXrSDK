@@ -33,7 +33,7 @@ namespace XrSamples
 
             if (_host.Materials.Count == 1 && _host.Materials[0] is IPbrMaterial pbr)
             {
-                var newMat = (IPbrMaterial)pbr.Clone();
+                IPbrMaterial newMat = (IPbrMaterial)pbr.Clone();
                 newMat.NormalMap = null;
                 newMat.OcclusionMap = null;
                 _host.Materials.Add((Material)newMat);
@@ -47,16 +47,16 @@ namespace XrSamples
             if (_lowGeo == null)
                 return;
 
-            var sb = new List<Vector2>();
+            List<Vector2> sb = new List<Vector2>();
 
-            foreach (var p in _host!.LocalBounds.Points)
+            foreach (Vector3 p in _host!.LocalBounds.Points)
             {
-                var t = p.Transform(_host!.WorldMatrix);
-                var s = ctx.Camera!.WorldToScreen(t);
+                Vector3 t = p.Transform(_host!.WorldMatrix);
+                Vector2 s = ctx.Camera!.WorldToScreen(t);
                 sb.Add(s);
             }
 
-            var bounds = sb.Bounds();
+            Bounds2 bounds = sb.Bounds();
 
             if (bounds.Size.X < CutSize && bounds.Size.Y < CutSize)
             {

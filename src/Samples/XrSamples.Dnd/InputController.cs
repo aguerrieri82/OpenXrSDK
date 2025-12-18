@@ -1,8 +1,6 @@
-﻿using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
+﻿using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
 using System.Numerics;
-using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -27,16 +25,16 @@ namespace XrSamples.Dnd
         [Action]
         public void ScaleUp()
         {
-           Scale(1f / 0.8f);
+            Scale(1f / 0.8f);
 
         }
 
         public void Scale(float value)
         {
-            var center = Player!.WorldPosition;
-            var newTrans = Map!.Transform.Matrix *
+            Vector3 center = Player!.WorldPosition;
+            Matrix4x4 newTrans = Map!.Transform.Matrix *
                 Matrix4x4.CreateTranslation(-center) *
-                Matrix4x4.CreateScale(new Vector3( value)) *
+                Matrix4x4.CreateScale(new Vector3(value)) *
                 Matrix4x4.CreateTranslation(center);
 
             Map!.Transform.Set(newTrans);
@@ -47,12 +45,12 @@ namespace XrSamples.Dnd
         [Action]
         public void ToggleSimplified()
         {
-            var materials = Map!.Descendants<TriangleMesh>()
+            IEnumerable<PbrV2Material> materials = Map!.Descendants<TriangleMesh>()
                                .SelectMany(a => a.Materials)
                                .OfType<PbrV2Material>()
                                .Distinct();
 
-            foreach (var material in materials)
+            foreach (PbrV2Material? material in materials)
             {
                 material.Simplified = !material.Simplified;
                 material.NotifyChanged(ObjectChangeType.Property);
@@ -61,10 +59,10 @@ namespace XrSamples.Dnd
 
         protected override void Update(RenderContext ctx)
         {
-            var aButton = _inputs!.Right!.Button!.AClick!;
-            var bButton = _inputs.Right!.Button!.BClick!;
-            var xButton = _inputs.Left!.Button!.XClick!;
-            var rTrigger = _inputs.Right!.TriggerValue!;
+            XrBoolInput aButton = _inputs!.Right!.Button!.AClick!;
+            XrBoolInput bButton = _inputs.Right!.Button!.BClick!;
+            XrBoolInput xButton = _inputs.Left!.Button!.XClick!;
+            XrFloatInput rTrigger = _inputs.Right!.TriggerValue!;
 
             if (bButton.IsChanged && bButton.Value)
             {

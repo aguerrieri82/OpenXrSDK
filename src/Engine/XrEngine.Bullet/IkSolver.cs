@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.Numerics;
 using XrMath;
 using static XrEngine.Bullet.BulletLib;
 
@@ -11,14 +7,14 @@ namespace XrEngine.Bullet
 
     public class IkSolver
     {
-        Dictionary<IkNode, uint> _nodeMap = [];
-        Dictionary<IkNode, uint> _targetMap = [];
+        readonly Dictionary<IkNode, uint> _nodeMap = [];
+        readonly Dictionary<IkNode, uint> _targetMap = [];
         IkContext _ctx;
         IkNode? _root;
 
         public IkSolver()
         {
-            WorldPose = Pose3.Identity; 
+            WorldPose = Pose3.Identity;
         }
 
         public void Build(IkNode root)
@@ -26,13 +22,13 @@ namespace XrEngine.Bullet
             uint ix = 0;
             uint targetIx = 0;
 
-            var nodes = new List<IkNode>();
+            List<IkNode> nodes = new List<IkNode>();
 
             void Collect(IkNode node)
             {
-                nodes.Add(node);     
-                
-                if (node.Left != null) 
+                nodes.Add(node);
+
+                if (node.Left != null)
                     Collect(node.Left);
 
                 if (node.Right != null)
@@ -58,11 +54,11 @@ namespace XrEngine.Bullet
 
             Collect(root);
 
-            var targetsCount = nodes.Where(a => a.Purpose == Purpose.Effector).Count();
+            int targetsCount = nodes.Where(a => a.Purpose == Purpose.Effector).Count();
 
             _ctx = IkCreate((uint)nodes.Count, (uint)targetsCount);
 
-            foreach (var node in nodes)
+            foreach (IkNode node in nodes)
             {
                 _nodeMap[node] = ix;
                 _ctx.IkCreateNode(ix, node.Attach, node.Axis, node.Size, node.Purpose, node.MinTheta, node.MaxTheta, node.RestAngle);
@@ -92,18 +88,18 @@ namespace XrEngine.Bullet
         public void Update(IkUpdateMethod method, bool updateTheta = true)
         {
             _ctx.IkUpdate(method, updateTheta);
-            foreach (var item in _nodeMap)
+            foreach (KeyValuePair<IkNode, uint> item in _nodeMap)
                 item.Key.Theta = _ctx.IkGetNodeTheta(item.Value);
         }
 
         public void SetTarget(IkNode node, Vector3 pos)
         {
-            var ix = _targetMap[node];
+            uint ix = _targetMap[node];
 
-            var localPos = WorldPose.Inverse().Transform(pos);
+            Vector3 localPos = WorldPose.Inverse().Transform(pos);
 
-            _ctx.IkSetTarget(ix, localPos);  
-        }                
+            _ctx.IkSetTarget(ix, localPos);
+        }
 
         public IkNode? FindNode(string name)
         {

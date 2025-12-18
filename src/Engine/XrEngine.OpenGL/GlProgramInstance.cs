@@ -31,7 +31,7 @@ namespace XrEngine.OpenGL
             Material = material;
             Global = global;
 
-            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
+            GlBufferMap bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
             _materialBuffers = bufferMap.Buffers;
 
             if (model != null)
@@ -48,13 +48,13 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(ctx.Stage == UpdateShaderStage.Model);
 
-            var bufferMap = ctx.Model!.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
+            GlBufferMap bufferMap = ctx.Model!.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
 
             _modelBuffers = bufferMap.Buffers;
 
             if (_modelUpdate == null)
             {
-                var localBuilder = new ShaderUpdateBuilder(ctx);
+                ShaderUpdateBuilder localBuilder = new ShaderUpdateBuilder(ctx);
 
                 Material!.UpdateShader(localBuilder);
 
@@ -76,25 +76,25 @@ namespace XrEngine.OpenGL
 
             ctx.BufferProvider = this;
 
-            var localBuilder = new ShaderUpdateBuilder(ctx);
+            ShaderUpdateBuilder localBuilder = new ShaderUpdateBuilder(ctx);
             Material!.UpdateShader(localBuilder);
 
-            foreach (var feature in Global.ShaderUpdate!.Features!)
+            foreach (string feature in Global.ShaderUpdate!.Features!)
                 localBuilder.AddFeature(feature);
 
             if (ExtraFeatures != null)
             {
-                foreach (var feature in ExtraFeatures)
+                foreach (string feature in ExtraFeatures)
                     localBuilder.AddFeature(feature);
             }
 
-            var shader = Material.Shader!;
+            Shader shader = Material.Shader!;
 
-            var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
+            TessellationMode tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
 
-            var useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
+            bool useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
 
-            var useGeo = shader.GeometrySourceName != null &&
+            bool useGeo = shader.GeometrySourceName != null &&
                          (shader.TessEvalSourceName == null || tesMode == TessellationMode.Geometry);
 
             if (useTess)
@@ -109,13 +109,13 @@ namespace XrEngine.OpenGL
 
             _materialUpdate = localBuilder.Result;
 
-            if (!_programs.TryGetValue(_materialUpdate.FeaturesHash!, out var program))
+            if (!_programs.TryGetValue(_materialUpdate.FeaturesHash!, out GlBaseProgram? program))
             {
                 Func<string, string> resolver = name =>
                 {
                     if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
                     {
-                        var fullPath = shader.SourcePaths.
+                        string? fullPath = shader.SourcePaths.
                                        Select(a => Path.Combine(a, name))
                                        .Where(File.Exists)
                                         .FirstOrDefault();
@@ -147,17 +147,17 @@ namespace XrEngine.OpenGL
 
                 if (ExtraExtensions != null)
                 {
-                    foreach (var ext in ExtraExtensions)
+                    foreach (string ext in ExtraExtensions)
                         program.AddExtension(ext);
                 }
 
-                foreach (var ext in _materialUpdate.Extensions!)
+                foreach (string ext in _materialUpdate.Extensions!)
                     program.AddExtension(ext);
 
-                foreach (var feature in _materialUpdate.Features!)
+                foreach (string feature in _materialUpdate.Features!)
                     program.AddFeature(feature);
 
-                foreach (var ext in Global.ShaderUpdate!.Extensions!)
+                foreach (string ext in Global.ShaderUpdate!.Extensions!)
                     program.AddExtension(ext);
 
                 /*
@@ -173,7 +173,7 @@ namespace XrEngine.OpenGL
                 _programs[_materialUpdate.FeaturesHash!] = program;
             }
 
-            var changed = Program == null || program.Handle != Program.Handle;
+            bool changed = Program == null || program.Handle != Program.Handle;
 
             program.Use();
 
@@ -190,12 +190,12 @@ namespace XrEngine.OpenGL
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store);
 
-            var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
+            IGlBuffer?[] storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
 
             if (storeBuffers.Length == 0)
                 throw new NotSupportedException("Buffer store not supported");
 
-            var buffer = (IBuffer<T>?)storeBuffers[bufferId];
+            IBuffer<T>? buffer = (IBuffer<T>?)storeBuffers[bufferId];
             if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
@@ -206,7 +206,7 @@ namespace XrEngine.OpenGL
 
         public void UpdateBuffers(UpdateShaderContext ctx, bool updateGlobals = false)
         {
-            var update = ctx.Stage == UpdateShaderStage.Any ||
+            ShaderUpdate? update = ctx.Stage == UpdateShaderStage.Any ||
                          ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
 
             if (update == null)
@@ -217,14 +217,14 @@ namespace XrEngine.OpenGL
             if (updateGlobals)
                 Global.UpdateBuffers(ctx);
 
-            foreach (var action in update.BufferUpdates!)
+            foreach (UpdateBufferAction action in update.BufferUpdates!)
                 action(ctx);
         }
 
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {
-            var update = ctx.Stage == UpdateShaderStage.Any ||
+            ShaderUpdate? update = ctx.Stage == UpdateShaderStage.Any ||
                          ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
 
             if (update == null)
@@ -242,7 +242,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            foreach (var action in update.Actions!)
+            foreach (UpdateUniformAction action in update.Actions!)
                 action(ctx, Program!);
         }
 

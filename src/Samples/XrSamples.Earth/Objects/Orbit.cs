@@ -15,19 +15,19 @@ namespace XrSamples.Earth
 
         public LineMesh CreateGeometry(Color color, float stepSize = 0.01f)
         {
-            var vertices = new List<Vector3>();
+            List<Vector3> vertices = new List<Vector3>();
 
             // Note: angle is in radians, from 0 to 2π
             for (double angle = 0; angle < MathF.PI * 2; angle += stepSize)
             {
                 // Both p1 and p2 are computed in radians
-                var p1 = GetPosition(angle);
-                var p2 = GetPosition((angle + stepSize) % (MathF.PI * 2));
+                Vector3 p1 = GetPosition(angle);
+                Vector3 p2 = GetPosition((angle + stepSize) % (MathF.PI * 2));
                 vertices.Add(p1);
                 vertices.Add(p2);
             }
 
-            var res = new LineMesh
+            LineMesh res = new LineMesh
             {
                 Vertices = vertices.Select(a => new PointData
                 {
@@ -101,7 +101,7 @@ namespace XrSamples.Earth
             // xEcl -> X
             // yEcl -> Z
             // zEcl -> Y
-            var final = new Vector3(
+            Vector3 final = new Vector3(
                 (float)xEcl,
                 (float)zEcl,
                 (float)yEcl
@@ -111,7 +111,7 @@ namespace XrSamples.Earth
             if (Math.Abs(OrbitOffset) > 1e-9)
             {
 
-                var orbitNormal = new Vector3(
+                Vector3 orbitNormal = new Vector3(
                     (float)(Math.Sin(Inclination) * Math.Sin(LongitudeOfAscendingNode)),
                     (float)(Math.Cos(Inclination)),
                     (float)(-Math.Sin(Inclination) * Math.Cos(LongitudeOfAscendingNode))

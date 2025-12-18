@@ -34,8 +34,8 @@ namespace XrEditor
 
         protected Vector3 ToView(Pointer2Event ev, float z = -1f)
         {
-            var width = _sceneView!.RenderSurface.Size.X;
-            var height = _sceneView!.RenderSurface.Size.Y;
+            float width = _sceneView!.RenderSurface.Size.X;
+            float height = _sceneView!.RenderSurface.Size.Y;
 
             return new Vector3(
                 2.0f * ev.Position.X / (float)width - 1.0f,
@@ -46,7 +46,7 @@ namespace XrEditor
 
         protected Vector3 ToWorld(Pointer2Event ev, float z = -1f)
         {
-            var normPoint = ToView(ev, z);
+            Vector3 normPoint = ToView(ev, z);
             return _sceneView!.Camera!.Unproject(normPoint);
         }
 
@@ -55,12 +55,12 @@ namespace XrEditor
             if (_sceneView?.Camera == null)
                 return new Ray3();
 
-            var normPoint = ToView(ev);
+            Vector3 normPoint = ToView(ev);
 
-            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView.Camera.ProjectionInverse);
+            Vector4 dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView.Camera.ProjectionInverse);
             dirEye.W = 0;
 
-            var dirWorld = Vector4.Transform(dirEye, _sceneView.Camera.WorldMatrix);
+            Vector4 dirWorld = Vector4.Transform(dirEye, _sceneView.Camera.WorldMatrix);
 
             return new Ray3
             {

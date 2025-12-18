@@ -1,25 +1,16 @@
-﻿
-using CanvasUI;
-using Silk.NET.OpenGL;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine;
-using XrEngine.OpenXr;
-using XrEngine.UI;
 using XrMath;
 
 namespace XrSamples.Dnd
 {
     public partial class Token : Group3D
     {
-        Group3D _tokenSet;
+        readonly Group3D _tokenSet;
 
-        TokenPicture _picture;
-        TriangleMesh _box;
-        Object3D _mesh;
+        readonly TokenPicture _picture;
+        readonly TriangleMesh _box;
+        readonly Object3D _mesh;
         private VttToken? _vttToken;
 
         public Token(Object3D mesh)
@@ -44,7 +35,7 @@ namespace XrSamples.Dnd
 
             this.AddComponent<TokenGrabbable>();
 
-            var curPose = _mesh.GetWorldPose();
+            Pose3 curPose = _mesh.GetWorldPose();
             _mesh.SetWorldPose(new Pose3
             {
                 Orientation = curPose.Orientation,
@@ -53,16 +44,16 @@ namespace XrSamples.Dnd
 
             WorldPosition = curPose.Position;
 
-            var y = _mesh.WorldBounds.Max.Y;
-            _tokenSet.Transform.Position = new Vector3(0, y + 0.2f, 0); 
+            float y = _mesh.WorldBounds.Max.Y;
+            _tokenSet.Transform.Position = new Vector3(0, y + 0.2f, 0);
         }
 
         public override void Update(RenderContext ctx)
         {
-            var camera = ctx.Camera ?? _scene?.ActiveCamera;
+            Camera? camera = ctx.Camera ?? _scene?.ActiveCamera;
             if (camera != null)
             {
-                var forward = camera.Forward;
+                Vector3 forward = camera.Forward;
                 _tokenSet.Forward = new Vector3(forward.X, 0, forward.Z).Normalize();
             }
 
@@ -71,18 +62,18 @@ namespace XrSamples.Dnd
 
         protected void UpdatePosition()
         {
-            var scene = (DndScene)_scene!;
-            var padding = 200;
-            var mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
-            var pos = new Vector2(int.Parse(_vttToken!.Left![..^2]), int.Parse(_vttToken.Top![..^2]));
+            DndScene scene = (DndScene)_scene!;
+            int padding = 200;
+            Vector2 mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
+            Vector2 pos = new Vector2(int.Parse(_vttToken!.Left![..^2]), int.Parse(_vttToken.Top![..^2]));
             pos -= new Vector2(padding, padding);
 
-            var tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
+            Group3D tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
             tiles.UpdateBounds();
-            var bounds = tiles.LocalBounds;
+            Bounds3 bounds = tiles.LocalBounds;
 
-            var localPos = pos / mapSize * new Vector2(bounds.Size.X, bounds.Size.Z);
-            Transform.Position = new Vector3(localPos.X + 0.5f, Transform.Position.Y, - (bounds.Size.Z - localPos.Y - 0.5f));
+            Vector2 localPos = pos / mapSize * new Vector2(bounds.Size.X, bounds.Size.Z);
+            Transform.Position = new Vector3(localPos.X + 0.5f, Transform.Position.Y, -(bounds.Size.Z - localPos.Y - 0.5f));
 
             //SendPosition();
         }
@@ -90,22 +81,22 @@ namespace XrSamples.Dnd
         [Action]
         public void SendPosition()
         {
-            var scene = (DndScene)_scene!;
-            var padding = 200;
-            var mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
+            DndScene scene = (DndScene)_scene!;
+            int padding = 200;
+            Vector2 mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
 
-            var tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
+            Group3D tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
 
             tiles.UpdateBounds();
-            var bounds = tiles.LocalBounds;
+            Bounds3 bounds = tiles.LocalBounds;
 
-            var position = Transform.Position;
+            Vector3 position = Transform.Position;
 
-            var localPosX = position.X - 0.5f;
-            var localPosY = bounds.Size.Z - (-position.Z) - 0.5f;
+            float localPosX = position.X - 0.5f;
+            float localPosY = bounds.Size.Z - (-position.Z) - 0.5f;
 
-            var mapCoord = new Vector2(localPosX / bounds.Size.X, localPosY / bounds.Size.Z);
-            var pos = mapCoord * mapSize + new Vector2(padding, padding);
+            Vector2 mapCoord = new Vector2(localPosX / bounds.Size.X, localPosY / bounds.Size.Z);
+            Vector2 pos = mapCoord * mapSize + new Vector2(padding, padding);
 
             _vttToken!.Left = $"{(int)Math.Round(pos.X)}px";
             _vttToken!.Top = $"{(int)Math.Round(pos.Y)}px";

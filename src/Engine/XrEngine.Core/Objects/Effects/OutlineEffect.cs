@@ -52,7 +52,7 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var depthTex = bld.Context.DepthMap;
+            Texture2D? depthTex = bld.Context.DepthMap;
 
             if (depthTex != null && depthTex.SampleCount > 1)
             {

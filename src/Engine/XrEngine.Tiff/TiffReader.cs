@@ -17,8 +17,8 @@ namespace XrEngine
             if (stream is not FileStream fileStream)
                 throw new NotSupportedException("Only file streams are supported");
 
-            var tiff = LibTiff.TIFFOpen(fileStream.Name, "r");
-            var data = tiff.Read();
+            LibTiff.Tiff tiff = LibTiff.TIFFOpen(fileStream.Name, "r");
+            TextureData data = tiff.Read();
             tiff.TIFFClose();
 
             return [data];

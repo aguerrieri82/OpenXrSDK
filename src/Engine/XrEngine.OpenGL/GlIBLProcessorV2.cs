@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
 
             _inputTexture = LoadHdr(panoramaHdr);
 
-            var maxMipLevels = (uint)MathF.Floor(MathF.Log2(Resolution));
+            uint maxMipLevels = (uint)MathF.Floor(MathF.Log2(Resolution));
 
             if (MipLevelCount == 0 || MipLevelCount > maxMipLevels)
                 MipLevelCount = maxMipLevels;
@@ -56,7 +56,7 @@ namespace XrEngine.OpenGL
 
             void AddFilter(string shader, Distribution distribution)
             {
-                var prog = new GlComputeProgram(_gl, shader, shaderResolver);
+                GlComputeProgram prog = new GlComputeProgram(_gl, shader, shaderResolver);
                 prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
@@ -92,11 +92,11 @@ namespace XrEngine.OpenGL
 
         public uint ApplyFilter(Distribution distribution)
         {
-            var program = _filterProg![distribution];
+            GlComputeProgram program = _filterProg![distribution];
 
             GlState.Current!.LoadTexture(_inputTexture!, 0);
 
-            var mipCount = distribution == Distribution.GGX ? MipLevelCount : 1;
+            uint mipCount = distribution == Distribution.GGX ? MipLevelCount : 1;
 
             uint texId;
             if (distribution == Distribution.GGXLut)
@@ -111,8 +111,8 @@ namespace XrEngine.OpenGL
             GlState.Current.LoadTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
 
 
-            var res = Resolution;
-            for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
+            uint res = Resolution;
+            for (int mipLevel = 0; mipLevel < mipCount; ++mipLevel)
             {
                 if (distribution == Distribution.GGX)
                 {
@@ -128,13 +128,13 @@ namespace XrEngine.OpenGL
                     }
                     else
                     {
-                        var r = mipLevel / ((float)mipCount - 1);
+                        float r = mipLevel / ((float)mipCount - 1);
                         program.SetUniform("roughness", mipLevel / ((float)mipCount - 1));
                     }
 
                 }
 
-                var steps = (res + 31) / 32;
+                uint steps = (res + 31) / 32;
 
                 _gl.BindImageTexture(0, texId, mipLevel, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
@@ -151,7 +151,7 @@ namespace XrEngine.OpenGL
 
         protected GlTexture LoadHdr(TextureData data)
         {
-            var res = new GlTexture(_gl)
+            GlTexture res = new GlTexture(_gl)
             {
                 MinFilter = TextureMinFilter.Linear,
                 MagFilter = TextureMagFilter.Linear,
@@ -177,7 +177,7 @@ namespace XrEngine.OpenGL
 
         protected unsafe uint CreateLutTexture()
         {
-            var targetTexture = _gl.GenTexture();
+            uint targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.Texture2D, targetTexture);
 
             _gl.TexStorage2D(
@@ -199,7 +199,7 @@ namespace XrEngine.OpenGL
 
         protected unsafe uint CreateCubeMap(bool withMipmaps)
         {
-            var targetTexture = _gl.GenTexture();
+            uint targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
 
 
@@ -240,7 +240,7 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg?.Dispose();
 
-            foreach (var prog in _filterProg.Values)
+            foreach (GlComputeProgram prog in _filterProg.Values)
                 prog.Dispose();
             _filterProg.Clear();
 

@@ -1,10 +1,9 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
 
 namespace XrEngine.Bullet
 {
-    
+
     public static class BulletLib
     {
         [StructLayout(LayoutKind.Sequential)]

@@ -11,7 +11,7 @@
 
         public IAssetLoader GetLoader(Uri uri)
         {
-            var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out var resType));
+            IAssetLoader? loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out Type? resType));
             if (loader == null)
                 throw new NotSupportedException();
             return loader;

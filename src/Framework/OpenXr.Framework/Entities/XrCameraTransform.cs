@@ -22,7 +22,7 @@ namespace OpenXr.Framework
 
         public static XrCameraTransform FromView(Pose3 pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-            var result = new XrCameraTransform();
+            XrCameraTransform result = new XrCameraTransform();
 
             result.Projection = CreateProjectionFov(
                    MathF.Tan(fov.AngleLeft),
@@ -45,7 +45,7 @@ namespace OpenXr.Framework
                                                      float nearZ,
                                                      float farZ)
         {
-            var result = stackalloc float[16];
+            float* result = stackalloc float[16];
 
             float tanAngleWidth = tanAngleRight - tanAngleLeft;
             float tanAngleHeight = tanAngleUp - tanAngleDown;

@@ -20,7 +20,7 @@ namespace XrEditor
             _mainDispatcher = Context.Require<IMainDispatcher>();
             _panelManager = Context.Require<PanelManager>();
 
-            var panelAttr = GetType().GetCustomAttribute<PanelAttribute>();
+            PanelAttribute? panelAttr = GetType().GetCustomAttribute<PanelAttribute>();
 
             if (panelAttr != null)
                 _panelId = panelAttr.PanelId;

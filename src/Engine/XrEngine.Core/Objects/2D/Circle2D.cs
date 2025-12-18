@@ -7,13 +7,13 @@ namespace XrEngine
 
         public Vector2 GetPointAtTime(float t)
         {
-            var angle = MathF.PI * 2 * t;
+            float angle = MathF.PI * 2 * t;
             return new Vector2(Center.X + MathF.Cos(angle) * Radius, Center.Y + MathF.Sin(angle) * Radius);
         }
 
         public Vector2 GetTangentAtTime(float t)
         {
-            var angle = MathF.PI * 2 * t;
+            float angle = MathF.PI * 2 * t;
             return Vector2.Normalize(new Vector2(-MathF.Sin(angle), MathF.Cos(angle)));
         }
 
@@ -29,7 +29,7 @@ namespace XrEngine
             double angle = Math.Acos(1 - tolerance / Radius);
             int steps = (int)Math.Ceiling(Math.PI / angle);
 
-            for (var i = 0; i <= steps; i++)
+            for (int i = 0; i <= steps; i++)
             {
                 float t = (float)((1d / steps) * i);
                 if (i == steps)

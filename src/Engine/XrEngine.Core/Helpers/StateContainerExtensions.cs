@@ -6,8 +6,8 @@ namespace XrEngine
     {
         public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
         {
-            var arrayState = container.Enter(key);
-            for (var i = 0; i < items.Count; i++)
+            IStateContainer arrayState = container.Enter(key);
+            for (int i = 0; i < items.Count; i++)
             {
                 if (!items[i].GetType().HasEmptyConstructor())
                     continue;
@@ -19,19 +19,19 @@ namespace XrEngine
         {
             HashSet<T> foundItems = [];
 
-            var isUpdate = container.Context.Is(StateContextFlags.Update);
+            bool isUpdate = container.Context.Is(StateContextFlags.Update);
 
             if (container.Contains(key))
             {
                 curItems ??= [];
 
-                var arrayState = container.Enter(key);
+                IStateContainer arrayState = container.Enter(key);
 
-                foreach (var childKey in arrayState.Keys)
+                foreach (string childKey in arrayState.Keys)
                 {
-                    var itemState = arrayState.Enter(childKey, true);
-                    var itemId = itemState.Read<Guid>("Id");
-                    var curItem = curItems!.FirstOrDefault(a => a.Id.Value == itemId);
+                    IStateContainer itemState = arrayState.Enter(childKey, true);
+                    Guid itemId = itemState.Read<Guid>("Id");
+                    T? curItem = curItems!.FirstOrDefault(a => a.Id.Value == itemId);
 
                     if (curItem == null)
                     {
@@ -50,7 +50,7 @@ namespace XrEngine
 
             if (curItems != null && !isUpdate)
             {
-                for (var i = curItems.Count - 1; i >= 0; i--)
+                for (int i = curItems.Count - 1; i >= 0; i--)
                 {
                     if (!foundItems.Contains(curItems[i]))
                         removeItem(curItems[i]);
@@ -76,20 +76,20 @@ namespace XrEngine
         {
             fixed (T* pBuffer = value)
             {
-                var buffer = new Span<byte>((byte*)pBuffer, value.Length * sizeof(T));
-                var base64 = Convert.ToBase64String(buffer);
+                Span<byte> buffer = new Span<byte>((byte*)pBuffer, value.Length * sizeof(T));
+                string base64 = Convert.ToBase64String(buffer);
                 container.Write(key, base64);
             }
         }
 
         public static unsafe T[] ReadBuffer<T>(this IStateContainer container, string key) where T : unmanaged
         {
-            var base64 = container.Read<string>(key);
-            var bytes = Convert.FromBase64String(base64);
+            string base64 = container.Read<string>(key);
+            byte[] bytes = Convert.FromBase64String(base64);
 
             fixed (byte* pBuffer = bytes)
             {
-                var buffer = new Span<T>((T*)pBuffer, bytes.Length / sizeof(T));
+                Span<T> buffer = new Span<T>((T*)pBuffer, bytes.Length / sizeof(T));
                 return buffer.ToArray();
             }
         }
@@ -101,11 +101,11 @@ namespace XrEngine
 
         public static void WriteObject(this IStateContainer container, object obj, Type objType)
         {
-            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
-            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
-            foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            StateManagerAttribute? sm = objType.GetCustomAttribute<StateManagerAttribute>();
+            bool isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
+            foreach (PropertyInfo prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
-                var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+                SaveStateAttribute? saveState = prop.GetCustomAttribute<SaveStateAttribute>();
                 if (isExplicit && saveState == null)
                     continue;
                 if (saveState != null && !saveState.IsSave)
@@ -124,10 +124,10 @@ namespace XrEngine
         {
             if (curObj != null)
             {
-                var itemState = container.Enter(key, true);
+                IStateContainer itemState = container.Enter(key, true);
                 if (itemState == null)
                     return null;
-                var itemId = itemState.Read<Guid>("Id");
+                Guid itemId = itemState.Read<Guid>("Id");
                 if (curObj.Id.Value == itemId)
                     return container.Read(key, curObj);
 
@@ -138,12 +138,12 @@ namespace XrEngine
 
         public static void ReadObject(this IStateContainer container, object obj, Type objType)
         {
-            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
-            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
+            StateManagerAttribute? sm = objType.GetCustomAttribute<StateManagerAttribute>();
+            bool isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
 
-            foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (PropertyInfo prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
-                var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+                SaveStateAttribute? saveState = prop.GetCustomAttribute<SaveStateAttribute>();
 
                 if (isExplicit && saveState == null)
                     continue;
@@ -156,19 +156,19 @@ namespace XrEngine
 
         public static void WriteTypedObject(this IStateContainer container, string key, IStateManager value)
         {
-            var objState = container.Enter(key);
+            IStateContainer objState = container.Enter(key);
             objState.WriteTypeName(value);
             value.GetState(objState);
         }
 
         public static T CreateTypedObject<T>(this IStateContainer container, string key) where T : IStateManager
         {
-            var objState = container.Enter(key);
-            var typeName = objState.ReadTypeName();
+            IStateContainer objState = container.Enter(key);
+            string? typeName = objState.ReadTypeName();
             if (typeName == null)
                 throw new InvalidOperationException($"Type name '{typeName}' not found");
 
-            var obj = (T)ObjectManager.Instance.CreateObject(typeName!);
+            T obj = (T)ObjectManager.Instance.CreateObject(typeName!);
             obj.SetState(objState);
 
             if (obj is IObjectId objId)

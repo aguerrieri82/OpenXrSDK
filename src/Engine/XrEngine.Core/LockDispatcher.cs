@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class LockDispatcher : IDispatcher
     {
-        object _lock;
+        readonly object _lock;
 
         public LockDispatcher(object obj)
         {

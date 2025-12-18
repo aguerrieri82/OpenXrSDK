@@ -28,10 +28,10 @@ namespace XrEngine.OpenXr
 
         public Object3D? CreateModel(SceneModelInfo model)
         {
-            if (!_models.TryGetValue(model.Type, out var options))
+            if (!_models.TryGetValue(model.Type, out SceneModelOptions? options))
                 return null;
 
-            var obj = options.CreateModel?.Invoke(model);
+            Object3D? obj = options.CreateModel?.Invoke(model);
 
             if (obj == null)
                 return null;
@@ -57,9 +57,9 @@ namespace XrEngine.OpenXr
 
         public virtual Object3D CreateCube(SceneModelInfo model, SceneModelOptions options)
         {
-            var material = options.Material ?? CreateMaterial();
+            Material material = options.Material ?? CreateMaterial();
 
-            var obj = new TriangleMesh(
+            TriangleMesh obj = new TriangleMesh(
                 new Cube3D(new Vector3(model.Size.X, model.Size.Y, 0.01f)),
                 material);
 
@@ -77,9 +77,9 @@ namespace XrEngine.OpenXr
 
         public virtual Object3D CreateMesh(SceneModelInfo model, SceneModelOptions options)
         {
-            var material = options.Material ?? CreateMaterial();
+            Material material = options.Material ?? CreateMaterial();
 
-            var obj = new TriangleMesh(model.Geometry!, material);
+            TriangleMesh obj = new TriangleMesh(model.Geometry!, material);
 
             if (options.AddPhysics)
                 obj.AddComponent(new PyMeshCollider());
@@ -89,7 +89,7 @@ namespace XrEngine.OpenXr
 
         protected virtual Material CreateMaterial()
         {
-            var mat = MaterialFactory.CreatePbr(Color.White);
+            IPbrMaterial mat = MaterialFactory.CreatePbr(Color.White);
             mat.Roughness = 0.8f;
             mat.Metalness = 0;
             mat.ShadowColor = new Color(0, 0, 0, 0.7f);
@@ -99,7 +99,7 @@ namespace XrEngine.OpenXr
 
         protected RigidBody AddRigidBody(Object3D obj)
         {
-            var rigidBody = obj.AddComponent<RigidBody>();
+            RigidBody rigidBody = obj.AddComponent<RigidBody>();
 
             rigidBody.Type = PhysicsActorType.Static;
             rigidBody.ContactOffset = 0.2f;
@@ -115,7 +115,7 @@ namespace XrEngine.OpenXr
 
         public void AddMesh(Material? material = null, bool addPhysics = false)
         {
-            var options = new SceneModelOptions
+            SceneModelOptions options = new SceneModelOptions
             {
                 Material = material,
                 AddPhysics = addPhysics,
@@ -128,7 +128,7 @@ namespace XrEngine.OpenXr
 
         public void AddWalls(Material? material = null, bool addPhysics = false)
         {
-            var options = new SceneModelOptions
+            SceneModelOptions options = new SceneModelOptions
             {
                 Material = material,
                 AddPhysics = addPhysics
@@ -143,7 +143,7 @@ namespace XrEngine.OpenXr
 
         public void Add(SceneModelType type, CreateModelDelegate factory, bool addPhysics = false)
         {
-            var options = new SceneModelOptions
+            SceneModelOptions options = new SceneModelOptions
             {
                 AddPhysics = addPhysics,
                 CreateModel = model => factory(model)

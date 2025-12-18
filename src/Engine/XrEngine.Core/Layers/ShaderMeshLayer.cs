@@ -33,14 +33,14 @@
         {
             if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.Render) && sender is TriangleMesh mesh)
             {
-                foreach (var material in mesh.Materials.OfType<ShaderMaterial>())
+                foreach (ShaderMaterial material in mesh.Materials.OfType<ShaderMaterial>())
                 {
                     if (material.Shader == null)
                         continue;
 
                     if (!_layers.ContainsKey(material.Shader))
                     {
-                        var layer = new ShaderMeshLayer(material.Shader);
+                        ShaderMeshLayer layer = new ShaderMeshLayer(material.Shader);
                         _layers[material.Shader] = layer;
                         sender.Scene!.Layers.Add(layer);
                         layer.NotifyChanged(sender, change);

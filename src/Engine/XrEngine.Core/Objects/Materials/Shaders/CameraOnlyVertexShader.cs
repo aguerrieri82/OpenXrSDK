@@ -12,7 +12,7 @@ namespace XrEngine
 
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
-            var stage = bld.Context.Stage;
+            UpdateShaderStage stage = bld.Context.Stage;
 
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader)
             {
@@ -20,7 +20,7 @@ namespace XrEngine
                 {
                     Debug.Assert(ctx.PassCamera != null);
 
-                    var result = new CameraUniforms
+                    CameraUniforms result = new CameraUniforms
                     {
                         ViewProj = ctx.PassCamera.ViewProjection,
                         Position = ctx.PassCamera.WorldPosition,

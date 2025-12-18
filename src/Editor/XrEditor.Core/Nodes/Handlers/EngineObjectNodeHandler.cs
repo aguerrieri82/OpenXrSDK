@@ -16,7 +16,7 @@ namespace XrEditor.Nodes
 
             if (value is EngineObject obj)
             {
-                var node = obj.GetProp<INode>("Node");
+                INode node = obj.GetProp<INode>("Node");
 
                 if (node == null)
                 {

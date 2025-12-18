@@ -39,9 +39,9 @@
 
         protected void Update()
         {
-            var startTime = DateTime.UtcNow;
+            DateTime startTime = DateTime.UtcNow;
 
-            var toRemove = new HashSet<IAnimation>();
+            HashSet<IAnimation> toRemove = new HashSet<IAnimation>();
 
             while (_isStarted)
             {
@@ -54,7 +54,7 @@
                 if (!_isStarted)
                     return;
 
-                var curTime = DateTime.UtcNow - startTime;
+                TimeSpan curTime = DateTime.UtcNow - startTime;
 
                 toRemove.Clear();
 
@@ -63,7 +63,7 @@
                 lock (_animations)
                     animations = _animations.ToArray();
 
-                foreach (var animation in animations)
+                foreach (IAnimation animation in animations)
                 {
                     if (!animation.IsStarted)
                     {
@@ -71,7 +71,7 @@
                         animation.IsStarted = true;
                     }
 
-                    var t = (float)((curTime - animation.StartTime).TotalMilliseconds / animation.Duration.TotalMilliseconds);
+                    float t = (float)((curTime - animation.StartTime).TotalMilliseconds / animation.Duration.TotalMilliseconds);
 
                     if (t > 1)
                         t = 1;
@@ -87,7 +87,7 @@
 
                 lock (_animations)
                 {
-                    foreach (var item in toRemove)
+                    foreach (IAnimation item in toRemove)
                         _animations.Remove(item);
                 }
 

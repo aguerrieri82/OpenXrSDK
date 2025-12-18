@@ -97,14 +97,14 @@ namespace XrEditor.Components
         {
             if (!_isMoving)
                 return;
-            var pos = e.GetPosition(this);
+            Point pos = e.GetPosition(this);
             Value = _downValue + (int)(pos.X - _downPos.X) * SmallStep;
         }
 
 
         private void OnTextMouseUp(object sender, MouseButtonEventArgs e)
         {
-            var upPos = e.GetPosition(this);
+            Point upPos = e.GetPosition(this);
             if (_downPos == upPos)
             {
                 _editMode = true;

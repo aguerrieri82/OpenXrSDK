@@ -30,7 +30,7 @@ namespace OpenAl.Framework
     {
         static unsafe int StrToInt(string data)
         {
-            var bytes = Encoding.ASCII.GetBytes(data);
+            byte[] bytes = Encoding.ASCII.GetBytes(data);
             fixed (byte* pData = bytes)
                 return *(int*)pData;
         }
@@ -42,7 +42,7 @@ namespace OpenAl.Framework
 
         public AudioData Decode(Stream stream)
         {
-            var header = stream.ReadStruct<wav_header>();
+            wav_header header = stream.ReadStruct<wav_header>();
 
             if (header.riff_header != RIFF || header.wave_header != WAVE)
                 throw new InvalidOperationException();
@@ -65,7 +65,7 @@ namespace OpenAl.Framework
             else
                 throw new NotSupportedException();
 
-            var result = new AudioData(
+            AudioData result = new AudioData(
                 new AlAudioFormat
                 {
                     SampleType = sampleType,
@@ -74,7 +74,7 @@ namespace OpenAl.Framework
                 },
                 new byte[header.data_bytes]);
 
-            var tot = stream.Read(result.Buffer);
+            int tot = stream.Read(result.Buffer);
             Debug.Assert(tot == header.data_bytes);
 
             return result;

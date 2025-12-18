@@ -27,8 +27,7 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Media;
-
-
+using XrEngine.Devices.Windows;
 
 
 #if !ANDROID
@@ -53,9 +52,9 @@ namespace XrSamples
 
         static EngineApp CreateBaseScene()
         {
-            var app = new EngineApp();
+            EngineApp app = new EngineApp();
 
-            var scene = new Scene3D();
+            Scene3D scene = new Scene3D();
 
             scene.AddComponent<AudioSystem>();
 
@@ -69,18 +68,18 @@ namespace XrSamples
                 IsVisible = true
             });
 
-            var pl1 = scene.AddChild(new PointLight());
+            PointLight pl1 = scene.AddChild(new PointLight());
             pl1.Transform.Position = new Vector3(0, 2, 0);
             pl1.Intensity = 0.3f;
 
-            var pl2 = scene.AddChild(new PointLight());
+            PointLight pl2 = scene.AddChild(new PointLight());
             pl2.Name = "point-light-2";
             pl2.Transform.Position = new Vector3(0, -2, 0);
             pl2.Intensity = 0.3f;
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-            var camera = new PerspectiveCamera
+            PerspectiveCamera camera = new PerspectiveCamera
             {
                 Far = 100f,
                 Near = 0.01f,
@@ -104,17 +103,17 @@ namespace XrSamples
 
             .ConfigureApp(e =>
             {
-                var scene = e.App.ActiveScene!;
+                Scene3D scene = e.App.ActiveScene!;
 
                 scene.PerspectiveCamera().Exposure = 1.0f;
 
-                var envView = scene.AddChild<EnvironmentView>();
+                EnvironmentView envView = scene.AddChild<EnvironmentView>();
                 envView.IsVisible = showEnv;
 
-                var light = scene.AddChild<ImageLight>();
+                ImageLight light = scene.AddChild<ImageLight>();
                 light.Intensity = 1f;
 
-                foreach (var l in scene.Descendants<Light>())
+                foreach (Light l in scene.Descendants<Light>())
                 {
                     if (l != light)
                         l.IsVisible = false;
@@ -135,14 +134,14 @@ namespace XrSamples
         {
             return builder.ConfigureApp(e =>
             {
-                var inputs = e.GetInputs<XrOculusTouchController>();
+                XrOculusTouchController inputs = e.GetInputs<XrOculusTouchController>();
 
                 obj.AddBehavior((_, _) =>
                 {
-                    var click = inputs.Right!.Button!.AClick!;
+                    XrBoolInput click = inputs.Right!.Button!.AClick!;
                     if (click.IsChanged && click.Value)
                     {
-                        var scene = obj.Scene!;
+                        Scene3D scene = obj.Scene!;
                         obj.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * distance;
                         obj.WorldOrientation = scene.ActiveCamera!.WorldOrientation;
                     }
@@ -152,14 +151,14 @@ namespace XrSamples
 
         public static XrEngineAppBuilder RemovePlaneGrid(this XrEngineAppBuilder builder) => builder.ConfigureApp(e =>
         {
-            var grid = e.App.ActiveScene!.Descendants<PlaneGrid>().FirstOrDefault();
+            PlaneGrid? grid = e.App.ActiveScene!.Descendants<PlaneGrid>().FirstOrDefault();
             if (grid != null)
                 grid.IsVisible = false;
         });
 
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
         {
-            var panel = new Window3D();
+            Window3D panel = new Window3D();
 
             panel.Size = new Size2(0.8f, 0.5f);
             panel.DpiScale = 1.6f;
@@ -180,7 +179,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showDepth = false)
         {
-            var floor = new TriangleMesh(new Cube3D(new Vector3(size, 0.01f, size)));
+            TriangleMesh floor = new TriangleMesh(new Cube3D(new Vector3(size, 0.01f, size)));
             floor.Name = "Floor";
             floor.Materials.Add(new ShadowOnlyMaterial
             {
@@ -190,7 +189,7 @@ namespace XrSamples
 
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
-            var mat = new DepthViewMaterial();
+            DepthViewMaterial mat = new DepthViewMaterial();
 
             TriangleMesh? depth = null;
             if (showDepth)
@@ -227,7 +226,7 @@ namespace XrSamples
                 if (depth != null)
                     e.App.ActiveScene!.AddChild(depth);
 
-                var light = e.App.ActiveScene!.Descendants<DirectionalLight>().FirstOrDefault();
+                DirectionalLight? light = e.App.ActiveScene!.Descendants<DirectionalLight>().FirstOrDefault();
                 if (light != null)
                 {
                     light.CastShadows = true;
@@ -265,11 +264,11 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateChromeBrowser(this XrEngineAppBuilder builder)
         {
 #if !ANDROID
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var display = new TriangleMesh(Quad3D.Default)
+            TriangleMesh display = new TriangleMesh(Quad3D.Default)
             {
                 Name = "display"
             };
@@ -299,17 +298,17 @@ namespace XrSamples
         [Sample("Throw")]
         public static XrEngineAppBuilder CreateThrow(this XrEngineAppBuilder builder)
         {
-            var settings = new ThrowSettings();
-            var app = CreateBaseScene();
-            var scene = app.ActiveScene!;
+            ThrowSettings settings = new ThrowSettings();
+            EngineApp app = CreateBaseScene();
+            Scene3D scene = app.ActiveScene!;
 
-            var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
+            TriangleMesh cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
             cube.Transform.SetScale(0.1f);
             cube.AddComponent<BoundsGrabbable>();
             cube.AddComponent<BoxCollider>();
             cube.AddComponent<SpeedTracker>();
 
-            var rb = cube.AddComponent(new RigidBody()
+            RigidBody rb = cube.AddComponent(new RigidBody()
             {
                 Type = PhysicsActorType.Dynamic,
                 ToolMode = RigidBodyToolMode.KinematicTarget,
@@ -354,11 +353,11 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var display = new TriangleMesh(Quad3D.Default);
+            TriangleMesh display = new TriangleMesh(Quad3D.Default);
             //display.Materials.Add(new StandardMaterial { Color = Color.White, DoubleSided = false, WriteDepth = false });
 
             display.Name = "display";
@@ -378,14 +377,14 @@ namespace XrSamples
         [Sample("Ping Pong")]
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
         {
-            var settings = new PingPongSettings();
+            PingPongSettings settings = new PingPongSettings();
             settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "settings.json"));
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var racket = (Group3D)GltfLoader.LoadFile(GetAssetPath("Paddle.glb"), GltfOptions);
+            Group3D racket = (Group3D)GltfLoader.LoadFile(GetAssetPath("Paddle.glb"), GltfOptions);
             racket.Name = "Racket";
 
             //Reposition
@@ -396,7 +395,7 @@ namespace XrSamples
 
             racket.Transform.Update();
 
-            foreach (var geo in racket.DescendantsWithFeature<Geometry3D>())
+            foreach (ObjectFeature<Geometry3D> geo in racket.DescendantsWithFeature<Geometry3D>())
                 geo.Feature.ApplyTransform(racket.Transform.Matrix);
 
             racket.Transform.Reset();
@@ -404,31 +403,31 @@ namespace XrSamples
 
 
             //Audio
-            var audio = scene.Component<AudioSystem>();
-            var sound = new DynamicSound();
+            AudioSystem audio = scene.Component<AudioSystem>();
+            DynamicSound sound = new DynamicSound();
             sound.AddBuffers(audio.Device.Al, Context.Require<IAssetStore>(), "BallSounds");
 
             //Grabber
             racket.AddComponent<BoundsGrabbable>();
 
             //Colliders
-            foreach (var item in racket.DescendantsWithFeature<TriangleMesh>())
+            foreach (ObjectFeature<TriangleMesh> item in racket.DescendantsWithFeature<TriangleMesh>())
                 racket.AddComponent(new MeshCollider(item.Feature.Geometry!));
 
             //Rigid body
-            var rigidBody = racket.AddComponent<RigidBody>();
+            RigidBody rigidBody = racket.AddComponent<RigidBody>();
             rigidBody.Type = PhysicsActorType.Kinematic;
             rigidBody.MaterialInfo = new PhysicsMaterialInfo();
 
 
             //Ball generator
-            var bg = scene!.AddComponent(new BallGenerator(sound, 0f));
+            BallGenerator bg = scene!.AddComponent(new BallGenerator(sound, 0f));
             bg.PhysicSettings = settings.Ball;
 
             //Sample ball
-            var ball = bg.PickBall(new Vector3(-0.5f, 1.1f, 0));
+            Object3D ball = bg.PickBall(new Vector3(-0.5f, 1.1f, 0));
 
-            var ballRigid = ball.Component<RigidBody>();
+            RigidBody ballRigid = ball.Component<RigidBody>();
             ballRigid.Started += (_, _) =>
             {
                 ballRigid.DynamicActor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
@@ -458,19 +457,19 @@ namespace XrSamples
         [Sample("Chess")]
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
             GetAssetPath("Chess/ABeautifulGame.bin");
 
-            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri("res://asset/Chess/ABeautifulGame.gltf"), typeof(Group3D), null, GltfOptions);
+            Group3D mesh = (Group3D)AssetLoader.Instance.Load(new Uri("res://asset/Chess/ABeautifulGame.gltf"), typeof(Group3D), null, GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
 
-            foreach (var child in mesh.Children)
+            foreach (Object3D child in mesh.Children)
             {
-                var rb = child.AddComponent<RigidBody>();
+                RigidBody rb = child.AddComponent<RigidBody>();
                 child.AddComponent<BoxCollider>();
 
                 if (child.Name!.Contains("board"))
@@ -503,13 +502,13 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateSponza(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
             GetAssetPath("Sponza/Sponza.bin");
 
-            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("Sponza/Sponza.gltf"), GltfOptions, GetAssetPath);
+            Group3D mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("Sponza/Sponza.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -524,21 +523,21 @@ namespace XrSamples
         [Sample("Portal")]
         public static XrEngineAppBuilder CreatePortal(this XrEngineAppBuilder builder)
         {
-            var settings = new PortalSettings();
+            PortalSettings settings = new PortalSettings();
             settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "portal_settings.json"));
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var options = new TextureLoadOptions() { Format = TextureFormat.SRgba32 };
+            TextureLoadOptions options = new TextureLoadOptions() { Format = TextureFormat.SRgba32 };
 
-            var left = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_left.jpg", options);
-            var right = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_right.jpg", options);
-            var cube = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cube_orig.jpg", options);
-            var stereo = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/stereo.jpg", options);
+            Texture2D left = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_left.jpg", options);
+            Texture2D right = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_right.jpg", options);
+            Texture2D cube = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cube_orig.jpg", options);
+            Texture2D stereo = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/stereo.jpg", options);
 
-            var mat = new FishReflectionSphereMaterial(left, right)
+            FishReflectionSphereMaterial mat = new FishReflectionSphereMaterial(left, right)
             {
                 SphereRadius = 6,
                 SphereCenter = new Vector3(0, 1.5f, 0),
@@ -547,7 +546,7 @@ namespace XrSamples
                 Alpha = AlphaMode.Blend,
             };
 
-            var mesh = new TriangleMesh(new Quad3D(), mat);
+            TriangleMesh mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Name = "mesh";
 
@@ -561,8 +560,8 @@ namespace XrSamples
                 .UseClickMoveFront(mesh)
                 .ConfigureApp(e =>
                 {
-                    var oculus = e.XrApp.Plugin<OculusXrPlugin>();
-                    var isLoading = false;
+                    OculusXrPlugin oculus = e.XrApp.Plugin<OculusXrPlugin>();
+                    bool isLoading = false;
                     DateTime lastUpdate = new DateTime();
                     mesh.AddBehavior(async (_, _) =>
                     {
@@ -572,18 +571,18 @@ namespace XrSamples
                         isLoading = true;
                         try
                         {
-                            var anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
+                            List<XrAnchor> anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
                             {
                                 Components = XrAnchorComponent.All
                             });
 
-                            var window = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("WINDOW_FRAME"));
+                            XrAnchor? window = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("WINDOW_FRAME"));
 
                             if (window != null)
                             {
                                 if (window.Pose != null)
                                 {
-                                    var pos = window.Pose.Value.Position;
+                                    Vector3 pos = window.Pose.Value.Position;
 
                                     pos.X += 0.16f;
                                     pos.Z += 0.05f;
@@ -592,7 +591,7 @@ namespace XrSamples
                                     mesh.Transform.Position = pos;
                                     mesh.Transform.Orientation = window.Pose.Value.Orientation;
 
-                                    var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+                                    FishReflectionSphereMaterial mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
                                     mat.SphereCenter = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
                                 }
 
@@ -616,24 +615,24 @@ namespace XrSamples
         [Sample("Portal Video")]
         public static XrEngineAppBuilder CreatePortalVideo(this XrEngineAppBuilder builder)
         {
-            var settings = new PortalSettings();
+            PortalSettings settings = new PortalSettings();
             settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "portal_settings.json"));
 
-            var size = new Vector2(3840, 1920);
-            var p1 = new Vector2(137, 170);
-            var p2 = new Vector2(1717, 1717);
-            var p3 = new Vector2(2110, 211);
-            var p4 = new Vector2(3677, 1755);
+            Vector2 size = new Vector2(3840, 1920);
+            Vector2 p1 = new Vector2(137, 170);
+            Vector2 p2 = new Vector2(1717, 1717);
+            Vector2 p3 = new Vector2(2110, 211);
+            Vector2 p4 = new Vector2(3677, 1755);
 
-            var s1 = (p2 - p1);
-            var s2 = (p4 - p3);
-            var c1 = p1 + s1 / 2;
-            var c2 = p3 + s2 / 2;
+            Vector2 s1 = (p2 - p1);
+            Vector2 s2 = (p4 - p3);
+            Vector2 c1 = p1 + s1 / 2;
+            Vector2 c2 = p3 + s2 / 2;
 
-            var c1u = c1 / size;
-            var c2u = c2 / size;
-            var s1u = (s1 / size);
-            var s2u = (s2 / size);
+            Vector2 c1u = c1 / size;
+            Vector2 c2u = c2 / size;
+            Vector2 s1u = (s1 / size);
+            Vector2 s2u = (s2 / size);
 
             c2u.X = 0.76f;
             c2u.Y = 0.525f;
@@ -648,11 +647,11 @@ namespace XrSamples
             s2u.Y = 0.804f;
 
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var videoTex = new Texture2D
+            Texture2D videoTex = new Texture2D
             {
                 Format = TextureFormat.Rgba32,
                 WrapT = WrapMode.ClampToEdge,
@@ -664,7 +663,7 @@ namespace XrSamples
             if (OperatingSystem.IsAndroid())
                 videoTex.Type = TextureType.External;
 
-            var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
+            FishReflectionSphereMaterial mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
                 SphereRadius = 10f,
                 SphereCenter = new Vector3(0, 0.68f, 0),
@@ -675,9 +674,9 @@ namespace XrSamples
                 TextureRadius = [s1u, s2u]
             };
 
-            var mat2 = new TextureMaterial(videoTex);
+            TextureMaterial mat2 = new TextureMaterial(videoTex);
 
-            var mesh = new TriangleMesh(new Quad3D(), mat);
+            TriangleMesh mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(0, 1f, 0);
@@ -705,8 +704,8 @@ namespace XrSamples
                 .AddPanel(new PortalSettingsPanel(settings, scene))
                 .ConfigureApp(e =>
                 {
-                    var oculus = e.XrApp.Plugin<OculusXrPlugin>();
-                    var isLoading = false;
+                    OculusXrPlugin oculus = e.XrApp.Plugin<OculusXrPlugin>();
+                    bool isLoading = false;
                     XrAnchor? window = null;
 
                     mesh.AddBehavior((_, _) =>
@@ -714,16 +713,16 @@ namespace XrSamples
                         if (window == null)
                             return;
 
-                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace, e.XrApp.FramePredictedDisplayTime);
+                        XrSpaceLocation loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace, e.XrApp.FramePredictedDisplayTime);
                         if (loc.IsValid)
                         {
-                            var offset = mesh.GetProp<float>("Offset");
-                            var sphereY = mesh.GetProp<float>("SphereY");
+                            float offset = mesh.GetProp<float>("Offset");
+                            float sphereY = mesh.GetProp<float>("SphereY");
 
-                            var pos = loc.Pose.Position;
-                            var q = loc.Pose.Orientation;
+                            Vector3 pos = loc.Pose.Position;
+                            Quaternion q = loc.Pose.Orientation;
 
-                            var fow = new Vector3(
+                            Vector3 fow = new Vector3(
                                 2 * (q.X * q.Z + q.W * q.Y),
                                 2 * (q.Y * q.Z - q.W * q.X),
                                 1 - 2 * (q.X * q.X + q.Y * q.Y)
@@ -732,7 +731,7 @@ namespace XrSamples
                             mesh.Transform.Position = pos + fow * offset;
                             mesh.Transform.Orientation = q;
 
-                            var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+                            FishReflectionSphereMaterial mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
 
                             mat.SphereCenter = new Vector3(mesh.Transform.Position.X, sphereY, mesh.Transform.Position.Z);
                         }
@@ -746,12 +745,12 @@ namespace XrSamples
                         isLoading = true;
                         try
                         {
-                            var anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
+                            List<XrAnchor> anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
                             {
                                 Components = XrAnchorComponent.Label | XrAnchorComponent.Bounds
                             });
 
-                            var walls = anchors.Where(a => a.Labels != null && a.Labels.Contains("WALL_FACE")).ToArray();
+                            XrAnchor[] walls = anchors.Where(a => a.Labels != null && a.Labels.Contains("WALL_FACE")).ToArray();
                             window = walls[2];
 
                             if (window.Bounds2D != null)
@@ -778,18 +777,18 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/MetaQuestTouchPlus_Right.glb"), GltfOptions);
+            Object3D mesh = GltfLoader.LoadFile(GetAssetPath("Models/MetaQuestTouchPlus_Right.glb"), GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
 
-            foreach (var child in ((Group3D)mesh).Descendants<TriangleMesh>())
+            foreach (TriangleMesh child in ((Group3D)mesh).Descendants<TriangleMesh>())
             {
-                foreach (var mat in child.Materials)
+                foreach (Material mat in child.Materials)
                 {
                     if (mat is IPbrMaterial pbr && pbr.Roughness == 0.2f)
                     {
@@ -813,11 +812,11 @@ namespace XrSamples
         [Sample("Window/Door")]
         public static XrEngineAppBuilder CreateWindow(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Window.glb"), GltfOptions);
+            Object3D mesh = GltfLoader.LoadFile(GetAssetPath("Window.glb"), GltfOptions);
             mesh.Name = "Window";
             mesh.AddComponent(new GeometryScale
             {
@@ -827,7 +826,7 @@ namespace XrSamples
 
             IPbrMaterial pbr;
 
-            foreach (var item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
+            foreach (TriangleMesh item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 if (item.Name == "Plane")
                 {
@@ -839,7 +838,7 @@ namespace XrSamples
                     item.Materials.Add((Material)pbr);
                 }
 
-                foreach (var material in item.Materials)
+                foreach (Material material in item.Materials)
                 {
                     if (material.Name == "Wood1024")
                     {
@@ -859,7 +858,7 @@ namespace XrSamples
             }
 
 
-            var door = GltfLoader.LoadFile(GetAssetPath("Door.glb"), GltfOptions);
+            Object3D door = GltfLoader.LoadFile(GetAssetPath("Door.glb"), GltfOptions);
             door.Name = "Door";
             door.AddComponent(new GeometryScale
             {
@@ -879,16 +878,16 @@ namespace XrSamples
         [Sample("Bed")]
         public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
+            TriangleMesh mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "Bed 1";
             mesh.AddComponent<PyMeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"),
+            TriangleMesh mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"),
                 new GltfLoaderOptions { PbrType = typeof(PbrV1Material) });
 
             mesh2.Name = "Bed 2";
@@ -896,7 +895,7 @@ namespace XrSamples
             mesh2.AddComponent<PyMeshCollider>();
             mesh2.AddComponent<BoundsGrabbable>();
 
-            foreach (var material in mesh.Materials!)
+            foreach (Material material in mesh.Materials!)
             {
                 material.CastShadows = true;
                 material.WriteStencil = 1;
@@ -919,18 +918,18 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateCucina(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("cucina.glb"), GltfOptions);
+            Object3D mesh = GltfLoader.LoadFile(GetAssetPath("cucina.glb"), GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.04f);
             mesh.Transform.Position = new Vector3(-mesh.WorldBounds.Center.X, 0, -mesh.WorldBounds.Center.Z);
 
-            var blank = (Material)MaterialFactory.CreatePbr(Color.White);
+            Material blank = (Material)MaterialFactory.CreatePbr(Color.White);
 
-            foreach (var item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
+            foreach (TriangleMesh item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 if (IsEditor)
                     item.AddComponent<BoxCollider>();
@@ -939,9 +938,9 @@ namespace XrSamples
                     item.IsVisible = true;
 
 
-                for (var i = 0; i < item.Materials.Count; i++)
+                for (int i = 0; i < item.Materials.Count; i++)
                 {
-                    var material = (IPbrMaterial)item.Materials[i];
+                    IPbrMaterial material = (IPbrMaterial)item.Materials[i];
                     if (material.ColorMap == null)
                         item.Materials[i] = blank;
 
@@ -984,15 +983,15 @@ namespace XrSamples
             }
 
             string[] wallNames = ["Obj_3dSolid_912", "Obj_3dSolid_909", "Obj_3dSolid_910", "Obj_3dSolid_911", "Obj_3dSolid_419"];
-            var group = new Group3D()
+            Group3D group = new Group3D()
             {
                 Name = "walls",
                 IsVisible = true
             };
 
-            foreach (var item in wallNames)
+            foreach (string item in wallNames)
             {
-                var obj = mesh.DescendantsOrSelf().Where(a => a.Name == item).FirstOrDefault();
+                Object3D? obj = mesh.DescendantsOrSelf().Where(a => a.Name == item).FirstOrDefault();
                 if (obj != null)
                     group.AddChild(obj.Parent!);
             }
@@ -1025,7 +1024,7 @@ namespace XrSamples
 
             .ConfigureApp(app =>
             {
-                var scene = (RoomScene)app.App.ActiveScene!;
+                RoomScene scene = (RoomScene)app.App.ActiveScene!;
 
                 scene.AddChild<EnvironmentView>();
 
@@ -1036,33 +1035,33 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-       
+
                 Task.Run(async () =>
                 {
-                    var service = new IkeaKitchenService();
+                    IkeaKitchenService service = new IkeaKitchenService();
                     service.CachePath = "d:\\Projects\\Ikea";
 
-                    var catalog = new IkeaKitchenCatalog(service);
-                    var solver = new BmaLoader(catalog);
+                    IkeaKitchenCatalog catalog = new IkeaKitchenCatalog(service);
+                    BmaLoader solver = new BmaLoader(catalog);
 
-                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), false);
+                    BmjProject proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), false);
 
                     await catalog.InitAsync(proj);
 
-                    var kitchen = solver.Load(proj);
+                    Object3D kitchen = solver.Load(proj);
 
-                    var prod = solver.LoadProduct("ASL-42460167-IT")!;
+                    Object3D prod = solver.LoadProduct("ASL-42460167-IT")!;
                     prod.Transform.SetScale(0.001f);
                     prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
-                   
+
                     scene.AddChild(kitchen);
 
                 }).Wait();
-        
-                var ui = scene.UiPanel!;
+
+                RoomDesigner.Game.UIWebPanel ui = scene.UiPanel!;
 
 #if !ANDROID
-                var webView = new ChromeWebBrowserView
+                ChromeWebBrowserView webView = new ChromeWebBrowserView
                 {
                     Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                     ZoomLevel = 0,
@@ -1096,8 +1095,8 @@ namespace XrSamples
 
             .ConfigureApp(app =>
             {
-                var drumApp = (DrumsVRApp)app.App;
-                var scene = (MainScene)app.App.ActiveScene!;
+                DrumsVRApp drumApp = (DrumsVRApp)app.App;
+                MainScene scene = (MainScene)app.App.ActiveScene!;
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
@@ -1106,10 +1105,10 @@ namespace XrSamples
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
 
-                var ui = scene.UiPanel!;
+                DrumsVR.Game.UIWebPanel ui = scene.UiPanel!;
 
 #if !__ANDROID__
-                var webView = new ChromeWebBrowserView
+                ChromeWebBrowserView webView = new ChromeWebBrowserView
                 {
                     Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                     ZoomLevel = 0,
@@ -1132,13 +1131,13 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
             GetAssetPath("Helmet/DamagedHelmet.bin");
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions, GetAssetPath);
+            Object3D mesh = GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
@@ -1160,14 +1159,14 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateTac(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var mesh1 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Skin.obj"), typeof(TriangleMesh), null);
-            var mesh2 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Bone.obj"), typeof(TriangleMesh), null);
+            TriangleMesh mesh1 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Skin.obj"), typeof(TriangleMesh), null);
+            TriangleMesh mesh2 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Bone.obj"), typeof(TriangleMesh), null);
 
-            var mat1 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+            PbrV2Material mat1 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
 
             mat1.ClipVolume = new Bounds3()
             {
@@ -1177,7 +1176,7 @@ namespace XrSamples
 
             mesh1.Materials.Add(mat1);
 
-            var mat2 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+            PbrV2Material mat2 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
 
             mat2.ClipVolume = new Bounds3()
             {
@@ -1187,7 +1186,7 @@ namespace XrSamples
 
             mesh2.Materials.Add(mat2);
 
-            var grp = new Group3D();
+            Group3D grp = new Group3D();
             grp.Name = "Tac";
             grp.Transform.SetScale(0.001f);
             grp.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
@@ -1207,25 +1206,25 @@ namespace XrSamples
 
         public static Material LoadMaterial(string url)
         {
-            var gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
+            TriangleMesh gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
             return gltf.Materials[0];
         }
 
         [Sample("Scanner")]
         public static XrEngineAppBuilder CreateScanner(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
-            var scene = app.ActiveScene!;
+            EngineApp app = CreateBaseScene();
+            Scene3D scene = app.ActiveScene!;
 
-            var panel = new TextPanel();
+            TextPanel panel = new TextPanel();
 
-            var window = new Window3D();
+            Window3D window = new Window3D();
 
             window.Size = new Size2(0.05f, 0.02f);
             window.DpiScale = 1.1f;
             window.Content = panel;
 
-            var mat = new TextureClipMaterial();
+            TextureClipMaterial mat = new TextureClipMaterial();
             mat.Alpha = AlphaMode.Blend;
             window.Materials.Clear();
             window.Materials.Add(mat);
@@ -1237,9 +1236,9 @@ namespace XrSamples
                 if (!isInit && window.ActiveTexture != null)
                 {
                     mat.Texture = window.ActiveTexture;
-                    var size = new Vector2(window.ActiveTexture.Width, window.ActiveTexture.Height);
-                    var viewSize = new Vector2(scene.ActiveCamera!.ViewSize.Width, scene.ActiveCamera.ViewSize.Height);
-                    var relSize = 2 * size / viewSize;
+                    Vector2 size = new Vector2(window.ActiveTexture.Width, window.ActiveTexture.Height);
+                    Vector2 viewSize = new Vector2(scene.ActiveCamera!.ViewSize.Width, scene.ActiveCamera.ViewSize.Height);
+                    Vector2 relSize = 2 * size / viewSize;
                     window.Transform.Scale = new Vector3(relSize.X, relSize.Y, 1);
                     //window.Transform.Position = new Vector3(-1 + 0.2f + relSize.X / 2, 1 - 0.2f - relSize.Y / 2, 0);
                     isInit = true;
@@ -1250,8 +1249,8 @@ namespace XrSamples
             });
 
 
-            var points = new PointMesh();
-            var depth = points.AddComponent(new DepthScanner
+            PointMesh points = new PointMesh();
+            DepthScanner depth = points.AddComponent(new DepthScanner
             {
                 SavePath = Path.Join(XrPlatform.Current!.PersistentPath, "Scanner"),
             });
@@ -1279,9 +1278,9 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateHeightMap(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
-            var scene = app.ActiveScene!;
-            var mat = MaterialFactory.CreatePbr("#ffffff");
+            EngineApp app = CreateBaseScene();
+            Scene3D scene = app.ActiveScene!;
+            IPbrMaterial mat = MaterialFactory.CreatePbr("#ffffff");
             mat.Roughness = 0f;
 
             /*
@@ -1313,10 +1312,10 @@ namespace XrSamples
                 //mat.NormalMap.SaveAs("d:\\heightmap.png");
             }
 
-            var quod = new QuadPatch3D(new Vector2(2, 1), 100);
+            QuadPatch3D quod = new QuadPatch3D(new Vector2(2, 1), 100);
             //quod.ToTriangles();
 
-            var plane = new TriangleMesh(quod, (Material)mat);
+            TriangleMesh plane = new TriangleMesh(quod, (Material)mat);
 
 
             scene.AddChild(plane);
@@ -1331,26 +1330,26 @@ namespace XrSamples
         [Sample("Teleport")]
         public static XrEngineAppBuilder CreateTeleport(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
-            var scene = app.ActiveScene!;
+            EngineApp app = CreateBaseScene();
+            Scene3D scene = app.ActiveScene!;
             scene.ActiveCamera!.BackgroundColor = "#7C93DB";
 
-            var mat = MaterialFactory.CreatePbr("#ffffff");
+            IPbrMaterial mat = MaterialFactory.CreatePbr("#ffffff");
             mat.ColorMap = TextureFactory.CreateChecker();
             mat.ColorMap.Transform = Matrix3x3.CreateScale(10, 10);
-            var floor = new TriangleMesh(Quad3D.Default, (Material)mat);
+            TriangleMesh floor = new TriangleMesh(Quad3D.Default, (Material)mat);
             floor.Transform.SetScale(10, 10, 1);
             floor.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2);
             floor.AddComponent<TeleportTarget>();
             floor.Name = "Floor";
 
-            var cube = new TriangleMesh(Cube3D.Default, (Material)mat);
+            TriangleMesh cube = new TriangleMesh(Cube3D.Default, (Material)mat);
             cube.Transform.SetScale(3, 3, 3);
             cube.WorldPosition = new Vector3(2, 0, 2);
             cube.AddComponent<TeleportTarget>();
             cube.Name = "Cube";
 
-            var player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
+            TriangleMesh player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
             player.Transform.SetScale(0.3f, 1.7f, 0.3f);
             player.AddComponent(new XrPlayer
             {
@@ -1371,7 +1370,7 @@ namespace XrSamples
                 {
                     e.XrApp.UseLocalSpace = false;
 
-                    var root = e.App.ActiveScene!.Children.OfType<XrRoot>().First();
+                    XrRoot root = e.App.ActiveScene!.Children.OfType<XrRoot>().First();
                     root.LeftController!.SetWorldPose(new Pose3()
                     {
                         Position = new Vector3(0f, 0.22f, 0f),
@@ -1383,24 +1382,24 @@ namespace XrSamples
         [Sample("IK")]
         public static XrEngineAppBuilder CreateIk(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var sphere1 = new TriangleMesh(Sphere3D.Default,
+            TriangleMesh sphere1 = new TriangleMesh(Sphere3D.Default,
                 (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "right"
             };
 
-            var sphere2 = new TriangleMesh(Sphere3D.Default,
+            TriangleMesh sphere2 = new TriangleMesh(Sphere3D.Default,
                 (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "left"
             };
 
 
-            var sphere3 = new TriangleMesh(Sphere3D.Default,
+            TriangleMesh sphere3 = new TriangleMesh(Sphere3D.Default,
                 (Material)MaterialFactory.CreatePbr(new Color(1f, 1, 0, 1)))
             {
                 Name = "head"
@@ -1424,7 +1423,7 @@ namespace XrSamples
                 Orientation = new Quaternion(0f, 0f, 0f, 1f)
             });
 
-            var grp = new Group3D()
+            Group3D grp = new Group3D()
             {
                 Name = "Preview"
             };
@@ -1439,11 +1438,11 @@ namespace XrSamples
             scene.AddChild(sphere3);
             scene.AddChild(grp);
 
-            var solver = new IkSolver();
+            IkSolver solver = new IkSolver();
             solver.Build(IkBodies.CreateArms());
 
-            var updated = grp.AddComponent<IkUpdater>();
-            var viewer = grp.AddComponent<IkViewer>();
+            IkUpdater updated = grp.AddComponent<IkUpdater>();
+            IkViewer viewer = grp.AddComponent<IkViewer>();
 
             updated.Solver = solver;
             viewer.Solver = solver;
@@ -1459,8 +1458,8 @@ namespace XrSamples
                 .ConfigureSampleApp()
                 .ConfigureApp(a =>
                 {
-                    var left = a.Inputs!.Left!.GripPose!;
-                    var right = a.Inputs!.Right!.GripPose!;
+                    XrPoseInput left = a.Inputs!.Left!.GripPose!;
+                    XrPoseInput right = a.Inputs!.Right!.GripPose!;
 
                     scene.AddBehavior((scene, ctx) =>
                     {
@@ -1469,11 +1468,11 @@ namespace XrSamples
                         if (XrApp.Current?.IsStarted == false)
                             return;
 
-                        var head = XrApp.Current!.LocateSpace(XrApp.Current.Head, XrApp.Current.Stage, XrApp.Current.FramePredictedDisplayTime).Pose;
-                        var ofs = new Vector3(0, 1.4f, 0);
+                        Pose3 head = XrApp.Current!.LocateSpace(XrApp.Current.Head, XrApp.Current.Stage, XrApp.Current.FramePredictedDisplayTime).Pose;
+                        Vector3 ofs = new Vector3(0, 1.4f, 0);
 
-                        var leftPos = (left.Value.Position - head.Position) + ofs;
-                        var rightPos = (right.Value.Position - head.Position) + ofs;
+                        Vector3 leftPos = (left.Value.Position - head.Position) + ofs;
+                        Vector3 rightPos = (right.Value.Position - head.Position) + ofs;
 
                         sphere1.WorldPosition = rightPos;
                         sphere2.WorldPosition = leftPos;
@@ -1488,31 +1487,31 @@ namespace XrSamples
         [SupportedOSPlatform("android23.0")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
 #if __ANDROID__
             var manager = new XrEngine.Devices.Android.AndroidMidiManager();
 #else
-            var manager = new XrEngine.Devices.Windows.WinMidiManager();
+            WinMidiManager manager = new XrEngine.Devices.Windows.WinMidiManager();
 #endif
-            var devices = manager.FindDevices();
+            IList<MidiDeviceInfo> devices = manager.FindDevices();
 
-            var usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));
+            MidiDeviceInfo? usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));
 
             if (usb == null)
                 usb = devices[0];
 
-            var device = manager.GetDevice(usb.Id!);
+            IMidiDevice? device = manager.GetDevice(usb.Id!);
 
             device!.OpenAsync().Wait();
 
-            var inPort = device.OpenInput(0);
+            IMidiInPort inPort = device.OpenInput(0);
             inPort.DataReceived += (sender, e) =>
             {
-                var span = new ReadOnlySpan<byte>(e.Data, e.Offset, e.Count);
-                var msg = MidiMessageDecoder.Decode(span);
+                ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(e.Data, e.Offset, e.Count);
+                IMidiMessage? msg = MidiMessageDecoder.Decode(span);
                 if (msg is ActiveSensingMessage)
                     return;
                 if (msg != null)
@@ -1531,13 +1530,13 @@ namespace XrSamples
         [Sample("Car")]
         public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
-            var scene = app.ActiveScene!;
+            EngineApp app = CreateBaseScene();
+            Scene3D scene = app.ActiveScene!;
             scene.ActiveCamera!.BackgroundColor = "#7C93DB";
             scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");
 
             //Physics
-            var pm = scene.AddComponent(new PhysicsManager(60));
+            PhysicsManager pm = scene.AddComponent(new PhysicsManager(60));
             pm.SetCollideGroup(RigidBodyGroup.Group1, CollideGroup.Never);
             pm.SetCollideGroup(RigidBodyGroup.Group2, CollideGroup.Always);
 
@@ -1559,19 +1558,19 @@ namespace XrSamples
             });
 
             //Material
-            var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");
+            IPbrMaterial leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");
             leather.Color = "#FF6400FF";
             leather.DoubleSided = true;
             leather.Color *= 2f;
 
 
-            var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
+            Group3D car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
 
-            var bodyMeshes = new HashSet<TriangleMesh>();
+            HashSet<TriangleMesh> bodyMeshes = new HashSet<TriangleMesh>();
 
             //Fix model
-            foreach (var mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
+            foreach (Material? mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
             {
                 if (mat is IPbrMaterial pbr)
                 {
@@ -1586,14 +1585,14 @@ namespace XrSamples
                     {
                         pbr.Color = "#FF0100FF";
                         pbr.Roughness = 0.15f;
-                        foreach (var host in mat.Hosts)
+                        foreach (EngineObject host in mat.Hosts)
                             bodyMeshes.Add((TriangleMesh)host);
                     }
                 }
             }
 
             //Optimize  
-            foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
+            foreach (TriangleMesh mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
 
@@ -1613,10 +1612,10 @@ namespace XrSamples
 
             car.UpdateBounds(true);
 
-            var scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
+            Matrix4x4 scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
 
             //Simulation
-            var model = new CarModel
+            CarModel model = new CarModel
             {
                 WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
                 WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
@@ -1643,9 +1642,9 @@ namespace XrSamples
                 },
             };
 
-            var mirror = car.FindByName<TriangleMesh>("plasticInt_mirror_int.003")!;
+            TriangleMesh mirror = car.FindByName<TriangleMesh>("plasticInt_mirror_int.003")!;
 
-            var splitter = new MeshSplitter(mirror)
+            MeshSplitter splitter = new MeshSplitter(mirror)
             {
                 SplittedName = "plasticInt_mirror_int_body-mirror",
                 FullIntersection = true,
@@ -1656,7 +1655,7 @@ namespace XrSamples
 
             splitter.ExecuteSplit();
 
-            var mainBody = (TriangleMesh)((Group3D)((Group3D)model.CarBody).Children[0]).Children[0];
+            TriangleMesh mainBody = (TriangleMesh)((Group3D)((Group3D)model.CarBody).Children[0]).Children[0];
 
             splitter = new MeshSplitter(mainBody)
             {
@@ -1709,8 +1708,8 @@ namespace XrSamples
 
             car.AddComponent(model);
 
-            var checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
-            var staticMat = new PhysicsMaterialInfo()
+            Material checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
+            PhysicsMaterialInfo staticMat = new PhysicsMaterialInfo()
             {
                 StaticFriction = 1f,
                 DynamicFriction = 1f,
@@ -1718,7 +1717,7 @@ namespace XrSamples
             };
 
             //Floor
-            var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
+            TriangleMesh floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
             floor.Name = "floor";
             floor.Transform.SetPositionY(-0.005f);
             floor.Geometry!.ScaleUV(new Vector2(20, 20));
@@ -1729,7 +1728,7 @@ namespace XrSamples
             });
 
             //Ramp
-            var ramp = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
+            TriangleMesh ramp = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
             ramp.Name = "ramp";
             ramp.SetWorldPoseIfChanged(new Pose3()
             {
@@ -1744,7 +1743,7 @@ namespace XrSamples
             });
 
             //Wall
-            var wall = new TriangleMesh(new Cube3D(new Vector3(5, 3, 0.5f)), checkerMat);
+            TriangleMesh wall = new TriangleMesh(new Cube3D(new Vector3(5, 3, 0.5f)), checkerMat);
             wall.Name = "wall";
             wall.Transform.Position = new Vector3(0, 1.5f, -5f);
             wall.Geometry!.ScaleUV(new Vector2(5, 3));
@@ -1778,7 +1777,7 @@ namespace XrSamples
                     model.ConfigureInput(a.Inputs!);
 
                     //Point light
-                    var pl = scene.Descendants<PointLight>().First();
+                    PointLight pl = scene.Descendants<PointLight>().First();
                     pl.IsVisible = true;
                     pl.Specular = new Color(0.1f, 0.1f, 0.1f, 1);
                     pl.Intensity = 1f;
@@ -1789,9 +1788,9 @@ namespace XrSamples
         [Sample("Cube")]
         public static XrEngineAppBuilder CreateCube(this XrEngineAppBuilder builder)
         {
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Sphere3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            TriangleMesh cube = new TriangleMesh(Sphere3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "mesh"
             };
@@ -1815,32 +1814,32 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateAnimatedCubes(this XrEngineAppBuilder builder)
         {
 
-            var app = CreateBaseScene();
+            EngineApp app = CreateBaseScene();
 
-            var scene = app.ActiveScene!;
+            Scene3D scene = app.ActiveScene!;
 
-            var red = new BasicMaterial() { Color = new Color(1, 0, 0) };
+            BasicMaterial red = new BasicMaterial() { Color = new Color(1, 0, 0) };
 
-            var data = EtcCompressor.Encode(GetAssetPath("TestScreen.png"), 16);
+            IList<TextureData> data = EtcCompressor.Encode(GetAssetPath("TestScreen.png"), 16);
 
-            var text = new TextureMaterial(Texture2D.FromData(data))
+            TextureMaterial text = new TextureMaterial(Texture2D.FromData(data))
             {
                 DoubleSided = true
             };
 
-            var panel = new TriangleMesh(Quad3D.Default, text);
+            TriangleMesh panel = new TriangleMesh(Quad3D.Default, text);
             scene.AddChild(panel);
 
-            var cubes = new Group3D();
+            Group3D cubes = new Group3D();
 
-            for (var y = 0f; y <= 2f; y += 0.5f)
+            for (float y = 0f; y <= 2f; y += 0.5f)
             {
-                for (var rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
+                for (float rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
                 {
-                    var x = MathF.Sin(rad) * 1;
-                    var z = MathF.Cos(rad) * 1;
+                    float x = MathF.Sin(rad) * 1;
+                    float z = MathF.Cos(rad) * 1;
 
-                    var cube = new TriangleMesh(Cube3D.Default, red);
+                    TriangleMesh cube = new TriangleMesh(Cube3D.Default, red);
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y + 0.1f, z);
 

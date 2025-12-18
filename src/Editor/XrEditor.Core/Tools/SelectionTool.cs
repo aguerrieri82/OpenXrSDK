@@ -29,7 +29,7 @@ namespace XrEditor
             if (_sceneView?.Scene == null)
                 return;
 
-            var layers = _sceneView.Scene.Layers;
+            LayerManager layers = _sceneView.Scene.Layers;
 
             _selectionLayer ??= layers.Add(new DetachedLayer()
             {
@@ -56,7 +56,7 @@ namespace XrEditor
 
         bool IOutlineSource.HasOutlines()
         {
-            return  _lastOutline.Count > 0;
+            return _lastOutline.Count > 0;
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
@@ -68,7 +68,7 @@ namespace XrEditor
                 _selectionLayer.BeginUpdate();
                 _selectionLayer.Clear();
 
-                var outlineMeshes = _lastSelection
+                IEnumerable<TriangleMesh> outlineMeshes = _lastSelection
                     .Select(a => a.Value)
                     .OfType<Object3D>()
                     .Where(a => a is not Scene3D)
@@ -78,7 +78,7 @@ namespace XrEditor
 
                 _lastOutline = outlineMeshes.ToHashSet();
 
-                foreach (var item in _lastOutline)
+                foreach (TriangleMesh item in _lastOutline)
                     _selectionLayer.Add(item);
 
                 _selectionLayer.EndUpdate();
@@ -111,12 +111,12 @@ namespace XrEditor
         {
             canvas.Save();
 
-            foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
+            foreach (Object3D item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
                 if (item is Scene3D)
                     continue;
 
-                var local = item.Feature<ILocalBounds>();
+                ILocalBounds? local = item.Feature<ILocalBounds>();
 
                 if (local != null)
                 {
@@ -131,7 +131,7 @@ namespace XrEditor
 
             }
 
-            var collision = _lastCollision;
+            Collision? collision = _lastCollision;
 
             if (collision != null)
             {
@@ -146,7 +146,7 @@ namespace XrEditor
                 if (collision.Tangent != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
-                    var tangent = new Vector3(collision.Tangent.Value.X, collision.Tangent.Value.Y, collision.Tangent.Value.Z).Normalize();
+                    Vector3 tangent = new Vector3(collision.Tangent.Value.X, collision.Tangent.Value.Y, collision.Tangent.Value.Z).Normalize();
 
                     tangent = tangent.Transform(collision.Object!.NormalMatrix).Normalize();
 

@@ -16,12 +16,12 @@ public class ScanNativeLibrary : Task
 
     public override bool Execute()
     {
-        var nativeAll = new List<ITaskItem>();
-        var nativeAndroid = new List<ITaskItem>();
+        List<ITaskItem> nativeAll = new List<ITaskItem>();
+        List<ITaskItem> nativeAndroid = new List<ITaskItem>();
 
-        foreach (var item in SourceFiles!)
+        foreach (ITaskItem item in SourceFiles!)
         {
-            var fullPath = item.GetMetadata("FullPath");
+            string fullPath = item.GetMetadata("FullPath");
             if (!File.Exists(fullPath))
             {
                 Log.LogWarning($"File does not exist: {fullPath}");
@@ -30,16 +30,16 @@ public class ScanNativeLibrary : Task
 
             Log.LogMessage(MessageImportance.High, $"Item: {item.ItemSpec}");
 
-            var parts = item.ItemSpec.Split('\\');
+            string[] parts = item.ItemSpec.Split('\\');
 
-            var runtimeId = item.GetMetadata("Runtime");
+            string runtimeId = item.GetMetadata("Runtime");
 
             if (string.IsNullOrWhiteSpace(runtimeId))
                 runtimeId = parts.FirstOrDefault(a => a.StartsWith("win-") || a.StartsWith("android-"));
 
             if (runtimeId != null)
             {
-                var newItem = new TaskItem(item);
+                TaskItem newItem = new TaskItem(item);
 
                 newItem.SetMetadata("CopyToOutputDirectory", "PreserveNewest");
 

@@ -12,7 +12,7 @@ namespace XrEngine.OpenXr.Windows
         {
             Gpu.EnableNvAPi();
 
-            var host = Host.CreateDefaultBuilder(args)
+            IHost host = Host.CreateDefaultBuilder(args)
                 .ConfigureLogging((ctx, logging) =>
                 {
                     logging.AddConfiguration(ctx.Configuration)
@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr.Windows
                 })
                 .ConfigureServices((ctx, services) =>
                 {
-                    var envName = ctx.HostingEnvironment.EnvironmentName;
+                    string envName = ctx.HostingEnvironment.EnvironmentName;
 
                 })
                 .Build();
@@ -31,10 +31,10 @@ namespace XrEngine.OpenXr.Windows
 
             ModuleManager.Instance.Init();
 
-            var builder = new XrEngineAppBuilder();
+            XrEngineAppBuilder builder = new XrEngineAppBuilder();
             build(builder);
 
-            var engineApp = builder.Build();
+            XrEngineApp engineApp = builder.Build();
 
             if (engineApp.App.Renderer is OpenGLRender openGL)
                 openGL.EnableDebug();
@@ -49,7 +49,7 @@ namespace XrEngine.OpenXr.Windows
 
                 if (Console.KeyAvailable)
                 {
-                    var key = Console.ReadKey();
+                    ConsoleKeyInfo key = Console.ReadKey();
                     if (key.Key == ConsoleKey.Enter)
                         break;
                 }

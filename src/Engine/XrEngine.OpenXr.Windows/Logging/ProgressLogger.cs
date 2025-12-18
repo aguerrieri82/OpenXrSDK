@@ -25,7 +25,7 @@ namespace XrEngine.OpenXr.Windows
 
         public void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
         {
-            var msLevel = level switch
+            MsLogLevel msLevel = level switch
             {
                 LogLevel.Info => MsLogLevel.Information,
                 LogLevel.Warning => MsLogLevel.Warning,

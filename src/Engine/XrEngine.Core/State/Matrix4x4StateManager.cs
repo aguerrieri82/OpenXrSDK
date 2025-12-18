@@ -8,14 +8,14 @@ namespace XrEngine
 
         public Matrix4x4 Read(string key, Matrix4x4 curObj, Type objType, IStateContainer container)
         {
-            var array = container.Read<float[]>(key);
+            float[] array = container.Read<float[]>(key);
             fixed (float* pArray = array)
                 return *(Matrix4x4*)pArray;
         }
 
         public void Write(string key, Matrix4x4 obj, IStateContainer container)
         {
-            var floats = new Span<float>(&obj, 16);
+            Span<float> floats = new Span<float>(&obj, 16);
             container.Write(key, floats.ToArray());
         }
 

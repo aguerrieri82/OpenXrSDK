@@ -31,9 +31,9 @@ namespace XrEngine.OpenGL
 
             try
             {
-                for (var i = 0; i < targets.Length; i++)
+                for (int i = 0; i < targets.Length; i++)
                 {
-                    var target = targets[i];
+                    TextureTarget target = targets[i];
 
                     GlState.Current!.LoadTexture(texId, target, 0);
 
@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
         {
             return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () =>
             {
-                var result = factory(obj);
+                TRes? result = factory(obj);
                 if (result != null)
                     ObjectBinder.Bind(obj, result);
                 return result;
@@ -70,14 +70,14 @@ namespace XrEngine.OpenGL
         {
             return value.GetGlResource(a =>
             {
-                var renderer = OpenGLRender.Current!;
-                var reqCompDef = renderer.Options.RequireTextureCompression;
+                OpenGLRender renderer = OpenGLRender.Current!;
+                bool reqCompDef = renderer.Options.RequireTextureCompression;
 
                 if (value is Texture2D texture2D)
                 {
                     if (texture2D.Type == TextureType.Depth)
                     {
-                        var glTex = renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment);
+                        GlTexture? glTex = renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment);
                         if (glTex == null)
                             throw new NotSupportedException();
                         if (texture2D.Handle == 0)
@@ -150,9 +150,9 @@ namespace XrEngine.OpenGL
 
             if (texture2D.Data != null)
             {
-                var data = texture2D.Data;
-                var comp = texture2D.Compression;
-                var format = texture2D.Format;
+                IList<TextureData> data = texture2D.Data;
+                TextureCompressionFormat comp = texture2D.Compression;
+                TextureFormat format = texture2D.Format;
 
                 if (requireCompression)
                 {
@@ -162,9 +162,9 @@ namespace XrEngine.OpenGL
                         data = EtcCompressor.Encode(data[0], 16);
                     else
                     {
-                        for (var i = 0; i < data.Count; i++)
+                        for (int i = 0; i < data.Count; i++)
                         {
-                            var compData = EtcCompressor.Encode(data[i], 0);
+                            IList<TextureData> compData = EtcCompressor.Encode(data[i], 0);
                             data[i] = compData[0];
                         }
                     }
@@ -252,7 +252,7 @@ namespace XrEngine.OpenGL
 
         public static GlTexture Clone(this GlTexture self, bool includeContent)
         {
-            var result = new GlTexture(self.GL);
+            GlTexture result = new GlTexture(self.GL);
 
             result.Target = self.Target;
             result.MinFilter = self.MinFilter;
@@ -265,7 +265,7 @@ namespace XrEngine.OpenGL
             result.BaseLevel = self.BaseLevel;
             result.IsMutable = self.IsMutable;
 
-            var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
+            TextureFormat texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
 
             result.Update(1, new TextureData
             {

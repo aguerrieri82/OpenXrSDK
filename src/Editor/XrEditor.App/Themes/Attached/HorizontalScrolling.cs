@@ -73,7 +73,7 @@ namespace Theme.WPF.Themes.Attached
         {
             if (sender is UIElement element && e.Delta != 0)
             {
-                var scroller = FindVisualChild<ScrollViewer>(element);
+                ScrollViewer? scroller = FindVisualChild<ScrollViewer>(element);
                 if (scroller == null)
                     return;
 
@@ -123,7 +123,7 @@ namespace Theme.WPF.Themes.Attached
             int count, i;
             if (obj is ContentControl)
             {
-                var child = ((ContentControl)obj).Content as DependencyObject;
+                DependencyObject? child = ((ContentControl)obj).Content as DependencyObject;
                 if (child is T t)
                     return t;
 
@@ -142,7 +142,7 @@ namespace Theme.WPF.Themes.Attached
 
                 for (i = 0; i < count;)
                 {
-                    var child = FindVisualChildInternal<T>(VisualTreeHelper.GetChild(obj, i++));
+                    T? child = FindVisualChildInternal<T>(VisualTreeHelper.GetChild(obj, i++));
                     if (child != null)
                         return child;
                 }

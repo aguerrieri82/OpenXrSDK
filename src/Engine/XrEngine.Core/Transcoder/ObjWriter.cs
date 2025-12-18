@@ -19,22 +19,22 @@ namespace XrEngine
         {
             Debug.Assert(mesh.Geometry != null);
 
-            foreach (var v in mesh.Geometry.Vertices)
+            foreach (VertexData v in mesh.Geometry.Vertices)
                 _builder.AppendFormat("v {0} {1} {2}\n", v.Pos.X, v.Pos.Y, v.Pos.Z);
 
             _builder.AppendLine();
 
-            foreach (var v in mesh.Geometry.Vertices)
+            foreach (VertexData v in mesh.Geometry.Vertices)
                 _builder.AppendFormat("vn {0} {1} {2}\n", v.Normal.X, v.Normal.Y, v.Normal.Z);
 
             _builder.AppendLine();
 
-            foreach (var v in mesh.Geometry.Vertices)
+            foreach (VertexData v in mesh.Geometry.Vertices)
                 _builder.AppendFormat("vt {0} {1}\n", v.UV.X, v.UV.Y);
 
             _builder.AppendLine();
 
-            var curI = 0;
+            int curI = 0;
             while (curI < mesh.Geometry.Indices.Length)
             {
                 _builder.AppendFormat("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",

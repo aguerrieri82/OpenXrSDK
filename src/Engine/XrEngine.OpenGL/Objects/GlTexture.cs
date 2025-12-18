@@ -59,9 +59,9 @@ namespace XrEngine.OpenGL
 
             Bind();
 
-            var isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
 
-            var levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
+            TextureTarget levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureWidth, out int w);
             _width = (uint)w;
@@ -73,7 +73,7 @@ namespace XrEngine.OpenGL
             _depth = (uint)depth;
 
             //NOTE: sometimes in level 0 sometimes 1, to investigate
-            for (var level = 0; level < 2; level++)
+            for (int level = 0; level < 2; level++)
             {
                 _gl.GetTexLevelParameter(levelTarget, level, GetTextureParameter.TextureInternalFormat, out int intf);
                 _internalFormat = (InternalFormat)intf;
@@ -104,7 +104,7 @@ namespace XrEngine.OpenGL
                 _gl.GetTexParameter(Target, (GLEnum)TextureParameterName.TextureMaxAnisotropy, out float asin);
                 MaxAnisotropy = asin;
 
-                var color = new float[4];
+                float[] color = new float[4];
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureBorderColor, color);
                 BorderColor = new Color(color);
 
@@ -130,7 +130,7 @@ namespace XrEngine.OpenGL
 
         public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
         {
-            var result = new List<TextureData>();
+            List<TextureData> result = new List<TextureData>();
 
             void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0, uint depth = 0)
             {
@@ -152,18 +152,18 @@ namespace XrEngine.OpenGL
                          _handle, (int)mipLevel);
                 }
 
-                var status = _gl.CheckFramebufferStatus(FramebufferTarget.ReadFramebuffer);
+                GLEnum status = _gl.CheckFramebufferStatus(FramebufferTarget.ReadFramebuffer);
                 if (status != GLEnum.FramebufferComplete)
                     throw new Exception($"Framebuffer incomplete at mip {mipLevel}: {status}");
 
-                var w = Width >> (int)mipLevel;
-                var h = Height >> (int)mipLevel;
+                uint w = Width >> (int)mipLevel;
+                uint h = Height >> (int)mipLevel;
 
                 GlState.Current!.SetView(new Rect2I(0, 0, w, h));
 
-                var pixelSize = GlUtils.GetPixelSizeBit(format);
+                uint pixelSize = GlUtils.GetPixelSizeBit(format);
 
-                var item = new TextureData
+                TextureData item = new TextureData
                 {
                     Width = w,
                     Height = h,
@@ -173,9 +173,9 @@ namespace XrEngine.OpenGL
                     Data = MemoryBuffer.Create<byte>(pixelSize * w * h / 8)
                 };
 
-                GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
+                GlUtils.GetPixelFormat(format, out PixelFormat pixelFormat, out PixelType pixelType);
 
-                using var pData = item.Data.MemoryLock();
+                using MemoryLock<byte> pData = item.Data.MemoryLock();
 
                 GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
 
@@ -195,11 +195,11 @@ namespace XrEngine.OpenGL
             if (endMipLevel == null)
                 endMipLevel = MaxLevel;
 
-            for (var mipLevel = startMipLevel; mipLevel <= endMipLevel; mipLevel++)
+            for (uint mipLevel = startMipLevel; mipLevel <= endMipLevel; mipLevel++)
             {
                 if (Target == TextureTarget.TextureCubeMap)
                 {
-                    for (var face = 0; face < 6; face++)
+                    for (int face = 0; face < 6; face++)
                         ReadTarget(TextureTarget.TextureCubeMapPositiveX + face, mipLevel, (uint)face);
                 }
                 else if (Target == TextureTarget.Texture2DArray)
@@ -271,7 +271,7 @@ namespace XrEngine.OpenGL
             {
                 if (MaxLevel > 0)
                 {
-                    var realMax = (uint)MathF.Floor(MathF.Log2(Math.Max(_width, _height)));
+                    uint realMax = (uint)MathF.Floor(MathF.Log2(Math.Max(_width, _height)));
                     if (MaxLevel > realMax)
                         MaxLevel = realMax;
                 }
@@ -333,10 +333,10 @@ namespace XrEngine.OpenGL
                 {
                     bool hasOneLevel = data.Count == 1 && data[0].MipLevel == 0;
 
-                    foreach (var level in data)
+                    foreach (TextureData level in data)
                     {
 
-                        var realTarget = Target == TextureTarget.TextureCubeMap ?
+                        TextureTarget realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
                         byte* pData = null;
@@ -346,7 +346,7 @@ namespace XrEngine.OpenGL
 
                         if (!_isAllocated || pData != null)
                         {
-                            GlUtils.GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
+                            GlUtils.GetPixelFormat(level.Format, out PixelFormat pixelFormat, out PixelType pixelType);
 
                             if (hasOneLevel && IsMutable)
                             {
@@ -422,15 +422,15 @@ namespace XrEngine.OpenGL
             {
                 Debug.Assert(data != null);
 
-                foreach (var level in data)
+                foreach (TextureData level in data)
                 {
-                    var realTarget = Target == TextureTarget.TextureCubeMap ?
+                    TextureTarget realTarget = Target == TextureTarget.TextureCubeMap ?
                                     (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
                                     Target;
 
                     Debug.Assert(level.Data != null);
 
-                    using var pData = level.Data.MemoryLock();
+                    using MemoryLock<byte> pData = level.Data.MemoryLock();
 
                     _gl.CompressedTexImage2D(
                         realTarget,
@@ -521,7 +521,7 @@ namespace XrEngine.OpenGL
 
         public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
         {
-            if (!_attached.TryGetValue(handle, out var texture))
+            if (!_attached.TryGetValue(handle, out GlTexture? texture))
                 texture = new GlTexture(gl, handle, sampleCount, target);
             return texture;
         }

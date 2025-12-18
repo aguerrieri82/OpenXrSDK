@@ -20,7 +20,7 @@ namespace XrSamples
 
             Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>());
 
-            var builder = new XrEngineAppBuilder();
+            XrEngineAppBuilder builder = new XrEngineAppBuilder();
             _game = builder
                 .UseOpenGL()
                 .UsePlatform<ConsolePlatform>()
@@ -37,7 +37,7 @@ namespace XrSamples
 
                 if (Console.KeyAvailable)
                 {
-                    var key = Console.ReadKey();
+                    ConsoleKeyInfo key = Console.ReadKey();
                     if (key.Key == ConsoleKey.Enter)
                         break;
                 }

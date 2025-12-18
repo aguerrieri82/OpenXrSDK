@@ -7,7 +7,7 @@ namespace OpenAl.Framework
 
         public static void CheckError(this AL al, string msg)
         {
-            var err = al.GetError();
+            AudioError err = al.GetError();
             if (err != AudioError.NoError)
                 throw new InvalidOperationException($"{err} - {msg}");
         }
@@ -15,17 +15,17 @@ namespace OpenAl.Framework
 
         public static float SampleToTimeByte(this AlAudioFormat self, int sample)
         {
-            var sampleSize = (self.BitsPerSample / 8) * self.Channels;
+            int sampleSize = (self.BitsPerSample / 8) * self.Channels;
 
             return (sample / sampleSize) / (float)self.SampleRate;
         }
 
         public static int TimeToSampleByte(this AlAudioFormat self, float time)
         {
-            var sampleSize = (self.BitsPerSample / 8) * self.Channels;
+            int sampleSize = (self.BitsPerSample / 8) * self.Channels;
 
-            var result = (int)(time * self.SampleRate * sampleSize);
-            var res = result % sampleSize;
+            int result = (int)(time * self.SampleRate * sampleSize);
+            int res = result % sampleSize;
             return result - res;
         }
 
@@ -46,9 +46,9 @@ namespace OpenAl.Framework
 
         public unsafe static T ReadStruct<T>(this Stream stream) where T : unmanaged
         {
-            var buffer = stackalloc T[1];
+            T* buffer = stackalloc T[1];
 
-            var span = new Span<byte>((byte*)buffer, sizeof(T));
+            Span<byte> span = new Span<byte>((byte*)buffer, sizeof(T));
 
             stream.ReadExactly(span);
 
@@ -57,21 +57,21 @@ namespace OpenAl.Framework
 
         public unsafe static float[] ToFloat(this AudioData self)
         {
-            var result = new float[self.Buffer.Length / (self.Format.BitsPerSample / 8)];
+            float[] result = new float[self.Buffer.Length / (self.Format.BitsPerSample / 8)];
 
             fixed (float* pResult = result)
             fixed (byte* pBuf = self.Buffer)
             {
                 if (self.Format.BitsPerSample == 8)
                 {
-                    var pByte = (sbyte*)pBuf;
+                    sbyte* pByte = (sbyte*)pBuf;
                     for (int i = 0; i < result.Length; i++)
                         pResult[i] = pByte[i] / (float)sbyte.MaxValue;
                 }
 
                 else if (self.Format.BitsPerSample == 16)
                 {
-                    var pShort = (short*)pBuf;
+                    short* pShort = (short*)pBuf;
                     for (int i = 0; i < result.Length; i++)
                         pResult[i] = pShort[i] / (float)short.MaxValue;
                 }

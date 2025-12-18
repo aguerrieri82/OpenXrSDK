@@ -25,20 +25,20 @@ namespace XrSamples
 
             Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>());
 
-            var builder = new XrEngineAppBuilder();
+            XrEngineAppBuilder builder = new XrEngineAppBuilder();
 
-            var app = builder
+            EngineApp app = builder
                 .UsePlatform<ConsolePlatform>()
                 .CreatePingPong()
                 .Build()
                 .App;
 
-            var view = Window.Create(WindowOptions.Default);
+            IWindow view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;
 
-            var viewRect = new Rect2I();
+            Rect2I viewRect = new Rect2I();
 
-            var camera = app.ActiveScene!.PerspectiveCamera();
+            PerspectiveCamera camera = app.ActiveScene!.PerspectiveCamera();
 
             void UpdateSize()
             {
@@ -54,10 +54,10 @@ namespace XrSamples
 #if GLES
                 var gl = view.CreateOpenGLES();
 #else
-                var gl = view.CreateOpenGL();
+                GL gl = view.CreateOpenGL();
 #endif
 
-                var render = new OpenGLRender(gl);
+                OpenGLRender render = new OpenGLRender(gl);
                 render.EnableDebug();
 
                 app.Renderer = render;

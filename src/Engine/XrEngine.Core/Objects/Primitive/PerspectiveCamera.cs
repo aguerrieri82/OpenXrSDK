@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -30,7 +29,7 @@ namespace XrEngine
         public void SetFov(float angleDegree, float ratio)
         {
             FovDegree = angleDegree;
-            var rads = MathF.PI / 180f * angleDegree;
+            float rads = MathF.PI / 180f * angleDegree;
             Projection = Matrix4x4.CreatePerspectiveFieldOfView(rads, ratio, Near, Far);
         }
 

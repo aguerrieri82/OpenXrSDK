@@ -30,7 +30,7 @@ namespace XrEngine.OpenGL
 
         public unsafe HitTestResult HitTest(uint x, uint y)
         {
-            var result = new HitTestResult();
+            HitTestResult result = new HitTestResult();
 
             if (x >= _lastSize.Width || y >= _lastSize.Height)
                 return result;
@@ -38,7 +38,7 @@ namespace XrEngine.OpenGL
             uint objId = 0;
             Vector3 normal = Vector3.Zero;
             float depth = 1;
-            var txY = _lastSize.Height - y;
+            uint txY = _lastSize.Height - y;
 
             _passTarget.FrameBuffer!.Bind();
 
@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
-            var effect = (HitTestEffect)_programInstance!.Material;
+            HitTestEffect effect = (HitTestEffect)_programInstance!.Material;
 
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
@@ -79,8 +79,8 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
         {
-            var objId = (uint)_objects.Count;
-            var effect = (HitTestEffect)_programInstance!.Material;
+            uint objId = (uint)_objects.Count;
+            HitTestEffect effect = (HitTestEffect)_programInstance!.Material;
             effect.DrawId = objId;
             return UpdateProgramResult.Changed;
         }

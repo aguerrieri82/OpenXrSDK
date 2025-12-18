@@ -45,11 +45,11 @@ namespace XrEditor.Services
 
             _updating = true;
 
-            var progressMgs = _progressMessage;
-            var progressCurrent = _progressCurrent;
-            var progressTotal = _progressTotal;
+            string? progressMgs = _progressMessage;
+            double progressCurrent = _progressCurrent;
+            double progressTotal = _progressTotal;
 
-            var invokeTime = DateTime.UtcNow;
+            DateTime invokeTime = DateTime.UtcNow;
 
             _lastUpdate = invokeTime;
             _isDirty = false;

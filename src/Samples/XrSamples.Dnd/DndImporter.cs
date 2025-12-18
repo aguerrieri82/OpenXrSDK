@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
@@ -19,7 +18,7 @@ namespace XrSamples.Dnd
         private string _basePath = ".";
         private readonly HashSet<string> _unusedTex = [];
         private readonly List<string> _psNames = [];
-        List<Action> _tasks = [];   
+        readonly List<Action> _tasks = [];
 
         #region STRUCTS
 
@@ -147,13 +146,13 @@ namespace XrSamples.Dnd
 
         ShaderMaterial ProcessMaterialV2(string matId)
         {
-            if (!_materials.TryGetValue(matId, out var mat))
+            if (!_materials.TryGetValue(matId, out ShaderMaterial? mat))
             {
-                var impMat = Read<ImpMaterial>($"mat_{matId}.json");
+                ImpMaterial impMat = Read<ImpMaterial>($"mat_{matId}.json");
 
                 _psNames.Add(impMat.ps.name);
 
-                var basMat = new BasicMaterial();
+                BasicMaterial basMat = new BasicMaterial();
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
@@ -166,15 +165,15 @@ namespace XrSamples.Dnd
                 }
                 else
                 {
-                    foreach (var impTex in impMat.textures)
+                    foreach (ImpTexture impTex in impMat.textures)
                     {
                         AddTask(() =>
                         {
-                            var tex = ProcessTexture(impTex);
+                            Texture? tex = ProcessTexture(impTex);
                             if (tex == null)
                                 return;
-                            var name = impTex.name.ToLower();
-                            var isDif = name.EndsWith("dif") ||
+                            string name = impTex.name.ToLower();
+                            bool isDif = name.EndsWith("dif") ||
                                         name.EndsWith("diff") ||
                                         name.Contains("albedo") ||
                                         name.Contains("diffuse") ||
@@ -200,13 +199,13 @@ namespace XrSamples.Dnd
 
         ShaderMaterial ProcessMaterial(string matId)
         {
-            if (!_materials.TryGetValue(matId, out var mat))
+            if (!_materials.TryGetValue(matId, out ShaderMaterial? mat))
             {
-                var impMat = Read<ImpMaterial>($"mat_{matId}.json");
+                ImpMaterial impMat = Read<ImpMaterial>($"mat_{matId}.json");
 
                 _psNames.Add(impMat.ps.name);
 
-                var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+                PbrV2Material pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
                 pbr.Simplified = SimpleMaterials;
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
@@ -231,40 +230,40 @@ namespace XrSamples.Dnd
                 }
                 else
                 {
-                    foreach (var impTex in impMat.textures)
+                    foreach (ImpTexture impTex in impMat.textures)
                     {
                         AddTask(() =>
                         {
-                            var tex = ProcessTexture(impTex);
+                            Texture? tex = ProcessTexture(impTex);
                             if (tex == null)
                                 return;
-                            var name = impTex.name.ToLower();
-                            var isDif = name.EndsWith("dif") ||
+                            string name = impTex.name.ToLower();
+                            bool isDif = name.EndsWith("dif") ||
                                         name.EndsWith("diff") ||
                                         name.Contains("albedo") ||
                                         name.Contains("diffuse") ||
                                         name.Contains("basecolor") ||
                                         name.Contains("_diff");
 
-                            var isNormal = name.EndsWith("nrm") ||
+                            bool isNormal = name.EndsWith("nrm") ||
                                name.Contains("normal") ||
                                name.EndsWith("-nml") ||
                                name.EndsWith("_n");
 
 
-                            var isSpec = name.EndsWith("smt") ||
+                            bool isSpec = name.EndsWith("smt") ||
                                           name.EndsWith("smooth") ||
                                           name.Contains("specular");
 
 
-                            var isAO = name.EndsWith("ao") ||
+                            bool isAO = name.EndsWith("ao") ||
                                        name.Contains("occlusion");
 
-                            var isRough = name.Contains("roughness") ||
+                            bool isRough = name.Contains("roughness") ||
                                           name.EndsWith("-r") ||
                                           name.EndsWith("_rgh");
 
-                            var isMetal = name.EndsWith("_mtl") ||
+                            bool isMetal = name.EndsWith("_mtl") ||
                               name.EndsWith("-m");
 
 
@@ -334,8 +333,8 @@ namespace XrSamples.Dnd
                 }
                 else if (impMat.ps.name == "Standard")
                 {
-                    var alphaCut = impMat.cbs[0].values[5][0];
-                    var alphaMul = impMat.cbs[0].values[4][3];
+                    float alphaCut = impMat.cbs[0].values[5][0];
+                    float alphaMul = impMat.cbs[0].values[4][3];
                     if (alphaCut > 0 && alphaCut < 1)
                     {
                         pbr.AlphaCutoff = alphaCut;
@@ -359,7 +358,7 @@ namespace XrSamples.Dnd
 
         byte[] ReadBuffer(string resId)
         {
-            var fileName = Path.Combine(_basePath, $"{resId}.bin");
+            string fileName = Path.Combine(_basePath, $"{resId}.bin");
             return File.ReadAllBytes(fileName);
         }
 
@@ -367,12 +366,12 @@ namespace XrSamples.Dnd
         {
             fixed (byte* pBuf = buffer)
             {
-                var curOfs = pBuf + offset;
+                byte* curOfs = pBuf + offset;
 
                 int i = 0;
                 while (i < count)
                 {
-                    var data = *(T*)curOfs;
+                    T data = *(T*)curOfs;
                     action(data, i);
                     i++;
                     curOfs += stride;
@@ -383,16 +382,16 @@ namespace XrSamples.Dnd
         unsafe TriangleMesh ProcessMesh(string meshId, bool rebuildNormals = false)
         {
 
-            var mesh = new TriangleMesh();
+            TriangleMesh mesh = new TriangleMesh();
 
 
-            if (!_geos.TryGetValue(meshId, out var geo))
+            if (!_geos.TryGetValue(meshId, out Geometry3D? geo))
             {
-                var impMesh = Read<ImpMesh>($"mesh_{meshId}.json");
+                ImpMesh impMesh = Read<ImpMesh>($"mesh_{meshId}.json");
 
-                var vData = new List<VertexData>();
+                List<VertexData> vData = new List<VertexData>();
 
-                var buffer = ReadBuffer(impMesh.ixResId);
+                byte[] buffer = ReadBuffer(impMesh.ixResId);
 
                 geo = new Geometry3D();
 
@@ -404,14 +403,14 @@ namespace XrSamples.Dnd
                 {
                     if (impMesh.ixByteStride == 4)
                     {
-                        var start = (uint*)(pBuf + impMesh.ixByteOffset + impMesh.ixOffset * impMesh.ixByteStride);
-                        for (var i = 0; i < impMesh.ixCount; i++)
+                        uint* start = (uint*)(pBuf + impMesh.ixByteOffset + impMesh.ixOffset * impMesh.ixByteStride);
+                        for (int i = 0; i < impMesh.ixCount; i++)
                             geo.Indices[i] = start[i];
                     }
                     else if (impMesh.ixByteStride == 2)
                     {
-                        var start = (ushort*)(pBuf + impMesh.ixByteOffset + impMesh.ixOffset * impMesh.ixByteStride);
-                        for (var i = 0; i < impMesh.ixCount; i++)
+                        ushort* start = (ushort*)(pBuf + impMesh.ixByteOffset + impMesh.ixOffset * impMesh.ixByteStride);
+                        for (int i = 0; i < impMesh.ixCount; i++)
                             geo.Indices[i] = start[i];
                     }
                     else
@@ -421,11 +420,11 @@ namespace XrSamples.Dnd
                 }
 
 
-                var maxIdx = geo.Indices.Max();
+                uint maxIdx = geo.Indices.Max();
 
-                var data = new VertexData[maxIdx + 1];
+                VertexData[] data = new VertexData[maxIdx + 1];
 
-                foreach (var attr in impMesh.attributes)
+                foreach (ImpAttribute attr in impMesh.attributes)
                 {
                     buffer = ReadBuffer(attr.resId);
 
@@ -488,7 +487,7 @@ namespace XrSamples.Dnd
                     //Flip indices
                     for (int i = 0; i < geo.Indices.Length; i += 3)
                     {
-                        var tmp = geo.Indices[i + 1];
+                        uint tmp = geo.Indices[i + 1];
                         geo.Indices[i + 1] = geo.Indices[i + 2];
                         geo.Indices[i + 2] = tmp;
                     }
@@ -510,10 +509,10 @@ namespace XrSamples.Dnd
         {
             return _textures.GetOrAdd(texId, key =>
             {
-                var fileName = Path.Combine(_basePath, $"{texId}.dds");
+                string fileName = Path.Combine(_basePath, $"{texId}.dds");
                 try
                 {
-                    var text = AssetLoader.Instance.Load<Texture2D>(fileName);
+                    Texture2D text = AssetLoader.Instance.Load<Texture2D>(fileName);
                     text.WrapS = WrapMode.Repeat;
                     text.WrapT = WrapMode.Repeat;
                     text.Name = name;
@@ -532,18 +531,18 @@ namespace XrSamples.Dnd
 
         Object3D ProcessDraw(ImpDraw draw)
         {
-            var mat = ProcessMaterial(draw.matId);
+            ShaderMaterial mat = ProcessMaterial(draw.matId);
 
-            var name = mat.GetProp<string>("ps_name");
+            string name = mat.GetProp<string>("ps_name");
             bool rebuildNormals = name == "Dungeon Alchemist/likeCharlie/TreeLeaves";
 
-            var mesh = ProcessMesh(draw.meshId, rebuildNormals);
+            TriangleMesh mesh = ProcessMesh(draw.meshId, rebuildNormals);
 
             if (draw.matId == "f54acfc201032560348210eaa944d71c__")
             {
                 if (patch == null)
                 {
-                    var size = mesh.Geometry!.Bounds.Size;
+                    Vector3 size = mesh.Geometry!.Bounds.Size;
                     patch = new QuadPatch3D(new Vector2(size.X, size.Y));
                 }
 
@@ -551,7 +550,7 @@ namespace XrSamples.Dnd
                 //Debugger.Break();
             }
 
-            var word = MathUtils.CreateMatrix(draw.world);
+            Matrix4x4 word = MathUtils.CreateMatrix(draw.world);
             if (FlipZ)
                 word *= Matrix4x4.CreateScale(1, 1, -1);
 
@@ -569,18 +568,18 @@ namespace XrSamples.Dnd
 
         public void GroupDraws(Group3D main)
         {
-            var walls = new Group3D();
+            Group3D walls = new Group3D();
             walls.Name = "Walls";
 
-            var tiles = new Group3D();
+            Group3D tiles = new Group3D();
             tiles.Name = "Tiles";
 
-            for (var i = main.Children.Count - 1; i >= 0; i--)
+            for (int i = main.Children.Count - 1; i >= 0; i--)
             {
                 if (main.Children[i] is not TriangleMesh item)
                     continue;
 
-                var bounds = item.LocalBounds;
+                Bounds3 bounds = item.LocalBounds;
                 if (bounds.Size.IsSimilar(new Vector3(1, 1.8f, 0.14f), 0.1f))
                 {
                     item.Flags |= EngineObjectFlags.LargeOccluder;
@@ -592,7 +591,7 @@ namespace XrSamples.Dnd
                     MapY = MathF.Max(MapY, item.WorldPosition.Y);
                 }
             }
-           
+
             main.AddChild(walls);
             main.AddChild(tiles);
         }
@@ -601,14 +600,14 @@ namespace XrSamples.Dnd
         {
             _basePath = path;
 
-            var draws = Read<ImpDraw[]>("draws.json");
+            ImpDraw[] draws = Read<ImpDraw[]>("draws.json");
 
-            var res = new Group3D
+            Group3D res = new Group3D
             {
                 Name = "Map"
             };
 
-            foreach (var draw in draws!)
+            foreach (ImpDraw draw in draws!)
                 res.AddChild(ProcessDraw(draw));
 
             Parallel.ForEach(_tasks, a => a());

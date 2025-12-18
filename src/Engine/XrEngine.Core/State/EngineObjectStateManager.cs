@@ -10,7 +10,7 @@ namespace XrEngine
             if (destObj != null && destObj.Is(EngineObjectFlags.Readonly) && !container.Is(StateContextFlags.Store))
                 return destObj;
 
-            var objState = container.Enter(key, true);
+            IStateContainer objState = container.Enter(key, true);
 
             if (objState == null)
             {
@@ -21,13 +21,13 @@ namespace XrEngine
 
             if (objState.Contains("$uri"))
             {
-                var assetUri = objState.Read<Uri>("$uri");
+                Uri assetUri = objState.Read<Uri>("$uri");
 
                 bool mustLoad = true;
 
                 if (destObj != null)
                 {
-                    var curAsset = destObj.Component<AssetSource>();
+                    AssetSource curAsset = destObj.Component<AssetSource>();
                     if (curAsset != null && curAsset.Asset?.Source == assetUri)
                         mustLoad = false;
                 }
@@ -57,9 +57,9 @@ namespace XrEngine
                 return;
             }
 
-            var objState = container.Enter(key);
+            IStateContainer objState = container.Enter(key);
 
-            if (obj.TryComponent<AssetSource>(out var assetSrc))
+            if (obj.TryComponent<AssetSource>(out AssetSource? assetSrc))
             {
                 objState.Write("$uri", assetSrc.Asset!.Source);
                 base.Write("Id", obj, objState);

@@ -15,7 +15,7 @@ namespace XrEngine.Physics
 
         public void Dispose()
         {
-            var other = Other?.Components<JointConnection>().Where(a => a.Joint == Joint).FirstOrDefault();
+            JointConnection? other = Other?.Components<JointConnection>().Where(a => a.Joint == Joint).FirstOrDefault();
 
             if (other != null)
                 Other?.RemoveComponent(other);
@@ -35,15 +35,15 @@ namespace XrEngine.Physics
 
             canvas.Save();
 
-            var ps0 = Joint.BaseJoint.LocalPose0;
-            var ps1 = Joint.BaseJoint.LocalPose1;
+            Pose3 ps0 = Joint.BaseJoint.LocalPose0;
+            Pose3 ps1 = Joint.BaseJoint.LocalPose1;
 
             ps0.Position -= -Joint.Object0!.Transform.LocalPivot;
             ps1.Position -= -Joint.Object1!.Transform.LocalPivot;
 
 
-            var start = ps0.Position;
-            var end = start + Vector3.UnitX.Transform(ps0.Orientation) * 0.5f;
+            Vector3 start = ps0.Position;
+            Vector3 end = start + Vector3.UnitX.Transform(ps0.Orientation) * 0.5f;
             canvas.State.Transform = Joint.Object0!.WorldMatrix;
             canvas.State.Color = "#ff0000";
             canvas.DrawLine(start, end);

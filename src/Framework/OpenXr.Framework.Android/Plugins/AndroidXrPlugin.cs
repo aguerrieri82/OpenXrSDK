@@ -36,7 +36,7 @@ namespace OpenXr.Framework.Android
         {
             JniEnvironment.References.GetJavaVM(out nint javaVm);
 
-            var android = new LoaderInitInfoAndroidKHR
+            LoaderInitInfoAndroidKHR android = new LoaderInitInfoAndroidKHR
             {
                 Type = StructureType.LoaderInitInfoAndroidKhr,
                 ApplicationContext = (void*)((IJavaObject)context).Handle,
@@ -72,7 +72,7 @@ namespace OpenXr.Framework.Android
             extensions.Add(KhrAndroidThreadSettings.ExtensionName);
             extensions.Add("XR_EXT_performance_settings");
 
-            var func = new PfnVoidFunction();
+            PfnVoidFunction func = new PfnVoidFunction();
             _app!.CheckResult(_app.Xr.GetInstanceProcAddr(new Instance(), "xrInitializeLoaderKHR", &func), "Bind xrInitializeLoaderKHR");
             InitializeLoader = Marshal.GetDelegateForFunctionPointer<InitializeLoaderDelegate>(new nint(func.Handle));
 

@@ -1,4 +1,5 @@
 ﻿using Android.Content;
+using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Util;
@@ -7,6 +8,7 @@ using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrInteraction;
+using XrMath;
 using static Android.Views.MotionEvent;
 using static Android.Webkit.WebSettings;
 
@@ -117,7 +119,7 @@ namespace OpenXr.Framework.Android
                 if (!_surfaceInput.IsPointerValid)
                     return;
 
-                var now = SystemClock.UptimeMillis();
+                long now = SystemClock.UptimeMillis();
 
                 MotionEventActions actions;
 
@@ -147,7 +149,7 @@ namespace OpenXr.Framework.Android
                     }
                 }
 
-                var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
+                Vector2 pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
                 _pointerProps ??=
                 [
@@ -179,7 +181,7 @@ namespace OpenXr.Framework.Android
                     buttonState |= MotionEventButtonState.Secondary;
                */
 
-                var ev = MotionEvent.Obtain(
+                MotionEvent? ev = MotionEvent.Obtain(
                     actions == MotionEventActions.Up ? _lastDownTime : now,
                     now,
                     actions,
@@ -209,7 +211,7 @@ namespace OpenXr.Framework.Android
         public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
             : base(getQuad)
         {
-            var quad = getQuad();
+            Quad3 quad = getQuad();
 
             _size.Width = AlignToMultiple((int)(quad.Size.X * 1700), 32);
             _size.Height = AlignToMultiple((int)(quad.Size.Y * 1700), 32);
@@ -236,13 +238,13 @@ namespace OpenXr.Framework.Android
         {
             if (_surface == null)
                 return;
-            var newCanvas = _surface.LockHardwareCanvas();
+            Canvas? newCanvas = _surface.LockHardwareCanvas();
             try
             {
                 if (newCanvas != null)
                 {
-                    var scaleX = _size.Width / (float)_webView!.Width;
-                    var scaleY = _size.Height / (float)_webView!.Height;
+                    float scaleX = _size.Width / (float)_webView!.Width;
+                    float scaleY = _size.Height / (float)_webView!.Height;
 
                     newCanvas.DrawColor(global::Android.Graphics.Color.Transparent, PorterDuff.Mode.Clear!);
                     newCanvas.Translate(-_webView.ScrollX, -_webView.ScrollY);
@@ -261,7 +263,7 @@ namespace OpenXr.Framework.Android
 
         protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, long predTime)
         {
-            var result = base.Update(ref layer, ref views, predTime);
+            bool result = base.Update(ref layer, ref views, predTime);
 
             layer.Size.Height *= -1;
 
@@ -275,7 +277,7 @@ namespace OpenXr.Framework.Android
         {
             try
             {
-                var packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
+                PackageInfo? packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
                 return packageInfo?.VersionName;
             }
             catch (Exception)
@@ -320,7 +322,7 @@ namespace OpenXr.Framework.Android
 
             if (_context is Activity activity)
             {
-                var layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
+                ViewGroup.LayoutParams layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
                 activity.AddContentView(_webView, layout);
             }
         }

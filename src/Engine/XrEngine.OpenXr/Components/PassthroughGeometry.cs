@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr
 
             Debug.Assert(_host != null);
 
-            var xrApp = XrApp.Current;
+            XrApp? xrApp = XrApp.Current;
 
             _sceneModel ??= _host.Descendants<OculusSceneView>().FirstOrDefault();
 
@@ -30,22 +30,22 @@ namespace XrEngine.OpenXr
 
                 if (_ptLayer != null)
                 {
-                    var meshObj = (TriangleMesh)_sceneModel.Children[0];
+                    TriangleMesh meshObj = (TriangleMesh)_sceneModel.Children[0];
 
                     Debug.Assert(meshObj.Geometry != null);
 
-                    var triMesh = new Mesh
+                    Mesh triMesh = new Mesh
                     {
                         Indices = meshObj.Geometry.Indices,
                         Vertices = meshObj.Geometry.ExtractPositions()
                     };
 
-                    var test = Cube3D.Default;
+                    Cube3D test = Cube3D.Default;
 
                     triMesh.Indices = test.Indices!;
                     triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
 
-                    var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.ReferenceSpace, meshObj);
+                    XrPassthroughMesh ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.ReferenceSpace, meshObj);
 
                     /*
                     _ptLayer.UpdateMesh(

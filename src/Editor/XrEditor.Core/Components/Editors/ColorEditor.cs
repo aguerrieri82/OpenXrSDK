@@ -40,11 +40,11 @@ namespace XrEditor
             if (_popup != null)
                 return;
 
-            var manager = Context.Require<IWindowManager>();
+            IWindowManager manager = Context.Require<IWindowManager>();
 
-            var oldColor = _editValue;
+            Color oldColor = _editValue;
 
-            var body = new ColorPickerView()
+            ColorPickerView body = new ColorPickerView()
             {
                 SelectedColor = HexValue
             };
@@ -54,7 +54,7 @@ namespace XrEditor
                 EditValue = body.SelectedColor;
             };
 
-            var content = new ContentView()
+            ContentView content = new ContentView()
             {
                 Title = "Select color",
                 Content = body,
@@ -73,7 +73,7 @@ namespace XrEditor
 
             _popup = manager.CreatePopup(content, new Size2I(300, 500));
 
-            var result = await _popup.ShowAsync();
+            ActionView? result = await _popup.ShowAsync();
 
             if (result == null || result.DisplayName == "Cancel")
                 EditValue = oldColor;

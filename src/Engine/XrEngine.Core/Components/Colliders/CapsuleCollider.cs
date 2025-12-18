@@ -27,7 +27,7 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
-            var localPoint = _host!.ToLocal(worldPoint);
+            Vector3 localPoint = _host!.ToLocal(worldPoint);
 
             localPoint = Pose.Inverse().Transform(localPoint);
 
@@ -36,7 +36,7 @@ namespace XrEngine
             if (localPoint.Z < -tolerance || localPoint.Z > Height + tolerance)
                 return false;
 
-            var distance = new Vector2(localPoint.X, localPoint.Y).Length();
+            float distance = new Vector2(localPoint.X, localPoint.Y).Length();
             if (distance >= Radius + tolerance)
                 return false;
 
@@ -45,23 +45,23 @@ namespace XrEngine
 
         public Collision? CollideWith(Ray3 ray)
         {
-            var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            Ray3 localRay = ray.Transform(_host!.WorldMatrixInverse);
 
-            var sphereCenter = new Vector3(0, 0, Height / 2);
+            Vector3 sphereCenter = new Vector3(0, 0, Height / 2);
 
-            var oc = sphereCenter - localRay.Origin;
+            Vector3 oc = sphereCenter - localRay.Origin;
 
-            var tca = Vector3.Dot(oc, localRay.Direction);
+            float tca = Vector3.Dot(oc, localRay.Direction);
 
-            var d2 = Vector3.Dot(oc, oc) - tca * tca;
+            float d2 = Vector3.Dot(oc, oc) - tca * tca;
 
-            var thc = MathF.Sqrt(Radius * Radius - d2);
+            float thc = MathF.Sqrt(Radius * Radius - d2);
 
-            var t0 = tca - thc;
-            var t1 = tca + thc;
+            float t0 = tca - thc;
+            float t1 = tca + thc;
 
-            var intersectionPoint1 = localRay.Direction * t0;
-            var intersectionPoint2 = localRay.Direction * t1;
+            Vector3 intersectionPoint1 = localRay.Direction * t0;
+            Vector3 intersectionPoint2 = localRay.Direction * t1;
 
             //TODO implement
 

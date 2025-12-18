@@ -31,8 +31,8 @@ namespace XrEngine.OpenXr
 
     public class SceneTeleportTarget : BaseComponent<Scene3D>, ITeleportTarget
     {
-        protected ITeleportTarget[] _lastTargets =[];
-        protected long _lastTargetsVersion = -1; 
+        protected ITeleportTarget[] _lastTargets = [];
+        protected long _lastTargetsVersion = -1;
 
         protected IEnumerable<ITeleportTarget> Targets()
         {
@@ -40,7 +40,7 @@ namespace XrEngine.OpenXr
             if (_lastTargetsVersion != _host.ContentVersion)
             {
                 _lastTargets = _host!.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature).ToArray();
-                _lastTargetsVersion = _host.ContentVersion; 
+                _lastTargetsVersion = _host.ContentVersion;
             }
             return _lastTargets;
         }
@@ -93,14 +93,14 @@ namespace XrEngine.OpenXr
 
             if (IsSimulation)
             {
-                var obj = _host!.Scene!.Children.OfType<XrRoot>().First().LeftController!;
+                Group3D obj = _host!.Scene!.Children.OfType<XrRoot>().First().LeftController!;
 
                 _lastRay = obj.GetWorldPose().ToRay();
                 _lastRay.Origin = _host!.WorldPosition;
             }
             else
             {
-                var isActive = IsTriggerActive();
+                bool isActive = IsTriggerActive();
 
                 if (isActive)
                 {
@@ -122,7 +122,7 @@ namespace XrEngine.OpenXr
 
                 if (_isTeleportStart)
                 {
-                    var status = Pointer.GetPointerStatus();
+                    RayPointerStatus status = Pointer.GetPointerStatus();
                     if (!status.IsActive)
                         return;
                     _lastRay = Pointer.GetPointerStatus().Ray;
@@ -133,9 +133,9 @@ namespace XrEngine.OpenXr
 
             if (_isTeleportStart)
             {
-                foreach (var yPlane in Target.GetYPlanes().OrderByDescending(a => a))
+                foreach (float yPlane in Target.GetYPlanes().OrderByDescending(a => a))
                 {
-                    var intPoint = RayIntersection(_lastRay, yPlane);
+                    Vector3 intPoint = RayIntersection(_lastRay, yPlane);
 
                     if (Target.CanTeleport(intPoint))
                     {
@@ -159,7 +159,7 @@ namespace XrEngine.OpenXr
 
         protected virtual void Teleport(Vector3 position)
         {
-            var handler = _host!.Feature<ITeleportHandler>();
+            ITeleportHandler? handler = _host!.Feature<ITeleportHandler>();
 
             if (handler != null)
                 handler.Teleport(position);
@@ -175,25 +175,25 @@ namespace XrEngine.OpenXr
 
         public Vector3 RayIntersection(Ray3 ray, float yPlane)
         {
-            var cos = Math.Clamp(ray.Direction.Dot(Vector3.UnitY), 0, 1);
-            var curElev = 1 - (MathF.Acos(cos) / (MathF.PI / 2));
+            float cos = Math.Clamp(ray.Direction.Dot(Vector3.UnitY), 0, 1);
+            float curElev = 1 - (MathF.Acos(cos) / (MathF.PI / 2));
             curElev = MathF.Pow(curElev, Exponent) + 0.05f;
 
             _lastElev = MathUtils.Smooth(_lastElev, curElev, SmoothFactor);
 
-            var yMax = MinY +
+            float yMax = MinY +
                 (MathF.Pow(MathF.E, ElevationFactor * _lastElev) - 1) / (MathF.Pow(MathF.E, ElevationFactor) - 1) *
                 (MaxRange.Y - MinY);
 
-            var ofsPlane = yPlane - ray.Origin.Y;
+            float ofsPlane = yPlane - ray.Origin.Y;
 
-            var det = MathF.Sqrt(1 - ofsPlane / yMax);
-            var t0 = (1 + det) / 2;
-            var t1 = (1 - det) / 2;
+            float det = MathF.Sqrt(1 - ofsPlane / yMax);
+            float t0 = (1 + det) / 2;
+            float t1 = (1 - det) / 2;
 
             _lastMaxT = MathF.Max(t0, t1);
 
-            var xSpan = _lastMaxT * MaxRange.X * _lastElev;
+            float xSpan = _lastMaxT * MaxRange.X * _lastElev;
 
             _hitDest = new Vector3(ray.Direction.X, 0, ray.Direction.Z).Normalize() * xSpan + new Vector3(ray.Origin.X, yPlane, ray.Origin.Z);
 
@@ -204,27 +204,27 @@ namespace XrEngine.OpenXr
 
         protected IEnumerable<Vector3> Sample(int numPoints)
         {
-            var part = _lastMaxT / (numPoints - 1);
-            for (var i = 0; i < numPoints; i++)
+            float part = _lastMaxT / (numPoints - 1);
+            for (int i = 0; i < numPoints; i++)
             {
-                var t = i == numPoints - 1 ? _lastMaxT : part * i;
-                var p0 = SamplePoint(t);
+                float t = i == numPoints - 1 ? _lastMaxT : part * i;
+                Vector3 p0 = SamplePoint(t);
                 yield return p0;
             }
         }
 
         protected Vector3 SamplePoint(float t)
         {
-            var yMax = MinY +
+            float yMax = MinY +
                 (MathF.Pow(MathF.E, ElevationFactor * _lastElev) - 1) / (MathF.Pow(MathF.E, ElevationFactor) - 1) *
                 (MaxRange.Y - MinY);
 
-            var xMax = MaxRange.X * _lastElev;
+            float xMax = MaxRange.X * _lastElev;
 
-            var x = t * xMax;
-            var y = 4 * yMax * t * (1 - t);
+            float x = t * xMax;
+            float y = 4 * yMax * t * (1 - t);
 
-            var res = new Vector3(_lastRay.Direction.X, 0, _lastRay.Direction.Z).Normalize() * x +
+            Vector3 res = new Vector3(_lastRay.Direction.X, 0, _lastRay.Direction.Z).Normalize() * x +
                       new Vector3(_lastRay.Origin.X, _lastRay.Origin.Y + y, _lastRay.Origin.Z);
 
             return res;

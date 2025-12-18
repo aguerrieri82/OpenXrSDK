@@ -12,7 +12,7 @@ namespace Mapbox
         /// <returns>A list of indices representing triangles (0, 1, 2, 0, 2, 3...).</returns>
         public static List<int> Triangulate(IList<IList<Vector2>> points)
         {
-            var earcut = new EarcutProcessor();
+            EarcutProcessor earcut = new EarcutProcessor();
             earcut.Process(points);
             return earcut.Indices;
         }
@@ -22,7 +22,7 @@ namespace Mapbox
         /// </summary>
         public static List<int> Triangulate(IList<Vector2> points)
         {
-            var earcut = new EarcutProcessor();
+            EarcutProcessor earcut = new EarcutProcessor();
             earcut.Process(new List<IList<Vector2>> { points });
             return earcut.Indices;
         }
@@ -123,8 +123,8 @@ namespace Mapbox
                 // Calculate original winding order of a polygon ring
                 for (i = 0, j = len > 0 ? len - 1 : 0; i < len; j = i++)
                 {
-                    var p1 = points[i];
-                    var p2 = points[j];
+                    Vector2 p1 = points[i];
+                    Vector2 p2 = points[j];
                     sum += (p2.X - p1.X) * (p1.Y + p2.Y);
                 }
 
@@ -367,7 +367,7 @@ namespace Mapbox
             // Link every hole into the outer loop, producing a single-ring polygon without holes
             private Node EliminateHoles(IList<IList<Vector2>> points, Node outerNode)
             {
-                var queue = new List<Node>();
+                List<Node> queue = new List<Node>();
                 int len = points.Count;
 
                 for (int i = 1; i < len; i++)

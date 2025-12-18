@@ -7,7 +7,7 @@
 
         public MenuView AddGroup(string displayName)
         {
-            var result = new MenuView() { DisplayName = displayName };
+            MenuView result = new MenuView() { DisplayName = displayName };
             Items.Add(result);
             return result;
         }

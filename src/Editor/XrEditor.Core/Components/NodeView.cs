@@ -45,9 +45,9 @@ namespace XrEditor
 
             if (_node is IItemActions itemActions)
             {
-                var result = new List<ActionView>();
+                List<ActionView> result = new List<ActionView>();
                 itemActions.Actions(result);
-                foreach (var item in result)
+                foreach (ActionView item in result)
                     _menu.Items.Add(item);
             }
         }
@@ -56,7 +56,7 @@ namespace XrEditor
         {
             Context.Require<IMainDispatcher>().ExecuteAsync(() =>
             {
-                var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
+                ListTreeNodeView? childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
                 childView?.Remove();
             });
         }
@@ -65,7 +65,7 @@ namespace XrEditor
         {
             Context.Require<IMainDispatcher>().ExecuteAsync(() =>
             {
-                var childView = _panel.CreateNode(child, _host);
+                ListTreeNodeView? childView = _panel.CreateNode(child, _host);
                 _host.AddChild(childView!);
             });
         }
@@ -76,7 +76,7 @@ namespace XrEditor
             if (_node.IsLeaf)
                 return;
 
-            foreach (var item in _node.Children)
+            foreach (INode item in _node.Children)
                 result.Add(_panel.CreateNode(item, _host)!);
         }
 

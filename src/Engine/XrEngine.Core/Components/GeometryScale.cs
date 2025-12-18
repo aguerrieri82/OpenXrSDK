@@ -23,7 +23,7 @@ namespace XrEngine
 
             _size = _bounds.Size;
 
-            foreach (var item in _host!.DescendantsOrSelf().OfType<TriangleMesh>())
+            foreach (TriangleMesh item in _host!.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 _geometries[item] = item.Geometry!.Clone();
                 item.Geometry.Flags = EngineObjectFlags.NotifyChanged;
@@ -41,7 +41,7 @@ namespace XrEngine
 
             //canvas.State.Transform = _host!.WorldMatrix;
 
-            var planes = _bounds.Faces().ToArray();
+            Quad3[] planes = _bounds.Faces().ToArray();
 
             planes[0].Pose.Position.Z = Min.Z;
             planes[1].Pose.Position.Z = Max.Z;
@@ -73,23 +73,23 @@ namespace XrEngine
             if (_host == null)
                 return;
 
-            var delta = (Size - _bounds.Size) / 2f;
+            Vector3 delta = (Size - _bounds.Size) / 2f;
 
-            var curTransform = _host.Transform.Matrix;
+            Matrix4x4 curTransform = _host.Transform.Matrix;
 
-            foreach (var item in _geometries)
+            foreach (KeyValuePair<TriangleMesh, Geometry3D> item in _geometries)
             {
-                var mesh = item.Key;
-                var geometry = item.Value;
+                TriangleMesh mesh = item.Key;
+                Geometry3D geometry = item.Value;
 
-                var curVer = mesh.Geometry!.Vertices;
-                var startVer = geometry!.Vertices;
+                VertexData[] curVer = mesh.Geometry!.Vertices;
+                VertexData[] startVer = geometry!.Vertices;
 
-                for (var i = 0; i < curVer.Length; i++)
+                for (int i = 0; i < curVer.Length; i++)
                 {
-                    var starVerPosWorld = startVer[i].Pos.Transform(mesh.WorldMatrix);
+                    Vector3 starVerPosWorld = startVer[i].Pos.Transform(mesh.WorldMatrix);
 
-                    var verDelta = Vector3.Zero;
+                    Vector3 verDelta = Vector3.Zero;
 
                     if (starVerPosWorld.X > Max.X)
                         verDelta.X = delta.X;

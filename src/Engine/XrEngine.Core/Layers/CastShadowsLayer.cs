@@ -32,7 +32,7 @@ namespace XrEngine
             {
                 if (_boundsDirty)
                 {
-                    var builder = new Bounds3Builder();
+                    Bounds3Builder builder = new Bounds3Builder();
                     builder.Add(_content.Select(a => a.WorldBounds));
                     _bounds = builder.Result;
                     _boundsDirty = false;

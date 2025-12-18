@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine
 {
@@ -14,7 +15,7 @@ namespace XrEngine
 
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
-            var stage = bld.Context.Stage;
+            UpdateShaderStage stage = bld.Context.Stage;
 
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
                 UpdateShaderModel(bld);
@@ -29,9 +30,9 @@ namespace XrEngine
             bld.LoadBuffer(ctx =>
             {
                 //Get the word matrix trigger the update
-                var modelWord = ctx.Model!.WorldMatrix;
+                Matrix4x4 modelWord = ctx.Model!.WorldMatrix;
 
-                var curVersion = ctx.Model!.Transform.Version;
+                long curVersion = ctx.Model!.Transform.Version;
 
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
@@ -48,7 +49,7 @@ namespace XrEngine
 
         protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)
         {
-            var shadowMode = bld.Context.ShadowMapProvider?.Options.Mode ?? ShadowMapMode.None;
+            ShadowMapMode shadowMode = bld.Context.ShadowMapProvider?.Options.Mode ?? ShadowMapMode.None;
 
             if (shadowMode != ShadowMapMode.None && bld.Context.ShadowMapProvider?.ShadowMap != null)
             {
@@ -69,7 +70,7 @@ namespace XrEngine
             {
                 Debug.Assert(ctx.PassCamera != null);
 
-                var result = new CameraUniforms
+                CameraUniforms result = new CameraUniforms
                 {
                     ViewProj = ctx.PassCamera.ViewProjection,
                     Position = ctx.PassCamera.WorldPosition,
@@ -88,7 +89,7 @@ namespace XrEngine
                     Proj = ctx.PassCamera.Projection,
                 };
 
-                var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
+                Matrix4x4? light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
                 if (light != null)
                     result.LightSpaceMatrix = light.Value;
 

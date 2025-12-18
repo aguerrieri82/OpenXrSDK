@@ -58,7 +58,7 @@ namespace XrEngine.Devices.Android
 
         public async Task<IList<BleDeviceInfo>> FindDevicesAsync(BleDeviceFilter filter)
         {
-            var result = new List<BleDeviceInfo>();
+            List<BleDeviceInfo> result = new List<BleDeviceInfo>();
 
             void AddDevice(BluetoothDevice device)
             {
@@ -69,30 +69,30 @@ namespace XrEngine.Devices.Android
                 {
                     Address = ulong.Parse(device.Address!.Replace(":", ""), System.Globalization.NumberStyles.HexNumber),
                     Name = device.Name,
-                    
+
                 });
             }
 
-            foreach (var device in _adapter.BondedDevices!)
+            foreach (BluetoothDevice device in _adapter.BondedDevices!)
                 AddDevice(device);
 
 
             if (filter.MaxDevices > 0 && result.Count >= filter.MaxDevices)
                 return result;
 
-            var scanner = _adapter.BluetoothLeScanner!;
+            BluetoothLeScanner scanner = _adapter.BluetoothLeScanner!;
 
-            var scanSettings = new ScanSettings.Builder()
+            ScanSettings scanSettings = new ScanSettings.Builder()
                 .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)!
                 .Build()!;
 
 
-            var scanCallback = new BleScanCallback(filter);
+            BleScanCallback scanCallback = new BleScanCallback(filter);
             scanner.StartScan(null, scanSettings, scanCallback);
 
             try
             {
-                var device = await scanCallback.Task.WaitAsync(filter.Timeout);
+                BluetoothDevice? device = await scanCallback.Task.WaitAsync(filter.Timeout);
 
                 if (device != null)
                     AddDevice(device);
@@ -106,7 +106,7 @@ namespace XrEngine.Devices.Android
 
         public Task<IBleDevice> GetDeviceAsync(BleAddress address)
         {
-            var device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());
+            BluetoothDevice? device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());
 
             if (device == null)
                 throw new InvalidOperationException();

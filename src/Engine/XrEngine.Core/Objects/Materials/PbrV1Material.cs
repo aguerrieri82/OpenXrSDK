@@ -334,7 +334,7 @@ namespace XrEngine
 
             public unsafe DynamicBuffer GetBuffer()
             {
-                var newSize = (sizeof(LightUniforms) * Max) + 16;
+                int newSize = (sizeof(LightUniforms) * Max) + 16;
 
                 if (_buffer.Size != newSize)
                 {
@@ -349,8 +349,8 @@ namespace XrEngine
 
                 fixed (LightUniforms* pArray = Lights)
                 {
-                    var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
-                    var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
+                    Span<LightUniforms> srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
+                    Span<LightUniforms> dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
                     srcSpan.CopyTo(dstSpan);
                 }
 
@@ -455,9 +455,9 @@ namespace XrEngine
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
+                ImageLight? imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
-                var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
+                bool hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
                 if (hasPunctual)
                     bld.AddFeature("USE_PUNCTUAL");
@@ -484,18 +484,18 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        var curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
+                        long curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
 
                         if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
 
-                        ctx.CurrentBuffer.Hash = (int)curHash;
+                        ctx.CurrentBuffer.Hash = curHash;
 
                         Log.Debug(this, "Build light uniforms");
 
-                        var lights = new List<LightUniforms>();
+                        List<LightUniforms> lights = new List<LightUniforms>();
 
-                        foreach (var light in bld.Context.Lights!)
+                        foreach (Light light in bld.Context.Lights!)
                         {
                             if (light is PointLight point)
                             {
@@ -549,7 +549,7 @@ namespace XrEngine
 
                 if (bld.Context.ShadowMapProvider != null)
                 {
-                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
+                    ShadowMapMode mode = bld.Context.ShadowMapProvider.Options.Mode;
 
                     if (mode != ShadowMapMode.None)
                     {
@@ -569,7 +569,7 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        var curHash = (int)imgLight.Version;
+                        int curHash = (int)imgLight.Version;
 
                         if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
@@ -657,11 +657,11 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var material = new MaterialUniforms();
+            MaterialUniforms material = new MaterialUniforms();
 
             bld.LoadBuffer(ctx =>
             {
-                var curVersion = Version;
+                long curVersion = Version;
 
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
@@ -858,7 +858,7 @@ namespace XrEngine
 
             bld.AddFeature($"DEBUG {Debug}");
 
-            foreach (var value in Enum.GetValues<DebugFlags>())
+            foreach (DebugFlags value in Enum.GetValues<DebugFlags>())
                 bld.AddFeature($"{value} {(int)value}");
 
             if ((bld.Context.ActiveComponents & VertexComponent.Normal) != 0)

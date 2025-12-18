@@ -52,7 +52,7 @@ namespace XrEngine.Components
                 _splittedMesh = new TriangleMesh();
                 _splittedMesh.Name = SplittedName;
 
-                foreach (var material in _host.Materials)
+                foreach (Material material in _host.Materials)
                     _splittedMesh.Materials.Add(material);
 
                 _splittedMesh.Geometry = new Geometry3D()
@@ -97,13 +97,13 @@ namespace XrEngine.Components
                 Position = Origin
             }.ToMatrix();
 
-            Matrix4x4.Invert(_boundsTransform, out var reverse);
+            Matrix4x4.Invert(_boundsTransform, out Matrix4x4 reverse);
 
-            foreach (var triangle in _startGeo.Triangles())
+            foreach (Triangle3 triangle in _startGeo.Triangles())
             {
-                var newTr = triangle.Transform(reverse);
+                Triangle3 newTr = triangle.Transform(reverse);
 
-                var isValid = FullIntersection ?
+                bool isValid = FullIntersection ?
                     newTr.Vertices.All(a => _splitBounds.Contains(a)) :
                     newTr.Vertices.Any(a => _splitBounds.Contains(a));
 
@@ -121,12 +121,12 @@ namespace XrEngine.Components
 
             canvas.Save();
 
-            Matrix4x4.Invert(_boundsTransform, out var reverse);
+            Matrix4x4.Invert(_boundsTransform, out Matrix4x4 reverse);
 
             canvas.State.Color = "#00A000";
             canvas.State.Transform = _host!.WorldMatrix;
 
-            foreach (var triangle in _splitTriangles)
+            foreach (Triangle3 triangle in _splitTriangles)
                 canvas.DrawTriangle(triangle);
 
             canvas.State.Color = "#00ff00";

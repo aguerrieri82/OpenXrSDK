@@ -1,6 +1,5 @@
 ﻿using glTFLoader.Schema;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using XrEngine;
@@ -22,16 +21,16 @@ public class GltfExporter
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct GlbHeader
-    {   
+    {
         public GlbHeader()
         {
         }
 
         public uint Magic = 0x46546C67;
 
-        public uint Version = 2;    
+        public uint Version = 2;
 
-        public uint Size = 0;   
+        public uint Size = 0;
 
     }
 
@@ -48,7 +47,7 @@ public class GltfExporter
     {
         public GlbChunkInfo(byte[] data, uint type)
         {
-            var padding = (4 - (data.Length % 4)) % 4;
+            int padding = (4 - (data.Length % 4)) % 4;
 
             Data = data;
             Padding = new byte[padding];
@@ -56,8 +55,8 @@ public class GltfExporter
 
             if (type == 0x4E4F534A)
             {
-                for (var i = 0; i < padding; i++)
-                    Padding[i] = 0x20; 
+                for (int i = 0; i < padding; i++)
+                    Padding[i] = 0x20;
             }
         }
 
@@ -79,18 +78,18 @@ public class GltfExporter
 
     public GltfContent Export(EngineObject obj, GltfExportOptions options)
     {
-        var result = new GltfContent();
+        GltfContent result = new GltfContent();
         _binStream = new MemoryStream();
         _root = new glTFLoader.Schema.Gltf();
 
-        var geometries = obj is Object3D object3D ? object3D
+        Geometry3D?[] geometries = obj is Object3D object3D ? object3D
             .DescendantsOrSelf()
             .OfType<TriangleMesh>()
             .Select(a => a.Geometry)
             .Where(a => a != null)
             .ToArray() : [];
 
-        foreach (var geometry in geometries)
+        foreach (Geometry3D? geometry in geometries)
             ExportGeometry(geometry!);
 
 
@@ -103,17 +102,17 @@ public class GltfExporter
 
     public void Export(EngineObject obj, string outPath, GltfExportOptions options)
     {
-        using var file = File.OpenWrite(outPath);
+        using FileStream file = File.OpenWrite(outPath);
         Export(obj, file, options);
     }
 
     public void Export(EngineObject obj, Stream outStream, GltfExportOptions options)
     {
-        var content = Export(obj, options);
+        GltfContent content = Export(obj, options);
 
-        var chunks = new List<GlbChunkInfo>();  
+        List<GlbChunkInfo> chunks = new List<GlbChunkInfo>();
 
-        var json = JsonSerializer.SerializeToUtf8Bytes(content.Root, new JsonSerializerOptions
+        byte[] json = JsonSerializer.SerializeToUtf8Bytes(content.Root, new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = false,
@@ -121,19 +120,19 @@ public class GltfExporter
 
         chunks.Add(new GlbChunkInfo(json, 0x4E4F534A));
 
-        foreach (var bin in content.Binaries ?? [])
+        foreach (byte[] bin in content.Binaries ?? [])
             chunks.Add(new GlbChunkInfo(bin, 0x004E4942));
 
-        var header = new GlbHeader();
-        header.Size = (uint)(Marshal.SizeOf(header) + 
-            Marshal.SizeOf<GlbChunk>() * 
+        GlbHeader header = new GlbHeader();
+        header.Size = (uint)(Marshal.SizeOf(header) +
+            Marshal.SizeOf<GlbChunk>() *
             chunks.Count + chunks.Sum(a => a.Data.Length + a.Padding.Length));
 
         outStream.WriteStruct(header);
 
-        foreach (var chunkInfo in chunks)
+        foreach (GlbChunkInfo chunkInfo in chunks)
         {
-            var chunk = new GlbChunk()
+            GlbChunk chunk = new GlbChunk()
             {
                 Length = (uint)(chunkInfo.Data.Length + chunkInfo.Padding.Length),
                 Type = chunkInfo.Type
@@ -143,4 +142,4 @@ public class GltfExporter
             outStream.Write(chunkInfo.Padding);
         }
     }
-}  
+}

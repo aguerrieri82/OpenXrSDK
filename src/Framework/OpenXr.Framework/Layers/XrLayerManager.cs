@@ -25,7 +25,7 @@ namespace OpenXr.Framework
 
             layerCount = 0;
 
-            foreach (var layer in _layers)
+            foreach (IXrLayer layer in _layers)
             {
                 if (!layer.IsEnabled)
                     continue;
@@ -58,7 +58,7 @@ namespace OpenXr.Framework
 
         public void Dispose()
         {
-            foreach (var layer in _layers)
+            foreach (IXrLayer layer in _layers)
                 layer.Dispose();
 
             _layers.Clear();

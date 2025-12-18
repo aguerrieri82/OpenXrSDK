@@ -38,12 +38,12 @@ namespace XrEngine
             Id = DynamicPropRegistry.GetId(name);
         }
 
-        public static implicit operator DynamicProp (string name)
+        public static implicit operator DynamicProp(string name)
         {
             return new DynamicProp(name);
         }
 
-        public static implicit operator int (DynamicProp prop)
+        public static implicit operator int(DynamicProp prop)
         {
             return prop.Id;
         }
@@ -103,7 +103,7 @@ namespace XrEngine
 
             if (_updateCount == 0 && _lastChanges.Changes != null)
             {
-                foreach (var change in _lastChanges.Changes)
+                foreach (ObjectChange change in _lastChanges.Changes)
                     NotifyChanged(change);
                 _lastChanges.Clear();
             }
@@ -187,7 +187,7 @@ namespace XrEngine
             _props ??= [];
             if (propId >= _props.Length)
             {
-                var newSize = Math.Max(propId + 1, _props.Length * 2);
+                int newSize = Math.Max(propId + 1, _props.Length * 2);
                 Array.Resize(ref _props, newSize);
             }
             _props[propId] = value;
@@ -195,7 +195,7 @@ namespace XrEngine
 
         public T? GetProp<T>(int propId)
         {
-            var result = GetProp(propId);
+            object? result = GetProp(propId);
             if (result == null)
                 return default;
             return (T)result;
@@ -212,16 +212,16 @@ namespace XrEngine
         {
             if (_components != null)
             {
-                foreach (var component in _components.OfType<IDisposable>())
+                foreach (IDisposable component in _components.OfType<IDisposable>())
                     component.Dispose();
                 _components = null;
             }
 
             if (_props != null)
             {
-                foreach (var prop in _props.OfType<IDisposable>())
+                foreach (IDisposable prop in _props.OfType<IDisposable>())
                     prop.Dispose();
-                foreach (var prop in _props.OfType<IObjectTool>())
+                foreach (IObjectTool prop in _props.OfType<IObjectTool>())
                     prop.Deactivate();
                 _props = null;
             }
@@ -240,7 +240,7 @@ namespace XrEngine
 
         public string GeneratePath()
         {
-            var parts = new List<string>();
+            List<string> parts = new List<string>();
             GeneratePath(parts);
             return string.Join("/", parts);
         }
@@ -254,7 +254,7 @@ namespace XrEngine
         {
             if (_components != null)
             {
-                foreach (var item in _components.OfType<IRenderUpdate>())
+                foreach (IRenderUpdate item in _components.OfType<IRenderUpdate>())
                     item.Reset();
             }
         }

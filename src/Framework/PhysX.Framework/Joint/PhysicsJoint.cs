@@ -31,7 +31,7 @@ namespace PhysX.Framework
             get => _handle->GetLocalPose(PxJointActorIndex.Actor0).ToPose3();
             set
             {
-                var tr = value.ToPxTransform();
+                PxTransform tr = value.ToPxTransform();
                 _handle->SetLocalPoseMut(PxJointActorIndex.Actor0, &tr);
             }
         }
@@ -41,7 +41,7 @@ namespace PhysX.Framework
             get => _handle->GetLocalPose(PxJointActorIndex.Actor1).ToPose3();
             set
             {
-                var tr = value.ToPxTransform();
+                PxTransform tr = value.ToPxTransform();
                 _handle->SetLocalPoseMut(PxJointActorIndex.Actor1, &tr);
             }
         }
@@ -82,7 +82,7 @@ namespace PhysX.Framework
             get => _name;
             set
             {
-                var data = Encoding.UTF8.GetBytes(value);
+                byte[] data = Encoding.UTF8.GetBytes(value);
                 fixed (byte* pData = data)
                     _handle->SetNameMut(pData);
                 _name = value;

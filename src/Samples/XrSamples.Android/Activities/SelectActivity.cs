@@ -39,12 +39,12 @@ namespace XrSamples.Android.Activities
             SetContentView(ResourceConstant.Layout.activity_select);
 
             //Samples
-            var manager = XrEngine.Context.Require<SampleManager>();
-            manager.AddType(typeof(XrSamples.Dnd.Builder));  
+            SampleManager manager = XrEngine.Context.Require<SampleManager>();
+            manager.AddType(typeof(XrSamples.Dnd.Builder));
 
             _samples = manager.List();
 
-            var listView = FindViewById<ListView>(ResourceConstant.Id.listView)!;
+            ListView listView = FindViewById<ListView>(ResourceConstant.Id.listView)!;
 
             listView.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleListItemSingleChoice,
@@ -53,7 +53,7 @@ namespace XrSamples.Android.Activities
             listView.ItemClick += OnSampleSelected;
 
             //MSAA
-            var mssa = FindViewById<Spinner>(ResourceConstant.Id.msaa)!;
+            Spinner mssa = FindViewById<Spinner>(ResourceConstant.Id.msaa)!;
             mssa.Adapter = new ArrayAdapter<int>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 [1, 2, 4]);
@@ -64,9 +64,9 @@ namespace XrSamples.Android.Activities
             };
 
             //HDRI
-            var images = manager.GetHDRs().ToArray();
+            HDRInfo[] images = manager.GetHDRs().ToArray();
 
-            var hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
+            Spinner hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 images.Select(a => a.Name!).ToArray());
@@ -80,7 +80,7 @@ namespace XrSamples.Android.Activities
             //Engine
             GraphicDriver[] engines = [GraphicDriver.OpenGL, GraphicDriver.FilamentVulkan, GraphicDriver.FilamentOpenGL];
 
-            var engine = FindViewById<Spinner>(ResourceConstant.Id.engine)!;
+            Spinner engine = FindViewById<Spinner>(ResourceConstant.Id.engine)!;
             engine.Adapter = new ArrayAdapter<GraphicDriver>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 engines);
@@ -92,7 +92,7 @@ namespace XrSamples.Android.Activities
 
             //MultiView
 
-            var mw = FindViewById<CheckBox>(ResourceConstant.Id.multi_view)!;
+            CheckBox mw = FindViewById<CheckBox>(ResourceConstant.Id.multi_view)!;
             mw.Checked = _settings.IsMultiView;
             mw.CheckedChange += (s, e) =>
             {
@@ -100,7 +100,7 @@ namespace XrSamples.Android.Activities
             };
 
             //Depth
-            var depth = FindViewById<CheckBox>(ResourceConstant.Id.depth)!;
+            CheckBox depth = FindViewById<CheckBox>(ResourceConstant.Id.depth)!;
             depth.Checked = _settings.EnableDepthPass;
             depth.CheckedChange += (s, e) =>
             {
@@ -108,7 +108,7 @@ namespace XrSamples.Android.Activities
             };
 
             //Pbr
-            var pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
+            CheckBox pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
             pbr.Checked = _settings.UsePbrV2;
             pbr.CheckedChange += (s, e) =>
             {
@@ -116,7 +116,7 @@ namespace XrSamples.Android.Activities
             };
 
             //Pbr
-            var sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
+            CheckBox sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
             sw.Checked = _settings.UseSpaceWarp;
             sw.CheckedChange += (s, e) =>
             {
@@ -126,7 +126,7 @@ namespace XrSamples.Android.Activities
 
         protected void StartGame()
         {
-            var intent = new Intent(this, typeof(GameActivity));
+            Intent intent = new Intent(this, typeof(GameActivity));
             intent.PutExtra("Settings", JsonSerializer.Serialize(_settings));
             StartActivity(intent);
         }

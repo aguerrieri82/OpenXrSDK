@@ -10,11 +10,11 @@ namespace XrSamples.Dnd
         [Sample("DnD")]
         public static XrEngineAppBuilder CreateDnd(this XrEngineAppBuilder builder)
         {
-            var app = new EngineApp();
+            EngineApp app = new EngineApp();
 
-            var scene = new DndScene();
+            DndScene scene = new DndScene();
 
-            var map = scene.LoadMap("Dnd/tavern");
+            Group3D map = scene.LoadMap("Dnd/tavern");
 
             scene.LoadAsync("65718833435872349").Wait();
 
@@ -23,7 +23,7 @@ namespace XrSamples.Dnd
             app.OpenScene(scene);
 
             scene.Settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "dnd_settings.json"));
-            map.WorldMatrix = scene.Settings.MapTransform; 
+            map.WorldMatrix = scene.Settings.MapTransform;
 
             return builder.UseApp(app)
                     .AddPanel(new DndSettingsPanel(scene.Settings, scene))

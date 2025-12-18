@@ -166,18 +166,18 @@ namespace XrEngine
         protected MaterialInfo Parse(string fileName)
         {
 
-            var matInfo = JsonSerializer.Deserialize<QuixelMaterialInfo>(File.ReadAllText(fileName))!;
+            QuixelMaterialInfo matInfo = JsonSerializer.Deserialize<QuixelMaterialInfo>(File.ReadAllText(fileName))!;
 
-            var prevImage = matInfo.previews.images.First(a => a.tags.Contains("sidepanel")).uri;
+            string prevImage = matInfo.previews.images.First(a => a.tags.Contains("sidepanel")).uri;
 
-            var info = new MaterialInfo()
+            MaterialInfo info = new MaterialInfo()
             {
                 DisplayName = matInfo.semanticTags.name,
                 Id = matInfo.id,
                 Textures = []
             };
 
-            foreach (var map in matInfo.maps)
+            foreach (QuixelMaterialInfo.MapInfo map in matInfo.maps)
             {
                 if (map.mimeType != "image/jpeg")
                     continue;
@@ -185,7 +185,7 @@ namespace XrEngine
                 if (map.resolution != "2048x2048")
                     continue;
 
-                var type = map.type switch
+                TextureType type = map.type switch
                 {
                     "ao" => TextureType.AmbientOcclusion,
                     "albedo" => TextureType.Albedo,
@@ -198,9 +198,9 @@ namespace XrEngine
                 if (type == TextureType.None)
                     continue;
 
-                var tile = matInfo.meta.FirstOrDefault(a => a.key == "tileable")?.value?.ToString();
+                string? tile = matInfo.meta.FirstOrDefault(a => a.key == "tileable")?.value?.ToString();
 
-                var texInfo = new TextureInfo()
+                TextureInfo texInfo = new TextureInfo()
                 {
                     Type = type,
                     MimeType = map.mimeType,
@@ -211,7 +211,7 @@ namespace XrEngine
 
                 if (!string.IsNullOrWhiteSpace(map.physicalSize))
                 {
-                    var parts = map.physicalSize.Split('x');
+                    string[] parts = map.physicalSize.Split('x');
                     texInfo.PhysicalSize = new Size2(
                         float.Parse(parts[0], CultureInfo.InvariantCulture),
                         float.Parse(parts[1], CultureInfo.InvariantCulture));
@@ -225,24 +225,24 @@ namespace XrEngine
 
         public override EngineObject LoadAsset(Uri uri, Type assetType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            var fileName = GetFilePath(uri);
+            string fileName = GetFilePath(uri);
 
-            if (!_materialCache.TryGetValue(fileName, out var result))
+            if (!_materialCache.TryGetValue(fileName, out IPbrMaterial? result))
             {
                 result = MaterialFactory.CreatePbr(Color.White);
                 result.Roughness = 0.7f;
 
                 IMemoryBuffer<byte>? mrImage = null;
 
-                var mat = Parse(fileName);
+                MaterialInfo mat = Parse(fileName);
 
-                foreach (var texture in mat.Textures!)
+                foreach (TextureInfo texture in mat.Textures!)
                 {
-                    var localPath = uri.LocalPath;
-                    var texPath = Path.Join(Path.GetDirectoryName(localPath), texture.FileName!).Replace('\\', '/');
-                    var texUri = $"{uri.Scheme}://{uri.Host}{texPath}";
+                    string localPath = uri.LocalPath;
+                    string texPath = Path.Join(Path.GetDirectoryName(localPath), texture.FileName!).Replace('\\', '/');
+                    string texUri = $"{uri.Scheme}://{uri.Host}{texPath}";
 
-                    var tex2D = AssetLoader.Instance.Load<Texture2D>(texUri, new TextureLoadOptions
+                    Texture2D tex2D = AssetLoader.Instance.Load<Texture2D>(texUri, new TextureLoadOptions
                     {
                         Format = texture.IsSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
                         MimeType = texture.MimeType
@@ -285,8 +285,8 @@ namespace XrEngine
 
                         uint ofs = texture.Type == TextureType.Roughness ? 1u : 2u;
 
-                        using var pSrc = tex2D.Data![0].Data!.MemoryLock();
-                        using var pDst = mrImage.MemoryLock();
+                        using MemoryLock<byte> pSrc = tex2D.Data![0].Data!.MemoryLock();
+                        using MemoryLock<byte> pDst = mrImage.MemoryLock();
 
                         EngineNativeLib.ImageCopyChannel(pSrc, pDst, tex2D.Width, tex2D.Height, tex2D.Width * 4, tex2D.Width * 4, 0, ofs, 1);
 

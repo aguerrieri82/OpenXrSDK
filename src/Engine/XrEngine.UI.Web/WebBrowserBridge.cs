@@ -53,7 +53,7 @@ namespace XrEngine.UI.Web
 
         public async Task<T> CallAsync<T>(string method, params object?[] args)
         {
-            var msg = new SendMessage
+            SendMessage msg = new SendMessage
             {
                 Type = "call",
                 Args = args,
@@ -61,7 +61,7 @@ namespace XrEngine.UI.Web
                 ReqId = Guid.NewGuid().ToString(),
             };
 
-            var cs = new TaskCompletionSource<object?>();
+            TaskCompletionSource<object?> cs = new TaskCompletionSource<object?>();
 
             _callRequests[msg.ReqId] = new CallRequest
             {
@@ -71,7 +71,7 @@ namespace XrEngine.UI.Web
 
             await _webBrowser.PostMessageAsync(JsonSerializer.Serialize(msg, _jsonOptions));
 
-            var result = await cs.Task;
+            object? result = await cs.Task;
 
             return (T)result!;
         }
@@ -81,30 +81,30 @@ namespace XrEngine.UI.Web
             if (e.Message == "#ref")
                 return;
 
-            var jObj = JsonNode.Parse(e.Message)!;
+            JsonNode jObj = JsonNode.Parse(e.Message)!;
 
-            var type = (string?)jObj["type"];
+            string? type = (string?)jObj["type"];
 
             if (type == "call")
             {
-                var msg = new SendMessage();
+                SendMessage msg = new SendMessage();
 
                 try
                 {
-                    var method = (string?)jObj["method"];
+                    string? method = (string?)jObj["method"];
                     msg.ReqId = (string?)jObj["reqId"];
 
                     if (method == null)
                         throw new InvalidOperationException();
 
-                    var args = (JsonObject?)jObj["args"];
+                    JsonObject? args = (JsonObject?)jObj["args"];
 
-                    var mapped = _methods[method];
-                    var parsedArgs = new List<object?>();
+                    MappedMethod mapped = _methods[method];
+                    List<object?> parsedArgs = new List<object?>();
 
                     if (args != null)
                     {
-                        foreach (var param in mapped.Info!.GetParameters())
+                        foreach (ParameterInfo param in mapped.Info!.GetParameters())
                         {
                             object? value;
 
@@ -124,7 +124,7 @@ namespace XrEngine.UI.Web
 
                     if (result is Task task)
                     {
-                        var pName = task.GetType().GetGenericArguments()[0].Name;
+                        string pName = task.GetType().GetGenericArguments()[0].Name;
 
                         if (pName == "VoidTaskResult" || pName == "Task")
                         {
@@ -150,26 +150,26 @@ namespace XrEngine.UI.Web
             }
             else if (type == "response")
             {
-                var reqId = (string)jObj["reqId"]!;
+                string reqId = (string)jObj["reqId"]!;
 
-                var callRequest = _callRequests[reqId];
+                CallRequest callRequest = _callRequests[reqId];
 
                 _callRequests.Remove(reqId);
 
-                var result = jObj["result"].Deserialize(callRequest.ResultType!, _jsonOptions);
+                object? result = jObj["result"].Deserialize(callRequest.ResultType!, _jsonOptions);
 
                 callRequest.CompletionSource!.SetResult(result);
             }
 
             else if (type == "error")
             {
-                var reqId = (string)jObj["reqId"]!;
+                string reqId = (string)jObj["reqId"]!;
 
-                var callRequest = _callRequests[reqId];
+                CallRequest callRequest = _callRequests[reqId];
 
                 _callRequests.Remove(reqId);
 
-                var msg = (string?)jObj["result"];
+                string? msg = (string?)jObj["result"];
 
                 callRequest.CompletionSource!.SetException(new InvalidOperationException(msg));
 
@@ -183,7 +183,7 @@ namespace XrEngine.UI.Web
 
         public void Register(object obj)
         {
-            foreach (var method in obj.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            foreach (MethodInfo method in obj.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 _methods[method.Name] = new MappedMethod
                 {

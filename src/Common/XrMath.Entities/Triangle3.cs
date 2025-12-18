@@ -47,7 +47,7 @@ namespace XrMath
             }
         }
 
-        public Vector3 V0;  
+        public Vector3 V0;
 
         public Vector3 V1;
 

@@ -22,31 +22,31 @@ namespace XrEngine
 
         public void Build()
         {
-            var builder = new MeshBuilder();
+            MeshBuilder builder = new MeshBuilder();
 
-            var c1 = new Vector3(0, 0, Height / 2);
-            var c2 = new Vector3(0, 0, -Height / 2);
+            Vector3 c1 = new Vector3(0, 0, Height / 2);
+            Vector3 c2 = new Vector3(0, 0, -Height / 2);
 
-            for (var i = 0; i < Subs; i++)
+            for (int i = 0; i < Subs; i++)
             {
-                var a1 = MathF.PI * 2 * i / Subs;
-                var a2 = MathF.PI * 2 * (i + 1) / Subs;
+                float a1 = MathF.PI * 2 * i / Subs;
+                float a2 = MathF.PI * 2 * (i + 1) / Subs;
 
-                var v1 = c1 + new Vector3(MathF.Cos(a1) * Radius, MathF.Sin(a1) * Radius, 0);
-                var v2 = c1 + new Vector3(MathF.Cos(a2) * Radius, MathF.Sin(a2) * Radius, 0);
+                Vector3 v1 = c1 + new Vector3(MathF.Cos(a1) * Radius, MathF.Sin(a1) * Radius, 0);
+                Vector3 v2 = c1 + new Vector3(MathF.Cos(a2) * Radius, MathF.Sin(a2) * Radius, 0);
 
-                var v3 = c1 + new Vector3(MathF.Cos(a1) * InnerRadius, MathF.Sin(a1) * InnerRadius, 0);
-                var v4 = c1 + new Vector3(MathF.Cos(a2) * InnerRadius, MathF.Sin(a2) * InnerRadius, 0);
+                Vector3 v3 = c1 + new Vector3(MathF.Cos(a1) * InnerRadius, MathF.Sin(a1) * InnerRadius, 0);
+                Vector3 v4 = c1 + new Vector3(MathF.Cos(a2) * InnerRadius, MathF.Sin(a2) * InnerRadius, 0);
 
                 builder.AddFace(v1, v2, v4, v3);
 
                 if (Height > 0)
                 {
-                    var vv1 = c2 + new Vector3(MathF.Cos(a1) * Radius, MathF.Sin(a1) * Radius, 0);
-                    var vv2 = c2 + new Vector3(MathF.Cos(a2) * Radius, MathF.Sin(a2) * Radius, 0);
+                    Vector3 vv1 = c2 + new Vector3(MathF.Cos(a1) * Radius, MathF.Sin(a1) * Radius, 0);
+                    Vector3 vv2 = c2 + new Vector3(MathF.Cos(a2) * Radius, MathF.Sin(a2) * Radius, 0);
 
-                    var vv3 = c2 + new Vector3(MathF.Cos(a1) * InnerRadius, MathF.Sin(a1) * InnerRadius, 0);
-                    var vv4 = c2 + new Vector3(MathF.Cos(a2) * InnerRadius, MathF.Sin(a2) * InnerRadius, 0);
+                    Vector3 vv3 = c2 + new Vector3(MathF.Cos(a1) * InnerRadius, MathF.Sin(a1) * InnerRadius, 0);
+                    Vector3 vv4 = c2 + new Vector3(MathF.Cos(a2) * InnerRadius, MathF.Sin(a2) * InnerRadius, 0);
 
                     builder.AddFace(vv1, vv2, vv4, vv3, true);
                     builder.AddFace(v1, v2, vv2, vv1, true);

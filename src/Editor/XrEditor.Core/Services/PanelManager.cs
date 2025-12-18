@@ -41,7 +41,7 @@ namespace XrEditor.Services
         {
             _panels.Add(panel);
 
-            for (var i = _loadListeners.Count - 1; i >= 0; i--)
+            for (int i = _loadListeners.Count - 1; i >= 0; i--)
             {
                 if (_loadListeners[i].PanelType!.IsAssignableFrom(panel.GetType()))
                 {
@@ -59,8 +59,8 @@ namespace XrEditor.Services
 
         public IPanel? Panel(Guid panelId)
         {
-            var result = _panels.FirstOrDefault(a => a.PanelId == panelId);
-            if (result == null && _infos.TryGetValue(panelId, out var info))
+            IPanel? result = _panels.FirstOrDefault(a => a.PanelId == panelId);
+            if (result == null && _infos.TryGetValue(panelId, out PanelInfo? info))
             {
                 info.Instance ??= info.Factory();
                 return info.Instance;
@@ -71,12 +71,12 @@ namespace XrEditor.Services
 
         public async Task<T> PanelAsync<T>() where T : IPanel
         {
-            var panel = _panels.OfType<T>().FirstOrDefault();
+            T? panel = _panels.OfType<T>().FirstOrDefault();
 
             if (panel != null)
                 return panel;
 
-            var source = new TaskCompletionSource<IPanel>();
+            TaskCompletionSource<IPanel> source = new TaskCompletionSource<IPanel>();
 
             _loadListeners.Add(new PanelLoadListener
             {
@@ -110,8 +110,8 @@ namespace XrEditor.Services
 
         public void Register<T>() where T : IPanel, new()
         {
-            var panelAttr = typeof(T).GetCustomAttribute<PanelAttribute>();
-            var displayAttr = typeof(T).GetCustomAttribute<DisplayNameAttribute>();
+            PanelAttribute? panelAttr = typeof(T).GetCustomAttribute<PanelAttribute>();
+            DisplayNameAttribute? displayAttr = typeof(T).GetCustomAttribute<DisplayNameAttribute>();
             if (panelAttr == null)
                 throw new NotSupportedException($"Panel attribute not declared in type {typeof(T).FullName}");
 

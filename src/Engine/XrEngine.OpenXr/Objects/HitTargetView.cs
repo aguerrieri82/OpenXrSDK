@@ -7,7 +7,7 @@
             Flags |= EngineObjectFlags.DisableNotifyChangedScene;
             Name = "HitTargetView";
 
-            var mat = new ColorMaterial("#00FF00A0");
+            ColorMaterial mat = new ColorMaterial("#00FF00A0");
             mat.WriteDepth = false;
             mat.UseDepth = false;
             mat.Alpha = AlphaMode.Blend;

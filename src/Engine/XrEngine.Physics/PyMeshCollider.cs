@@ -6,7 +6,7 @@ namespace XrEngine.Physics
 {
     public class PyMeshCollider : Behavior<Object3D>, ICollider3D
     {
-        public static readonly DynamicProp PyGeo = new DynamicProp(nameof(PyGeo));  
+        public static readonly DynamicProp PyGeo = new DynamicProp(nameof(PyGeo));
 
         private PhysicsManager? _manager;
         private PhysicsSystem? _system;
@@ -33,15 +33,15 @@ namespace XrEngine.Physics
 
             Initialize();
 
-            foreach (var item in MeshObjects())
+            foreach (Object3D item in MeshObjects())
             {
-                var geo = item.Feature<Geometry3D>();
+                Geometry3D? geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
-                var pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
+                PhysicsGeometry pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
 
-                var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
+                float distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out Vector3 _);
 
                 if (pyGeo.Type == PhysX.PxGeometryType.Trianglemesh)
                     distance *= pyGeo.TriangleMesh.scale.scale.x;
@@ -60,27 +60,27 @@ namespace XrEngine.Physics
 
             Initialize();
 
-            foreach (var item in MeshObjects())
+            foreach (Object3D item in MeshObjects())
             {
-                var geo = item.Feature<Geometry3D>();
+                Geometry3D? geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
-                var pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
+                PhysicsGeometry pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
 
-                var localRay = ray.Transform(item.WorldMatrixInverse);
+                Ray3 localRay = ray.Transform(item.WorldMatrixInverse);
 
                 if (!geo.Bounds.Intersects(localRay.ToLine(1000f), out _))
                     continue;
 
-                var result = pyGeo.Raycast(ray, item.WorldMatrix.ToPose(), 1000, PhysX.PxHitFlags.Normal, 2);
+                RaycastHit[] result = pyGeo.Raycast(ray, item.WorldMatrix.ToPose(), 1000, PhysX.PxHitFlags.Normal, 2);
 
                 if (result.Length == 0)
                     continue;
 
-                var min = result.Min(a => a.Distance);
+                float min = result.Min(a => a.Distance);
 
-                var minRes = result.FirstOrDefault(a => a.Distance == min);
+                RaycastHit minRes = result.FirstOrDefault(a => a.Distance == min);
 
                 return new Collision
                 {
@@ -104,9 +104,9 @@ namespace XrEngine.Physics
         {
             if (_isInit)
                 return;
-            foreach (var item in MeshObjects())
+            foreach (Object3D item in MeshObjects())
             {
-                var geo = item.Feature<Geometry3D>();
+                Geometry3D? geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
@@ -114,7 +114,7 @@ namespace XrEngine.Physics
                 {
                     geo.EnsureIndices();
 
-                    Matrix4x4.Decompose(item.WorldMatrix, out var scale, out _, out _);
+                    Matrix4x4.Decompose(item.WorldMatrix, out Vector3 scale, out _, out _);
 
                     if (UseConvexMesh)
                     {

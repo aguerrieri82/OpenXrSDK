@@ -50,7 +50,7 @@ namespace OpenXr.Framework.Oculus
 
         protected unsafe SystemPassthroughProperties2FB GetPtCapabilities()
         {
-            var props = new SystemPassthroughProperties2FB
+            SystemPassthroughProperties2FB props = new SystemPassthroughProperties2FB
             {
                 Type = StructureType.SystemPassthroughProperties2FB
             };
@@ -62,7 +62,7 @@ namespace OpenXr.Framework.Oculus
 
         protected PassthroughFB CreatePt(PassthroughFlagsFB flags)
         {
-            var info = new PassthroughCreateInfoFB
+            PassthroughCreateInfoFB info = new PassthroughCreateInfoFB
             {
                 Type = StructureType.PassthroughCreateInfoFB,
                 Flags = flags,
@@ -75,7 +75,7 @@ namespace OpenXr.Framework.Oculus
 
         protected PassthroughLayerFB CreatePtLayer(PassthroughLayerPurposeFB purpose, PassthroughFlagsFB flags)
         {
-            var info = new PassthroughLayerCreateInfoFB
+            PassthroughLayerCreateInfoFB info = new PassthroughLayerCreateInfoFB
             {
                 Type = StructureType.PassthroughLayerCreateInfoFB,
                 Passthrough = _ptInstance,
@@ -104,7 +104,7 @@ namespace OpenXr.Framework.Oculus
         {
             if (_passthrough != null)
             {
-                foreach (var mesh in _meshes)
+                foreach (XrPassthroughMesh mesh in _meshes)
                     _xrApp!.CheckResult(_passthrough.DestroyGeometryInstanceFB(mesh.Instance), "DestroyGeometryInstanceFB");
 
                 if (_ptLayer.Handle != 0)
@@ -128,7 +128,7 @@ namespace OpenXr.Framework.Oculus
         public unsafe override void Create()
         {
 
-            var caps = GetPtCapabilities();
+            SystemPassthroughProperties2FB caps = GetPtCapabilities();
 
             if ((caps.Capabilities & PassthroughCapabilityFlagsFB.BitFB) == 0)
                 throw new NotSupportedException();
@@ -182,7 +182,7 @@ namespace OpenXr.Framework.Oculus
 
         public void UpdateMesh(XrPassthroughMesh mesh, Posef pose, Vector3f scale, Space baseSpace, long time)
         {
-            var info = new GeometryInstanceTransformFB
+            GeometryInstanceTransformFB info = new GeometryInstanceTransformFB
             {
                 Pose = pose,
                 Scale = scale,
@@ -196,9 +196,9 @@ namespace OpenXr.Framework.Oculus
 
         public XrPassthroughMesh AddMesh(Mesh mesh, Space baseSpace, object? tag = null)
         {
-            var fbMesh = _xrApp!.Plugin<OculusXrPlugin>().CreateTriangleMesh(mesh.Indices!, mesh.Vertices!.Convert().To<Vector3f>());
+            TriangleMeshFB fbMesh = _xrApp!.Plugin<OculusXrPlugin>().CreateTriangleMesh(mesh.Indices!, mesh.Vertices!.Convert().To<Vector3f>());
 
-            var info = new GeometryInstanceCreateInfoFB
+            GeometryInstanceCreateInfoFB info = new GeometryInstanceCreateInfoFB
             {
                 Type = StructureType.GeometryInstanceCreateInfoFB,
                 Mesh = fbMesh,
@@ -211,11 +211,11 @@ namespace OpenXr.Framework.Oculus
                 Scale = new Vector3f(1, 1, 1)
             };
 
-            var instance = new GeometryInstanceFB();
+            GeometryInstanceFB instance = new GeometryInstanceFB();
 
             _xrApp.CheckResult(_passthrough!.CreateGeometryInstanceFB(_xrApp.Session, in info, ref instance), "CreateGeometryInstanceFB");
 
-            var result = new XrPassthroughMesh
+            XrPassthroughMesh result = new XrPassthroughMesh
             {
                 Instance = instance,
                 Tag = tag,

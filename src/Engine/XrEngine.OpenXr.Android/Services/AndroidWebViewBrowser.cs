@@ -45,7 +45,7 @@ namespace XrEngine.OpenXr.Android
                 if (RequestHandler == null)
                     return null;
 
-                var webReq = new WebRequest()
+                WebRequest webReq = new WebRequest()
                 {
                     Method = req.Method,
                     Uri = new Uri(req.Url!.ToString()!),
@@ -54,14 +54,14 @@ namespace XrEngine.OpenXr.Android
                 if (!RequestHandler.CanHandle(webReq))
                     return null;
 
-                var webResp = RequestHandler.HandleRequest(webReq)!;
+                WebResponse webResp = RequestHandler.HandleRequest(webReq)!;
 
-                if (webResp.Headers == null || !webResp.Headers.TryGetValue("Content-Type", out var mimeType))
+                if (webResp.Headers == null || !webResp.Headers.TryGetValue("Content-Type", out string? mimeType))
                     mimeType = null;
 
                 Log.Debug(this, "Response received: {0}, code: {2}, mime: {1}", webReq.Uri, mimeType, webResp.Code);
 
-                var result = new WebResourceResponse(
+                WebResourceResponse result = new WebResourceResponse(
                     mimeType,
                     null,
                     webResp.Code,

@@ -48,9 +48,9 @@ namespace CanvasUI
 
         protected override void DrawWork(SKCanvas canvas)
         {
-            var pos = GetThumbPos();
+            Vector2 pos = GetThumbPos();
 
-            var bar = GetBarRect();
+            Rect2 bar = GetBarRect();
 
             canvas.DrawRect(bar.ToSKRect(), SKResources.FillColor(_style.BarColor));
 
@@ -59,7 +59,7 @@ namespace CanvasUI
 
         protected Rect2 GetBarRect()
         {
-            var pos = GetThumbPos();
+            Vector2 pos = GetThumbPos();
             return new Rect2(_clientRect.X, pos.Y - _style.BarHeight / 2, _clientRect.Width, _style.BarHeight);
         }
 
@@ -72,9 +72,9 @@ namespace CanvasUI
 
         protected float PosToValue(Vector2 windowPos)
         {
-            var relX = (windowPos.X - _clientRect.X) / _clientRect.Width;
+            float relX = (windowPos.X - _clientRect.X) / _clientRect.Width;
 
-            var value = Min + relX * MathF.Abs(Max - Min);
+            float value = Min + relX * MathF.Abs(Max - Min);
 
             if (Step != 0)
                 value = MathF.Round(value / Step) * Step;
@@ -84,8 +84,8 @@ namespace CanvasUI
 
         protected override void OnPointerDown(UiPointerEvent ev)
         {
-            var pos = GetThumbPos();
-            var rect = GetBarRect();
+            Vector2 pos = GetThumbPos();
+            Rect2 rect = GetBarRect();
 
             if ((ev.WindowPosition - pos).Length() < _style.ThumbRadius)
             {

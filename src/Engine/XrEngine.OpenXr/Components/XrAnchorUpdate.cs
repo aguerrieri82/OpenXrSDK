@@ -15,7 +15,7 @@ namespace XrEngine.OpenXr
 
         protected override void OnDisabled()
         {
-            var xrApp = XrApp.Current;
+            XrApp? xrApp = XrApp.Current;
             xrApp?.SpacesTracker.Remove(Space);
             _isInit = false;
 
@@ -24,14 +24,14 @@ namespace XrEngine.OpenXr
 
         protected override void OnEnabled()
         {
-            var xrApp = XrApp.Current;
+            XrApp? xrApp = XrApp.Current;
 
             base.OnEnabled();
         }
 
         protected override void Update(RenderContext ctx)
         {
-            var xrApp = XrApp.Current;
+            XrApp? xrApp = XrApp.Current;
 
             if (xrApp == null)
                 return;
@@ -42,7 +42,7 @@ namespace XrEngine.OpenXr
                 _isInit = true;
             }
 
-            var loc = xrApp?.SpacesTracker.GetLastLocation(Space);
+            XrSpaceLocation? loc = xrApp?.SpacesTracker.GetLastLocation(Space);
 
             if (loc == null || !loc.IsValid)
                 return;
@@ -51,8 +51,8 @@ namespace XrEngine.OpenXr
 
             if (LogChanges)
             {
-                var deltaPos = (loc.Pose.Position - _host!.WorldPosition).Length();
-                var deltaOri = (loc.Pose.Orientation - _host!.WorldOrientation).Length();
+                float deltaPos = (loc.Pose.Position - _host!.WorldPosition).Length();
+                float deltaOri = (loc.Pose.Orientation - _host!.WorldOrientation).Length();
                 if (deltaPos > 0.005 || deltaOri > 0.005)
                     Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
             }

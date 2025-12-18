@@ -41,17 +41,17 @@ namespace XrEngine
         {
             Changes ??= [];
 
-            var curChangeIndex = Changes.FindIndex(a => a.Target == change.Target);
+            int curChangeIndex = Changes.FindIndex(a => a.Target == change.Target);
 
             if (curChangeIndex != -1)
             {
-                var curChange = Changes[curChangeIndex];
+                ObjectChange curChange = Changes[curChangeIndex];
                 curChange.Type |= change.Type;
 
                 if (change.Properties != null)
                 {
                     curChange.Properties ??= [];
-                    foreach (var prop in change.Properties)
+                    foreach (string prop in change.Properties)
                     {
                         if (!curChange.Properties.Contains(prop))
                             curChange.Properties.Add(prop);
@@ -83,7 +83,7 @@ namespace XrEngine
 
         public readonly bool IsAny(params ObjectChangeType[] types)
         {
-            foreach (var t in types)
+            foreach (ObjectChangeType t in types)
                 if ((Type & t) == t)
                     return true;
             return false;
@@ -96,7 +96,7 @@ namespace XrEngine
 
             else if (Target is IEnumerable targetEnum)
             {
-                foreach (var targetChild in targetEnum.OfType<T>())
+                foreach (T targetChild in targetEnum.OfType<T>())
                     yield return targetChild;
             }
         }

@@ -1,4 +1,6 @@
-﻿using System.Web;
+﻿using glTFLoader.Schema;
+using System.Collections.Specialized;
+using System.Web;
 
 namespace XrEngine.Gltf
 {
@@ -27,7 +29,7 @@ namespace XrEngine.Gltf
         {
             if (uri.Scheme == "res" && uri.Host == "gltf")
             {
-                var seg = uri.Segments.FirstOrDefault();
+                string? seg = uri.Segments.FirstOrDefault();
                 if (seg == "/tex")
                 {
                     assetType = typeof(Texture2D);
@@ -50,7 +52,7 @@ namespace XrEngine.Gltf
                 }
             }
 
-            var ext = Path.GetExtension(uri.ToString());
+            string ext = Path.GetExtension(uri.ToString());
             if (ext == ".glb" || ext == ".gltf")
             {
                 assetType = typeof(Object3D);
@@ -64,7 +66,7 @@ namespace XrEngine.Gltf
 
         public EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            var query = HttpUtility.ParseQueryString(uri.Query);
+            NameValueCollection query = HttpUtility.ParseQueryString(uri.Query);
             string fsSrc;
 
             if (uri.Host == "gltf")
@@ -72,9 +74,9 @@ namespace XrEngine.Gltf
             else
                 fsSrc = GetFilePath(uri);
 
-            var lastEditTime = File.GetLastWriteTime(fsSrc);
+            DateTime lastEditTime = File.GetLastWriteTime(fsSrc);
 
-            if (!_cache.TryGetValue(fsSrc, out var cache) || lastEditTime > cache.LastEditTime)
+            if (!_cache.TryGetValue(fsSrc, out GltfAssetCache? cache) || lastEditTime > cache.LastEditTime)
             {
                 cache = new GltfAssetCache
                 {
@@ -91,25 +93,25 @@ namespace XrEngine.Gltf
 
             if (uri.Host == "gltf")
             {
-                var seg = uri.Segments[1].TrimEnd('/');
+                string seg = uri.Segments[1].TrimEnd('/');
 
                 int meshId;
 
                 switch (seg)
                 {
                     case "tex":
-                        var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        int texId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         //TODO pass extensions
                         result = cache.Loader!.ProcessTextureTask(texId, null, (Texture2D?)destObj).Result;
                         break;
                     case "geo":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
-                        var mesh = cache.Loader!.Model!.Meshes[meshId];
+                        int pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
+                        Mesh mesh = cache.Loader!.Model!.Meshes[meshId];
                         result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj);
                         break;
                     case "mat":
-                        var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        int matId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         result = cache.Loader!.ProcessMaterialV2(matId, (PbrV2Material?)destObj);
                         break;
                     case "mesh":

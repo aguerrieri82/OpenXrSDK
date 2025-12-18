@@ -30,11 +30,11 @@ namespace Sfizz
                 _lastOffset = 0;
             }
 
-            var src = _buffer.getFloatPointer() + _lastOffset;
+            float* src = _buffer.getFloatPointer() + _lastOffset;
 
             fixed (float* dst = &buffer[offset])
             {
-                var max = Math.Min(_bufSize - _lastOffset, count);
+                int max = Math.Min(_bufSize - _lastOffset, count);
                 Buffer.MemoryCopy(src, dst, (buffer.Length - offset) * sizeof(float), max * sizeof(float));
                 _lastOffset += max;
                 return max;

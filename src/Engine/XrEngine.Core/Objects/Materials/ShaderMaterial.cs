@@ -43,7 +43,7 @@
 
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
-            var stage = bld.Context.Stage;
+            UpdateShaderStage stage = bld.Context.Stage;
 
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
                 UpdateShaderModel(bld);
@@ -63,6 +63,6 @@
 
         }
 
-        public int ContentVersion { get; set; }
+        public long ContentVersion { get; set; }
     }
 }

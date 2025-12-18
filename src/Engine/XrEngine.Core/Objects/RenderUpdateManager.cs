@@ -24,14 +24,14 @@
 
         protected void Build()
         {
-            var objGroup = new UpdateGroup()
+            UpdateGroup objGroup = new UpdateGroup()
             {
                 Name = "Objects",
                 IsParallel = false,
                 Priority = 0
             };
 
-            var leafGroup = new UpdateGroup()
+            UpdateGroup leafGroup = new UpdateGroup()
             {
                 Name = "Leafs",
                 IsParallel = true,
@@ -45,10 +45,10 @@
             {
                 if (obj is EngineObject engObj)
                 {
-                    foreach (var comp in engObj.Components<IComponent>().OfType<IRenderUpdate>())
+                    foreach (IRenderUpdate comp in engObj.Components<IComponent>().OfType<IRenderUpdate>())
                     {
-                        var priority = comp.UpdatePriority + 100;
-                        var compGroup = _groups.FirstOrDefault(a => a.Priority == priority);
+                        int priority = comp.UpdatePriority + 100;
+                        UpdateGroup? compGroup = _groups.FirstOrDefault(a => a.Priority == priority);
                         if (compGroup == null)
                         {
                             compGroup = new UpdateGroup()
@@ -67,7 +67,7 @@
                     {
                         if (obj is not Scene3D)
                             objGroup.Items.Add(grp);
-                        foreach (var child in grp.Children)
+                        foreach (Object3D child in grp.Children)
                             Visit(child);
                     }
                     else if (obj is Object3D obj3d)
@@ -96,13 +96,13 @@
                     isParallel = false;
                 }
 
-                foreach (var grp in _groups)
+                foreach (UpdateGroup grp in _groups)
                 {
                     if (grp.IsParallel && isParallel)
                         Parallel.ForEach(grp.Items, item => item.Update(ctx));
                     else
                     {
-                        foreach (var item in grp.Items)
+                        foreach (IRenderUpdate item in grp.Items)
                             item.Update(ctx);
                     }
                 }

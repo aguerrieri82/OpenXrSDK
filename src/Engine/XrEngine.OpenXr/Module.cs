@@ -1,5 +1,4 @@
-﻿using OpenXr.Framework;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.OpenGL;
 
 [assembly: Module(typeof(XrEngine.OpenXr.Module))]

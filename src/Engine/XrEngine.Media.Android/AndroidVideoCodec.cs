@@ -1,6 +1,7 @@
 ﻿using Android.Graphics;
 using Android.Media;
 using Android.Views;
+using Java.Nio;
 using XrEngine.OpenGL;
 
 
@@ -33,7 +34,7 @@ namespace XrEngine.Media.Android
 
             if (OutTexture != null)
             {
-                var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
+                GlTexture? glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
 
                 if (glText == null)
                     return false;
@@ -42,7 +43,7 @@ namespace XrEngine.Media.Android
                 surface = new Surface(_surfaceTex);
             }
 
-            var inFormat = MediaFormat.CreateVideoFormat(_mimeType!, _outFormat.Width, _outFormat.Height);
+            MediaFormat inFormat = MediaFormat.CreateVideoFormat(_mimeType!, _outFormat.Width, _outFormat.Height);
 
             _codec.Configure(inFormat, surface, null, MediaCodecConfigFlags.None);
             _codec.Start();
@@ -58,7 +59,7 @@ namespace XrEngine.Media.Android
             if (!EnsureCodecInit())
                 return false;
 
-            var inBufferIndex = _codec!.DequeueInputBuffer(_timeout);
+            int inBufferIndex = _codec!.DequeueInputBuffer(_timeout);
 
             if (inBufferIndex < 0)
             {
@@ -67,9 +68,9 @@ namespace XrEngine.Media.Android
             }
 
 
-            var inputBuffer = _codec.GetInputBuffer(inBufferIndex)!;
+            ByteBuffer inputBuffer = _codec.GetInputBuffer(inBufferIndex)!;
 
-            var size = src.Size == 0 ? src.ByteArray.Length : src.Size;
+            int size = src.Size == 0 ? src.ByteArray.Length : src.Size;
 
             inputBuffer.Clear();
             inputBuffer.Put(src.ByteArray, src.Offset, size);
@@ -85,7 +86,7 @@ namespace XrEngine.Media.Android
             if (!_isCodecInit)
                 return false;
 
-            var bufferInfo = new MediaCodec.BufferInfo();
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
             int outBufferIndex;
 

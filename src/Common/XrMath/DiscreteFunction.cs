@@ -20,10 +20,10 @@ namespace XrMath
             if (index == Points.Length - 1)
                 return Points[index].Y;
 
-            var p1 = Points[index];
-            var p2 = Points[index + 1];
+            Vector2 p1 = Points[index];
+            Vector2 p2 = Points[index + 1];
 
-            var t = (targetX - p1.X) / (p2.X - p1.X);
+            float t = (targetX - p1.X) / (p2.X - p1.X);
             return p1.Y + (p2.Y - p1.Y) * t;
         }
 
@@ -61,7 +61,7 @@ namespace XrMath
 
         public float Value(float targetX)
         {
-            var index = IndexOfClosestX(targetX);
+            int index = IndexOfClosestX(targetX);
             if (index == -1)
                 return float.NaN;
             return InterpolateY(index, targetX);
@@ -69,8 +69,8 @@ namespace XrMath
 
         public void Reflect()
         {
-            var bounds = Bounds();
-            for (var i = 0; i < Points.Length; i++)
+            Bounds2 bounds = Bounds();
+            for (int i = 0; i < Points.Length; i++)
                 Points[i].Y = bounds.Max.Y - Points[i].Y;
         }
 

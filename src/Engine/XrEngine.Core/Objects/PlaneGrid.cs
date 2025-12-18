@@ -21,7 +21,7 @@ namespace XrEngine
 
         public void Build()
         {
-            var list = new List<PointData>();
+            List<PointData> list = new List<PointData>();
 
             float subSize = Size / Subs;
 
@@ -46,7 +46,7 @@ namespace XrEngine
 
             for (int z = 0; z < Subs; z++)
             {
-                var zVal = -halfSize + z * subSize;
+                float zVal = -halfSize + z * subSize;
 
                 AddLine(new Vector3(-halfSize, 0, zVal),
                         new Vector3(halfSize, 0, zVal),
@@ -56,7 +56,7 @@ namespace XrEngine
             }
             for (int x = 0; x < Subs; x++)
             {
-                var xVal = -halfSize + x * subSize;
+                float xVal = -halfSize + x * subSize;
 
                 AddLine(new Vector3(xVal, 0, -halfSize),
                         new Vector3(xVal, 0, halfSize),

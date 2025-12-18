@@ -11,7 +11,7 @@ namespace XrEditor
     {
         public void Load()
         {
-            var pm = Context.Require<PanelManager>();
+            PanelManager pm = Context.Require<PanelManager>();
             pm.Register(() => new PropertiesEditor(PropertiesEditorMode.Selection, PropertiesEditor.PROPERTIES), PropertiesEditor.PROPERTIES, "Properties");
             pm.Register(() => new PropertiesEditor(PropertiesEditorMode.Custom, PropertiesEditor.TOOLS), PropertiesEditor.TOOLS, "Tools");
             pm.Register<OutlinePanel>();

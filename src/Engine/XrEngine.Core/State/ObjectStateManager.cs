@@ -11,10 +11,10 @@
 
         public object? Read(string key, object? destObj, Type objType, IStateContainer container)
         {
-            var keyContainer = container.Enter(key);
+            IStateContainer keyContainer = container.Enter(key);
             if (keyContainer == null)
                 return null;
-            var obj = destObj ?? Activator.CreateInstance(objType)!;
+            object obj = destObj ?? Activator.CreateInstance(objType)!;
             keyContainer?.ReadObject(obj, objType);
             return obj;
         }

@@ -35,7 +35,7 @@ namespace OpenXr.Framework
 
         public virtual ActionSuggestedBinding Initialize()
         {
-            var result = new ActionSuggestedBinding
+            ActionSuggestedBinding result = new ActionSuggestedBinding
             {
                 Binding = _app.StringToPath(_path),
                 Action = _action.Handle == 0 ? _app.CreateAction(_name, _name, ActionType.VibrationOutput) : _action

@@ -17,12 +17,12 @@ namespace XrSamples.Dnd
             Zoom = 1f;
             ImageInt = 1f;
             PointRange = 50f;
-            MapTransform = Matrix4x4.Identity;  
+            MapTransform = Matrix4x4.Identity;
         }
 
         public override void Apply(Scene3D scene)
         {
-            var myScene = (DndScene)scene;  
+            DndScene myScene = (DndScene)scene;
 
             myScene.Map!.Component<BoundsGrabbable>().IsEnabled = !DisableMove;
 
@@ -34,12 +34,12 @@ namespace XrSamples.Dnd
             else
                 scene.ActiveCamera!.BackgroundColor = Color.Transparent;
 
-            var image = scene.Children.OfType<ImageLight>().First();
-            var point = scene.Descendants<PointLight>().First();
+            ImageLight image = scene.Children.OfType<ImageLight>().First();
+            PointLight point = scene.Descendants<PointLight>().First();
 
             point.IsVisible = PointInt > 0;
             point.Intensity = PointInt;
-            point.Range = PointRange;   
+            point.Range = PointRange;
             point.NotifyChanged(ObjectChangeType.Property);
 
             //image.IsVisible = ImageInt > 0;
@@ -68,7 +68,7 @@ namespace XrSamples.Dnd
     {
         public DndSettingsPanel(DndSettings settings, DndScene scene)
         {
-            var binder = new Binder<DndSettings>(settings);
+            Binder<DndSettings> binder = new Binder<DndSettings>(settings);
 
             void Save()
             {

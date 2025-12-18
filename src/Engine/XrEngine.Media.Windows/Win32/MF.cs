@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Resources;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Xml.Serialization;
+﻿using System.Runtime.InteropServices;
 
 namespace XrEngine.Media.Windows
 {

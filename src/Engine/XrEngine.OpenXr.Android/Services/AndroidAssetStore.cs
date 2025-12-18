@@ -16,12 +16,12 @@ namespace XrEngine.OpenXr.Android
 
         public bool Contains(string name)
         {
-            var path = Path.GetDirectoryName(name);
-            var file = Path.GetFileName(name);
-            var fullPath = Path.Join(_basePath, path);
+            string? path = Path.GetDirectoryName(name);
+            string file = Path.GetFileName(name);
+            string fullPath = Path.Join(_basePath, path);
             if (fullPath.Length > 0 && fullPath[0] == '/')
                 fullPath = fullPath.Substring(1);
-            var result = _context.Assets!.List(fullPath);
+            string[]? result = _context.Assets!.List(fullPath);
             if (result == null)
                 return false;
             return result.Contains(file);
@@ -29,12 +29,12 @@ namespace XrEngine.OpenXr.Android
 
         public string GetPath(string name)
         {
-            var cacheBase = Path.Join(_context.CacheDir!.Path, _basePath);
+            string cacheBase = Path.Join(_context.CacheDir!.Path, _basePath);
 
             if (name.StartsWith(cacheBase))
                 name = name.Substring(cacheBase.Length + 1);
 
-            var cachePath = Path.Join(cacheBase, name);
+            string cachePath = Path.Join(cacheBase, name);
             if (_loadedFiles.Contains(cachePath))
                 return cachePath;
 
@@ -46,8 +46,8 @@ namespace XrEngine.OpenXr.Android
             if (name.StartsWith('/'))
                 name = name.Substring(1);
 
-            using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
-            using var dstStream = File.OpenWrite(cachePath);
+            using Stream srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
+            using FileStream dstStream = File.OpenWrite(cachePath);
             srcStream.CopyTo(dstStream);
 
             _loadedFiles.Add(cachePath);

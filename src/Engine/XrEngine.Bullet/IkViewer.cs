@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine.Bullet
 {
     public class IkViewer : Behavior<Group3D>, IDrawGizmos
     {
-        Dictionary<IkNode, TriangleMesh> _meshMap = [];
+        readonly Dictionary<IkNode, TriangleMesh> _meshMap = [];
         bool _isMeshCreated;
 
         public IkViewer()
@@ -26,7 +22,7 @@ namespace XrEngine.Bullet
             if (!_isMeshCreated)
                 CreateMesh();
 
-            var wordTransform = Solver.WorldPose.ToMatrix();
+            Matrix4x4 wordTransform = Solver.WorldPose.ToMatrix();
 
             //UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
 
@@ -44,10 +40,10 @@ namespace XrEngine.Bullet
 
             TriangleMesh Create(IkNode node)
             {
-                var mat = MaterialFactory.CreatePbr(new Color(1f, 1, 0, 0.8f));
+                IPbrMaterial mat = MaterialFactory.CreatePbr(new Color(1f, 1, 0, 0.8f));
                 mat.Alpha = AlphaMode.Blend;
 
-                var box = new TriangleMesh(Cube3D.Default, (Material)mat)
+                TriangleMesh box = new TriangleMesh(Cube3D.Default, (Material)mat)
                 {
                     Name = node.Name
                 };
@@ -63,7 +59,7 @@ namespace XrEngine.Bullet
 
             _host.Clear();
 
-            foreach (var node in Solver.Nodes)
+            foreach (IkNode node in Solver.Nodes)
             {
                 if (node.Parent == null)
                     continue;
@@ -78,15 +74,15 @@ namespace XrEngine.Bullet
         {
             void Update(IkNode newNode, Matrix4x4 newBase, Vector3 p0)
             {
-                var mesh = _meshMap[newNode];
+                TriangleMesh mesh = _meshMap[newNode];
 
-                var p1 = newBase.Translation;
+                Vector3 p1 = newBase.Translation;
 
-                var len = (p1 - p0).Length();
+                float len = (p1 - p0).Length();
 
-                var axis = (p1 - p0).Normalize();
+                Vector3 axis = (p1 - p0).Normalize();
 
-                var size = node.Size * 0.3f;
+                float size = node.Size * 0.3f;
 
                 mesh.Transform.Position = p0;
                 mesh.Transform.Scale = new Vector3(size, size, len);
@@ -97,7 +93,7 @@ namespace XrEngine.Bullet
 
             if (node.Right != null)
             {
-                var trSibling = node.Right.GetLocalTransform() * parentTransform;
+                Matrix4x4 trSibling = node.Right.GetLocalTransform() * parentTransform;
 
                 Update(node.Right, trSibling, parentTransform.Translation);
 
@@ -106,7 +102,7 @@ namespace XrEngine.Bullet
 
             if (node.Left != null)
             {
-                var trChild = node.Left.GetLocalTransform() * baseTransform;
+                Matrix4x4 trChild = node.Left.GetLocalTransform() * baseTransform;
                 Update(node.Left, trChild, baseTransform.Translation);
 
                 UpdateMesh(node.Left, trChild, baseTransform);
@@ -118,11 +114,11 @@ namespace XrEngine.Bullet
             if (node == null)
                 return;
 
-            var pos = baseTransform.Translation;
+            Vector3 pos = baseTransform.Translation;
 
-            var bx = new Vector3(baseTransform.M11, baseTransform.M12, baseTransform.M13);
-            var by = new Vector3(baseTransform.M21, baseTransform.M22, baseTransform.M23);
-            var bz = new Vector3(baseTransform.M31, baseTransform.M32, baseTransform.M33);
+            Vector3 bx = new Vector3(baseTransform.M11, baseTransform.M12, baseTransform.M13);
+            Vector3 by = new Vector3(baseTransform.M21, baseTransform.M22, baseTransform.M23);
+            Vector3 bz = new Vector3(baseTransform.M31, baseTransform.M32, baseTransform.M33);
 
             canvas.State.Color = new Color(1, 0, 0, 1);  // X
             canvas.DrawLine(pos, pos + bx * 0.05f);
@@ -133,7 +129,7 @@ namespace XrEngine.Bullet
             canvas.State.Color = new Color(0, 0, 1, 1);  // Z
             canvas.DrawLine(pos, pos + bz * 0.05f);
 
-            var axisWorld = Vector3.TransformNormal(node.Axis, baseTransform);
+            Vector3 axisWorld = Vector3.TransformNormal(node.Axis, baseTransform);
 
             canvas.State.Color = new Color(0.2f, 0.2f, 0.7f, 1);
             canvas.DrawLine(pos, pos + axisWorld * 0.1f);
@@ -146,7 +142,7 @@ namespace XrEngine.Bullet
 
             if (node.Right != null)
             {
-                var trSibling = node.Right.GetLocalTransform() * parentTransform;
+                Matrix4x4 trSibling = node.Right.GetLocalTransform() * parentTransform;
 
                 canvas.State.Color = new Color(0, 1, 1, 1); // green
                 canvas.DrawLine(parentTransform.Translation, trSibling.Translation);
@@ -156,7 +152,7 @@ namespace XrEngine.Bullet
 
             if (node.Left != null)
             {
-                var trChild = node.Left.GetLocalTransform() * baseTransform;
+                Matrix4x4 trChild = node.Left.GetLocalTransform() * baseTransform;
 
                 canvas.State.Color = new Color(1, 0, 1, 1); // red
                 canvas.DrawLine(pos, trChild.Translation);
@@ -169,15 +165,15 @@ namespace XrEngine.Bullet
         {
             if (Solver?.Root == null || !EnableGizmos)
                 return;
-            
-            var wordTransform = Solver.WorldPose.ToMatrix();
+
+            Matrix4x4 wordTransform = Solver.WorldPose.ToMatrix();
 
             DrawWork(canvas, Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
         }
 
 
-        public IkSolver? Solver { get; set; }  
-        
-        public bool EnableGizmos { get; set; }  
+        public IkSolver? Solver { get; set; }
+
+        public bool EnableGizmos { get; set; }
     }
 }

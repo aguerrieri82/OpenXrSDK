@@ -82,7 +82,7 @@ namespace XrEditor
 
             try
             {
-                for (var i = _children.Count - 1; i >= 0; i--)
+                for (int i = _children.Count - 1; i >= 0; i--)
                 {
                     if (_children[i].Parent == null)
                         _children.RemoveAt(i);
@@ -148,17 +148,17 @@ namespace XrEditor
             if (LoadChildren == null)
                 return;
 
-            var result = new List<ListTreeNodeView>();
-            
+            List<ListTreeNodeView> result = new List<ListTreeNodeView>();
+
             LoadChildren(this, result);
 
-            var isMassive = result.Count > 0;
+            bool isMassive = result.Count > 0;
 
             _host.BeginUpdate(this, isMassive);
 
             try
             {
-                foreach (var child in result)
+                foreach (ListTreeNodeView child in result)
                     AddChild(child);
             }
             finally
@@ -176,9 +176,9 @@ namespace XrEditor
 
                 if (node._children != null)
                 {
-                    foreach (var child in node._children)
+                    foreach (ListTreeNodeView child in node._children)
                     {
-                        foreach (var innerChild in Visit(child))
+                        foreach (ListTreeNodeView innerChild in Visit(child))
                             yield return innerChild;
                     }
                 }
@@ -202,7 +202,7 @@ namespace XrEditor
             if (!_childrenLoaded)
                 Refresh();
 
-            var items = DescendantsOrSelf().Skip(1).ToArray();
+            ListTreeNodeView[] items = DescendantsOrSelf().Skip(1).ToArray();
             _host._items.InsertRange(_index + 1, items);
             _host.RebuildIndexes(_index);
             /*
@@ -219,17 +219,17 @@ namespace XrEditor
             if (_index == -1)
                 return;
 
-            var startIndex = _children[0]._index;
-            var endIndex = LastDescendant()!._index;
+            int startIndex = _children[0]._index;
+            int endIndex = LastDescendant()!._index;
 
             _host._items.RemoveRange(startIndex, endIndex - startIndex + 1);
 
-            foreach (var child in DescendantsOrSelf().Skip(1))
+            foreach (ListTreeNodeView? child in DescendantsOrSelf().Skip(1))
             {
                 child._index = -1;
                 child._childInsertIndex = -1;
             }
-            
+
             _host.RebuildIndexes(_index);
 
             /*
@@ -284,7 +284,7 @@ namespace XrEditor
                     Expand();
                 else
                     Collapse();
-                
+
                 _isExpanded = value;
 
                 OnPropertyChanged(nameof(IsExpanded));
@@ -364,10 +364,10 @@ namespace XrEditor
             _selectedItems = [];
         }
 
-        public void BeginUpdate(ListTreeNodeView? refItem = null, bool isMassive =false)
+        public void BeginUpdate(ListTreeNodeView? refItem = null, bool isMassive = false)
         {
             if (isMassive)
-                _items.BeginUpdate();   
+                _items.BeginUpdate();
 
             _updateCount++;
 
@@ -393,7 +393,7 @@ namespace XrEditor
 
         protected internal void RebuildIndexes(int startIndex = 0)
         {
-            for (var i = startIndex; i < _items.Count; i++)
+            for (int i = startIndex; i < _items.Count; i++)
             {
                 _items[i]._index = i;
                 _items[i]._childInsertIndex = -1;

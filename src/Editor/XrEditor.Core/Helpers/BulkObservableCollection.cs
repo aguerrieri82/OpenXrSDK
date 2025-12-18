@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Text;
 using XrEngine;
 
 
@@ -24,7 +20,7 @@ namespace XrEditor
         public void InsertRange(int startIndex, IList<T> items)
         {
             int curI = startIndex;
-            foreach (var item in items)
+            foreach (T? item in items)
             {
                 Insert(curI, item);
                 curI++;
@@ -36,7 +32,7 @@ namespace XrEditor
         {
             //var removed = new List<T>(count);
 
-            for (var i = startIndex + count - 1; i >= startIndex; i--)
+            for (int i = startIndex + count - 1; i >= startIndex; i--)
             {
                 //removed.Insert(0, Items[i]);
                 RemoveAt(i);
@@ -53,7 +49,7 @@ namespace XrEditor
         public void EndUpdate()
         {
             _updateCount--;
-            if (_updateCount ==0 && _isChanged)
+            if (_updateCount == 0 && _isChanged)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
                 _isChanged = false;

@@ -1,5 +1,4 @@
 ﻿using XrEngine.OpenXr;
-using XrSamples.Dnd;
 using XrSamples;
 
 namespace XrEditor
@@ -29,7 +28,7 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = false;
-                  opt.UseLayerV2 = true;     
+                  opt.UseLayerV2 = true;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)

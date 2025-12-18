@@ -54,7 +54,7 @@ namespace XrEditor
 
             try
             {
-                var objs = await Task.Run(() => ItemsSource?.Filter(_query) ?? []);
+                IEnumerable<object> objs = await Task.Run(() => ItemsSource?.Filter(_query) ?? []);
 
                 Items = objs.Select(a => new ItemView
                 {
@@ -77,9 +77,9 @@ namespace XrEditor
 
         public async Task<object?> ShowAsync(string title)
         {
-            var manager = Context.Require<IWindowManager>();
+            IWindowManager manager = Context.Require<IWindowManager>();
 
-            var content = new ContentView()
+            ContentView content = new ContentView()
             {
                 Title = title,
                 Content = this,
@@ -100,7 +100,7 @@ namespace XrEditor
 
             await RefreshAsync();
 
-            var result = await _popup.ShowAsync();
+            ActionView? result = await _popup.ShowAsync();
 
             _popup = null;
 

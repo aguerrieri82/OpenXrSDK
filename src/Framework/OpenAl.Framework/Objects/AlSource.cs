@@ -72,7 +72,7 @@ namespace OpenAl.Framework
 
         public IEnumerable<AlBuffer> DequeueBuffers(uint count)
         {
-            var bufHandles = new uint[count];
+            uint[] bufHandles = new uint[count];
             _al.SourceUnqueueBuffers(_handle, bufHandles);
             return bufHandles.Select(a => AlBuffer.Attach(_al, a));
         }
@@ -82,7 +82,7 @@ namespace OpenAl.Framework
             get
             {
 
-                _al.GetSourceProperty(_handle, (SourceVector3) 0x1201, out var data);
+                _al.GetSourceProperty(_handle, (SourceVector3)0x1201, out Vector3 data);
                 return data.X;
             }
         }
@@ -130,7 +130,7 @@ namespace OpenAl.Framework
         public int PlayPositionSamples
         {
             get
-            {                
+            {
                 _al.GetSourceProperty(_handle, GetSourceInteger.SampleOffset, out int value);
                 return value;
             }

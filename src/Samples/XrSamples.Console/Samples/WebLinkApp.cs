@@ -17,13 +17,13 @@ namespace XrSamples
 
         public static async Task Run(IServiceProvider services, ILogger logger)
         {
-            var client = new WebLinkClient("http://192.168.1.221:8080", new WebLinkHandler());
+            WebLinkClient client = new WebLinkClient("http://192.168.1.221:8080", new WebLinkHandler());
 
             await client.ConnectAsync("");
 
             await client.StartSessionAsync();
 
-            var anchors = await client.GetAnchorsAsync(new XrAnchorFilter
+            IList<XrAnchor>? anchors = await client.GetAnchorsAsync(new XrAnchorFilter
             {
                 Components = XrAnchorComponent.All
             });

@@ -8,7 +8,7 @@ namespace XrEngine
 
         public Quaternion Read(string key, Quaternion curObj, Type objType, IStateContainer container)
         {
-            var parts = container.Read<float[]>(key);
+            float[] parts = container.Read<float[]>(key);
             return new Quaternion(parts[0], parts[1], parts[2], parts[3]);
         }
 

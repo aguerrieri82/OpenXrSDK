@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace XrEngine.Devices.Windows
@@ -15,7 +13,7 @@ namespace XrEngine.Devices.Windows
         public delegate void MidiOutProc(IntPtr hMidiOut, uint wMsg, IntPtr dwInstance, IntPtr dwParam1, IntPtr dwParam2);
 
         public const uint CALLBACK_FUNCTION = 0x00030000;
-        
+
         [DllImport("winmm.dll", SetLastError = true)]
         public static extern uint midiOutGetNumDevs();
 
@@ -93,7 +91,7 @@ namespace XrEngine.Devices.Windows
 
         [DllImport("winmm.dll", SetLastError = true)]
         public static extern int midiOutShortMsg(IntPtr hMidiOut, uint dwMsg);
-            
+
         [DllImport("winmm.dll", SetLastError = true)]
         public static extern int midiInStart(IntPtr hMidiIn);
 

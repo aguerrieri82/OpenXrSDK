@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
 
         public void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
         {
-            var tag = source.GetType().Name;
+            string tag = source.GetType().Name;
 
             switch (level)
             {

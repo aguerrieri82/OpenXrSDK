@@ -26,7 +26,7 @@ namespace XrSamples
 
         public void DrawGizmos(Canvas3D canvas)
         {
-            var vector = _lastPivotGlobal + (_lastRefSpeed / 2f);
+            Vector3 vector = _lastPivotGlobal + (_lastRefSpeed / 2f);
             canvas.Save();
             canvas.State.Color = "#0000FF";
             canvas.State.LineWidth = 2f;
@@ -60,7 +60,7 @@ namespace XrSamples
         {
             Debug.Assert(_host != null);
 
-            var tool = _host.GetActiveTool();
+            IObjectTool? tool = _host.GetActiveTool();
 
             if (tool != null && _lastTool != tool)
             {
@@ -70,10 +70,10 @@ namespace XrSamples
 
             _lastPivotGlobal = _host.ToWorld(_curPivot);
 
-            if (!_host.TryComponent<RigidBody>(out var rigidBody))
+            if (!_host.TryComponent<RigidBody>(out RigidBody? rigidBody))
                 return;
 
-            var mustThrow = false;
+            bool mustThrow = false;
 
             if (rigidBody.DynamicActor.IsKinematic != _lastKinematic)
             {
@@ -82,7 +82,7 @@ namespace XrSamples
                 mustThrow = _lastKinematic == false && _lastTool is InputGrabber;
             }
 
-            var c = SmoothFactor;
+            float c = SmoothFactor;
 
             if (!_lastPos.IsFinite())
                 _lastPos = Vector3.Zero;
@@ -95,19 +95,19 @@ namespace XrSamples
 
             _manager ??= _host.Scene!.Component<PhysicsManager>();
 
-            var curTime = _manager.Time;
+            double curTime = _manager.Time;
 
-            var curPos = Vector3.Lerp(_lastPivotGlobal, _lastPos, c);
+            Vector3 curPos = Vector3.Lerp(_lastPivotGlobal, _lastPos, c);
 
-            var curOri = Quaternion.Slerp(_host.WorldOrientation, _lastOri, c);
+            Quaternion curOri = Quaternion.Slerp(_host.WorldOrientation, _lastOri, c);
 
-            var dt = curTime - _lastUpdateSpeedTime;
+            double dt = curTime - _lastUpdateSpeedTime;
 
             if (dt > MinDeltaTime)
             {
-                var curSpeed = (curPos - _lastRefPos) / (float)dt;
-                var curAcc = (curSpeed - _lastRefSpeed) / (float)dt;
-                var curAngSpeed = CalculateAngularVelocity(_lastRefOri, curOri, (float)dt);
+                Vector3 curSpeed = (curPos - _lastRefPos) / (float)dt;
+                Vector3 curAcc = (curSpeed - _lastRefSpeed) / (float)dt;
+                Vector3 curAngSpeed = CalculateAngularVelocity(_lastRefOri, curOri, (float)dt);
 
                 _lastRefPos = curPos;
                 _lastRefAcc = curAcc;
@@ -133,7 +133,7 @@ namespace XrSamples
                 Log.Checkpoint($"Throw: {Math.Round(_lastRefAcc.Length(), 3)}", "#00ff00");
             }
 
-            var velocity = rigidBody.DynamicActor.LinearVelocity;
+            Vector3 velocity = rigidBody.DynamicActor.LinearVelocity;
 
             Log.Value($"{_host.Name}.Velocity", velocity.Length());
 

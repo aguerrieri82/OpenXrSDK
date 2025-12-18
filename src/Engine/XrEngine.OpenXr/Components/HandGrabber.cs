@@ -17,10 +17,10 @@ namespace XrEngine.OpenXr
 
         protected static Sphere GetSphere(Object3D obj)
         {
-            var geo = (Capsule3D)((TriangleMesh)obj).Geometry!;
+            Capsule3D geo = (Capsule3D)((TriangleMesh)obj).Geometry!;
 
-            var center = obj.WorldPosition + obj.Forward * (geo.Height / 2f) * obj.Transform.Scale.X;
-            var radius = geo.Radius * obj.Transform.Scale.X;
+            Vector3 center = obj.WorldPosition + obj.Forward * (geo.Height / 2f) * obj.Transform.Scale.X;
+            float radius = geo.Radius * obj.Transform.Scale.X;
 
             return new Sphere { Center = center, Radius = radius };
         }
@@ -29,33 +29,33 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_host != null);
 
-            var result = new ObjectGrab();
+            ObjectGrab result = new ObjectGrab();
             result.IsValid = _host.HandInput.IsActive;
 
             if (!_isInit || !result.IsValid)
                 return result;
 
-            var thumbObj = _host.Children[_thumbIndex];
+            Object3D thumbObj = _host.Children[_thumbIndex];
 
-            var thumb = GetSphere(thumbObj);
+            Sphere thumb = GetSphere(thumbObj);
 
             result.IsValid = _host.HandInput.IsActive;
             result.Pose.Position = thumb.Center;
             result.Pose.Orientation = thumbObj.Transform.Orientation;
 
-            foreach (var index in _distalIndices)
+            foreach (int index in _distalIndices)
             {
-                var otherObj = _host.Children[index];
-                var other = GetSphere(otherObj);
+                Object3D otherObj = _host.Children[index];
+                Sphere other = GetSphere(otherObj);
 
-                other.Intersects(thumb, out var offset);
+                other.Intersects(thumb, out float offset);
 
                 result.IsGrabbing = offset < 0 || (offset < 0.01 && _grabStarted);
 
                 if (result.IsGrabbing)
                 {
-                    var forward = Vector3.Normalize(Vector3.Cross(thumbObj.Forward, otherObj.Forward));
-                    var up = Vector3.Cross(forward, thumbObj.Forward);
+                    Vector3 forward = Vector3.Normalize(Vector3.Cross(thumbObj.Forward, otherObj.Forward));
+                    Vector3 up = Vector3.Cross(forward, thumbObj.Forward);
                     result.Pose.Orientation = MathUtils.QuatFromForwardUp(forward, up);
                     result.Pose.Position = (thumb.Center + other.Center) / 2;
                     break;
@@ -69,8 +69,8 @@ namespace XrEngine.OpenXr
         {
             if (!_isInit && _host?.HandInput.Mesh != null)
             {
-                var index = 0;
-                foreach (var cap in _host.HandInput.Capsules)
+                int index = 0;
+                foreach (HandCapsuleFB cap in _host.HandInput.Capsules)
                 {
                     if (cap.Joint == HandJointEXT.ThumbDistalExt)
                         _thumbIndex = index;

@@ -22,7 +22,7 @@
             }
             else
             {
-                foreach (var item in target)
+                foreach (T? item in target)
                 {
                     try
                     {

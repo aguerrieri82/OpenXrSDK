@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
         {
 
 
-            var data = new TextureData
+            TextureData data = new TextureData
             {
                 Width = size.Width,
                 Height = size.Height,
@@ -96,8 +96,8 @@ namespace XrEngine.OpenGL
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             GlState.Current.SetDrawBuffers(GlState.DRAW_BACK);
 
-            var w = _frameBuffer.Color!.Width;
-            var h = _frameBuffer.Color.Height;
+            uint w = _frameBuffer.Color!.Width;
+            uint h = _frameBuffer.Color.Height;
 
             _gl.BlitFramebuffer(0, 0, (int)w, (int)h, 0, 0, (int)w, (int)h, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
 

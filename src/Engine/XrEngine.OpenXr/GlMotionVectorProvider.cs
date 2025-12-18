@@ -19,7 +19,7 @@ namespace XrEngine.OpenXr
             _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
 
             if (XrPlatform.Current?.Name == "Editor")
-                MotionVectorFormat = (long)InternalFormat.Rgb16f;    
+                MotionVectorFormat = (long)InternalFormat.Rgb16f;
             else
                 MotionVectorFormat = (long)InternalFormat.RG16f;
         }
@@ -29,7 +29,7 @@ namespace XrEngine.OpenXr
             //TODO: In case not using array, we must set all tragets toghter,
             //since the pass is single and the right image is determined by the active eye of the camera.
 
-            for (var i = 0; i < _passes.Length; i++)
+            for (int i = 0; i < _passes.Length; i++)
             {
                 int ix;
                 if (_passes.Length == 1)

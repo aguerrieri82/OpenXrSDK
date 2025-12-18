@@ -61,18 +61,18 @@ namespace XrEngine.OpenXr
             {
                 _input.LoadMesh();
 
-                var capMaterial = (Material)MaterialFactory.CreatePbr(new Color(150 / 255f, 79 / 255f, 72 / 255f));
-                var capMaterial2 = (Material)MaterialFactory.CreatePbr(new Color(100 / 255f, 79 / 255f, 72 / 255f));
+                Material capMaterial = (Material)MaterialFactory.CreatePbr(new Color(150 / 255f, 79 / 255f, 72 / 255f));
+                Material capMaterial2 = (Material)MaterialFactory.CreatePbr(new Color(100 / 255f, 79 / 255f, 72 / 255f));
 
-                foreach (var capsule in _input.Mesh!.Capsules!)
+                foreach (HandCapsuleFB capsule in _input.Mesh!.Capsules!)
                 {
-                    var dir = (capsule.Points.Element1.ToVector3() - capsule.Points.Element0.ToVector3());
+                    Vector3 dir = (capsule.Points.Element1.ToVector3() - capsule.Points.Element0.ToVector3());
 
-                    var len = dir.Length();
+                    float len = dir.Length();
 
                     bool isTip = ((int)capsule.Joint + 1) % 5 == 0;
 
-                    var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
+                    TriangleMesh capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
 
                     capMesh.AddComponent(new CapsuleCollider()
                     {
@@ -83,7 +83,7 @@ namespace XrEngine.OpenXr
 
                     if (CreateRigidBody)
                     {
-                        var rigidBody = capMesh.AddComponent<RigidBody>();
+                        RigidBody rigidBody = capMesh.AddComponent<RigidBody>();
                         rigidBody.Type = PhysicsActorType.Kinematic;
                         rigidBody.MaterialInfo = new PhysicsMaterialInfo
                         {
@@ -100,22 +100,22 @@ namespace XrEngine.OpenXr
 
             if (_isInit && _input != null && _input.IsActive)
             {
-                for (var i = 0; i < _input.Capsules.Length; i++)
+                for (int i = 0; i < _input.Capsules.Length; i++)
                 {
-                    var capsule = _input.Capsules[i];
+                    HandCapsuleFB capsule = _input.Capsules[i];
 
-                    var mesh = Children[i];
+                    Object3D mesh = Children[i];
 
-                    var p0 = capsule.Points.Element0.ToVector3();
-                    var p1 = capsule.Points.Element1.ToVector3();
+                    Vector3 p0 = capsule.Points.Element0.ToVector3();
+                    Vector3 p1 = capsule.Points.Element1.ToVector3();
 
-                    var dir = (p1 - p0);
+                    Vector3 dir = (p1 - p0);
 
-                    var h = dir.Length() / _input.Scale;
+                    float h = dir.Length() / _input.Scale;
 
-                    var orientation = MathUtils.QuatFromForwardUp(dir.Normalize(), new Vector3(0, 1, 0));
+                    Quaternion orientation = MathUtils.QuatFromForwardUp(dir.Normalize(), new Vector3(0, 1, 0));
 
-                    var start = p0 + Vector3.Transform(new Vector3(0, 0, -h / 2), orientation);
+                    Vector3 start = p0 + Vector3.Transform(new Vector3(0, 0, -h / 2), orientation);
 
                     mesh.Transform.Position = start;
                     mesh.Transform.Orientation = orientation;

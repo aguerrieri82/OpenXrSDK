@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Helpers
+﻿namespace XrEngine.Helpers
 {
     public static class EngineProps
     {

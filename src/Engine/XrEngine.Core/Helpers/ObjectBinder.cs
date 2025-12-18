@@ -14,7 +14,7 @@ namespace XrEngine
 
         public static void Unbind(object a)
         {
-            if (_bindings.TryGetValue(a, out var b))
+            if (_bindings.TryGetValue(a, out object? b))
             {
                 _bindings.Remove(a);
                 _bindings.Remove(b);
@@ -23,7 +23,7 @@ namespace XrEngine
 
         public static void Dispose(object a)
         {
-            if (_bindings.TryGetValue(a, out var b))
+            if (_bindings.TryGetValue(a, out object? b))
             {
                 _bindings.Remove(a);
                 _bindings.Remove(b);
@@ -42,7 +42,7 @@ namespace XrEngine
         public static bool TryGet<T>(object a, [NotNullWhen(true)] out T? result) where T : class
         {
             result = null;
-            return _bindings.TryGetValue(a, out var obj) && (result = obj as T) != null;
+            return _bindings.TryGetValue(a, out object? obj) && (result = obj as T) != null;
         }
     }
 }

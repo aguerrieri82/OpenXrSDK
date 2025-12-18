@@ -29,8 +29,8 @@ namespace XrEngine
             float latRads = MathF.PI * 0.5f;
             float h = Height * 0.5f;
 
-            var verts = new VertexData[vertexCount * 3];
-            var indices = new int[indexCount * 3];
+            VertexData[] verts = new VertexData[vertexCount * 3];
+            int[] indices = new int[indexCount * 3];
 
             int vertexIndexOffset = 0;
             int triangleIndexOffset = 0;

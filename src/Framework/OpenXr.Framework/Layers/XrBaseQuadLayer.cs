@@ -26,9 +26,9 @@ namespace OpenXr.Framework
 
         protected override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {
-            var quad = _getQuad();
+            Quad3 quad = _getQuad();
 
-            var pose = quad.Pose;
+            Pose3 pose = quad.Pose;
 
             layer.Size.Width = quad.Size.X;
             layer.Size.Height = quad.Size.Y;

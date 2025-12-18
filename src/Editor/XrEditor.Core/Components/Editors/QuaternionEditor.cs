@@ -34,7 +34,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                var curValue = Binding.Value;
+                Quaternion curValue = Binding.Value;
                 EditValue = new Quaternion(X.EditValue, curValue.Y, curValue.Z, curValue.W);
             };
 
@@ -42,7 +42,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                var curValue = Binding.Value;
+                Quaternion curValue = Binding.Value;
                 EditValue = new Quaternion(curValue.X, Y.EditValue, curValue.Z, curValue.W);
             };
 
@@ -50,7 +50,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                var curValue = Binding.Value;
+                Quaternion curValue = Binding.Value;
                 EditValue = new Quaternion(curValue.X, curValue.Y, Z.EditValue, curValue.W);
             };
 
@@ -58,7 +58,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                var curValue = Binding.Value;
+                Quaternion curValue = Binding.Value;
                 EditValue = new Quaternion(curValue.X, curValue.Y, curValue.Z, W.EditValue);
             };
         }

@@ -123,7 +123,7 @@ namespace PhysX.Framework
             set
             {
 
-                var newValue = value.ToPxTransform();
+                PxTransform newValue = value.ToPxTransform();
                 RigidBody.SetCMassLocalPoseMut(&newValue);
             }
         }

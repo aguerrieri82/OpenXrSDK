@@ -41,7 +41,7 @@ namespace XrEditor.Plot
         protected void Draw(SKCanvas canvas, Rect2 rect)
         {
             canvas.Clear();
-            foreach (var draw in _draws)
+            foreach (IDraw2D draw in _draws)
                 draw.Draw(canvas, rect);
         }
 

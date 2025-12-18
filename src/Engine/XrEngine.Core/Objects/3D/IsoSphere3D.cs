@@ -25,13 +25,13 @@ namespace XrEngine
             float X = 0.525731112119133606f;
             float Z = 0.850650808352039932f;
 
-            var vertices = new List<Vector3>(MathUtils.Vector3FromArray(new float[] {
+            List<Vector3> vertices = new List<Vector3>(MathUtils.Vector3FromArray(new float[] {
                  -X, 0.0f, Z,  X, 0.0f, Z,  -X, 0.0f, -Z,  X, 0.0f, -Z,
                 0.0f, Z, X,  0.0f, Z, -X,  0.0f, -Z, X,  0.0f, -Z, -X,
                 Z, X, 0.0f,  -Z, X, 0.0f,  Z, -X, 0.0f,  -Z, -X, 0.0f
             }));
 
-            var indices0 = new uint[]
+            uint[] indices0 = new uint[]
             {
                 0,4,1,   0,9,4,   9,5,4,  4,5,8,  4,8,1,
                 8,10,1,  8,3,10,  5,3,8,  5,2,3,  2,7,3,
@@ -39,7 +39,7 @@ namespace XrEngine
                 6,1,10,  9,0,11,  9,11,2, 9,2,5,  7,2,11
             };
 
-            var indicesLevels = new List<IList<uint>>
+            List<IList<uint>> indicesLevels = new List<IList<uint>>
             {
                 indices0
             };
@@ -49,9 +49,9 @@ namespace XrEngine
                 if (first > second)
                     (first, second) = (second, first);
 
-                var key = first | (((long)second) << 32);
+                long key = first | (((long)second) << 32);
 
-                if (!map.TryGetValue(key, out var edge))
+                if (!map.TryGetValue(key, out uint edge))
                 {
                     edge = (uint)vertices.Count;
                     map[key] = edge;
@@ -63,17 +63,17 @@ namespace XrEngine
 
             void Subdivide()
             {
-                var edgeMap = new Dictionary<long, uint>();
-                var indices = indicesLevels[^1];
-                var refinedIndices = new List<uint>();
+                Dictionary<long, uint> edgeMap = new Dictionary<long, uint>();
+                IList<uint> indices = indicesLevels[^1];
+                List<uint> refinedIndices = new List<uint>();
                 indicesLevels.Add(refinedIndices);
 
-                var end = indices.Count;
+                int end = indices.Count;
 
                 for (int i = 0; i < end; i += 3)
                 {
-                    var mid = new Span<uint>(new uint[3]);
-                    var idx = new Span<uint>(new uint[3]);
+                    Span<uint> mid = new Span<uint>(new uint[3]);
+                    Span<uint> idx = new Span<uint>(new uint[3]);
 
                     for (int k = 0; k < 3; k++)
                         idx[k] = indices[i + k];
@@ -95,18 +95,18 @@ namespace XrEngine
             Vertices = new VertexData[vertices.Count];
 
 
-            for (var i = 0; i < vertices.Count; i++)
+            for (int i = 0; i < vertices.Count; i++)
             {
-                var normal = vertices[i].Normalize();
+                Vector3 normal = vertices[i].Normalize();
 
-                var up = Vector3.UnitY;
-                var test = Vector3.Cross(normal, up);
+                Vector3 up = Vector3.UnitY;
+                Vector3 test = Vector3.Cross(normal, up);
                 if (float.IsNaN(test.X) || test.Length() < 1e-10)
                     up = Vector3.UnitZ;
 
-                var tangSpace = Quaternion.Normalize(MathUtils.QuatFromForwardUp(normal, up));
+                Quaternion tangSpace = Quaternion.Normalize(MathUtils.QuatFromForwardUp(normal, up));
 
-                var spherical = Spherical.FromCartesian(normal * Radius);
+                Spherical spherical = Spherical.FromCartesian(normal * Radius);
 
                 Vertices[i] = new VertexData
                 {

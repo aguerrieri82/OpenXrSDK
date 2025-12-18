@@ -39,7 +39,7 @@ namespace CanvasUI
 
         public void SetViewport(float x, float y, float width, float height)
         {
-            var newView = new Rect2(x, y, width, height);
+            Rect2 newView = new Rect2(x, y, width, height);
 
             if (Equals(newView, _viewport))
                 return;

@@ -189,7 +189,7 @@ namespace TurboJpeg
         [DllImport(DllName)]
         public static extern void tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
 
-        [DllImport(DllName)] 
+        [DllImport(DllName)]
         public static extern void tjDecompress2(IntPtr handle, byte* jpegBuf, ulong jpegSize, byte* dstBuf, int width, int pitch, int height, TJPF pixelFormat, TJFLAG flags);
 
         [DllImport(DllName)]
@@ -198,13 +198,13 @@ namespace TurboJpeg
 
         public static ImageData Decompress(byte[] data)
         {
-            var res = new ImageData();
+            ImageData res = new ImageData();
 
-            var handler = tjInitDecompress();
+            nint handler = tjInitDecompress();
 
             fixed (byte* pIn = data)
             {
-                tjDecompressHeader2(handler, pIn, (ulong)data.Length, out var width, out var height, out var subSamp);
+                tjDecompressHeader2(handler, pIn, (ulong)data.Length, out int width, out int height, out TJSAMP subSamp);
                 res.Width = width;
                 res.Height = height;
                 res.Data = new byte[width * height * 4];

@@ -8,7 +8,7 @@ namespace XrEngine.Audio
 
         public AudioSystem()
         {
-            var devices = AlDevice.ListDevices(false);
+            IList<string> devices = AlDevice.ListDevices(false);
             _device = new AlDevice();
         }
 

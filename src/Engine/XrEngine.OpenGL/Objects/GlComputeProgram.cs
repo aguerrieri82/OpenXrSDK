@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
         {
             Log.Debug(this, "Building program {0}...", _handle);
 
-            var cSource = PatchShader(_cSource, ShaderType.ComputeShader);
+            string cSource = PatchShader(_cSource, ShaderType.ComputeShader);
 
             Computer = GlShader.GetOrCreate(_gl, ShaderType.ComputeShader, cSource);
 
@@ -33,7 +33,7 @@ namespace XrEngine.OpenGL
 
             _values.Clear();
             _locations.Clear();
-            for (var i = 0; i < _boundBuffers.Length; i++)
+            for (int i = 0; i < _boundBuffers.Length; i++)
                 _boundBuffers[i] = 0;
 
             Log.Debug(this, "Program built");

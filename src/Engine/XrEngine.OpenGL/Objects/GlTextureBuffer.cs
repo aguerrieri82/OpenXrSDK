@@ -1,6 +1,8 @@
 ﻿#if GLES
+using Common.Interop;
 using Silk.NET.OpenGLES;
 #else
+using Common.Interop;
 using Silk.NET.OpenGL;
 #endif
 
@@ -40,7 +42,7 @@ namespace XrEngine.OpenGL
 
         public unsafe void Update(TextureData data)
         {
-            GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
+            GlUtils.GetPixelFormat(data.Format, out PixelFormat pixelFormat, out PixelType pixelType);
 
             _buffer.BeginUpdate();
 
@@ -63,9 +65,9 @@ namespace XrEngine.OpenGL
                        _height);
             }
 
-            var pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+            byte* pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
 
-            using var pSrc = data.Data!.MemoryLock();
+            using MemoryLock<byte> pSrc = data.Data!.MemoryLock();
 
             EngineNativeLib.CopyMemory(pSrc, (nint)pDst, data.Data.Size);
 

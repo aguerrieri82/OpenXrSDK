@@ -37,7 +37,7 @@ namespace XrEngine.Browser.Win
             if (_response.Headers != null)
             {
                 response.MimeType = _response.Headers["Content-Type"];
-                foreach (var header in _response.Headers)
+                foreach (KeyValuePair<string, string> header in _response.Headers)
                     response.SetHeaderByName(header.Key, header.Value, true);
             }
 
@@ -65,7 +65,7 @@ namespace XrEngine.Browser.Win
                 return false;
             }
 
-            var buffer = new byte[dataOut.Length];
+            byte[] buffer = new byte[dataOut.Length];
             bytesRead = _bodyStream.Read(buffer);
             dataOut.Write(buffer, 0, bytesRead);
 

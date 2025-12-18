@@ -18,14 +18,14 @@ namespace XrEditor
 
         static string GetMacAddress()
         {
-            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-            foreach (var netInterface in networkInterfaces)
+            foreach (NetworkInterface netInterface in networkInterfaces)
             {
                 if (netInterface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 &&
                     netInterface.OperationalStatus == OperationalStatus.Up)
                 {
-                    var macAddress = netInterface.GetPhysicalAddress().ToString();
+                    string macAddress = netInterface.GetPhysicalAddress().ToString();
                     return macAddress;
                 }
             }

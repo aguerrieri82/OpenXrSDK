@@ -30,13 +30,13 @@ namespace XrEngine
 
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
-            var points = _path.SamplesAdaptive(tolerance);
-            var pathLen = _path.Length();
+            List<Path2Point> points = _path.SamplesAdaptive(tolerance);
+            float pathLen = _path.Length();
 
             Path2Segment? lastSeg = null;
-            var segLen = 0f;
-            var totLen = 0f;
-            foreach (var point in points)
+            float segLen = 0f;
+            float totLen = 0f;
+            foreach (Path2Point point in points)
             {
                 if (lastSeg != point.Segment)
                 {
@@ -45,7 +45,7 @@ namespace XrEngine
                     segLen = lastSeg.Length();
                 }
 
-                var cPoint = new CurvePoint
+                CurvePoint cPoint = new CurvePoint
                 {
                     Position = point.Point,
                     Length = totLen + (segLen * point.Time),

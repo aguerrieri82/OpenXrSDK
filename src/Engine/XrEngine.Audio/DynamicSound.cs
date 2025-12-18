@@ -18,7 +18,7 @@ namespace XrEngine.Audio
         public void AddBuffers(AL al, IAssetStore assetStore, string dirPath)
         {
 
-            foreach (var file in assetStore.List(dirPath))
+            foreach (string file in assetStore.List(dirPath))
                 AddBuffer(al, assetStore, file);
 
             Commit();
@@ -28,20 +28,20 @@ namespace XrEngine.Audio
         {
             if (velocity == null)
             {
-                var name = Path.GetFileNameWithoutExtension(filePath);
-                if (!int.TryParse(name, out var value))
+                string name = Path.GetFileNameWithoutExtension(filePath);
+                if (!int.TryParse(name, out int value))
                     return;
                 velocity = value;
             }
 
-            var ext = Path.GetExtension(filePath);
+            string ext = Path.GetExtension(filePath);
 
             if (ext == ".wav")
             {
-                var reader = new WavReader();
-                using var stream = assetStore.Open(filePath);
-                var data = reader.Decode(stream);
-                var buffer = new AlBuffer(al);
+                WavReader reader = new WavReader();
+                using Stream stream = assetStore.Open(filePath);
+                AudioData data = reader.Decode(stream);
+                AlBuffer buffer = new AlBuffer(al);
                 buffer.SetData(data);
                 AddBuffer(velocity.Value, buffer);
                 return;
@@ -65,7 +65,7 @@ namespace XrEngine.Audio
 
         public AlBuffer Buffer(float velocity)
         {
-            var targetVel = (int)Math.Round(_minVel + (_maxVel - _minVel) * velocity);
+            int targetVel = (int)Math.Round(_minVel + (_maxVel - _minVel) * velocity);
 
             int curI = 0;
 

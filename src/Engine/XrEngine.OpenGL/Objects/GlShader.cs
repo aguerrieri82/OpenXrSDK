@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
             {
                 _gl.DeleteShader(_handle);
 
-                var cache = _shaders.First(a => a.Value == this);
+                KeyValuePair<string, GlShader> cache = _shaders.First(a => a.Value == this);
                 _shaders.Remove(cache.Key);
 
                 base.Dispose();
@@ -68,9 +68,9 @@ namespace XrEngine.OpenGL
 
         public static GlShader GetOrCreate(GL gl, ShaderType type, string source)
         {
-            var sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
+            string sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
 
-            if (!_shaders.TryGetValue(sourceHash, out var shader))
+            if (!_shaders.TryGetValue(sourceHash, out GlShader? shader))
             {
                 shader = new GlShader(gl, type, source);
                 _shaders[sourceHash] = shader;

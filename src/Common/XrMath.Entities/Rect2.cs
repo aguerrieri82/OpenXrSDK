@@ -33,7 +33,7 @@ namespace XrMath
             get => Y;
             set
             {
-                var delta = (value - Y);
+                float delta = (value - Y);
                 Y += delta;
                 Height -= delta;
             }
@@ -44,7 +44,7 @@ namespace XrMath
             get => X;
             set
             {
-                var delta = (value - X);
+                float delta = (value - X);
                 X += delta;
                 Width -= delta;
             }

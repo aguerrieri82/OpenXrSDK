@@ -11,7 +11,7 @@ namespace XrEngine
 
         public static IPbrMaterial CreatePbr(Color color)
         {
-            var result = CreatePbr(DefaultPbr);
+            IPbrMaterial result = CreatePbr(DefaultPbr);
             result.Color = color;
             result.Metalness = 0;
             result.Roughness = 0.5f;
@@ -20,7 +20,7 @@ namespace XrEngine
 
         public static IPbrMaterial CreatePbr(Texture2D color)
         {
-            var result = CreatePbr(DefaultPbr);
+            IPbrMaterial result = CreatePbr(DefaultPbr);
             result.Color = Color.White;
             result.ColorMap = color;
             result.Metalness = 0;

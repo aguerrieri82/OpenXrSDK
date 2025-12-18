@@ -141,7 +141,7 @@ namespace XrEngine.Video
 
         public static void Decode(byte[] data, ref VideoFormat format)
         {
-            var decoder = new SpsDecoder(data);
+            SpsDecoder decoder = new SpsDecoder(data);
             decoder.DecodeWork(ref format);
         }
     }

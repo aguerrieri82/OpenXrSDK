@@ -22,12 +22,12 @@ namespace XrEngine
 
         public void Build()
         {
-            var builder = new MeshBuilder();
+            MeshBuilder builder = new MeshBuilder();
 
             if ((Parts & CylinderPart.Body) != 0)
                 builder.AddCylinder(Center, Radius, Height, Subs, UVMode);
 
-            var smoothEnd = builder.Vertices.Count;
+            int smoothEnd = builder.Vertices.Count;
 
             if ((Parts & CylinderPart.BottomCap) != 0)
                 builder.AddCircle(Center, Radius, Subs, false, UVMode);

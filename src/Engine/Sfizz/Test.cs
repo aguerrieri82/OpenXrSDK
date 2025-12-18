@@ -4,7 +4,7 @@
     {
         public static void Execute()
         {
-            var cfg = new SfizzLib.Config
+            SfizzLib.Config cfg = new SfizzLib.Config
             {
                 ChannelSizeSamples = 1024,
                 NumVoices = 64,
@@ -14,9 +14,9 @@
                 SampleRate = 48000
             };
 
-            var synth = SfizzLib.createSynth();
+            SfizzLib.Synth synth = SfizzLib.createSynth();
             synth.configure(ref cfg);
-            var buf = SfizzLib.createBuffer(cfg.ChannelSizeSamples, 2);
+            SfizzLib.Buffer buf = SfizzLib.createBuffer(cfg.ChannelSizeSamples, 2);
             synth.loadSfzFile("D:\\SoundFont\\Sm\\Programs\\SM_Drums_kit.sfz");
 
             synth.setVolume(2);

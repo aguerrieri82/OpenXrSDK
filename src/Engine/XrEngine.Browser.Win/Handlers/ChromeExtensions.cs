@@ -8,8 +8,8 @@ namespace XrEngine.Browser.Win
     {
         public static WebRequest ToWebRequest(this IRequest request)
         {
-            var headers = new Dictionary<string, string>();
-            foreach (var key in request.Headers.AllKeys)
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            foreach (string? key in request.Headers.AllKeys)
                 headers[key!] = request.Headers[key!]!.ToString();
 
             return new WebRequest

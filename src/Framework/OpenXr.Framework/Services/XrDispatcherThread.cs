@@ -16,14 +16,14 @@ namespace OpenXr.Framework
 
         public void ProcessQueue()
         {
-            while (_actions.TryDequeue(out var item))
+            while (_actions.TryDequeue(out DispatcherAction? item))
             {
                 Debug.Assert(item.CompletionSource != null);
                 Debug.Assert(item.Action != null);
 
                 try
                 {
-                    var result = item.Action();
+                    object? result = item.Action();
                     item.CompletionSource.SetResult(result);
                 }
                 catch (Exception ex)
@@ -35,7 +35,7 @@ namespace OpenXr.Framework
 
         public async Task<T> ExecuteAsync<T>(Func<T> action)
         {
-            var item = new DispatcherAction
+            DispatcherAction item = new DispatcherAction
             {
                 Action = () => action(),
                 CompletionSource = new TaskCompletionSource<object?>()
@@ -50,7 +50,7 @@ namespace OpenXr.Framework
 
         public async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
         {
-            var task = await ExecuteAsync<Task<T>>(action);
+            Task<T> task = await ExecuteAsync<Task<T>>(action);
             return await task;
         }
     }

@@ -9,7 +9,7 @@
 
         public void Dispose()
         {
-            for (var i = 0; i < Buffers.Length; i++)
+            for (int i = 0; i < Buffers.Length; i++)
             {
                 if (Buffers[i] != null)
                 {

@@ -68,7 +68,7 @@ namespace OpenXr.Framework.Android
                 Process.KillProcess(Process.MyPid());
             else
             {
-                var intent = PackageManager!.GetLaunchIntentForPackage(PackageName!)!;
+                Intent intent = PackageManager!.GetLaunchIntentForPackage(PackageName!)!;
                 intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask);
                 StartActivity(intent);
                 Java.Lang.JavaSystem.Exit(0);
@@ -115,9 +115,9 @@ namespace OpenXr.Framework.Android
 
         private void CheckPermissions()
         {
-            var toAsk = new List<string>();
+            List<string> toAsk = new List<string>();
 
-            foreach (var permission in _permissions)
+            foreach (string permission in _permissions)
                 if (CheckSelfPermission(permission) != Permission.Granted)
                     toAsk.Add(permission);
 
@@ -131,7 +131,7 @@ namespace OpenXr.Framework.Android
         {
             if (!global::Android.OS.Environment.IsExternalStorageManager)
             {
-                var intent = new Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission!,
+                Intent intent = new Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission!,
                 global::Android.Net.Uri.Parse("package:" + Application.Context.PackageName));
 
                 StartActivityForResult(intent, STORAGE_REQUEST);

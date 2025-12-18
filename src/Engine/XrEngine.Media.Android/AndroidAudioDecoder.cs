@@ -1,7 +1,5 @@
 ﻿using Android.Media;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Java.Nio;
 using Encoding = Android.Media.Encoding;
 
 namespace XrEngine.Media.Android
@@ -12,7 +10,7 @@ namespace XrEngine.Media.Android
         static AudioFormat GetFormat(MediaFormat format)
         {
 
-            var res = new AudioFormat
+            AudioFormat res = new AudioFormat
             {
                 SampleRate = format.GetInteger(MediaFormat.KeySampleRate),
 
@@ -37,14 +35,14 @@ namespace XrEngine.Media.Android
 
         public byte[] DecodeToPCM(string path, out AudioFormat format)
         {
-            using var extractor = new MediaExtractor();
+            using MediaExtractor extractor = new MediaExtractor();
             extractor.SetDataSource(path);
 
             int trackIndex = -1;
             MediaFormat? inFormat = null;
             for (int i = 0; i < extractor.TrackCount; i++)
             {
-                var f = extractor.GetTrackFormat(i);
+                MediaFormat f = extractor.GetTrackFormat(i);
                 string mime = f.GetString(MediaFormat.KeyMime)!;
                 if (mime.StartsWith("audio/"))
                 {
@@ -60,14 +58,14 @@ namespace XrEngine.Media.Android
             extractor.SelectTrack(trackIndex);
 
             string mimeType = inFormat.GetString(MediaFormat.KeyMime)!;
-            using var codec = MediaCodec.CreateDecoderByType(mimeType);
+            using MediaCodec codec = MediaCodec.CreateDecoderByType(mimeType);
             codec.Configure(inFormat, null, null, 0);
             codec.Start();
 
             format = GetFormat(codec.OutputFormat);
 
-            var info = new MediaCodec.BufferInfo();
-            using var pcmStream = new MemoryStream(10 * 1024 * 1024);
+            MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+            using MemoryStream pcmStream = new MemoryStream(10 * 1024 * 1024);
 
             bool endOfStream = false;
 
@@ -77,7 +75,7 @@ namespace XrEngine.Media.Android
                 int inputIndex = codec.DequeueInputBuffer(10_000);
                 if (inputIndex >= 0)
                 {
-                    var inputBuffer = codec.GetInputBuffer(inputIndex)!;
+                    ByteBuffer inputBuffer = codec.GetInputBuffer(inputIndex)!;
                     int sampleSize = extractor.ReadSampleData(inputBuffer, 0);
 
                     if (sampleSize < 0)
@@ -97,10 +95,10 @@ namespace XrEngine.Media.Android
                 int outputIndex = codec.DequeueOutputBuffer(info, 10_000);
                 if (outputIndex >= 0)
                 {
-                    var outputBuffer = codec.GetOutputBuffer(outputIndex);
+                    ByteBuffer? outputBuffer = codec.GetOutputBuffer(outputIndex);
                     if (outputBuffer != null && info.Size > 0)
                     {
-                        var chunk = new byte[info.Size];
+                        byte[] chunk = new byte[info.Size];
                         outputBuffer.Position(info.Offset);
                         outputBuffer.Get(chunk, 0, info.Size);
                         pcmStream.Write(chunk, 0, info.Size);

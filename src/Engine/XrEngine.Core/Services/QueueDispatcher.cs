@@ -23,7 +23,7 @@ namespace XrEngine
                 return;
             }
 
-            var task = new QueueTask()
+            QueueTask task = new QueueTask()
             {
                 Action = () =>
                 {
@@ -43,7 +43,7 @@ namespace XrEngine
             if (Thread.CurrentThread == _thread)
                 return action();
 
-            var task = new QueueTask()
+            QueueTask task = new QueueTask()
             {
                 Action = () => action()!,
                 Completion = new TaskCompletionSource<object?>()
@@ -51,7 +51,7 @@ namespace XrEngine
 
             _queue.Enqueue(task);
 
-            var result = await task.Completion.Task;
+            object? result = await task.Completion.Task;
 
             return (T)result!;
         }
@@ -67,11 +67,11 @@ namespace XrEngine
 
             try
             {
-                while (_queue.TryDequeue(out var task))
+                while (_queue.TryDequeue(out QueueTask? task))
                 {
                     try
                     {
-                        var result = task.Action!();
+                        object? result = task.Action!();
 
                         task.Completion!.SetResult(result);
                     }

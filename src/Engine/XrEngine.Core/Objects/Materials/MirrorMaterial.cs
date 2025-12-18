@@ -67,7 +67,7 @@ namespace XrEngine
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
+            PlanarReflection? planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
 
             Debug.Assert(planar != null);
 

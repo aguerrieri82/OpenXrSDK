@@ -67,7 +67,7 @@ namespace XrEngine
 
         public unsafe void SaveTexture(Stream stream, IList<TextureData> images)
         {
-            var header = new PvrHeader
+            PvrHeader header = new PvrHeader
             {
                 Version = Version,
                 Width = images[0].Width,
@@ -130,7 +130,7 @@ namespace XrEngine
 
             stream.WriteStruct(header);
 
-            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
+            foreach (TextureData? img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
             {
                 Debug.Assert(img.Data != null);
                 stream.Write(img.Data.AsSpan());
@@ -142,21 +142,21 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            using var seekStream = stream.EnsureSeek();
+            using Stream seekStream = stream.EnsureSeek();
 
-            var header = seekStream.ReadStruct<PvrHeader>();
+            PvrHeader header = seekStream.ReadStruct<PvrHeader>();
 
             if (header.Version != Version)
                 throw new InvalidOperationException();
 
             if (header.MetaDataSize > 0)
             {
-                var meta = seekStream.ReadStruct<PvrMeta>();
+                PvrMeta meta = seekStream.ReadStruct<PvrMeta>();
                 if (meta.DataSize > 0)
                     seekStream.Position += (header.MetaDataSize - sizeof(PvrMeta));
             }
 
-            var test = (ulong)header.PixelFormat >> 32;
+            ulong test = (ulong)header.PixelFormat >> 32;
 
             if (header.NumSurfaces != 1 ||
                 header.Depth != 1)

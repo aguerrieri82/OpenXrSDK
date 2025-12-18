@@ -16,16 +16,16 @@ namespace XrEditor
 
         public async Task SaveAsync()
         {
-            var container = new JsonStateContainer();
-            var scene = EngineApp.Current!.ActiveScene!;
+            JsonStateContainer container = new JsonStateContainer();
+            Scene3D scene = EngineApp.Current!.ActiveScene!;
 
             await EngineApp.Current.Dispatcher.ExecuteAsync(() =>
             {
                 scene.GetState(container);
             });
 
-            var json = container.AsJson();
-            var fileName = $"scene-{scene.Id}.json";
+            string json = container.AsJson();
+            string fileName = $"scene-{scene.Id}.json";
 
             if (File.Exists(fileName))
                 File.Delete(fileName);
@@ -35,14 +35,14 @@ namespace XrEditor
 
         public async Task LoadAsync()
         {
-            var scene = EngineApp.Current!.ActiveScene!;
-            var fileName = $"scene-{scene.Id}.json";
+            Scene3D scene = EngineApp.Current!.ActiveScene!;
+            string fileName = $"scene-{scene.Id}.json";
 
             if (!File.Exists(fileName))
                 return;
 
-            var json = File.ReadAllText(fileName);
-            var container = new JsonStateContainer(json);
+            string json = File.ReadAllText(fileName);
+            JsonStateContainer container = new JsonStateContainer(json);
             container.Context.Flags |= StateContextFlags.Update;
 
             await EngineApp.Current.Dispatcher.ExecuteAsync(() =>
@@ -53,13 +53,13 @@ namespace XrEditor
 
         public void HideUnselected(bool value)
         {
-            var scene = EngineApp.Current?.ActiveScene;
+            Scene3D? scene = EngineApp.Current?.ActiveScene;
             if (scene == null)
                 return;
 
-            var selLayer = scene.Layers.Layers.First(a => a.Name == "Selection");
-            var blendLayer = scene.Layer<BlendLayer>();
-            var opaqueLayer = scene.Layer<OpaqueLayer>();
+            ILayer3D selLayer = scene.Layers.Layers.First(a => a.Name == "Selection");
+            BlendLayer blendLayer = scene.Layer<BlendLayer>();
+            OpaqueLayer opaqueLayer = scene.Layer<OpaqueLayer>();
             selLayer.IsVisible = value;
             blendLayer.IsVisible = !value;
             opaqueLayer.IsVisible = !value;

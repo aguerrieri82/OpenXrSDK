@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
 
             if (draw.Query != null)
             {
-                var passed = draw.Query.GetResult();
+                uint passed = draw.Query.GetResult();
                 if (passed == 0)
                     return false;
             }
@@ -88,10 +88,10 @@ namespace XrEngine.OpenGL
         {
 
 #if GLES
-            var bounds = obj.WorldBounds;
+            Bounds3 bounds = obj.WorldBounds;
 
-            var min = Vector4.Transform(new Vector4(bounds.Min, 1.0f), camera.ViewProjection);
-            var max = Vector4.Transform(new Vector4(bounds.Max, 1.0f), camera.ViewProjection);
+            Vector4 min = Vector4.Transform(new Vector4(bounds.Min, 1.0f), camera.ViewProjection);
+            Vector4 max = Vector4.Transform(new Vector4(bounds.Max, 1.0f), camera.ViewProjection);
 
             _bounds.PrimitiveBoundingBox(min.X, min.Y, min.Z, min.W, max.X, max.Y, max.Z, max.W);
 #endif
@@ -113,16 +113,16 @@ namespace XrEngine.OpenGL
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
-            var updateContext = _renderer.UpdateContext;
+            GlUpdateContext updateContext = _renderer.UpdateContext;
 
-            var useDepthPass = _renderer.Options.UseDepthPass;
+            bool useDepthPass = _renderer.Options.UseDepthPass;
 
-            var useOcclusion = _renderer.Options.UseOcclusionQuery;
+            bool useOcclusion = _renderer.Options.UseOcclusionQuery;
 
 
-            foreach (var shader in layer.Content.Contents)
+            foreach (KeyValuePair<Shader, ShaderContentV2> shader in layer.Content.Contents)
             {
-                var progGlobal = shader.Value!.ProgramGlobal;
+                GlProgramGlobal? progGlobal = shader.Value!.ProgramGlobal;
 
                 updateContext.Shader = shader.Key;
                 updateContext.Stage = UpdateShaderStage.Shader;
@@ -130,11 +130,11 @@ namespace XrEngine.OpenGL
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
 
-                foreach (var material in shader.Value.Contents!
+                foreach (KeyValuePair<Material, MaterialContentV2> material in shader.Value.Contents!
                                         .OrderBy(a => a.Key.Priority)
                                         .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0))
                 {
-                    var matContent = material.Value;
+                    MaterialContentV2 matContent = material.Value;
 
                     if (material.Value.IsHidden)
                         continue;
@@ -142,13 +142,13 @@ namespace XrEngine.OpenGL
 
                     updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
 
-                    var progInst = matContent.ProgramInstance!;
+                    GlProgramInstance progInst = matContent.ProgramInstance!;
 
                     updateContext.Stage = UpdateShaderStage.Material;
 
                     UpdateProgram(updateContext, progInst);
 
-                    var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+                    bool programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
                     updateContext.ProgramInstanceId = progInst.Program!.Handle;
 
@@ -160,16 +160,16 @@ namespace XrEngine.OpenGL
 
                     ConfigureCaps(progInst.Material!);
 
-                    foreach (var vertex in matContent.Contents)
+                    foreach (KeyValuePair<EngineObject, VertexContentV2> vertex in matContent.Contents)
                     {
-                        var vertexContent = vertex.Value;
+                        VertexContentV2 vertexContent = vertex.Value;
                         if (vertexContent.IsHidden)
                             continue;
 
                         if (vertexContent.Contents.All(a => a.IsClipped))
                             continue;
 
-                        var vHandler = vertexContent.VertexHandler!;
+                        GlVertexSourceHandle vHandler = vertexContent.VertexHandler!;
 
                         updateContext.ActiveComponents = vertexContent.ActiveComponents;
 
@@ -183,7 +183,7 @@ namespace XrEngine.OpenGL
                         }
                         else
                         {
-                            foreach (var draw in vertexContent.Contents)
+                            foreach (DrawContent draw in vertexContent.Contents)
                             {
                                 if (!CanDraw(draw))
                                     continue;
@@ -218,19 +218,19 @@ namespace XrEngine.OpenGL
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
-            var updateContext = _renderer.UpdateContext;
+            GlUpdateContext updateContext = _renderer.UpdateContext;
 
-            var useDepthPass = _renderer.Options.UseDepthPass;
+            bool useDepthPass = _renderer.Options.UseDepthPass;
 
-            var useOcclusion = _renderer.Options.UseOcclusionQuery;
+            bool useOcclusion = _renderer.Options.UseOcclusionQuery;
 
             updateContext.UseInstanceDraw = false;
 
             updateContext.Stage = UpdateShaderStage.Any;
 
-            foreach (var shader in layer.Content.ShaderContentsSorted)
+            foreach (KeyValuePair<Shader, ShaderContent> shader in layer.Content.ShaderContentsSorted)
             {
-                var progGlobal = shader.Value!.ProgramGlobal;
+                GlProgramGlobal? progGlobal = shader.Value!.ProgramGlobal;
 
                 updateContext.Shader = shader.Key;
 
@@ -241,7 +241,7 @@ namespace XrEngine.OpenGL
                 if (_renderer.Options.SortByCameraDistance)
                     vertices = vertices.OrderBy(a => a.RenderPriority).ThenBy(a => a.AvgDistance);
 
-                foreach (var vertex in vertices)
+                foreach (VertexContent vertex in vertices)
                 {
                     if (vertex.IsHidden)
                         continue;
@@ -249,24 +249,24 @@ namespace XrEngine.OpenGL
                     if (useOcclusion && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
                         continue;
 
-                    var vHandler = vertex.VertexHandler!;
+                    GlVertexSourceHandle vHandler = vertex.VertexHandler!;
 
                     updateContext.ActiveComponents = vertex.ActiveComponents;
 
                     vHandler.Bind();
 
-                    foreach (var draw in vertex.Contents)
+                    foreach (DrawContent draw in vertex.Contents)
                     {
                         if (!CanDraw(draw))
                             continue;
 
-                        var progInst = draw.ProgramInstance!;
+                        GlProgramInstance progInst = draw.ProgramInstance!;
 
                         updateContext.Model = draw.Object;
 
                         UpdateProgram(updateContext, progInst);
 
-                        var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+                        bool programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
                         updateContext.ProgramInstanceId = progInst.Program!.Handle;
 

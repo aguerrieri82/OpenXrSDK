@@ -25,13 +25,13 @@ namespace CanvasUI
 
         public Size2 Arrange(Rect2 finalRect, object? layoutParams)
         {
-            var lp = (LayoutParams)layoutParams!;
+            LayoutParams lp = (LayoutParams)layoutParams!;
 
-            var totSize = new Size2();
+            Size2 totSize = new Size2();
 
-            foreach (var child in lp.Children)
+            foreach (ChildParams child in lp.Children)
             {
-                var childRect = new Rect2
+                Rect2 childRect = new Rect2
                 {
                     X = child.Position.X,
                     Y = child.Position.Y,
@@ -50,13 +50,13 @@ namespace CanvasUI
 
         public Size2 Measure(Size2 availSize, object? layoutParams)
         {
-            var lp = (LayoutParams)layoutParams!;
+            LayoutParams lp = (LayoutParams)layoutParams!;
 
-            var totSize = new Size2();
+            Size2 totSize = new Size2();
 
-            foreach (var child in lp.Children)
+            foreach (ChildParams child in lp.Children)
             {
-                var childSize = availSize;
+                Size2 childSize = availSize;
 
                 childSize.Width -= child.Position.X;
                 childSize.Height -= child.Position.Y;
@@ -72,14 +72,14 @@ namespace CanvasUI
 
         public object? ExtractLayoutParams(UiContainer container)
         {
-            var result = new LayoutParams
+            LayoutParams result = new LayoutParams
             {
                 Children = new ChildParams[container.Children.Count]
             };
 
-            for (var i = 0; i < container.Children.Count; i++)
+            for (int i = 0; i < container.Children.Count; i++)
             {
-                var child = container.Children[i];
+                UiElement child = container.Children[i];
                 result.Children[i] = new ChildParams
                 {
                     Position = new Vector2(child.ActualStyle.Left.ToPixel(child, UiValueReference.ParentWidth),

@@ -21,7 +21,7 @@ namespace XrEngine
         {
             return _cache.GetOrAdd(type, type =>
             {
-                var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
+                ServiceInfo? info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
 
                 if (info == null)
                     return null;
@@ -34,7 +34,7 @@ namespace XrEngine
 
         public object RequireNew(Type type)
         {
-            var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
+            ServiceInfo? info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
             if (info?.Factory == null)
                 throw new NotSupportedException();
             return info.Factory!();
@@ -42,7 +42,7 @@ namespace XrEngine
 
         public void Implement(Type type, object instance)
         {
-            var info = _services.FirstOrDefault(a => a.Type == type);
+            ServiceInfo? info = _services.FirstOrDefault(a => a.Type == type);
 
             if (info != null)
             {

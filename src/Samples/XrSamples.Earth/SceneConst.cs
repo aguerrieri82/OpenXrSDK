@@ -23,14 +23,14 @@ namespace XrSamples.Earth
         public static Vector2 NormalToUV(Vector3 normal)
         {
             // Compute longitude (λ) and latitude (φ) from the normalized vector
-            var longitude = Math.Atan2(normal.Z, normal.X); // Range: -π to π
-            var latitude = Math.Asin(normal.Y);            // Range: -π/2 to π/2
+            double longitude = Math.Atan2(normal.Z, normal.X); // Range: -π to π
+            double latitude = Math.Asin(normal.Y);            // Range: -π/2 to π/2
 
             // Convert longitude to UV's u (range: 0 to 1)
-            var u = (float)((longitude / (2 * Math.PI)) + 0.5);
+            float u = (float)((longitude / (2 * Math.PI)) + 0.5);
 
             // Convert latitude to UV's v (range: 0 to 1)
-            var v = (float)((latitude / Math.PI) + 0.5);
+            float v = (float)((latitude / Math.PI) + 0.5);
 
             // Return the UV coordinates
             return new Vector2(1 - u, 1 - v);

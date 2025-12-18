@@ -53,9 +53,9 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_host?.Scene != null);
 
-            foreach (var item in _host.Scene.ObjectsWithComponent<IGrabbable>())
+            foreach (Object3D item in _host.Scene.ObjectsWithComponent<IGrabbable>())
             {
-                foreach (var comp in item.Components<IGrabbable>())
+                foreach (IGrabbable comp in item.Components<IGrabbable>())
                 {
                     if (comp.IsEnabled && comp.CanGrab(worldPos))
                     {
@@ -124,7 +124,7 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            var objGrab = IsGrabbing();
+            ObjectGrab objGrab = IsGrabbing();
 
             if (!objGrab.IsValid)
                 return;
@@ -134,7 +134,7 @@ namespace XrEngine.OpenXr
 
             if (!_grabStarted)
             {
-                var grabObj = FindGrabbable(objGrab.Pose.Position, out var grabbable);
+                Object3D? grabObj = FindGrabbable(objGrab.Pose.Position, out IGrabbable? grabbable);
 
                 if (grabObj != null)
                 {

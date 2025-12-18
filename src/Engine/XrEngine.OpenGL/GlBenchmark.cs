@@ -35,17 +35,17 @@ namespace XrEngine.OpenGL
         public void Bench(int iterations, params Action[] actions)
         {
             int task = 0;
-            foreach (var action in actions)
+            foreach (Action action in actions)
             {
                 Log.Info(this, "Running Task: {0}", task);
                 Debug.WriteLine("Running Task: {0}", task);
 
-                var time = Stopwatch.GetTimestamp();
+                long time = Stopwatch.GetTimestamp();
 
-                for (var i = 0; i < iterations; i++)
+                for (int i = 0; i < iterations; i++)
                     action();
 
-                var diff = Stopwatch.GetElapsedTime(time);
+                TimeSpan diff = Stopwatch.GetElapsedTime(time);
 
                 Log.Info(this, "Task: {0}, {1} ms", task, diff.TotalMilliseconds);
                 Debug.WriteLine("Task: {0}, {1} ms", task, diff.TotalMilliseconds);
@@ -65,11 +65,11 @@ namespace XrEngine.OpenGL
 
         public bool CompareB<T>(T[] a, T[] b) where T : struct
         {
-            var len = a.Length;
+            int len = a.Length;
             if (len != b.Length)
                 return false;
 
-            for (var i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
                 if (!a[i].Equals(b[i]) == false)
                     return false;
             return true;
@@ -77,26 +77,26 @@ namespace XrEngine.OpenGL
 
         public unsafe bool CompareC<T>(T[] a, T[] b) where T : struct
         {
-            var len = a.Length;
+            int len = a.Length;
             if (len != b.Length)
                 return false;
 
-            var size = sizeof(T);
+            int size = sizeof(T);
             fixed (T* pa = a, pb = b)
                 return EngineNativeLib.CompareMemory((nint)pa, (nint)pb, (uint)(len * size)) == 0;
         }
 
         public unsafe bool CompareD<T>(T[] a, T[] b) where T : struct
         {
-            var len = a.Length;
+            int len = a.Length;
             if (len != b.Length)
                 return false;
 
-            var nint = len * sizeof(T) / 4;
+            int nint = len * sizeof(T) / 4;
             fixed (T* pa = a, pb = b)
             {
-                var intA = (int*)pa;
-                var intB = (int*)pb;
+                int* intA = (int*)pa;
+                int* intB = (int*)pb;
                 while (nint > 0)
                 {
                     if (*intA != *intB)
@@ -111,11 +111,11 @@ namespace XrEngine.OpenGL
 
         public bool CompareF(DrawBufferMode[] a, DrawBufferMode[] b)
         {
-            var len = a.Length;
+            int len = a.Length;
             if (len != b.Length)
                 return false;
 
-            for (var i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
                 if (a[i] != b[i])
                     return false;
             return true;

@@ -69,7 +69,7 @@ namespace XrSamples
         static uint HashString(string str)
         {
             uint hash = 5381;
-            foreach (var c in str)
+            foreach (char c in str)
                 hash = ((hash << 5) + hash) + c;
             return hash;
         }
@@ -109,11 +109,11 @@ namespace XrSamples
             if (!IsEnabled)
                 return;
 
-            var serie = (DiscretePlotterSerie?)_plotter.Series.FirstOrDefault(a => a.Name == name);
+            DiscretePlotterSerie? serie = (DiscretePlotterSerie?)_plotter.Series.FirstOrDefault(a => a.Name == name);
 
             if (serie == null)
             {
-                var index = HashString(name) % PALETTE.Length;
+                long index = HashString(name) % PALETTE.Length;
 
                 serie = new DiscretePlotterSerie()
                 {
@@ -129,7 +129,7 @@ namespace XrSamples
 
             _lastValueTime = DateTime.UtcNow;
 
-            var isNotify = (_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs;
+            bool isNotify = (_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs;
 
             serie.AppendValue(EngineApp.Current!.Stats.Frame, value, isNotify);
 

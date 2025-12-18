@@ -33,7 +33,7 @@ namespace XrSamples.Earth
 
         Vector2 ToUv(Vector2 latLng)
         {
-            var normal = ToCartesian(latLng).Normalize();
+            Vector3 normal = ToCartesian(latLng).Normalize();
 
             return NormalToUV(normal);
         }
@@ -42,26 +42,26 @@ namespace XrSamples.Earth
         {
             Geometry!.ActiveComponents |= VertexComponent.UV1;
 
-            var mat = (IPbrMaterial)Materials[0];
+            IPbrMaterial mat = (IPbrMaterial)Materials[0];
 
             mat.ColorMapUVSet = 1;
             mat.ColorMap = tex;
 
-            var p0 = ToUv(NorthEast);
-            var p1 = ToUv(NorthWest);
-            var p2 = ToUv(SouthEast);
-            var p3 = ToUv(SouthWest);
+            Vector2 p0 = ToUv(NorthEast);
+            Vector2 p1 = ToUv(NorthWest);
+            Vector2 p2 = ToUv(SouthEast);
+            Vector2 p3 = ToUv(SouthWest);
 
-            var len = Geometry!.Vertices.Length;
+            int len = Geometry!.Vertices.Length;
 
 
-            var trans = Matrix3x2.CreateScale(p1.X - p0.X, p2.Y - p0.Y) *
+            Matrix3x2 trans = Matrix3x2.CreateScale(p1.X - p0.X, p2.Y - p0.Y) *
                         Matrix3x2.CreateTranslation(p0.X, p0.Y);
 
 
-            for (var i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
             {
-                var uv0 = Geometry!.Vertices[i].UV;
+                Vector2 uv0 = Geometry!.Vertices[i].UV;
 
                 Geometry!.Vertices[i].UV1 = Vector2.Transform(uv0, trans);
             }
@@ -70,9 +70,9 @@ namespace XrSamples.Earth
 
         public unsafe void LoadGeoTiff(string path)
         {
-            var tiff = LibTiff.TIFFOpen(path, "r");
+            LibTiff.Tiff tiff = LibTiff.TIFFOpen(path, "r");
 
-            var texData = tiff.Read();
+            TextureData texData = tiff.Read();
 
             if (texData.Format == TextureFormat.GrayRawSInt16)
             {
@@ -80,22 +80,22 @@ namespace XrSamples.Earth
                 texData.Format = TextureFormat.GrayFloat32;
             }
 
-            var w = texData.Width;
-            var h = texData.Height;
+            uint w = texData.Width;
+            uint h = texData.Height;
 
             HeightMap = Texture2D.FromData([texData]);
 
-            var tie = tiff.GetDoubleArrayField(LibTiff.TiffTag.GeoTiePoints);
-            var scale = tiff.GetDoubleArrayField(LibTiff.TiffTag.GeoPixelScale);
-            var trans = tiff.GetDoubleArrayField(LibTiff.TiffTag.GeoTransMatrix);
-            var noData = tiff.GetStringField(LibTiff.TiffTag.GdalNoData);
-            var meta = tiff.GetStringField(LibTiff.TiffTag.GdalMetadata);
+            double[] tie = tiff.GetDoubleArrayField(LibTiff.TiffTag.GeoTiePoints);
+            double[] scale = tiff.GetDoubleArrayField(LibTiff.TiffTag.GeoPixelScale);
+            double[] trans = tiff.GetDoubleArrayField(LibTiff.TiffTag.GeoTransMatrix);
+            string noData = tiff.GetStringField(LibTiff.TiffTag.GdalNoData);
+            string meta = tiff.GetStringField(LibTiff.TiffTag.GdalMetadata);
 
-            var dir = LibTiff.GetGeoDirectory(tiff);
+            LibTiff.GeoDirectoryEntry[] dir = LibTiff.GetGeoDirectory(tiff);
 
             tiff.TIFFClose();
 
-            var model = (LibTiff.GeoModelType)(ushort)dir.First(a => a.Key == LibTiff.GeoTag.GTModelTypeGeoKey).Value!;
+            LibTiff.GeoModelType model = (LibTiff.GeoModelType)(ushort)dir.First(a => a.Key == LibTiff.GeoTag.GTModelTypeGeoKey).Value!;
 
             if (model == LibTiff.GeoModelType.Geographic)
             {
@@ -126,12 +126,12 @@ namespace XrSamples.Earth
             }
             else
             {
-                var code = (ushort)dir.First(a => a.Key == LibTiff.GeoTag.ProjectedCSTypeGeoKey).Value!;
+                ushort code = (ushort)dir.First(a => a.Key == LibTiff.GeoTag.ProjectedCSTypeGeoKey).Value!;
 
                 if (code != 4326)
                 {
-                    var source = ProjectionInfo.FromEpsgCode(code);
-                    var target = ProjectionInfo.FromEpsgCode(4326);
+                    ProjectionInfo source = ProjectionInfo.FromEpsgCode(code);
+                    ProjectionInfo target = ProjectionInfo.FromEpsgCode(4326);
 
                     double[] pt = [
                             tie[3], tie[4],
@@ -149,34 +149,34 @@ namespace XrSamples.Earth
                 }
             }
 
-            var p0 = ToCartesian(NorthEast);
-            var p1 = ToCartesian(NorthWest);
-            var p2 = ToCartesian(SouthEast);
-            var p3 = ToCartesian(SouthWest);
+            Vector3 p0 = ToCartesian(NorthEast);
+            Vector3 p1 = ToCartesian(NorthWest);
+            Vector3 p2 = ToCartesian(SouthEast);
+            Vector3 p3 = ToCartesian(SouthWest);
 
-            var ww = (p1 - p0).Length();
-            var hh = (p2 - p0).Length();
+            float ww = (p1 - p0).Length();
+            float hh = (p2 - p0).Length();
 
-            var center = (p0 + p1 + p2 + p3) / 4f;
-            var zAxis = center.Normalize();
-            var xAxis = Vector3.Normalize(p1 - p0);
-            var yAxis = Vector3.Cross(zAxis, xAxis);
+            Vector3 center = (p0 + p1 + p2 + p3) / 4f;
+            Vector3 zAxis = center.Normalize();
+            Vector3 xAxis = Vector3.Normalize(p1 - p0);
+            Vector3 yAxis = Vector3.Cross(zAxis, xAxis);
 
-            var rotationMatrix = new Matrix4x4(
+            Matrix4x4 rotationMatrix = new Matrix4x4(
                  xAxis.X, yAxis.X, zAxis.X, 0,
                  xAxis.Y, yAxis.Y, zAxis.Y, 0,
                  xAxis.Z, yAxis.Z, zAxis.Z, 0,
                  0, 0, 0, 1
              );
 
-            var orientation = Quaternion.CreateFromRotationMatrix(rotationMatrix);
+            Quaternion orientation = Quaternion.CreateFromRotationMatrix(rotationMatrix);
 
             Transform.Orientation = new Quaternion(orientation.X, orientation.Y, orientation.Z, -orientation.W);
             Transform.Position = center;
 
             Geometry = new QuadPatch3D(new Vector2(ww, hh), 100);
 
-            var pbr = MaterialFactory.CreatePbr("#ffffff");
+            IPbrMaterial pbr = MaterialFactory.CreatePbr("#ffffff");
             pbr.Roughness = 1f;
 
             if (Roughness != null)
@@ -230,10 +230,10 @@ namespace XrSamples.Earth
         {
             canvas.Save();
 
-            var p0 = ToCartesian(NorthEast);
-            var p1 = ToCartesian(NorthWest);
-            var p2 = ToCartesian(SouthEast);
-            var p3 = ToCartesian(SouthWest);
+            Vector3 p0 = ToCartesian(NorthEast);
+            Vector3 p1 = ToCartesian(NorthWest);
+            Vector3 p2 = ToCartesian(SouthEast);
+            Vector3 p3 = ToCartesian(SouthWest);
 
 
             canvas.State.Color = "#ffff00";
@@ -245,10 +245,10 @@ namespace XrSamples.Earth
             canvas.DrawLine(p1, p3);
 
 
-            var center = (p0 + p1 + p2 + p3) / 4f;
-            var zAxis = center.Normalize();
-            var xAxis = Vector3.Normalize(p1 - p0);
-            var yAxis = Vector3.Cross(zAxis, xAxis);
+            Vector3 center = (p0 + p1 + p2 + p3) / 4f;
+            Vector3 zAxis = center.Normalize();
+            Vector3 xAxis = Vector3.Normalize(p1 - p0);
+            Vector3 yAxis = Vector3.Cross(zAxis, xAxis);
 
             canvas.State.Color = "#ff0000";
             canvas.DrawLine(center, center + xAxis * 0.1f);

@@ -29,7 +29,7 @@ namespace XrSamples
 
         public void AddType(Type type)
         {
-            _types.Add(type);   
+            _types.Add(type);
         }
 
         public IEnumerable<HDRInfo> GetHDRs()
@@ -67,11 +67,11 @@ namespace XrSamples
             if (_samples == null)
             {
                 _samples = new List<AppSample>();
-                foreach (var type in _types)
+                foreach (Type type in _types)
                 {
-                    foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                    foreach (MethodInfo method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
                     {
-                        var sample = method.GetCustomAttribute<SampleAttribute>();
+                        SampleAttribute? sample = method.GetCustomAttribute<SampleAttribute>();
                         if (sample == null)
                             continue;
                         _samples.Add(new AppSample
@@ -85,7 +85,7 @@ namespace XrSamples
                         });
                     }
                 }
-         
+
             }
 
             return _samples;

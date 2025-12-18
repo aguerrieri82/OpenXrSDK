@@ -120,7 +120,7 @@ namespace XrMath
             {
                 if (c <= 0.0031308f)
                     return 12.92f * c;
-           
+
                 return 1.055f * MathF.Pow(c, 1f / 2.4f) - 0.055f;
             }
 

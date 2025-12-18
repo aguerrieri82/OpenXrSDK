@@ -1,18 +1,17 @@
 ﻿#if ANDROID23_0_OR_GREATER
 
 using Android.Media.Midi;
-
 using System.Collections.Immutable;
 using System.Runtime.Versioning;
-using MidiDeviceInfo2 = Android.Media.Midi.MidiDeviceInfo;
 using ContextA = global::Android.Content.Context;
+using MidiDeviceInfo2 = Android.Media.Midi.MidiDeviceInfo;
 
 namespace XrEngine.Devices.Android
 {
     [SupportedOSPlatform("android23.0")]
     public class AndroidMidiManager : IMidiManager
     {
-        MidiManager _manager;
+        readonly MidiManager _manager;
 
         public AndroidMidiManager()
         {
@@ -22,8 +21,8 @@ namespace XrEngine.Devices.Android
 
         public IList<MidiDeviceInfo> FindDevices()
         {
-            var devices = _manager.GetDevices();
-            
+            MidiDeviceInfo2[]? devices = _manager.GetDevices();
+
             if (devices == null || devices.Length == 0)
                 return Array.Empty<MidiDeviceInfo>();
 
@@ -40,7 +39,7 @@ namespace XrEngine.Devices.Android
         {
             if (int.TryParse(id, out int deviceId))
             {
-                var deviceInfo = _manager.GetDevices()?.FirstOrDefault(d => d.Id == deviceId);   
+                MidiDeviceInfo2? deviceInfo = _manager.GetDevices()?.FirstOrDefault(d => d.Id == deviceId);
                 if (deviceInfo != null)
                     return new AndroidMidiDevice(deviceInfo, _manager);
             }

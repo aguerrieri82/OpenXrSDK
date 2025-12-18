@@ -54,7 +54,7 @@ namespace XrEngine
         {
             if (keepPosition)
             {
-                var localPosAdjusted = (value - _localPivot) * _scale;
+                Vector3 localPosAdjusted = (value - _localPivot) * _scale;
                 _position += localPosAdjusted.Transform(_orientation);
             }
             LocalPivot = value;

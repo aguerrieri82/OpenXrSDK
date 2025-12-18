@@ -63,11 +63,11 @@ namespace XrEngine.Compression
 
         static unsafe SKBitmap CreateImage(TextureData data, SKColorType type)
         {
-            var info = new SKImageInfo((int)data.Width, (int)data.Height, type);
+            SKImageInfo info = new SKImageInfo((int)data.Width, (int)data.Height, type);
 
-            var image = new SKBitmap(info);
+            SKBitmap image = new SKBitmap(info);
 
-            using var pSrc = data.Data!.MemoryLock();
+            using MemoryLock<byte> pSrc = data.Data!.MemoryLock();
 
             fixed (byte* pDst = image.GetPixelSpan())
                 PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, ImageUtils.GetPixelSizeByte(type));
@@ -76,8 +76,8 @@ namespace XrEngine.Compression
         }
         public static IList<TextureData> Encode(string fileName, int mipsLevels)
         {
-            using var file = File.OpenRead(fileName);
-            using var image = SKBitmap.Decode(file);
+            using FileStream file = File.OpenRead(fileName);
+            using SKBitmap image = SKBitmap.Decode(file);
             return Encode(image, mipsLevels);
         }
 
@@ -86,29 +86,29 @@ namespace XrEngine.Compression
             string? cacheFile = null;
             if (CachePath != null)
             {
-                var hash = Convert.ToHexString(MD5.HashData(data.Data!.AsSpan()));
+                string hash = Convert.ToHexString(MD5.HashData(data.Data!.AsSpan()));
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
 
                 if (File.Exists(cacheFile))
                 {
-                    using var readStream = File.OpenRead(cacheFile);
-                    var cacheData = PvrTranscoder.Instance.LoadTexture(readStream);
+                    using FileStream readStream = File.OpenRead(cacheFile);
+                    IList<TextureData> cacheData = PvrTranscoder.Instance.LoadTexture(readStream);
                     return cacheData;
                 }
             }
 
 
-            var skType = ImageUtils.GetSkFormat(data.Format);
+            SKColorType skType = ImageUtils.GetSkFormat(data.Format);
 
             bool useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SRgb24;
 
-            using var image = CreateImage(data, skType);
+            using SKBitmap image = CreateImage(data, skType);
 
-            using var bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
+            using SKBitmap bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
 
-            var result = Encode(bgrImage, mipsLevels, useSrgb);
+            IList<TextureData> result = Encode(bgrImage, mipsLevels, useSrgb);
 
-            foreach (var item in result)
+            foreach (TextureData item in result)
             {
                 if (mipsLevels == 0)
                     item.MipLevel = data.MipLevel;
@@ -118,7 +118,7 @@ namespace XrEngine.Compression
             if (cacheFile != null)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
-                using var writeStream = File.OpenWrite(cacheFile);
+                using FileStream writeStream = File.OpenWrite(cacheFile);
                 PvrTranscoder.Instance.SaveTexture(writeStream, result);
             }
 
@@ -128,13 +128,13 @@ namespace XrEngine.Compression
 
         public unsafe static IList<TextureData> Encode(SKBitmap image, int mipsLevels, bool useSrgb = false)
         {
-            var result = new List<TextureData>();
+            List<TextureData> result = new List<TextureData>();
 
             int level = 0;
 
             while (true)
             {
-                var texData = new TextureData
+                TextureData texData = new TextureData
                 {
                     Compression = TextureCompressionFormat.Etc2,
                     MipLevel = (uint)level,
@@ -157,16 +157,16 @@ namespace XrEngine.Compression
 
                 if (texData.Width != image.Width || texData.Height != image.Height)
                 {
-                    var pWidth = (int)MathF.Ceiling(texData.Width / 4f) * 4;
-                    var pHeight = (int)MathF.Ceiling(texData.Height / 4f) * 4;
+                    int pWidth = (int)MathF.Ceiling(texData.Width / 4f) * 4;
+                    int pHeight = (int)MathF.Ceiling(texData.Height / 4f) * 4;
 
-                    var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+                    SKSamplingOptions so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
 
                     curImage = image.Resize(new SKSizeI((int)texData.Width, (int)texData.Height), so);
 
                     if (pWidth != texData.Width || pHeight != texData.Height)
                     {
-                        var newImage = new SKBitmap(new SKImageInfo
+                        SKBitmap newImage = new SKBitmap(new SKImageInfo
                         {
                             Width = pWidth,
                             Height = pHeight,
@@ -195,7 +195,7 @@ namespace XrEngine.Compression
 
                 fixed (byte* pData = curImage.GetPixelSpan())
                 {
-                    var options = new EncodeOptions()
+                    EncodeOptions options = new EncodeOptions()
                     {
                         Bgr = image.ColorType == SKColorType.Bgra8888,
                         Linearize = false,
@@ -206,7 +206,7 @@ namespace XrEngine.Compression
                         Test = 0x11223344
                     };
 
-                    var outData = Encode((uint)curImage.Width, (uint)curImage.Height, pData, ref options, out var outSize);
+                    byte* outData = Encode((uint)curImage.Width, (uint)curImage.Height, pData, ref options, out uint outSize);
 
                     texData.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
                 }

@@ -1,4 +1,5 @@
-﻿namespace XrEditor.Nodes
+﻿
+namespace XrEditor.Nodes
 {
     public abstract class BaseNode<T> : IEditableNode where T : notnull
     {
@@ -13,9 +14,9 @@
 
         protected virtual string[] ComputeType(object value)
         {
-            var result = new List<string>();
+            List<string> result = new List<string>();
 
-            var curType = value.GetType()!;
+            Type? curType = value.GetType()!;
 
             while (curType != typeof(object))
             {
@@ -37,7 +38,7 @@
 
         public virtual IEnumerable<INode> Components => [];
 
-        public ICollection<string> Types 
+        public ICollection<string> Types
         {
             get
             {

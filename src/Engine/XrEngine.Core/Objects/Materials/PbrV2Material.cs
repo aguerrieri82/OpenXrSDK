@@ -75,7 +75,7 @@ namespace XrEngine
 
             public unsafe DynamicBuffer GetBuffer()
             {
-                var newSize = (sizeof(LightUniforms) * Max) + 16;
+                int newSize = (sizeof(LightUniforms) * Max) + 16;
 
                 if (_buffer.Size != newSize)
                 {
@@ -90,8 +90,8 @@ namespace XrEngine
 
                 fixed (LightUniforms* pArray = Lights)
                 {
-                    var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
-                    var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
+                    Span<LightUniforms> srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
+                    Span<LightUniforms> dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
                     srcSpan.CopyTo(dstSpan);
                 }
 
@@ -141,7 +141,7 @@ namespace XrEngine
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                ImageLight? ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
                 return ctx.LastGlobalUpdate?.LightsHash != ctx.LightsHash ||
                        (ctx.LastGlobalUpdate?.ShaderVersion != Version) ||
                        (ibl?.Version ?? -1) != _iblVersion;
@@ -149,14 +149,14 @@ namespace XrEngine
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-                var stage = bld.Context.Stage;
+                UpdateShaderStage stage = bld.Context.Stage;
 
                 if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
                     return;
 
-                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
+                ImageLight? imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
-                var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
+                bool hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
@@ -188,7 +188,7 @@ namespace XrEngine
 
                 if (bld.Context.ShadowMapProvider?.ShadowMap != null)
                 {
-                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
+                    ShadowMapMode mode = bld.Context.ShadowMapProvider.Options.Mode;
 
                     if (mode != ShadowMapMode.None)
                     {
@@ -208,14 +208,14 @@ namespace XrEngine
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
-                var envDepth = bld.Context.MainCamera?.Feature<IEnvDepthProvider>();
+                IEnvDepthProvider? envDepth = bld.Context.MainCamera?.Feature<IEnvDepthProvider>();
 
                 if (envDepth != null)
                 {
                     bld.AddFeature("HAS_ENV_DEPTH");
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        var texture = envDepth.Acquire(_depthCamera);
+                        Texture2D? texture = envDepth.Acquire(_depthCamera);
                         if (texture != null)
                             up.LoadTexture(texture, 8);
 
@@ -231,7 +231,7 @@ namespace XrEngine
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var result = new CameraUniforms
+                    CameraUniforms result = new CameraUniforms
                     {
                         ViewProj = ctx.PassCamera!.ViewProjection,
                         Position = ctx.PassCamera!.WorldPosition,
@@ -252,7 +252,7 @@ namespace XrEngine
                         Proj = ctx.PassCamera.Projection,
                     };
 
-                    var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
+                    Matrix4x4? light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
                     if (light != null)
                         result.LightSpaceMatrix = light.Value;
 
@@ -263,7 +263,7 @@ namespace XrEngine
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var curHash = (int)(bld.Context.Lights?.Sum(a => a.Version + a.ContentVersion) ?? -1);
+                    long curHash = (bld.Context.Lights?.Sum(a => a.Version + a.ContentVersion) ?? -1);
 
                     if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                         return null;
@@ -279,9 +279,9 @@ namespace XrEngine
                         };
                     }
 
-                    var lights = new List<LightUniforms>();
+                    List<LightUniforms> lights = new List<LightUniforms>();
 
-                    foreach (var light in bld.Context.Lights!)
+                    foreach (Light light in bld.Context.Lights!)
                     {
                         if (light is PointLight point)
                         {
@@ -315,7 +315,7 @@ namespace XrEngine
 
                 if (imgLight != null)
                 {
-                    var hasTransform = ForceIblTransform || imgLight.RotationY != 0 || imgLight.LightTransform != Matrix3x3.Identity;
+                    bool hasTransform = ForceIblTransform || imgLight.RotationY != 0 || imgLight.LightTransform != Matrix3x3.Identity;
 
                     if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
@@ -345,7 +345,7 @@ namespace XrEngine
             public bool NeedUpdate(Object3D model, long curVersion)
             {
                 //Get the word matrix trigger the update;
-                var wordMatrix = model.WorldMatrix;
+                Matrix4x4 wordMatrix = model.WorldMatrix;
                 return model.Transform.Version != curVersion;
             }
 
@@ -412,9 +412,9 @@ namespace XrEngine
                         return null;
 
                     //Get the word matrix trigger the update
-                    var modelWord = ctx.Model.WorldMatrix;
+                    Matrix4x4 modelWord = ctx.Model.WorldMatrix;
 
-                    var curVersion = ctx.Model.Transform.Version;
+                    long curVersion = ctx.Model.Transform.Version;
 
                     if (curVersion == ctx.CurrentBuffer.Version)
                         return null;
@@ -432,7 +432,7 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var material = new MaterialUniforms
+            MaterialUniforms material = new MaterialUniforms
             {
                 Color = Color,
                 Metalness = Metalness,
@@ -473,7 +473,7 @@ namespace XrEngine
 
             bld.LoadBuffer(ctx =>
             {
-                var curVersion = ContentVersion + Version;
+                long curVersion = ContentVersion + Version;
 
                 if (ctx.CurrentBuffer == null || curVersion == ctx.CurrentBuffer.Version)
                     return null;
@@ -491,7 +491,7 @@ namespace XrEngine
 
             if (_hosts.Count == 1)
             {
-                var planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
+                PlanarReflection? planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
 
                 if (planar != null)
                 {

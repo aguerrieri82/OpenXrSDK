@@ -120,7 +120,7 @@ namespace XrEditor
         {
             if (obj == null) return;
 
-            var tabControl = obj as TabControl;
+            TabControl? tabControl = obj as TabControl;
             if (tabControl == null)
             {
                 throw new InvalidOperationException("Cannot set TabContent.IsCached on object of type " + args.NewValue.GetType().Name +
@@ -149,7 +149,7 @@ namespace XrEditor
             const string xaml =
                 "<DataTemplate><Border b:TabContent.InternalTabControl=\"{Binding RelativeSource={RelativeSource AncestorType=TabControl}}\" /></DataTemplate>";
 
-            var context = new ParserContext();
+            ParserContext context = new ParserContext();
 
             context.XamlTypeMapper = new XamlTypeMapper(new string[0]);
             context.XamlTypeMapper.AddMappingProcessingInstruction("b", typeof(TabContent).Namespace, typeof(TabContent).Assembly.FullName);
@@ -157,18 +157,18 @@ namespace XrEditor
             context.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
             context.XmlnsDictionary.Add("b", "b");
 
-            var template = (DataTemplate)XamlReader.Parse(xaml, context);
+            DataTemplate template = (DataTemplate)XamlReader.Parse(xaml, context);
             return template;
         }
 
         private static void OnInternalTabControlChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
             if (obj == null) return;
-            var container = obj as Decorator;
+            Decorator? container = obj as Decorator;
 
             if (container == null)
             {
-                var message = "Cannot set TabContent.InternalTabControl on object of type " + obj.GetType().Name +
+                string message = "Cannot set TabContent.InternalTabControl on object of type " + obj.GetType().Name +
                     ". Only controls that derive from Decorator, such as Border can have a TabContent.InternalTabControl.";
                 throw new InvalidOperationException(message);
             }
@@ -179,14 +179,14 @@ namespace XrEditor
                 throw new InvalidOperationException("Value of TabContent.InternalTabControl cannot be of type " + args.NewValue.GetType().Name + ", it must be of type TabControl");
             }
 
-            var tabControl = (TabControl)args.NewValue;
-            var contentManager = GetContentManager(tabControl, container);
+            TabControl tabControl = (TabControl)args.NewValue;
+            ContentManager contentManager = GetContentManager(tabControl, container);
             contentManager.UpdateSelectedTab();
         }
 
         private static ContentManager GetContentManager(TabControl tabControl, Decorator container)
         {
-            var contentManager = (ContentManager)GetInternalContentManager(tabControl);
+            ContentManager contentManager = (ContentManager)GetInternalContentManager(tabControl);
             if (contentManager != null)
             {
                 /*
@@ -216,7 +216,7 @@ namespace XrEditor
 
         private static void EnsureContentTemplateIsNotModified(TabControl tabControl)
         {
-            var descriptor = DependencyPropertyDescriptor.FromProperty(TabControl.ContentTemplateProperty, typeof(TabControl));
+            DependencyPropertyDescriptor descriptor = DependencyPropertyDescriptor.FromProperty(TabControl.ContentTemplateProperty, typeof(TabControl));
             descriptor.AddValueChanged(tabControl, (sender, args) =>
             {
                 throw new InvalidOperationException("Cannot assign to TabControl.ContentTemplate when TabContent.IsCached is True. Use TabContent.Template instead");
@@ -251,15 +251,15 @@ namespace XrEditor
 
             private ContentControl? GetCurrentContent()
             {
-                var item = _tabControl.SelectedItem;
+                object item = _tabControl.SelectedItem;
                 if (item == null)
                     return null;
 
-                var tabItem = _tabControl.ItemContainerGenerator.ContainerFromItem(item);
+                DependencyObject tabItem = _tabControl.ItemContainerGenerator.ContainerFromItem(item);
                 if (tabItem == null)
                     return null;
 
-                var cachedContent = GetInternalCachedContent(tabItem);
+                ContentControl cachedContent = GetInternalCachedContent(tabItem);
                 if (cachedContent == null)
                 {
                     cachedContent = new ContentControl

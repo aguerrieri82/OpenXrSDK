@@ -15,10 +15,10 @@ namespace XrEngine.OpenGL
 
         protected GlSimpleProgram LoadProgram(GL gl, string fragmentSource, params string[] features)
         {
-            if (!_programs.TryGetValue(fragmentSource, out var program))
+            if (!_programs.TryGetValue(fragmentSource, out GlSimpleProgram? program))
             {
                 program = new GlSimpleProgram(gl, "fullscreen.vert", fragmentSource, str => Embedded.GetString<Material>(str));
-                foreach (var feature in features)
+                foreach (string feature in features)
                     program.AddFeature(feature);
                 program.Build();
                 _programs[fragmentSource] = program;

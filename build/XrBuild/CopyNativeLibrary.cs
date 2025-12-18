@@ -17,11 +17,11 @@ public class CopyNativeLibrary : Task
     {
         Log.LogMessage(MessageImportance.High, $"RuntimeIdentifier: {RuntimeIdentifier}");
 
-        var checkPath = $"runtimes\\{RuntimeIdentifier}\\native\\";
-        var output = new List<ITaskItem>();
-        foreach (var item in SourceFiles!)
+        string checkPath = $"runtimes\\{RuntimeIdentifier}\\native\\";
+        List<ITaskItem> output = new List<ITaskItem>();
+        foreach (ITaskItem item in SourceFiles!)
         {
-            var target = item.GetMetadata("TargetPath").Replace('/', '\\');
+            string target = item.GetMetadata("TargetPath").Replace('/', '\\');
 
             if (target.StartsWith(checkPath))
                 output.Add(item);

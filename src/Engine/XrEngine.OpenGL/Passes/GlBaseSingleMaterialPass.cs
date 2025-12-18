@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
 
         protected void UpdateMaterial(UpdateShaderContext ctx)
         {
-            var curStage = ctx.Stage;
+            UpdateShaderStage curStage = ctx.Stage;
 
             ctx.Stage = UpdateShaderStage.Material;
 
@@ -74,28 +74,28 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(_programInstance != null);
 
-            var updateContext = _renderer.UpdateContext;
+            GlUpdateContext updateContext = _renderer.UpdateContext;
 
             updateContext.UseInstanceDraw = false;
 
             bool firstUpdate = true;
 
-            foreach (var shader in layer.Content.Contents)
+            foreach (KeyValuePair<Shader, ShaderContentV2> shader in layer.Content.Contents)
             {
-                var shaderContent = shader.Value;
+                ShaderContentV2 shaderContent = shader.Value;
 
-                foreach (var material in shaderContent.Contents)
+                foreach (KeyValuePair<Material, MaterialContentV2> material in shaderContent.Contents)
                 {
-                    var matContent = material.Value;
+                    MaterialContentV2 matContent = material.Value;
 
                     if (matContent.IsHidden || !material.Key.WriteDepth)
                         continue;
 
                     updateContext.Stage = UpdateShaderStage.Material;
 
-                    var drawMaterial = matContent.ProgramInstance!.Material;
+                    ShaderMaterial drawMaterial = matContent.ProgramInstance!.Material;
 
-                    var upRes = UpdateProgram(updateContext, drawMaterial);
+                    UpdateProgramResult upRes = UpdateProgram(updateContext, drawMaterial);
 
                     if (upRes == UpdateProgramResult.Skip)
                         continue;
@@ -107,13 +107,13 @@ namespace XrEngine.OpenGL
                         firstUpdate = false;
                     }
 
-                    foreach (var vertex in matContent.Contents)
+                    foreach (KeyValuePair<EngineObject, VertexContentV2> vertex in matContent.Contents)
                     {
-                        var verContent = vertex.Value;
+                        VertexContentV2 verContent = vertex.Value;
                         if (verContent.IsHidden)
                             continue;
 
-                        var vHandler = verContent.VertexHandler!;
+                        GlVertexSourceHandle vHandler = verContent.VertexHandler!;
 
                         updateContext.ActiveComponents = verContent.ActiveComponents;
 
@@ -125,7 +125,7 @@ namespace XrEngine.OpenGL
                             verContent.Draw();
                         else
                         {
-                            foreach (var draw in verContent.Contents)
+                            foreach (DrawContent draw in verContent.Contents)
                             {
                                 if (!CanDraw(draw))
                                     continue;
@@ -146,7 +146,7 @@ namespace XrEngine.OpenGL
                         //vHandler.Unbind();
                     }
 
-         
+
                 }
             }
             _renderer.State.BindVertexArray(0);
@@ -157,20 +157,20 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(_programInstance != null);
 
-            var updateContext = _renderer.UpdateContext;
+            GlUpdateContext updateContext = _renderer.UpdateContext;
 
             updateContext.UseInstanceDraw = false;
 
-            foreach (var shader in layer.Content.ShaderContentsSorted!)
+            foreach (KeyValuePair<Shader, ShaderContent> shader in layer.Content.ShaderContentsSorted!)
             {
                 IEnumerable<VertexContent> vertices = shader.Value.ContentsSorted!;
 
                 if (SortByCameraDistance)
                     vertices = vertices.OrderBy(a => a.AvgDistance);
 
-                foreach (var vertex in vertices)
+                foreach (VertexContent vertex in vertices)
                 {
-                    var vHandler = vertex.VertexHandler!;
+                    GlVertexSourceHandle vHandler = vertex.VertexHandler!;
 
                     if (vHandler.NeedUpdate)
                         vHandler.Update();
@@ -179,16 +179,16 @@ namespace XrEngine.OpenGL
 
                     vHandler.Bind();
 
-                    foreach (var draw in vertex.Contents)
+                    foreach (DrawContent draw in vertex.Contents)
                     {
                         if (!CanDraw(draw))
                             continue;
 
                         updateContext.Model = draw.Object;
 
-                        var drawMaterial = draw.ProgramInstance!.Material;
+                        ShaderMaterial drawMaterial = draw.ProgramInstance!.Material;
 
-                        var upRes = UpdateProgram(updateContext, drawMaterial);
+                        UpdateProgramResult upRes = UpdateProgram(updateContext, drawMaterial);
 
                         if (upRes == UpdateProgramResult.Skip)
                             continue;

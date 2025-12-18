@@ -15,7 +15,7 @@ namespace XrEngine
 
         public static Texture2D FromHeightMap(TextureData data, float strength)
         {
-            using var skImage = ImageUtils.ToBitmap(data, false);
+            using SKBitmap? skImage = ImageUtils.ToBitmap(data, false);
 
             if (skImage == null)
                 throw new InvalidOperationException();
@@ -25,17 +25,17 @@ namespace XrEngine
 
         public static unsafe Texture2D FromHeightMap(SKBitmap img, float strength)
         {
-            using var blurred = ImageUtils.ApplyGaussianBlur(img, 5);
+            using SKBitmap blurred = ImageUtils.ApplyGaussianBlur(img, 5);
 
-            var width = blurred.Width;
-            var height = blurred.Height;
-            var pixelSize = blurred.BytesPerPixel;
+            int width = blurred.Width;
+            int height = blurred.Height;
+            int pixelSize = blurred.BytesPerPixel;
 
-            var res = MemoryBuffer.Create<byte>((uint)(width * height * 4));
+            IMemoryBuffer<byte> res = MemoryBuffer.Create<byte>((uint)(width * height * 4));
 
             fixed (byte* srcData = blurred.Bytes)
             {
-                var dstData = res.Lock();
+                byte* dstData = res.Lock();
 
 
                 for (int y = 1; y < height - 1; y++)
@@ -55,9 +55,9 @@ namespace XrEngine
                         float dX = (tl + 2 * l + bl) - (tr + 2 * r + br);
                         float dY = (tl + 2 * t + tr) - (bl + 2 * b + br);
 
-                        var normal = Vector3.Normalize(new Vector3(dX, dY, strength));
+                        Vector3 normal = Vector3.Normalize(new Vector3(dX, dY, strength));
 
-                        var dstOfs = (y * width + x) * 4;
+                        int dstOfs = (y * width + x) * 4;
 
                         dstData[dstOfs] = (byte)((normal.X * 0.5f + 0.5f) * 255);
                         dstData[dstOfs + 1] = (byte)((normal.Y * 0.5f + 0.5f) * 255);

@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
             ctx.BufferProvider = this;
             ctx.LastGlobalUpdate = _shaderUpdate;
 
-            var handlersChanged = !_lastGlobalHandler.SequenceEqual(globalHandlers);
+            bool handlersChanged = !_lastGlobalHandler.SequenceEqual(globalHandlers);
 
             if (_shaderUpdate == null || handlersChanged)
             {
@@ -37,17 +37,17 @@ namespace XrEngine.OpenGL
                 if (Shader is IShaderHandler shaderHandler)
                     _handlers.Add(shaderHandler);
 
-                foreach (var handler in globalHandlers.Where(a => a != null))
+                foreach (IShaderHandler? handler in globalHandlers.Where(a => a != null))
                     _handlers.Add(handler!);
             }
 
-            var needUpdate = _shaderUpdate == null || handlersChanged || _handlers.Any(a => a.NeedUpdateShader(ctx));
+            bool needUpdate = _shaderUpdate == null || handlersChanged || _handlers.Any(a => a.NeedUpdateShader(ctx));
 
             if (needUpdate)
             {
-                var globalBuilder = new ShaderUpdateBuilder(ctx);
+                ShaderUpdateBuilder globalBuilder = new ShaderUpdateBuilder(ctx);
 
-                foreach (var handler in _handlers)
+                foreach (IShaderHandler handler in _handlers)
                     handler.UpdateShader(globalBuilder);
 
                 _shaderUpdate = globalBuilder.Result;
@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
 
-            var buffer = (IBuffer<T>?)_bufferMap.Buffers[bufferId];
+            IBuffer<T>? buffer = (IBuffer<T>?)_bufferMap.Buffers[bufferId];
             if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
@@ -81,7 +81,7 @@ namespace XrEngine.OpenGL
             if (_shaderUpdate == null)
                 return;
 
-            foreach (var action in _shaderUpdate!.BufferUpdates!)
+            foreach (UpdateBufferAction action in _shaderUpdate!.BufferUpdates!)
                 action(ctx);
         }
 
@@ -91,7 +91,7 @@ namespace XrEngine.OpenGL
             if (_shaderUpdate == null)
                 return;
 
-            foreach (var action in _shaderUpdate.Actions!)
+            foreach (UpdateUniformAction action in _shaderUpdate.Actions!)
                 action(ctx, uniformProvider);
         }
 

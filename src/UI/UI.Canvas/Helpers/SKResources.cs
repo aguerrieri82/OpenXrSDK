@@ -12,15 +12,15 @@ namespace CanvasUI
 
         public static SKTypeface TypefaceFromRes(string resName)
         {
-            if (!_typefaces.TryGetValue(resName, out var result))
+            if (!_typefaces.TryGetValue(resName, out SKTypeface? result))
             {
-                var assembly = Assembly.GetCallingAssembly();
+                Assembly assembly = Assembly.GetCallingAssembly();
 
-                var name = assembly.GetManifestResourceNames().Where(a => a.Contains(resName)).FirstOrDefault();
+                string? name = assembly.GetManifestResourceNames().Where(a => a.Contains(resName)).FirstOrDefault();
                 if (name == null)
                     throw new NotSupportedException();
 
-                using (var stream = assembly.GetManifestResourceStream(name))
+                using (Stream? stream = assembly.GetManifestResourceStream(name))
                     result = SKFontManager.Default.CreateTypeface(stream);
 
                 _typefaces[resName] = result;
@@ -31,7 +31,7 @@ namespace CanvasUI
 
         public static SKTypeface Typeface(string familyName)
         {
-            if (!_typefaces.TryGetValue(familyName, out var result))
+            if (!_typefaces.TryGetValue(familyName, out SKTypeface? result))
             {
                 result = SKTypeface.FromFamilyName(familyName);
                 _typefaces[familyName] = result;
@@ -41,9 +41,9 @@ namespace CanvasUI
 
         public static SKFont Font(SKTypeface typeface, float size)
         {
-            var id = string.Concat("font_", typeface.FamilyName, "_", size);
+            string id = string.Concat("font_", typeface.FamilyName, "_", size);
 
-            if (!_fonts.TryGetValue(id, out var result))
+            if (!_fonts.TryGetValue(id, out SKFont? result))
             {
                 result = new SKFont(typeface, size);
                 result.Subpixel = true;
@@ -59,8 +59,8 @@ namespace CanvasUI
 
         public static SKPaint FillColor(Color color)
         {
-            var id = "fill_" + color.ToString();
-            if (!_paints.TryGetValue(id, out var paint))
+            string id = "fill_" + color.ToString();
+            if (!_paints.TryGetValue(id, out SKPaint? paint))
             {
                 paint = new SKPaint();
                 paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);
@@ -72,8 +72,8 @@ namespace CanvasUI
 
         public static SKPaint Stroke(Color color, float width)
         {
-            var id = string.Concat("stroke_", color.ToString(), "_", width);
-            if (!_paints.TryGetValue(id, out var paint))
+            string id = string.Concat("stroke_", color.ToString(), "_", width);
+            if (!_paints.TryGetValue(id, out SKPaint? paint))
             {
                 paint = new();
                 paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);
@@ -89,8 +89,8 @@ namespace CanvasUI
 
         public static SKPaint Stroke(Color color, float width, float dashSize)
         {
-            var id = string.Concat("stroke_", color.ToString(), "_", width, "_", dashSize);
-            if (!_paints.TryGetValue(id, out var paint))
+            string id = string.Concat("stroke_", color.ToString(), "_", width, "_", dashSize);
+            if (!_paints.TryGetValue(id, out SKPaint? paint))
             {
                 paint = new();
                 paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);

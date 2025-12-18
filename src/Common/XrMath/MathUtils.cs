@@ -8,7 +8,7 @@ namespace XrMath
         {
             fixed (float* pData = array)
             {
-                var span = new Span<Vector3>(pData, array.Length / 3);
+                Span<Vector3> span = new Span<Vector3>(pData, array.Length / 3);
                 return span.ToArray();
             }
         }
@@ -33,17 +33,17 @@ namespace XrMath
 
         public static Quaternion QuatFromForwardUp(Vector3 forward, Vector3 up)
         {
-            var lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
-            Matrix4x4.Invert(lookAt, out var rotMatrix);
+            Matrix4x4 lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
+            Matrix4x4.Invert(lookAt, out Matrix4x4 rotMatrix);
             return Quaternion.CreateFromRotationMatrix(rotMatrix);
         }
 
         public static Quaternion QuatAlignTangent(Vector3 tangent, Vector3 up)
         {
-            var right = Vector3.Normalize(Vector3.Cross(up, tangent));
-            var correctedUp = Vector3.Cross(tangent, right);
+            Vector3 right = Vector3.Normalize(Vector3.Cross(up, tangent));
+            Vector3 correctedUp = Vector3.Cross(tangent, right);
 
-            var rotationMatrix = new Matrix4x4(
+            Matrix4x4 rotationMatrix = new Matrix4x4(
                 right.X, right.Y, right.Z, 0,
                 correctedUp.X, correctedUp.Y, correctedUp.Z, 0,
                 tangent.X, tangent.Y, tangent.Z, 0,
@@ -55,10 +55,10 @@ namespace XrMath
 
         public static Quad3 QuadFromEdges(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
         {
-            var result = new Quad3();
+            Quad3 result = new Quad3();
 
-            var edge1 = p2 - p1;
-            var edge2 = p4 - p1;
+            Vector3 edge1 = p2 - p1;
+            Vector3 edge2 = p4 - p1;
 
             Vector3 normal = -Vector3.Normalize(Vector3.Cross(edge1, edge2));
 
@@ -76,7 +76,7 @@ namespace XrMath
             normal = Vector3.Normalize(normal);
 
             // Project the tangent onto the normal
-            var proj = normal * Vector3.Dot(tangent, normal);
+            Vector3 proj = normal * Vector3.Dot(tangent, normal);
 
             // Subtract the projection from the tangent to make it orthogonal to the normal
             tangent -= proj;
@@ -126,8 +126,8 @@ namespace XrMath
         {
             t = Math.Clamp(t, 0f, 1f);
 
-            var s = t * t * (3f - 2f * t);  
-            return from + (to - from) * s;  
+            float s = t * t * (3f - 2f * t);
+            return from + (to - from) * s;
         }
     }
 }

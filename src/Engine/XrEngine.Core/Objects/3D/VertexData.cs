@@ -8,11 +8,11 @@ namespace XrEngine
     {
         public static VertexData[] FromPos(float[] data)
         {
-            var result = new VertexData[data.Length / 3];
-            var di = 0;
+            VertexData[] result = new VertexData[data.Length / 3];
+            int di = 0;
             for (int i = 0; i < result.Length; i++)
             {
-                ref var item = ref result[i];
+                ref VertexData item = ref result[i];
 
                 item.Pos.X = data[di++];
                 item.Pos.Y = data[di++];
@@ -23,11 +23,11 @@ namespace XrEngine
 
         public static VertexData[] FromPosNormal(float[] data)
         {
-            var result = new VertexData[data.Length / 6];
-            var di = 0;
+            VertexData[] result = new VertexData[data.Length / 6];
+            int di = 0;
             for (int i = 0; i < result.Length; i++)
             {
-                ref var item = ref result[i];
+                ref VertexData item = ref result[i];
 
                 item.Pos.X = data[di++];
                 item.Pos.Y = data[di++];
@@ -43,11 +43,11 @@ namespace XrEngine
 
         public static VertexData[] FromPosNormalUV(float[] data)
         {
-            var result = new VertexData[data.Length / 8];
-            var di = 0;
+            VertexData[] result = new VertexData[data.Length / 8];
+            int di = 0;
             for (int i = 0; i < result.Length; i++)
             {
-                ref var item = ref result[i];
+                ref VertexData item = ref result[i];
 
                 item.Pos.X = data[di++];
                 item.Pos.Y = data[di++];

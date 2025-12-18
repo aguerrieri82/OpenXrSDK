@@ -36,7 +36,7 @@ namespace XrEngine.OpenXr
 
         public Object3D? AddChild(SceneModelInfo model)
         {
-            var obj = Factory.CreateModel(model);
+            Object3D? obj = Factory.CreateModel(model);
             if (obj != null)
                 AddChild(obj);
             return obj;
@@ -46,23 +46,23 @@ namespace XrEngine.OpenXr
         {
             _isSceneLoading = true;
 
-            var oculus = _app!.Plugin<OculusXrPlugin>();
+            OculusXrPlugin oculus = _app!.Plugin<OculusXrPlugin>();
 
             try
             {
-                var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter()
+                List<XrAnchor> anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter()
                 {
                     Components = XrAnchorComponent.Label | XrAnchorComponent.Bounds
                 });
 
-                foreach (var anchor in anchors!.Where(a => a.Labels != null))
+                foreach (XrAnchor? anchor in anchors!.Where(a => a.Labels != null))
                 {
                     if (anchor.Space == 0)
                         continue;
 
-                    var isMesh = anchor.Labels!.Contains("GLOBAL_MESH");
+                    bool isMesh = anchor.Labels!.Contains("GLOBAL_MESH");
 
-                    var info = new SceneModelInfo()
+                    SceneModelInfo info = new SceneModelInfo()
                     {
                         Labels = anchor.Labels,
                         AnchorId = anchor.Id,
@@ -73,9 +73,9 @@ namespace XrEngine.OpenXr
 
                     if (isMesh)
                     {
-                        var sceneMesh = oculus.GetSpaceTriangleMesh(info.Space);
+                        Mesh sceneMesh = oculus.GetSpaceTriangleMesh(info.Space);
 
-                        var geo = new Geometry3D
+                        Geometry3D geo = new Geometry3D
                         {
                             Indices = sceneMesh.Indices!,
                             ActiveComponents = VertexComponent.Position,
@@ -103,12 +103,12 @@ namespace XrEngine.OpenXr
                     else if (anchor.Labels!.Contains("DOOR_FRAME"))
                         info.Type = SceneModelType.Door;
 
-                    var model = Factory.CreateModel(info);
+                    Object3D? model = Factory.CreateModel(info);
 
                     if (model == null)
                         continue;
 
-                    var isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(info.Space).Contains(SpaceComponentTypeFB.LocatableFB);
+                    bool isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(info.Space).Contains(SpaceComponentTypeFB.LocatableFB);
 
                     if (isLocatable)
                     {

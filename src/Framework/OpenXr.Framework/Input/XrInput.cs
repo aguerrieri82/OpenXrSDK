@@ -47,7 +47,7 @@ namespace OpenXr.Framework
 
         public virtual ActionSuggestedBinding Initialize()
         {
-            var result = new ActionSuggestedBinding
+            ActionSuggestedBinding result = new ActionSuggestedBinding
             {
                 Binding = _app.StringToPath(_path),
                 Action = _action.Handle == 0 ? _app.CreateAction(_name, _name, _actionType) : _action
@@ -122,7 +122,7 @@ namespace OpenXr.Framework
 
         public override void Update(Space refSpace, long predictTime)
         {
-            var state = _app.GetActionStateFloat(_action, _subPath);
+            ActionStateFloat state = _app.GetActionStateFloat(_action, _subPath);
             _isActive = state.IsActive != 0;
             _isChanged = state.ChangedSinceLastSync != 0;
             _lastChangeTime = DateTime.UnixEpoch + TimeSpan.FromTicks(state.LastChangeTime);
@@ -142,7 +142,7 @@ namespace OpenXr.Framework
             if (_action.Handle == 0)
                 return;
 
-            var state = _app.GetActionStateBoolean(_action, _subPath);
+            ActionStateBoolean state = _app.GetActionStateBoolean(_action, _subPath);
             _isActive = state.IsActive != 0;
             _isChanged = state.ChangedSinceLastSync != 0;
             _lastChangeTime = DateTime.UnixEpoch + TimeSpan.FromTicks(state.LastChangeTime);
@@ -159,7 +159,7 @@ namespace OpenXr.Framework
 
         public override void Update(Space refSpace, long predictTime)
         {
-            var state = _app.GetActionStateVector2(_action, _subPath);
+            ActionStateVector2f state = _app.GetActionStateVector2(_action, _subPath);
             _isActive = state.IsActive != 0;
             _isChanged = state.ChangedSinceLastSync != 0;
             _lastChangeTime = DateTime.UnixEpoch + TimeSpan.FromTicks(state.LastChangeTime);
@@ -180,7 +180,7 @@ namespace OpenXr.Framework
 
         public override ActionSuggestedBinding Initialize()
         {
-            var result = base.Initialize();
+            ActionSuggestedBinding result = base.Initialize();
             _space = _app.CreateActionSpace(_action, _subPath);
             _app.SpacesTracker.Add(_space, TimeSpan.Zero);
             return result;
@@ -195,7 +195,7 @@ namespace OpenXr.Framework
             _isChanged = true;
             _lastChangeTime = DateTime.UtcNow;
 
-            var spaceInfo = _app.SpacesTracker.GetLastLocation(_space);
+            XrSpaceLocation? spaceInfo = _app.SpacesTracker.GetLastLocation(_space);
 
             if (spaceInfo != null && spaceInfo.IsValid)
             {
@@ -222,7 +222,7 @@ namespace OpenXr.Framework
 
         public override XrInputState GetState()
         {
-            var res = base.GetState();
+            XrInputState res = base.GetState();
             res.AngularVelocity = _angularVelocity;
             res.LinearVelocity = _linearVelocity;
             return res;

@@ -87,7 +87,7 @@ namespace XrEngine.OpenGL
 
             if (_depth != null)
             {
-                var depthAtt = GlUtils.IsDepthStencil(_depth.InternalFormat) ?
+                FramebufferAttachment depthAtt = GlUtils.IsDepthStencil(_depth.InternalFormat) ?
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
@@ -129,7 +129,7 @@ namespace XrEngine.OpenGL
                     0, 0, 2);
             }
 
-            _isDirty = true;    
+            _isDirty = true;
         }
 
         public void Detach(FramebufferAttachment attachment)
@@ -166,7 +166,7 @@ namespace XrEngine.OpenGL
                 _gl.CheckError();
             }
 
-            var status = _gl.CheckFramebufferStatus(Target);
+            GLEnum status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -179,9 +179,9 @@ namespace XrEngine.OpenGL
             if (Color == null)
                 throw new NotSupportedException();
 
-            if (!_attachments.TryGetValue(slot, out var obj))
+            if (!_attachments.TryGetValue(slot, out IGlRenderAttachment? obj))
             {
-                var glTex = Color.Clone(false);
+                GlTexture glTex = Color.Clone(false);
 
                 Bind();
                 BindAttachment(glTex, slot, true);

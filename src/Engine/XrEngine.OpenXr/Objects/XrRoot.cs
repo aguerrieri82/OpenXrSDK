@@ -34,7 +34,7 @@ namespace XrEngine.OpenXr
         {
             if (_xrApp.IsStarted && !_isInit)
             {
-                var oculus = _xrApp.Plugin<OculusXrPlugin>();
+                OculusXrPlugin oculus = _xrApp.Plugin<OculusXrPlugin>();
 
                 if (oculus != null)
                 {
@@ -43,14 +43,14 @@ namespace XrEngine.OpenXr
 
                         //var layout = oculus.GetSpaceRoomLayout(_xrApp.Stage);
 
-                        var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
+                        List<XrAnchor> anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
                         {
                             Components = XrAnchorComponent.All,
                             //Ids = [layout.FloorUuid.ToGuid()],
                             Labels = ["FLOOR"]
                         });
 
-                        var floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));
+                        XrAnchor? floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));
 
                         if (floor == null)
                             return;
@@ -65,7 +65,8 @@ namespace XrEngine.OpenXr
                             });
                         });
                     });
-                };
+                }
+                ;
 
                 Head?.AddComponent(new XrAnchorUpdate()
                 {
@@ -81,7 +82,7 @@ namespace XrEngine.OpenXr
 
         protected Group3D AddSceneRoot()
         {
-            var group = new Group3D()
+            Group3D group = new Group3D()
             {
                 Name = "SceneRoot"
             };
@@ -93,7 +94,7 @@ namespace XrEngine.OpenXr
 
         protected Group3D AddHead()
         {
-            var group = new Group3D
+            Group3D group = new Group3D
             {
                 Name = "Head"
             };
@@ -107,7 +108,7 @@ namespace XrEngine.OpenXr
 
         protected Group3D AddController(string path, string name, string modelFileName)
         {
-            var group = new Group3D
+            Group3D group = new Group3D
             {
                 Name = name,
             };
@@ -126,7 +127,7 @@ namespace XrEngine.OpenXr
 
                 if (input.IsChanged && input.IsActive)
                 {
-                    var pose = (Pose3)input.Value;
+                    Pose3 pose = (Pose3)input.Value;
                     group.WorldPosition = pose.Position;
                     group.WorldOrientation = pose.Orientation;
                 }
@@ -137,9 +138,9 @@ namespace XrEngine.OpenXr
             });
 
 
-            var assets = Context.Require<IAssetStore>();
+            IAssetStore assets = Context.Require<IAssetStore>();
 
-            var fullPath = assets.GetPath(modelFileName);
+            string fullPath = assets.GetPath(modelFileName);
 
             if (File.Exists(fullPath))
             {
@@ -150,9 +151,9 @@ namespace XrEngine.OpenXr
                 model.Transform.SetScale(1.06f);
                 model.Name = "Controller";
 
-                var texPath = assets.GetPath("Models/MetaQuestTouchPlus_ORM.png");
-                var tex = AssetLoader.Instance.Load<Texture2D>(texPath);
-                foreach (var mat in model.MaterialsDeep<IPbrMaterial>())
+                string texPath = assets.GetPath("Models/MetaQuestTouchPlus_ORM.png");
+                Texture2D tex = AssetLoader.Instance.Load<Texture2D>(texPath);
+                foreach (IPbrMaterial mat in model.MaterialsDeep<IPbrMaterial>())
                 {
                     if (mat.Name?.Contains("phong") == true)
                     {
@@ -160,7 +161,7 @@ namespace XrEngine.OpenXr
                         mat.OcclusionMap = tex;
                         mat.Roughness = 1;
                     }
-                
+
                 }
                 group.AddChild(model);
             }

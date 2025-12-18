@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Devices
+﻿namespace XrEngine.Devices
 {
     public struct MidiData
     {
@@ -17,7 +13,7 @@ namespace XrEngine.Devices
     {
         void Close();
 
-        ulong RefTimeMs { get; }    
+        ulong RefTimeMs { get; }
 
         event EventHandler<MidiData> DataReceived;
     }

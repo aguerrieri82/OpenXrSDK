@@ -152,30 +152,30 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBHandTrackingMesh>(null, _app.Instance, out _handMesh);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
 
-            var func = new PfnVoidFunction();
+            PfnVoidFunction func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
         }
 
         public unsafe string[] GetSpaceSemanticLabels(Space space)
         {
-            var labels = string.Join(',', LABELS);
+            string labels = string.Join(',', LABELS);
 
-            var support = new SemanticLabelsSupportInfoFB
+            SemanticLabelsSupportInfoFB support = new SemanticLabelsSupportInfoFB
             {
                 Type = StructureType.SemanticLabelsSupportInfoFB,
                 Flags = SemanticLabelsSupportFlagsFB.MultipleSemanticLabelsBitFB,
                 RecognizedLabels = (byte*)SilkMarshal.StringToPtr(labels)
             };
 
-            var result = new SemanticLabelsFB
+            SemanticLabelsFB result = new SemanticLabelsFB
             {
                 Type = StructureType.SemanticLabelsFB,
                 Next = &support
             };
 
             _app!.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
-            var buffer = new byte[result.BufferCountOutput];
+            byte[] buffer = new byte[result.BufferCountOutput];
             fixed (byte* pBuffer = buffer)
             {
                 result.Buffer = pBuffer;
@@ -189,7 +189,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe Task<Space> CreateAnchorAsync(Pose3 pose, Space refSpace)
         {
-            var info = new SpatialAnchorCreateInfoFB()
+            SpatialAnchorCreateInfoFB info = new SpatialAnchorCreateInfoFB()
             {
                 Type = StructureType.SpatialAnchorCreateInfoFB,
                 PoseInSpace = pose.ToPoseF(),
@@ -207,7 +207,7 @@ namespace OpenXr.Framework.Oculus
             if (!GetSpaceComponentEnabled(space, SpaceComponentTypeFB.StorableFB))
                 await SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.StorableFB, true);
 
-            var reqId = SaveSpaceRequest(space, saveLocal);
+            ulong reqId = SaveSpaceRequest(space, saveLocal);
 
             throw new NotImplementedException();
 
@@ -215,7 +215,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe ulong SaveSpaceRequest(Space space, bool saveLocal)
         {
-            var info = new SpaceSaveInfoFB()
+            SpaceSaveInfoFB info = new SpaceSaveInfoFB()
             {
                 Type = StructureType.SpaceSaveInfoFB,
                 Space = space,
@@ -237,7 +237,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe ulong EraseSpaceRequest(Space space, bool isLocal)
         {
-            var info = new SpaceEraseInfoFB()
+            SpaceEraseInfoFB info = new SpaceEraseInfoFB()
             {
                 Type = StructureType.SpaceEraseInfoFB,
                 Space = space,
@@ -253,26 +253,26 @@ namespace OpenXr.Framework.Oculus
 
         public Rect2Df GetSpaceBoundingBox2D(Space space)
         {
-            var result = new Rect2Df();
+            Rect2Df result = new Rect2Df();
             _app!.CheckResult(_scene!.GetSpaceBoundingBox2Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
             return result;
         }
 
         public Rect3DfFB GetSpaceBoundingBox3D(Space space)
         {
-            var result = new Rect3DfFB();
+            Rect3DfFB result = new Rect3DfFB();
             _app!.CheckResult(_scene!.GetSpaceBoundingBox3Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
             return result;
         }
 
         public bool GetSpaceComponentEnabled(Space space, SpaceComponentTypeFB componentType)
         {
-            var status = new SpaceComponentStatusFB()
+            SpaceComponentStatusFB status = new SpaceComponentStatusFB()
             {
                 Type = StructureType.SpaceComponentStatusFB
             };
 
-            var result = _spatial!.GetSpaceComponentStatusFB(space, componentType, ref status);
+            Result result = _spatial!.GetSpaceComponentStatusFB(space, componentType, ref status);
             if (result == Result.ErrorSpaceComponentNotSupportedFB)
                 return false;
 
@@ -283,7 +283,7 @@ namespace OpenXr.Framework.Oculus
 
         public ulong SetSpaceComponentStatusRequest(Space space, SpaceComponentTypeFB componentType, bool enabled)
         {
-            var info = new SpaceComponentStatusSetInfoFB
+            SpaceComponentStatusSetInfoFB info = new SpaceComponentStatusSetInfoFB
             {
                 Type = StructureType.SpaceComponentStatusSetInfoFB,
                 ComponentType = componentType,
@@ -301,9 +301,9 @@ namespace OpenXr.Framework.Oculus
         {
             lock (_queries)
             {
-                if (!_queries.TryGetValue(hash, out var query))
+                if (!_queries.TryGetValue(hash, out ActiveQuery? query))
                 {
-                    var reqId = action();
+                    ulong reqId = action();
 
                     query = new ActiveQuery
                     {
@@ -322,7 +322,7 @@ namespace OpenXr.Framework.Oculus
         {
             lock (_queries)
             {
-                var query = _queries.Values.FirstOrDefault(a => a.ReqId == reqId);
+                ActiveQuery? query = _queries.Values.FirstOrDefault(a => a.ReqId == reqId);
 
                 if (query == null)
                     return null;
@@ -337,7 +337,7 @@ namespace OpenXr.Framework.Oculus
         {
             uint count;
 
-            var result = new SpaceComponentTypeFB[10];
+            SpaceComponentTypeFB[] result = new SpaceComponentTypeFB[10];
 
             _app!.CheckResult(_spatial!.EnumerateSpaceSupportedComponentsFB(space, &count, result), "EnumerateSpaceSupportedComponentsFB");
 
@@ -348,13 +348,13 @@ namespace OpenXr.Framework.Oculus
 
         protected unsafe ulong QueryAllAnchorsRequest(Guid[]? ids)
         {
-            var hasIds = ids != null && ids.Length > 0;
+            bool hasIds = ids != null && ids.Length > 0;
 
             ids ??= new Guid[1];
 
             fixed (Guid* uuids = &ids[0])
             {
-                var filter = new SpaceUuidFilterInfoFB();
+                SpaceUuidFilterInfoFB filter = new SpaceUuidFilterInfoFB();
 
                 if (hasIds)
                 {
@@ -363,7 +363,7 @@ namespace OpenXr.Framework.Oculus
                     filter.Type = StructureType.SpaceUuidFilterInfoFB;
                 }
 
-                var query = new SpaceQueryInfoFB()
+                SpaceQueryInfoFB query = new SpaceQueryInfoFB()
                 {
                     Type = StructureType.SpaceQueryInfoFB,
                     QueryAction = SpaceQueryActionFB.LoadFB,
@@ -381,14 +381,14 @@ namespace OpenXr.Framework.Oculus
 
         protected unsafe SpaceQueryResultFB[] GetSpaceQueryResults(ulong reqId)
         {
-            var result = new SpaceQueryResultsFB()
+            SpaceQueryResultsFB result = new SpaceQueryResultsFB()
             {
                 Type = StructureType.SpaceQueryResultsFB,
             };
 
             _app!.CheckResult(_spatialQuery!.RetrieveSpaceQueryResultsFB(_app!.Session, reqId, ref result), "RetrieveSpaceQueryResultsFB");
 
-            var results = new SpaceQueryResultFB[(int)result.ResultCountOutput];
+            SpaceQueryResultFB[] results = new SpaceQueryResultFB[(int)result.ResultCountOutput];
 
             fixed (SpaceQueryResultFB* ptr = results)
             {
@@ -404,14 +404,14 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe Guid[] GetSpaceContainer(Space space)
         {
-            var result = new SpaceContainerFB
+            SpaceContainerFB result = new SpaceContainerFB
             {
                 Type = StructureType.SpaceContainerFB
             };
 
             _app!.CheckResult(_container!.GetSpaceContainerFB(_app!.Session, space, ref result), "GetSpaceContainerFB");
 
-            var uuids = stackalloc UuidEXT[(int)result.UuidCountOutput];
+            UuidEXT* uuids = stackalloc UuidEXT[(int)result.UuidCountOutput];
 
             result.Uuids = &uuids[0];
             result.UuidCapacityInput = result.UuidCountOutput;
@@ -427,20 +427,20 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe Mesh GetSpaceTriangleMesh(Space space)
         {
-            var info = new SpaceTriangleMeshGetInfoMETA
+            SpaceTriangleMeshGetInfoMETA info = new SpaceTriangleMeshGetInfoMETA
             {
                 Type = XR_TYPE_SPACE_TRIANGLE_MESH_GET_INFO_META
             };
 
-            var result = new SpaceTriangleMeshMETA
+            SpaceTriangleMeshMETA result = new SpaceTriangleMeshMETA
             {
                 Type = XR_TYPE_SPACE_TRIANGLE_MESH_META
             };
 
             _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
-            var vertexArray = new Vector3f[result.VertexCountOutput];
-            var indexArray = new uint[result.IndexCountOutput];
+            Vector3f[] vertexArray = new Vector3f[result.VertexCountOutput];
+            uint[] indexArray = new uint[result.IndexCountOutput];
 
             fixed (Vector3f* pVertex = vertexArray)
             fixed (uint* pIndex = indexArray)
@@ -461,9 +461,9 @@ namespace OpenXr.Framework.Oculus
 
         public IEnumerable<SpaceQueryResultFB> SpaceWithComponents(IEnumerable<SpaceQueryResultFB> spaces, params SpaceComponentTypeFB[] componets)
         {
-            foreach (var space in spaces)
+            foreach (SpaceQueryResultFB space in spaces)
             {
-                var caps = EnumerateSpaceSupportedComponentsFB(space.Space);
+                SpaceComponentTypeFB[] caps = EnumerateSpaceSupportedComponentsFB(space.Space);
                 if (componets.All(a => caps.Contains(a)))
                     yield return space;
             }
@@ -471,7 +471,7 @@ namespace OpenXr.Framework.Oculus
 
         public Task<Result> SetSpaceComponentStatusAsync(Space space, SpaceComponentTypeFB componentType, bool enabled)
         {
-            var hash = $"{space.Handle}_{componentType}";
+            string hash = $"{space.Handle}_{componentType}";
 
             return SubmitQuery<Result>(hash, () =>
                        SetSpaceComponentStatusRequest(space, componentType, enabled));
@@ -484,14 +484,14 @@ namespace OpenXr.Framework.Oculus
 
         public override void HandleEvent(ref EventDataBuffer buffer)
         {
-            var test = buffer.Type.ToString();
+            string test = buffer.Type.ToString();
             Debug.WriteLine(test);
 
             if (buffer.Type == StructureType.EventDataSpaceQueryCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
+                EventDataSpaceQueryCompleteFB data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
 
-                var query = QueryCompletion<Result>(data.RequestId);
+                TaskCompletionSource<Result>? query = QueryCompletion<Result>(data.RequestId);
 
                 query?.ScheduleCancel(TimeSpan.FromSeconds(5));
             }
@@ -499,22 +499,22 @@ namespace OpenXr.Framework.Oculus
 
             else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
+                EventDataSpaceSetStatusCompleteFB data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
 
-                var query = QueryCompletion<Result>(data.RequestId);
+                TaskCompletionSource<Result>? query = QueryCompletion<Result>(data.RequestId);
 
                 query?.SetResult(data.Result);
             }
 
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
+                EventDataSpaceQueryResultsAvailableFB data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
 
-                var query = QueryCompletion<SpaceQueryResultFB[]>(data.RequestId);
+                TaskCompletionSource<SpaceQueryResultFB[]>? query = QueryCompletion<SpaceQueryResultFB[]>(data.RequestId);
 
                 try
                 {
-                    var result = GetSpaceQueryResults(data.RequestId);
+                    SpaceQueryResultFB[] result = GetSpaceQueryResults(data.RequestId);
                     query?.SetResult(result);
                 }
                 catch (Exception ex)
@@ -525,31 +525,31 @@ namespace OpenXr.Framework.Oculus
 
             else if (buffer.Type == StructureType.EventDataSpatialAnchorCreateCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpatialAnchorCreateCompleteFB>();
+                EventDataSpatialAnchorCreateCompleteFB data = buffer.Convert().To<EventDataSpatialAnchorCreateCompleteFB>();
 
             }
 
             else if (buffer.Type == StructureType.EventDataSpaceSaveCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceSaveCompleteFB>();
+                EventDataSpaceSaveCompleteFB data = buffer.Convert().To<EventDataSpaceSaveCompleteFB>();
 
             }
             else if (buffer.Type == StructureType.EventDataSpaceEraseCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceEraseCompleteFB>();
+                EventDataSpaceEraseCompleteFB data = buffer.Convert().To<EventDataSpaceEraseCompleteFB>();
             }
         }
 
         public unsafe RoomLayoutFB GetSpaceRoomLayout(Space space)
         {
-            var result = new RoomLayoutFB
+            RoomLayoutFB result = new RoomLayoutFB
             {
                 Type = StructureType.RoomLayoutFB
             };
 
             _app!.CheckResult(_scene!.GetSpaceRoomLayoutFB(_app!.Session, space, ref result), "GetSpaceRoomLayoutFB");
 
-            var walls = new UuidEXT[result.WallUuidCountOutput];
+            UuidEXT[] walls = new UuidEXT[result.WallUuidCountOutput];
 
             fixed (UuidEXT* wallPtr = walls)
             {
@@ -563,12 +563,12 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe void UpdateFoveation(FoveationDynamicFB dynamic, FoveationLevelFB level, float offset)
         {
-            var create = new FoveationProfileCreateInfoFB()
+            FoveationProfileCreateInfoFB create = new FoveationProfileCreateInfoFB()
             {
                 Type = StructureType.FoveationProfileCreateInfoFB
             };
 
-            var info = new FoveationLevelProfileCreateInfoFB
+            FoveationLevelProfileCreateInfoFB info = new FoveationLevelProfileCreateInfoFB
             {
                 Type = StructureType.FoveationLevelProfileCreateInfoFB,
                 Dynamic = dynamic,
@@ -578,20 +578,20 @@ namespace OpenXr.Framework.Oculus
 
             create.Next = &info;
 
-            var profile = new FoveationProfileFB();
+            FoveationProfileFB profile = new FoveationProfileFB();
 
             _app!.CheckResult(_foveation!.CreateFoveationProfileFB(_app!.Session, in create, ref profile), "CreateFoveationProfileFB");
 
-            var update = new SwapchainStateFoveationFB
+            SwapchainStateFoveationFB update = new SwapchainStateFoveationFB
             {
                 Type = StructureType.SwapchainStateFoveationFB,
                 Profile = profile,
                 Flags = SwapchainStateFoveationFlagsFB.None,
             };
 
-            foreach (var proj in _app.Layers.List.OfType<XrProjectionLayer>())
+            foreach (XrProjectionLayer proj in _app.Layers.List.OfType<XrProjectionLayer>())
             {
-                foreach (var swapChain in proj.ColorSwapChains)
+                foreach (Swapchain swapChain in proj.ColorSwapChains)
                     _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
             }
 
@@ -619,13 +619,13 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe float GetSampleRate(Action action, ulong subActionPath = 0)
         {
-            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            HapticActionInfo info = new HapticActionInfo(StructureType.HapticActionInfo)
             {
                 Action = action,
                 SubactionPath = subActionPath
             };
 
-            var res = new DevicePcmSampleRateGetInfoFB(StructureType.DevicePcmSampleRateGetInfoFB);
+            DevicePcmSampleRateGetInfoFB res = new DevicePcmSampleRateGetInfoFB(StructureType.DevicePcmSampleRateGetInfoFB);
 
             _app!.CheckResult(_haptic!.GetDeviceSampleRateFB(_app!.Session, in info, ref res), "GetDeviceSampleRateFB");
 
@@ -634,7 +634,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe uint ApplyVibrationPcmFeedback(Action action, Span<float> buffer, float sampleRate, bool append, ulong subActionPath = 0)
         {
-            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            HapticActionInfo info = new HapticActionInfo(StructureType.HapticActionInfo)
             {
                 Action = action,
                 SubactionPath = subActionPath
@@ -644,7 +644,7 @@ namespace OpenXr.Framework.Oculus
 
             fixed (float* pBuffer = buffer)
             {
-                var vibration = new HapticPcmVibrationFB(StructureType.HapticPcmVibrationFB)
+                HapticPcmVibrationFB vibration = new HapticPcmVibrationFB(StructureType.HapticPcmVibrationFB)
                 {
                     SamplesConsumed = &result,
                     SampleRate = sampleRate,
@@ -663,7 +663,7 @@ namespace OpenXr.Framework.Oculus
             uint count = 0;
             _app!.CheckResult(_refreshRate!.EnumerateDisplayRefreshRatesFB(_app!.Session, 0, ref count, null), "EnumerateDisplayRefreshRates");
 
-            var result = new float[(int)count];
+            float[] result = new float[(int)count];
 
             fixed (float* pResult = result)
                 _app!.CheckResult(_refreshRate!.EnumerateDisplayRefreshRatesFB(_app!.Session, count, ref count, pResult), "EnumerateDisplayRefreshRates");
@@ -694,7 +694,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe TriangleMeshFB CreateTriangleMesh(uint* indices, uint indicesCount, Vector3f* vertices, uint verticesCount)
         {
-            var info = new TriangleMeshCreateInfoFB
+            TriangleMeshCreateInfoFB info = new TriangleMeshCreateInfoFB
             {
                 Type = StructureType.TriangleMeshCreateInfoFB,
                 Flags = TriangleMeshFlagsFB.None,
@@ -705,7 +705,7 @@ namespace OpenXr.Framework.Oculus
                 WindingOrder = WindingOrderFB.CcwFB
             };
 
-            var result = new TriangleMeshFB();
+            TriangleMeshFB result = new TriangleMeshFB();
 
             _app!.CheckResult(_mesh!.CreateTriangleMeshFB(_app!.Session, in info, ref result), "CreateTriangleMeshFB");
 
@@ -714,29 +714,29 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe XrHandMesh GetHandMesh(HandTrackerEXT tracker)
         {
-            var mesh = new HandTrackingMeshFB
+            HandTrackingMeshFB mesh = new HandTrackingMeshFB
             {
                 Type = StructureType.HandTrackingMeshFB
             };
 
-            var capState = new HandTrackingCapsulesStateFB()
+            HandTrackingCapsulesStateFB capState = new HandTrackingCapsulesStateFB()
             {
                 Type = StructureType.HandTrackingCapsulesStateFB,
             };
 
             _app!.CheckResult(_handMesh!.GetHandMeshFB(tracker, ref mesh), "GetHandMeshFB");
 
-            var jointBindPoses = new Posef[mesh.JointCountOutput];
-            var jointParents = new HandJointEXT[mesh.JointCountOutput];
-            var jointRadii = new float[mesh.JointCountOutput];
+            Posef[] jointBindPoses = new Posef[mesh.JointCountOutput];
+            HandJointEXT[] jointParents = new HandJointEXT[mesh.JointCountOutput];
+            float[] jointRadii = new float[mesh.JointCountOutput];
 
-            var vertexPositions = new Vector3f[mesh.VertexCountOutput];
-            var vertexNormals = new Vector3f[mesh.VertexCountOutput];
-            var vertexUVs = new Vector2f[mesh.VertexCountOutput];
-            var vertexBlendIndices = new Vector4D<short>[mesh.VertexCountOutput];
-            var vertexBlendWeights = new Vector4f[mesh.VertexCountOutput];
+            Vector3f[] vertexPositions = new Vector3f[mesh.VertexCountOutput];
+            Vector3f[] vertexNormals = new Vector3f[mesh.VertexCountOutput];
+            Vector2f[] vertexUVs = new Vector2f[mesh.VertexCountOutput];
+            Vector4D<short>[] vertexBlendIndices = new Vector4D<short>[mesh.VertexCountOutput];
+            Vector4f[] vertexBlendWeights = new Vector4f[mesh.VertexCountOutput];
 
-            var indices = new short[mesh.IndexCountOutput];
+            short[] indices = new short[mesh.IndexCountOutput];
 
             fixed (Posef* pjointBindPoses = jointBindPoses)
             fixed (HandJointEXT* pjointParents = jointParents)
@@ -768,19 +768,19 @@ namespace OpenXr.Framework.Oculus
                 _app!.CheckResult(_handMesh!.GetHandMeshFB(tracker, ref mesh), "GetHandMeshFB");
             }
 
-            var result = new XrHandMesh();
+            XrHandMesh result = new XrHandMesh();
             result.Joints = new XrHandJoint[mesh.JointCountOutput];
             result.Vertices = new XrHandVertex[mesh.VertexCountOutput];
             result.Indices = new uint[mesh.IndexCountOutput];
 
-            for (var i = 0; i < mesh.JointCountOutput; i++)
+            for (int i = 0; i < mesh.JointCountOutput; i++)
             {
                 result.Joints[i].BindPose = jointBindPoses[i];
                 result.Joints[i].Parent = jointParents[i];
                 result.Joints[i].Radii = jointRadii[i];
             }
 
-            for (var i = 0; i < mesh.VertexCountOutput; i++)
+            for (int i = 0; i < mesh.VertexCountOutput; i++)
             {
                 result.Vertices[i].Pos = vertexPositions[i];
                 result.Vertices[i].Normal = vertexNormals[i];
@@ -789,7 +789,7 @@ namespace OpenXr.Framework.Oculus
                 result.Vertices[i].BlendWeight = vertexBlendWeights[i];
             }
 
-            for (var i = 0; i < mesh.IndexCountOutput; i++)
+            for (int i = 0; i < mesh.IndexCountOutput; i++)
                 result.Indices[i] = (uint)indices[i];
 
             result.Capsules = capState.Capsules.AsSpan().ToArray();

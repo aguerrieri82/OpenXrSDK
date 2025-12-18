@@ -32,7 +32,7 @@ namespace XrEngine.Audio
             if (inputLen == _inputLen && sampleRate == _sampleRate)
                 return;
 
-            var windowSize = FFtSize;
+            int windowSize = FFtSize;
 
             _hopSize = windowSize / 4;
             _numFrames = (inputLen - windowSize) / _hopSize + 1;
@@ -57,7 +57,7 @@ namespace XrEngine.Audio
         {
             Debug.Assert(_fftIn != null && _fftOut != null && _prevPhase != null && _shiftedSpectrum != null && _phaseAccum != null);
 
-            var windowSize = FFtSize;
+            int windowSize = FFtSize;
 
             if (_numFrames > 1)
             {
@@ -69,7 +69,7 @@ namespace XrEngine.Audio
 
             for (int frame = 0; frame < _numFrames; frame++)
             {
-                var frameOfs = frame * _hopSize;
+                int frameOfs = frame * _hopSize;
 
                 for (int i = 0; i < _fftIn.Length; i++)
                     _fftIn.Pointer[i] = input[frameOfs + i];
@@ -86,17 +86,17 @@ namespace XrEngine.Audio
                 // Phase vocoder adjustment
                 if (_numFrames > 1)
                 {
-                    var phaseFactor = (2.0 * Math.PI * _hopSize / _sampleRate);
+                    double phaseFactor = (2.0 * Math.PI * _hopSize / _sampleRate);
 
                     for (int i = 0; i < _shiftedSpectrum.Length; i++)
                     {
-                        var magnitude = _shiftedSpectrum.Pointer[i].Magnitude;
-                        var phase = _shiftedSpectrum.Pointer[i].Phase;
+                        double magnitude = _shiftedSpectrum.Pointer[i].Magnitude;
+                        double phase = _shiftedSpectrum.Pointer[i].Phase;
 
-                        var deltaPhase = phase - _prevPhase[i];
+                        double deltaPhase = phase - _prevPhase[i];
                         _prevPhase[i] = phase;
 
-                        var trueFreq = deltaPhase / phaseFactor;
+                        double trueFreq = deltaPhase / phaseFactor;
                         _phaseAccum[i] += trueFreq;
 
                         _shiftedSpectrum.Pointer[i] = Complex.FromPolarCoordinates(magnitude, _phaseAccum[i]);

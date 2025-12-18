@@ -36,7 +36,7 @@
 
             _gizmos.Clear();
 
-            foreach (var draw in _drawGizmos)
+            foreach (IDrawGizmos draw in _drawGizmos)
             {
                 if (draw.IsEnabled)
                     draw.DrawGizmos(_gizmos);
@@ -63,12 +63,12 @@
         {
             _drawGizmos.Clear();
 
-            foreach (var obj in this.DescendantsOrSelf())
+            foreach (Object3D obj in this.DescendantsOrSelf())
             {
                 if (obj is IDrawGizmos draw)
                     _drawGizmos.Add(draw);
 
-                foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
+                foreach (IDrawGizmos component in obj.Components<IComponent>().OfType<IDrawGizmos>())
                     _drawGizmos.Add(component);
             }
         }
@@ -77,7 +77,7 @@
         {
             _app = app;
 
-            foreach (var obj in this.TypeLayerContent<Object3D>())
+            foreach (Object3D obj in this.TypeLayerContent<Object3D>())
                 NotifyChanged(obj, ObjectChangeType.SceneAdd);
         }
 
@@ -109,12 +109,12 @@
                 ContentVersion++;
             }
 
-            foreach (var listener in _changeListener)
+            foreach (IObjectChangeListener listener in _changeListener)
                 listener.NotifyChanged(sender, change);
 
             if (_app != null)
             {
-                foreach (var listener in _app.ChangeListeners)
+                foreach (IObjectChangeListener listener in _app.ChangeListeners)
                     listener.NotifyChanged(sender, change);
             }
         }

@@ -15,7 +15,7 @@ namespace Common.Interop
 
         public static nint Allocate(int size, object? owner)
         {
-            var result = Marshal.AllocHGlobal(size);
+            nint result = Marshal.AllocHGlobal(size);
             GC.AddMemoryPressure(size);
 #if DEBUG
             _blocks[result] = new MemoryBlock { Data = result, Size = size, Owner = new WeakReference(owner) };

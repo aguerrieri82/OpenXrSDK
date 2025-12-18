@@ -65,22 +65,22 @@ namespace XrEngine
             if (_version != _geometry.Version)
                 Update();
 
-            var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            Ray3 localRay = ray.Transform(_host!.WorldMatrixInverse);
 
             if (!_geometry.Bounds.Intersects(localRay.ToLine(1000f), out _))
                 return null;
 
-            var span = _triangles.AsSpan();
+            Span<Triangle3> span = _triangles.AsSpan();
 
             Collision? collision = null;
 
-            for (var i = 0; i < span.Length; i++)
+            for (int i = 0; i < span.Length; i++)
             {
-                var point = localRay.Intersects(span[i], out var _);
+                Vector3? point = localRay.Intersects(span[i], out float _);
                 if (point != null)
                 {
-                    var worldPoint = point.Value.Transform(_host.WorldMatrix);
-                    var distance = Vector3.Distance(worldPoint, ray.Origin);
+                    Vector3 worldPoint = point.Value.Transform(_host.WorldMatrix);
+                    float distance = Vector3.Distance(worldPoint, ray.Origin);
 
                     if (collision == null || distance < collision.Distance)
                     {

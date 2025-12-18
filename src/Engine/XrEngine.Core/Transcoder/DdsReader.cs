@@ -198,9 +198,9 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            using var memStream = stream.EnsureSeek();
+            using Stream memStream = stream.EnsureSeek();
 
-            var file = memStream.ReadStruct<DDS_FILE>();
+            DDS_FILE file = memStream.ReadStruct<DDS_FILE>();
 
             if (file.magic != 0x20534444)
                 throw new InvalidOperationException();
@@ -213,7 +213,7 @@ namespace XrEngine
 
             if (file.header.ddspf.dwFourCC == 0x30315844)
             {
-                var dx10 = memStream.ReadStruct<DDS_HEADER_DXT10>();
+                DDS_HEADER_DXT10 dx10 = memStream.ReadStruct<DDS_HEADER_DXT10>();
 
                 switch (dx10.dxgiFormat)
                 {

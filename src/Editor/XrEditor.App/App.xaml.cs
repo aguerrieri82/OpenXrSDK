@@ -63,7 +63,7 @@ namespace XrEditor
                 e.Handled = true; // Prevent crash
             };
 
-            foreach (var res in _viewManager.Resources)
+            foreach (ResourceDictionary res in _viewManager.Resources)
                 Resources.MergedDictionaries.Add(res);
 
             MainWindow.Style = Resources["CustomWindowStyle"] as Style;

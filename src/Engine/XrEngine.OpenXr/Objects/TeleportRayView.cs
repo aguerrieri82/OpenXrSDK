@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenXr
 {
     public class TeleportRayView : TriangleMesh
     {
-         readonly PathMaterial _material;
+        readonly PathMaterial _material;
 
         public TeleportRayView()
         {
@@ -26,7 +27,7 @@ namespace XrEngine.OpenXr
 
         public void Update(IEnumerable<Vector3> points, bool isActive)
         {
-            var oldCount = _material.Points.Length;
+            int oldCount = _material.Points.Length;
 
             _material.Points = points.ToArray();
 
@@ -58,15 +59,15 @@ namespace XrEngine.OpenXr
 
         protected void Build()
         {
-            var builder = new MeshBuilder();
+            MeshBuilder builder = new MeshBuilder();
 
-            var path = new Vector2[Segments];
-            for (var i = 0; i < Segments; i++)
+            Vector2[] path = new Vector2[Segments];
+            for (int i = 0; i < Segments; i++)
                 path[i] = new Vector2(0, i);
 
-            var pathPoly = new Poly2D() { Points = path };
+            Poly2D pathPoly = new Poly2D() { Points = path };
 
-            var circle = new Circle2D()
+            Poly2 circle = new Circle2D()
             {
                 Radius = Radius
             }.ToPoly2(10, true);
@@ -77,9 +78,9 @@ namespace XrEngine.OpenXr
 
             Geometry.ActiveComponents |= VertexComponent.Tangent;
 
-            for (var i = 0; i < Geometry.Vertices.Length; i++)
+            for (int i = 0; i < Geometry.Vertices.Length; i++)
             {
-                var uv = Geometry.Vertices[i].UV;
+                Vector2 uv = Geometry.Vertices[i].UV;
                 Geometry.Vertices[i].Tangent = new Vector4(1, 1, 1, uv.Y);
             }
         }

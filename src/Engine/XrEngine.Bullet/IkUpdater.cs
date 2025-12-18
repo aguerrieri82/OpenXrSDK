@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
-using System.Text;
-using XrMath;
-using static XrEngine.Bullet.BulletLib;
+﻿using static XrEngine.Bullet.BulletLib;
 
 namespace XrEngine.Bullet
 {
     public class IkUpdater : Behavior<Object3D>
     {
-        Dictionary<IkNode, Object3D> _targets = [];
+        readonly Dictionary<IkNode, Object3D> _targets = [];
 
 
         public IkUpdater()
@@ -25,9 +19,9 @@ namespace XrEngine.Bullet
 
             int i = 0;
 
-            foreach (var effector in Solver.Effectors)
+            foreach (IkNode effector in Solver.Effectors)
             {
-                if (_targets.TryGetValue(effector, out var obj))
+                if (_targets.TryGetValue(effector, out Object3D? obj))
                     Solver.SetTarget(effector, obj.WorldPosition);
                 i++;
             }
@@ -38,14 +32,14 @@ namespace XrEngine.Bullet
 
         public void SetTarget(string name, Object3D obj)
         {
-            var effector = Solver?.Effectors.First(a => a.Name == name);
+            IkNode? effector = Solver?.Effectors.First(a => a.Name == name);
             if (effector != null)
                 SetTarget(effector, obj);
         }
 
         public void SetTarget(IkNode effector, Object3D obj)
         {
-            _targets[effector] = obj;   
+            _targets[effector] = obj;
         }
 
 

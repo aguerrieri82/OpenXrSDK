@@ -100,7 +100,7 @@ namespace PhysX.Framework
 
         public PhysicsMaterial CreateOrGetMaterial(PhysicsMaterialInfo info)
         {
-            var result = info.ForceNew ? null : _materials.FirstOrDefault(a =>
+            PhysicsMaterial? result = info.ForceNew ? null : _materials.FirstOrDefault(a =>
                 a.StaticFriction == info.StaticFriction &&
                 a.DynamicFriction == info.DynamicFriction &&
                 a.Restitution == info.Restitution);
@@ -115,8 +115,8 @@ namespace PhysX.Framework
 
         public PhysicsMaterial CreateMaterial(PhysicsMaterialInfo info, bool shared = false)
         {
-            var material = _physics->CreateMaterialMut(info.StaticFriction, info.DynamicFriction, info.Restitution);
-            var result = new PhysicsMaterial(material, this);
+            PxMaterial* material = _physics->CreateMaterialMut(info.StaticFriction, info.DynamicFriction, info.Restitution);
+            PhysicsMaterial result = new PhysicsMaterial(material, this);
             if (shared)
                 _materials.Add(result);
             return result;
@@ -124,21 +124,21 @@ namespace PhysX.Framework
 
         public PhysicsGeometry CreateBox(Vector3 halfSize)
         {
-            var geo = PxBoxGeometry_new_1(halfSize);
+            PxBoxGeometry geo = PxBoxGeometry_new_1(halfSize);
 
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsGeometry CreateSphere(float radius)
         {
-            var geo = PxSphereGeometry_new(radius);
+            PxSphereGeometry geo = PxSphereGeometry_new(radius);
 
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsGeometry CreateCapsule(float radius, float height)
         {
-            var geo = PxCapsuleGeometry_new(radius, height);
+            PxCapsuleGeometry geo = PxCapsuleGeometry_new(radius, height);
 
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
@@ -147,7 +147,7 @@ namespace PhysX.Framework
         {
             PxTriangleMeshCookingResult result;
 
-            var desc = new PxTriangleMeshDesc();
+            PxTriangleMeshDesc desc = new PxTriangleMeshDesc();
             desc.points.data = Unsafe.AsPointer(ref vertices[0]);
             desc.points.stride = 12;
             desc.points.count = (uint)vertices.Length;
@@ -155,13 +155,13 @@ namespace PhysX.Framework
             desc.triangles.data = Unsafe.AsPointer(ref indices[0]);
             desc.triangles.stride = 12;
 
-            var curScale = new PxTolerancesScale()
+            PxTolerancesScale curScale = new PxTolerancesScale()
             {
                 length = tolerance,
                 speed = _tolerancesScale.speed
             };
 
-            var param = curScale.CookingParamsNew();
+            PxCookingParams param = curScale.CookingParamsNew();
 
             /*
             var allocator = phys_PxGetAllocatorCallback();
@@ -173,14 +173,14 @@ namespace PhysX.Framework
             outStream->Delete();
             */
 
-            var mesh = param.PhysPxCreateTriangleMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
+            PxTriangleMesh* mesh = param.PhysPxCreateTriangleMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
 
-            var meshScale = new PxMeshScale
+            PxMeshScale meshScale = new PxMeshScale
             {
                 scale = scale
             };
 
-            var geo = PxTriangleMeshGeometry_new(mesh, &meshScale, 0);
+            PxTriangleMeshGeometry geo = PxTriangleMeshGeometry_new(mesh, &meshScale, 0);
 
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
@@ -189,7 +189,7 @@ namespace PhysX.Framework
         {
             PxConvexMeshCookingResult result;
 
-            var desc = new PxConvexMeshDesc();
+            PxConvexMeshDesc desc = new PxConvexMeshDesc();
             desc.points.data = Unsafe.AsPointer(ref vertices[0]);
             desc.points.stride = 12;
             desc.points.count = (uint)vertices.Length;
@@ -206,9 +206,9 @@ namespace PhysX.Framework
             desc.quantizedCount = 100;
 
             desc.flags = PxConvexFlags.ComputeConvex | PxConvexFlags.DisableMeshValidation;
-            var curScale = _tolerancesScale;
+            PxTolerancesScale curScale = _tolerancesScale;
 
-            var param = curScale.CookingParamsNew();
+            PxCookingParams param = curScale.CookingParamsNew();
 
 
             /*
@@ -217,33 +217,33 @@ namespace PhysX.Framework
                 return null;
             */
 
-            var mesh = param.PhysPxCreateConvexMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
+            PxConvexMesh* mesh = param.PhysPxCreateConvexMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
 
-            var meshScale = new PxMeshScale
+            PxMeshScale meshScale = new PxMeshScale
             {
                 scale = scale
             };
 
-            var geo = PxConvexMeshGeometry_new(mesh, &meshScale, 0);
+            PxConvexMeshGeometry geo = PxConvexMeshGeometry_new(mesh, &meshScale, 0);
 
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsShape CreateShape(PhysicsShapeInfo info)
         {
-            var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
-            var result = new PhysicsShape(shape, info.Geometry!, this);
+            PxShape* shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
+            PhysicsShape result = new PhysicsShape(shape, info.Geometry!, this);
             return result;
         }
 
         public PhysicsRevoluteJoint CreateRevoluteJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
         {
-            var tr0 = pose0.ToPxTransform();
-            var tr1 = pose1.ToPxTransform();
+            PxTransform tr0 = pose0.ToPxTransform();
+            PxTransform tr1 = pose1.ToPxTransform();
 
-            var handle = _physics->PhysPxRevoluteJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+            PxRevoluteJoint* handle = _physics->PhysPxRevoluteJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
 
-            var result = new PhysicsRevoluteJoint(handle, this);
+            PhysicsRevoluteJoint result = new PhysicsRevoluteJoint(handle, this);
             result._actor0 = actor0;
             result._actor1 = actor1;
             return result;
@@ -251,12 +251,12 @@ namespace PhysX.Framework
 
         public PhysicsDistanceJoint CreateDistanceJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
         {
-            var tr0 = pose0.ToPxTransform();
-            var tr1 = pose1.ToPxTransform();
+            PxTransform tr0 = pose0.ToPxTransform();
+            PxTransform tr1 = pose1.ToPxTransform();
 
-            var handle = _physics->PhysPxDistanceJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+            PxDistanceJoint* handle = _physics->PhysPxDistanceJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
 
-            var result = new PhysicsDistanceJoint(handle, this);
+            PhysicsDistanceJoint result = new PhysicsDistanceJoint(handle, this);
             result._actor0 = actor0;
             result._actor1 = actor1;
             return result;
@@ -264,12 +264,12 @@ namespace PhysX.Framework
 
         public PhysicsFixedJoint CreateFixedJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
         {
-            var tr0 = pose0.ToPxTransform();
-            var tr1 = pose1.ToPxTransform();
+            PxTransform tr0 = pose0.ToPxTransform();
+            PxTransform tr1 = pose1.ToPxTransform();
 
-            var handle = _physics->PhysPxFixedJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+            PxFixedJoint* handle = _physics->PhysPxFixedJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
 
-            var result = new PhysicsFixedJoint(handle, this);
+            PhysicsFixedJoint result = new PhysicsFixedJoint(handle, this);
             result._actor0 = actor0;
             result._actor1 = actor1;
             return result;
@@ -277,12 +277,12 @@ namespace PhysX.Framework
 
         public PhysicsD6Joint CreateD6Joint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
         {
-            var tr0 = pose0.ToPxTransform();
-            var tr1 = pose1.ToPxTransform();
+            PxTransform tr0 = pose0.ToPxTransform();
+            PxTransform tr1 = pose1.ToPxTransform();
 
-            var handle = _physics->PhysPxD6JointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+            PxD6Joint* handle = _physics->PhysPxD6JointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
 
-            var result = new PhysicsD6Joint(handle, this);
+            PhysicsD6Joint result = new PhysicsD6Joint(handle, this);
             result._actor0 = actor0;
             result._actor1 = actor1;
             return result;
@@ -290,12 +290,12 @@ namespace PhysX.Framework
 
         public PhysicsSphericalJoint CreateSphericalJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
         {
-            var tr0 = pose0.ToPxTransform();
-            var tr1 = pose1.ToPxTransform();
+            PxTransform tr0 = pose0.ToPxTransform();
+            PxTransform tr1 = pose1.ToPxTransform();
 
-            var handle = _physics->PhysPxSphericalJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+            PxSphericalJoint* handle = _physics->PhysPxSphericalJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
 
-            var result = new PhysicsSphericalJoint(handle, this);
+            PhysicsSphericalJoint result = new PhysicsSphericalJoint(handle, this);
             result._actor0 = actor0;
             result._actor1 = actor1;
 
@@ -305,7 +305,7 @@ namespace PhysX.Framework
         {
             PxActor* actor = null;
             PhysicsRigidActor? result;
-            var pxTrans = info.Pose.ToPxTransform();
+            PxTransform pxTrans = info.Pose.ToPxTransform();
 
             switch (info.Type)
             {
@@ -322,7 +322,7 @@ namespace PhysX.Framework
                     throw new NotSupportedException($"{info.Type} not found");
             }
 
-            foreach (var shape in info.Shapes.Skip(1))
+            foreach (PhysicsShape? shape in info.Shapes.Skip(1))
                 result.AddShape(shape);
 
             /*
@@ -339,9 +339,9 @@ namespace PhysX.Framework
 
             _actors[result.Id] = result;
 
-            foreach (var shape in info.Shapes)
+            foreach (PhysicsShape shape in info.Shapes)
             {
-                var data = shape.SimulationFilterData;
+                PxFilterData data = shape.SimulationFilterData;
                 data.word0 = result.Id;
                 shape.SimulationFilterData = data;
             }
@@ -352,28 +352,28 @@ namespace PhysX.Framework
 
         protected virtual internal void NotifyContact(PxContactPairHeader2 header)
         {
-            var actor1 = GetObject<PhysicsRigidActor>(header.actor1);
-            var actor2 = GetObject<PhysicsRigidActor>(header.actor2);
+            PhysicsRigidActor actor1 = GetObject<PhysicsRigidActor>(header.actor1);
+            PhysicsRigidActor actor2 = GetObject<PhysicsRigidActor>(header.actor2);
 
-            var pairs = new ContactPair[header.nbPairs];
+            ContactPair[] pairs = new ContactPair[header.nbPairs];
 
-            for (var i = 0; i < pairs.Length; i++)
+            for (int i = 0; i < pairs.Length; i++)
             {
-                var pair = header.pairs[i];
+                PxContactPair2 pair = header.pairs[i];
 
-                var newPair = new ContactPair();
+                ContactPair newPair = new ContactPair();
                 newPair.Item0.Shape = GetObject<PhysicsShape>(pair.shape1);
                 newPair.Item1.Shape = GetObject<PhysicsShape>(pair.shape2);
                 newPair.Points = pair.contactCount > 0 ? new PhysicsContactPoint[pair.contactCount] : [];
 
                 if (pair.contactCount > 0)
                 {
-                    var points = new PxContactPairPoint[pair.contactCount];
+                    PxContactPairPoint[] points = new PxContactPairPoint[pair.contactCount];
 
                     fixed (PxContactPairPoint* pBuffer = points)
                         PxContactPair_extractContacts((PxContactPair*)&pair, pBuffer, (uint)points.Length);
 
-                    for (var j = 0; j < pair.contactCount; j++)
+                    for (int j = 0; j < pair.contactCount; j++)
                     {
                         newPair.Points[j] = new PhysicsContactPoint
                         {
@@ -390,13 +390,13 @@ namespace PhysX.Framework
 
             if (header.extraDataStreamSize > 0)
             {
-                var iterator = PxContactPairExtraDataIterator_new(header.extraDataStream, header.extraDataStreamSize);
+                PxContactPairExtraDataIterator iterator = PxContactPairExtraDataIterator_new(header.extraDataStream, header.extraDataStreamSize);
 
                 while (iterator.NextItemSetMut())
                 {
                     if (iterator.postSolverVelocity != null)
                     {
-                        var vel = *(PxContactPairVelocity2*)iterator.postSolverVelocity;
+                        PxContactPairVelocity2 vel = *(PxContactPairVelocity2*)iterator.postSolverVelocity;
                         pairs[iterator.contactPairIndex].Item0.PostVelocity.Linear = vel.linearVelocity1;
                         pairs[iterator.contactPairIndex].Item0.PostVelocity.Angular = vel.angularVelocity1;
                         pairs[iterator.contactPairIndex].Item1.PostVelocity.Linear = vel.linearVelocity2;
@@ -405,7 +405,7 @@ namespace PhysX.Framework
 
                     if (iterator.preSolverVelocity != null)
                     {
-                        var vel = *(PxContactPairVelocity2*)iterator.preSolverVelocity;
+                        PxContactPairVelocity2 vel = *(PxContactPairVelocity2*)iterator.preSolverVelocity;
                         pairs[iterator.contactPairIndex].Item0.PreVelocity.Linear = vel.linearVelocity1;
                         pairs[iterator.contactPairIndex].Item0.PreVelocity.Angular = vel.angularVelocity1;
                         pairs[iterator.contactPairIndex].Item1.PreVelocity.Linear = vel.linearVelocity2;
@@ -414,7 +414,7 @@ namespace PhysX.Framework
 
                     if (iterator.eventPose != null)
                     {
-                        var pose = *(PxContactPairPose2*)iterator.eventPose;
+                        PxContactPairPose2 pose = *(PxContactPairPose2*)iterator.eventPose;
                         pairs[iterator.contactPairIndex].Item0.Pose = pose.globalPose1.ToPose3();
                         pairs[iterator.contactPairIndex].Item1.Pose = pose.globalPose2.ToPose3();
                     }
@@ -428,7 +428,7 @@ namespace PhysX.Framework
 
         public unsafe void CreateScene(Vector3 gravity)
         {
-            var sceneDesc = PxSceneDesc_new(_physics->GetTolerancesScale());
+            PxSceneDesc sceneDesc = PxSceneDesc_new(_physics->GetTolerancesScale());
 
             sceneDesc.gravity = gravity;
             sceneDesc.cpuDispatcher = (PxCpuDispatcher*)_dispatcher;
@@ -457,7 +457,7 @@ namespace PhysX.Framework
 
             if (_pvd != null)
             {
-                var pvdClient = _scene!.PvdClient;
+                PxPvdSceneClient* pvdClient = _scene!.PvdClient;
 
                 if (pvdClient != null)
                 {
@@ -472,18 +472,18 @@ namespace PhysX.Framework
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static unsafe PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
         {
-            var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
-            var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
+            PhysicsRigidActor actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
+            PhysicsRigidActor actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
 
-            var commonGroups = info->filterData0.word1 & info->filterData1.word1;
+            uint commonGroups = info->filterData0.word1 & info->filterData1.word1;
 
             if (commonGroups != 0)
             {
-                var groups = Current!.CollideGroups;
-                var mask = 1;
-                var allFalse = true;
+                List<CollideGroup> groups = Current!.CollideGroups;
+                int mask = 1;
+                bool allFalse = true;
 
-                for (var i = 0; i < groups.Count; i++)
+                for (int i = 0; i < groups.Count; i++)
                 {
                     if ((commonGroups & mask) != 0)
                     {
@@ -526,7 +526,7 @@ namespace PhysX.Framework
 
                 fixed (byte* bytePointer = Encoding.UTF8.GetBytes(options.DebugHost))
                 {
-                    var transport = phys_PxDefaultPvdSocketTransportCreate(bytePointer, options.DebugPort, 10000);
+                    PxPvdTransport* transport = phys_PxDefaultPvdSocketTransportCreate(bytePointer, options.DebugPort, 10000);
                     Task.Run(() =>
                     {
                         _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
@@ -545,7 +545,7 @@ namespace PhysX.Framework
                 speed = options.SpeedTolerance
             };
 
-            var curScale = _tolerancesScale;
+            PxTolerancesScale curScale = _tolerancesScale;
 
             _physics = phys_PxCreatePhysics(
                 VersionNumber,
@@ -572,13 +572,13 @@ namespace PhysX.Framework
             uint error;
             float curTime = 0;
 
-            var test = _pvd->IsConnectedMut(false);
+            bool test = _pvd->IsConnectedMut(false);
 
             while (curTime < deltaSecs)
             {
                 if (curTime + stepSizeSecs > deltaSecs)
                 {
-                    var curDeltaTime = deltaSecs - curTime;
+                    float curDeltaTime = deltaSecs - curTime;
                     if (curDeltaTime < 0.005)
                         break;
                     _lastDeltaTime = curDeltaTime;
@@ -646,7 +646,7 @@ namespace PhysX.Framework
 
         public T GetOrCreateObject<T>(void* handle)
         {
-            if (_objects.TryGetValue(new nint(handle), out var obj))
+            if (_objects.TryGetValue(new nint(handle), out WeakReference? obj))
                 return (T)obj.Target!;
             return (T)Activator.CreateInstance(typeof(T), (nint)handle, this)!;
         }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Devices
+﻿namespace XrEngine.Devices
 {
     public class MidiDeviceInfo
     {
-        public string? Id { get; set; } 
+        public string? Id { get; set; }
 
         public string? Name { get; set; }
 

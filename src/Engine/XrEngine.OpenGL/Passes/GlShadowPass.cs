@@ -77,8 +77,8 @@ namespace XrEngine.OpenGL
 
         protected override void Initialize()
         {
-            var glDeptTex = _depthTexture.ToGlTexture();
-            var glColorTex = _depthTextureCopy?.ToGlTexture();
+            GlTexture glDeptTex = _depthTexture.ToGlTexture();
+            GlTexture? glColorTex = _depthTextureCopy?.ToGlTexture();
 
             _frameBuffer = new GlTextureFrameBuffer(_gl);
             _frameBuffer.Configure(glColorTex, glDeptTex, 1);
@@ -133,13 +133,13 @@ namespace XrEngine.OpenGL
         {
             _lightCamera.CreateViewFromDirection(_light!.Direction, Vector3.UnitY);
 
-            var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints();
-            var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
+            Vector3[] frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints();
+            Bounds3 frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
 
-            var receiveBounds = castLayer.WorldBounds;
-            var receiveBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View);
+            Bounds3 receiveBounds = castLayer.WorldBounds;
+            Bounds3 receiveBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View);
 
-            if (frustumLightBounds.Intersects(receiveBoundsLight, out var lightBounds))
+            if (frustumLightBounds.Intersects(receiveBoundsLight, out Bounds3 lightBounds))
             {
                 _lightCamera.Far = -lightBounds.Min.Z;
                 _lightCamera.Near = 0.01f;
@@ -150,11 +150,11 @@ namespace XrEngine.OpenGL
         protected override bool BeginRender(Camera camera)
         {
             //Debug.Assert(camera.Scene != null);
-            var shadowRenderLayer = SelectLayers().First();
-            var scene = shadowRenderLayer.Scene!;
-            var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
-            var castLayer = scene.EnsureLayer<CastShadowsLayer>();
-            var frame = scene.App!.RenderContext.Frame;
+            IGlLayer shadowRenderLayer = SelectLayers().First();
+            Scene3D scene = shadowRenderLayer.Scene!;
+            ReceiveShadowsLayer recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
+            CastShadowsLayer castLayer = scene.EnsureLayer<CastShadowsLayer>();
+            long frame = scene.App!.RenderContext.Frame;
 
             if (shadowRenderLayer.Version == _layerVersion && (shadowRenderLayer.IsEmpty || !recLayer.Content.Any()))
                 return false;
@@ -221,6 +221,6 @@ namespace XrEngine.OpenGL
 
         ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap;
 
-        Texture2D? IShadowMapProvider.ShadowMap => IsEnabled ?  DepthTexture : null;
+        Texture2D? IShadowMapProvider.ShadowMap => IsEnabled ? DepthTexture : null;
     }
 }

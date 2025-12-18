@@ -11,17 +11,17 @@ namespace OpenXr.Framework.Oculus
     {
         public METAEnvironmentDepth(XR xr, Instance instance)
         {
-            var fun = new PfnVoidFunction();
+            PfnVoidFunction fun = new PfnVoidFunction();
 
-            foreach (var prop in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+            foreach (FieldInfo prop in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
-                var propType = prop.FieldType;
+                Type propType = prop.FieldType;
                 if (!propType.IsSubclassOf(typeof(Delegate)))
                     continue;
 
-                var name = "xr" + prop.Name;
+                string name = "xr" + prop.Name;
 
-                var res = xr.GetInstanceProcAddr(instance, name, ref fun);
+                Result res = xr.GetInstanceProcAddr(instance, name, ref fun);
                 if (res != Result.Success)
                     throw new NotSupportedException(name);
 

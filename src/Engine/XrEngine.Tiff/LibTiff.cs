@@ -277,21 +277,21 @@ namespace XrEngine.Tiff
         public static unsafe double[] GetDoubleArrayField(this Tiff tiff, TiffTag tag)
         {
             double* data;
-            TIFFGetField(tiff, tag, out var count, &data);
+            TIFFGetField(tiff, tag, out int count, &data);
             return new Span<double>(data, count).ToArray();
         }
 
         public static unsafe ushort[] GetShortArrayField(this Tiff tiff, TiffTag tag)
         {
             short* data;
-            TIFFGetField(tiff, tag, out var count, &data);
+            TIFFGetField(tiff, tag, out int count, &data);
             return new Span<ushort>(data, count).ToArray();
         }
 
         public static unsafe string GetStringField(this Tiff tiff, TiffTag tag)
         {
             byte* data;
-            TIFFGetField(tiff, tag, out var count, &data);
+            TIFFGetField(tiff, tag, out int count, &data);
             return Encoding.ASCII.GetString(new Span<byte>(data, count)).Trim('\0');
         }
 
@@ -304,16 +304,16 @@ namespace XrEngine.Tiff
 
         public static unsafe TextureData Read(this Tiff tiff, bool flipY = false)
         {
-            var w = GetIntField(tiff, TiffTag.ImageWidth);
-            var h = GetIntField(tiff, TiffTag.ImageLength);
-            var tw = GetIntField(tiff, TiffTag.TileWidth);
-            var th = GetIntField(tiff, TiffTag.TileHeight);
-            var bps = GetIntField(tiff, TiffTag.BitsPerSample);
-            var sf = (SampleFormat)GetIntField(tiff, TiffTag.SampleFormat);
-            var pm = (TiffPhotometric)GetIntField(tiff, TiffTag.Photometric);
+            int w = GetIntField(tiff, TiffTag.ImageWidth);
+            int h = GetIntField(tiff, TiffTag.ImageLength);
+            int tw = GetIntField(tiff, TiffTag.TileWidth);
+            int th = GetIntField(tiff, TiffTag.TileHeight);
+            int bps = GetIntField(tiff, TiffTag.BitsPerSample);
+            SampleFormat sf = (SampleFormat)GetIntField(tiff, TiffTag.SampleFormat);
+            TiffPhotometric pm = (TiffPhotometric)GetIntField(tiff, TiffTag.Photometric);
 
 
-            var result = new TextureData
+            TextureData result = new TextureData
             {
                 Width = (uint)w,
                 Height = (uint)h
@@ -360,24 +360,24 @@ namespace XrEngine.Tiff
             else
                 throw new NotSupportedException();
 
-            var ps = (bps / 8);
-            var lineSize = w * ps;
+            int ps = (bps / 8);
+            int lineSize = w * ps;
 
-            var buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
+            IMemoryBuffer<byte> buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
             result.Data = buffer;
 
-            using var data = buffer.MemoryLock();
+            using MemoryLock<byte> data = buffer.MemoryLock();
 
             if (flipY)
             {
                 if (tw > 0)
                 {
-                    var tileSize = (uint)TIFFTileSize(tiff);
-                    var tileBuf = MemoryBuffer.Create<byte>(tileSize);
+                    uint tileSize = (uint)TIFFTileSize(tiff);
+                    IMemoryBuffer<byte> tileBuf = MemoryBuffer.Create<byte>(tileSize);
 
-                    using var tileBufData = buffer.MemoryLock();
+                    using MemoryLock<byte> tileBufData = buffer.MemoryLock();
 
-                    var tLineSize = tileSize / th;
+                    long tLineSize = tileSize / th;
 
                     for (uint y = 0; y < h; y += (uint)th) // Iterate over tiles vertically
                     {
@@ -385,10 +385,10 @@ namespace XrEngine.Tiff
                         {
                             TIFFReadTile(tiff, tileBufData, x, y, 0, 0);
 
-                            var curTh = Math.Min(h - y, th);
-                            var mainBufOfs = data.Data + (x * ps) + ((h - y - 1) * lineSize);
-                            var tileBufOfs = tileBufData.Data;
-                            var cutTLineSize = Math.Min(tLineSize, (w - x) * ps);
+                            long curTh = Math.Min(h - y, th);
+                            byte* mainBufOfs = data.Data + (x * ps) + ((h - y - 1) * lineSize);
+                            byte* tileBufOfs = tileBufData.Data;
+                            long cutTLineSize = Math.Min(tLineSize, (w - x) * ps);
 
                             for (uint y1 = 0; y1 < curTh; y1++)
                             {
@@ -402,7 +402,7 @@ namespace XrEngine.Tiff
                 }
                 else
                 {
-                    for (var y = 0; y < h; y++)
+                    for (int y = 0; y < h; y++)
                         TIFFReadScanline(tiff, data.Data + ((h - y - 1) * lineSize), y, 0);
                 }
 
@@ -411,12 +411,12 @@ namespace XrEngine.Tiff
             {
                 if (tw > 0)
                 {
-                    var tileSize = (uint)TIFFTileSize(tiff);
-                    var tileBuf = MemoryBuffer.Create<byte>(tileSize);
+                    uint tileSize = (uint)TIFFTileSize(tiff);
+                    IMemoryBuffer<byte> tileBuf = MemoryBuffer.Create<byte>(tileSize);
 
-                    using var tileBufData = buffer.MemoryLock();
+                    using MemoryLock<byte> tileBufData = buffer.MemoryLock();
 
-                    var tLineSize = tileSize / th;
+                    long tLineSize = tileSize / th;
 
                     for (uint y = 0; y < h; y += (uint)th) // Iterate over tiles vertically
                     {
@@ -424,10 +424,10 @@ namespace XrEngine.Tiff
                         {
                             TIFFReadTile(tiff, tileBufData, x, y, 0, 0);
 
-                            var curTh = Math.Min(h - y, th);
-                            var mainBufOfs = data.Data + (x * ps) + (y * lineSize);
-                            var tileBufOfs = tileBufData.Data;
-                            var cutTLineSize = Math.Min(tLineSize, (w - x) * ps);
+                            long curTh = Math.Min(h - y, th);
+                            byte* mainBufOfs = data.Data + (x * ps) + (y * lineSize);
+                            byte* tileBufOfs = tileBufData.Data;
+                            long cutTLineSize = Math.Min(tLineSize, (w - x) * ps);
 
                             for (uint y1 = 0; y1 < curTh; y1++)
                             {
@@ -440,7 +440,7 @@ namespace XrEngine.Tiff
                     }
                 }
 
-                for (var y = 0; y < h; y++)
+                for (int y = 0; y < h; y++)
                     TIFFReadScanline(tiff, data.Data + (y * lineSize), y, 0);
             }
 
@@ -450,9 +450,9 @@ namespace XrEngine.Tiff
 
         public static unsafe GeoDirectoryEntry[] GetGeoDirectory(this Tiff tiff)
         {
-            var data = GetShortArrayField(tiff, TiffTag.GeoKeyDirectory);
+            ushort[] data = GetShortArrayField(tiff, TiffTag.GeoKeyDirectory);
 
-            var header = new GeoDirectoryHeader
+            GeoDirectoryHeader header = new GeoDirectoryHeader
             {
                 Version = data[0],
                 Revision = data[1],
@@ -460,11 +460,11 @@ namespace XrEngine.Tiff
                 KeyCount = data[3]
             };
 
-            var result = new List<GeoDirectoryEntry>();
+            List<GeoDirectoryEntry> result = new List<GeoDirectoryEntry>();
 
-            var ascii = GetStringField(tiff, TiffTag.GeoAsciiParamsTag);
+            string ascii = GetStringField(tiff, TiffTag.GeoAsciiParamsTag);
 
-            var doubles = GetDoubleArrayField(tiff, TiffTag.GeoDoubleParamsTag);
+            double[] doubles = GetDoubleArrayField(tiff, TiffTag.GeoDoubleParamsTag);
 
             object GetValue(GeoDirectoryRawEntry entry)
             {
@@ -484,9 +484,9 @@ namespace XrEngine.Tiff
                 throw new NotSupportedException();
             }
 
-            for (var i = 4; i < data.Length; i += 4)
+            for (int i = 4; i < data.Length; i += 4)
             {
-                var entry = new GeoDirectoryRawEntry
+                GeoDirectoryRawEntry entry = new GeoDirectoryRawEntry
                 {
                     Key = (GeoTag)data[i],
                     TagLocation = data[i + 1],

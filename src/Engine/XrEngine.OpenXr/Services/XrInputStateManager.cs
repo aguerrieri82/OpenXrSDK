@@ -6,7 +6,7 @@ namespace XrEngine.OpenXr
     {
         public IXrInput Read(string key, IXrInput? curObj, Type objType, IStateContainer container)
         {
-            var name = container.Read<string>(key);
+            string name = container.Read<string>(key);
             return XrApp.Current!.Inputs[name];
         }
 

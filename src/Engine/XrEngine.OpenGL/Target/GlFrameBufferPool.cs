@@ -23,7 +23,7 @@ namespace XrEngine.OpenGL
 
         protected GlTexture CreateDepth(GlTexture color, uint arraySize)
         {
-            var depthTex = new GlTexture(_gl)
+            GlTexture depthTex = new GlTexture(_gl)
             {
                 MinFilter = TextureMinFilter.Nearest,
                 MagFilter = TextureMagFilter.Nearest,
@@ -46,27 +46,27 @@ namespace XrEngine.OpenGL
 
         public IGlRenderTarget GetRenderTarget(uint colorTex, uint sampleCount)
         {
-            if (!_targets.TryGetValue(colorTex, out var target))
+            if (!_targets.TryGetValue(colorTex, out IGlRenderTarget? target))
             {
-                var glColor = GlTexture.Attach(_gl, colorTex);
+                GlTexture glColor = GlTexture.Attach(_gl, colorTex);
 
                 GlTexture glDepth;
 
                 if (_multiView)
                 {
-                    var multiView = new GlMultiViewRenderTarget(_gl);
+                    GlMultiViewRenderTarget multiView = new GlMultiViewRenderTarget(_gl);
                     glDepth = CreateDepth(glColor, 2);
                     multiView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     target = multiView;
                 }
                 else
                 {
-                    var singleView = new GlTextureRenderTarget(_gl);
+                    GlTextureRenderTarget singleView = new GlTextureRenderTarget(_gl);
 
                     if (/*sampleCount == 1 &&*/ !OpenGLRender.Current!.Options.UseDepthPass)
                     {
-                        var renderBuf = new GlRenderBuffer(_gl);
-                        var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
+                        GlRenderBuffer renderBuf = new GlRenderBuffer(_gl);
+                        InternalFormat intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
 
                         renderBuf.Update(glColor.Width, glColor.Height, sampleCount, intFormat);
                         singleView.FrameBuffer.Configure(glColor, renderBuf, sampleCount);
@@ -88,7 +88,7 @@ namespace XrEngine.OpenGL
 
         public void Clear()
         {
-            foreach (var item in _targets)
+            foreach (KeyValuePair<uint, IGlRenderTarget> item in _targets)
                 item.Value.Dispose();
             _targets.Clear();
         }

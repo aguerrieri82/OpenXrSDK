@@ -66,21 +66,21 @@ namespace XrEngine.OpenXr
 
             self.ConfigureApp(e =>
              {
-                 var inputs = e.GetInputs<IXrBasicInteractionProfile>();
+                 IXrBasicInteractionProfile inputs = e.GetInputs<IXrBasicInteractionProfile>();
                  XrInteractionProfileHand curHand = hand == ControllerHand.Left ? inputs.Left! : inputs.Right!;
 
-                 var pointer = new XrInputPointer
+                 XrInputPointer pointer = new XrInputPointer
                  {
                      PoseInput = curHand.AimPose,
                      RightButton = curHand.SqueezeClick!,
                      LeftButton = curHand.TriggerClick!,
                  };
 
-                 var trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.8f;
+                 Func<bool> trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.8f;
 
                  target ??= e.App.ActiveScene!.AddComponent<SceneTeleportTarget>();
 
-                 var teleport = new InputTeleport()
+                 InputTeleport teleport = new InputTeleport()
                  {
                      Pointer = pointer,
                      IsTriggerActive = trigger,
@@ -94,7 +94,7 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddRightPointer(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
-            var inputs = e.Inputs;
+            IXrBasicInteractionProfile? inputs = e.Inputs;
 
             e.App.ActiveScene!.AddComponent(new XrInputPointer
             {
@@ -110,9 +110,9 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string pointerName = "RightController") => self.ConfigureApp(e =>
         {
-            var inputs = e.GetInputs<XrOculusTouchController>();
+            XrOculusTouchController inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
+            RayPointerCollider rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
@@ -126,7 +126,7 @@ namespace XrEngine.OpenXr
             UseRightController().
             ConfigureApp(e =>
         {
-            var inputs = e.GetInputs<XrOculusTouchController>();
+            XrOculusTouchController inputs = e.GetInputs<XrOculusTouchController>();
 
             e.App!.ActiveScene!.AddComponent(new InputGrabber(
                 inputs.Right!.GripPose!,
@@ -140,16 +140,16 @@ namespace XrEngine.OpenXr
                 inputs.Left!.SqueezeValue!,
                 inputs.Left!.TriggerValue!));
 
-            foreach (var hand in e.App.ActiveScene.Descendants<OculusHandView>())
+            foreach (OculusHandView hand in e.App.ActiveScene.Descendants<OculusHandView>())
                 hand.AddComponent(new HandGrabber());
         });
 
 
         public static XrEngineAppBuilder UseSceneMesh(this XrEngineAppBuilder self, bool arMode, bool addPhysics = true) => self.ConfigureApp(e =>
         {
-            var sceneView = new OculusSceneView();
+            OculusSceneView sceneView = new OculusSceneView();
 
-            var factory = (DefaultSceneModelFactory)sceneView.Factory;
+            DefaultSceneModelFactory factory = (DefaultSceneModelFactory)sceneView.Factory;
 
             Material? material = null;
             if (arMode)
@@ -267,14 +267,14 @@ namespace XrEngine.OpenXr
                 if (e.App.Renderer is not OpenGLRender openGl)
                     return;
 
-                var passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+                XrPassthroughLayer? passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
                 if (passTh == null)
                 {
                     passTh = new XrPassthroughLayer();
                     e.XrApp.Layers.List.Insert(0, passTh);
                 }
 
-                var camera = e.App.ActiveScene?.ActiveCamera;
+                Camera? camera = e.App.ActiveScene?.ActiveCamera;
                 camera?.AddComponent(new OculusEnvDepthProvider(e.XrApp));
             });
             return self;

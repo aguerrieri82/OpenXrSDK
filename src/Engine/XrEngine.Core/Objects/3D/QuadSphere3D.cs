@@ -26,8 +26,8 @@ namespace XrEngine
             // Generate initial cube quads
             (List<Vector3>, List<uint>) GenerateCubeQuads()
             {
-                var vertices = new List<Vector3>();
-                var indices = new List<uint>();
+                List<Vector3> vertices = new List<Vector3>();
+                List<uint> indices = new List<uint>();
 
                 Vector3[] data = [
                    Vector3.Normalize(new Vector3(-1, -1, -1)),
@@ -57,8 +57,8 @@ namespace XrEngine
             // Subdivide quads and project onto sphere
             (List<Vector3>, List<uint>) SubdivideAndProject(List<Vector3> vertices, List<uint> indices)
             {
-                var newVertices = new List<Vector3>();
-                var newIndices = new List<uint>();
+                List<Vector3> newVertices = new List<Vector3>();
+                List<uint> newIndices = new List<uint>();
 
                 for (int i = 0; i < indices.Count; i += 4)
                 {
@@ -69,17 +69,17 @@ namespace XrEngine
                     uint i3 = indices[i + 3];
 
                     // Get the vertices of the quad
-                    var v0 = vertices[(int)i0];
-                    var v1 = vertices[(int)i1];
-                    var v2 = vertices[(int)i2];
-                    var v3 = vertices[(int)i3];
+                    Vector3 v0 = vertices[(int)i0];
+                    Vector3 v1 = vertices[(int)i1];
+                    Vector3 v2 = vertices[(int)i2];
+                    Vector3 v3 = vertices[(int)i3];
 
                     // Calculate midpoints
-                    var m01 = Vector3.Normalize((v0 + v1) * 0.5f);
-                    var m12 = Vector3.Normalize((v1 + v2) * 0.5f);
-                    var m23 = Vector3.Normalize((v2 + v3) * 0.5f);
-                    var m30 = Vector3.Normalize((v3 + v0) * 0.5f);
-                    var center = Vector3.Normalize((v0 + v1 + v2 + v3) * 0.25f);
+                    Vector3 m01 = Vector3.Normalize((v0 + v1) * 0.5f);
+                    Vector3 m12 = Vector3.Normalize((v1 + v2) * 0.5f);
+                    Vector3 m23 = Vector3.Normalize((v2 + v3) * 0.5f);
+                    Vector3 m30 = Vector3.Normalize((v3 + v0) * 0.5f);
+                    Vector3 center = Vector3.Normalize((v0 + v1 + v2 + v3) * 0.25f);
 
                     // Add midpoints to vertex list
                     uint i_m01 = AddVertex(newVertices, m01);
@@ -107,12 +107,12 @@ namespace XrEngine
             // Ensure correct winding order
             uint[] FixQuadWinding(List<Vector3> vertices, uint i0, uint i1, uint i2, uint i3)
             {
-                var v0 = vertices[(int)i0];
-                var v1 = vertices[(int)i1];
-                var v2 = vertices[(int)i2];
+                Vector3 v0 = vertices[(int)i0];
+                Vector3 v1 = vertices[(int)i1];
+                Vector3 v2 = vertices[(int)i2];
 
-                var normal = Vector3.Cross(v1 - v0, v2 - v0);
-                var centerToV0 = Vector3.Normalize(v0);
+                Vector3 normal = Vector3.Cross(v1 - v0, v2 - v0);
+                Vector3 centerToV0 = Vector3.Normalize(v0);
 
                 if (Vector3.Dot(normal, centerToV0) < 0)
                     return [i0, i3, i2, i1];
@@ -135,7 +135,7 @@ namespace XrEngine
 
             (List<Vector3>, List<uint>) GenerateSphere(int levels)
             {
-                var (vertices, indices) = GenerateCubeQuads();
+                (List<Vector3>? vertices, List<uint>? indices) = GenerateCubeQuads();
 
                 for (int i = 0; i < levels; i++)
                     (vertices, indices) = SubdivideAndProject(vertices, indices);
@@ -145,15 +145,15 @@ namespace XrEngine
 
             Vector4 ComputeTangent(Vector3 pos)
             {
-                var normal = Vector3.Normalize(pos);
+                Vector3 normal = Vector3.Normalize(pos);
 
-                var arbitrary = Math.Abs(normal.Y) > 0.999f ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
+                Vector3 arbitrary = Math.Abs(normal.Y) > 0.999f ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
 
-                var tangent = Vector3.Normalize(Vector3.Cross(arbitrary, normal));
+                Vector3 tangent = Vector3.Normalize(Vector3.Cross(arbitrary, normal));
 
-                var bitangent = Vector3.Cross(normal, tangent);
+                Vector3 bitangent = Vector3.Cross(normal, tangent);
 
-                var w = Vector3.Dot(Vector3.Cross(tangent, bitangent), normal) > 0.0f ? 1.0f : -1.0f;
+                float w = Vector3.Dot(Vector3.Cross(tangent, bitangent), normal) > 0.0f ? 1.0f : -1.0f;
 
                 return new Vector4(tangent, w);
             }
@@ -161,7 +161,7 @@ namespace XrEngine
             // Calculate UV mapping
             Vector2 CalculateUV(Vector3 vertex)
             {
-                var normal = Vector3.Normalize(vertex);
+                Vector3 normal = Vector3.Normalize(vertex);
 
                 // Longitude: range [-PI, PI]
                 float longitude = (float)Math.Atan2(-normal.Z, normal.X);
@@ -186,17 +186,17 @@ namespace XrEngine
             }
 
             // Build sphere
-            var (sphereVertices, sphereIndices) = GenerateSphere(Levels);
+            (List<Vector3>? sphereVertices, List<uint>? sphereIndices) = GenerateSphere(Levels);
 
-            var finalVertices = new List<VertexData>();
-            var finalIndices = new List<uint>();
-            var vertexMap = new Dictionary<(Vector3, Vector2), uint>();
+            List<VertexData> finalVertices = new List<VertexData>();
+            List<uint> finalIndices = new List<uint>();
+            Dictionary<(Vector3, Vector2), uint> vertexMap = new Dictionary<(Vector3, Vector2), uint>();
 
             for (int i = 0; i < sphereIndices.Count; i += 4)
             {
                 uint[] quad = [sphereIndices[i], sphereIndices[i + 1], sphereIndices[i + 2], sphereIndices[i + 3]];
-                var positions = quad.Select(idx => sphereVertices[(int)idx]).ToArray();
-                var uvs = positions.Select(CalculateUV).ToArray();
+                Vector3[] positions = quad.Select(idx => sphereVertices[(int)idx]).ToArray();
+                Vector2[] uvs = positions.Select(CalculateUV).ToArray();
 
                 // Check for seam crossing
                 bool crossesSeam = CrossesSeam(uvs.Select(uv => uv.X));
@@ -205,18 +205,18 @@ namespace XrEngine
 
                 for (int j = 0; j < 4; j++)
                 {
-                    var position = positions[j] * Radius;
-                    var uv = uvs[j];
+                    Vector3 position = positions[j] * Radius;
+                    Vector2 uv = uvs[j];
 
                     if (crossesSeam && uv.X < 0.25f)
                         uv.X += 1.0f;
 
-                    var key = (position, uv);
+                    (Vector3 position, Vector2 uv) key = (position, uv);
 
                     if (!vertexMap.TryGetValue(key, out uint index))
                     {
 
-                        var vertexData = new VertexData
+                        VertexData vertexData = new VertexData
                         {
                             Pos = position,
                             Normal = Vector3.Normalize(positions[j]),

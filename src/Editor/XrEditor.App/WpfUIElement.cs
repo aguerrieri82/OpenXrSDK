@@ -20,7 +20,7 @@ namespace XrEditor
         public static WpfUIElement? Create(FrameworkElement element)
         {
             if (element is ItemsControl itemsControl)
-                return new WpfUIElementContainer(itemsControl); 
+                return new WpfUIElementContainer(itemsControl);
             return new WpfUIElement(element);
         }
     }

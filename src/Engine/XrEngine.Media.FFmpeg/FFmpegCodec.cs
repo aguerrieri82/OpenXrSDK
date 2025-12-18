@@ -52,10 +52,10 @@ namespace XrEngine.Video
 
         static unsafe string av_strerror(int error)
         {
-            var bufferSize = 1024;
-            var buffer = stackalloc byte[bufferSize];
+            int bufferSize = 1024;
+            byte* buffer = stackalloc byte[bufferSize];
             ffmpeg.av_strerror(error, buffer, (ulong)bufferSize);
-            var message = Marshal.PtrToStringAnsi((IntPtr)buffer)!;
+            string message = Marshal.PtrToStringAnsi((IntPtr)buffer)!;
             return message;
         }
 
@@ -69,16 +69,16 @@ namespace XrEngine.Video
 
         public void Dispose()
         {
-            var pRecFrame = _pReceivedFrame;
+            AVFrame* pRecFrame = _pReceivedFrame;
             av_frame_free(&pRecFrame);
 
-            var pFrame = _pFrame;
+            AVFrame* pFrame = _pFrame;
             av_frame_free(&pFrame);
 
-            var pPacket = _pPacket;
+            AVPacket* pPacket = _pPacket;
             av_packet_free(&pPacket);
 
-            var pCodecContext = _pCodecContext;
+            AVCodecContext* pCodecContext = _pCodecContext;
             avcodec_free_context(&pCodecContext);
 
             GC.SuppressFinalize(this);
@@ -108,17 +108,17 @@ namespace XrEngine.Video
         {
             if (_pCodecContext != null)
             {
-                var pCodecContext = _pCodecContext;
+                AVCodecContext* pCodecContext = _pCodecContext;
                 avcodec_free_context(&pCodecContext);
             }
 
-            var codecId = mimeType switch
+            AVCodecID codecId = mimeType switch
             {
                 "video/avc" => AVCodecID.AV_CODEC_ID_H264,
                 _ => throw new NotSupportedException()
             };
 
-            var codec = mode == VideoCodecMode.Decode ? avcodec_find_decoder(codecId) : avcodec_find_encoder(codecId);
+            AVCodec* codec = mode == VideoCodecMode.Decode ? avcodec_find_decoder(codecId) : avcodec_find_encoder(codecId);
 
             _pCodecContext = avcodec_alloc_context3(codec);
 
@@ -140,7 +140,7 @@ namespace XrEngine.Video
             }
             else
             {
-                var none = AVPixelFormat.AV_PIX_FMT_NONE;
+                AVPixelFormat none = AVPixelFormat.AV_PIX_FMT_NONE;
                 outPixelFormat = avcodec_default_get_format(_pCodecContext, &none);
             }
 
@@ -197,7 +197,7 @@ namespace XrEngine.Video
         public bool DequeueBuffer(ref FrameBuffer dst)
         {
             int result;
-            var frame = _pFrame;
+            AVFrame* frame = _pFrame;
 
             lock (this)
             {
@@ -284,7 +284,7 @@ namespace XrEngine.Video
             if (_swsContext == null)
                 return false;
 
-            var size = _outFormat.Width * _outFormat.Height * 4;
+            int size = _outFormat.Width * _outFormat.Height * 4;
 
             if (dst.ByteArray == null || dst.ByteArray.Length != size)
                 dst.ByteArray = new byte[size];

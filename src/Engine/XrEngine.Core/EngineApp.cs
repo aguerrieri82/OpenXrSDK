@@ -100,7 +100,7 @@ namespace XrEngine
 
             if (_playState == PlayState.Start)
             {
-                var oldTime = _context.Time;
+                double oldTime = _context.Time;
 
                 _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
                 _context.DeltaTime = _context.Time - oldTime;

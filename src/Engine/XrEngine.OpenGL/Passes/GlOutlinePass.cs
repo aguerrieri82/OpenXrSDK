@@ -47,7 +47,7 @@ namespace XrEngine.OpenGL
         {
             if (Source == null)
             {
-                if (!Context.TryRequire<IOutlineSource>(out var source))
+                if (!Context.TryRequire<IOutlineSource>(out IOutlineSource? source))
                     return false;
                 Source = source;
             }
@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
         {
-            if (!Source!.HasOutline(model, out var color))
+            if (!Source!.HasOutline(model, out Color color))
                 return UpdateProgramResult.Skip;
 
             if (_programInstance!.Material.UpdateColor(color))
@@ -143,20 +143,20 @@ namespace XrEngine.OpenGL
 
         static bool TryGetScreenPoint(Vector3 worldPos, Camera cam, out Vector2 screenPos)
         {
-            var clipPos = Vector4.Transform(new Vector4(worldPos, 1), cam.ViewProjection);
+            Vector4 clipPos = Vector4.Transform(new Vector4(worldPos, 1), cam.ViewProjection);
 
             if (clipPos.W <= 0.001f)
             {
                 screenPos = Vector2.Zero;
-                return false; 
+                return false;
             }
 
-            var ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
+            Vector3 ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
 
-            var viewSize = cam.ViewSize;
+            Size2I viewSize = cam.ViewSize;
             screenPos = new Vector2(
                 (ndc.X + 1.0f) * 0.5f * viewSize.Width,
-                (ndc.Y + 1.0f) * 0.5f * viewSize.Height 
+                (ndc.Y + 1.0f) * 0.5f * viewSize.Height
             );
 
             return true;
@@ -168,13 +168,13 @@ namespace XrEngine.OpenGL
         {
             if (UseScissor)
             {
-                var bound = draw.Object!.WorldBounds;
+                Bounds3 bound = draw.Object!.WorldBounds;
 
-                var objectClipping = false;
+                bool objectClipping = false;
 
-                foreach (var corner in bound.Points)
+                foreach (Vector3 corner in bound.Points)
                 {
-                    if (!TryGetScreenPoint(corner, _renderer.UpdateContext.PassCamera!, out var screen))
+                    if (!TryGetScreenPoint(corner, _renderer.UpdateContext.PassCamera!, out Vector2 screen))
                     {
                         objectClipping = true;
                         break;
@@ -186,18 +186,18 @@ namespace XrEngine.OpenGL
 
                 if (objectClipping)
                 {
-                    var size = _renderer.UpdateContext.PassCamera!.ViewSize;
+                    Size2I size = _renderer.UpdateContext.PassCamera!.ViewSize;
                     _bounds.Min = Vector2.Zero;
                     _bounds.Max = new Vector2(size.Width, size.Height);
                 }
             }
-           
+
             base.Draw(draw);
         }
 
         public IOutlineSource? Source { get; set; }
 
-        public GlRenderPassTarget PassTarget => _passTarget;    
+        public GlRenderPassTarget PassTarget => _passTarget;
 
         public bool UseScissor { get; set; }
 

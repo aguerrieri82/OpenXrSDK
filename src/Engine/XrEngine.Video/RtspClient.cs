@@ -100,19 +100,19 @@ namespace VirtualCamera.IPCamera
 
         public RtspSession? Setup(RtspStream stream, int port)
         {
-            var header = new Dictionary<string, string>();
+            Dictionary<string, string> header = new Dictionary<string, string>();
             header["Transport"] = $"{stream.Protocol};unicast;client_port={port}-{port + 1}";
             Send("SETUP", stream.Control!, header);
-            var response = ReadResponse();
+            RtspResponse? response = ReadResponse();
             if (response?.Header != null && response.Code == 200)
             {
-                var result = new RtspSession();
-                var transport = response.Header["Transport"];
-                var parts = transport.Split(';');
+                RtspSession result = new RtspSession();
+                string transport = response.Header["Transport"];
+                string[] parts = transport.Split(';');
                 result.Protocol = parts[0];
-                for (var i = 1; i < parts.Length; i++)
+                for (int i = 1; i < parts.Length; i++)
                 {
-                    var attrParts = parts[i].Split('=');
+                    string[] attrParts = parts[i].Split('=');
                     switch (attrParts[0])
                     {
                         case "client_port":
@@ -123,12 +123,12 @@ namespace VirtualCamera.IPCamera
                             break;
                     }
                 }
-                var session = response.Header["Session"];
+                string session = response.Header["Session"];
                 parts = session.Split(';');
                 result.SessionId = parts[0];
-                for (var i = 1; i < parts.Length; i++)
+                for (int i = 1; i < parts.Length; i++)
                 {
-                    var attrParts = parts[i].Split('=');
+                    string[] attrParts = parts[i].Split('=');
                     switch (attrParts[0])
                     {
                         case "timeout":
@@ -143,21 +143,21 @@ namespace VirtualCamera.IPCamera
 
         public Dictionary<string, string>? GetParameter(string streamName, RtspSession session, params string[] parameters)
         {
-            var header = new Dictionary<string, string>();
+            Dictionary<string, string> header = new Dictionary<string, string>();
             header["Session"] = session.SessionId!;
             header["Content-Type"] = "text/parameters";
 
             Send("GET_PARAMETER", streamName, header, string.Join("\r\n", parameters));
 
-            var response = ReadResponse();
+            RtspResponse? response = ReadResponse();
 
             if (response?.Content != null && response.Code == 200 && parameters.Length > 0)
             {
-                var lines = response.Content.Split(':');
-                var result = new Dictionary<string, string>();
-                foreach (var line in lines)
+                string[] lines = response.Content.Split(':');
+                Dictionary<string, string> result = new Dictionary<string, string>();
+                foreach (string line in lines)
                 {
-                    var index = line.IndexOf(':');
+                    int index = line.IndexOf(':');
                     result[line.Substring(0, index)] = line.Substring(index + 1);
                 }
                 return result;
@@ -168,11 +168,11 @@ namespace VirtualCamera.IPCamera
 
         public bool Play(string streamName, RtspSession session)
         {
-            var header = new Dictionary<string, string>();
+            Dictionary<string, string> header = new Dictionary<string, string>();
             header["Session"] = session.SessionId!;
             header["Range"] = "npt=0.000-";
             Send("PLAY", streamName, header);
-            var response = ReadResponse();
+            RtspResponse? response = ReadResponse();
             if (response == null)
                 return false;
             return response.Code == 200;
@@ -180,21 +180,21 @@ namespace VirtualCamera.IPCamera
 
         public bool TearDown(string streamName, RtspSession session)
         {
-            var header = new Dictionary<string, string>();
+            Dictionary<string, string> header = new Dictionary<string, string>();
             header["Session"] = session.SessionId!;
             Send("TEARDOWN", streamName, header);
-            var response = ReadResponse();
+            RtspResponse? response = ReadResponse();
             return response != null && response.Code == 200;
         }
 
         public void Authenticate(string streamName, string username, string password)
         {
             Send("DESCRIBE", streamName);
-            var response = ReadResponse();
+            RtspResponse? response = ReadResponse();
             if (response?.Header != null && response.Code == 401)
             {
-                var www = response.Header["WWW-Authenticate"];
-                var dic = ParseParams(www);
+                string www = response.Header["WWW-Authenticate"];
+                Dictionary<string, string> dic = ParseParams(www);
 
                 _authParams = new Dictionary<string, string>();
                 _authParams["realm"] = dic["realm"];
@@ -219,31 +219,31 @@ namespace VirtualCamera.IPCamera
 
         public IList<RtspStream> Describe(string streamName)
         {
-            var header = new Dictionary<string, string>();
+            Dictionary<string, string> header = new Dictionary<string, string>();
             header["Accept"] = "application/sdp";
             header["User-Agent"] = "XrEngine";
             Send("DESCRIBE", streamName, header);
 
-            var response = ReadResponse();
+            RtspResponse? response = ReadResponse();
 
-            var result = new List<RtspStream>();
+            List<RtspStream> result = new List<RtspStream>();
 
             if (response?.Content != null && response.Code == 200)
             {
-                var contentLines = response.Content.Split("\r\n");
+                string[] contentLines = response.Content.Split("\r\n");
 
                 RtspStream? curStream = null;
-                foreach (var line in contentLines)
+                foreach (string line in contentLines)
                 {
                     if (string.IsNullOrWhiteSpace(line))
                         continue;
-                    var attr = line[0];
-                    var data = line.Substring(2);
+                    char attr = line[0];
+                    string data = line.Substring(2);
                     if (attr == 'a')
                     {
-                        var attrIndex = data.IndexOf(':');
-                        var attrName = data.Substring(0, attrIndex);
-                        var attrValue = data.Substring(attrIndex + 1);
+                        int attrIndex = data.IndexOf(':');
+                        string attrName = data.Substring(0, attrIndex);
+                        string attrValue = data.Substring(attrIndex + 1);
 
                         if (attrName == "control")
                         {
@@ -259,11 +259,11 @@ namespace VirtualCamera.IPCamera
                         {
                             Debug.Assert(curStream != null);
 
-                            var idIndex = attrValue.IndexOf(' ');
-                            var id = int.Parse(attrValue.Substring(0, idIndex));
+                            int idIndex = attrValue.IndexOf(' ');
+                            int id = int.Parse(attrValue.Substring(0, idIndex));
                             if (curStream.TrackId == id)
                             {
-                                var formatParts = attrValue.Substring(idIndex + 1).Split('/');
+                                string[] formatParts = attrValue.Substring(idIndex + 1).Split('/');
                                 curStream.Format = formatParts[0];
                                 if (formatParts.Length > 1)
                                     curStream.BitRate = int.Parse(formatParts[1]);
@@ -273,16 +273,16 @@ namespace VirtualCamera.IPCamera
                         {
                             Debug.Assert(curStream != null);
 
-                            var idIndex = attrValue.IndexOf(' ');
-                            var id = int.Parse(attrValue.Substring(0, idIndex));
+                            int idIndex = attrValue.IndexOf(' ');
+                            int id = int.Parse(attrValue.Substring(0, idIndex));
                             if (curStream.TrackId == id)
                             {
-                                var fAttrList = attrValue.Substring(idIndex + 1).Split(';');
-                                foreach (var fAttr in fAttrList)
+                                string[] fAttrList = attrValue.Substring(idIndex + 1).Split(';');
+                                foreach (string fAttr in fAttrList)
                                 {
-                                    var fIndex = fAttr.IndexOf('=');
-                                    var fName = fAttr.Substring(0, fIndex);
-                                    var fValue = fAttr.Substring(fIndex + 1);
+                                    int fIndex = fAttr.IndexOf('=');
+                                    string fName = fAttr.Substring(0, fIndex);
+                                    string fValue = fAttr.Substring(fIndex + 1);
                                     switch (fName)
                                     {
                                         case "packetization-mode":
@@ -290,10 +290,10 @@ namespace VirtualCamera.IPCamera
                                         case "profile-level-id":
                                             break;
                                         case "sprop-parameter-sets":
-                                            var pSet = fValue.Split(',');
-                                            foreach (var setData in pSet)
+                                            string[] pSet = fValue.Split(',');
+                                            foreach (string setData in pSet)
                                             {
-                                                var buffer = Convert.FromBase64String(setData);
+                                                byte[] buffer = Convert.FromBase64String(setData);
                                                 if (curStream.Data == null)
                                                     curStream.Data = new List<byte[]>();
                                                 curStream.Data.Add(buffer);
@@ -310,7 +310,7 @@ namespace VirtualCamera.IPCamera
                         curStream = new RtspStream();
                         result.Add(curStream);
 
-                        var mediaParts = data.Split(' ');
+                        string[] mediaParts = data.Split(' ');
                         if (mediaParts[0] == "video")
                             curStream.Type = RtspStreamType.Video;
                         else if (mediaParts[0] == "audio")
@@ -328,20 +328,20 @@ namespace VirtualCamera.IPCamera
         {
             Debug.Assert(_reader != null);
 
-            var code = _reader.ReadLine();
+            string? code = _reader.ReadLine();
             if (code == null)
             {
                 Close();
                 return null;
             }
 
-            var index = code.IndexOf(' ');
-            var part1 = code.Substring(0, index);
+            int index = code.IndexOf(' ');
+            string part1 = code.Substring(0, index);
             if (part1 != "RTSP/1.0")
                 return null;
             index = code.IndexOf(' ', index + 1);
 
-            var result = new RtspResponse
+            RtspResponse result = new RtspResponse
             {
                 Code = int.Parse(code.Substring(9, index - 9)),
                 Message = code.Substring(index + 1),
@@ -350,17 +350,17 @@ namespace VirtualCamera.IPCamera
 
             while (true)
             {
-                var line = _reader.ReadLine();
+                string? line = _reader.ReadLine();
                 if (string.IsNullOrWhiteSpace(line))
                     break;
-                var parts = line.Split(':');
+                string[] parts = line.Split(':');
                 result.Header[parts[0]] = parts[1].Trim();
             }
 
-            if (result.Header.TryGetValue("Content-Length", out var contentLen))
+            if (result.Header.TryGetValue("Content-Length", out string? contentLen))
             {
-                var intLen = int.Parse(contentLen);
-                var chars = new char[intLen];
+                int intLen = int.Parse(contentLen);
+                char[] chars = new char[intLen];
                 _reader.ReadBlock(chars, 0, chars.Length);
                 result.Content = new string(chars);
             }
@@ -370,8 +370,8 @@ namespace VirtualCamera.IPCamera
 
         protected string CreateAuthDigest(string verb)
         {
-            var hash2 = HashMD5($"{verb}:{_authParams!["uri"]}");
-            var response = HashMD5($"{_authHash1}:{_authParams["nonce"]}:{hash2}");
+            string hash2 = HashMD5($"{verb}:{_authParams!["uri"]}");
+            string response = HashMD5($"{_authHash1}:{_authParams["nonce"]}:{hash2}");
 
             return $"username=\"{_authParams["username"]}\", realm=\"{_authParams["realm"]}\", nonce=\"{_authParams["nonce"]}\", uri=\"{_authParams["uri"]}\", response=\"{response}\"";
         }
@@ -385,7 +385,7 @@ namespace VirtualCamera.IPCamera
             _writer.Write($"CSeq: {_seqNum}\r\n");
             if (header != null)
             {
-                foreach (var item in header)
+                foreach (KeyValuePair<string, string> item in header)
                     _writer.Write($"{item.Key}: {item.Value}\r\n");
             }
 
@@ -405,8 +405,8 @@ namespace VirtualCamera.IPCamera
 
         static string FormatParams(Dictionary<string, string> input)
         {
-            var result = new StringBuilder();
-            foreach (var item in input)
+            StringBuilder result = new StringBuilder();
+            foreach (KeyValuePair<string, string> item in input)
             {
                 if (result.Length > 0)
                     result.Append(", ");
@@ -421,10 +421,10 @@ namespace VirtualCamera.IPCamera
         static Dictionary<string, string> ParseParams(string input)
         {
             // Regular expression to capture key-value pairs
-            var regex = new Regex(@"(\w+)=""([^""]*)""");
-            var matches = regex.Matches(input);
+            Regex regex = new Regex(@"(\w+)=""([^""]*)""");
+            MatchCollection matches = regex.Matches(input);
 
-            var dictionary = new Dictionary<string, string>();
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
 
             foreach (Match match in matches)
             {

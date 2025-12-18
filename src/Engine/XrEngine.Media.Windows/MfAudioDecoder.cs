@@ -17,11 +17,11 @@ namespace XrEngine.Media.Windows
                 SampleType = AudioSampleType.Short
             };
 
-            using var stream = new MemoryStream();
+            using MemoryStream stream = new MemoryStream();
             Open(path);
             while (true)
             {
-                var data = Read();
+                byte[]? data = Read();
                 if (data == null)
                     return stream.ToArray();
 
@@ -33,11 +33,11 @@ namespace XrEngine.Media.Windows
         {
             MF.MFStartup(MF.MF_VERSION);
 
-            MF.MFCreateAttributes(out var attr, 1);
+            MF.MFCreateAttributes(out IMFAttributes? attr, 1);
 
             MF.MFCreateSourceReaderFromURL(path, attr, out _reader);
 
-            MF.MFCreateMediaType(out var pcm);
+            MF.MFCreateMediaType(out IMFMediaType? pcm);
 
             _reader.GetNativeMediaType(0, 0, out IMFMediaType native);
 
@@ -78,18 +78,18 @@ namespace XrEngine.Media.Windows
                 out _,
                 out _,
                 out _,
-                out var sample);
+                out IMFSample? sample);
 
             if (sample == null)
                 return null;
 
-            sample.ConvertToContiguousBuffer(out var buffer);
+            sample.ConvertToContiguousBuffer(out IMFMediaBuffer? buffer);
 
             buffer.GetCurrentLength(out int len);
 
-            buffer.Lock(out var ptr, out _, out _);
+            buffer.Lock(out nint ptr, out _, out _);
 
-            var data = new byte[len];
+            byte[] data = new byte[len];
             Marshal.Copy(ptr, data, 0, len);
 
             buffer.Unlock();

@@ -34,8 +34,8 @@ namespace XrEngine
 
         static Token[] Tokenize(string data)
         {
-            var result = new List<Token>();
-            var curText = new StringBuilder();
+            List<Token> result = new List<Token>();
+            StringBuilder curText = new StringBuilder();
 
             int i = 0;
             int state = 0;
@@ -54,7 +54,7 @@ namespace XrEngine
 
             while (i < data.Length)
             {
-                var c = data[i];
+                char c = data[i];
 
                 switch (state)
                 {
@@ -77,7 +77,7 @@ namespace XrEngine
                     case 1:
                         if (c == ' ' || c == '\r' || c == '\n')
                         {
-                            var token = new Token();
+                            Token token = new Token();
                             token.Text = curText.ToString();
                             curText.Length = 0;
                             switch (token.Text)
@@ -211,8 +211,8 @@ namespace XrEngine
 
         public static string ParseShader(string data)
         {
-            var result = new StringBuilder();
-            var tokens = Tokenize(data);
+            StringBuilder result = new StringBuilder();
+            Token[] tokens = Tokenize(data);
 
             Dictionary<string, string> defs = [];
             Stack<bool> outWrite = [];
@@ -225,28 +225,28 @@ namespace XrEngine
 
             bool EvaluateExpression(string text)
             {
-                var parts = text.Split("&&");
-                foreach (var part in parts.Select(a => a.Trim()))
+                string[] parts = text.Split("&&");
+                foreach (string? part in parts.Select(a => a.Trim()))
                 {
                     if (part.StartsWith("defined("))
                     {
-                        var symbol = part[8..^1];
+                        string symbol = part[8..^1];
                         if (!defs.ContainsKey(symbol))
                             return false;
                     }
                     else if (part.StartsWith("!defined("))
                     {
-                        var symbol = part[9..^1];
+                        string symbol = part[9..^1];
                         if (defs.ContainsKey(symbol))
                             return false;
                     }
                     else
                     {
-                        var op = part.Split("==");
+                        string[] op = part.Split("==");
                         if (op.Length == 2)
                         {
-                            var symbol = op[0].Trim();
-                            if (defs.TryGetValue(symbol, out var value))
+                            string symbol = op[0].Trim();
+                            if (defs.TryGetValue(symbol, out string? value))
                             {
                                 if (value != op[1].Trim())
                                     return false;
@@ -267,7 +267,7 @@ namespace XrEngine
 
             while (i < tokens.Length)
             {
-                var t = tokens[i];
+                Token t = tokens[i];
 
                 switch (state)
                 {
@@ -294,7 +294,7 @@ namespace XrEngine
                                 state = 21;
                                 break;
                             case TokenType.Else:
-                                var lastWrite = outWrite.Pop();
+                                bool lastWrite = outWrite.Pop();
                                 outWrite.Push(!lastWrite);
                                 curOutWrite = outWrite.All(a => a);
                                 state = 0;
@@ -316,7 +316,7 @@ namespace XrEngine
                     case 1:
                         if (t.Type == TokenType.Expression)
                         {
-                            var parts = t.Text!.Split(' ');
+                            string[] parts = t.Text!.Split(' ');
                             defs[parts[0]] = parts.Length > 1 ? parts[1] : "";
 
                             if (parts.Length > 1)
@@ -332,7 +332,7 @@ namespace XrEngine
                     case 4:
                         if (t.Type == TokenType.Expression)
                         {
-                            var parts = t.Text!.Split(' ');
+                            string[] parts = t.Text!.Split(' ');
                             defs.Remove(parts[0]);
                             state = 0;
                         }
@@ -344,7 +344,7 @@ namespace XrEngine
                     case 2:
                         if (t.Type == TokenType.Expression)
                         {
-                            var isDef = defs.ContainsKey(t.Text!);
+                            bool isDef = defs.ContainsKey(t.Text!);
                             outWrite.Push(isDef);
                             curOutWrite = outWrite.All(a => a);
                             state = 0;
@@ -358,7 +358,7 @@ namespace XrEngine
                     case 21:
                         if (t.Type == TokenType.Expression)
                         {
-                            var isnDef = !defs.ContainsKey(t.Text!);
+                            bool isnDef = !defs.ContainsKey(t.Text!);
                             outWrite.Push(isnDef);
                             curOutWrite = outWrite.All(a => a);
                             state = 0;
@@ -372,7 +372,7 @@ namespace XrEngine
                     case 3:
                         if (t.Type == TokenType.Expression)
                         {
-                            var isTrue = EvaluateExpression(t.Text!);
+                            bool isTrue = EvaluateExpression(t.Text!);
                             outWrite.Push(isTrue);
                             curOutWrite = outWrite.All(a => a);
                             state = 0;
@@ -390,7 +390,7 @@ namespace XrEngine
             }
 
             Regex regex = new(@"^\s*(?:\r?\n|\r)(?:\s*(?:\r?\n|\r))*", RegexOptions.Multiline);
-            var text = regex.Replace(result.ToString(), Environment.NewLine);
+            string text = regex.Replace(result.ToString(), Environment.NewLine);
 
             return text;
         }

@@ -16,7 +16,7 @@ namespace XrEngine.OpenXr.Windows
             int escapeCode;
             ConsoleColor? foreground = null;
             ConsoleColor? background = null;
-            var span = message.AsSpan();
+            ReadOnlySpan<char> span = message.AsSpan();
             const char EscapeChar = '\x1B';
             ConsoleColor? color = null;
             bool isBright = false;

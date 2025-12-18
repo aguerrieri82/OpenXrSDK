@@ -48,22 +48,22 @@ namespace OpenXr.Framework.Vulkan
 
         public GraphicsBinding CreateBinding()
         {
-            var vulkanReq = new GraphicsRequirementsVulkanKHR()
+            GraphicsRequirementsVulkanKHR vulkanReq = new GraphicsRequirementsVulkanKHR()
             {
                 Type = StructureType.GraphicsRequirementsVulkanKhr
             };
 
             _app!.CheckResult(_vulkanExt!.GetVulkanGraphicsRequirements(_app!.Instance, _app.SystemId, &vulkanReq), "GetVulkanGraphicsRequirementsKHR");
 
-            var buffer = new byte[2048];
+            byte[] buffer = new byte[2048];
             uint count = 0;
 
             _app!.CheckResult(_vulkanExt.GetVulkanDeviceExtension(_app.Instance, _app.SystemId, (uint)buffer.Length, ref count, ref buffer[0]), "GetVulkanDeviceExtensionsKHR");
-            var devExtensions = Encoding.UTF8.GetString(buffer, 0, (int)count).Trim('\0').Split(' ');
+            string[] devExtensions = Encoding.UTF8.GetString(buffer, 0, (int)count).Trim('\0').Split(' ');
 
             _app!.CheckResult(_vulkanExt.GetVulkanInstanceExtension(_app.Instance, _app.SystemId, (uint)buffer.Length, ref count, ref buffer[0]), "GetVulkanDeviceExtensionsKHR");
 
-            var instExtensions = Encoding.UTF8.GetString(buffer, 0, (int)count).Trim('\0').Split(' ');
+            string[] instExtensions = Encoding.UTF8.GetString(buffer, 0, (int)count).Trim('\0').Split(' ');
 
             _device.Initialize(instExtensions, devExtensions);
 
@@ -71,7 +71,7 @@ namespace OpenXr.Framework.Vulkan
 
             _app!.CheckResult(_vulkanExt.GetVulkanGraphicsDevice(_app.Instance, _app.SystemId, new VkHandle(_device.Instance.Handle), &physicalDevice), "GetVulkanGraphicsDeviceKHR");
 
-            var binding = new GraphicsBinding();
+            GraphicsBinding binding = new GraphicsBinding();
 
             binding.VulkanKhr = new GraphicsBindingVulkanKHR()
             {

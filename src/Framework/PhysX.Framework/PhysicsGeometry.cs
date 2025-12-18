@@ -30,13 +30,13 @@ namespace PhysX.Framework
 
         public unsafe float DistanceFrom(Vector3 globalPoint, Pose3 pose, PxGeometryQueryFlags flags, out Vector3 closePoint)
         {
-            var transform = pose.ToPxTransform();
+            PxTransform transform = pose.ToPxTransform();
 
             uint index = 0;
 
-            var closePoint2 = new Vector3();
+            Vector3 closePoint2 = new Vector3();
 
-            var distance = PxGeometryQuery_pointDistance((PxVec3*)&globalPoint, this, &transform, (PxVec3*)&closePoint2, &index, flags);
+            float distance = PxGeometryQuery_pointDistance((PxVec3*)&globalPoint, this, &transform, (PxVec3*)&closePoint2, &index, flags);
 
             closePoint = closePoint2;
 
@@ -45,10 +45,10 @@ namespace PhysX.Framework
 
         public unsafe RaycastHit[] Raycast(Ray3 ray, Pose3 pose, float maxDistance, PxHitFlags flags, uint maxHits)
         {
-            var result = new PxGeomRaycastHit[maxHits];
+            PxGeomRaycastHit[] result = new PxGeomRaycastHit[maxHits];
             uint count;
 
-            var transform = pose.ToPxTransform();
+            PxTransform transform = pose.ToPxTransform();
 
             fixed (PxGeomRaycastHit* pResult = result)
             {
@@ -66,9 +66,9 @@ namespace PhysX.Framework
                     null);
             }
 
-            var newResults = new RaycastHit[count];
+            RaycastHit[] newResults = new RaycastHit[count];
 
-            for (var i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 newResults[i] = new RaycastHit
                 {

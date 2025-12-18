@@ -27,13 +27,13 @@ namespace XrEngine.OpenXr.Android
 
         protected void Preload(Assembly entry)
         {
-            var references = new HashSet<string>();
+            HashSet<string> references = new HashSet<string>();
 
             void Visit(Assembly assembly)
             {
                 global::Android.Util.Log.Debug(nameof(XrEngineActivity), $"Processing assembly {assembly.GetName().Name}");
 
-                foreach (var reference in assembly.GetReferencedAssemblies())
+                foreach (AssemblyName reference in assembly.GetReferencedAssemblies())
                 {
                     if (!references.Add(reference.FullName))
                         continue;
@@ -42,7 +42,7 @@ namespace XrEngine.OpenXr.Android
 
                     try
                     {
-                        var refAssembly = AppDomain.CurrentDomain.Load(reference);
+                        Assembly refAssembly = AppDomain.CurrentDomain.Load(reference);
 
                         Visit(refAssembly);
                     }
@@ -65,7 +65,7 @@ namespace XrEngine.OpenXr.Android
         {
             ModuleManager.Instance.Init();
 
-            var builder = new XrEngineAppBuilder()
+            XrEngineAppBuilder builder = new XrEngineAppBuilder()
                    .UsePlatform(new AndroidPlatform(this));
 
             BuildApp(builder);

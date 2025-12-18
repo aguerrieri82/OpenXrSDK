@@ -19,10 +19,10 @@ namespace XrEngine
         {
             if (options?.MimeType == "image/jpeg" && (options?.Format == null || options.Format == TextureFormat.Rgba32))
             {
-                var buffer = new byte[stream.Length];
+                byte[] buffer = new byte[stream.Length];
                 stream.ReadExactly(buffer);
 
-                var imgData = TurboJpegLib.Decompress(buffer);
+                TurboJpegLib.ImageData imgData = TurboJpegLib.Decompress(buffer);
                 Debug.Assert(imgData.Data != null);
 
                 return [new TextureData
@@ -34,14 +34,14 @@ namespace XrEngine
                 }];
             }
 
-            var image = SKBitmap.Decode(stream);
+            SKBitmap image = SKBitmap.Decode(stream);
 
-            var outFormat = options?.Format;
+            TextureFormat? outFormat = options?.Format;
             if (outFormat != null)
                 image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetSkFormat(outFormat.Value));
 
 
-            var data = new TextureData
+            TextureData data = new TextureData
             {
                 Compression = TextureCompressionFormat.Uncompressed,
                 Format = ImageUtils.GetFormat(image.ColorType),

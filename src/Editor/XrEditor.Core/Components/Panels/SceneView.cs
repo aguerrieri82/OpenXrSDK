@@ -121,11 +121,11 @@ namespace XrEditor
 
         protected IList<SelectorItem> ListCameras()
         {
-            var result = new List<SelectorItem>();
+            List<SelectorItem> result = new List<SelectorItem>();
             //result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
             if (_scene != null)
             {
-                foreach (var camera in _scene.Descendants<PerspectiveCamera>())
+                foreach (PerspectiveCamera camera in _scene.Descendants<PerspectiveCamera>())
                     result.Add(new SelectorItem
                     {
                         Value = camera,
@@ -273,7 +273,7 @@ namespace XrEditor
         {
             _ = _mainDispatcher.ExecuteAsync(() =>
             {
-                foreach (var tool in _tools)
+                foreach (IEditorTool tool in _tools)
                     tool.NotifySceneChanged();
 
                 SceneChanged?.Invoke(_scene);
@@ -282,8 +282,8 @@ namespace XrEditor
 
         protected void UpdateSize()
         {
-            var width = (uint)(_renderSurface!.Size.X);
-            var height = (uint)(_renderSurface.Size.Y);
+            uint width = (uint)(_renderSurface!.Size.X);
+            uint height = (uint)(_renderSurface.Size.Y);
 
             Log.Info(this, "New render size: {0}x{1}", width, height);
 

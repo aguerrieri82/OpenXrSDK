@@ -1,5 +1,4 @@
-﻿using Microsoft.DotNet.PlatformAbstractions;
-using OpenAl.Framework.Helpers;
+﻿using OpenAl.Framework.Helpers;
 using Silk.NET.OpenAL;
 using Silk.NET.OpenAL.Extensions.Enumeration;
 using System.Runtime.InteropServices;
@@ -27,9 +26,9 @@ namespace OpenAl.Framework
         private static readonly ALContext _alc;
 
 #if __ANDROID__
-    const bool useSoft = true;  
+        const bool useSoft = true;
 #else
-    const bool useSoft = false;
+        const bool useSoft = false;
 #endif
 
 
@@ -89,11 +88,11 @@ namespace OpenAl.Framework
 
         public static IList<string> ListDevices(bool onlyDefault)
         {
-            var result = new List<string>();
+            List<string> result = new List<string>();
 
-            if (_alc.TryGetExtension<Enumeration>(null, out var enumeration))
+            if (_alc.TryGetExtension<Enumeration>(null, out Enumeration? enumeration))
             {
-                var devType = onlyDefault ? GetEnumerationContextStringList.DeviceSpecifiers :
+                GetEnumerationContextStringList devType = onlyDefault ? GetEnumerationContextStringList.DeviceSpecifiers :
                               (GetEnumerationContextStringList)ALC_ALL_DEVICES_SPECIFIER;
 
                 result.AddRange(enumeration.GetStringList(devType));

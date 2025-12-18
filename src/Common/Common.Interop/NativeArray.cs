@@ -41,7 +41,7 @@ namespace Common.Interop
 
         public unsafe ref T Item<T>(int index) where T : unmanaged
         {
-            var pItem = ItemPointer<T>(index);
+            T* pItem = ItemPointer<T>(index);
 
             return ref pItem[0];
         }
@@ -53,8 +53,8 @@ namespace Common.Interop
 
         public TBase[] ToArray()
         {
-            var result = new TBase[Length];
-            for (var i = 0; i < Length; i++)
+            TBase[] result = new TBase[Length];
+            for (int i = 0; i < Length; i++)
                 result[i] = Item(i);
             return result;
         }

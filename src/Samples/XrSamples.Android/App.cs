@@ -20,7 +20,7 @@ namespace XrSamples
             XrEngine.Context.Implement<IVideoReader>(() => new AndroidVideoReader());
             XrEngine.Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
 
-            var envTest = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
+            string? envTest = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
             Debug.WriteLine(envTest);
 
         }

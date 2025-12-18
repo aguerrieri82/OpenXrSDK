@@ -13,7 +13,7 @@ namespace CanvasUI
                 return null;
             if (Content is UiElement comp)
                 return comp;
-            var text = Content.ToString();
+            string? text = Content.ToString();
             return new TextBlock() { Text = text ?? string.Empty };
         }
 

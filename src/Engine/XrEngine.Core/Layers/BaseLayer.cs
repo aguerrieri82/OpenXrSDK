@@ -38,7 +38,7 @@
 
             if (sender is Group3D group && change.IsAny(ObjectChangeType.Scene))
             {
-                foreach (var child in group.DescendantsOrSelf())
+                foreach (Object3D child in group.DescendantsOrSelf())
                     NotifyChangedWork(child, change.Type);
             }
             else

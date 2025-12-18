@@ -23,7 +23,7 @@ namespace XrMath
 
         public void Add(IEnumerable<Vector3> points)
         {
-            foreach (var point in points)
+            foreach (Vector3 point in points)
                 Add(point);
         }
 
@@ -36,7 +36,7 @@ namespace XrMath
 
         public void Add(IEnumerable<Bounds3> newBounds)
         {
-            foreach (var item in newBounds)
+            foreach (Bounds3 item in newBounds)
                 Add(item);
         }
 

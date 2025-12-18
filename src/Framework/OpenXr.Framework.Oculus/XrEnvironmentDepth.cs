@@ -37,7 +37,7 @@ namespace OpenXr.Framework.Oculus
                 _swapchain = CreateSwapChain();
                 _images = EnumerateSwapchainImages(_swapchain);
 
-                var state = new EnvironmentDepthSwapchainStateMETA
+                EnvironmentDepthSwapchainStateMETA state = new EnvironmentDepthSwapchainStateMETA
                 {
                     Type = StructureType.EnvironmentDepthSwapchainStateMeta,
                 };
@@ -64,14 +64,14 @@ namespace OpenXr.Framework.Oculus
         {
             EnsureInit();
 
-            var acquireInfo = new EnvironmentDepthImageAcquireInfoMETA
+            EnvironmentDepthImageAcquireInfoMETA acquireInfo = new EnvironmentDepthImageAcquireInfoMETA
             {
                 Type = StructureType.EnvironmentDepthImageAcquireInfoMeta,
                 DisplayTime = displayTime,
                 Space = space
             };
 
-            var result = new EnvironmentDepthImageMETA
+            EnvironmentDepthImageMETA result = new EnvironmentDepthImageMETA
             {
                 Type = StructureType.EnvironmentDepthImageMeta,
             };
@@ -88,13 +88,13 @@ namespace OpenXr.Framework.Oculus
         {
             EnsureInit();
 
-            var info = new EnvironmentDepthProviderCreateInfoMETA
+            EnvironmentDepthProviderCreateInfoMETA info = new EnvironmentDepthProviderCreateInfoMETA
             {
                 Type = StructureType.EnvironmentDepthProviderCreateInfoMeta,
                 CreateFlags = EnvironmentDepthProviderCreateFlagsMETA.None,
             };
 
-            _app.CheckResult(_envDepth.CreateEnvironmentDepthProviderMETA(_app.Session, ref info, out var depthProvider), "CreateEnvironmentDepthProviderMETA");
+            _app.CheckResult(_envDepth.CreateEnvironmentDepthProviderMETA(_app.Session, ref info, out EnvironmentDepthProviderMETA depthProvider), "CreateEnvironmentDepthProviderMETA");
 
             return depthProvider;
         }
@@ -104,12 +104,12 @@ namespace OpenXr.Framework.Oculus
         {
             EnsureInit();
 
-            _app.CheckResult(_envDepth.EnumerateEnvironmentDepthSwapchainImagesMETA(swapchain, 0, out var count, null), "EnumerateEnvironmentDepthSwapchainImagesMETA");
+            _app.CheckResult(_envDepth.EnumerateEnvironmentDepthSwapchainImagesMETA(swapchain, 0, out uint count, null), "EnumerateEnvironmentDepthSwapchainImagesMETA");
 
-            var imageType = _app.Plugin<IXrGraphicDriver>().SwapChainImageType;
-            var images = new NativeArray<SwapchainImageBaseHeader>((int)count, imageType.Type!);
+            XrDynamicType imageType = _app.Plugin<IXrGraphicDriver>().SwapChainImageType;
+            NativeArray<SwapchainImageBaseHeader> images = new NativeArray<SwapchainImageBaseHeader>((int)count, imageType.Type!);
 
-            for (var i = 0; i < images.Length; i++)
+            for (int i = 0; i < images.Length; i++)
             {
                 images.Item(i).Type = imageType.StructureType;
                 images.Item(i).Next = null;
@@ -124,14 +124,14 @@ namespace OpenXr.Framework.Oculus
         {
             EnsureInit();
 
-            var info = new EnvironmentDepthSwapchainCreateInfoMETA
+            EnvironmentDepthSwapchainCreateInfoMETA info = new EnvironmentDepthSwapchainCreateInfoMETA
             {
                 Type = StructureType.EnvironmentDepthSwapchainCreateInfoMeta,
                 CreateFlags = EnvironmentDepthSwapchainCreateFlagsMETA.None,
                 Next = null
             };
 
-            var swapchain = new EnvironmentDepthSwapchainMETA();
+            EnvironmentDepthSwapchainMETA swapchain = new EnvironmentDepthSwapchainMETA();
 
             _app.CheckResult(_envDepth.CreateEnvironmentDepthSwapchainMETA(_depthProvider, ref info, out swapchain), "CreateEnvironmentDepthSwapchainMETA");
 
@@ -167,7 +167,7 @@ namespace OpenXr.Framework.Oculus
         {
             EnsureInit();
 
-            var info = new EnvironmentDepthHandRemovalSetInfoMETA
+            EnvironmentDepthHandRemovalSetInfoMETA info = new EnvironmentDepthHandRemovalSetInfoMETA
             {
                 Enabled = value ? 1u : 0,
                 Type = StructureType.EnvironmentDepthHandRemovalSetInfoMeta

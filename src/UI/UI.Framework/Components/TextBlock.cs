@@ -37,10 +37,10 @@ namespace CanvasUI
 
         protected override void DrawWork(SKCanvas canvas)
         {
-            var color = ActualStyle.Color.Value;
-            var paint = SKResources.FillColor(color!.Value);
+            Color? color = ActualStyle.Color.Value;
+            SKPaint paint = SKResources.FillColor(color!.Value);
 
-            foreach (var line in _lastLayout.Lines)
+            foreach (TextLayoutManager.LayoutLine line in _lastLayout.Lines)
                 canvas.DrawText(line.Text, _contentRect.X + line.Position.X, _contentRect.Y + line.Position.Y - _lastLayout.Font.Metrics.Descent, _lastLayout.Font, paint);
         }
 

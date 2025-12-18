@@ -41,7 +41,7 @@ namespace OpenXr.Framework.Android
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var msg = formatter(state, exception);
+            string msg = formatter(state, exception);
             switch (logLevel)
             {
                 case LogLevel.Debug:

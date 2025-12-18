@@ -15,8 +15,8 @@ namespace XrEngine.Devices.Android
     [SupportedOSPlatform("android23.0")]
     public class AndroidMidiDevice : IMidiDevice
     {
-        MidiDeviceInfo2 _info;
-        MidiManager _manager;
+        readonly MidiDeviceInfo2 _info;
+        readonly MidiManager _manager;
         MidiDevice? _device;
 
         class OnDeviceOpenedListener : Java.Lang.Object, MidiManager.IOnDeviceOpenedListener
@@ -44,7 +44,7 @@ namespace XrEngine.Devices.Android
 
         public async Task OpenAsync()
         {
-            var listener = new OnDeviceOpenedListener();
+            OnDeviceOpenedListener listener = new OnDeviceOpenedListener();
             _manager.OpenDevice(_info, listener, new Handler(Looper.MainLooper!));
             _device = await listener.Task;
             if (_device == null)
@@ -59,7 +59,7 @@ namespace XrEngine.Devices.Android
 
         public IMidiOutPort OpenOutput(int index)
         {
-            var port = _device?.OpenInputPort(index);
+            MidiInputPort? port = _device?.OpenInputPort(index);
             if (port == null)
                 throw new Exception("Failed to open MIDI output port.");
             return new AndroidMidiOutPort(port);
@@ -67,7 +67,7 @@ namespace XrEngine.Devices.Android
 
         public IMidiInPort OpenInput(int index)
         {
-            var port = _device?.OpenOutputPort(index);
+            MidiOutputPort? port = _device?.OpenOutputPort(index);
             if (port == null)
                 throw new Exception("Failed to open MIDI output port.");
             return new AndroidMidiInPort(port);

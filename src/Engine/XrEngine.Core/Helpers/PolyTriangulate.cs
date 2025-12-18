@@ -10,27 +10,27 @@ namespace XrEngine
             IList<Vector2> outerBoundary,
             IList<IList<Vector2>> holes)
         {
-            var data = new List<IList<Vector2>>
+            List<IList<Vector2>> data = new List<IList<Vector2>>
             {
                 outerBoundary
             };
 
-            var allVertices = new List<Vector2>(outerBoundary.Count + (holes?.Count * 4 ?? 0));
+            List<Vector2> allVertices = new List<Vector2>(outerBoundary.Count + (holes?.Count * 4 ?? 0));
 
             allVertices.AddRange(outerBoundary);
 
             if (holes != null)
             {
-                foreach (var hole in holes)
+                foreach (IList<Vector2> hole in holes)
                 {
                     data.Add(hole);
                     allVertices.AddRange(hole);
                 }
             }
 
-            var indices = Mapbox.Earcut.Triangulate(data);
+            List<int> indices = Mapbox.Earcut.Triangulate(data);
 
-            var results = new List<Triangle3>(indices.Count / 3);
+            List<Triangle3> results = new List<Triangle3>(indices.Count / 3);
 
             for (int i = 0; i < indices.Count; i += 3)
             {
@@ -38,11 +38,11 @@ namespace XrEngine
                 int i1 = indices[i + 1];
                 int i2 = indices[i + 2];
 
-                var p0 = allVertices[i0];
-                var p1 = allVertices[i1];
-                var p2 = allVertices[i2];
+                Vector2 p0 = allVertices[i0];
+                Vector2 p1 = allVertices[i1];
+                Vector2 p2 = allVertices[i2];
 
-                var tri = new Triangle3
+                Triangle3 tri = new Triangle3
                 {
                     V0 = new Vector3(p0.X, p0.Y, 0),
                     V1 = new Vector3(p1.X, p1.Y, 0),
@@ -59,7 +59,7 @@ namespace XrEngine
 
     public static class PolyTriangulate
     {
-      
+
         public static List<Triangle3> TriangulateSimplePolygon(IList<Vector2> polygon)
         {
             List<Triangle3> triangles = new List<Triangle3>();

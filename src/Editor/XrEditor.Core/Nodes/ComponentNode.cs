@@ -22,7 +22,7 @@ namespace XrEditor.Nodes
 
         public void EditorProperties(IList<PropertyView> curProps)
         {
-            var binder = new Binder<T>(_value);
+            Binder<T> binder = new Binder<T>(_value);
             EditorProperties(binder, curProps);
         }
 

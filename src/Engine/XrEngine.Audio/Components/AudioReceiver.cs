@@ -9,7 +9,7 @@ namespace XrEngine.Audio
 
         protected override void Start(RenderContext ctx)
         {
-            var system = _host!.Scene!.Component<AudioSystem>();
+            AudioSystem system = _host!.Scene!.Component<AudioSystem>();
 
             _listener = new AlListener(system.Device.Al);
 

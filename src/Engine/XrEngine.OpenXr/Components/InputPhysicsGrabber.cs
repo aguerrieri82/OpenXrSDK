@@ -48,9 +48,9 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_host?.Scene != null);
 
-            foreach (var item in _host.Scene.ObjectsWithComponent<IGrabbable>())
+            foreach (Object3D item in _host.Scene.ObjectsWithComponent<IGrabbable>())
             {
-                foreach (var comp in item.Components<IGrabbable>())
+                foreach (IGrabbable comp in item.Components<IGrabbable>())
                 {
                     if (comp.IsEnabled && comp.CanGrab(worldPos))
                     {
@@ -72,7 +72,7 @@ namespace XrEngine.OpenXr
 
             //_grabObject.SetActiveTool(this, true);
 
-            var pm = _host!.Scene!.Component<PhysicsManager>();
+            PhysicsManager pm = _host!.Scene!.Component<PhysicsManager>();
 
             _joint = pm.AddJoint(JointType.D6,
                         _grabView,
@@ -80,7 +80,7 @@ namespace XrEngine.OpenXr
                         grabObj,
                         grabObj.GetWorldPose().Inverse().Multiply(grabPoint));
 
-            var rb = grabObj.Component<RigidBody>();
+            RigidBody rb = grabObj.Component<RigidBody>();
             rb.IsEnabled = true;
 
             _grabbable.Grab(grabber);
@@ -106,7 +106,7 @@ namespace XrEngine.OpenXr
 
             if (_grabObject != null)
             {
-                var rb = _grabObject.Component<RigidBody>();
+                RigidBody rb = _grabObject.Component<RigidBody>();
                 rb.IsEnabled = false;
 
                 //_grabObject.SetActiveTool(this, false);
@@ -129,7 +129,7 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            var objGrab = IsGrabbing();
+            ObjectGrab objGrab = IsGrabbing();
 
             if (!objGrab.IsValid)
                 return;
@@ -139,7 +139,7 @@ namespace XrEngine.OpenXr
 
             if (!_grabStarted)
             {
-                var grabObj = FindGrabbable(objGrab.Pose.Position, out var grabbable);
+                Object3D? grabObj = FindGrabbable(objGrab.Pose.Position, out IGrabbable? grabbable);
 
                 if (grabObj != null)
                 {

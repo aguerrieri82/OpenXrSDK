@@ -58,14 +58,14 @@ namespace XrEngine.Browser.Win
             if (!_isInit)
                 return;
 
-            var texture = (_host?.Materials[0] as TextureMaterial)?.Texture;
+            Texture2D? texture = (_host?.Materials[0] as TextureMaterial)?.Texture;
             if (texture == null)
                 return;
 
             texture.SetFlag(EngineObjectFlags.EnableDebug, false);
             texture.Type = TextureType.Buffer;
 
-            var time = _browser.FrameBufferTime;
+            DateTime time = _browser.FrameBufferTime;
 
             if (_browser.FrameBuffer != null && _lastTexUpdateTime != time)
             {

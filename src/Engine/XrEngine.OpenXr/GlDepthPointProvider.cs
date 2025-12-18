@@ -50,27 +50,27 @@ namespace XrEngine.OpenXr
 
         public unsafe Vector3[]? ReadPoints(IEnvDepthProvider provider)
         {
-            var texture = provider.Acquire(_depthCamera);
+            Texture2D? texture = provider.Acquire(_depthCamera);
             if (texture == null)
                 return null;
 
             if (_depthCamera.Eyes == null || _depthCamera.Eyes.Length != 2)
                 return null;
 
-            var renderer = OpenGLRender.Current!;
-            var glState = renderer.State;
+            OpenGLRender renderer = OpenGLRender.Current!;
+            GlState glState = renderer.State;
 
             _target.Configure(texture.Width, texture.Height, TextureFormat.RgbFloat32);
 
-            var curTarget = renderer.RenderTarget;
+            IGlRenderTarget? curTarget = renderer.RenderTarget;
 
             _target.RenderTarget!.Begin(_depthCamera);
 
             _program.Use();
             _program.LoadTexture(texture, 8);
 
-            Matrix4x4.Invert(_depthCamera.Eyes[0].ViewProj, out var mat0);
-            Matrix4x4.Invert(_depthCamera.Eyes[1].ViewProj, out var mat1);
+            Matrix4x4.Invert(_depthCamera.Eyes[0].ViewProj, out Matrix4x4 mat0);
+            Matrix4x4.Invert(_depthCamera.Eyes[1].ViewProj, out Matrix4x4 mat1);
 
             _program.SetUniform("uDepthViewProjInv[0]", mat0);
             _program.SetUniform("uDepthViewProjInv[1]", mat1);
@@ -83,11 +83,11 @@ namespace XrEngine.OpenXr
             glState.BindVertexArray(_emptyVertexArray);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
-            var fb = (GlTextureFrameBuffer)((IGlFrameBufferProvider)_target.RenderTarget).FrameBuffer;
+            GlTextureFrameBuffer fb = (GlTextureFrameBuffer)((IGlFrameBufferProvider)_target.RenderTarget).FrameBuffer;
 
-            var buffer = MemoryBuffer.Create<Vector3>(texture.Width * texture.Height);
+            IMemoryBuffer<Vector3> buffer = MemoryBuffer.Create<Vector3>(texture.Width * texture.Height);
 
-            using var data = buffer.MemoryLock();
+            using MemoryLock<Vector3> data = buffer.MemoryLock();
 
             fb.SetReadBuffer(ReadBufferMode.ColorAttachment0);
 

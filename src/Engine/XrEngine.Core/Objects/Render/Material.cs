@@ -51,7 +51,7 @@
 
         protected override void OnChanged(ObjectChange change)
         {
-            foreach (var host in _hosts)
+            foreach (EngineObject host in _hosts)
                 host.NotifyChanged(new ObjectChange(change.Type, this));
 
             base.OnChanged(change);
@@ -74,11 +74,11 @@
         {
             if (_hosts.Count > 0)
             {
-                var host = _hosts.First();
+                EngineObject host = _hosts.First();
                 host.GeneratePath(parts);
                 if (host is TriangleMesh mesh)
                 {
-                    var index = mesh.Materials.IndexOf(this);
+                    int index = mesh.Materials.IndexOf(this);
                     parts.Add($"Materials[{index}]");
                 }
             }
@@ -134,7 +134,7 @@
 
         public virtual Material Clone()
         {
-            var newMat = (Material)MemberwiseClone();
+            Material newMat = (Material)MemberwiseClone();
 
             newMat._hosts = [];
             if (newMat._props != null)

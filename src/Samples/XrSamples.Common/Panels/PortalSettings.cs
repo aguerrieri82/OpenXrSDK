@@ -19,9 +19,9 @@ namespace XrSamples
 
         public override void Apply(Scene3D scene)
         {
-            var mesh = scene.FindByName<TriangleMesh>("mesh")!;
-            var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
-            var player = mesh.Component<VideoTexturePlayer>();
+            TriangleMesh mesh = scene.FindByName<TriangleMesh>("mesh")!;
+            FishReflectionSphereMaterial mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+            VideoTexturePlayer player = mesh.Component<VideoTexturePlayer>();
 
             mat.SphereRadius = Radius;
             mat.Border = Border;
@@ -51,7 +51,7 @@ namespace XrSamples
     {
         public PortalSettingsPanel(PortalSettings settings, Scene3D scene)
         {
-            var binder = new Binder<PortalSettings>(settings);
+            Binder<PortalSettings> binder = new Binder<PortalSettings>(settings);
 
             void Binder_PropertyChanged(PortalSettings? obj, IProperty property, object? value, object? oldValue)
             {

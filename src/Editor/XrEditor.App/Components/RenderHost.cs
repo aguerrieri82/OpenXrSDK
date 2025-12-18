@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using XrEngine;
@@ -171,7 +172,7 @@ namespace XrEditor
         {
             get
             {
-                var dpi = VisualTreeHelper.GetDpi(this);
+                DpiScale dpi = VisualTreeHelper.GetDpi(this);
                 return new Vector2(
                     (float)(ActualWidth * dpi.DpiScaleX),
                     (float)(ActualHeight * dpi.DpiScaleY)

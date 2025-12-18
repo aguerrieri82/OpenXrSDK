@@ -264,7 +264,7 @@ namespace CanvasUI
 
         public override T? GetValue<T>(string propName) where T : default
         {
-            var parent = _owner.VisualParent;
+            UiElement? parent = _owner.VisualParent;
 
             if (BaseStyle == null)
             {
@@ -274,9 +274,9 @@ namespace CanvasUI
                 return default;
             }
 
-            var curStyle = BaseStyle();
+            UiStyle? curStyle = BaseStyle();
 
-            var value = curStyle.GetValue<T>(propName);
+            T? value = curStyle.GetValue<T>(propName);
 
             if (value is IStyleValue styleValue)
             {

@@ -19,8 +19,8 @@ namespace XrMath
         private float QuadraticLength()
         {
             // Compute the coefficients
-            var A = P2 - 2 * P2 + P1;
-            var B = 2 * (P2 - P1);
+            Vector2 A = P2 - 2 * P2 + P1;
+            Vector2 B = 2 * (P2 - P1);
 
             float a = Vector2.Dot(A, A);
             float b = 2 * Vector2.Dot(A, B);
@@ -111,7 +111,7 @@ namespace XrMath
             float c = -3 * p1 + 3 * c1;
 
             // Solve the quadratic equation: at^2 + bt + c = 0
-            var roots = new List<float>();
+            List<float> roots = new List<float>();
             if (Math.Abs(a) > 1e-6f)
             {
                 float discriminant = b * b - 4 * a * c;
@@ -139,10 +139,10 @@ namespace XrMath
         private void SampleAdaptive(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float tolerance, List<Vector2> points)
         {
             // Compute the chord length
-            var chordLength = Vector2.Distance(p0, p3);
+            float chordLength = Vector2.Distance(p0, p3);
 
             // Compute the control net length
-            var controlNetLength = Vector2.Distance(p0, p1) + Vector2.Distance(p1, p2) + Vector2.Distance(p2, p3);
+            float controlNetLength = Vector2.Distance(p0, p1) + Vector2.Distance(p1, p2) + Vector2.Distance(p2, p3);
 
             // Check if the curve segment is flat enough
             if (Math.Abs(controlNetLength - chordLength) <= tolerance)
@@ -153,14 +153,14 @@ namespace XrMath
             else
             {
                 // Subdivide the curve
-                var mid1 = (p0 + p1) * 0.5f;
-                var mid2 = (p1 + p2) * 0.5f;
-                var mid3 = (p2 + p3) * 0.5f;
+                Vector2 mid1 = (p0 + p1) * 0.5f;
+                Vector2 mid2 = (p1 + p2) * 0.5f;
+                Vector2 mid3 = (p2 + p3) * 0.5f;
 
-                var mid4 = (mid1 + mid2) * 0.5f;
-                var mid5 = (mid2 + mid3) * 0.5f;
+                Vector2 mid4 = (mid1 + mid2) * 0.5f;
+                Vector2 mid5 = (mid2 + mid3) * 0.5f;
 
-                var mid6 = (mid4 + mid5) * 0.5f;
+                Vector2 mid6 = (mid4 + mid5) * 0.5f;
 
                 // Recursively sample the left and right halves
                 SampleAdaptive(p0, mid1, mid4, mid6, tolerance, points);
@@ -170,14 +170,14 @@ namespace XrMath
 
         private void SampleAdaptiveV2(float t0, float t1, float tolerance, List<Path2Point> points)
         {
-            var mid = (t0 + t1) / 2;
-            var p0 = Sample(t0);
-            var p1 = Sample(mid);
-            var p2 = Sample(t1);
+            float mid = (t0 + t1) / 2;
+            Vector2 p0 = Sample(t0);
+            Vector2 p1 = Sample(mid);
+            Vector2 p2 = Sample(t1);
 
-            var midp = (p0 + p2) / 2;
+            Vector2 midp = (p0 + p2) / 2;
 
-            var diff = (midp - p1).Length();
+            float diff = (midp - p1).Length();
             if (diff > tolerance)
             {
                 SampleAdaptiveV2(t0, mid, tolerance, points);
@@ -198,8 +198,8 @@ namespace XrMath
         public bool IsQuadratic(float tolerance = 1e-6f)
         {
             // Expected positions for control points to behave as quadratic
-            var expectedC1 = (2f / 3f) * P1 + (1f / 3f) * P2;
-            var expectedC2 = (1f / 3f) * P1 + (2f / 3f) * P2;
+            Vector2 expectedC1 = (2f / 3f) * P1 + (1f / 3f) * P2;
+            Vector2 expectedC2 = (1f / 3f) * P1 + (2f / 3f) * P2;
 
             // Check if the actual control points are close to the expected ones
             return Vector2.Distance(C1, expectedC1) < tolerance &&
@@ -208,12 +208,12 @@ namespace XrMath
 
         public bool IsLinear(float tolerance = 1e-6f)
         {
-            var v1 = C1 - P1;
-            var v2 = C2 - P1;
-            var v3 = P2 - P1;
+            Vector2 v1 = C1 - P1;
+            Vector2 v2 = C2 - P1;
+            Vector2 v3 = P2 - P1;
 
-            var cross1 = Math.Abs(v1.X * v3.Y - v1.Y * v3.X);
-            var cross2 = Math.Abs(v2.X * v3.Y - v2.Y * v3.X);
+            float cross1 = Math.Abs(v1.X * v3.Y - v1.Y * v3.X);
+            float cross2 = Math.Abs(v2.X * v3.Y - v2.Y * v3.X);
 
             return cross1 < tolerance && cross2 < tolerance;
         }
@@ -226,7 +226,7 @@ namespace XrMath
             float uuu = uu * u;
             float ttt = tt * t;
 
-            var point = uuu * P1; // (1-t)^3 * P1
+            Vector2 point = uuu * P1; // (1-t)^3 * P1
             point += 3 * uu * t * C1; // 3(1-t)^2 * t * C1
             point += 3 * u * tt * C2; // 3(1-t) * t^2 * C2
             point += ttt * P2;        // t^3 * P2
@@ -239,7 +239,7 @@ namespace XrMath
             float u = 1 - t;
 
             // First derivative of the cubic Bézier curve
-            var tangent =
+            Vector2 tangent =
                 3 * u * u * (C1 - P1) +
                 6 * u * t * (C2 - C1) +
                 3 * t * t * (P2 - C2);
@@ -260,8 +260,8 @@ namespace XrMath
                 else
                 {
                     _length = 0;
-                    var samples = SampleAdaptive(tolerance);
-                    for (var i = 0; i < samples.Count - 1; i++)
+                    List<Path2Point> samples = SampleAdaptive(tolerance);
+                    for (int i = 0; i < samples.Count - 1; i++)
                         _length += (samples[i].Point - samples[i + 1].Point).Length();
                 }
             }
@@ -350,22 +350,22 @@ namespace XrMath
 
         public void SplitAtPoint(Path2Point point)
         {
-            var L1 = Vector2.Lerp(point.Segment.P1, point.Segment.C1, point.Time);
-            var L2 = Vector2.Lerp(point.Segment.C1, point.Segment.C2, point.Time);
-            var L3 = Vector2.Lerp(point.Segment.C2, point.Segment.P2, point.Time);
+            Vector2 L1 = Vector2.Lerp(point.Segment.P1, point.Segment.C1, point.Time);
+            Vector2 L2 = Vector2.Lerp(point.Segment.C1, point.Segment.C2, point.Time);
+            Vector2 L3 = Vector2.Lerp(point.Segment.C2, point.Segment.P2, point.Time);
 
             // Level 2 interpolation
-            var M1 = Vector2.Lerp(L1, L2, point.Time);
-            var M2 = Vector2.Lerp(L2, L3, point.Time);
+            Vector2 M1 = Vector2.Lerp(L1, L2, point.Time);
+            Vector2 M2 = Vector2.Lerp(L2, L3, point.Time);
 
             // Level 3 interpolation
-            var Q = Vector2.Lerp(M1, M2, point.Time);
+            Vector2 Q = Vector2.Lerp(M1, M2, point.Time);
 
             point.Segment.C1 = L1;
             point.Segment.C2 = M1;
             point.Segment.P2 = Q;
 
-            var newSegment = new Path2Segment()
+            Path2Segment newSegment = new Path2Segment()
             {
                 P1 = Q,
                 C1 = M2,
@@ -373,20 +373,20 @@ namespace XrMath
                 P2 = point.Segment.P2
             };
 
-            var node = _segments.Find(point.Segment);
+            LinkedListNode<Path2Segment>? node = _segments.Find(point.Segment);
             _segments.AddAfter(node!, newSegment);
         }
 
         public Path2Point FindClosestPoint(Vector2 p, float tolerance = 1e-5f)
         {
-            var result = new Path2Point();
-            var minDistance = float.PositiveInfinity;
+            Path2Point result = new Path2Point();
+            float minDistance = float.PositiveInfinity;
 
-            foreach (var segment in _segments)
+            foreach (Path2Segment segment in _segments)
             {
-                var t = segment.FindClosestT(p, tolerance);
-                var pt = segment.Sample(t);
-                var distance = Vector2.DistanceSquared(pt, p);
+                float t = segment.FindClosestT(p, tolerance);
+                Vector2 pt = segment.Sample(t);
+                float distance = Vector2.DistanceSquared(pt, p);
                 if (distance < minDistance)
                 {
                     result.Segment = segment;
@@ -404,11 +404,11 @@ namespace XrMath
             if (_segments.Count == 0)
                 return Bounds2.Zero;
 
-            var result = _segments.First!.Value.Bounds();
+            Bounds2 result = _segments.First!.Value.Bounds();
 
-            foreach (var segment in _segments.Skip(1))
+            foreach (Path2Segment? segment in _segments.Skip(1))
             {
-                var segBounds = segment.Bounds();
+                Bounds2 segBounds = segment.Bounds();
                 result.Max = Vector2.Max(result.Max, segBounds.Max);
                 result.Min = Vector2.Min(result.Min, segBounds.Min);
             }
@@ -426,14 +426,14 @@ namespace XrMath
 
         public List<Vector2> SamplesFixed(float dt)
         {
-            var result = new List<Vector2>();
-            foreach (var segment in _segments)
+            List<Vector2> result = new List<Vector2>();
+            foreach (Path2Segment segment in _segments)
             {
                 for (float t = 0; t <= 1; t += dt)
                 {
                     if (t != 1 && t + dt > 1)
                         t = 1;
-                    var point = segment.Sample(t);
+                    Vector2 point = segment.Sample(t);
                     if (result.Count == 0 || point != result[result.Count - 1])
                         result.Add(point);
                 }
@@ -443,10 +443,10 @@ namespace XrMath
 
         public List<Vector2> SamplesFixedGlobal(float dt)
         {
-            var result = new List<Vector2>();
-            var totLen = Length();
-            var dLen = totLen * dt;
-            foreach (var segment in _segments)
+            List<Vector2> result = new List<Vector2>();
+            float totLen = Length();
+            float dLen = totLen * dt;
+            foreach (Path2Segment segment in _segments)
             {
                 float segDt;
 
@@ -454,7 +454,7 @@ namespace XrMath
                     segDt = 1;
                 else
                 {
-                    var len = segment.Length();
+                    float len = segment.Length();
                     segDt = dLen / len;
                 }
 
@@ -462,7 +462,7 @@ namespace XrMath
                 {
                     if (t != 1 && t + dt > 1)
                         t = 1;
-                    var point = segment.Sample(t);
+                    Vector2 point = segment.Sample(t);
                     if (result.Count == 0 || point != result[result.Count - 1])
                         result.Add(point);
                 }
@@ -472,9 +472,9 @@ namespace XrMath
 
         public List<Path2Point> SamplesAdaptive(float tolerance = 0.01f)
         {
-            var result = new List<Path2Point>();
+            List<Path2Point> result = new List<Path2Point>();
 
-            foreach (var segment in _segments)
+            foreach (Path2Segment segment in _segments)
                 segment.SampleAdaptive(result, tolerance);
 
             return result;
@@ -485,30 +485,30 @@ namespace XrMath
             if (_segments.Count == 0)
                 return Vector2.Zero;
 
-            var totLen = Length();
+            float totLen = Length();
 
             if (len > totLen)
             {
-                var lastSeg = _segments.Last!.Value;
-                var tan = Vector2.Normalize(lastSeg.Tangent(1));
+                Path2Segment lastSeg = _segments.Last!.Value;
+                Vector2 tan = Vector2.Normalize(lastSeg.Tangent(1));
                 return lastSeg.P2 + tan * (len - totLen);
             }
 
             if (len < 0)
             {
-                var firstSeg = _segments.First!.Value;
-                var tan = Vector2.Normalize(firstSeg.Tangent(0));
+                Path2Segment firstSeg = _segments.First!.Value;
+                Vector2 tan = Vector2.Normalize(firstSeg.Tangent(0));
                 return firstSeg.P1 + tan * len;
             }
 
-            var curLen = 0f;
-            foreach (var segment in _segments)
+            float curLen = 0f;
+            foreach (Path2Segment segment in _segments)
             {
-                var segLen = segment.Length();
+                float segLen = segment.Length();
 
                 if (len <= curLen + segLen)
                 {
-                    var t = (len - curLen) / segLen;
+                    float t = (len - curLen) / segLen;
                     return segment.Sample(t);
                 }
                 curLen += segLen;
@@ -519,9 +519,9 @@ namespace XrMath
 
         public float Length()
         {
-            var result = 0f;
+            float result = 0f;
 
-            foreach (var segment in _segments)
+            foreach (Path2Segment segment in _segments)
                 result += segment.Length();
 
             return result;
@@ -529,15 +529,15 @@ namespace XrMath
 
         public DiscreteFunction ToFunctionY(float dt, float sign = 1)
         {
-            var samples = SamplesFixed(dt);
+            List<Vector2> samples = SamplesFixed(dt);
 
             float lastY = float.NegativeInfinity;
 
-            var newPoints = new List<Vector2>();
+            List<Vector2> newPoints = new List<Vector2>();
 
-            foreach (var point in samples)
+            foreach (Vector2 point in samples)
             {
-                var signY = sign * point.Y;
+                float signY = sign * point.Y;
 
                 if (signY >= lastY)
                 {
@@ -554,12 +554,12 @@ namespace XrMath
 
         public DiscreteFunction ToFunctionX(float dt)
         {
-            var samples = SamplesFixed(dt);
+            List<Vector2> samples = SamplesFixed(dt);
             float lastX = float.NegativeInfinity;
 
-            var newPoints = new List<Vector2>();
+            List<Vector2> newPoints = new List<Vector2>();
 
-            foreach (var point in samples)
+            foreach (Vector2 point in samples)
             {
                 if (point.X >= lastX)
                 {
@@ -600,8 +600,8 @@ namespace XrMath
 
         public void QuadraticTo(Vector2 p2, Vector2 c)
         {
-            var c1 = (2f / 3f) * c + (1f / 3f) * _currentPoint;
-            var c2 = (2f / 3f) * c + (1f / 3f) * p2;
+            Vector2 c1 = (2f / 3f) * c + (1f / 3f) * _currentPoint;
+            Vector2 c2 = (2f / 3f) * c + (1f / 3f) * p2;
 
             AddSegment(new Path2Segment
             {
@@ -615,7 +615,7 @@ namespace XrMath
         public void ParseSvgPath(string svgPath)
         {
             int i = 0;
-            var startPoint = Vector2.Zero;
+            Vector2 startPoint = Vector2.Zero;
 
             List<float> args = [];
 
@@ -648,7 +648,7 @@ namespace XrMath
                     case 'M': // Move to
                         for (int j = 0; j < args.Count; j += 2)
                         {
-                            var point = new Vector2(args[j], args[j + 1]);
+                            Vector2 point = new Vector2(args[j], args[j + 1]);
                             if (isRelative)
                                 point += _currentPoint;
 
@@ -660,7 +660,7 @@ namespace XrMath
                     case 'L': // Line to
                         for (int j = 0; j < args.Count; j += 2)
                         {
-                            var point = new Vector2(args[j], args[j + 1]);
+                            Vector2 point = new Vector2(args[j], args[j + 1]);
                             if (isRelative) point += _currentPoint;
 
                             LineTo(point);
@@ -670,7 +670,7 @@ namespace XrMath
                     case 'H': // Horizontal line
                         {
                             float x = args[0];
-                            var point = new Vector2(isRelative ? _currentPoint.X + x : x, _currentPoint.Y);
+                            Vector2 point = new Vector2(isRelative ? _currentPoint.X + x : x, _currentPoint.Y);
                             LineTo(point);
                         }
                         break;
@@ -678,7 +678,7 @@ namespace XrMath
                     case 'V': // Vertical line
                         {
                             float y = args[0];
-                            var point = new Vector2(_currentPoint.X, isRelative ? _currentPoint.Y + y : y);
+                            Vector2 point = new Vector2(_currentPoint.X, isRelative ? _currentPoint.Y + y : y);
                             LineTo(point);
                         }
                         break;
@@ -686,8 +686,8 @@ namespace XrMath
                     case 'Q': // Quadratic Bézier
                         for (int j = 0; j < args.Count; j += 4)
                         {
-                            var c = new Vector2(args[j], args[j + 1]);
-                            var p2 = new Vector2(args[j + 2], args[j + 3]);
+                            Vector2 c = new Vector2(args[j], args[j + 1]);
+                            Vector2 p2 = new Vector2(args[j + 2], args[j + 3]);
 
                             if (isRelative)
                             {
@@ -703,9 +703,9 @@ namespace XrMath
                     case 'C': // Cubic Bézier
                         for (int j = 0; j < args.Count; j += 6)
                         {
-                            var c1 = new Vector2(args[j], args[j + 1]);
-                            var c2 = new Vector2(args[j + 2], args[j + 3]);
-                            var p2 = new Vector2(args[j + 4], args[j + 5]);
+                            Vector2 c1 = new Vector2(args[j], args[j + 1]);
+                            Vector2 c2 = new Vector2(args[j + 2], args[j + 3]);
+                            Vector2 p2 = new Vector2(args[j + 4], args[j + 5]);
 
                             if (isRelative)
                             {
@@ -730,7 +730,7 @@ namespace XrMath
 
         public void Transform(Matrix3x2 matrix)
         {
-            foreach (var segment in _segments)
+            foreach (Path2Segment segment in _segments)
                 segment.Transform(matrix);
 
         }

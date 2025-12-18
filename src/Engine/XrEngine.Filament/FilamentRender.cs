@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Common.Interop;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using XrEngine.Objects;
 using XrMath;
@@ -78,7 +79,7 @@ namespace XrEngine.Filament
             if (!string.IsNullOrWhiteSpace(options.MaterialCachePath))
                 Directory.CreateDirectory(options.MaterialCachePath);
 
-            var initInfo = new InitializeOptions()
+            InitializeOptions initInfo = new InitializeOptions()
             {
                 Driver = options.Driver,
                 WindowHandle = options.WindowHandle,
@@ -103,7 +104,7 @@ namespace XrEngine.Filament
 
             if (options.WindowHandle != IntPtr.Zero)
             {
-                var mainViewId = CreateView(0, 0, -1);
+                uint mainViewId = CreateView(0, 0, -1);
 
                 _renderTargets[0] = new RenderTargetBind { ViewId = mainViewId, RenderTargetId = -1 };
 
@@ -115,7 +116,7 @@ namespace XrEngine.Filament
 
         public GraphicContextInfo GetContext()
         {
-            GetGraphicContext(_app, out var info);
+            GetGraphicContext(_app, out GraphicContextInfo info);
             return info;
         }
 
@@ -135,7 +136,7 @@ namespace XrEngine.Filament
 
         protected uint CreateView(uint width, uint height, int renderTargetId)
         {
-            var viewOpt = new ViewOptions
+            ViewOptions viewOpt = new ViewOptions
             {
                 RenderQuality = new RenderQuality
                 {
@@ -160,9 +161,9 @@ namespace XrEngine.Filament
         //TODO implement depth
         public void SetRenderTarget(uint width, uint height, nint colorImage, nint depthImage, FlTextureInternalFormat format)
         {
-            if (!_renderTargets.TryGetValue(colorImage, out var rtBind))
+            if (!_renderTargets.TryGetValue(colorImage, out RenderTargetBind? rtBind))
             {
-                var options = new RenderTargetOptions()
+                RenderTargetOptions options = new RenderTargetOptions()
                 {
                     Width = width,
                     Height = height,
@@ -177,7 +178,7 @@ namespace XrEngine.Filament
                     RenderTargetId = AddRenderTarget(_app, ref options)
                 };
 
-                var viewBind = _options.OneViewPerTarget ?
+                ViewSizeRtBind? viewBind = _options.OneViewPerTarget ?
                     _views.FirstOrDefault(a => a.RenderTargetId == rtBind.RenderTargetId) :
                     _views.FirstOrDefault(a => a.Viewport.Width == width && a.Viewport.Height == height);
 
@@ -213,7 +214,7 @@ namespace XrEngine.Filament
         {
             obj.EnsureId();
 
-            if (!_content!.Objects!.TryGetValue(obj, out var curId))
+            if (!_content!.Objects!.TryGetValue(obj, out Guid curId))
             {
                 factory(obj.Id);
                 _content!.Objects[obj] = obj.Id;
@@ -223,7 +224,7 @@ namespace XrEngine.Filament
 
         internal unsafe TextureInfo AllocateTexture(Texture2D? texture)
         {
-            var result = new TextureInfo();
+            TextureInfo result = new TextureInfo();
 
             if (texture != null)
             {
@@ -286,7 +287,7 @@ namespace XrEngine.Filament
 
                 if (texture.Data != null)
                 {
-                    var mainData = texture.Data[0];
+                    TextureData mainData = texture.Data[0];
 
                     if (mainData.Compression != TextureCompressionFormat.Uncompressed)
                     {
@@ -340,7 +341,7 @@ namespace XrEngine.Filament
                     result.Data.AutoFree = true;
                     result.Data.IsBgr = mainData.Format == TextureFormat.Bgra32 || mainData.Format == TextureFormat.SBgra32;
 
-                    using var pSrc = mainData.Data.MemoryLock();
+                    using MemoryLock<byte> pSrc = mainData.Data.MemoryLock();
                     EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);
                 }
             }
@@ -367,8 +368,8 @@ namespace XrEngine.Filament
                     CastShadows = sun.CastShadows,
                 };
             }
-            
-            var info = GetInfo();   
+
+            LightInfo info = GetInfo();
 
             AddLight(_app, id, ref info);
 
@@ -381,7 +382,7 @@ namespace XrEngine.Filament
 
         protected void Create(Guid id, DirectionalLight dir)
         {
-            var info = new LightInfo
+            LightInfo info = new LightInfo
             {
                 Type = FlLightType.Directional,
                 Direction = dir.Direction,
@@ -394,7 +395,7 @@ namespace XrEngine.Filament
 
         protected void Create(Guid id, ImageLight img)
         {
-            var info = new ImageLightInfo
+            ImageLightInfo info = new ImageLightInfo
             {
                 Intensity = img.Intensity,
                 Rotation = img.RotationY,
@@ -436,7 +437,7 @@ namespace XrEngine.Filament
         {
             void Create(bool updateMode)
             {
-                var attributes = new List<VertexAttribute>();
+                List<VertexAttribute> attributes = new List<VertexAttribute>();
 
                 if ((geo.ActiveComponents & VertexComponent.Position) != 0)
                     attributes.Add(new VertexAttribute
@@ -472,20 +473,20 @@ namespace XrEngine.Filament
                         Type = VertexAttributeType.Tangent
                     });
 
-                var attributesArray = attributes.ToArray();
+                VertexAttribute[] attributesArray = attributes.ToArray();
 
                 fixed (VertexAttribute* pAttr = attributesArray)
                 fixed (uint* pIndex = geo.Indices)
                 fixed (VertexData* pVert = geo.Vertices)
                 {
-                    var layout = new VertexLayout
+                    VertexLayout layout = new VertexLayout
                     {
                         SizeByte = (uint)Marshal.SizeOf<VertexData>(),
                         AttributeCount = (uint)attributes.Count,
                         Attributes = pAttr
                     };
 
-                    var geoInfo = new GeometryInfo
+                    GeometryInfo geoInfo = new GeometryInfo
                     {
                         layout = layout,
                         Bounds = geo.Bounds,
@@ -632,14 +633,14 @@ namespace XrEngine.Filament
                 throw new NotSupportedException();
             }
 
-            var matInfo = UpdateMatInfo();
+            MaterialInfo matInfo = UpdateMatInfo();
             AddMaterial(_app, mat.Id, ref matInfo);
 
             mat.Changed += (s, c) =>
             {
                 if (c.IsAny(ObjectChangeType.MaterialEnabled))
                 {
-                    foreach (var host in mat.Hosts.OfType<Object3D>())
+                    foreach (Object3D host in mat.Hosts.OfType<Object3D>())
                         SetObjVisible(_app, host.Id, host.IsVisible && mat.IsEnabled);
                 }
                 else
@@ -653,7 +654,7 @@ namespace XrEngine.Filament
             {
                 tex.Texture!.Changed += (s, c) =>
                 {
-                    var texInfo = AllocateTexture(tex.Texture);
+                    TextureInfo texInfo = AllocateTexture(tex.Texture);
                     if (!UpdateTexture(_app, tex.Texture.Id, ref texInfo.Data))
                     {
                         matInfo = UpdateMatInfo();
@@ -668,11 +669,11 @@ namespace XrEngine.Filament
             if (mesh.Vertices.Length == 0)
                 return;
 
-            var matId = GetOrCreate(mesh.Material, matId => Create(matId, mesh.Material));
+            Guid matId = GetOrCreate(mesh.Material, matId => Create(matId, mesh.Material));
 
             void CreateGeometry(bool isUpdate)
             {
-                var attributes = new VertexAttribute[2];
+                VertexAttribute[] attributes = new VertexAttribute[2];
 
                 attributes[0] = new VertexAttribute
                 {
@@ -688,20 +689,20 @@ namespace XrEngine.Filament
                     Type = VertexAttributeType.Color
                 };
 
-                var bounds = mesh.Vertices.Select(a => a.Pos).ComputeBounds();
+                Bounds3 bounds = mesh.Vertices.Select(a => a.Pos).ComputeBounds();
 
                 fixed (VertexAttribute* pAttr = attributes)
                 fixed (PointData* pVert = mesh.Vertices)
                 {
 
-                    var layout = new VertexLayout
+                    VertexLayout layout = new VertexLayout
                     {
                         SizeByte = (uint)Marshal.SizeOf<PointData>(),
                         AttributeCount = (uint)attributes.Length,
                         Attributes = pAttr
                     };
 
-                    var geoInfo = new GeometryInfo
+                    GeometryInfo geoInfo = new GeometryInfo
                     {
                         layout = layout,
                         Bounds = bounds,
@@ -721,7 +722,7 @@ namespace XrEngine.Filament
 
             CreateGeometry(false);
 
-            var meshInfo = new MeshInfo
+            MeshInfo meshInfo = new MeshInfo
             {
                 Culling = true,
                 Fog = false,
@@ -744,11 +745,11 @@ namespace XrEngine.Filament
 
         protected void Create(Guid id, TriangleMesh mesh)
         {
-            var geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, id, mesh.Geometry!));
+            Guid geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, id, mesh.Geometry!));
 
-            var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
+            Guid matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
 
-            var meshInfo = new MeshInfo
+            MeshInfo meshInfo = new MeshInfo
             {
                 Culling = true,
                 Fog = false,
@@ -768,7 +769,7 @@ namespace XrEngine.Filament
             {
                 if (c.IsAny(ObjectChangeType.Render) && mesh.Materials.Count > 0)
                 {
-                    var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
+                    Guid matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
                     SetMeshMaterial(_app, id, matId);
                 }
 
@@ -783,7 +784,7 @@ namespace XrEngine.Filament
 
             if (change.IsAny(ObjectChangeType.Visibility))
             {
-                foreach (var item in obj.DescendantsOrSelf())
+                foreach (Object3D item in obj.DescendantsOrSelf())
                     SetObjVisible(_app, item.Id, item.IsVisible);
             }
 
@@ -849,14 +850,14 @@ namespace XrEngine.Filament
             _content.Scene = scene;
             _content.Version = scene.Version;
 
-            foreach (var obj in scene.Descendants())
+            foreach (Object3D obj in scene.Descendants())
                 GetOrCreate(obj, id => Create(id, obj));
 
-            foreach (var layer in scene.Layers.OfType<DetachedLayer>())
+            foreach (DetachedLayer layer in scene.Layers.OfType<DetachedLayer>())
             {
                 if (layer.Usage == DetachedLayerUsage.Gizmos)
                 {
-                    foreach (var obj in layer.Content.SelectMany(a => a.DescendantsOrSelf()))
+                    foreach (Object3D? obj in layer.Content.SelectMany(a => a.DescendantsOrSelf()))
                         GetOrCreate(obj, id => Create(id, obj));
                 }
             }
@@ -864,13 +865,13 @@ namespace XrEngine.Filament
 
         public unsafe void Render(RenderContext ctx, Rect2I viewport, bool flush)
         {
-            var scene = ctx.Scene!;
+            Scene3D scene = ctx.Scene!;
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
-            var render = stackalloc RenderTarget[1];
-            var camera = (PerspectiveCamera)ctx.Camera!;
+            RenderTarget* render = stackalloc RenderTarget[1];
+            PerspectiveCamera camera = (PerspectiveCamera)ctx.Camera!;
 
             render[0].Camera = new CameraInfo
             {
