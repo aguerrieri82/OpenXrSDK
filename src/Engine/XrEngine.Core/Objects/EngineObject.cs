@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Collections.Concurrent;
+
+namespace XrEngine
 {
     [Flags]
     public enum EngineObjectFlags
@@ -17,9 +19,45 @@
         LargeOccluder = 0x200
     }
 
+    public static class DynamicPropRegistry
+    {
+        private static readonly ConcurrentDictionary<string, int> _stringToId = new();
+        private static int _nextId = -1;
+
+        public static int GetId(string name)
+        {
+            return _stringToId.GetOrAdd(name, _ => Interlocked.Increment(ref _nextId));
+        }
+    }
+
+    public struct DynamicProp
+    {
+        public DynamicProp(string name)
+        {
+            Name = name;
+            Id = DynamicPropRegistry.GetId(name);
+        }
+
+        public static implicit operator DynamicProp (string name)
+        {
+            return new DynamicProp(name);
+        }
+
+        public static implicit operator int (DynamicProp prop)
+        {
+            return prop.Id;
+        }
+
+
+        public string Name;
+
+        public int Id;
+    }
+
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
     {
-        protected Dictionary<string, object?>? _props;
+        //protected Dictionary<int, object?>? _props;
+        protected object?[]? _props;
         protected List<IComponent>? _components;
         protected ObjectId _id;
         protected ObjectChangeSet _lastChanges;
@@ -138,31 +176,35 @@
             Changed?.Invoke(this, change);
         }
 
-        public void DeleteProp(string name)
+        public void DeleteProp(int propId)
         {
-            _props?.Remove(name);
+            if (_props != null && propId < _props.Length)
+                _props[propId] = null;
         }
 
-        public void SetProp(string name, object? value)
+        public void SetProp(int propId, object? value)
         {
             _props ??= [];
-            _props[name] = value;
+            if (propId >= _props.Length)
+            {
+                var newSize = Math.Max(propId + 1, _props.Length * 2);
+                Array.Resize(ref _props, newSize);
+            }
+            _props[propId] = value;
         }
 
-        public T? GetProp<T>(string name)
+        public T? GetProp<T>(int propId)
         {
-            var result = GetProp(name);
+            var result = GetProp(propId);
             if (result == null)
                 return default;
             return (T)result;
         }
 
-        public object? GetProp(string name)
+        public object? GetProp(int propId)
         {
-            if (_props == null)
-                return null;
-            if (_props.TryGetValue(name, out var value))
-                return value;
+            if (_props != null && propId < _props.Length)
+                return _props[propId];
             return null;
         }
 
@@ -177,9 +219,9 @@
 
             if (_props != null)
             {
-                foreach (var prop in _props.Values.OfType<IDisposable>())
+                foreach (var prop in _props.OfType<IDisposable>())
                     prop.Dispose();
-                foreach (var prop in _props.Values.OfType<IObjectTool>())
+                foreach (var prop in _props.OfType<IObjectTool>())
                     prop.Deactivate();
                 _props = null;
             }

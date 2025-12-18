@@ -180,6 +180,8 @@ namespace XrEngine
                     _iblVersion = imgLight.Version;
                     bld.AddFeature("USE_IBL");
                 }
+                else
+                    _iblVersion = -1;
 
                 if (DepthNoiseFactor > 0)
                     bld.AddFeature("USE_DEPTH_NOISE");
@@ -261,7 +263,7 @@ namespace XrEngine
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+                    var hash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion).ToString();
 
                     if (ctx.CurrentBuffer!.Hash == hash)
                         return null;
@@ -469,7 +471,7 @@ namespace XrEngine
 
             bld.LoadBuffer(ctx =>
             {
-                var curVersion = Version;
+                var curVersion = ContentVersion + Version;
 
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;

@@ -31,12 +31,12 @@ namespace XrEngine.OpenGL
             Material = material;
             Global = global;
 
-            var bufferMap = material.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
             _materialBuffers = bufferMap.Buffers;
 
             if (model != null)
             {
-                bufferMap = model.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+                bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
                 _modelBuffers = bufferMap.Buffers;
             }
             else
@@ -48,7 +48,7 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(ctx.Stage == UpdateShaderStage.Model);
 
-            var bufferMap = ctx.Model!.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+            var bufferMap = ctx.Model!.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
 
             _modelBuffers = bufferMap.Buffers;
 

@@ -12,6 +12,8 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
+        public static readonly bool EnablePreview = false;
+
         public static readonly string[] AssetsPath = [
             @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
@@ -19,7 +21,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {

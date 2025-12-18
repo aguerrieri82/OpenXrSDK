@@ -106,10 +106,17 @@ namespace XrEngine.UI.Web
                     {
                         foreach (var param in mapped.Info!.GetParameters())
                         {
+                            object? value;
+
                             if (args.ContainsKey(param.Name!))
-                                parsedArgs.Add(args[param.Name!].Deserialize(param.ParameterType, _jsonOptions));
+                                value = args[param.Name!].Deserialize(param.ParameterType, _jsonOptions);
                             else
-                                parsedArgs.Add(param.DefaultValue);
+                                value = param.DefaultValue;
+
+                            if (value is DBNull)
+                                value = null;
+
+                            parsedArgs.Add(value);
                         }
                     }
 

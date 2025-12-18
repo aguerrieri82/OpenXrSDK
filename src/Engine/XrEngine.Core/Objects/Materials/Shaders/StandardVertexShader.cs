@@ -32,6 +32,7 @@ namespace XrEngine
                 var modelWord = ctx.Model!.WorldMatrix;
 
                 var curVersion = ctx.Model!.Transform.Version;
+
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
 

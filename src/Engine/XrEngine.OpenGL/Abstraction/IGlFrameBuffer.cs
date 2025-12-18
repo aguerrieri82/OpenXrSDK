@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
 
         void Unbind();
 
-        void Check();
+        void Check(bool force = false);
 
         void SetDrawBuffers(params DrawBufferMode[] modes);
 

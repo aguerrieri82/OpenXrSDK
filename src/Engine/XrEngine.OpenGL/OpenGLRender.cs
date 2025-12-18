@@ -52,9 +52,11 @@ namespace XrEngine.OpenGL
 
         public static class Props
         {
-            public const string GlResId = nameof(GlResId);
+            public static readonly DynamicProp GlResId = new(nameof(GlResId));
 
-            public const string GlQuery = nameof(GlQuery);
+            public static readonly DynamicProp GlQuery = new(nameof(GlQuery));
+
+            public static readonly DynamicProp BufferMap = new(nameof(BufferMap));
         }
 
         #region CONSTRUCTORS

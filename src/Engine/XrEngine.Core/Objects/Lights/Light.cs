@@ -37,5 +37,7 @@ namespace XrEngine
 
         [Range(0, 10, 0.1f)]
         public float Intensity { get; set; }
+
+        public int ContentVersion { get; set; }
     }
 }

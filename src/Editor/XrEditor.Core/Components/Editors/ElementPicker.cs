@@ -36,7 +36,7 @@ namespace XrEditor
 
             try
             {
-                if (_node is IItemPreview preview)
+                if (_node is IItemPreview preview && EditorDebug.EnablePreview)
                     Image = await preview.CreatePreviewAsync();
                 else
                     Image = null;

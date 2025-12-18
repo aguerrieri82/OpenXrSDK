@@ -9,20 +9,27 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlBaseFrameBuffer : GlObject
     {
+        protected bool _isDirty = true;
+
         public GlBaseFrameBuffer(GL gl)
             : base(gl)
         {
             Target = FramebufferTarget.Framebuffer;
         }
 
-        public void Check()
+        public void Check(bool force = false)
         {
+            if (!_isDirty && !force)
+                return;
+
             var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
+
+            _isDirty = false;
         }
 
         public void SetDrawBuffers(params DrawBufferMode[] modes)

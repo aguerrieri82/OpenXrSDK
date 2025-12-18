@@ -43,7 +43,7 @@ namespace XrEditor
 
             ActiveNode = obj != null ? Context.Require<NodeManager>().CreateNode(obj) : null;
 
-            if (ActiveNode is IItemPreview preview)
+            if (ActiveNode is IItemPreview preview && EditorDebug.EnablePreview)
                 NodePreview = await preview.CreatePreviewAsync();
             else
                 NodePreview = null;
@@ -120,7 +120,7 @@ namespace XrEditor
 
         private async void OnValueChanged(IPropertyEditor obj)
         {
-            if (ActiveNode is IItemPreview preview)
+            if (ActiveNode is IItemPreview preview && EditorDebug.EnablePreview)
                 NodePreview = await preview.CreatePreviewAsync();
         }
 

@@ -162,7 +162,7 @@ namespace XrEngine.Physics
                     var geo3d = mesh?.Geometry;
 
                     if (geo3d != null)
-                        result = geo3d.GetProp<PhysicsGeometry>("PyGeo");
+                        result = geo3d.GetProp<PhysicsGeometry>(PyMeshCollider.PyGeo);
 
                     if (mesh != null)
                         pose = (mesh.WorldMatrix * _host.WorldMatrixInverse).ToPose();

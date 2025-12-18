@@ -30,6 +30,7 @@
   <Folder Name="/#Global/">
     <File Path="../.gitattributes" />
     <File Path="../.gitignore" />
+    <File Path="../AndroidProfile.md" />
     <File Path="../readme.md" />
     <File Path="../ToDo.docx" />
     <File Path="AspNetCoreMini.props" />

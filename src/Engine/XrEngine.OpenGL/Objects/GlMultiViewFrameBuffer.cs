@@ -128,6 +128,8 @@ namespace XrEngine.OpenGL
                     glTex,
                     0, 0, 2);
             }
+
+            _isDirty = true;    
         }
 
         public void Detach(FramebufferAttachment attachment)
