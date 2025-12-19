@@ -27,6 +27,8 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Media;
+using XrEngine.OpenXr.Components;
+
 
 #if !ANDROID
 using XrEngine.Browser.Win;
@@ -40,6 +42,7 @@ namespace XrSamples
         static readonly GltfLoaderOptions GltfOptions = new()
         {
             ConvertColorTextureSRgb = true,
+
         };
 
         static string GetAssetPath(string name)
@@ -315,7 +318,7 @@ namespace XrSamples
             cube.Transform.SetScale(0.1f);
             cube.AddComponent<BoundsGrabbable>();
             cube.AddComponent<BoxCollider>();
-            cube.AddComponent<SpeedTracker>();
+            cube.AddComponent<Throwable>();
 
             var rb = cube.AddComponent(new RigidBody()
             {
@@ -341,7 +344,7 @@ namespace XrSamples
                 if (pick != null && pick.IsChanged && pick.Value)
                 {
                     rb.Teleport(pose!.Value.Position);
-                    Context.Require<ITimeLogger>().Clear();
+                    //Context.Require<ITimeLogger>().Clear();
                 }
             });
 
@@ -352,9 +355,9 @@ namespace XrSamples
               .UsePhysics(new PhysicsOptions
               {
 
-              });
-            //.AddPanel(new ThrowSettingsPanel(settings, scene))
-            //.ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+              })
+              .AddPanel(new ThrowSettingsPanel(settings, cube))
+              .ConfigureApp(app => settings.Apply(cube));
         }
 
 

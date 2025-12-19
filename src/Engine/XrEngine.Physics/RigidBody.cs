@@ -41,6 +41,8 @@ namespace XrEngine.Physics
         private PhysicsMaterial? _material;
         private Pose3 _lastPose;
         private IObjectTool? _lastTool;
+        private Vector3 _lastAngularVelocity;
+        private Vector3 _lastLinearVelocity;
 
         private event RigidBodyContactEventHandler? _contactEvent;
 
@@ -64,6 +66,8 @@ namespace XrEngine.Physics
             AutoTeleport = false;
             PositionMode = PositionMode.Origin;
             ToolMode = RigidBodyToolMode.KinematicTarget;
+            TrackVelocityOnTool = true;
+            UpdatePoseOnToolRelease = false;
         }
 
         public void Teleport(Vector3 worldPos)
@@ -459,12 +463,24 @@ namespace XrEngine.Physics
 
                 if (tool == null)
                 {
-                    if (_lastTool != null && ToolMode == RigidBodyToolMode.KinematicTarget)
+                    if (_lastTool != null && ToolMode == RigidBodyToolMode.KinematicTarget && UpdatePoseOnToolRelease)
+                    {
                         _actor.GlobalPose = DynamicActor.KinematicTarget;
+                    }
                     else
                     {
                         if (DynamicActor.IsKinematic)
+                        {
                             DynamicActor.IsKinematic = false;
+
+                            if (TrackVelocityOnTool)
+                            {
+                                DynamicActor.LinearVelocity = _lastLinearVelocity;
+                                DynamicActor.AngularVelocity = _lastAngularVelocity;
+                            }
+
+                            return;
+                        }
 
                         if ((AutoTeleport && !curPose.IsSimilar(_lastPose, 1e-4f)) || !_actor.GlobalPose.IsFinite())
                             Teleport(curPose.Position);
@@ -477,11 +493,23 @@ namespace XrEngine.Physics
                     if (ToolMode != RigidBodyToolMode.Dynamic)
                     {
                         if (!DynamicActor.IsKinematic)
+                        {
                             DynamicActor.IsKinematic = true;
+                            _lastLinearVelocity = Vector3.Zero;
+                            _lastAngularVelocity = Vector3.Zero;
+                        }
                     }
 
                     if (ToolMode == RigidBodyToolMode.KinematicTarget)
+                    {
                         DynamicActor.KinematicTarget = curPose;
+
+                        if (!DynamicActor.LinearVelocity.IsSimilar(Vector3.Zero))
+                            _lastLinearVelocity = DynamicActor.LinearVelocity;
+
+                        if (!DynamicActor.AngularVelocity.IsSimilar(Vector3.Zero))
+                            _lastAngularVelocity = DynamicActor.AngularVelocity;
+                    }
                     else
                         DynamicActor.GlobalPose = curPose;
                 }
@@ -556,6 +584,10 @@ namespace XrEngine.Physics
 
         [Category("Advanced")]
         public bool RetainAccelerations { get; set; }
+
+        public bool UpdatePoseOnToolRelease { get; set; }
+
+        public bool TrackVelocityOnTool { get; set; }
 
         public RigidBodyToolMode ToolMode { get; set; }
 

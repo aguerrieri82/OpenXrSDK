@@ -28,7 +28,7 @@ namespace XrEngine
         public static void Value<T>(string name, T value)
         {
 
-            //TimeLogger.LogValue(name, value);
+            TimeLogger.LogValue(name, value);
         }
 
         public static void Checkpoint(string name, Color color)

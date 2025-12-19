@@ -6,6 +6,8 @@ in vec3 fNormal;
 
 layout(location=0) out vec4 FragColor;
 
+#define USE_SHADOW_MAP 
+
 #include "Shared/shadow.glsl"	
 
 void main()

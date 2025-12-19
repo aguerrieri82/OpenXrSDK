@@ -29,13 +29,19 @@
 
         public IEnumerable<string> List(string storePath)
         {
-            return Directory.EnumerateFiles(Path.Join(_basePath, storePath))
+            var path = Path.Join(_basePath, storePath);
+            if (!Directory.Exists(path))
+                return [];
+            return Directory.EnumerateFiles(path)
                   .Select(a => a.Substring(_basePath.Length));
         }
 
         public IEnumerable<string> ListDirectories(string storePath)
         {
-            return Directory.EnumerateDirectories(Path.Join(_basePath, storePath))
+            var path = Path.Join(_basePath, storePath);
+            if (!Directory.Exists(path))
+                return [];
+            return Directory.EnumerateDirectories(path)
                   .Select(a => a.Substring(_basePath.Length));
         }
 

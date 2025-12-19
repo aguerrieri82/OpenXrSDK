@@ -30,7 +30,7 @@ namespace XrSamples
 
             return builder;
         }
-        public static IUiBuilder<T> AddInputRange<T>(this IUiBuilder<T> builder, string label, float min, float max, IProperty<float> binding) where T : UiContainer
+        public static IUiBuilder<T> AddInputRange<T>(this IUiBuilder<T> builder, string label, float min, float max, IProperty<float> binding, float step = 0) where T : UiContainer
         {
             IValueScale scale = (min > 0 && min < 1) ? LogScale.Instance : LinearScale.Instance;
 
@@ -52,6 +52,7 @@ namespace XrSamples
                   {
                       s.Min = scale.ToScale(min);
                       s.Max = scale.ToScale(max);
+                      s.Step = step;
                       s.Value = scale.ToScale(binding.Value);
                       s.ValueChanged += (_, v, _) =>
                       {

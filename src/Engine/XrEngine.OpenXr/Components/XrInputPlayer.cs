@@ -100,7 +100,7 @@ namespace XrEngine.OpenXr
                 if (input.Key == "RightGripPose")
                 {
                     var pose = ((XrPoseInput)xrInput!).Value;
-                    Log.Value("Pose-X", MathF.Round(pose.Position.X, 5));
+                    //Log.Value("Pose-X", MathF.Round(pose.Position.X, 5));
                 }
             }
         }

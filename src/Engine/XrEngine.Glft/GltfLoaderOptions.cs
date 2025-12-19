@@ -20,7 +20,7 @@
 
 
         public bool UseCache { get; set; }
-
+        public bool UseInstances { get; internal set; }
 
         public static readonly GltfLoaderOptions Default = new();
     }

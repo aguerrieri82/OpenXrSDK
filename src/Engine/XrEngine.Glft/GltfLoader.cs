@@ -676,12 +676,46 @@ namespace XrEngine.Gltf
             return result;
         }
 
+        public Object3D Duplicate(Object3D obj)
+        {
+            Object3D result;
+
+            if (obj is TriangleMesh mesh)
+            {
+                var newMesh = new TriangleMesh();
+                newMesh.Geometry = mesh.Geometry;
+                foreach (var mat in mesh.Materials)
+                    newMesh.Materials.Add(mat);
+                result = newMesh;
+            }
+            else if (obj is Group3D group)
+            {
+                var newGroup = new Group3D();
+
+                foreach (var child in group.Children)
+                    newGroup.AddChild(Duplicate(child));
+                result = newGroup;
+            }
+            else
+                throw new NotSupportedException();
+
+            result.Name = obj.Name;
+            result.Transform.Set(obj.Transform.Matrix);
+
+            return result;
+        }
+
         public Object3D ProcessMesh(int meshId, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
 
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
-                return new Object3DInstance() { Reference = result };
+            {
+                if (_options.UseInstances)
+                    return new Object3DInstance() { Reference = result };
+
+                return Duplicate(result);
+            }
 
             CheckExtensions(gltMesh.Extensions);
 
@@ -692,13 +726,14 @@ namespace XrEngine.Gltf
             foreach (var primitive in gltMesh.Primitives)
             {
                 var curMesh = new TriangleMesh();
+                curMesh.Geometry = new Geometry3D();
 
                 Debug.Assert(primitive.Targets == null);
                 CheckExtensions(primitive.Extensions);
 
                 Load(curMesh, () =>
                 {
-                    var geo = ProcessPrimitive(primitive);
+                    var geo = ProcessPrimitive(primitive, curMesh.Geometry);
 
                     AssignAsset(geo, gltMesh.Name, "geo", meshId, pIndex);
 

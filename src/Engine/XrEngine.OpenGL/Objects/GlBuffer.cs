@@ -87,18 +87,40 @@ namespace XrEngine.OpenGL
                 Unbind();
         }
 
+        public unsafe void Resize(uint newSizeBytes, bool preserve)
+        {
+            if (_sizeBytes == newSizeBytes)
+                return;
+
+            if (_sizeBytes == 0 || !preserve)
+                _gl.BufferData(_target, newSizeBytes, null, _usage);
+            else
+            {
+                var newData = new byte[newSizeBytes];
+
+                var oldDataPtr = Map(MapBufferAccessMask.ReadBit);
+                var copySize = (int)Math.Min(_sizeBytes, newSizeBytes);
+
+                var oldSpan = new Span<byte>(oldDataPtr, copySize);
+                oldSpan.CopyTo(newData);
+                Unmap();
+
+                _gl.BufferData(_target, newSizeBytes, newData, _usage);
+            }
+
+            _sizeBytes = newSizeBytes;
+        }
+
         public unsafe void UpdateRange(void* data, uint sizeBytes, int offsetBytes, bool wait)
         {
             BeginUpdate();
 
             var newSizeBytes = sizeBytes + (uint)offsetBytes;
 
-            if (newSizeBytes >= _sizeBytes)
-                _gl.BufferData(_target, newSizeBytes, null, _usage);
+            if (newSizeBytes > _sizeBytes || _sizeBytes == 0)
+                Resize(newSizeBytes, true);
 
             _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
-
-            _sizeBytes = newSizeBytes;
 
             EndUpdate();
         }

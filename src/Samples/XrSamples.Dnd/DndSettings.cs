@@ -9,7 +9,7 @@ using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples.Dnd
 {
-    public class DndSettings : BaseAppSettings
+    public class DndSettings : BaseAppSettings<Scene3D>
     {
 
         public DndSettings()

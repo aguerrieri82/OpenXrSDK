@@ -6,7 +6,7 @@ using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
 {
-    public class PortalSettings : BaseAppSettings
+    public class PortalSettings : BaseAppSettings<Scene3D>
     {
 
         public PortalSettings()

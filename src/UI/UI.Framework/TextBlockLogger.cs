@@ -26,7 +26,12 @@ namespace CanvasUI
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            _lines.Insert(0, formatter(state, exception));
+            Log(formatter(state, exception));
+        }
+
+        public void Log(string text)
+        {
+            _lines.Insert(0, text);
 
             if (_lines.Count > _maxLines)
                 _lines.RemoveAt(_lines.Count - 1);

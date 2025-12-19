@@ -21,10 +21,10 @@ namespace XrEngine.Physics
         protected HashSet<Joint> _jointToCreate = [];
         protected readonly List<CollideGroup> _collideGroups = [];
 
-        public PhysicsManager(float fps = 72f)
+        public PhysicsManager(float fps = 0)
         {
             Options = new PhysicsOptions();
-            StepSizeSecs = 1f / fps;
+            StepSizeSecs = fps == 0 ? 0 : 1f / fps;
             IsMultiThread = false;
             UpdatePriority = -1;
         }
@@ -143,6 +143,8 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
+            //Debug.WriteLine("{0} Simulate Start", Time);
+
             if (_jointToCreate.Count > 0)
             {
                 foreach (var joint in _jointToCreate)
@@ -155,9 +157,11 @@ namespace XrEngine.Physics
                 return;
 
             if (!IsMultiThread)
-                _system?.Simulate((float)DeltaTime, StepSizeSecs);
+                _system?.Simulate((float)DeltaTime, StepSizeSecs > 0 ? StepSizeSecs : (float)DeltaTime);
             else
                 _lastUpdateTime = ctx.Time;
+
+            //Debug.WriteLine("{0} Simulate End", Time);
         }
 
         public void Dispose()
@@ -212,6 +216,7 @@ namespace XrEngine.Physics
             StepSizeSecs = container.Read<float>(nameof(StepSizeSecs));
             Options = container.Read<PhysicsOptions>(nameof(Options));
         }
+
 
         public PhysicsDebugGizmos DebugGizmos { get; set; }
 

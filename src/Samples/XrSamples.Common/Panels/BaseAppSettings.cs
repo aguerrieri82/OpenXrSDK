@@ -3,11 +3,11 @@ using XrEngine;
 
 namespace XrSamples
 {
-    public abstract class BaseAppSettings
+    public abstract class BaseAppSettings<T> where T : EngineObject
     {
         protected string? _filePath;
 
-        public abstract void Apply(Scene3D scene);
+        public abstract void Apply(T scene);
 
         public virtual void Save()
         {

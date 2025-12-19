@@ -16,7 +16,7 @@ namespace XrSamples
         public float Roughness { get; set; }
     }
 
-    public class PingPongSettings : BaseAppSettings
+    public class PingPongSettings : BaseAppSettings<Scene3D>
     {
         static readonly Material matShow = (Material)MaterialFactory.CreatePbr(Color.White);
         static readonly Material matHide = new ColorMaterial(Color.Transparent);
