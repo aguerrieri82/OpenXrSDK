@@ -29,12 +29,12 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "Midi",
-                Msaa = 1,
+                //SampleName = "Chess",
+                Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false,
-                UseSpaceWarp = true,
+                IsMultiView = true,
+                UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false
             };

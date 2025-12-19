@@ -22,11 +22,13 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly int[] _boundBuffers = new int[32];
+        protected readonly bool _cacheUniforms;
 
 
         public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
             _resolver = includeResolver;
+            _cacheUniforms = OpenGLRender.Current?.Options.CacheUniforms == true;
         }
 
         public abstract void Build();
@@ -113,6 +115,9 @@ namespace XrEngine.OpenGL
 
         protected bool IsChanged(string name, object value)
         {
+            if (!_cacheUniforms)
+                return true;
+
             var isChanged = false;
 
             if (!_values.TryGetValue(name, out var lastValue))
@@ -147,6 +152,7 @@ namespace XrEngine.OpenGL
                 if (isChanged)
                     _values[name] = value;
             }
+
             return isChanged;
         }
 

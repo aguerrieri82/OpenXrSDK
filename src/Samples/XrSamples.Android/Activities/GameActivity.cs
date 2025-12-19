@@ -56,7 +56,7 @@ namespace XrSamples.Android.Activities
                 openGL.EnableDebug();
             */
 
-            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
@@ -71,6 +71,7 @@ namespace XrSamples.Android.Activities
 
         protected override void BuildApp(XrEngineAppBuilder builder)
         {
+
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 

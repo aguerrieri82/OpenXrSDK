@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
-            IntPrecision = ShaderPrecision.Medium;
+            IntPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = false;
@@ -37,6 +37,7 @@ namespace XrEngine.OpenGL
             RequireTextureCompression = false;
             UseVolume = true;
             UseInstanceDraw = true;
+            CacheUniforms = true;
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.PCF,
@@ -86,6 +87,8 @@ namespace XrEngine.OpenGL
         public bool UseLayerV2 { get; set; }
 
         public bool UseInstanceDraw { get; set; }
+
+        public bool CacheUniforms { get; set; }
 
         public static GlRenderOptions Default() => new();
 
