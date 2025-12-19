@@ -102,7 +102,11 @@ namespace XrEngine
             {
                 var oldTime = _context.Time;
 
-                _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
+                if (ReferenceTime != null)
+                    _context.Time = ReferenceTime.Time;
+                else
+                    _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
+
                 _context.DeltaTime = _context.Time - oldTime;
 
                 _activeScene.Update(_context);
@@ -174,6 +178,8 @@ namespace XrEngine
         public Thread? RenderThread => _renderThread;
 
         public IRenderEngine? Renderer { get; set; }
+
+        public IReferenceTime? ReferenceTime { get; set; }
 
         public static EngineApp? Current { get; private set; }
     }

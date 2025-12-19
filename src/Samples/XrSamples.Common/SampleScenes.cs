@@ -300,6 +300,17 @@ namespace XrSamples
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
 
+            scene.AddComponent<XrInputRecorder>();
+            scene.AddComponent(new XrInputPlayer
+            {
+                RealTime = true,
+                UseReferenceTime = true,
+                FirstFrame = 300,
+                LastFrame = 710,
+                Loop = true
+            });
+
+
             var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
             cube.Transform.SetScale(0.1f);
             cube.AddComponent<BoundsGrabbable>();
@@ -341,9 +352,9 @@ namespace XrSamples
               .UsePhysics(new PhysicsOptions
               {
 
-              })
-              .AddPanel(new ThrowSettingsPanel(settings, scene))
-              .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+              });
+            //.AddPanel(new ThrowSettingsPanel(settings, scene))
+            //.ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
         }
 
 

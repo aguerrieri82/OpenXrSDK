@@ -48,6 +48,7 @@ namespace PhysX.Framework
             return RigidBody.ExtUpdateMassAndInertia1(density, (PxVec3*)&centerOfMassLocal, false);
         }
 
+
         public float Mass
         {
             get => RigidBody.GetMass();

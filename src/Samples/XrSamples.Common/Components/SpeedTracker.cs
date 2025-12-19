@@ -24,6 +24,13 @@ namespace XrSamples
         private PhysicsManager? _manager;
         private double _lastUpdateSpeedTime;
 
+        public SpeedTracker()
+        {
+            AutoThrow = false;
+            SmoothFactor = 0.2f;
+            UpdatePriority = 1;
+        }
+
         public void DrawGizmos(Canvas3D canvas)
         {
             var vector = _lastPivotGlobal + (_lastRefSpeed / 2f);
@@ -73,6 +80,8 @@ namespace XrSamples
             if (!_host.TryComponent<RigidBody>(out var rigidBody))
                 return;
 
+            rigidBody.ForceUpdate(ctx);
+
             var mustThrow = false;
 
             if (rigidBody.DynamicActor.IsKinematic != _lastKinematic)
@@ -103,7 +112,10 @@ namespace XrSamples
 
             var dt = curTime - _lastUpdateSpeedTime;
 
-            if (dt > MinDeltaTime)
+            if (dt == 0)
+                return;
+
+            if (dt > MinDeltaTime && !mustThrow)
             {
                 var curSpeed = (curPos - _lastRefPos) / (float)dt;
                 var curAcc = (curSpeed - _lastRefSpeed) / (float)dt;
@@ -126,8 +138,12 @@ namespace XrSamples
                 if (!AutoThrow)
                 {
                     rigidBody.DynamicActor.LinearVelocity = _lastRefSpeed;
-                    rigidBody.DynamicActor.AngularVelocity = _lastRefAngSpeed;
-                    rigidBody.DynamicActor.AddForce(_lastRefAcc, _lastPivotGlobal, PhysX.PxForceMode.Acceleration);
+
+                    if (_lastRefAngSpeed.IsFinite())
+                        rigidBody.DynamicActor.AngularVelocity = _lastRefAngSpeed;
+
+                    rigidBody.DynamicActor.IsSleeping = false;
+                    //rigidBody.DynamicActor.AddForce(_lastRefAcc, _lastPivotGlobal, PhysX.PxForceMode.Acceleration);
                 }
 
                 Log.Checkpoint($"Throw: {Math.Round(_lastRefAcc.Length(), 3)}", "#00ff00");
@@ -144,11 +160,11 @@ namespace XrSamples
             Log.Value($"{_host.Name}.Pos", _lastPos.Length());
         }
 
-        public static float MinDeltaTime = 0f;
+        public float MinDeltaTime { get; set; }
 
-        public static bool AutoThrow;
+        public bool AutoThrow { get; set; }
 
-        public static float SmoothFactor = 0.3f;
+        public float SmoothFactor { get; set; }
 
     }
 }

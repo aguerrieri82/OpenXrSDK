@@ -34,6 +34,9 @@
             get => _selectedValue;
             set
             {
+                if (value is SelectorItem item)
+                    value = item.Value;
+
                 if (Equals(_selectedValue, value))
                     return;
 

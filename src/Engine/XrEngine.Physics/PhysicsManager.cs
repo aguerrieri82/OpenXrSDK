@@ -12,7 +12,7 @@ namespace XrEngine.Physics
         Joints = 0x1
     }
 
-    public class PhysicsManager : Behavior<Scene3D>, IDisposable
+    public class PhysicsManager : Behavior<Scene3D>, IDisposable, IReferenceTime
     {
         protected PhysicsSystem? _system;
         protected Thread? _simulateThread;
@@ -21,7 +21,7 @@ namespace XrEngine.Physics
         protected HashSet<Joint> _jointToCreate = [];
         protected readonly List<CollideGroup> _collideGroups = [];
 
-        public PhysicsManager(float fps = 40f)
+        public PhysicsManager(float fps = 72f)
         {
             Options = new PhysicsOptions();
             StepSizeSecs = 1f / fps;
@@ -125,12 +125,17 @@ namespace XrEngine.Physics
 
                 _system?.Simulate((float)StepSizeSecs, StepSizeSecs);
 
-                var ellapsed = Stopwatch.GetElapsedTime(startTime).Seconds;
+                var ellapsed = Stopwatch.GetElapsedTime(startTime).TotalSeconds;
 
                 var wait = StepSizeSecs - ellapsed;
 
                 if (wait > 0)
-                    Thread.Sleep(TimeSpan.FromSeconds(wait));
+                {
+                    EngineNativeLib.SleepFor((ulong)(wait * 1e9));
+                    //Thread.Sleep(TimeSpan.FromSeconds(wait));
+                    //ellapsed = Stopwatch.GetElapsedTime(startTime).TotalSeconds;
+                    //Debug.Assert(Math.Abs(ellapsed - StepSizeSecs) < 0.003f);
+                }
                 else
                     Thread.Yield();
             }
@@ -223,5 +228,7 @@ namespace XrEngine.Physics
         public PhysicsSystem? System => _system;
 
         public IReadOnlyCollection<Joint> Joint => _joints;
+
+
     }
 }

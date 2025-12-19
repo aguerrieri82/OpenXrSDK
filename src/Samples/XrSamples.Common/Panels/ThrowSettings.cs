@@ -21,11 +21,13 @@ namespace XrSamples
 
         public override void Apply(Scene3D scene)
         {
-            ((PlotterTimeLogger)Context.Require<ITimeLogger>()).IsEnabled = !DisableLog;
-
+            if (Context.Require<ITimeLogger>() is PlotterTimeLogger tl)
+                tl.IsEnabled = !DisableLog;
+            /*
             SpeedTracker.SmoothFactor = Sensitivity;
             SpeedTracker.AutoThrow = AutoThrow;
             SpeedTracker.MinDeltaTime = MinDeltaTime / 1000f;
+            */
 
             scene.Component<PhysicsManager>().StepSizeSecs = 1f / SimFps;
 

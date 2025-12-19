@@ -16,6 +16,7 @@ namespace PhysX.Framework
         internal PhysicsRigidDynamic(PxActor* handle, PhysicsSystem system)
             : base(handle, system)
         {
+
         }
 
         public void Stop()
