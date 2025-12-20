@@ -3,6 +3,7 @@ using System.Numerics;
 using XrMath;
 
 
+
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -31,8 +32,6 @@ namespace XrEngine.OpenGL
         {
 
             UseShadowSampler = false;
-
-            //renderer.Options.ShadowMap.Mode = ShadowMapMode.VSM;
 
             _mode = renderer.Options.ShadowMap.Mode;
 
@@ -129,20 +128,40 @@ namespace XrEngine.OpenGL
             base.Render(ctx);
         }
 
-        protected void UpdateCamera(CastShadowsLayer castLayer)
+        protected void UpdateCamera(CastShadowsLayer castLayer, ReceiveShadowsLayer recvLayer)
         {
+
             _lightCamera.CreateViewFromDirection(_light!.Direction, Vector3.UnitY);
+
+            Bounds3 intBounds;
 
             var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints();
             var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
 
-            var receiveBounds = castLayer.WorldBounds;
+            var receiveBounds = recvLayer.WorldBounds;
             var receiveBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View);
 
-            if (frustumLightBounds.Intersects(receiveBoundsLight, out var lightBounds))
+            var castBounds = castLayer.WorldBounds;
+            var castBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View);
+
+
+
+            if (_renderer.Options.ShadowMap.IsCasterMode)
+                intBounds = castBoundsLight;
+            else
+                intBounds = receiveBoundsLight;
+
+            castBounds.Min -= _renderer.Options.ShadowMap.Expand;
+            castBounds.Max += _renderer.Options.ShadowMap.Expand;
+
+            if (frustumLightBounds.Intersects(intBounds, out var lightBounds))
             {
-                _lightCamera.Far = -lightBounds.Min.Z;
-                _lightCamera.Near = 0.01f;
+                var zNear = Math.Max(0.05f, -lightBounds.Max.Z);
+                var zFar = Math.Max(zNear + 0.01f, -lightBounds.Min.Z);
+
+                _lightCamera.Near = Math.Max(0.05f, zNear - 1.0f);
+                _lightCamera.Far = zFar + 1.0f;
+
                 _lightCamera.SetViewArea(lightBounds.Min.X, lightBounds.Max.X, lightBounds.Min.Y, lightBounds.Max.Y);
             }
         }
@@ -183,11 +202,12 @@ namespace XrEngine.OpenGL
 
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
-            _renderer.State.SetCullFace(TriangleFace.Front);
+            _renderer.State.SetCullFace(TriangleFace.Back);
+            _renderer.State.EnableFeature(EnableCap.CullFace, true);
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            UpdateCamera(castLayer);
+            UpdateCamera(castLayer, recLayer);
 
             _oldCamera = _renderer.UpdateContext.PassCamera;
             _renderer.UpdateContext.PassCamera = _lightCamera;

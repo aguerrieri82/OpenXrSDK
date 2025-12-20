@@ -1063,7 +1063,7 @@ namespace OpenXr.Framework
             var info = new ActionSetCreateInfo()
             {
                 Type = StructureType.ActionSetCreateInfo,
-                Priority = 0
+                Priority = 0,
             };
 
             var nameSpan = new Span<byte>(info.ActionSetName, 64);
@@ -1169,15 +1169,16 @@ namespace OpenXr.Framework
             CheckResult(_xr!.SyncAction(_session, in info), "SyncAction");
         }
 
-        protected internal Space CreateActionSpace(Action action, ulong subPath)
+        protected internal Space CreateActionSpace(Action action, ulong subPath, Posef pose)
         {
             var info = new ActionSpaceCreateInfo()
             {
                 Type = StructureType.ActionSpaceCreateInfo,
                 Action = action,
+                PoseInActionSpace = pose,
                 SubactionPath = subPath,
             };
-            info.PoseInActionSpace.Orientation.W = 1;
+
             var result = new Space();
             CheckResult(_xr!.CreateActionSpace(_session, in info, ref result), "CreateActionSpace");
             return result;

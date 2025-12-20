@@ -4,6 +4,8 @@
 #define MODE_PCF  2
 #define MODE_VCF  3
 
+uniform float uShadowBias;
+
 
 #ifdef USE_SHADOW_MAP 
 
@@ -58,7 +60,13 @@
 
             projCoords = projCoords * 0.5 + 0.5;
 
-            float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+            #if SHADOW_BIAS == 1
+                float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+            #elif SHADOW_BIAS == 2
+                float bias = uShadowBias;
+            #else
+                float bias = 0.0;
+            #endif 
 
             float currentDepth = projCoords.z - bias;
 

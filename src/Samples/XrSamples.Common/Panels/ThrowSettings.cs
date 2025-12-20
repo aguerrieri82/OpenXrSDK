@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using UI.Binding;
 using XrEngine;
 using XrEngine.OpenXr;
-using XrEngine.OpenXr.Components;
 using XrEngine.Physics;
 using XrEngine.UI;
 using CheckBox = CanvasUI.CheckBox;
@@ -36,6 +35,7 @@ namespace XrSamples
             tracker.MinDeltaTime = MinDeltaTime / 1000f;
             tracker.SamplesToSkip = (int)SamplesToSkip;
             tracker.MaxSamples = (int)SampleCount;
+            tracker.UseInput = UseInput;
 
             obj.Scene!.Component<PhysicsManager>().StepSizeSecs = SimFps == 0 ? 0 : 1f / SimFps;
 
@@ -54,9 +54,14 @@ namespace XrSamples
 
         public bool AutoThrow { get; set; }
 
+        public bool UseInput { get; set; }
+
         public bool DisableLog { get; set; }
+
         public Throwable.AvgMode Mode { get; set; }
+
         public float SampleCount { get; set; }
+
         public float SamplesToSkip { get; set; }
     }
 
@@ -101,6 +106,7 @@ namespace XrSamples
                 .BeginRow(s => s.ColGap(16))
                     .AddInput("Disable Log", new CheckBox(), binder.Prop(a => a.DisableLog))
                     .AddInput("Auto Throw", new CheckBox(), binder.Prop(a => a.AutoThrow))
+                    .AddInput("Use Input", new CheckBox(), binder.Prop(a => a.UseInput))
                 .EndChild()
             .EndChild()
 

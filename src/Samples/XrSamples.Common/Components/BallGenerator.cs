@@ -36,6 +36,7 @@ namespace XrSamples
             var pbrMat = MaterialFactory.CreatePbr("#EF6C00");
             pbrMat.Roughness = 0.45f;
             pbrMat.Metalness = 0.0f;
+            pbrMat.CastShadows = true;
             Material = (Material)pbrMat;
         }
 

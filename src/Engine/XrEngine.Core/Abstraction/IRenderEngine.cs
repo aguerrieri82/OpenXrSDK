@@ -12,6 +12,8 @@ namespace XrEngine
 
         void Resume();
 
+        T? Feature<T>() where T : class;
+
         Texture2D? GetDepth();
 
         Texture2D? GetShadowMap();

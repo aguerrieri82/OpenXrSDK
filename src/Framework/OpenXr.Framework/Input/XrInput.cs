@@ -183,7 +183,7 @@ namespace OpenXr.Framework
         public override ActionSuggestedBinding Initialize()
         {
             var result = base.Initialize();
-            _space = _app.CreateActionSpace(_action, _subPath);
+            _space = _app.CreateActionSpace(_action, _subPath, Pose3.Identity.ToPoseF());
             _app.SpacesTracker.Add(_space, TimeSpan.Zero);
             return result;
         }

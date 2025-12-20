@@ -549,12 +549,16 @@ namespace XrEngine
 
                 if (bld.Context.ShadowMapProvider != null)
                 {
-                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
+                    var options = bld.Context.ShadowMapProvider!.Options;
+
+                    var mode = options.Mode;
 
                     if (mode != ShadowMapMode.None)
                     {
+
                         bld.AddFeature("USE_SHADOW_MAP");
                         bld.AddFeature("SHADOW_MAP_MODE " + (int)mode);
+                        bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
 
                         bld.ExecuteAction((ctx, up) =>
                         {

@@ -27,7 +27,7 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Media;
-using XrEngine.OpenXr.Components;
+
 
 
 #if !ANDROID
@@ -188,21 +188,29 @@ namespace XrSamples
                 ShadowColor = new Color(1f, 0.1f, 0.1f, 0.7f),
             });
 
+            floor.AddComponent<BoxCollider>();
+            floor.AddComponent(new RigidBody()
+            {
+                Type = PhysicsActorType.Static,
+            });
+
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
             var mat = new DepthViewMaterial();
 
             TriangleMesh? depth = null;
+
             if (showDepth)
             {
                 depth = new TriangleMesh(Quad3D.Default, mat);
                 depth.Transform.SetPositionY(1);
 
                 depth.Name = "Depth";
-                /*
+
                 depth.AddBehavior((_, _) =>
                 {
-                    var sp = ((IShadowMapProvider)depth.Scene!.App!.Renderer!);
+
+                    var sp = depth.Scene!.App!.Renderer!.Feature<IShadowMapProvider>()!;
 
                     if (mat.Texture == null)
                     {
@@ -217,7 +225,6 @@ namespace XrSamples
                     }
 
                 });
-                */
             }
 
 
@@ -457,12 +464,17 @@ namespace XrSamples
                    .UseSceneMesh(true, true)
                    .ConfigureSampleApp()
                    .UseDefaultHDR()
+                   //.AddFloorShadow()
                    .UsePhysics(new PhysicsOptions
                    {
 
                    })
                    .AddPanel(new PingPongSettingsPanel(settings, scene))
-                   .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+                   .ConfigureApp(app =>
+                   {
+                       settings.Apply(app.App.ActiveScene!);
+                       scene.Children.OfType<SunLight>().Single().IsVisible = true;
+                   });
 
         }
 

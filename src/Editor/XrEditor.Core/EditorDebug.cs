@@ -32,7 +32,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateThrow()
+              .CreateBed()
               .Build();
     }
 }

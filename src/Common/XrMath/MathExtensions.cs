@@ -721,7 +721,6 @@ namespace XrMath
                 angle = MathF.Acos(dot);
             }
 
-
             return Quaternion.CreateFromAxisAngle(rotationAxis.Normalize(), angle);
         }
 

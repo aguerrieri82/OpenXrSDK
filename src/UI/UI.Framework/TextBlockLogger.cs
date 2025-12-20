@@ -33,7 +33,7 @@ namespace CanvasUI
         {
             _lines.Insert(0, text);
 
-            if (_lines.Count > _maxLines)
+            while (_lines.Count > _maxLines)
                 _lines.RemoveAt(_lines.Count - 1);
 
             _textBlock.Text = string.Join('\n', _lines);

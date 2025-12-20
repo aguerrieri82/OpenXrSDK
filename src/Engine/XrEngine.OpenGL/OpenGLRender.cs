@@ -651,6 +651,17 @@ namespace XrEngine.OpenGL
             return data;
         }
 
+        public T? Feature<T>() where T : class
+        {
+            if (this is T result)
+                return result;
+
+            if (typeof(T) == typeof(IShadowMapProvider))
+                return _shadowPass as T;
+
+            return null;
+        }
+
         public Texture2D? GetShadowMap()
         {
             return _shadowPass?.DepthTexture;

@@ -189,36 +189,6 @@ namespace XrEngine
                 self.MoveLocalToWorld(Vector3.Zero, pose.Position);
             else
                 self.WorldPosition = pose.Position;
-
-            /*
-             WORKING 
-            pose.Position -= Vector3.Transform(self.Transform.LocalPivot, pose.Orientation);
-
-            self.WorldMatrix = Matrix4x4.CreateScale(self.Transform.Scale) *
-                         Matrix4x4.CreateFromQuaternion(pose.Orientation) *
-                         Matrix4x4.CreateTranslation(pose.Position);
-
-
-            var curPivot = Vector3.Zero;
-
-            self.BeginUpdate();
-
-            if (fromOrigin)
-            {
-                curPivot = self.Transform.LocalPivot;
-                if (curPivot != Vector3.Zero)
-                    self.Transform.SetLocalPivot(Vector3.Zero, true);
-            }
-
-            self.WorldPosition = pose.Position;
-            self.WorldOrientation = pose.Orientation;
-
-            if (curPivot != Vector3.Zero)
-                self.Transform.SetLocalPivot(curPivot, true);
-
-            self.EndUpdate();
-
-            */
         }
 
 
@@ -230,17 +200,6 @@ namespace XrEngine
                 Orientation = self.WorldOrientation,
                 Position = fromOrigin ? self.ToWorld(Vector3.Zero) : self.WorldPosition
             };
-
-            /*
-            var result = new Pose3
-            {
-                Orientation = self.WorldOrientation,
-                Position = self.WorldPosition
-            };
-
-            if (fromOrigin)
-                result.Position -= self.Transform.LocalPivot;
-            */
 
             return result;
         }

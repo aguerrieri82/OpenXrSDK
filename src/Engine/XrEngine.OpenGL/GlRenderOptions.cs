@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -41,7 +42,11 @@ namespace XrEngine.OpenGL
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.PCF,
+                Bias = 0,
+                BiasMode = ShadowMapBiasMode.Auto,
                 Size = 2048,
+                IsCasterMode = true,
+                Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
             Outline = new GlOutlineOptions()
             {

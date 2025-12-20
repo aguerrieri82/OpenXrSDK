@@ -929,6 +929,11 @@ namespace XrEngine.Filament
             throw new NotSupportedException();
         }
 
+        public T? Feature<T>() where T : class
+        {
+            throw new NotImplementedException();
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;
