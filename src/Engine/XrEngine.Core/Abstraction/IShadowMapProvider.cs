@@ -31,6 +31,12 @@ namespace XrEngine
         public bool IsCasterMode { get; set; }
 
         public Vector3 Expand { get; set; }
+
+        public float LightBleed { get; set; }
+
+        public int BlurRadius { get; set; }
+
+        public bool UseFrustumIntersect { get; set; }
     }
 
     public interface IShadowMapProvider

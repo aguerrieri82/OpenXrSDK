@@ -37,6 +37,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayInt8 => 8,
                 TextureFormat.GrayInt16 => 16,
                 TextureFormat.GrayRawSInt16 => 16,
+                TextureFormat.RgFloat16 => 16 * 2,
                 _ => throw new NotSupportedException()
             };
 
@@ -69,6 +70,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayRawSInt16 => PixelFormat.RedInteger,
 
                 TextureFormat.RgFloat32 or
+                TextureFormat.RgFloat16 or
                 TextureFormat.Rg88 => PixelFormat.RG,
 
                 TextureFormat.GrayFloat32 => PixelFormat.Red,
@@ -87,6 +89,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgbFloat32 or
                 TextureFormat.RgbaFloat32 or
                 TextureFormat.RgFloat32 or
+                TextureFormat.RgFloat16 or
                 TextureFormat.GrayFloat32 or
                 TextureFormat.Depth24Float => PixelType.Float,
 
@@ -147,6 +150,8 @@ namespace XrEngine.OpenGL
                     TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
 
                     TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
+
+                    TextureFormat.RgFloat16 => InternalFormat.RG16f,
 
                     TextureFormat.RgFloat32 => InternalFormat.RG32f,
 
@@ -219,6 +224,7 @@ namespace XrEngine.OpenGL
                 InternalFormat.Rgba8 => TextureFormat.Rgba32,
                 InternalFormat.Srgb8Alpha8 => TextureFormat.SRgba32,
                 InternalFormat.R16 => TextureFormat.GrayInt16,
+                InternalFormat.RG16f => TextureFormat.RgbFloat16,
                 //InternalFormat.DepthComponent16 => TextureFormat.GrayInt16,
                 InternalFormat.R8 => TextureFormat.GrayInt8,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,

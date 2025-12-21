@@ -190,12 +190,12 @@ namespace XrEngine
                 {
                     var options = bld.Context.ShadowMapProvider!.Options;
 
-                    var mode = options.Mode;
+                    var shadowMode = options.Mode;
 
-                    if (mode != ShadowMapMode.None)
+                    if (shadowMode != ShadowMapMode.None)
                     {
                         bld.AddFeature("USE_SHADOW_MAP");
-                        bld.AddFeature("SHADOW_MAP_MODE " + (int)mode);
+                        bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
                         bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
 
                         bld.ExecuteAction((ctx, up) =>
@@ -205,6 +205,9 @@ namespace XrEngine
 
                             if (options?.BiasMode == ShadowMapBiasMode.Value)
                                 up.SetUniform("uShadowBias", options!.Bias);
+
+                            if (shadowMode == ShadowMapMode.VSM)
+                                up.SetUniform("uLightBleed", options!.LightBleed);
                         });
                     }
                 }

@@ -68,6 +68,9 @@ namespace XrEngine
 
                     if (options?.BiasMode == ShadowMapBiasMode.Value)
                         up.SetUniform("uShadowBias", options!.Bias);
+
+                    if (shadowMode == ShadowMapMode.VSM)
+                        up.SetUniform("uLightBleed", options!.LightBleed);
                 });
             }
 

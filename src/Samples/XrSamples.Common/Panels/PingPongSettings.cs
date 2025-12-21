@@ -259,7 +259,7 @@ namespace XrSamples
 
             if (!XrPlatform.IsEditor)
             {
-                var service = new TextBlockProgressLogger(logger!, 25);
+                var service = new TextBlockProgressLogger(logger!, 20);
                 Context.Implement<IProgressLogger>(service);
                 Context.Implement<ILogger>(service);
             }

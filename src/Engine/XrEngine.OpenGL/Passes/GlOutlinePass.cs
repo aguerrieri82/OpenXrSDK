@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
             if (!Source.HasOutlines())
                 return false;
 
-            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.GrayInt8);
             _passTarget.RenderTarget!.Begin(camera);
 
             _renderer.State.SetClearColor(Color.Transparent);
@@ -83,7 +83,7 @@ namespace XrEngine.OpenGL
             if (!Source!.HasOutline(model, out var color))
                 return UpdateProgramResult.Skip;
 
-            if (_programInstance!.Material.UpdateColor(color))
+            if (_programInstance!.Material.UpdateColor(Color.White))
                 UpdateMaterial(updateContext);
 
             return UpdateProgramResult.Unchanged;
@@ -97,6 +97,7 @@ namespace XrEngine.OpenGL
 
             _outlineProgram.Use();
             _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
+            _outlineProgram.SetUniform("uColor", _renderer.Options.Outline.Color);
             _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
 
             if (UseScissor)
@@ -161,8 +162,6 @@ namespace XrEngine.OpenGL
 
             return true;
         }
-
-
 
         protected override void Draw(DrawContent draw)
         {

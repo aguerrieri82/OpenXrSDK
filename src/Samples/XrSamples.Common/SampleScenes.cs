@@ -464,6 +464,12 @@ namespace XrSamples
                    .UseSceneMesh(true, true)
                    .ConfigureSampleApp()
                    .UseDefaultHDR()
+                   .SetGlOptions(opt =>
+                   {
+                       opt.ShadowMap.LightBleed = 1;
+                       opt.ShadowMap.BlurRadius = 2;
+                       opt.ShadowMap.Mode = ShadowMapMode.PCF;
+                   })
                    //.AddFloorShadow()
                    .UsePhysics(new PhysicsOptions
                    {
@@ -1044,6 +1050,7 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .UseRayCollider("Mouse")
+                 .AddFloorShadow(4, true)
                 .AddPassthrough()
 
             .ConfigureApp(app =>

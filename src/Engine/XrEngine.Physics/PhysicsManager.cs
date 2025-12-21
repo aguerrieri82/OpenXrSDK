@@ -21,7 +21,7 @@ namespace XrEngine.Physics
         protected HashSet<Joint> _jointToCreate = [];
         protected readonly List<CollideGroup> _collideGroups = [];
 
-        public PhysicsManager(float fps = 0)
+        public PhysicsManager(float fps = 72)
         {
             Options = new PhysicsOptions();
             StepSizeSecs = fps == 0 ? 0 : 1f / fps;

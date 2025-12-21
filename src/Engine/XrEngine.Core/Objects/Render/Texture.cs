@@ -25,6 +25,7 @@ namespace XrEngine
         RgbaFloat16,
 
         RgFloat32,
+        RgFloat16,
 
         GrayFloat32,
 
@@ -62,6 +63,7 @@ namespace XrEngine
         Nearest = 9728,
         Linear = 9729,
         LinearMipmapLinear = 9987,
+        TriLinear = LinearMipmapLinear
     }
 
     public enum TextureType
@@ -134,6 +136,8 @@ namespace XrEngine
         public TextureFormat Format { get; set; }
 
         public TextureCompressionFormat Compression { get; set; }
+
+        public bool NeverCompress { get; set; }
 
         public long Handle { get; set; }
 

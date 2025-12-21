@@ -81,7 +81,7 @@ namespace XrEngine.Compression
             return Encode(image, mipsLevels);
         }
 
-        public unsafe static IList<TextureData> Encode(TextureData data, int mipsLevels)
+        public static IList<TextureData> Encode(TextureData data, int mipsLevels)
         {
             string? cacheFile = null;
             if (CachePath != null)
@@ -126,7 +126,7 @@ namespace XrEngine.Compression
             return result;
         }
 
-        public unsafe static IList<TextureData> Encode(SKBitmap image, int mipsLevels, bool useSrgb = false)
+        public static IList<TextureData> Encode(SKBitmap image, int mipsLevels, bool useSrgb = false)
         {
             var result = new List<TextureData>();
 
@@ -155,11 +155,11 @@ namespace XrEngine.Compression
             {
                 SKBitmap curImage;
 
-                if (texData.Width != image.Width || texData.Height != image.Height)
-                {
-                    var pWidth = (int)MathF.Ceiling(texData.Width / 4f) * 4;
-                    var pHeight = (int)MathF.Ceiling(texData.Height / 4f) * 4;
+                var pWidth = (int)MathF.Ceiling(texData.Width / 4f) * 4;
+                var pHeight = (int)MathF.Ceiling(texData.Height / 4f) * 4;
 
+                if (pWidth != image.Width || pHeight != image.Height)
+                {
                     var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
 
                     curImage = image.Resize(new SKSizeI((int)texData.Width, (int)texData.Height), so);

@@ -31,12 +31,15 @@ namespace CanvasUI
 
         public void Log(string text)
         {
-            _lines.Insert(0, text);
+            lock (_lines)
+            {
+                _lines.Insert(0, text);
 
-            while (_lines.Count > _maxLines)
-                _lines.RemoveAt(_lines.Count - 1);
+                while (_lines.Count > _maxLines)
+                    _lines.RemoveAt(_lines.Count - 1);
 
-            _textBlock.Text = string.Join('\n', _lines);
+                _textBlock.Text = string.Join('\n', _lines);
+            }
         }
     }
 }

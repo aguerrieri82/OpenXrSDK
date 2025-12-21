@@ -89,7 +89,8 @@ namespace XrEngine.OpenXr
 
                     if (Blur)
                     {
-                        if (_host?.Scene?.App?.Renderer is ITextureFilterProvider filter)
+                        var filter = _host?.Scene?.App?.Renderer?.Feature<ITextureFilterProvider>();
+                        if (filter != null)
                         {
                             _outTexture ??= new Texture2D()
                             {
@@ -103,7 +104,7 @@ namespace XrEngine.OpenXr
                                 WrapS = WrapMode.ClampToEdge,
                                 WrapT = WrapMode.ClampToEdge,
                             };
-                            filter.Blur(texture, _outTexture);
+                            filter.Blur(texture, _outTexture, "Outline_Blur", 1);
                             _lastTexture = _outTexture;
                         }
                     }

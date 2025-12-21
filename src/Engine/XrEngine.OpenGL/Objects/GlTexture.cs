@@ -487,7 +487,11 @@ namespace XrEngine.OpenGL
             }
         }
 
-
+        public void GenerateMipmap()
+        {
+            GlState.Current!.BindTexture(Target, _handle);
+            _gl.GenerateMipmap(Target);
+        }
 
         public void Bind()
         {

@@ -67,15 +67,16 @@ namespace XrEngine
 
         public unsafe void SaveTexture(Stream stream, IList<TextureData> images)
         {
+
             var header = new PvrHeader
             {
                 Version = Version,
                 Width = images[0].Width,
                 Height = images[0].Height,
                 NumSurfaces = 1,
-                NumFaces = images.Max(a => a.Face) + 1,
+                NumFaces = images.Count == 1 ? 1 : images.Max(a => a.Face) + 1,
                 Depth = 1,
-                MIPMapCount = images.Max(a => a.MipLevel) + 1
+                MIPMapCount = images.Count == 1 ? 1 : images.Max(a => a.MipLevel) + 1
             };
 
             switch (images[0].Format)

@@ -80,6 +80,7 @@ namespace XrEngine
                                  LoadCacheTexture<Texture2D>("ggx_lut.pvr", a => Textures.GGXLUT = a);
                 if (cacheValid)
                 {
+                    Textures.GGXLUT!.NeverCompress = true;
                     Textures.MipCount = Textures.GGXEnv!.MipLevelCount;
                     Panorama = new Texture2D();
                     Panorama.AddComponent(new AssetSource(new TextureAsset(loader, uri, _loaderOptions)));
@@ -102,6 +103,7 @@ namespace XrEngine
                 SaveCacheTexture<Texture2D>("ggx_lut.pvr", Textures!.GGXLUT);
                 SaveCacheTexture<TextureCube>("env.pvr", Textures!.Env);
             }
+            Textures.GGXLUT!.NeverCompress = true;
         }
 
         public override void GetState(IStateContainer container)

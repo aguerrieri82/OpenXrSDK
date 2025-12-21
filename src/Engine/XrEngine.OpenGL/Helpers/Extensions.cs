@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
             });
         }
 
-        public static unsafe GlTexture ToGlTexture(this Texture value, bool? reqComp = null)
+        public static GlTexture ToGlTexture(this Texture value, bool? reqComp = null)
         {
             return value.GetGlResource(a =>
             {
@@ -108,7 +108,7 @@ namespace XrEngine.OpenGL
             return glTexture;
         }
 
-        public static unsafe void Update(this GlTexture glTexture, Texture2D texture2D, bool requireCompression)
+        public static void Update(this GlTexture glTexture, Texture2D texture2D, bool requireCompression)
         {
             glTexture.EnableDebug = (texture2D.Flags & EngineObjectFlags.EnableDebug) != 0;
 
@@ -154,21 +154,30 @@ namespace XrEngine.OpenGL
                 var comp = texture2D.Compression;
                 var format = texture2D.Format;
 
-                if (requireCompression)
+
+                if (requireCompression && !texture2D.NeverCompress)
                 {
                     EtcCompressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().CachePath, "Textures");
 
-                    if (data.Count == 1)
-                        data = EtcCompressor.Encode(data[0], 16);
-                    else
+                    var newData = new List<TextureData>();
+                    var mipLevels = data.Count == 1 ? (int)glTexture.MaxLevel + 1 : 0;
+                    if (mipLevels == 1)
+                        mipLevels = 0;
+
+                    for (var i = 0; i < data.Count; i++)
                     {
-                        for (var i = 0; i < data.Count; i++)
+                        var compData = EtcCompressor.Encode(data[i], mipLevels);
+
+                        foreach (var result in compData)
                         {
-                            var compData = EtcCompressor.Encode(data[i], 0);
-                            data[i] = compData[0];
+                            if (mipLevels == 0)
+                                result.MipLevel = data[i].MipLevel;
+                            result.Face = data[i].Face;
+                            newData.Add(result);
                         }
                     }
 
+                    data = newData;
                     comp = TextureCompressionFormat.Etc2;
                     format = data[0].Format;
                 }
@@ -190,12 +199,12 @@ namespace XrEngine.OpenGL
             texture2D.Handle = glTexture.Handle;
         }
 
-        public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
+        public static Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
         {
             return GlTexture.Attach(gl, texId).ToEngineTexture(readFormat);
         }
 
-        public static unsafe Texture ToEngineTexture(this GlTexture glTexture, TextureFormat? readFormat = null)
+        public static Texture ToEngineTexture(this GlTexture glTexture, TextureFormat? readFormat = null)
         {
             if (glTexture.Source is Texture texture)
                 return texture;
@@ -214,7 +223,7 @@ namespace XrEngine.OpenGL
             return result;
 
         }
-        public static unsafe Texture ToEngineTexture(this GlTexture glTexture, Texture2D result, TextureFormat? readFormat = null)
+        public static Texture ToEngineTexture(this GlTexture glTexture, Texture2D result, TextureFormat? readFormat = null)
         {
             result.Width = glTexture.Width;
             result.Height = glTexture.Height;

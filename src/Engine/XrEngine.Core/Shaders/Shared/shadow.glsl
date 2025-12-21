@@ -4,8 +4,10 @@
 #define MODE_PCF  2
 #define MODE_VCF  3
 
-uniform float uShadowBias;
+#define LIGHT_SIZE 10.0
 
+uniform float uShadowBias;
+uniform float uLightBleed;
 
 #ifdef USE_SHADOW_MAP 
 
@@ -19,7 +21,9 @@ uniform float uShadowBias;
     #if SHADOW_MAP_MODE == MODE_VCF
          
          const float MIN_VARIANCE = 0.00002;
-         const float LIGHT_BLEED = 0.4;
+
+
+
 
          float linstep(float min, float max, float v)
          {
@@ -34,9 +38,6 @@ uniform float uShadowBias;
 
                 float currentDepth = projCoords.z;
 
-                if (currentDepth >= 1.0)
-                    return 0.0;
-
                 vec2 moments = texture(uShadowMap, projCoords.xy).rg;
 
                 float mean = moments.x;
@@ -48,9 +49,11 @@ uniform float uShadowBias;
                 float pMax = variance / (variance + d * d);
                 float p = (currentDepth <= mean) ? 1.0 : 0.0;
 
-                pMax = linstep(LIGHT_BLEED, 1.0, pMax);
+                if (uLightBleed > 0.0)
+                    pMax = linstep(uLightBleed, 1.0, pMax);
 
                 return 1.0 - max(p, pMax);
+
           }
     #else
 

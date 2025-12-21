@@ -11,13 +11,12 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
 
 
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, ITextureFilterProvider
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
     {
         protected class LayersCache
         {
@@ -33,7 +32,7 @@ namespace XrEngine.OpenGL
 
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
-        protected Dictionary<string, GlComputeProgram> _computePrograms = [];
+
 
         protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
@@ -48,6 +47,7 @@ namespace XrEngine.OpenGL
         protected readonly Thread _thread;
         protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
+        protected GlTextureFilter _textureFilter;
 
         public static class Props
         {
@@ -131,6 +131,7 @@ namespace XrEngine.OpenGL
             foreach (var ex in exts)
                 Debug.WriteLine(ex);
 
+            _textureFilter = new GlTextureFilter(this);
 
             ConfigureCaps();
         }
@@ -659,6 +660,9 @@ namespace XrEngine.OpenGL
             if (typeof(T) == typeof(IShadowMapProvider))
                 return _shadowPass as T;
 
+            if (typeof(T) == typeof(ITextureFilterProvider))
+                return _textureFilter as T;
+
             return null;
         }
 
@@ -705,14 +709,11 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            _textureFilter.Dispose();
+
             foreach (var pass in _renderPasses)
                 pass.Dispose();
             _renderPasses.Clear();
-
-            foreach (var program in _computePrograms)
-                program.Value.Dispose();
-
-            _computePrograms.Clear();
 
             foreach (var layer in _activeLayers)
                 layer.Dispose();
@@ -737,37 +738,6 @@ namespace XrEngine.OpenGL
         public void Resume()
         {
         }
-
-        public void Kernel3x3(Texture2D src, Texture2D dst, float[] data)
-        {
-            if (!_computePrograms.TryGetValue("Kernel3x3", out var program))
-            {
-                program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
-                program.Build();
-                _computePrograms["Kernel3x3"] = program;
-            }
-
-            var curProgram = _glState.ActiveProgram;
-
-            program.Use();
-
-            program.SetUniform("texelSize", new Vector2(1f / dst.Width, 1f / dst.Height));
-            program.SetUniform("weights", data);
-
-            var dstGl = dst.ToGlTexture();
-
-            program.LoadTexture(src, 10);
-
-            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, dstGl.InternalFormat);
-
-            _gl.DispatchCompute((dst.Width + 15) / 16, (dst.Height + 15) / 16, src.Depth);
-
-            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
-
-            _glState.SetActiveProgram(curProgram ?? 0);
-        }
-
-
 
         #endregion
 

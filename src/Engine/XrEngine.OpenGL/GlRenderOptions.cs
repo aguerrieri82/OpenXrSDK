@@ -37,15 +37,19 @@ namespace XrEngine.OpenGL
             UseLayerV2 = true;
             RequireTextureCompression = false;
             UseVolume = true;
+
             UseInstanceDraw = true;
             CacheUniforms = true;
             ShadowMap = new ShadowMapOptions()
             {
-                Mode = ShadowMapMode.PCF,
+                Mode = ShadowMapMode.VSM,
                 Bias = 0,
                 BiasMode = ShadowMapBiasMode.Auto,
                 Size = 2048,
-                IsCasterMode = true,
+                LightBleed = 0.1f,
+                BlurRadius = 10,
+                IsCasterMode = false,
+                UseFrustumIntersect = false,
                 Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
             Outline = new GlOutlineOptions()
