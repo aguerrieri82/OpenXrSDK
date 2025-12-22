@@ -156,6 +156,9 @@ namespace XrEngine.OpenXr
 
                 _controllerORMTex ??= AssetLoader.Instance.Load<Texture2D>(texPath);
                 _controllerORMTex.Name = "MetaQuestTouchPlus_ORM";
+                _controllerORMTex.MipLevelCount = 10;
+                _controllerORMTex.MagFilter = ScaleFilter.Linear;
+                _controllerORMTex.MinFilter = ScaleFilter.LinearMipmapLinear;
 
                 foreach (var mat in model.MaterialsDeep<IPbrMaterial>())
                 {

@@ -16,6 +16,10 @@ extern "C" {
 
 	EXPORT void APIENTRY RgbToBgr(uint32_t width, uint32_t height, const char* srcData, char* dstData, uint32_t pixelSizeByte);
 
+	EXPORT void APIENTRY ImageResizeBilinearU8(
+		uint32_t srcW, uint32_t srcH, const uint8_t* src,
+		uint32_t dstW, uint32_t dstH, uint8_t* dst,
+		uint32_t channels);
 
 	EXPORT void SleepUntil(uint64_t timeNs);
 

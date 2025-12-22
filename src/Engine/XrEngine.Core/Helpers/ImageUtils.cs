@@ -267,6 +267,30 @@ namespace XrEngine
             return newImage.ToTextureData();
         }
 
+        public static unsafe TextureData ResizeV2(TextureData data, int width, int height)
+        {
+            if (width == data.Width && height == data.Height)
+                return data;
+
+            if (!data.Format.IsInt8())
+                throw new NotSupportedException();
+
+            var channels = data.Format.GetPixelSizeBit() / 8;
+
+            var result = data.Clone();
+            result.Data = MemoryBuffer.Create<byte>((uint)(channels * width * height));
+            result.Width = (uint)width;
+            result.Height = (uint)height;
+
+            using var pSrc = data.Data!.MemoryLock();
+            using var pDst = result.Data.MemoryLock();
+
+            EngineNativeLib.ImageResizeBilinearU8(data.Width, data.Height, pSrc, (uint)width, (uint)height, pDst, channels);
+
+            return result;
+        }
+
+
         public static unsafe TextureData Pack(TextureData data, int align)
         {
             var pWidth = (int)MathF.Ceiling(data.Width / (float)align) * align;
@@ -285,7 +309,7 @@ namespace XrEngine
 
             using var pDst = newData.MemoryLock();
 
-            EngineNativeLib.ImagePack(data.Width, data.Height, pSrc, (uint)pWidth, (uint)pHeight, pDst, pixelSize);
+            EngineNativeLib.ImageResizeBilinearU8(data.Width, data.Height, pSrc, (uint)pWidth, (uint)pHeight, pDst, pixelSize);
 
             result.Data = newData;
             result.Width = (uint)pWidth;

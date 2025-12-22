@@ -152,12 +152,14 @@ namespace XrEngine.OpenGL
 
             texture2D.NotifyLoaded();
 
+            var compressor = TextureCompressor.Instance;
+
+            compressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().CachePath, "Textures");
+
+            //compressor.ClearCache();
+
             await Task.Run(async () =>
             {
-                var compressor = TextureCompressor.Instance;
-
-                compressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().CachePath, "Textures");
-
                 var groups = curData.GroupBy(a => new
                 {
                     a.Face,

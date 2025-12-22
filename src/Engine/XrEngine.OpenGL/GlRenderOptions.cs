@@ -57,7 +57,7 @@ namespace XrEngine.OpenGL
             {
                 Use = true,
                 MinSize = 512 * 512,
-                BlockSize = 6,
+                BlockSize = 4,
                 Format = TextureCompressionFormat.Astc,
                 Quality = 60,
             };

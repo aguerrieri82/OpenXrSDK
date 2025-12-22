@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Security.Cryptography;
 
 namespace XrEngine.Compression
@@ -16,7 +14,9 @@ namespace XrEngine.Compression
     public class TextureCompressor
     {
         readonly object _cacheLock = new object();
-        readonly ConcurrentDictionary<string, Task<IList<TextureData>>> _encodeTasks = [];
+        readonly Dictionary<string, Task<IList<TextureData>>> _encodeTasks = [];
+        readonly SemaphoreSlim _dictMutex = new(1, 1);
+        readonly SemaphoreSlim _encodeLimit = new(3, 3);
 
         public static TextureCompressionInfo EncodeAstc(bool isNormalMap, float quality, uint blockSize)
         {
@@ -45,23 +45,65 @@ namespace XrEngine.Compression
         {
             var hash = TextureHash(data, compressor);
 
-            var task = _encodeTasks.GetOrAdd(hash, Task.Run(() =>
+            Task<IList<TextureData>> task;
+
+            await _dictMutex.WaitAsync().ConfigureAwait(false);
+            try
             {
-                var result = Encode(data, mipsLevels, hash, compressor);
-                return result;
-            }));
+                if (!_encodeTasks.TryGetValue(hash, out task!))
+                {
+                    task = Task.Run(async () =>
+                    {
+                        await _encodeLimit.WaitAsync().ConfigureAwait(false);
+                        try
+                        {
+                            return Encode(data, mipsLevels, hash, compressor);
+                        }
+                        finally
+                        {
+                            _encodeLimit.Release();
+                        }
+                    });
 
-            var result = await task;
+                    _encodeTasks[hash] = task;
+                }
+            }
+            finally
+            {
+                _dictMutex.Release();
+            }
 
-            //_encodeTasks.TryRemove(hash, out _);
-
-            return result;
+            try
+            {
+                return await task.ConfigureAwait(false);
+            }
+            finally
+            {
+                await _dictMutex.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    _encodeTasks.Remove(hash);
+                }
+                finally
+                {
+                    _dictMutex.Release();
+                }
+            }
         }
 
 
         public static string TextureHash(TextureData data, TextureCompressionInfo compressor)
         {
-            return Convert.ToHexString(MD5.HashData(data.Data!.AsSpan())) + "_" + compressor.Format + "_" + compressor.BlockSize + "_v3";
+            return Convert.ToHexString(MD5.HashData(data.Data!.AsSpan())) + "_" + compressor.Format + "_" + compressor.BlockSize + "_v6";
+        }
+
+        public void ClearCache()
+        {
+            if (_cacheCleared)
+                return;
+            foreach (var file in Directory.GetFiles(CachePath!))
+                File.Delete(file);
+            _cacheCleared = true;
         }
 
         public IList<TextureData> Encode(TextureData data, int mipsLevels, string? hash, TextureCompressionInfo compressor)
@@ -95,14 +137,16 @@ namespace XrEngine.Compression
 
                 var level = 0;
 
-                SKBitmap? image = null;
+                //SKBitmap? image = null;
+
+                var lastData = data;
 
                 while (true)
                 {
                     var width = (int)MathF.Max(1, data.Width >> level);
                     var height = (int)MathF.Max(1, data.Height >> level);
 
-                    var resizeData = ImageUtils.Resize(data, width, height, ref image);
+                    var resizeData = ImageUtils.ResizeV2(lastData, width, height);
 
                     Log.Info(this, "Compressing mip {0} mipsLevels width {1} height {2}", level, width, height);
 
@@ -114,6 +158,8 @@ namespace XrEngine.Compression
                     newData.Width = resizeData.Width;
                     newData.Height = resizeData.Height;
 
+                    lastData = resizeData;
+
                     result.Add(newData);
 
                     if (level >= mipsLevels || newData.Width <= 4 || newData.Height <= 4)
@@ -122,7 +168,7 @@ namespace XrEngine.Compression
                     level++;
                 }
 
-                image?.Dispose();
+                //image?.Dispose();
 
                 if (cacheFile != null)
                 {
@@ -153,5 +199,6 @@ namespace XrEngine.Compression
 
 
         public static readonly TextureCompressor Instance = new();
+        private bool _cacheCleared;
     }
 }
