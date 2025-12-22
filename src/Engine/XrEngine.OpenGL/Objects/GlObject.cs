@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Reflection.Emit;
 #endif
 
 namespace XrEngine.OpenGL
@@ -10,6 +11,7 @@ namespace XrEngine.OpenGL
     {
         protected uint _handle;
         protected GL _gl;
+        protected string? _label;
 
         protected GlObject(GL gl)
         {
@@ -35,6 +37,8 @@ namespace XrEngine.OpenGL
 
             if (this is GlTexture)
                 _gl.ObjectLabel(ObjectIdentifier.Texture, _handle, (uint)label.Length, label);
+
+            _label = label;
         }
 
 
@@ -42,6 +46,8 @@ namespace XrEngine.OpenGL
         {
             return obj._handle;
         }
+
+        public string? Label => _label;
 
         public uint Handle => _handle;
 

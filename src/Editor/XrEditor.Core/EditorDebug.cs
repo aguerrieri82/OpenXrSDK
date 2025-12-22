@@ -32,6 +32,7 @@ namespace XrEditor
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
+                  opt.Compression.Use = false;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)

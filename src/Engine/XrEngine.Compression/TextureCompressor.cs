@@ -17,6 +17,7 @@ namespace XrEngine.Compression
         readonly Dictionary<string, Task<IList<TextureData>>> _encodeTasks = [];
         readonly SemaphoreSlim _dictMutex = new(1, 1);
         readonly SemaphoreSlim _encodeLimit = new(3, 3);
+        bool _cacheCleared;
 
         public static TextureCompressionInfo EncodeAstc(bool isNormalMap, float quality, uint blockSize)
         {
@@ -137,8 +138,6 @@ namespace XrEngine.Compression
 
                 var level = 0;
 
-                //SKBitmap? image = null;
-
                 var lastData = data;
 
                 while (true)
@@ -167,8 +166,6 @@ namespace XrEngine.Compression
 
                     level++;
                 }
-
-                //image?.Dispose();
 
                 if (cacheFile != null)
                 {
@@ -199,6 +196,6 @@ namespace XrEngine.Compression
 
 
         public static readonly TextureCompressor Instance = new();
-        private bool _cacheCleared;
+
     }
 }

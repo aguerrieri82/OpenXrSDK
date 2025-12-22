@@ -510,6 +510,7 @@ namespace XrEngine.OpenGL
 
         public void Bind(bool force = false)
         {
+            GlState.Current!.SetActiveTexture(Slot, force);
             GlState.Current!.LoadTexture(this, Slot, force);
         }
 

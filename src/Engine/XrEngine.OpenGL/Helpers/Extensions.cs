@@ -226,7 +226,9 @@ namespace XrEngine.OpenGL
             glTexture.BorderColor = texture2D.BorderColor;
             glTexture.IsMutable = (texture2D.Flags & EngineObjectFlags.Mutable) != 0;
             glTexture.MaxAnisotropy = texture2D.MaxAnisotropy;
-            glTexture.SetLabel((texture2D.Name ?? "Texture") + " " + glTexture.Handle);
+
+            if (string.IsNullOrWhiteSpace(glTexture.Label))
+                glTexture.SetLabel((texture2D.Name ?? "Texture") + " " + glTexture.Handle);
 
             if (texture2D.MinFilter == ScaleFilter.LinearMipmapLinear)
                 glTexture.MaxLevel = (uint)MathF.Log2(MathF.Max(texture2D.Width, texture2D.Height));
