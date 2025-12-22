@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using Silk.NET.OpenXR;
 using Silk.NET.Windowing;
 
@@ -24,8 +29,9 @@ namespace OpenXr.Framework.OpenGL
             else
                 throw new NotSupportedException();
 
+#if !GLES
             _gl = _view.CreateOpenGL();
-
+#endif
         }
 
         public nint HDc => _hdc;

@@ -24,6 +24,7 @@ namespace XrEditor
         private readonly bool _createContext;
         protected nint _glCtx;
         protected nint _hdc;
+        protected bool _useEs;
 
         #region NATIVE
 
@@ -167,10 +168,11 @@ namespace XrEditor
 
         #endregion
 
-        public GlRenderHost(bool createContext = true)
+        public GlRenderHost(bool createContext = true, bool useEs = false)
         {
             _hLib = LoadLibraryW("opengl32.dll");
             _createContext = createContext;
+            _useEs = useEs;
         }
 
         protected unsafe virtual void CreateContext(HandleRef handle)
@@ -212,15 +214,28 @@ namespace XrEditor
 
             var attr = stackalloc int[11];
 
-            attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-            attr[1] = 4;
+            if (!_useEs)
+            {
+                attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+                attr[1] = 4;
 
-            attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-            attr[3] = 6;
+                attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+                attr[3] = 6;
 
-            attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-            attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-            //attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; ;
+                attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+                attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            }
+            else
+            {
+                attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+                attr[1] = 3;
+
+                attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+                attr[3] = 2;
+
+                attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+                attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
+            }
 
             attr[6] = 0;
 

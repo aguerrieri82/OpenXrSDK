@@ -158,6 +158,8 @@ namespace XrEngine
 
                 var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
+                if (ToneMap)
+                    bld.AddFeature("TONEMAP");
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {
@@ -377,6 +379,8 @@ namespace XrEngine
             public float DepthNoiseFactor { get; set; }
 
             public float DepthNoiseDistance { get; set; }
+
+            public bool ToneMap { get; set; }
         }
 
         #endregion
@@ -407,7 +411,7 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
-            ToneMap = true;
+
             UseInstanceDraw = true;
         }
 
@@ -464,8 +468,6 @@ namespace XrEngine
             if (Simplified)
                 bld.AddFeature("SIMPLIFIED");
 
-            if (ToneMap)
-                bld.AddFeature("TONEMAP");
 
             if (UseEnvDepth)
                 bld.AddFeature("USE_ENV_DEPTH");
@@ -700,7 +702,6 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }
 
-        public bool ToneMap { get; set; }
 
         //TODO: Implement AlphaCutoff   
         public float AlphaCutoff { get; set; }
@@ -718,5 +719,12 @@ namespace XrEngine
         public bool UseInstanceDraw { get; set; }
 
         public static bool ForceIblTransform { get; set; } = true;
+
+        bool IPbrMaterial.ToneMap
+        {
+            get => SHADER.ToneMap;
+            set => SHADER.ToneMap = value;
+        }
+
     }
 }

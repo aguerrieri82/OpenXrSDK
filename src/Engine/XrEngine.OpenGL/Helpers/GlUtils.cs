@@ -167,7 +167,6 @@ namespace XrEngine.OpenGL
 
             if (compression == TextureCompressionFormat.Etc2)
             {
-
                 return format switch
                 {
                     TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,

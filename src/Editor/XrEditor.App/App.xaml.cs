@@ -22,7 +22,7 @@ namespace XrEditor
 
             _viewManager = new WpfViewManager();
 
-            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor");
+            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor", EditorDebug.UseEs);
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeManager>();

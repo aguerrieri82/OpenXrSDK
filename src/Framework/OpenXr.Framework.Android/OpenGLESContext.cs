@@ -92,6 +92,7 @@ namespace OpenXr.Framework.Android
                 [
                     EGL14.EglWidth, 16,
                     EGL14.EglHeight, 16,
+                    EGL15.EglGlColorspace, EGL15.EglGlColorspaceSrgb,
                     EGL14.EglNone
                 ],
                 0

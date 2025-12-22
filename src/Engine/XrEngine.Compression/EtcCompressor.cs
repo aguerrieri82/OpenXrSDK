@@ -1,5 +1,6 @@
 ﻿using Common.Interop;
 using SkiaSharp;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
@@ -83,6 +84,9 @@ namespace XrEngine.Compression
 
         public static IList<TextureData> Encode(TextureData data, int mipsLevels)
         {
+            IList<TextureData>? result = null;
+            var isCached = false;
+
             string? cacheFile = null;
             if (CachePath != null)
             {
@@ -92,36 +96,40 @@ namespace XrEngine.Compression
                 if (File.Exists(cacheFile))
                 {
                     using var readStream = File.OpenRead(cacheFile);
-                    var cacheData = PvrTranscoder.Instance.LoadTexture(readStream);
-                    return cacheData;
+                    result = PvrTranscoder.Instance.LoadTexture(readStream);
+                    isCached = true;
                 }
             }
 
+            if (!isCached)
+            {
+                var skType = ImageUtils.GetSkFormat(data.Format);
 
-            var skType = ImageUtils.GetSkFormat(data.Format);
+                var useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SRgb24;
 
-            var useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SRgb24;
+                using var image = CreateImage(data, skType);
 
-            using var image = CreateImage(data, skType);
+                using var bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
 
-            using var bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
+                result = Encode(bgrImage, mipsLevels, useSrgb);
 
-            var result = Encode(bgrImage, mipsLevels, useSrgb);
+                if (cacheFile != null)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
+                    using var writeStream = File.OpenWrite(cacheFile);
+                    PvrTranscoder.Instance.SaveTexture(writeStream, result);
+                }
+            }
+
+            Debug.Assert(result != null);
 
             foreach (var item in result)
             {
                 if (mipsLevels == 0)
                     item.MipLevel = data.MipLevel;
                 item.Face = data.Face;
+                item.Depth = data.Depth;
             }
-
-            if (cacheFile != null)
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
-                using var writeStream = File.OpenWrite(cacheFile);
-                PvrTranscoder.Instance.SaveTexture(writeStream, result);
-            }
-
 
             return result;
         }

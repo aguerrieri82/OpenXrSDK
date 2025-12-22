@@ -20,9 +20,12 @@ namespace OpenXr.Framework.Oculus
     {
         public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
 
+        public ColorSpaceFB ColorSpace { get; set; }
+
         public static readonly OculusXrPluginOptions Default = new()
         {
-            Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
+            Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB,
+            ColorSpace = ColorSpaceFB.Rec709FB
         };
     }
 
@@ -92,8 +95,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSwapchainUpdateState? _swapChainUpdate;
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
-
-
+        private FBColorSpace _colorSpace;
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
 
@@ -125,7 +127,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBFoveation.ExtensionName);
             extensions.Add(FBSwapchainUpdateState.ExtensionName);
             extensions.Add(FBHandTrackingMesh.ExtensionName);
-            extensions.Add(METAEnvironmentDepth.ExtensionName);
+            extensions.Add(FBColorSpace.ExtensionName);
 
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
@@ -151,14 +153,29 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSwapchainUpdateState>(null, _app.Instance, out _swapChainUpdate);
             _app.Xr.TryGetInstanceExtension<FBHandTrackingMesh>(null, _app.Instance, out _handMesh);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
+            _app.Xr.TryGetInstanceExtension<FBColorSpace>(null, _app.Instance, out _colorSpace);
 
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
+
+
+        }
+
+        public override void OnSessionCreated()
+        {
+            base.OnSessionCreated();
+            SetColorSpace(_options.ColorSpace);
+        }
+
+        public void SetColorSpace(ColorSpaceFB colorSpace)
+        {
+            _app!.CheckResult(_colorSpace.SetColorSpaceFB(_app!.Session, colorSpace), "SetColorSpaceFB");
         }
 
         public unsafe string[] GetSpaceSemanticLabels(Space space)
         {
+
             var labels = string.Join(',', LABELS);
 
             var support = new SemanticLabelsSupportInfoFB

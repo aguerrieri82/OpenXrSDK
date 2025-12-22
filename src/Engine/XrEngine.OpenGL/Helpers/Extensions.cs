@@ -154,26 +154,37 @@ namespace XrEngine.OpenGL
                 var comp = texture2D.Compression;
                 var format = texture2D.Format;
 
+                var isFloat = format == TextureFormat.RgFloat32 ||
+                              format == TextureFormat.RgFloat16 ||
+                              format == TextureFormat.RgbFloat32 ||
+                              format == TextureFormat.RgbFloat16 ||
+                              format == TextureFormat.RgbaFloat32 ||
+                              format == TextureFormat.RgbaFloat16 ||
+                              format == TextureFormat.GrayFloat32;
 
-                if (requireCompression && !texture2D.NeverCompress)
+                if (requireCompression && !texture2D.NeverCompress && !isFloat)
                 {
                     EtcCompressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().CachePath, "Textures");
 
                     var newData = new List<TextureData>();
-                    var mipLevels = data.Count == 1 ? (int)glTexture.MaxLevel + 1 : 0;
-                    if (mipLevels == 1)
-                        mipLevels = 0;
 
-                    for (var i = 0; i < data.Count; i++)
+                    var groups = data.GroupBy(a => new
                     {
-                        var compData = EtcCompressor.Encode(data[i], mipLevels);
+                        a.Face,
+                        a.Depth
+                    });
 
-                        foreach (var result in compData)
+                    foreach (var dataGrp in groups)
+                    {
+                        var mipLevels = 0;
+
+                        if (glTexture.MaxLevel > 0 && dataGrp.Count() == 1)
+                            mipLevels = (int)glTexture.MaxLevel + 1;
+
+                        foreach (var item in dataGrp)
                         {
-                            if (mipLevels == 0)
-                                result.MipLevel = data[i].MipLevel;
-                            result.Face = data[i].Face;
-                            newData.Add(result);
+                            var compData = EtcCompressor.Encode(item, mipLevels);
+                            newData.AddRange(compData);
                         }
                     }
 
@@ -183,6 +194,7 @@ namespace XrEngine.OpenGL
                 }
 
                 glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth, format, comp, data);
+
                 texture2D.NotifyLoaded();
             }
             else

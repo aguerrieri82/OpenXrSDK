@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
 using Silk.NET.Windowing;
@@ -14,7 +19,6 @@ namespace OpenXr.Framework.OpenGL
         protected XrDynamicType _swapChainType;
 
         protected GLEnum[] _validFormats = [
-           GLEnum.SrcAlpha,
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 

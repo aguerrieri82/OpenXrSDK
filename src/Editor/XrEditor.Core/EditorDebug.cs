@@ -13,6 +13,9 @@ namespace XrEditor
 
         public static readonly bool EnablePreview = false;
 
+        public static readonly bool UseEs = false;
+
+
         public static readonly string[] AssetsPath = [
             @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",

@@ -162,9 +162,9 @@ namespace XrEngine.OpenGL
                    if (sev == GLEnum.DebugSeverityNotification)
                        return;
 
-                   // Debug.WriteLine($"\n\n\n");
-                   // Debug.WriteLine($"------ OPENGL: {text}");
-                   //Debug.WriteLine($"\n\n\n");
+                   Debug.WriteLine($"\n\n\n");
+                   Debug.WriteLine($"------ OPENGL: {text}");
+                   Debug.WriteLine($"\n\n\n");
 
                }
                catch
@@ -186,6 +186,8 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.ScissorTest, false);
             _glState.EnableFeature(EnableCap.ProgramPointSize, true);
             _glState.EnableFeature(EnableCap.TextureCubeMapSeamless, true);
+
+            PbrV2Material.SHADER.ToneMap = !_options.UseSRGB;
 
         }
 
