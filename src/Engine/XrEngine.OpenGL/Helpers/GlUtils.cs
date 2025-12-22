@@ -20,29 +20,6 @@ namespace XrEngine.OpenGL
             return 1;
         }
 
-        public static uint GetPixelSizeBit(TextureFormat format)
-        {
-            return format switch
-            {
-                TextureFormat.Rg88 => 16,
-                TextureFormat.Rgba32 => 32,
-                TextureFormat.Bgra32 => 32,
-                TextureFormat.Rgb24 => 24,
-                TextureFormat.SRgb24 => 24,
-                TextureFormat.RgbFloat32 => 32 * 3,
-                TextureFormat.RgbaFloat32 => 32 * 4,
-                TextureFormat.RgbaFloat16 => 16 * 4,
-                TextureFormat.Depth24Float => 24,
-                TextureFormat.Depth16 => 16,
-                TextureFormat.GrayInt8 => 8,
-                TextureFormat.GrayInt16 => 16,
-                TextureFormat.GrayRawSInt16 => 16,
-                TextureFormat.RgFloat16 => 16 * 2,
-                _ => throw new NotSupportedException()
-            };
-
-        }
-
 
 
         public static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
@@ -120,7 +97,7 @@ namespace XrEngine.OpenGL
             };
         }
 
-        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
+        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression, uint blockSize = 0)
         {
 
             if (compression == TextureCompressionFormat.Uncompressed)
@@ -175,6 +152,34 @@ namespace XrEngine.OpenGL
                     TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2EacOes,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
+            }
+
+            if (compression == TextureCompressionFormat.Astc)
+            {
+                if (format.IsSrgb())
+                {
+                    return blockSize switch
+                    {
+                        4 => InternalFormat.CompressedSrgb8Alpha8Astc4x4,
+                        6 => InternalFormat.CompressedSrgb8Alpha8Astc6x6,
+                        8 => InternalFormat.CompressedSrgb8Alpha8Astc8x8,
+                        10 => InternalFormat.CompressedSrgb8Alpha8Astc10x10,
+                        12 => InternalFormat.CompressedSrgb8Alpha8Astc12x12,
+                        _ => throw new NotSupportedException(format.ToString()),
+                    };
+                }
+                else
+                {
+                    return blockSize switch
+                    {
+                        4 => InternalFormat.CompressedRgbaAstc4x4,
+                        6 => InternalFormat.CompressedRgbaAstc6x6,
+                        8 => InternalFormat.CompressedRgbaAstc8x8,
+                        10 => InternalFormat.CompressedRgbaAstc10x10,
+                        12 => InternalFormat.CompressedRgbaAstc12x12,
+                        _ => throw new NotSupportedException(format.ToString()),
+                    };
+                }
             }
 
             if (compression == TextureCompressionFormat.Etc1)

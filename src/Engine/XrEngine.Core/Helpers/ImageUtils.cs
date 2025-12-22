@@ -9,15 +9,96 @@ namespace XrEngine
 {
     public static class ImageUtils
     {
-        static readonly Dictionary<SKColorType, TextureFormat> SKIA_FORMAT_MAP = new() {
-            { SKColorType.Bgra8888, TextureFormat.Bgra32 },
-            { SKColorType.Rgba8888, TextureFormat.Rgba32 },
-            { SKColorType.Srgba8888, TextureFormat.SRgba32 },
-            { SKColorType.Gray8, TextureFormat.GrayInt8 },
-            { SKColorType.RgbaF16, TextureFormat.RgbaFloat16 },
-            { SKColorType.RgbaF32, TextureFormat.RgbaFloat32 },
-
+        static readonly Dictionary<TextureFormat, SKColorType> FORMAT_TO_SKIA = new()
+        {
+            { TextureFormat.Bgra32,      SKColorType.Bgra8888 },
+            { TextureFormat.SBgra32,     SKColorType.Bgra8888 },
+            { TextureFormat.Rgba32,      SKColorType.Rgba8888 },
+            { TextureFormat.SRgba32,     SKColorType.Srgba8888 },
+            { TextureFormat.GrayInt8,    SKColorType.Gray8 },
+            { TextureFormat.RgbaFloat16, SKColorType.RgbaF16 },
+            { TextureFormat.RgbaFloat32, SKColorType.RgbaF32 },
         };
+
+
+        static readonly Dictionary<SKColorType, TextureFormat[]> SKIA_TO_FORMATS = new()
+        {
+            { SKColorType.Bgra8888,  new[] { TextureFormat.Bgra32, TextureFormat.SBgra32 } },
+            { SKColorType.Rgba8888,  new[] { TextureFormat.Rgba32 } },
+            { SKColorType.Srgba8888, new[] { TextureFormat.SRgba32 } },
+            { SKColorType.Gray8,     new[] { TextureFormat.GrayInt8 } },
+            { SKColorType.RgbaF16,   new[] { TextureFormat.RgbaFloat16 } },
+            { SKColorType.RgbaF32,   new[] { TextureFormat.RgbaFloat32 } },
+        };
+
+        public static bool IsBgr(this TextureFormat format)
+        {
+            return format == TextureFormat.Bgra32 || format == TextureFormat.SBgra32;
+        }
+
+        public static uint GetPixelSizeBit(this TextureFormat format)
+        {
+            return format switch
+            {
+                TextureFormat.Rg88 => 16,
+                TextureFormat.Rgba32 => 32,
+                TextureFormat.SRgba32 => 32,
+                TextureFormat.Bgra32 => 32,
+                TextureFormat.Rgb24 => 24,
+                TextureFormat.SRgb24 => 24,
+                TextureFormat.RgbFloat32 => 32 * 3,
+                TextureFormat.RgbaFloat32 => 32 * 4,
+                TextureFormat.RgbaFloat16 => 16 * 4,
+                TextureFormat.Depth24Float => 24,
+                TextureFormat.Depth16 => 16,
+                TextureFormat.GrayInt8 => 8,
+                TextureFormat.GrayInt16 => 16,
+                TextureFormat.GrayRawSInt16 => 16,
+                TextureFormat.RgFloat16 => 16 * 2,
+                _ => throw new NotSupportedException()
+            };
+
+        }
+
+
+        public static bool IsFloat(this TextureFormat format)
+        {
+            return format.IsFloat16() || format.IsFloat32();
+        }
+
+        public static bool IsSrgb(this TextureFormat format)
+        {
+            return format == TextureFormat.SRgb24 ||
+                   format == TextureFormat.SRgba32 ||
+                   format == TextureFormat.SBgra32;
+        }
+
+        public static bool IsInt8(this TextureFormat format)
+        {
+            return format == TextureFormat.Rg88 ||
+                   format == TextureFormat.Rgb24 ||
+                   format == TextureFormat.Rgba32 ||
+                   format == TextureFormat.GrayInt8 ||
+                   format == TextureFormat.Bgra32 ||
+                   format == TextureFormat.SRgba32 ||
+                   format == TextureFormat.SBgra32 ||
+                    format == TextureFormat.SRgb24;
+        }
+
+        public static bool IsFloat16(this TextureFormat format)
+        {
+            return format == TextureFormat.RgFloat16 ||
+                   format == TextureFormat.RgbFloat16 ||
+                   format == TextureFormat.RgbaFloat16;
+        }
+
+        public static bool IsFloat32(this TextureFormat format)
+        {
+            return format == TextureFormat.RgFloat32 ||
+                   format == TextureFormat.RgbFloat32 ||
+                   format == TextureFormat.RgbaFloat32 ||
+                   format == TextureFormat.GrayFloat32;
+        }
 
         public static SKBitmap ApplyGaussianBlur(SKBitmap bitmap, float radius)
         {
@@ -110,17 +191,19 @@ namespace XrEngine
 
         public static SKColorType GetSkFormat(TextureFormat format)
         {
-            return SKIA_FORMAT_MAP.First(a => a.Value == format).Key;
+            if (!FORMAT_TO_SKIA.TryGetValue(format, out var color))
+                throw new NotSupportedException();
+            return color;
         }
 
         public static TextureFormat GetFormat(SKColorType color)
         {
-            if (!SKIA_FORMAT_MAP.TryGetValue(color, out var format))
+            if (!SKIA_TO_FORMATS.TryGetValue(color, out var format))
                 throw new NotSupportedException();
-            return format;
+            return format[0];
         }
 
-        public static SKBitmap? ToBitmap(TextureData data, bool flipY)
+        public static SKBitmap? ToBitmap(this TextureData data, bool flipY)
         {
             if (data.Height == 0 || data.Width == 0)
                 return null;
@@ -149,6 +232,67 @@ namespace XrEngine
             }
 
             return image;
+        }
+
+        public static unsafe TextureData ToTextureData(this SKBitmap image)
+        {
+            var buffer = MemoryBuffer.Create<byte>((uint)(image.BytesPerPixel * image.Width * image.Height));
+
+            fixed (byte* pSrc = image.GetPixelSpan())
+            {
+                using var dst = buffer.MemoryLock();
+                EngineNativeLib.CopyMemory((nint)pSrc, dst, buffer.Size);
+            }
+
+            return new TextureData
+            {
+                Width = (uint)image.Width,
+                Height = (uint)image.Height,
+                Format = GetFormat(image.ColorType),
+                Data = buffer,
+            };
+        }
+
+        public static TextureData Resize(TextureData data, int width, int height, ref SKBitmap? image)
+        {
+            if (width == data.Width && height == data.Height)
+                return data;
+
+            image ??= ToBitmap(data, false)!;
+
+            var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+
+            using var newImage = image.Resize(new SKSizeI(width, height), so);
+
+            return newImage.ToTextureData();
+        }
+
+        public static unsafe TextureData Pack(TextureData data, int align)
+        {
+            var pWidth = (int)MathF.Ceiling(data.Width / (float)align) * align;
+            var pHeight = (int)MathF.Ceiling(data.Height / (float)align) * align;
+
+            if (pWidth == data.Width && pHeight == data.Height)
+                return data;
+
+            var result = data.Clone();
+
+            var pixelSize = data.Format.GetPixelSizeBit() / 8;
+
+            var newData = MemoryBuffer.Create<byte>((uint)(pWidth * pixelSize * pHeight));
+
+            using var pSrc = result.Data!.MemoryLock();
+
+            using var pDst = newData.MemoryLock();
+
+            EngineNativeLib.ImagePack(data.Width, data.Height, pSrc, (uint)pWidth, (uint)pHeight, pDst, pixelSize);
+
+            result.Data = newData;
+            result.Width = (uint)pWidth;
+            result.Height = (uint)pHeight;
+
+            return result;
+
         }
 
         public static unsafe IMemoryBuffer<byte> ConvertShortToFloat(IMemoryBuffer<byte> data)
@@ -187,7 +331,6 @@ namespace XrEngine
 
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
-
             //do always for  SKAlphaType.Unpremul
             /*
             if (src.ColorType == dest)

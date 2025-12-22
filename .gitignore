@@ -384,3 +384,5 @@ Makefile
 /src/Engine/Draco.Native/libs/
 /src/Samples/XrSamples.Earth/Assets/
 /src/Engine/XrEngine.Bullet.Native/libs/
+/third-party/astc-encoder-native/out-android
+/third-party/astc-encoder-native/out-win

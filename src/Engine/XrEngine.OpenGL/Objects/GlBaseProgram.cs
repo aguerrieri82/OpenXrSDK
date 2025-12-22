@@ -184,14 +184,10 @@ namespace XrEngine.OpenGL
 
                 var isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-#if GLES
-                GlState.Current!.LoadTexture(glText, slot, false);
-#else
                 GlState.Current!.LoadTexture(glText, slot);
-#endif
 
                 if (isUpdate)
-                    glText.Update(tex2d, false);
+                    glText.Update(tex2d);
             }
         }
 
@@ -269,7 +265,7 @@ namespace XrEngine.OpenGL
             GlState.Current!.SetActiveBuffer(glBuffer, slot);
         }
 
-        public unsafe void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
+        public void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
         {
             LoadTexture(value, slot);
             SetUniform(name, slot, optional);

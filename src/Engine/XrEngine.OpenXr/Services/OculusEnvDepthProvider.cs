@@ -32,6 +32,9 @@ namespace XrEngine.OpenXr
             if (_passTh.DepthImage == null)
                 return null;
 
+            if (!_passTh.IsStarted)
+                return null;
+
             if (_xrApp.FramePredictedDisplayTime == _lastFrameTime)
             {
                 depthCamera.Far = _lastCamera!.Far;

@@ -76,9 +76,8 @@ namespace OpenXr.Framework.Android
                 EGL14.EglNoContext,
                 [
                     EGL14.EglContextClientVersion, 3,
-                   // EGL15.EglContextMinorVersion, 2,
+                 // EGL15.EglContextMinorVersion, 2,
                     EGL15.EglContextOpenglDebug, (debugMode ? EGL14.EglTrue : EGL14.EglFalse),
-                   // EGL15.EglContextOpenglProfileMask, EGL15.EglContextOpenglCoreProfileBit,
                     EGL14.EglNone
                 ],
                 0);
@@ -116,7 +115,6 @@ namespace OpenXr.Framework.Android
             Log.Info("EGL Extensions", exts ?? "");
 
             //EGL14.EglSwapInterval(display, 0);
-
 
             return new OpenGLESContext
             {

@@ -282,10 +282,10 @@ namespace XrMath
             for (var i = 0; i < planes.Length; i++)
             {
                 var plane = planes[i];
-                /*
-                if (plane.IntersectLine(self.Min, self.Max))
+
+                if (plane.Intersects(new Line3(self.Min, self.Max), out var _))
                     return true;
-                */
+
                 var positiveVertex = new Vector3(
                     (plane.Normal.X >= 0) ? self.Max.X : self.Min.X,
                     (plane.Normal.Y >= 0) ? self.Max.Y : self.Min.Y,

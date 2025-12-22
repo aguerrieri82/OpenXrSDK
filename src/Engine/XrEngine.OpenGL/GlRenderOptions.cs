@@ -21,6 +21,19 @@ namespace XrEngine.OpenGL
         public bool IsMultiView { get; set; }
     }
 
+    public class GlCompressionOptions
+    {
+        public bool Use { get; set; }
+
+        public TextureCompressionFormat Format { get; set; }
+
+        public int MinSize { get; set; }
+
+        public uint BlockSize { get; set; }
+
+        public float Quality { get; set; }
+    }
+
 
     public class GlRenderOptions
     {
@@ -35,11 +48,19 @@ namespace XrEngine.OpenGL
             SortByCameraDistance = true;
             UseSRGB = false;
             UseLayerV2 = true;
-            RequireTextureCompression = false;
+            RequireTextureCompression = true;
             UseVolume = true;
 
             UseInstanceDraw = true;
             CacheUniforms = true;
+            Compression = new GlCompressionOptions
+            {
+                Use = true,
+                MinSize = 512 * 512,
+                BlockSize = 6,
+                Format = TextureCompressionFormat.Astc,
+                Quality = 60,
+            };
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.VSM,
@@ -68,6 +89,8 @@ namespace XrEngine.OpenGL
         public bool UseSRGB { get; set; }
 
         public string? ShaderVersion { get; set; }
+
+        public GlCompressionOptions Compression { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
 

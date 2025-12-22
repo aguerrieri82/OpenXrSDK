@@ -17,10 +17,10 @@ namespace XrEngine.OpenXr
     public static class XrEngineAppExtensions
     {
 
-        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = false) => self.ConfigureApp(e =>
         {
             if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
-                e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
+                e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer() { IsEnabled = enabled });
         });
 
         public static XrEngineAppBuilder UseLeftController(this XrEngineAppBuilder self)

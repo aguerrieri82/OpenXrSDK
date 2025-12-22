@@ -365,6 +365,7 @@ namespace XrEngine.Gltf
             if (gltMat.NormalTexture != null)
             {
                 result.NormalTexture = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
+                result.NormalTexture.Type = TextureType.NormalMap;
                 result.NormalScale = gltMat.NormalTexture.Scale;
                 result.NormalUVSet = gltMat.NormalTexture.TexCoord;
             }
@@ -470,6 +471,7 @@ namespace XrEngine.Gltf
             if (gltMat.NormalTexture != null)
             {
                 result.NormalMap = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
+                result.NormalMap.Type = TextureType.NormalMap;
                 result.NormalScale = gltMat.NormalTexture.Scale;
             }
 

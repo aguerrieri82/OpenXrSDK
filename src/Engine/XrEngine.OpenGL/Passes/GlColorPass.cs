@@ -139,7 +139,6 @@ namespace XrEngine.OpenGL
                     if (material.Value.IsHidden)
                         continue;
 
-
                     updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     var progInst = matContent.ProgramInstance!;

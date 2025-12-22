@@ -43,12 +43,12 @@ namespace OpenXr.Framework.Oculus
 
         public override void OnBeginFrame(Space space, long displayTime)
         {
-            if (UseEnvironmentDepth)
+            if (UseEnvironmentDepth && _isStarted)
                 _depthImage = _envDepth.Acquire(space, displayTime);
 
         }
 
-        protected unsafe SystemPassthroughProperties2FB GetPtCapabilities()
+        protected SystemPassthroughProperties2FB GetPtCapabilities()
         {
             var props = new SystemPassthroughProperties2FB
             {
@@ -88,15 +88,21 @@ namespace OpenXr.Framework.Oculus
             return _ptLayer;
         }
 
-        protected void StartPt()
+        public void StartPt()
         {
+            if (_isStarted)
+                return;
             _xrApp!.CheckResult(_passthrough!.PassthroughStartFB(_ptInstance), "PassthroughStartFB");
+            _xrApp!.CheckResult(_passthrough!.PassthroughLayerResumeFB(_ptLayer), "PassthroughLayerResumeFB");
             _isStarted = true;
         }
 
-        protected void PausePt()
+        public void PausePt()
         {
+            if (!_isStarted)
+                return;
             _xrApp!.CheckResult(_passthrough!.PassthroughPauseFB(_ptInstance), "PassthroughPauseFB");
+            _xrApp!.CheckResult(_passthrough!.PassthroughLayerPauseFB(_ptLayer), "PassthroughLayerPauseFB");
             _isStarted = false;
         }
 
@@ -125,8 +131,10 @@ namespace OpenXr.Framework.Oculus
             base.Destroy();
         }
 
-        public unsafe override void Create()
+        public override void Create()
         {
+            if (!IsEnabled)
+                return;
 
             var caps = GetPtCapabilities();
 
@@ -250,6 +258,8 @@ namespace OpenXr.Framework.Oculus
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
 
         public PassthroughLayerPurposeFB Purpose { get; set; }
+
+        public bool IsStarted => _isStarted;
 
     }
 }

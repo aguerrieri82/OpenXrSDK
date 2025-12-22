@@ -14,7 +14,6 @@ using XrEngine.Audio;
 using XrEngine.Audio.Midi;
 using XrEngine.Bullet;
 using XrEngine.Components;
-using XrEngine.Compression;
 using XrEngine.Devices;
 using XrEngine.Gltf;
 using XrEngine.Helpers;
@@ -1851,6 +1850,7 @@ namespace XrSamples
 
             var red = new BasicMaterial() { Color = new Color(1, 0, 0) };
 
+            /*
             var data = EtcCompressor.Encode(GetAssetPath("TestScreen.png"), 16);
 
             var text = new TextureMaterial(Texture2D.FromData(data))
@@ -1860,6 +1860,7 @@ namespace XrSamples
 
             var panel = new TriangleMesh(Quad3D.Default, text);
             scene.AddChild(panel);
+            */
 
             var cubes = new Group3D();
 

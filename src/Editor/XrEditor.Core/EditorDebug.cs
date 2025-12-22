@@ -30,12 +30,12 @@ namespace XrEditor
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
-                  opt.FrustumCulling = false;
+                  opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateRoomManager()
+              .CreateCube()
               .Build();
     }
 }

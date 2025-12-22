@@ -426,7 +426,7 @@ namespace XrEngine.OpenGL
                 _target = _defaultTarget;
             else
             {
-                var glTexture = texture.ToGlTexture(false);
+                var glTexture = texture.ToGlTexture();
                 _texRenderTarget ??= new GlTextureRenderTarget(_gl);
                 _texRenderTarget.FrameBuffer.Configure(glTexture, null, glTexture.SampleCount);
                 _target = _texRenderTarget;
@@ -485,12 +485,12 @@ namespace XrEngine.OpenGL
             var glTexture = texture.GetGlResource(a =>
             {
                 if (handle == 0)
-                    return texture.ToGlTexture(false);
+                    return texture.ToGlTexture();
 
                 return GlTexture.Attach(_gl, (uint)handle);
             });
 
-            glTexture.Update(texture, false);
+            glTexture.Update(texture);
 
             if (_grContext == null)
             {

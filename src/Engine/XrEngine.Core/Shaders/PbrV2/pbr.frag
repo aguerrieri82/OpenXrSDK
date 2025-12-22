@@ -424,7 +424,7 @@ void main()
 	#endif
 	
 	#ifdef TONEMAP
-		color3 = linearTosRGB(toneMap(color3));
+		color3 = linearTosRGB(toneMapNeutral(color3));
 	#endif
 
 	//Blend

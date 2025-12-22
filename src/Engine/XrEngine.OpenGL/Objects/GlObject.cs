@@ -28,6 +28,15 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public void SetLabel(string? label)
+        {
+            if (string.IsNullOrEmpty(label))
+                return;
+
+            if (this is GlTexture)
+                _gl.ObjectLabel(ObjectIdentifier.Texture, _handle, (uint)label.Length, label);
+        }
+
 
         public static implicit operator uint(GlObject obj)
         {

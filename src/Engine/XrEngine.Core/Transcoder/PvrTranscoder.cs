@@ -16,6 +16,20 @@ namespace XrEngine
             ETC2_RGB = 22,
             ETC2_RGBA = 23,
             ETC2_RGB_A1 = 24,
+            ASTC_4x4 = 27,
+            ASTC_5x4 = 28,
+            ASTC_5x5 = 29,
+            ASTC_6x5 = 30,
+            ASTC_6x6 = 31,
+            ASTC_8x5 = 32,
+            ASTC_8x6 = 33,
+            ASTC_8x8 = 34,
+            ASTC_10x5 = 35,
+            ASTC_10x6 = 36,
+            ASTC_10x8 = 37,
+            ASTC_10x10 = 38,
+            ASTC_12x10 = 39,
+            ASTC_12x12 = 40,
             RGBA8 = 0x0808080861626772,
             RGB8 = 0x0008080800626772,
             RGBFloat32 = 0x0020202000626772,
@@ -65,7 +79,7 @@ namespace XrEngine
         {
         }
 
-        public unsafe void SaveTexture(Stream stream, IList<TextureData> images)
+        public void SaveTexture(Stream stream, IList<TextureData> images)
         {
 
             var header = new PvrHeader
@@ -79,55 +93,71 @@ namespace XrEngine
                 MIPMapCount = images.Count == 1 ? 1 : images.Max(a => a.MipLevel) + 1
             };
 
-            switch (images[0].Format)
+            if (images[0].Compression == TextureCompressionFormat.Astc)
             {
-                case TextureFormat.Rgba32:
-                    header.ColorSpace = ColorSpace.LinearRGB;
-                    if (images[0].Compression == TextureCompressionFormat.Etc2)
-                        header.PixelFormat = PixelFormat.ETC2_RGBA;
-                    else
-                        header.PixelFormat = PixelFormat.RGBA8;
-                    break;
-                case TextureFormat.Rgb24:
-                    header.ColorSpace = ColorSpace.LinearRGB;
-                    if (images[0].Compression == TextureCompressionFormat.Etc2)
-                        header.PixelFormat = PixelFormat.ETC2_RGB;
-                    else
-                        header.PixelFormat = PixelFormat.RGB8;
-                    break;
-                case TextureFormat.SRgb24:
+                header.PixelFormat = images[0].BlockSize switch
+                {
+                    4 => PixelFormat.ASTC_4x4,
+                    6 => PixelFormat.ASTC_6x6,
+                    8 => PixelFormat.ASTC_8x8,
+                    _ => throw new NotSupportedException()
+                };
+                if (images[0].Format.IsSrgb())
                     header.ColorSpace = ColorSpace.sRGB;
-                    if (images[0].Compression == TextureCompressionFormat.Etc2)
-                        header.PixelFormat = PixelFormat.ETC2_RGB;
-                    else
-                        header.PixelFormat = PixelFormat.RGB8;
-                    break;
-                case TextureFormat.SRgba32:
-                    header.ColorSpace = ColorSpace.sRGB;
-                    if (images[0].Compression == TextureCompressionFormat.Etc2)
-                        header.PixelFormat = PixelFormat.ETC2_RGBA;
-                    else
-                        header.PixelFormat = PixelFormat.RGBA8;
-                    break;
-                case TextureFormat.RgbFloat32:
+                else
                     header.ColorSpace = ColorSpace.LinearRGB;
-                    header.PixelFormat = PixelFormat.RGBFloat32;
-                    header.ChannelType = ChannelType.Float;
-                    break;
-                case TextureFormat.RgbaFloat32:
-                    header.ColorSpace = ColorSpace.LinearRGB;
-                    header.PixelFormat = PixelFormat.RGBAFloat32;
-                    header.ChannelType = ChannelType.Float;
-                    break;
-                case TextureFormat.RgbaFloat16:
-                    header.ColorSpace = ColorSpace.LinearRGB;
-                    header.PixelFormat = PixelFormat.RGBAFloat16;
-                    header.ChannelType = ChannelType.Float;
-                    break;
-                default:
-                    throw new NotSupportedException();
             }
-
+            else
+            {
+                switch (images[0].Format)
+                {
+                    case TextureFormat.Rgba32:
+                        header.ColorSpace = ColorSpace.LinearRGB;
+                        if (images[0].Compression == TextureCompressionFormat.Etc2)
+                            header.PixelFormat = PixelFormat.ETC2_RGBA;
+                        else
+                            header.PixelFormat = PixelFormat.RGBA8;
+                        break;
+                    case TextureFormat.Rgb24:
+                        header.ColorSpace = ColorSpace.LinearRGB;
+                        if (images[0].Compression == TextureCompressionFormat.Etc2)
+                            header.PixelFormat = PixelFormat.ETC2_RGB;
+                        else
+                            header.PixelFormat = PixelFormat.RGB8;
+                        break;
+                    case TextureFormat.SRgb24:
+                        header.ColorSpace = ColorSpace.sRGB;
+                        if (images[0].Compression == TextureCompressionFormat.Etc2)
+                            header.PixelFormat = PixelFormat.ETC2_RGB;
+                        else
+                            header.PixelFormat = PixelFormat.RGB8;
+                        break;
+                    case TextureFormat.SRgba32:
+                        header.ColorSpace = ColorSpace.sRGB;
+                        if (images[0].Compression == TextureCompressionFormat.Etc2)
+                            header.PixelFormat = PixelFormat.ETC2_RGBA;
+                        else
+                            header.PixelFormat = PixelFormat.RGBA8;
+                        break;
+                    case TextureFormat.RgbFloat32:
+                        header.ColorSpace = ColorSpace.LinearRGB;
+                        header.PixelFormat = PixelFormat.RGBFloat32;
+                        header.ChannelType = ChannelType.Float;
+                        break;
+                    case TextureFormat.RgbaFloat32:
+                        header.ColorSpace = ColorSpace.LinearRGB;
+                        header.PixelFormat = PixelFormat.RGBAFloat32;
+                        header.ChannelType = ChannelType.Float;
+                        break;
+                    case TextureFormat.RgbaFloat16:
+                        header.ColorSpace = ColorSpace.LinearRGB;
+                        header.PixelFormat = PixelFormat.RGBAFloat16;
+                        header.ChannelType = ChannelType.Float;
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
 
             stream.WriteStruct(header);
 
@@ -167,6 +197,7 @@ namespace XrEngine
 
             var comp = TextureCompressionFormat.Uncompressed;
             TextureFormat format;
+            uint blockSize = 0;
 
             switch (header.PixelFormat)
             {
@@ -200,11 +231,28 @@ namespace XrEngine
                 case PixelFormat.RGBAFloat16:
                     format = TextureFormat.RgbaFloat16;
                     break;
+                case PixelFormat.ASTC_4x4:
+                case PixelFormat.ASTC_6x6:
+                case PixelFormat.ASTC_8x8:
+                    if (header.ColorSpace == ColorSpace.sRGB)
+                        format = TextureFormat.SRgba32;
+                    else
+                        format = TextureFormat.Rgba32;
+                    comp = TextureCompressionFormat.Astc;
+                    blockSize = header.PixelFormat switch
+                    {
+                        PixelFormat.ASTC_4x4 => 4,
+                        PixelFormat.ASTC_6x6 => 6,
+                        PixelFormat.ASTC_8x8 => 8,
+                        _ => throw new NotSupportedException()
+                    };
+                    break;
                 default:
                     throw new NotSupportedException();
             }
 
-            return ReadData(seekStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format);
+            return ReadData(seekStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format, blockSize);
+
         }
 
         protected override bool CanHandleExtension(string extension)

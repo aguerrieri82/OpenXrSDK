@@ -228,6 +228,9 @@ namespace XrEngine.OpenGL
             if (_isContentDirty)
                 SortMaterials();
 
+            if (_render.Options.FrustumCulling)
+                curCamera.FrustumPlanes(_render.UpdateContext.FrustumPlanes);
+
             ComputeVisibility();
 
             UpdateVertexHandlers();
@@ -244,7 +247,7 @@ namespace XrEngine.OpenGL
                 shaderCont.SortedContent = shaderCont.Contents.OrderBy(a => a.Key.Priority).ToArray();
         }
 
-        protected unsafe void UpdateVertexHandlers()
+        protected void UpdateVertexHandlers()
         {
 
             foreach (var shaderEntry in _content.Contents)

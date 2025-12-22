@@ -199,15 +199,21 @@ namespace OpenXr.Framework
             if (mode == XrAppStartMode.Render)
             {
                 _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
-
-                if (_perfSettings != null)
-                {
-                    CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.GpuExt, _renderOptions.GpuLevel), "PerfSettingsSetPerformanceLevel");
-
-                    CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.CpuExt, _renderOptions.CpuLevel), "PerfSettingsSetPerformanceLevel");
-                }
+                UpdatePerfLevels();
             }
+
             _state = XrAppState.Started;
+        }
+
+        protected void UpdatePerfLevels()
+        {
+            if (_perfSettings == null)
+                return;
+
+            CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.GpuExt, _renderOptions.GpuLevel), "PerfSettingsSetPerformanceLevel");
+
+            CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.CpuExt, _renderOptions.CpuLevel), "PerfSettingsSetPerformanceLevel");
+
         }
 
         protected void DestroyInstance()
@@ -661,6 +667,9 @@ namespace OpenXr.Framework
                     break;
                 case SessionState.Exiting:
                     Dispose();
+                    break;
+                case SessionState.Focused:
+                    UpdatePerfLevels();
                     break;
                 case SessionState.LossPending:
                     //TODO handle

@@ -46,7 +46,9 @@ namespace XrEngine
         Etc1 = 0x31435445,
         Bc3 = 0x35545844,
         Bc1 = 0x31545844,
-        Bc7 = 0x20374342
+        Bc7 = 0x20374342,
+        Astc = 0x43545341
+
 
     }
 
@@ -68,10 +70,11 @@ namespace XrEngine
 
     public enum TextureType
     {
-        Normal,
+        Unspecified,
         Depth,
         External,
-        Buffer
+        Buffer,
+        NormalMap
     }
 
 

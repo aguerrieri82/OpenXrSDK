@@ -1,8 +1,5 @@
 ﻿using Common.Interop;
-using SkiaSharp;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace XrEngine.Compression
 {
@@ -44,9 +41,6 @@ namespace XrEngine.Compression
         };
 
 
-        [DllImport("etcpack")]
-        static unsafe extern void PackImage(uint srcWidth, uint srcHeight, byte* srcData, uint dstWidth, uint dstHeight, byte* dstData, uint pixelSize);
-
 
         [DllImport("etcpack")]
         static unsafe extern byte* Encode(
@@ -62,175 +56,51 @@ namespace XrEngine.Compression
 
         #endregion
 
-        static unsafe SKBitmap CreateImage(TextureData data, SKColorType type)
+
+        public static unsafe TextureData Encode(TextureData data)
         {
-            var info = new SKImageInfo((int)data.Width, (int)data.Height, type);
 
-            var image = new SKBitmap(info);
+            using var pData = data.Data!.MemoryLock();
 
-            using var pSrc = data.Data!.MemoryLock();
-
-            fixed (byte* pDst = image.GetPixelSpan())
-                PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, ImageUtils.GetPixelSizeByte(type));
-
-            return image;
-        }
-        public static IList<TextureData> Encode(string fileName, int mipsLevels)
-        {
-            using var file = File.OpenRead(fileName);
-            using var image = SKBitmap.Decode(file);
-            return Encode(image, mipsLevels);
-        }
-
-        public static IList<TextureData> Encode(TextureData data, int mipsLevels)
-        {
-            IList<TextureData>? result = null;
-            var isCached = false;
-
-            string? cacheFile = null;
-            if (CachePath != null)
+            if (!data.Format.IsBgr())
             {
-                var hash = Convert.ToHexString(MD5.HashData(data.Data!.AsSpan()));
-                cacheFile = Path.Combine(CachePath, hash + ".pvr");
+                EngineNativeLib.RgbToBgr(data.Width, data.Height, pData, pData, data.Format.GetPixelSizeBit() / 8);
 
-                if (File.Exists(cacheFile))
-                {
-                    using var readStream = File.OpenRead(cacheFile);
-                    result = PvrTranscoder.Instance.LoadTexture(readStream);
-                    isCached = true;
-                }
-            }
+                if (data.Format == TextureFormat.Rgba32)
+                    data.Format = TextureFormat.Bgra32;
 
-            if (!isCached)
-            {
-                var skType = ImageUtils.GetSkFormat(data.Format);
+                else if (data.Format == TextureFormat.SRgba32)
+                    data.Format = TextureFormat.SBgra32;
 
-                var useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SRgb24;
-
-                using var image = CreateImage(data, skType);
-
-                using var bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
-
-                result = Encode(bgrImage, mipsLevels, useSrgb);
-
-                if (cacheFile != null)
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
-                    using var writeStream = File.OpenWrite(cacheFile);
-                    PvrTranscoder.Instance.SaveTexture(writeStream, result);
-                }
-            }
-
-            Debug.Assert(result != null);
-
-            foreach (var item in result)
-            {
-                if (mipsLevels == 0)
-                    item.MipLevel = data.MipLevel;
-                item.Face = data.Face;
-                item.Depth = data.Depth;
-            }
-
-            return result;
-        }
-
-        public static IList<TextureData> Encode(SKBitmap image, int mipsLevels, bool useSrgb = false)
-        {
-            var result = new List<TextureData>();
-
-            var level = 0;
-
-            while (true)
-            {
-                var texData = new TextureData
-                {
-                    Compression = TextureCompressionFormat.Etc2,
-                    MipLevel = (uint)level,
-                    Width = (uint)MathF.Max(1, image.Width >> level),
-                    Height = (uint)MathF.Max(1, image.Height >> level),
-                    Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
-                };
-
-                result.Add(texData);
-
-                if (level >= mipsLevels || texData.Width <= 4 || texData.Height <= 4)
-                    break;
-
-                level++;
-            }
-
-            unsafe void EncodeLevel(TextureData texData)
-            {
-                SKBitmap curImage;
-
-                var pWidth = (int)MathF.Ceiling(texData.Width / 4f) * 4;
-                var pHeight = (int)MathF.Ceiling(texData.Height / 4f) * 4;
-
-                if (pWidth != image.Width || pHeight != image.Height)
-                {
-                    var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
-
-                    curImage = image.Resize(new SKSizeI((int)texData.Width, (int)texData.Height), so);
-
-                    if (pWidth != texData.Width || pHeight != texData.Height)
-                    {
-                        var newImage = new SKBitmap(new SKImageInfo
-                        {
-                            Width = pWidth,
-                            Height = pHeight,
-                            AlphaType = curImage.AlphaType,
-                            ColorSpace = curImage.ColorSpace,
-                            ColorType = curImage.ColorType
-                        });
-
-                        fixed (byte* pSrc = curImage.GetPixelSpan())
-                        fixed (byte* pDst = newImage.GetPixelSpan())
-                            PackImage(
-                                (uint)curImage.Width,
-                                (uint)curImage.Height,
-                                pSrc,
-                                (uint)newImage.Width,
-                                (uint)newImage.Height,
-                                pDst,
-                                (uint)newImage.BytesPerPixel);
-
-                        curImage.Dispose();
-                        curImage = newImage;
-                    }
-                }
                 else
-                    curImage = image;
-
-                fixed (byte* pData = curImage.GetPixelSpan())
-                {
-                    var options = new EncodeOptions()
-                    {
-                        Bgr = image.ColorType == SKColorType.Bgra8888,
-                        Linearize = false,
-                        UseHeuristics = true,
-                        MipMap = false,
-                        Format = Format.Pvr,
-                        Codec = Type.Etc2_RGBA,
-                        Test = 0x11223344
-                    };
-
-                    var outData = Encode((uint)curImage.Width, (uint)curImage.Height, pData, ref options, out var outSize);
-
-                    texData.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
-                }
-
-                if (curImage != image)
-                    curImage.Dispose();
+                    throw new NotSupportedException();
             }
 
-            result.ForEach(EncodeLevel);
+            var options = new EncodeOptions()
+            {
+                Bgr = false,
+                Linearize = false,
+                UseHeuristics = true,
+                MipMap = false,
+                Format = Format.Pvr,
+                Codec = Type.Etc2_RGBA,
+                Test = 0x11223344
+            };
 
-            //Parallel.ForEach(result, EncodeLevel); //TODO fix parallel (crash on android)
+            var outData = Encode(data.Width, data.Height, pData, ref options, out var outSize);
+
+            var result = data.Clone();
+            result.Compression = TextureCompressionFormat.Etc2;
+            result.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
+
+            if (result.Format == TextureFormat.Bgra32)
+                result.Format = TextureFormat.Rgba32;
+
+            if (result.Format == TextureFormat.SBgra32)
+                result.Format = TextureFormat.SRgba32;
 
             return result;
         }
 
-
-        public static string? CachePath { get; set; }
     }
 }
