@@ -92,6 +92,8 @@
 
             change.Target ??= sender;
 
+            //Log.Debug(this, "Scene Change: {0}", change.Type);
+
             if (!change.IsAny(ObjectChangeType.Transform) &&
                 !change.Targets<object>().All(a => a is Material) &&
                 (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))

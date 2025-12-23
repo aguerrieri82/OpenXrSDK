@@ -145,5 +145,7 @@ namespace XrEngine
         public long Handle { get; set; }
 
         public string? Name { get; set; }
+
+        public string? Hash { get; set; }
     }
 }

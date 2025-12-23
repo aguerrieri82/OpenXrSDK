@@ -579,17 +579,19 @@ namespace XrEngine
                 });
             }
 
+            var uv0Transform = ColorMap?.Transform ?? UV0Transform;
+
+            if (uv0Transform != null)
+            {
+                bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
+                material.TexTransform = uv0Transform.Value;
+            }
+
 
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
                 bld.LoadTexture(ctx => ColorMap, 0);
-
-                if (ColorMap.Transform != null)
-                {
-                    bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
-                    material.TexTransform = ColorMap.Transform.Value;
-                }
 
                 bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
             }
@@ -613,7 +615,8 @@ namespace XrEngine
                 if (NormalMapFormat == NormalMapFormat.UnityBc3)
                     bld.AddFeature("NORMAL_MAP_BC3");
 
-                bld.LoadTexture(ctx => NormalMap, 1);
+                bld.LoadTexture(ctx =>
+                NormalMap, 1);
             }
 
             if (OcclusionMap != null)
@@ -719,6 +722,8 @@ namespace XrEngine
         public bool UseInstanceDraw { get; set; }
 
         public static bool ForceIblTransform { get; set; } = true;
+
+        public Matrix3x3? UV0Transform { get; set; }
 
         bool IPbrMaterial.ToneMap
         {

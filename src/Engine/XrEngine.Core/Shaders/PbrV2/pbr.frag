@@ -215,9 +215,9 @@ void main()
 			vec3 N = 2.0 * texture(normalTexture, fUv).rgb - 1.0;	
 		#endif
 
-		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
-
 		mat3 TBN = fTangentBasis;
+
+		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
 
 		#ifdef DOUBLE_SIDED
 
@@ -231,6 +231,8 @@ void main()
 		#endif
 
 		N = normalize(TBN * N);
+		
+
 
 	#else
 		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)

@@ -50,7 +50,7 @@
 
         void IObjectChangeListener.NotifyChanged(Object3D sender, ObjectChange change)
         {
-            foreach (var layer in _layers.Where(a => a.IsEnabled))
+            foreach (var layer in _layers)
                 layer.NotifyChanged(sender, change);
         }
 

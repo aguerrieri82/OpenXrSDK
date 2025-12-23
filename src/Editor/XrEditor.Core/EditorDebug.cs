@@ -15,6 +15,8 @@ namespace XrEditor
 
         public static readonly bool UseEs = false;
 
+        public static readonly bool DebugSync = false;
+
 
         public static readonly string[] AssetsPath = [
             @"Assets\",
@@ -36,7 +38,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateRoomManager()
+              .CreateDrums()
               .Build();
     }
 }

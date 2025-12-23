@@ -101,6 +101,12 @@ namespace XrEngine.Browser.Win
             _browser.ShowDevTools();
         }
 
+        [Action]
+        public void Reload()
+        {
+            _browser.Reload();
+        }
+
         public ChromeWebBrowser Browser => _browser;
 
         public IWebRequestHandler? RequestHandler { get; set; }

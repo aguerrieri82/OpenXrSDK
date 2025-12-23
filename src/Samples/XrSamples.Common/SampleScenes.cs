@@ -1068,6 +1068,7 @@ namespace XrSamples
 
                 Task.Run(async () =>
                 {
+                    return;
                     var service = new IkeaKitchenService();
                     service.CachePath = "d:\\Projects\\Ikea";
 

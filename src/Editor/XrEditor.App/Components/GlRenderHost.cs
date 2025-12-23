@@ -275,7 +275,7 @@ namespace XrEditor
 
             TakeContext();
 
-            render.EnableDebug();
+            render.EnableDebug(EditorDebug.DebugSync);
 
             return render;
         }

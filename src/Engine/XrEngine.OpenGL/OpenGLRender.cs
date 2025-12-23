@@ -147,7 +147,7 @@ namespace XrEngine.OpenGL
             _glState.SetDrawBuffers(GlState.DRAW_COLOR_0);
         }
 
-        public unsafe void EnableDebug()
+        public unsafe void EnableDebug(bool sync = false)
         {
             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
            {
@@ -174,6 +174,10 @@ namespace XrEngine.OpenGL
            }, null);
 
             _gl.Enable(EnableCap.DebugOutput);
+            if (sync)
+                _gl.Enable(EnableCap.DebugOutputSynchronous);
+
+            _isDebug = true;
         }
 
         protected void ConfigureCaps()
@@ -757,11 +761,15 @@ namespace XrEngine.OpenGL
 
         public GlRenderOptions Options => _options;
 
+        public bool IsDebug => _isDebug;
+
         public static int SuspendErrors { get; set; }
+
+
 
 
         [ThreadStatic]
         public static OpenGLRender? Current;
-
+        private bool _isDebug;
     }
 }

@@ -4,6 +4,10 @@ namespace XrEngine
 {
     public abstract class BaseAutoLayer<T> : BaseLayer<T> where T : class, ILayer3DItem
     {
+        public BaseAutoLayer()
+        {
+            _handleNotifications = true;
+        }
 
         protected void Rebuild()
         {

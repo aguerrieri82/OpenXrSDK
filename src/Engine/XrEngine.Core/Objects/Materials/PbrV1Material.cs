@@ -1020,6 +1020,12 @@ namespace XrEngine
             }
         }
 
+        Matrix3x3? IPbrMaterial.UV0Transform
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+
         Texture2D? IPbrMaterial.OcclusionMap
         {
             get => OcclusionTexture;

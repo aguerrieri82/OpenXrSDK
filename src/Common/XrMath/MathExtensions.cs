@@ -1247,6 +1247,13 @@ namespace XrMath
         #region MISC
 
 
+        public static bool IsSimilar(this Matrix3x3 self, Matrix3x3 other)
+        {
+            return new Vector3(self.M11, self.M12, self.M13).IsSimilar(new Vector3(other.M11, other.M12, other.M13)) &&
+                   new Vector3(self.M21, self.M22, self.M23).IsSimilar(new Vector3(other.M21, other.M22, other.M23)) &&
+                   new Vector3(self.M31, self.M32, self.M33).IsSimilar(new Vector3(other.M31, other.M32, other.M33));
+
+        }
 
         public static Vector2 ToVector2(this Size2I self)
         {

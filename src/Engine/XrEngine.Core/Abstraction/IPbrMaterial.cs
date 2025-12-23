@@ -36,5 +36,7 @@ namespace XrEngine
 
         float AlphaCutoff { get; set; }
 
+        Matrix3x3? UV0Transform { get; set; }
+
     }
 }

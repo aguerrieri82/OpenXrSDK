@@ -32,11 +32,14 @@ namespace XrEngine.OpenGL
 
         public void SetLabel(string? label)
         {
-            if (string.IsNullOrEmpty(label))
+            if (string.IsNullOrEmpty(label) || _handle == 0 || !OpenGLRender.Current!.IsDebug)
                 return;
 
-            if (this is GlTexture)
+            if (_gl.IsTexture(_handle))
+            {
                 _gl.ObjectLabel(ObjectIdentifier.Texture, _handle, (uint)label.Length, label);
+                _gl.CheckError();
+            }
 
             _label = label;
         }

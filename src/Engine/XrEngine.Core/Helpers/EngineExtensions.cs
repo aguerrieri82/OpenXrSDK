@@ -250,14 +250,19 @@ namespace XrEngine
 
         public static IEnumerable<Object3D> DescendantsOrSelf(this Object3D self)
         {
-            yield return self;
+            var stack = new Stack<Object3D>();
 
-            if (self is Group3D group)
+            stack.Push(self);
+
+            while (stack.Count > 0)
             {
-                foreach (var child in group.Children)
+                var cur = stack.Pop();
+                yield return cur;
+
+                if (cur is Group3D g && g.Children is not null)
                 {
-                    foreach (var descendent in child.DescendantsOrSelf())
-                        yield return descendent;
+                    for (var i = g.Children.Count - 1; i >= 0; i--)
+                        stack.Push(g.Children[i]);
                 }
             }
         }
@@ -384,11 +389,13 @@ namespace XrEngine
         {
             IEnumerable<ICollider3D> GetColliders()
             {
-                foreach (var obj in self.DescendantsOrSelf().Visible())
+                foreach (var obj in self.ObjectsWithComponent<ICollider3D>())
                 {
-                    var collider = obj.Feature<ICollider3D>();
-                    if (collider != null && collider.IsEnabled)
-                        yield return collider;
+                    foreach (var collider in obj.Components<ICollider3D>())
+                    {
+                        if (collider != null && collider.IsEnabled)
+                            yield return collider;
+                    }
                 }
             }
 
@@ -483,17 +490,26 @@ namespace XrEngine
             return self.Descendants<Object3D>();
         }
 
+
         public static IEnumerable<T> Descendants<T>(this Group3D self) where T : Object3D
         {
-            foreach (var child in self.Children)
-            {
-                if (child is T validChild)
-                    yield return validChild;
 
-                if (child is Group3D group)
+            var stack = new Stack<Object3D>();
+
+            for (var i = self.Children.Count - 1; i >= 0; i--)
+                stack.Push(self.Children[i]);
+
+            while (stack.Count > 0)
+            {
+                var cur = stack.Pop();
+
+                if (cur is T valid)
+                    yield return valid;
+
+                if (cur is Group3D g && g.Children is not null)
                 {
-                    foreach (var desc in group.Descendants<T>())
-                        yield return desc;
+                    for (var i = g.Children.Count - 1; i >= 0; i--)
+                        stack.Push(g.Children[i]);
                 }
             }
         }
