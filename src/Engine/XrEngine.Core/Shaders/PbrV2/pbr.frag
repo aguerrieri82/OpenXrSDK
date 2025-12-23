@@ -212,7 +212,7 @@ void main()
 			//vec3 N = vec3(normalXY, normalZ);
 
 		#else
-			vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
+			vec3 N = 2.0 * texture(normalTexture, fUv).rgb - 1.0;	
 		#endif
 
 		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);

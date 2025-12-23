@@ -42,15 +42,16 @@ namespace XrEngine.OpenGL
             _type = type;
             if (sceneLayer != null)
                 sceneLayer.Changed += OnSceneLayerChanged;
+            Rebuild();
         }
 
         private void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
         {
             if (change.Type == Layer3DChangeType.Added)
-                AddContent((Object3D)change.Item);
+                AddContent((Object3D)change.Item, true);
 
             else if (change.Type == Layer3DChangeType.Removed)
-                RemoveContent((Object3D)change.Item);
+                RemoveContent((Object3D)change.Item, true);
 
             _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
         }
@@ -80,14 +81,21 @@ namespace XrEngine.OpenGL
                 _scene.Descendants();
 
             foreach (var obj3D in objects)
-                AddContent(obj3D);
+                AddContent(obj3D, false);
+
+
+            foreach (var shader in _content.Contents.Values)
+            {
+                foreach (var mat in shader.Contents.Values)
+                    Update(mat);
+            }
 
             _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
 
             Log.Debug(this, "Content Build");
         }
 
-        protected void RemoveContent(Object3D obj3d)
+        protected void RemoveContent(Object3D obj3d, bool incremental)
         {
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
@@ -109,7 +117,12 @@ namespace XrEngine.OpenGL
                         }
 
                         if (vertex.Value.Contents.Count == 0)
-                            clean.Add(() => material.Value.Contents.Remove(vertex.Key));
+                            clean.Add(() =>
+                            {
+                                material.Value.Contents.Remove(vertex.Key);
+                                if (incremental)
+                                    Update(material.Value);
+                            });
                     }
 
                     if (material.Value.Contents.Count == 0)
@@ -126,7 +139,7 @@ namespace XrEngine.OpenGL
             _isContentDirty = true;
         }
 
-        protected void AddContent(Object3D obj3d)
+        protected void AddContent(Object3D obj3d, bool incremental)
         {
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
@@ -176,6 +189,9 @@ namespace XrEngine.OpenGL
                         vertexContent.ActiveComponents |= attr.Component;
 
                     materialContent.Contents[vrtSrc.Object] = vertexContent;
+
+                    if (incremental)
+                        Update(materialContent);
                 }
 
                 vertexContent.ContentVersion++;
@@ -208,9 +224,20 @@ namespace XrEngine.OpenGL
                     Object = obj3d,
                     ProgramInstance = materialContent.ProgramInstance
                 });
+
             }
 
             _isContentDirty = true;
+        }
+
+        private void Update(MaterialContentV2 materialContent)
+        {
+            if (materialContent.Contents.Count > 0)
+            {
+                var first = materialContent.Contents.First().Value.ActiveComponents;
+                materialContent.SameComponents = materialContent.Contents.All(a => a.Value.ActiveComponents == first);
+            }
+
         }
 
         protected virtual void ConfigureProgramInstance(GlProgramInstance instance)

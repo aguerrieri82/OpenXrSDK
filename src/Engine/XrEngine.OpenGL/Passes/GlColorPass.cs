@@ -145,17 +145,28 @@ namespace XrEngine.OpenGL
 
                     updateContext.Stage = UpdateShaderStage.Material;
 
-                    UpdateProgram(updateContext, progInst);
+                    if (matContent.SameComponents)
+                    {
+                        updateContext.ActiveComponents = matContent.Contents.First().Value.ActiveComponents;
 
-                    var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+                        UpdateProgram(updateContext, progInst);
 
-                    updateContext.ProgramInstanceId = progInst.Program!.Handle;
+                        var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
-                    progInst.Program.Use();
+                        updateContext.ProgramInstanceId = progInst.Program!.Handle;
 
-                    progInst.UpdateBuffers(updateContext);
+                        progInst.Program.Use();
 
-                    progInst.UpdateUniforms(updateContext, programChanged);
+                        progInst.UpdateBuffers(updateContext);
+
+                        progInst.UpdateUniforms(updateContext, programChanged);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
+
+
 
                     ConfigureCaps(progInst.Material!);
 

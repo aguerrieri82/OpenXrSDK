@@ -18,6 +18,8 @@
         public bool IsHidden;
 
         public bool UseInstanceDraw;
+
+        public bool SameComponents;
     }
 
 

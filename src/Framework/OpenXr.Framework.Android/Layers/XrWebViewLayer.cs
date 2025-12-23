@@ -307,7 +307,7 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetSupportMultipleWindows(false);
             _webView.Settings.SetNeedInitialFocus(false);
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
-            _webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
+            _webView.Settings.CacheMode = CacheModes.NoCache;
 
             _webView.Settings.SetSupportZoom(false);
             _webView.Settings.DefaultZoom = ZoomDensity.Far;

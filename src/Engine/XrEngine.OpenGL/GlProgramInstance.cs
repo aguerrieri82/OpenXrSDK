@@ -103,7 +103,7 @@ namespace XrEngine.OpenGL
             if (useGeo)
                 localBuilder.AddFeature("USE_GEO_SHADER");
 
-            localBuilder.AddFeature($"SHADER_VER {shader.Version}");
+            //localBuilder.AddFeature($"SHADER_VER {shader.Version}");
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
 

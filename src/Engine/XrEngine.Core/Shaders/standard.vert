@@ -126,8 +126,8 @@ void main()
 	#endif
 
     #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-        vec3 T = normalize(vec3(normalMatrix * vec4(tangent.xyz, 0.0)));
-	    vec3 B = normalize(cross(T, N) * tangent.w);
+        vec3 T = normalize(vec3(worldMatrix * vec4(tangent.xyz, 0.0)));
+	    vec3 B = cross(N, T) * tangent.w;
 
         fTangentBasis = mat3(T, B, N);
 
