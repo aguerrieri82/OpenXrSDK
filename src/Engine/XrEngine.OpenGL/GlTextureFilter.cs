@@ -93,7 +93,7 @@ namespace XrEngine.OpenGL
 
             program.Use();
 
-            if (isInit)
+            if (isInit || true)
             {
                 program.SetUniform("uWeights", data);
                 program.SetUniform("uRadius", data.Length);

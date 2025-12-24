@@ -24,6 +24,7 @@ namespace XrEngine
 
         public ShadowMapBiasMode BiasMode { get; set; }
 
+        [Range(0, 1, 0.01f)]
         public float Bias { get; set; }
 
         public uint Size { get; set; }
@@ -32,6 +33,8 @@ namespace XrEngine
 
         public Vector3 Expand { get; set; }
 
+
+        [Range(0, 1, 0.01f)]
         public float LightBleed { get; set; }
 
         public int BlurRadius { get; set; }

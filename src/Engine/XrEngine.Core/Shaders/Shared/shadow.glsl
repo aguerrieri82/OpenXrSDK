@@ -16,14 +16,22 @@ uniform float uLightBleed;
     #else
         layout(binding=14) uniform sampler2D uShadowMap;
     #endif
+
+    float getShadowBias(vec3 normal, vec3  lightDir) 
+    {
+        #if SHADOW_BIAS == 1
+            return max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+        #elif SHADOW_BIAS == 2
+            return uShadowBias;
+        #else
+            return 0.0;
+        #endif 
+    }
    
 
     #if SHADOW_MAP_MODE == MODE_VCF
          
          const float MIN_VARIANCE = 0.00002;
-
-
-
 
          float linstep(float min, float max, float v)
          {
@@ -36,7 +44,9 @@ uniform float uLightBleed;
 
                 projCoords = projCoords * 0.5 + 0.5;
 
-                float currentDepth = projCoords.z;
+                float bias = getShadowBias(normal, lightDir);
+
+                float currentDepth = projCoords.z - bias;
 
                 vec2 moments = texture(uShadowMap, projCoords.xy).rg;
 
@@ -63,13 +73,7 @@ uniform float uLightBleed;
 
             projCoords = projCoords * 0.5 + 0.5;
 
-            #if SHADOW_BIAS == 1
-                float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
-            #elif SHADOW_BIAS == 2
-                float bias = uShadowBias;
-            #else
-                float bias = 0.0;
-            #endif 
+            float bias = getShadowBias(normal, lightDir);
 
             float currentDepth = projCoords.z - bias;
 

@@ -28,7 +28,7 @@ namespace XrEngine.OpenGL
         private long _castLayerVersion = -1;
         private long _updateFrame;
         private long _lightVersion;
-        private readonly ShadowMapMode _mode;
+        private ShadowMapMode _mode;
 
         private readonly OrtoCamera _lightCamera;
 
@@ -197,6 +197,13 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
+            var curMode = _renderer.Options.ShadowMap.Mode;
+            if (curMode != _mode)
+            {
+                _mode = curMode;
+                Initialize();
+            }
+
             //Debug.Assert(camera.Scene != null);
             var shadowRenderLayer = SelectLayers().First();
             var scene = shadowRenderLayer.Scene!;
@@ -205,6 +212,9 @@ namespace XrEngine.OpenGL
             var frame = scene.App!.RenderContext.Frame;
 
             if (_light == null)
+                return false;
+
+            if (recLayer.Content.Count == 0)
                 return false;
 
             if (!_renderer.Options.ShadowMap.UseFrustumIntersect &&
@@ -258,6 +268,7 @@ namespace XrEngine.OpenGL
         {
             _renderer.UpdateContext.PassCamera = _oldCamera;
             _renderer.State.SetCullFace(TriangleFace.Back);
+
 
             if (_mode == ShadowMapMode.VSM)
             {

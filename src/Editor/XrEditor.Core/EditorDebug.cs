@@ -9,7 +9,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = true;
+        public static readonly bool EnableVSync = false;
 
         public static readonly bool EnablePreview = false;
 
@@ -36,9 +36,10 @@ namespace XrEditor
                   opt.UseLayerV2 = true;
                   opt.Compression.Use = false;
                   opt.Compression.Format = XrEngine.TextureCompressionFormat.Etc2;
+                  opt.SampleCount = 4;
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 4)
+              .SetRenderQuality(1f, 2)
               .CreateRoomManager()
               .Build();
     }

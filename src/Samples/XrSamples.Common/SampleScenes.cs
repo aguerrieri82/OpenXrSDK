@@ -60,6 +60,8 @@ namespace XrSamples
 
             scene.AddComponent<DebugGizmos>();
 
+            scene.AddComponent<ShadowController>();
+
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light",
@@ -1078,7 +1080,7 @@ namespace XrSamples
                 var scene = (RoomScene)app.App.ActiveScene!;
 
                 scene.AddChild<EnvironmentView>();
-
+                scene.AddComponent<ShadowController>();
 
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
