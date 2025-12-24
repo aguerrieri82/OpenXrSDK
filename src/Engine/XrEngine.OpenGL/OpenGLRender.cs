@@ -79,7 +79,7 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
-            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass);
+            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass, options.SampleCount);
             _target = _defaultTarget;
 
             _updateCtx = new GlUpdateContext

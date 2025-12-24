@@ -17,60 +17,86 @@ namespace XrEngine.OpenGL
     public class GlDefaultRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
     {
         readonly GL _gl;
-        private readonly GlTexture _color;
-        private readonly IGlRenderAttachment _depth;
+        private GlTexture? _color;
+        private IGlRenderAttachment? _depth;
         private readonly GlTextureFrameBuffer _frameBuffer;
+        private readonly uint _sampleCount;
 
 
-        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer)
+        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount)
         {
             _gl = gl;
-
-            _color = new GlTexture(_gl)
-            {
-                MaxLevel = 0,
-                IsMutable = true
-            };
+            _sampleCount = sampleCount;
 
             if (useRenderBuffer)
                 _depth = new GlRenderBuffer(_gl);
-            else
-                _depth = new GlTexture(_gl)
-                {
-                    IsMutable = true,
-                    MaxLevel = 0,
-                    MinFilter = TextureMinFilter.Nearest,
-                    MagFilter = TextureMagFilter.Nearest,
-                };
+
+            _frameBuffer = new GlTextureFrameBuffer(_gl);
 
             SetSize(new Size2I(16, 16));
-
-            _frameBuffer = new GlTextureFrameBuffer(_gl, _color, _depth);
         }
-
-
 
         protected void SetSize(Size2I size)
         {
-            var data = new TextureData
-            {
-                Width = size.Width,
-                Height = size.Height,
-                Format = TextureFormat.Rgba32
-            };
+            var isTexChanged = false;
 
-            _color.Update(1, data);
+            if (_sampleCount > 1 || _color == null)
+            {
+                _color?.Dispose();
+
+                _color = new GlTexture(_gl)
+                {
+                    MaxLevel = 0,
+                    SampleCount = _sampleCount,
+                    IsMutable = _sampleCount <= 1,
+                    Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
+                };
+
+                _color.Update(1, new TextureData
+                {
+                    Width = size.Width,
+                    Height = size.Height,
+                    Format = TextureFormat.Rgba32,
+                });
+
+                isTexChanged = true;
+            }
+
 
             if (_depth is GlRenderBuffer renderBuffer)
-                renderBuffer.Update(size.Width, size.Height, 1, InternalFormat.Depth24Stencil8);
+                renderBuffer.Update(size.Width, size.Height, _sampleCount, InternalFormat.Depth24Stencil8);
 
             else if (_depth is GlTexture texture)
-                texture.Update(1, new TextureData
+            {
+                if (_sampleCount > 1 || _depth == null)
+                {
+                    texture?.Dispose();
+
+                    _depth = new GlTexture(_gl)
+                    {
+                        IsMutable = _sampleCount <= 1,
+                        MaxLevel = 0,
+                        SampleCount = _sampleCount,
+                        MinFilter = TextureMinFilter.Nearest,
+                        MagFilter = TextureMagFilter.Nearest,
+                        Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
+                    };
+
+                    isTexChanged = true;
+                }
+
+                ((GlTexture)_depth).Update(1, new TextureData
                 {
                     Width = size.Width,
                     Height = size.Height,
                     Format = TextureFormat.Depth24Stencil8,
                 });
+
+            }
+
+            if (isTexChanged)
+                _frameBuffer.Configure(_color, _depth, _sampleCount);
+
         }
 
         public void Begin(Camera camera)

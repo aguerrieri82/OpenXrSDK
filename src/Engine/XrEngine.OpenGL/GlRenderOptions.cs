@@ -50,7 +50,7 @@ namespace XrEngine.OpenGL
             UseLayerV2 = true;
             RequireTextureCompression = true;
             UseVolume = true;
-
+            SampleCount = 4;
             UseInstanceDraw = true;
             CacheUniforms = true;
             Compression = new GlCompressionOptions
@@ -107,6 +107,8 @@ namespace XrEngine.OpenGL
         public bool UsePlanarReflection { get; set; }
 
         public bool UseVolume { get; set; }
+
+        public uint SampleCount { get; set; }
 
         public bool UseHitTest { get; set; }
 
