@@ -24,6 +24,7 @@ namespace XrEngine
 
         #region EngineObject
 
+
         public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
         {
             if (isSet)
@@ -91,6 +92,13 @@ namespace XrEngine
         #endregion
 
         #region OBJECT3D
+
+
+        public static void Remove(this Object3D self)
+        {
+            self.Parent?.RemoveChild(self);
+        }
+
 
         public static void PropagateTransform(this Object3D self)
         {
@@ -385,7 +393,7 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null)
+        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null, bool isParallel = false)
         {
             IEnumerable<ICollider3D> GetColliders()
             {
@@ -403,12 +411,24 @@ namespace XrEngine
 
             result.Clear();
 
-            Parallel.ForEach(colliders, collider =>
+            if (isParallel)
             {
-                var collision = collider.CollideWith(ray);
-                if (collision != null)
-                    result.Add(collision);
-            });
+                Parallel.ForEach(colliders, collider =>
+                {
+                    var collision = collider.CollideWith(ray);
+                    if (collision != null)
+                        result.Add(collision);
+                });
+            }
+            else
+            {
+                foreach (var collider in colliders)
+                {
+                    var collision = collider.CollideWith(ray);
+                    if (collision != null)
+                        result.Add(collision);
+                }
+            }
         }
 
 

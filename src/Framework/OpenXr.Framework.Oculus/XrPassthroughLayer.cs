@@ -1,6 +1,7 @@
 ﻿using Common.Interop;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
+using System.Diagnostics;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus
@@ -62,19 +63,23 @@ namespace OpenXr.Framework.Oculus
 
         protected PassthroughFB CreatePt(PassthroughFlagsFB flags)
         {
+            Debug.Assert(_passthrough != null);
+
             var info = new PassthroughCreateInfoFB
             {
                 Type = StructureType.PassthroughCreateInfoFB,
                 Flags = flags,
             };
 
-            _xrApp!.CheckResult(_passthrough!.CreatePassthroughFB(_xrApp!.Session, in info, ref _ptInstance), "CreatePassthroughFB");
+            _xrApp!.CheckResult(_passthrough.CreatePassthroughFB(_xrApp!.Session, in info, ref _ptInstance), "CreatePassthroughFB");
 
             return _ptInstance;
         }
 
         protected PassthroughLayerFB CreatePtLayer(PassthroughLayerPurposeFB purpose, PassthroughFlagsFB flags)
         {
+            Debug.Assert(_passthrough != null);
+
             var info = new PassthroughLayerCreateInfoFB
             {
                 Type = StructureType.PassthroughLayerCreateInfoFB,
@@ -83,26 +88,26 @@ namespace OpenXr.Framework.Oculus
                 Flags = flags
             };
 
-            _xrApp!.CheckResult(_passthrough!.CreatePassthroughLayerFB(_xrApp!.Session, in info, ref _ptLayer), "CreatePassthroughLayerFB");
+            _xrApp!.CheckResult(_passthrough.CreatePassthroughLayerFB(_xrApp!.Session, in info, ref _ptLayer), "CreatePassthroughLayerFB");
 
             return _ptLayer;
         }
 
         public void StartPt()
         {
-            if (_isStarted)
+            if (_isStarted || _passthrough == null)
                 return;
-            _xrApp!.CheckResult(_passthrough!.PassthroughStartFB(_ptInstance), "PassthroughStartFB");
-            _xrApp!.CheckResult(_passthrough!.PassthroughLayerResumeFB(_ptLayer), "PassthroughLayerResumeFB");
+            _xrApp!.CheckResult(_passthrough.PassthroughStartFB(_ptInstance), "PassthroughStartFB");
+            _xrApp!.CheckResult(_passthrough.PassthroughLayerResumeFB(_ptLayer), "PassthroughLayerResumeFB");
             _isStarted = true;
         }
 
         public void PausePt()
         {
-            if (!_isStarted)
+            if (!_isStarted || _passthrough == null)
                 return;
-            _xrApp!.CheckResult(_passthrough!.PassthroughPauseFB(_ptInstance), "PassthroughPauseFB");
-            _xrApp!.CheckResult(_passthrough!.PassthroughLayerPauseFB(_ptLayer), "PassthroughLayerPauseFB");
+            _xrApp!.CheckResult(_passthrough.PassthroughPauseFB(_ptInstance), "PassthroughPauseFB");
+            _xrApp!.CheckResult(_passthrough.PassthroughLayerPauseFB(_ptLayer), "PassthroughLayerPauseFB");
             _isStarted = false;
         }
 

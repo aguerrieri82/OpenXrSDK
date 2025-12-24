@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Collections.Concurrent;
+
+namespace XrEngine
 {
     public class RenderUpdateManager
     {
@@ -13,13 +15,44 @@
             public IList<IRenderUpdate> Items = [];
         }
 
+        protected struct NotificationStatus
+        {
+            public bool IsNotifyChangedScene;
+
+            public bool IsDisableNotifyChangedScene;
+        }
+
         protected readonly Scene3D _scene;
         protected long _lastVersion = -1;
         protected readonly List<UpdateGroup> _groups = [];
+        protected readonly ConcurrentDictionary<Object3D, NotificationStatus> _notStatus = [];
 
         public RenderUpdateManager(Scene3D scene)
         {
             _scene = scene;
+        }
+
+        public void DisableNotificationsScene(Object3D obj)
+        {
+            _notStatus.TryAdd(obj, new NotificationStatus
+            {
+                IsNotifyChangedScene = obj.Is(EngineObjectFlags.NotifyChangedScene),
+                IsDisableNotifyChangedScene = obj.Is(EngineObjectFlags.DisableNotifyChangedScene),
+            });
+
+            obj.SetFlag(EngineObjectFlags.NotifyChangedScene, false);
+            obj.SetFlag(EngineObjectFlags.DisableNotifyChangedScene, true);
+        }
+
+        public void RestoreNotificationsScene(Object3D obj)
+        {
+            if (_notStatus.TryGetValue(obj, out var status))
+            {
+                obj.SetFlag(EngineObjectFlags.NotifyChangedScene, status.IsNotifyChangedScene);
+                obj.SetFlag(EngineObjectFlags.DisableNotifyChangedScene, status.IsDisableNotifyChangedScene);
+
+                _notStatus.TryRemove(obj, out _);
+            }
         }
 
         protected void Build()
@@ -88,7 +121,7 @@
 
             try
             {
-                var isParallel = false;
+                var isParallel = IsParallel;
 
                 if (_scene.ContentVersion != _lastVersion)
                 {
@@ -113,5 +146,8 @@
                 ctx.UpdateOnlySelf = false;
             }
         }
+
+        public bool IsParallel { get; set; }
     }
+
 }

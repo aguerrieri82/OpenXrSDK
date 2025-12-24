@@ -174,6 +174,14 @@
 
         public EngineApp? App => _app;
 
+        public bool UpdateParallel
+        {
+            get => _updateManager.IsParallel;
+            set => _updateManager.IsParallel = value;
+        }
+
+        public RenderUpdateManager UpdateManager => _updateManager;
+
         public static Scene3D? Current { get; internal set; }
     }
 }

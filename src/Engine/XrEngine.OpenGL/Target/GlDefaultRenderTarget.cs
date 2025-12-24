@@ -2,9 +2,12 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using SkiaSharp;
 
 #endif
+
+
+using System.Diagnostics;
+
 
 using XrMath;
 
@@ -49,8 +52,6 @@ namespace XrEngine.OpenGL
 
         protected void SetSize(Size2I size)
         {
-
-
             var data = new TextureData
             {
                 Width = size.Width,
@@ -74,6 +75,8 @@ namespace XrEngine.OpenGL
 
         public void Begin(Camera camera)
         {
+            Debug.Assert(camera.ViewSize.Width > 0 && camera.ViewSize.Height > 0);
+
             GlState.Current!.SetView(new Rect2I(camera.ViewSize));
 
             if (camera.ViewSize.Width != _frameBuffer.Color!.Width || camera.ViewSize.Height != _frameBuffer.Color.Height)

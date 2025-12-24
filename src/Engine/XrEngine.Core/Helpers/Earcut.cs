@@ -1,5 +1,13 @@
 ﻿using System.Numerics;
 
+#pragma warning disable CS8618 
+#pragma warning disable CS8625
+#pragma warning disable CS8604
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+#pragma warning disable CS8601
+#pragma warning disable CS8602
+
 namespace Mapbox
 {
     public static class Earcut
@@ -48,6 +56,7 @@ namespace Mapbox
                 public Node nextZ;      // Next node in Z-order
                 public bool steiner;    // Indicates if this is a steiner point
 
+                // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
                 public Node(int index, double x, double y)
                 {
                     this.i = index;

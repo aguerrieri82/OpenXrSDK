@@ -77,7 +77,7 @@ namespace XrEditor
 
         public string PersistentPath { get; }
 
-        public string CachePath => Path.GetFullPath("Cache");
+        public string CachePath => @"D:\Projects\XrEditor\Cache";
 
         public string Name => "Editor";
 

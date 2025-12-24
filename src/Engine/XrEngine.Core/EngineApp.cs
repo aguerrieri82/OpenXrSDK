@@ -123,10 +123,17 @@ namespace XrEngine
 
         public void RenderScene(Camera? camera = null, bool flush = true)
         {
-            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+
+            if (_activeScene == null || Renderer == null)
                 return;
 
             _context.Camera = camera ?? _activeScene.ActiveCamera;
+
+            if (_context.Camera == null)
+                return;
+
+            if (_context.Camera.Scene != _activeScene)
+                _context.Camera._scene = _activeScene;
 
             Renderer.Render(_context, new Rect2I(_context.Camera.ViewSize), flush);
         }

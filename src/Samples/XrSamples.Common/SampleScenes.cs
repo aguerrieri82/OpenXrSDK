@@ -177,7 +177,7 @@ namespace XrSamples
                 });
         }
 
-        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showDepth = false)
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showShadowMap = false)
         {
             var floor = new TriangleMesh(new Cube3D(new Vector3(size, 0.01f, size)));
             floor.Name = "Floor";
@@ -195,33 +195,54 @@ namespace XrSamples
 
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
-            var mat = new DepthViewMaterial();
-
             TriangleMesh? depth = null;
 
-            if (showDepth)
+            if (showShadowMap)
             {
-                depth = new TriangleMesh(Quad3D.Default, mat);
+                var depthView = new DepthViewMaterial();
+                var texView = new TextureMaterial();
+
+                depth = new TriangleMesh(Quad3D.Default, depthView);
+                depth.Materials.Add(texView);
+
                 depth.Transform.SetPositionY(1);
 
                 depth.Name = "Depth";
 
                 depth.AddBehavior((_, _) =>
                 {
-
                     var sp = depth.Scene!.App!.Renderer!.Feature<IShadowMapProvider>()!;
 
-                    if (mat.Texture == null)
+                    if (sp.Options.Mode == ShadowMapMode.VSM)
                     {
-                        mat.Texture = sp.ShadowMap;
-                        mat.NotifyChanged(ObjectChangeType.Render);
+                        texView.IsEnabled = true;
+                        depthView.IsEnabled = false;
+                        if (texView.Texture == null)
+                        {
+                            texView.Texture = sp.ShadowMap;
+                            depthView.NotifyChanged(ObjectChangeType.Render);
+                        }
+
+                    }
+                    else
+                    {
+                        texView.IsEnabled = false;
+                        depthView.IsEnabled = true;
+
+                        if (depthView.Texture == null)
+                        {
+                            depthView.Texture = sp.ShadowMap;
+                            depthView.NotifyChanged(ObjectChangeType.Render);
+                        }
+
+                        if (depthView.Camera == null)
+                        {
+                            depthView.Camera = sp.LightCamera;
+                            depthView.NotifyChanged(ObjectChangeType.Render);
+                        }
                     }
 
-                    if (mat.Camera == null)
-                    {
-                        mat.Camera = sp.LightCamera;
-                        mat.NotifyChanged(ObjectChangeType.Render);
-                    }
+
 
                 });
             }
@@ -1049,7 +1070,7 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .UseRayCollider("Mouse")
-                 .AddFloorShadow(4, true)
+                .AddFloorShadow(4, true)
                 .AddPassthrough()
 
             .ConfigureApp(app =>
@@ -1068,7 +1089,6 @@ namespace XrSamples
 
                 Task.Run(async () =>
                 {
-                    return;
                     var service = new IkeaKitchenService();
                     service.CachePath = "d:\\Projects\\Ikea";
 

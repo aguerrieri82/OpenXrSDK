@@ -34,11 +34,12 @@ namespace XrEditor
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
-                  opt.Compression.Use = false;
+                  opt.Compression.Use = true;
+                  opt.Compression.Format = XrEngine.TextureCompressionFormat.Etc2;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateDrums()
+              .CreateRoomManager()
               .Build();
     }
 }

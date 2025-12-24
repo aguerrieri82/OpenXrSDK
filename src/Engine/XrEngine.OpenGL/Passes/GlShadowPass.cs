@@ -53,7 +53,8 @@ namespace XrEngine.OpenGL
                 Format = TextureFormat.Depth24Float,
                 MinFilter = ScaleFilter.Nearest,
                 MagFilter = ScaleFilter.Nearest,
-                MipLevelCount = 1
+                MipLevelCount = 1,
+                Name = "Depth"
             };
 
             if (_mode == ShadowMapMode.VSM)
@@ -69,7 +70,8 @@ namespace XrEngine.OpenGL
                     MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
                     MaxAnisotropy = 16.0f,
-                    MipLevelCount = 6
+                    MipLevelCount = 6,
+                    Name = "Moments"
                 };
 
 
@@ -269,10 +271,10 @@ namespace XrEngine.OpenGL
                     filter.BlurX(_vcmMomentsTex!, _vcmTempTex!, radius, "Shadow_Blur_X", 2);
                     filter.BlurY(_vcmTempTex!, _vcmMomentsTex!, radius, "Shadow_Blur_Y", 2);
                 }
-                /*
+
                 var glTex = _vcmMomentsTex!.ToGlTexture();
                 glTex.GenerateMipmap();
-                */
+
             }
 
 

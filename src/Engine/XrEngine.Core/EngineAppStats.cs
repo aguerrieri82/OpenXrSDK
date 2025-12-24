@@ -11,13 +11,17 @@ namespace XrEngine
 
         public void BeginFrame()
         {
-
+            _startFrameTime = Stopwatch.GetTimestamp();
         }
 
         public void EndFrame()
         {
             _fpsFrameCount++;
             _frameCount++;
+
+            var total = Stopwatch.GetElapsedTime(_startFrameTime).TotalMilliseconds;
+
+            //Log.Value("Frame Time", (float)total);
 
             var deltaSecs = (DateTime.UtcNow - _fpsLastTime).TotalSeconds;
 
@@ -27,6 +31,7 @@ namespace XrEngine
                 _fpsFrameCount = 0;
                 _fpsLastTime = DateTime.UtcNow;
             }
+
         }
 
         public void Update(IRenderUpdate renderUpdate, Action action)
@@ -46,6 +51,7 @@ namespace XrEngine
         }
 
         public long LayerChanges;
+        private long _startFrameTime;
 
         public long Frame => _frameCount;
 

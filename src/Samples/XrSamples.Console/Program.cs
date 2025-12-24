@@ -27,10 +27,6 @@ Gpu.EnableNvAPi();
 
 Tasks.Services = host.Services;
 
-Tasks.ParseGeoTiff();
-//Tasks.TestPivot();
-
-return;
 
 //await WindowSceneApp.Run(host.Services);
 await XrSceneApp.Run(host.Services);

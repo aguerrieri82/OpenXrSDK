@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
     public static class XrEngineAppExtensions
     {
 
-        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = false) => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = true) => self.ConfigureApp(e =>
         {
             if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
                 e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer() { IsEnabled = enabled });
@@ -108,11 +108,18 @@ namespace XrEngine.OpenXr
         });
 
 
-        public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string pointerName = "RightController") => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder UseRayCollider(
+            this XrEngineAppBuilder self,
+            string pointerName = "RightController",
+            bool parallel = false) => self.ConfigureApp(e =>
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
+            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider()
+            {
+                PointerName = pointerName,
+                ParallelColliders = parallel,
+            });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>

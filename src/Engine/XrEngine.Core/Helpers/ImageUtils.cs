@@ -46,6 +46,7 @@ namespace XrEngine
                 TextureFormat.Bgra32 => 32,
                 TextureFormat.Rgb24 => 24,
                 TextureFormat.SRgb24 => 24,
+                TextureFormat.SBgra32 => 32,
                 TextureFormat.RgbFloat32 => 32 * 3,
                 TextureFormat.RgbaFloat32 => 32 * 4,
                 TextureFormat.RgbaFloat16 => 16 * 4,

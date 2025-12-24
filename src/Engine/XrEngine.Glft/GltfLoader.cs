@@ -38,7 +38,14 @@ namespace XrEngine.Gltf
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
+            "EXT_texture_webp",
             "KHR_materials_pbrSpecularGlossiness" };
+
+
+        struct EXT_texture_webp
+        {
+            public int? source;
+        }
 
         struct KHR_draco_mesh_compression
         {
@@ -161,7 +168,7 @@ namespace XrEngine.Gltf
 
                     Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                    if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
+                    if (img.MimeType == Image.MimeTypeEnum.image_jpeg)
                     {
                         var outImg = TurboJpegLib.Decompress(data);
 
@@ -221,6 +228,10 @@ namespace XrEngine.Gltf
             var texture = _model!.Textures[texId];
 
             CheckExtensions(texture.Extensions);
+
+            var webP = TryLoadExtension<EXT_texture_webp>(texture.Extensions);
+
+            texture.Source ??= webP?.source;
 
             var imageInfo = _model!.Images[texture.Source!.Value];
 

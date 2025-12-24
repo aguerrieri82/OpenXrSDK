@@ -26,7 +26,7 @@ namespace XrEngine.OpenXr
         private Vector3 _startPivot;
         private bool _isVibrating;
         protected bool _grabStarted;
-        private bool _grabObjectNotify;
+
 
         public BaseObjectGrabber(XrHaptic? vibrate = null, string? baseName = "")
         {
@@ -78,14 +78,10 @@ namespace XrEngine.OpenXr
             _grabbable = grabbable;
             _grabObject = grabObj;
 
-            if (SuspendChangesOnGrab)
-            {
-                _grabObjectNotify = _grabObject.Is(EngineObjectFlags.NotifyChangedScene);
-                _grabObject.SetFlag(EngineObjectFlags.NotifyChangedScene, false);
-                _grabObject.SetFlag(EngineObjectFlags.DisableNotifyChangedScene, true);
-            }
-
             _grabObject.SetActiveTool(this, true);
+
+            if (SuspendChangesOnGrab)
+                _grabObject.Scene?.UpdateManager.DisableNotificationsScene(_grabObject);
 
             _startPivot = _grabObject.Transform.LocalPivot;
             _startInputOrientation = grabPoint.Orientation;
@@ -112,10 +108,8 @@ namespace XrEngine.OpenXr
             if (_grabObject != null)
             {
                 if (SuspendChangesOnGrab)
-                {
-                    _grabObject.SetFlag(EngineObjectFlags.NotifyChangedScene, _grabObjectNotify);
-                    _grabObject.SetFlag(EngineObjectFlags.DisableNotifyChangedScene, false);
-                }
+                    _grabObject.Scene?.UpdateManager.RestoreNotificationsScene(_grabObject);
+
                 _grabObject.Transform.SetLocalPivot(_startPivot, true);
                 _grabObject.SetActiveTool(this, false);
                 _grabObject = null;
