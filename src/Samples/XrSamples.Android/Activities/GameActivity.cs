@@ -30,9 +30,15 @@ namespace XrSamples.Android.Activities
         private XrWebViewLayer? _webViewLayer;
         private GameSettings? _settings;
 
+
+        public GameActivity()
+        {
+            _permissions.Add("horizonos.permission.HEADSET_CAMERA");
+        }
+
         protected override void OnLoad()
         {
-            //_settings = GameSettings.Helmet();
+            _settings = GameSettings.Helmet();
 
             var settingsJson = Intent?.GetStringExtra("Settings");
 

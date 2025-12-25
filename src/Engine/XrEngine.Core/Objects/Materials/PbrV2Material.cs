@@ -505,7 +505,7 @@ namespace XrEngine
             {
                 var planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
 
-                if (planar != null)
+                if (planar != null && planar.IsEnabled)
                 {
                     bld.AddFeature("PLANAR_REFLECTION");
 

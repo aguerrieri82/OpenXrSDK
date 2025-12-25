@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using XrMath;
+
+namespace XrEngine
 {
     public class EyeTextureMaterial : ShaderMaterial
     {
@@ -41,12 +43,23 @@
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            if (LeftTexture?.Type == TextureType.External)
+            {
+                bld.AddExtension("GL_OES_EGL_image_external_essl3");
+                bld.AddFeature("EXTERNAL");
+            }
+
             bld.ExecuteAction((ctx, up) =>
             {
+                if (LeftTexture == null || RightTexture == null)
+                    return;
+
                 if (((PerspectiveCamera)ctx.PassCamera!).ActiveEye == 0)
-                    up.SetUniform("uTexture", LeftTexture!, 0);
+                    up.LoadTexture(LeftTexture, 0);
                 else
-                    up.SetUniform("uTexture", RightTexture!, 0);
+                    up.LoadTexture(RightTexture, 0);
+
+                up.SetUniform("uColor", Color.White);
             });
         }
 

@@ -1,10 +1,9 @@
 ﻿using FFmpeg.AutoGen;
 using System.Runtime.InteropServices;
-using XrEngine.Media;
 using static FFmpeg.AutoGen.ffmpeg;
 
 
-namespace XrEngine.Video
+namespace XrEngine.Media.FFmpeg
 {
     public unsafe class FFmpegCodec : IVideoCodec
     {

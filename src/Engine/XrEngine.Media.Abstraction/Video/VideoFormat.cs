@@ -11,7 +11,8 @@
         YV12,
         IMC1,
         H264,
-        MJPG
+        MJPG,
+        Yuv420888
     }
 
     public struct VideoFormat

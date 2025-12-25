@@ -12,6 +12,9 @@
 	<uses-permission android:name="com.oculus.permission.USE_SCENE" />
 	<uses-permission android:name="com.oculus.permission.USE_ANCHOR_API" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+
+	<uses-permission android:name="horizonos.permission.HEADSET_CAMERA"/>
+
 	
 	<uses-feature android:glEsVersion="0x00030001"  android:required="true" />
 	
@@ -21,6 +24,7 @@
 	<uses-feature android:name="com.oculus.feature.CONTEXTUAL_BOUNDARYLESS_APP" android:required="true" />
 	<uses-feature android:name="oculus.software.overlay_keyboard"  />
 	<uses-feature android:name="oculus.software.handtracking" />
+	<uses-feature android:name="android.hardware.camera2.any" android:required="true"/>
 	
 	<application
 		android:usesCleartextTraffic="true"

@@ -5,6 +5,7 @@ using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.EXT;
+using Silk.NET.OpenXR.Extensions.KHR;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -72,6 +73,7 @@ namespace OpenXr.Framework
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
         protected readonly XrSpacesTracker _tracker;
+        protected KhrConvertTimespecTime _convertTime;
 
         //TODO leave here or move?
         protected ExtPerformanceSettings? _perfSettings;
@@ -97,6 +99,7 @@ namespace OpenXr.Framework
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
             _extensions.Add(ExtHandTracking.ExtensionName);
             _extensions.Add("XR_KHR_locate_spaces");
+            _extensions.Add("XR_KHR_convert_timespec_time");
 
             Current = this;
             ReferenceFrame = Pose3.Identity;
@@ -158,6 +161,44 @@ namespace OpenXr.Framework
                 _state = XrAppState.Created;
                 throw;
             }
+        }
+
+        long GetBootToMonotonicOffsetNs()
+        {
+#if ANDROID
+
+            var bootTime = Android.OS.SystemClock.ElapsedRealtimeNanos();
+            var nanoTime = Java.Lang.JavaSystem.NanoTime();
+            return nanoTime - bootTime;
+#else
+        return 0;
+
+#endif
+        }
+
+        public long BootTimeToXrTime(long bootTime)
+        {
+            if (_convertTime == null)
+            {
+                if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
+                    throw new NotSupportedException();
+
+
+            }
+
+            bootTime += GetBootToMonotonicOffsetNs();
+
+            var timespec = new Timespec
+            {
+                Seconds = (nint)(bootTime / 1000000000),
+                Nanoseconds = (nint)(bootTime % 1000000000)
+            };
+
+            long result = 0;
+
+            CheckResult(_convertTime.ConvertTimespecTimeToTime(_instance, ref timespec, ref result), "ConvertTimespecTimeToTime");
+
+            return result;
         }
 
         public void AttachInstance(ulong instance)

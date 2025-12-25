@@ -56,7 +56,7 @@ namespace XrEditor
                 if (_isExpanded)
                 {
                     if (_childInsertIndex == -1)
-                        _childInsertIndex = LastDescendant()!._index + 1;
+                        _childInsertIndex = LastDescendant(true)!._index + 1;
                     child._index = _childInsertIndex++;
                     _host._items.Insert(child._index, child);
                 }
@@ -89,6 +89,8 @@ namespace XrEditor
                     else
                         _children[i].Remove();
                 }
+
+                _host.RebuildIndexes();
 
             }
             finally

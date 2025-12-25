@@ -1,4 +1,5 @@
-﻿using XrEngine.OpenXr;
+﻿using XrEngine;
+using XrEngine.OpenXr;
 using XrSamples;
 
 namespace XrEditor
@@ -37,6 +38,9 @@ namespace XrEditor
                   opt.Compression.Use = false;
                   opt.Compression.Format = XrEngine.TextureCompressionFormat.Etc2;
                   opt.SampleCount = 4;
+
+                  opt.ShadowMap.Mode = ShadowMapMode.Hard;
+                  opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)

@@ -92,6 +92,8 @@ namespace XrEngine.OpenGL
         {
             _vBuf.UpdateRange(vertices);
             _iBuf?.UpdateRange(indices);
+            _vBuf.ArrayLength = (uint)vertices.Length;
+            _iBuf?.ArrayLength = (uint)(indices?.Length ?? 0);
         }
 
         public void Bind()

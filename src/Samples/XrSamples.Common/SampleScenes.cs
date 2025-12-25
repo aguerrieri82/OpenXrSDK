@@ -7,7 +7,6 @@ using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Audio;
@@ -27,11 +26,20 @@ using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Media;
 
+#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+
 
 
 #if !ANDROID
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
+using XrEngine.OpenGL;
+using Silk.NET.Vulkan;
 #endif
 
 namespace XrSamples
@@ -1536,19 +1544,112 @@ namespace XrSamples
 
 
 
+        [Sample("Capture")]
+        public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var manager = Context.Require<ICameraManager>();
+
+            var leftTex = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+                Type = TextureType.External
+            };
+
+            var rightTex = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+                Type = TextureType.External
+            };
+
+
+            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
+
+            display.Name = "display2";
+
+            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+
+            display.AddComponent<MeshCollider>();
+
+            scene.AddChild(display);
+
+            ICameraDevice? cameraLeft = null;
+            ICameraDevice? cameraRight = null;
+
+            var cameraState = 0;
+
+            scene.AddBehavior((_, _) =>
+            {
+                if (cameraState == 0 && leftTex.Handle != 0)
+                {
+                    cameraState = 1;
+
+                    _ = Task.Run(async () =>
+                    {
+                        var cameras = manager.GetCameras();
+
+                        var infoLeft = cameras.First(a => a.Source == 0 && a.Position == 0);
+                        var infoRight = cameras.First(a => a.Source == 0 && a.Position == 1);
+
+                        cameraLeft = await manager.OpenCameraAsync(infoLeft.Id!);
+                        cameraRight = await manager.OpenCameraAsync(infoRight.Id!);
+
+                        var formats = cameraLeft.GetSupportedFormats();
+
+                        var curFormat = formats.Last();
+
+                        await cameraLeft.StartCaptureAsync(curFormat, leftTex);
+                        await cameraRight.StartCaptureAsync(curFormat, rightTex);
+
+                        cameraState = 2;
+                        /*
+                        var frameBuf = Common.Interop.MemoryBuffer.Create<byte>(0);
+
+                        camera.NewImage += image =>
+                        {
+                        };
+                        */
+                    });
+                }
+
+                if (cameraState == 2)
+                {
+                    cameraLeft?.UpdateTexture();
+                    cameraRight?.UpdateTexture();
+                }
+
+            });
+
+
+
+            return builder
+                .UseApp(app)
+                .UseClickMoveFront(display, 0.5f)
+                .ConfigureSampleApp();
+        }
+
+
+
         [Sample("Midi")]
-        [SupportedOSPlatform("android23.0")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-#if __ANDROID__
-            var manager = new XrEngine.Devices.Android.AndroidMidiManager();
-#else
-            var manager = new XrEngine.Devices.Windows.WinMidiManager();
-#endif
+            var manager = Context.Require<IMidiManager>();
+
             var devices = manager.FindDevices();
 
             var usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));

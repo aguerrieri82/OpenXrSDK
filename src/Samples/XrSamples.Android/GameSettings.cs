@@ -28,7 +28,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "Cube",
+                SampleName = "Capture",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
