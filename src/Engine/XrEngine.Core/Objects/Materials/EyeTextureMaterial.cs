@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public class EyeTextureMaterial : ShaderMaterial
     {
-        static readonly Shader SHADER;
+        public static readonly Shader SHADER;
 
         static EyeTextureMaterial()
         {
@@ -38,8 +38,6 @@ namespace XrEngine
             base.SetStateWork(container);
             container.ReadObject<EyeTextureMaterial>(this);
         }
-
-
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {

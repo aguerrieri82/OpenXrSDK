@@ -10,7 +10,16 @@ namespace XrMath
 
         #region MATRIX4x4
 
-
+        public static float[] ToFloatArray(this Matrix4x4 matrix)
+        {
+            return
+            [
+                matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+                matrix.M41, matrix.M42, matrix.M43, matrix.M44
+            ];
+        }
         public static bool DecomposeDouble(this Matrix4x4 matrix, out Vector3 scale, out Quaternion rotation, out Vector3 translation)
         {
             return Matrix4x4.Decompose(matrix, out scale, out rotation, out translation);

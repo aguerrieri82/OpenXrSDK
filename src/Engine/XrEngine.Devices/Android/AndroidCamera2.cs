@@ -12,8 +12,10 @@ using Android.Util;
 using Android.Views;
 using Common.Interop;
 using Java.Util.Concurrent;
+using System;
 using System.Runtime.Versioning;
 using XrEngine.Media;
+using XrMath;
 using Debug = System.Diagnostics.Debug;
 using ImageReaderA = Android.Media.ImageReader;
 
@@ -90,6 +92,24 @@ namespace XrEngine.Devices.Android
             }
         }
 
+        class CaptureCallbackListener : CameraCaptureSession.CaptureCallback
+        {
+            readonly AndroidCamera2 _host;
+
+            public CaptureCallbackListener(AndroidCamera2 host)
+            {
+                _host = host;
+            }
+
+            public override void OnCaptureCompleted(
+                CameraCaptureSession session,
+                CaptureRequest request,
+                TotalCaptureResult result)
+            {
+
+            }
+        }
+
 
         protected string _deviceId;
         protected CameraManager _manager;
@@ -103,6 +123,7 @@ namespace XrEngine.Devices.Android
         protected Handler? _backgroundHandler;
         protected int? _imageSize;
         protected SurfaceTexture? _surfaceTex;
+        private CameraCharacteristics? _chars;
 
         public AndroidCamera2(string deviceId, CameraManager manager)
         {
@@ -115,10 +136,7 @@ namespace XrEngine.Devices.Android
         {
             var result = new List<VideoFormat>();
 
-            var chars = _manager.GetCameraCharacteristics(_deviceId);
-
-            var map = (StreamConfigurationMap?)chars.Get(CameraCharacteristics.ScalerStreamConfigurationMap)!;
-
+            var map = (StreamConfigurationMap?)_chars!.Get(CameraCharacteristics.ScalerStreamConfigurationMap)!;
 
             foreach (var format in map.GetOutputFormats()!)
             {
@@ -161,9 +179,31 @@ namespace XrEngine.Devices.Android
             _openSource = new TaskCompletionSource<CameraDevice>();
             _manager.OpenCamera(_deviceId, new CameraDeviceState(this), new Handler(Looper.MainLooper!));
             _device = await _openSource.Task;
+
+            _chars = _manager.GetCameraCharacteristics(_deviceId);
+
         }
 
-        public async Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null)
+
+        public CameraParams GetParams()
+        {
+            Debug.Assert(_chars != null);
+
+            var trans = (float[])_chars.Get(CameraCharacteristics.LensPoseTranslation)!;
+            var rot = (float[])_chars.Get(CameraCharacteristics.LensPoseRotation)!;
+            var calib = (float[])_chars.Get(CameraCharacteristics.LensIntrinsicCalibration)!;
+            var sensorSize = (Size)_chars.Get(CameraCharacteristics.SensorInfoPixelArraySize)!;
+
+            return new CameraParams
+            {
+                Rotation = new System.Numerics.Quaternion(rot[0], rot[1], rot[2], rot[3]),
+                Position = new System.Numerics.Vector3(trans[0], trans[1], trans[2]),
+                Intrinsic = calib,
+                SensorSize = new Size2I((uint)sensorSize.Width, (uint)sensorSize.Height)
+            };
+        }
+
+        public async Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null, NativeSurface? outSurface = null)
         {
             Debug.Assert(_device != null);
 
@@ -175,6 +215,12 @@ namespace XrEngine.Devices.Android
             List<OutputConfiguration> outs = [new OutputConfiguration(_reader.Surface!)];
 
             Surface? texSurface = null;
+
+
+            if (outSurface?.Native is Surface outSurfaceA)
+            {
+                outs.Add(new OutputConfiguration(outSurfaceA));
+            }
 
             if (outTexture != null)
             {
@@ -209,8 +255,13 @@ namespace XrEngine.Devices.Android
             if (texSurface != null)
                 captureRequest.AddTarget(texSurface);
 
-            _session.SetRepeatingRequest(captureRequest.Build(), null, null);
+            if (outSurface?.Native != null)
+                captureRequest.AddTarget((Surface)outSurface.Value.Native);
+
+            _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), new Handler(_backgroundHandler!.Looper));
         }
+
+        public NativeSurface Surface => new() { Native = _reader?.Surface };
 
         public void StopCapture()
         {
@@ -256,6 +307,7 @@ namespace XrEngine.Devices.Android
             NewImage?.Invoke(new CaptureImage
             {
                 TimeStamp = image.Timestamp,
+
                 Width = image.Width,
                 Height = image.Height,
                 Format = FromAndroid(image.Format)!.Value,
@@ -279,7 +331,7 @@ namespace XrEngine.Devices.Android
 
         public event Action<CaptureImage>? NewImage;
 
-        public bool CanRenderOnTexture => true;
+        public CameraDeviceCaps Caps => CameraDeviceCaps.RenderOnTexture;
 
 
         unsafe void GetImageData(Image image, IMemoryBuffer<byte> buffer)

@@ -128,7 +128,7 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
-        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             var result = new List<TextureData>();
 
@@ -163,6 +163,11 @@ namespace XrEngine.OpenGL
 
                 var pixelSize = format.GetPixelSizeBit();
 
+                var bufferSize = pixelSize * w * h / 8;
+
+                var buffer = buffers?[result.Count] ?? MemoryBuffer.Create<byte>(bufferSize);
+                buffer.Allocate(bufferSize);
+
                 var item = new TextureData
                 {
                     Width = w,
@@ -170,16 +175,18 @@ namespace XrEngine.OpenGL
                     Format = format,
                     MipLevel = mipLevel,
                     Face = face,
-                    Data = MemoryBuffer.Create<byte>(pixelSize * w * h / 8)
+                    Data = buffer
                 };
 
                 GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
 
-                using var pData = item.Data.MemoryLock();
+                using var pData = buffer.MemoryLock();
 
                 GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
 
                 _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
+
+                _gl.CheckError();
 
                 result.Add(item);
             }

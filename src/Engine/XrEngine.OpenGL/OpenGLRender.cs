@@ -11,6 +11,7 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Common.Interop;
 
 namespace XrEngine.OpenGL
 {
@@ -646,14 +647,14 @@ namespace XrEngine.OpenGL
             return texFb.ReadColor();
         }
 
-        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             EnsureThread();
 
             var glTex = texture.ToGlTexture();
 
             PushGroup($"ReadTexture {glTex.Handle}");
-            var data = glTex.Read(format, startMipLevel, endMipLevel);
+            var data = glTex.Read(format, startMipLevel, endMipLevel, buffers);
             PopGroup();
             return data;
         }
@@ -669,7 +670,7 @@ namespace XrEngine.OpenGL
             if (typeof(T) == typeof(ITextureFilterProvider))
                 return _textureFilter as T;
 
-            return null;
+            return (T?)_renderPasses.FirstOrDefault(a => a is T);
         }
 
         public Texture2D? GetShadowMap()

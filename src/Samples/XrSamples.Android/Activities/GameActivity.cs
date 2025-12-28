@@ -38,6 +38,7 @@ namespace XrSamples.Android.Activities
 
         protected override void OnLoad()
         {
+            this.RegisterForActivityResult
             _settings = GameSettings.Helmet();
 
             var settingsJson = Intent?.GetStringExtra("Settings");

@@ -171,9 +171,25 @@ namespace OpenXr.Framework
             var nanoTime = Java.Lang.JavaSystem.NanoTime();
             return nanoTime - bootTime;
 #else
-        return 0;
+            return 0;
 
 #endif
+        }
+
+        public long XrTimeToBootTime(long xrTime)
+        {
+            if (_convertTime == null)
+            {
+                if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
+                    throw new NotSupportedException();
+
+            }
+
+            var timespec = new Timespec();
+
+            CheckResult(_convertTime.ConvertTimeToTimespecTime(_instance, xrTime, ref timespec), "ConvertTimeToTimespecTime");
+
+            return (timespec.Seconds * 1000000000 + timespec.Nanoseconds);
         }
 
         public long BootTimeToXrTime(long bootTime)
@@ -182,7 +198,6 @@ namespace OpenXr.Framework
             {
                 if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
                     throw new NotSupportedException();
-
 
             }
 

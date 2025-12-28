@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using Common.Interop;
+using XrMath;
 
 namespace XrEngine
 {
@@ -18,7 +19,7 @@ namespace XrEngine
 
         Texture2D? GetShadowMap();
 
-        IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null);
+        IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null);
 
         IDispatcher Dispatcher { get; }
     }

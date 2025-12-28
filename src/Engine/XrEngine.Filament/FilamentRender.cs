@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Common.Interop;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using XrEngine.Objects;
 using XrMath;
@@ -924,7 +925,7 @@ namespace XrEngine.Filament
             throw new NotSupportedException();
         }
 
-        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             throw new NotSupportedException();
         }

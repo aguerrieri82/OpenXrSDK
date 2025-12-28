@@ -66,7 +66,6 @@ namespace XrEngine.Media.Android
                 return false;
             }
 
-
             var inputBuffer = _codec.GetInputBuffer(inBufferIndex)!;
 
             var size = src.Size == 0 ? src.ByteArray.Length : src.Size;
@@ -128,6 +127,8 @@ namespace XrEngine.Media.Android
         }
 
         public Texture2D? OutTexture { get; set; }
+
+        public Texture2D? InTexture { get; set; }
 
         public VideoCodecCaps Caps => VideoCodecCaps.DecodeTexture;
     }

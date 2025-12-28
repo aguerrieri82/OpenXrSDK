@@ -25,6 +25,7 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Media;
+using XrEngine.Reconstruct;
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -32,18 +33,15 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
-
-
 #if !ANDROID
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
-using XrEngine.OpenGL;
-using Silk.NET.Vulkan;
 #endif
 
 namespace XrSamples
 {
+
+
     public static class SampleScenes
     {
         static readonly GltfLoaderOptions GltfOptions = new()
@@ -1547,34 +1545,23 @@ namespace XrSamples
         [Sample("Capture")]
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
+
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var manager = Context.Require<ICameraManager>();
+            var recoder = new XrReconstructRecorder();
 
-            var leftTex = new Texture2D
+            /*
+            EyeTextureMaterial.SHADER.VertexSourceName = "fullscreen.vert";
+
+            var empty = new Geometry3D
             {
-                Format = TextureFormat.Rgba32,
-                WrapT = WrapMode.ClampToEdge,
-                WrapS = WrapMode.ClampToEdge,
-                MagFilter = ScaleFilter.Linear,
-                MinFilter = ScaleFilter.Linear,
-                Type = TextureType.External
+                Vertices = new VertexData[9]
             };
+            */
 
-            var rightTex = new Texture2D
-            {
-                Format = TextureFormat.Rgba32,
-                WrapT = WrapMode.ClampToEdge,
-                WrapS = WrapMode.ClampToEdge,
-                MagFilter = ScaleFilter.Linear,
-                MinFilter = ScaleFilter.Linear,
-                Type = TextureType.External
-            };
-
-
-            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
+            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(recoder.LeftTex, recoder.RightTex));
 
             display.Name = "display2";
 
@@ -1584,58 +1571,41 @@ namespace XrSamples
 
             scene.AddChild(display);
 
-            ICameraDevice? cameraLeft = null;
-            ICameraDevice? cameraRight = null;
-
             var cameraState = 0;
+
+            var _startTime = DateTime.Now;
+
+            var sharedPath = Context.Require<IPlatform>().SharedPath;
 
             scene.AddBehavior((_, _) =>
             {
-                if (cameraState == 0 && leftTex.Handle != 0)
+                if (cameraState == 0 && recoder.LeftTex.Handle != 0)
                 {
                     cameraState = 1;
 
-                    _ = Task.Run(async () =>
+                    _ = recoder.StartCaptureAsync(Context.Require<IPlatform>().SharedPath!).ContinueWith(a =>
                     {
-                        var cameras = manager.GetCameras();
-
-                        var infoLeft = cameras.First(a => a.Source == 0 && a.Position == 0);
-                        var infoRight = cameras.First(a => a.Source == 0 && a.Position == 1);
-
-                        cameraLeft = await manager.OpenCameraAsync(infoLeft.Id!);
-                        cameraRight = await manager.OpenCameraAsync(infoRight.Id!);
-
-                        var formats = cameraLeft.GetSupportedFormats();
-
-                        var curFormat = formats.Last();
-
-                        await cameraLeft.StartCaptureAsync(curFormat, leftTex);
-                        await cameraRight.StartCaptureAsync(curFormat, rightTex);
-
                         cameraState = 2;
-                        /*
-                        var frameBuf = Common.Interop.MemoryBuffer.Create<byte>(0);
-
-                        camera.NewImage += image =>
-                        {
-                        };
-                        */
                     });
                 }
 
                 if (cameraState == 2)
                 {
-                    cameraLeft?.UpdateTexture();
-                    cameraRight?.UpdateTexture();
+                    recoder.CaptureFrame(scene.ActiveCamera!);
+                    recoder.UpdateTextures();
+
+                    if ((DateTime.Now - _startTime).TotalSeconds >= 20)
+                    {
+                        recoder.StopCapture();
+                        cameraState = 3;
+                    }
                 }
-
             });
-
-
 
             return builder
                 .UseApp(app)
                 .UseClickMoveFront(display, 0.5f)
+                .UseEnvironmentDepth()
                 .ConfigureSampleApp();
         }
 

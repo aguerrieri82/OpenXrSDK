@@ -43,6 +43,7 @@
                 <ResourceDictionary Source="/Views/ItemPickerView.xaml"/>
                 <ResourceDictionary Source="/Views/AssetsPanel.xaml"/>
                 <ResourceDictionary Source="/Views/PlayerView.xaml"/>
+                <ResourceDictionary Source="/Views/ImageView.xaml"/>
                 <ResourceDictionary
                     Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
 

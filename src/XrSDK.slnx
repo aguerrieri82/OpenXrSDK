@@ -190,6 +190,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Reconstruct/XrEngine.Reconstruct.csproj" Id="eb9a098c-07e0-4591-860e-234fa8f89697">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Tiff/XrEngine.Tiff.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />

@@ -4,11 +4,12 @@ using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using Microsoft.Extensions.Logging;
+using XrInteraction;
 
 
 namespace OpenXr.Framework.Android
 {
-    public abstract class XrActivity : Activity
+    public abstract class XrActivity : Activity, IMainActivity
     {
         const int STORAGE_REQUEST = 100;
         const int PERMISSIONS_REQUEST = 100;
@@ -27,6 +28,7 @@ namespace OpenXr.Framework.Android
         protected List<string> _permissions;
         private LoadStep _loadStep;
         protected bool _isRestart;
+        readonly Dictionary<int, Action<Result, Intent?>> _resultReqs = [];
 
         public XrActivity()
         {
@@ -35,6 +37,7 @@ namespace OpenXr.Framework.Android
               "android.permission.WRITE_EXTERNAL_STORAGE",
               "android.permission.READ_EXTERNAL_STORAGE"
             ];
+
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -157,7 +160,12 @@ namespace OpenXr.Framework.Android
                 _loadStep = LoadStep.Done;
                 RunAppThread();
             }
+        }
 
+        public void StartActivityForResult(Intent intent, int reqCode, Action<Result, Intent?> onResult)
+        {
+            _resultReqs[reqCode] = onResult;
+            StartActivityForResult(intent, reqCode);
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
@@ -171,9 +179,14 @@ namespace OpenXr.Framework.Android
         protected override void OnActivityResult(int requestCode, [GeneratedEnum] Result resultCode, Intent? data)
         {
             if (requestCode == STORAGE_REQUEST)
-            {
                 NextLoadStep();
+
+            if (_resultReqs.TryGetValue(requestCode, out var action))
+            {
+                action(resultCode, data);
+                _resultReqs.Remove(requestCode);
             }
+
             base.OnActivityResult(requestCode, resultCode, data);
         }
     }

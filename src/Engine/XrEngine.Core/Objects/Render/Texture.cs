@@ -28,6 +28,7 @@ namespace XrEngine
         RgFloat16,
 
         GrayFloat32,
+        GrayFloat16,
 
         SRgb24,
         SBgra32,

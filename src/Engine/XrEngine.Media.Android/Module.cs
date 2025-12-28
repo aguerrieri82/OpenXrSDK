@@ -12,6 +12,8 @@ namespace XrEngine.Media.Android
             Context.Implement<IMediaPlayer>(() => new AndroidMediaPlayer());
             Context.Implement<IVideoReader>(() => new AndroidVideoReader());
             Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
+            Context.Implement<IVideoRecorder>(() => new AndroidVideoRecorder());
+            Context.Implement<IScreenCapture>(() => new AndroidScreenCapture());
         }
 
         public void Shutdown()

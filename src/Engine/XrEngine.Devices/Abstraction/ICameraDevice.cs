@@ -1,5 +1,7 @@
 ﻿using Common.Interop;
+using System.Numerics;
 using XrEngine.Media;
+using XrMath;
 
 namespace XrEngine.Devices
 {
@@ -18,13 +20,32 @@ namespace XrEngine.Devices
         public ImageFormat Format;
     }
 
+    [Flags]
+    public enum CameraDeviceCaps
+    {
+        RenderOnTexture = 1
+    }
+
+    public class CameraParams
+    {
+        public Vector3? Position { get; set; }
+
+        public Quaternion? Rotation { get; set; }
+
+        public float[]? Intrinsic { get; set; }
+
+        public Size2I? SensorSize { get; set; }
+    }
+
     public interface ICameraDevice
     {
         IList<VideoFormat> GetSupportedFormats();
 
-        Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null);
+        Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null, NativeSurface? outSurface = null);
 
         Task OpenAsync();
+
+        CameraParams GetParams();
 
         void Close();
 
@@ -35,7 +56,9 @@ namespace XrEngine.Devices
 
         event Action<CaptureImage>? NewImage;
 
-        bool CanRenderOnTexture { get; }
+        CameraDeviceCaps Caps { get; }
+
+        NativeSurface Surface { get; }
     }
 
 }
