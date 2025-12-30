@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using XrEditor.Abstraction;
 using XrEngine;
 using XrMath;
 
@@ -146,8 +145,7 @@ namespace XrEditor.Services
 
             _engine.SetRenderTarget(null);
 
-            return Context.Require<IImageFactory>().CreateImage(
-                data.Data!.AsSpan(), data.Width, data.Height, data.Format);
+            return Context.Require<IImageFactory>().CreateImage(data);
         }
 
         public IRenderEngine Engine => _engine;

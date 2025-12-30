@@ -1,6 +1,4 @@
-﻿using XrEditor.Abstraction;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class ImageMouseMoveArgs
     {
@@ -16,7 +14,7 @@ namespace XrEditor
 
         public ImageView()
         {
-            ScaleY = -1;
+            ScaleY = 1;
         }
 
         public NativeImage? Image
@@ -52,8 +50,6 @@ namespace XrEditor
                 Y = (int)(y * Image?.Height ?? 0)
             });
         }
-
-
 
         public event EventHandler<ImageMouseMoveArgs>? MouseMove;
     }

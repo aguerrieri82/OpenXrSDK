@@ -51,5 +51,6 @@ namespace XrEditor.Services
                 Height = height
             };
         }
+
     }
 }

@@ -69,16 +69,64 @@
                         </Border>
                         <Slider Minimum="0" Maximum="1" Value="{Binding OpacityOverlay}" />
                     </DockPanel>
+                    <DockPanel>
+                        <Label DockPanel.Dock="Left">CutOff Z:</Label>
+                        <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                            <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding DepthCutOff, StringFormat={}{0:F3}}" />
+                        </Border>
+                        <Slider Minimum="0.7" Maximum="1" Value="{Binding DepthCutOff}" />
+                    </DockPanel>
+                    <ComboBox ItemsSource="{Binding AxisList}" SelectedValue="{Binding Axis}"/>
+
                     <TextBlock Text="{Binding DepthPoint}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2"  Orientation="Vertical">
                     <ComboBox ItemsSource="{Binding ColorModeList}" SelectedValue="{Binding ColorMode}"/>
                     <CheckBox IsChecked="{Binding AutoOffset}">Auto offset</CheckBox>
                 </StackPanel>
-
-
-
             </Grid>
+            <GroupBox Header="Export" MaxWidth="400" HorizontalAlignment="Left">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.Resources>
+                        <Style TargetType="Label">
+                            <Setter Property="Width" Value="80"/>
+                        </Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Width" Value="80"/>
+                        </Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </Grid.Resources>
+                    <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
+                        <Label>Voxel Size</Label>
+                        <TextBox Text="{Binding VoxelSize}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
+                        <Label>Min Hits</Label>
+                        <TextBox Text="{Binding VoxelMinHits}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal">
+                        <Label>Start Frame</Label>
+                        <TextBox Text="{Binding VoxelStartFrame}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+                        <Label>End Frame</Label>
+                        <TextBox Text="{Binding VoxelEndFrame}"/>
+                    </StackPanel>
+                    <Button Command="{Binding ExportPointsCommand}" Margin="5" Grid.Row="2" Grid.ColumnSpan="2">Export</Button>
+                </Grid>
+        
+            </GroupBox>
         </StackPanel>
 
 

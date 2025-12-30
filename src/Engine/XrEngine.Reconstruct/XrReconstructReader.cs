@@ -144,7 +144,7 @@ namespace XrEngine.Reconstruct
 
         }
 
-        public void ReconstructDepth(DepthFrame frame, uint width, uint height)
+        public void ReconstructDepth(DepthFrame frame, uint width, uint height, float zCutOff, uint maxW = 288)
         {
             var zData = frame.Data!.AsSpan();
 
@@ -158,15 +158,21 @@ namespace XrEngine.Reconstruct
             camera.Projection = frame.Proj;
             camera.ViewSize = new Size2I(width, height);
 
+            if (maxW == 0)
+                maxW = width;
+
             for (var y = 0; y < height; y++)
             {
                 var ySrc = (int)(height - 1 - y);
-                for (var x = 0; x < width; x++)
+                for (var x = 0; x < maxW; x++)
                 {
                     var srcIndex = ySrc * (int)width + x;
                     var dstIndex = y * (int)width + x;
 
                     var z = zData[srcIndex] / (float)ushort.MaxValue;
+
+                    if (z > zCutOff)
+                        continue;
 
                     var ndcX = ((x + 0.5f) / width) * 2f - 1f;
                     var ndcY = 1f - ((y + 0.5f) / height) * 2f;
@@ -219,7 +225,7 @@ namespace XrEngine.Reconstruct
         }
 
 
-        public void ComputeStatsProj(DepthFrame frame, float cutPerc = 5, float bucketSize = 0.01f)
+        public void ComputeStatsProj(DepthFrame frame)
         {
             var stats = frame.StatsProj;
 
@@ -228,6 +234,8 @@ namespace XrEngine.Reconstruct
 
             foreach (var point in frame.ProjData.AsSpan())
             {
+                if (!point.IsFinite())
+                    continue;
                 stats.Min = Vector3.Min(stats.Min, point);
                 stats.Max = Vector3.Max(stats.Max, point);
             }
@@ -257,7 +265,13 @@ namespace XrEngine.Reconstruct
             var imgData = frame.ImageData!.AsSpan();
 
             for (var i = 0; i < projData.Length; i++)
-                imgData[i] = (byte)(Math.Clamp((axis(projData[i]) - min) / (max - min), 0f, 1f) * 255);
+            {
+                if (projData[i] == Vector3.Zero)
+                    imgData[i] = 0;
+                else
+                    imgData[i] = (byte)(Math.Clamp((axis(projData[i]) - min) / (max - min), 0f, 1f) * 255);
+
+            }
 
         }
 
@@ -318,7 +332,8 @@ namespace XrEngine.Reconstruct
             {
                 _rightColorReader.SeekToFrame(frameIndex);
                 _rightColorReader.TryDecodeNextFrame(rightData);
-                File.WriteAllBytes(cacheRight, rightData.Data!.AsSpan());
+                if (rightData.Data != null)
+                    File.WriteAllBytes(cacheRight, rightData.Data.AsSpan());
             }
 
 
@@ -368,38 +383,97 @@ namespace XrEngine.Reconstruct
             return result;
         }
 
-        public void ExportPoints(string outFile)
+        public int[,,] ComputeVoxels(Bounds3 maxVolume, float voxelSize, int startFrame, int endFrame, float zCutOff, uint maxW = 288)
         {
-            using var stream = new StreamWriter(File.OpenWrite(outFile));
-
             var lastFrame = -1;
-            var min = new Vector3(float.PositiveInfinity);
-            var max = new Vector3(float.NegativeInfinity);
+
+            var size = maxVolume.Size / voxelSize;
+            var counters = new int[(int)size.X + 1, (int)size.Y + 1, (int)size.Z + 1];
 
             foreach (var item in _meta)
             {
-                var frame = item.LeftDepth.Frame;
+                var frame = item.LeftDepth!.Frame;
+
                 if (lastFrame == frame)
                     continue;
+
+                if (frame < startFrame)
+                    continue;
+
+                if (frame > endFrame)
+                    break;
+
                 var depth = ReadDepth(frame);
-                ReconstructDepth(depth.Left, depth.Width, depth.Height);
-                foreach (var v in depth.Left.ProjData.AsSpan())
+                if (depth == null)
+                    continue;
+
+                ReconstructDepth(depth.Left, depth.Width, depth.Height, zCutOff, maxW);
+
+                foreach (var v in depth.Left.ProjData!.AsSpan())
                 {
-                    min = Vector3.Min(v, min);
-                    max = Vector3.Max(v, max);
+                    if (!v.IsFinite())
+                        continue;
+
+                    if (v.X > maxVolume.Max.X || v.Y > maxVolume.Max.Y || v.Z > maxVolume.Max.Z)
+                        continue;
+
+                    if (v.X < maxVolume.Min.X || v.Y < maxVolume.Min.Y || v.Z < maxVolume.Min.Z)
+                        continue;
+
+                    var pos = (v - maxVolume.Min) / voxelSize;
+
+                    counters[(int)pos.X, (int)pos.Y, (int)pos.Z]++;
                 }
-                /*
-                foreach (var v in depth.Left.ProjData.AsSpan())
-                {
-                    stream.WriteLine(string.Format("{0} {1} {2}", v.X, v.Y, v.Z));
-                }
-                */
+
+                lastFrame = frame;
             }
+
+            return counters;
         }
 
-        public EyesFrame<DepthFrame> ReadDepth(int frameIndex)
+        public IList<Vector3> ExtractPoints(int[,,] volume, Bounds3 bounds, float voxelSize, int cutOff)
         {
-            var index = _meta.Index().Where(a => a.Item.LeftDepth!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+            var result = new List<Vector3>();
+
+            var halfVoxel = voxelSize * 0.5f;
+
+            for (var x = 0; x < volume.GetLength(0); x++)
+            {
+                for (var y = 0; y < volume.GetLength(1); y++)
+                {
+                    for (var z = 0; z < volume.GetLength(2); z++)
+                    {
+                        var value = volume[x, y, z];
+                        if (value < cutOff)
+                            continue;
+
+                        result.Add(new Vector3(
+                            x * voxelSize + bounds.Min.X + halfVoxel,
+                            y * voxelSize + bounds.Min.Y + halfVoxel,
+                            z * voxelSize + bounds.Min.Z + halfVoxel
+                        ));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public void SavePoints(string outPath, IList<Vector3> points)
+        {
+            if (File.Exists(outPath))
+                File.Delete(outPath);
+            using var stream = new StreamWriter(File.OpenWrite(outPath));
+            foreach (var p in points)
+                stream.WriteLine(string.Format("{0} {1} {2}", p.X, p.Y, p.Z));
+        }
+
+        public EyesFrame<DepthFrame>? ReadDepth(int frameIndex)
+        {
+            var index = _meta.Index().Where(a => a.Item.LeftDepth!.Frame == frameIndex).Select(a => (int?)a.Index).FirstOrDefault() ?? -1;
+            if (index == -1)
+                return null;
+
             var meta = _meta![index];
 
             var result = new EyesFrame<DepthFrame>()
@@ -555,6 +629,7 @@ namespace XrEngine.Reconstruct
             Matrix4x4.Invert(view, out var viewInv);
             return viewInv;
         }
+
 
         public IList<RecordFrameData>? Meta => _meta;
 

@@ -1,6 +1,6 @@
 ﻿using XrEngine;
 
-namespace XrEditor.Abstraction
+namespace XrEditor
 {
     public class NativeImage
     {
