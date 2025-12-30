@@ -55,6 +55,6 @@ namespace XrEditor
 
 
 
-        public event EventHandler<ImageMouseMoveArgs> MouseMove;
+        public event EventHandler<ImageMouseMoveArgs>? MouseMove;
     }
 }

@@ -634,7 +634,7 @@ namespace XrEngine.OpenGL
 
         #region IO
 
-        public TextureData ReadFrame()
+        public TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba32)
         {
             EnsureThread();
 
@@ -644,7 +644,7 @@ namespace XrEngine.OpenGL
             if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
                 throw new NotSupportedException();
 
-            return texFb.ReadColor();
+            return texFb.ReadColor(format);
         }
 
         public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)

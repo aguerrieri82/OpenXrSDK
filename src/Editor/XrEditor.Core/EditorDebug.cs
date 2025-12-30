@@ -12,7 +12,7 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = false;
 
-        public static readonly bool EnablePreview = false;
+        public static readonly bool EnablePreview = true;
 
         public static readonly bool UseEs = false;
 

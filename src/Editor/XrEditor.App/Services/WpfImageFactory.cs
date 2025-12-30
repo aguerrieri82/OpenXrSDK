@@ -42,6 +42,8 @@ namespace XrEditor.Services
                 stride
             );
 
+            bitmap.Freeze();
+
             return new NativeImage
             {
                 Native = bitmap,

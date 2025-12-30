@@ -1,5 +1,5 @@
-﻿using SkiaSharp;
-using UI.Binding;
+﻿using UI.Binding;
+using XrEditor.Abstraction;
 using XrEditor.Services;
 using XrEngine;
 
@@ -22,7 +22,7 @@ namespace XrEditor.Nodes
 
         }
 
-        public async Task<SKBitmap?> CreatePreviewAsync()
+        public async Task<NativeImage?> CreatePreviewAsync()
         {
 
             try
@@ -49,8 +49,8 @@ namespace XrEditor.Nodes
                     var preview = await CreatePreviewAsync();
                     if (preview != null)
                     {
-                        using var file = File.OpenWrite("d:\\out.png");
-                        preview.Encode(SKEncodedImageFormat.Png, 100).SaveTo(file);
+                        //using var file = File.OpenWrite("d:\\out.png");
+                        //preview.Encode(SKEncodedImageFormat.Png, 100).SaveTo(file);
                     }
                 })
             });

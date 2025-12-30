@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -17,7 +16,7 @@ namespace XrEditor
         private INode? _activeNode;
         private readonly ObservableCollection<PropertiesGroupView> _groups = [];
         private readonly List<PropertyView> _props = [];
-        private SKBitmap? _nodePreview;
+        private ImageView? _nodePreview;
         private IDispatcher? _renderDispatcher;
         private int _isUpdatingProps;
 
@@ -44,7 +43,10 @@ namespace XrEditor
             ActiveNode = obj != null ? Context.Require<NodeManager>().CreateNode(obj) : null;
 
             if (ActiveNode is IItemPreview preview && EditorDebug.EnablePreview)
-                NodePreview = await preview.CreatePreviewAsync();
+                NodePreview = new ImageView
+                {
+                    Image = await preview.CreatePreviewAsync()
+                };
             else
                 NodePreview = null;
         }
@@ -121,7 +123,10 @@ namespace XrEditor
         private async void OnValueChanged(IPropertyEditor obj)
         {
             if (ActiveNode is IItemPreview preview && EditorDebug.EnablePreview)
-                NodePreview = await preview.CreatePreviewAsync();
+                NodePreview = new ImageView
+                {
+                    Image = await preview.CreatePreviewAsync()
+                };
         }
 
         protected IEnumerable<PropertyView> EnumProps(INode? target = null)
@@ -301,7 +306,7 @@ namespace XrEditor
             }
         }
 
-        public SKBitmap? NodePreview
+        public ImageView? NodePreview
         {
             get => _nodePreview;
             set

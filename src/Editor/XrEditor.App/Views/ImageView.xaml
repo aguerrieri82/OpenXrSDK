@@ -12,7 +12,6 @@
             </b:Interaction.Behaviors>
             <Image.RenderTransform>
                 <ScaleTransform ScaleY="{Binding ScaleY}"/>
-             
             </Image.RenderTransform>
         </Image>
 

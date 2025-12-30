@@ -1,5 +1,5 @@
-﻿using SkiaSharp;
-using System.Numerics;
+﻿using System.Numerics;
+using XrEditor.Abstraction;
 using XrEngine;
 using XrMath;
 
@@ -26,7 +26,7 @@ namespace XrEditor.Services
                 Height = 1024,
                 SampleCount = 1,
                 MipLevelCount = 1,
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgb24,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -65,19 +65,19 @@ namespace XrEditor.Services
             _mesh.Materials.Add(_wireframe);
         }
 
-        public SKBitmap? CreateMaterial(Material material)
+        public NativeImage? CreateMaterial(Material material)
         {
             if (material is IVolumeMaterial)
                 return null;
             return CreateMesh(IsoSphere3D.Default, material);
         }
 
-        public SKBitmap? CreateGeometry(Geometry3D geometry)
+        public NativeImage? CreateGeometry(Geometry3D geometry)
         {
             return CreateMesh(geometry, _wireframe);
         }
 
-        public SKBitmap? CreateTexture(Texture2D texture)
+        public NativeImage? CreateTexture(Texture2D texture)
         {
             if (texture.Type == TextureType.Depth)
                 return null;
@@ -116,7 +116,7 @@ namespace XrEditor.Services
             }
         }
 
-        protected SKBitmap? CreateMesh(Geometry3D geometry, Material material)
+        protected NativeImage? CreateMesh(Geometry3D geometry, Material material)
         {
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();
@@ -136,17 +136,18 @@ namespace XrEditor.Services
         }
 
 
-        protected SKBitmap? CreateImage()
+        protected NativeImage? CreateImage()
         {
             _engine.SetRenderTarget(_texture);
 
             _app.RenderFrame();
 
-            var data = ((IFrameReader)_app.Renderer!).ReadFrame();
+            var data = ((IFrameReader)_app.Renderer!).ReadFrame(_texture.Format);
 
             _engine.SetRenderTarget(null);
 
-            return ImageUtils.ToBitmap(data, true);
+            return Context.Require<IImageFactory>().CreateImage(
+                data.Data!.AsSpan(), data.Width, data.Height, data.Format);
         }
 
         public IRenderEngine Engine => _engine;
