@@ -86,7 +86,7 @@ namespace OpenXr.Framework
                         item.Mesh = new Mesh
                         {
                             Indices = mesh.Indices,
-                            Vertices = mesh.Vertices!.Convert().To<Vector3>()
+                            Vertices = mesh.Vertices.Convert().To<Vector3>().ToArray()
                         };
                     }
                 }

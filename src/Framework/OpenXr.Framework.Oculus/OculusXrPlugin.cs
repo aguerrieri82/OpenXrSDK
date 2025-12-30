@@ -95,7 +95,8 @@ namespace OpenXr.Framework.Oculus
         protected FBSwapchainUpdateState? _swapChainUpdate;
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
-        private FBColorSpace _colorSpace;
+        protected FBColorSpace? _colorSpace;
+
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
 
@@ -136,6 +137,11 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_foveation_configuration");
             extensions.Add("XR_FB_space_warp");
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
+            extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+
+
+
+
         }
 
         public unsafe override void OnInstanceCreated()
@@ -470,7 +476,7 @@ namespace OpenXr.Framework.Oculus
 
                 return new Mesh
                 {
-                    Vertices = vertexArray.Convert().To<Vector3>(),
+                    Vertices = vertexArray.Convert().To<Vector3>().ToArray(),
                     Indices = indexArray
                 };
             }
@@ -506,7 +512,7 @@ namespace OpenXr.Framework.Oculus
 
             if (buffer.Type == StructureType.EventDataSpaceQueryCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
+                ref var data = ref buffer.Convert().AsRef<EventDataSpaceQueryCompleteFB>();
 
                 var query = QueryCompletion<Result>(data.RequestId);
 
@@ -516,7 +522,7 @@ namespace OpenXr.Framework.Oculus
 
             else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
+                ref var data = ref buffer.Convert().AsRef<EventDataSpaceSetStatusCompleteFB>();
 
                 var query = QueryCompletion<Result>(data.RequestId);
 
@@ -525,7 +531,7 @@ namespace OpenXr.Framework.Oculus
 
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
-                var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
+                ref var data = ref buffer.Convert().AsRef<EventDataSpaceQueryResultsAvailableFB>();
 
                 var query = QueryCompletion<SpaceQueryResultFB[]>(data.RequestId);
 
@@ -694,7 +700,7 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(_refreshRate!.RequestDisplayRefreshRateFB(_app!.Session, value), "RequestDisplayRefreshRate");
         }
 
-        public unsafe TriangleMeshFB CreateTriangleMesh(uint[] indices, Vector3f[] vertices)
+        public unsafe TriangleMeshFB CreateTriangleMesh(uint[] indices, ReadOnlySpan<Vector3f> vertices)
         {
             if (indices.Length == 0)
             {
@@ -812,6 +818,27 @@ namespace OpenXr.Framework.Oculus
             result.Capsules = capState.Capsules.AsSpan().ToArray();
 
             return result;
+        }
+
+
+        public unsafe override IDisposable? Configure<T>(ref T data)
+        {
+            if (data is HandTrackerCreateInfoEXT)
+            {
+                var extra = new NativeStruct<XrHandTrackingWideMotionModeInfoMETA>(new XrHandTrackingWideMotionModeInfoMETA
+                {
+                    Type = MetaHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
+                    Next = null,
+                    RequestedWideMotionMode = XrHandTrackingWideMotionModeMETA.HIGH_FIDELITY_BODY_TRACKING_META
+                });
+
+                ref var specificData = ref Unsafe.As<T, HandTrackerCreateInfoEXT>(ref data);
+                specificData.Next = extra.Pointer;
+
+                return extra;
+            }
+
+            return null;
         }
 
         public void Dispose()

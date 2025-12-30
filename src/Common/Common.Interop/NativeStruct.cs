@@ -56,8 +56,6 @@
                 MemoryManager.Free((nint)_value);
                 _value = null;
             }
-
-            GC.SuppressFinalize(this);
         }
     }
 }

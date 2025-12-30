@@ -50,6 +50,11 @@ namespace OpenXr.Framework
 
         }
 
+        public virtual IDisposable? Configure<T>(ref T data) where T : struct
+        {
+            return null;
+        }
+
         public XrApp App => _app ?? throw new ArgumentNullException();
     }
 }

@@ -100,6 +100,8 @@ namespace OpenXr.Framework
             _extensions.Add(ExtHandTracking.ExtensionName);
             _extensions.Add("XR_KHR_locate_spaces");
             _extensions.Add("XR_KHR_convert_timespec_time");
+            _extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+
 
             Current = this;
             ReferenceFrame = Pose3.Identity;
@@ -1506,6 +1508,22 @@ namespace OpenXr.Framework
             Current = null;
 
             GC.SuppressFinalize(this);
+        }
+
+        public IDisposable? Configure<T>(ref T data) where T : struct
+        {
+            DisposeGroup? grp = null;
+            foreach (var plugin in _plugins)
+            {
+                var conf = plugin.Configure(ref data);
+
+                if (conf != null)
+                {
+                    grp ??= new();
+                    grp.Add(conf);
+                }
+            }
+            return grp;
         }
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;

@@ -26,6 +26,8 @@ namespace OpenXr.Framework
                 HandJointSet = HandJointSetEXT.DefaultExt
             };
 
+            using var cfg = _app.Configure(ref info);
+
             _app.CheckResult(_app._handTracking!.CreateHandTracker(_app.Session, in info, ref _tracker), "CreateHandTracker");
             _handType = hand;
         }

@@ -8,17 +8,14 @@
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 	<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 	
+	<uses-permission android:name="com.oculus.permission.BODY_TRACKING" />
 	<uses-permission android:name="com.oculus.permission.ACCESS_TRACKING_ENV" />
 	<uses-permission android:name="com.oculus.permission.USE_SCENE" />
 	<uses-permission android:name="com.oculus.permission.USE_ANCHOR_API" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
-
-	<uses-permission android:name="horizonos.permission.HEADSET_CAMERA"/>
-
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-
+	<uses-permission android:name="horizonos.permission.HEADSET_CAMERA"/>
 	
 	<uses-feature android:glEsVersion="0x00030001"  android:required="true" />
 	
@@ -29,6 +26,9 @@
 	<uses-feature android:name="oculus.software.overlay_keyboard"  />
 	<uses-feature android:name="oculus.software.handtracking" />
 	<uses-feature android:name="android.hardware.camera2.any" android:required="true"/>
+
+	<uses-feature android:name="com.oculus.software.body_tracking" />
+
 	
 	<application
 		android:usesCleartextTraffic="true"

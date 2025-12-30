@@ -1,8 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Concurrent; // Added for thread safety
+using System.Runtime.InteropServices;
 
 namespace Common.Interop
 {
-    public static class MemoryManager
+    public static unsafe class MemoryManager
     {
         struct MemoryBlock
         {
@@ -11,25 +12,38 @@ namespace Common.Interop
             public WeakReference Owner;
         }
 
-        static readonly Dictionary<nint, MemoryBlock> _blocks = [];
+
+#if DEBUG
+        static readonly ConcurrentDictionary<nint, MemoryBlock> _blocks = new();
+#endif
 
         public static nint Allocate(int size, object? owner)
         {
-            var result = Marshal.AllocHGlobal(size);
-            GC.AddMemoryPressure(size);
+            var ptr = (nint)NativeMemory.AllocZeroed((nuint)size);
+
 #if DEBUG
-            _blocks[result] = new MemoryBlock { Data = result, Size = size, Owner = new WeakReference(owner) };
+            var block = new MemoryBlock
+            {
+                Data = ptr,
+                Size = size,
+                Owner = new WeakReference(owner)
+            };
+
+            _blocks.TryAdd(ptr, block);
 #endif
-            return result;
+            return ptr;
         }
 
         public static void Free(nint data)
         {
-            Marshal.FreeHGlobal(data);
+            if (data == 0)
+                return;
+
+
+            NativeMemory.Free((void*)data);
+
 #if DEBUG
-            var memBlock = _blocks[data];
-            GC.RemoveMemoryPressure(memBlock.Size);
-            _blocks.Remove(data);
+            _blocks.TryRemove(data, out _);
 #endif
         }
     }

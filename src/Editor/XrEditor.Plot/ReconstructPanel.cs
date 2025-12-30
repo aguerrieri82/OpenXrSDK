@@ -8,7 +8,6 @@ using XrMath;
 
 namespace XrEditor.Plot
 {
-
     public enum VectorAxis
     {
         X,
@@ -33,7 +32,6 @@ namespace XrEditor.Plot
     [StateManager(StateManagerMode.Explicit)]
     public class ReconstructPanel : BasePanel
     {
-
         private XrReconstructReader? _reader;
         private int _frameIndex;
         private CameraEye _activeEye;
@@ -42,7 +40,6 @@ namespace XrEditor.Plot
         private EyesFrame<DepthFrame>? _curDepth;
         private EyesFrame<ColorFrame>? _curColor;
         private int _colorOffset;
-
         private float _fovScale;
         private Vector2 _center;
         private ColorMode _colorMode;
@@ -58,8 +55,9 @@ namespace XrEditor.Plot
             _center.X = -530;
             _autoOffset = true;
             _depthCutOff = 1;
+            _axis = VectorAxis.Y;
 
-            _roomBounds = new XrMath.Bounds3
+            _roomBounds = new Bounds3
             {
                 Min = new Vector3(-3, 0, -3),
                 Max = new Vector3(3, 3.3f, 3),
@@ -68,38 +66,28 @@ namespace XrEditor.Plot
             DepthImage.MouseMove += OnDepthMouseMove;
 
             VoxelSize = 0.01f;
-
             VoxelMinHits = 2;
-
             VoxelStartFrame = 141;
-
             VoxelEndFrame = 151;
-
             ExportPointsCommand = new Command(ExportPoints);
         }
 
         protected override Task LoadAsync()
         {
             _reader = new XrReconstructReader();
-            _reader.Open("D:\\New folder");
+            _reader.Open("D:\\Projects\\XrEditor\\Capture");
 
             OnPropertyChanged(nameof(TotalFrames));
             ReadFrame(0);
 
-
             return base.LoadAsync();
         }
 
-        public Command ExportPointsCommand { get; }
-
         void ExportPoints()
         {
-
-
             var volume = _reader!.ComputeVoxels(_roomBounds, VoxelSize, VoxelStartFrame, VoxelEndFrame, DepthCutOff);
 
             var points = _reader.ExtractPoints(volume, _roomBounds, VoxelSize, VoxelMinHits);
-
 
             _reader.SavePoints("d:\\points.xyz", points);
 
@@ -152,7 +140,6 @@ namespace XrEditor.Plot
             if (_curDepth == null)
                 return;
 
-
             Debug.Assert(_curColor != null);
             Debug.Assert(_reader != null);
 
@@ -168,7 +155,7 @@ namespace XrEditor.Plot
             else if (_axis == VectorAxis.Z)
                 _reader.GenerateImage(depthEye, a => a.Z, _roomBounds.Min.Z, _roomBounds.Max.Z);
 
-            //_reader.ComputeStatsProj(depthEye);
+            _reader.ComputeStatsProj(depthEye);
 
             DepthImage.Image = null;
 
@@ -237,7 +224,6 @@ namespace XrEditor.Plot
                    TextureFormat.Rgb24);
 
             Log.Info(this, "Depth: Min: {0} - Max: {1} - Size: {2}", depthEye.StatsProj.Min, depthEye.StatsProj.Max, (depthEye.StatsProj.Max - depthEye.StatsProj.Min));
-
         }
 
         private void OnDepthMouseMove(object? sender, ImageMouseMoveArgs e)
@@ -274,11 +260,6 @@ namespace XrEditor.Plot
                 OnPropertyChanged(nameof(ColorOffset));
             }
         }
-
-
-
-        public VectorAxis[] AxisList => [VectorAxis.X, VectorAxis.Y, VectorAxis.Z];
-
 
         public VectorAxis Axis
         {
@@ -333,7 +314,6 @@ namespace XrEditor.Plot
             }
         }
 
-
         public float CenterX
         {
             get => _center.X;
@@ -364,7 +344,6 @@ namespace XrEditor.Plot
                 _colorMode = value;
                 OnPropertyChanged(nameof(ColorMode));
                 ReadFrame(_frameIndex);
-
             }
         }
 
@@ -380,6 +359,8 @@ namespace XrEditor.Plot
             }
         }
 
+        public Command ExportPointsCommand { get; }
+
         public float VoxelSize { get; set; }
 
         public int VoxelMinHits { get; set; }
@@ -390,15 +371,17 @@ namespace XrEditor.Plot
 
         public string? DepthPoint { get; set; }
 
-        public int TotalFrames => (_reader?.Meta?.Count - 1) ?? 0;
-
         public ImageView DepthImage { get; } = new();
 
         public ImageView ColorImage { get; } = new();
 
         public ImageView ColorProjImage { get; } = new();
 
-        public IList<ColorMode> ColorModeList => [ColorMode.Screen, ColorMode.Camera];
+        public ColorMode[] ColorModeList => [ColorMode.Screen, ColorMode.Camera];
+
+        public VectorAxis[] AxisList => [VectorAxis.X, VectorAxis.Y, VectorAxis.Z];
+
+        public int TotalFrames => (_reader?.Meta?.Count - 1) ?? 0;
 
         public XrReconstructReader? Reader => _reader;
 
