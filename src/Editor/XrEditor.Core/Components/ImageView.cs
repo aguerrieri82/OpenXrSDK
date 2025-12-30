@@ -2,7 +2,14 @@
 
 namespace XrEditor
 {
-    public class ImageView : BaseView
+    public class ImageMouseMoveArgs
+    {
+        public int X;
+
+        public int Y;
+    }
+
+    public class ImageView : BaseView, IPointerEvents
     {
         private NativeImage? _image;
         private float _scaleY;
@@ -37,5 +44,17 @@ namespace XrEditor
             }
         }
 
+        void IPointerEvents.OnMouseMove(double x, double y)
+        {
+            MouseMove?.Invoke(this, new ImageMouseMoveArgs
+            {
+                X = (int)(x * Image?.Width ?? 0),
+                Y = (int)(y * Image?.Height ?? 0)
+            });
+        }
+
+
+
+        public event EventHandler<ImageMouseMoveArgs> MouseMove;
     }
 }

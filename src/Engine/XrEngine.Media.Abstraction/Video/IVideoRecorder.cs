@@ -5,7 +5,7 @@
     {
         NativeSurface StartRecording(string outPath, VideoRecordOptions options);
 
-        long ProcessEncodedFrames();
+        bool ProcessEncodedFrames(out long timestamp);
 
         void StopRecording();
 

@@ -41,64 +41,58 @@ namespace XrEngine.Media.Android
             return new NativeSurface { Native = _surface };
         }
 
-        public long ProcessEncodedFrames()
+        public bool ProcessEncodedFrames(out long timestamp)
         {
-
             Debug.Assert(_muxer != null);
             Debug.Assert(_codec != null);
 
             var bufferInfo = new MediaCodec.BufferInfo();
 
-            long timestamp = 0;
+            timestamp = 0;
 
-            while (true)
+            var encoderStatus = _codec.DequeueOutputBuffer(bufferInfo, 0);
+
+            if (encoderStatus == (int)MediaCodecInfoState.TryAgainLater)
+                return false;
+
+            if (encoderStatus == (int)MediaCodecInfoState.OutputFormatChanged)
             {
-                // Check for available data
-                var encoderStatus = _codec.DequeueOutputBuffer(bufferInfo, 0); // 0 = Don't wait
+                if (_muxerStarted)
+                    throw new Exception("Format changed twice!");
 
-                if (encoderStatus == (int)MediaCodecInfoState.TryAgainLater)
-                {
-                    break;
-                }
-                else if (encoderStatus == (int)MediaCodecInfoState.OutputFormatChanged)
-                {
-                    // CRITICAL: The encoder is ready. Start the Muxer now.
-                    if (_muxerStarted)
-                        throw new Exception("Format changed twice!");
-
-                    var newFormat = _codec.OutputFormat;
-                    _trackIndex = _muxer.AddTrack(newFormat);
-                    _muxer.Start();
-                    _muxerStarted = true;
-                }
-                else if (encoderStatus >= 0) // We have valid data
-                {
-                    var encodedData = _codec.GetOutputBuffer(encoderStatus)!;
-
-                    if ((bufferInfo.Flags & MediaCodecBufferFlags.CodecConfig) != 0)
-                        bufferInfo.Size = 0;
-
-                    if (bufferInfo.Size != 0)
-                    {
-                        if (!_muxerStarted)
-                            throw new Exception("Muxer hasn't started yet!");
-
-                        timestamp = bufferInfo.PresentationTimeUs;
-
-                        encodedData.Position(bufferInfo.Offset);
-                        encodedData.Limit(bufferInfo.Offset + bufferInfo.Size);
-
-
-                        _muxer.WriteSampleData(_trackIndex, encodedData, bufferInfo);
-                    }
-
-                    _codec.ReleaseOutputBuffer(encoderStatus, false);
-
-                    break;
-                }
+                var newFormat = _codec.OutputFormat;
+                _trackIndex = _muxer.AddTrack(newFormat);
+                _muxer.Start();
+                _muxerStarted = true;
+                return false;
             }
 
-            return timestamp;
+            if (encoderStatus >= 0)
+            {
+                var encodedData = _codec.GetOutputBuffer(encoderStatus)!;
+
+                if ((bufferInfo.Flags & MediaCodecBufferFlags.CodecConfig) != 0)
+                    bufferInfo.Size = 0;
+
+                if (bufferInfo.Size != 0)
+                {
+                    if (!_muxerStarted)
+                        throw new Exception("Muxer hasn't started yet!");
+
+                    timestamp = bufferInfo.PresentationTimeUs;
+
+                    encodedData.Position(bufferInfo.Offset);
+                    encodedData.Limit(bufferInfo.Offset + bufferInfo.Size);
+
+                    _muxer.WriteSampleData(_trackIndex, encodedData, bufferInfo);
+                }
+
+                _codec.ReleaseOutputBuffer(encoderStatus, false);
+
+                return true;
+            }
+
+            return false;
         }
 
         public void StopRecording()

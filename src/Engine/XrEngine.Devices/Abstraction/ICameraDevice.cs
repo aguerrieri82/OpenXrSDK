@@ -35,6 +35,31 @@ namespace XrEngine.Devices
         public float[]? Intrinsic { get; set; }
 
         public Size2I? SensorSize { get; set; }
+
+        public float Fx => Intrinsic?[0] ?? 0;
+
+        public float Fy => Intrinsic?[1] ?? 0;
+
+        public float Cx => Intrinsic?[2] ?? 0;
+
+        public float Cy => Intrinsic?[3] ?? 0;
+
+        public Vector2 Center => new(Cx, Cy);
+
+        public Vector2 Fov => new(Fx, Fy);
+
+        public Pose3 GetLensPose()
+        {
+            var worldRot = Quaternion.Inverse(Rotation!.Value);
+            var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, (float)Math.PI);
+
+            return new Pose3()
+            {
+                Position = Position!.Value,
+                Orientation = worldRot * sensorFix
+            };
+        }
+
     }
 
     public interface ICameraDevice
@@ -53,12 +78,15 @@ namespace XrEngine.Devices
 
         void UpdateTexture();
 
-
         event Action<CaptureImage>? NewImage;
 
         CameraDeviceCaps Caps { get; }
 
-        NativeSurface Surface { get; }
+        NativeSurface FrameSurface { get; }
+
+        long LastFrame { get; }
+
+        long LastTimestamp { get; }
     }
 
 }

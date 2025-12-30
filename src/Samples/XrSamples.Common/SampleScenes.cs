@@ -1541,25 +1541,156 @@ namespace XrSamples
         }
 
 
+        [Sample("Capture2")]
+        public static XrEngineAppBuilder CreateCapture2(this XrEngineAppBuilder builder)
+        {
+
+            static Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
+            {
+                if (cam.Intrinsic == null || cam.SensorSize == null ||
+                    !cam.Position.HasValue || !cam.Rotation.HasValue)
+                {
+                    return Matrix4x4.Identity;
+                }
+
+                var fx = cam.Intrinsic[0];
+                var fy = cam.Intrinsic[1];
+                var w = cam.SensorSize.Value.Width;
+                var h = cam.SensorSize.Value.Height;
+
+                var scaleX = distanceMeters * (w / fx);
+                var scaleY = distanceMeters * (h / fy);
+
+                var matScale = Matrix4x4.CreateScale(scaleX, scaleY, 1.0f);
+
+                var matTransLocal = Matrix4x4.CreateTranslation(0f, 0f, -distanceMeters);
+
+                var quadToSensor = matScale * matTransLocal;
+
+                var sensorToHead = cam.GetLensPose().ToMatrix();
+
+                return quadToSensor * sensorToHead * headMatrix;
+            }
+
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            CameraParams centerParams = new();
+
+            var leftTex = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+                Type = TextureType.External
+            };
+
+            var rightTex = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+                Type = TextureType.External
+            };
+
+            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
+
+            display.Name = "display2";
+
+            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+
+            display.AddComponent<MeshCollider>();
+
+            scene.AddChild(display);
+
+            var cameraState = 0;
+
+            var mustTrack = false;
+
+            ICameraDevice? cameraLeft = null;
+            ICameraDevice? cameraRight = null;
+
+            long lastFrameLeft = -1;
+            long lastFrameRight = -1;
+
+
+            scene.AddBehavior((_, _) =>
+            {
+                var button = XrEngineApp.Current?.Inputs?.Right?.Button?.BClick;
+
+                var aPressed = button != null && button.IsChanged && button.Value;
+
+                if (aPressed)
+                    mustTrack = !mustTrack;
+
+                if (cameraState == 0 && leftTex.Handle != 0)
+                {
+                    cameraState = 1;
+
+                    _ = Task.Run(async () =>
+                    {
+                        var manager = Context.Require<ICameraManager>();
+
+                        var cameras = manager.GetCameras();
+
+                        var infoLeft = cameras.First(a => a.Source == 0 && a.Position == 0);
+                        var infoRight = cameras.First(a => a.Source == 0 && a.Position == 1);
+
+                        cameraLeft = await manager.OpenCameraAsync(infoLeft.Id!);
+                        cameraRight = await manager.OpenCameraAsync(infoRight.Id!);
+
+                        var formats = cameraLeft.GetSupportedFormats();
+
+                        var curFormat = formats.Last();
+
+                        await cameraLeft.StartCaptureAsync(curFormat, leftTex);
+                        await cameraRight.StartCaptureAsync(curFormat, rightTex);
+
+                        cameraState = 2;
+
+                        var leftParams = cameraLeft.GetParams();
+                        var rightParams = cameraRight.GetParams();
+
+                        centerParams = leftParams;
+
+                    });
+                }
+
+                if (cameraState == 2)
+                {
+                    cameraLeft?.UpdateTexture();
+                    cameraRight?.UpdateTexture();
+
+                    var pose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                        XrApp.Current.ReferenceSpace, cameraLeft!.LastTimestamp).Pose;
+
+                    if (mustTrack)
+                        display.WorldMatrix = ComputeQuadMatrix(pose.ToMatrix(), centerParams, 2f);
+                }
+            });
+
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp();
+        }
+
 
         [Sample("Capture")]
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
             var recoder = new XrReconstructRecorder();
 
-            /*
-            EyeTextureMaterial.SHADER.VertexSourceName = "fullscreen.vert";
-
-            var empty = new Geometry3D
-            {
-                Vertices = new VertexData[9]
-            };
-            */
+            CameraParams cameraParams = new();
 
             var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(recoder.LeftTex, recoder.RightTex));
 

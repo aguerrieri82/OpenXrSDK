@@ -1,5 +1,6 @@
 ﻿using Common.Interop;
 using OpenXr.Framework;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
@@ -19,8 +20,11 @@ namespace XrEngine.Reconstruct
         private ICameraDevice? _cameraRight;
         private NativeSurface _leftSurface;
         private NativeSurface _rightSurface;
+        private NativeSurface _screenSurface;
         private IVideoRecorder? _leftRecorder;
         private IVideoRecorder? _rightRecorder;
+        private IVideoRecorder? _screenRecorder;
+        private IScreenCapture? _capture;
         private bool _isRecording;
         private readonly PerspectiveCamera? _depthCamera;
         private readonly IMemoryBuffer<byte>[]? _buffers;
@@ -28,6 +32,8 @@ namespace XrEngine.Reconstruct
         private FileStream? _metaStream;
         private readonly Texture2D _leftTex;
         private readonly Texture2D _rightTex;
+        protected RecordStats? _stats;
+        private string? _outPath;
 
         static readonly JsonSerializerOptions JSON_OPT = new JsonSerializerOptions()
         {
@@ -65,13 +71,16 @@ namespace XrEngine.Reconstruct
 
         public async Task StartCaptureAsync(string outPath)
         {
+            _outPath = outPath;
+
             var manager = Context.Require<ICameraManager>();
             var outZPath = Path.Combine(outPath, "out-z.bin");
             var outMetaPath = Path.Combine(outPath, "out-meta.json");
             var outPath1 = Path.Combine(outPath, "outL.mp4");
             var outPath2 = Path.Combine(outPath, "outR.mp4");
+            var outPath3 = Path.Combine(outPath, "outScr.mp4");
 
-            foreach (var file in new string[] { outZPath, outMetaPath, outPath1, outPath2 })
+            foreach (var file in new string[] { outZPath, outMetaPath, outPath1, outPath2, outPath3 })
             {
                 if (File.Exists(file))
                     File.Delete(file);
@@ -108,14 +117,57 @@ namespace XrEngine.Reconstruct
 
             _leftRecorder = Context.RequireNew<IVideoRecorder>();
             _rightRecorder = Context.RequireNew<IVideoRecorder>();
+            _screenRecorder = Context.RequireNew<IVideoRecorder>();
 
             _leftSurface = _leftRecorder.StartRecording(outPath1, recOptions);
             _rightSurface = _rightRecorder.StartRecording(outPath2, recOptions);
 
+            _screenSurface = _screenRecorder.StartRecording(outPath3, new VideoRecordOptions
+            {
+                Format = VideoRecordFormat.Mp4,
+                Height = 1280,
+                Width = 1280,
+                FrameRate = 60,
+                MimeType = "video/avc",
+                IFrameInterval = 1,
+                BitRate = 6000000
+            });
+
+            _stats = new RecordStats();
+
+            _cameraLeft.NewImage += OnNewImage;
+
             await _cameraLeft.StartCaptureAsync(curFormat, _leftTex, _leftSurface);
             await _cameraRight.StartCaptureAsync(curFormat, _rightTex, _rightSurface);
 
+            _capture = Context.RequireNew<IScreenCapture>();
+
+            await _capture.StartCaptureAsync(new ScreenCaptureOptions
+            {
+                Width = 0,
+                Height = 0,
+                OutSurface = _screenSurface,
+            });
+
             _isRecording = true;
+        }
+
+        private void OnNewImage(CaptureImage obj)
+        {
+            var pose = XrApp.Current!.LocateSpace(XrApp.Current!.Head, XrApp.Current.ReferenceSpace, obj.TimeStamp).Pose;
+
+            var img = new RecordStatsImage()
+            {
+                ImageTime = obj.TimeStamp,
+                Pose = pose,
+                XrTime = XrApp.Current.FramePredictedDisplayTime
+            };
+
+#if ANDROID
+            img.BootTime = Android.OS.SystemClock.ElapsedRealtimeNanos();
+            img.NanoTime = Java.Lang.JavaSystem.NanoTime();
+#endif
+            _stats!.Images.Add(img);
         }
 
         public void UpdateTextures()
@@ -126,16 +178,9 @@ namespace XrEngine.Reconstruct
 
         public void CaptureFrame(Camera activeCamera)
         {
-
-            var tsLeft = _leftRecorder!.ProcessEncodedFrames();
-            var tsRight = _rightRecorder!.ProcessEncodedFrames();
-
-            if (tsLeft == 0 || tsRight == 0)
-                return;
+            Debug.Assert(_stats != null);
 
             var displayTimeXr = XrApp.Current!.FramePredictedDisplayTime;
-
-            var displayTime = XrApp.Current.XrTimeToBootTime(displayTimeXr) / 1000;
 
             var depth = activeCamera.Feature<IEnvDepthProvider>();
 
@@ -147,50 +192,82 @@ namespace XrEngine.Reconstruct
 
                 _zStream!.Write(_buffers![0].AsSpan());
                 _zStream.Write(_buffers![1].AsSpan());
+
+                _stats.DepthFrame++;
             }
 
-            var leftPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsLeft * 1000).Pose;
+            if (_rightRecorder!.ProcessEncodedFrames(out var tsRight))
+                _stats.RightFrame++;
+
+            if (_screenRecorder!.ProcessEncodedFrames(out var tsCap))
+                _stats.ScreenFrame++;
 
             var rightPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsRight * 1000).Pose;
+            var capPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsCap * 1000).Pose;
 
-            var frameData = new RecordFrameData
+            while (true)
             {
-                Frame = _frame++,
-                Time = displayTime,
-                LeftColor = new EyeData
+                var hasFrame = _leftRecorder!.ProcessEncodedFrames(out var tsLeft);
+
+                if (!hasFrame)
+                    return;
+
+                _stats!.LeftFrame++;
+
+                var leftPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsLeft * 1000).Pose;
+
+                var frameData = new RecordFrameData
                 {
-                    Proj = activeCamera.Eyes![0].Projection.ToFloatArray(),
-                    View = activeCamera.Eyes[0].View.ToFloatArray(),
-                    Pose = leftPose,
-                    Time = tsLeft,
-                },
-                RightColor = new EyeData
+                    LeftColor = new EyeData
+                    {
+                        Proj = activeCamera.Eyes![0].Projection.ToFloatArray(),
+                        View = activeCamera.Eyes[0].View.ToFloatArray(),
+                        Pose = leftPose,
+                        Time = tsLeft,
+                        Frame = _stats.LeftFrame
+                    },
+                    RightColor = new EyeData
+                    {
+                        Proj = activeCamera.Eyes[1].Projection.ToFloatArray(),
+                        View = activeCamera.Eyes[1].View.ToFloatArray(),
+                        Pose = rightPose,
+                        Time = tsRight,
+                        Frame = _stats.RightFrame
+                    },
+                    LeftDepth = new EyeData
+                    {
+                        Proj = _depthCamera!.Eyes![0].Projection.ToFloatArray(),
+                        View = _depthCamera.Eyes[0].View.ToFloatArray(),
+                        Frame = _stats.DepthFrame,
+                        Time = displayTimeXr
+                    },
+                    RightDepth = new EyeData
+                    {
+                        Proj = _depthCamera.Eyes[1]!.Projection.ToFloatArray(),
+                        View = _depthCamera.Eyes[1].View.ToFloatArray(),
+                        Frame = _stats.DepthFrame,
+                        Time = displayTimeXr
+                    },
+                    Screen = new EyeData
+                    {
+                        Time = tsCap,
+                        Pose = capPose,
+                        Frame = _stats.ScreenFrame
+                    }
+                };
+
+                if (_frame == 0)
                 {
-                    Proj = activeCamera.Eyes[1].Projection.ToFloatArray(),
-                    View = activeCamera.Eyes[1].View.ToFloatArray(),
-                    Pose = rightPose,
-                    Time = tsRight
-                },
-                LeftDepth = new EyeData
-                {
-                    Proj = _depthCamera!.Eyes![0].Projection.ToFloatArray(),
-                    View = _depthCamera.Eyes[0].View.ToFloatArray(),
-                },
-                RightDepth = new EyeData
-                {
-                    Proj = _depthCamera.Eyes[1]!.Projection.ToFloatArray(),
-                    View = _depthCamera.Eyes[1].View.ToFloatArray(),
+                    frameData.LeftColor.CameraParams = _cameraLeft!.GetParams();
+                    frameData.RightColor.CameraParams = _cameraRight!.GetParams();
                 }
-            };
 
-            if (_frame == 1)
-            {
-                frameData.LeftColor.CameraParams = _cameraLeft!.GetParams();
-                frameData.RightColor.CameraParams = _cameraRight!.GetParams();
+                var json = JsonSerializer.Serialize(frameData, JSON_OPT) + "\n";
+                _metaStream!.Write(Encoding.UTF8.GetBytes(json));
+
+                _frame++;
             }
 
-            var json = JsonSerializer.Serialize(frameData, JSON_OPT) + "\n";
-            _metaStream!.Write(Encoding.UTF8.GetBytes(json));
         }
 
         public void StopCapture()
@@ -208,6 +285,16 @@ namespace XrEngine.Reconstruct
 
             _metaStream?.Close();
             _metaStream = null;
+
+            _capture?.StopCapture();
+            _capture = null;
+
+            _screenRecorder?.StopRecording();
+            _screenRecorder = null;
+
+            var json = JsonSerializer.Serialize(_stats, JSON_OPT);
+
+            File.WriteAllText(Path.Combine(_outPath, "stats.json"), json);
         }
 
         public bool IsRecording => _isRecording;
@@ -215,6 +302,8 @@ namespace XrEngine.Reconstruct
         public Texture2D LeftTex => _leftTex;
 
         public Texture2D RightTex => _rightTex;
+
+        public ICameraDevice? CameraLeft => _cameraLeft;
 
     }
 }

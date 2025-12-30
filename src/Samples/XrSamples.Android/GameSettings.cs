@@ -28,11 +28,11 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Capture",
+                SampleName = "Capture2",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false,
+                IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false

@@ -9,6 +9,7 @@ using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
+using XrInteraction;
 
 
 namespace XrSamples.Android.Activities
@@ -34,11 +35,12 @@ namespace XrSamples.Android.Activities
         public GameActivity()
         {
             _permissions.Add("horizonos.permission.HEADSET_CAMERA");
+
+            XrEngine.Context.Implement<IMainActivity>(this);
         }
 
         protected override void OnLoad()
         {
-            this.RegisterForActivityResult
             _settings = GameSettings.Helmet();
 
             var settingsJson = Intent?.GetStringExtra("Settings");

@@ -42,7 +42,12 @@ namespace XrEditor.Services
                 stride
             );
 
-            return new NativeImage { Native = bitmap };
+            return new NativeImage
+            {
+                Native = bitmap,
+                Width = width,
+                Height = height
+            };
         }
     }
 }

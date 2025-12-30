@@ -9,6 +9,12 @@ namespace XrInteraction
     public interface IMainActivity
     {
         void StartActivityForResult(Intent intent, int reqCode, Action<Result, Intent?> onResult);
+
+        ComponentName? StartForegroundService(Intent intent);
+
+        ComponentName? StartService(Intent intent);
+
+        Context Context { get; }
     }
 }
 

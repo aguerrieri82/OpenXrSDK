@@ -106,7 +106,7 @@ namespace XrEngine.Devices.Android
                 CaptureRequest request,
                 TotalCaptureResult result)
             {
-
+                _host.LastFrame = result.FrameNumber;
             }
         }
 
@@ -261,8 +261,6 @@ namespace XrEngine.Devices.Android
             _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), new Handler(_backgroundHandler!.Looper));
         }
 
-        public NativeSurface Surface => new() { Native = _reader?.Surface };
-
         public void StopCapture()
         {
             _executor?.Shutdown();
@@ -307,7 +305,6 @@ namespace XrEngine.Devices.Android
             NewImage?.Invoke(new CaptureImage
             {
                 TimeStamp = image.Timestamp,
-
                 Width = image.Width,
                 Height = image.Height,
                 Format = FromAndroid(image.Format)!.Value,
@@ -319,6 +316,7 @@ namespace XrEngine.Devices.Android
         public void UpdateTexture()
         {
             _surfaceTex?.UpdateTexImage();
+            LastTimestamp = _surfaceTex?.Timestamp ?? 0;
 
         }
 
@@ -328,10 +326,6 @@ namespace XrEngine.Devices.Android
             GC.SuppressFinalize(this);
         }
 
-
-        public event Action<CaptureImage>? NewImage;
-
-        public CameraDeviceCaps Caps => CameraDeviceCaps.RenderOnTexture;
 
 
         unsafe void GetImageData(Image image, IMemoryBuffer<byte> buffer)
@@ -392,6 +386,17 @@ namespace XrEngine.Devices.Android
                 _ => null
             };
         }
+
+
+        public event Action<CaptureImage>? NewImage;
+
+        public CameraDeviceCaps Caps => CameraDeviceCaps.RenderOnTexture;
+
+        public NativeSurface FrameSurface => new() { Native = _reader?.Surface };
+
+        public long LastFrame { get; private set; }
+
+        public long LastTimestamp { get; private set; }
     }
 }
 

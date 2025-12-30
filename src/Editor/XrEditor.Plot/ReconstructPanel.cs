@@ -4,7 +4,6 @@ using System.Numerics;
 using XrEditor.Abstraction;
 using XrEngine;
 using XrEngine.Reconstruct;
-using XrMath;
 
 namespace XrEditor.Plot
 {
@@ -14,6 +13,12 @@ namespace XrEditor.Plot
         X,
         Y,
         Z
+    }
+
+    public enum ColorMode
+    {
+        Camera,
+        Screen
     }
 
     public enum CameraEye
@@ -28,6 +33,7 @@ namespace XrEditor.Plot
     public class ReconstructPanel : BasePanel
     {
         private ImageView? _colorImage;
+        private ImageView? _depthImage;
         private XrReconstructReader? _reader;
         private int _frameIndex;
         private CameraEye _activeEye;
@@ -39,6 +45,9 @@ namespace XrEditor.Plot
         private ImageView? _colorProjImage;
         private float _fovScale;
         private Vector2 _center;
+        private ColorMode _colorMode;
+        private ColorFrame? _curScreen;
+        private bool _autoOffset;
 
         public ReconstructPanel()
         {
@@ -52,6 +61,9 @@ namespace XrEditor.Plot
             _reader.Open("D:\\New folder");
             OnPropertyChanged(nameof(TotalFrames));
             ReadFrame(0);
+
+            //_reader.ExportPoints("d:\\points.txt");
+
             return base.LoadAsync();
         }
 
@@ -62,11 +74,36 @@ namespace XrEditor.Plot
 
             _curDepth = _reader.ReadDepth(frameIndex);
 
-            var bestColor = _reader.FindColorForDepth(_frameIndex);
+            if (_colorMode == ColorMode.Camera)
+            {
+                if (_autoOffset)
+                {
+                    var bestColor = _reader.FindColorForDepth(_frameIndex);
 
-            ColorOffset = (bestColor - frameIndex);
+                    _colorOffset = (bestColor - frameIndex);
 
-            _curColor = _reader.ReadColor(bestColor);
+                }
+                if (frameIndex + _colorOffset >= TotalFrames)
+                    _colorOffset = TotalFrames - frameIndex - 1;
+                _curColor = _reader.ReadColor(frameIndex + _colorOffset);
+            }
+            else
+            {
+                if (_autoOffset)
+                {
+                    var bestColor = _reader.FindScreenForDepth(_frameIndex);
+
+                    _colorOffset = (bestColor - frameIndex);
+
+                }
+
+                if (frameIndex + _colorOffset >= TotalFrames)
+                    _colorOffset = TotalFrames - frameIndex - 2;
+                _curScreen = _reader.ReadScreen(frameIndex + _colorOffset);
+
+            }
+
+            OnPropertyChanged(nameof(ColorOffset));
 
             UpdateImages();
         }
@@ -94,20 +131,64 @@ namespace XrEditor.Plot
                     TextureFormat.GrayInt8)
             };
 
+            byte[] repData;
 
-            var repData = _reader.FusionLeft.AlignColorToDepth(
-                _curDepth.Left.ProjData!.AsSpan(),
-                (int)_curDepth.Width,
-                (int)_curDepth.Height,
-                _curDepth.Left.View,
-                _curDepth.Left.Proj,
-                _curColor.Left.Data!.AsSpan(),
-                (int)_curColor.Width,
-                (int)_curColor.Height,
-                _curColor.Left.View,
-                _curColor.Left.Pose!.Value.ToMatrix(),
-                _fovScale,
-                _center);
+            if (_colorMode == ColorMode.Screen)
+            {
+                repData = _reader.AlignColorToDepth(
+                     _curDepth.Left.ProjData!.AsSpan(),
+                     (int)_curDepth.Width,
+                     (int)_curDepth.Height,
+                     _curDepth.Left.View,
+                     _curDepth.Left.Proj,
+                     _curScreen!.Data!.AsSpan(),
+                     1280,
+                     1280,
+                     _curScreen.Pose!.Value,
+                     _reader.LeftCamera!,
+                     _fovScale,
+                     _center,
+                     true);
+
+                ColorImage = new ImageView
+                {
+                    ScaleY = 1,
+                    Image = Context.Require<IImageFactory>().CreateImage(
+                    _curScreen.Data.AsSpan(),
+                    1280,
+                    1280,
+                    TextureFormat.Rgb24)
+                };
+            }
+            else
+            {
+
+                repData = _reader.AlignColorToDepth(
+                     _curDepth.Left.ProjData!.AsSpan(),
+                     (int)_curDepth.Width,
+                     (int)_curDepth.Height,
+                     _curDepth.Left.View,
+                     _curDepth.Left.Proj,
+                     _curColor.Left.Data!.AsSpan(),
+                     (int)_curColor.Width,
+                     (int)_curColor.Height,
+                      _curColor.Left.Pose!.Value,
+                     _reader.LeftCamera!,
+                     _fovScale,
+                     _center,
+                     true);
+
+                ColorImage = new ImageView
+                {
+                    ScaleY = 1,
+                    Image = Context.Require<IImageFactory>().CreateImage(
+                     _curColor.Left.Data.AsSpan(),
+                     _curColor.Width,
+                     _curColor.Height,
+                     TextureFormat.Rgb24)
+                };
+
+            }
 
             ColorProjImage = new ImageView
             {
@@ -119,16 +200,19 @@ namespace XrEditor.Plot
                    TextureFormat.Rgb24)
             };
 
-            ColorImage = new ImageView
-            {
-                ScaleY = 1,
-                Image = Context.Require<IImageFactory>().CreateImage(
-               _curColor.Left.Data.AsSpan(),
-               _curColor.Width,
-               _curColor.Height,
-               TextureFormat.Rgb24)
-            };
+
+            _depthImage.MouseMove += OnDepthMouseMove;
+
         }
+
+        private void OnDepthMouseMove(object? sender, ImageMouseMoveArgs e)
+        {
+            var proj = _curDepth!.Left.ProjData!.AsSpan()[e.X + e.Y * (int)_curDepth.Width];
+            DepthPoint = string.Format("({0} {1}) - ({2} {3} {4})", e.X, e.Y, proj.X, proj.Y, proj.Y);
+            OnPropertyChanged(nameof(DepthPoint));
+        }
+
+        public string DepthPoint { get; set; }
 
         public int FrameIndex
         {
@@ -160,10 +244,10 @@ namespace XrEditor.Plot
 
         public ImageView? DepthImage
         {
-            get => _colorImage;
+            get => _depthImage;
             set
             {
-                _colorImage = value;
+                _depthImage = value;
                 OnPropertyChanged(nameof(DepthImage));
             }
         }
@@ -250,7 +334,35 @@ namespace XrEditor.Plot
                 UpdateImages();
             }
         }
-        public XrReconstructReader Reader => _reader;
+
+        public ColorMode ColorMode
+        {
+            get => _colorMode;
+            set
+            {
+                _colorMode = value;
+                OnPropertyChanged(nameof(ColorMode));
+                ReadFrame(_frameIndex);
+
+            }
+        }
+
+        public bool AutoOffset
+        {
+            get => _autoOffset;
+            set
+            {
+                _autoOffset = value;
+                OnPropertyChanged(nameof(AutoOffset));
+                ReadFrame(_frameIndex);
+
+            }
+        }
+
+
+        public IList<ColorMode> ColorModeList => [ColorMode.Screen, ColorMode.Camera];
+
+        public XrReconstructReader? Reader => _reader;
 
         public override string? Title => "Reconstruct";
     }

@@ -189,5 +189,8 @@ namespace OpenXr.Framework.Android
 
             base.OnActivityResult(requestCode, resultCode, data);
         }
+
+
+        Context IMainActivity.Context => this;
     }
 }

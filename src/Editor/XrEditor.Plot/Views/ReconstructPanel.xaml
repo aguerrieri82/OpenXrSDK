@@ -18,7 +18,7 @@
                 <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
                     <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding ColorOffset}" />
                 </Border>
-                <Slider Minimum="-100" Maximum="100" Value="{Binding ColorOffset}" />
+                <Slider Minimum="-200" Maximum="220" Value="{Binding ColorOffset}" />
             </DockPanel>
             <DockPanel>
                 <Label DockPanel.Dock="Left">FOV:</Label>
@@ -49,7 +49,7 @@
                 </Grid.ColumnDefinitions>
 
                 <ContentControl Grid.Column="0" Content="{Binding DepthImage}"/>
-                <ContentControl Grid.Column="0" Opacity="{Binding OpacityOverlay}" Content="{Binding ColorProjImage}"/>
+                <ContentControl Grid.Column="0" IsHitTestVisible="False" IsEnabled="False" Opacity="{Binding OpacityOverlay}" Content="{Binding ColorProjImage}"/>
 
                 <ContentControl Grid.Column="1" Content="{Binding ColorProjImage}"/>
 
@@ -59,19 +59,29 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <DockPanel>
-                    <Label DockPanel.Dock="Left">Opacity:</Label>   
-                    <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
-                        <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding OpacityOverlay, StringFormat={}{0:F2}}" />
-                    </Border>
-                    <Slider Minimum="0" Maximum="1" Value="{Binding OpacityOverlay}" />
-                </DockPanel>
+                <StackPanel Grid.Column="0"  Orientation="Vertical">
+                    <DockPanel>
+                        <Label DockPanel.Dock="Left">Opacity:</Label>
+                        <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                            <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding OpacityOverlay, StringFormat={}{0:F2}}" />
+                        </Border>
+                        <Slider Minimum="0" Maximum="1" Value="{Binding OpacityOverlay}" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding DepthPoint}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2"  Orientation="Vertical">
+                    <ComboBox ItemsSource="{Binding ColorModeList}" SelectedValue="{Binding ColorMode}"/>
+                    <CheckBox IsChecked="{Binding AutoOffset}">Auto offset</CheckBox>
+                </StackPanel>
+
+
 
             </Grid>
         </StackPanel>
 
-        
+
     </DataTemplate>
 
 </ResourceDictionary>

@@ -1,10 +1,10 @@
-﻿
-using Common.Interop;
+﻿using Common.Interop;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using XrEngine.Devices;
 using XrEngine.Media;
 using XrMath;
 
@@ -54,6 +54,8 @@ namespace XrEngine.Reconstruct
         public Matrix4x4 Proj { get; set; }
 
         public Pose3? Pose { get; set; }
+
+        public long Time { get; set; }
     }
 
     public class EyesFrame<T> where T : new()
@@ -85,7 +87,8 @@ namespace XrEngine.Reconstruct
         private IVideoReader? _rightColorReader;
         private string? _basePath;
         private static readonly bool _fixView = false;
-        private QuestSensorFusion? _fusionLeft;
+        private IVideoReader? _scrColorReader;
+        private RecordStats? _stats;
 
         static readonly JsonSerializerOptions JSON_OPT = new JsonSerializerOptions()
         {
@@ -95,9 +98,6 @@ namespace XrEngine.Reconstruct
 
         public XrReconstructReader()
         {
-
-
-
         }
 
 
@@ -109,6 +109,8 @@ namespace XrEngine.Reconstruct
             var outMetaPath = Path.Combine(path, "out-meta.json");
             var outPath1 = Path.Combine(path, "outL.mp4");
             var outPath2 = Path.Combine(path, "outR.mp4");
+            var outPath3 = Path.Combine(path, "outScr.mp4");
+            var statsPath = Path.Combine(path, "stats.json");
 
             var lines = File.ReadAllLines(outMetaPath);
 
@@ -120,7 +122,10 @@ namespace XrEngine.Reconstruct
                 _meta.Add(info);
 
                 if (info.LeftColor?.CameraParams != null)
-                    _fusionLeft = new QuestSensorFusion(info.LeftColor.CameraParams);
+                    LeftCamera = info.LeftColor.CameraParams;
+
+                if (info.RightColor?.CameraParams != null)
+                    RightCamera = info.RightColor.CameraParams;
             }
 
             using var zStreamZip = new GZipStream(File.OpenRead(outZPath), CompressionMode.Decompress);
@@ -129,10 +134,13 @@ namespace XrEngine.Reconstruct
 
             _leftColorReader = Context.RequireNew<IVideoReader>();
             _rightColorReader = Context.RequireNew<IVideoReader>();
+            _scrColorReader = Context.RequireNew<IVideoReader>();
 
             _leftColorReader.Open(new Uri(outPath1), TextureFormat.Rgb24);
             _rightColorReader.Open(new Uri(outPath2), TextureFormat.Rgb24);
+            _scrColorReader.Open(new Uri(outPath3), TextureFormat.Rgb24);
 
+            _stats = JsonSerializer.Deserialize<RecordStats>(File.ReadAllText(statsPath), JSON_OPT)!;
 
         }
 
@@ -258,6 +266,13 @@ namespace XrEngine.Reconstruct
             Debug.Assert(_leftColorReader != null);
             Debug.Assert(_rightColorReader != null);
 
+            var leftIndex = _meta.Index().Where(a => a.Item.LeftColor!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+            var rightIndex = _meta.Index().Where(a => a.Item.RightColor!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+
+            var leftMeta = _meta[leftIndex].LeftColor!;
+            var rightMeta = _meta[rightIndex].RightColor!;
+
+
             var result = new EyesFrame<ColorFrame>();
             var leftData = new TextureData();
             var rightData = new TextureData();
@@ -275,19 +290,21 @@ namespace XrEngine.Reconstruct
             }
             else
             {
-                _leftColorReader.SeekToFrame(frameIndex);
-                _leftColorReader.TryDecodeNextFrame(leftData);
+                _leftColorReader!.SeekToFrame(frameIndex);
+                _leftColorReader!.TryDecodeNextFrame(leftData);
                 File.WriteAllBytes(cacheLeft, leftData.Data!.AsSpan());
             }
 
 
-            result.Left.Proj = MathUtils.CreateMatrix(_meta[frameIndex].LeftColor!.Proj!);
-            result.Left.View = MathUtils.CreateMatrix(_meta[frameIndex].LeftColor!.View!);
-            result.Left.Pose = _meta[frameIndex].LeftColor!.Pose;
+            result.Left.Proj = MathUtils.CreateMatrix(leftMeta.Proj!);
+            result.Left.View = MathUtils.CreateMatrix(leftMeta.View!);
+
             result.Left.Data = leftData.Data;
+            result.Left.Pose = leftMeta.Pose;
             result.Width = leftData.Width;
             result.Height = leftData.Height;
-            result.Time = _meta[frameIndex].LeftColor!.Time;
+            result.Time = leftMeta.Time;
+
 
             if (File.Exists(cacheRight))
             {
@@ -305,32 +322,92 @@ namespace XrEngine.Reconstruct
             }
 
 
-            result.Right.Proj = MathUtils.CreateMatrix(_meta[frameIndex].RightColor!.Proj!);
-            result.Right.View = MathUtils.CreateMatrix(_meta[frameIndex].RightColor!.View!);
-            result.Right.Pose = _meta[frameIndex].RightColor!.Pose;
+            result.Right.Proj = MathUtils.CreateMatrix(rightMeta.Proj!);
+            result.Right.View = MathUtils.CreateMatrix(rightMeta.View!);
+            result.Right.Pose = rightMeta.Pose;
             result.Right.Data = rightData.Data;
-
-            if (_fixView)
-            {
-                Matrix4x4.Invert(result.Right.Proj, out var projInv);
-                result.Right.View = Matrix4x4.Multiply(result.Right.View, projInv);
-
-                Matrix4x4.Invert(result.Left.Proj, out projInv);
-                result.Left.View = Matrix4x4.Multiply(result.Left.View, projInv);
-            }
 
 
             return result;
         }
 
+
+        public ColorFrame ReadScreen(int frameIndex)
+        {
+            var index = _meta.Index().Where(a => a.Item.Screen!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+
+            var meta = _meta[index].Screen!;
+
+            Debug.Assert(_scrColorReader != null);
+
+            var result = new ColorFrame();
+            var data = new TextureData();
+
+            var cache = Path.Combine(_basePath!, "Frames", "Screen" + frameIndex + ".img");
+
+            if (File.Exists(cache))
+            {
+                var bytes = File.ReadAllBytes(cache);
+                data.Data = MemoryBuffer.Create(bytes);
+                data.Width = 1280;
+                data.Height = 1280;
+                data.Format = TextureFormat.Rgb24;
+            }
+            else
+            {
+                _scrColorReader!.SeekToFrame(frameIndex);
+                _scrColorReader!.TryDecodeNextFrame(data);
+                File.WriteAllBytes(cache, data.Data!.AsSpan());
+            }
+
+
+            result.Time = meta.Time;
+            result.Pose = meta.Pose;
+            result.Data = data.Data;
+
+            return result;
+        }
+
+        public void ExportPoints(string outFile)
+        {
+            using var stream = new StreamWriter(File.OpenWrite(outFile));
+
+            var lastFrame = -1;
+            var min = new Vector3(float.PositiveInfinity);
+            var max = new Vector3(float.NegativeInfinity);
+
+            foreach (var item in _meta)
+            {
+                var frame = item.LeftDepth.Frame;
+                if (lastFrame == frame)
+                    continue;
+                var depth = ReadDepth(frame);
+                ReconstructDepth(depth.Left, depth.Width, depth.Height);
+                foreach (var v in depth.Left.ProjData.AsSpan())
+                {
+                    min = Vector3.Min(v, min);
+                    max = Vector3.Max(v, max);
+                }
+                /*
+                foreach (var v in depth.Left.ProjData.AsSpan())
+                {
+                    stream.WriteLine(string.Format("{0} {1} {2}", v.X, v.Y, v.Z));
+                }
+                */
+            }
+        }
+
         public EyesFrame<DepthFrame> ReadDepth(int frameIndex)
         {
+            var index = _meta.Index().Where(a => a.Item.LeftDepth!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+            var meta = _meta![index];
+
             var result = new EyesFrame<DepthFrame>()
             {
                 Width = 320,
                 Height = 320,
-                Time = _meta![frameIndex].LeftDepth!.Time,
-                Frame = (uint)frameIndex
+                Time = meta.LeftDepth!.Time / 1000,
+                Frame = (uint)meta.LeftDepth.Frame
             };
 
             var size = result.Width * result.Height;
@@ -340,13 +417,13 @@ namespace XrEngine.Reconstruct
             _zStream!.Position = ofs;
 
             result.Left.Data = MemoryBuffer.CreateOrResize(result.Left.Data, size);
-            result.Left.Proj = MathUtils.CreateMatrix(_meta![frameIndex].LeftDepth!.Proj!);
-            result.Left.View = MathUtils.CreateMatrix(_meta![frameIndex].LeftDepth!.View!);
+            result.Left.Proj = MathUtils.CreateMatrix(meta.LeftDepth!.Proj!);
+            result.Left.View = MathUtils.CreateMatrix(meta.LeftDepth!.View!);
 
 
             result.Right.Data = MemoryBuffer.CreateOrResize(result.Left.Data, size);
-            result.Right.Proj = MathUtils.CreateMatrix(_meta![frameIndex].RightDepth!.Proj!);
-            result.Right.View = MathUtils.CreateMatrix(_meta![frameIndex].RightDepth!.View!);
+            result.Right.Proj = MathUtils.CreateMatrix(meta.RightDepth!.Proj!);
+            result.Right.View = MathUtils.CreateMatrix(meta.RightDepth!.View!);
 
             var byteSpan = MemoryMarshal.Cast<ushort, byte>(result.Left.Data.AsSpan());
 
@@ -355,22 +432,15 @@ namespace XrEngine.Reconstruct
             byteSpan = MemoryMarshal.Cast<ushort, byte>(result.Right.Data.AsSpan());
             _zStream.ReadExactly(byteSpan);
 
-            //Fix view
-            if (_fixView)
-            {
-                Matrix4x4.Invert(result.Right.Proj, out var projInv);
-                result.Right.View = Matrix4x4.Multiply(result.Right.View, projInv);
-
-                Matrix4x4.Invert(result.Left.Proj, out projInv);
-                result.Left.View = Matrix4x4.Multiply(result.Left.View, projInv);
-            }
             return result;
 
         }
 
         public int FindColorForDepth(int frameIndex)
         {
-            var depthTime = _meta![frameIndex].Time;
+            var index = _meta.Index().Where(a => a.Item.LeftDepth!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+
+            var depthTime = _meta![index].LeftDepth!.Time / 1000;
             var minFrame = 0;
             var minDif = long.MaxValue;
             for (var i = 0; i < _meta.Count; i++)
@@ -380,43 +450,103 @@ namespace XrEngine.Reconstruct
                 if (diff < minDif)
                 {
                     minDif = diff;
-                    minFrame = i;
+                    minFrame = _meta[i].LeftColor!.Frame;
                 }
             }
             return minFrame;
         }
 
-
-        public int FindColorForDepthV2(int frameIndex)
+        public int FindScreenForDepth(int frameIndex)
         {
-            var leftDepth = GetWord(_meta![frameIndex].LeftDepth!);
+            var index = _meta.Index().Where(a => a.Item.LeftDepth!.Frame == frameIndex).Select(a => a.Index).FirstOrDefault();
+
+            var depthTime = _meta![index].LeftDepth!.Time / 1000;
             var minFrame = 0;
-            var minDif = float.MaxValue;
+            var minDif = long.MaxValue;
             for (var i = 0; i < _meta.Count; i++)
             {
-                var leftColor = GetWord(_meta![i].LeftColor!);
-
-                var diff = (leftColor.Translation - leftDepth.Translation).Length();
+                var screenTime = _meta[i].Screen!.Time;
+                var diff = Math.Abs(screenTime - depthTime);
                 if (diff < minDif)
                 {
                     minDif = diff;
-                    minFrame = i;
+                    minFrame = _meta[i].Screen!.Frame;
                 }
             }
             return minFrame;
         }
 
+
+        public unsafe byte[] AlignColorToDepth(
+            Span<Vector3> depthPixels, int depthW, int depthH,
+            Matrix4x4 depthView, Matrix4x4 depthProj,
+            Span<byte> colorPixels, int colorW, int colorH,
+            Pose3 headPose,
+            CameraParams camera,
+            float fovScale,
+            Vector2 centerOfs,
+            bool reverse)
+        {
+            var result = new byte[depthW * depthH * 3];
+
+            Matrix4x4.Invert(camera.GetLensPose().ToMatrix() * headPose.ToMatrix(), out var rgbView);
+
+            fixed (Vector3* pDepth = depthPixels)
+            fixed (byte* pColor = colorPixels)
+            fixed (byte* pResult = result)
+            {
+                var dstIndex = 0;
+
+                var wInv = 1.0f / depthW;
+                var hInv = 1.0f / depthH;
+
+                for (var y = 0; y < depthH; y++)
+                {
+                    for (var x = 0; x < depthW; x++)
+                    {
+                        var worldPos = pDepth[dstIndex];
+
+                        var ptColor = Vector3.Transform(worldPos, rgbView);
+
+                        if ((ptColor.Z >= -0.05f && reverse) || (ptColor.Z <= 0.05f && !reverse))
+                        {
+                            dstIndex++;
+                            continue;
+                        }
+
+                        var invZ = 1.0f / ptColor.Z;
+
+                        var c_u = (ptColor.X * invZ) * camera.Fx * fovScale + camera.Cx + centerOfs.X;
+                        var c_v = (ptColor.Y * invZ) * camera.Fy * fovScale + camera.Cy + centerOfs.Y;
+                        var cX = (int)c_u;
+                        var cY = (int)c_v;
+
+                        if (reverse)
+                            cX = colorW - cX;
+
+
+                        if (cX >= 0 && cX < colorW && cY >= 0 && cY < colorH)
+                        {
+                            var dstIdx = dstIndex * 3;
+                            var srcIdx = (cY * colorW + cX) * 3;
+                            pResult[dstIdx] = pColor[srcIdx];
+                            pResult[dstIdx + 1] = pColor[srcIdx + 1];
+                            pResult[dstIdx + 2] = pColor[srcIdx + 2];
+                        }
+
+                        dstIndex++;
+
+                    }
+
+                }
+            }
+            return result;
+        }
+
+
         public static Matrix4x4 GetView(EyeData eye)
         {
-            var view = MathUtils.CreateMatrix(eye.View!);
-
-            if (_fixView)
-            {
-                var proj = MathUtils.CreateMatrix(eye.Proj!);
-                Matrix4x4.Invert(proj, out var projInv);
-                view = view * projInv;
-            }
-            return view;
+            return MathUtils.CreateMatrix(eye.View!);
         }
 
         public static Matrix4x4 GetWord(EyeData eye)
@@ -428,7 +558,10 @@ namespace XrEngine.Reconstruct
 
         public IList<RecordFrameData>? Meta => _meta;
 
-        public QuestSensorFusion FusionLeft => _fusionLeft;
+        public RecordStats? Stats => _stats;
 
+        public CameraParams? LeftCamera { get; protected set; }
+
+        public CameraParams? RightCamera { get; protected set; }
     }
 }

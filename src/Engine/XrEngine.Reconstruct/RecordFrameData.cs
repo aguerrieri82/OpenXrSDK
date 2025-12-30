@@ -14,14 +14,12 @@ namespace XrEngine.Reconstruct
         public Pose3? Pose { get; set; }
 
         public CameraParams? CameraParams { get; set; }
+
+        public int Frame { get; set; }
     }
 
     public class RecordFrameData
     {
-        public int Frame { get; set; }
-
-        public long Time { get; set; }
-
         public EyeData? LeftColor { get; set; }
 
         public EyeData? RightColor { get; set; }
@@ -29,5 +27,7 @@ namespace XrEngine.Reconstruct
         public EyeData? LeftDepth { get; set; }
 
         public EyeData? RightDepth { get; set; }
+
+        public EyeData? Screen { get; set; }
     }
 }

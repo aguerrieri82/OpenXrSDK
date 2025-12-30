@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class EyeTextureMaterial : ShaderMaterial
     {
@@ -10,7 +8,7 @@ namespace XrEngine
         {
             SHADER = new StandardVertexShader
             {
-                FragmentSourceName = "texture.frag",
+                FragmentSourceName = "texture_stereo.frag",
                 IsLit = false
             };
         }
@@ -52,12 +50,12 @@ namespace XrEngine
                 if (LeftTexture == null || RightTexture == null)
                     return;
 
-                if (((PerspectiveCamera)ctx.PassCamera!).ActiveEye == 0)
-                    up.LoadTexture(LeftTexture, 0);
-                else
-                    up.LoadTexture(RightTexture, 0);
+                up.LoadTexture(LeftTexture, 0);
 
-                up.SetUniform("uColor", Color.White);
+                up.LoadTexture(RightTexture, 1);
+
+                up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
+
             });
         }
 
