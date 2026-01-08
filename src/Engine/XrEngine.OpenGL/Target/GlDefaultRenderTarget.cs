@@ -52,15 +52,15 @@ namespace XrEngine.OpenGL
                     Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
                 };
 
-                _color.Update(1, new TextureData
-                {
-                    Width = size.Width,
-                    Height = size.Height,
-                    Format = TextureFormat.Rgba32,
-                });
-
                 isTexChanged = true;
             }
+
+            _color.Update(1, new TextureData
+            {
+                Width = size.Width,
+                Height = size.Height,
+                Format = TextureFormat.Rgba32,
+            });
 
 
             if (_depth is GlRenderBuffer renderBuffer)

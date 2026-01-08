@@ -74,7 +74,7 @@ namespace XrEditor.Plot
 
         protected override Task LoadAsync()
         {
-            _reader = new XrReconstructReader();
+            _reader = XrReconstructReader.Current;
             _reader.Open("D:\\Projects\\XrEditor\\Capture");
 
             OnPropertyChanged(nameof(TotalFrames));

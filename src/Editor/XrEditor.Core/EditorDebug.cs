@@ -16,7 +16,7 @@ namespace XrEditor
 
         public static readonly bool UseEs = false;
 
-        public static readonly bool DebugSync = false;
+        public static readonly bool DebugSync = true;
 
 
         public static readonly string[] AssetsPath = [
@@ -36,8 +36,8 @@ namespace XrEditor
                   opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
                   opt.Compression.Use = false;
-                  opt.Compression.Format = XrEngine.TextureCompressionFormat.Etc2;
-                  opt.SampleCount = 4;
+                  opt.Compression.Format = TextureCompressionFormat.Etc2;
+                  opt.SampleCount = 1;
 
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;

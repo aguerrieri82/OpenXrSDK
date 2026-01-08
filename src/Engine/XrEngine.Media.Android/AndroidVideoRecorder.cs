@@ -8,6 +8,38 @@ namespace XrEngine.Media.Android
 
     public class AndroidVideoRecorder : IVideoRecorder
     {
+
+        class MediaCodecCallback : MediaCodec.Callback
+        {
+            private readonly AndroidVideoRecorder _host;
+
+            public MediaCodecCallback(AndroidVideoRecorder host)
+            {
+                _host = host;
+            }
+
+            public override void OnError(MediaCodec codec, MediaCodec.CodecException e)
+            {
+
+            }
+
+            public override void OnInputBufferAvailable(MediaCodec codec, int index)
+            {
+
+            }
+
+            public override void OnOutputBufferAvailable(MediaCodec codec, int index, MediaCodec.BufferInfo info)
+            {
+
+            }
+
+            public override void OnOutputFormatChanged(MediaCodec codec, MediaFormat format)
+            {
+
+            }
+        }
+
+
         private MediaCodec? _codec;
         private MediaMuxer? _muxer;
         private bool _muxerStarted;
@@ -23,10 +55,10 @@ namespace XrEngine.Media.Android
             format.SetInteger(MediaFormat.KeyIFrameInterval, options.IFrameInterval);
 
             _codec = MediaCodec.CreateEncoderByType("video/avc");
+            //_codec.SetCallback(new MediaCodecCallback(this));
             _codec.Configure(format, null, null, MediaCodecConfigFlags.Encode);
 
             _surface = _codec.CreateInputSurface();
-
 
             _codec.Start();
 

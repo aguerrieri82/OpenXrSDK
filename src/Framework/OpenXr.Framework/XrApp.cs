@@ -9,6 +9,7 @@ using Silk.NET.OpenXR.Extensions.KHR;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
@@ -78,9 +79,11 @@ namespace OpenXr.Framework
         //TODO leave here or move?
         protected ExtPerformanceSettings? _perfSettings;
         protected internal ExtHandTracking? _handTracking;
+        protected KhrVisibilityMask _visibilityMask;
 
         protected XrAppState _state;
         protected bool _isValid; //TODO rethink on _state
+
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -101,6 +104,7 @@ namespace OpenXr.Framework
             _extensions.Add("XR_KHR_locate_spaces");
             _extensions.Add("XR_KHR_convert_timespec_time");
             _extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+            _extensions.Add(KhrVisibilityMask.ExtensionName);
 
 
             Current = this;
@@ -154,6 +158,7 @@ namespace OpenXr.Framework
 
                     _xr.TryGetInstanceExtension<ExtPerformanceSettings>(null, _instance, out _perfSettings);
                     _xr.TryGetInstanceExtension<ExtHandTracking>(null, _instance, out _handTracking);
+                    _xr.TryGetInstanceExtension<KhrVisibilityMask>(null, _instance, out _visibilityMask);
                 }
 
                 _state = XrAppState.Initialized;
@@ -176,6 +181,43 @@ namespace OpenXr.Framework
             return 0;
 
 #endif
+        }
+
+        public Mesh2 GetVisibilityMask(uint viewIndex, VisibilityMaskTypeKHR type = VisibilityMaskTypeKHR.VisibleTriangleMeshKhr)
+        {
+
+            var result = new VisibilityMaskKHR
+            {
+                Type = StructureType.VisibilityMaskKhr,
+                IndexCapacityInput = 0,
+                VertexCapacityInput = 0
+            };
+
+
+            CheckResult(_visibilityMask.GetVisibilityMask(_session, _viewInfo!.Type, viewIndex, type, ref result), "GetVisibilityMask");
+
+            var ixBuffer = new uint[result.IndexCountOutput];
+            var vxBuffer = new Vector2f[result.VertexCountOutput];
+
+            fixed (uint* pIxBuffer = &ixBuffer[0])
+            fixed (Vector2f* pVxBuffer = &vxBuffer[0])
+            {
+                result.Vertices = pVxBuffer;
+                result.Indices = pIxBuffer;
+                result.VertexCapacityInput = (uint)vxBuffer.Length;
+                result.IndexCapacityInput = (uint)ixBuffer.Length;
+
+                CheckResult(_visibilityMask.GetVisibilityMask(_session, _viewInfo!.Type, viewIndex, type, ref result), "GetVisibilityMask");
+
+            }
+
+            var mesh = new Mesh2
+            {
+                Indices = ixBuffer.ToArray(),
+                Vertices = vxBuffer.Convert().To<Vector2>().ToArray()
+            };
+
+            return mesh;
         }
 
         public long XrTimeToBootTime(long xrTime)
@@ -550,7 +592,7 @@ namespace OpenXr.Framework
             return LocateViews(space, displayTime, _views!);
         }
 
-        public unsafe ViewState LocateViews(Space space, long displayTime, View[] views)
+        public ViewState LocateViews(Space space, long displayTime, View[] views)
         {
             Debug.Assert(_viewInfo != null);
 
@@ -1387,6 +1429,11 @@ namespace OpenXr.Framework
                             break;
                         case StructureType.EventDataReferenceSpaceChangePending:
                             //TODO handle
+                            break;
+
+                        case StructureType.EventDataVisibilityMaskChangedKhr:
+                            var maskChanged = buffer.Convert().To<EventDataVisibilityMaskChangedKHR>();
+                            GetVisibilityMask(maskChanged.ViewIndex);
                             break;
                     }
 

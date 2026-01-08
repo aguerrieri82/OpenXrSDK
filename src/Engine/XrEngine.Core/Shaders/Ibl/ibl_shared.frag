@@ -18,7 +18,7 @@ layout(std140, binding 0) uniform HammersleyBuffer
     vec2 data[SAMPLE_COUNT];
 } uHams;
 
-in vec2 inUV;
+in vec2 fUv;
 
 layout(location = 0) out vec4 outFace[6];
 layout(location = 6) out vec3 outLUT;

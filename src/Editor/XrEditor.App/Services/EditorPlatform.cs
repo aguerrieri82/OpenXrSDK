@@ -68,9 +68,11 @@ namespace XrEditor
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
         {
+            var opt = OculusXrPluginOptions.Default;
+            //opt.Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.None;
             return new XrApp(NullLogger.Instance,
                      xrDriver,
-                     new OculusXrPlugin());
+                     new OculusXrPlugin(opt));
         }
 
         public IRenderSurface RenderSurface => _renderSurface!;

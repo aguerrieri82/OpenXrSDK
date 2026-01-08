@@ -116,6 +116,9 @@ namespace XrEngine.OpenGL
             if (!options.Use)
                 return null;
 
+            if (texture2D.Compression != TextureCompressionFormat.Uncompressed)
+                return null;
+
             var curSize = texture2D.Width * texture2D.Height;
             if (curSize < options.MinSize)
                 return null;
@@ -255,7 +258,7 @@ namespace XrEngine.OpenGL
                         texture2D.Height,
                         texture2D.Depth,
                         texture2D.Format,
-                        TextureCompressionFormat.Uncompressed,
+                        texture2D.Compression,
                         texture2D.Data,
                         0);
 

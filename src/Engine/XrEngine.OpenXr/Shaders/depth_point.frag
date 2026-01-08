@@ -4,7 +4,7 @@ layout(binding=8) uniform highp sampler2DArray envDepth;
 uniform mat4 uDepthViewProjInv[2];
 uniform uint uActiveEye;
 
-in vec2 inUV;
+in vec2 fUv;
 out vec3 outVector;
 
 
@@ -18,8 +18,8 @@ void main()
 
 	vec3 clip;
 
-	clip.xy = inUV;
-    clip.z = texture(envDepth, vec3(inUV, viewIndex)).r;
+	clip.xy = fUv;
+    clip.z = texture(envDepth, vec3(fUv, viewIndex)).r;
 
 	clip = clip * 2.0 - 1.0;
 

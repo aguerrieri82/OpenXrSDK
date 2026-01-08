@@ -2,9 +2,9 @@
 
 layout(binding=0) uniform sampler2D uImage;
 
-in vec2 inUV;
+in vec2 fUv;
 
 void main()
 {    
-   fragColor = texture(uImage, inUV).r;
+   fragColor = texture(uImage, fUv).r;
 }

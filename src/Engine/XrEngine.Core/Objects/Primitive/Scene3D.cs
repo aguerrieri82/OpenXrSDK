@@ -36,10 +36,13 @@
 
             _gizmos.Clear();
 
-            foreach (var draw in _drawGizmos)
+            lock (_drawGizmos)
             {
-                if (draw.IsEnabled)
-                    draw.DrawGizmos(_gizmos);
+                foreach (var draw in _drawGizmos)
+                {
+                    if (draw.IsEnabled)
+                        draw.DrawGizmos(_gizmos);
+                }
             }
 
             _gizmos.Flush();
@@ -61,16 +64,20 @@
 
         protected void UpdateDrawGizmos()
         {
-            _drawGizmos.Clear();
-
-            foreach (var obj in this.DescendantsOrSelf())
+            lock (_drawGizmos)
             {
-                if (obj is IDrawGizmos draw)
-                    _drawGizmos.Add(draw);
+                _drawGizmos.Clear();
 
-                foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
-                    _drawGizmos.Add(component);
+                foreach (var obj in this.DescendantsOrSelf())
+                {
+                    if (obj is IDrawGizmos draw)
+                        _drawGizmos.Add(draw);
+
+                    foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
+                        _drawGizmos.Add(component);
+                }
             }
+
         }
 
         internal void Attach(EngineApp app)

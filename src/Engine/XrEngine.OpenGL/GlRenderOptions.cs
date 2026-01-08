@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
             CacheUniforms = true;
             Compression = new GlCompressionOptions
             {
-                Use = true,
+                Use = false,
                 MinSize = 512 * 512,
                 BlockSize = 4,
                 Format = TextureCompressionFormat.Astc,

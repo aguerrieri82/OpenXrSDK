@@ -1,12 +1,7 @@
 precision highp float;
 
-#include <tonemapping.glsl>
 
-
-uniform float uEnvIntensity;
-uniform float uEnvBlurNormalized;
-uniform int uMipCount;
-uniform samplerCube uGGXEnvSampler;
+layout(binding = 0) uniform samplerCube uCube;
 
 out vec4 FragColor;
 in vec3 v_TexCoords;
@@ -14,13 +9,8 @@ in vec3 v_TexCoords;
 
 void main()
 {
-    vec4 color = textureLod(uGGXEnvSampler, v_TexCoords, uEnvBlurNormalized * float(uMipCount - 1));
-    color.rgb *= uEnvIntensity;
-    color.a = 1.0;
-
-#ifdef LINEAR_OUTPUT
+    vec4 color = texture(uCube, v_TexCoords);
+    //color.r = 1.0;
+    //color.a = 1.0;
     FragColor = color.rgba;
-#else
-    FragColor = vec4(toneMap(color.rgb), color.a);
-#endif
 }

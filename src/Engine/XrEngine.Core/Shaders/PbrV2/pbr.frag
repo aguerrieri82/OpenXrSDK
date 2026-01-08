@@ -39,6 +39,10 @@ in vec3 fCameraPos;
     in vec4 fPosLightSpace;
 #endif
 
+#ifdef HAS_COLORMAP_PROJ
+    in vec4 fProjCoord;
+#endif
+
 
 layout(location=0) out vec4 color;
 
@@ -148,12 +152,21 @@ void main()
 	// Sample input textures to get shading model params.
 	#ifdef USE_ALBEDO_MAP
 
-		#if ALBEDO_UV_SET == 1
-			vec2 albUv = fUv2;
+		#ifdef HAS_COLORMAP_PROJ
+			if (fProjCoord.w <= 0.0)
+				discard;
+			vec3 ndc = fProjCoord.xyz / fProjCoord.w;
+			vec2 albUv = ndc.xy * 0.5 + 0.5;
+			albUv.y = 1.0 - albUv.y;
 		#else
-			vec2 albUv = fUv;
-		#endif
 
+			#if ALBEDO_UV_SET == 1
+				vec2 albUv = fUv2;
+			#else
+				vec2 albUv = fUv;
+			#endif
+		#endif
+		
 		vec4 baseColor = texture(albedoTexture, albUv) * uMaterial.color;
 	#else
 		vec4 baseColor = uMaterial.color;	

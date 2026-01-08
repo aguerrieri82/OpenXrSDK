@@ -67,6 +67,8 @@ namespace XrEngine.Media.Android
 
                     _mediaProjection!.RegisterCallback(new ProjectionCallback(OnStop), null);
 
+                    Log.Warn(this, "Display metrics: {0}x{1}", metrics.WidthPixels, metrics.HeightPixels);
+
                     _virtualDisplay = _mediaProjection.CreateVirtualDisplay(
                          "ScreenCapture",
                          options.Width == 0 ? metrics.WidthPixels : (int)options.Width,

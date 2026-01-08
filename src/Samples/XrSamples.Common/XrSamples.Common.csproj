@@ -6,6 +6,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Shaders\cube_project.comp" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Shaders\cube_project.comp" />
+	</ItemGroup>
+
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\DrumsVR\src\DrumsVR.Game\DrumsVR.Game.csproj" />
 		<ProjectReference Include="..\..\..\..\RoomDesigner\src\RoomDesigner.Game\RoomDesigner.Game.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Audio\XrEngine.Audio.csproj" />

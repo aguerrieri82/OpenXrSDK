@@ -92,10 +92,10 @@ namespace XrEngine.OpenGL
 
         public unsafe void Resize(uint newSizeBytes, bool preserve)
         {
-            if (_capacityBytes == newSizeBytes)
+            if (_sizeBytes == newSizeBytes)
                 return;
 
-            if (_capacityBytes == 0 || !preserve)
+            if (_sizeBytes == 0 || !preserve)
                 _gl.BufferData(_target, newSizeBytes, null, _usage);
             else
             {

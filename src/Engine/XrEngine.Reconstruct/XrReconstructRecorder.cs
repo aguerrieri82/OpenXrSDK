@@ -1,7 +1,9 @@
 ﻿using Common.Interop;
 using OpenXr.Framework;
+using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using XrEngine.Devices;
@@ -122,11 +124,12 @@ namespace XrEngine.Reconstruct
             _leftSurface = _leftRecorder.StartRecording(outPath1, recOptions);
             _rightSurface = _rightRecorder.StartRecording(outPath2, recOptions);
 
+
             _screenSurface = _screenRecorder.StartRecording(outPath3, new VideoRecordOptions
             {
                 Format = VideoRecordFormat.Mp4,
-                Height = 1280,
-                Width = 1280,
+                Width = 1200,
+                Height = (int)(1200 * 1.0808f),
                 FrameRate = 60,
                 MimeType = "video/avc",
                 IFrameInterval = 1,
@@ -140,14 +143,16 @@ namespace XrEngine.Reconstruct
             await _cameraLeft.StartCaptureAsync(curFormat, _leftTex, _leftSurface);
             await _cameraRight.StartCaptureAsync(curFormat, _rightTex, _rightSurface);
 
+
             _capture = Context.RequireNew<IScreenCapture>();
 
             await _capture.StartCaptureAsync(new ScreenCaptureOptions
             {
-                Width = 0,
-                Height = 0,
+                Width = 1280,
+                Height = 1280,
                 OutSurface = _screenSurface,
             });
+
 
             _isRecording = true;
         }
@@ -196,14 +201,25 @@ namespace XrEngine.Reconstruct
                 _stats.DepthFrame++;
             }
 
+            var rightPose = Pose3.Identity;
+            var capPose = Pose3.Identity;
+            var leftPose = Pose3.Identity;
+            var captureView = Matrix4x4.Identity;
+
             if (_rightRecorder!.ProcessEncodedFrames(out var tsRight))
+            {
+                if (tsRight != 0)
+                    rightPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsRight * 1000).Pose;
                 _stats.RightFrame++;
+            }
 
-            if (_screenRecorder!.ProcessEncodedFrames(out var tsCap))
+            if (_screenRecorder.ProcessEncodedFrames(out var tsCap))
+            {
+                if (tsCap != 0)
+                    capPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsCap * 1000).Pose;
                 _stats.ScreenFrame++;
+            }
 
-            var rightPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsRight * 1000).Pose;
-            var capPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsCap * 1000).Pose;
 
             while (true)
             {
@@ -214,7 +230,25 @@ namespace XrEngine.Reconstruct
 
                 _stats!.LeftFrame++;
 
-                var leftPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsLeft * 1000).Pose;
+                if (tsLeft != 0)
+                    leftPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsLeft * 1000).Pose;
+
+                if (tsCap != 0)
+                {
+                    var screenViews = new View[2];
+                    screenViews[0].Type = StructureType.View;
+                    screenViews[1].Type = StructureType.View;
+
+                    XrApp.Current.LocateViews(XrApp.Current.ReferenceSpace, tsCap * 1000, screenViews);
+
+                    var captureWord = screenViews[0].Pose.ToPose3().ToMatrix();
+                    Matrix4x4.Invert(captureWord, out captureView);
+
+                    //var leftOfs = screenViews[0].Pose.ToPose3().Difference(capPose);
+
+                    //Console.WriteLine(leftOfs.ToString());
+                }
+
 
                 var frameData = new RecordFrameData
                 {
@@ -252,7 +286,8 @@ namespace XrEngine.Reconstruct
                     {
                         Time = tsCap,
                         Pose = capPose,
-                        Frame = _stats.ScreenFrame
+                        Frame = _stats.ScreenFrame,
+                        View = captureView.ToFloatArray()
                     }
                 };
 
@@ -304,6 +339,8 @@ namespace XrEngine.Reconstruct
         public Texture2D RightTex => _rightTex;
 
         public ICameraDevice? CameraLeft => _cameraLeft;
+
+        public RecordStats? Stats => _stats;
 
     }
 }

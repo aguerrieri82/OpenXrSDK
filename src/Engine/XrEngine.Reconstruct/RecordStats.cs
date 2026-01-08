@@ -19,6 +19,8 @@ namespace XrEngine.Reconstruct
     {
         public List<RecordStatsImage> Images { get; set; } = [];
 
+        public Pose3 ScenePosition { get; set; }
+
         public int DepthFrame { get; set; }
 
         public int RightFrame { get; set; }

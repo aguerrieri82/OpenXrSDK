@@ -1540,9 +1540,63 @@ namespace XrSamples
                 });
         }
 
+        [Sample("Panorama Maker")]
+        public static XrEngineAppBuilder CreatePanoramaMaker(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
 
-        [Sample("Capture2")]
-        public static XrEngineAppBuilder CreateCapture2(this XrEngineAppBuilder builder)
+            var scene = app.ActiveScene!;
+
+            var maker = scene.AddComponent<PanoramaMaker>();
+
+            scene.AddChild(new CubeView(maker.CubeTexture));
+
+            var display = new TriangleMesh(Quad3D.Default, new TextureMaterial(maker.CameraTexture));
+
+            display.Name = "display2";
+
+            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+
+            scene.AddChild(display);
+
+            return builder
+                .UseApp(app)
+                .UseClickMoveFront(display, 0.5f)
+                .ConfigureApp(cfg =>
+                {
+                    maker.Configure(cfg.Inputs!);
+                })
+                .ConfigureSampleApp();
+        }
+
+        public static XrEngineAppBuilder CreateReconstructPlayer(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+            scene.AddComponent(new XrReconstructPlayer());
+
+            var quad = new TriangleMesh(new Quad3D(new Vector2(2, 2)), new TextureClipMaterial
+            {
+                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/check.png"),
+                Alpha = AlphaMode.Opaque,
+                Color = new Color(1, 1, 1, 0.7f),
+                WriteDepth = false,
+                UseDepth = false,
+                DoubleSided = true
+            });
+
+            scene.AddChild(quad);
+
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Capture")]
+        public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
 
             static Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
@@ -1616,9 +1670,6 @@ namespace XrSamples
             ICameraDevice? cameraLeft = null;
             ICameraDevice? cameraRight = null;
 
-            long lastFrameLeft = -1;
-            long lastFrameRight = -1;
-
 
             scene.AddBehavior((_, _) =>
             {
@@ -1681,8 +1732,9 @@ namespace XrSamples
         }
 
 
-        [Sample("Capture")]
-        public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
+
+        [Sample("Reconstruct Capture")]
+        public static XrEngineAppBuilder CreateReconstructCapture(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
 
@@ -1708,24 +1760,50 @@ namespace XrSamples
 
             var sharedPath = Context.Require<IPlatform>().SharedPath;
 
-            scene.AddBehavior((_, _) =>
+            var isRoomCaptured = false;
+
+            scene.AddBehavior((_, ctx) =>
             {
                 if (cameraState == 0 && recoder.LeftTex.Handle != 0)
                 {
                     cameraState = 1;
 
-                    _ = recoder.StartCaptureAsync(Context.Require<IPlatform>().SharedPath!).ContinueWith(a =>
+                    recoder.StartCaptureAsync(Context.Require<IPlatform>().SharedPath!).ContinueWith(a =>
                     {
                         cameraState = 2;
                     });
                 }
 
+                if (!isRoomCaptured)
+                {
+                    var model = scene.FindByName<TriangleMesh>("Mesh");
+                    if (model != null && model.Component<XrAnchorUpdate>().HasPose)
+                    {
+                        model.Geometry!.EnsureIndices();
+                        var writer = new ObjWriter();
+                        writer.Add(model);
+                        File.WriteAllText(Path.Combine(sharedPath, "scene.obj"), writer.Text());
+                        recoder.Stats!.ScenePosition = model.GetWorldPose();
+                        model.Remove();
+                        isRoomCaptured = true;
+                    }
+
+                }
+
                 if (cameraState == 2)
                 {
-                    recoder.CaptureFrame(scene.ActiveCamera!);
+                    try
+                    {
+                        recoder.CaptureFrame(scene.ActiveCamera!);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("CreateReconstructCapture", ex, "CaptureFrame");
+                    }
+
                     recoder.UpdateTextures();
 
-                    if ((DateTime.Now - _startTime).TotalSeconds >= 20)
+                    if ((DateTime.Now - _startTime).TotalSeconds >= 30)
                     {
                         recoder.StopCapture();
                         cameraState = 3;
@@ -1737,6 +1815,7 @@ namespace XrSamples
                 .UseApp(app)
                 .UseClickMoveFront(display, 0.5f)
                 .UseEnvironmentDepth()
+                .UseSceneMesh(true, false)
                 .ConfigureSampleApp();
         }
 
@@ -2056,12 +2135,44 @@ namespace XrSamples
 
             app.ActiveScene!.AddChild(cube);
 
+            var quad = new TriangleMesh(new Quad3D(new Vector2(2, 2)), new TextureClipMaterial
+            {
+                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/check.png"),
+                Alpha = AlphaMode.Opaque,
+                Color = new Color(1, 1, 1, 0.7f),
+                WriteDepth = false,
+                UseDepth = false,
+                DoubleSided = true
+            });
+
+            app.ActiveScene!.AddChild(quad);
+
+            app.ActiveScene.AddBehavior((_, ctx) =>
+            {
+                if (XrApp.Current != null && XrApp.Current.IsStarted)
+                {
+                    var mesh = XrApp.Current.GetVisibilityMask(0, Silk.NET.OpenXR.VisibilityMaskTypeKHR.LineLoopKhr);
+                    if (ctx.Scene?.ActiveCamera?.Eyes != null)
+                    {
+                        var v3 = mesh.Vertices.Select(a => new Vector3(a.X, a.Y, -1)).ToArray();
+                        var proj = ctx.Scene.ActiveCamera.Eyes[0].Projection;
+                        var projVert = v3.Select(a => a.Project(proj)).ToArray();
+
+
+                        var builder = new Bounds3Builder();
+                        builder.Add(projVert);
+                        var bb = builder.Result;
+
+                    }
+
+                }
+
+            });
+
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
-
-
 
 
         [Sample("Animated Cubes")]

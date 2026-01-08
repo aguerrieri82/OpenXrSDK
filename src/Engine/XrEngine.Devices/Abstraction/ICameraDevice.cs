@@ -26,6 +26,15 @@ namespace XrEngine.Devices
         RenderOnTexture = 1
     }
 
+    public struct CameraParamsRange<T> where T : struct
+    {
+        public T Min;
+
+        public T Max;
+
+        public bool Enabled;
+    }
+
     public class CameraParams
     {
         public Vector3? Position { get; set; }
@@ -35,6 +44,12 @@ namespace XrEngine.Devices
         public float[]? Intrinsic { get; set; }
 
         public Size2I? SensorSize { get; set; }
+
+        public CameraParamsRange<int> SensitivityISO { get; set; }
+
+        public CameraParamsRange<long> ExpositionTimeNs { get; set; }
+
+        public CameraParamsRange<long> WhiteBalance { get; set; }
 
         public float Fx => Intrinsic?[0] ?? 0;
 
@@ -50,6 +65,9 @@ namespace XrEngine.Devices
 
         public Pose3 GetLensPose()
         {
+            if (Rotation == null || Position == null)
+                return Pose3.Identity;
+
             var worldRot = Quaternion.Inverse(Rotation!.Value);
             var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, (float)Math.PI);
 
@@ -62,11 +80,36 @@ namespace XrEngine.Devices
 
     }
 
+    public enum CameraParamMode
+    {
+        Unset,
+        Manual,
+        Auto,
+        Lock
+    }
+
+    public struct CameraConfigurationParam<T> where T : struct
+    {
+        public CameraParamMode Mode;
+
+        public T Value;
+    }
+
+    public class CameraConfiguration
+    {
+        public CameraConfigurationParam<long> ExpositionTimeNs;
+
+        public CameraConfigurationParam<int> SensitivityIso;
+
+    }
+
     public interface ICameraDevice
     {
         IList<VideoFormat> GetSupportedFormats();
 
         Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null, NativeSurface? outSurface = null);
+
+        void Configure(CameraConfiguration configuration);
 
         Task OpenAsync();
 
@@ -77,6 +120,7 @@ namespace XrEngine.Devices
         void StopCapture();
 
         void UpdateTexture();
+
 
         event Action<CaptureImage>? NewImage;
 

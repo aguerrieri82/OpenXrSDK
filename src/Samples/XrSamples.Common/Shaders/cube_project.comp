@@ -1,0 +1,80 @@
+﻿
+precision highp imageCube;
+precision highp int;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// Texture Input (Video Frame)
+layout(binding=0) uniform samplerExternalOES uSourceTexture;
+
+layout(rgba16f, binding = 0) restrict uniform readonly imageCube uInCubemap;
+layout(rgba16f, binding = 1) restrict uniform writeonly imageCube uOutCubemap;
+
+uniform mat4 uViewInv;   // Matrice Posa Inversa (World -> Camera)
+uniform mat3 uK;         // Matrice Intrinseca
+uniform float uFaceSize; // Risoluzione Faccia Cubemap
+uniform float uProxyDepth;
+
+
+vec3 getRayFromFace(uint face, vec2 uv) {
+    // UV sono in range [-1, 1]
+    float u = uv.x;
+    float v = uv.y;
+    
+    // Convenzione OpenGL Cubemap
+    // 0: +X, 1: -X, 2: +Y, 3: -Y, 4: +Z, 5: -Z
+    if (face == 0u) return normalize(vec3( 1, -v, -u)); // +X
+    if (face == 1u) return normalize(vec3(-1, -v,  u)); // -X
+    if (face == 2u) return normalize(vec3( u,  1,  v)); // +Y
+    if (face == 3u) return normalize(vec3( u, -1, -v)); // -Y
+    if (face == 4u) return normalize(vec3( u, -v,  1)); // +Z
+    if (face == 5u) return normalize(vec3(-u, -v, -1)); // -Z
+    return vec3(0);
+}
+
+void main() {
+    ivec3 cubeCoord = ivec3(gl_GlobalInvocationID.xyz);
+
+    if (cubeCoord.x >= int(uFaceSize) || cubeCoord.y >= int(uFaceSize)) 
+        return;
+
+    vec2 textSize = vec2(1280.0,1280.0);
+
+    vec2 ndc = (vec2(cubeCoord.xy) + 0.5) / uFaceSize; 
+    ndc = ndc * 2.0 - 1.0;
+
+    vec3 rayWorld = getRayFromFace(uint(cubeCoord.z), ndc);
+    vec3 pWorld = rayWorld * uProxyDepth;
+    vec4 pCam = uViewInv * vec4(pWorld, 1.0);
+
+    if (pCam.z >= 0.0) 
+        return;
+
+    vec3 uvProjected = uK * pCam.xyz;
+    vec2 srcUV = (uvProjected.xy / uvProjected.z) / textSize;
+
+    if (srcUV.x >= 0.0 && srcUV.x <= 1.0 && srcUV.y >= 0.0 && srcUV.y <= 1.0) {
+
+        srcUV.x = 1.0 - srcUV.x;
+        vec3 sampleColor = texture(uSourceTexture, srcUV).rgb;
+
+        vec2 d = srcUV - 0.5;
+        float distSq = dot(d, d); 
+        float weight = max(0.0, 1.0 - (distSq * 4.0)); 
+        weight = weight * weight; // Aumenta falloff
+
+        if (weight > 0.0001) {
+
+            vec4 accumulator = imageLoad(uInCubemap, cubeCoord);
+            
+            accumulator.rgb += sampleColor * weight;
+            accumulator.a += weight;
+
+            imageStore(uOutCubemap, cubeCoord, vec4(sampleColor, 1.0));
+        }
+
+    }
+    
+
+}
+

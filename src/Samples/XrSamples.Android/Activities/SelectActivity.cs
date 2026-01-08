@@ -23,7 +23,7 @@ namespace XrSamples.Android.Activities
         private readonly GameSettings _settings = GameSettings.Helmet();
         private IList<AppSample>? _samples;
 
-        protected unsafe override void OnCreate(Bundle? savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
             System.Diagnostics.Debug.WriteLine("Hello from SelectActivity.OnCreate");
 
@@ -40,7 +40,7 @@ namespace XrSamples.Android.Activities
 
             //Samples
             var manager = XrEngine.Context.Require<SampleManager>();
-            manager.AddType(typeof(XrSamples.Dnd.Builder));
+            manager.AddType(typeof(Dnd.Builder));
 
             _samples = manager.List();
 

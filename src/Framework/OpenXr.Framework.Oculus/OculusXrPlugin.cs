@@ -448,7 +448,7 @@ namespace OpenXr.Framework.Oculus
 
         }
 
-        public unsafe Mesh GetSpaceTriangleMesh(Space space)
+        public unsafe Mesh3 GetSpaceTriangleMesh(Space space)
         {
             var info = new SpaceTriangleMeshGetInfoMETA
             {
@@ -474,7 +474,7 @@ namespace OpenXr.Framework.Oculus
                 result.Indices = pIndex;
                 _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
-                return new Mesh
+                return new Mesh3
                 {
                     Vertices = vertexArray.Convert().To<Vector3>().ToArray(),
                     Indices = indexArray
@@ -512,7 +512,7 @@ namespace OpenXr.Framework.Oculus
 
             if (buffer.Type == StructureType.EventDataSpaceQueryCompleteFB)
             {
-                ref var data = ref buffer.Convert().AsRef<EventDataSpaceQueryCompleteFB>();
+                var data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
 
                 var query = QueryCompletion<Result>(data.RequestId);
 
@@ -522,7 +522,7 @@ namespace OpenXr.Framework.Oculus
 
             else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
             {
-                ref var data = ref buffer.Convert().AsRef<EventDataSpaceSetStatusCompleteFB>();
+                var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
 
                 var query = QueryCompletion<Result>(data.RequestId);
 
@@ -531,7 +531,7 @@ namespace OpenXr.Framework.Oculus
 
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
-                ref var data = ref buffer.Convert().AsRef<EventDataSpaceQueryResultsAvailableFB>();
+                var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
 
                 var query = QueryCompletion<SpaceQueryResultFB[]>(data.RequestId);
 

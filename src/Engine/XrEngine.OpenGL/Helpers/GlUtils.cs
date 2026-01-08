@@ -139,6 +139,7 @@ namespace XrEngine.OpenGL
 
 
                     TextureFormat.Rgb24 => InternalFormat.Rgb8,
+                    TextureFormat.SRgb24 => InternalFormat.Srgb8,
 
                     TextureFormat.Rg88 => InternalFormat.RG8,
 
@@ -243,6 +244,7 @@ namespace XrEngine.OpenGL
                 InternalFormat.DepthComponent32f => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent16 => TextureFormat.Depth16,
+                InternalFormat.Rgb8 => TextureFormat.Rgb24,
                 _ => throw new NotSupportedException(),
             };
         }

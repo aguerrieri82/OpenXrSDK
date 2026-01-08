@@ -4,7 +4,7 @@ uniform int uCurrentMipLevel;
 
 void main() 
 {
-	vec2 newUV = inUV*2.0-1.0;
+	vec2 newUV = fUv*2.0-1.0;
 	
 	for (int face = 0; face < 6; ++face)
 	{
@@ -25,7 +25,7 @@ void main()
 	// y-coordinate: roughness
 	if (uCurrentMipLevel == 0)
 	{	
-		outLUT = LUT(inUV.x, inUV.y);
+		outLUT = LUT(fUv.x, fUv.y);
 	}
 
 }

@@ -6,13 +6,13 @@ precision highp float;
 
 #endif  
 
-out vec2 inUV;
+out vec2 fUv;
 
 void main()
 {
    float x = -1.0 + float((gl_VertexID & 1) << 2);
    float y = -1.0 + float((gl_VertexID & 2) << 1);
-   inUV.x = (x+1.0)*0.5;
-   inUV.y = (y+1.0)*0.5;    
+   fUv.x = (x+1.0)*0.5;
+   fUv.y = (y+1.0)*0.5;    
    gl_Position = vec4(x, y, 0.0, 1.0);
 }

@@ -13,6 +13,7 @@ using Android.Views;
 using Common.Interop;
 using Java.Util.Concurrent;
 using System;
+using System.Diagnostics.Metrics;
 using System.Runtime.Versioning;
 using XrEngine.Media;
 using XrMath;
@@ -123,7 +124,10 @@ namespace XrEngine.Devices.Android
         protected Handler? _backgroundHandler;
         protected int? _imageSize;
         protected SurfaceTexture? _surfaceTex;
-        private CameraCharacteristics? _chars;
+        protected CameraCharacteristics? _chars;
+        protected Surface? _outSurface = null;
+        protected Surface? _texSurface = null;
+        private CameraConfiguration _configuration;
 
         public AndroidCamera2(string deviceId, CameraManager manager)
         {
@@ -194,12 +198,30 @@ namespace XrEngine.Devices.Android
             var calib = (float[])_chars.Get(CameraCharacteristics.LensIntrinsicCalibration)!;
             var sensorSize = (Size)_chars.Get(CameraCharacteristics.SensorInfoPixelArraySize)!;
 
+            var capabilities = (int[])_chars.Get(CameraCharacteristics.RequestAvailableCapabilities)!;
+
+            var isManualSupported = capabilities?.Contains((int)RequestAvailableCapabilities.ManualSensor);
+
+            var isoRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.SensorInfoSensitivityRange)!;
+
+            var timeRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.SensorInfoExposureTimeRange)!;
+
             return new CameraParams
             {
                 Rotation = new System.Numerics.Quaternion(rot[0], rot[1], rot[2], rot[3]),
                 Position = new System.Numerics.Vector3(trans[0], trans[1], trans[2]),
                 Intrinsic = calib,
-                SensorSize = new Size2I((uint)sensorSize.Width, (uint)sensorSize.Height)
+                SensorSize = new Size2I((uint)sensorSize.Width, (uint)sensorSize.Height),
+                SensitivityISO = new CameraParamsRange<int>
+                {
+                    Min = (int)(isoRange?.Lower ?? 0),
+                    Max = (int)(isoRange?.Upper ?? 0),
+                },
+                ExpositionTimeNs = new CameraParamsRange<long>
+                {
+                    Min = (long)(timeRange?.Lower ?? 0),
+                    Max = (long)(timeRange?.Upper ?? 0),
+                }
             };
         }
 
@@ -214,13 +236,10 @@ namespace XrEngine.Devices.Android
 
             List<OutputConfiguration> outs = [new OutputConfiguration(_reader.Surface!)];
 
-            Surface? texSurface = null;
+            _outSurface = outSurface?.Native as Surface;
 
-
-            if (outSurface?.Native is Surface outSurfaceA)
-            {
-                outs.Add(new OutputConfiguration(outSurfaceA));
-            }
+            if (_outSurface != null)
+                outs.Add(new OutputConfiguration(_outSurface));
 
             if (outTexture != null)
             {
@@ -229,12 +248,12 @@ namespace XrEngine.Devices.Android
                 _surfaceTex = new SurfaceTexture((int)glText);
                 _surfaceTex.SetDefaultBufferSize(format.Width, format.Height);
 
-                texSurface = new Surface(_surfaceTex);
+                _texSurface = new Surface(_surfaceTex);
 
                 outTexture.Width = (uint)format.Width;
                 outTexture.Height = (uint)format.Height;
 
-                outs.Add(new OutputConfiguration(texSurface));
+                outs.Add(new OutputConfiguration(_texSurface));
             }
 
             var config = new SessionConfiguration(
@@ -249,16 +268,57 @@ namespace XrEngine.Devices.Android
 
             _session = await _sessionSource.Task;
 
+
+            Rebuild();
+        }
+
+        protected void Rebuild()
+        {
+            Debug.Assert(_session != null);
+            Debug.Assert(_device != null);
+            Debug.Assert(_reader != null);
+
             var captureRequest = _device.CreateCaptureRequest(CameraTemplate.Record);
             captureRequest.AddTarget(_reader.Surface!);
 
-            if (texSurface != null)
-                captureRequest.AddTarget(texSurface);
+            if (_texSurface != null)
+                captureRequest.AddTarget(_texSurface);
 
-            if (outSurface?.Native != null)
-                captureRequest.AddTarget((Surface)outSurface.Value.Native);
+            if (_outSurface != null)
+                captureRequest.AddTarget(_outSurface);
+
+            if (_configuration != null)
+            {
+                if (_configuration.SensitivityIso.Mode == CameraParamMode.Manual)
+                    captureRequest.Set(CaptureRequest.SensorSensitivity!, _configuration.SensitivityIso.Value);
+
+                if (_configuration.ExpositionTimeNs.Mode == CameraParamMode.Manual)
+                {
+                    captureRequest.Set(CaptureRequest.ControlAeMode!, (int)ControlAEMode.Off);
+                    captureRequest.Set(CaptureRequest.ControlAeLock!, false);
+                    captureRequest.Set(CaptureRequest.SensorExposureTime!, _configuration.ExpositionTimeNs.Value);
+                }
+
+                else if (_configuration.ExpositionTimeNs.Mode == CameraParamMode.Auto)
+                {
+                    captureRequest.Set(CaptureRequest.ControlAeMode!, (int)ControlAEMode.On);
+                    captureRequest.Set(CaptureRequest.ControlAeLock!, false);
+                }
+                else if (_configuration.ExpositionTimeNs.Mode == CameraParamMode.Lock)
+                {
+                    captureRequest.Set(CaptureRequest.ControlAeMode!, (int)ControlAEMode.On);
+                    captureRequest.Set(CaptureRequest.ControlAeLock!, true);
+                }
+            }
 
             _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), new Handler(_backgroundHandler!.Looper));
+        }
+
+
+        public void Configure(CameraConfiguration configuration)
+        {
+            _configuration = configuration;
+            Rebuild();
         }
 
         public void StopCapture()

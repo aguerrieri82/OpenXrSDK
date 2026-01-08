@@ -11,6 +11,14 @@ using XrMath;
 
 namespace XrEngine.Reconstruct
 {
+    public class ExportFrame
+    {
+        public float[]? PoseMatrix { get; set; }
+
+        public int FrameNumber { get; set; }
+
+        public string? FramePath { get; set; }
+    }
 
     public struct FrameStats<T> where T : struct
     {
@@ -89,6 +97,7 @@ namespace XrEngine.Reconstruct
         private static readonly bool _fixView = false;
         private IVideoReader? _scrColorReader;
         private RecordStats? _stats;
+        private TriangleMesh? _sceneModel;
 
         static readonly JsonSerializerOptions JSON_OPT = new JsonSerializerOptions()
         {
@@ -100,6 +109,34 @@ namespace XrEngine.Reconstruct
         {
         }
 
+        public void ExportFrames(string outPath)
+        {
+            var frameArray = new List<ExportFrame>();
+            var lastFrameIndex = -1;
+            var toSkip = 0;
+            foreach (var item in _meta.Take(_meta.Count - 6))
+            {
+                toSkip++;
+
+                if (lastFrameIndex == item.LeftColor!.Frame)
+                    continue;
+
+                if ((toSkip % 10) != 0)
+                    continue;
+
+                ReadColor(item.LeftColor!.Frame);
+
+                var obj = new ExportFrame()
+                {
+                    PoseMatrix = item.LeftColor.Pose!.Value.ToMatrix().ToFloatArray(),
+                    FrameNumber = item.LeftColor.Frame,
+                    FramePath = Path.Combine(_basePath!, "Frames", "Left" + item.LeftColor.Frame + ".img")
+                };
+                frameArray.Add(obj);
+                lastFrameIndex = item.LeftColor.Frame;
+            }
+            File.WriteAllText(outPath, JsonSerializer.Serialize(frameArray));
+        }
 
         public void Open(string path)
         {
@@ -111,6 +148,7 @@ namespace XrEngine.Reconstruct
             var outPath2 = Path.Combine(path, "outR.mp4");
             var outPath3 = Path.Combine(path, "outScr.mp4");
             var statsPath = Path.Combine(path, "stats.json");
+            var scenePath = Path.Combine(path, "scene.obj");
 
             var lines = File.ReadAllLines(outMetaPath);
 
@@ -142,6 +180,8 @@ namespace XrEngine.Reconstruct
 
             _stats = JsonSerializer.Deserialize<RecordStats>(File.ReadAllText(statsPath), JSON_OPT)!;
 
+
+            _sceneModel = AssetLoader.Instance.Load<TriangleMesh>(scenePath);
         }
 
         public void ReconstructDepth(DepthFrame frame, uint width, uint height, float zCutOff, uint maxW = 288)
@@ -379,6 +419,7 @@ namespace XrEngine.Reconstruct
             result.Time = meta.Time;
             result.Pose = meta.Pose;
             result.Data = data.Data;
+            result.View = MathUtils.CreateMatrix(meta.View!);
 
             return result;
         }
@@ -638,5 +679,10 @@ namespace XrEngine.Reconstruct
         public CameraParams? LeftCamera { get; protected set; }
 
         public CameraParams? RightCamera { get; protected set; }
+
+        public TriangleMesh? SceneModel => _sceneModel;
+
+
+        public static readonly XrReconstructReader Current = new XrReconstructReader();
     }
 }

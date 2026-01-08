@@ -75,6 +75,11 @@ out vec2 fUv;
     out vec3 fOrigin;
 #endif
 
+#ifdef HAS_COLORMAP_PROJ
+    uniform mat4 uColorMapProj;
+    out vec4 fProjCoord;
+#endif
+
 void main()
 {
     #ifdef USE_INSTANCE
@@ -137,6 +142,10 @@ void main()
 
     #ifdef USE_CLIP_PLANE 
         gl_ClipDistance[0] = -dot(pos, uClipPlane);
+    #endif
+    
+    #ifdef HAS_COLORMAP_PROJ
+        fProjCoord = uColorMapProj * pos;
     #endif
 
     computePos(pos);

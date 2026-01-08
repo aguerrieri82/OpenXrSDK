@@ -532,6 +532,15 @@ namespace XrEngine
 
             }
 
+            if (ColorMapProjection != null)
+            {
+                bld.AddFeature("HAS_COLORMAP_PROJ");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uColorMapProj", ColorMapProjection.Value);
+                });
+            }
+
             if (ClipVolume != null)
             {
                 bld.AddFeature("HAS_CLIP_VOLUME");
@@ -724,6 +733,8 @@ namespace XrEngine
         public static bool ForceIblTransform { get; set; } = true;
 
         public Matrix3x3? UV0Transform { get; set; }
+
+        public Matrix4x4? ColorMapProjection { get; set; }
 
         bool IPbrMaterial.ToneMap
         {
