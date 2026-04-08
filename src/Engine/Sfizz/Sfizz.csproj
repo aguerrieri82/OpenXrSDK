@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0-preview.2.26159.112" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<PackageReference Include="NAudio.Core" Version="2.2.1" />
+		<PackageReference Include="NAudio.Core" Version="2.3.0" />
 		<Content Include="sfizz_api.dll" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 

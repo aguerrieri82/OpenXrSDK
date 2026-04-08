@@ -10,7 +10,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = false;
+        public static readonly bool EnableVSync = true;
 
         public static readonly bool EnablePreview = true;
 
@@ -35,16 +35,17 @@ namespace XrEditor
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
+                  opt.SampleCount = 4;
+
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;
-                  opt.SampleCount = 1;
 
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateCube()
+              .CreateRoomManager()
               .Build();
     }
 }

@@ -1262,8 +1262,7 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
-        public static Material LoadMaterial(string url)
+        static Material LoadMaterial(string url)
         {
             var gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
             return gltf.Materials[0];
@@ -1552,9 +1551,7 @@ namespace XrSamples
             scene.AddChild(new CubeView(maker.CubeTexture));
 
             var display = new TriangleMesh(Quad3D.Default, new TextureMaterial(maker.CameraTexture));
-
-            display.Name = "display2";
-
+            display.Name = "camera_preview";
             display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
 
             scene.AddChild(display);
@@ -1575,19 +1572,6 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
             scene.AddComponent(new XrReconstructPlayer());
-
-            var quad = new TriangleMesh(new Quad3D(new Vector2(2, 2)), new TextureClipMaterial
-            {
-                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/check.png"),
-                Alpha = AlphaMode.Opaque,
-                Color = new Color(1, 1, 1, 0.7f),
-                WriteDepth = false,
-                UseDepth = false,
-                DoubleSided = true
-            });
-
-            scene.AddChild(quad);
-
 
             return builder
                 .UseApp(app)
@@ -1655,10 +1639,8 @@ namespace XrSamples
 
             var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
 
-            display.Name = "display2";
-
+            display.Name = "camera_display";
             display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
-
             display.AddComponent<MeshCollider>();
 
             scene.AddChild(display);
@@ -1669,7 +1651,6 @@ namespace XrSamples
 
             ICameraDevice? cameraLeft = null;
             ICameraDevice? cameraRight = null;
-
 
             scene.AddBehavior((_, _) =>
             {
@@ -1740,35 +1721,30 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var recoder = new XrReconstructRecorder();
+            var recorder = new XrReconstructRecorder();
 
             CameraParams cameraParams = new();
 
-            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(recoder.LeftTex, recoder.RightTex));
+            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(recorder.LeftTex, recorder.RightTex));
 
-            display.Name = "display2";
-
+            display.Name = "capture_display";
             display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
-
             display.AddComponent<MeshCollider>();
 
             scene.AddChild(display);
 
             var cameraState = 0;
-
-            var _startTime = DateTime.Now;
-
-            var sharedPath = Context.Require<IPlatform>().SharedPath;
-
+            var startTime = DateTime.Now;
             var isRoomCaptured = false;
+            var sharedPath = Context.Require<IPlatform>().SharedPath;
 
             scene.AddBehavior((_, ctx) =>
             {
-                if (cameraState == 0 && recoder.LeftTex.Handle != 0)
+                if (cameraState == 0 && recorder.LeftTex.Handle != 0)
                 {
                     cameraState = 1;
 
-                    recoder.StartCaptureAsync(Context.Require<IPlatform>().SharedPath!).ContinueWith(a =>
+                    recorder.StartCaptureAsync(Context.Require<IPlatform>().SharedPath!).ContinueWith(a =>
                     {
                         cameraState = 2;
                     });
@@ -1783,7 +1759,7 @@ namespace XrSamples
                         var writer = new ObjWriter();
                         writer.Add(model);
                         File.WriteAllText(Path.Combine(sharedPath, "scene.obj"), writer.Text());
-                        recoder.Stats!.ScenePosition = model.GetWorldPose();
+                        recorder.Stats!.ScenePosition = model.GetWorldPose();
                         model.Remove();
                         isRoomCaptured = true;
                     }
@@ -1794,18 +1770,18 @@ namespace XrSamples
                 {
                     try
                     {
-                        recoder.CaptureFrame(scene.ActiveCamera!);
+                        recorder.CaptureFrame(scene.ActiveCamera!);
                     }
                     catch (Exception ex)
                     {
                         Log.Error("CreateReconstructCapture", ex, "CaptureFrame");
                     }
 
-                    recoder.UpdateTextures();
+                    recorder.UpdateTextures();
 
-                    if ((DateTime.Now - _startTime).TotalSeconds >= 30)
+                    if ((DateTime.Now - startTime).TotalSeconds >= 30)
                     {
-                        recoder.StopCapture();
+                        recorder.StopCapture();
                         cameraState = 3;
                     }
                 }
@@ -2135,6 +2111,7 @@ namespace XrSamples
 
             app.ActiveScene!.AddChild(cube);
 
+            /*
             var quad = new TriangleMesh(new Quad3D(new Vector2(2, 2)), new TextureClipMaterial
             {
                 Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/check.png"),
@@ -2158,16 +2135,15 @@ namespace XrSamples
                         var proj = ctx.Scene.ActiveCamera.Eyes[0].Projection;
                         var projVert = v3.Select(a => a.Project(proj)).ToArray();
 
-
                         var builder = new Bounds3Builder();
                         builder.Add(projVert);
                         var bb = builder.Result;
-
                     }
 
                 }
 
             });
+            */
 
             return builder
                 .UseApp(app)

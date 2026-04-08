@@ -63,16 +63,15 @@ namespace XrEngine.Reconstruct
 
         Matrix4x4 ComputeProjViewMatrix(Matrix4x4 headMatrix, CameraParams cam)
         {
-            float w = cam.SensorSize.Value.Width;
-            float h = cam.SensorSize.Value.Height;
-            var fx = cam.Intrinsic[0];
+            var fx = cam.Intrinsic![0];
             var fy = cam.Intrinsic[1];
-            var cx = (cam.Intrinsic.Length > 2) ? cam.Intrinsic[2] : w / 2.0f;
-            var cy = (cam.Intrinsic.Length > 3) ? cam.Intrinsic[3] : h / 2.0f;
+            var cx = cam.Intrinsic[2];
+            var cy = cam.Intrinsic[3];
+            var w = cam.SensorSize!.Value.Width;
+            var h = cam.SensorSize.Value.Height;
 
             var near = 0.1f;
             var far = 100.0f;
-
 
             var projection = new Matrix4x4();
 
@@ -90,8 +89,8 @@ namespace XrEngine.Reconstruct
 
 
             var sensorWorldMatrix = cam.GetLensPose().ToMatrix() * headMatrix;
-            Matrix4x4 viewMatrix;
-            Matrix4x4.Invert(sensorWorldMatrix, out viewMatrix);
+
+            Matrix4x4.Invert(sensorWorldMatrix, out var viewMatrix);
 
             return viewMatrix * projection;
         }
@@ -143,14 +142,15 @@ namespace XrEngine.Reconstruct
 
         protected void LoadFrame()
         {
-            LoadFrameScreen();
+            LoadFrameColor();
         }
 
         protected void LoadFrameColor()
         {
             var meta = _reader.Meta![_frameNum];
 
-            var color = _reader.ReadColor(meta.Screen!.Frame).Left;
+            var color = _reader.ReadColor(meta.LeftColor!.Frame).Left;
+
 
             _leftFrame.LoadData(new TextureData
             {
@@ -158,7 +158,7 @@ namespace XrEngine.Reconstruct
                 Height = 1280,
                 Data = color.Data,
                 Format = TextureFormat.Rgb24
-            });
+            }, false);
 
             var imageStat = _reader.Stats?.Images.FirstOrDefault(a => a.ImageTime / 1000 == meta.LeftColor.Time);
 
@@ -178,7 +178,6 @@ namespace XrEngine.Reconstruct
                 _host!.ActiveCamera!.SetWorldPose(combinedPose);
 
             ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = ComputeProjViewMatrix(pose.ToMatrix(), camera);
-
 
         }
 
