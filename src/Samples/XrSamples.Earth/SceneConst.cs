@@ -6,7 +6,7 @@ namespace XrSamples.Earth
     {
         public static float Unit(float value)
         {
-            return value / 1000f;
+            return value / 1000;
         }
 
         public static Vector3 Unit(Vector3 value)

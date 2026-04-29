@@ -36,6 +36,8 @@ namespace XrEditor
                   opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
                   opt.SampleCount = 4;
+                  opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                  opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;

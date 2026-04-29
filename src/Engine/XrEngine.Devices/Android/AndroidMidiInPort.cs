@@ -1,4 +1,4 @@
-﻿#if ANDROID23_0_OR_GREATER
+﻿#if __ANDROID__
 
 using Android.Media.Midi;
 using Java.Lang;

@@ -1,4 +1,4 @@
-﻿#if ANDROID21_0_OR_GREATER
+﻿#if __ANDROID__
 
 using Android.Bluetooth;
 using Android.Runtime;
