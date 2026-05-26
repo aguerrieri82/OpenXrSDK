@@ -3,7 +3,7 @@
   <Import Project="..\..\AspNetCoreMini.props" />
 	
   <PropertyGroup>
-
+	  <TargetFrameworks>$(CoreVersion)</TargetFrameworks>
   </PropertyGroup>
 	
 
@@ -11,12 +11,6 @@
     <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
     <ProjectReference Include="..\XrWebLink.Entities\XrWebLink.Entities.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-preview.3.26207.106" />
-    <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0-preview.3.26207.106" />
-    <PackageReference Update="Microsoft.Extensions.Logging" Version="11.0.0-preview.3.26207.106" />
   </ItemGroup>
 
 </Project>

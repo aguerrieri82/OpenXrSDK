@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Common.NETCore" Version="146.0.100" />
-    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="146.0.100" />
+    <PackageReference Include="CefSharp.Common.NETCore" Version="147.0.100" />
+    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="147.0.100" />
 
   </ItemGroup>
 

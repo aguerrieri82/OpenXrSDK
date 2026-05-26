@@ -128,6 +128,8 @@ namespace XrSamples
 
             var data = new List<PoseTrainData>();
 
+            Debug.Assert(session?.Frames != null);
+
             foreach (var frame in session.Frames)
             {
                 if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
