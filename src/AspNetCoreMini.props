@@ -4,7 +4,7 @@
 
 	<PropertyGroup>
 		<AspNetRoot>$(NetCoreTargetingPackRoot)\..\shared\Microsoft.AspNetCore.App\$(BundledNETCoreAppPackageVersion)\</AspNetRoot>
-		<ExtensionsVersion>10.0.100</ExtensionsVersion>
+		<ExtensionsVersion>preview.4.26230.115</ExtensionsVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -62,7 +62,7 @@ namespace XrEngine.OpenXr
             {
                 FragmentSourceName = "motion_vectors.frag",
                 VertexSourceName = "motion_vectors.vert",
-                Resolver = str => Embedded.GetString(str)
+                Resolver = str => Embedded.GetString<XrEngine.OpenXr.Module>(str)
             };
         }
 
