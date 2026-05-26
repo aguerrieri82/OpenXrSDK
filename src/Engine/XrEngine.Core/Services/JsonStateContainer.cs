@@ -88,7 +88,7 @@ namespace XrEngine
 
         public readonly void Write(string key, object? value)
         {
-            bool mustSerialize = true;
+            var mustSerialize = true;
 
             if (value != null)
             {

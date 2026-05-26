@@ -158,6 +158,8 @@ namespace XrEngine
 
                 var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
+                if (ToneMap)
+                    bld.AddFeature("TONEMAP");
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {
@@ -186,18 +188,28 @@ namespace XrEngine
                 if (DepthNoiseFactor > 0)
                     bld.AddFeature("USE_DEPTH_NOISE");
 
-                if (bld.Context.ShadowMapProvider?.ShadowMap != null)
+                if (bld.Context.ShadowMapProvider?.Options != null)
                 {
-                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
+                    var options = bld.Context.ShadowMapProvider!.Options;
 
-                    if (mode != ShadowMapMode.None)
+                    var shadowMode = options.Mode;
+
+                    if (shadowMode != ShadowMapMode.None)
                     {
                         bld.AddFeature("USE_SHADOW_MAP");
-                        bld.AddFeature("SHADOW_MAP_MODE " + (int)mode);
+                        bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
+                        bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
 
                         bld.ExecuteAction((ctx, up) =>
                         {
-                            up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
+                            if (ctx.ShadowMapProvider?.ShadowMap != null)
+                                up.LoadTexture(ctx.ShadowMapProvider.ShadowMap, 14);
+
+                            if (options?.BiasMode == ShadowMapBiasMode.Value)
+                                up.SetUniform("uShadowBias", options!.Bias);
+
+                            if (shadowMode == ShadowMapMode.VSM)
+                                up.SetUniform("uLightBleed", options!.LightBleed);
                         });
                     }
                 }
@@ -263,14 +275,12 @@ namespace XrEngine
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var hash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion).ToString();
+                    var curHash = (bld.Context.Lights?.Sum(a => a.Version + a.ContentVersion) ?? -1);
 
-                    if (ctx.CurrentBuffer!.Hash == hash)
+                    if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                         return null;
 
-                    ctx.CurrentBuffer!.Hash = hash;
-
-                    //Log.Debug(this, "Build light uniforms");
+                    ctx.CurrentBuffer!.Hash = curHash;
 
                     if (!hasPunctual)
                     {
@@ -369,6 +379,8 @@ namespace XrEngine
             public float DepthNoiseFactor { get; set; }
 
             public float DepthNoiseDistance { get; set; }
+
+            public bool ToneMap { get; set; }
         }
 
         #endregion
@@ -399,7 +411,7 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
-            ToneMap = true;
+
             UseInstanceDraw = true;
         }
 
@@ -410,14 +422,18 @@ namespace XrEngine
             {
                 bld.LoadBuffer(ctx =>
                 {
-                    //Get the word matrix trigger the update
-                    var modelWord = ctx.Model!.WorldMatrix;
-
-                    var curVersion = ctx.Model!.Transform.Version;
-                    if (curVersion == ctx.CurrentBuffer!.Version)
+                    if (ctx.Model == null || ctx.CurrentBuffer == null)
                         return null;
 
-                    ctx.CurrentBuffer!.Version = curVersion;
+                    //Get the word matrix trigger the update
+                    var modelWord = ctx.Model.WorldMatrix;
+
+                    var curVersion = ctx.Model.Transform.Version;
+
+                    if (curVersion == ctx.CurrentBuffer.Version)
+                        return null;
+
+                    ctx.CurrentBuffer.Version = curVersion;
 
                     return (ModelUniforms?)new ModelUniforms
                     {
@@ -452,8 +468,6 @@ namespace XrEngine
             if (Simplified)
                 bld.AddFeature("SIMPLIFIED");
 
-            if (ToneMap)
-                bld.AddFeature("TONEMAP");
 
             if (UseEnvDepth)
                 bld.AddFeature("USE_ENV_DEPTH");
@@ -473,10 +487,10 @@ namespace XrEngine
             {
                 var curVersion = ContentVersion + Version;
 
-                if (curVersion == ctx.CurrentBuffer!.Version)
+                if (ctx.CurrentBuffer == null || curVersion == ctx.CurrentBuffer.Version)
                     return null;
 
-                ctx.CurrentBuffer!.Version = curVersion;
+                ctx.CurrentBuffer.Version = curVersion;
 
                 return (MaterialUniforms?)material;
 
@@ -491,7 +505,7 @@ namespace XrEngine
             {
                 var planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
 
-                if (planar != null)
+                if (planar != null && planar.IsEnabled)
                 {
                     bld.AddFeature("PLANAR_REFLECTION");
 
@@ -516,6 +530,15 @@ namespace XrEngine
                     });
                 }
 
+            }
+
+            if (ColorMapProjection != null)
+            {
+                bld.AddFeature("HAS_COLORMAP_PROJ");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uColorMapProj", ColorMapProjection.Value);
+                });
             }
 
             if (ClipVolume != null)
@@ -565,17 +588,19 @@ namespace XrEngine
                 });
             }
 
+            var uv0Transform = ColorMap?.Transform ?? UV0Transform;
+
+            if (uv0Transform != null)
+            {
+                bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
+                material.TexTransform = uv0Transform.Value;
+            }
+
 
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
                 bld.LoadTexture(ctx => ColorMap, 0);
-
-                if (ColorMap.Transform != null)
-                {
-                    bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
-                    material.TexTransform = ColorMap.Transform.Value;
-                }
 
                 bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
             }
@@ -599,7 +624,8 @@ namespace XrEngine
                 if (NormalMapFormat == NormalMapFormat.UnityBc3)
                     bld.AddFeature("NORMAL_MAP_BC3");
 
-                bld.LoadTexture(ctx => NormalMap, 1);
+                bld.LoadTexture(ctx =>
+                NormalMap, 1);
             }
 
             if (OcclusionMap != null)
@@ -688,7 +714,6 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }
 
-        public bool ToneMap { get; set; }
 
         //TODO: Implement AlphaCutoff   
         public float AlphaCutoff { get; set; }
@@ -703,8 +728,19 @@ namespace XrEngine
 
         public PbrV2Debug Debug { get; set; }
 
-        public static bool ForceIblTransform { get; set; }
-
         public bool UseInstanceDraw { get; set; }
+
+        public static bool ForceIblTransform { get; set; } = true;
+
+        public Matrix3x3? UV0Transform { get; set; }
+
+        public Matrix4x4? ColorMapProjection { get; set; }
+
+        bool IPbrMaterial.ToneMap
+        {
+            get => SHADER.ToneMap;
+            set => SHADER.ToneMap = value;
+        }
+
     }
 }

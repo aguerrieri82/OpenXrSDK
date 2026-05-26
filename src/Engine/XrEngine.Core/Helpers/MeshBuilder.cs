@@ -261,21 +261,21 @@ namespace XrEngine
         {
             var vertices = new List<VertexData>();
 
-            for (int lat = 0; lat <= subs; lat++)
+            for (var lat = 0; lat <= subs; lat++)
             {
-                float theta = lat * MathF.PI / subs;
-                float sinTheta = MathF.Sin(theta);
-                float cosTheta = MathF.Cos(theta);
+                var theta = lat * MathF.PI / subs;
+                var sinTheta = MathF.Sin(theta);
+                var cosTheta = MathF.Cos(theta);
 
-                for (int lon = 0; lon <= subs; lon++)
+                for (var lon = 0; lon <= subs; lon++)
                 {
-                    float phi = lon * 2 * MathF.PI / subs;
-                    float sinPhi = MathF.Sin(phi);
-                    float cosPhi = MathF.Cos(phi);
+                    var phi = lon * 2 * MathF.PI / subs;
+                    var sinPhi = MathF.Sin(phi);
+                    var cosPhi = MathF.Cos(phi);
 
-                    float x = sinTheta * cosPhi;
-                    float y = cosTheta;
-                    float z = sinTheta * sinPhi;
+                    var x = sinTheta * cosPhi;
+                    var y = cosTheta;
+                    var z = sinTheta * sinPhi;
 
                     var tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
 
@@ -291,12 +291,12 @@ namespace XrEngine
 
             var indices = new List<uint>();
 
-            for (int lat = 0; lat < subs; lat++)
+            for (var lat = 0; lat < subs; lat++)
             {
-                for (int lon = 0; lon < subs; lon++)
+                for (var lon = 0; lon < subs; lon++)
                 {
-                    int first = lat * (subs + 1) + lon;
-                    int second = first + subs + 1;
+                    var first = lat * (subs + 1) + lon;
+                    var second = first + subs + 1;
 
                     AddVertices(
                         vertices[first + 1],
@@ -488,14 +488,14 @@ namespace XrEngine
 
             for (var j = 0; j < pathPoints.Length - 1; j++)
             {
-                var (p0, t0) = Convert(pathPoints[j]);
-                var (p1, t1) = Convert(pathPoints[j + 1]);
+                (var p0, var t0) = Convert(pathPoints[j]);
+                (var p1, var t1) = Convert(pathPoints[j + 1]);
 
                 t1 = (t0 + t1) / 2;
 
                 if (j > 0)
                 {
-                    var (p2, t2) = Convert(pathPoints[j - 1]);
+                    (var p2, var t2) = Convert(pathPoints[j - 1]);
                     t0 = (t0 + t2) / 2;
                 }
 

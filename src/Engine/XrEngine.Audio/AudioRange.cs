@@ -1,5 +1,4 @@
-﻿using OpenAl.Framework;
-using XrEngine.Media;
+﻿using XrEngine.Media;
 
 namespace XrEngine.Audio
 {

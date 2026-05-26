@@ -67,11 +67,11 @@ namespace Sfizz
 
         public IEnumerable<Token> Tokenize(string data, string fileName)
         {
-            int state = 0;
+            var state = 0;
 
-            int i = 0;
-            int line = 0;
-            int col = 0;
+            var i = 0;
+            var line = 0;
+            var col = 0;
             var curText = new StringBuilder();
 
             Token CreateToken(TokenType type)
@@ -366,7 +366,7 @@ namespace Sfizz
                 _includes[fileName] = tokens;
             }
 
-            int i = 0;
+            var i = 0;
 
             Token NextToken(bool ignoreCommentAndSpace = true)
             {

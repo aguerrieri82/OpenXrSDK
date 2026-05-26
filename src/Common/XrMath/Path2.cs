@@ -22,15 +22,15 @@ namespace XrMath
             var A = P2 - 2 * P2 + P1;
             var B = 2 * (P2 - P1);
 
-            float a = Vector2.Dot(A, A);
-            float b = 2 * Vector2.Dot(A, B);
-            float c = Vector2.Dot(B, B);
+            var a = Vector2.Dot(A, A);
+            var b = 2 * Vector2.Dot(A, B);
+            var c = Vector2.Dot(B, B);
 
             // Define helper for the integral
-            float s = MathF.Sqrt(4 * a * c - b * b);
-            float term1 = MathF.Sqrt(a + b + c) / (2 * MathF.Sqrt(a));
-            float term2 = MathF.Sqrt(c) / (2 * MathF.Sqrt(a));
-            float integral = MathF.Asinh(s / (2 * MathF.Sqrt(a * c))) / MathF.Sqrt(a);
+            var s = MathF.Sqrt(4 * a * c - b * b);
+            var term1 = MathF.Sqrt(a + b + c) / (2 * MathF.Sqrt(a));
+            var term2 = MathF.Sqrt(c) / (2 * MathF.Sqrt(a));
+            var integral = MathF.Asinh(s / (2 * MathF.Sqrt(a * c))) / MathF.Sqrt(a);
 
             return (term1 - term2) / s;
         }
@@ -75,13 +75,13 @@ namespace XrMath
                     points.Add(Sample(0));
                     points.Add(Sample(1));
 
-                    foreach (float t in FindExtremaX())
+                    foreach (var t in FindExtremaX())
                     {
                         if (t >= 0 && t <= 1)
                             points.Add(Sample(t));
                     }
 
-                    foreach (float t in FindExtremaY())
+                    foreach (var t in FindExtremaY())
                     {
                         if (t >= 0 && t <= 1)
                             points.Add(Sample(t));
@@ -106,18 +106,18 @@ namespace XrMath
 
         private List<float> FindExtrema(float p1, float c1, float c2, float p2)
         {
-            float a = -3 * p1 + 9 * c1 - 9 * c2 + 3 * p2;
-            float b = 6 * p1 - 12 * c1 + 6 * c2;
-            float c = -3 * p1 + 3 * c1;
+            var a = -3 * p1 + 9 * c1 - 9 * c2 + 3 * p2;
+            var b = 6 * p1 - 12 * c1 + 6 * c2;
+            var c = -3 * p1 + 3 * c1;
 
             // Solve the quadratic equation: at^2 + bt + c = 0
             var roots = new List<float>();
             if (Math.Abs(a) > 1e-6f)
             {
-                float discriminant = b * b - 4 * a * c;
+                var discriminant = b * b - 4 * a * c;
                 if (discriminant >= 0)
                 {
-                    float sqrtD = MathF.Sqrt(discriminant);
+                    var sqrtD = MathF.Sqrt(discriminant);
                     roots.Add((-b + sqrtD) / (2 * a));
                     roots.Add((-b - sqrtD) / (2 * a));
                 }
@@ -220,11 +220,11 @@ namespace XrMath
 
         public Vector2 Sample(float t)
         {
-            float u = 1 - t;
-            float tt = t * t;
-            float uu = u * u;
-            float uuu = uu * u;
-            float ttt = tt * t;
+            var u = 1 - t;
+            var tt = t * t;
+            var uu = u * u;
+            var uuu = uu * u;
+            var ttt = tt * t;
 
             var point = uuu * P1; // (1-t)^3 * P1
             point += 3 * uu * t * C1; // 3(1-t)^2 * t * C1
@@ -236,7 +236,7 @@ namespace XrMath
 
         public Vector2 Tangent(float t)
         {
-            float u = 1 - t;
+            var u = 1 - t;
 
             // First derivative of the cubic Bézier curve
             var tangent =
@@ -272,10 +272,10 @@ namespace XrMath
 
         public static float GoldenSectionSearch(Func<float, float> f, float a, float b, float tol = 1e-5f)
         {
-            float gr = 1.618033988749895f; // Golden ratio
+            var gr = 1.618033988749895f; // Golden ratio
 
-            float c = b - (b - a) / gr;
-            float d = a + (b - a) / gr;
+            var c = b - (b - a) / gr;
+            var d = a + (b - a) / gr;
 
             while (Math.Abs(c - d) > tol)
             {
@@ -531,7 +531,7 @@ namespace XrMath
         {
             var samples = SamplesFixed(dt);
 
-            float lastY = float.NegativeInfinity;
+            var lastY = float.NegativeInfinity;
 
             var newPoints = new List<Vector2>();
 
@@ -555,7 +555,7 @@ namespace XrMath
         public DiscreteFunction ToFunctionX(float dt)
         {
             var samples = SamplesFixed(dt);
-            float lastX = float.NegativeInfinity;
+            var lastX = float.NegativeInfinity;
 
             var newPoints = new List<Vector2>();
 
@@ -614,15 +614,15 @@ namespace XrMath
 
         public void ParseSvgPath(string svgPath)
         {
-            int i = 0;
+            var i = 0;
             var startPoint = Vector2.Zero;
 
             List<float> args = [];
 
             while (i < svgPath.Length)
             {
-                char command = svgPath[i++];
-                bool isRelative = char.IsLower(command);
+                var command = svgPath[i++];
+                var isRelative = char.IsLower(command);
 
                 // Extract arguments for the command
                 args.Clear();
@@ -632,7 +632,7 @@ namespace XrMath
                     if (svgPath[i] == ',' || svgPath[i] == ' ')
                         i++; // Skip commas
 
-                    int start = i;
+                    var start = i;
 
                     // Parse the number
                     while (i < svgPath.Length && (char.IsDigit(svgPath[i]) || svgPath[i] == '-' || svgPath[i] == '.'))
@@ -646,7 +646,7 @@ namespace XrMath
                 switch (char.ToUpper(command))
                 {
                     case 'M': // Move to
-                        for (int j = 0; j < args.Count; j += 2)
+                        for (var j = 0; j < args.Count; j += 2)
                         {
                             var point = new Vector2(args[j], args[j + 1]);
                             if (isRelative)
@@ -658,7 +658,7 @@ namespace XrMath
                         break;
 
                     case 'L': // Line to
-                        for (int j = 0; j < args.Count; j += 2)
+                        for (var j = 0; j < args.Count; j += 2)
                         {
                             var point = new Vector2(args[j], args[j + 1]);
                             if (isRelative) point += _currentPoint;
@@ -669,7 +669,7 @@ namespace XrMath
 
                     case 'H': // Horizontal line
                         {
-                            float x = args[0];
+                            var x = args[0];
                             var point = new Vector2(isRelative ? _currentPoint.X + x : x, _currentPoint.Y);
                             LineTo(point);
                         }
@@ -677,14 +677,14 @@ namespace XrMath
 
                     case 'V': // Vertical line
                         {
-                            float y = args[0];
+                            var y = args[0];
                             var point = new Vector2(_currentPoint.X, isRelative ? _currentPoint.Y + y : y);
                             LineTo(point);
                         }
                         break;
 
                     case 'Q': // Quadratic Bézier
-                        for (int j = 0; j < args.Count; j += 4)
+                        for (var j = 0; j < args.Count; j += 4)
                         {
                             var c = new Vector2(args[j], args[j + 1]);
                             var p2 = new Vector2(args[j + 2], args[j + 3]);
@@ -701,7 +701,7 @@ namespace XrMath
 
 
                     case 'C': // Cubic Bézier
-                        for (int j = 0; j < args.Count; j += 6)
+                        for (var j = 0; j < args.Count; j += 6)
                         {
                             var c1 = new Vector2(args[j], args[j + 1]);
                             var c2 = new Vector2(args[j + 2], args[j + 3]);

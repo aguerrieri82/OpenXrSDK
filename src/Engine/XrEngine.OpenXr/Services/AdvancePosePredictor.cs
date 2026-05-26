@@ -77,11 +77,11 @@ namespace XrEngine.OpenXr
             q = Quaternion.Normalize(q);
 
             // Calculate the angle (acos of w gives half the angle)
-            float angle = 2.0f * MathF.Acos(q.W);
-            float sinHalfAngle = MathF.Sqrt(1.0f - q.W * q.W);
+            var angle = 2.0f * MathF.Acos(q.W);
+            var sinHalfAngle = MathF.Sqrt(1.0f - q.W * q.W);
 
             // Avoid division by zero for very small angles
-            Vector3 axis = sinHalfAngle > 0.001f
+            var axis = sinHalfAngle > 0.001f
                 ? new Vector3(q.X, q.Y, q.Z) / sinHalfAngle
                 : Vector3.UnitX; // Default axis if no significant rotation
 

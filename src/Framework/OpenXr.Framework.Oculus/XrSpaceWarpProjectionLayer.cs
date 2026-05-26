@@ -22,7 +22,7 @@ namespace OpenXr.Framework.Oculus
         private readonly unsafe SwapchainImageBaseHeader*[] _spDepthImages;
         private readonly Pose3[] _lastPose = new Pose3[2];
         private readonly bool _warpTexArray = true;
-            
+
         private readonly IMotionVectorProvider _motionProvider;
         private Extent2Di _motionImageSize;
         private bool _lastSpaceWarpActive;
@@ -138,7 +138,7 @@ namespace OpenXr.Framework.Oculus
                     info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF();
                     _lastPose[i] = curPose;
                 }
-          
+
                 if (!base.Render(ref projViews, ref views, swapchains, displayTime))
                     return false;
 

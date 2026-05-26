@@ -20,7 +20,11 @@
                     <TextBox VerticalAlignment="Bottom"  DockPanel.Dock="Top" Text="{Binding NodeName, Mode=TwoWay}"/>
                 </DockPanel>
 
-                <app:SKBitmapView Visibility="{Binding NodePreviewVisible, Converter={StaticResource BoolToVisibility}}" Width="100" Height="100" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding NodePreview}" />
+                <ContentControl 
+                    Visibility="{Binding NodePreviewVisible, Converter={StaticResource BoolToVisibility}}"
+                    Width="100" 
+                    Height="100" 
+                    Content="{Binding NodePreview}" />
 
                 <ItemsControl ItemsSource="{Binding Groups}">
                 </ItemsControl>

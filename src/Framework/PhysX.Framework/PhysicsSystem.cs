@@ -572,14 +572,14 @@ namespace PhysX.Framework
             uint error;
             float curTime = 0;
 
-            var test = _pvd->IsConnectedMut(false);
+            //var test = _pvd->IsConnectedMut(false);
 
             while (curTime < deltaSecs)
             {
                 if (curTime + stepSizeSecs > deltaSecs)
                 {
                     var curDeltaTime = deltaSecs - curTime;
-                    if (curDeltaTime < 0.005)
+                    if (curDeltaTime < 0.001)
                         break;
                     _lastDeltaTime = curDeltaTime;
                 }

@@ -1,9 +1,9 @@
-﻿using SkiaSharp;
+﻿using XrEditor.Abstraction;
 
 namespace XrEditor
 {
     public interface IItemPreview
     {
-        Task<SKBitmap?> CreatePreviewAsync();
+        Task<NativeImage?> CreatePreviewAsync();
     }
 }

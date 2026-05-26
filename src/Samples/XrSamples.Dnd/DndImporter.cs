@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
@@ -19,7 +18,7 @@ namespace XrSamples.Dnd
         private string _basePath = ".";
         private readonly HashSet<string> _unusedTex = [];
         private readonly List<string> _psNames = [];
-        List<Action> _tasks = [];   
+        readonly List<Action> _tasks = [];
 
         #region STRUCTS
 
@@ -369,7 +368,7 @@ namespace XrSamples.Dnd
             {
                 var curOfs = pBuf + offset;
 
-                int i = 0;
+                var i = 0;
                 while (i < count)
                 {
                     var data = *(T*)curOfs;
@@ -486,7 +485,7 @@ namespace XrSamples.Dnd
 
 
                     //Flip indices
-                    for (int i = 0; i < geo.Indices.Length; i += 3)
+                    for (var i = 0; i < geo.Indices.Length; i += 3)
                     {
                         var tmp = geo.Indices[i + 1];
                         geo.Indices[i + 1] = geo.Indices[i + 2];
@@ -535,7 +534,7 @@ namespace XrSamples.Dnd
             var mat = ProcessMaterial(draw.matId);
 
             var name = mat.GetProp<string>("ps_name");
-            bool rebuildNormals = name == "Dungeon Alchemist/likeCharlie/TreeLeaves";
+            var rebuildNormals = name == "Dungeon Alchemist/likeCharlie/TreeLeaves";
 
             var mesh = ProcessMesh(draw.meshId, rebuildNormals);
 
@@ -592,7 +591,7 @@ namespace XrSamples.Dnd
                     MapY = MathF.Max(MapY, item.WorldPosition.Y);
                 }
             }
-           
+
             main.AddChild(walls);
             main.AddChild(tiles);
         }

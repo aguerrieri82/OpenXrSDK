@@ -2,13 +2,13 @@
 {
     public class EyeTextureMaterial : ShaderMaterial
     {
-        static readonly Shader SHADER;
+        public static readonly Shader SHADER;
 
         static EyeTextureMaterial()
         {
             SHADER = new StandardVertexShader
             {
-                FragmentSourceName = "texture.frag",
+                FragmentSourceName = "texture_stereo.frag",
                 IsLit = false
             };
         }
@@ -37,16 +37,25 @@
             container.ReadObject<EyeTextureMaterial>(this);
         }
 
-
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            if (LeftTexture?.Type == TextureType.External)
+            {
+                bld.AddExtension("GL_OES_EGL_image_external_essl3");
+                bld.AddFeature("EXTERNAL");
+            }
+
             bld.ExecuteAction((ctx, up) =>
             {
-                if (((PerspectiveCamera)ctx.PassCamera!).ActiveEye == 0)
-                    up.SetUniform("uTexture", LeftTexture!, 0);
-                else
-                    up.SetUniform("uTexture", RightTexture!, 0);
+                if (LeftTexture == null || RightTexture == null)
+                    return;
+
+                up.LoadTexture(LeftTexture, 0);
+
+                up.LoadTexture(RightTexture, 1);
+
+                up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
+
             });
         }
 

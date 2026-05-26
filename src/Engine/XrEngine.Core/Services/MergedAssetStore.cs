@@ -6,7 +6,7 @@
 
         public MergedAssetStore(params IAssetStore[] stores)
         {
-            _stores = [..stores];
+            _stores = [.. stores];
         }
 
         public bool Contains(string name)

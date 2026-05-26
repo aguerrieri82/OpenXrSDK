@@ -34,10 +34,10 @@ namespace XrEngine
 
         static Color UIntToRGBA(uint color)
         {
-            float a = ((color >> 24) & 0xFF) / 255f;
-            float b = ((color >> 16) & 0xFF) / 255f;
-            float g = ((color >> 8) & 0xFF) / 255f;
-            float r = (color & 0xFF) / 255f;
+            var a = ((color >> 24) & 0xFF) / 255f;
+            var b = ((color >> 16) & 0xFF) / 255f;
+            var g = ((color >> 8) & 0xFF) / 255f;
+            var r = (color & 0xFF) / 255f;
             return new Color(r, g, b, a);
         }
 

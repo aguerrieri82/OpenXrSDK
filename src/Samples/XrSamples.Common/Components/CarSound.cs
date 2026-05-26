@@ -40,7 +40,7 @@ namespace XrSamples
 
         public unsafe int Fill(Span<byte> data, float timeSec)
         {
-            int samplesProvided = 0;
+            var samplesProvided = 0;
 
             fixed (byte* pData = data)
             {
@@ -52,10 +52,10 @@ namespace XrSamples
 
                     var curTime = timeSec + (samplesProvided / (float)Format.SampleRate);
 
-                    float frequency = 30 + _lastRpm * FrequencyFactor;
+                    var frequency = 30 + _lastRpm * FrequencyFactor;
 
                     // Generate the engine sound using a sawtooth wave (richer harmonics)
-                    float sampleValue = GenerateSawtoothWave(frequency, curTime);
+                    var sampleValue = GenerateSawtoothWave(frequency, curTime);
 
                     // Apply low-pass filter to simulate engine load
                     sampleValue = ApplyLowPassFilter(sampleValue);
@@ -74,15 +74,15 @@ namespace XrSamples
 
         private float GenerateSawtoothWave(float frequency, float time)
         {
-            float period = 1f / frequency;
-            float t = time % period;
+            var period = 1f / frequency;
+            var t = time % period;
             return 2f * (t / period) - 1f;
         }
 
         private float ApplyLowPassFilter(float input)
         {
             // Simple single-pole low-pass filter
-            float output = LowPassAlpha * input + (1f - LowPassAlpha) * _lastSample;
+            var output = LowPassAlpha * input + (1f - LowPassAlpha) * _lastSample;
             _lastSample = output;
             return output;
         }

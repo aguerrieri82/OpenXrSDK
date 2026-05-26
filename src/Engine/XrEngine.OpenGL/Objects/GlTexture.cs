@@ -128,7 +128,7 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
-        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             var result = new List<TextureData>();
 
@@ -161,7 +161,12 @@ namespace XrEngine.OpenGL
 
                 GlState.Current!.SetView(new Rect2I(0, 0, w, h));
 
-                var pixelSize = GlUtils.GetPixelSizeBit(format);
+                var pixelSize = format.GetPixelSizeBit();
+
+                var bufferSize = pixelSize * w * h / 8;
+
+                var buffer = buffers?[result.Count] ?? MemoryBuffer.Create<byte>(bufferSize);
+                buffer.Allocate(bufferSize);
 
                 var item = new TextureData
                 {
@@ -170,16 +175,18 @@ namespace XrEngine.OpenGL
                     Format = format,
                     MipLevel = mipLevel,
                     Face = face,
-                    Data = MemoryBuffer.Create<byte>(pixelSize * w * h / 8)
+                    Data = buffer
                 };
 
                 GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
 
-                using var pData = item.Data.MemoryLock();
+                using var pData = buffer.MemoryLock();
 
                 GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
 
                 _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
+
+                _gl.CheckError();
 
                 result.Add(item);
             }
@@ -225,10 +232,10 @@ namespace XrEngine.OpenGL
             if (data.Length == 0)
                 throw new InvalidOperationException();
 
-            Update(data[0].Width, data[0].Height, depth, data[0].Format, data[0].Compression, data);
+            Update(data[0].Width, data[0].Height, depth, data[0].Format, data[0].Compression, data, data[0].BlockSize);
         }
 
-        public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
+        public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null, uint blockSize = 0)
         {
             if (width == 0 || height == 0)
                 return;
@@ -251,21 +258,6 @@ namespace XrEngine.OpenGL
             if (data != null && data.Count > 1)
             {
                 MaxLevel = data != null ? data.Max(a => a.MipLevel) : 0;
-
-                if (MaxLevel > 0)
-                {
-                    if (MinFilter == TextureMinFilter.Nearest)
-                        MinFilter = TextureMinFilter.NearestMipmapNearest;
-                    else
-                        MinFilter = TextureMinFilter.LinearMipmapLinear;
-                }
-                else
-                {
-                    if (MinFilter == TextureMinFilter.NearestMipmapNearest)
-                        MinFilter = TextureMinFilter.Nearest;
-                    else
-                        MinFilter = TextureMinFilter.Linear;
-                }
             }
             else
             {
@@ -281,10 +273,12 @@ namespace XrEngine.OpenGL
 
             UpdateSampler();
 
-            _internalFormat = GlUtils.GetInternalFormat(format, compression);
+            _internalFormat = GlUtils.GetInternalFormat(format, compression, blockSize);
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
+                Debug.Assert(!_isCompressed);
+
                 if (!_isAllocated && !IsMutable)
                 {
                     if (_depth > 1)
@@ -331,7 +325,7 @@ namespace XrEngine.OpenGL
 
                 if (data != null)
                 {
-                    bool hasOneLevel = data.Count == 1 && data[0].MipLevel == 0;
+                    var hasOneLevel = data.Count == 1 && data[0].MipLevel == 0;
 
                     foreach (var level in data)
                     {
@@ -422,6 +416,8 @@ namespace XrEngine.OpenGL
             {
                 Debug.Assert(data != null);
 
+                uint maxLevel = 0;
+
                 foreach (var level in data)
                 {
                     var realTarget = Target == TextureTarget.TextureCubeMap ?
@@ -442,6 +438,15 @@ namespace XrEngine.OpenGL
                         level.Data.Size,
                         pData);
 
+                    _gl.CheckError();
+
+                    maxLevel = Math.Max(level.MipLevel, maxLevel);
+                }
+
+                if (maxLevel != MaxLevel)
+                {
+                    MaxLevel = maxLevel;
+                    UpdateSampler();
                 }
 
                 _isCompressed = true;
@@ -467,7 +472,22 @@ namespace XrEngine.OpenGL
 
         protected internal void UpdateSampler()
         {
-            bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            var isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+
+            if (MaxLevel > 0)
+            {
+                if (MinFilter == TextureMinFilter.Nearest)
+                    MinFilter = TextureMinFilter.NearestMipmapNearest;
+                else
+                    MinFilter = TextureMinFilter.LinearMipmapLinear;
+            }
+            else
+            {
+                if (MinFilter == TextureMinFilter.NearestMipmapNearest)
+                    MinFilter = TextureMinFilter.Nearest;
+                else
+                    MinFilter = TextureMinFilter.Linear;
+            }
 
             if (!isMultiSample)
             {
@@ -482,16 +502,23 @@ namespace XrEngine.OpenGL
 
             if (!IsDepth)
             {
+
+
                 _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
                 _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
             }
         }
 
-
-
-        public void Bind()
+        public void GenerateMipmap()
         {
-            GlState.Current!.LoadTexture(this, Slot);
+            GlState.Current!.BindTexture(Target, _handle);
+            _gl.GenerateMipmap(Target);
+        }
+
+        public void Bind(bool force = false)
+        {
+            GlState.Current!.SetActiveTexture(Slot, force);
+            GlState.Current!.LoadTexture(this, Slot, force);
         }
 
         public void Unbind()

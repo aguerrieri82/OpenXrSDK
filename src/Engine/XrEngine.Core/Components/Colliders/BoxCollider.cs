@@ -45,7 +45,7 @@ namespace XrEngine
                 var localPoint = localRay.PointAt(localDistance);
                 var wordPoint = _host.ToWorld(localPoint);
 
-                Vector3 normal = Vector3.Zero;
+                var normal = Vector3.Zero;
 
                 const float epsilon = 0.0001f;
 

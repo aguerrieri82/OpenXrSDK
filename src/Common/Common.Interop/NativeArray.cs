@@ -16,11 +16,12 @@ namespace Common.Interop
             _buffer = MemoryManager.Allocate(_bufferSize, this);
         }
 
-        public NativeArray(ref byte[] buffer, Type itemType)
+        public NativeArray(byte[] buffer, Type itemType)
         {
             _buffer = MemoryManager.Allocate(buffer.Length, this);
             _bufferSize = buffer.Length;
             _itemSize = Marshal.SizeOf(itemType);
+            Marshal.Copy(buffer, 0, _buffer, buffer.Length);
         }
 
         public unsafe TBase* ItemPointer(int index)

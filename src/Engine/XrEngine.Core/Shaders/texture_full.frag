@@ -1,4 +1,4 @@
-﻿in vec2 inUV;
+﻿in vec2 fUv;
 
 layout(location=0) out vec4 FragColor;
 
@@ -7,7 +7,7 @@ layout(location=0) out vec4 FragColor;
 
     void main()
     {
-        FragColor = texture(uTextures[gl_ViewID_OVR], inUV)
+        FragColor = texture(uTextures[gl_ViewID_OVR], fUv)
     }
 
 #else
@@ -15,6 +15,6 @@ layout(location=0) out vec4 FragColor;
 
     void main()
     {
-        FragColor = texture(uTexture, inUV);
+        FragColor = texture(uTexture, fUv);
     }
 #endif

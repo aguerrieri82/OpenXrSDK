@@ -17,7 +17,7 @@ namespace CanvasUI
 
         public static UiElement? GetPointerCapture(int pointerId)
         {
-            if (_pointerCaptures.TryGetValue(pointerId, out UiElement? element))
+            if (_pointerCaptures.TryGetValue(pointerId, out var element))
                 return element;
             return null;
         }

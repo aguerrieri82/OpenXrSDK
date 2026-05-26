@@ -4,6 +4,10 @@
 #define MODE_PCF  2
 #define MODE_VCF  3
 
+#define LIGHT_SIZE 10.0
+
+uniform float uShadowBias;
+uniform float uLightBleed;
 
 #ifdef USE_SHADOW_MAP 
 
@@ -12,12 +16,22 @@
     #else
         layout(binding=14) uniform sampler2D uShadowMap;
     #endif
+
+    float getShadowBias(vec3 normal, vec3  lightDir) 
+    {
+        #if SHADOW_BIAS == 1
+            return max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+        #elif SHADOW_BIAS == 2
+            return uShadowBias;
+        #else
+            return 0.0;
+        #endif 
+    }
    
 
     #if SHADOW_MAP_MODE == MODE_VCF
          
          const float MIN_VARIANCE = 0.00002;
-         const float LIGHT_BLEED = 0.4;
 
          float linstep(float min, float max, float v)
          {
@@ -30,10 +44,9 @@
 
                 projCoords = projCoords * 0.5 + 0.5;
 
-                float currentDepth = projCoords.z;
+                float bias = getShadowBias(normal, lightDir);
 
-                if (currentDepth >= 1.0)
-                    return 0.0;
+                float currentDepth = projCoords.z - bias;
 
                 vec2 moments = texture(uShadowMap, projCoords.xy).rg;
 
@@ -46,9 +59,11 @@
                 float pMax = variance / (variance + d * d);
                 float p = (currentDepth <= mean) ? 1.0 : 0.0;
 
-                pMax = linstep(LIGHT_BLEED, 1.0, pMax);
+                if (uLightBleed > 0.0)
+                    pMax = linstep(uLightBleed, 1.0, pMax);
 
                 return 1.0 - max(p, pMax);
+
           }
     #else
 
@@ -58,7 +73,7 @@
 
             projCoords = projCoords * 0.5 + 0.5;
 
-            float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+            float bias = getShadowBias(normal, lightDir);
 
             float currentDepth = projCoords.z - bias;
 

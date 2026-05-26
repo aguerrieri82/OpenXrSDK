@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
 
             _gl.CompileShader(_handle);
 
-            string infoLog = _gl.GetShaderInfoLog(_handle);
+            var infoLog = _gl.GetShaderInfoLog(_handle);
 
             if (!string.IsNullOrWhiteSpace(infoLog))
                 throw new Exception($"Error compiling shader of type {Type}, failed with error {infoLog}");

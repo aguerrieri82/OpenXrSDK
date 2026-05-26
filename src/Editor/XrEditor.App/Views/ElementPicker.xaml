@@ -7,7 +7,10 @@
         <StackPanel Orientation="Horizontal">
 
             <Border VerticalAlignment="Center"  BorderBrush="#aaa" BorderThickness="1" Margin="0,0,8,0">
-                <app:SKBitmapView Width="50" Height="50" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding Image}" />
+                <ContentPresenter 
+                    Width="50" 
+                    Height="50" 
+                    Content="{Binding Image}" />
             </Border>
             <Border VerticalAlignment="Center" Padding="4" BorderThickness="1" BorderBrush="#aaa">
                 <TextBox IsReadOnly="True" Width="100" Text="{Binding Name}"/>

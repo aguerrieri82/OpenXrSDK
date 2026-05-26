@@ -12,6 +12,7 @@ namespace XrEngine.OpenXr
     {
         protected XrApp _xrApp;
         private bool _isInit;
+        private Texture2D _controllerORMTex;
 
         public XrRoot()
         {
@@ -65,7 +66,8 @@ namespace XrEngine.OpenXr
                             });
                         });
                     });
-                };
+                }
+                ;
 
                 Head?.AddComponent(new XrAnchorUpdate()
                 {
@@ -151,16 +153,24 @@ namespace XrEngine.OpenXr
                 model.Name = "Controller";
 
                 var texPath = assets.GetPath("Models/MetaQuestTouchPlus_ORM.png");
-                var tex = AssetLoader.Instance.Load<Texture2D>(texPath);
+
+                _controllerORMTex ??= AssetLoader.Instance.Load<Texture2D>(texPath);
+                _controllerORMTex.Name = "MetaQuestTouchPlus_ORM";
+                _controllerORMTex.MipLevelCount = 10;
+                _controllerORMTex.MagFilter = ScaleFilter.Linear;
+                _controllerORMTex.MinFilter = ScaleFilter.LinearMipmapLinear;
+
                 foreach (var mat in model.MaterialsDeep<IPbrMaterial>())
                 {
                     if (mat.Name?.Contains("phong") == true)
                     {
-                        mat.MetallicRoughnessMap = tex;
-                        mat.OcclusionMap = tex;
+                        mat.MetallicRoughnessMap = _controllerORMTex;
+                        mat.OcclusionMap = _controllerORMTex;
                         mat.Roughness = 1;
+                        mat.Name = "base_controller";
+                        mat.NotifyChanged(ObjectChangeType.Render);
                     }
-                
+
                 }
                 group.AddChild(model);
             }

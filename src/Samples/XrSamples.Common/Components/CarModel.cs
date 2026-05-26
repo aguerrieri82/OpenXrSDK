@@ -41,25 +41,25 @@ namespace XrSamples
         public void Step(float dt)
         {
             // 1. Engine torque
-            double T_engine = Acceleration * T_engine_max;
+            var T_engine = Acceleration * T_engine_max;
 
             // 2. Torque at wheels
-            double T_wheel = T_engine * Gear * FDR * efficiency;
+            var T_wheel = T_engine * Gear * FDR * efficiency;
 
             // 3. Force at wheels
-            double F_wheel = T_wheel / r;
+            var F_wheel = T_wheel / r;
 
             // 4a. Rolling resistance
-            double F_rolling = C_rr * M * g;
+            var F_rolling = C_rr * M * g;
 
             // 4b. Aerodynamic drag
-            double F_drag = 0.5 * rho * Cd * A * v * v;
+            var F_drag = 0.5 * rho * Cd * A * v * v;
 
             // 5. Net force
-            double F_net = F_wheel - (F_rolling + F_drag);
+            var F_net = F_wheel - (F_rolling + F_drag);
 
             // 6. Acceleration
-            double a = F_net / M;
+            var a = F_net / M;
 
             // 7. Update speed
             v += a * dt;
@@ -73,7 +73,7 @@ namespace XrSamples
             omega_wheel = v / r; // (rad/s)
 
             // 9b. Engine angular velocity and RPM
-            double omega_engine = omega_wheel * Gear * FDR;
+            var omega_engine = omega_wheel * Gear * FDR;
             engineRPM = omega_engine * (60 / (2 * Math.PI));
         }
 

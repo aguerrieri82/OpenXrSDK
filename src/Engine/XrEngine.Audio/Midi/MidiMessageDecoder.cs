@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Audio.Midi
+﻿namespace XrEngine.Audio.Midi
 {
     public static class MidiMessageDecoder
     {
@@ -11,7 +7,7 @@ namespace XrEngine.Audio.Midi
             if (data.Length == 0)
                 return null;
 
-            byte status = data[0];
+            var status = data[0];
 
             return status switch
             {

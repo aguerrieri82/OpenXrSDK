@@ -24,25 +24,25 @@ namespace XrEngine
 
         public void Build()
         {
-            int vertexCount = (SubsH + 1) * (SubsV + 1);
-            int indexCount = SubsH * SubsV * 6;
-            float latRads = MathF.PI * 0.5f;
-            float h = Height * 0.5f;
+            var vertexCount = (SubsH + 1) * (SubsV + 1);
+            var indexCount = SubsH * SubsV * 6;
+            var latRads = MathF.PI * 0.5f;
+            var h = Height * 0.5f;
 
             var verts = new VertexData[vertexCount * 3];
             var indices = new int[indexCount * 3];
 
-            int vertexIndexOffset = 0;
-            int triangleIndexOffset = 0;
+            var vertexIndexOffset = 0;
+            var triangleIndexOffset = 0;
 
-            int index = 0;
+            var index = 0;
 
-            for (int y = 0; y <= SubsV; ++y)
+            for (var y = 0; y <= SubsV; ++y)
             {
-                float yf = y / (float)SubsV;
-                for (int x = 0; x <= SubsH; ++x)
+                var yf = y / (float)SubsV;
+                for (var x = 0; x <= SubsH; ++x)
                 {
-                    float xf = x / (float)SubsH;
+                    var xf = x / (float)SubsH;
                     index = y * (SubsH + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = MathF.Cos(MathF.PI * 2 * xf) * Radius;
                     verts[index].Pos.Y = MathF.Sin(MathF.PI * 2 * xf) * Radius;
@@ -54,9 +54,9 @@ namespace XrEngine
 
 
             index = triangleIndexOffset;
-            for (int y = 0; y < SubsV; y++)
+            for (var y = 0; y < SubsV; y++)
             {
-                for (int x = 0; x < SubsH; x++)
+                for (var x = 0; x < SubsH; x++)
                 {
                     indices[index + 0] = y * (SubsH + 1) + x;
                     indices[index + 1] = y * (SubsH + 1) + x + 1;
@@ -71,15 +71,15 @@ namespace XrEngine
             vertexIndexOffset += vertexCount;
             triangleIndexOffset += indexCount;
 
-            for (int y = 0; y <= SubsV; y++)
+            for (var y = 0; y <= SubsV; y++)
             {
-                float yf = y / (float)SubsV;
-                float lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
-                float cosLat = MathF.Cos(lat);
-                for (int x = 0; x <= SubsH; x++)
+                var yf = y / (float)SubsV;
+                var lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
+                var cosLat = MathF.Cos(lat);
+                for (var x = 0; x <= SubsH; x++)
                 {
-                    float xf = x / (float)SubsH;
-                    float lon = (xf) * MathF.PI * 2;
+                    var xf = x / (float)SubsH;
+                    var lon = (xf) * MathF.PI * 2;
                     index = y * (SubsH + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
@@ -93,9 +93,9 @@ namespace XrEngine
             }
 
             index = triangleIndexOffset;
-            for (int x = 0; x < SubsH; x++)
+            for (var x = 0; x < SubsH; x++)
             {
-                for (int y = 0; y < SubsV; y++)
+                for (var y = 0; y < SubsV; y++)
                 {
                     indices[index + 0] = vertexIndexOffset + y * (SubsH + 1) + x;
                     indices[index + 2] = vertexIndexOffset + y * (SubsH + 1) + x + 1;
@@ -111,15 +111,15 @@ namespace XrEngine
             triangleIndexOffset += indexCount;
 
 
-            for (int y = 0; y <= SubsV; y++)
+            for (var y = 0; y <= SubsV; y++)
             {
-                float yf = y / (float)SubsV;
-                float lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
-                float cosLat = MathF.Cos(lat);
-                for (int x = 0; x <= SubsH; x++)
+                var yf = y / (float)SubsV;
+                var lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
+                var cosLat = MathF.Cos(lat);
+                for (var x = 0; x <= SubsH; x++)
                 {
-                    float xf = x / (float)SubsH;
-                    float lon = xf * MathF.PI * 2;
+                    var xf = x / (float)SubsH;
+                    var lon = xf * MathF.PI * 2;
                     index = y * (SubsH + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
@@ -133,9 +133,9 @@ namespace XrEngine
             }
 
             index = triangleIndexOffset;
-            for (int x = 0; x < SubsH; x++)
+            for (var x = 0; x < SubsH; x++)
             {
-                for (int y = 0; y < SubsV; y++)
+                for (var y = 0; y < SubsV; y++)
                 {
                     indices[index + 0] = vertexIndexOffset + y * (SubsH + 1) + x;
                     indices[index + 1] = vertexIndexOffset + y * (SubsH + 1) + x + 1;

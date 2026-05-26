@@ -50,7 +50,7 @@ namespace XrEngine.Video
         private byte[] PrefixNALUnit(byte[] nalUnit)
         {
             // Prefix with 0x00 0x00 0x01
-            byte[] prefixedNALUnit = new byte[nalUnit.Length + 3];
+            var prefixedNALUnit = new byte[nalUnit.Length + 3];
             prefixedNALUnit[0] = 0x00;
             prefixedNALUnit[1] = 0x00;
             prefixedNALUnit[2] = 0x01;
@@ -62,16 +62,16 @@ namespace XrEngine.Video
         private byte[]? DecodeNALUnit(byte[] rtpPacket)
         {
             // RTP header is typically 12 bytes
-            int rtpHeaderSize = 12;
+            var rtpHeaderSize = 12;
 
             if (rtpPacket.Length <= rtpHeaderSize)
                 return null;
 
-            byte[] payload = new byte[rtpPacket.Length - rtpHeaderSize];
+            var payload = new byte[rtpPacket.Length - rtpHeaderSize];
             Array.Copy(rtpPacket, rtpHeaderSize, payload, 0, payload.Length);
 
             // First byte of payload is the NAL unit header
-            byte nalUnitHeader = payload[0];
+            var nalUnitHeader = payload[0];
 
             // Check if it's a single NAL unit packet
             if ((nalUnitHeader & 0x1F) != 28)  // If it's not an FU-A (Fragmented Unit)
@@ -81,14 +81,14 @@ namespace XrEngine.Video
             else
             {
                 // Handle Fragmentation Units (FU-A)
-                byte fuHeader = payload[1];
-                byte nalType = (byte)(nalUnitHeader & 0xE0 | fuHeader & 0x1F);
+                var fuHeader = payload[1];
+                var nalType = (byte)(nalUnitHeader & 0xE0 | fuHeader & 0x1F);
 
                 // Start of fragmented NAL unit
                 if ((fuHeader & 0x80) != 0)
                 {
                     // Start bit is set
-                    byte[] nalUnit = new byte[payload.Length - 2 + 1];
+                    var nalUnit = new byte[payload.Length - 2 + 1];
                     nalUnit[0] = nalType;
                     Array.Copy(payload, 2, nalUnit, 1, payload.Length - 2);
                     return PrefixNALUnit(nalUnit);
@@ -96,7 +96,7 @@ namespace XrEngine.Video
                 else
                 {
                     // Continuation or End of fragmented NAL unit
-                    byte[] nalUnit = new byte[payload.Length - 2];
+                    var nalUnit = new byte[payload.Length - 2];
                     Array.Copy(payload, 2, nalUnit, 0, payload.Length - 2);
                     return PrefixNALUnit(nalUnit);
                 }
@@ -111,7 +111,7 @@ namespace XrEngine.Video
 
             _readStream.SetLength(0);
 
-            bool isStarted = false;
+            var isStarted = false;
             byte[] packet;
 
             while (true)
@@ -124,22 +124,22 @@ namespace XrEngine.Video
                 */
                 //return DecodeNALUnit(packet);
 
-                int version = GetRTPHeaderValue(packet, 0, 1);
-                int padding = GetRTPHeaderValue(packet, 2, 2);
-                int extension = GetRTPHeaderValue(packet, 3, 3);
-                int csrcCount = GetRTPHeaderValue(packet, 4, 7);
-                int marker = GetRTPHeaderValue(packet, 8, 8);
-                int payloadType = GetRTPHeaderValue(packet, 9, 15);
-                int sequenceNum = GetRTPHeaderValue(packet, 16, 31);
-                int timestamp = GetRTPHeaderValue(packet, 32, 63);
-                int ssrcId = GetRTPHeaderValue(packet, 64, 95);
+                var version = GetRTPHeaderValue(packet, 0, 1);
+                var padding = GetRTPHeaderValue(packet, 2, 2);
+                var extension = GetRTPHeaderValue(packet, 3, 3);
+                var csrcCount = GetRTPHeaderValue(packet, 4, 7);
+                var marker = GetRTPHeaderValue(packet, 8, 8);
+                var payloadType = GetRTPHeaderValue(packet, 9, 15);
+                var sequenceNum = GetRTPHeaderValue(packet, 16, 31);
+                var timestamp = GetRTPHeaderValue(packet, 32, 63);
+                var ssrcId = GetRTPHeaderValue(packet, 64, 95);
 
                 //Log.Debug(this, $"Read:{sequenceNum} {timestamp}{(marker != 0 ? ", marker": "")}");
 
                 if (padding == 1)
                     throw new NotSupportedException();
 
-                bool isValidSeq = _lastSeqNumber == 0 || sequenceNum == _lastSeqNumber + 1;
+                var isValidSeq = _lastSeqNumber == 0 || sequenceNum == _lastSeqNumber + 1;
 
                 if (_lastSeqNumber != 0 && _lastSeqNumber == sequenceNum)
                 {
@@ -157,14 +157,14 @@ namespace XrEngine.Video
 
                 var nalUnitHeader = packet[12];
 
-                int fragment_type = nalUnitHeader & 0x1F;
+                var fragment_type = nalUnitHeader & 0x1F;
 
                 if (fragment_type == 28)
                 {
                     var fuHeader = packet[13];
 
-                    int start_bit = fuHeader & 0x80;
-                    int end_bit = fuHeader & 0x40;
+                    var start_bit = fuHeader & 0x80;
+                    var end_bit = fuHeader & 0x40;
 
                     if (start_bit == 0 && end_bit == 0 && !isStarted)
                     {
@@ -267,14 +267,14 @@ namespace XrEngine.Video
 
         private static int GetRTPHeaderValue(byte[] packet, int startBit, int endBit)
         {
-            int result = 0;
+            var result = 0;
 
-            int length = endBit - startBit + 1;
+            var length = endBit - startBit + 1;
 
-            for (int i = startBit; i <= endBit; i++)
+            for (var i = startBit; i <= endBit; i++)
             {
-                int byteIndex = i / 8;
-                int bitShift = 7 - (i % 8);
+                var byteIndex = i / 8;
+                var bitShift = 7 - (i % 8);
                 result += ((packet[byteIndex] >> bitShift) & 1) * (int)Math.Pow(2, length - i + startBit - 1);
             }
             return result;

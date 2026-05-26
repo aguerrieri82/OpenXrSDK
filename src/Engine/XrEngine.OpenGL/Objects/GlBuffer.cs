@@ -21,21 +21,22 @@ namespace XrEngine.OpenGL
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
+        protected uint _capacityBytes;
         protected uint _sizeBytes;
         protected BufferUsageARB _usage;
         protected int _updateCount;
 
-        public unsafe GlBuffer(GL gl, BufferTargetARB target)
+        public GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
         {
             _target = target;
-            Hash = string.Empty;
+            Hash = -1;
             Version = -1;
             Slot = 0;
             Create();
         }
 
-        public unsafe GlBuffer(GL gl, ReadOnlySpan<T> data, BufferTargetARB target)
+        public GlBuffer(GL gl, ReadOnlySpan<T> data, BufferTargetARB target)
             : this(gl, target)
         {
             UpdateRange(data);
@@ -57,11 +58,11 @@ namespace XrEngine.OpenGL
         {
             BeginUpdate();
 
-            if (_sizeBytes != sizeBytes || _target == BufferTargetARB.UniformBuffer)
+            if (_capacityBytes != sizeBytes || _target == BufferTargetARB.UniformBuffer)
             {
                 _gl.BufferData(_target, sizeBytes, null, _usage);
                 _gl.BufferSubData(_target, 0, sizeBytes, data);
-                _sizeBytes = sizeBytes;
+                _capacityBytes = sizeBytes;
             }
             else
             {
@@ -69,6 +70,8 @@ namespace XrEngine.OpenGL
                 EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
                 Unmap();
             }
+
+            _sizeBytes = sizeBytes;
 
             EndUpdate();
         }
@@ -87,18 +90,41 @@ namespace XrEngine.OpenGL
                 Unbind();
         }
 
+        public unsafe void Resize(uint newSizeBytes, bool preserve)
+        {
+            if (_sizeBytes == newSizeBytes)
+                return;
+
+            if (_sizeBytes == 0 || !preserve)
+                _gl.BufferData(_target, newSizeBytes, null, _usage);
+            else
+            {
+                var newData = new byte[newSizeBytes];
+
+                var oldDataPtr = Map(MapBufferAccessMask.ReadBit);
+                var copySize = (int)Math.Min(_sizeBytes, newSizeBytes);
+
+                var oldSpan = new Span<byte>(oldDataPtr, copySize);
+                oldSpan.CopyTo(newData);
+                Unmap();
+
+                _gl.BufferData(_target, newSizeBytes, newData, _usage);
+            }
+
+            _capacityBytes = newSizeBytes;
+            _sizeBytes = Math.Min(_capacityBytes, _sizeBytes);
+        }
+
         public unsafe void UpdateRange(void* data, uint sizeBytes, int offsetBytes, bool wait)
         {
             BeginUpdate();
 
             var newSizeBytes = sizeBytes + (uint)offsetBytes;
 
-            if (newSizeBytes >= _sizeBytes)
-                _gl.BufferData(_target, newSizeBytes, null, _usage);
+            if (newSizeBytes > _capacityBytes || _capacityBytes == 0)
+                Resize(newSizeBytes, true);
 
             _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
-
-            _sizeBytes = newSizeBytes;
 
             EndUpdate();
         }
@@ -128,6 +154,7 @@ namespace XrEngine.OpenGL
 
             _gl.BufferData(_target, sizeInByte, null, _usage);
 
+            _capacityBytes = sizeInByte;
             _sizeBytes = sizeInByte;
         }
 
@@ -174,7 +201,7 @@ namespace XrEngine.OpenGL
                 UpdateRange(pData, sizeBytes, dstIndex * sizeof(T), true);
         }
 
-        unsafe void IBuffer.Update(object value)
+        void IBuffer.Update(object value)
         {
             if (value is T tValue)
                 Update(tValue);
@@ -210,7 +237,7 @@ namespace XrEngine.OpenGL
         }
 
 
-        public string Hash { get; set; }
+        public long Hash { get; set; }
 
         public long Version { get; set; }
 
@@ -218,8 +245,21 @@ namespace XrEngine.OpenGL
 
         public BufferTargetARB Target => _target;
 
-        public unsafe uint ArrayLength => (uint)(_sizeBytes / sizeof(T));
+        public unsafe uint ArrayLength
+        {
+            get => (uint)(_sizeBytes / sizeof(T));
+            set => SizeBytes = (uint)(value * sizeof(T));
+        }
 
-        public uint SizeBytes => _sizeBytes;
+        public uint SizeBytes
+        {
+            get => _sizeBytes;
+            set
+            {
+                if (value > _capacityBytes)
+                    throw new InvalidOperationException();
+                _sizeBytes = value;
+            }
+        }
     }
 }

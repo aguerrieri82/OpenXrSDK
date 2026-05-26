@@ -38,22 +38,22 @@ namespace XrEngine
                 var dstData = res.Lock();
 
 
-                for (int y = 1; y < height - 1; y++)
+                for (var y = 1; y < height - 1; y++)
                 {
-                    for (int x = 1; x < width - 1; x++)
+                    for (var x = 1; x < width - 1; x++)
                     {
-                        float tl = srcData[((y - 1) * width + (x - 1)) * pixelSize] / 255f;
-                        float t = srcData[((y - 1) * width + x) * pixelSize] / 255f;
-                        float tr = srcData[((y - 1) * width + (x + 1)) * pixelSize] / 255f;
-                        float l = srcData[(y * width + (x - 1)) * pixelSize] / 255f;
-                        float r = srcData[(y * width + (x + 1)) * pixelSize] / 255f;
-                        float bl = srcData[((y + 1) * width + (x - 1)) * pixelSize] / 255f;
-                        float b = srcData[((y + 1) * width + x) * pixelSize] / 255f;
-                        float br = srcData[((y + 1) * width + (x + 1)) * pixelSize] / 255f;
+                        var tl = srcData[((y - 1) * width + (x - 1)) * pixelSize] / 255f;
+                        var t = srcData[((y - 1) * width + x) * pixelSize] / 255f;
+                        var tr = srcData[((y - 1) * width + (x + 1)) * pixelSize] / 255f;
+                        var l = srcData[(y * width + (x - 1)) * pixelSize] / 255f;
+                        var r = srcData[(y * width + (x + 1)) * pixelSize] / 255f;
+                        var bl = srcData[((y + 1) * width + (x - 1)) * pixelSize] / 255f;
+                        var b = srcData[((y + 1) * width + x) * pixelSize] / 255f;
+                        var br = srcData[((y + 1) * width + (x + 1)) * pixelSize] / 255f;
 
                         // Compute gradients dx and dy using Sobel operator
-                        float dX = (tl + 2 * l + bl) - (tr + 2 * r + br);
-                        float dY = (tl + 2 * t + tr) - (bl + 2 * b + br);
+                        var dX = (tl + 2 * l + bl) - (tr + 2 * r + br);
+                        var dY = (tl + 2 * t + tr) - (bl + 2 * b + br);
 
                         var normal = Vector3.Normalize(new Vector3(dX, dY, strength));
 

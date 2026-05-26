@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-
-namespace XrEngine.Devices
+﻿namespace XrEngine.Devices
 {
     public interface IMidiDevice
     {
@@ -19,6 +14,6 @@ namespace XrEngine.Devices
 
         int OutputPortCount { get; }
 
-        string Id { get; }  
+        string Id { get; }
     }
 }

@@ -253,7 +253,7 @@ namespace XrEngine.Bullet
             lShoulderPitch.Left = lUpperArm;
             lUpperArm.Left = lLowerArm;
             lLowerArm.Left = lHand;
-       
+
             // Right clavicle as sibling of left clavicle
             lClavicle.Right = rClavicle;
             rClavicle.Left = rShoulderYaw;
@@ -262,7 +262,7 @@ namespace XrEngine.Bullet
             //rShoulderPitch.Left = rUpperArm;
             rUpperArm.Left = rLowerArm;
             rLowerArm.Left = rHand;
-     
+
             return pelvis;
         }
 

@@ -64,7 +64,7 @@ namespace XrEngine.OpenGL
             _matrices.FarPlane = camera.Far;
         }
 
- 
+
         public static readonly GlMultiViewShaderHandler Instance = new();
     }
 
@@ -89,7 +89,7 @@ namespace XrEngine.OpenGL
 
             _frameBuffer.Bind();
 
-            GlMultiViewShaderHandler.Instance.SetCamera(camera);    
+            GlMultiViewShaderHandler.Instance.SetCamera(camera);
         }
 
         public void End(bool discardDepth)
@@ -99,7 +99,7 @@ namespace XrEngine.OpenGL
                 _frameBuffer.Bind();
                 _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
             }
-            
+
             _frameBuffer.Unbind();
         }
 

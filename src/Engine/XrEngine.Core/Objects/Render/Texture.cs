@@ -25,8 +25,10 @@ namespace XrEngine
         RgbaFloat16,
 
         RgFloat32,
+        RgFloat16,
 
         GrayFloat32,
+        GrayFloat16,
 
         SRgb24,
         SBgra32,
@@ -45,7 +47,9 @@ namespace XrEngine
         Etc1 = 0x31435445,
         Bc3 = 0x35545844,
         Bc1 = 0x31545844,
-        Bc7 = 0x20374342
+        Bc7 = 0x20374342,
+        Astc = 0x43545341
+
 
     }
 
@@ -62,14 +66,16 @@ namespace XrEngine
         Nearest = 9728,
         Linear = 9729,
         LinearMipmapLinear = 9987,
+        TriLinear = LinearMipmapLinear
     }
 
     public enum TextureType
     {
-        Normal,
+        Unspecified,
         Depth,
         External,
-        Buffer
+        Buffer,
+        NormalMap
     }
 
 
@@ -135,8 +141,12 @@ namespace XrEngine
 
         public TextureCompressionFormat Compression { get; set; }
 
+        public bool NeverCompress { get; set; }
+
         public long Handle { get; set; }
 
         public string? Name { get; set; }
+
+        public string? Hash { get; set; }
     }
 }

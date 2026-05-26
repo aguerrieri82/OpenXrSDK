@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OpenXr.Framework;
 using System.Numerics;
 using XrEngine;

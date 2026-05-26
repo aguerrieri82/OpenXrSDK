@@ -100,7 +100,7 @@ namespace XrEngine.OpenGL
 
             instance.UpdateProgram(updateContext);
 
-            bool programChanged = updateContext.ProgramInstanceId != instance.Program!.Handle;
+            var programChanged = updateContext.ProgramInstanceId != instance.Program!.Handle;
 
             updateContext.ProgramInstanceId = instance.Program!.Handle;
 

@@ -60,13 +60,13 @@ namespace XrEngine
                 var newVertices = new List<Vector3>();
                 var newIndices = new List<uint>();
 
-                for (int i = 0; i < indices.Count; i += 4)
+                for (var i = 0; i < indices.Count; i += 4)
                 {
                     // Get the indices of the quad
-                    uint i0 = indices[i];
-                    uint i1 = indices[i + 1];
-                    uint i2 = indices[i + 2];
-                    uint i3 = indices[i + 3];
+                    var i0 = indices[i];
+                    var i1 = indices[i + 1];
+                    var i2 = indices[i + 2];
+                    var i3 = indices[i + 3];
 
                     // Get the vertices of the quad
                     var v0 = vertices[(int)i0];
@@ -82,17 +82,17 @@ namespace XrEngine
                     var center = Vector3.Normalize((v0 + v1 + v2 + v3) * 0.25f);
 
                     // Add midpoints to vertex list
-                    uint i_m01 = AddVertex(newVertices, m01);
-                    uint i_m12 = AddVertex(newVertices, m12);
-                    uint i_m23 = AddVertex(newVertices, m23);
-                    uint i_m30 = AddVertex(newVertices, m30);
-                    uint i_center = AddVertex(newVertices, center);
+                    var i_m01 = AddVertex(newVertices, m01);
+                    var i_m12 = AddVertex(newVertices, m12);
+                    var i_m23 = AddVertex(newVertices, m23);
+                    var i_m30 = AddVertex(newVertices, m30);
+                    var i_center = AddVertex(newVertices, center);
 
                     // Add original vertices to new vertex list
-                    uint i_v0 = AddVertex(newVertices, v0);
-                    uint i_v1 = AddVertex(newVertices, v1);
-                    uint i_v2 = AddVertex(newVertices, v2);
-                    uint i_v3 = AddVertex(newVertices, v3);
+                    var i_v0 = AddVertex(newVertices, v0);
+                    var i_v1 = AddVertex(newVertices, v1);
+                    var i_v2 = AddVertex(newVertices, v2);
+                    var i_v3 = AddVertex(newVertices, v3);
 
                     // Create new quads
                     newIndices.AddRange(FixQuadWinding(newVertices, i_v0, i_m01, i_center, i_m30));
@@ -123,7 +123,7 @@ namespace XrEngine
             // Add vertex to list if not already present
             uint AddVertex(List<Vector3> vertices, Vector3 vertex)
             {
-                int index = vertices.IndexOf(vertex);
+                var index = vertices.IndexOf(vertex);
                 if (index == -1)
                 {
                     vertices.Add(vertex);
@@ -135,9 +135,9 @@ namespace XrEngine
 
             (List<Vector3>, List<uint>) GenerateSphere(int levels)
             {
-                var (vertices, indices) = GenerateCubeQuads();
+                (var vertices, var indices) = GenerateCubeQuads();
 
-                for (int i = 0; i < levels; i++)
+                for (var i = 0; i < levels; i++)
                     (vertices, indices) = SubdivideAndProject(vertices, indices);
 
                 return (vertices, indices);
@@ -164,46 +164,46 @@ namespace XrEngine
                 var normal = Vector3.Normalize(vertex);
 
                 // Longitude: range [-PI, PI]
-                float longitude = (float)Math.Atan2(-normal.Z, normal.X);
+                var longitude = (float)Math.Atan2(-normal.Z, normal.X);
 
                 // Latitude: range [-PI/2, PI/2]
-                float latitude = (float)Math.Asin(normal.Y);
+                var latitude = (float)Math.Asin(normal.Y);
 
                 // Convert longitude to U in [0, 1]
-                float u = (longitude / (2.0f * (float)Math.PI)) + 0.5f;
+                var u = (longitude / (2.0f * (float)Math.PI)) + 0.5f;
 
                 // Convert latitude to V in [0, 1], Y-flipped
-                float v = 1.0f - ((latitude / (float)Math.PI) + 0.5f);
+                var v = 1.0f - ((latitude / (float)Math.PI) + 0.5f);
 
                 return new Vector2(u, v);
             }
 
             bool CrossesSeam(IEnumerable<float> us)
             {
-                float maxU = us.Max();
-                float minU = us.Min();
+                var maxU = us.Max();
+                var minU = us.Min();
                 return (maxU - minU) > 0.5f;
             }
 
             // Build sphere
-            var (sphereVertices, sphereIndices) = GenerateSphere(Levels);
+            (var sphereVertices, var sphereIndices) = GenerateSphere(Levels);
 
             var finalVertices = new List<VertexData>();
             var finalIndices = new List<uint>();
             var vertexMap = new Dictionary<(Vector3, Vector2), uint>();
 
-            for (int i = 0; i < sphereIndices.Count; i += 4)
+            for (var i = 0; i < sphereIndices.Count; i += 4)
             {
                 uint[] quad = [sphereIndices[i], sphereIndices[i + 1], sphereIndices[i + 2], sphereIndices[i + 3]];
                 var positions = quad.Select(idx => sphereVertices[(int)idx]).ToArray();
                 var uvs = positions.Select(CalculateUV).ToArray();
 
                 // Check for seam crossing
-                bool crossesSeam = CrossesSeam(uvs.Select(uv => uv.X));
+                var crossesSeam = CrossesSeam(uvs.Select(uv => uv.X));
 
-                uint[] quadIndices = new uint[4];
+                var quadIndices = new uint[4];
 
-                for (int j = 0; j < 4; j++)
+                for (var j = 0; j < 4; j++)
                 {
                     var position = positions[j] * Radius;
                     var uv = uvs[j];
@@ -213,7 +213,7 @@ namespace XrEngine
 
                     var key = (position, uv);
 
-                    if (!vertexMap.TryGetValue(key, out uint index))
+                    if (!vertexMap.TryGetValue(key, out var index))
                     {
 
                         var vertexData = new VertexData

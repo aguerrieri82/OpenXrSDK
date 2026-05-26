@@ -29,7 +29,7 @@ namespace XrSamples
 
         public void AddType(Type type)
         {
-            _types.Add(type);   
+            _types.Add(type);
         }
 
         public IEnumerable<HDRInfo> GetHDRs()
@@ -85,7 +85,7 @@ namespace XrSamples
                         });
                     }
                 }
-         
+
             }
 
             return _samples;

@@ -24,6 +24,8 @@ namespace CanvasUI
 
             _lastLayout = TextLayoutManager.Arrange(availSize, _layoutParams, Text);
 
+            _lastLayout.CurrentSize.Height = MathF.Min(_lastLayout.CurrentSize.Height, availSize.Height);
+
             return _lastLayout.CurrentSize;
         }
 

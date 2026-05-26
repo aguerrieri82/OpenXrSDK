@@ -11,14 +11,13 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.Numerics;
-using System.Collections.ObjectModel;
+using Common.Interop;
 
 namespace XrEngine.OpenGL
 {
 
 
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, ITextureFilterProvider
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
     {
         protected class LayersCache
         {
@@ -34,7 +33,7 @@ namespace XrEngine.OpenGL
 
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
-        protected Dictionary<string, GlComputeProgram> _computePrograms = [];
+
 
         protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
@@ -47,8 +46,9 @@ namespace XrEngine.OpenGL
         protected readonly GlDefaultRenderTarget _defaultTarget;
         protected readonly GlShadowPass? _shadowPass;
         protected readonly Thread _thread;
-        protected readonly Dictionary<Scene3D, LayersCache> _layersCache =[];
+        protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
+        protected GlTextureFilter _textureFilter;
 
         public static class Props
         {
@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
-            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass);
+            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass, options.SampleCount);
             _target = _defaultTarget;
 
             _updateCtx = new GlUpdateContext
@@ -132,6 +132,7 @@ namespace XrEngine.OpenGL
             foreach (var ex in exts)
                 Debug.WriteLine(ex);
 
+            _textureFilter = new GlTextureFilter(this);
 
             ConfigureCaps();
         }
@@ -147,7 +148,7 @@ namespace XrEngine.OpenGL
             _glState.SetDrawBuffers(GlState.DRAW_COLOR_0);
         }
 
-        public unsafe void EnableDebug()
+        public unsafe void EnableDebug(bool sync = false)
         {
             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
            {
@@ -162,9 +163,9 @@ namespace XrEngine.OpenGL
                    if (sev == GLEnum.DebugSeverityNotification)
                        return;
 
-                   // Debug.WriteLine($"\n\n\n");
-                   // Debug.WriteLine($"------ OPENGL: {text}");
-                   //Debug.WriteLine($"\n\n\n");
+                   Debug.WriteLine($"\n\n\n");
+                   Debug.WriteLine($"------ OPENGL: {text}");
+                   Debug.WriteLine($"\n\n\n");
 
                }
                catch
@@ -174,6 +175,10 @@ namespace XrEngine.OpenGL
            }, null);
 
             _gl.Enable(EnableCap.DebugOutput);
+            if (sync)
+                _gl.Enable(EnableCap.DebugOutputSynchronous);
+
+            _isDebug = true;
         }
 
         protected void ConfigureCaps()
@@ -186,6 +191,8 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.ScissorTest, false);
             _glState.EnableFeature(EnableCap.ProgramPointSize, true);
             _glState.EnableFeature(EnableCap.TextureCubeMapSeamless, true);
+
+            PbrV2Material.SHADER.ToneMap = !_options.UseSRGB;
 
         }
 
@@ -424,7 +431,7 @@ namespace XrEngine.OpenGL
                 _target = _defaultTarget;
             else
             {
-                var glTexture = texture.ToGlTexture(false);
+                var glTexture = texture.ToGlTexture();
                 _texRenderTarget ??= new GlTextureRenderTarget(_gl);
                 _texRenderTarget.FrameBuffer.Configure(glTexture, null, glTexture.SampleCount);
                 _target = _texRenderTarget;
@@ -483,12 +490,12 @@ namespace XrEngine.OpenGL
             var glTexture = texture.GetGlResource(a =>
             {
                 if (handle == 0)
-                    return texture.ToGlTexture(false);
+                    return texture.ToGlTexture();
 
                 return GlTexture.Attach(_gl, (uint)handle);
             });
 
-            glTexture.Update(texture, false);
+            glTexture.Update(texture);
 
             if (_grContext == null)
             {
@@ -627,7 +634,7 @@ namespace XrEngine.OpenGL
 
         #region IO
 
-        public TextureData ReadFrame()
+        public TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba32)
         {
             EnsureThread();
 
@@ -637,19 +644,33 @@ namespace XrEngine.OpenGL
             if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
                 throw new NotSupportedException();
 
-            return texFb.ReadColor();
+            return texFb.ReadColor(format);
         }
 
-        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             EnsureThread();
 
             var glTex = texture.ToGlTexture();
 
             PushGroup($"ReadTexture {glTex.Handle}");
-            var data = glTex.Read(format, startMipLevel, endMipLevel);
+            var data = glTex.Read(format, startMipLevel, endMipLevel, buffers);
             PopGroup();
             return data;
+        }
+
+        public T? Feature<T>() where T : class
+        {
+            if (this is T result)
+                return result;
+
+            if (typeof(T) == typeof(IShadowMapProvider))
+                return _shadowPass as T;
+
+            if (typeof(T) == typeof(ITextureFilterProvider))
+                return _textureFilter as T;
+
+            return (T?)_renderPasses.FirstOrDefault(a => a is T);
         }
 
         public Texture2D? GetShadowMap()
@@ -695,14 +716,11 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            _textureFilter.Dispose();
+
             foreach (var pass in _renderPasses)
                 pass.Dispose();
             _renderPasses.Clear();
-
-            foreach (var program in _computePrograms)
-                program.Value.Dispose();
-
-            _computePrograms.Clear();
 
             foreach (var layer in _activeLayers)
                 layer.Dispose();
@@ -728,37 +746,6 @@ namespace XrEngine.OpenGL
         {
         }
 
-        public void Kernel3x3(Texture2D src, Texture2D dst, float[] data)
-        {
-            if (!_computePrograms.TryGetValue("Kernel3x3", out var program))
-            {
-                program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
-                program.Build();
-                _computePrograms["Kernel3x3"] = program;
-            }
-
-            var curProgram = _glState.ActiveProgram;
-
-            program.Use();
-
-            program.SetUniform("texelSize", new Vector2(1f / dst.Width, 1f / dst.Height));
-            program.SetUniform("weights", data);
-
-            var dstGl = dst.ToGlTexture();
-
-            program.LoadTexture(src, 10);
-
-            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, dstGl.InternalFormat);
-
-            _gl.DispatchCompute((dst.Width + 15) / 16, (dst.Height + 15) / 16, src.Depth);
-
-            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
-
-            _glState.SetActiveProgram(curProgram ?? 0);
-        }
-
-
-
         #endregion
 
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
@@ -775,11 +762,15 @@ namespace XrEngine.OpenGL
 
         public GlRenderOptions Options => _options;
 
+        public bool IsDebug => _isDebug;
+
         public static int SuspendErrors { get; set; }
+
+
 
 
         [ThreadStatic]
         public static OpenGLRender? Current;
-
+        private bool _isDebug;
     }
 }

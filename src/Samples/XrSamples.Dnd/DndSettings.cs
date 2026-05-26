@@ -9,7 +9,7 @@ using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples.Dnd
 {
-    public class DndSettings : BaseAppSettings
+    public class DndSettings : BaseAppSettings<Scene3D>
     {
 
         public DndSettings()
@@ -17,12 +17,12 @@ namespace XrSamples.Dnd
             Zoom = 1f;
             ImageInt = 1f;
             PointRange = 50f;
-            MapTransform = Matrix4x4.Identity;  
+            MapTransform = Matrix4x4.Identity;
         }
 
         public override void Apply(Scene3D scene)
         {
-            var myScene = (DndScene)scene;  
+            var myScene = (DndScene)scene;
 
             myScene.Map!.Component<BoundsGrabbable>().IsEnabled = !DisableMove;
 
@@ -39,7 +39,7 @@ namespace XrSamples.Dnd
 
             point.IsVisible = PointInt > 0;
             point.Intensity = PointInt;
-            point.Range = PointRange;   
+            point.Range = PointRange;
             point.NotifyChanged(ObjectChangeType.Property);
 
             //image.IsVisible = ImageInt > 0;

@@ -34,7 +34,7 @@ namespace XrEngine.OpenGL
 
         public void Bench(int iterations, params Action[] actions)
         {
-            int task = 0;
+            var task = 0;
             foreach (var action in actions)
             {
                 Log.Info(this, "Running Task: {0}", task);

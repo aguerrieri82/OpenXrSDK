@@ -17,10 +17,10 @@ namespace XrEngine.OpenXr
     public static class XrEngineAppExtensions
     {
 
-        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = true) => self.ConfigureApp(e =>
         {
             if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
-                e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
+                e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer() { IsEnabled = enabled });
         });
 
         public static XrEngineAppBuilder UseLeftController(this XrEngineAppBuilder self)
@@ -76,7 +76,7 @@ namespace XrEngine.OpenXr
                      LeftButton = curHand.TriggerClick!,
                  };
 
-                 var trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.8f;
+                 Func<bool> trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.8f;
 
                  target ??= e.App.ActiveScene!.AddComponent<SceneTeleportTarget>();
 
@@ -108,11 +108,18 @@ namespace XrEngine.OpenXr
         });
 
 
-        public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string pointerName = "RightController") => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder UseRayCollider(
+            this XrEngineAppBuilder self,
+            string pointerName = "RightController",
+            bool parallel = false) => self.ConfigureApp(e =>
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
+            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider()
+            {
+                PointerName = pointerName,
+                ParallelColliders = parallel,
+            });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>

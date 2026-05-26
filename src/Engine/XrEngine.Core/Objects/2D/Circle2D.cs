@@ -26,12 +26,12 @@ namespace XrEngine
 
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
-            double angle = Math.Acos(1 - tolerance / Radius);
-            int steps = (int)Math.Ceiling(Math.PI / angle);
+            var angle = Math.Acos(1 - tolerance / Radius);
+            var steps = (int)Math.Ceiling(Math.PI / angle);
 
             for (var i = 0; i <= steps; i++)
             {
-                float t = (float)((1d / steps) * i);
+                var t = (float)((1d / steps) * i);
                 if (i == steps)
                     t = 1f;
                 yield return new CurvePoint

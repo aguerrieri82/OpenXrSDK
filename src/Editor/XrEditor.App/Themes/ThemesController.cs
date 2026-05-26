@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 
 namespace Theme.WPF.Themes
@@ -23,8 +22,8 @@ namespace Theme.WPF.Themes
         private static void RefreshControls()
         {
             // This seems to be faster than reloading the whole file, and it also seems to work
-            Collection<ResourceDictionary> merged = Application.Current.Resources.MergedDictionaries;
-            ResourceDictionary dictionary = merged[2];
+            var merged = Application.Current.Resources.MergedDictionaries;
+            var dictionary = merged[2];
             merged.RemoveAt(2);
             merged.Insert(2, dictionary);
 
@@ -39,7 +38,7 @@ namespace Theme.WPF.Themes
 
         public static void SetTheme(ThemeType theme)
         {
-            string themeName = theme.GetName();
+            var themeName = theme.GetName();
             if (string.IsNullOrEmpty(themeName))
             {
                 return;

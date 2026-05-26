@@ -34,7 +34,7 @@ namespace XrEngine.OpenXr
 
                     Debug.Assert(meshObj.Geometry != null);
 
-                    var triMesh = new Mesh
+                    var triMesh = new Mesh3
                     {
                         Indices = meshObj.Geometry.Indices,
                         Vertices = meshObj.Geometry.ExtractPositions()

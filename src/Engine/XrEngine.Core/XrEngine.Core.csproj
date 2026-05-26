@@ -11,13 +11,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="Shaders/**/*.*" />
+		<None Include="Shaders/**/*.*" /> 
 	</ItemGroup>
 
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="3.119.2-preview.1" />
+		<PackageReference Include="SkiaSharp" Version="4.147.0-preview.3.1" />
 
 	</ItemGroup>
 

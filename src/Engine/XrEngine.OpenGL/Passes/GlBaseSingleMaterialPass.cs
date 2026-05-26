@@ -78,7 +78,7 @@ namespace XrEngine.OpenGL
 
             updateContext.UseInstanceDraw = false;
 
-            bool firstUpdate = true;
+            var firstUpdate = true;
 
             foreach (var shader in layer.Content.Contents)
             {
@@ -88,7 +88,7 @@ namespace XrEngine.OpenGL
                 {
                     var matContent = material.Value;
 
-                    if (matContent.IsHidden || !material.Key.WriteDepth)
+                    if (matContent.IsHidden || !material.Value.Material!.WriteDepth)
                         continue;
 
                     updateContext.Stage = UpdateShaderStage.Material;
@@ -146,7 +146,7 @@ namespace XrEngine.OpenGL
                         //vHandler.Unbind();
                     }
 
-         
+
                 }
             }
             _renderer.State.BindVertexArray(0);

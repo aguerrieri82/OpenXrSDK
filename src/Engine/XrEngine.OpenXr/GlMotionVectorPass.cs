@@ -55,7 +55,7 @@ namespace XrEngine.OpenXr
                 }
                 else
                 {
-                   var tex = new GlTextureRenderTarget(_gl);
+                    var tex = new GlTextureRenderTarget(_gl);
                     if (_glColorImage.Depth > 1)
                         tex.FrameBuffer.Configure(_glColorImage, (uint)_activeEye, _glDepthImage!, (uint)_activeEye, 1);
                     else

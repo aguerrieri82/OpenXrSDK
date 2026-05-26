@@ -39,6 +39,10 @@ in vec3 fCameraPos;
     in vec4 fPosLightSpace;
 #endif
 
+#ifdef HAS_COLORMAP_PROJ
+    in vec4 fProjCoord;
+#endif
+
 
 layout(location=0) out vec4 color;
 
@@ -148,12 +152,21 @@ void main()
 	// Sample input textures to get shading model params.
 	#ifdef USE_ALBEDO_MAP
 
-		#if ALBEDO_UV_SET == 1
-			vec2 albUv = fUv2;
+		#ifdef HAS_COLORMAP_PROJ
+			if (fProjCoord.w <= 0.0)
+				discard;
+			vec3 ndc = fProjCoord.xyz / fProjCoord.w;
+			vec2 albUv = ndc.xy * 0.5 + 0.5;
+			albUv.y = 1.0 - albUv.y;
 		#else
-			vec2 albUv = fUv;
-		#endif
 
+			#if ALBEDO_UV_SET == 1
+				vec2 albUv = fUv2;
+			#else
+				vec2 albUv = fUv;
+			#endif
+		#endif
+		
 		vec4 baseColor = texture(albedoTexture, albUv) * uMaterial.color;
 	#else
 		vec4 baseColor = uMaterial.color;	
@@ -212,12 +225,12 @@ void main()
 			//vec3 N = vec3(normalXY, normalZ);
 
 		#else
-			vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
+			vec3 N = 2.0 * texture(normalTexture, fUv).rgb - 1.0;	
 		#endif
 
-		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
-
 		mat3 TBN = fTangentBasis;
+
+		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
 
 		#ifdef DOUBLE_SIDED
 
@@ -231,6 +244,8 @@ void main()
 		#endif
 
 		N = normalize(TBN * N);
+		
+
 
 	#else
 		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
@@ -424,7 +439,7 @@ void main()
 	#endif
 	
 	#ifdef TONEMAP
-		color3 = linearTosRGB(toneMap(color3));
+		color3 = linearTosRGB(toneMapNeutral(color3));
 	#endif
 
 	//Blend

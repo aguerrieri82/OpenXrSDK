@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
             {
                 if (width == 0 || height == 0)
                 {
-                    int[] view = new int[4];
+                    var view = new int[4];
                     gl.GetInteger(GetPName.Viewport, view);
                     width = (uint)view[2];
                     height = (uint)view[3];

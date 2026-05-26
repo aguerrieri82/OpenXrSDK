@@ -38,7 +38,14 @@ namespace XrEngine.Gltf
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
+            "EXT_texture_webp",
             "KHR_materials_pbrSpecularGlossiness" };
+
+
+        struct EXT_texture_webp
+        {
+            public int? source;
+        }
 
         struct KHR_draco_mesh_compression
         {
@@ -161,7 +168,7 @@ namespace XrEngine.Gltf
 
                     Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                    if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
+                    if (img.MimeType == Image.MimeTypeEnum.image_jpeg)
                     {
                         var outImg = TurboJpegLib.Decompress(data);
 
@@ -222,6 +229,10 @@ namespace XrEngine.Gltf
 
             CheckExtensions(texture.Extensions);
 
+            var webP = TryLoadExtension<EXT_texture_webp>(texture.Extensions);
+
+            texture.Source ??= webP?.source;
+
             var imageInfo = _model!.Images[texture.Source!.Value];
 
             return _textures.GetOrAdd(imageInfo, img =>
@@ -242,7 +253,7 @@ namespace XrEngine.Gltf
 
                     texResult.LoadData([data]);
 
-                    bool hasMinFilter = false;
+                    var hasMinFilter = false;
 
                     if (texture.Sampler != null)
                     {
@@ -365,6 +376,7 @@ namespace XrEngine.Gltf
             if (gltMat.NormalTexture != null)
             {
                 result.NormalTexture = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
+                result.NormalTexture.Type = TextureType.NormalMap;
                 result.NormalScale = gltMat.NormalTexture.Scale;
                 result.NormalUVSet = gltMat.NormalTexture.TexCoord;
             }
@@ -470,6 +482,7 @@ namespace XrEngine.Gltf
             if (gltMat.NormalTexture != null)
             {
                 result.NormalMap = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
+                result.NormalMap.Type = TextureType.NormalMap;
                 result.NormalScale = gltMat.NormalTexture.Scale;
             }
 
@@ -496,7 +509,7 @@ namespace XrEngine.Gltf
                     return new Span<T>((T*)(pBuffer + view.ByteOffset + acc.ByteOffset), acc.Count).ToArray();
                 else
                 {
-                    byte* curBuffer = pBuffer + view.ByteOffset + acc.ByteOffset;
+                    var curBuffer = pBuffer + view.ByteOffset + acc.ByteOffset;
                     var array = new T[acc.Count];
 
                     fixed (T* pArray = array)
@@ -522,7 +535,7 @@ namespace XrEngine.Gltf
 
             if (primitive.Mode == MeshPrimitive.ModeEnum.TRIANGLES)
             {
-                int vertexCount = 0;
+                var vertexCount = 0;
                 if (draco != null)
                 {
                     var view = _model!.BufferViews[draco.Value.BufferView];
@@ -676,29 +689,64 @@ namespace XrEngine.Gltf
             return result;
         }
 
+        public Object3D Duplicate(Object3D obj)
+        {
+            Object3D result;
+
+            if (obj is TriangleMesh mesh)
+            {
+                var newMesh = new TriangleMesh();
+                newMesh.Geometry = mesh.Geometry;
+                foreach (var mat in mesh.Materials)
+                    newMesh.Materials.Add(mat);
+                result = newMesh;
+            }
+            else if (obj is Group3D group)
+            {
+                var newGroup = new Group3D();
+
+                foreach (var child in group.Children)
+                    newGroup.AddChild(Duplicate(child));
+                result = newGroup;
+            }
+            else
+                throw new NotSupportedException();
+
+            result.Name = obj.Name;
+            result.Transform.Set(obj.Transform.Matrix);
+
+            return result;
+        }
+
         public Object3D ProcessMesh(int meshId, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
 
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
-                return new Object3DInstance() { Reference = result };
+            {
+                if (_options.UseInstances)
+                    return new Object3DInstance() { Reference = result };
+
+                return Duplicate(result);
+            }
 
             CheckExtensions(gltMesh.Extensions);
 
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
-            int pIndex = 0;
+            var pIndex = 0;
 
             foreach (var primitive in gltMesh.Primitives)
             {
                 var curMesh = new TriangleMesh();
+                curMesh.Geometry = new Geometry3D();
 
                 Debug.Assert(primitive.Targets == null);
                 CheckExtensions(primitive.Extensions);
 
                 Load(curMesh, () =>
                 {
-                    var geo = ProcessPrimitive(primitive);
+                    var geo = ProcessPrimitive(primitive, curMesh.Geometry);
 
                     AssignAsset(geo, gltMesh.Name, "geo", meshId, pIndex);
 
@@ -786,7 +834,7 @@ namespace XrEngine.Gltf
 
             nodeObj!.Name = node.Name;
 
-            bool transformSet = false;
+            var transformSet = false;
             if (node.Matrix != null)
             {
                 var matrix = MathUtils.CreateMatrix(node.Matrix);

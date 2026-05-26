@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr.Windows
 
         public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider? scopeProvider, TextWriter textWriter)
         {
-            string? message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
+            var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
 
             if (message is null)
                 return;

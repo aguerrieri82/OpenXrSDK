@@ -29,6 +29,14 @@ interface IHandler {
     rej: (obj: unknown) => void;
 }
 
+function randomUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+
 export class BaseBridge  {
 
     protected _handlers: Map<string, IHandler> = new Map();
@@ -113,7 +121,10 @@ export class BaseBridge  {
         if (!("bridge" in window))
             return;
 
-        const reqId = new Date().getTime().toString();
+        const reqId = randomUUID();
+
+
+        console.log("call: " + method, args);
 
         bridge.postMessage(JSON.stringify({
             type: "call",
@@ -123,10 +134,12 @@ export class BaseBridge  {
         } as ISendMsg));
 
         return new Promise<T>((res, rej) => {
+
             this._handlers.set(reqId, {
                 res,
                 rej
             });
+
         });
 
     }

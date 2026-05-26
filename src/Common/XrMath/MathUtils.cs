@@ -60,7 +60,7 @@ namespace XrMath
             var edge1 = p2 - p1;
             var edge2 = p4 - p1;
 
-            Vector3 normal = -Vector3.Normalize(Vector3.Cross(edge1, edge2));
+            var normal = -Vector3.Normalize(Vector3.Cross(edge1, edge2));
 
             result.Pose.Position = (p1 + p2 + p3 + p4) / 4;
             result.Pose.Orientation = normal.ToOrientation();
@@ -82,7 +82,7 @@ namespace XrMath
             tangent -= proj;
 
             // Normalize the tangent vector
-            float tangentLength = tangent.Length();
+            var tangentLength = tangent.Length();
             if (tangentLength > epsilon) // Avoid division by zero
             {
                 tangent /= tangentLength;
@@ -99,10 +99,10 @@ namespace XrMath
 
         public static Matrix4x4 CreateReflectionMatrix(Plane plane)
         {
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
-            float d = plane.D;
+            var x = plane.Normal.X;
+            var y = plane.Normal.Y;
+            var z = plane.Normal.Z;
+            var d = plane.D;
 
             return new Matrix4x4(
                 1 - 2 * x * x, -2 * x * y, -2 * x * z, 0,
@@ -126,8 +126,8 @@ namespace XrMath
         {
             t = Math.Clamp(t, 0f, 1f);
 
-            var s = t * t * (3f - 2f * t);  
-            return from + (to - from) * s;  
+            var s = t * t * (3f - 2f * t);
+            return from + (to - from) * s;
         }
     }
 }

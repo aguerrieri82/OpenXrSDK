@@ -75,6 +75,11 @@ out vec2 fUv;
     out vec3 fOrigin;
 #endif
 
+#ifdef HAS_COLORMAP_PROJ
+    uniform mat4 uColorMapProj;
+    out vec4 fProjCoord;
+#endif
+
 void main()
 {
     #ifdef USE_INSTANCE
@@ -126,8 +131,8 @@ void main()
 	#endif
 
     #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-        vec3 T = normalize(vec3(normalMatrix * vec4(tangent.xyz, 0.0)));
-	    vec3 B = normalize(cross(T, N) * tangent.w);
+        vec3 T = normalize(vec3(worldMatrix * vec4(tangent.xyz, 0.0)));
+	    vec3 B = cross(N, T) * tangent.w;
 
         fTangentBasis = mat3(T, B, N);
 
@@ -137,6 +142,10 @@ void main()
 
     #ifdef USE_CLIP_PLANE 
         gl_ClipDistance[0] = -dot(pos, uClipPlane);
+    #endif
+    
+    #ifdef HAS_COLORMAP_PROJ
+        fProjCoord = uColorMapProj * pos;
     #endif
 
     computePos(pos);

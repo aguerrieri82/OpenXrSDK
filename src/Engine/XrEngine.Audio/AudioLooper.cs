@@ -37,9 +37,9 @@ namespace XrEngine.Audio
 
             fixed (byte* pLoop = Loop.Buffer, pData = data, pNext = _nextBuffer)
             {
-                short* sLoop = (short*)pLoop;
-                short* sData = (short*)pData;
-                short* sNext = (short*)pNext;
+                var sLoop = (short*)pLoop;
+                var sData = (short*)pData;
+                var sNext = (short*)pNext;
 
                 var count = data.Length / 2;
 

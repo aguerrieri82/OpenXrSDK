@@ -1,12 +1,8 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Tensorflow.Keras;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 
@@ -159,7 +155,7 @@ namespace XrSamples.Dnd
 
     public interface IAboveVttListener
     {
-        void OnTokenUpdate(VttToken token); 
+        void OnTokenUpdate(VttToken token);
     }
 
     public class AboveVttClient

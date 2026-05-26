@@ -6,14 +6,25 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Shaders\cube_project.comp" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Shaders\cube_project.comp" />
+	</ItemGroup>
+
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\DrumsVR\src\DrumsVR.Game\DrumsVR.Game.csproj" />
 		<ProjectReference Include="..\..\..\..\RoomDesigner\src\RoomDesigner.Game\RoomDesigner.Game.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Audio\XrEngine.Audio.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Bullet\XrEngine.Bullet.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Compression\XrEngine.Compression.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Media.FFmpeg\XrEngine.Media.FFmpeg.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Reconstruct\XrEngine.Reconstruct.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Tiff\XrEngine.Tiff.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.UI\XrEngine.UI.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Video\XrEngine.Video.csproj" />

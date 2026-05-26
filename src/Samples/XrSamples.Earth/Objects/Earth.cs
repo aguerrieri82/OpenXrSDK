@@ -26,6 +26,7 @@ namespace XrSamples.Earth
             Albedo.MinFilter = ScaleFilter.LinearMipmapLinear;
             Albedo.MipLevelCount = 20;
 
+            
             HeightMap = new HeightMapSettings
             {
                 Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png"),
@@ -42,20 +43,20 @@ namespace XrSamples.Earth
             HeightMap.Texture.MagFilter = ScaleFilter.Linear;
             HeightMap.Texture.MipLevelCount = 20;
             HeightMap.Texture.MinFilter = ScaleFilter.LinearMipmapLinear;
-
+          
             Create();
 
         }
 
         public override float RotationAngle(DateTime utcTime)
         {
-            double julianDate = ToJulianDate(utcTime);
+            var julianDate = ToJulianDate(utcTime);
 
             // Adjust Julian Date for UT1 if needed
-            double dUT1 = julianDate - 2451545.0;
+            var dUT1 = julianDate - 2451545.0;
 
             // Calculate Earth Rotation Angle (ERA) in radians
-            double eraRadians = 2.0 * Math.PI * (0.7790572732640 + 1.00273781191135448 * dUT1);
+            var eraRadians = 2.0 * Math.PI * (0.7790572732640 + 1.00273781191135448 * dUT1);
             eraRadians %= 2.0 * Math.PI; // Normalize to [0, 2π)
 
             if (eraRadians < 0)

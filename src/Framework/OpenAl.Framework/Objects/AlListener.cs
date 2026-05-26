@@ -21,7 +21,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetListenerProperty(ListenerFloat.Gain, out float value);
+                _al.GetListenerProperty(ListenerFloat.Gain, out var value);
                 return value;
             }
             set => _al.SetListenerProperty(ListenerFloat.Gain, value);
@@ -31,7 +31,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetListenerProperty(ListenerVector3.Velocity, out Vector3 value);
+                _al.GetListenerProperty(ListenerVector3.Velocity, out var value);
                 return value;
             }
             set => _al.SetListenerProperty(ListenerVector3.Velocity, value);
@@ -41,7 +41,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetListenerProperty(ListenerVector3.Position, out Vector3 value);
+                _al.GetListenerProperty(ListenerVector3.Position, out var value);
                 return value;
             }
             set => _al.SetListenerProperty(ListenerVector3.Position, value);

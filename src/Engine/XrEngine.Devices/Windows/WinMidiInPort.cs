@@ -1,7 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace XrEngine.Devices.Windows
@@ -31,7 +28,7 @@ namespace XrEngine.Devices.Windows
         {
             if (_opened)
                 return;
-            
+
 
             _proc = new Win32.MidiInProc(MidiInCallback);
 
@@ -82,12 +79,12 @@ namespace XrEngine.Devices.Windows
                     case MIM_DATA:
                         {
                             // dwParam1 contains packed short message (DWORD)
-                            uint packed = (uint)dwParam1.ToInt64();
-                            byte b0 = (byte)(packed & 0xFF);
-                            byte b1 = (byte)((packed >> 8) & 0xFF);
-                            byte b2 = (byte)((packed >> 16) & 0xFF);
+                            var packed = (uint)dwParam1.ToInt64();
+                            var b0 = (byte)(packed & 0xFF);
+                            var b1 = (byte)((packed >> 8) & 0xFF);
+                            var b2 = (byte)((packed >> 16) & 0xFF);
 
-                            int count = GetShortMessageLength(b0);
+                            var count = GetShortMessageLength(b0);
                             byte[] bytes = [b0, b1, b2];
                             var data = count switch
                             {
@@ -160,7 +157,7 @@ namespace XrEngine.Devices.Windows
             var res = Win32.midiInClose(_hIn);
             if (res != 0)
                 throw new InvalidOperationException($"midiInClose failed: {GetInError(res)}");
-            
+
             _gch.Free();
 
             _hIn = IntPtr.Zero;

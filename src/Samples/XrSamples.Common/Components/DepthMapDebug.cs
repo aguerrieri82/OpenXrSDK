@@ -64,11 +64,11 @@ namespace XrSamples
 
                 var minUV = Vector2.One;
                 var maxUV = Vector2.Zero;
-                float minZ = 1.0f;
+                var minZ = 1.0f;
 
                 var corners = bounds.Points.ToArray();
 
-                for (int i = 0; i < 8; ++i)
+                for (var i = 0; i < 8; ++i)
                 {
                     var clip = Vector4.Transform(new Vector4(corners[i], 1), camera.ViewProjection);
                     var ndc = clip / clip.W;

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine.Bullet
 {
     public class IkViewer : Behavior<Group3D>, IDrawGizmos
     {
-        Dictionary<IkNode, TriangleMesh> _meshMap = [];
+        readonly Dictionary<IkNode, TriangleMesh> _meshMap = [];
         bool _isMeshCreated;
 
         public IkViewer()
@@ -169,15 +165,15 @@ namespace XrEngine.Bullet
         {
             if (Solver?.Root == null || !EnableGizmos)
                 return;
-            
+
             var wordTransform = Solver.WorldPose.ToMatrix();
 
             DrawWork(canvas, Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
         }
 
 
-        public IkSolver? Solver { get; set; }  
-        
-        public bool EnableGizmos { get; set; }  
+        public IkSolver? Solver { get; set; }
+
+        public bool EnableGizmos { get; set; }
     }
 }

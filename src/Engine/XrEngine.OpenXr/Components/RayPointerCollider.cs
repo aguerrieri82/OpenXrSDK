@@ -19,7 +19,6 @@ namespace XrEngine.OpenXr
         {
             _rayView = new RayView();
             _hitView = new HitTargetView();
-            //_hitView.Materials[0].IsEnabled = false;
             ShowHit = false;
         }
 
@@ -47,10 +46,9 @@ namespace XrEngine.OpenXr
 
             if (Pointer == null && !string.IsNullOrWhiteSpace(PointerName))
             {
-                Pointer = _host!.Scene
+                Pointer = _host.Scene
                       .Components<IRayPointer>()
-                      .Where(a => a.Name == PointerName)
-                      .FirstOrDefault();
+                      .FirstOrDefault(a => a.Name == PointerName);
             }
 
             _sceneTargets = _host.Scene.Components<IRayTarget>().ToArray();
@@ -73,7 +71,7 @@ namespace XrEngine.OpenXr
 
             var colliders = Handler != null && Handler.IsActive ? Handler.GetColliders() : null;
 
-            _host.RayCollisions(ray, _collisions, colliders);
+            _host.RayCollisions(ray, _collisions, colliders, ParallelColliders);
 
             if (_collisions.Count > 0)
             {
@@ -87,7 +85,7 @@ namespace XrEngine.OpenXr
 
                 _rayView.UpdateColor(new Color(0, 1, 0));
 
-                bool mustUpdate = true;
+                var mustUpdate = true;
 
                 if (Handler != null && Handler.IsActive)
                 {
@@ -138,6 +136,8 @@ namespace XrEngine.OpenXr
         public string? PointerName { get; set; }
 
         public bool ShowHit { get; set; }
+
+        public bool ParallelColliders { get; set; }
 
         public RayView RayView => _rayView;
 

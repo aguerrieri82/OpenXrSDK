@@ -38,12 +38,12 @@ namespace XrEngine
             Id = DynamicPropRegistry.GetId(name);
         }
 
-        public static implicit operator DynamicProp (string name)
+        public static implicit operator DynamicProp(string name)
         {
             return new DynamicProp(name);
         }
 
-        public static implicit operator int (DynamicProp prop)
+        public static implicit operator int(DynamicProp prop)
         {
             return prop.Id;
         }

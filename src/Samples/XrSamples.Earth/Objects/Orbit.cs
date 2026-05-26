@@ -42,13 +42,13 @@ namespace XrSamples.Earth
         public Vector3 GetPosition(DateTime dateTime)
         {
             // Convert to Julian Date
-            double julianDate = ToJulianDate(dateTime);
+            var julianDate = ToJulianDate(dateTime);
 
             // Days since J2000 epoch (2000-01-01 12:00 UT)
-            double daysSinceJ2000 = julianDate - 2451545.0;
+            var daysSinceJ2000 = julianDate - 2451545.0;
 
             // M (mean anomaly) in radians
-            double M = MeanAnomalyAtEpoch + MeanMotion * daysSinceJ2000;
+            var M = MeanAnomalyAtEpoch + MeanMotion * daysSinceJ2000;
             M = NormalizeAngle(M); // keep in [0..2π)
 
             // Pass the mean anomaly (in radians) to our other GetPosition
@@ -57,45 +57,45 @@ namespace XrSamples.Earth
 
         public Vector3 GetPosition(double M)
         {
-            double E = SolveKeplerEquation(M, Eccentricity);
+            var E = SolveKeplerEquation(M, Eccentricity);
 
             // 2) True anomaly ν
-            double nu = 2.0 * Math.Atan2(
+            var nu = 2.0 * Math.Atan2(
                 Math.Sqrt(1 + Eccentricity) * Math.Sin(E / 2.0),
                 Math.Sqrt(1 - Eccentricity) * Math.Cos(E / 2.0)
             );
 
             // 3) Orbital radius r
-            double r = SemiMajorAxis * (1 - Eccentricity * Math.Cos(E));
+            var r = SemiMajorAxis * (1 - Eccentricity * Math.Cos(E));
 
             // 4) (xOrb, yOrb) in the orbital plane
-            double xOrb = r * Math.Cos(nu);
-            double yOrb = r * Math.Sin(nu);
+            var xOrb = r * Math.Cos(nu);
+            var yOrb = r * Math.Sin(nu);
 
             // ----------- 3D ORBIT ORIENTATIONS -------------
             // a) Rotate by argument of perihelion ω around Z
-            double cosw = Math.Cos(ArgumentOfPerihelion);
-            double sinw = Math.Sin(ArgumentOfPerihelion);
+            var cosw = Math.Cos(ArgumentOfPerihelion);
+            var sinw = Math.Sin(ArgumentOfPerihelion);
 
-            double xw = xOrb * cosw - yOrb * sinw;
-            double yw = xOrb * sinw + yOrb * cosw;
-            double zw = 0.0;
+            var xw = xOrb * cosw - yOrb * sinw;
+            var yw = xOrb * sinw + yOrb * cosw;
+            var zw = 0.0;
 
             // b) Inclination i around X
-            double cosi = Math.Cos(Inclination);
-            double sini = Math.Sin(Inclination);
+            var cosi = Math.Cos(Inclination);
+            var sini = Math.Sin(Inclination);
 
-            double xi = xw;
-            double yi = yw * cosi;
-            double zi = yw * sini;  // tilt out of the X–Z plane
+            var xi = xw;
+            var yi = yw * cosi;
+            var zi = yw * sini;  // tilt out of the X–Z plane
 
             // c) Longitude of ascending node Ω around Z
-            double cosO = Math.Cos(LongitudeOfAscendingNode);
-            double sinO = Math.Sin(LongitudeOfAscendingNode);
+            var cosO = Math.Cos(LongitudeOfAscendingNode);
+            var sinO = Math.Sin(LongitudeOfAscendingNode);
 
-            double xEcl = xi * cosO - yi * sinO;
-            double yEcl = xi * sinO + yi * cosO;
-            double zEcl = zi;
+            var xEcl = xi * cosO - yi * sinO;
+            var yEcl = xi * sinO + yi * cosO;
+            var zEcl = zi;
 
             // ----- Remap final coords so Y is 'up' and orbit is in X–Z if i=0 -----
             // xEcl -> X
@@ -134,7 +134,7 @@ namespace XrSamples.Earth
         // Solve M = E - e*sin(E) for E in radians, via simple Newton iteration
         static double SolveKeplerEquation(double M, double e)
         {
-            double E = M; // initial guess
+            var E = M; // initial guess
             double delta;
             do
             {

@@ -14,6 +14,7 @@ namespace XrEditor
     public class EditorPlatform : IXrEnginePlatform, IRenderSurfaceProvider
     {
         IRenderSurface? _renderSurface;
+        private readonly bool _useEs;
         private readonly DeviceInfo _info;
 
         static string GetMacAddress()
@@ -32,8 +33,9 @@ namespace XrEditor
             return "";
         }
 
-        public EditorPlatform(string persistentPath = "Data")
+        public EditorPlatform(string persistentPath = "Data", bool useEs = false)
         {
+            _useEs = useEs;
             _info = new DeviceInfo
             {
                 Id = GetMacAddress(),
@@ -46,7 +48,7 @@ namespace XrEditor
         public IRenderSurface CreateRenderSurface(GraphicDriver driver)
         {
             if (driver == GraphicDriver.OpenGL)
-                _renderSurface = new GlRenderHost();
+                _renderSurface = new GlRenderHost(true, _useEs);
             else if (driver == GraphicDriver.FilamentOpenGL)
                 _renderSurface = new FlGlRenderHost();
             else
@@ -66,16 +68,18 @@ namespace XrEditor
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
         {
+            var opt = OculusXrPluginOptions.Default;
+            //opt.Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.None;
             return new XrApp(NullLogger.Instance,
                      xrDriver,
-                     new OculusXrPlugin());
+                     new OculusXrPlugin(opt));
         }
 
         public IRenderSurface RenderSurface => _renderSurface!;
 
         public string PersistentPath { get; }
 
-        public string CachePath => Path.GetFullPath("Cache");
+        public string CachePath => @"D:\Projects\XrEditor\Cache";
 
         public string Name => "Editor";
 

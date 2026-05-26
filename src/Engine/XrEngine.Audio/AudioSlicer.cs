@@ -50,14 +50,14 @@ namespace XrEngine.Audio
 
 
                 var bestOfs = -1;
-                float bestValue = float.NegativeInfinity;
+                var bestValue = float.NegativeInfinity;
 
                 var len = (endSample - startSample + 1);
 
-                for (int ofs = minSamples; ofs <= maxSamples; ofs++)
+                for (var ofs = minSamples; ofs <= maxSamples; ofs++)
                 {
                     float sum = 0;
-                    for (int j = 0; j < len; j++)
+                    for (var j = 0; j < len; j++)
                     {
                         var s1 = endSample - ofs + j;
                         var s2 = startSample + j;

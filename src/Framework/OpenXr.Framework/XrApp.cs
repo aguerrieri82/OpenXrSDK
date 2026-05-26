@@ -5,9 +5,11 @@ using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.EXT;
+using Silk.NET.OpenXR.Extensions.KHR;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
@@ -72,13 +74,16 @@ namespace OpenXr.Framework
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
         protected readonly XrSpacesTracker _tracker;
+        protected KhrConvertTimespecTime _convertTime;
 
         //TODO leave here or move?
         protected ExtPerformanceSettings? _perfSettings;
         protected internal ExtHandTracking? _handTracking;
+        protected KhrVisibilityMask _visibilityMask;
 
         protected XrAppState _state;
         protected bool _isValid; //TODO rethink on _state
+
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -97,6 +102,10 @@ namespace OpenXr.Framework
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
             _extensions.Add(ExtHandTracking.ExtensionName);
             _extensions.Add("XR_KHR_locate_spaces");
+            _extensions.Add("XR_KHR_convert_timespec_time");
+            _extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+            _extensions.Add(KhrVisibilityMask.ExtensionName);
+
 
             Current = this;
             ReferenceFrame = Pose3.Identity;
@@ -121,7 +130,7 @@ namespace OpenXr.Framework
 
                     var supportedExtensions = GetSupportedExtensions();
 
-                    for (int i = 0; i < _extensions.Count; i++)
+                    for (var i = 0; i < _extensions.Count; i++)
                     {
                         if (!supportedExtensions.Contains(_extensions[i]))
                         {
@@ -149,6 +158,7 @@ namespace OpenXr.Framework
 
                     _xr.TryGetInstanceExtension<ExtPerformanceSettings>(null, _instance, out _perfSettings);
                     _xr.TryGetInstanceExtension<ExtHandTracking>(null, _instance, out _handTracking);
+                    _xr.TryGetInstanceExtension<KhrVisibilityMask>(null, _instance, out _visibilityMask);
                 }
 
                 _state = XrAppState.Initialized;
@@ -158,6 +168,96 @@ namespace OpenXr.Framework
                 _state = XrAppState.Created;
                 throw;
             }
+        }
+
+        long GetBootToMonotonicOffsetNs()
+        {
+#if ANDROID
+
+            var bootTime = Android.OS.SystemClock.ElapsedRealtimeNanos();
+            var nanoTime = Java.Lang.JavaSystem.NanoTime();
+            return nanoTime - bootTime;
+#else
+            return 0;
+
+#endif
+        }
+
+        public Mesh2 GetVisibilityMask(uint viewIndex, VisibilityMaskTypeKHR type = VisibilityMaskTypeKHR.VisibleTriangleMeshKhr)
+        {
+
+            var result = new VisibilityMaskKHR
+            {
+                Type = StructureType.VisibilityMaskKhr,
+                IndexCapacityInput = 0,
+                VertexCapacityInput = 0
+            };
+
+
+            CheckResult(_visibilityMask.GetVisibilityMask(_session, _viewInfo!.Type, viewIndex, type, ref result), "GetVisibilityMask");
+
+            var ixBuffer = new uint[result.IndexCountOutput];
+            var vxBuffer = new Vector2f[result.VertexCountOutput];
+
+            fixed (uint* pIxBuffer = &ixBuffer[0])
+            fixed (Vector2f* pVxBuffer = &vxBuffer[0])
+            {
+                result.Vertices = pVxBuffer;
+                result.Indices = pIxBuffer;
+                result.VertexCapacityInput = (uint)vxBuffer.Length;
+                result.IndexCapacityInput = (uint)ixBuffer.Length;
+
+                CheckResult(_visibilityMask.GetVisibilityMask(_session, _viewInfo!.Type, viewIndex, type, ref result), "GetVisibilityMask");
+
+            }
+
+            var mesh = new Mesh2
+            {
+                Indices = ixBuffer.ToArray(),
+                Vertices = vxBuffer.Convert().To<Vector2>().ToArray()
+            };
+
+            return mesh;
+        }
+
+        public long XrTimeToBootTime(long xrTime)
+        {
+            if (_convertTime == null)
+            {
+                if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
+                    throw new NotSupportedException();
+
+            }
+
+            var timespec = new Timespec();
+
+            CheckResult(_convertTime.ConvertTimeToTimespecTime(_instance, xrTime, ref timespec), "ConvertTimeToTimespecTime");
+
+            return (timespec.Seconds * 1000000000 + timespec.Nanoseconds);
+        }
+
+        public long BootTimeToXrTime(long bootTime)
+        {
+            if (_convertTime == null)
+            {
+                if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
+                    throw new NotSupportedException();
+
+            }
+
+            bootTime += GetBootToMonotonicOffsetNs();
+
+            var timespec = new Timespec
+            {
+                Seconds = (nint)(bootTime / 1000000000),
+                Nanoseconds = (nint)(bootTime % 1000000000)
+            };
+
+            long result = 0;
+
+            CheckResult(_convertTime.ConvertTimespecTimeToTime(_instance, ref timespec, ref result), "ConvertTimespecTimeToTime");
+
+            return result;
         }
 
         public void AttachInstance(ulong instance)
@@ -199,15 +299,21 @@ namespace OpenXr.Framework
             if (mode == XrAppStartMode.Render)
             {
                 _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
-
-                if (_perfSettings != null)
-                {
-                    CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.GpuExt, _renderOptions.GpuLevel), "PerfSettingsSetPerformanceLevel");
-
-                    CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.CpuExt, _renderOptions.CpuLevel), "PerfSettingsSetPerformanceLevel");
-                }
+                UpdatePerfLevels();
             }
+
             _state = XrAppState.Started;
+        }
+
+        protected void UpdatePerfLevels()
+        {
+            if (_perfSettings == null)
+                return;
+
+            CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.GpuExt, _renderOptions.GpuLevel), "PerfSettingsSetPerformanceLevel");
+
+            CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.CpuExt, _renderOptions.CpuLevel), "PerfSettingsSetPerformanceLevel");
+
         }
 
         protected void DestroyInstance()
@@ -282,7 +388,7 @@ namespace OpenXr.Framework
                 CheckResult(_xr.EnumerateInstanceExtensionProperties((byte*)null, propCount, ref propCount, pProps), "EnumerateInstanceExtensionProperties");
 
             var result = new List<string>();
-            for (int i = 0; i < props.Length; i++)
+            for (var i = 0; i < props.Length; i++)
             {
                 fixed (void* pExtName = props[i].ExtensionName)
                     result.Add(Marshal.PtrToStringAnsi(new nint(pExtName))!);
@@ -454,7 +560,7 @@ namespace OpenXr.Framework
 
             Span<ViewConfigurationView> result = stackalloc ViewConfigurationView[32];
 
-            for (int i = 0; i < result.Length; i++)
+            for (var i = 0; i < result.Length; i++)
                 result[i] = new ViewConfigurationView() { Type = StructureType.ViewConfigurationView };
 
             CheckResult(_xr!.EnumerateViewConfigurationView(_instance, _systemId, viewType, (uint)result.Length, ref viewCount, ref result[0]), "EnumerateViewConfigurationView");
@@ -486,7 +592,7 @@ namespace OpenXr.Framework
             return LocateViews(space, displayTime, _views!);
         }
 
-        public unsafe ViewState LocateViews(Space space, long displayTime, View[] views)
+        public ViewState LocateViews(Space space, long displayTime, View[] views)
         {
             Debug.Assert(_viewInfo != null);
 
@@ -503,7 +609,7 @@ namespace OpenXr.Framework
                 Type = StructureType.ViewState
             };
 
-            uint count = (uint)views.Length;
+            var count = (uint)views.Length;
 
             fixed (View* pViews = views)
                 CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
@@ -661,6 +767,9 @@ namespace OpenXr.Framework
                     break;
                 case SessionState.Exiting:
                     Dispose();
+                    break;
+                case SessionState.Focused:
+                    UpdatePerfLevels();
                     break;
                 case SessionState.LossPending:
                     //TODO handle
@@ -876,7 +985,7 @@ namespace OpenXr.Framework
             {
                 EndFrame(frameTime, ref layers, layerCount);
 
-                FramePredictedDisplayTime = 0;
+                //FramePredictedDisplayTime = 0;
             }
 
             return true;
@@ -1063,7 +1172,7 @@ namespace OpenXr.Framework
             var info = new ActionSetCreateInfo()
             {
                 Type = StructureType.ActionSetCreateInfo,
-                Priority = 0
+                Priority = 0,
             };
 
             var nameSpan = new Span<byte>(info.ActionSetName, 64);
@@ -1169,15 +1278,16 @@ namespace OpenXr.Framework
             CheckResult(_xr!.SyncAction(_session, in info), "SyncAction");
         }
 
-        protected internal Space CreateActionSpace(Action action, ulong subPath)
+        protected internal Space CreateActionSpace(Action action, ulong subPath, Posef pose)
         {
             var info = new ActionSpaceCreateInfo()
             {
                 Type = StructureType.ActionSpaceCreateInfo,
                 Action = action,
+                PoseInActionSpace = pose,
                 SubactionPath = subPath,
             };
-            info.PoseInActionSpace.Orientation.W = 1;
+
             var result = new Space();
             CheckResult(_xr!.CreateActionSpace(_session, in info, ref result), "CreateActionSpace");
             return result;
@@ -1320,6 +1430,11 @@ namespace OpenXr.Framework
                         case StructureType.EventDataReferenceSpaceChangePending:
                             //TODO handle
                             break;
+
+                        case StructureType.EventDataVisibilityMaskChangedKhr:
+                            var maskChanged = buffer.Convert().To<EventDataVisibilityMaskChangedKHR>();
+                            GetVisibilityMask(maskChanged.ViewIndex);
+                            break;
                     }
 
                     PluginInvoke(p => p.HandleEvent(ref buffer));
@@ -1440,6 +1555,22 @@ namespace OpenXr.Framework
             Current = null;
 
             GC.SuppressFinalize(this);
+        }
+
+        public IDisposable? Configure<T>(ref T data) where T : struct
+        {
+            DisposeGroup? grp = null;
+            foreach (var plugin in _plugins)
+            {
+                var conf = plugin.Configure(ref data);
+
+                if (conf != null)
+                {
+                    grp ??= new();
+                    grp.Add(conf);
+                }
+            }
+            return grp;
         }
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;

@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
 
         static void BindFunctions(GL gl)
         {
-            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out nint addr);
+            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out var addr);
             FramebufferTextureMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultiviewOVRDelegate>(addr);
 
             gl.Context.TryGetProcAddress("glFramebufferTextureMultisampleMultiviewOVR", out addr);
@@ -129,7 +129,7 @@ namespace XrEngine.OpenGL
                     0, 0, 2);
             }
 
-            _isDirty = true;    
+            _isDirty = true;
         }
 
         public void Detach(FramebufferAttachment attachment)

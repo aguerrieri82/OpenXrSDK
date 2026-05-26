@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
             if (!Source.HasOutlines())
                 return false;
 
-            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.GrayInt8);
             _passTarget.RenderTarget!.Begin(camera);
 
             _renderer.State.SetClearColor(Color.Transparent);
@@ -83,7 +83,7 @@ namespace XrEngine.OpenGL
             if (!Source!.HasOutline(model, out var color))
                 return UpdateProgramResult.Skip;
 
-            if (_programInstance!.Material.UpdateColor(color))
+            if (_programInstance!.Material.UpdateColor(Color.White))
                 UpdateMaterial(updateContext);
 
             return UpdateProgramResult.Unchanged;
@@ -97,11 +97,12 @@ namespace XrEngine.OpenGL
 
             _outlineProgram.Use();
             _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
+            _outlineProgram.SetUniform("uColor", _renderer.Options.Outline.Color);
             _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
 
             if (UseScissor)
             {
-                int padding = (int)_renderer.Options.Outline.Size + 2;
+                var padding = (int)_renderer.Options.Outline.Size + 2;
                 _bounds.Min -= new Vector2(padding, padding);
                 _bounds.Max += new Vector2(padding, padding);
 
@@ -148,7 +149,7 @@ namespace XrEngine.OpenGL
             if (clipPos.W <= 0.001f)
             {
                 screenPos = Vector2.Zero;
-                return false; 
+                return false;
             }
 
             var ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
@@ -156,13 +157,11 @@ namespace XrEngine.OpenGL
             var viewSize = cam.ViewSize;
             screenPos = new Vector2(
                 (ndc.X + 1.0f) * 0.5f * viewSize.Width,
-                (ndc.Y + 1.0f) * 0.5f * viewSize.Height 
+                (ndc.Y + 1.0f) * 0.5f * viewSize.Height
             );
 
             return true;
         }
-
-
 
         protected override void Draw(DrawContent draw)
         {
@@ -191,13 +190,13 @@ namespace XrEngine.OpenGL
                     _bounds.Max = new Vector2(size.Width, size.Height);
                 }
             }
-           
+
             base.Draw(draw);
         }
 
         public IOutlineSource? Source { get; set; }
 
-        public GlRenderPassTarget PassTarget => _passTarget;    
+        public GlRenderPassTarget PassTarget => _passTarget;
 
         public bool UseScissor { get; set; }
 

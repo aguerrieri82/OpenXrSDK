@@ -47,9 +47,10 @@
                    M31 == other.M31 && M32 == other.M32 && M33 == other.M33;
         }
 
+
         public override int GetHashCode()
         {
-            int hash = 17;
+            var hash = 17;
             hash = hash * 31 + M11.GetHashCode();
             hash = hash * 31 + M12.GetHashCode();
             hash = hash * 31 + M13.GetHashCode();
@@ -90,8 +91,8 @@
 
         public static Matrix3x3 CreateRotationX(float radians)
         {
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            var cos = (float)Math.Cos(radians);
+            var sin = (float)Math.Sin(radians);
 
             return new Matrix3x3
             {
@@ -109,8 +110,8 @@
 
         public static Matrix3x3 CreateRotationY(float radians)
         {
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            var cos = (float)Math.Cos(radians);
+            var sin = (float)Math.Sin(radians);
 
             return new Matrix3x3
             {
@@ -128,8 +129,8 @@
 
         public static Matrix3x3 CreateRotationZ(float radians)
         {
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            var cos = (float)Math.Cos(radians);
+            var sin = (float)Math.Sin(radians);
 
             return new Matrix3x3
             {

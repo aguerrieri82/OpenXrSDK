@@ -83,7 +83,7 @@ namespace XrEngine.OpenGL
                         0,
                         (int)depthIndex);
 
-                    _isDirty = true; 
+                    _isDirty = true;
                 }
                 else
                     BindAttachment(depth, attachment, false);
@@ -131,7 +131,7 @@ namespace XrEngine.OpenGL
         {
             if (obj is GlTexture tex)
             {
-                bool useMs = false;
+                var useMs = false;
                 if (_sampleCount > 1)
                 {
 #if GLES
@@ -167,7 +167,7 @@ namespace XrEngine.OpenGL
             if (useDraw)
                 _drawBuffers.Add((DrawBufferMode)slot);
 
-            _isDirty = true; 
+            _isDirty = true;
         }
 
         public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
@@ -225,8 +225,12 @@ namespace XrEngine.OpenGL
 
         public unsafe void ReadColor(TextureData data)
         {
-            if (Color == null || Color.InternalFormat != InternalFormat.Rgba8)
+            if (Color == null)
                 throw new NotSupportedException();
+
+            GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
+
+            var pixelSize = data.Format.GetPixelSizeBit() / 8;
 
             data.Width = Color.Width;
             data.Height = Color.Height;
@@ -234,22 +238,24 @@ namespace XrEngine.OpenGL
             data.Face = 0;
             data.MipLevel = 0;
             data.Depth = 0;
-            data.Format = TextureFormat.Rgba32;
-            data.Data = MemoryBuffer.CreateOrResize(data.Data, Color.Width * Color.Height * 4);
+            data.Data = MemoryBuffer.CreateOrResize(data.Data, Color.Width * Color.Height * pixelSize);
 
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
             using var pData = data.Data.MemoryLock();
 
-            _gl.ReadPixels(0, 0, Color!.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
+            _gl.ReadPixels(0, 0, Color!.Width, Color.Height, pixelFormat, pixelType, pData);
 
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
         }
 
-        public unsafe TextureData ReadColor()
+        public TextureData ReadColor(TextureFormat format)
         {
-            var data = new TextureData();
+            var data = new TextureData
+            {
+                Format = format
+            };
 
             ReadColor(data);
 

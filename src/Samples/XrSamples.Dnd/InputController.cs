@@ -1,8 +1,5 @@
 ﻿using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -27,7 +24,7 @@ namespace XrSamples.Dnd
         [Action]
         public void ScaleUp()
         {
-           Scale(1f / 0.8f);
+            Scale(1f / 0.8f);
 
         }
 
@@ -36,7 +33,7 @@ namespace XrSamples.Dnd
             var center = Player!.WorldPosition;
             var newTrans = Map!.Transform.Matrix *
                 Matrix4x4.CreateTranslation(-center) *
-                Matrix4x4.CreateScale(new Vector3( value)) *
+                Matrix4x4.CreateScale(new Vector3(value)) *
                 Matrix4x4.CreateTranslation(center);
 
             Map!.Transform.Set(newTrans);

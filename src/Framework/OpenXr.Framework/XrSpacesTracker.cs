@@ -73,7 +73,6 @@ namespace OpenXr.Framework
 
         }
 
-
         public XrSpaceLocation? GetLastLocation(Space space)
         {
             if (_trackData.TryGetValue(space, out var info))

@@ -20,8 +20,8 @@ namespace XrEngine.Audio
 
         private static double[] HannWindow(int size)
         {
-            double[] window = new double[size];
-            for (int i = 0; i < size; i++)
+            var window = new double[size];
+            for (var i = 0; i < size; i++)
                 window[i] = 0.5 * (1 - Math.Cos(2 * Math.PI * i / (size - 1)));
 
             return window;
@@ -67,18 +67,18 @@ namespace XrEngine.Audio
 
             _shiftedSpectrum.ToSpan().Fill(0);
 
-            for (int frame = 0; frame < _numFrames; frame++)
+            for (var frame = 0; frame < _numFrames; frame++)
             {
                 var frameOfs = frame * _hopSize;
 
-                for (int i = 0; i < _fftIn.Length; i++)
+                for (var i = 0; i < _fftIn.Length; i++)
                     _fftIn.Pointer[i] = input[frameOfs + i];
 
                 FftwLib.Dft(_fftIn, _fftOut);
 
-                for (int i = 0; i < _shiftedSpectrum.Length; i++)
+                for (var i = 0; i < _shiftedSpectrum.Length; i++)
                 {
-                    int shiftedIndex = (int)(i * Factor);
+                    var shiftedIndex = (int)(i * Factor);
                     if (shiftedIndex < _shiftedSpectrum.Length && shiftedIndex >= 0)
                         _shiftedSpectrum.Pointer[shiftedIndex] = _fftOut.Pointer[i];
                 }
@@ -88,7 +88,7 @@ namespace XrEngine.Audio
                 {
                     var phaseFactor = (2.0 * Math.PI * _hopSize / _sampleRate);
 
-                    for (int i = 0; i < _shiftedSpectrum.Length; i++)
+                    for (var i = 0; i < _shiftedSpectrum.Length; i++)
                     {
                         var magnitude = _shiftedSpectrum.Pointer[i].Magnitude;
                         var phase = _shiftedSpectrum.Pointer[i].Phase;
@@ -108,7 +108,7 @@ namespace XrEngine.Audio
                 FftwLib.Dft(_shiftedSpectrum, _fftIn);
 
                 // Overlap-add
-                for (int i = 0; i < windowSize; i++)
+                for (var i = 0; i < windowSize; i++)
                     output[frameOfs + i] += (float)(_fftIn.Pointer[i] / _fftIn.Length);
             }
         }

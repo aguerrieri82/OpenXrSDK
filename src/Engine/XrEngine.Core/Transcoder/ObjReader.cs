@@ -1,8 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Numerics;
-using System.Text;
 using XrMath;
 
 namespace XrEngine
@@ -29,9 +26,9 @@ namespace XrEngine
         public override EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             var path = GetFilePath(uri);
-            using var stream = File.OpenRead(path);   
+            using var stream = File.OpenRead(path);
             using var reader = new StreamReader(stream);
-            
+
             string? line;
 
             var data = new List<VertexData>();
@@ -84,7 +81,7 @@ namespace XrEngine
             };
 
             var mesh = new TriangleMesh(geo);
-            return mesh;            
+            return mesh;
         }
 
         public static readonly ObjReader Instance = new();

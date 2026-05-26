@@ -23,21 +23,21 @@ namespace XrEngine
         {
             var vertices = new List<VertexData>();
 
-            for (int lat = 0; lat <= Subs; lat++)
+            for (var lat = 0; lat <= Subs; lat++)
             {
-                float theta = lat * MathF.PI / Subs;
-                float sinTheta = MathF.Sin(theta);
-                float cosTheta = MathF.Cos(theta);
+                var theta = lat * MathF.PI / Subs;
+                var sinTheta = MathF.Sin(theta);
+                var cosTheta = MathF.Cos(theta);
 
-                for (int lon = 0; lon <= Subs; lon++)
+                for (var lon = 0; lon <= Subs; lon++)
                 {
-                    float phi = lon * 2 * MathF.PI * Section / Subs;
-                    float sinPhi = MathF.Sin(phi);
-                    float cosPhi = MathF.Cos(phi);
+                    var phi = lon * 2 * MathF.PI * Section / Subs;
+                    var sinPhi = MathF.Sin(phi);
+                    var cosPhi = MathF.Cos(phi);
 
-                    float x = sinTheta * cosPhi;
-                    float y = cosTheta;
-                    float z = sinTheta * sinPhi;
+                    var x = sinTheta * cosPhi;
+                    var y = cosTheta;
+                    var z = sinTheta * sinPhi;
 
                     var tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
 
@@ -57,8 +57,8 @@ namespace XrEngine
             {
                 for (uint lon = 0; lon < Subs; lon++)
                 {
-                    uint first = lat * (Subs + 1) + lon;
-                    uint second = first + Subs + 1;
+                    var first = lat * (Subs + 1) + lon;
+                    var second = first + Subs + 1;
 
                     // Triangle 1
                     indices.Add(first + 1);

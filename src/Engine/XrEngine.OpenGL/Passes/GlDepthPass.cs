@@ -216,6 +216,7 @@ namespace XrEngine.OpenGL
             camera.FrustumPlanes(planes);
 
             _renderer.State.LoadTexture(_depthTexture!, 0);
+
             _depthCull.SetUniform("viewProj", camera.ViewProjection);
             _depthCull.SetUniform("screenSize", new Vector2(camera.ViewSize.Width, camera.ViewSize.Height));
             _depthCull.SetUniform("maxMip", (int)_depthTexture!.MaxLevel);

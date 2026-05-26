@@ -24,6 +24,7 @@ namespace XrEngine
 
         #region EngineObject
 
+
         public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
         {
             if (isSet)
@@ -91,6 +92,13 @@ namespace XrEngine
         #endregion
 
         #region OBJECT3D
+
+
+        public static void Remove(this Object3D self)
+        {
+            self.Parent?.RemoveChild(self);
+        }
+
 
         public static void PropagateTransform(this Object3D self)
         {
@@ -189,36 +197,6 @@ namespace XrEngine
                 self.MoveLocalToWorld(Vector3.Zero, pose.Position);
             else
                 self.WorldPosition = pose.Position;
-
-            /*
-             WORKING 
-            pose.Position -= Vector3.Transform(self.Transform.LocalPivot, pose.Orientation);
-
-            self.WorldMatrix = Matrix4x4.CreateScale(self.Transform.Scale) *
-                         Matrix4x4.CreateFromQuaternion(pose.Orientation) *
-                         Matrix4x4.CreateTranslation(pose.Position);
-
-
-            var curPivot = Vector3.Zero;
-
-            self.BeginUpdate();
-
-            if (fromOrigin)
-            {
-                curPivot = self.Transform.LocalPivot;
-                if (curPivot != Vector3.Zero)
-                    self.Transform.SetLocalPivot(Vector3.Zero, true);
-            }
-
-            self.WorldPosition = pose.Position;
-            self.WorldOrientation = pose.Orientation;
-
-            if (curPivot != Vector3.Zero)
-                self.Transform.SetLocalPivot(curPivot, true);
-
-            self.EndUpdate();
-
-            */
         }
 
 
@@ -230,17 +208,6 @@ namespace XrEngine
                 Orientation = self.WorldOrientation,
                 Position = fromOrigin ? self.ToWorld(Vector3.Zero) : self.WorldPosition
             };
-
-            /*
-            var result = new Pose3
-            {
-                Orientation = self.WorldOrientation,
-                Position = self.WorldPosition
-            };
-
-            if (fromOrigin)
-                result.Position -= self.Transform.LocalPivot;
-            */
 
             return result;
         }
@@ -291,14 +258,19 @@ namespace XrEngine
 
         public static IEnumerable<Object3D> DescendantsOrSelf(this Object3D self)
         {
-            yield return self;
+            var stack = new Stack<Object3D>();
 
-            if (self is Group3D group)
+            stack.Push(self);
+
+            while (stack.Count > 0)
             {
-                foreach (var child in group.Children)
+                var cur = stack.Pop();
+                yield return cur;
+
+                if (cur is Group3D g && g.Children is not null)
                 {
-                    foreach (var descendent in child.DescendantsOrSelf())
-                        yield return descendent;
+                    for (var i = g.Children.Count - 1; i >= 0; i--)
+                        stack.Push(g.Children[i]);
                 }
             }
         }
@@ -421,15 +393,17 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null)
+        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null, bool isParallel = false)
         {
             IEnumerable<ICollider3D> GetColliders()
             {
-                foreach (var obj in self.DescendantsOrSelf().Visible())
+                foreach (var obj in self.ObjectsWithComponent<ICollider3D>())
                 {
-                    var collider = obj.Feature<ICollider3D>();
-                    if (collider != null && collider.IsEnabled)
-                        yield return collider;
+                    foreach (var collider in obj.Components<ICollider3D>())
+                    {
+                        if (collider != null && collider.IsEnabled)
+                            yield return collider;
+                    }
                 }
             }
 
@@ -437,12 +411,24 @@ namespace XrEngine
 
             result.Clear();
 
-            Parallel.ForEach(colliders, collider =>
+            if (isParallel)
             {
-                var collision = collider.CollideWith(ray);
-                if (collision != null)
-                    result.Add(collision);
-            });
+                Parallel.ForEach(colliders, collider =>
+                {
+                    var collision = collider.CollideWith(ray);
+                    if (collision != null)
+                        result.Add(collision);
+                });
+            }
+            else
+            {
+                foreach (var collider in colliders)
+                {
+                    var collision = collider.CollideWith(ray);
+                    if (collision != null)
+                        result.Add(collision);
+                }
+            }
         }
 
 
@@ -524,17 +510,26 @@ namespace XrEngine
             return self.Descendants<Object3D>();
         }
 
+
         public static IEnumerable<T> Descendants<T>(this Group3D self) where T : Object3D
         {
-            foreach (var child in self.Children)
-            {
-                if (child is T validChild)
-                    yield return validChild;
 
-                if (child is Group3D group)
+            var stack = new Stack<Object3D>();
+
+            for (var i = self.Children.Count - 1; i >= 0; i--)
+                stack.Push(self.Children[i]);
+
+            while (stack.Count > 0)
+            {
+                var cur = stack.Pop();
+
+                if (cur is T valid)
+                    yield return valid;
+
+                if (cur is Group3D g && g.Children is not null)
                 {
-                    foreach (var desc in group.Descendants<T>())
-                        yield return desc;
+                    for (var i = g.Children.Count - 1; i >= 0; i--)
+                        stack.Push(g.Children[i]);
                 }
             }
         }
@@ -642,7 +637,7 @@ namespace XrEngine
 
             if (self.Indices.Length > 0)
             {
-                int i = 0;
+                var i = 0;
                 while (i < self.Indices.Length)
                 {
                     var i0 = self.Indices[i++];
@@ -664,7 +659,7 @@ namespace XrEngine
             }
             else
             {
-                int i = 0;
+                var i = 0;
                 while (i < self.Vertices.Length)
                 {
                     var i0 = i++;
@@ -695,7 +690,7 @@ namespace XrEngine
 
             var newIndices = new List<uint>(self.Indices.Length / 2 * 3);
 
-            for (int i = 0; i < self.Indices.Length; i += 4)
+            for (var i = 0; i < self.Indices.Length; i += 4)
             {
                 // First triangle of the quad
                 newIndices.Add(self.Indices[i]);
@@ -753,7 +748,7 @@ namespace XrEngine
                 if (group.Count > 1)
                 {
                     var avg = Vector3.Zero;
-                    int count = 0;
+                    var count = 0;
                     foreach (var index in group)
                     {
                         var normal = self.Vertices[index].Normal;
@@ -827,8 +822,8 @@ namespace XrEngine
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
 
-            int vertexCount = self.Vertices.Length;
-            int indexCount = self.Indices.Length;
+            var vertexCount = self.Vertices.Length;
+            var indexCount = self.Indices.Length;
 
             // Arrays to accumulate the tangent and bitangent vectors
             var tan1 = new Vector3[vertexCount];
@@ -840,44 +835,44 @@ namespace XrEngine
             fixed (VertexData* pVertex = self.Vertices)
             {
                 // Iterate over each triangle
-                for (int i = 0; i < indexCount; i += 3)
+                for (var i = 0; i < indexCount; i += 3)
                 {
-                    uint i1 = pIndex[i];
-                    uint i2 = pIndex[i + 1];
-                    uint i3 = pIndex[i + 2];
+                    var i1 = pIndex[i];
+                    var i2 = pIndex[i + 1];
+                    var i3 = pIndex[i + 2];
 
-                    Vector3 v1 = pVertex[i1].Pos;
-                    Vector3 v2 = pVertex[i2].Pos;
-                    Vector3 v3 = pVertex[i3].Pos;
+                    var v1 = pVertex[i1].Pos;
+                    var v2 = pVertex[i2].Pos;
+                    var v3 = pVertex[i3].Pos;
 
-                    Vector2 w1 = pVertex[i1].UV;
-                    Vector2 w2 = pVertex[i2].UV;
-                    Vector2 w3 = pVertex[i3].UV;
+                    var w1 = pVertex[i1].UV;
+                    var w2 = pVertex[i2].UV;
+                    var w3 = pVertex[i3].UV;
 
-                    float x1 = v2.X - v1.X;
-                    float y1 = v2.Y - v1.Y;
-                    float z1 = v2.Z - v1.Z;
+                    var x1 = v2.X - v1.X;
+                    var y1 = v2.Y - v1.Y;
+                    var z1 = v2.Z - v1.Z;
 
-                    float x2 = v3.X - v1.X;
-                    float y2 = v3.Y - v1.Y;
-                    float z2 = v3.Z - v1.Z;
+                    var x2 = v3.X - v1.X;
+                    var y2 = v3.Y - v1.Y;
+                    var z2 = v3.Z - v1.Z;
 
-                    float s1 = w2.X - w1.X;
-                    float t1 = w2.Y - w1.Y;
+                    var s1 = w2.X - w1.X;
+                    var t1 = w2.Y - w1.Y;
 
-                    float s2 = w3.X - w1.X;
-                    float t2 = w3.Y - w1.Y;
+                    var s2 = w3.X - w1.X;
+                    var t2 = w3.Y - w1.Y;
 
-                    float r = (s1 * t2 - s2 * t1);
-                    float f = r == 0.0f ? 0.0f : 1.0f / r;
+                    var r = (s1 * t2 - s2 * t1);
+                    var f = r == 0.0f ? 0.0f : 1.0f / r;
 
-                    Vector3 sdir = new Vector3(
+                    var sdir = new Vector3(
                         (t2 * x1 - t1 * x2) * f,
                         (t2 * y1 - t1 * y2) * f,
                         (t2 * z1 - t1 * z2) * f
                     );
 
-                    Vector3 tdir = new Vector3(
+                    var tdir = new Vector3(
                         (s1 * x2 - s2 * x1) * f,
                         (s1 * y2 - s2 * y1) * f,
                         (s1 * z2 - s2 * z1) * f
@@ -894,7 +889,7 @@ namespace XrEngine
                 }
 
                 // Orthogonalize and normalize the tangent vectors
-                for (int i = 0; i < vertexCount; ++i)
+                for (var i = 0; i < vertexCount; ++i)
                 {
                     var n = pVertex[i].Normal;
                     var t = pTan1[i];
@@ -903,8 +898,8 @@ namespace XrEngine
                     MathUtils.OrthoNormalize(ref n, ref t);
 
                     // Calculate the handedness (w component)
-                    Vector3 c = Vector3.Cross(n, t);
-                    float w = (Vector3.Dot(c, pTan2[i]) < 0.0f) ? -1.0f : 1.0f;
+                    var c = Vector3.Cross(n, t);
+                    var w = (Vector3.Dot(c, pTan2[i]) < 0.0f) ? -1.0f : 1.0f;
 
                     // Set the tangent with the calculated w component
                     pVertex[i].Tangent = new Vector4(t.X, t.Y, t.Z, w);
@@ -947,7 +942,7 @@ namespace XrEngine
             if (self.Indices.Length == 0)
                 throw new NotSupportedException();
 
-            int i = 0;
+            var i = 0;
 
             var vSpan = new Span<VertexData>(self.Vertices);
             var iSpan = new Span<uint>(self.Indices);
@@ -1098,7 +1093,7 @@ namespace XrEngine
 
             var isStereo = self.Eyes != null && self.Eyes.Length > 1;
 
-            Vector3[] corners = new Vector3[isStereo ? 16 : 8];
+            var corners = new Vector3[isStereo ? 16 : 8];
 
             corners[0] = new Vector3(-1, -1, 0).Project(viewProjInvLeft);
             corners[1] = new Vector3(1, -1, 0).Project(viewProjInvLeft);
@@ -1184,7 +1179,7 @@ namespace XrEngine
                 viewProjLeft.M44 - viewProjLeft.M43
             );
 
-            for (int i = 0; i < 6; i++)
+            for (var i = 0; i < 6; i++)
                 planes[i] = Plane.Normalize(planes[i]);
 
             return planes;

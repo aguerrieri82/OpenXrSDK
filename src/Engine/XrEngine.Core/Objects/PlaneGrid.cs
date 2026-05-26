@@ -23,7 +23,7 @@ namespace XrEngine
         {
             var list = new List<PointData>();
 
-            float subSize = Size / Subs;
+            var subSize = Size / Subs;
 
             void AddLine(Vector3 from, Vector3 to, Color color, float size = 1f)
             {
@@ -42,9 +42,9 @@ namespace XrEngine
                 });
             }
 
-            float halfSize = Size / 2f;
+            var halfSize = Size / 2f;
 
-            for (int z = 0; z < Subs; z++)
+            for (var z = 0; z < Subs; z++)
             {
                 var zVal = -halfSize + z * subSize;
 
@@ -54,7 +54,7 @@ namespace XrEngine
                        );
 
             }
-            for (int x = 0; x < Subs; x++)
+            for (var x = 0; x < Subs; x++)
             {
                 var xVal = -halfSize + x * subSize;
 
@@ -66,7 +66,7 @@ namespace XrEngine
 
             if (AxisSize > 0)
             {
-                float yTop = 0.001f;
+                var yTop = 0.001f;
 
                 AddLine(new Vector3(0, yTop, 0),
                        new Vector3(AxisSize, yTop, 0),

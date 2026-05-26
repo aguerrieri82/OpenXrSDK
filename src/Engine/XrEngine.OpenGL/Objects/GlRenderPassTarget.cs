@@ -85,9 +85,9 @@ namespace XrEngine.OpenGL
             if (width == 0 || height == 0)
                 return;
 
-            bool updateTarget = BoundEye != -1;
+            var updateTarget = BoundEye != -1;
 
-            bool isColorChanged = _colorTexture != _lastColorTexture;
+            var isColorChanged = _colorTexture != _lastColorTexture;
 
             var depth = IsMultiView ? 2u : 1u;
 

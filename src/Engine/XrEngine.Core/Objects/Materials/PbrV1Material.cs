@@ -484,12 +484,12 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+                        var curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
 
-                        if (ctx.CurrentBuffer!.Hash == hash)
+                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
 
-                        ctx.CurrentBuffer!.Hash = hash;
+                        ctx.CurrentBuffer.Hash = curHash;
 
                         Log.Debug(this, "Build light uniforms");
 
@@ -549,12 +549,16 @@ namespace XrEngine
 
                 if (bld.Context.ShadowMapProvider != null)
                 {
-                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
+                    var options = bld.Context.ShadowMapProvider!.Options;
+
+                    var mode = options.Mode;
 
                     if (mode != ShadowMapMode.None)
                     {
+
                         bld.AddFeature("USE_SHADOW_MAP");
                         bld.AddFeature("SHADOW_MAP_MODE " + (int)mode);
+                        bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
 
                         bld.ExecuteAction((ctx, up) =>
                         {
@@ -569,12 +573,12 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        var curHash = imgLight.Version.ToString();
+                        var curHash = (int)imgLight.Version;
 
-                        if (ctx.CurrentBuffer!.Hash == curHash)
+                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
 
-                        ctx.CurrentBuffer!.Hash = imgLight.Version.ToString();
+                        ctx.CurrentBuffer.Hash = curHash;
 
                         return (IBLUniforms?)new IBLUniforms
                         {
@@ -1014,6 +1018,12 @@ namespace XrEngine
             {
                 NormalTexture = value;
             }
+        }
+
+        Matrix3x3? IPbrMaterial.UV0Transform
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         Texture2D? IPbrMaterial.OcclusionMap

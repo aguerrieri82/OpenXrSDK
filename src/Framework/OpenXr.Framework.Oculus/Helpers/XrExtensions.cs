@@ -83,10 +83,10 @@ namespace OpenXr.Framework
                         xrOculus.GetSpaceComponentEnabled(space.Space, OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
                     {
                         var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
-                        item.Mesh = new Mesh
+                        item.Mesh = new Mesh3
                         {
                             Indices = mesh.Indices,
-                            Vertices = mesh.Vertices!.Convert().To<Vector3>()
+                            Vertices = mesh.Vertices.Convert().To<Vector3>().ToArray()
                         };
                     }
                 }

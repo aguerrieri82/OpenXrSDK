@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Devices
+﻿namespace XrEngine.Devices
 {
     public interface IMidiOutPort
     {

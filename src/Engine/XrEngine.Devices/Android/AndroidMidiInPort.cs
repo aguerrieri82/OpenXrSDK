@@ -1,4 +1,4 @@
-﻿#if ANDROID23_0_OR_GREATER
+﻿#if __ANDROID__
 
 using Android.Media.Midi;
 using Java.Lang;
@@ -10,12 +10,12 @@ namespace XrEngine.Devices.Android
     [SupportedOSPlatform("android23.0")]
     public class AndroidMidiInPort : IMidiInPort
     {
-        MidiOutputPort _port;
+        readonly MidiOutputPort _port;
 
         class Receiver : MidiReceiver
         {
             private readonly Action<byte[], int, int, long> _onReceive;
-            
+
             public Receiver(Action<byte[], int, int, long> onReceive)
             {
                 _onReceive = onReceive;

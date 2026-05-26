@@ -65,14 +65,14 @@ namespace OpenAl.Framework
                 if (self.Format.BitsPerSample == 8)
                 {
                     var pByte = (sbyte*)pBuf;
-                    for (int i = 0; i < result.Length; i++)
+                    for (var i = 0; i < result.Length; i++)
                         pResult[i] = pByte[i] / (float)sbyte.MaxValue;
                 }
 
                 else if (self.Format.BitsPerSample == 16)
                 {
                     var pShort = (short*)pBuf;
-                    for (int i = 0; i < result.Length; i++)
+                    for (var i = 0; i < result.Length; i++)
                         pResult[i] = pShort[i] / (float)short.MaxValue;
                 }
                 else

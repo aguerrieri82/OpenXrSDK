@@ -118,5 +118,6 @@ namespace XrEngine
 
         public float Shininess { get; set; }
 
+
     }
 }

@@ -393,8 +393,8 @@ namespace OpenXr.Framework.Vulkan
             using var mem = GlobalMemory.Allocate(uniqueQueueFamilies.Length * sizeof(DeviceQueueCreateInfo));
             var queueCreateInfos = (DeviceQueueCreateInfo*)Unsafe.AsPointer(ref mem.GetPinnableReference());
 
-            float queuePriority = 1.0f;
-            for (int i = 0; i < uniqueQueueFamilies.Length; i++)
+            var queuePriority = 1.0f;
+            for (var i = 0; i < uniqueQueueFamilies.Length; i++)
             {
                 queueCreateInfos[i] = new()
                 {

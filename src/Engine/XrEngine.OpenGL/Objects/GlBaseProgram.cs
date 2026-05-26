@@ -8,7 +8,6 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 
@@ -23,11 +22,13 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly int[] _boundBuffers = new int[32];
+        protected readonly bool _cacheUniforms;
 
 
         public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
             _resolver = includeResolver;
+            _cacheUniforms = OpenGLRender.Current?.Options.CacheUniforms == true;
         }
 
         public abstract void Build();
@@ -72,7 +73,7 @@ namespace XrEngine.OpenGL
 #if GLES
             return [];
 #else
-            _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out int count);
+            _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out var count);
 
             uint i = 0;
 
@@ -98,7 +99,7 @@ namespace XrEngine.OpenGL
                 if (result == -1 && !optional) //TODO uncomment
                 {
                     Log.Warn(this, "Uniform {0} not found", name);
-                    Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
+                    //Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
 
@@ -114,16 +115,20 @@ namespace XrEngine.OpenGL
 
         protected bool IsChanged(string name, object value)
         {
-            bool isChanged;
+            if (!_cacheUniforms)
+                return true;
+
+            var isChanged = false;
 
             if (!_values.TryGetValue(name, out var lastValue))
                 isChanged = true;
-            else
-            {
-                if (lastValue is Array lastArray)
-                {
-                    var curArray = (Array)value;
 
+            if (lastValue is Array lastArray)
+            {
+                var curArray = (Array)value;
+
+                if (!isChanged)
+                {
                     if (lastArray.Length != curArray.Length)
                         isChanged = true;
                     else
@@ -134,17 +139,18 @@ namespace XrEngine.OpenGL
 
                         isChanged = !b1.SequenceEqual(b2);
                     }
-
-                    if (isChanged)
-                        _values[name] = curArray.Clone();
                 }
-                else
-                {
+
+                if (isChanged)
+                    _values[name] = curArray.Clone();
+            }
+            else
+            {
+                if (!isChanged)
                     isChanged = !Equals(value, lastValue);
-                    if (isChanged)
-                        _values[name] = value;
-                }
 
+                if (isChanged)
+                    _values[name] = value;
             }
 
             return isChanged;
@@ -162,7 +168,7 @@ namespace XrEngine.OpenGL
                     ObjectBinder.Bind(tex2d, glTextBuf);
                 }
 
-                bool isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
+                var isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
 
                 if (isUpdate)
                     glTextBuf.Update(tex2d.Data![0]);
@@ -176,16 +182,12 @@ namespace XrEngine.OpenGL
                 if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
                     glText = tex2d.ToGlTexture();
 
-                bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+                var isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-#if GLES
-                GlState.Current!.LoadTexture(glText, slot, false);
-#else
                 GlState.Current!.LoadTexture(glText, slot);
-#endif
 
                 if (isUpdate)
-                    glText.Update(tex2d, false);
+                    glText.Update(tex2d);
             }
         }
 
@@ -263,7 +265,7 @@ namespace XrEngine.OpenGL
             GlState.Current!.SetActiveBuffer(glBuffer, slot);
         }
 
-        public unsafe void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
+        public void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
         {
             LoadTexture(value, slot);
             SetUniform(name, slot, optional);
@@ -355,7 +357,7 @@ namespace XrEngine.OpenGL
                 ShaderPrecision.Low => "lowp",
                 _ => throw new NotSupportedException()
             };
- 
+
 
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.FloatPrecision)).Append(" float;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.IntPrecision)).Append(" int;\n");

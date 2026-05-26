@@ -81,7 +81,7 @@ namespace OpenXr.Framework
         {
             Debug.Assert(_xrApp != null);
 
-            int swpCount = _xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
+            var swpCount = _xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
 
             _swapchains = new XrSwapchainInfo[swpCount];
 
@@ -114,15 +114,15 @@ namespace OpenXr.Framework
 
                 for (var i = 0; i < views.Length; i++)
                 {
-                    ref CompositionLayerProjectionView projView = ref layer.Views[i];
+                    ref var projView = ref layer.Views[i];
 
-                    int swIndex = 0;
+                    var swIndex = 0;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye)
                         swIndex = i;
 
                     var swapchain = _swapchains[swIndex];
-                    int swOfs = 0;
+                    var swOfs = 0;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.Stereo)
                         swOfs = i * swapchain.ViewSize.Width;
@@ -207,7 +207,7 @@ namespace OpenXr.Framework
 
             for (var i = 0; i < views.Length; i++)
             {
-                ref CompositionLayerProjectionView projView = ref projViews[i];
+                ref var projView = ref projViews[i];
                 projView.Fov = views[i].Fov;
                 projView.Pose = views[i].Pose;
             }

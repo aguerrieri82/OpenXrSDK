@@ -1,4 +1,4 @@
-﻿#if ANDROID23_0_OR_GREATER
+﻿#if __ANDROID__
 
 using Android.Media.Midi;
 using System;
@@ -11,7 +11,7 @@ namespace XrEngine.Devices.Android
     [SupportedOSPlatform("android23.0")]
     public class AndroidMidiOutPort : IMidiOutPort
     {
-        MidiInputPort _port;
+        readonly MidiInputPort _port;
 
         public AndroidMidiOutPort(MidiInputPort port)
         {
@@ -20,7 +20,7 @@ namespace XrEngine.Devices.Android
 
         public void Send(byte[] data, int offset, int count)
         {
-            _port.Send(data, offset, count);    
+            _port.Send(data, offset, count);
         }
 
         public void Close()

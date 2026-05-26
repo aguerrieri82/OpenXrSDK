@@ -25,7 +25,7 @@ namespace XrEngine.Media.Android
         public void Open(string path)
         {
             var pcmData = DecodeToPCMCache(path, out var format);
-         
+
             _audioFormat = new global::Android.Media.AudioFormat.Builder()
                 .SetSampleRate(format.SampleRate)!
                 .SetEncoding(format.SampleType switch

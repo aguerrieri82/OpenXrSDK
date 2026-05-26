@@ -9,11 +9,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXTX" Version="2.22.0" />
-		<PackageReference Include="Silk.NET.OpenXR.Extensions.FB" Version="2.22.0" />
-		<PackageReference Include="Silk.NET.OpenXR.Extensions.META" Version="2.22.0" />
-		<PackageReference Include="Silk.NET.OpenXR.Extensions.OCULUS" Version="2.22.0" />
-		<PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXTX" Version="2.23.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.FB" Version="2.23.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.META" Version="2.23.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.OCULUS" Version="2.23.0" />
+		<PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.23.0" />
 
 	</ItemGroup>
 

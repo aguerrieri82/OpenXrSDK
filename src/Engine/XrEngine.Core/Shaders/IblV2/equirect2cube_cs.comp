@@ -5,6 +5,7 @@
 // Converts equirectangular (lat-long) projection texture into a proper cubemap.
 
 precision highp imageCube;
+precision highp int;
 
 const float PI = 3.141592;
 const float TwoPI = 2.0 * PI;

@@ -8,11 +8,13 @@
         protected long _version;
 
         private bool _isEnabled;
+        protected bool _handleNotifications;
 
         public BaseLayer()
         {
             _id = ObjectId.New();
             _isEnabled = true;
+            _handleNotifications = false;
             Name = GetType().Name;
             IsVisible = true;
         }
@@ -33,7 +35,7 @@
 
         public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            if (!IsEnabled)
+            if (!IsEnabled || !_handleNotifications)
                 return;
 
             if (sender is Group3D group && change.IsAny(ObjectChangeType.Scene))

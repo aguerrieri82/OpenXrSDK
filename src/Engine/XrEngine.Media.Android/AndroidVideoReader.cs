@@ -55,7 +55,7 @@ namespace XrEngine.Media.Android
             GC.SuppressFinalize(this);
         }
 
-        public void Open(Uri source)
+        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba32)
         {
             if (!source.IsFile)
                 throw new NotSupportedException();
@@ -68,7 +68,7 @@ namespace XrEngine.Media.Android
 
             string? mimeType = null;
 
-            for (int i = 0; i < tracks; ++i)
+            for (var i = 0; i < tracks; ++i)
             {
                 var format = _mediaExtractor.GetTrackFormat(i);
 
@@ -172,6 +172,11 @@ namespace XrEngine.Media.Android
             }
 
             return false;
+        }
+
+        public bool SeekToFrame(int targetFrameIndex)
+        {
+            throw new NotImplementedException();
         }
 
         public bool IsLoop { get; set; }

@@ -32,11 +32,11 @@ namespace XrEngine
 
             var results = new List<Triangle3>(indices.Count / 3);
 
-            for (int i = 0; i < indices.Count; i += 3)
+            for (var i = 0; i < indices.Count; i += 3)
             {
-                int i0 = indices[i];
-                int i1 = indices[i + 1];
-                int i2 = indices[i + 2];
+                var i0 = indices[i];
+                var i1 = indices[i + 1];
+                var i2 = indices[i + 2];
 
                 var p0 = allVertices[i0];
                 var p1 = allVertices[i1];
@@ -59,27 +59,27 @@ namespace XrEngine
 
     public static class PolyTriangulate
     {
-      
+
         public static List<Triangle3> TriangulateSimplePolygon(IList<Vector2> polygon)
         {
-            List<Triangle3> triangles = new List<Triangle3>();
+            var triangles = new List<Triangle3>();
 
             // A copy of vertices
-            List<Vector2> verts = polygon.ToList();
-            List<int> indices = Enumerable.Range(0, verts.Count).ToList();
+            var verts = polygon.ToList();
+            var indices = Enumerable.Range(0, verts.Count).ToList();
 
             while (indices.Count > 3)
             {
-                bool earFound = false;
+                var earFound = false;
 
-                for (int i = 0; i < indices.Count; i++)
+                for (var i = 0; i < indices.Count; i++)
                 {
-                    int prev = (i - 1 + indices.Count) % indices.Count;
-                    int next = (i + 1) % indices.Count;
+                    var prev = (i - 1 + indices.Count) % indices.Count;
+                    var next = (i + 1) % indices.Count;
 
-                    Vector2 A = verts[indices[prev]];
-                    Vector2 B = verts[indices[i]];
-                    Vector2 C = verts[indices[next]];
+                    var A = verts[indices[prev]];
+                    var B = verts[indices[i]];
+                    var C = verts[indices[next]];
 
                     if (IsEar(A, B, C, indices, verts))
                     {
@@ -97,9 +97,9 @@ namespace XrEngine
 
             if (indices.Count == 3)
             {
-                Vector2 A = verts[indices[0]];
-                Vector2 B = verts[indices[1]];
-                Vector2 C = verts[indices[2]];
+                var A = verts[indices[0]];
+                var B = verts[indices[1]];
+                var C = verts[indices[2]];
                 triangles.Add(new Triangle3(A.ToVector3(), B.ToVector3(), C.ToVector3()));
             }
 
@@ -112,9 +112,9 @@ namespace XrEngine
                 return false;
 
             // Check if any other vertex lies inside the triangle ABC
-            for (int j = 0; j < indices.Count; j++)
+            for (var j = 0; j < indices.Count; j++)
             {
-                Vector2 P = verts[indices[j]];
+                var P = verts[indices[j]];
                 if (P.Equals(A) || P.Equals(B) || P.Equals(C))
                     continue;
                 if (PointInTriangle(P, A, B, C))
@@ -127,19 +127,19 @@ namespace XrEngine
         private static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
         {
             // Barycentric technique
-            Vector2 v0 = c - a;
-            Vector2 v1 = b - a;
-            Vector2 v2 = p - a;
+            var v0 = c - a;
+            var v1 = b - a;
+            var v2 = p - a;
 
-            float dot00 = Vector2.Dot(v0, v0);
-            float dot01 = Vector2.Dot(v0, v1);
-            float dot02 = Vector2.Dot(v0, v2);
-            float dot11 = Vector2.Dot(v1, v1);
-            float dot12 = Vector2.Dot(v1, v2);
+            var dot00 = Vector2.Dot(v0, v0);
+            var dot01 = Vector2.Dot(v0, v1);
+            var dot02 = Vector2.Dot(v0, v2);
+            var dot11 = Vector2.Dot(v1, v1);
+            var dot12 = Vector2.Dot(v1, v2);
 
-            float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-            float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-            float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+            var invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+            var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
             return (u >= 0) && (v >= 0) && (u + v < 1);
         }

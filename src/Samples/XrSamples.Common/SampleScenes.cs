@@ -7,14 +7,12 @@ using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Audio;
 using XrEngine.Audio.Midi;
 using XrEngine.Bullet;
 using XrEngine.Components;
-using XrEngine.Compression;
 using XrEngine.Devices;
 using XrEngine.Gltf;
 using XrEngine.Helpers;
@@ -27,9 +25,13 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Media;
+using XrEngine.Reconstruct;
 
-
-
+#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
 
 #if !ANDROID
 using XrEngine.Browser.Win;
@@ -38,11 +40,14 @@ using XrEngine.UI.Web;
 
 namespace XrSamples
 {
+
+
     public static class SampleScenes
     {
         static readonly GltfLoaderOptions GltfOptions = new()
         {
             ConvertColorTextureSRgb = true,
+
         };
 
         static string GetAssetPath(string name)
@@ -60,6 +65,8 @@ namespace XrSamples
             scene.AddComponent<AudioSystem>();
 
             scene.AddComponent<DebugGizmos>();
+
+            scene.AddComponent<ShadowController>();
 
             scene.AddChild(new SunLight()
             {
@@ -178,7 +185,7 @@ namespace XrSamples
                 });
         }
 
-        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showDepth = false)
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showShadowMap = false)
         {
             var floor = new TriangleMesh(new Cube3D(new Vector3(size, 0.01f, size)));
             floor.Name = "Floor";
@@ -188,36 +195,64 @@ namespace XrSamples
                 ShadowColor = new Color(1f, 0.1f, 0.1f, 0.7f),
             });
 
+            floor.AddComponent<BoxCollider>();
+            floor.AddComponent(new RigidBody()
+            {
+                Type = PhysicsActorType.Static,
+            });
+
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
-            var mat = new DepthViewMaterial();
-
             TriangleMesh? depth = null;
-            if (showDepth)
+
+            if (showShadowMap)
             {
-                depth = new TriangleMesh(Quad3D.Default, mat);
+                var depthView = new DepthViewMaterial();
+                var texView = new TextureMaterial();
+
+                depth = new TriangleMesh(Quad3D.Default, depthView);
+                depth.Materials.Add(texView);
+
                 depth.Transform.SetPositionY(1);
 
                 depth.Name = "Depth";
-                /*
+
                 depth.AddBehavior((_, _) =>
                 {
-                    var sp = ((IShadowMapProvider)depth.Scene!.App!.Renderer!);
+                    var sp = depth.Scene!.App!.Renderer!.Feature<IShadowMapProvider>()!;
 
-                    if (mat.Texture == null)
+                    if (sp.Options.Mode == ShadowMapMode.VSM)
                     {
-                        mat.Texture = sp.ShadowMap;
-                        mat.NotifyChanged(ObjectChangeType.Render);
+                        texView.IsEnabled = true;
+                        depthView.IsEnabled = false;
+                        if (texView.Texture == null)
+                        {
+                            texView.Texture = sp.ShadowMap;
+                            depthView.NotifyChanged(ObjectChangeType.Render);
+                        }
+
+                    }
+                    else
+                    {
+                        texView.IsEnabled = false;
+                        depthView.IsEnabled = true;
+
+                        if (depthView.Texture == null)
+                        {
+                            depthView.Texture = sp.ShadowMap;
+                            depthView.NotifyChanged(ObjectChangeType.Render);
+                        }
+
+                        if (depthView.Camera == null)
+                        {
+                            depthView.Camera = sp.LightCamera;
+                            depthView.NotifyChanged(ObjectChangeType.Render);
+                        }
                     }
 
-                    if (mat.Camera == null)
-                    {
-                        mat.Camera = sp.LightCamera;
-                        mat.NotifyChanged(ObjectChangeType.Render);
-                    }
+
 
                 });
-                */
             }
 
 
@@ -303,11 +338,22 @@ namespace XrSamples
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
 
+            scene.AddComponent<XrInputRecorder>();
+            scene.AddComponent(new XrInputPlayer
+            {
+                RealTime = true,
+                UseReferenceTime = true,
+                FirstFrame = 300,
+                LastFrame = 710,
+                Loop = true
+            });
+
+
             var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
             cube.Transform.SetScale(0.1f);
             cube.AddComponent<BoundsGrabbable>();
             cube.AddComponent<BoxCollider>();
-            cube.AddComponent<SpeedTracker>();
+            cube.AddComponent<Throwable>();
 
             var rb = cube.AddComponent(new RigidBody()
             {
@@ -333,7 +379,7 @@ namespace XrSamples
                 if (pick != null && pick.IsChanged && pick.Value)
                 {
                     rb.Teleport(pose!.Value.Position);
-                    Context.Require<ITimeLogger>().Clear();
+                    //Context.Require<ITimeLogger>().Clear();
                 }
             });
 
@@ -345,8 +391,8 @@ namespace XrSamples
               {
 
               })
-              .AddPanel(new ThrowSettingsPanel(settings, scene))
-              .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+              .AddPanel(new ThrowSettingsPanel(settings, cube))
+              .ConfigureApp(app => settings.Apply(cube));
         }
 
 
@@ -446,12 +492,23 @@ namespace XrSamples
                    .UseSceneMesh(true, true)
                    .ConfigureSampleApp()
                    .UseDefaultHDR()
+                   .SetGlOptions(opt =>
+                   {
+                       opt.ShadowMap.LightBleed = 1;
+                       opt.ShadowMap.BlurRadius = 2;
+                       opt.ShadowMap.Mode = ShadowMapMode.PCF;
+                   })
+                   //.AddFloorShadow()
                    .UsePhysics(new PhysicsOptions
                    {
 
                    })
                    .AddPanel(new PingPongSettingsPanel(settings, scene))
-                   .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+                   .ConfigureApp(app =>
+                   {
+                       settings.Apply(app.App.ActiveScene!);
+                       scene.Children.OfType<SunLight>().Single().IsVisible = true;
+                   });
 
         }
 
@@ -563,7 +620,7 @@ namespace XrSamples
                 {
                     var oculus = e.XrApp.Plugin<OculusXrPlugin>();
                     var isLoading = false;
-                    DateTime lastUpdate = new DateTime();
+                    var lastUpdate = new DateTime();
                     mesh.AddBehavior(async (_, _) =>
                     {
                         if (!e.XrApp.IsStarted || isLoading || ((DateTime.UtcNow - lastUpdate).TotalSeconds < 1000))
@@ -1021,6 +1078,7 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .UseRayCollider("Mouse")
+                .AddFloorShadow(4, true)
                 .AddPassthrough()
 
             .ConfigureApp(app =>
@@ -1028,7 +1086,7 @@ namespace XrSamples
                 var scene = (RoomScene)app.App.ActiveScene!;
 
                 scene.AddChild<EnvironmentView>();
-
+                scene.AddComponent<ShadowController>();
 
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
@@ -1036,16 +1094,17 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-       
+
                 Task.Run(async () =>
                 {
                     var service = new IkeaKitchenService();
                     service.CachePath = "d:\\Projects\\Ikea";
+                    service.Authorize("eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNjA0MjlUMDkyNTE5WiIsImV4cCI6IjIwMjYwNDMwVDA5MjUxOVoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.504f6e6434506b6354634838345365496a4d5276576c6b663272444c384c52366556394c4175796850346b3d");
 
                     var catalog = new IkeaKitchenCatalog(service);
                     var solver = new BmaLoader(catalog);
 
-                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), false);
+                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), true);
 
                     await catalog.InitAsync(proj);
 
@@ -1054,11 +1113,11 @@ namespace XrSamples
                     var prod = solver.LoadProduct("ASL-42460167-IT")!;
                     prod.Transform.SetScale(0.001f);
                     prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
-                   
+
                     scene.AddChild(kitchen);
 
                 }).Wait();
-        
+
                 var ui = scene.UiPanel!;
 
 #if !ANDROID
@@ -1204,8 +1263,7 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
-        public static Material LoadMaterial(string url)
+        static Material LoadMaterial(string url)
         {
             var gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
             return gltf.Materials[0];
@@ -1230,7 +1288,7 @@ namespace XrSamples
             window.Materials.Clear();
             window.Materials.Add(mat);
 
-            bool isInit = false;
+            var isInit = false;
 
             window.AddBehavior((a, b) =>
             {
@@ -1482,21 +1540,273 @@ namespace XrSamples
                 });
         }
 
+        [Sample("Panorama Maker")]
+        public static XrEngineAppBuilder CreatePanoramaMaker(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var maker = scene.AddComponent<PanoramaMaker>();
+
+            scene.AddChild(new CubeView(maker.CubeTexture));
+
+            var display = new TriangleMesh(Quad3D.Default, new TextureMaterial(maker.CameraTexture));
+            display.Name = "camera_preview";
+            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+
+            scene.AddChild(display);
+
+            return builder
+                .UseApp(app)
+                .UseClickMoveFront(display, 0.5f)
+                .ConfigureApp(cfg =>
+                {
+                    maker.Configure(cfg.Inputs!);
+                })
+                .ConfigureSampleApp();
+        }
+
+        public static XrEngineAppBuilder CreateReconstructPlayer(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+            scene.AddComponent(new XrReconstructPlayer());
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Capture")]
+        public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
+        {
+
+            static Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
+            {
+                if (cam.Intrinsic == null || cam.SensorSize == null ||
+                    !cam.Position.HasValue || !cam.Rotation.HasValue)
+                {
+                    return Matrix4x4.Identity;
+                }
+
+                var fx = cam.Intrinsic[0];
+                var fy = cam.Intrinsic[1];
+                var w = cam.SensorSize.Value.Width;
+                var h = cam.SensorSize.Value.Height;
+
+                var scaleX = distanceMeters * (w / fx);
+                var scaleY = distanceMeters * (h / fy);
+
+                var matScale = Matrix4x4.CreateScale(scaleX, scaleY, 1.0f);
+
+                var matTransLocal = Matrix4x4.CreateTranslation(0f, 0f, -distanceMeters);
+
+                var quadToSensor = matScale * matTransLocal;
+
+                var sensorToHead = cam.GetLensPose().ToMatrix();
+
+                return quadToSensor * sensorToHead * headMatrix;
+            }
+
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            CameraParams centerParams = new();
+
+            var leftTex = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+                Type = TextureType.External
+            };
+
+            var rightTex = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+                Type = TextureType.External
+            };
+
+            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
+
+            display.Name = "camera_display";
+            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+            display.AddComponent<MeshCollider>();
+
+            scene.AddChild(display);
+
+            var cameraState = 0;
+
+            var mustTrack = false;
+
+            ICameraDevice? cameraLeft = null;
+            ICameraDevice? cameraRight = null;
+
+            scene.AddBehavior((_, _) =>
+            {
+                var button = XrEngineApp.Current?.Inputs?.Right?.Button?.BClick;
+
+                var aPressed = button != null && button.IsChanged && button.Value;
+
+                if (aPressed)
+                    mustTrack = !mustTrack;
+
+                if (cameraState == 0 && leftTex.Handle != 0)
+                {
+                    cameraState = 1;
+
+                    _ = Task.Run(async () =>
+                    {
+                        var manager = Context.Require<ICameraManager>();
+
+                        var cameras = manager.GetCameras();
+
+                        var infoLeft = cameras.First(a => a.Source == 0 && a.Position == 0);
+                        var infoRight = cameras.First(a => a.Source == 0 && a.Position == 1);
+
+                        cameraLeft = await manager.OpenCameraAsync(infoLeft.Id!);
+                        cameraRight = await manager.OpenCameraAsync(infoRight.Id!);
+
+                        var formats = cameraLeft.GetSupportedFormats();
+
+                        var curFormat = formats.Last();
+
+                        await cameraLeft.StartCaptureAsync(curFormat, leftTex);
+                        await cameraRight.StartCaptureAsync(curFormat, rightTex);
+
+                        cameraState = 2;
+
+                        var leftParams = cameraLeft.GetParams();
+                        var rightParams = cameraRight.GetParams();
+
+                        centerParams = leftParams;
+
+                    });
+                }
+
+                if (cameraState == 2)
+                {
+                    cameraLeft?.UpdateTexture();
+                    cameraRight?.UpdateTexture();
+
+                    var pose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                        XrApp.Current.ReferenceSpace, cameraLeft!.LastTimestamp).Pose;
+
+                    if (mustTrack)
+                        display.WorldMatrix = ComputeQuadMatrix(pose.ToMatrix(), centerParams, 2f);
+                }
+            });
+
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp();
+        }
+
+
+
+        [Sample("Reconstruct Capture")]
+        public static XrEngineAppBuilder CreateReconstructCapture(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var recorder = new XrReconstructRecorder();
+
+            CameraParams cameraParams = new();
+
+            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(recorder.LeftTex, recorder.RightTex));
+
+            display.Name = "capture_display";
+            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+            display.AddComponent<MeshCollider>();
+
+            scene.AddChild(display);
+
+            var cameraState = 0;
+            var startTime = DateTime.Now;
+            var isRoomCaptured = false;
+            var sharedPath = Context.Require<IPlatform>().SharedPath;
+
+            scene.AddBehavior((_, ctx) =>
+            {
+                if (cameraState == 0 && recorder.LeftTex.Handle != 0)
+                {
+                    cameraState = 1;
+
+                    recorder.StartCaptureAsync(Context.Require<IPlatform>().SharedPath!).ContinueWith(a =>
+                    {
+                        cameraState = 2;
+                    });
+                }
+
+                if (!isRoomCaptured)
+                {
+                    var model = scene.FindByName<TriangleMesh>("Mesh");
+                    if (model != null && model.Component<XrAnchorUpdate>().HasPose)
+                    {
+                        model.Geometry!.EnsureIndices();
+                        var writer = new ObjWriter();
+                        writer.Add(model);
+                        File.WriteAllText(Path.Combine(sharedPath, "scene.obj"), writer.Text());
+                        recorder.Stats!.ScenePosition = model.GetWorldPose();
+                        model.Remove();
+                        isRoomCaptured = true;
+                    }
+
+                }
+
+                if (cameraState == 2)
+                {
+                    try
+                    {
+                        recorder.CaptureFrame(scene.ActiveCamera!);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("CreateReconstructCapture", ex, "CaptureFrame");
+                    }
+
+                    recorder.UpdateTextures();
+
+                    if ((DateTime.Now - startTime).TotalSeconds >= 30)
+                    {
+                        recorder.StopCapture();
+                        cameraState = 3;
+                    }
+                }
+            });
+
+            return builder
+                .UseApp(app)
+                .UseClickMoveFront(display, 0.5f)
+                .UseEnvironmentDepth()
+                .UseSceneMesh(true, false)
+                .ConfigureSampleApp();
+        }
+
 
 
         [Sample("Midi")]
-        [SupportedOSPlatform("android23.0")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-#if __ANDROID__
-            var manager = new XrEngine.Devices.Android.AndroidMidiManager();
-#else
-            var manager = new XrEngine.Devices.Windows.WinMidiManager();
-#endif
+            var manager = Context.Require<IMidiManager>();
+
             var devices = manager.FindDevices();
 
             var usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));
@@ -1802,12 +2112,44 @@ namespace XrSamples
 
             app.ActiveScene!.AddChild(cube);
 
+            /*
+            var quad = new TriangleMesh(new Quad3D(new Vector2(2, 2)), new TextureClipMaterial
+            {
+                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/check.png"),
+                Alpha = AlphaMode.Opaque,
+                Color = new Color(1, 1, 1, 0.7f),
+                WriteDepth = false,
+                UseDepth = false,
+                DoubleSided = true
+            });
+
+            app.ActiveScene!.AddChild(quad);
+
+            app.ActiveScene.AddBehavior((_, ctx) =>
+            {
+                if (XrApp.Current != null && XrApp.Current.IsStarted)
+                {
+                    var mesh = XrApp.Current.GetVisibilityMask(0, Silk.NET.OpenXR.VisibilityMaskTypeKHR.LineLoopKhr);
+                    if (ctx.Scene?.ActiveCamera?.Eyes != null)
+                    {
+                        var v3 = mesh.Vertices.Select(a => new Vector3(a.X, a.Y, -1)).ToArray();
+                        var proj = ctx.Scene.ActiveCamera.Eyes[0].Projection;
+                        var projVert = v3.Select(a => a.Project(proj)).ToArray();
+
+                        var builder = new Bounds3Builder();
+                        builder.Add(projVert);
+                        var bb = builder.Result;
+                    }
+
+                }
+
+            });
+            */
+
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
-
-
 
 
         [Sample("Animated Cubes")]
@@ -1821,6 +2163,7 @@ namespace XrSamples
 
             var red = new BasicMaterial() { Color = new Color(1, 0, 0) };
 
+            /*
             var data = EtcCompressor.Encode(GetAssetPath("TestScreen.png"), 16);
 
             var text = new TextureMaterial(Texture2D.FromData(data))
@@ -1830,6 +2173,7 @@ namespace XrSamples
 
             var panel = new TriangleMesh(Quad3D.Default, text);
             scene.AddChild(panel);
+            */
 
             var cubes = new Group3D();
 

@@ -111,8 +111,8 @@ namespace XrEngine.Devices
 
             var raw = await GetBatteryRawAsync();
 
-            float voltageADC = (raw / 4095f) * 3.3f;
-            float batteryVoltage = voltageADC * (100000f + 100000f) / 100000f;
+            var voltageADC = (raw / 4095f) * 3.3f;
+            var batteryVoltage = voltageADC * (100000f + 100000f) / 100000f;
 
             return batteryVoltage;
         }

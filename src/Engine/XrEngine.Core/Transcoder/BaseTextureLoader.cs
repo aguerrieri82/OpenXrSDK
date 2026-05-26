@@ -43,6 +43,11 @@ namespace XrEngine
                 result.AlignY = 4;
                 result.BitPerPixel = 8;
             }
+            else if (comp == TextureCompressionFormat.Astc)
+            {
+                result.AlignX = 1;
+                result.AlignY = 1;
+            }
             else if (comp == TextureCompressionFormat.Uncompressed)
             {
                 result.AlignX = 1;
@@ -77,7 +82,7 @@ namespace XrEngine
             return result;
         }
 
-        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format)
+        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format, uint blockSize = 0)
         {
             var padding = GetFormatAlign(comp, format);
 
@@ -99,10 +104,20 @@ namespace XrEngine
                         MipLevel = (uint)mipLevel,
                         Format = format,
                         Face = (uint)face,
+                        BlockSize = blockSize,
                         Compression = comp,
                     };
 
-                    var size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
+                    uint size;
+
+                    if (comp == TextureCompressionFormat.Astc)
+                    {
+                        var blocksX = (item.Width + blockSize - 1) / blockSize;
+                        var blocksY = (item.Height + blockSize - 1) / blockSize;
+                        size = blocksX * blocksY * 16;
+                    }
+                    else
+                        size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
 
                     item.Data = MemoryBuffer.Create<byte>(size);
 

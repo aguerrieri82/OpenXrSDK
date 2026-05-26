@@ -31,3 +31,9 @@
 [submodule "third-party/glut"]
 	path = third-party/glut
 	url = https://github.com/markkilgard/glut
+[submodule "third-party/astc-encoder"]
+	path = third-party/astc-encoder
+	url = https://github.com/ARM-software/astc-encoder/
+[submodule "third-party/glTF-CSharp-Loader"]
+	path = third-party/glTF-CSharp-Loader
+	url = https://github.com/KhronosGroup/glTF-CSharp-Loader

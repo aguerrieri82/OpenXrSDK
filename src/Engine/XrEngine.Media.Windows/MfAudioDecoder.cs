@@ -39,7 +39,7 @@ namespace XrEngine.Media.Windows
 
             MF.MFCreateMediaType(out var pcm);
 
-            _reader.GetNativeMediaType(0, 0, out IMFMediaType native);
+            _reader.GetNativeMediaType(0, 0, out var native);
 
             pcm.SetGUID(ref MFAttributesGuid.MajorType, ref MFMajorTypes.Audio);
             pcm.SetGUID(ref MFAttributesGuid.Subtype, ref MFSubtypes.PCM);
@@ -85,7 +85,7 @@ namespace XrEngine.Media.Windows
 
             sample.ConvertToContiguousBuffer(out var buffer);
 
-            buffer.GetCurrentLength(out int len);
+            buffer.GetCurrentLength(out var len);
 
             buffer.Lock(out var ptr, out _, out _);
 

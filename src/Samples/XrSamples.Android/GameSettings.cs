@@ -21,7 +21,6 @@ namespace XrSamples
 
         public bool UseSpaceWarp { get; set; }
 
-
         public bool FrustumCulling { get; set; }
 
 
@@ -29,12 +28,12 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "Midi",
-                Msaa = 1,
+                SampleName = "Capture",
+                Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = false,
-                UseSpaceWarp = true,
+                UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false
             };

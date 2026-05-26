@@ -95,7 +95,7 @@ namespace XrEngine
         {
             _length = 0;
 
-            for (int i = 0; i < Points.Length - 1; i++)
+            for (var i = 0; i < Points.Length - 1; i++)
                 _length += Vector2.Distance(Points[i], Points[i + 1]);
 
             if (IsClosed)

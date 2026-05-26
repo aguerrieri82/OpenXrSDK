@@ -12,7 +12,7 @@ namespace XrEngine.Physics
         Joints = 0x1
     }
 
-    public class PhysicsManager : Behavior<Scene3D>, IDisposable
+    public class PhysicsManager : Behavior<Scene3D>, IDisposable, IReferenceTime
     {
         protected PhysicsSystem? _system;
         protected Thread? _simulateThread;
@@ -21,10 +21,10 @@ namespace XrEngine.Physics
         protected HashSet<Joint> _jointToCreate = [];
         protected readonly List<CollideGroup> _collideGroups = [];
 
-        public PhysicsManager(float fps = 40f)
+        public PhysicsManager(float fps = 72)
         {
             Options = new PhysicsOptions();
-            StepSizeSecs = 1f / fps;
+            StepSizeSecs = fps == 0 ? 0 : 1f / fps;
             IsMultiThread = false;
             UpdatePriority = -1;
         }
@@ -125,12 +125,17 @@ namespace XrEngine.Physics
 
                 _system?.Simulate((float)StepSizeSecs, StepSizeSecs);
 
-                var ellapsed = Stopwatch.GetElapsedTime(startTime).Seconds;
+                var ellapsed = Stopwatch.GetElapsedTime(startTime).TotalSeconds;
 
                 var wait = StepSizeSecs - ellapsed;
 
                 if (wait > 0)
-                    Thread.Sleep(TimeSpan.FromSeconds(wait));
+                {
+                    EngineNativeLib.SleepFor((ulong)(wait * 1e9));
+                    //Thread.Sleep(TimeSpan.FromSeconds(wait));
+                    //ellapsed = Stopwatch.GetElapsedTime(startTime).TotalSeconds;
+                    //Debug.Assert(Math.Abs(ellapsed - StepSizeSecs) < 0.003f);
+                }
                 else
                     Thread.Yield();
             }
@@ -138,6 +143,8 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
+            //Debug.WriteLine("{0} Simulate Start", Time);
+
             if (_jointToCreate.Count > 0)
             {
                 foreach (var joint in _jointToCreate)
@@ -150,9 +157,11 @@ namespace XrEngine.Physics
                 return;
 
             if (!IsMultiThread)
-                _system?.Simulate((float)DeltaTime, StepSizeSecs);
+                _system?.Simulate((float)DeltaTime, StepSizeSecs > 0 ? StepSizeSecs : (float)DeltaTime);
             else
                 _lastUpdateTime = ctx.Time;
+
+            //Debug.WriteLine("{0} Simulate End", Time);
         }
 
         public void Dispose()
@@ -208,6 +217,7 @@ namespace XrEngine.Physics
             Options = container.Read<PhysicsOptions>(nameof(Options));
         }
 
+
         public PhysicsDebugGizmos DebugGizmos { get; set; }
 
         public Action<PhysicsSystem>? Configure { get; set; }
@@ -223,5 +233,7 @@ namespace XrEngine.Physics
         public PhysicsSystem? System => _system;
 
         public IReadOnlyCollection<Joint> Joint => _joints;
+
+
     }
 }

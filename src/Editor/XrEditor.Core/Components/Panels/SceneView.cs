@@ -101,7 +101,7 @@ namespace XrEditor
                 BackgroundColor = new Color(0, 0, 0, 0),
                 Exposure = 1,
                 FovDegree = 45,
-                Name = "Scene"
+                Name = "Editor Scene"
             };
 
             _sceneCamera.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
@@ -121,8 +121,11 @@ namespace XrEditor
 
         protected IList<SelectorItem> ListCameras()
         {
-            var result = new List<SelectorItem>();
-            //result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
+            var result = new List<SelectorItem>
+            {
+                new SelectorItem { DisplayName = _sceneCamera.Name!, Value = _sceneCamera }
+            };
+
             if (_scene != null)
             {
                 foreach (var camera in _scene.Descendants<PerspectiveCamera>())
@@ -230,7 +233,7 @@ namespace XrEditor
 
             _renderSurface.EnableVSync(EditorDebug.EnableVSync);
 
-            Context.Implement<IOutlineSource>(_tools.OfType<IOutlineSource>().First());
+            Context.Implement(_tools.OfType<IOutlineSource>().First());
 
             while (_isStarted)
             {
@@ -273,6 +276,10 @@ namespace XrEditor
         {
             _ = _mainDispatcher.ExecuteAsync(() =>
             {
+                _sceneCamera.Remove();
+
+                _scene?.AddChild(_sceneCamera);
+
                 foreach (var tool in _tools)
                     tool.NotifySceneChanged();
 
@@ -401,8 +408,13 @@ namespace XrEditor
             {
                 if (_camera == value)
                     return;
-                _camera = value;
-                UpdateSize();
+
+                _ = _renderDispatcher.ExecuteAsync(() =>
+                {
+                    _camera = value;
+                    UpdateSize();
+                });
+
                 OnPropertyChanged(nameof(Camera));
             }
         }

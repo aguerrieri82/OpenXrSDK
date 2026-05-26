@@ -61,7 +61,7 @@ namespace XrEditor
 
             var node = ((NodeView)obj.Header!).Node;
 
-            bool curSelected = _selection.IsSelected(node);
+            var curSelected = _selection.IsSelected(node);
 
             if (!obj.IsSelected && curSelected)
                 _selection.Items.Remove(node);

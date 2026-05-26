@@ -67,7 +67,7 @@ namespace XrEngine.Audio
         {
             var targetVel = (int)Math.Round(_minVel + (_maxVel - _minVel) * velocity);
 
-            int curI = 0;
+            var curI = 0;
 
             while (true)
             {

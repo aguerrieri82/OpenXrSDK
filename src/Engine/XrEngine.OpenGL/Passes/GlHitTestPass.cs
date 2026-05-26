@@ -36,7 +36,7 @@ namespace XrEngine.OpenGL
                 return result;
 
             uint objId = 0;
-            Vector3 normal = Vector3.Zero;
+            var normal = Vector3.Zero;
             float depth = 1;
             var txY = _lastSize.Height - y;
 

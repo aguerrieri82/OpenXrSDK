@@ -21,5 +21,13 @@ namespace XrEngine
 
         public IMemoryBuffer<byte>? Data { get; set; }
 
+        public uint BlockSize { get; set; }
+
+
+        public TextureData Clone()
+        {
+            var result = (TextureData)MemberwiseClone();
+            return result;
+        }
     }
 }

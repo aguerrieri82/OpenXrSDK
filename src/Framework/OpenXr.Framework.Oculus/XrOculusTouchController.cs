@@ -1,6 +1,7 @@
 ﻿namespace OpenXr.Framework.Oculus
 {
 
+
     public class XrOculusTouchControllerHand<THand> : XrInteractionProfileHand<THand>
     {
         [XrPath("/input/thumbrest/force")]
@@ -28,7 +29,10 @@
         public XrHaptic? ThumbHaptic;
     }
 
+    //XR_EXT_hand_interaction 
+    //XR_META_hand_tracking_microgestures
 
+    ///interaction_profiles/ext/hand_interaction_ext
     [XrPath("/interaction_profiles/meta/touch_controller_plus")]
     [XrPath("/interaction_profiles/oculus/touch_controller")]
     [XrPath("/interaction_profiles/oculus/touch_controller_pro")]

@@ -2,7 +2,6 @@
 using Silk.NET.OpenAL;
 using System.Numerics;
 using XrEngine.Media;
-using static XrEngine.Ktx2Reader;
 
 namespace XrEngine.Audio
 {
@@ -90,7 +89,7 @@ namespace XrEngine.Audio
                     return 0;
                 }
 
-                int curSize = 0;
+                var curSize = 0;
 
                 while (curSize < data.Length)
                 {
@@ -101,7 +100,7 @@ namespace XrEngine.Audio
                         control.Stop();
                         return 0;
                     }
-           
+
                     curSamples += res;
 
                     curSize += res * SAMPLE_SIZE;

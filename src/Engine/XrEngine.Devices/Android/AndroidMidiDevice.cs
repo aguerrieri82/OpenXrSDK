@@ -1,4 +1,4 @@
-﻿#if ANDROID23_0_OR_GREATER
+﻿#if __ANDROID__
 
 using Android.Media.Midi;
 using Android.Net.Wifi;
@@ -15,8 +15,8 @@ namespace XrEngine.Devices.Android
     [SupportedOSPlatform("android23.0")]
     public class AndroidMidiDevice : IMidiDevice
     {
-        MidiDeviceInfo2 _info;
-        MidiManager _manager;
+        readonly MidiDeviceInfo2 _info;
+        readonly MidiManager _manager;
         MidiDevice? _device;
 
         class OnDeviceOpenedListener : Java.Lang.Object, MidiManager.IOnDeviceOpenedListener

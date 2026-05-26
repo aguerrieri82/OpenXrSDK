@@ -19,14 +19,14 @@ namespace XrSamples.Earth
         Vector3 ToCartesian(Vector2 latLng)
         {
             // Convert degrees to radians
-            float latRad = (float)DegreesToRadians(latLng.Y);
-            float lonRad = (float)DegreesToRadians(latLng.X);
+            var latRad = (float)DegreesToRadians(latLng.Y);
+            var lonRad = (float)DegreesToRadians(latLng.X);
 
 
             // Compute Cartesian coordinates
-            float x = SphereRadius * MathF.Cos(latRad) * MathF.Cos(lonRad);
-            float y = SphereRadius * MathF.Sin(latRad);
-            float z = SphereRadius * MathF.Cos(latRad) * MathF.Sin(lonRad);
+            var x = SphereRadius * MathF.Cos(latRad) * MathF.Cos(lonRad);
+            var y = SphereRadius * MathF.Sin(latRad);
+            var z = SphereRadius * MathF.Cos(latRad) * MathF.Sin(lonRad);
 
             return new Vector3(x, y, -z);
         }

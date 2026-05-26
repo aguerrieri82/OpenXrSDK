@@ -22,6 +22,7 @@ namespace XrEngine
             Shader = SHADER;
             UseDepth = true;
             WriteDepth = true;
+            Color = Color.White;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
@@ -36,13 +37,15 @@ namespace XrEngine
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uColor", Color.White);
+                up.SetUniform("uColor", Color);
                 if (Texture != null)
                     up.LoadTexture(Texture, 0);
             });
         }
 
         public Texture2D? Texture { get; set; }
+
+        public Color Color { get; set; }
 
     }
 }

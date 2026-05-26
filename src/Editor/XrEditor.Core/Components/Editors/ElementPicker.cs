@@ -1,5 +1,4 @@
 ﻿using CanvasUI;
-using SkiaSharp;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -10,7 +9,7 @@ namespace XrEditor
     {
         protected INode? _node;
         protected string? _name;
-        protected SKBitmap? _image;
+        protected ImageView? _image;
         protected readonly RenderPreviewCreator _previewCreator;
 
         public ElementPicker()
@@ -37,7 +36,10 @@ namespace XrEditor
             try
             {
                 if (_node is IItemPreview preview && EditorDebug.EnablePreview)
-                    Image = await preview.CreatePreviewAsync();
+                    Image = new ImageView
+                    {
+                        Image = await preview.CreatePreviewAsync()
+                    };
                 else
                     Image = null;
             }
@@ -50,7 +52,7 @@ namespace XrEditor
         }
 
 
-        public SKBitmap? Image
+        public ImageView? Image
         {
             get => _image;
             set

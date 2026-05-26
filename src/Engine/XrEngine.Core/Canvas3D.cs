@@ -112,8 +112,8 @@ namespace XrEngine
 
         public void DrawPlane(Plane p, Vector3 planeOrigin, float width = 10, float height = 10, float span = 1)
         {
-            Vector3 u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
-            Vector3 v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
+            var u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
+            var v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
 
             for (var x = -width / 2; x <= width / 2; x += span)
             {
@@ -154,15 +154,15 @@ namespace XrEngine
         public void DrawCircle(Pose3 pose, float radius, int segments = 30)
         {
             var circlePoints = new Vector3[segments];
-            for (int i = 0; i < segments; i++)
+            for (var i = 0; i < segments; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / segments);
+                var angle = (float)(i * 2 * Math.PI / segments);
                 circlePoints[i] = new Vector3((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius, 0);
                 circlePoints[i] = Vector3.Transform(circlePoints[i], pose.Orientation) + pose.Position;
 
             }
 
-            for (int i = 0; i < segments; i++)
+            for (var i = 0; i < segments; i++)
                 DrawLine(circlePoints[i], circlePoints[(i + 1) % segments]);
         }
 

@@ -15,7 +15,7 @@ void main()
 {
 	for(int face = 0; face < 6; ++face)
 	{		
-		vec3 scan = uvToXYZ(face, inUV*2.0-1.0);		
+		vec3 scan = uvToXYZ(face, fUv*2.0-1.0);		
 			
 		vec3 direction = normalize(scan);		
 	

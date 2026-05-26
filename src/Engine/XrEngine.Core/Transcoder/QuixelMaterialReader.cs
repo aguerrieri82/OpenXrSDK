@@ -283,7 +283,7 @@ namespace XrEngine
                     {
                         mrImage ??= MemoryBuffer.Create<byte>(tex2D.Width * tex2D.Height * 4);
 
-                        uint ofs = texture.Type == TextureType.Roughness ? 1u : 2u;
+                        var ofs = texture.Type == TextureType.Roughness ? 1u : 2u;
 
                         using var pSrc = tex2D.Data![0].Data!.MemoryLock();
                         using var pDst = mrImage.MemoryLock();

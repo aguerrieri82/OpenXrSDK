@@ -9,13 +9,15 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class XrInputPlayer : Behavior<Scene3D>, INotifyPropertyChanged, IPlayer, IDrawGizmos
+    public class XrInputPlayer : Behavior<Scene3D>, INotifyPropertyChanged, IPlayer, IDrawGizmos, IReferenceTime
     {
         XrInputRecorder.RecordSession? _session;
         XrInputRecorder.RecordFrame _frame;
         int _frameNum;
         PlayerState _state;
         readonly IPosePredictor? _predictor;
+        double _lastFrameRealTime;
+        DateTime _startRealTime;
 
         public XrInputPlayer()
             : this(null)
@@ -28,10 +30,53 @@ namespace XrEngine.OpenXr
             SourceFile = "inputs.json";
         }
 
+        protected override void Start(RenderContext ctx)
+        {
+            _startRealTime = DateTime.Now;
+            base.Start(ctx);
+        }
+
         protected override void Update(RenderContext ctx)
         {
+            if (_session?.Frames == null)
+                return;
+
             if (_state == PlayerState.Play)
-                Frame++;
+            {
+                var curRealTime = UseReferenceTime ? (DateTime.Now - _startRealTime).TotalSeconds : ctx.Time;
+
+                if (RealTime && _frameNum > 0 && _frameNum + 1 < _session?.Frames!.Count)
+                {
+                    var nextFrame = _session.Frames![_frameNum + 1];
+                    var frameDt = (nextFrame.Time - _frame.Time);
+
+                    var curDt = curRealTime - _lastFrameRealTime;
+                    if (curDt < frameDt)
+                        return;
+                }
+
+                var lastFrame = LastFrame > 0 ? LastFrame : Length - 1;
+
+                if (_frameNum >= lastFrame)
+                {
+                    if (Loop)
+                        Frame = FirstFrame;
+                    else
+                        SetPlayState(PlayerState.Stop);
+                }
+                else
+                    Frame++;
+
+                _lastFrameRealTime = curRealTime;
+            }
+
+            if (UseReferenceTime && _host?.App != null)
+            {
+                if (_state == PlayerState.Stop)
+                    _host.App.ReferenceTime = null;
+                else
+                    _host.App.ReferenceTime = this;
+            }
         }
 
         protected void LoadFrame()
@@ -55,7 +100,7 @@ namespace XrEngine.OpenXr
                 if (input.Key == "RightGripPose")
                 {
                     var pose = ((XrPoseInput)xrInput!).Value;
-                    Log.Value("Pose-X", MathF.Round(pose.Position.X, 5));
+                    //Log.Value("Pose-X", MathF.Round(pose.Position.X, 5));
                 }
             }
         }
@@ -74,7 +119,7 @@ namespace XrEngine.OpenXr
 
             _session = await JsonSerializer.DeserializeAsync<XrInputRecorder.RecordSession>(stream, options);
 
-            Frame = 0;
+            Frame = FirstFrame;
 
             OnPropertyChanged(nameof(Length));
         }
@@ -104,7 +149,10 @@ namespace XrEngine.OpenXr
             _state = state;
 
             if (state == PlayerState.Stop)
-                Frame = 0;
+            {
+                _lastFrameRealTime = 0;
+                Frame = FirstFrame;
+            }
         }
 
         public void DrawGizmos(Canvas3D canvas)
@@ -151,22 +199,27 @@ namespace XrEngine.OpenXr
                 prevPoint = curPose.Position;
 
                 pre0.Track(curPose, (float)frame.Time);
-                _predictor!.Track(curPose, (float)frame.Time);
 
-                if (i == _frameNum && i > 10)
+                if (_predictor != null)
                 {
-                    var maxTime = _session.Frames[i + 5].Time;
-                    var pdt = maxTime - (float)frame.Time;
-                    var pp0 = _predictor.Predict((float)pdt);
-                    var pp1 = pre0.Predict((float)pdt);
+                    _predictor.Track(curPose, (float)frame.Time);
 
-                    canvas.State.Color = new Color(1, 1, 0);
-                    canvas.DrawCircle(pp0, 0.002f, 10);
+                    if (i == _frameNum && i > 10)
+                    {
+                        var maxTime = _session.Frames[i + 5].Time;
+                        var pdt = maxTime - (float)frame.Time;
 
-                    canvas.State.Color = new Color(0, 1, 1);
-                    canvas.DrawCircle(pp1, 0.002f, 10);
+                        var pp0 = _predictor.Predict((float)pdt);
+                        var pp1 = pre0.Predict((float)pdt);
 
+                        canvas.State.Color = new Color(1, 1, 0);
+                        canvas.DrawCircle(pp0, 0.002f, 10);
+
+                        canvas.State.Color = new Color(0, 1, 1);
+                        canvas.DrawCircle(pp1, 0.002f, 10);
+                    }
                 }
+
             }
 
             canvas.Restore();
@@ -177,7 +230,9 @@ namespace XrEngine.OpenXr
             get => _frameNum;
             set
             {
-                value = Math.Min(Math.Max(0, value), Length - 1);
+                var lastFrame = LastFrame > 0 ? LastFrame : Length - 1;
+
+                value = Math.Min(Math.Max(0, value), lastFrame);
 
                 if (value == _frameNum)
                     return;
@@ -190,7 +245,17 @@ namespace XrEngine.OpenXr
             }
         }
 
+        public bool Loop { get; set; }
 
+        public int FirstFrame { get; set; }
+
+        public int LastFrame { get; set; }
+
+        double IReferenceTime.Time => _frame.Time;
+
+        public bool UseReferenceTime { get; set; }
+
+        public bool RealTime { get; set; }
 
         public bool ShowTrail { get; set; }
 

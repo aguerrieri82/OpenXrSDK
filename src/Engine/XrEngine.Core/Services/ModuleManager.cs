@@ -17,11 +17,7 @@ namespace XrEngine
             var entry = Assembly.GetEntryAssembly();
 
             if (entry != null)
-            {
-                foreach (var assemblyRef in entry.GetReferencedAssemblies())
-                    LoadAssembly(Assembly.Load(assemblyRef));
-            }
-
+                LoadAssembly(entry);
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 LoadAssembly(assembly);
@@ -42,6 +38,13 @@ namespace XrEngine
             }
 
             _loaded[assembly] = module;
+
+            foreach (var assemblyRef in assembly.GetReferencedAssemblies())
+            {
+                if (assemblyRef.Name?.Contains("XrEngine") == true)
+                    LoadAssembly(Assembly.Load(assemblyRef));
+            }
+
         }
 
         public void Shutdown()

@@ -120,7 +120,7 @@ namespace XrEngine.UI.Web
                         }
                     }
 
-                    object? result = mapped.Info!.Invoke(mapped.Instance, [.. parsedArgs]);
+                    var result = mapped.Info!.Invoke(mapped.Instance, [.. parsedArgs]);
 
                     if (result is Task task)
                     {

@@ -1,0 +1,134 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:plot="clr-namespace:XrEditor.Plot"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type plot:ReconstructPanel}">
+
+        <StackPanel Orientation="Vertical">
+            <DockPanel>
+                <Label DockPanel.Dock="Left">Frame:</Label>
+                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding FrameIndex}" />
+                </Border>
+                <Slider Minimum="0" Maximum="{Binding TotalFrames}" Value="{Binding FrameIndex}" />
+            </DockPanel>
+            <DockPanel>
+                <Label DockPanel.Dock="Left">Ofs:</Label>
+                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding ColorOffset}" />
+                </Border>
+                <Slider Minimum="-200" Maximum="220" Value="{Binding ColorOffset}" />
+            </DockPanel>
+            <DockPanel>
+                <Label DockPanel.Dock="Left">FOV:</Label>
+                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding FovScale, StringFormat={}{0:F2}}" />
+                </Border>
+                <Slider Minimum="0" Maximum="2" Value="{Binding FovScale}" />
+            </DockPanel>
+            <DockPanel>
+                <Label DockPanel.Dock="Left">CX:</Label>
+                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding CenterX, StringFormat={}{0:F2}}" />
+                </Border>
+                <Slider Minimum="-1280" Maximum="1280" Value="{Binding CenterX}" />
+            </DockPanel>
+            <DockPanel>
+                <Label DockPanel.Dock="Left">CY:</Label>
+                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding CenterY, StringFormat={}{0:F2}}" />
+                </Border>
+                <Slider Minimum="-1280" Maximum="1280" Value="{Binding CenterY}" />
+            </DockPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <ContentControl Grid.Column="0" Content="{Binding DepthImage}"/>
+                <ContentControl Grid.Column="0" IsHitTestVisible="False" IsEnabled="False" Opacity="{Binding OpacityOverlay}" Content="{Binding ColorProjImage}"/>
+
+                <ContentControl Grid.Column="1" Content="{Binding ColorProjImage}"/>
+
+                <ContentControl Grid.Column="2" Content="{Binding ColorImage}"/>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0"  Orientation="Vertical">
+                    <DockPanel>
+                        <Label DockPanel.Dock="Left">Opacity:</Label>
+                        <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                            <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding OpacityOverlay, StringFormat={}{0:F2}}" />
+                        </Border>
+                        <Slider Minimum="0" Maximum="1" Value="{Binding OpacityOverlay}" />
+                    </DockPanel>
+                    <DockPanel>
+                        <Label DockPanel.Dock="Left">CutOff Z:</Label>
+                        <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
+                            <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding DepthCutOff, StringFormat={}{0:F3}}" />
+                        </Border>
+                        <Slider Minimum="0.7" Maximum="1" Value="{Binding DepthCutOff}" />
+                    </DockPanel>
+                    <ComboBox ItemsSource="{Binding AxisList}" SelectedValue="{Binding Axis}"/>
+                    <TextBlock Margin="5" Text="{Binding DepthPoint}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2"  Orientation="Vertical">
+                    <ComboBox ItemsSource="{Binding ColorModeList}" SelectedValue="{Binding ColorMode}"/>
+                    <CheckBox IsChecked="{Binding AutoOffset}">Auto offset</CheckBox>
+                </StackPanel>
+            </Grid>
+            <GroupBox Header="Export" MaxWidth="400" HorizontalAlignment="Left">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.Resources>
+                        <Style TargetType="Label">
+                            <Setter Property="Width" Value="80"/>
+                        </Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Width" Value="80"/>
+                        </Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </Grid.Resources>
+                    <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
+                        <Label>Voxel Size</Label>
+                        <TextBox Text="{Binding VoxelSize}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
+                        <Label>Min Hits</Label>
+                        <TextBox Text="{Binding VoxelMinHits}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal">
+                        <Label>Start Frame</Label>
+                        <TextBox Text="{Binding VoxelStartFrame}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+                        <Label>End Frame</Label>
+                        <TextBox Text="{Binding VoxelEndFrame}"/>
+                    </StackPanel>
+                    <Button Command="{Binding ExportPointsCommand}" Margin="5" Grid.Row="2" Grid.ColumnSpan="2">Export</Button>
+                </Grid>
+        
+            </GroupBox>
+        </StackPanel>
+
+
+    </DataTemplate>
+
+</ResourceDictionary>

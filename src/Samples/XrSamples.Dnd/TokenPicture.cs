@@ -34,14 +34,14 @@ namespace XrSamples.Dnd
 
             protected override void Start(RenderContext ctx)
             {
-                
+
                 base.Start(ctx);
             }
 
             protected override void Draw(SKCanvas canvas)
             {
                 canvas.Clear();
-                
+
                 _image ??= ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!).Result;
 
                 var height = (int)(PixelSize.Height * 0.1);
@@ -77,7 +77,7 @@ namespace XrSamples.Dnd
 
                 var size = _font1.MeasureText(_vttToken!.Name);
 
-                canvas.DrawText(_vttToken!.Name,(_pixelSize.Width - size) / 2, _pixelSize.Height - _font1.Metrics.Descent, _font1, _white);
+                canvas.DrawText(_vttToken!.Name, (_pixelSize.Width - size) / 2, _pixelSize.Height - _font1.Metrics.Descent, _font1, _white);
 
                 var max = int.Parse(_vttToken.HitPointInfo?.Maximum?.ToString() ?? "0");
                 var cur = _vttToken.HitPointInfo?.Current ?? 0;

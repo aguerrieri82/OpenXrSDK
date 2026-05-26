@@ -73,7 +73,7 @@ namespace XrEditor
         public void GetState(IStateContainer container)
         {
             var panels = container.Enter("Panels");
-            int i = 0;
+            var i = 0;
             foreach (var panel in Panels)
             {
                 var panelState = panels.Enter(i.ToString());

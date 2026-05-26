@@ -1,5 +1,5 @@
-﻿using XrEngine.OpenXr;
-using XrSamples.Dnd;
+﻿using XrEngine;
+using XrEngine.OpenXr;
 using XrSamples;
 
 namespace XrEditor
@@ -12,7 +12,12 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
-        public static readonly bool EnablePreview = false;
+        public static readonly bool EnablePreview = true;
+
+        public static readonly bool UseEs = false;
+
+        public static readonly bool DebugSync = true;
+
 
         public static readonly string[] AssetsPath = [
             @"Assets\",
@@ -28,12 +33,21 @@ namespace XrEditor
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
-                  opt.FrustumCulling = false;
-                  opt.UseLayerV2 = true;     
+                  opt.FrustumCulling = true;
+                  opt.UseLayerV2 = true;
+                  opt.SampleCount = 4;
+                  opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                  opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+
+                  opt.Compression.Use = false;
+                  opt.Compression.Format = TextureCompressionFormat.Etc2;
+
+                  opt.ShadowMap.Mode = ShadowMapMode.Hard;
+                  opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateCar()
+              .CreateRoomManager()
               .Build();
     }
 }

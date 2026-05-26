@@ -108,7 +108,6 @@ namespace XrEditor
 
                 camera.LookAt(_startWorld.Translation + deltaW, _startTarget + deltaW, new Vector3(0, 1, 0));
 
-
                 //camera.EndUpdate();
             }
         }

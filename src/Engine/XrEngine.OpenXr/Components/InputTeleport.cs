@@ -31,8 +31,8 @@ namespace XrEngine.OpenXr
 
     public class SceneTeleportTarget : BaseComponent<Scene3D>, ITeleportTarget
     {
-        protected ITeleportTarget[] _lastTargets =[];
-        protected long _lastTargetsVersion = -1; 
+        protected ITeleportTarget[] _lastTargets = [];
+        protected long _lastTargetsVersion = -1;
 
         protected IEnumerable<ITeleportTarget> Targets()
         {
@@ -40,7 +40,7 @@ namespace XrEngine.OpenXr
             if (_lastTargetsVersion != _host.ContentVersion)
             {
                 _lastTargets = _host!.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature).ToArray();
-                _lastTargetsVersion = _host.ContentVersion; 
+                _lastTargetsVersion = _host.ContentVersion;
             }
             return _lastTargets;
         }

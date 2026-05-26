@@ -1,5 +1,5 @@
-﻿using SkiaSharp;
-using UI.Binding;
+﻿using UI.Binding;
+using XrEditor.Abstraction;
 using XrEditor.Services;
 using XrEngine;
 
@@ -24,7 +24,7 @@ namespace XrEditor.Nodes
             PropertyView.CreateProperties(_value, null, curProps);
         }
 
-        public async Task<SKBitmap?> CreatePreviewAsync()
+        public async Task<NativeImage?> CreatePreviewAsync()
         {
             var preview = Context.Require<RenderPreviewCreator>();
 

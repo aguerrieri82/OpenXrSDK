@@ -6,7 +6,7 @@
         {
             if (target is IList<T> list)
             {
-                int curI = 0;
+                var curI = 0;
                 while (curI < list.Count)
                 {
                     try

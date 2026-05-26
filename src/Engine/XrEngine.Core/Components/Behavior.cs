@@ -29,6 +29,11 @@
 
         }
 
+        public void ForceUpdate(RenderContext ctx)
+        {
+            ((IRenderUpdate)this).Update(ctx);
+        }
+
         void IRenderUpdate.Update(RenderContext ctx)
         {
             if (!_isEnabled || _suspendCount > 0 || _host == null)
@@ -43,6 +48,10 @@
             }
             else
             {
+                /*
+                if (_lastUpdateTime > 0 && _lastUpdateTime == ctx.Time)
+                    return;
+                */
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
                 try
                 {

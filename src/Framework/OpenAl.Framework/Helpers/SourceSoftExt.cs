@@ -1,8 +1,5 @@
 ﻿using Silk.NET.OpenAL;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace OpenAl.Framework.Helpers
 {
@@ -14,7 +11,7 @@ namespace OpenAl.Framework.Helpers
 
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public unsafe delegate void alGetSourcei64vSOFTDelegate(uint source, int param,  long* values);
+        public unsafe delegate void alGetSourcei64vSOFTDelegate(uint source, int param, long* values);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void alcGetInteger64vSOFTDelegate(IntPtr device, int param, int size, out long values);
@@ -27,7 +24,7 @@ namespace OpenAl.Framework.Helpers
             GetInteger64 = Marshal.GetDelegateForFunctionPointer<alcGetInteger64vSOFTDelegate>((nint)ctx.GetProcAddress(device, "alcGetInteger64vSOFT"));
 
             GetSourceInteger64 = Marshal.GetDelegateForFunctionPointer<alGetSourcei64vSOFTDelegate>((nint)ctx.GetProcAddress(device, "alcGetInteger64vSOFT"));
-            
+
             GetSourceDouble = Marshal.GetDelegateForFunctionPointer<alGetSourcedvSOFTDelegate>((nint)ctx.GetProcAddress(device, "alGetSourcedvSOFT"));
 
         }

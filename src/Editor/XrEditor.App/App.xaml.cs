@@ -1,13 +1,14 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using XrEditor.Abstraction;
 using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.Media;
+using XrEngine.Media.FFmpeg;
 using XrEngine.OpenXr;
-using XrEngine.Video;
 
 namespace XrEditor
 {
@@ -22,7 +23,7 @@ namespace XrEditor
 
             _viewManager = new WpfViewManager();
 
-            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor");
+            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor", EditorDebug.UseEs);
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeManager>();
@@ -36,6 +37,7 @@ namespace XrEditor
             Context.Implement<IWindowManager>(() => new WpfWindowManager());
             Context.Implement<IClipboard>(() => new WpfClipboard());
             Context.Implement<IProgressLogger>(new NullProgressLogger());
+            Context.Implement<IImageFactory>(new WpfImageFactory());
 
             ModuleManager.Instance.Init();
 

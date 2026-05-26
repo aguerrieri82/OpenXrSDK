@@ -169,6 +169,6 @@ namespace CanvasUI
         }
 
 
-        public UiStyle Style;
+        public readonly UiStyle Style;
     }
 }

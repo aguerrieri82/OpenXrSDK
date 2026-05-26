@@ -1,7 +1,9 @@
-﻿
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace Common.Interop
 {
-    public static unsafe class TypeConverter
+    public static class TypeConverter
     {
         public static Converter<TIn> Convert<TIn>(this ref TIn value) where TIn : unmanaged
         {
@@ -14,7 +16,7 @@ namespace Common.Interop
         }
     }
 
-    public readonly unsafe ref struct Converter<TIn> where TIn : unmanaged
+    public unsafe readonly ref struct Converter<TIn> where TIn : unmanaged
     {
         readonly ref TIn _value;
 
@@ -23,17 +25,26 @@ namespace Common.Interop
             _value = ref value;
         }
 
-        public TOut To<TOut>()
+
+        public TOut To<TOut>() where TOut : unmanaged
         {
             if (sizeof(TIn) < sizeof(TOut))
-                throw new ArgumentException();
+                throw new ArgumentException($"Target {typeof(TOut).Name} is larger than Source {typeof(TIn).Name}");
 
-            fixed (TIn* pValue = &_value)
-                return *(TOut*)pValue;
+            return Unsafe.As<TIn, TOut>(ref _value);
+        }
+
+
+        public ref TOut AsRef<TOut>() where TOut : unmanaged
+        {
+            if (sizeof(TIn) < sizeof(TOut))
+                throw new ArgumentException($"Target {typeof(TOut).Name} is larger than Source {typeof(TIn).Name}");
+
+            return ref Unsafe.As<TIn, TOut>(ref _value);
         }
     }
 
-    public readonly unsafe ref struct ArrayConverter<TIn> where TIn : unmanaged
+    public unsafe readonly ref struct ArrayConverter<TIn> where TIn : unmanaged
     {
         readonly TIn[] _value;
 
@@ -42,13 +53,13 @@ namespace Common.Interop
             _value = value;
         }
 
-        public TOut[] To<TOut>()
+        public ReadOnlySpan<TOut> To<TOut>() where TOut : unmanaged
         {
-            if (sizeof(TIn) != sizeof(TOut))
-                throw new ArgumentException();
 
-            fixed (TIn* pValue = _value)
-                return new Span<TOut>((TOut*)pValue, _value.Length).ToArray();
+            if (sizeof(TIn) != sizeof(TOut))
+                throw new ArgumentException("Types must be same size for array conversion");
+
+            return MemoryMarshal.Cast<TIn, TOut>(_value);
         }
     }
 }

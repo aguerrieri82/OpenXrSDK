@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public class RenderContext
+    public class RenderContext : IReferenceTime
     {
         public TimeSpan StartTime { get; internal set; }
 

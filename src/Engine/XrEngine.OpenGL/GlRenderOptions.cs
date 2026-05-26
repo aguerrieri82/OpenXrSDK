@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -20,13 +21,26 @@ namespace XrEngine.OpenGL
         public bool IsMultiView { get; set; }
     }
 
+    public class GlCompressionOptions
+    {
+        public bool Use { get; set; }
+
+        public TextureCompressionFormat Format { get; set; }
+
+        public int MinSize { get; set; }
+
+        public uint BlockSize { get; set; }
+
+        public float Quality { get; set; }
+    }
+
 
     public class GlRenderOptions
     {
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
-            IntPrecision = ShaderPrecision.Medium;
+            IntPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = false;
@@ -34,13 +48,30 @@ namespace XrEngine.OpenGL
             SortByCameraDistance = true;
             UseSRGB = false;
             UseLayerV2 = true;
-            RequireTextureCompression = false;
+            RequireTextureCompression = true;
             UseVolume = true;
+            SampleCount = 4;
             UseInstanceDraw = true;
+            CacheUniforms = true;
+            Compression = new GlCompressionOptions
+            {
+                Use = false,
+                MinSize = 512 * 512,
+                BlockSize = 4,
+                Format = TextureCompressionFormat.Astc,
+                Quality = 60,
+            };
             ShadowMap = new ShadowMapOptions()
             {
-                Mode = ShadowMapMode.PCF,
+                Mode = ShadowMapMode.VSM,
+                Bias = 0,
+                BiasMode = ShadowMapBiasMode.Auto,
                 Size = 2048,
+                LightBleed = 0.1f,
+                BlurRadius = 10,
+                IsCasterMode = false,
+                UseFrustumIntersect = false,
+                Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
             Outline = new GlOutlineOptions()
             {
@@ -59,6 +90,8 @@ namespace XrEngine.OpenGL
 
         public string? ShaderVersion { get; set; }
 
+        public GlCompressionOptions Compression { get; set; }
+
         public ShaderPrecision FloatPrecision { get; set; }
 
         public ShaderPrecision IntPrecision { get; set; }
@@ -75,6 +108,8 @@ namespace XrEngine.OpenGL
 
         public bool UseVolume { get; set; }
 
+        public uint SampleCount { get; set; }
+
         public bool UseHitTest { get; set; }
 
         public ShadowMapOptions ShadowMap { get; }
@@ -86,6 +121,8 @@ namespace XrEngine.OpenGL
         public bool UseLayerV2 { get; set; }
 
         public bool UseInstanceDraw { get; set; }
+
+        public bool CacheUniforms { get; set; }
 
         public static GlRenderOptions Default() => new();
 

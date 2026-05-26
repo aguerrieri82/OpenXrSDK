@@ -42,7 +42,7 @@ namespace XrEditor.Plot
 
             Plotter = new Plotter();
 
-            _notifyTimer = new Timer(state => OnNotify(), null, Timeout.Infinite, Timeout.Infinite);
+            _notifyTimer = new Timer(state => OnNotify(false), null, Timeout.Infinite, Timeout.Infinite);
 
             Plotter.AutoScaleX = AutoScaleXMode.Advance;
             Plotter.AutoScaleY = AutoScaleYMode.Window;
@@ -81,9 +81,9 @@ namespace XrEditor.Plot
             return hash;
         }
 
-        protected void OnNotify()
+        protected void OnNotify(bool force)
         {
-            if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs)
+            if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs || force)
             {
                 _lastNotifyTime = DateTime.UtcNow;
                 _mainDispatcher.Execute(() => Plotter.NotifyChanged(null));
@@ -127,6 +127,7 @@ namespace XrEditor.Plot
             {
                 _lastNotifyTime = _lastValueTime;
                 _notifyTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                OnNotify(true);
             }
         }
 

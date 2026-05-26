@@ -58,7 +58,7 @@ namespace CanvasUI
                 AvailSize = availSize
             };
 
-            int i = 0;
+            var i = 0;
             var text = textStr.AsSpan();
 
             var curLine = new StringBuilder();

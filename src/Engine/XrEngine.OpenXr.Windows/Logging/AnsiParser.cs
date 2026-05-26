@@ -11,16 +11,16 @@ namespace XrEngine.OpenXr.Windows
         }
         public void Parse(string message)
         {
-            int startIndex = -1;
-            int length = 0;
+            var startIndex = -1;
+            var length = 0;
             int escapeCode;
             ConsoleColor? foreground = null;
             ConsoleColor? background = null;
             var span = message.AsSpan();
             const char EscapeChar = '\x1B';
             ConsoleColor? color = null;
-            bool isBright = false;
-            for (int i = 0; i < span.Length; i++)
+            var isBright = false;
+            for (var i = 0; i < span.Length; i++)
             {
                 if (span[i] == EscapeChar && span.Length >= i + 4 && span[i + 1] == '[')
                 {
@@ -72,7 +72,7 @@ namespace XrEngine.OpenXr.Windows
                 {
                     startIndex = i;
                 }
-                int nextEscapeIndex = -1;
+                var nextEscapeIndex = -1;
                 if (i < message.Length - 1)
                 {
                     nextEscapeIndex = message.IndexOf(EscapeChar, i + 1);

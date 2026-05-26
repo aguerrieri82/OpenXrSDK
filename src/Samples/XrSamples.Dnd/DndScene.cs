@@ -47,7 +47,7 @@ namespace XrSamples.Dnd
             {
                 Height = 0f
             });
-            
+
             _player.Name = "Player";
 
             AddChild(_player);
@@ -80,7 +80,7 @@ namespace XrSamples.Dnd
 
             token.VttToken = _vttScene?.Tokens?.First(a => a.Id == vttTokenId);
 
-            OnTokenUpdate(token.VttToken!);   
+            OnTokenUpdate(token.VttToken!);
 
             return token;
         }
@@ -107,7 +107,7 @@ namespace XrSamples.Dnd
             floor.Name = "Floor";
             floor.Transform.Scale = new Vector3(size.X, size.Z, 0.01f);
             floor.Transform.Position = new Vector3(_map.WorldBounds.Center.X, imp.MapY, _map.WorldBounds.Center.Z);
-            floor.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2); 
+            floor.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2);
 
             floor.AddComponent<TeleportTarget>();
             floor.AddComponent(new RigidBody
@@ -158,7 +158,7 @@ namespace XrSamples.Dnd
 
         }
 
-        public VttScene? VttScene => _vttScene;  
+        public VttScene? VttScene => _vttScene;
 
         public DndSettings Settings { get; } = new();
 

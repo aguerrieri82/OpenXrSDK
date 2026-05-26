@@ -2,6 +2,15 @@
 layout (location = 0) in vec3 a_position;
 layout (location = 2) in vec2 a_texcoord_0;
 
+
+#ifdef MULTI_VIEW
+
+    #define NUM_VIEWS 2
+    
+    layout(num_views=NUM_VIEWS) in;
+
+#endif
+
 out vec2 fUv;
 uniform mat4 uModel;
 

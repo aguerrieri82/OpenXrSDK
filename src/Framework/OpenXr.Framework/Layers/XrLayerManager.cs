@@ -30,7 +30,7 @@ namespace OpenXr.Framework
                 if (!layer.IsEnabled)
                     continue;
 
-                bool result = layer.Update(ref views, predTime);
+                var result = layer.Update(ref views, predTime);
                 if (result)
                 {
                     _layersPointers[layerCount] = layer.Header;

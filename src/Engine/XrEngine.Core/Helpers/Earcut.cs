@@ -1,5 +1,13 @@
 ﻿using System.Numerics;
 
+#pragma warning disable CS8618 
+#pragma warning disable CS8625
+#pragma warning disable CS8604
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+#pragma warning disable CS8601
+#pragma warning disable CS8602
+
 namespace Mapbox
 {
     public static class Earcut
@@ -48,6 +56,7 @@ namespace Mapbox
                 public Node nextZ;      // Next node in Z-order
                 public bool steiner;    // Indicates if this is a steiner point
 
+                // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
                 public Node(int index, double x, double y)
                 {
                     this.i = index;
@@ -64,10 +73,10 @@ namespace Mapbox
 
                 if (points == null || points.Count == 0 || points[0].Count == 0) return;
 
-                int threshold = 80;
-                int len = 0;
+                var threshold = 80;
+                var len = 0;
 
-                for (int i = 0; threshold >= 0 && i < points.Count; i++)
+                for (var i = 0; threshold >= 0 && i < points.Count; i++)
                 {
                     threshold -= points[i].Count;
                     len += points[i].Count;
@@ -77,7 +86,7 @@ namespace Mapbox
                 // However, we pre-allocate the indices list.
                 Indices.Capacity = len + points[0].Count;
 
-                Node outerNode = LinkedList(points[0], true);
+                var outerNode = LinkedList(points[0], true);
 
                 if (outerNode == null || outerNode.prev == outerNode.next) return;
 
@@ -90,13 +99,13 @@ namespace Mapbox
                 _hashing = threshold < 0;
                 if (_hashing)
                 {
-                    Node p = outerNode.next;
+                    var p = outerNode.next;
                     _minX = _maxX = outerNode.x;
                     _minY = _maxY = outerNode.y;
                     do
                     {
-                        double x = p.x;
-                        double y = p.y;
+                        var x = p.x;
+                        var y = p.y;
                         if (x < _minX) _minX = x;
                         if (y < _minY) _minY = y;
                         if (x > _maxX) _maxX = x;
@@ -116,7 +125,7 @@ namespace Mapbox
             private Node LinkedList(IList<Vector2> points, bool clockwise)
             {
                 double sum = 0;
-                int len = points.Count;
+                var len = points.Count;
                 int i, j;
                 Node last = null;
 
@@ -153,7 +162,7 @@ namespace Mapbox
             {
                 if (end == null) end = start;
 
-                Node p = start;
+                var p = start;
                 bool again;
                 do
                 {
@@ -182,7 +191,7 @@ namespace Mapbox
                 // Interlink polygon nodes in z-order
                 if (pass == 0 && _hashing) IndexCurve(ear);
 
-                Node stop = ear;
+                var stop = ear;
                 Node prev, next;
 
                 // Iterate through ears, slicing them one by one
@@ -237,14 +246,14 @@ namespace Mapbox
             // Check whether a polygon node forms a valid ear with adjacent nodes
             private bool IsEar(Node ear)
             {
-                Node a = ear.prev;
-                Node b = ear;
-                Node c = ear.next;
+                var a = ear.prev;
+                var b = ear;
+                var c = ear.next;
 
                 if (Area(a, b, c) >= 0) return false; // reflex, can't be an ear
 
                 // Now make sure we don't have other points inside the potential ear
-                Node p = ear.next.next;
+                var p = ear.next.next;
 
                 while (p != ear.prev)
                 {
@@ -260,24 +269,24 @@ namespace Mapbox
 
             private bool IsEarHashed(Node ear)
             {
-                Node a = ear.prev;
-                Node b = ear;
-                Node c = ear.next;
+                var a = ear.prev;
+                var b = ear;
+                var c = ear.next;
 
                 if (Area(a, b, c) >= 0) return false; // reflex, can't be an ear
 
                 // Triangle bbox; min & max are calculated like this for speed
-                double minTX = Math.Min(a.x, Math.Min(b.x, c.x));
-                double minTY = Math.Min(a.y, Math.Min(b.y, c.y));
-                double maxTX = Math.Max(a.x, Math.Max(b.x, c.x));
-                double maxTY = Math.Max(a.y, Math.Max(b.y, c.y));
+                var minTX = Math.Min(a.x, Math.Min(b.x, c.x));
+                var minTY = Math.Min(a.y, Math.Min(b.y, c.y));
+                var maxTX = Math.Max(a.x, Math.Max(b.x, c.x));
+                var maxTY = Math.Max(a.y, Math.Max(b.y, c.y));
 
                 // Z-order range for the current triangle bbox
-                int minZ = ZOrder(minTX, minTY);
-                int maxZ = ZOrder(maxTX, maxTY);
+                var minZ = ZOrder(minTX, minTY);
+                var maxZ = ZOrder(maxTX, maxTY);
 
-                Node p = ear.prevZ;
-                Node n = ear.nextZ;
+                var p = ear.prevZ;
+                var n = ear.nextZ;
 
                 // Look for points inside the triangle in both directions
                 while (p != null && p.z >= minZ && n != null && n.z <= maxZ)
@@ -317,11 +326,11 @@ namespace Mapbox
             // Go through all polygon nodes and cure small local self-intersections
             private Node CureLocalIntersections(Node start)
             {
-                Node p = start;
+                var p = start;
                 do
                 {
-                    Node a = p.prev;
-                    Node b = p.next.next;
+                    var a = p.prev;
+                    var b = p.next.next;
 
                     if (!Equals(a, b) && Intersects(a, p, p.next, b) && LocallyInside(a, b) && LocallyInside(b, a))
                     {
@@ -343,15 +352,15 @@ namespace Mapbox
             // Try splitting polygon into two and triangulate them independently
             private void SplitEarcut(Node start)
             {
-                Node a = start;
+                var a = start;
                 do
                 {
-                    Node b = a.next.next;
+                    var b = a.next.next;
                     while (b != a.prev)
                     {
                         if (a.i != b.i && IsValidDiagonal(a, b))
                         {
-                            Node c = SplitPolygon(a, b);
+                            var c = SplitPolygon(a, b);
                             a = FilterPoints(a, a.next);
                             c = FilterPoints(c, c.next);
                             EarcutLinked(a);
@@ -368,11 +377,11 @@ namespace Mapbox
             private Node EliminateHoles(IList<IList<Vector2>> points, Node outerNode)
             {
                 var queue = new List<Node>();
-                int len = points.Count;
+                var len = points.Count;
 
-                for (int i = 1; i < len; i++)
+                for (var i = 1; i < len; i++)
                 {
-                    Node list = LinkedList(points[i], false);
+                    var list = LinkedList(points[i], false);
                     if (list != null)
                     {
                         if (list == list.next) list.steiner = true;
@@ -383,7 +392,7 @@ namespace Mapbox
                 queue.Sort((a, b) => a.x.CompareTo(b.x));
 
                 // Process holes from left to right
-                for (int i = 0; i < queue.Count; i++)
+                for (var i = 0; i < queue.Count; i++)
                 {
                     outerNode = EliminateHole(queue[i], outerNode);
                 }
@@ -394,16 +403,16 @@ namespace Mapbox
             // Find a bridge between vertices that connects hole with an outer ring and link it
             private Node EliminateHole(Node hole, Node outerNode)
             {
-                Node bridge = FindHoleBridge(hole, outerNode);
+                var bridge = FindHoleBridge(hole, outerNode);
                 if (bridge == null)
                 {
                     return outerNode;
                 }
 
-                Node bridgeReverse = SplitPolygon(bridge, hole);
+                var bridgeReverse = SplitPolygon(bridge, hole);
 
                 // Filter collinear points around the cuts
-                Node n = FilterPoints(bridgeReverse, bridgeReverse.next);
+                var n = FilterPoints(bridgeReverse, bridgeReverse.next);
                 FilterPoints(bridge, bridge.next);
 
                 return outerNode;
@@ -412,10 +421,10 @@ namespace Mapbox
             // David Eberly's algorithm for finding a bridge between hole and outer polygon
             private Node FindHoleBridge(Node hole, Node outerNode)
             {
-                Node p = outerNode;
-                double hx = hole.x;
-                double hy = hole.y;
-                double qx = double.NegativeInfinity;
+                var p = outerNode;
+                var hx = hole.x;
+                var hy = hole.y;
+                var qx = double.NegativeInfinity;
                 Node m = null;
 
                 // Find a segment intersected by a ray from the hole's leftmost vertex to the left;
@@ -424,7 +433,7 @@ namespace Mapbox
                 {
                     if (hy <= p.y && hy >= p.next.y && p.next.y != p.y)
                     {
-                        double x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y);
+                        var x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y);
                         if (x <= hx && x > qx)
                         {
                             qx = x;
@@ -437,13 +446,13 @@ namespace Mapbox
 
                 if (m == null) return null;
 
-                Node stop = m;
-                double tanMin = double.PositiveInfinity;
+                var stop = m;
+                var tanMin = double.PositiveInfinity;
                 double tanCur = 0;
 
                 p = m;
-                double mx = m.x;
-                double my = m.y;
+                var mx = m.x;
+                var my = m.y;
 
                 do
                 {
@@ -474,7 +483,7 @@ namespace Mapbox
             // Interlink polygon nodes in z-order
             private void IndexCurve(Node start)
             {
-                Node p = start;
+                var p = start;
                 do
                 {
                     if (p.z == 0) p.z = ZOrder(p.x, p.y);
@@ -494,7 +503,7 @@ namespace Mapbox
             {
                 Node p, q, e, tail;
                 int i, numMerges, pSize, qSize;
-                int inSize = 1;
+                var inSize = 1;
 
                 do
                 {
@@ -566,8 +575,8 @@ namespace Mapbox
             private int ZOrder(double x, double y)
             {
                 // Coords are transformed into non-negative 15-bit integer range
-                int ix = (int)((x - _minX) * _invSize);
-                int iy = (int)((y - _minY) * _invSize);
+                var ix = (int)((x - _minX) * _invSize);
+                var iy = (int)((y - _minY) * _invSize);
 
                 ix = (ix | (ix << 8)) & 0x00FF00FF;
                 ix = (ix | (ix << 4)) & 0x0F0F0F0F;
@@ -585,8 +594,8 @@ namespace Mapbox
             // Find the leftmost node of a polygon ring
             private Node GetLeftmost(Node start)
             {
-                Node p = start;
-                Node leftmost = start;
+                var p = start;
+                var leftmost = start;
                 do
                 {
                     if (p.x < leftmost.x || (p.x == leftmost.x && p.y < leftmost.y)) leftmost = p;
@@ -627,10 +636,10 @@ namespace Mapbox
             // Check if two segments intersect
             private bool Intersects(Node p1, Node q1, Node p2, Node q2)
             {
-                int o1 = Sign(Area(p1, q1, p2));
-                int o2 = Sign(Area(p1, q1, q2));
-                int o3 = Sign(Area(p2, q2, p1));
-                int o4 = Sign(Area(p2, q2, q1));
+                var o1 = Sign(Area(p1, q1, p2));
+                var o2 = Sign(Area(p1, q1, q2));
+                var o3 = Sign(Area(p2, q2, p1));
+                var o4 = Sign(Area(p2, q2, q1));
 
                 if (o1 != o2 && o3 != o4) return true; // General case
 
@@ -655,7 +664,7 @@ namespace Mapbox
 
             private bool IntersectsPolygon(Node a, Node b)
             {
-                Node p = a;
+                var p = a;
                 do
                 {
                     if (p.i != a.i && p.next.i != a.i && p.i != b.i && p.next.i != b.i &&
@@ -675,10 +684,10 @@ namespace Mapbox
 
             private bool MiddleInside(Node a, Node b)
             {
-                Node p = a;
-                bool inside = false;
-                double px = (a.x + b.x) / 2;
-                double py = (a.y + b.y) / 2;
+                var p = a;
+                var inside = false;
+                var px = (a.x + b.x) / 2;
+                var py = (a.y + b.y) / 2;
                 do
                 {
                     if (((p.y > py) != (p.next.y > py)) && p.next.y != p.y &&
@@ -692,10 +701,10 @@ namespace Mapbox
 
             private Node SplitPolygon(Node a, Node b)
             {
-                Node a2 = new Node(a.i, a.x, a.y);
-                Node b2 = new Node(b.i, b.x, b.y);
-                Node an = a.next;
-                Node bp = b.prev;
+                var a2 = new Node(a.i, a.x, a.y);
+                var b2 = new Node(b.i, b.x, b.y);
+                var an = a.next;
+                var bp = b.prev;
 
                 a.next = b;
                 b.prev = a;
@@ -714,7 +723,7 @@ namespace Mapbox
 
             private Node InsertNode(int i, Vector2 pt, Node last)
             {
-                Node p = new Node(i, pt.X, pt.Y);
+                var p = new Node(i, pt.X, pt.Y);
 
                 if (last == null)
                 {

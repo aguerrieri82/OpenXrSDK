@@ -23,7 +23,7 @@ namespace XrEngine
             {
                 var assetUri = objState.Read<Uri>("$uri");
 
-                bool mustLoad = true;
+                var mustLoad = true;
 
                 if (destObj != null)
                 {

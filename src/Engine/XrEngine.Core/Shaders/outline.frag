@@ -6,6 +6,7 @@
 #endif
 
 uniform int uSize;
+uniform vec4 uColor;
 
 out vec4 fragColor;
 
@@ -13,14 +14,14 @@ void main() {
    
     ivec2 coords = ivec2(gl_FragCoord.xy);
     #ifdef MULTI_VIEW
-        vec4 color = texelFetch(srcImage, ivec3(coords, gl_ViewID_OVR), 0);
+        float color = texelFetch(srcImage, ivec3(coords, gl_ViewID_OVR), 0).r;
     #else
-        vec4 color = texelFetch(srcImage, coords, 0);
+        float color = texelFetch(srcImage, coords, 0).r;
     #endif
 
 
 
-    if (color == vec4(0.0)) 
+    if (color == 0.0) 
     {
         for (int x = -uSize; x <= uSize; ++x) 
         {
@@ -29,14 +30,14 @@ void main() {
                 ivec2 offsetCoords = coords + ivec2(x, y);
 
                 #ifdef MULTI_VIEW
-                    vec4 neighborColor = texelFetch(srcImage, ivec3(offsetCoords, gl_ViewID_OVR), 0);
+                    float neighborColor = texelFetch(srcImage, ivec3(offsetCoords, gl_ViewID_OVR), 0).r;
                 #else
-                    vec4 neighborColor = texelFetch(srcImage, offsetCoords, 0);
+                    float neighborColor = texelFetch(srcImage, offsetCoords, 0).r;
                 #endif
 
-                if (neighborColor != vec4(0.0)) 
+                if (neighborColor != 0.0) 
                 {
-                    fragColor = neighborColor;
+                    fragColor = uColor;
                     return;
                 }
             }

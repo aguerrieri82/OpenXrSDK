@@ -42,7 +42,7 @@ namespace XrEngine.Bullet
 
             var theta = Theta;
 
-            Quaternion rot = axis == Vector3.Zero
+            var rot = axis == Vector3.Zero
                 ? Quaternion.Identity
                 : Quaternion.CreateFromAxisAngle(axis, theta);
 

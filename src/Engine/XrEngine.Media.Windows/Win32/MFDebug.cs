@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 
 namespace XrEngine.Media.Windows
 {
@@ -19,7 +16,7 @@ namespace XrEngine.Media.Windows
 
             if (mt == null)
             {
-                
+
                 Debug.WriteLine("MediaType = null");
                 return;
             }

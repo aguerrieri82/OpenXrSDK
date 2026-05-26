@@ -20,14 +20,7 @@ namespace XrEngine.Materials
             UseDepth = false;
             WriteDepth = false;
             DoubleSided = false;
-
-            Exposure = 1;
-            Intensity = 1;
-            LinearOutput = true;
-            Blur = 0; //0.6 
             Rotation = 0;
-            MipCount = 1;
-
         }
 
         public override void GetState(IStateContainer container)
@@ -46,33 +39,16 @@ namespace XrEngine.Materials
         {
             bld.AddFeature("UNIFORM_EXP");
 
-            if (LinearOutput)
-                bld.AddFeature("LINEAR_OUTPUT");
-
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uGGXEnvSampler", Texture!, 0);
-                up.SetUniform("uMipCount", MipCount);
-                up.SetUniform("uEnvBlurNormalized", Blur);
-                up.SetUniform("uEnvIntensity", Intensity);
-                up.SetUniform("uExposure", Exposure);
-                up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(Rotation));
+                up.SetUniform("uCube", Texture!, 0);
+                up.SetUniform("uCubeRotation", Matrix3x3.CreateRotationY(Rotation));
             });
         }
 
 
         public TextureCube? Texture { get; set; }
 
-        public int MipCount { get; set; }
-
-        public float Intensity { get; set; }
-
-        public float Blur { get; set; }
-
-        public float Exposure { get; set; }
-
         public float Rotation { get; set; }
-
-        public bool LinearOutput { get; set; }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 
 namespace XrEngine.Devices.Windows
 {
@@ -34,11 +31,11 @@ namespace XrEngine.Devices.Windows
             if (!_opened)
                 throw new ObjectDisposedException(nameof(WinMidiOutPort));
 
-            if (offset < 0 || count < 0 || offset + count > data.Length) 
+            if (offset < 0 || count < 0 || offset + count > data.Length)
                 throw new ArgumentOutOfRangeException();
 
             uint msg = 0;
-            for (int i = 0; i < Math.Min(3, count); ++i)
+            for (var i = 0; i < Math.Min(3, count); ++i)
                 msg |= (uint)data[offset + i] << (8 * i);
 
             var r = Win32.midiOutShortMsg(_hOut, msg);

@@ -1,4 +1,5 @@
-﻿namespace XrEditor.Nodes
+﻿
+namespace XrEditor.Nodes
 {
     public abstract class BaseNode<T> : IEditableNode where T : notnull
     {
@@ -37,7 +38,7 @@
 
         public virtual IEnumerable<INode> Components => [];
 
-        public ICollection<string> Types 
+        public ICollection<string> Types
         {
             get
             {

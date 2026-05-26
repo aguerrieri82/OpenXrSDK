@@ -2,6 +2,6 @@
 {
     public interface IFrameReader
     {
-        TextureData ReadFrame();
+        TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba32);
     }
 }

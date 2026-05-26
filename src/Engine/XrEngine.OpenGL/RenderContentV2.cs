@@ -1,23 +1,44 @@
 ﻿namespace XrEngine.OpenGL
 {
+
+    public struct ShaderMaterialKey
+    {
+
+        public Guid MateriaId;
+
+        public VertexComponent ActiveComponent;
+
+        public readonly override int GetHashCode()
+        {
+            return MateriaId.GetHashCode() ^ ActiveComponent.GetHashCode();
+        }
+
+    }
+
     public class ShaderContentV2
     {
         public GlProgramGlobal? ProgramGlobal;
 
-        public readonly Dictionary<Material, MaterialContentV2> Contents = [];
+        public readonly Dictionary<ShaderMaterialKey, MaterialContentV2> Contents = [];
 
-        public KeyValuePair<Material, MaterialContentV2>[]? SortedContent = [];
+        public KeyValuePair<ShaderMaterialKey, MaterialContentV2>[]? SortedContent = [];
+
+        public bool IsDirty;
     }
 
     public class MaterialContentV2
     {
         public readonly Dictionary<EngineObject, VertexContentV2> Contents = [];
 
+        public Material? Material;
+
         public GlProgramInstance? ProgramInstance;
 
         public bool IsHidden;
 
         public bool UseInstanceDraw;
+
+        public VertexComponent ActiveComponents;
     }
 
 

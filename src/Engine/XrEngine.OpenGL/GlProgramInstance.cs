@@ -69,9 +69,11 @@ namespace XrEngine.OpenGL
             UpdateUniforms(ctx, false);
         }
 
+        public bool NeedUpdate => Program == null || _materialVersion != Material!.Version || _globalVersion != Global.Version;
+
         public bool UpdateProgram(UpdateShaderContext ctx)
         {
-            if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
+            if (!NeedUpdate)
                 return false;
 
             ctx.BufferProvider = this;
@@ -103,7 +105,7 @@ namespace XrEngine.OpenGL
             if (useGeo)
                 localBuilder.AddFeature("USE_GEO_SHADER");
 
-            localBuilder.AddFeature($"SHADER_VER {shader.Version}");
+            //localBuilder.AddFeature($"SHADER_VER {shader.Version}");
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
 

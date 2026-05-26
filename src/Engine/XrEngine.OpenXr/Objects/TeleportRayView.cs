@@ -4,7 +4,7 @@ namespace XrEngine.OpenXr
 {
     public class TeleportRayView : TriangleMesh
     {
-         readonly PathMaterial _material;
+        readonly PathMaterial _material;
 
         public TeleportRayView()
         {

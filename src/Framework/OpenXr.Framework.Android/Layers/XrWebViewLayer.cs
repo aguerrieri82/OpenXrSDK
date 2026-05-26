@@ -223,7 +223,7 @@ namespace OpenXr.Framework.Android
 
         public static int AlignToMultiple(int number, int bitSize)
         {
-            int mask = (1 << bitSize) - 1; // Create a mask with the bit size
+            var mask = (1 << bitSize) - 1; // Create a mask with the bit size
             return (number + mask) & ~mask; // Align the number to the nearest multiple
         }
 
@@ -307,7 +307,7 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetSupportMultipleWindows(false);
             _webView.Settings.SetNeedInitialFocus(false);
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
-            _webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
+            _webView.Settings.CacheMode = CacheModes.NoCache;
 
             _webView.Settings.SetSupportZoom(false);
             _webView.Settings.DefaultZoom = ZoomDensity.Far;

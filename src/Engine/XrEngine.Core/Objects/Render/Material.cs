@@ -51,9 +51,14 @@
 
         protected override void OnChanged(ObjectChange change)
         {
-            foreach (var host in _hosts)
-                host.NotifyChanged(new ObjectChange(change.Type, this));
+            if (_hosts.Count > 0)
+            {
+                var changeObj = new ObjectChange(change.Type, this);
 
+                foreach (var host in _hosts)
+                    host.NotifyChanged(changeObj);
+
+            }
             base.OnChanged(change);
         }
 

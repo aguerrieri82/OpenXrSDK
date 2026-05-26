@@ -189,7 +189,7 @@ namespace TurboJpeg
         [DllImport(DllName)]
         public static extern void tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
 
-        [DllImport(DllName)] 
+        [DllImport(DllName)]
         public static extern void tjDecompress2(IntPtr handle, byte* jpegBuf, ulong jpegSize, byte* dstBuf, int width, int pitch, int height, TJPF pixelFormat, TJFLAG flags);
 
         [DllImport(DllName)]

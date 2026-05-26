@@ -81,9 +81,9 @@ namespace XrSamples.Earth
 
 
             // Compute Cartesian coordinates
-            float x = radius * MathF.Cos(latRad) * MathF.Cos(lonRad);
-            float y = radius * MathF.Sin(latRad);
-            float z = radius * MathF.Cos(latRad) * MathF.Sin(lonRad);
+            var x = radius * MathF.Cos(latRad) * MathF.Cos(lonRad);
+            var y = radius * MathF.Sin(latRad);
+            var z = radius * MathF.Cos(latRad) * MathF.Sin(lonRad);
 
 
             return new Vector3(x, y, -z).Transform(_host.Earth.WorldMatrix);

@@ -6,7 +6,7 @@ namespace XrEngine.Physics
 {
     public class PyMeshCollider : Behavior<Object3D>, ICollider3D
     {
-        public static readonly DynamicProp PyGeo = new DynamicProp(nameof(PyGeo));  
+        public static readonly DynamicProp PyGeo = new DynamicProp(nameof(PyGeo));
 
         private PhysicsManager? _manager;
         private PhysicsSystem? _system;

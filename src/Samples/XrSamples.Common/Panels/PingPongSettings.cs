@@ -3,7 +3,10 @@ using Microsoft.Extensions.Logging;
 using PhysX;
 using UI.Binding;
 using XrEngine;
+using XrEngine.Objects;
+using XrEngine.OpenXr;
 using XrEngine.Physics;
+using XrEngine.UI;
 using XrMath;
 using CheckBox = CanvasUI.CheckBox;
 
@@ -16,10 +19,10 @@ namespace XrSamples
         public float Roughness { get; set; }
     }
 
-    public class PingPongSettings : BaseAppSettings
+    public class PingPongSettings : BaseAppSettings<Scene3D>
     {
         static readonly Material matShow = (Material)MaterialFactory.CreatePbr(Color.White);
-        static readonly Material matHide = new ColorMaterial(Color.Transparent);
+        static readonly Material matHide = new ShadowOnlyMaterial();
 
         public PingPongSettings()
         {
@@ -111,14 +114,11 @@ namespace XrSamples
                 mesh.NotifyChanged(ObjectChangeType.Render);
             }
 
-
             Apply(racket!, Racket);
 
             generator.PhysicSettings = Ball;
             foreach (var ball in generator.Balls)
                 Apply(ball, Ball);
-
-
 
             if (system != null)
             {
@@ -257,7 +257,12 @@ namespace XrSamples
                 .AddButton("Apply", () => settings.Apply(scene), s => s.Padding(8, 16).BackgroundColor("#1565C0"))
             .EndChild();
 
-            Context.Implement<ILogger>(new TextBlockLogger(logger!, 25));
+            if (!XrPlatform.IsEditor)
+            {
+                var service = new TextBlockProgressLogger(logger!, 20);
+                Context.Implement<IProgressLogger>(service);
+                Context.Implement<ILogger>(service);
+            }
         }
 
     }

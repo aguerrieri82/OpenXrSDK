@@ -36,7 +36,7 @@ namespace XrEditor.Audio
                     aData.Pointer[j] = pData[j];
             }
 
-            int i = 0;
+            var i = 0;
             while (i < data.Length)
             {
                 if (data.Length - i < dftSize)
@@ -60,7 +60,7 @@ namespace XrEditor.Audio
             _max = float.NegativeInfinity;
             _avg = 0;
 
-            int count = 0;
+            var count = 0;
 
             var values = _dft.SelectMany(a => a.Skip(_minIndex)
                 .Take(_maxIndex - _minIndex)

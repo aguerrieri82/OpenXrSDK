@@ -17,6 +17,7 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 		 -DALSOFT_BACKEND_OBOE=ON ^
 		 -DCMAKE_CXX_FLAGS="-g0" ^
 		 -DCMAKE_C_FLAGS="-g0" ^
+		 -DOBOE_NO_INCLUDE_AAUDIO=ON ^
 		 -DOBOE_SOURCE="%CUR_DIR%\oboe"
 
 
@@ -40,3 +41,5 @@ cmake -G Ninja .. ^
 ninja install
 
 copy install\bin\OpenAL32.dll ..\..\..\libs\openal\win-x64
+
+cd %CUR_DIR%

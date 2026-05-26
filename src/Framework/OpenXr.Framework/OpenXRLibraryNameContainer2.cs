@@ -1,7 +1,4 @@
 ﻿using Silk.NET.Core.Loader;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenXr.Framework
 {

@@ -34,7 +34,7 @@ namespace OpenXr.Framework.Android
 
         protected void InitAndroid(Context context)
         {
-            JniEnvironment.References.GetJavaVM(out nint javaVm);
+            JniEnvironment.References.GetJavaVM(out var javaVm);
 
             var android = new LoaderInitInfoAndroidKHR
             {

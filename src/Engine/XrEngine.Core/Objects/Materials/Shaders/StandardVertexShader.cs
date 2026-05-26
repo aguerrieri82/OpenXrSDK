@@ -48,20 +48,29 @@ namespace XrEngine
 
         protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)
         {
-            var shadowMode = bld.Context.ShadowMapProvider?.Options.Mode ?? ShadowMapMode.None;
+            var options = bld.Context.ShadowMapProvider?.Options;
 
-            if (shadowMode != ShadowMapMode.None && bld.Context.ShadowMapProvider?.ShadowMap != null)
+            var shadowMode = options?.Mode ?? ShadowMapMode.None;
+
+            if (shadowMode != ShadowMapMode.None)
             {
                 bld.AddFeature("USE_SHADOW_MAP");
                 bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
+                bld.AddFeature("SHADOW_BIAS " + (int)(options?.BiasMode ?? ShadowMapBiasMode.None));
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    if (ctx.ShadowMapProvider.ShadowMap != null)
+                    if (ctx.ShadowMapProvider?.ShadowMap != null)
                         up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
 
-                    if (ctx.ShadowMapProvider.Light != null)
+                    if (ctx.ShadowMapProvider?.Light != null)
                         up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light.Direction);
+
+                    if (options?.BiasMode == ShadowMapBiasMode.Value)
+                        up.SetUniform("uShadowBias", options!.Bias);
+
+                    if (shadowMode == ShadowMapMode.VSM)
+                        up.SetUniform("uLightBleed", options!.LightBleed);
                 });
             }
 

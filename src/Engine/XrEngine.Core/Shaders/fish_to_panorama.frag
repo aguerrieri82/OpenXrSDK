@@ -1,4 +1,4 @@
-﻿in vec2 inUV;
+﻿in vec2 fUv;
 out vec4 FragColor;
 
 uniform sampler2D uTexture;
@@ -15,8 +15,8 @@ void main() {
 	
 	float FOV = PI;
 
-	theta = 2.0 * PI * (inUV.x - 0.5); // -pi to pi
-	phi = PI * (inUV.y - 0.5);	// -pi/2 to pi/2
+	theta = 2.0 * PI * (fUv.x - 0.5); // -pi to pi
+	phi = PI * (fUv.y - 0.5);	// -pi/2 to pi/2
 
 	// Vector in 3D space
 	psph.x = cos(phi) * sin(theta);

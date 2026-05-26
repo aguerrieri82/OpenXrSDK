@@ -63,6 +63,6 @@
 
         }
 
-        public int ContentVersion { get; set; }
+        public long ContentVersion { get; set; }
     }
 }

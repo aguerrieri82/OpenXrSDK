@@ -10,7 +10,7 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            if (XrApp.Current == null || !XrApp.Current.IsStarted) 
+            if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
             var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);

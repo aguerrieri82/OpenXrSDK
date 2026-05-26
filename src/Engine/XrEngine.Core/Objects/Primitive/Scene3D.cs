@@ -36,10 +36,13 @@
 
             _gizmos.Clear();
 
-            foreach (var draw in _drawGizmos)
+            lock (_drawGizmos)
             {
-                if (draw.IsEnabled)
-                    draw.DrawGizmos(_gizmos);
+                foreach (var draw in _drawGizmos)
+                {
+                    if (draw.IsEnabled)
+                        draw.DrawGizmos(_gizmos);
+                }
             }
 
             _gizmos.Flush();
@@ -61,16 +64,20 @@
 
         protected void UpdateDrawGizmos()
         {
-            _drawGizmos.Clear();
-
-            foreach (var obj in this.DescendantsOrSelf())
+            lock (_drawGizmos)
             {
-                if (obj is IDrawGizmos draw)
-                    _drawGizmos.Add(draw);
+                _drawGizmos.Clear();
 
-                foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
-                    _drawGizmos.Add(component);
+                foreach (var obj in this.DescendantsOrSelf())
+                {
+                    if (obj is IDrawGizmos draw)
+                        _drawGizmos.Add(draw);
+
+                    foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
+                        _drawGizmos.Add(component);
+                }
             }
+
         }
 
         internal void Attach(EngineApp app)
@@ -91,6 +98,8 @@
             //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
 
             change.Target ??= sender;
+
+            //Log.Debug(this, "Scene Change: {0}", change.Type);
 
             if (!change.IsAny(ObjectChangeType.Transform) &&
                 !change.Targets<object>().All(a => a is Material) &&
@@ -171,6 +180,14 @@
         public LayerManager Layers => _layers;
 
         public EngineApp? App => _app;
+
+        public bool UpdateParallel
+        {
+            get => _updateManager.IsParallel;
+            set => _updateManager.IsParallel = value;
+        }
+
+        public RenderUpdateManager UpdateManager => _updateManager;
 
         public static Scene3D? Current { get; internal set; }
     }

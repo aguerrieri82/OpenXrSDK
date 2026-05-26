@@ -32,8 +32,8 @@ namespace XrEngine.AI
 
         public void Train(List<PoseTrainData> poses, int epochs = 20, int batchSize = 32)
         {
-            var (xTrain, yTrain) = PrepareDataset(poses);
-            var (xVal, yVal) = PrepareDataset(poses.GetRange(poses.Count - 60, 60));
+            (var xTrain, var yTrain) = PrepareDataset(poses);
+            (var xVal, var yVal) = PrepareDataset(poses.GetRange(poses.Count - 60, 60));
 
             if (File.Exists($"{_modelPath}/saved_model.pb"))
             {
@@ -124,15 +124,15 @@ namespace XrEngine.AI
 
         private (NDArray, NDArray) PrepareDataset(List<PoseTrainData> poses)
         {
-            int batchSize = poses.Count - _sequenceLength - 1;
+            var batchSize = poses.Count - _sequenceLength - 1;
             var xData = new float[batchSize, _sequenceLength, _featureSize];
             var yData = new float[batchSize, _featureSize];
 
-            for (int i = 0; i < batchSize; i++)
+            for (var i = 0; i < batchSize; i++)
             {
                 int poseIdx;
 
-                for (int j = 0; j < _sequenceLength; j++)
+                for (var j = 0; j < _sequenceLength; j++)
                 {
                     poseIdx = i + j;
 
@@ -173,7 +173,7 @@ namespace XrEngine.AI
         {
             var xInput = new float[1, _sequenceLength, _featureSize];
 
-            for (int j = 0; j < _sequenceLength; j++)
+            for (var j = 0; j < _sequenceLength; j++)
             {
                 var deltaPosition = poseSequence[j + 1].Pose.Position - poseSequence[j].Pose.Position;
                 var deltaTime = poseSequence[j + 1].Time - poseSequence[j].Time;

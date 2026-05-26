@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.Numerics;
 using XrMath;
 using static XrEngine.Bullet.BulletLib;
 
@@ -11,14 +7,14 @@ namespace XrEngine.Bullet
 
     public class IkSolver
     {
-        Dictionary<IkNode, uint> _nodeMap = [];
-        Dictionary<IkNode, uint> _targetMap = [];
+        readonly Dictionary<IkNode, uint> _nodeMap = [];
+        readonly Dictionary<IkNode, uint> _targetMap = [];
         IkContext _ctx;
         IkNode? _root;
 
         public IkSolver()
         {
-            WorldPose = Pose3.Identity; 
+            WorldPose = Pose3.Identity;
         }
 
         public void Build(IkNode root)
@@ -30,9 +26,9 @@ namespace XrEngine.Bullet
 
             void Collect(IkNode node)
             {
-                nodes.Add(node);     
-                
-                if (node.Left != null) 
+                nodes.Add(node);
+
+                if (node.Left != null)
                     Collect(node.Left);
 
                 if (node.Right != null)
@@ -102,8 +98,8 @@ namespace XrEngine.Bullet
 
             var localPos = WorldPose.Inverse().Transform(pos);
 
-            _ctx.IkSetTarget(ix, localPos);  
-        }                
+            _ctx.IkSetTarget(ix, localPos);
+        }
 
         public IkNode? FindNode(string name)
         {

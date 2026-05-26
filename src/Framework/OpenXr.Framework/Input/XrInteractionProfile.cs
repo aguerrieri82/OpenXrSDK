@@ -1,5 +1,6 @@
 ﻿namespace OpenXr.Framework
 {
+
     public class XrInteractionProfileHand
     {
         [XrPath("/input/squeeze")]

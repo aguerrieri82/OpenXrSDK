@@ -84,7 +84,7 @@ namespace XrEngine
 
                     if (collision == null || distance < collision.Distance)
                     {
-                        uint ix = (uint)i * 3;
+                        var ix = (uint)i * 3;
                         if (_geometry.Indices.Length > 0)
                             ix = _geometry.Indices[ix];
 

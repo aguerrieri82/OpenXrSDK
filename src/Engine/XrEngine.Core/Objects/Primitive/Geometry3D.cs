@@ -83,7 +83,7 @@ namespace XrEngine
 
             var normalMatrix = Matrix4x4.Transpose(inverse);
 
-            for (int i = 0; i < Vertices.Length; i++)
+            for (var i = 0; i < Vertices.Length; i++)
             {
                 Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
                 Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
@@ -137,7 +137,7 @@ namespace XrEngine
 
         public void ScaleUV(Vector2 scale)
         {
-            for (int i = 0; i < _vertices.Length; i++)
+            for (var i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV *= scale;
 
             NotifyChanged(ObjectChangeType.Geometry);

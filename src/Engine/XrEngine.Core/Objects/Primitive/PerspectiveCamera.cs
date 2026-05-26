@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -37,9 +36,9 @@ namespace XrEngine
 
         public float GetFov()
         {
-            float m11 = _proj.M22;
+            var m11 = _proj.M22;
 
-            double fovRadians = 2.0 * Math.Atan(1.0 / m11);
+            var fovRadians = 2.0 * Math.Atan(1.0 / m11);
 
             return (float)(fovRadians * (180.0 / Math.PI));
         }

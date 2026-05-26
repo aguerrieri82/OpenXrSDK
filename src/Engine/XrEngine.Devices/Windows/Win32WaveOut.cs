@@ -126,7 +126,7 @@ namespace XrEngine.Devices.Windows
 
         public void Enqueue(byte[] buffer)
         {
-           // waveOutSetVolume(_hWaveOut, (0x1000u | (0x1000u << 16)));
+            // waveOutSetVolume(_hWaveOut, (0x1000u | (0x1000u << 16)));
 
             var aBuffer = _buffers.FirstOrDefault(a => a.Buffer?.Data == buffer);
 
@@ -229,7 +229,7 @@ namespace XrEngine.Devices.Windows
                 wFormatTag = WAVE_FORMAT_PCM
             };
 
-            var del = (WaveOutProcDelegate)WaveOutProc;
+            WaveOutProcDelegate del = WaveOutProc;
             _procGCHandle = GCHandle.Alloc(del);
 
             CheckError(waveOutOpen(out _hWaveOut, WAVE_MAPPER, ref wFormat, Marshal.GetFunctionPointerForDelegate(del), 0, CALLBACK_FUNCTION));
@@ -293,7 +293,7 @@ namespace XrEngine.Devices.Windows
                 _volume = value;
                 if (_hWaveOut != 0)
                 {
-                    int int16 = (int)(Math.Min(Math.Max(0, _volume), 1) * ushort.MaxValue);
+                    var int16 = (int)(Math.Min(Math.Max(0, _volume), 1) * ushort.MaxValue);
                     waveOutSetVolume(_hWaveOut, (uint)(int16 | int16 << 16));
                 }
             }

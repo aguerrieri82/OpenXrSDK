@@ -37,8 +37,8 @@ namespace XrEngine
             var result = new List<Token>();
             var curText = new StringBuilder();
 
-            int i = 0;
-            int state = 0;
+            var i = 0;
+            var state = 0;
 
             void AppendIfNotEmpty()
             {
@@ -217,11 +217,11 @@ namespace XrEngine
             Dictionary<string, string> defs = [];
             Stack<bool> outWrite = [];
 
-            int i = 0;
-            int state = 0;
+            var i = 0;
+            var state = 0;
 
             outWrite.Push(true);
-            bool curOutWrite = true;
+            var curOutWrite = true;
 
             bool EvaluateExpression(string text)
             {

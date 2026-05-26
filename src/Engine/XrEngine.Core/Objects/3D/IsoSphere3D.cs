@@ -22,8 +22,8 @@ namespace XrEngine
 
         public void Build()
         {
-            float X = 0.525731112119133606f;
-            float Z = 0.850650808352039932f;
+            var X = 0.525731112119133606f;
+            var Z = 0.850650808352039932f;
 
             var vertices = new List<Vector3>(MathUtils.Vector3FromArray(new float[] {
                  -X, 0.0f, Z,  X, 0.0f, Z,  -X, 0.0f, -Z,  X, 0.0f, -Z,
@@ -70,15 +70,15 @@ namespace XrEngine
 
                 var end = indices.Count;
 
-                for (int i = 0; i < end; i += 3)
+                for (var i = 0; i < end; i += 3)
                 {
                     var mid = new Span<uint>(new uint[3]);
                     var idx = new Span<uint>(new uint[3]);
 
-                    for (int k = 0; k < 3; k++)
+                    for (var k = 0; k < 3; k++)
                         idx[k] = indices[i + k];
 
-                    for (int k = 0; k < 3; k++)
+                    for (var k = 0; k < 3; k++)
                         mid[k] = VertexForEdge(edgeMap, idx[k], idx[(k + 1) % 3]);
 
                     refinedIndices.Add(idx[0]); refinedIndices.Add(mid[0]); refinedIndices.Add(mid[2]);

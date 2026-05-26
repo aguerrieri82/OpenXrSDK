@@ -56,7 +56,7 @@ namespace XrEditor
                 if (_isExpanded)
                 {
                     if (_childInsertIndex == -1)
-                        _childInsertIndex = LastDescendant()!._index + 1;
+                        _childInsertIndex = LastDescendant(true)!._index + 1;
                     child._index = _childInsertIndex++;
                     _host._items.Insert(child._index, child);
                 }
@@ -89,6 +89,8 @@ namespace XrEditor
                     else
                         _children[i].Remove();
                 }
+
+                _host.RebuildIndexes();
 
             }
             finally
@@ -149,7 +151,7 @@ namespace XrEditor
                 return;
 
             var result = new List<ListTreeNodeView>();
-            
+
             LoadChildren(this, result);
 
             var isMassive = result.Count > 0;
@@ -229,7 +231,7 @@ namespace XrEditor
                 child._index = -1;
                 child._childInsertIndex = -1;
             }
-            
+
             _host.RebuildIndexes(_index);
 
             /*
@@ -284,7 +286,7 @@ namespace XrEditor
                     Expand();
                 else
                     Collapse();
-                
+
                 _isExpanded = value;
 
                 OnPropertyChanged(nameof(IsExpanded));
@@ -364,10 +366,10 @@ namespace XrEditor
             _selectedItems = [];
         }
 
-        public void BeginUpdate(ListTreeNodeView? refItem = null, bool isMassive =false)
+        public void BeginUpdate(ListTreeNodeView? refItem = null, bool isMassive = false)
         {
             if (isMassive)
-                _items.BeginUpdate();   
+                _items.BeginUpdate();
 
             _updateCount++;
 

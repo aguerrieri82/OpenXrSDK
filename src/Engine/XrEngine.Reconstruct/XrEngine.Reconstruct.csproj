@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
+		<SingleProject>true</SingleProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
+    <ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />
+    <ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+  </ItemGroup>
+
+</Project>

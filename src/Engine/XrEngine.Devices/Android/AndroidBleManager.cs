@@ -69,7 +69,7 @@ namespace XrEngine.Devices.Android
                 {
                     Address = ulong.Parse(device.Address!.Replace(":", ""), System.Globalization.NumberStyles.HexNumber),
                     Name = device.Name,
-                    
+
                 });
             }
 

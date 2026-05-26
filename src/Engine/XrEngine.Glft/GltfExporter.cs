@@ -1,6 +1,5 @@
 ﻿using glTFLoader.Schema;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using XrEngine;
@@ -22,16 +21,16 @@ public class GltfExporter
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct GlbHeader
-    {   
+    {
         public GlbHeader()
         {
         }
 
         public uint Magic = 0x46546C67;
 
-        public uint Version = 2;    
+        public uint Version = 2;
 
-        public uint Size = 0;   
+        public uint Size = 0;
 
     }
 
@@ -57,7 +56,7 @@ public class GltfExporter
             if (type == 0x4E4F534A)
             {
                 for (var i = 0; i < padding; i++)
-                    Padding[i] = 0x20; 
+                    Padding[i] = 0x20;
             }
         }
 
@@ -111,7 +110,7 @@ public class GltfExporter
     {
         var content = Export(obj, options);
 
-        var chunks = new List<GlbChunkInfo>();  
+        var chunks = new List<GlbChunkInfo>();
 
         var json = JsonSerializer.SerializeToUtf8Bytes(content.Root, new JsonSerializerOptions
         {
@@ -125,8 +124,8 @@ public class GltfExporter
             chunks.Add(new GlbChunkInfo(bin, 0x004E4942));
 
         var header = new GlbHeader();
-        header.Size = (uint)(Marshal.SizeOf(header) + 
-            Marshal.SizeOf<GlbChunk>() * 
+        header.Size = (uint)(Marshal.SizeOf(header) +
+            Marshal.SizeOf<GlbChunk>() *
             chunks.Count + chunks.Sum(a => a.Data.Length + a.Padding.Length));
 
         outStream.WriteStruct(header);
@@ -143,4 +142,4 @@ public class GltfExporter
             outStream.Write(chunkInfo.Padding);
         }
     }
-}  
+}

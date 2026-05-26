@@ -1,7 +1,4 @@
 ﻿using Android.Media;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Encoding = Android.Media.Encoding;
 
 namespace XrEngine.Media.Android
@@ -40,12 +37,12 @@ namespace XrEngine.Media.Android
             using var extractor = new MediaExtractor();
             extractor.SetDataSource(path);
 
-            int trackIndex = -1;
+            var trackIndex = -1;
             MediaFormat? inFormat = null;
-            for (int i = 0; i < extractor.TrackCount; i++)
+            for (var i = 0; i < extractor.TrackCount; i++)
             {
                 var f = extractor.GetTrackFormat(i);
-                string mime = f.GetString(MediaFormat.KeyMime)!;
+                var mime = f.GetString(MediaFormat.KeyMime)!;
                 if (mime.StartsWith("audio/"))
                 {
                     trackIndex = i;
@@ -59,7 +56,7 @@ namespace XrEngine.Media.Android
 
             extractor.SelectTrack(trackIndex);
 
-            string mimeType = inFormat.GetString(MediaFormat.KeyMime)!;
+            var mimeType = inFormat.GetString(MediaFormat.KeyMime)!;
             using var codec = MediaCodec.CreateDecoderByType(mimeType);
             codec.Configure(inFormat, null, null, 0);
             codec.Start();
@@ -69,16 +66,16 @@ namespace XrEngine.Media.Android
             var info = new MediaCodec.BufferInfo();
             using var pcmStream = new MemoryStream(10 * 1024 * 1024);
 
-            bool endOfStream = false;
+            var endOfStream = false;
 
             while (!endOfStream)
             {
 
-                int inputIndex = codec.DequeueInputBuffer(10_000);
+                var inputIndex = codec.DequeueInputBuffer(10_000);
                 if (inputIndex >= 0)
                 {
                     var inputBuffer = codec.GetInputBuffer(inputIndex)!;
-                    int sampleSize = extractor.ReadSampleData(inputBuffer, 0);
+                    var sampleSize = extractor.ReadSampleData(inputBuffer, 0);
 
                     if (sampleSize < 0)
                     {
@@ -87,14 +84,14 @@ namespace XrEngine.Media.Android
                     }
                     else
                     {
-                        long presentationTimeUs = extractor.SampleTime;
+                        var presentationTimeUs = extractor.SampleTime;
                         codec.QueueInputBuffer(inputIndex, 0, sampleSize, presentationTimeUs, 0);
                         extractor.Advance();
                     }
                 }
 
 
-                int outputIndex = codec.DequeueOutputBuffer(info, 10_000);
+                var outputIndex = codec.DequeueOutputBuffer(info, 10_000);
                 if (outputIndex >= 0)
                 {
                     var outputBuffer = codec.GetOutputBuffer(outputIndex);

@@ -15,6 +15,7 @@ namespace OpenXr.Framework
         protected DateTime _lastChangeTime;
         protected Action _action;
         protected ulong _subPath;
+        private bool _isSimulated;
         protected readonly XrApp _app;
         protected readonly ActionType _actionType;
         protected readonly string _path;
@@ -80,6 +81,7 @@ namespace OpenXr.Framework
         {
             _isActive = state.IsActive;
             _isChanged = state.IsChanged;
+            _isSimulated = true;
             if (state.Value is JsonElement je)
                 state.Value = je.Deserialize<TValue>(new JsonSerializerOptions { IncludeFields = true })!;
             _value = (TValue)state.Value;
@@ -97,7 +99,7 @@ namespace OpenXr.Framework
 
         public DateTime LastChangeTime => _lastChangeTime;
 
-        public bool IsActive => _isActive && _action.Handle != 0;
+        public bool IsActive => _isActive && (_isSimulated || _action.Handle != 0);
 
         public bool IsChanged => _isChanged;
 
@@ -181,7 +183,7 @@ namespace OpenXr.Framework
         public override ActionSuggestedBinding Initialize()
         {
             var result = base.Initialize();
-            _space = _app.CreateActionSpace(_action, _subPath);
+            _space = _app.CreateActionSpace(_action, _subPath, Pose3.Identity.ToPoseF());
             _app.SpacesTracker.Add(_space, TimeSpan.Zero);
             return result;
         }

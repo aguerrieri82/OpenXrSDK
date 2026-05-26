@@ -11,6 +11,7 @@ namespace XrEngine
         protected override bool BelongsToLayer(TriangleMesh obj)
         {
             return obj.Materials != null &&
+                   // obj.IsVisible &&
                    obj.Materials.OfType<IShadowMaterial>().Any(m => m.IsEnabled && m.ReceiveShadows);
         }
 
@@ -21,6 +22,9 @@ namespace XrEngine
                 _boundsDirty = true;
                 _contentVersion++;
             }
+
+            if (change.Type == ObjectChangeType.Transform)
+                return false;
 
             return base.AffectChange(change);
         }

@@ -28,7 +28,7 @@ namespace XrEngine.Video
 
         }
 
-        public void Open(Uri uri)
+        public void Open(Uri uri, TextureFormat outFormat = TextureFormat.Rgba32)
         {
             //_out = new FileStream("d:\\out.h264", FileMode.Create, FileAccess.Write);   
 
@@ -240,6 +240,11 @@ namespace XrEngine.Video
         {
             Close();
             GC.SuppressFinalize(this);
+        }
+
+        public bool SeekToFrame(int targetFrameIndex)
+        {
+            throw new NotImplementedException();
         }
 
         public int UdpPort { get; set; }

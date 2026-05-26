@@ -32,10 +32,10 @@ namespace XrEngine
             if (line != "#?RADIANCE")
                 throw new FormatException();
 
-            string format = "";
+            var format = "";
             float exposure;
-            int width = 0;
-            int height = 0;
+            var width = 0;
+            var height = 0;
 
             while ((line = ReadLine()) != "")
             {

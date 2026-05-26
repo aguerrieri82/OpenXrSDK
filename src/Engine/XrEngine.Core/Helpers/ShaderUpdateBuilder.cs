@@ -127,9 +127,11 @@ namespace XrEngine
 
         public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, BufferStore store) where T : struct
         {
+            IBuffer<T>? buffer = null;
+
             _result.BufferUpdates!.Add((ctx) =>
             {
-                var buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
 
                 ctx.CurrentBuffer = buffer;
 
@@ -143,7 +145,8 @@ namespace XrEngine
 
             _result.Actions!.Add((ctx, up) =>
             {
-                var buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+
                 up.LoadBuffer(buffer, slot);
             });
         }

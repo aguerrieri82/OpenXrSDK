@@ -3,7 +3,7 @@
     public class LayerManager : IObjectChangeListener
     {
         readonly Scene3D _scene;
-        readonly HashSet<string> _layersContent = [];
+        readonly HashSet<long> _layersContent = [];
         readonly List<ILayer3D> _layers = [];
         long _version;
 
@@ -50,14 +50,15 @@
 
         void IObjectChangeListener.NotifyChanged(Object3D sender, ObjectChange change)
         {
-            foreach (var layer in _layers.Where(a => a.IsEnabled))
+            foreach (var layer in _layers)
                 layer.NotifyChanged(sender, change);
         }
 
-        protected static string Hash(ILayer3D layer, ILayer3DItem obj)
+        protected static long Hash(ILayer3D layer, ILayer3DItem obj)
         {
-            obj.EnsureId();
-            return $"{layer.Id}|{obj.Id}";
+            var layerHash = (ulong)(uint)layer.GetHashCode();
+            var objHash = (ulong)(uint)obj.GetHashCode();
+            return (long)(layerHash | (objHash << 32));
         }
 
         internal protected void NotifyObjectAdded(ILayer3D layer, ILayer3DItem obj)

@@ -46,19 +46,19 @@ namespace XrSamples.Earth
 
         public override float RotationAngle(DateTime utcTime)
         {
-            double julianDate = ToJulianDate(utcTime);
+            var julianDate = ToJulianDate(utcTime);
 
             // Days since J2000 epoch
-            double daysSinceJ2000 = julianDate - 2451545.0;
+            var daysSinceJ2000 = julianDate - 2451545.0;
 
             // Moon's mean longitude at J2000 (degrees)
-            double meanLongitudeAtEpoch = 91.929336; // Reference value in degrees
+            var meanLongitudeAtEpoch = 91.929336; // Reference value in degrees
 
             // Mean motion of the Moon (degrees per day)
-            double meanMotion = 13.176358;
+            var meanMotion = 13.176358;
 
             // Compute the Moon's mean longitude (degrees)
-            double meanLongitude = meanLongitudeAtEpoch + (meanMotion * daysSinceJ2000);
+            var meanLongitude = meanLongitudeAtEpoch + (meanMotion * daysSinceJ2000);
             meanLongitude %= 360.0; // Normalize to [0, 360)
 
             // Convert to radians and return

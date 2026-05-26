@@ -19,7 +19,7 @@
 
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            bool useCache = destObj == null && (options == null || options.UseCache);
+            var useCache = destObj == null && (options == null || options.UseCache);
 
 
             EngineObject obj;

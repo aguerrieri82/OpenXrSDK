@@ -1,5 +1,6 @@
 
 precision highp imageCube;
+precision highp int;
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak

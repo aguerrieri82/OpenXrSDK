@@ -1,7 +1,4 @@
 ﻿using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using XrEngine.Media;
 
 namespace XrEngine.Audio

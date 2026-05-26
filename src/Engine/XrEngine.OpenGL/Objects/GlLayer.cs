@@ -1,7 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using System.Numerics;
+
 #else
 using Silk.NET.OpenGL;
+using System.Numerics;
+
 #endif
 
 using XrMath;
@@ -265,8 +269,8 @@ namespace XrEngine.OpenGL
         {
             var updateContext = _render.UpdateContext;
 
-            int totHidden = 0;
-            int totDraw = 0;
+            var totHidden = 0;
+            var totDraw = 0;
 
             foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
             {

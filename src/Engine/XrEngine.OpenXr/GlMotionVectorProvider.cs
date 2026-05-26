@@ -19,7 +19,7 @@ namespace XrEngine.OpenXr
             _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
 
             if (XrPlatform.Current?.Name == "Editor")
-                MotionVectorFormat = (long)InternalFormat.Rgb16f;    
+                MotionVectorFormat = (long)InternalFormat.Rgb16f;
             else
                 MotionVectorFormat = (long)InternalFormat.RG16f;
         }

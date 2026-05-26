@@ -40,7 +40,7 @@ namespace XrEngine
             if (Pointers == null)
                 return;
 
-            bool found = false;
+            var found = false;
 
             _mainInBtn.IsChanged = false;
             _secInBtn.IsChanged = false;

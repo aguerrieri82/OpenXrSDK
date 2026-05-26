@@ -7,6 +7,7 @@ namespace XrEngine.OpenXr
     public class XrAnchorUpdate : Behavior<Object3D>
     {
         protected bool _isInit;
+        protected bool _hasPose;
 
         protected override void Start(RenderContext ctx)
         {
@@ -47,6 +48,8 @@ namespace XrEngine.OpenXr
             if (loc == null || !loc.IsValid)
                 return;
 
+            _hasPose = true;
+
             _host?.SetWorldPoseIfChanged(loc.Pose, false, 0.005f);
 
             if (LogChanges)
@@ -65,5 +68,7 @@ namespace XrEngine.OpenXr
         public Space Space { get; set; }
 
         public bool LogChanges { get; set; }
+
+        public bool HasPose => _hasPose;
     }
 }

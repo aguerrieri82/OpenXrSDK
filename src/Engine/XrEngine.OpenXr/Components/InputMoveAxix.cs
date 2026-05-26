@@ -1,9 +1,5 @@
 ﻿using OpenXr.Framework;
-using Silk.NET.OpenXR;
-using System.Net.NetworkInformation;
 using System.Numerics;
-using System.Threading;
-using XrEngine;
 using XrMath;
 
 namespace XrEngine.OpenXr

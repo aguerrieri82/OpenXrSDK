@@ -32,12 +32,12 @@ namespace XrMath
             if (Points.Length == 0)
                 return -1;
 
-            int left = 0;
-            int right = Points.Length - 1;
+            var left = 0;
+            var right = Points.Length - 1;
 
             while (left <= right)
             {
-                int mid = left + (right - left) / 2;
+                var mid = left + (right - left) / 2;
 
                 if (Points[mid].X == targetX)
                 {

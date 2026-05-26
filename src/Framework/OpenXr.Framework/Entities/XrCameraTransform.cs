@@ -47,9 +47,9 @@ namespace OpenXr.Framework
         {
             var result = stackalloc float[16];
 
-            float tanAngleWidth = tanAngleRight - tanAngleLeft;
-            float tanAngleHeight = tanAngleUp - tanAngleDown;
-            float offsetZ = nearZ;
+            var tanAngleWidth = tanAngleRight - tanAngleLeft;
+            var tanAngleHeight = tanAngleUp - tanAngleDown;
+            var offsetZ = nearZ;
 
             if (farZ <= nearZ)
             {

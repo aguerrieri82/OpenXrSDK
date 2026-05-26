@@ -245,7 +245,7 @@ namespace XrEditor.Audio
             _statusText = ToolBar.AddText("");
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_insights", () => Task.Run(GenerateLoops));
-           // LoadWaveAsset("CarSound.wav");
+            // LoadWaveAsset("CarSound.wav");
         }
 
         public void GenerateLoops()
@@ -420,8 +420,8 @@ namespace XrEditor.Audio
                 }
 
                 var start = clipLen - maxOfs;
-                int forward = 0;
-                int backward = 0;
+                var forward = 0;
+                var backward = 0;
 
                 //move forward to find 0 cross line
                 i = start;

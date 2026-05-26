@@ -10,7 +10,7 @@ namespace XrEngine
         {
             var result = new VertexData[data.Length / 3];
             var di = 0;
-            for (int i = 0; i < result.Length; i++)
+            for (var i = 0; i < result.Length; i++)
             {
                 ref var item = ref result[i];
 
@@ -25,7 +25,7 @@ namespace XrEngine
         {
             var result = new VertexData[data.Length / 6];
             var di = 0;
-            for (int i = 0; i < result.Length; i++)
+            for (var i = 0; i < result.Length; i++)
             {
                 ref var item = ref result[i];
 
@@ -45,7 +45,7 @@ namespace XrEngine
         {
             var result = new VertexData[data.Length / 8];
             var di = 0;
-            for (int i = 0; i < result.Length; i++)
+            for (var i = 0; i < result.Length; i++)
             {
                 ref var item = ref result[i];
 

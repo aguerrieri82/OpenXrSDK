@@ -3,6 +3,20 @@ call vars.cmd
 SET CUR_DIR=%CD%
 SET SFIZZ_BASE=D:\Development\Library\sfizz\
 
+
+
+cd %SFIZZ_BASE%
+md out-win
+cd out-win
+
+cmake -G Ninja .. ^
+	 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+	 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX%
+
+ninja sfizz_api
+
+copy library\bin\sfizz_api.dll  %CUR_DIR%\..\src\Engine\Sfizz\sfizz_api.dll
+
 cd %SFIZZ_BASE%
 md out-android
 cd out-android

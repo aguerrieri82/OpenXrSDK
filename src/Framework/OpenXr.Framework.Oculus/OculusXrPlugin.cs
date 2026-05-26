@@ -20,9 +20,12 @@ namespace OpenXr.Framework.Oculus
     {
         public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
 
+        public ColorSpaceFB ColorSpace { get; set; }
+
         public static readonly OculusXrPluginOptions Default = new()
         {
-            Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
+            Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB,
+            ColorSpace = ColorSpaceFB.Rec709FB
         };
     }
 
@@ -92,7 +95,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSwapchainUpdateState? _swapChainUpdate;
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
-
+        protected FBColorSpace? _colorSpace;
 
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
@@ -125,7 +128,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBFoveation.ExtensionName);
             extensions.Add(FBSwapchainUpdateState.ExtensionName);
             extensions.Add(FBHandTrackingMesh.ExtensionName);
-            extensions.Add(METAEnvironmentDepth.ExtensionName);
+            extensions.Add(FBColorSpace.ExtensionName);
 
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
@@ -134,6 +137,11 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_foveation_configuration");
             extensions.Add("XR_FB_space_warp");
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
+            extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+
+
+
+
         }
 
         public unsafe override void OnInstanceCreated()
@@ -151,14 +159,29 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSwapchainUpdateState>(null, _app.Instance, out _swapChainUpdate);
             _app.Xr.TryGetInstanceExtension<FBHandTrackingMesh>(null, _app.Instance, out _handMesh);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
+            _app.Xr.TryGetInstanceExtension<FBColorSpace>(null, _app.Instance, out _colorSpace);
 
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
+
+
+        }
+
+        public override void OnSessionCreated()
+        {
+            base.OnSessionCreated();
+            SetColorSpace(_options.ColorSpace);
+        }
+
+        public void SetColorSpace(ColorSpaceFB colorSpace)
+        {
+            _app!.CheckResult(_colorSpace.SetColorSpaceFB(_app!.Session, colorSpace), "SetColorSpaceFB");
         }
 
         public unsafe string[] GetSpaceSemanticLabels(Space space)
         {
+
             var labels = string.Join(',', LABELS);
 
             var support = new SemanticLabelsSupportInfoFB
@@ -290,7 +313,7 @@ namespace OpenXr.Framework.Oculus
                 Enabled = (uint)(enabled ? 1 : 0),
             };
 
-            ulong reqId = (ulong)new DateTime().Ticks;
+            var reqId = (ulong)new DateTime().Ticks;
 
             _app!.CheckResult(_spatial!.SetSpaceComponentStatusFB(space, in info, ref reqId), "SetSpaceComponentStatusFB");
 
@@ -371,7 +394,7 @@ namespace OpenXr.Framework.Oculus
                     MaxResultCount = 100,
                 };
 
-                ulong reqId = (ulong)new DateTime().Ticks;
+                var reqId = (ulong)new DateTime().Ticks;
 
                 _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
 
@@ -425,7 +448,7 @@ namespace OpenXr.Framework.Oculus
 
         }
 
-        public unsafe Mesh GetSpaceTriangleMesh(Space space)
+        public unsafe Mesh3 GetSpaceTriangleMesh(Space space)
         {
             var info = new SpaceTriangleMeshGetInfoMETA
             {
@@ -451,9 +474,9 @@ namespace OpenXr.Framework.Oculus
                 result.Indices = pIndex;
                 _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
-                return new Mesh
+                return new Mesh3
                 {
-                    Vertices = vertexArray.Convert().To<Vector3>(),
+                    Vertices = vertexArray.Convert().To<Vector3>().ToArray(),
                     Indices = indexArray
                 };
             }
@@ -609,7 +632,7 @@ namespace OpenXr.Framework.Oculus
                 Flags = _options.Foveation
             };
 
-            ref BaseInStructure curInput = ref Unsafe.As<SwapchainCreateInfo, BaseInStructure>(ref info);
+            ref var curInput = ref Unsafe.As<SwapchainCreateInfo, BaseInStructure>(ref info);
 
             while (curInput.Next != null)
                 curInput = ref Unsafe.AsRef<BaseInStructure>(curInput.Next);
@@ -677,7 +700,7 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(_refreshRate!.RequestDisplayRefreshRateFB(_app!.Session, value), "RequestDisplayRefreshRate");
         }
 
-        public unsafe TriangleMeshFB CreateTriangleMesh(uint[] indices, Vector3f[] vertices)
+        public unsafe TriangleMeshFB CreateTriangleMesh(uint[] indices, ReadOnlySpan<Vector3f> vertices)
         {
             if (indices.Length == 0)
             {
@@ -795,6 +818,27 @@ namespace OpenXr.Framework.Oculus
             result.Capsules = capState.Capsules.AsSpan().ToArray();
 
             return result;
+        }
+
+
+        public unsafe override IDisposable? Configure<T>(ref T data)
+        {
+            if (data is HandTrackerCreateInfoEXT)
+            {
+                var extra = new NativeStruct<XrHandTrackingWideMotionModeInfoMETA>(new XrHandTrackingWideMotionModeInfoMETA
+                {
+                    Type = MetaHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
+                    Next = null,
+                    RequestedWideMotionMode = XrHandTrackingWideMotionModeMETA.HIGH_FIDELITY_BODY_TRACKING_META
+                });
+
+                ref var specificData = ref Unsafe.As<T, HandTrackerCreateInfoEXT>(ref data);
+                specificData.Next = extra.Pointer;
+
+                return extra;
+            }
+
+            return null;
         }
 
         public void Dispose()

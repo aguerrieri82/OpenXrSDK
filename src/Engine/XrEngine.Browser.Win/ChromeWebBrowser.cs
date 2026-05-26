@@ -146,10 +146,17 @@ namespace XrEngine.Browser.Win
                 throw new Exception();
         }
 
+
         public void ShowDevTools()
         {
             _browser?.ShowDevTools();
         }
+
+        public void Reload()
+        {
+            _browser?.Reload();
+        }
+
 
         public void Dispose()
         {

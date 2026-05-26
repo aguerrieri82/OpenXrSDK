@@ -7,17 +7,17 @@ namespace OpenXr.Framework.Android
     {
         public static OpenGLESContext Create(bool debugMode)
         {
-            int[] numConfigs = new int[1];
-            int[] value = new int[1];
-            int[] maj = new int[1];
-            int[] min = new int[1];
+            var numConfigs = new int[1];
+            var value = new int[1];
+            var maj = new int[1];
+            var min = new int[1];
 
 
             var display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
 
             EGL14.EglInitialize(display, maj, 0, min, 0);
 
-            EGLConfig[] configs = new EGLConfig[1024];
+            var configs = new EGLConfig[1024];
 
             if (!EGL14.EglGetConfigs(display, configs, 0, 1024, numConfigs, 0))
             {
@@ -38,9 +38,9 @@ namespace OpenXr.Framework.Android
 
             EGLConfig? config = null;
 
-            bool isConfigValid = false;
+            var isConfigValid = false;
 
-            for (int i = 0; i < numConfigs[0]; i++)
+            for (var i = 0; i < numConfigs[0]; i++)
             {
                 EGL14.EglGetConfigAttrib(display, configs[i], EGL14.EglRenderableType, value, 0);
                 if ((value[0] & EGL15.EglOpenglEs3Bit) != EGL15.EglOpenglEs3Bit)
@@ -50,7 +50,7 @@ namespace OpenXr.Framework.Android
                 if ((value[0] & (EGL14.EglWindowBit | EGL14.EglPbufferBit)) != (EGL14.EglWindowBit | EGL14.EglPbufferBit))
                     continue;
 
-                int j = 0;
+                var j = 0;
                 for (j = 0; configAttribs[j] != EGL14.EglNone; j += 2)
                 {
                     EGL14.EglGetConfigAttrib(display, configs[i], configAttribs[j], value, 0);
@@ -76,9 +76,8 @@ namespace OpenXr.Framework.Android
                 EGL14.EglNoContext,
                 [
                     EGL14.EglContextClientVersion, 3,
-                   // EGL15.EglContextMinorVersion, 2,
+                 // EGL15.EglContextMinorVersion, 2,
                     EGL15.EglContextOpenglDebug, (debugMode ? EGL14.EglTrue : EGL14.EglFalse),
-                   // EGL15.EglContextOpenglProfileMask, EGL15.EglContextOpenglCoreProfileBit,
                     EGL14.EglNone
                 ],
                 0);
@@ -92,6 +91,7 @@ namespace OpenXr.Framework.Android
                 [
                     EGL14.EglWidth, 16,
                     EGL14.EglHeight, 16,
+                    EGL15.EglGlColorspace, EGL15.EglGlColorspaceSrgb,
                     EGL14.EglNone
                 ],
                 0
@@ -115,7 +115,6 @@ namespace OpenXr.Framework.Android
             Log.Info("EGL Extensions", exts ?? "");
 
             //EGL14.EglSwapInterval(display, 0);
-
 
             return new OpenGLESContext
             {

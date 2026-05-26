@@ -82,7 +82,7 @@ namespace OpenAl.Framework
             get
             {
 
-                _al.GetSourceProperty(_handle, (SourceVector3) 0x1201, out var data);
+                _al.GetSourceProperty(_handle, (SourceVector3)0x1201, out var data);
                 return data.X;
             }
         }
@@ -92,7 +92,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, GetSourceInteger.BuffersProcessed, out int value);
+                _al.GetSourceProperty(_handle, GetSourceInteger.BuffersProcessed, out var value);
                 return value;
             }
         }
@@ -101,7 +101,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceVector3.Velocity, out Vector3 value);
+                _al.GetSourceProperty(_handle, SourceVector3.Velocity, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceVector3.Velocity, value);
@@ -111,7 +111,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceVector3.Position, out Vector3 value);
+                _al.GetSourceProperty(_handle, SourceVector3.Position, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceVector3.Position, value);
@@ -121,7 +121,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceVector3.Direction, out Vector3 value);
+                _al.GetSourceProperty(_handle, SourceVector3.Direction, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceVector3.Direction, value);
@@ -130,8 +130,8 @@ namespace OpenAl.Framework
         public int PlayPositionSamples
         {
             get
-            {                
-                _al.GetSourceProperty(_handle, GetSourceInteger.SampleOffset, out int value);
+            {
+                _al.GetSourceProperty(_handle, GetSourceInteger.SampleOffset, out var value);
                 return value;
             }
         }
@@ -140,7 +140,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, GetSourceInteger.SourceState, out int type);
+                _al.GetSourceProperty(_handle, GetSourceInteger.SourceState, out var type);
                 return (SourceState)type;
             }
         }
@@ -149,7 +149,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, GetSourceInteger.SourceType, out int type);
+                _al.GetSourceProperty(_handle, GetSourceInteger.SourceType, out var type);
                 return (SourceType)type;
             }
             set => _al.SetSourceProperty(_handle, SourceInteger.SourceType, (int)value);
@@ -159,7 +159,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceBoolean.Looping, out bool value);
+                _al.GetSourceProperty(_handle, SourceBoolean.Looping, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceBoolean.Looping, value);
@@ -169,7 +169,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, GetSourceInteger.Buffer, out int value);
+                _al.GetSourceProperty(_handle, GetSourceInteger.Buffer, out var value);
                 return (uint)value;
             }
         }
@@ -178,7 +178,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.Pitch, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.Pitch, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.Pitch, value);
@@ -188,7 +188,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.Gain, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.Gain, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.Gain, value);
@@ -199,7 +199,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.SecOffset, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.SecOffset, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.SecOffset, value);
@@ -209,7 +209,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.MaxDistance, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.MaxDistance, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.MaxDistance, value);
@@ -219,7 +219,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.MaxGain, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.MaxGain, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.MaxGain, value);
@@ -229,7 +229,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.MinGain, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.MinGain, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.MinGain, value);
@@ -240,7 +240,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.ConeInnerAngle, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.ConeInnerAngle, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.ConeInnerAngle, value);
@@ -250,7 +250,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.ConeOuterAngle, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.ConeOuterAngle, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.ConeOuterAngle, value);
@@ -260,7 +260,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceBoolean.SourceRelative, out bool value);
+                _al.GetSourceProperty(_handle, SourceBoolean.SourceRelative, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceBoolean.SourceRelative, value);
@@ -271,7 +271,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.ReferenceDistance, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.ReferenceDistance, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.ReferenceDistance, value);
@@ -282,7 +282,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                _al.GetSourceProperty(_handle, SourceFloat.RolloffFactor, out float value);
+                _al.GetSourceProperty(_handle, SourceFloat.RolloffFactor, out var value);
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.RolloffFactor, value);

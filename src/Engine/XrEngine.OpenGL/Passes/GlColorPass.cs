@@ -119,6 +119,7 @@ namespace XrEngine.OpenGL
 
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
+            uint progChangeCount = 0;
 
             foreach (var shader in layer.Content.Contents)
             {
@@ -129,16 +130,12 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
-
-                foreach (var material in shader.Value.Contents!
-                                        .OrderBy(a => a.Key.Priority)
-                                        .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0))
+                foreach (var material in shader.Value.SortedContent!.OrderBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0))
                 {
                     var matContent = material.Value;
 
                     if (material.Value.IsHidden)
                         continue;
-
 
                     updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
 
@@ -146,7 +143,9 @@ namespace XrEngine.OpenGL
 
                     updateContext.Stage = UpdateShaderStage.Material;
 
-                    UpdateProgram(updateContext, progInst);
+                    updateContext.ActiveComponents = matContent.ActiveComponents;
+
+                    var progUpdated = UpdateProgram(updateContext, progInst);
 
                     var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
@@ -160,6 +159,12 @@ namespace XrEngine.OpenGL
 
                     ConfigureCaps(progInst.Material!);
 
+                    if (progUpdated)
+                    {
+                        progChangeCount++;
+                        layer.Invalidate(shader.Value);
+                    }
+
                     foreach (var vertex in matContent.Contents)
                     {
                         var vertexContent = vertex.Value;
@@ -170,8 +175,6 @@ namespace XrEngine.OpenGL
                             continue;
 
                         var vHandler = vertexContent.VertexHandler!;
-
-                        updateContext.ActiveComponents = vertexContent.ActiveComponents;
 
                         vHandler.Bind();
 
@@ -208,6 +211,9 @@ namespace XrEngine.OpenGL
             _renderer.State.BindVertexArray(0);
 
             _renderer.PopGroup();
+
+            if (progChangeCount > 0)
+                Log.Debug(this, "Changes: {0}", progChangeCount);
         }
 
 

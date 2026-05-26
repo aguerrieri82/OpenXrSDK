@@ -20,28 +20,6 @@ namespace XrEngine.OpenGL
             return 1;
         }
 
-        public static uint GetPixelSizeBit(TextureFormat format)
-        {
-            return format switch
-            {
-                TextureFormat.Rg88 => 16,
-                TextureFormat.Rgba32 => 32,
-                TextureFormat.Bgra32 => 32,
-                TextureFormat.Rgb24 => 24,
-                TextureFormat.SRgb24 => 24,
-                TextureFormat.RgbFloat32 => 32 * 3,
-                TextureFormat.RgbaFloat32 => 32 * 4,
-                TextureFormat.RgbaFloat16 => 16 * 4,
-                TextureFormat.Depth24Float => 24,
-                TextureFormat.Depth16 => 16,
-                TextureFormat.GrayInt8 => 8,
-                TextureFormat.GrayInt16 => 16,
-                TextureFormat.GrayRawSInt16 => 16,
-                _ => throw new NotSupportedException()
-            };
-
-        }
-
 
 
         public static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
@@ -69,9 +47,11 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayRawSInt16 => PixelFormat.RedInteger,
 
                 TextureFormat.RgFloat32 or
+                TextureFormat.RgFloat16 or
                 TextureFormat.Rg88 => PixelFormat.RG,
 
-                TextureFormat.GrayFloat32 => PixelFormat.Red,
+                TextureFormat.GrayFloat32 or
+                TextureFormat.GrayFloat16 => PixelFormat.Red,
 
                 TextureFormat.Rgb24 or
                 TextureFormat.RgbFloat16 or
@@ -87,7 +67,9 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgbFloat32 or
                 TextureFormat.RgbaFloat32 or
                 TextureFormat.RgFloat32 or
+                TextureFormat.RgFloat16 or
                 TextureFormat.GrayFloat32 or
+                TextureFormat.GrayFloat16 or
                 TextureFormat.Depth24Float => PixelType.Float,
 
                 TextureFormat.RgbFloat16 => PixelType.HalfFloat,
@@ -117,7 +99,7 @@ namespace XrEngine.OpenGL
             };
         }
 
-        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
+        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression, uint blockSize = 0)
         {
 
             if (compression == TextureCompressionFormat.Uncompressed)
@@ -148,11 +130,16 @@ namespace XrEngine.OpenGL
 
                     TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
 
+                    TextureFormat.RgFloat16 => InternalFormat.RG16f,
+
                     TextureFormat.RgFloat32 => InternalFormat.RG32f,
 
                     TextureFormat.GrayFloat32 => InternalFormat.R32f,
+                    TextureFormat.GrayFloat16 => InternalFormat.R16f,
+
 
                     TextureFormat.Rgb24 => InternalFormat.Rgb8,
+                    TextureFormat.SRgb24 => InternalFormat.Srgb8,
 
                     TextureFormat.Rg88 => InternalFormat.RG8,
 
@@ -162,7 +149,6 @@ namespace XrEngine.OpenGL
 
             if (compression == TextureCompressionFormat.Etc2)
             {
-
                 return format switch
                 {
                     TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
@@ -171,6 +157,34 @@ namespace XrEngine.OpenGL
                     TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2EacOes,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
+            }
+
+            if (compression == TextureCompressionFormat.Astc)
+            {
+                if (format.IsSrgb())
+                {
+                    return blockSize switch
+                    {
+                        4 => InternalFormat.CompressedSrgb8Alpha8Astc4x4,
+                        6 => InternalFormat.CompressedSrgb8Alpha8Astc6x6,
+                        8 => InternalFormat.CompressedSrgb8Alpha8Astc8x8,
+                        10 => InternalFormat.CompressedSrgb8Alpha8Astc10x10,
+                        12 => InternalFormat.CompressedSrgb8Alpha8Astc12x12,
+                        _ => throw new NotSupportedException(format.ToString()),
+                    };
+                }
+                else
+                {
+                    return blockSize switch
+                    {
+                        4 => InternalFormat.CompressedRgbaAstc4x4,
+                        6 => InternalFormat.CompressedRgbaAstc6x6,
+                        8 => InternalFormat.CompressedRgbaAstc8x8,
+                        10 => InternalFormat.CompressedRgbaAstc10x10,
+                        12 => InternalFormat.CompressedRgbaAstc12x12,
+                        _ => throw new NotSupportedException(format.ToString()),
+                    };
+                }
             }
 
             if (compression == TextureCompressionFormat.Etc1)
@@ -219,6 +233,9 @@ namespace XrEngine.OpenGL
                 InternalFormat.Rgba8 => TextureFormat.Rgba32,
                 InternalFormat.Srgb8Alpha8 => TextureFormat.SRgba32,
                 InternalFormat.R16 => TextureFormat.GrayInt16,
+                InternalFormat.RG16f => TextureFormat.RgbFloat16,
+                InternalFormat.R32f => TextureFormat.GrayFloat32,
+                InternalFormat.R16f => TextureFormat.GrayFloat16,
                 //InternalFormat.DepthComponent16 => TextureFormat.GrayInt16,
                 InternalFormat.R8 => TextureFormat.GrayInt8,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
@@ -227,6 +244,7 @@ namespace XrEngine.OpenGL
                 InternalFormat.DepthComponent32f => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent16 => TextureFormat.Depth16,
+                InternalFormat.Rgb8 => TextureFormat.Rgb24,
                 _ => throw new NotSupportedException(),
             };
         }

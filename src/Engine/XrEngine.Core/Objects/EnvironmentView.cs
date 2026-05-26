@@ -70,6 +70,8 @@ namespace XrEngine
                     }
                 });
             }
+
+            public float Blur { get; set; }
         }
 
         public EnvironmentView()

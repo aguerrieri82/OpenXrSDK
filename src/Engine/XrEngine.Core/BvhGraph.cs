@@ -58,13 +58,13 @@ namespace XrEngine
                 min = Vector3.Min(min, obj.WorldBounds.Min);
                 max = Vector3.Max(max, obj.WorldBounds.Max);
             }
-            Vector3 size = max - min;
-            int axis = (size.X > size.Y && size.X > size.Z) ? 0 : (size.Y > size.Z ? 1 : 2);
+            var size = max - min;
+            var axis = (size.X > size.Y && size.X > size.Z) ? 0 : (size.Y > size.Z ? 1 : 2);
 
             objects = objects.OrderBy(o => o.WorldBounds.Min[axis]).ToList();
 
             // Split objects into two groups and recurse
-            int mid = objects.Count / 2;
+            var mid = objects.Count / 2;
             var left = Build(objects.Take(mid).ToList());
             var right = Build(objects.Skip(mid).ToList());
 
@@ -119,12 +119,12 @@ namespace XrEngine
             var first = leftDist < rightDist ? node.Left : node.Right;
             var second = leftDist < rightDist ? node.Right : node.Left;
 
-            var closestObject = FindClosestRecursive(first, point, out float firstDist);
+            var closestObject = FindClosestRecursive(first, point, out var firstDist);
             closestDist = firstDist;
 
             if (second != null && second.Bounds.DistanceTo(point) < closestDist)
             {
-                var secondClosest = FindClosestRecursive(second, point, out float secondDist);
+                var secondClosest = FindClosestRecursive(second, point, out var secondDist);
                 if (secondDist < closestDist)
                 {
                     closestObject = secondClosest;
@@ -146,7 +146,7 @@ namespace XrEngine
             else
             {
                 // Find the best place to insert the new node
-                BvhNode<T> current = Root!;
+                var current = Root!;
                 while (!current.IsLeaf)
                 {
                     var enlargementLeft = current.Left.Bounds.Merge(value.WorldBounds).Volume() - current.Left.Bounds.Volume();

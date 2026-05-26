@@ -6,8 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Silk.NET.OpenGLES" Version="2.22.0" />
-		<PackageReference Include="SkiaSharp.NativeAssets.Android" Version="3.119.2-preview.1" />
+		<PackageReference Include="Silk.NET.OpenGLES" Version="2.23.0" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Android" Version="4.147.0-preview.3.1" />
 
 	</ItemGroup>
 

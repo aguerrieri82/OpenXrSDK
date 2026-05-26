@@ -13,7 +13,7 @@
 
         protected override bool BelongsToLayer(Object3D obj)
         {
-            return obj.IsVisible && obj.Components<TComp>().Any();
+            return obj.IsVisible && obj.Components<TComp>().Any(a => a.IsEnabled);
         }
     }
 }

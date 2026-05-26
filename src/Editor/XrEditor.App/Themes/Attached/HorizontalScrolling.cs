@@ -80,23 +80,23 @@ namespace Theme.WPF.Themes.Attached
                 if (GetIsRequireShiftForHorizontalScroll(element) && scroller.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled)
                     return;
 
-                int amount = GetHorizontalScrollingAmount(element);
+                var amount = GetHorizontalScrollingAmount(element);
                 if (amount < 1)
                     amount = 3;
 
                 if (Keyboard.Modifiers == ModifierKeys.Shift || Mouse.MiddleButton == MouseButtonState.Pressed || GetForceHorizontalScrolling(element))
                 {
-                    int count = (e.Delta / 120) * amount;
+                    var count = (e.Delta / 120) * amount;
                     if (e.Delta < 0)
                     {
-                        for (int i = -count; i > 0; i--)
+                        for (var i = -count; i > 0; i--)
                         {
                             scroller.LineRight();
                         }
                     }
                     else
                     {
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             scroller.LineLeft();
                         }
@@ -133,7 +133,7 @@ namespace Theme.WPF.Themes.Attached
             {
                 for (i = 0; i < count;)
                 {
-                    DependencyObject child = VisualTreeHelper.GetChild(obj, i++);
+                    var child = VisualTreeHelper.GetChild(obj, i++);
                     if (child is T t)
                     {
                         return t;

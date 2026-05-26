@@ -1,25 +1,16 @@
-﻿
-using CanvasUI;
-using Silk.NET.OpenGL;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine;
-using XrEngine.OpenXr;
-using XrEngine.UI;
 using XrMath;
 
 namespace XrSamples.Dnd
 {
     public partial class Token : Group3D
     {
-        Group3D _tokenSet;
+        readonly Group3D _tokenSet;
 
-        TokenPicture _picture;
-        TriangleMesh _box;
-        Object3D _mesh;
+        readonly TokenPicture _picture;
+        readonly TriangleMesh _box;
+        readonly Object3D _mesh;
         private VttToken? _vttToken;
 
         public Token(Object3D mesh)
@@ -54,7 +45,7 @@ namespace XrSamples.Dnd
             WorldPosition = curPose.Position;
 
             var y = _mesh.WorldBounds.Max.Y;
-            _tokenSet.Transform.Position = new Vector3(0, y + 0.2f, 0); 
+            _tokenSet.Transform.Position = new Vector3(0, y + 0.2f, 0);
         }
 
         public override void Update(RenderContext ctx)
@@ -82,7 +73,7 @@ namespace XrSamples.Dnd
             var bounds = tiles.LocalBounds;
 
             var localPos = pos / mapSize * new Vector2(bounds.Size.X, bounds.Size.Z);
-            Transform.Position = new Vector3(localPos.X + 0.5f, Transform.Position.Y, - (bounds.Size.Z - localPos.Y - 0.5f));
+            Transform.Position = new Vector3(localPos.X + 0.5f, Transform.Position.Y, -(bounds.Size.Z - localPos.Y - 0.5f));
 
             //SendPosition();
         }

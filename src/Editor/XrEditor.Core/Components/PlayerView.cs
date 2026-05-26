@@ -40,7 +40,12 @@ namespace XrEditor
             if (e.PropertyName == nameof(_editValue.Frame))
                 OnPropertyChanged(nameof(Position));
 
-            UpdateCommands();
+
+            if (e.PropertyName == nameof(_editValue.PlayState))
+            {
+                _ = Context.Require<IMainDispatcher>().ExecuteAsync(() => UpdateCommands());
+            }
+
         }
 
         public void Play()

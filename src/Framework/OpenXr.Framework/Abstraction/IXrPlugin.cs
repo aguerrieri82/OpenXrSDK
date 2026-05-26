@@ -19,5 +19,7 @@ namespace OpenXr.Framework
         void OnSessionBegin();
 
         void OnSessionEnd();
+
+        IDisposable? Configure<T>(ref T data) where T : struct;
     }
 }

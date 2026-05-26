@@ -56,7 +56,7 @@ namespace XrEditor
 
         bool IOutlineSource.HasOutlines()
         {
-            return  _lastOutline.Count > 0;
+            return _lastOutline.Count > 0;
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)

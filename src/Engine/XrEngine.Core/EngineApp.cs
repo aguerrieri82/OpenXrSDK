@@ -102,7 +102,11 @@ namespace XrEngine
             {
                 var oldTime = _context.Time;
 
-                _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
+                if (ReferenceTime != null)
+                    _context.Time = ReferenceTime.Time;
+                else
+                    _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
+
                 _context.DeltaTime = _context.Time - oldTime;
 
                 _activeScene.Update(_context);
@@ -119,10 +123,17 @@ namespace XrEngine
 
         public void RenderScene(Camera? camera = null, bool flush = true)
         {
-            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+
+            if (_activeScene == null || Renderer == null)
                 return;
 
             _context.Camera = camera ?? _activeScene.ActiveCamera;
+
+            if (_context.Camera == null)
+                return;
+
+            if (_context.Camera.Scene != _activeScene)
+                _context.Camera._scene = _activeScene;
 
             Renderer.Render(_context, new Rect2I(_context.Camera.ViewSize), flush);
         }
@@ -174,6 +185,8 @@ namespace XrEngine
         public Thread? RenderThread => _renderThread;
 
         public IRenderEngine? Renderer { get; set; }
+
+        public IReferenceTime? ReferenceTime { get; set; }
 
         public static EngineApp? Current { get; private set; }
     }

@@ -1,6 +1,8 @@
 ﻿#if GLES
+using Common.Interop;
 using Silk.NET.OpenGLES;
 #else
+using Common.Interop;
 using Silk.NET.OpenGL;
 #endif
 
@@ -48,7 +50,7 @@ namespace XrEngine.OpenGL
             {
                 _buffer.Allocate(data.Data!.Size);
 
-                _alignment = GlUtils.CalculateUnpackAlignment(data.Width, GlUtils.GetPixelSizeBit(data.Format) / 8);
+                _alignment = GlUtils.CalculateUnpackAlignment(data.Width, data.Format.GetPixelSizeBit() / 8);
 
                 _width = data.Width;
                 _height = data.Height;

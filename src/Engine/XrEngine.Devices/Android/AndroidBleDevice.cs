@@ -1,4 +1,4 @@
-﻿#if ANDROID21_0_OR_GREATER
+﻿#if __ANDROID__
 
 using Android.Bluetooth;
 using Android.Runtime;
@@ -259,7 +259,7 @@ namespace XrEngine.Devices.Android
 
             _gattCb.BeginRead(cts);
 
-            int attempt = 0;
+            var attempt = 0;
 
             while (true)
             {

@@ -5,9 +5,11 @@ namespace XrEngine.Media
 {
     public interface IVideoReader : IDisposable
     {
-        void Open(Uri source);
+        void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba32);
 
         bool TryDecodeNextFrame(TextureData data);
+
+        bool SeekToFrame(int targetFrameIndex);
 
         void Close();
 

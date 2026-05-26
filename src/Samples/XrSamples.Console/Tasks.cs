@@ -128,6 +128,8 @@ namespace XrSamples
 
             var data = new List<PoseTrainData>();
 
+            Debug.Assert(session?.Frames != null);
+
             foreach (var frame in session.Frames)
             {
                 if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
@@ -369,8 +371,11 @@ namespace XrSamples
 
         public static void CompressTexture(string path)
         {
-            var data = EtcCompressor.Encode(path, 16);
-            PvrTranscoder.Instance.SaveTexture(File.OpenWrite("d:\\test.pvr"), data);
+            using var stream = File.OpenRead(path);
+            var texData = ImageReader.Instance.LoadTexture(stream);
+            Debug.Assert(texData.Count == 1);
+            var data = EtcCompressor.Encode(texData[0]);
+            PvrTranscoder.Instance.SaveTexture(File.OpenWrite("d:\\test.pvr"), [data]);
         }
 
         public unsafe static void LoadTexture()

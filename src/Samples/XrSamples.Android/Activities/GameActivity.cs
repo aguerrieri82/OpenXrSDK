@@ -9,6 +9,7 @@ using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
+using XrInteraction;
 
 
 namespace XrSamples.Android.Activities
@@ -30,10 +31,18 @@ namespace XrSamples.Android.Activities
         private XrWebViewLayer? _webViewLayer;
         private GameSettings? _settings;
 
+
+        public GameActivity()
+        {
+            _permissions.Add("horizonos.permission.HEADSET_CAMERA");
+
+            XrEngine.Context.Implement<IMainActivity>(this);
+        }
+
         protected override void OnLoad()
         {
-            //_settings = GameSettings.Helmet();
-            
+            _settings = GameSettings.Helmet();
+
             var settingsJson = Intent?.GetStringExtra("Settings");
 
             if (settingsJson == null)
@@ -56,7 +65,7 @@ namespace XrSamples.Android.Activities
                 openGL.EnableDebug();
             */
 
-            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
@@ -71,6 +80,7 @@ namespace XrSamples.Android.Activities
 
         protected override void BuildApp(XrEngineAppBuilder builder)
         {
+
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 

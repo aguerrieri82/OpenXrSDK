@@ -70,7 +70,7 @@ namespace XrEngine.OpenXr
 
                     var len = dir.Length();
 
-                    bool isTip = ((int)capsule.Joint + 1) % 5 == 0;
+                    var isTip = ((int)capsule.Joint + 1) % 5 == 0;
 
                     var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
 

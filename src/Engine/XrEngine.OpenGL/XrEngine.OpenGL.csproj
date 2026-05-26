@@ -4,17 +4,17 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
-		<PackageReference Include="Silk.NET.OpenGLES" Version="2.22.0" />
-		<PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenGLES" Version="2.23.0" />
+		<PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.23.0" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(OpenGL)' == ''">
-		<PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
 	</ItemGroup>
 	
 	<ItemGroup>
-	  <PackageReference Include="Silk.NET.OpenGL.Extensions.ARB" Version="2.22.0" />
-	  <PackageReference Include="Silk.NET.OpenGL.Extensions.EXT" Version="2.22.0" />
+	  <PackageReference Include="Silk.NET.OpenGL.Extensions.ARB" Version="2.23.0" />
+	  <PackageReference Include="Silk.NET.OpenGL.Extensions.EXT" Version="2.23.0" />
 
 	</ItemGroup>
 	
