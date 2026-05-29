@@ -386,3 +386,4 @@ Makefile
 /src/Engine/XrEngine.Bullet.Native/libs/
 /third-party/astc-encoder-native/out-android
 /third-party/astc-encoder-native/out-win
+/src/Samples/XrSamples.Graffiti/Assets/

@@ -1,6 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
+using XrSamples.Graffiti;
 
 namespace XrEditor
 {
@@ -23,6 +24,7 @@ namespace XrEditor
             @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
@@ -47,7 +49,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateRoomManager()
+              .CreateGraffiti()
               .Build();
     }
 }

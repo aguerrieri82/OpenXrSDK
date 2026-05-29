@@ -169,7 +169,7 @@ namespace XrSamples
 
             var time = _slicer.TimeForValue(100);
 
-            Loop = new AudioData(data.Format, _buffer);
+            Loop = new AlAudioData(data.Format, _buffer);
             SmoothFactor = 0.02f;
             SliceLen = 0.2f;
             FadeSize = 0.05f;

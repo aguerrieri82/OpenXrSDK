@@ -17,6 +17,7 @@
 		<ProjectReference Include="..\..\Samples\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Dnd\XrSamples.Dnd.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Earth\XrSamples.Earth.csproj" />
+		<ProjectReference Include="..\..\Samples\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
 		<ProjectReference Include="..\..\UI\UI.Binding\UI.Binding.csproj" />
 	</ItemGroup>
 </Project>

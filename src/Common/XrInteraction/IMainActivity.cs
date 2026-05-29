@@ -1,5 +1,5 @@
 ﻿
-#if ANDROID
+#if __ANDROID__
 
 
 using Android.Content;

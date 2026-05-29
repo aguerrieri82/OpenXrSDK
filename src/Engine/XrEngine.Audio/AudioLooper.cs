@@ -35,16 +35,17 @@ namespace XrEngine.Audio
             var fadeStartSample = Loop.Format.TimeToSample(duration - FadeSize);
             var fadeSizeSamples = Loop.Format.TimeToSample(FadeSize);
 
+            var sampleSize = Loop.Format.SampleSizeBytes();
+
             fixed (byte* pLoop = Loop.Buffer, pData = data, pNext = _nextBuffer)
             {
                 var sLoop = (short*)pLoop;
                 var sData = (short*)pData;
                 var sNext = (short*)pNext;
 
-                var count = data.Length / 2;
+                var count = data.Length / sampleSize;
 
                 var l = _lastSample;
-
 
                 for (var i = 0; i < count; i++)
                 {
@@ -61,7 +62,7 @@ namespace XrEngine.Audio
                     else
                         sData[i] = sLoop[l];
 
-                    l = (l + 1) % (Loop.Buffer!.Length / 2);
+                    l = (l + 1) % (Loop.Buffer!.Length / sampleSize);
 
                     if (l == 0)
                     {
@@ -79,6 +80,8 @@ namespace XrEngine.Audio
 
         public void Start()
         {
+            Debug.Assert(Loop != null && Loop.Format.Channels == 1 && Loop.Format.SampleType == AlAudioSampleType.Short);
+
             _isStreaming = true;
         }
 
@@ -87,7 +90,7 @@ namespace XrEngine.Audio
             _isStreaming = false;
         }
 
-        public AudioData? Loop { get; set; }
+        public AlAudioData? Loop { get; set; }
 
         public float FadeSize { get; set; }
 

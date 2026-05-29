@@ -168,7 +168,7 @@ namespace XrEngine.Reconstruct
                 XrTime = XrApp.Current.FramePredictedDisplayTime
             };
 
-#if ANDROID
+#if __ANDROID__
             img.BootTime = Android.OS.SystemClock.ElapsedRealtimeNanos();
             img.NanoTime = Java.Lang.JavaSystem.NanoTime();
 #endif

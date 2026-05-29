@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using OpenAl.Framework;
+using System.Diagnostics;
+using System.Numerics;
 using XrEngine.Media;
 
 namespace XrEngine.Audio
@@ -8,12 +10,57 @@ namespace XrEngine.Audio
         readonly byte[] _buffer;
         readonly AudioFormat _format;
 
-        public AudioClip(byte[] buffer, AudioFormat format)
+        public AudioClip(Span<byte> buffer, AudioFormat format)
         {
             Range = new AudioRange(format);
             Range.Size = buffer.Length;
-            _buffer = buffer;
+            _buffer = buffer.ToArray();
             _format = format;
+        }
+
+        public AlAudioData ToAlAudio()
+        {
+            return new AlAudioData(_format.ToAlAudioFormat(), new Span<byte>(_buffer, Range.StartOffset, Range.Size));
+        }
+
+        public unsafe AudioClip ToMono()
+        {
+            if (_format.Channels == 1)
+                return this;
+
+            Debug.Assert(_format.SampleType == AudioSampleType.Short);
+
+            var frameCount = _buffer.Length >> 2;
+            var mono = new byte[frameCount << 1];
+
+            fixed (byte* srcBytes = _buffer)
+            fixed (byte* dstBytes = mono)
+            {
+                short* src = (short*)srcBytes;
+                short* dst = (short*)dstBytes;
+
+                for (int i = 0; i < frameCount; i++)
+                {
+                    var o = i << 1;
+
+                    var left = src[o];
+                    var right = src[o + 1];
+
+                    dst[i] = (short)((left + right) >> 1);
+                }
+            }
+
+            var result = new AudioClip(mono, new AudioFormat
+            {
+                Channels = 1,
+                SampleRate = _format.SampleRate,
+                SampleType = _format.SampleType,
+            });
+            
+            result.Range.StartTime = Range.StartTime;
+            result.Range.EndTime = Range.EndTime;
+       
+            return result;
         }
 
         public AudioClip SubClipTime(float startTime, float endTime)

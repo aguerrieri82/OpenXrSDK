@@ -5,7 +5,7 @@ namespace XrEngine.Audio
 {
     public static class AudioFormatConverter
     {
-        public static AudioFormat ToAudioFormat(AlAudioFormat alFormat)
+        public static AudioFormat ToAudioFormat(this AlAudioFormat alFormat)
         {
             return new AudioFormat
             {
@@ -15,7 +15,7 @@ namespace XrEngine.Audio
             };
         }
 
-        public static AlAudioFormat ToAlAudioFormat(AudioFormat alFormat)
+        public static AlAudioFormat ToAlAudioFormat(this AudioFormat alFormat)
         {
             return new AlAudioFormat
             {

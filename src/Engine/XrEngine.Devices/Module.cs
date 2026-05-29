@@ -10,7 +10,7 @@ namespace XrEngine.Devices
     {
         public void Load()
         {
-#if ANDROID
+#if __ANDROID__
 
             Context.Implement<ICameraManager>(() => new Android.AndroidCamera2Manager());
             Context.Implement<IBleManager>(() => new Android.AndroidBleManager());

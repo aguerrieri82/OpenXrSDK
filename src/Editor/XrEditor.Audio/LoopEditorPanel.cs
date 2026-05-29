@@ -11,6 +11,7 @@ using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Devices;
 using XrEngine.Devices.Windows;
+using XrEngine.Media;
 
 namespace XrEditor.Audio
 {
@@ -245,8 +246,10 @@ namespace XrEditor.Audio
             _statusText = ToolBar.AddText("");
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_insights", () => Task.Run(GenerateLoops));
-            // LoadWaveAsset("CarSound.wav");
+
         }
+
+       
 
         public void GenerateLoops()
         {
@@ -362,7 +365,15 @@ namespace XrEditor.Audio
             Load(data);
         }
 
-        public void Load(AudioData data)
+        public void LoadAsset(string path)
+        {
+            var asset = Context.Require<IAssetStore>();
+            var soundPath = asset.GetPath(path);
+            var bytes = Context.Require<IAudioDecoder>().DecodeToPCM(soundPath, out var format);
+            Load(new AlAudioData(format.ToAlAudioFormat(), bytes));
+        }
+
+        public void Load(AlAudioData data)
         {
             _clip = new AudioClip(data.Buffer, AudioFormatConverter.ToAudioFormat(data.Format));
 
@@ -623,6 +634,8 @@ namespace XrEditor.Audio
 
         public override void OnActivate()
         {
+            //LoadAsset("1141558.audio-Air_Burst_Single_Long_02.mp3");
+
             var toolProps = Context.Require<PanelManager>().Panels
                  .OfType<PropertiesEditor>()
                  .FirstOrDefault(a => a.Mode == PropertiesEditorMode.Custom);

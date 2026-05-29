@@ -33,7 +33,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-#if !ANDROID
+#if !__ANDROID__
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
 #endif
@@ -299,7 +299,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateChromeBrowser(this XrEngineAppBuilder builder)
         {
-#if !ANDROID
+#if !__ANDROID__
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -1120,7 +1120,7 @@ namespace XrSamples
 
                 var ui = scene.UiPanel!;
 
-#if !ANDROID
+#if !__ANDROID__
                 var webView = new ChromeWebBrowserView
                 {
                     Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),

@@ -22,12 +22,10 @@
 		<NativePlatform>x64</NativePlatform>
 		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
 		<FilamentLink>PreBuilt</FilamentLink>
-
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<Optmize>false</Optmize>
-
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -39,13 +37,10 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == '$(CoreVersion)-android'">
 		<OpenGL>ES</OpenGL>
 		<IsAndroid>true</IsAndroid>
-		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
 	</PropertyGroup>
-	<!--
-	<Import Project="$(MSBuildThisFileDirectory)\..\Build\XrBuild\XrBuild.targets" />
-	-->
+	
 </Project>

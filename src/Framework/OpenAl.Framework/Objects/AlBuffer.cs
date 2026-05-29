@@ -106,7 +106,7 @@ namespace OpenAl.Framework
             _callback!.BufferCallback(_handle, 0, 0, new PfnBufferCallback(), null);
         }
 
-        public void SetData(AudioData data)
+        public void SetData(AlAudioData data)
         {
             SetData(data.Buffer!, data.Format!);
         }
