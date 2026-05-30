@@ -20,7 +20,7 @@ namespace XrSamples.Android.Activities
     {
         const string TAG = nameof(SelectActivity);
 
-        private readonly GameSettings _settings = GameSettings.Helmet();
+        private readonly GameSettings _settings = GameSettings.Graffiti();
         private IList<AppSample>? _samples;
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -40,7 +40,6 @@ namespace XrSamples.Android.Activities
 
             //Samples
             var manager = XrEngine.Context.Require<SampleManager>();
-            manager.AddType(typeof(Dnd.Builder));
 
             _samples = manager.List();
 

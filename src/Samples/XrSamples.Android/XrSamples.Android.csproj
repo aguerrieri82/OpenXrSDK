@@ -9,8 +9,14 @@
 		<ApplicationVersion>1</ApplicationVersion>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
-	    <DebugSymbols>true</DebugSymbols>
 		<UseOpenGL>true</UseOpenGL>
+	</PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<UseMonoRuntime>true</UseMonoRuntime>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -35,6 +41,7 @@
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\XrWebLink.Android\XrWebLink.Android.csproj" />
 		<ProjectReference Include="..\XrSamples.Dnd\XrSamples.Dnd.csproj" />
+		<ProjectReference Include="..\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
 	</ItemGroup>
 
 	<Import Project="..\..\AspNetCoreMini.props" />

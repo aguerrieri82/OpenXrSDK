@@ -23,6 +23,10 @@ namespace XrSamples
             var envTest = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
             Debug.WriteLine(envTest);
 
+            var manager = XrEngine.Context.Require<SampleManager>();
+            manager.AddType(typeof(Dnd.Builder));
+            manager.AddType(typeof(Graffiti.Builder));
+
         }
     }
 }

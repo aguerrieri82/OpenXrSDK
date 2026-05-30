@@ -24,15 +24,15 @@ namespace XrSamples
         public bool FrustumCulling { get; set; }
 
 
-        public static GameSettings Helmet()
+        public static GameSettings Graffiti()
         {
             return new GameSettings
             {
-                SampleName = "Capture",
+                SampleName = "Graffiti",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false,
+                IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false

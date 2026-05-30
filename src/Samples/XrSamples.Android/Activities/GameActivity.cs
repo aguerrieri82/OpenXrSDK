@@ -41,7 +41,7 @@ namespace XrSamples.Android.Activities
 
         protected override void OnLoad()
         {
-            _settings = GameSettings.Helmet();
+            _settings = GameSettings.Graffiti();
 
             var settingsJson = Intent?.GetStringExtra("Settings");
 

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using OpenXr.Framework.Oculus;
+using System.Runtime.InteropServices;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -20,9 +21,11 @@ namespace XrSamples.Graffiti
                     //.AddPanel(new DndSettingsPanel(scene.Settings, scene))
                     .UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr", false)
                     .ConfigureApp(scene.Configure)
-                    .ConfigureSampleApp()
+                    .UseRightController()
+                    .UseInputs<XrOculusTouchController>(a => a
+                        .AddAction(b => b.Right!.Haptic))
                     .AddPassthrough();
-                    //.UseTeleport(ControllerHand.Left, scene.Player);
+            //.UseTeleport(ControllerHand.Left, scene.Player);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace XrEngine.OpenXr
     {
         protected XrApp _xrApp;
         private bool _isInit;
-        private Texture2D _controllerORMTex;
+        private Texture2D? _controllerORMTex;
 
         public XrRoot()
         {
@@ -120,8 +120,7 @@ namespace XrEngine.OpenXr
 
             group.AddBehavior((_, ctx) =>
             {
-                if (input == null)
-                    input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
+                input ??= _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
 
                 if (input == null)
                     return;

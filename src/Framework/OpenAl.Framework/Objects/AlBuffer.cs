@@ -1,5 +1,6 @@
 ﻿using Silk.NET.OpenAL;
 using Silk.NET.OpenAL.Extensions.Soft;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 
 namespace OpenAl.Framework
@@ -67,7 +68,7 @@ namespace OpenAl.Framework
 
         unsafe delegate void alBufferSamplesSOFTDelegate(uint buffer, uint sampleRate, uint internalFormat, uint samples, uint channels, uint type, void* data);
 
-        static readonly Dictionary<uint, AlBuffer> _attached = [];
+        static readonly ConcurrentDictionary<uint, AlBuffer> _attached = [];
 
         public AlBuffer(AL al)
             : this(al, al.GenBuffer())
@@ -159,7 +160,7 @@ namespace OpenAl.Framework
         {
             if (_handle != 0)
             {
-                _attached.Remove(_handle);
+                _attached.TryRemove(_handle, out var _);
                 _al.DeleteBuffer(_handle);
                 _handle = 0;
             }

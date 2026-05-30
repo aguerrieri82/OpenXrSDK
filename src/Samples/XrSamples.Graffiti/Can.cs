@@ -1,31 +1,38 @@
 ﻿using OpenAl.Framework;
 using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 using XrEngine;
 using XrEngine.Media;
 using XrEngine.OpenXr;
 using XrEngine.Audio;
 using XrMath;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace XrSamples.Graffiti
 {
+
+
     public class Can : Group3D
     {
         private Object3D? _canBody;
         private Object3D? _cap;
         private float _sprayAperture;
         private XrOculusTouchController? _inputs;
+        private AudioLooper? _shakeLoop;
         private AudioLooper? _sprayLoop;
+
         private bool _isSpraying;
         private AudioEmitter? _emitter;
+        private ShakeDetector? _shakeDetector;
+        private IAudioControl? _shakeControl;
+        private IAudioControl? _sprayControl;
 
         public Can()
         {
             Load();
         }
+
 
         public void Load()
         {
@@ -35,18 +42,35 @@ namespace XrSamples.Graffiti
             
             AddChild(_canBody!);
             AddChild(_cap!);
+
             Transform.SetScale(0.03f);
 
-            _sprayLoop = new AudioLooper();
+            _sprayLoop = new AudioLooper
+            {
+                Loop = LoadAudio("1141558.audio-Air_Burst_Single_Long_02.mp3")
+                                  .SubClipTime(0.5f, 1.2f)
+                                  .ToMono()
+                                  .ToAlAudio(),
 
-            _sprayLoop.Loop = LoadAudio("1141558.audio-Air_Burst_Single_Long_02.mp3")
-                              .SubClipTime(0.5f, 1.2f)
-                              .ToMono()
-                              .ToAlAudio();
+                FadeSize = 0.1f
+            };
 
-            _sprayLoop.FadeSize = 0.1f;
+            _shakeLoop = new AudioLooper
+            {
+                Loop = LoadAudio("333819-WS_Spray_paint_can_shake_fast_with_little_marble_inside.mp3")
+                         .SubClipTime(0.2f, 4f)
+                         .ToMono()
+                         .ToAlAudio(),
+
+                FadeSize = 0.1f
+            };
+
 
             _emitter = this.AddComponent<AudioEmitter>();
+
+            _shakeDetector = this.AddComponent<ShakeDetector>();
+            _shakeDetector.OnShakeEnd += OnShakeEnd;
+            _shakeDetector.OnShakeStart += OnShakeStart;
         }
 
         static string GetAssetPath(string name)
@@ -68,17 +92,21 @@ namespace XrSamples.Graffiti
         {
             _inputs = e.GetInputs<XrOculusTouchController>();
 
+            _shakeDetector!.Configure(_inputs.Right!.GripPose!);
         }
 
         public override void Update(RenderContext ctx)
         {
-            var pose = _inputs?.Right?.GripPose;
-            var trigger = _inputs?.Right?.TriggerValue;
+            Debug.Assert(_inputs?.Right != null);
+
+            var pose = _inputs.Right.GripPose;
+            var trigger = _inputs.Right.TriggerValue;
 
             if (pose != null && pose.IsActive)
             {
                 this.SetWorldPose(pose.Value.Multiply(new Pose3
                 {
+                    Position = new Vector3(0, 0, -0.02f),
                     Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2) *
                                   Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2)
                 }));
@@ -88,9 +116,9 @@ namespace XrSamples.Graffiti
             {
                 SprayAperture = trigger.Value;
                 if (SprayAperture > 0)
-                    _inputs.Right.Haptic.VibrateStart(20, 0.7f, TimeSpan.FromSeconds(0.5));
+                    _inputs.Right.Haptic!.VibrateStart(20, 0.7f, TimeSpan.FromSeconds(0.5));
                 else
-                    _inputs.Right.Haptic.VibrateStop();
+                    _inputs.Right.Haptic!.VibrateStop();
             }
 
             base.Update(ctx);
@@ -98,14 +126,25 @@ namespace XrSamples.Graffiti
 
         protected void OnSprayStart()
         {
-            _emitter!.Play(_sprayLoop, () => this.Forward);
+            _sprayControl = _emitter!.Play(_sprayLoop!, () => Forward);
             _isSpraying = true;
         }
 
         protected void OnSprayEnd()
         {
             _isSpraying = false;
-            _emitter!.Stop();
+            _sprayControl?.Stop();
+        }
+
+
+        protected virtual void OnShakeEnd()
+        {
+            _shakeControl?.Stop();
+        }
+
+        protected virtual void OnShakeStart()
+        {
+            _shakeControl = _emitter!.Play(_shakeLoop!, () => Forward);
         }
 
 

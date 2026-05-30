@@ -15,7 +15,8 @@ namespace XrSamples.Graffiti
 
         public MainScene()
         {
-            AddChild(new PlaneGrid(6f, 12f, 2f));
+            if (XrPlatform.IsEditor)
+                AddChild(new PlaneGrid(6f, 12f, 2f));
 
             var camera = new PerspectiveCamera
             {
