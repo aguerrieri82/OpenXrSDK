@@ -1,0 +1,101 @@
+﻿#include "./uniforms_comp.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(rgba16f, binding = 1) readonly  uniform highp image2DArray uPaintIn;
+layout(rgba16f, binding = 2) writeonly uniform highp image2DArray uPaintOut;
+
+bool Inside(ivec2 p, ivec2 size)
+{
+    return p.x >= 0 && p.y >= 0 && p.x < size.x && p.y < size.y;
+}
+
+vec4 ComputeOutflow(vec4 paint, int layer)
+{
+    float density = paint.a;
+
+    if (density <= 0.000001)
+        return vec4(0.0);
+
+    float excess =
+        max(density - Layers[layer].DripThreshold, 0.0);
+
+    if (excess <= 0.0)
+        return vec4(0.0);
+
+    float moveDensity =
+        excess *
+        Layers[layer].Wetness *
+        Layers[layer].DripRate *
+        GlobalDripScale *
+        GravityStrength *
+        DeltaTime;
+
+    moveDensity = clamp(moveDensity, 0.0, density);
+
+    float f = moveDensity / density;
+
+    return paint * f;
+}
+
+void main()
+{
+    ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 size3 = imageSize(uPaintIn);
+    ivec2 size = size3.xy;
+
+    if (!Inside(p, size))
+        return;
+
+    vec2 g = GravityCanvas;
+
+    if (length(g) <= 0.000001 || GravityStrength <= 0.0)
+    {
+        for (int layer = 0; layer < MAX_PAINT_LAYERS; ++layer)
+        {
+            if (layer < LayerCount)
+            {
+                vec4 paint = imageLoad(uPaintIn, ivec3(p, layer));
+                imageStore(uPaintOut, ivec3(p, layer), paint);
+            }
+        }
+
+        return;
+    }
+
+    ivec2 dripStep =
+        ivec2(round(normalize(g)));
+
+    if (dripStep == ivec2(0))
+        return;
+
+    ivec2 upstream = p - dripStep;
+    ivec2 downstream = p + dripStep;
+
+    for (int layer = 0; layer < MAX_PAINT_LAYERS; ++layer)
+    {
+        if (layer >= LayerCount)
+            break;
+
+        vec4 self = imageLoad(uPaintIn, ivec3(p, layer));
+
+        vec4 result = self;
+
+        // Subtract paint leaving this texel only if destination is valid.
+        if (Inside(downstream, size))
+        {
+            vec4 selfOutflow = ComputeOutflow(self, layer);
+            result -= selfOutflow;
+        }
+
+        // Add paint arriving from upstream only if upstream exists.
+        if (Inside(upstream, size))
+        {
+            vec4 src = imageLoad(uPaintIn, ivec3(upstream, layer));
+            vec4 incoming = ComputeOutflow(src, layer);
+            result += incoming;
+        }
+
+        imageStore(uPaintOut, ivec3(p, layer), max(result, vec4(0.0)));
+    }
+}

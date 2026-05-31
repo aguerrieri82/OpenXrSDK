@@ -27,6 +27,11 @@ namespace XrEngine
             _lineMesh.Material.Alpha = AlphaMode.Blend;
         }
 
+        public void DrawLine(Line3 line)
+        {
+            DrawLine(line.From, line.To);
+        }
+
         public void DrawLine(Vector3 from, Vector3 to)
         {
             _data.Add(new PointData

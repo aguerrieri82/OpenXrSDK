@@ -1,0 +1,82 @@
+﻿#include "./uniforms_comp.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+
+layout(binding = 0) uniform highp sampler2D uIncomingSpray;
+
+layout(rgba16f, binding = 1) readonly  uniform highp image2DArray uPaintIn;
+layout(rgba16f, binding = 2) writeonly uniform highp image2DArray uPaintOut;
+
+void main()
+{
+    ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 size = imageSize(uPaintIn);
+
+    if (p.x >= size.x || p.y >= size.y)
+        return;
+
+    vec4 before[MAX_PAINT_LAYERS];
+    vec4 after[MAX_PAINT_LAYERS];
+
+    for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
+    {
+        if (i < LayerCount)
+        {
+            before[i] = imageLoad(uPaintIn, ivec3(p, i));
+        }
+        else
+        {
+            before[i] = vec4(0.0);
+        }
+
+        after[i] = before[i];
+    }
+
+    // Add incoming fresh spray to wettest layer.
+    float sprayDensity =
+        texelFetch(uIncomingSpray, p, 0).r * SprayDensityScale;
+
+    if (sprayDensity > 0.0 && LayerCount > 0)
+    {
+        vec4 added;
+        added.rgb = SprayColor * sprayDensity;
+        added.a   = sprayDensity;
+
+        before[0] += added;
+        after[0]  += added;
+    }
+
+    // Drying: conservative transfer from layer i to i + 1.
+    // Transfer is computed from before[], not from already-modified after[].
+    for (int i = 0; i < MAX_PAINT_LAYERS - 1; ++i)
+    {
+        if (i >= LayerCount - 1)
+            break;
+
+        float density = before[i].a;
+
+        if (density <= 0.000001)
+            continue;
+
+        float moveDensity =
+            Layers[i].DryRateToNext *
+            GlobalDryScale *
+            DeltaTime;
+
+        moveDensity = clamp(moveDensity, 0.0, density);
+
+        float f = moveDensity / density;
+
+        vec4 transfer = before[i] * f;
+
+        after[i]     -= transfer;
+        after[i + 1] += transfer;
+    }
+
+    for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
+    {
+        if (i < LayerCount)
+            imageStore(uPaintOut, ivec3(p, i), max(after[i], vec4(0.0)));
+    }
+}

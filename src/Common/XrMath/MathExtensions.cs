@@ -1049,6 +1049,12 @@ namespace XrMath
 
         #region COLOR
 
+        public static Vector3 ToVector3(this Color self)
+        {
+           return new Vector3(self.R, self.G, self.B);
+        }
+
+
         public static string ToHex(this Color self)
         {
             static string ToHex(float value)

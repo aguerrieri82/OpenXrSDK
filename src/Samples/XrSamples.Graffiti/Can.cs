@@ -1,13 +1,12 @@
-﻿using OpenAl.Framework;
+﻿
 using OpenXr.Framework.Oculus;
-
+using System.Diagnostics;
+using System.Numerics;
 using XrEngine;
+using XrEngine.Audio;
 using XrEngine.Media;
 using XrEngine.OpenXr;
-using XrEngine.Audio;
 using XrMath;
-using System.Numerics;
-using System.Diagnostics;
 
 namespace XrSamples.Graffiti
 {
@@ -15,31 +14,26 @@ namespace XrSamples.Graffiti
 
     public class Can : Group3D
     {
-        private Object3D? _canBody;
-        private Object3D? _cap;
+        private Object3D _canBody;
+        private Object3D _cap;
         private float _sprayAperture;
         private XrOculusTouchController? _inputs;
-        private AudioLooper? _shakeLoop;
-        private AudioLooper? _sprayLoop;
-
+        private AudioLooper _shakeLoop;
+        private AudioLooper _sprayLoop;
         private bool _isSpraying;
-        private AudioEmitter? _emitter;
-        private ShakeDetector? _shakeDetector;
+        private AudioEmitter _emitter;
+        private ShakeDetector _shakeDetector;
         private IAudioControl? _shakeControl;
         private IAudioControl? _sprayControl;
+        private SprayTracker? _tracker;
 
         public Can()
         {
-            Load();
-        }
-
-
-        public void Load()
-        {
             var mesh = (Group3D)AssetLoader.Instance.Load(new Uri("res://asset/uploads_files_4848386_spray_can.glb"), typeof(Group3D), null);
-            _canBody = mesh.FindByName<Object3D>("CanYellow");
-            _cap = mesh.FindByName<Object3D>("Cap");
-            
+            _canBody = mesh.FindByName<Object3D>("CanYellow")!;
+            _cap = mesh.FindByName<Object3D>("Cap")!;
+            _cap.Transform.Orientation = new Quaternion(-6.181724E-08f, 0.70710677f, 0f, 0.70710677f);
+
             AddChild(_canBody!);
             AddChild(_cap!);
 
@@ -67,10 +61,13 @@ namespace XrSamples.Graffiti
 
 
             _emitter = this.AddComponent<AudioEmitter>();
+            _tracker = this.AddComponent<SprayTracker>();   
 
             _shakeDetector = this.AddComponent<ShakeDetector>();
             _shakeDetector.OnShakeEnd += OnShakeEnd;
             _shakeDetector.OnShakeStart += OnShakeStart;
+
+            Color = new Color(1, 0, 0);
         }
 
         static string GetAssetPath(string name)
@@ -163,5 +160,8 @@ namespace XrSamples.Graffiti
                     OnSprayEnd();
             }
         }
+
+
+        public Color Color { get; set; }
     }
 }

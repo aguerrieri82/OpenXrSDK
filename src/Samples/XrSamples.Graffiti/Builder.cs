@@ -20,6 +20,7 @@ namespace XrSamples.Graffiti
             return builder.UseApp(app)
                     //.AddPanel(new DndSettingsPanel(scene.Settings, scene))
                     .UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr", false)
+
                     .ConfigureApp(scene.Configure)
                     .UseRightController()
                     .UseInputs<XrOculusTouchController>(a => a
