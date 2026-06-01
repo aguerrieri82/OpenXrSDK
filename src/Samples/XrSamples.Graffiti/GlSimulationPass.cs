@@ -145,8 +145,11 @@ namespace XrSamples.Graffiti
 
             _accumulateProgram.SetUniform("uIncomingDensity", _canvas.SprayTexture, 0);
 
-            _gl.BindImageTexture(1, _wetTex, 0, true, 0, BufferAccessARB.ReadWrite, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(2, _dryTex, 0, true, 0, BufferAccessARB.ReadWrite, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(1, _wetTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(2, _dryTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+
+            _gl.BindImageTexture(3, _wetTex, 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(4, _dryTex, 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
             _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 

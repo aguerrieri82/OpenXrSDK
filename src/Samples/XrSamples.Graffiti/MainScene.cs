@@ -22,7 +22,6 @@ namespace XrSamples.Graffiti
 
         public MainScene()
         {
- 
             if (XrPlatform.IsEditor)
                 AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -63,7 +62,7 @@ namespace XrSamples.Graffiti
                     Orientation = Quaternion.Identity
                 },
                 Size = new Vector2(2, 2)
-            }, 0.0015f, 2);
+            }, 0.0010f);
 
             _spray = new SprayBrush(30, 10);
 

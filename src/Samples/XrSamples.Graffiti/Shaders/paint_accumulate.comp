@@ -2,17 +2,16 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
-// Array layers:
-//
-//   0 = dry paint
-//   1 = wet paint
-//
+
 // Each texel stores:
 //
 //   rgb = color * density
 //   a   = density
-layout(rgba16f, binding = 1) uniform highp image2D uWetPaint;
-layout(rgba16f, binding = 2) uniform highp image2D uDryPaint;
+layout(rgba16f, binding = 1) readonly uniform highp image2D uWetPaint;
+layout(rgba16f, binding = 2) readonly uniform highp image2D uDryPaint;
+
+layout(rgba16f, binding = 3) writeonly uniform highp image2D uWetPaintOut;
+layout(rgba16f, binding = 4) writeonly uniform highp image2D uDryPaintOut;
 
 // Incoming density texture.
 // Only R is used.
@@ -75,6 +74,6 @@ void main()
         wet = vec4(0.0);
     }
 
-    imageStore(uDryPaint, p, dry);
-    imageStore(uWetPaint, p, wet);
+    imageStore(uDryPaintOut, p, dry);
+    imageStore(uWetPaintOut, p, wet);
 }

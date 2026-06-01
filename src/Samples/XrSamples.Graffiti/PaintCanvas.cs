@@ -29,9 +29,9 @@ namespace XrSamples.Graffiti
         private float _texelSize;
         private Can? _can;
         private PaintCanvasDebug _debug;
-        private int _debugLayer;
 
-        public PaintCanvas(Quad3 quad, float texelSize = 0.001f, int layers = 3)
+
+        public PaintCanvas(Quad3 quad, float texelSize = 0.001f)
         {
             DryRate = 0.75f;
             DensityToCoverage = 1.0f;
@@ -40,9 +40,8 @@ namespace XrSamples.Graffiti
             DryRoughness = 0.9f;
             WetRoughness = 0.05f;
             DensityScale = 1f;
-            DripThreshold = 0.65f;
-            DripRate = 0.35f;
-            GravityStrength = 3.0f;
+            DripRate = 0.1f;
+            GravityStrength = 1.0f;
 
             _size = quad.Size;
             _texelSize = texelSize;
@@ -130,7 +129,6 @@ namespace XrSamples.Graffiti
             block.DryRate = DryRate;
 
             block.WetDripRate = DripRate;
-            block.WetDripThreshold = DripRate;
         }
 
 
@@ -184,7 +182,6 @@ namespace XrSamples.Graffiti
 
         public float DripRate { get; set; }
 
-        public float DripThreshold { get; set; }
 
         public float DryRoughness { get; set; }
 
