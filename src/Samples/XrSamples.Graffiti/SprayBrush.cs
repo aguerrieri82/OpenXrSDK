@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using XrEngine;
+using XrEngine.OpenXr;
 using XrMath;
 
 namespace XrSamples.Graffiti
@@ -14,7 +15,6 @@ namespace XrSamples.Graffiti
         public SprayBrush(int radialSubs, int innerSubs)
         {
      
-
             var builder = new MeshBuilder();
 
             float radius = 0.5f;
@@ -55,11 +55,10 @@ namespace XrSamples.Graffiti
 
             Geometry = builder.ToGeometry();
             Materials.Add(new WireframeMaterial() { Color = new Color(0,1,0), DoubleSided = true });
-           // Materials.Add(new TextureMaterial(Texture2D.FromImage(texture)));
+            // Materials.Add(new TextureMaterial(Texture2D.FromImage(texture)));
+
+            IsVisible = XrPlatform.IsEditor;
         }
-
-
-
 
     }
 }

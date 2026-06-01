@@ -1,58 +1,48 @@
 ﻿#if GLES
-using Amazon.Runtime.Telemetry.Tracing;
 using Silk.NET.OpenGLES;
-
 #else
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Security.Cryptography;
-using System.Text;
 using XrEngine;
 using XrEngine.OpenGL;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
-using static System.Net.Mime.MediaTypeNames;
-using static XrEngine.Bullet.BulletLib;
 
 namespace XrSamples.Graffiti
 {
-    public class SavedFrame
-    {
-        public TextureData Data;
-        public long Frame; 
-    }
 
     public class GlSimulationPass : GlBaseRenderPass
     {
         protected readonly GlTextureFrameBuffer _sprayFrameBuffer;
-        protected PaintCanvas? _canvas;
+        
         protected SprayBrush? _brush;
-        protected readonly GlSimpleProgram _sprayProgram;
-        protected GlBuffer<PaintProjUniforms> _sprayUniformsBuffer;
-        protected PaintProjUniforms _sprayUniforms;
+        protected GlVertexSourceHandle? _brushSource;
+
+        protected PaintCanvas? _canvas;
         protected Can? _can;
         protected SprayTracker? _tracker;
-        protected GlVertexSourceHandle? _brushSource;
 
         protected readonly GlComputeProgram _accumulateProgram;
         protected readonly GlComputeProgram _dripProgram;
         protected readonly GlComputeProgram _resolveProgram;
+        protected readonly GlSimpleProgram _sprayProgram;
 
-        protected readonly GlTexture _paintA;
-        protected readonly GlTexture _paintB;
+        protected GlTexture _wetTex;
+        protected GlTexture _tempWetTex;
+        protected readonly GlTexture _dryTex;
 
-        protected PaintSimulationBlock _paintUniforms;
-        protected GlBuffer<PaintSimulationBlock> _paintUniformsBuffer;
-        private Vector3 _prevNozzlePositon;
-        private Pose3 _prevPose;
-        private long _lastFrame;    
+        protected readonly GlBuffer<PaintSimUniforms> _paintUniformsBuffer;
+        protected PaintSimUniforms _paintUniforms;
 
-        protected IList<SavedFrame> _frames = [];
+        protected readonly GlBuffer<PaintProjUniforms> _sprayUniformsBuffer;
+        protected PaintProjUniforms _sprayUniforms;
+
+        protected Vector3 _prevNozzlePositon;
+        protected Pose3 _prevPose;
+        protected long _lastFrame;    
 
         public GlSimulationPass(OpenGLRender renderer)
             : base(renderer)    
@@ -62,28 +52,24 @@ namespace XrSamples.Graffiti
             _sprayProgram = new GlSimpleProgram(renderer.GL, "paint_proj.vert", "paint_proj.frag", str => Embedded.GetString<GlSimulationPass>(str));
             _sprayProgram.Build();
 
-            var layers = "MAX_PAINT_LAYERS 8"; 
-
             _accumulateProgram = new GlComputeProgram(renderer.GL, "paint_accumulate.comp", str => Embedded.GetString<GlSimulationPass>(str));
-            _accumulateProgram.AddFeature(layers);
             _accumulateProgram.Build();
-
+       
             _dripProgram = new GlComputeProgram(renderer.GL, "paint_drip.comp", str => Embedded.GetString<GlSimulationPass>(str));
-            _dripProgram.AddFeature(layers);
             _dripProgram.Build();
 
             _resolveProgram = new GlComputeProgram(renderer.GL, "paint_res.comp", str => Embedded.GetString<GlSimulationPass>(str));
-            _resolveProgram.AddFeature(layers);
             _resolveProgram.Build();
 
             _sprayUniformsBuffer = new GlBuffer<PaintProjUniforms>(_gl, BufferTargetARB.UniformBuffer);
             _sprayUniforms = new PaintProjUniforms();
 
-            _paintA = new GlTexture(_gl) {  Target = TextureTarget.Texture2DArray, MaxLevel = 0 };
-            _paintB = new GlTexture(_gl) { Target = TextureTarget.Texture2DArray, MaxLevel = 0 };
+            _wetTex = new GlTexture(_gl) { MaxLevel = 0 };
+            _tempWetTex = new GlTexture(_gl) { MaxLevel = 0 };
+            _dryTex = new GlTexture(_gl) { MaxLevel = 0 };
 
-            _paintUniformsBuffer = new GlBuffer<PaintSimulationBlock>(_gl, BufferTargetARB.UniformBuffer);
-            _paintUniforms = new PaintSimulationBlock();
+            _paintUniformsBuffer = new GlBuffer<PaintSimUniforms>(_gl, BufferTargetARB.UniformBuffer);
+            _paintUniforms = new PaintSimUniforms();
         }
 
         public override void Render(RenderContext ctx)
@@ -96,6 +82,15 @@ namespace XrSamples.Graffiti
 
             if (ctx.Frame == _lastFrame)
                 return;
+
+            if (_canvas!.ClearRequest)
+            {
+                _wetTex.Clear(Color.Transparent);
+                _tempWetTex.Clear(Color.Transparent);
+                _dryTex.Clear(Color.Transparent);
+
+                _canvas.ClearRequest = false;
+            }
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);
@@ -117,8 +112,7 @@ namespace XrSamples.Graffiti
             _brushSource = _brush.GetGlResource(a => GlVertexSourceHandle.Create(_gl, _brush));
             _brushSource.Update();
 
-            var texture = _canvas.SprayTexture;
-            var glText = texture.ToGlTexture();
+            var glText = _canvas.SprayTexture.ToGlTexture();
 
             _sprayFrameBuffer.Configure(glText, null, 1);
 
@@ -129,14 +123,15 @@ namespace XrSamples.Graffiti
                 Format = TextureFormat.RgbaFloat16,
                 Width = (uint)(_canvas.Size.X / _canvas.TexelSize),
                 Height = (uint)(_canvas.Size.Y / _canvas.TexelSize),
-                Depth = (uint)_canvas.Layers.Count
+                Depth = 1
             };
 
-            _paintA.Update((uint)_canvas.Layers.Count, data);
-            _paintB.Update((uint)_canvas.Layers.Count, data);
+            _dryTex.Update(data.Depth, data);
+            _tempWetTex.Update(data.Depth, data);
+            _wetTex.Update(data.Depth, data);
+
+            _canvas.PaintTextures = [(Texture2D)_wetTex.ToEngineTexture(), (Texture2D)_dryTex.ToEngineTexture()];
         }
-
-
 
         protected void RenderAccumulate(RenderContext ctx)
         {
@@ -146,14 +141,14 @@ namespace XrSamples.Graffiti
             _paintUniformsBuffer.Update(_paintUniforms);
 
             _paintUniformsBuffer.Bind();
-            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 3);
+            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 0);
 
-            _accumulateProgram.SetUniform("uIncomingSpray", _canvas.SprayTexture, 0);
+            _accumulateProgram.SetUniform("uIncomingDensity", _canvas.SprayTexture, 0);
 
-            _gl.BindImageTexture(1, _paintA, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(2, _paintB, 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(1, _wetTex, 0, true, 0, BufferAccessARB.ReadWrite, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(2, _dryTex, 0, true, 0, BufferAccessARB.ReadWrite, InternalFormat.Rgba16f);
 
-            _gl.DispatchCompute((_paintA.Width + 7) / 8, (_paintA.Height + 7) / 8, 1);
+            _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
@@ -163,15 +158,18 @@ namespace XrSamples.Graffiti
         {
             _dripProgram.Use();
             _paintUniformsBuffer.Bind();
-            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 3);
+            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 0);
 
-            _gl.BindImageTexture(1, _paintB, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(2, _paintA, 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(0, _wetTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(1, _tempWetTex, 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
-            _gl.DispatchCompute((_paintA.Width + 7) / 8, (_paintA.Height + 7) / 8, 1);
+            _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
+            var temp = _wetTex;   
+            _wetTex = _tempWetTex;
+            _tempWetTex = temp;
         }
 
 
@@ -179,17 +177,18 @@ namespace XrSamples.Graffiti
         {
             _resolveProgram.Use();
             _paintUniformsBuffer.Bind();
-            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 3);
+            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 0);
 
-            _gl.BindImageTexture(0, _paintA, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(1, _canvas!.ColorTexture.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(2, _canvas!.RoughnessTexture.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(3, _canvas!.NormalTexture.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(0, _wetTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(1, _dryTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
 
-            _gl.DispatchCompute((_paintA.Width + 7) / 8, (_paintA.Height + 7) / 8, 1);
+            _gl.BindImageTexture(2, _canvas!.ColorTexture.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(3, _canvas!.RoughnessTexture.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(4, _canvas!.NormalTexture.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+
+            _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
-
         }
 
         protected void RenderSpray(RenderContext ctx)
@@ -256,35 +255,7 @@ namespace XrSamples.Graffiti
 
             _gl.MemoryBarrier(MemoryBarrierMask.TextureFetchBarrierBit);
 
-            /*
-            if (_can!.SprayAperture > 0)
-            {
-                var data = _sprayFrameBuffer.ReadColor(TextureFormat.Rgba32);
-
-                _frames.Add(new SavedFrame { Data = data, Frame = ctx.Frame,  });
-
-                if (_frames.Count > 20)
-                {
-                    foreach (var frame in _frames)
-                    {
-                        using var bmp = ImageUtils.ToBitmap(frame.Data, false);
-                        if (bmp == null)
-                            return;
-                        using var enc = bmp.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-                        var path = "d:\\Frames\\" + frame.Frame + ".png";
-                        if (File.Exists(path))
-                            File.Delete(path);
-                        using var file = File.OpenWrite(path);
-                        enc.SaveTo(file);
-                    }
-                    _frames.Clear();
-                }
-
-            }
-          */
             _sprayFrameBuffer.Unbind();
-
-
         }
     }
 }

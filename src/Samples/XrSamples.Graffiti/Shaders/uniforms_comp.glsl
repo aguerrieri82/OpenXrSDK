@@ -1,36 +1,58 @@
-﻿
-struct PaintLayerParams
-{
-    float DryRateToNext;
-    float Wetness;
-    float DripRate;
-    float DripThreshold;
+﻿const float EPS = 1e-6;
 
-    float MixStrength;
-    float StainStrength;
-};
 
-layout(std140, binding = 3) uniform PaintSimulationBlock
+// One UBO shared by all paint compute shaders.
+// Some fields are unused by accumulate, some unused by resolve.
+layout(std140, binding = 0) uniform PaintParams
 {
-    vec2 CanvasSize;
+    // Texture/canvas size.
+    ivec2 CanvasSize;
+
+    // Simulation timing.
     float DeltaTime;
-    int LayerCount;
+    float DryRate;
 
-    vec3 SprayColor;
-    float SprayDensityScale;
+    // Incoming paint color.
+    // Incoming density comes from uIncomingDensity.r.
+    // PaintColor.a is an optional density multiplier, normally 1.0.
+    vec4 PaintColor;
 
+    // Resolve: alpha/coverage conversion.
+    // coverage = clamp(totalDensity * DensityToCoverage, 0, 1)
+    float DensityToCoverage;
+
+    // Resolve: normal map height conversion.
+    // height = totalDensity * DensityToHeight
+    float DensityToHeight;
+
+    // Resolve: scales the normal slope.
+    float NormalScale;
+
+    // Resolve: material response.
+    float DryRoughness;
+
+    float WetRoughness;
+    float Metallic;
+
+    
+    // Drip simulation.
     vec2 GravityCanvas;
     float GravityStrength;
-    float GlobalDryScale;
-
-    float GlobalDripScale;
-    float GlobalMixScale;
-
-    float uDryRoughness;    // e.g. 0.75
-    float uWetRoughness;    // e.g. 0.18
-    float uHeightScale;     // e.g. 2.0
-    float uDensityToHeight; // e.g. 0.05
-
-
-    PaintLayerParams Layers[MAX_PAINT_LAYERS];
+    float WetDripThreshold;
+    float WetDripRate;
 };
+
+vec3 UnitColor(vec4 paint)
+{
+    return paint.a > EPS ? paint.rgb / paint.a : vec3(0.0);
+}
+
+float TotalDensity(vec4 dry, vec4 wet)
+{
+    return dry.a + wet.a;
+}
+
+float CoverageFromDensity(float density)
+{
+    return clamp(density * DensityToCoverage, 0.0, 1.0);
+}

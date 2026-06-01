@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using XrEngine;
+using XrEngine.OpenXr;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
 
@@ -27,6 +28,7 @@ namespace XrSamples.Graffiti
             DistanceFalloff = 4.0f;
             RadialFalloff = 2.0f;
             BaseDensity = 1.0f;
+            IsEnabled = XrPlatform.IsEditor;
         }
 
         protected override void Start(RenderContext ctx)

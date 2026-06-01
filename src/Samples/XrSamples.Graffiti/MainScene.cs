@@ -11,14 +11,18 @@ using XrMath;
 
 namespace XrSamples.Graffiti
 {
+
+
     public class MainScene : Scene3D
     {
         private Can _can;
         private PaintCanvas _canvas;
         private SprayBrush _spray;
+        private InputController _input;
 
         public MainScene()
         {
+ 
             if (XrPlatform.IsEditor)
                 AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -36,15 +40,21 @@ namespace XrSamples.Graffiti
 
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
-            this.AddComponent(new XrInputPlayer
-            {
-                UseReferenceTime = true,
-                RealTime = true
-            });
 
-            this.AddComponent<XrInputRecorder>();
+            _input = this.AddComponent<InputController>();
+
+            if (XrPlatform.IsEditor)
+            {
+                this.AddComponent<XrInputRecorder>();
+                AddComponent(new XrInputPlayer
+                {
+                    UseReferenceTime = true,
+                    RealTime = true
+                });
+            }
 
             _can = new Can();
+
             _canvas = new PaintCanvas(new Quad3
             {
                 Pose = new Pose3
@@ -53,7 +63,7 @@ namespace XrSamples.Graffiti
                     Orientation = Quaternion.Identity
                 },
                 Size = new Vector2(2, 2)
-            }, 0.001f, 4);
+            }, 0.0015f, 2);
 
             _spray = new SprayBrush(30, 10);
 
@@ -71,10 +81,10 @@ namespace XrSamples.Graffiti
         public void Configure(XrEngineApp e)
         {
             _can.Configure(e);
+            _input.Configure(e);
+
             if (e.App.Renderer is OpenGLRender openGLRender)
-            {
-                openGLRender.AddPass(new GlSimulationPass(openGLRender),0);
-            }
+                openGLRender.AddPass(new GlSimulationPass(openGLRender), 0);
         }
     }
 }

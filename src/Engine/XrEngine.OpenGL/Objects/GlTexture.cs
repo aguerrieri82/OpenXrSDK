@@ -1,5 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -8,11 +9,16 @@ using Common.Interop;
 using System.Diagnostics;
 using XrMath;
 
+
 namespace XrEngine.OpenGL
 {
     public class GlTexture : GlObject, IGlRenderAttachment
     {
         static internal readonly Dictionary<uint, GlTexture> _attached = [];
+
+#if GLES
+        static ExtClearTexture? _clearExt;
+#endif
 
 
         protected uint _width;
@@ -459,6 +465,22 @@ namespace XrEngine.OpenGL
         public void UpdateDate(params TextureData[] data)
         {
 
+        }
+
+        public void Clear(Color color, int level = 0)
+        {
+            var colorSpan = color.ToArray();
+
+#if GLES
+            if (_clearExt == null)
+                _gl.TryGetExtension<ExtClearTexture>(out _clearExt);
+
+            _clearExt.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
+#else
+
+            _gl.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
+          
+#endif
         }
 
         public void Update()

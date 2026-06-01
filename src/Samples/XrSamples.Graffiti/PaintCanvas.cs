@@ -4,14 +4,22 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using XrEngine;
+using XrEngine.OpenGL;
 using XrMath;
+using XrSamples.Graffiti.Shaders;
 
 namespace XrSamples.Graffiti
 {
+    public enum PaintCanvasDebug
+    {
+        None = 0,
+        Spray = 1,
+        Wet = 3,
+        Dry = 4
+    }
 
     public class PaintCanvas : Group3D
     {
-        readonly IList<PaintLayerParams> _layers = [];
         readonly Vector2 _size;
         readonly Texture2D _colorTexture;
         readonly Texture2D _normalTexture;
@@ -20,22 +28,21 @@ namespace XrSamples.Graffiti
         private TriangleMesh _quad;
         private float _texelSize;
         private Can? _can;
+        private PaintCanvasDebug _debug;
+        private int _debugLayer;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f, int layers = 3)
         {
-            SprayDensityScale = 1.0f;
-
-            GravityStrength = 1.0f;
-
-            GlobalDryScale = 1.0f;
-            GlobalDripScale = 0.1f;
-            GlobalMixScale = 1.0f;
-
-            DryRoughness = 0.75f;
+            DryRate = 0.75f;
+            DensityToCoverage = 1.0f;
+            DensityToHeight = 0.025f;
+            NormalScale = 2.0f;
+            DryRoughness = 0.65f;
             WetRoughness = 0.18f;
-
-            HeightScale = 2.0f;
-            DensityToHeight = 0.05f;
+            DensityScale = 1f;
+            DripThreshold = 0.65f;
+            DripRate = 0.35f;
+            GravityStrength = 1.0f;
 
             _size = quad.Size;
             _texelSize = texelSize;
@@ -67,12 +74,12 @@ namespace XrSamples.Graffiti
                 Alpha = AlphaMode.Blend
             });
 
+            _quad.Materials.Add(new DebugMaterial()
+            {
+                IsEnabled = false
+            });
+
             AddChild(_quad);
-
-            float layerStep = 1.0f / (layers - 1);
-
-            for (var i = 0; i < layers; i++)
-                AddLayer(texelSize, i * layerStep);
 
             this.SetWorldPose(quad.Pose);
         }
@@ -80,7 +87,6 @@ namespace XrSamples.Graffiti
         Vector2 ComputeCanvasGravity()
         {
             Vector3 worldGravity = new(0.0f, 1.0f, 0.0f);
-
 
             Vector3 localGravity =
                 Vector3.TransformNormal(worldGravity, WorldMatrixInverse);
@@ -93,65 +99,68 @@ namespace XrSamples.Graffiti
             return g;
         }
 
-        public void Update(RenderContext ctx, ref PaintSimulationBlock block)
+        [Action]
+        public void Clear()
+        {
+            ClearRequest = true;
+        }
+
+        public void Update(RenderContext ctx, ref PaintSimUniforms block)
         {
             _can ??= _scene!.Descendants<Can>().First()!;
 
-            block.CanvasSize = _size;
+            block.CanvasSize= new Vector2I((int)(_size.X / _texelSize), (int)(_size.Y / _texelSize));
+
             block.GravityCanvas = ComputeCanvasGravity();
-            block.LayerCount = _layers.Count;
-            
-            for (var i = 0; i < _layers.Count; i++)
-                block.Layers[i] = _layers[i];
-
-            block.SprayColor = _can.Color.ToVector3();
-            block.DeltaTime = (float)ctx.DeltaTime;
-
-            block.SprayDensityScale = SprayDensityScale;
             block.GravityStrength = GravityStrength;
 
-            block.GlobalDryScale = GlobalDryScale;
-            block.GlobalDripScale = GlobalDripScale;
-            block.GlobalMixScale = GlobalMixScale;
+            block.PaintColor = _can.Color.ToVector4();
+            block.PaintColor.W *= DensityScale;
+
+            block.DeltaTime = (float)ctx.DeltaTime;
 
             block.DryRoughness = DryRoughness;
             block.WetRoughness = WetRoughness;
 
-            block.HeightScale = HeightScale;
+            block.NormalScale = NormalScale;
             block.DensityToHeight = DensityToHeight;
+
+            block.DensityToCoverage = DensityToCoverage;
+
+            block.DryRate = DryRate;
+
+            block.WetDripRate = DripRate;
+            block.WetDripThreshold = DripRate;
         }
 
-        private static float Lerp(float a, float b, float t)
+
+        protected void UpdateDebug()
         {
-            return a + (b - a) * t;
-        }
+            var debugMat = (DebugMaterial)_quad.Materials[1];
 
-        protected void AddLayer(float texelSize, float dryness)
-        {
-            dryness = Math.Clamp(dryness, 0.0f, 1.0f);
+            debugMat.IsEnabled = Debug != PaintCanvasDebug.None;
+            _quad.Materials[0].IsEnabled = !debugMat.IsEnabled;
 
-            float wetness = 1.0f - dryness;
-
-            float wetDripWorldPerSec = 0.015f; // tune: canvas units/sec
-            float dryDripWorldPerSec = 0.0f;
-
-            float dripWorldPerSec = Lerp(wetDripWorldPerSec, dryDripWorldPerSec, dryness);
-            float dripTexelsPerSec = dripWorldPerSec / Math.Max(_texelSize, 0.000001f);
-
-            var layer = new PaintLayerParams
+            if (debugMat.IsEnabled)
             {
-                DryRateToNext = Lerp(0.65f, 0.0f, dryness),
-                Wetness = wetness,
-                DripRate = dripTexelsPerSec,
-                DripThreshold = Lerp(0.75f, 999.0f, dryness),
-                MixStrength = Lerp(1.0f, 0.0f, dryness),
-                StainStrength = Lerp(0.2f, 1.0f, dryness),
-            };
+                if (Debug == PaintCanvasDebug.Spray)
+                {
+                    debugMat.Texture = SprayTexture;
+                }
+                else if (Debug == PaintCanvasDebug.Wet)
+                {
+                    debugMat.Texture = PaintTextures![0];
+                }
+                else if (Debug == PaintCanvasDebug.Dry)
+                {
+                    debugMat.Texture = PaintTextures![1];
+                }
+            }
 
-            _layers.Add(layer); 
+            debugMat.NotifyChanged(ObjectChangeType.Material);
         }
 
-        public IList<PaintLayerParams> Layers => _layers;
+        public Texture2D[]? PaintTextures { get; set; }
 
         public float TexelSize => _texelSize;
 
@@ -165,23 +174,36 @@ namespace XrSamples.Graffiti
 
         public Texture2D NormalTexture => _normalTexture;
 
-        public float SprayDensityScale { get; set; }
+        public float DensityToCoverage { get; set; }
+
+        public float DensityScale { get; set; }
 
         public float GravityStrength { get; set; }
 
-        public float GlobalDryScale { get; set; }
+        public float DryRate { get; set; }
 
-        public float GlobalDripScale { get; set; }
+        public float DripRate { get; set; }
 
-        public float GlobalMixScale { get; set; }
+        public float DripThreshold { get; set; }
 
         public float DryRoughness { get; set; }
 
         public float WetRoughness { get; set; }
 
-        public float HeightScale { get; set; }
+        public float NormalScale { get; set; }
 
         public float DensityToHeight { get; set; }
 
+        internal bool ClearRequest { get; set; }
+
+        public PaintCanvasDebug Debug
+        {
+            get => _debug;
+            set
+            {
+                _debug = value;
+                UpdateDebug();
+            }
+        }
     }
 }

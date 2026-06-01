@@ -2,93 +2,79 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
-layout(binding = 0) uniform highp sampler2D uIncomingSpray;
+// Array layers:
+//
+//   0 = dry paint
+//   1 = wet paint
+//
+// Each texel stores:
+//
+//   rgb = color * density
+//   a   = density
+layout(rgba16f, binding = 1) uniform highp image2D uWetPaint;
+layout(rgba16f, binding = 2) uniform highp image2D uDryPaint;
 
-layout(rgba16f, binding = 1) readonly  uniform highp image2DArray uPaintIn;
-layout(rgba16f, binding = 2) writeonly uniform highp image2DArray uPaintOut;
-
-vec4 AddSprayToLayer(vec4 oldPaint, float sprayDensity)
-{
-    if (sprayDensity <= 0.0)
-        return oldPaint;
-
-    float oldDensity = oldPaint.a;
-    float newDensity = sprayDensity;
-    float totalDensity = oldDensity + newDensity;
-
-    if (totalDensity <= 0.000001)
-        return vec4(0.0);
-
-    vec4 physicalMixed =
-        oldPaint + vec4(SprayColor * newDensity, newDensity);
-
-    vec4 overrideMixed =
-        vec4(SprayColor * totalDensity, totalDensity);
-
-    float mixStrength =
-        clamp(Layers[0].MixStrength * GlobalMixScale, 0.0, 1.0);
-
-    return mix(overrideMixed, physicalMixed, mixStrength);
-}
+// Incoming density texture.
+// Only R is used.
+layout(binding = 0) uniform highp sampler2D uIncomingDensity;
 
 void main()
 {
     ivec2 p = ivec2(gl_GlobalInvocationID.xy);
-    ivec3 size = imageSize(uPaintIn);
 
-    if (p.x >= size.x || p.y >= size.y)
+    if (any(greaterThanEqual(p, CanvasSize)))
         return;
 
-    vec4 before[MAX_PAINT_LAYERS];
-    vec4 after[MAX_PAINT_LAYERS];
+    vec4 dry = imageLoad(uDryPaint, p);
+    vec4 wet = imageLoad(uWetPaint, p);
 
-    for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
+    float incomingDensity =
+        texelFetch(uIncomingDensity, p, 0).r * PaintColor.a;
+
+    vec4 incoming = vec4(
+        PaintColor.rgb * incomingDensity,
+        incomingDensity
+    );
+
+    // Add new paint into the wet layer.
+    wet += incoming;
+
+    if (wet.a > EPS)
     {
-        before[i] =
-            i < LayerCount
-                ? imageLoad(uPaintIn, ivec3(p, i))
-                : vec4(0.0);
+        float deltaD = min(wet.a, DryRate * DeltaTime);
 
-        after[i] = before[i];
+        vec3 pureWet = wet.rgb / wet.a;
+        vec3 pureDry = UnitColor(dry);
+
+        float covOld = min(wet.a, 1.0);
+        float covNew = min(wet.a - deltaD, 1.0);
+
+        float activeDelta = covOld - covNew;
+
+        if (activeDelta > 0.0)
+        {
+            pureDry =
+                (
+                    pureDry * (1.0 - covOld) +
+                    pureWet * activeDelta
+                ) / max(1.0 - covNew, EPS);
+        }
+
+        // Move density from wet to dry.
+        // Total density is conserved:
+        //
+        //   old dry.a + old wet.a == new dry.a + new wet.a
+        wet.a -= deltaD;
+        wet.rgb = pureWet * wet.a;
+
+        dry.a += deltaD;
+        dry.rgb = pureDry * dry.a;
+    }
+    else
+    {
+        wet = vec4(0.0);
     }
 
-    float sprayDensity =
-        texelFetch(uIncomingSpray, p, 0).r * SprayDensityScale;
-
-    if (LayerCount > 0)
-    {
-        after[0] = AddSprayToLayer(after[0], sprayDensity);
-        before[0] = after[0];
-    }
-
-    for (int i = 0; i < MAX_PAINT_LAYERS - 1; ++i)
-    {
-        if (i >= LayerCount - 1)
-            break;
-
-        float density = before[i].a;
-
-        if (density <= 0.000001)
-            continue;
-
-        float moveDensity =
-            Layers[i].DryRateToNext *
-            GlobalDryScale *
-            DeltaTime;
-
-        moveDensity = clamp(moveDensity, 0.0, density);
-
-        float f = moveDensity / density;
-
-        vec4 transfer = before[i] * f;
-
-        after[i]     -= transfer;
-        after[i + 1] += transfer;
-    }
-
-    for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
-    {
-        if (i < LayerCount)
-            imageStore(uPaintOut, ivec3(p, i), max(after[i], vec4(0.0)));
-    }
+    imageStore(uDryPaint, p, dry);
+    imageStore(uWetPaint, p, wet);
 }

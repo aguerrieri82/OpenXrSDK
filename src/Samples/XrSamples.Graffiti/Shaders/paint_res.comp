@@ -2,124 +2,123 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
-layout(rgba16f, binding = 0) readonly uniform highp image2DArray uPaintLayers;
+layout(rgba16f, binding = 0) readonly uniform highp image2D uWetPaint;
+layout(rgba16f, binding = 1) readonly uniform highp image2D uDryPaint;
 
-layout(rgba16f, binding = 1) writeonly uniform highp image2D uResolvedColor;
-layout(rgba16f, binding = 2) writeonly uniform highp image2D uResolvedRoughness;
-layout(rgba16f, binding = 3) writeonly uniform highp image2D uResolvedNormal;
+// Base color texture.
+// rgb = straight base color
+// a   = coverage
+layout(rgba16f, binding = 2) writeonly uniform highp image2D uResolvedColor;
 
-float TotalDensityAt(ivec2 p, ivec2 size)
+// PBR ORM-like texture.
+// r = roughness
+// g = metallic
+// b = unused
+// a = coverage
+layout(rgba16f, binding = 3) writeonly uniform highp image2D uResolvedRoughness;
+
+// Normal map.
+// rgb = encoded tangent-space normal
+// a   = coverage
+layout(rgba16f, binding = 4) writeonly uniform highp image2D uResolvedNormal;
+
+
+float DensityAt(ivec2 p)
 {
-    p = clamp(p, ivec2(0), size - ivec2(1));
+    p = clamp(p, ivec2(0), CanvasSize - ivec2(1));
 
-    float density = 0.0;
+    vec4 dry = imageLoad(uDryPaint, p);
+    vec4 wet = imageLoad(uWetPaint, p);
 
-    for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
-    {
-        if (i >= LayerCount)
-            break;
+    return dry.a + wet.a;
+}
 
-        density += imageLoad(uPaintLayers, ivec3(p, i)).a;
-    }
+vec3 ResolveBaseColor(vec4 dry, vec4 wet)
+{
+    float totalDensity = dry.a + wet.a;
 
-    return density;
+    if (totalDensity <= EPS)
+        return vec3(0.0);
+
+    if (wet.a <= EPS)
+        return UnitColor(dry);
+
+    vec3 pureDry = UnitColor(dry);
+    vec3 pureWet = wet.rgb / wet.a;
+
+    float wetCoverage = min(wet.a, 1.0);
+
+    return
+        pureDry * (1.0 - wetCoverage) +
+        pureWet * wetCoverage;
+}
+
+float ResolveRoughness(vec4 dry, vec4 wet, float coverage)
+{
+    float totalDensity = dry.a + wet.a;
+
+    if (totalDensity <= EPS)
+        return DryRoughness;
+
+    float wetFraction = clamp(wet.a / totalDensity, 0.0, 1.0);
+
+    float paintRoughness =
+        mix(DryRoughness, WetRoughness, wetFraction);
+
+    return mix(DryRoughness, paintRoughness, coverage);
+}
+
+vec3 ResolveNormal(ivec2 p)
+{
+    float hL = DensityAt(p + ivec2(-1,  0)) * DensityToHeight;
+    float hR = DensityAt(p + ivec2( 1,  0)) * DensityToHeight;
+    float hD = DensityAt(p + ivec2( 0, -1)) * DensityToHeight;
+    float hU = DensityAt(p + ivec2( 0,  1)) * DensityToHeight;
+
+    float dx = hR - hL;
+    float dy = hU - hD;
+
+    return normalize(vec3(
+        -dx * NormalScale,
+        -dy * NormalScale,
+         1.0
+    ));
 }
 
 void main()
 {
     ivec2 p = ivec2(gl_GlobalInvocationID.xy);
-    ivec3 size3 = imageSize(uPaintLayers);
-    ivec2 size = size3.xy;
 
-    if (p.x >= size.x || p.y >= size.y)
+    if (any(greaterThanEqual(p, CanvasSize)))
         return;
 
-    /*
-        Layer 0 = wettest / newest / visually topmost.
-        Higher layers = progressively drier / older / underneath.
-    */
+    vec4 dry = imageLoad(uDryPaint, p);
+    vec4 wet = imageLoad(uWetPaint, p);
 
-    vec3 resolvedColor = vec3(0.0);
-    float resolvedWetness = 0.0;
+    float totalDensity = dry.a + wet.a;
+    float coverage = CoverageFromDensity(totalDensity);
 
-    float remainingVisibility = 1.0;
-    float resolvedAlpha = 0.0;
+    vec3 baseColor = ResolveBaseColor(dry, wet);
+    float roughness = ResolveRoughness(dry, wet, coverage);
 
-    for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
-    {
-        if (i >= LayerCount)
-            break;
-
-        vec4 layer = imageLoad(uPaintLayers, ivec3(p, i));
-
-        float layerDensity = layer.a;
-
-        if (layerDensity <= 0.000001)
-            continue;
-
-        float layerCoverage = clamp(layerDensity, 0.0, 1.0);
-
-        vec3 layerColor = layer.rgb / layerDensity;
-
-        float contribution = remainingVisibility * layerCoverage;
-
-        resolvedColor += layerColor * contribution;
-        resolvedWetness += Layers[i].Wetness * contribution;
-
-        resolvedAlpha += contribution;
-
-        remainingVisibility *= 1.0 - layerCoverage;
-
-        if (remainingVisibility <= 0.000001)
-            break;
-    }
-
-    if (resolvedAlpha > 0.000001)
-    {
-        resolvedColor /= resolvedAlpha;
-        resolvedWetness /= resolvedAlpha;
-    }
-
-    resolvedAlpha = clamp(resolvedAlpha, 0.0, 1.0);
-    resolvedWetness = clamp(resolvedWetness, 0.0, 1.0);
+    vec3 normal = ResolveNormal(p);
+    vec3 encodedNormal = normal * 0.5 + 0.5;
 
     imageStore(
         uResolvedColor,
         p,
-        vec4(resolvedColor, resolvedAlpha));
+        vec4(baseColor, coverage)
+    );
 
-    float roughness =
-        mix(uDryRoughness, uWetRoughness, resolvedWetness);
-
-    /*
-        glTF metallic-roughness packing:
-        R = unused
-        G = roughness
-        B = metallic
-        A = unused
-    */
     imageStore(
         uResolvedRoughness,
         p,
-        vec4(1.0, roughness, 0.0, 1.0));
-
-    /*
-        Normal is based on total paint thickness, not visible layer only.
-    */
-    float hL = TotalDensityAt(p + ivec2(-1,  0), size) * uDensityToHeight;
-    float hR = TotalDensityAt(p + ivec2( 1,  0), size) * uDensityToHeight;
-    float hD = TotalDensityAt(p + ivec2( 0, -1), size) * uDensityToHeight;
-    float hU = TotalDensityAt(p + ivec2( 0,  1), size) * uDensityToHeight;
-
-    vec3 n = normalize(vec3(
-        -(hR - hL) * uHeightScale,
-        -(hU - hD) * uHeightScale,
-         1.0));
-
-    vec3 encodedNormal = n * 0.5 + 0.5;
+        vec4(roughness, Metallic, 0.0, coverage)
+    );
 
     imageStore(
         uResolvedNormal,
         p,
-        vec4(encodedNormal, 1.0));
+        vec4(encodedNormal, coverage)
+    );
 }

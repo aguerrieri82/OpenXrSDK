@@ -24,9 +24,11 @@
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
-		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 		<DebugSymbols>false</DebugSymbols>
 		<AndroidManagedSymbols>false</AndroidManagedSymbols>
+		<UseMonoRuntime>true</UseMonoRuntime>
+		<PublishReadyToRun>false</PublishReadyToRun>
 	</PropertyGroup>
 
 	<ItemGroup>

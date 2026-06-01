@@ -1062,6 +1062,10 @@ namespace XrMath
            return new Vector3(self.R, self.G, self.B);
         }
 
+        public static Vector4 ToVector4(this Color self)
+        {
+            return new Vector4(self.R, self.G, self.B, self.A);
+        }
 
         public static string ToHex(this Color self)
         {

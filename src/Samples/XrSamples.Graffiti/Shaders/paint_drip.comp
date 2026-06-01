@@ -2,31 +2,33 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
-layout(rgba16f, binding = 1) readonly  uniform highp image2DArray uPaintIn;
-layout(rgba16f, binding = 2) writeonly uniform highp image2DArray uPaintOut;
+layout(rgba16f, binding = 0) readonly  uniform highp image2D uPaintIn;
+layout(rgba16f, binding = 1) writeonly uniform highp image2D uPaintOut;
 
-bool Inside(ivec2 p, ivec2 size)
+bool Inside(ivec2 p)
 {
-    return p.x >= 0 && p.y >= 0 && p.x < size.x && p.y < size.y;
+    return
+        p.x >= 0 &&
+        p.y >= 0 &&
+        p.x < CanvasSize.x &&
+        p.y < CanvasSize.y;
 }
 
-vec4 ComputeOutflow(vec4 paint, int layer)
+vec4 ComputeWetOutflow(vec4 wetPaint)
 {
-    float density = paint.a;
+    float density = wetPaint.a;
 
-    if (density <= 0.000001)
+    if (density <= EPS)
         return vec4(0.0);
 
-    float excess =
-        max(density - Layers[layer].DripThreshold, 0.0);
+    float excess = max(density - WetDripThreshold, 0.0);
 
     if (excess <= 0.0)
         return vec4(0.0);
 
     float moveDensity =
         excess *
-        Layers[layer].DripRate *
-        GlobalDripScale *
+        WetDripRate *
         GravityStrength *
         DeltaTime;
 
@@ -34,67 +36,52 @@ vec4 ComputeOutflow(vec4 paint, int layer)
 
     float f = moveDensity / density;
 
-    return paint * f;
+    return wetPaint * f;
 }
 
 void main()
 {
     ivec2 p = ivec2(gl_GlobalInvocationID.xy);
-    ivec3 size3 = imageSize(uPaintIn);
-    ivec2 size = size3.xy;
 
-    if (!Inside(p, size))
+    if (!Inside(p))
         return;
+
+    vec4 wet = imageLoad(uPaintIn, p);
+    vec4 resultWet = wet;
 
     vec2 g = GravityCanvas;
 
-    if (length(g) <= 0.000001 || GravityStrength <= 0.0)
+    if (length(g) > EPS && GravityStrength > 0.0)
     {
-        for (int layer = 0; layer < MAX_PAINT_LAYERS; ++layer)
+        ivec2 dripStep = ivec2(round(normalize(g)));
+
+        if (dripStep != ivec2(0))
         {
-            if (layer < LayerCount)
+            ivec2 upstream   = p - dripStep;
+            ivec2 downstream = p + dripStep;
+
+            if (Inside(downstream))
             {
-                vec4 paint = imageLoad(uPaintIn, ivec3(p, layer));
-                imageStore(uPaintOut, ivec3(p, layer), paint);
+                vec4 selfOutflow = ComputeWetOutflow(wet);
+                resultWet -= selfOutflow;
+            }
+
+            if (Inside(upstream))
+            {
+                vec4 upstreamWet = imageLoad(
+                    uPaintIn,
+                    upstream
+                );
+
+                vec4 incoming = ComputeWetOutflow(upstreamWet);
+                resultWet += incoming;
             }
         }
-
-        return;
     }
 
-    ivec2 dripStep =
-        ivec2(round(normalize(g)));
-
-    if (dripStep == ivec2(0))
-        return;
-
-    ivec2 upstream = p - dripStep;
-    ivec2 downstream = p + dripStep;
-
-    for (int layer = 0; layer < MAX_PAINT_LAYERS; ++layer)
-    {
-        if (layer >= LayerCount)
-            break;
-
-        vec4 self = imageLoad(uPaintIn, ivec3(p, layer));
-
-        vec4 result = self;
-
-        // Subtract paint leaving this texel only if destination is valid.
-        if (Inside(downstream, size))
-        {
-            vec4 selfOutflow = ComputeOutflow(self, layer);
-            result -= selfOutflow;
-        }
-
-        // Add paint arriving from upstream only if upstream exists.
-        if (Inside(upstream, size))
-        {
-            vec4 src = imageLoad(uPaintIn, ivec3(upstream, layer));
-            vec4 incoming = ComputeOutflow(src, layer);
-            result += incoming;
-        }
-
-        imageStore(uPaintOut, ivec3(p, layer), max(result, vec4(0.0)));
-    }
+    imageStore(
+        uPaintOut,
+        p,
+        max(resultWet, vec4(0.0))
+    );
 }
