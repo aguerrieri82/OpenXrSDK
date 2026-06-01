@@ -53,19 +53,16 @@ vec3 ResolveBaseColor(vec4 dry, vec4 wet)
         pureWet * wetCoverage;
 }
 
-float ResolveRoughness(vec4 dry, vec4 wet, float coverage)
+float ResolveRoughness(vec4 dry, vec4 wet)
 {
     float totalDensity = dry.a + wet.a;
 
     if (totalDensity <= EPS)
         return DryRoughness;
 
-    float wetFraction = clamp(wet.a / totalDensity, 0.0, 1.0);
+    float wetCoverage = clamp(wet.a, 0.0, 1.0);
 
-    float paintRoughness =
-        mix(DryRoughness, WetRoughness, wetFraction);
-
-    return mix(DryRoughness, paintRoughness, coverage);
+    return mix(DryRoughness, WetRoughness, wetCoverage);
 }
 
 vec3 ResolveNormal(ivec2 p)
@@ -99,7 +96,7 @@ void main()
     float coverage = CoverageFromDensity(totalDensity);
 
     vec3 baseColor = ResolveBaseColor(dry, wet);
-    float roughness = ResolveRoughness(dry, wet, coverage);
+    float roughness = ResolveRoughness(dry, wet);
 
     vec3 normal = ResolveNormal(p);
     vec3 encodedNormal = normal * 0.5 + 0.5;
@@ -113,7 +110,12 @@ void main()
     imageStore(
         uResolvedRoughness,
         p,
-        vec4(roughness, Metallic, 0.0, coverage)
+        vec4(
+            1.0,       // R unused, or AO only if your own pipeline uses ORM
+            roughness, // G = roughness
+            Metallic,  // B = metallic
+            coverage   // A optional/custom
+        )
     );
 
     imageStore(

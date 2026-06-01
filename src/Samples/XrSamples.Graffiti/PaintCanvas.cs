@@ -37,12 +37,12 @@ namespace XrSamples.Graffiti
             DensityToCoverage = 1.0f;
             DensityToHeight = 0.025f;
             NormalScale = 2.0f;
-            DryRoughness = 0.65f;
-            WetRoughness = 0.18f;
+            DryRoughness = 0.9f;
+            WetRoughness = 0.05f;
             DensityScale = 1f;
             DripThreshold = 0.65f;
             DripRate = 0.35f;
-            GravityStrength = 1.0f;
+            GravityStrength = 3.0f;
 
             _size = quad.Size;
             _texelSize = texelSize;
