@@ -278,8 +278,18 @@ namespace XrEngine.OpenGL
 
                 if (value != AlphaMode.Opaque)
                 {
-                    _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-                    _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
+                    if (value == AlphaMode.Add)
+                    {
+                        _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
+                        _gl.BlendFunc(BlendingFactor.One, BlendingFactor.One);
+                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd,BlendEquationModeEXT.FuncAdd);
+                    }
+                    else
+                    {
+                        _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
+                    }
+
                 }
             }
         }

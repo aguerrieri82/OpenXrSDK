@@ -95,11 +95,12 @@ namespace XrSamples.Graffiti
 
         public void Update(RenderContext ctx, ref PaintSimulationBlock block)
         {
-            _can ??= _scene.Descendants<Can>().First()!;
+            _can ??= _scene!.Descendants<Can>().First()!;
 
             block.CanvasSize = _size;
             block.GravityCanvas = ComputeCanvasGravity();
             block.LayerCount = _layers.Count;
+            
             for (var i = 0; i < _layers.Count; i++)
                 block.Layers[i] = _layers[i];
 
@@ -118,7 +119,6 @@ namespace XrSamples.Graffiti
 
             block.HeightScale = HeightScale;
             block.DensityToHeight = DensityToHeight;
-
         }
 
         private static float Lerp(float a, float b, float t)

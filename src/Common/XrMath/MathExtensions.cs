@@ -461,6 +461,14 @@ namespace XrMath
                    Matrix4x4.CreateTranslation(self.Position);
         }
 
+        public static Matrix4x4 ToMatrix(this Pose3 self, Vector3 scale)
+        {
+            return Matrix4x4.CreateScale(scale) *
+                   Matrix4x4.CreateFromQuaternion(self.Orientation) *
+                   Matrix4x4.CreateTranslation(self.Position);
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Inverse(this Pose3 self)
         {

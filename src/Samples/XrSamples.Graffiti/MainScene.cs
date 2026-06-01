@@ -36,6 +36,13 @@ namespace XrSamples.Graffiti
 
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
+            this.AddComponent(new XrInputPlayer
+            {
+                UseReferenceTime = true,
+                RealTime = true
+            });
+
+            this.AddComponent<XrInputRecorder>();
 
             _can = new Can();
             _canvas = new PaintCanvas(new Quad3

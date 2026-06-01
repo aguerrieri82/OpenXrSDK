@@ -25,7 +25,6 @@ vec4 ComputeOutflow(vec4 paint, int layer)
 
     float moveDensity =
         excess *
-        Layers[layer].Wetness *
         Layers[layer].DripRate *
         GlobalDripScale *
         GravityStrength *

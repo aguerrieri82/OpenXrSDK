@@ -2,11 +2,34 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
-
 layout(binding = 0) uniform highp sampler2D uIncomingSpray;
 
 layout(rgba16f, binding = 1) readonly  uniform highp image2DArray uPaintIn;
 layout(rgba16f, binding = 2) writeonly uniform highp image2DArray uPaintOut;
+
+vec4 AddSprayToLayer(vec4 oldPaint, float sprayDensity)
+{
+    if (sprayDensity <= 0.0)
+        return oldPaint;
+
+    float oldDensity = oldPaint.a;
+    float newDensity = sprayDensity;
+    float totalDensity = oldDensity + newDensity;
+
+    if (totalDensity <= 0.000001)
+        return vec4(0.0);
+
+    vec4 physicalMixed =
+        oldPaint + vec4(SprayColor * newDensity, newDensity);
+
+    vec4 overrideMixed =
+        vec4(SprayColor * totalDensity, totalDensity);
+
+    float mixStrength =
+        clamp(Layers[0].MixStrength * GlobalMixScale, 0.0, 1.0);
+
+    return mix(overrideMixed, physicalMixed, mixStrength);
+}
 
 void main()
 {
@@ -21,34 +44,23 @@ void main()
 
     for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
     {
-        if (i < LayerCount)
-        {
-            before[i] = imageLoad(uPaintIn, ivec3(p, i));
-        }
-        else
-        {
-            before[i] = vec4(0.0);
-        }
+        before[i] =
+            i < LayerCount
+                ? imageLoad(uPaintIn, ivec3(p, i))
+                : vec4(0.0);
 
         after[i] = before[i];
     }
 
-    // Add incoming fresh spray to wettest layer.
     float sprayDensity =
         texelFetch(uIncomingSpray, p, 0).r * SprayDensityScale;
 
-    if (sprayDensity > 0.0 && LayerCount > 0)
+    if (LayerCount > 0)
     {
-        vec4 added;
-        added.rgb = SprayColor * sprayDensity;
-        added.a   = sprayDensity;
-
-        before[0] += added;
-        after[0]  += added;
+        after[0] = AddSprayToLayer(after[0], sprayDensity);
+        before[0] = after[0];
     }
 
-    // Drying: conservative transfer from layer i to i + 1.
-    // Transfer is computed from before[], not from already-modified after[].
     for (int i = 0; i < MAX_PAINT_LAYERS - 1; ++i)
     {
         if (i >= LayerCount - 1)

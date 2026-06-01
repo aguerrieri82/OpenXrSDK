@@ -8,15 +8,25 @@ using Silk.NET.OpenGL;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using XrEngine;
 using XrEngine.OpenGL;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
+using static System.Net.Mime.MediaTypeNames;
+using static XrEngine.Bullet.BulletLib;
 
 namespace XrSamples.Graffiti
 {
+    public class SavedFrame
+    {
+        public TextureData Data;
+        public long Frame; 
+    }
+
     public class GlSimulationPass : GlBaseRenderPass
     {
         protected readonly GlTextureFrameBuffer _sprayFrameBuffer;
@@ -38,6 +48,11 @@ namespace XrSamples.Graffiti
 
         protected PaintSimulationBlock _paintUniforms;
         protected GlBuffer<PaintSimulationBlock> _paintUniformsBuffer;
+        private Vector3 _prevNozzlePositon;
+        private Pose3 _prevPose;
+        private long _lastFrame;    
+
+        protected IList<SavedFrame> _frames = [];
 
         public GlSimulationPass(OpenGLRender renderer)
             : base(renderer)    
@@ -76,12 +91,20 @@ namespace XrSamples.Graffiti
             if (!_isInit)
                 Intialize(ctx);
 
+            if (ctx.DeltaTime == 0)
+                return;
+
+            if (ctx.Frame == _lastFrame)
+                return;
+
             RenderSpray(ctx);
             RenderAccumulate(ctx);
             RenderDrip(ctx);
             RenderResolve(ctx);
 
             GlState.Current!.SetActiveProgram(0);
+
+            _lastFrame = ctx.Frame; 
         }
 
         protected void Intialize(RenderContext ctx)
@@ -173,29 +196,95 @@ namespace XrSamples.Graffiti
         {
             _sprayFrameBuffer.Bind();
 
-            GlState.Current!.SetView(new Rect2I(0,0,_sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
+            GlState.Current!.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
+
             GlState.Current!.SetWriteDepth(false);
+            GlState.Current!.SetUseDepth(false);
             GlState.Current!.SetWriteColor(true);
+            GlState.Current!.SetAlphaMode(AlphaMode.Add);
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            _sprayProgram.Use();
-            _tracker!.Update(ref _sprayUniforms);
-            _sprayUniformsBuffer.Update(_sprayUniforms);
+            var curNozzlePosition = _tracker!.SprayCenter.Transform(_can!.WorldMatrix);
+            var curPose = _can.GetWorldPose();
 
-            _sprayUniformsBuffer.Bind();
-            _sprayProgram.LoadBuffer(_sprayUniformsBuffer);
+            if (_can!.SprayAperture > 0)
+            {
+                float distance = (curNozzlePosition - _prevNozzlePositon).Length();
 
-            _brushSource!.Bind();
-            
-            _brushSource.Draw();
+                const float spacing = 0.01f;
 
-            _brushSource.Unbind();
+                int sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / spacing));
+                sampleCount = Math.Min(sampleCount, 100);
+               // sampleCount = 1;
 
+                _sprayProgram.Use();
+                _tracker.Update(ref _sprayUniforms);
+
+                _sprayUniformsBuffer.Bind();
+                _sprayProgram.LoadBuffer(_sprayUniformsBuffer);
+
+                _brushSource!.Bind();
+
+                _sprayUniforms.DensityScale = _sprayUniforms.DensityScale / sampleCount;
+
+                if (sampleCount > 1)
+                    Debug.WriteLine(sampleCount);
+
+                for (int i = 0; i < sampleCount; ++i)
+                {
+                    float factor =
+                        sampleCount == 1
+                            ? 1.0f
+                            : (i + 1.0f) / sampleCount;
+
+                    var stepPose = _prevPose.Lerp(curPose, factor);
+
+                    _sprayUniforms.HostLocalToWorld = stepPose.ToMatrix(_can.Transform.Scale);
+
+                    _sprayUniformsBuffer.Update(_sprayUniforms);
+                    _sprayProgram.LoadBuffer(_sprayUniformsBuffer);
+                    _brushSource.Draw();
+                }
+
+
+                _brushSource.Unbind();
+            }
+
+            _prevNozzlePositon = curNozzlePosition;
+            _prevPose = curPose;
+
+            _gl.MemoryBarrier(MemoryBarrierMask.TextureFetchBarrierBit);
+
+            /*
+            if (_can!.SprayAperture > 0)
+            {
+                var data = _sprayFrameBuffer.ReadColor(TextureFormat.Rgba32);
+
+                _frames.Add(new SavedFrame { Data = data, Frame = ctx.Frame,  });
+
+                if (_frames.Count > 20)
+                {
+                    foreach (var frame in _frames)
+                    {
+                        using var bmp = ImageUtils.ToBitmap(frame.Data, false);
+                        if (bmp == null)
+                            return;
+                        using var enc = bmp.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                        var path = "d:\\Frames\\" + frame.Frame + ".png";
+                        if (File.Exists(path))
+                            File.Delete(path);
+                        using var file = File.OpenWrite(path);
+                        enc.SaveTo(file);
+                    }
+                    _frames.Clear();
+                }
+
+            }
+          */
             _sprayFrameBuffer.Unbind();
 
-            var x = new PaintSimulationBlock();
-            x.Layers[0].Wetness = 1;
+
         }
     }
 }

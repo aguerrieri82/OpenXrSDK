@@ -51,24 +51,15 @@ namespace XrSamples.Graffiti
             if (_host == null)
                 return;
 
-
-
             _canvas ??= _host.Scene!.Descendants<PaintCanvas>().First();
-
-            var hostLocalToWorld = _host.Transform.Matrix;
-
-            var canvasLocalToWorld = _canvas.GetWorldPose().ToMatrix();
-
-            if (!Matrix4x4.Invert(canvasLocalToWorld, out var canvasWorldToLocal))
-                return;
 
             var sprayDirection = SprayDirection.LengthSquared() > 0.000001f
                 ? Vector3.Normalize(SprayDirection)
                 : Vector3.UnitZ;
 
-            uniforms.HostLocalToWorld = hostLocalToWorld;
-            uniforms.CanvasWorldToLocal = canvasWorldToLocal;
-            uniforms.CanvasLocalToWorld = canvasLocalToWorld;
+            uniforms.HostLocalToWorld = _host.Transform.Matrix;
+            uniforms.CanvasWorldToLocal = _canvas.WorldMatrixInverse;
+            uniforms.CanvasLocalToWorld = _canvas.WorldMatrix;
 
             uniforms.SprayCenterLocal = SprayCenter;
             uniforms.SprayDirectionLocal = sprayDirection;
@@ -81,20 +72,17 @@ namespace XrSamples.Graffiti
                 _canvas.WorldBounds.Size.Y
             );
 
-            float t = Math.Clamp(_host.SprayAperture, 0.0f, 1.0f);
-
+            var t = Math.Clamp(_host.SprayAperture, 0.0f, 1.0f);
 
             const float minRange = 0.35f;
             const float flowExponent = 1.5f;
 
-            float flow = MathF.Pow(t, flowExponent);
-            float range = minRange + (1.0f - minRange) * t;
+            var flow = MathF.Pow(t, flowExponent);
+            var range = minRange + (1.0f - minRange) * t;
 
             uniforms.DensityScale = BaseDensity * flow;
             uniforms.DistanceFalloff = DistanceFalloff / (range * range);
             uniforms.RadialFalloff = RadialFalloff;
-
-
         }
 
         void ComputeRays()

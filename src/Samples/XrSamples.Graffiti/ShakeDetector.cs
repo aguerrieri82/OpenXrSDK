@@ -64,8 +64,8 @@ namespace XrSamples.Graffiti
             float linearSpeed = linearVelocity.Length();
             float angularSpeed = angularVelocity.Length();
 
-            Log.Value("Linear", linearSpeed);
-            Log.Value("Angular", angularSpeed);
+            //Log.Value("Linear", linearSpeed);
+            //Log.Value("Angular", angularSpeed);
 
             bool strongLinearMotion = linearSpeed >= LinearThreshold;
             bool strongAngularMotion = angularSpeed >= AngularThreshold;

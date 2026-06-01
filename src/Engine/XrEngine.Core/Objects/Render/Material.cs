@@ -5,7 +5,8 @@
         Opaque = 0,
         Mask = 1,
         Blend = 2,
-        BlendMain = 4 | Blend
+        BlendMain = 4 | Blend,
+        Add = Blend | 8
     }
 
     public enum StencilFunction

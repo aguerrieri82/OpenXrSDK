@@ -60,7 +60,9 @@ namespace XrEngine.OpenGL
 
             if (_capacityBytes != sizeBytes || _target == BufferTargetARB.UniformBuffer)
             {
-                _gl.BufferData(_target, sizeBytes, null, _usage);
+                if (_capacityBytes != sizeBytes)
+                    _gl.BufferData(_target, sizeBytes, null, _usage);
+
                 _gl.BufferSubData(_target, 0, sizeBytes, data);
                 _capacityBytes = sizeBytes;
             }

@@ -12,17 +12,17 @@ float TotalDensityAt(ivec2 p, ivec2 size)
 {
     p = clamp(p, ivec2(0), size - ivec2(1));
 
-    float d = 0.0;
+    float density = 0.0;
 
     for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
     {
         if (i >= LayerCount)
             break;
 
-        d += imageLoad(uPaintLayers, ivec3(p, i)).a;
+        density += imageLoad(uPaintLayers, ivec3(p, i)).a;
     }
 
-    return d;
+    return density;
 }
 
 void main()
@@ -34,9 +34,16 @@ void main()
     if (p.x >= size.x || p.y >= size.y)
         return;
 
-    vec3 pigment = vec3(0.0);
-    float density = 0.0;
-    float wetAmount = 0.0;
+    /*
+        Layer 0 = wettest / newest / visually topmost.
+        Higher layers = progressively drier / older / underneath.
+    */
+
+    vec3 resolvedColor = vec3(0.0);
+    float resolvedWetness = 0.0;
+
+    float remainingVisibility = 1.0;
+    float resolvedAlpha = 0.0;
 
     for (int i = 0; i < MAX_PAINT_LAYERS; ++i)
     {
@@ -45,37 +52,60 @@ void main()
 
         vec4 layer = imageLoad(uPaintLayers, ivec3(p, i));
 
-        pigment += layer.rgb;
-        density += layer.a;
+        float layerDensity = layer.a;
 
-        wetAmount += layer.a * Layers[i].Wetness;
+        if (layerDensity <= 0.000001)
+            continue;
+
+        float layerCoverage = clamp(layerDensity, 0.0, 1.0);
+
+        vec3 layerColor = layer.rgb / layerDensity;
+
+        float contribution = remainingVisibility * layerCoverage;
+
+        resolvedColor += layerColor * contribution;
+        resolvedWetness += Layers[i].Wetness * contribution;
+
+        resolvedAlpha += contribution;
+
+        remainingVisibility *= 1.0 - layerCoverage;
+
+        if (remainingVisibility <= 0.000001)
+            break;
     }
 
-    float alpha = clamp(density, 0.0, 1.0);
+    if (resolvedAlpha > 0.000001)
+    {
+        resolvedColor /= resolvedAlpha;
+        resolvedWetness /= resolvedAlpha;
+    }
 
-    vec3 color = vec3(0.0);
-
-    if (density > 0.00001)
-        color = pigment / density;
+    resolvedAlpha = clamp(resolvedAlpha, 0.0, 1.0);
+    resolvedWetness = clamp(resolvedWetness, 0.0, 1.0);
 
     imageStore(
         uResolvedColor,
         p,
-        vec4(color, alpha));
-
-    float wet01 = 0.0;
-
-    if (density > 0.00001)
-        wet01 = clamp(wetAmount / density, 0.0, 1.0);
+        vec4(resolvedColor, resolvedAlpha));
 
     float roughness =
-        mix(uDryRoughness, uWetRoughness, wet01);
+        mix(uDryRoughness, uWetRoughness, resolvedWetness);
 
+    /*
+        glTF metallic-roughness packing:
+        R = unused
+        G = roughness
+        B = metallic
+        A = unused
+    */
     imageStore(
         uResolvedRoughness,
         p,
         vec4(1.0, roughness, 0.0, 1.0));
 
+    /*
+        Normal is based on total paint thickness, not visible layer only.
+    */
     float hL = TotalDensityAt(p + ivec2(-1,  0), size) * uDensityToHeight;
     float hR = TotalDensityAt(p + ivec2( 1,  0), size) * uDensityToHeight;
     float hD = TotalDensityAt(p + ivec2( 0, -1), size) * uDensityToHeight;
