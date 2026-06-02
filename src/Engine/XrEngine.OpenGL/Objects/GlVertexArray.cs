@@ -74,9 +74,19 @@ namespace XrEngine.OpenGL
         public unsafe void Draw(PrimitiveType primitive = PrimitiveType.Triangles)
         {
             if (_iBuf != null)
+            {
+                if (_iBuf.ArrayLength == 0)
+                    return;
                 _gl.DrawElements(primitive, _iBuf.ArrayLength, _drawType, null);
+            }
             else
+            {
+                if (_vBuf.ArrayLength == 0)
+                    return;
                 _gl.DrawArrays(primitive, 0, _vBuf.ArrayLength);
+            }
+
+
         }
 
         protected unsafe void Configure()

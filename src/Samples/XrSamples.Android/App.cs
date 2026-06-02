@@ -5,7 +5,7 @@ using XrEngine.Media.Android;
 
 namespace XrSamples
 {
-    [Application]
+    [Application(Debuggable = true, HardwareAccelerated = true)]
     public class App : Application
     {
         public App(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)

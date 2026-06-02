@@ -18,7 +18,9 @@ namespace XrSamples.Graffiti
         private Can _can;
         private PaintCanvas _canvas;
         private SprayBrush _spray;
+        private CanvasDrawer _canvasDrawer;
         private InputController _input;
+        private PaintSelector _paintSelector;
 
         public MainScene()
         {
@@ -39,6 +41,8 @@ namespace XrSamples.Graffiti
 
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
+
+            _canvasDrawer = this.AddComponent<CanvasDrawer>();
 
             _input = this.AddComponent<InputController>();
 
@@ -75,12 +79,15 @@ namespace XrSamples.Graffiti
                 Position = new Vector3(0f, 0.45999998f, 0.45999998f),
                 Orientation = new Quaternion(0f, 0.551937f, 0f, 0.8338858f)
             });
+
+            _paintSelector = AddChild(new PaintSelector());
         }
 
         public void Configure(XrEngineApp e)
         {
             _can.Configure(e);
             _input.Configure(e);
+            _canvasDrawer.Configure(e);
 
             if (e.App.Renderer is OpenGLRender openGLRender)
                 openGLRender.AddPass(new GlSimulationPass(openGLRender), 0);

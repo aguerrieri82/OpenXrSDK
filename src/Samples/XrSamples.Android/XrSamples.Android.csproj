@@ -19,7 +19,21 @@
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
+
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<PublishTrimmed>false</PublishTrimmed>
+		<EnableLLVM>false</EnableLLVM>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<DebugSymbols>false</DebugSymbols>
+		<AndroidManagedSymbols>false</AndroidManagedSymbols>
+		<UseMonoRuntime>true</UseMonoRuntime>
+		<PublishReadyToRun>false</PublishReadyToRun>
+	</PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
 		<RunAOTCompilation>true</RunAOTCompilation>
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>

@@ -10,13 +10,13 @@ namespace XrSamples.Graffiti.Shaders
     public struct PaintProjUniforms
     {
         [FieldOffset(0)]
-        public Matrix4x4 HostLocalToWorld;
+        public Matrix4x4 CanWorld;
 
         [FieldOffset(64)]
-        public Matrix4x4 CanvasWorldToLocal;
+        public Matrix4x4 CanvasWorldInverse;
 
         [FieldOffset(128)]
-        public Matrix4x4 CanvasLocalToWorld;
+        public Matrix4x4 CanvasWorld;
 
         [FieldOffset(192)]
         public Vector3 SprayCenterLocal;

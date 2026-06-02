@@ -21,7 +21,7 @@ namespace XrSamples.Graffiti
 
     public class PaintCanvas : Group3D
     {
-        readonly Vector2 _size;
+        private Vector2 _size;
         readonly Texture2D _colorTexture;
         readonly Texture2D _normalTexture;
         readonly Texture2D _roughnessTexture;
@@ -30,7 +30,7 @@ namespace XrSamples.Graffiti
         private float _texelSize;
         private Can? _can;
         private PaintCanvasDebug _debug;
-        private TriangleMesh _frame;
+        private PaintFrame _frame;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f)
         {
@@ -47,25 +47,11 @@ namespace XrSamples.Graffiti
             _size = quad.Size;
             _texelSize = texelSize;
 
-            var texData = new TextureData
-            {
-                Format = TextureFormat.RgbaFloat16,
-                Width = (uint)(_size.X / texelSize),
-                Height = (uint)(_size.Y / texelSize),
-            };
-
             _sprayTexture = new Texture2D();
-            _sprayTexture.LoadData(texData);
-
             _colorTexture = new Texture2D();
-            _colorTexture.LoadData(texData);
-
             _normalTexture = new Texture2D();
-            _normalTexture.LoadData(texData);
-
             _roughnessTexture = new Texture2D();
-            _roughnessTexture.LoadData(texData);
-
+            
             _quad = new TriangleMesh(new Quad3D(_size), new PbrV2Material()
             {
                 ColorMap = _colorTexture,
@@ -74,38 +60,36 @@ namespace XrSamples.Graffiti
                 Alpha = AlphaMode.Blend
             });
 
-            var builder = new MeshBuilder();
-            var profile = Rect2.FromCenter(0.02f, 0.01f).ToPoly2();
-
-            var path = new Poly2([
-                new(-_size.X / 2, 0),
-                new(-_size.X / 2, _size.Y),
-                new(_size.X / 2, _size.Y),
-                new(_size.X / 2, 0)], false);
-
-            builder.LoftPoly(profile, path, UVMode.Size);
-
-            _frame = new TriangleMesh(builder.ToGeometry(), new PbrV2Material()
-            {
-                Color = new Color(0.0f, 0.0f, 0.7f),    
-            });
-
-            _frame.SetWorldPose(new Pose3()
-            {
-                Position = new Vector3(0f, _size.Y / 2, 0f),
-                Orientation = new Quaternion(0.70710677f, 0f, 0f, 0.70710677f)
-            });
-
-
             _quad.Materials.Add(new DebugMaterial()
             {
                 IsEnabled = false
+            });
+
+            _frame = new PaintFrame(_size, new PbrV2Material()
+            {
+                Color = new Color(0.0f, 0.0f, 0.7f),
             });
 
             AddChild(_quad);
             AddChild(_frame);
 
             this.SetWorldPose(quad.Pose);
+        }
+
+        public void SetCanvasSize(Vector2 newSize, Pose3 pose)
+        {
+            var quad3D = (Quad3D)_quad.Geometry!;
+
+            quad3D.Size = newSize;
+            quad3D.Build();
+            quad3D.NotifyChanged(ObjectChangeType.Geometry);    
+
+            _frame.Size = newSize;
+            _frame.Build();
+
+            _size = newSize;
+
+            this.SetWorldPose(pose);
         }
 
         Vector2 ComputeCanvasGravity()
@@ -133,7 +117,7 @@ namespace XrSamples.Graffiti
         {
             _can ??= _scene!.Descendants<Can>().First()!;
 
-            block.CanvasSize= new Vector2I((int)(_size.X / _texelSize), (int)(_size.Y / _texelSize));
+            block.CanvasSize = new Vector2I((int)(_size.X / _texelSize), (int)(_size.Y / _texelSize));
 
             block.GravityCanvas = ComputeCanvasGravity();
             block.GravityStrength = GravityStrength;
@@ -206,7 +190,6 @@ namespace XrSamples.Graffiti
         public float DryRate { get; set; }
 
         public float DripRate { get; set; }
-
 
         public float DryRoughness { get; set; }
 

@@ -42,11 +42,18 @@ namespace XrEngine.OpenGL
             Create();
         }
 
+
         public GlTexture(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
             : base(gl)
         {
             SampleCount = sampleCount;
             Attach(handle, target);
+        }
+
+        public void Recreate()
+        {
+            Destroy();
+            Create();
         }
 
         protected void Create()
@@ -55,7 +62,7 @@ namespace XrEngine.OpenGL
             _attached[_handle] = this;
         }
 
-        public unsafe void Attach(uint handle, TextureTarget target = 0)
+        public void Attach(uint handle, TextureTarget target = 0)
         {
             _attached[handle] = this;
 
@@ -255,7 +262,6 @@ namespace XrEngine.OpenGL
                     throw new InvalidOperationException("Immutable texture size changed");
                 _isAllocated = false;
             }
-
 
             _width = width;
             _height = height;
@@ -548,7 +554,7 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindTexture(Target, 0);
         }
 
-        public override void Dispose()
+        protected void Destroy()
         {
             if (_handle != 0)
             {
@@ -563,6 +569,18 @@ namespace XrEngine.OpenGL
                 tex.Handle = 0;
             }
 
+            _isAllocated = false;
+            _width = 0;
+            _height = 0;
+            _isCompressed = false;
+            _depth = 0;
+            _internalFormat = 0;
+        }
+
+        public override void Dispose()
+        {
+            Destroy();
+
             Source = null;
 
             base.Dispose();
@@ -574,7 +592,6 @@ namespace XrEngine.OpenGL
                 texture = new GlTexture(gl, handle, sampleCount, target);
             return texture;
         }
-
 
         public long Version { get; set; }
 

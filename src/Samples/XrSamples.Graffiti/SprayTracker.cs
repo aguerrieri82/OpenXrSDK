@@ -28,7 +28,7 @@ namespace XrSamples.Graffiti
             DistanceFalloff = 4.0f;
             RadialFalloff = 2.0f;
             BaseDensity = 1.0f;
-            IsEnabled = XrPlatform.IsEditor;
+            IsEnabled = XrPlatform.IsEditor && false;
         }
 
         protected override void Start(RenderContext ctx)
@@ -59,9 +59,9 @@ namespace XrSamples.Graffiti
                 ? Vector3.Normalize(SprayDirection)
                 : Vector3.UnitZ;
 
-            uniforms.HostLocalToWorld = _host.Transform.Matrix;
-            uniforms.CanvasWorldToLocal = _canvas.WorldMatrixInverse;
-            uniforms.CanvasLocalToWorld = _canvas.WorldMatrix;
+            uniforms.CanWorld = _host.Transform.Matrix;
+            uniforms.CanvasWorldInverse = _canvas.WorldMatrixInverse;
+            uniforms.CanvasWorld = _canvas.WorldMatrix;
 
             uniforms.SprayCenterLocal = SprayCenter;
             uniforms.SprayDirectionLocal = sprayDirection;
@@ -69,10 +69,7 @@ namespace XrSamples.Graffiti
             uniforms.SprayRadius = SprayRadius;
             uniforms.SpreadAngle = MathF.Max(SpreadAngle, 0.0001f);
 
-            uniforms.CanvasSize = new Vector2(
-                _canvas.WorldBounds.Size.X,
-                _canvas.WorldBounds.Size.Y
-            );
+            uniforms.CanvasSize = _canvas.Size;
 
             var t = Math.Clamp(_host.SprayAperture, 0.0f, 1.0f);
 
@@ -111,11 +108,10 @@ namespace XrSamples.Graffiti
 
             BuildBasis(localDirection, out var tangent, out var bitangent);
 
-
             var wordQuod = new Quad3()
             {
                 Pose = _canvas.GetWorldPose(),
-                Size = new Vector2(_canvas.WorldBounds.Size.X, _canvas.WorldBounds.Size.Y)
+                Size = _canvas.Size
             };
 
             for (var i = 0; i < _rays!.Length; i++)
