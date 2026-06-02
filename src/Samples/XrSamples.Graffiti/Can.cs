@@ -1,6 +1,7 @@
 ﻿
 using OpenXr.Framework.Oculus;
 using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
@@ -26,6 +27,7 @@ namespace XrSamples.Graffiti
         private IAudioControl? _shakeControl;
         private IAudioControl? _sprayControl;
         private SprayTracker? _tracker;
+        private Color _color;
 
         public Can()
         {
@@ -67,6 +69,8 @@ namespace XrSamples.Graffiti
             _shakeDetector.OnShakeEnd += OnShakeEnd;
             _shakeDetector.OnShakeStart += OnShakeStart;
 
+            Offset = new Vector3(0, -0.04f, 0);
+
             Color = new Color(1, 0, 0);
         }
 
@@ -103,7 +107,7 @@ namespace XrSamples.Graffiti
             {
                 this.SetWorldPose(pose.Value.Multiply(new Pose3
                 {
-                    Position = new Vector3(0, 0, -0.02f),
+                    Position = Offset,
                     Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2) *
                                   Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2)
                 }));
@@ -161,7 +165,33 @@ namespace XrSamples.Graffiti
             }
         }
 
+        static string CreateCanColorVec3(Color color)
+        {
+            static string F(float v) =>
+                v.ToString("0.########", CultureInfo.InvariantCulture);
 
-        public Color Color { get; set; }
+            return
+                $"vec3({F(color.R)}, {F(color.G)}, {F(color.B)})";
+        }
+
+        public Color Color
+        {
+            get => _color;
+            set
+            {
+                _color = value;
+                
+                var mat = (PbrV2Material)((TriangleMesh)_canBody).Materials[0];
+
+                mat.FragmentDefaultLoader = $"LoadFragmentPropertiesCanColor({CreateCanColorVec3(_color)})";
+
+                mat.FragmentDefaultShader = Embedded.GetString("PbrV2/pbr_defaults.glsl") +
+                                            Embedded.GetString<Can>("can_pbr.glsl");
+
+                mat.NotifyChanged(ObjectChangeType.Material);
+            }
+        }
+
+        public Vector3 Offset { get; set; }
     }
 }

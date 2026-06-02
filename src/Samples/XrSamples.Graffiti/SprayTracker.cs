@@ -28,7 +28,7 @@ namespace XrSamples.Graffiti
             DistanceFalloff = 4.0f;
             RadialFalloff = 2.0f;
             BaseDensity = 1.0f;
-            IsEnabled = XrPlatform.IsEditor && false;
+            IsEnabled = XrPlatform.IsEditor;
         }
 
         protected override void Start(RenderContext ctx)

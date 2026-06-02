@@ -47,7 +47,7 @@ namespace XrSamples.Graffiti
             Radius = 0.10f;
             ButtonScale = 0.015f;
             MaxButtonsInCircle = 7;
-            ArcRadians = MathF.PI; // semi-circle
+            ArcRadians = MathF.PI; 
             AnimationSpeed = 12.0f;
             IsVisible = false;
 
@@ -100,11 +100,6 @@ namespace XrSamples.Graffiti
             _activeIndex = Math.Clamp(index, 0, Colors.Count - 1);
         }
 
-        public void MoveActive(int delta)
-        {
-            SetActiveIndex(_activeIndex + delta);
-        }
-
         void EnsureButtons()
         {
             if (_buttonGeometry == null)
@@ -129,10 +124,9 @@ namespace XrSamples.Graffiti
                 AddChild(button);
             }
 
-            // If colors shrink, keep objects but hide them by alpha/position.
             for (int i = Colors.Count; i < _buttons.Count; i++)
             {
-                _materials[i].Color = new Color(0, 0, 0, 0);
+                _materials[i].Color = Color.Transparent;
                 _materials[i].IsEnabled = false;
                 _materials[i].NotifyChanged(ObjectChangeType.Material);
             }
@@ -156,16 +150,15 @@ namespace XrSamples.Graffiti
                 var button = _buttons[i];
                 var mat = _materials[i];
 
-                float rel = i - _visualIndex;
+                var rel = i - _visualIndex;
 
-                float absRel = MathF.Abs(rel);
+                var absRel = MathF.Abs(rel);
 
                 if (absRel > halfSlots + 1.0f)
                     mat.Color = WithAlpha(Colors[i], 0);
-
                 else
                 {
-                    float angle = rel * angleStep;
+                    var angle = rel * angleStep;
 
                     // Plane XZ, Y up.
                     // Center button is at angle 0, directly forward on +Z.
@@ -180,7 +173,7 @@ namespace XrSamples.Graffiti
                     normalizedAway = Math.Clamp(normalizedAway, 0, 1);
 
                     // Center = opaque, sides = faded.
-                    float alpha = 1.0f - normalizedAway;
+                    var alpha = 1.0f - normalizedAway;
                     alpha = MathF.Pow(alpha, 0.65f);
 
                     mat.Color = WithAlpha(Colors[i], Colors[i].A * alpha);
@@ -202,13 +195,14 @@ namespace XrSamples.Graffiti
             return a + (b - a) * t;
         }
 
-        public IList<Color> Colors { get; set; }
 
         public uint ActiveIndex
         {
             get => (uint)_activeIndex;
             set => SetActiveIndex((int)value);
         }
+
+        public IList<Color> Colors { get; set; }
 
         public int MaxButtonsInCircle { get; set; }
 

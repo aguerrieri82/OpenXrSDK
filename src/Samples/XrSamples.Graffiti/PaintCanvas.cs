@@ -167,6 +167,8 @@ namespace XrSamples.Graffiti
             debugMat.NotifyChanged(ObjectChangeType.Material);
         }
 
+        public PaintFrame Frame => _frame;
+
         public Texture2D[]? PaintTextures { get; set; }
 
         public float TexelSize => _texelSize;

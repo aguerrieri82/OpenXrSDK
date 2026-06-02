@@ -39,6 +39,7 @@ namespace XrSamples.Graffiti
         protected override void Update(RenderContext ctx)
         {
             Debug.Assert(_inputs?.Right?.Button?.AClick != null);
+            Debug.Assert(_inputs?.Right?.Button?.BClick != null);
             Debug.Assert(_inputs?.Right?.ThumbstickClick != null);
             Debug.Assert(_inputs?.Right?.Thumbstick != null);
             Debug.Assert(_inputs?.Right?.GripPose != null);
@@ -50,6 +51,7 @@ namespace XrSamples.Graffiti
 
             var clearButton = _inputs.Right.Button.AClick;
             var thumbClick = _inputs.Right.ThumbstickClick;
+            var hideButton = _inputs.Right.Button.BClick;
 
             if (clearButton.IsChanged && clearButton.Value)
                 _canvas.Clear();
@@ -82,6 +84,9 @@ namespace XrSamples.Graffiti
                     _lastScrollTime = ctx.Time;
                 }
             }
+
+            if (hideButton.IsChanged && hideButton.Value)
+                _canvas.Frame.IsVisible = !_canvas.Frame.IsVisible;
 
             base.Update(ctx);
         }
