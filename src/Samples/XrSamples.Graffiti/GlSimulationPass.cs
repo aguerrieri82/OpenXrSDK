@@ -40,16 +40,21 @@ namespace XrSamples.Graffiti
         protected readonly GlBuffer<PaintProjUniforms> _sprayUniformsBuffer;
         protected PaintProjUniforms _sprayUniforms;
 
-        protected Vector3 _prevNozzlePositon;
+        protected Vector3 _prevCanvasTarget;
         protected Pose3 _prevPose;
         protected long _lastFrame;    
 
-        public GlSimulationPass(OpenGLRender renderer)
+        public GlSimulationPass(OpenGLRender renderer, bool useInstance = true)
             : base(renderer)    
         {
+            UseInstance = useInstance;
+
             _sprayFrameBuffer = new GlTextureFrameBuffer(_gl);
 
             _sprayProgram = new GlSimpleProgram(renderer.GL, "paint_proj.vert", "paint_proj.frag", str => Embedded.GetString<GlSimulationPass>(str));
+            if (useInstance)
+                _sprayProgram.AddFeature("USE_INSTANCE");
+
             _sprayProgram.Build();
 
             _accumulateProgram = new GlComputeProgram(renderer.GL, "paint_accumulate.comp", str => Embedded.GetString<GlSimulationPass>(str));
@@ -91,6 +96,9 @@ namespace XrSamples.Graffiti
 
                 _canvas.ClearRequest = false;
             }
+
+            GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 1);
+            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 0);
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);
@@ -140,9 +148,6 @@ namespace XrSamples.Graffiti
             _canvas!.Update(ctx, ref _paintUniforms);
             _paintUniformsBuffer.Update(_paintUniforms);
 
-            _paintUniformsBuffer.Bind();
-            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 0);
-
             _accumulateProgram.SetUniform("uIncomingDensity", _canvas.SprayTexture, 0);
 
             _gl.BindImageTexture(1, _wetTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
@@ -160,8 +165,6 @@ namespace XrSamples.Graffiti
         protected void RenderDrip(RenderContext ctx)
         {
             _dripProgram.Use();
-            _paintUniformsBuffer.Bind();
-            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 0);
 
             _gl.BindImageTexture(0, _wetTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _tempWetTex, 0, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
@@ -179,8 +182,6 @@ namespace XrSamples.Graffiti
         protected void RenderResolve(RenderContext ctx)
         {
             _resolveProgram.Use();
-            _paintUniformsBuffer.Bind();
-            _accumulateProgram.LoadBuffer(_paintUniformsBuffer, 0);
 
             _gl.BindImageTexture(0, _wetTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _dryTex, 0, true, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
@@ -196,8 +197,6 @@ namespace XrSamples.Graffiti
 
         protected void RenderSpray(RenderContext ctx)
         {
-            _sprayFrameBuffer.Bind();
-
             GlState.Current!.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
 
             GlState.Current!.SetWriteDepth(false);
@@ -207,58 +206,82 @@ namespace XrSamples.Graffiti
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            var curNozzlePosition = _tracker!.SprayCenter.Transform(_can!.WorldMatrix);
+            var ray = new Ray3
+            {
+                Origin = _tracker!.SprayCenter.Transform(_can!.WorldMatrix),
+                Direction = Vector3.TransformNormal(_tracker.SprayDirection, _can.WorldMatrix)
+            };
+ 
+            var canvasQuod = new Quad3
+            {
+                Size = _canvas!.Size,
+                Pose = _canvas.GetWorldPose()
+            };
+
+            bool isInCanvas = ray.Intersects(canvasQuod, out var curCanvasTarget);
+
             var curPose = _can.GetWorldPose();
 
-            if (_can!.SprayAperture > 0)
+            if (_can!.SprayAperture > 0 && isInCanvas)
             {
-                float distance = (curNozzlePosition - _prevNozzlePositon).Length();
+                var distance = (curCanvasTarget - _prevCanvasTarget).Length();
 
-                const float spacing = 0.01f;
+                const float spacing = 0.005f;
 
-                int sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / spacing));
+                var sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / spacing));
                 sampleCount = Math.Min(sampleCount, 100);
-               // sampleCount = 1;
 
                 _sprayProgram.Use();
                 _tracker.Update(ref _sprayUniforms);
-
-                _sprayUniformsBuffer.Bind();
-                _sprayProgram.LoadBuffer(_sprayUniformsBuffer);
 
                 _brushSource!.Bind();
 
                 _sprayUniforms.DensityScale = _sprayUniforms.DensityScale / sampleCount;
 
-                if (sampleCount > 1)
-                    Debug.WriteLine(sampleCount);
-
-                for (int i = 0; i < sampleCount; ++i)
+                if (!UseInstance)
                 {
-                    float factor =
-                        sampleCount == 1
-                            ? 1.0f
-                            : (i + 1.0f) / sampleCount;
+                    for (int i = 0; i < sampleCount; ++i)
+                    {
+                        float factor =
+                            sampleCount == 1
+                                ? 1.0f
+                                : (i + 1.0f) / sampleCount;
 
-                    var stepPose = _prevPose.Lerp(curPose, factor);
+                        var stepPose = _prevPose.Lerp(curPose, factor);
 
-                    _sprayUniforms.HostLocalToWorld = stepPose.ToMatrix(_can.Transform.Scale);
+                        _sprayUniforms.HostLocalToWorld = stepPose.ToMatrix(_can.Transform.Scale);
+                        _sprayUniformsBuffer.Update(_sprayUniforms);
+
+                        _brushSource.Draw();
+                    }
+                }
+                else
+                {
+                    _sprayUniforms.PrevPosition = _prevPose.Position;
+                    _sprayUniforms.PrevRotation = _prevPose.Orientation;
+
+                    _sprayUniforms.CurPosition = curPose.Position;
+                    _sprayUniforms.CurRotation = curPose.Orientation;
+                    _sprayUniforms.StepCount = sampleCount;
+                    _sprayUniforms.HostScale = _can.Transform.Scale;
 
                     _sprayUniformsBuffer.Update(_sprayUniforms);
-                    _sprayProgram.LoadBuffer(_sprayUniformsBuffer);
-                    _brushSource.Draw();
-                }
 
+                    _brushSource.DrawInstances(sampleCount);
+                }
 
                 _brushSource.Unbind();
             }
 
-            _prevNozzlePositon = curNozzlePosition;
+            _prevCanvasTarget = curCanvasTarget;
             _prevPose = curPose;
 
             _gl.MemoryBarrier(MemoryBarrierMask.TextureFetchBarrierBit);
 
             _sprayFrameBuffer.Unbind();
         }
+
+
+        public bool UseInstance { get; set; }
     }
 }

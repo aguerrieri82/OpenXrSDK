@@ -630,8 +630,10 @@ namespace XrEngine
             }
         }
 
+
         public static void ComputeNormals(this Geometry3D self)
         {
+
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
 

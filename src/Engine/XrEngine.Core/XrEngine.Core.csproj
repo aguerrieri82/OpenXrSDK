@@ -6,6 +6,7 @@
 		<NativeFolder>$(Configuration)</NativeFolder>
 	</PropertyGroup>
 
+
 	<ItemGroup>
 		<EmbeddedResource Include="Shaders/**/*.*" />
 	</ItemGroup>

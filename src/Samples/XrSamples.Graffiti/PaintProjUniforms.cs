@@ -6,7 +6,7 @@ using System.Text;
 
 namespace XrSamples.Graffiti.Shaders
 {
-    [StructLayout(LayoutKind.Explicit, Size = 256)]
+    [StructLayout(LayoutKind.Explicit, Size = 352)]
     public struct PaintProjUniforms
     {
         [FieldOffset(0)]
@@ -41,5 +41,26 @@ namespace XrSamples.Graffiti.Shaders
 
         [FieldOffset(248)]
         public float RadialFalloff;
+
+        // Appended fields for USE_INSTANCE path.
+        // Previous host/can world pose.
+        [FieldOffset(256)]
+        public Vector3 PrevPosition;
+
+        [FieldOffset(272)]
+        public Quaternion PrevRotation;
+
+        // Current host/can world pose.
+        [FieldOffset(288)]
+        public Vector3 CurPosition;
+
+        [FieldOffset(304)]
+        public Quaternion CurRotation;
+
+        [FieldOffset(320)]
+        public int StepCount;
+
+        [FieldOffset(336)]
+        public Vector3 HostScale;
     }
 }

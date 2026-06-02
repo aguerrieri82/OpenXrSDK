@@ -2,8 +2,9 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-
 #endif
+
+using System.Runtime.CompilerServices;
 
 
 namespace XrEngine.OpenGL
@@ -69,6 +70,7 @@ namespace XrEngine.OpenGL
             else
             {
                 var pDst = Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+                //Unsafe.CopyBlockUnaligned(pDst, data, sizeBytes);
                 EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
                 Unmap();
             }

@@ -14,4 +14,14 @@
     float uDensityScale;
     float uDistanceFalloff;
     float uRadialFalloff;
+
+    vec3 uPrevPosition;
+    vec4 uPrevRotation;
+
+    vec3 uCurPosition;
+    vec4 uCurRotation;
+
+    int uStepCount;
+
+    vec3 uHostScale;
 };

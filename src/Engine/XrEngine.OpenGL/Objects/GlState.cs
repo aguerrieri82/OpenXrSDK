@@ -445,7 +445,7 @@ namespace XrEngine.OpenGL
 #endif
         }
 
-        internal void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
+        public void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
         {
             var curSlotValue = BufferSlots[slot];
 
