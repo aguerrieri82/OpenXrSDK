@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -29,7 +30,7 @@ namespace XrSamples.Graffiti
         private float _texelSize;
         private Can? _can;
         private PaintCanvasDebug _debug;
-
+        private TriangleMesh _frame;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f)
         {
@@ -73,12 +74,36 @@ namespace XrSamples.Graffiti
                 Alpha = AlphaMode.Blend
             });
 
+            var builder = new MeshBuilder();
+            var profile = Rect2.FromCenter(0.02f, 0.01f).ToPoly2();
+
+            var path = new Poly2([
+                new(-_size.X / 2, 0),
+                new(-_size.X / 2, _size.Y),
+                new(_size.X / 2, _size.Y),
+                new(_size.X / 2, 0)], false);
+
+            builder.LoftPoly(profile, path, UVMode.Size);
+
+            _frame = new TriangleMesh(builder.ToGeometry(), new PbrV2Material()
+            {
+                Color = new Color(0.0f, 0.0f, 0.7f),    
+            });
+
+            _frame.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(0f, _size.Y / 2, 0f),
+                Orientation = new Quaternion(0.70710677f, 0f, 0f, 0.70710677f)
+            });
+
+
             _quad.Materials.Add(new DebugMaterial()
             {
                 IsEnabled = false
             });
 
             AddChild(_quad);
+            AddChild(_frame);
 
             this.SetWorldPose(quad.Pose);
         }

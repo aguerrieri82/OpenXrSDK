@@ -131,7 +131,7 @@ namespace XrEngine.OpenXr
                     group.WorldPosition = pose.Position;
                     group.WorldOrientation = pose.Orientation;
                 }
-
+              
                 if (model != null)
                     model.IsVisible = input.IsActive;
 
@@ -145,12 +145,21 @@ namespace XrEngine.OpenXr
             if (File.Exists(fullPath))
             {
                 model = GltfLoader.LoadFile(fullPath);
-                model.Transform.Set(Matrix4x4.Identity);
-                model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
-                model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
-                model.Transform.SetScale(1.06f);
+                //model.Transform.Set(Matrix4x4.Identity);
+                //model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
+                //model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
+                //model.Transform.SetScale(1.06f);
+
+                model.SetWorldPose(new Pose3()
+                {
+                    Position = new Vector3(0f, 0f, 0.049999997f),
+                    Orientation = new Quaternion(0f, 1f, 0f, -4.371139E-08f)
+                });
+
+                model.Transform.Scale = model.Transform.Scale * 1.06f;
                 model.Name = "Controller";
 
+                /*
                 var texPath = assets.GetPath("Models/MetaQuestTouchPlus_ORM.png");
 
                 _controllerORMTex ??= AssetLoader.Instance.Load<Texture2D>(texPath);
@@ -169,8 +178,9 @@ namespace XrEngine.OpenXr
                         mat.Name = "base_controller";
                         mat.NotifyChanged(ObjectChangeType.Render);
                     }
-
                 }
+                */
+
                 group.AddChild(model);
             }
 

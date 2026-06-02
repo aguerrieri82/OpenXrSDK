@@ -113,18 +113,24 @@ namespace XrEngine.OpenGL
 
             if (!_programs.TryGetValue(_materialUpdate.FeaturesHash!, out var program))
             {
-                Func<string, string> resolver = name =>
+                Func<string, string?> resolver = name =>
                 {
                     if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
                     {
                         var fullPath = shader.SourcePaths.
                                        Select(a => Path.Combine(a, name))
-                                       .Where(File.Exists)
-                                        .FirstOrDefault();
+                                      .FirstOrDefault(File.Exists);
+
                         if (fullPath != null)
                             return File.ReadAllText(fullPath);
                     }
-                    return shader.Resolver!(name);
+
+                    var result = shader.Resolver?.Invoke(name);
+
+                    if (!string.IsNullOrEmpty(result))
+                        return result;
+
+                    return Material.Resolver?.Invoke(name);
                 };
 
                 program = new GlSimpleProgram(_gl,

@@ -3,7 +3,7 @@
 
 // One UBO shared by all paint compute shaders.
 // Some fields are unused by accumulate, some unused by resolve.
-layout(std140, binding = 1) uniform PaintParams
+layout(std140, binding = 11) uniform PaintParams
 {
     // Texture/canvas size.
     ivec2 CanvasSize;

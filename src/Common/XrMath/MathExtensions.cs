@@ -1283,6 +1283,14 @@ namespace XrMath
 
         #region MISC
 
+        public static Poly2 ToPoly2(in this Rect2 self)
+        {
+            return new Poly2
+            {
+                IsClosed = false,
+                Points = self.Corners.ToArray()
+            };
+        }
 
         public static bool IsSimilar(in this Matrix3x3 self, in Matrix3x3 other)
         {

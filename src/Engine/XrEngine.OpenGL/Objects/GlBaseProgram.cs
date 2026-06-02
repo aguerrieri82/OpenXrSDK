@@ -18,14 +18,14 @@ namespace XrEngine.OpenGL
 
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
-        protected readonly Func<string, string> _resolver;
+        protected readonly Func<string, string?> _resolver;
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly int[] _boundBuffers = new int[32];
         protected readonly bool _cacheUniforms;
 
 
-        public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
+        public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
             _resolver = includeResolver;
             _cacheUniforms = OpenGLRender.Current?.Options.CacheUniforms == true;
@@ -377,6 +377,9 @@ namespace XrEngine.OpenGL
             string ReplaceIncludes(string path)
             {
                 var source = _resolver(path);
+
+                if (string.IsNullOrEmpty(source))
+                    throw new InvalidOperationException($"include source '{path}' not found ");
 
                 while (true)
                 {

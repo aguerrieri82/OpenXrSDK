@@ -17,14 +17,14 @@ namespace XrEngine.OpenGL
         readonly string? _tcSourceName;
         readonly string? _teSourceName;
 
-        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver)
+        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string?> resolver)
             : base(gl, resolver)
         {
             _fSourceName = fSource;
             _vSourceName = vSource;
         }
 
-        public GlSimpleProgram(GL gl, string vSource, string fSource, string? gSource, string? tcSource, string? teSource, Func<string, string> resolver)
+        public GlSimpleProgram(GL gl, string vSource, string fSource, string? gSource, string? tcSource, string? teSource, Func<string, string?> resolver)
             : this(gl, vSource, fSource, resolver)
         {
             _gSourceName = gSource;

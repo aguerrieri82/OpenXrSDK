@@ -42,17 +42,21 @@ namespace XrSamples.Graffiti
 
         protected Vector3 _prevCanvasTarget;
         protected Pose3 _prevPose;
-        protected long _lastFrame;    
+        protected long _lastFrame;
+        private bool _isSprayClear;
 
-        public GlSimulationPass(OpenGLRender renderer, bool useInstance = true)
+        public GlSimulationPass(OpenGLRender renderer)
             : base(renderer)    
         {
-            UseInstance = useInstance;
+            UseInstance = true;
+            SpraySpacing = 0.005f;
+            SprayMaxSamples = 100;
 
             _sprayFrameBuffer = new GlTextureFrameBuffer(_gl);
 
             _sprayProgram = new GlSimpleProgram(renderer.GL, "paint_proj.vert", "paint_proj.frag", str => Embedded.GetString<GlSimulationPass>(str));
-            if (useInstance)
+
+            if (UseInstance)
                 _sprayProgram.AddFeature("USE_INSTANCE");
 
             _sprayProgram.Build();
@@ -97,8 +101,8 @@ namespace XrSamples.Graffiti
                 _canvas.ClearRequest = false;
             }
 
-            GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 1);
-            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 0);
+            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 10);
+            GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 11);
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);
@@ -197,15 +201,6 @@ namespace XrSamples.Graffiti
 
         protected void RenderSpray(RenderContext ctx)
         {
-            GlState.Current!.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
-
-            GlState.Current!.SetWriteDepth(false);
-            GlState.Current!.SetUseDepth(false);
-            GlState.Current!.SetWriteColor(true);
-            GlState.Current!.SetAlphaMode(AlphaMode.Add);
-
-            _gl.Clear(ClearBufferMask.ColorBufferBit);
-
             var ray = new Ray3
             {
                 Origin = _tracker!.SprayCenter.Transform(_can!.WorldMatrix),
@@ -222,14 +217,33 @@ namespace XrSamples.Graffiti
 
             var curPose = _can.GetWorldPose();
 
-            if (_can!.SprayAperture > 0 && isInCanvas)
+            var mustDraw = _can!.SprayAperture > 0 && isInCanvas;
+
+            var useFrameBuffer = mustDraw || !_isSprayClear;
+
+
+            if (useFrameBuffer)
+            {
+                _sprayFrameBuffer.Bind();
+
+                GlState.Current!.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
+
+                GlState.Current!.SetWriteDepth(false);
+                GlState.Current!.SetUseDepth(false);
+                GlState.Current!.SetWriteColor(true);
+                GlState.Current!.SetAlphaMode(AlphaMode.Add);
+
+                _gl.Clear(ClearBufferMask.ColorBufferBit);
+
+                _isSprayClear = true;
+            }
+
+            if (mustDraw)
             {
                 var distance = (curCanvasTarget - _prevCanvasTarget).Length();
 
-                const float spacing = 0.005f;
-
-                var sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / spacing));
-                sampleCount = Math.Min(sampleCount, 100);
+                var sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / SpraySpacing));
+                sampleCount = Math.Min(sampleCount, SprayMaxSamples);
 
                 _sprayProgram.Use();
                 _tracker.Update(ref _sprayUniforms);
@@ -271,17 +285,26 @@ namespace XrSamples.Graffiti
                 }
 
                 _brushSource.Unbind();
+
+                _isSprayClear = false;
             }
 
             _prevCanvasTarget = curCanvasTarget;
             _prevPose = curPose;
 
-            _gl.MemoryBarrier(MemoryBarrierMask.TextureFetchBarrierBit);
+            if (useFrameBuffer)
+            {
+                _gl.MemoryBarrier(MemoryBarrierMask.TextureFetchBarrierBit);
 
-            _sprayFrameBuffer.Unbind();
+                _sprayFrameBuffer.Unbind();
+            }
         }
 
 
         public bool UseInstance { get; set; }
+
+        public float SpraySpacing { get; set; }
+
+        public int SprayMaxSamples { get; set; }
     }
 }

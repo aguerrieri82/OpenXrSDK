@@ -64,5 +64,7 @@
         }
 
         public long ContentVersion { get; set; }
+
+        public Func<string, string?>? Resolver { get; set; } 
     }
 }

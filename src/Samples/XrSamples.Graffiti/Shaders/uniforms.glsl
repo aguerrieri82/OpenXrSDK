@@ -1,4 +1,4 @@
-﻿layout(std140, binding = 0) uniform SprayProjectionBlock
+﻿layout(std140, binding = 10) uniform SprayProjectionBlock
 {
     mat4 uHostLocalToWorld;
     mat4 uCanvasWorldToLocal;

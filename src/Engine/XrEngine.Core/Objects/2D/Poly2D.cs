@@ -38,7 +38,7 @@ namespace XrEngine
 
             var totLen = Length;
 
-            var pCount = IsClosed ? Points.Length : Points.Length - 1;
+            var pCount = IsClosed ? Points.Length + 1 : Points.Length;
 
             for (var i = 0; i < pCount; i++)
             {
@@ -104,6 +104,9 @@ namespace XrEngine
 
         bool ICurve2D.IsClosed => IsClosed;
 
+        /// <summary>
+        /// Last point = First point
+        /// </summary>
         public bool IsClosed { get; set; }
 
         public Vector2[] Points { get; set; }

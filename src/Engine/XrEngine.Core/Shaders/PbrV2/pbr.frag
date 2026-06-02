@@ -46,12 +46,6 @@ in vec3 fCameraPos;
 
 layout(location=0) out vec4 color;
 
-
-layout(binding=0) uniform sampler2D albedoTexture;
-layout(binding=1) uniform sampler2D normalTexture;
-layout(binding=2) uniform sampler2D metalroughnessTexture;
-layout(binding=3) uniform sampler2D occlusionTexture;
-
 layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
@@ -71,6 +65,28 @@ uniform vec3 uIblColor;
 	uniform vec3 uClipMin;
 	uniform vec3 uClipMax;
 #endif
+
+
+struct FragmentProperties
+{
+	vec3 position;
+	vec2 uv0;
+	vec2 uv1;
+
+	vec4 baseColor;
+	vec3 albedo;
+	vec3 normal;
+
+	float metalness;
+	float roughness;
+	float occlusion;
+
+	vec3 viewDir;
+};
+
+// This file is the compile-time injected material/fragment loader.
+// Swap this include with a generated variant for specialized materials.
+#include "fragment_defaults.glsl"
 
 
 // GGX/Towbridge-Reitz normal distribution function.
@@ -149,117 +165,17 @@ void main()
 
 	vec3 shadowLightDir;
 
-	// Sample input textures to get shading model params.
-	#ifdef USE_ALBEDO_MAP
+	FragmentProperties frag = LOAD_FRAGMENT_PROPS;
 
-		#ifdef HAS_COLORMAP_PROJ
-			if (fProjCoord.w <= 0.0)
-				discard;
-			vec3 ndc = fProjCoord.xyz / fProjCoord.w;
-			vec2 albUv = ndc.xy * 0.5 + 0.5;
-			albUv.y = 1.0 - albUv.y;
-		#else
-
-			#if ALBEDO_UV_SET == 1
-				vec2 albUv = fUv2;
-			#else
-				vec2 albUv = fUv;
-			#endif
-		#endif
-		
-		vec4 baseColor = texture(albedoTexture, albUv) * uMaterial.color;
-	#else
-		vec4 baseColor = uMaterial.color;	
-	#endif
-	
-	//Mask
-	#if ALPHA_MODE == 1
-		if (baseColor.a < uMaterial.alphaCutoff)
-			discard;
-	#endif
-
-	vec3 albedo = baseColor.rgb;
-
-	#ifndef SIMPLIFIED
-
-		#ifdef USE_METALROUGHNESS_MAP
-
-			vec4 mr = texture(metalroughnessTexture, fUv);
-			float metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
-			float roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
-
-		#elif defined(USE_SPECULAR_MAP)
-
-			vec4 sp = texture(metalroughnessTexture, fUv);
-			float roughness = clamp((1.0 - sp.r) * uMaterial.roughness, 0.0, 1.0);
-			float metalness = uMaterial.metalness;
-		#else
-
-			float metalness = uMaterial.metalness;
-			float roughness = uMaterial.roughness;
-		#endif
-	#endif
+	vec4 baseColor = frag.baseColor;
+	vec3 albedo = frag.albedo;
+	vec3 N = frag.normal;
+	float metalness = frag.metalness;
+	float roughness = frag.roughness;
+	float occlusion = frag.occlusion;
 
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
-	vec3 Lo = normalize(fCameraPos - fPos);
-
-	// Get current fragment's normal and transform to world space.
-	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
-
-		#ifdef NORMAL_MAP_BC3
-
-			vec4 packedNormal = texture(normalTexture, fUv);
-
-			packedNormal.x = packedNormal.w * packedNormal.x;
-			vec2 normalXY = packedNormal.xy * 2.0 - 1.0;
-			float lenSq = dot(normalXY, normalXY);
-			lenSq = min(lenSq, 1.0);
-			float zComponentSq = 1.0 - lenSq;
-			float normalZ = sqrt(zComponentSq);
-			vec3 N;
-			N.xy = normalXY;
-			N.z = normalZ;
-
-			//vec2 normalXY = packedNormal.wy * 2.0 - 1.0;
-			//float normalZ = sqrt(max(1.0 - dot(normalXY, normalXY), 0.0));
-			//vec3 N = vec3(normalXY, normalZ);
-
-		#else
-			vec3 N = 2.0 * texture(normalTexture, fUv).rgb - 1.0;	
-		#endif
-
-		mat3 TBN = fTangentBasis;
-
-		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
-
-		#ifdef DOUBLE_SIDED
-
-			if (!gl_FrontFacing) 
-			{
-				TBN[0] = -TBN[0]; // Flip tangent
-				TBN[1] = -TBN[1]; // Flip bitangent
-				TBN[2] = -TBN[2]; // Flip normal
-			}
-		
-		#endif
-
-		N = normalize(TBN * N);
-		
-
-
-	#else
-		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-			vec3 N = fTangentBasis[2];
-		#else	
-			vec3 N = normalize(fNormal);
-		#endif
-
-		#ifdef DOUBLE_SIDED
-			if (!gl_FrontFacing)
-				N = -N;
-		#endif
-	#endif
-
+	vec3 Lo = frag.viewDir;
 
 	// Angle between surface normal and outgoing light direction.
 	float cosLo = clamp(dot(N, Lo), 0.0, 1.0);
@@ -347,7 +263,7 @@ void main()
 	#endif	
 
 	// Ambient lighting (IBL).
-	vec3 ambientLighting;
+	vec3 ambientLighting = vec3(0.0);
 
 	#ifdef USE_IBL
 	{
@@ -417,8 +333,7 @@ void main()
 
 
 	#ifdef USE_OCCLUSION_MAP
-		float ao = texture(occlusionTexture, fUv).r;
-		color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
+		color3 *= mix(1.0, occlusion, uMaterial.occlusionStrength);
 	#endif
 
 	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)

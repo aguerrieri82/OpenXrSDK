@@ -12,7 +12,7 @@
 
         public string? TessEvalSourceName { get; set; }
 
-        public Func<string, string>? Resolver { get; set; }
+        public Func<string, string?>? Resolver { get; set; }
 
         public bool IsLit { get; set; }
 

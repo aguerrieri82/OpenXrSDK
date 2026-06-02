@@ -158,6 +158,8 @@ namespace XrEngine
 
                 var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
+                bld.AddFeature("PBR_V2");
+
                 if (ToneMap)
                     bld.AddFeature("TONEMAP");
 
@@ -392,12 +394,12 @@ namespace XrEngine
         {
             SHADER = new PbrV2Shader
             {
-                FragmentSourceName = "PbrV2/pbr.frag",
+                FragmentSourceName = "PbrV2/pbr_gpt.frag",
                 VertexSourceName = "PbrV2/pbr.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
                 GeometrySourceName = "Shared/height_map.geom",
-                Resolver = str => Embedded.GetString(str),
+                Resolver = str => Embedded.TryGetString(str),
                 VaryByModel = true,
                 IsLit = true,
             };
@@ -411,8 +413,19 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
-
             UseInstanceDraw = true;
+            Resolver = str =>
+            {
+                if (str.Contains("fragment_defaults.glsl"))
+                {
+                    if (!string.IsNullOrWhiteSpace(FragmentDefaultShader))
+                        return FragmentDefaultShader;
+
+                    return Embedded.GetString("PbrV2/pbr_defaults.glsl");  
+                }
+
+                return null;
+            };
         }
 
 
@@ -458,7 +471,7 @@ namespace XrEngine
                 EmissiveColor = EmissiveColor
             };
 
-            bld.AddFeature("PBR_V2");
+            bld.AddFeature($"LOAD_FRAGMENT_PROPS {FragmentDefaultLoader ?? "LoadFragmentProperties()"}");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
@@ -467,7 +480,6 @@ namespace XrEngine
 
             if (Simplified)
                 bld.AddFeature("SIMPLIFIED");
-
 
             if (UseEnvDepth)
                 bld.AddFeature("USE_ENV_DEPTH");
@@ -694,9 +706,7 @@ namespace XrEngine
 
         public Texture2D? NormalMap { get; set; }
 
-
         public NormalMapFormat NormalMapFormat { get; set; }
-
 
         public bool ReceiveShadows { get; set; }
 
@@ -730,7 +740,9 @@ namespace XrEngine
 
         public bool UseInstanceDraw { get; set; }
 
-        public static bool ForceIblTransform { get; set; } = true;
+        public string? FragmentDefaultShader { get; set; }
+
+        public string? FragmentDefaultLoader { get; set; }  
 
         public Matrix3x3? UV0Transform { get; set; }
 
@@ -741,6 +753,8 @@ namespace XrEngine
             get => SHADER.ToneMap;
             set => SHADER.ToneMap = value;
         }
+
+        public static bool ForceIblTransform { get; set; } = true;
 
     }
 }
