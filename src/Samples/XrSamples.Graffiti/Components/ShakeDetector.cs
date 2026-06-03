@@ -61,51 +61,51 @@ namespace XrSamples.Graffiti
                 return;
             }
 
-            float linearSpeed = linearVelocity.Length();
-            float angularSpeed = angularVelocity.Length();
+            var linearSpeed = linearVelocity.Length();
+            var angularSpeed = angularVelocity.Length();
 
             //Log.Value("Linear", linearSpeed);
             //Log.Value("Angular", angularSpeed);
 
-            bool strongLinearMotion = linearSpeed >= LinearThreshold;
-            bool strongAngularMotion = angularSpeed >= AngularThreshold;
+            var strongLinearMotion = linearSpeed >= LinearThreshold;
+            var strongAngularMotion = angularSpeed >= AngularThreshold;
 
-            bool strongMotion = strongLinearMotion || strongAngularMotion;
+            var strongMotion = strongLinearMotion || strongAngularMotion;
 
-            bool linearDirectionChanged =
+            var linearDirectionChanged =
                 HasDirectionChanged(
                     _lastLinearVelocity,
                     linearVelocity,
                     DirectionChangeThreshold);
 
-            bool angularDirectionChanged =
+            var angularDirectionChanged =
                 HasDirectionChanged(
                     _lastAngularVelocity,
                     angularVelocity,
                     DirectionChangeThreshold);
 
-            bool directionChanged =
+            var directionChanged =
                 linearDirectionChanged || angularDirectionChanged;
 
-            float shakeScore =
+            var shakeScore =
                 linearSpeed * LinearWeight +
                 angularSpeed * AngularWeight;
 
-            float scoreThreshold =
+            var scoreThreshold =
                 LinearThreshold * LinearWeight +
                 AngularThreshold * AngularWeight;
 
-            bool hardAngularHit = angularSpeed >= HardAngularThreshold;
-            bool hardLinearHit = linearSpeed >= HardLinearThreshold;
+            var hardAngularHit = angularSpeed >= HardAngularThreshold;
+            var hardLinearHit = linearSpeed >= HardLinearThreshold;
 
-            bool hardShakeHit = hardAngularHit || hardLinearHit;
+            var hardShakeHit = hardAngularHit || hardLinearHit;
 
-            bool repeatedShakeImpulse =
+            var repeatedShakeImpulse =
                 strongMotion &&
                 directionChanged &&
                 shakeScore >= scoreThreshold * 0.75f;
 
-            bool shakeImpulse = repeatedShakeImpulse || hardShakeHit;
+            var shakeImpulse = repeatedShakeImpulse || hardShakeHit;
 
             if (shakeImpulse)
             {
@@ -152,16 +152,16 @@ namespace XrSamples.Graffiti
             Vector3 current,
             float dotThreshold)
         {
-            float previousLengthSq = previous.LengthSquared();
-            float currentLengthSq = current.LengthSquared();
+            var previousLengthSq = previous.LengthSquared();
+            var currentLengthSq = current.LengthSquared();
 
             if (previousLengthSq < 0.0001f || currentLengthSq < 0.0001f)
                 return false;
 
-            Vector3 previousDir = Vector3.Normalize(previous);
-            Vector3 currentDir = Vector3.Normalize(current);
+            var previousDir = Vector3.Normalize(previous);
+            var currentDir = Vector3.Normalize(current);
 
-            float dot = Vector3.Dot(previousDir, currentDir);
+            var dot = Vector3.Dot(previousDir, currentDir);
 
             return dot <= dotThreshold;
         }

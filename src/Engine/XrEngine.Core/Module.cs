@@ -39,6 +39,8 @@ namespace XrEngine
             typeState.Register(new StateObjectManager<IStateObject>());
             typeState.Register(DefaultStateManager.Instance);
             typeState.Register(ObjectStateManager.Instance);
+
+            Embedded.Register(typeof(Module).Assembly);
         }
 
         public void Shutdown()

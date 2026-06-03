@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
 using XrEngine.OpenGL;
@@ -17,7 +16,7 @@ namespace XrSamples.Graffiti
     public class GlSimulationPass : GlBaseRenderPass
     {
         protected readonly GlTextureFrameBuffer _sprayFrameBuffer;
-        
+
         protected SprayBrush? _brush;
         protected GlVertexSourceHandle? _brushSource;
 
@@ -48,7 +47,7 @@ namespace XrSamples.Graffiti
         private bool _isFirstSizeUpdate;
 
         public GlSimulationPass(OpenGLRender renderer)
-            : base(renderer)    
+            : base(renderer)
         {
             UseInstance = true;
             SpraySpacing = 0.005f;
@@ -65,7 +64,7 @@ namespace XrSamples.Graffiti
 
             _accumulateProgram = new GlComputeProgram(renderer.GL, "paint_accumulate.comp", str => Embedded.GetString<GlSimulationPass>(str));
             _accumulateProgram.Build();
-       
+
             _dripProgram = new GlComputeProgram(renderer.GL, "paint_drip.comp", str => Embedded.GetString<GlSimulationPass>(str));
             _dripProgram.Build();
 
@@ -125,7 +124,7 @@ namespace XrSamples.Graffiti
 
             GlState.Current!.SetActiveProgram(0);
 
-            _lastFrame = ctx.Frame; 
+            _lastFrame = ctx.Frame;
         }
 
 
@@ -160,7 +159,7 @@ namespace XrSamples.Graffiti
 
         protected void UpdateCanvasSize()
         {
-            
+
             var data = new TextureData
             {
                 Format = TextureFormat.RgbaFloat16,
@@ -237,7 +236,7 @@ namespace XrSamples.Graffiti
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
-            var temp = _wetTex;   
+            var temp = _wetTex;
             _wetTex = _tempWetTex;
             _tempWetTex = temp;
         }
@@ -266,14 +265,14 @@ namespace XrSamples.Graffiti
                 Origin = _tracker!.SprayCenter.Transform(_can!.WorldMatrix),
                 Direction = Vector3.TransformNormal(_tracker.SprayDirection, _can.WorldMatrix)
             };
- 
+
             var canvasQuod = new Quad3
             {
                 Size = _canvas!.Size,
                 Pose = _canvas.GetWorldPose()
             };
 
-            bool isInCanvas = ray.Intersects(canvasQuod, out var curCanvasTarget);
+            var isInCanvas = ray.Intersects(canvasQuod, out var curCanvasTarget);
 
             var curPose = _can.GetWorldPose();
 
@@ -314,9 +313,9 @@ namespace XrSamples.Graffiti
 
                 if (!UseInstance)
                 {
-                    for (int i = 0; i < sampleCount; ++i)
+                    for (var i = 0; i < sampleCount; ++i)
                     {
-                        float factor =
+                        var factor =
                             sampleCount == 1
                                 ? 1.0f
                                 : (i + 1.0f) / sampleCount;

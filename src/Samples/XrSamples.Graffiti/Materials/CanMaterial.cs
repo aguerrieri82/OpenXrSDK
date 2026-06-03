@@ -1,8 +1,4 @@
-﻿using Silk.NET.Direct3D11;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using XrEngine;
+﻿using XrEngine;
 using XrMath;
 
 namespace XrSamples.Graffiti
@@ -26,6 +22,6 @@ namespace XrSamples.Graffiti
         }
 
 
-        public Color CanColor { get; set; } 
+        public Color CanColor { get; set; }
     }
 }

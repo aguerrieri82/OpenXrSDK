@@ -1,11 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine;
-using XrEngine.OpenGL;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
 
@@ -26,11 +20,11 @@ namespace XrSamples.Graffiti
         readonly Texture2D _normalTexture;
         readonly Texture2D _roughnessTexture;
         readonly Texture2D _sprayTexture;
-        private TriangleMesh _quad;
-        private float _texelSize;
+        private readonly TriangleMesh _quad;
+        private readonly float _texelSize;
         private Can? _can;
         private PaintCanvasDebug _debug;
-        private PaintFrame _frame;
+        private readonly PaintFrame _frame;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f)
         {
@@ -51,7 +45,7 @@ namespace XrSamples.Graffiti
             _colorTexture = new Texture2D();
             _normalTexture = new Texture2D();
             _roughnessTexture = new Texture2D();
-            
+
             _quad = new TriangleMesh(new Quad3D(_size), new PbrV2Material()
             {
                 ColorMap = _colorTexture,
@@ -82,7 +76,7 @@ namespace XrSamples.Graffiti
 
             quad3D.Size = newSize;
             quad3D.Build();
-            quad3D.NotifyChanged(ObjectChangeType.Geometry);    
+            quad3D.NotifyChanged(ObjectChangeType.Geometry);
 
             _frame.Size = newSize;
             _frame.Build();
@@ -96,7 +90,7 @@ namespace XrSamples.Graffiti
         {
             Vector3 worldGravity = new(0.0f, 1.0f, 0.0f);
 
-            Vector3 localGravity =
+            var localGravity =
                 Vector3.TransformNormal(worldGravity, WorldMatrixInverse);
 
             Vector2 g = new(localGravity.X, localGravity.Y);

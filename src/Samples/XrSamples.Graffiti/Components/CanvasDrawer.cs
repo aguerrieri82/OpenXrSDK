@@ -1,9 +1,6 @@
 ﻿using OpenXr.Framework.Oculus;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -23,7 +20,7 @@ namespace XrSamples.Graffiti
         Vector3 _point2;
         private XrOculusTouchController? _inputs;
         private PaintFrame? _frame;
-        private PaintCanvas _canvas;
+        private PaintCanvas? _canvas;
 
         public void Configure(XrEngineApp e)
         {
@@ -69,7 +66,7 @@ namespace XrSamples.Graffiti
 
             if (_frame == null)
             {
-                _frame = new PaintFrame(new Vector2(width, height), new PbrV2Material { Color = new XrMath.Color(1,0,0) });
+                _frame = new PaintFrame(new Vector2(width, height), new PbrV2Material { Color = new XrMath.Color(1, 0, 0) });
                 _frame.Name = "DrawFrame";
                 _host!.Scene!.AddChild(_frame);
             }
@@ -85,15 +82,19 @@ namespace XrSamples.Graffiti
 
         protected override void Update(RenderContext ctx)
         {
-            var controller = _inputs?.Right?.GripPose;
+            Debug.Assert(_inputs?.Right?.Thumbstick != null);
+            Debug.Assert(_inputs?.Right?.GripPose != null);
 
-            if (controller == null || !controller.IsActive)
+            var controller = _inputs.Right.GripPose;
+            var thumb = _inputs.Right.Thumbstick;
+
+            if (!controller.IsActive)
                 return;
 
             _canvas ??= _host!.Descendants<PaintCanvas>().First();
 
-            bool isChanged = _inputs!.Right!.SqueezeClick!.IsChanged;
-            bool isOn = _inputs!.Right!.SqueezeClick.Value;
+            var isChanged = _inputs!.Right!.SqueezeClick!.IsChanged;
+            var isOn = _inputs!.Right!.SqueezeClick.Value;
 
             if (_state == State.Point1 && isChanged)
             {
@@ -120,15 +121,14 @@ namespace XrSamples.Graffiti
                 }
             }
 
-            isChanged = _inputs!.Right!.Thumbstick.IsChanged;
-
-            if (isChanged)
+            if (thumb.IsChanged)
             {
-                var value = _inputs!.Right!.Thumbstick.Value;
+                var value = thumb.Value;
+
                 if (value.Y != 0)
                 {
                     var forward = _canvas.Forward;
-                    var newPos = _canvas.WorldPosition  + (forward * value.Y * 0.002f);
+                    var newPos = _canvas.WorldPosition + (forward * value.Y * 0.002f);
                     _canvas.WorldPosition = newPos;
                 }
             }

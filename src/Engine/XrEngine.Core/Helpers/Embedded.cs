@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace XrEngine
 {
     public static class Embedded
     {
-        static Dictionary<string, string> _resCache = [];
+        static readonly Dictionary<string, string> _resCache = [];
+        static readonly HashSet<Assembly> _assemblies = [];
 
         public static string GetString(string resName)
         {
@@ -26,6 +26,7 @@ namespace XrEngine
                 Log.Warn("RESOURCES", "Req: '{0}'\n{1}", resName, string.Join("\n", ctx.GetManifestResourceNames()));
                 throw new InvalidOperationException($"Resource '{resName}' not found in assembly '{ctx.FullName}'");
             }
+
             return result;
         }
 
@@ -63,6 +64,11 @@ namespace XrEngine
                 _resCache[reqName] = result;
             }
             return result;
+        }
+
+        public static void Register(Assembly assembly)
+        {
+            _assemblies.Add(assembly);
         }
     }
 }

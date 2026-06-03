@@ -1,9 +1,4 @@
-﻿using DotSpatial.Projections.Transforms;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
@@ -164,7 +159,7 @@ namespace XrSamples.Graffiti
         {
             normal = Vector3.Normalize(normal);
 
-            Vector3 helper = MathF.Abs(Vector3.Dot(normal, Vector3.UnitY)) < 0.999f
+            var helper = MathF.Abs(Vector3.Dot(normal, Vector3.UnitY)) < 0.999f
                 ? Vector3.UnitY
                 : Vector3.UnitX;
 
@@ -177,12 +172,12 @@ namespace XrSamples.Graffiti
 
         [ValueType(XrEngine.ValueType.Radiant)]
         public float SpreadAngle { get; set; }
-        
+
         public Vector3 SprayCenter { get; set; }
 
         public Vector3 SprayDirection { get; set; }
 
-        public float SprayRadius { get; set; }  
+        public float SprayRadius { get; set; }
 
         public float RadialFalloff { get; set; }
 

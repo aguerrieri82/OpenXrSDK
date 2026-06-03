@@ -1,5 +1,4 @@
 ﻿using OpenXr.Framework.Oculus;
-using System.Runtime.InteropServices;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -10,6 +9,8 @@ namespace XrSamples.Graffiti
         [Sample("Graffiti")]
         public static XrEngineAppBuilder CreateGraffiti(this XrEngineAppBuilder builder)
         {
+            Embedded.Register(typeof(Builder).Assembly);
+
             var app = new EngineApp();
 
             var scene = new MainScene();
@@ -23,7 +24,7 @@ namespace XrSamples.Graffiti
                     .UseRightController()
                     .UseInputs<XrOculusTouchController>(a => a
                         .AddAction(b => b.Right!.Haptic)
-                        .AddAction(b=> b.Right!.Thumbstick)
+                        .AddAction(b => b.Right!.Thumbstick)
                         .AddAction(b => b.Right!.ThumbstickClick))
                     .AddPassthrough();
             //.UseTeleport(ControllerHand.Left, scene.Player);

@@ -1,9 +1,6 @@
 ﻿using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
@@ -12,7 +9,7 @@ namespace XrSamples.Graffiti
 {
     public class InputController : Behavior<MainScene>, IDrawGizmos
     {
-        private  XrOculusTouchController? _inputs;
+        private XrOculusTouchController? _inputs;
         private PaintCanvas? _canvas;
         private PaintSelector? _paintSelector;
         private Can? _can;
@@ -76,7 +73,7 @@ namespace XrSamples.Graffiti
 
                 var waitTime = 0.3f - (MathF.Abs(scrollValue.X) * 0.2f);
 
-                if (scrollDir != 0 && (ctx.Time - _lastScrollTime ) > waitTime)
+                if (scrollDir != 0 && (ctx.Time - _lastScrollTime) > waitTime)
                 {
                     var newIndex = Math.Min(_paintSelector.Colors.Count - 1, Math.Max(0, _paintSelector.ActiveIndex + scrollDir));
                     _paintSelector.SetActiveIndex((int)newIndex);
@@ -98,7 +95,7 @@ namespace XrSamples.Graffiti
                 var forward = (-Vector3.UnitY).Transform(pose.Orientation);
 
                 canvas.State.Color = new Color(0, 0, 1);
-                canvas.DrawLine(pose.Position, pose.Position + forward);    
+                canvas.DrawLine(pose.Position, pose.Position + forward);
             }
         }
 

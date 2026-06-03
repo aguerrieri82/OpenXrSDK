@@ -1,8 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.OpenGL;
@@ -15,12 +11,12 @@ namespace XrSamples.Graffiti
 
     public class MainScene : Scene3D
     {
-        private Can _can;
-        private PaintCanvas _canvas;
-        private SprayBrush _spray;
-        private CanvasDrawer _canvasDrawer;
-        private InputController _input;
-        private PaintSelector _paintSelector;
+        private readonly Can _can;
+        private readonly PaintCanvas _canvas;
+        private readonly SprayBrush _spray;
+        private readonly CanvasDrawer _canvasDrawer;
+        private readonly InputController _input;
+        private readonly PaintSelector _paintSelector;
 
         public MainScene()
         {
@@ -62,7 +58,7 @@ namespace XrSamples.Graffiti
             {
                 Pose = new Pose3
                 {
-                    Position= new Vector3(0, 1, 0),
+                    Position = new Vector3(0, 1, 0),
                     Orientation = Quaternion.Identity
                 },
                 Size = new Vector2(2, 2)

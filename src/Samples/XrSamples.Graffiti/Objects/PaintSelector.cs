@@ -1,7 +1,4 @@
-﻿using CanvasUI;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrMath;
 
@@ -13,7 +10,7 @@ namespace XrSamples.Graffiti
         readonly List<PbrV2Material> _materials = [];
 
         protected Geometry3D? _buttonGeometry;
-        private TriangleMesh _selectedMesh;
+        protected readonly TriangleMesh _selectedMesh;
         protected float _visualIndex = -1;
         protected int _activeIndex = 0;
 
@@ -47,7 +44,7 @@ namespace XrSamples.Graffiti
             Radius = 0.10f;
             ButtonScale = 0.015f;
             MaxButtonsInCircle = 7;
-            ArcRadians = MathF.PI; 
+            ArcRadians = MathF.PI;
             AnimationSpeed = 12.0f;
             IsVisible = false;
 
@@ -77,8 +74,8 @@ namespace XrSamples.Graffiti
         {
             EnsureButtons();
 
-            float dt = (float)ctx.DeltaTime;
-            float t = 1.0f - MathF.Exp(-AnimationSpeed * dt);
+            var dt = (float)ctx.DeltaTime;
+            var t = 1.0f - MathF.Exp(-AnimationSpeed * dt);
 
             _visualIndex = Lerp(_visualIndex, _activeIndex, t);
 
@@ -124,7 +121,7 @@ namespace XrSamples.Graffiti
                 AddChild(button);
             }
 
-            for (int i = Colors.Count; i < _buttons.Count; i++)
+            for (var i = Colors.Count; i < _buttons.Count; i++)
             {
                 _materials[i].Color = Color.Transparent;
                 _materials[i].IsEnabled = false;
@@ -136,15 +133,15 @@ namespace XrSamples.Graffiti
             if (Colors.Count == 0)
                 return;
 
-            int maxVisible = Math.Max(1, MaxButtonsInCircle);
-            float halfSlots = (maxVisible - 1) * 0.5f;
+            var maxVisible = Math.Max(1, MaxButtonsInCircle);
+            var halfSlots = (maxVisible - 1) * 0.5f;
 
-            float angleStep =
+            var angleStep =
                 maxVisible <= 1
                     ? 0
                     : ArcRadians / (maxVisible - 1);
 
-            for (int i = 0; i < Colors.Count; i++)
+            for (var i = 0; i < Colors.Count; i++)
             {
                 var button = _buttons[i];
                 var mat = _materials[i];
@@ -168,7 +165,7 @@ namespace XrSamples.Graffiti
 
                     button.Transform.Position = pos;
 
-                    float normalizedAway = halfSlots <= 0 ? 0 : absRel / halfSlots;
+                    var normalizedAway = halfSlots <= 0 ? 0 : absRel / halfSlots;
                     normalizedAway = Math.Clamp(normalizedAway, 0, 1);
 
                     // Center = opaque, sides = faded.

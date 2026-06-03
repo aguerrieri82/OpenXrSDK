@@ -9,10 +9,11 @@ namespace XrEngine.OpenXr
     {
         public void Load()
         {
-
             TypeStateManager.Instance.Register(new XrInputStateManager());
 
             Context.Implement<IDepthPointProvider>(() => new GlDepthPointProvider(OpenGLRender.Current!.GL));
+
+            Embedded.Register(typeof(Module).Assembly);
         }
 
         public void Shutdown()

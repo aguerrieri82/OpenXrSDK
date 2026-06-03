@@ -14,23 +14,23 @@ namespace XrSamples.Graffiti
 
     public class Can : Group3D
     {
-        private Object3D _canBody;
-        private Object3D _cap;
+        private readonly Object3D _canBody;
+        private readonly Object3D _cap;
         private float _sprayAperture;
         private XrOculusTouchController? _inputs;
-        private AudioLooper _shakeLoop;
-        private AudioLooper _sprayLoop;
+        private readonly AudioLooper _shakeLoop;
+        private readonly AudioLooper _sprayLoop;
         private bool _isSpraying;
-        private AudioEmitter _emitter;
-        private ShakeDetector _shakeDetector;
+        private readonly AudioEmitter _emitter;
+        private readonly ShakeDetector _shakeDetector;
         private IAudioControl? _shakeControl;
         private IAudioControl? _sprayControl;
-        private SprayTracker? _tracker;
+        private readonly SprayTracker? _tracker;
         private Color _color;
 
         public Can()
         {
-            var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb", 
+            var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb",
                 new GltfLoaderOptions
                 {
                     MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrV2Material()
@@ -67,7 +67,7 @@ namespace XrSamples.Graffiti
 
 
             _emitter = this.AddComponent<AudioEmitter>();
-            _tracker = this.AddComponent<SprayTracker>();   
+            _tracker = this.AddComponent<SprayTracker>();
 
             _shakeDetector = this.AddComponent<ShakeDetector>();
             _shakeDetector.OnShakeEnd += OnShakeEnd;
@@ -88,8 +88,8 @@ namespace XrSamples.Graffiti
             var fullPath = GetAssetPath(resPath);
 
             var bytes = Context.Require<IAudioDecoder>().DecodeToPCM(fullPath, out var format);
-            
-            return new AudioClip(bytes, format); 
+
+            return new AudioClip(bytes, format);
         }
 
         public void Configure(XrEngineApp e)
