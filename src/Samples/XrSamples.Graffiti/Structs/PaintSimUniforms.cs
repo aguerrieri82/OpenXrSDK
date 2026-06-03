@@ -46,8 +46,7 @@ public struct PaintSimUniforms
     public float GravityStrength;
 
     [FieldOffset(68)]
-    [Obsolete]
-    public float WetDripThreshold;
+    public float PaintOpacityScale;
 
     [FieldOffset(72)]
     public float WetDripRate;

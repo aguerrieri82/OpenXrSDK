@@ -22,7 +22,7 @@ namespace XrSamples.Graffiti
             SprayCenter = new Vector3(0.3f, 1.81f, 0f);
             RadialFalloff = 2.0f;
             BaseDensity = 5f;
-            IsEnabled = XrPlatform.IsEditor;
+            IsEnabled = XrPlatform.IsEditor && false;
         }
 
         protected override void Start(RenderContext ctx)

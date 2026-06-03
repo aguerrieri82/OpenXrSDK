@@ -8,6 +8,7 @@ using XrEngine.Gltf;
 using XrEngine.Media;
 using XrEngine.OpenXr;
 using XrMath;
+using XrSamples.Graffiti.Objects;
 
 namespace XrSamples.Graffiti
 {
@@ -27,6 +28,7 @@ namespace XrSamples.Graffiti
         private IAudioControl? _sprayControl;
         private readonly SprayTracker? _tracker;
         private Color _color;
+        private SprayRays? _spray;
 
         public Can()
         {
@@ -130,14 +132,18 @@ namespace XrSamples.Graffiti
 
         protected void OnSprayStart()
         {
+            _spray ??= _scene?.Descendants<SprayRays>().First();
+
             _sprayControl = _emitter!.Play(_sprayLoop!, () => Forward);
             _isSpraying = true;
+            _spray?.IsVisible = true;   
         }
 
         protected void OnSprayEnd()
         {
             _isSpraying = false;
             _sprayControl?.Stop();
+            _spray?.IsVisible = false;
         }
 
         protected virtual void OnShakeEnd()

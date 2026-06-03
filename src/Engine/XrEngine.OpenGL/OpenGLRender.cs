@@ -395,6 +395,7 @@ namespace XrEngine.OpenGL
             _updateCtx.PassCamera = ctx.Camera;
             _updateCtx.MainCamera = ctx.Camera;
             _updateCtx.Frame = ctx.Frame;
+            _updateCtx.Time = (float)ctx.Time;
             _updateCtx.ContextVersion++;
 
             foreach (var pass in _renderPasses)

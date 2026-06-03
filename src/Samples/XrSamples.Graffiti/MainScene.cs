@@ -4,6 +4,7 @@ using XrEngine.Audio;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
+using XrSamples.Graffiti.Objects;
 
 namespace XrSamples.Graffiti
 {
@@ -14,6 +15,7 @@ namespace XrSamples.Graffiti
         private readonly Can _can;
         private readonly PaintCanvas _canvas;
         private readonly SprayBrush _spray;
+        private readonly SprayRays _sprayRays;
         private readonly CanvasDrawer _canvasDrawer;
         private readonly InputController _input;
         private readonly PaintSelector _paintSelector;
@@ -66,9 +68,12 @@ namespace XrSamples.Graffiti
 
             _spray = new SprayBrush(30, 10);
 
+            _sprayRays = new SprayRays(_spray.Geometry!);
+
             AddChild(_can);
             AddChild(_canvas);
             AddChild(_spray);
+            AddChild(_sprayRays);
 
             _can.SetWorldPose(new Pose3()
             {

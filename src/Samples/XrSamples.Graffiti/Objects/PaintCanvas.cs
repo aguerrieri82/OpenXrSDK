@@ -36,6 +36,7 @@ namespace XrSamples.Graffiti
             DripRate = 0.1f;
             GravityStrength = 1.0f;
             SpraySpacing = 0.002f;
+            PaintOpacityScale = 2.5f;
 
             _size = quad.Size;
             _texelSize = texelSize;
@@ -125,6 +126,7 @@ namespace XrSamples.Graffiti
             block.DensityToCoverage = DensityToCoverage;
             block.DryRate = DryRate;
             block.WetDripRate = DripRate;
+            block.PaintOpacityScale = PaintOpacityScale;
         }
 
 
@@ -183,6 +185,9 @@ namespace XrSamples.Graffiti
         public float WetRoughness { get; set; }
 
         public float NormalScale { get; set; }
+
+        [Range(0, 10, 0.1f)]
+        public float PaintOpacityScale { get; set; }
 
         [Range(0, 1, 0.001f)]
         public float SpraySpacing { get; set; }

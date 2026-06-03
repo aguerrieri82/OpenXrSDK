@@ -38,7 +38,7 @@ layout(std140, binding = 11) uniform PaintParams
     // Drip simulation.
     vec2 GravityCanvas;
     float GravityStrength;
-    float WetDripThreshold;
+    float PaintOpacityScale;
     float WetDripRate;
 };
 

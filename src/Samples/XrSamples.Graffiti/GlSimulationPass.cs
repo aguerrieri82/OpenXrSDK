@@ -115,7 +115,7 @@ namespace XrSamples.Graffiti
                 _canvas.ClearRequest = false;
             }
 
-            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 10);
+            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 10, true);
             GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 11);
 
             RenderSpray(ctx);
@@ -285,6 +285,7 @@ namespace XrSamples.Graffiti
 
             var useFrameBuffer = mustDraw || !_isSprayClear;
 
+            _tracker.Update(ref _sprayUniforms);
 
             if (useFrameBuffer)
             {
@@ -310,7 +311,6 @@ namespace XrSamples.Graffiti
                 sampleCount = Math.Min(sampleCount, SprayMaxSamples);
 
                 _sprayProgram.Use();
-                _tracker.Update(ref _sprayUniforms);
 
                 _brushSource!.Bind();
 
@@ -352,6 +352,12 @@ namespace XrSamples.Graffiti
 
                 _isSprayClear = false;
             }
+            else
+            {
+                if (_can!.SprayAperture > 0)
+                    _sprayUniformsBuffer.Update(_sprayUniforms);
+            }
+    
 
             _prevCanvasTarget = curCanvasTarget;
             _prevPose = curPose;
