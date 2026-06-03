@@ -20,6 +20,7 @@ void BuildBasis(
     tangent = normalize(cross(helper, n));
     bitangent = normalize(cross(n, tangent));
 }
+
 vec4 NormalizeQuat(vec4 q)
 {
     return normalize(q);
@@ -27,10 +28,8 @@ vec4 NormalizeQuat(vec4 q)
 
 vec4 NlerpQuat(vec4 a, vec4 b, float t)
 {
-    // Keep shortest path.
     if (dot(a, b) < 0.0)
         b = -b;
-
     return normalize(mix(a, b, t));
 }
 
@@ -106,7 +105,6 @@ mat4 GetHostLocalToWorld()
 
 void main()
 {
-
     mat4 hostLocalToWord = GetHostLocalToWorld();
 
     vec3 sprayDirLocal = normalize(uSprayDirectionLocal);

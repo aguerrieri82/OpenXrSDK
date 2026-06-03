@@ -12,7 +12,7 @@
     vec2 uCanvasSize;
 
     float uDensityScale;
-    float uDistanceFalloff;
+    float _uDistanceFalloff;
     float uRadialFalloff;
 
     vec3 uPrevPosition;

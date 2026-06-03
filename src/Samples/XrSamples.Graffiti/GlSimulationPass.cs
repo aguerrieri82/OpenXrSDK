@@ -50,7 +50,6 @@ namespace XrSamples.Graffiti
             : base(renderer)
         {
             UseInstance = true;
-            SpraySpacing = 0.005f;
             SprayMaxSamples = 100;
 
             _sprayFrameBuffer = new GlTextureFrameBuffer(_gl);
@@ -301,7 +300,7 @@ namespace XrSamples.Graffiti
             {
                 var distance = (curCanvasTarget - _prevCanvasTarget).Length();
 
-                var sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / SpraySpacing));
+                var sampleCount = Math.Max(1, (int)MathF.Ceiling(distance / _canvas.SpraySpacing));
                 sampleCount = Math.Min(sampleCount, SprayMaxSamples);
 
                 _sprayProgram.Use();
@@ -336,7 +335,7 @@ namespace XrSamples.Graffiti
                     _sprayUniforms.CurPosition = curPose.Position;
                     _sprayUniforms.CurRotation = curPose.Orientation;
                     _sprayUniforms.StepCount = sampleCount;
-                    _sprayUniforms.HostScale = _can.Transform.Scale;
+                    _sprayUniforms.CanScale = _can.Transform.Scale;
 
                     _sprayUniformsBuffer.Update(_sprayUniforms);
 
@@ -361,8 +360,6 @@ namespace XrSamples.Graffiti
 
 
         public bool UseInstance { get; set; }
-
-        public float SpraySpacing { get; set; }
 
         public int SprayMaxSamples { get; set; }
     }

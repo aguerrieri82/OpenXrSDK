@@ -34,20 +34,19 @@ namespace XrSamples.Graffiti.Shaders
         public float DensityScale;
 
         [FieldOffset(244)]
+        [Obsolete]
         public float DistanceFalloff;
 
         [FieldOffset(248)]
         public float RadialFalloff;
 
-        // Appended fields for USE_INSTANCE path.
-        // Previous host/can world pose.
+
         [FieldOffset(256)]
         public Vector3 PrevPosition;
 
         [FieldOffset(272)]
         public Quaternion PrevRotation;
 
-        // Current host/can world pose.
         [FieldOffset(288)]
         public Vector3 CurPosition;
 
@@ -58,6 +57,6 @@ namespace XrSamples.Graffiti.Shaders
         public int StepCount;
 
         [FieldOffset(336)]
-        public Vector3 HostScale;
+        public Vector3 CanScale;
     }
 }

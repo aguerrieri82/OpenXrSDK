@@ -8,46 +8,36 @@ namespace XrSamples.Graffiti.Shaders;
 [StructLayout(LayoutKind.Explicit, Size = 80)]
 public struct PaintSimUniforms
 {
-    // ivec2 CanvasSize;
     [FieldOffset(0)]
     public Vector2I CanvasSize;
 
-    // float DeltaTime;
     [FieldOffset(8)]
     public float DeltaTime;
 
-    // float DryRate;
     [FieldOffset(12)]
     public float DryRate;
 
-    // vec4 PaintColor;
     [FieldOffset(16)]
     public Vector4 PaintColor;
 
-    // float DensityToCoverage;
     [FieldOffset(32)]
     public float DensityToCoverage;
 
-    // float DensityToHeight;
     [FieldOffset(36)]
+    [Obsolete]
     public float DensityToHeight;
 
-    // float NormalScale;
     [FieldOffset(40)]
     public float NormalScale;
 
-    // float DryRoughness;
     [FieldOffset(44)]
     public float DryRoughness;
 
-    // float WetRoughness;
     [FieldOffset(48)]
     public float WetRoughness;
 
-    // float Metallic;
     [FieldOffset(52)]
     public float Metallic;
-
 
     [FieldOffset(56)]
     public Vector2 GravityCanvas;
@@ -56,6 +46,7 @@ public struct PaintSimUniforms
     public float GravityStrength;
 
     [FieldOffset(68)]
+    [Obsolete]
     public float WetDripThreshold;
 
     [FieldOffset(72)]

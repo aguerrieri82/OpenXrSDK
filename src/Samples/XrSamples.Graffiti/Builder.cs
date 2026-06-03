@@ -9,6 +9,25 @@ namespace XrSamples.Graffiti
         [Sample("Graffiti")]
         public static XrEngineAppBuilder CreateGraffiti(this XrEngineAppBuilder builder)
         {
+            var halfAngle = MathF.PI / 20f;
+            var bottomRadius = 0.01f;
+            var distance = 0.8f;
+            var baseDensity = 1f;
+
+            var topRadius = bottomRadius + distance * MathF.Sin(halfAngle);
+
+            var area1 = MathF.PI * bottomRadius * bottomRadius;
+            var area2 = MathF.PI * topRadius * topRadius;
+
+            var ratio = area1 / area2;
+
+            var newDensity = baseDensity * ratio;
+
+            var coneDensityK = MathF.Sin(halfAngle) / bottomRadius;
+            var x = 1.0f + distance * coneDensityK;
+            var ratio2 = 1.0f / (x * x);
+
+
             Embedded.Register(typeof(Builder).Assembly);
 
             var app = new EngineApp();

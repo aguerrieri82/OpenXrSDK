@@ -30,13 +30,12 @@ namespace XrSamples.Graffiti
         {
             DryRate = 0.75f;
             DensityToCoverage = 1.0f;
-            DensityToHeight = 0.025f;
-            NormalScale = 2.0f;
+            NormalScale = 2.0f * 0.025f;
             DryRoughness = 0.9f;
             WetRoughness = 0.05f;
-            DensityScale = 1f;
             DripRate = 0.1f;
             GravityStrength = 1.0f;
+            SpraySpacing = 0.002f;
 
             _size = quad.Size;
             _texelSize = texelSize;
@@ -117,20 +116,14 @@ namespace XrSamples.Graffiti
             block.GravityStrength = GravityStrength;
 
             block.PaintColor = _can.Color.ToVector4();
-            block.PaintColor.W *= DensityScale;
 
             block.DeltaTime = (float)ctx.DeltaTime;
 
             block.DryRoughness = DryRoughness;
             block.WetRoughness = WetRoughness;
-
             block.NormalScale = NormalScale;
-            block.DensityToHeight = DensityToHeight;
-
             block.DensityToCoverage = DensityToCoverage;
-
             block.DryRate = DryRate;
-
             block.WetDripRate = DripRate;
         }
 
@@ -179,8 +172,6 @@ namespace XrSamples.Graffiti
 
         public float DensityToCoverage { get; set; }
 
-        public float DensityScale { get; set; }
-
         public float GravityStrength { get; set; }
 
         public float DryRate { get; set; }
@@ -193,7 +184,8 @@ namespace XrSamples.Graffiti
 
         public float NormalScale { get; set; }
 
-        public float DensityToHeight { get; set; }
+        [Range(0, 1, 0.001f)]
+        public float SpraySpacing { get; set; }
 
         internal bool ClearRequest { get; set; }
 

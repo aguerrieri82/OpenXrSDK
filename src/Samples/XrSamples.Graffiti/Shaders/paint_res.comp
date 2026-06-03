@@ -67,10 +67,10 @@ float ResolveRoughness(vec4 dry, vec4 wet)
 
 vec3 ResolveNormal(ivec2 p)
 {
-    float hL = DensityAt(p + ivec2(-1,  0)) * DensityToHeight;
-    float hR = DensityAt(p + ivec2( 1,  0)) * DensityToHeight;
-    float hD = DensityAt(p + ivec2( 0, -1)) * DensityToHeight;
-    float hU = DensityAt(p + ivec2( 0,  1)) * DensityToHeight;
+    float hL = DensityAt(p + ivec2(-1,  0));
+    float hR = DensityAt(p + ivec2( 1,  0));
+    float hD = DensityAt(p + ivec2( 0, -1));
+    float hU = DensityAt(p + ivec2( 0,  1));
 
     float dx = hR - hL;
     float dy = hU - hD;

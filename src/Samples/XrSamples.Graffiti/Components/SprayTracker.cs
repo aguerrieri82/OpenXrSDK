@@ -20,9 +20,8 @@ namespace XrSamples.Graffiti
             SprayDirection = new Vector3(1, 0, 0);
             SprayRadius = 0.01f;
             SprayCenter = new Vector3(0.3f, 1.81f, 0f);
-            DistanceFalloff = 4.0f;
             RadialFalloff = 2.0f;
-            BaseDensity = 1.0f;
+            BaseDensity = 5f;
             IsEnabled = XrPlatform.IsEditor;
         }
 
@@ -62,16 +61,8 @@ namespace XrSamples.Graffiti
 
             uniforms.CanvasSize = _canvas.Size;
 
-            var t = Math.Clamp(_host.SprayAperture, 0.0f, 1.0f);
-
-            const float minRange = 0.35f;
-            const float flowExponent = 1.5f;
-
-            var flow = MathF.Pow(t, flowExponent);
-            var range = minRange + (1.0f - minRange) * t;
-
+            var flow = MathF.Pow(_host.SprayAperture, 1.5f);     
             uniforms.DensityScale = BaseDensity * flow;
-            uniforms.DistanceFalloff = DistanceFalloff / (range * range);
             uniforms.RadialFalloff = RadialFalloff;
         }
 
@@ -147,7 +138,7 @@ namespace XrSamples.Graffiti
                 return;
 
             canvas.Save();
-            canvas.State.Color = new Color(1, 0, 0);
+            canvas.State.Color = _host!.Color;
 
             for (var i = 0; i < _rays.Length; i++)
                 canvas.DrawLine(_rays[i].Origin, _intersets[i]);
@@ -180,8 +171,6 @@ namespace XrSamples.Graffiti
         public float SprayRadius { get; set; }
 
         public float RadialFalloff { get; set; }
-
-        public float DistanceFalloff { get; set; }
 
         public float BaseDensity { get; set; }
     }
