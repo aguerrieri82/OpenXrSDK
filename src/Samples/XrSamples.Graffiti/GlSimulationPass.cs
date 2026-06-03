@@ -32,6 +32,7 @@ namespace XrSamples.Graffiti
         protected GlTexture _wetTex;
         protected GlTexture _tempWetTex;
         protected readonly GlTexture _dryTex;
+        protected readonly GlTexture _drySurfTex;
 
         protected readonly GlBuffer<PaintSimUniforms> _paintUniformsBuffer;
         protected PaintSimUniforms _paintUniforms;
@@ -81,6 +82,7 @@ namespace XrSamples.Graffiti
             _wetTex = CreateTexture();
             _tempWetTex = CreateTexture();
             _dryTex = CreateTexture();
+            _drySurfTex = CreateTexture();
 
             _paintUniformsBuffer = new GlBuffer<PaintSimUniforms>(_gl, BufferTargetARB.UniformBuffer);
             _paintUniforms = new PaintSimUniforms();
@@ -172,6 +174,7 @@ namespace XrSamples.Graffiti
                 _dryTex.Recreate();
                 _tempWetTex.Recreate();
                 _wetTex.Recreate();
+                _drySurfTex.Recreate();
                 _canvas!.ColorTexture.ToGlTexture().Recreate();
                 _canvas!.RoughnessTexture.ToGlTexture().Recreate();
                 _canvas!.NormalTexture.ToGlTexture().Recreate();
@@ -181,6 +184,7 @@ namespace XrSamples.Graffiti
             _dryTex.Update(1, data);
             _tempWetTex.Update(1, data);
             _wetTex.Update(1, data);
+            _drySurfTex.Update(1, data);
 
             _canvas!.ColorTexture.ToGlTexture().Update(1, data);
             _canvas!.RoughnessTexture.ToGlTexture().Update(1, data);
@@ -201,6 +205,7 @@ namespace XrSamples.Graffiti
             _wetTex.Clear(Color.Transparent);
             _tempWetTex.Clear(Color.Transparent);
             _dryTex.Clear(Color.Transparent);
+            _drySurfTex.Clear(Color.Transparent);
         }
 
         protected void RenderAccumulate(RenderContext ctx)
@@ -214,9 +219,11 @@ namespace XrSamples.Graffiti
 
             _gl.BindImageTexture(1, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(2, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(3, _drySurfTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
 
-            _gl.BindImageTexture(3, _wetTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(4, _dryTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(4, _wetTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(5, _dryTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(6, _drySurfTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
             _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
@@ -235,9 +242,7 @@ namespace XrSamples.Graffiti
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
-            var temp = _wetTex;
-            _wetTex = _tempWetTex;
-            _tempWetTex = temp;
+            (_tempWetTex, _wetTex) = (_wetTex, _tempWetTex);
         }
 
 
@@ -247,10 +252,11 @@ namespace XrSamples.Graffiti
 
             _gl.BindImageTexture(0, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(2, _drySurfTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
 
-            _gl.BindImageTexture(2, _canvas!.ColorTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(3, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(4, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(3, _canvas!.ColorTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(4, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(5, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
             _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
