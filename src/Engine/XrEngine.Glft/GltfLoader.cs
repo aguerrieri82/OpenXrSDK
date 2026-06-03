@@ -78,7 +78,6 @@ namespace XrEngine.Gltf
             public int texCoord;
         }
 
-
         struct KHR_materials_sheen
         {
             public float[]? sheenColorFactor;
@@ -100,7 +99,6 @@ namespace XrEngine.Gltf
         public GltfLoader()
             : this(a => a)
         {
-
         }
 
         public GltfLoader(Func<string, string> resourceResolver)
@@ -443,14 +441,14 @@ namespace XrEngine.Gltf
         }
 
 
-        public unsafe PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
+        public PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
         {
             var gltMat = _model!.Materials[matId];
 
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrV2Material)mat;
 
-            result ??= new PbrV2Material();
+            result ??= _options.MaterialFactory(matId);
 
             result.Name = gltMat.Name;
             result.Alpha = gltMat.AlphaMode switch

@@ -459,17 +459,7 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var material = new MaterialUniforms
-            {
-                Color = Color,
-                Metalness = Metalness,
-                Roughness = Roughness,
-                ShadowColor = ShadowColor,
-                OcclusionStrength = OcclusionStrength,
-                NormalScale = NormalScale,
-                AlphaCutoff = AlphaCutoff,
-                EmissiveColor = EmissiveColor
-            };
+
 
             bld.AddFeature($"LOAD_FRAGMENT_PROPS {FragmentDefaultLoader ?? "LoadFragmentProperties()"}");
 
@@ -495,7 +485,7 @@ namespace XrEngine
 
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
-            bld.LoadBuffer(ctx =>
+            bld.LoadBuffer<MaterialUniforms>(ctx =>
             {
                 var curVersion = ContentVersion + Version;
 
@@ -504,7 +494,18 @@ namespace XrEngine
 
                 ctx.CurrentBuffer.Version = curVersion;
 
-                return (MaterialUniforms?)material;
+                return new MaterialUniforms
+                {
+                    Color = Color,
+                    Metalness = Metalness,
+                    Roughness = Roughness,
+                    ShadowColor = ShadowColor,
+                    OcclusionStrength = OcclusionStrength,
+                    NormalScale = NormalScale,
+                    AlphaCutoff = AlphaCutoff,
+                    EmissiveColor = EmissiveColor,
+                    TexTransform = ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity
+                };
 
             }, 2, BufferStore.Material);
 
@@ -603,11 +604,7 @@ namespace XrEngine
             var uv0Transform = ColorMap?.Transform ?? UV0Transform;
 
             if (uv0Transform != null)
-            {
                 bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
-                material.TexTransform = uv0Transform.Value;
-            }
-
 
             if (ColorMap != null)
             {

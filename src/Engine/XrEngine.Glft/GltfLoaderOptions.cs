@@ -6,7 +6,10 @@
         {
             ConvertColorTextureSRgb = true;
             DisableTangents = false;
+            MaterialFactory = _ => new PbrV2Material();
         }
+
+        public Func<int, PbrV2Material> MaterialFactory {  get; set; }
 
         public bool ConvertColorTextureSRgb { get; set; }
 
@@ -18,8 +21,8 @@
 
         public bool GeometryGpuOnly { get; set; }
 
-
         public bool UseCache { get; set; }
+
         public bool UseInstances { get; internal set; }
 
         public static readonly GltfLoaderOptions Default = new();

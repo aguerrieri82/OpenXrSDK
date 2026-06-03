@@ -1,17 +1,16 @@
 ﻿
 using OpenXr.Framework.Oculus;
 using System.Diagnostics;
-using System.Globalization;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Gltf;
 using XrEngine.Media;
 using XrEngine.OpenXr;
 using XrMath;
 
 namespace XrSamples.Graffiti
 {
-
 
     public class Can : Group3D
     {
@@ -31,7 +30,12 @@ namespace XrSamples.Graffiti
 
         public Can()
         {
-            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri("res://asset/uploads_files_4848386_spray_can.glb"), typeof(Group3D), null);
+            var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb", 
+                new GltfLoaderOptions
+                {
+                    MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrV2Material()
+                });
+
             _canBody = mesh.FindByName<Object3D>("CanYellow")!;
             _cap = mesh.FindByName<Object3D>("Cap")!;
             _cap.Transform.Orientation = new Quaternion(-6.181724E-08f, 0.70710677f, 0f, 0.70710677f);
@@ -78,7 +82,6 @@ namespace XrSamples.Graffiti
         {
             return Context.Require<IAssetStore>().GetPath(name);
         }
-
 
         protected AudioClip LoadAudio(string resPath)
         {
@@ -137,7 +140,6 @@ namespace XrSamples.Graffiti
             _sprayControl?.Stop();
         }
 
-
         protected virtual void OnShakeEnd()
         {
             _shakeControl?.Stop();
@@ -147,7 +149,6 @@ namespace XrSamples.Graffiti
         {
             _shakeControl = _emitter!.Play(_shakeLoop!, () => Forward);
         }
-
 
         [Range(0, 1, 0.05f)]
         public float SprayAperture
@@ -165,30 +166,14 @@ namespace XrSamples.Graffiti
             }
         }
 
-        static string CreateCanColorVec3(Color color)
-        {
-            static string F(float v) =>
-                v.ToString("0.########", CultureInfo.InvariantCulture);
-
-            return
-                $"vec3({F(color.R)}, {F(color.G)}, {F(color.B)})";
-        }
-
         public Color Color
         {
             get => _color;
             set
             {
                 _color = value;
-                
-                var mat = (PbrV2Material)((TriangleMesh)_canBody).Materials[0];
-
-                mat.FragmentDefaultLoader = $"LoadFragmentPropertiesCanColor({CreateCanColorVec3(_color)})";
-
-                mat.FragmentDefaultShader = Embedded.GetString("PbrV2/pbr_defaults.glsl") +
-                                            Embedded.GetString<Can>("can_pbr.glsl");
-
-                mat.NotifyChanged(ObjectChangeType.Material);
+                var mat = (CanMaterial)((TriangleMesh)_canBody).Materials[0];
+                mat.CanColor = _color;
             }
         }
 

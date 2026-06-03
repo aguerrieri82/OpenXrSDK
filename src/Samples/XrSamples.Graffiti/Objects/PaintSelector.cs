@@ -128,7 +128,6 @@ namespace XrSamples.Graffiti
             {
                 _materials[i].Color = Color.Transparent;
                 _materials[i].IsEnabled = false;
-                _materials[i].NotifyChanged(ObjectChangeType.Material);
             }
         }
 
@@ -179,8 +178,8 @@ namespace XrSamples.Graffiti
                     mat.Color = WithAlpha(Colors[i], Colors[i].A * alpha);
                 }
 
-                mat.IsEnabled = mat.Color.A > 0f;
-                mat.NotifyChanged(ObjectChangeType.Material);
+                mat.IsEnabled = true;
+                mat.ContentVersion++;
             }
         }
 

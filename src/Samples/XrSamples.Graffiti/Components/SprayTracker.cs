@@ -37,15 +37,11 @@ namespace XrSamples.Graffiti
             _intersets = new Vector3[_brush.Geometry!.Vertices.Length];
             _rays = new Ray3[_brush.Geometry!.Vertices.Length];
             _originalGeo = _brush.Geometry!.Clone();
-
-            base.Start(ctx);
         }
 
         protected override void Update(RenderContext ctx)
         {
             ComputeRays();
-
-            base.Update(ctx);
         }
 
         public void Update(ref PaintProjUniforms uniforms)
@@ -86,25 +82,24 @@ namespace XrSamples.Graffiti
 
         void ComputeRays()
         {
-            if (_originalGeo == null || _host == null)
+            if (_originalGeo == null || _host == null || _brush == null)
                 return;
 
             _canvas ??= _host!.Scene!.Descendants<PaintCanvas>().First();
 
             var world = _host.Transform.Matrix;
 
-            Vector3 localCenter = SprayCenter;
+            var localCenter = SprayCenter;
 
-            Vector3 localDirection = SprayDirection.LengthSquared() > 0.000001f
+            var localDirection = SprayDirection.LengthSquared() > 0.000001f
                 ? Vector3.Normalize(SprayDirection)
                 : Vector3.UnitZ;
 
-            float radius = SprayRadius;
-            float angle = MathF.Max(SpreadAngle, 0.0001f);
+            var radius = SprayRadius;
+            var angle = MathF.Max(SpreadAngle, 0.0001f);
 
-            float h = radius / MathF.Tan(angle);
-
-            Vector3 localApex = localCenter - localDirection * h;
+            var h = radius / MathF.Tan(angle);
+            var localApex = localCenter - localDirection * h;
 
             BuildBasis(localDirection, out var tangent, out var bitangent);
 
@@ -118,22 +113,17 @@ namespace XrSamples.Graffiti
             {
                 var vertex = _originalGeo!.Vertices[i].Pos;
 
-                float x = vertex.X * radius * 2f;
-                float y = vertex.Y * radius * 2f;
+                var x = vertex.X * radius * 2f;
+                var y = vertex.Y * radius * 2f;
 
-                Vector3 localOrigin =
+                var localOrigin =
                     localCenter +
                     tangent * x +
                     bitangent * y;
 
-                Vector3 localRayDirection =
-                    Vector3.Normalize(localOrigin - localApex);
-
-                Vector3 worldOrigin =
-                    localOrigin.Transform(world);
-
-                Vector3 worldDirection =
-                    Vector3.Normalize(Vector3.TransformNormal(localRayDirection, world));
+                var localRayDirection = Vector3.Normalize(localOrigin - localApex);
+                var worldOrigin = localOrigin.Transform(world);
+                var worldDirection = Vector3.Normalize(Vector3.TransformNormal(localRayDirection, world));
 
                 var ray = new Ray3
                 {
@@ -148,13 +138,12 @@ namespace XrSamples.Graffiti
                 else
                     _intersets![i] = ray.PointAt(2f);
 
-                _brush!.Geometry!.Vertices[i].Pos = _intersets[i];
-
+                _brush.Geometry!.Vertices[i].Pos = _intersets[i];
             }
 
-            _brush!.Geometry!.NotifyChanged(ObjectChangeType.Geometry);
+            _brush.Geometry!.NotifyChanged(ObjectChangeType.Geometry);
             _brush.Geometry.ComputeNormals();
-
+            _brush.IsVisible = true;
         }
 
         void IDrawGizmos.DrawGizmos(Canvas3D canvas)

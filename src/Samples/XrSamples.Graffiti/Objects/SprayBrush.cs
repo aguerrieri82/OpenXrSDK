@@ -11,10 +11,8 @@ namespace XrSamples.Graffiti
 {
     public class SprayBrush : TriangleMesh
     {
-
         public SprayBrush(int radialSubs, int innerSubs)
         {
-     
             var builder = new MeshBuilder();
 
             float radius = 0.5f;
@@ -38,7 +36,6 @@ namespace XrSamples.Graffiti
                     var p1 = new Vector3(r1 * MathF.Cos(a1), r1 * MathF.Sin(a1), 0);
                     var p2 = new Vector3(r1 * MathF.Cos(a2), r1 * MathF.Sin(a2), 0);
        
-
                     if (i == innerSubs - 1)
                         builder.AddTriangle(p1, p2, Vector3.Zero, ToUv(p1), ToUv(p2), ToUv(Vector3.Zero));
                     else
@@ -49,16 +46,10 @@ namespace XrSamples.Graffiti
                     }
                  }
             }
-
-            var texture = Context.Require<IAssetStore>().GetPath("check.png");
-
-
+        
             Geometry = builder.ToGeometry();
             Materials.Add(new WireframeMaterial() { Color = new Color(0,1,0), DoubleSided = true });
-            // Materials.Add(new TextureMaterial(Texture2D.FromImage(texture)));
-
-            IsVisible = XrPlatform.IsEditor;
+            IsVisible = false;
         }
-
     }
 }

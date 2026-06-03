@@ -18,12 +18,10 @@ namespace XrSamples.Graffiti
         private Can? _can;
         private double _lastScrollTime;
 
-
         public void Configure(XrEngineApp e)
         {
             _inputs = e.GetInputs<XrOculusTouchController>();
         }
-
 
         public void PlaceSelector(Pose3 gripPose, Vector3 localOffset)
         {
@@ -48,15 +46,14 @@ namespace XrSamples.Graffiti
             _paintSelector ??= _host!.Scene!.Descendants<PaintSelector>().First();
             _can ??= _host!.Scene!.Descendants<Can>().First();
 
-
             var clearButton = _inputs.Right.Button.AClick;
-            var thumbClick = _inputs.Right.ThumbstickClick;
+            var selectButton = _inputs.Right.ThumbstickClick;
             var hideButton = _inputs.Right.Button.BClick;
 
             if (clearButton.IsChanged && clearButton.Value)
                 _canvas.Clear();
 
-            if (thumbClick.IsChanged && thumbClick.Value)
+            if (selectButton.IsChanged && selectButton.Value)
             {
                 if (!_paintSelector.IsVisible)
                 {
@@ -76,8 +73,10 @@ namespace XrSamples.Graffiti
                 var scrollValue = _inputs.Right.Thumbstick!.Value!;
 
                 var scrollDir = MathF.Abs(scrollValue.X) > 0.5f ? MathF.Sign(scrollValue.X) : 0;
-        
-                if (scrollDir != 0 && (ctx.Time - _lastScrollTime ) > 0.3f)
+
+                var waitTime = 0.3f - (MathF.Abs(scrollValue.X) * 0.2f);
+
+                if (scrollDir != 0 && (ctx.Time - _lastScrollTime ) > waitTime)
                 {
                     var newIndex = Math.Min(_paintSelector.Colors.Count - 1, Math.Max(0, _paintSelector.ActiveIndex + scrollDir));
                     _paintSelector.SetActiveIndex((int)newIndex);
@@ -101,10 +100,8 @@ namespace XrSamples.Graffiti
                 canvas.State.Color = new Color(0, 0, 1);
                 canvas.DrawLine(pose.Position, pose.Position + forward);    
             }
-
         }
 
         bool IDrawGizmos.IsEnabled => false;
-
     }
 }

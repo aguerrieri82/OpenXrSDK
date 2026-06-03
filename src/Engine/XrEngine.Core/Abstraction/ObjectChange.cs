@@ -18,6 +18,7 @@ namespace XrEngine
         Add = 0x400,
         Remove = 0x800,
         Enabled = 0x1000,
+        Content = 0x4000,
         Material = 0x2000 | Render,
         SceneAdd = Parent | Add | Scene,
         SceneRemove = Parent | Remove | Scene,
@@ -29,6 +30,7 @@ namespace XrEngine
         MateriaAdd = Add | Material,
         MateriaRemove = Remove | Material,
         MaterialEnabled = Enabled | Material,
+        MaterialContent = Content | Material,
     }
 
     public struct ObjectChangeSet
