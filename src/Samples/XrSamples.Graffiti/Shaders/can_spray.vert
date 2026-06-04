@@ -1,5 +1,8 @@
 ﻿#include "./uniforms.glsl"
 #include "./functions.glsl"
+#include "[XrEngine.Core]Shared/uniforms.glsl" 
+#include "[XrEngine.Core]Shared/position.glsl"
+
 
 layout(location = 0) in vec3 aPosition;
 
@@ -11,7 +14,6 @@ flat out float vLineSeed;
 flat out vec3 vLineStartWorld;
 flat out vec3 vLineDirWorld;
 
-uniform mat4 uViewProjection;
 uniform float uSprayFarDistance;
 uniform float uTime;
 
@@ -231,5 +233,5 @@ void main()
         visualRayDirWorld;
 
     gl_Position =
-        uViewProjection * vec4(pointWorld, 1.0);
+        getViewProj() * vec4(pointWorld, 1.0);
 }

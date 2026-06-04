@@ -42,6 +42,14 @@ namespace XrEngine
 
         public static string? TryGetString(Assembly ctx, string resName)
         {
+            if (resName.StartsWith('['))
+            {
+                var index = resName.IndexOf(']');
+                var assName = resName.Substring(1, index - 1);
+                ctx = _assemblies.First(a => a.GetName().Name == assName);
+                resName = resName.Substring(index + 1);
+            }
+
             var reqName = $"{ctx.GetName().Name}:{resName}";
 
             if (!_resCache.TryGetValue(reqName, out var result))

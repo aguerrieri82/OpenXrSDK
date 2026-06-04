@@ -1,6 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
+using XrSamples.Dnd;
 using XrSamples.Graffiti;
 
 namespace XrEditor

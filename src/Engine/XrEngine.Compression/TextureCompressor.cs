@@ -184,7 +184,7 @@ namespace XrEngine.Compression
             {
                 if (mipsLevels == 0)
                     item.MipLevel = data.MipLevel;
-                item.Face = data.Face;
+                item.Layer = data.Layer;
                 item.Depth = data.Depth;
             }
 

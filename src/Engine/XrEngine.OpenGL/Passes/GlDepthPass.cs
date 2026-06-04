@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
 
             if (_depthTexture.Width != curDepth.Width || _depthTexture.Height != curDepth.Height)
             {
-                _depthTexture.Update(0, new TextureData
+                _depthTexture.Update(new TextureData
                 {
                     Width = curDepth.Width,
                     Height = curDepth.Height,

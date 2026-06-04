@@ -88,7 +88,7 @@ namespace XrEngine
                 Width = images[0].Width,
                 Height = images[0].Height,
                 NumSurfaces = 1,
-                NumFaces = images.Count == 1 ? 1 : images.Max(a => a.Face) + 1,
+                NumFaces = images.Count == 1 ? 1 : images.Max(a => a.Layer) + 1,
                 Depth = 1,
                 MIPMapCount = images.Count == 1 ? 1 : images.Max(a => a.MipLevel) + 1
             };
@@ -161,7 +161,7 @@ namespace XrEngine
 
             stream.WriteStruct(header);
 
-            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
+            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Layer))
             {
                 Debug.Assert(img.Data != null);
                 stream.Write(img.Data.AsSpan());

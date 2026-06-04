@@ -12,7 +12,7 @@ namespace XrSamples.Graffiti
         protected Geometry3D? _buttonGeometry;
         protected readonly TriangleMesh _selectedMesh;
         protected float _visualIndex = -1;
-        protected int _activeIndex = 0;
+        protected int _activeIndex = 2;
 
         public PaintSelector()
         {
@@ -74,13 +74,17 @@ namespace XrSamples.Graffiti
         {
             EnsureButtons();
 
-            var dt = (float)ctx.DeltaTime;
-            var t = 1.0f - MathF.Exp(-AnimationSpeed * dt);
 
-            _visualIndex = Lerp(_visualIndex, _activeIndex, t);
+            if (MathF.Abs(_visualIndex - _activeIndex) > 0.01f && IsVisible)
+            {
+                var dt = (float)ctx.DeltaTime;
+                var t = 1.0f - MathF.Exp(-AnimationSpeed * dt);
 
-            if (MathF.Abs(_visualIndex - _activeIndex) > 0.01f)
+                _visualIndex = Lerp(_visualIndex, _activeIndex, t);
+
                 LayoutButtons();
+            }
+
 
             base.Update(ctx);
         }

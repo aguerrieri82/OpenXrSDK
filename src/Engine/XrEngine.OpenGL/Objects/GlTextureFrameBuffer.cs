@@ -235,7 +235,7 @@ namespace XrEngine.OpenGL
             data.Width = Color.Width;
             data.Height = Color.Height;
             data.Compression = TextureCompressionFormat.Uncompressed;
-            data.Face = 0;
+            data.Layer = 0;
             data.MipLevel = 0;
             data.Depth = 0;
             data.Data = MemoryBuffer.CreateOrResize(data.Data, Color.Width * Color.Height * pixelSize);

@@ -13,13 +13,14 @@ namespace XrEngine.OpenGL
 {
     public static class Extensions
     {
-        public static void CheckError(this GL gl)
+        public static void CheckError(this GL gl, bool log = true)
         {
             GLEnum err;
 
             while ((err = gl.GetError()) != GLEnum.NoError)
             {
-                Log.Warn("CheckError", err.ToString());
+                if (log)
+                    Log.Warn("CheckError", err.ToString());
 
             }
         }
@@ -43,7 +44,7 @@ namespace XrEngine.OpenGL
 
                     GlState.Current!.BindTexture(target, 0);
 
-                    gL.CheckError();
+                    gL.CheckError(false);
 
                     if (curTexId == texId)
                         return target;
@@ -163,11 +164,7 @@ namespace XrEngine.OpenGL
 
             await Task.Run(async () =>
             {
-                var groups = curData.GroupBy(a => new
-                {
-                    a.Face,
-                    a.Depth
-                });
+                var groups = curData.GroupBy(a => a.Layer);
 
                 foreach (var dataGrp in groups)
                 {
@@ -337,22 +334,23 @@ namespace XrEngine.OpenGL
 
         public static GlTexture Clone(this GlTexture self, bool includeContent)
         {
-            var result = new GlTexture(self.GL);
-
-            result.Target = self.Target;
-            result.MinFilter = self.MinFilter;
-            result.MagFilter = self.MagFilter;
-            result.WrapS = self.WrapS;
-            result.WrapT = self.WrapT;
-            result.MaxAnisotropy = self.MaxAnisotropy;
-            result.BorderColor = self.BorderColor;
-            result.MaxLevel = self.MaxLevel;
-            result.BaseLevel = self.BaseLevel;
-            result.IsMutable = self.IsMutable;
+            var result = new GlTexture(self.GL)
+            {
+                Target = self.Target,
+                MinFilter = self.MinFilter,
+                MagFilter = self.MagFilter,
+                WrapS = self.WrapS,
+                WrapT = self.WrapT,
+                MaxAnisotropy = self.MaxAnisotropy,
+                BorderColor = self.BorderColor,
+                MaxLevel = self.MaxLevel,
+                BaseLevel = self.BaseLevel,
+                IsMutable = self.IsMutable
+            };
 
             var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
 
-            result.Update(1, new TextureData
+            result.Update(new TextureData
             {
                 Width = self.Width,
                 Height = self.Height,

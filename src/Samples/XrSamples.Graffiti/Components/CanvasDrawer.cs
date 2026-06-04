@@ -103,6 +103,8 @@ namespace XrSamples.Graffiti
                     _point1 = controller.Value.Position;
                     _point2 = controller.Value.Position;
                     _state = State.Point2;
+
+                    _host!.ActiveTool = GraffitiTool.CanvasDraw;
                 }
             }
 
@@ -118,14 +120,16 @@ namespace XrSamples.Graffiti
                     _frame?.IsVisible = false;
 
                     _canvas.SetCanvasSize(_frame!.Size, _frame.GetWorldPose());
+
+                    _host!.ActiveTool = GraffitiTool.None;
                 }
             }
 
-            if (thumb.IsChanged)
+            if (thumb.IsChanged && _host!.ActiveTool == GraffitiTool.None)
             {
                 var value = thumb.Value;
 
-                if (value.Y != 0)
+                if (MathF.Abs(value.Y) > 0.2f)
                 {
                     var forward = _canvas.Forward;
                     var newPos = _canvas.WorldPosition + (forward * value.Y * 0.002f);

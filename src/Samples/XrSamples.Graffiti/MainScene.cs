@@ -8,7 +8,12 @@ using XrSamples.Graffiti.Objects;
 
 namespace XrSamples.Graffiti
 {
-
+    public enum GraffitiTool
+    {
+        None,
+        CanvasDraw,
+        PaintSelector
+    }
 
     public class MainScene : Scene3D
     {
@@ -83,6 +88,8 @@ namespace XrSamples.Graffiti
 
             _paintSelector = AddChild(new PaintSelector());
         }
+
+        public GraffitiTool ActiveTool { get;  set; }
 
         public void Configure(XrEngineApp e)
         {

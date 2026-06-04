@@ -118,8 +118,9 @@ namespace XrEngine.OpenGL
                     Target = depth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                 };
 
-                _colorTexture.Update(depth, new TextureData
+                _colorTexture.Update(new TextureData
                 {
+                    Depth = depth,
                     Width = width,
                     Height = height,
                     Format = format
@@ -144,8 +145,9 @@ namespace XrEngine.OpenGL
                         Target = TextureTarget.Texture2DArray
                     };
 
-                    ((GlTexture)_depthBuffer).Update(2, new TextureData
+                    ((GlTexture)_depthBuffer).Update(new TextureData
                     {
+                        Depth = 2,
                         Width = width,
                         Height = height,
                         Format = DepthFormat
@@ -187,8 +189,9 @@ namespace XrEngine.OpenGL
                         Target = TextureTarget.Texture2D
                     };
 
-                    extra.Texture.Update(depth, new TextureData
+                    extra.Texture.Update(new TextureData
                     {
+                        Depth = depth,
                         Width = width,
                         Height = height,
                         Format = extra.Format

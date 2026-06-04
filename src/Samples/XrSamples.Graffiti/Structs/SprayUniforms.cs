@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace XrSamples.Graffiti.Shaders
 {
     [StructLayout(LayoutKind.Explicit, Size = 352)]
-    public struct PaintProjUniforms
+    public struct SprayUniforms
     {
         [FieldOffset(0)]
         public Matrix4x4 CanWorld;

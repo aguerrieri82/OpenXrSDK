@@ -7,6 +7,7 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
 using XrMath;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -20,7 +21,6 @@ namespace XrEngine.OpenGL
             _gl = gl;
             Current = this;
         }
-
 
         public void Reset()
         {
@@ -47,12 +47,8 @@ namespace XrEngine.OpenGL
             Features.Clear();
             DrawBuffers = null;
             VertexArray = null;
-
-            for (var i = 0; i < TexturesSlots.Length; i++)
-                TexturesSlots[i] = 0;
-
-            for (var i = 0; i < BufferSlots.Length; i++)
-                BufferSlots[i] = 0;
+            TexturesSlots.Clear();
+            BufferSlots.Clear();
         }
 
         public void Restore()
@@ -183,18 +179,30 @@ namespace XrEngine.OpenGL
             }
         }
 
+        uint[] GetTextureSlots(TextureTarget target)
+        {
+            if (!TexturesSlots.TryGetValue(target, out var res))
+            {
+                res = new uint[32];
+                TexturesSlots[target] = res;
+            }
+            return res;
+        }
+
         public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
             ActiveTexture ??= (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
 
-            var curSlotValue = TexturesSlots[ActiveTexture.Value];
+            var slots = GetTextureSlots(target);
+
+            var curSlotValue = slots[ActiveTexture.Value];
 
             if (curSlotValue == texId && !force)
                 return;
 
             _gl.BindTexture(target, texId);
 
-            TexturesSlots[ActiveTexture.Value] = texId;
+            slots[ActiveTexture.Value] = texId;
         }
 
         public void SetActiveTexture(int slot, bool force = false)
@@ -208,7 +216,7 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
-            var curSlotValue = TexturesSlots[slot];
+            var curSlotValue = GetTextureSlots(target)[slot];
 
             if (curSlotValue == texId && !force)
                 return;
@@ -445,24 +453,38 @@ namespace XrEngine.OpenGL
 #endif
         }
 
+        uint[] GetBufferSlots(BufferTargetARB target)
+        {
+            if (!BufferSlots.TryGetValue(target, out var res))
+            {
+                res = new uint[32];
+                BufferSlots[target] = res;
+            }
+
+            return res;
+        }
+
         public void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
         {
-            var curSlotValue = BufferSlots[slot];
+            var slots = GetBufferSlots(buffer.Target);
+
+            var curSlotValue = slots[slot];
 
             if (curSlotValue == buffer.Handle && !force)
                 return;
 
+            if (slot == 10)
+                Console.WriteLine("");
+
             _gl.BindBufferBase(buffer.Target, (uint)slot, buffer.Handle);
             buffer.Slot = slot;
 
-            BufferSlots[slot] = buffer.Handle;
+            slots[slot] = buffer.Handle;
         }
 
         public void ResetTextures()
         {
-            for (var i = 0; i < TexturesSlots.Length; i++)
-                TexturesSlots[i] = 0;
-
+            TexturesSlots.Clear();
             ActiveTexture = null;
         }
 
@@ -506,9 +528,9 @@ namespace XrEngine.OpenGL
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 
-        public readonly uint[] TexturesSlots = new uint[32];
+        public readonly Dictionary<TextureTarget, uint[]> TexturesSlots = [];
 
-        public readonly uint[] BufferSlots = new uint[32];
+        public readonly Dictionary<BufferTargetARB, uint[]> BufferSlots = [];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
 

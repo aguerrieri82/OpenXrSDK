@@ -1,6 +1,6 @@
 ﻿const float EPS = 1e-6;
 
-layout(std140, binding = 10) uniform SprayProjectionBlock
+layout(std140, binding = 13) uniform SprayProjectionBlock
 {
     mat4 uHostLocalToWorld;
     mat4 uCanvasWorldToLocal;

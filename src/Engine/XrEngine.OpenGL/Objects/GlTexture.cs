@@ -192,7 +192,7 @@ namespace XrEngine.OpenGL
                     Height = h,
                     Format = format,
                     MipLevel = mipLevel,
-                    Face = face,
+                    Layer = face,
                     Data = buffer
                 };
 
@@ -243,16 +243,15 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-
-
-        public void Update(uint depth, params TextureData[] data)
+        public void Update(params TextureData[] data)
         {
             if (data.Length == 0)
                 throw new InvalidOperationException();
 
-            Update(data[0].Width, data[0].Height, depth, data[0].Format, data[0].Compression, data, data[0].BlockSize);
+            Update(data[0].Width, data[0].Height, data[0].Depth, data[0].Format, data[0].Compression, data, data[0].BlockSize);
         }
 
+        //TODO: separate allocation from update
         public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null, uint blockSize = 0)
         {
             if (width == 0 || height == 0)
@@ -274,7 +273,7 @@ namespace XrEngine.OpenGL
 
             if (data != null && data.Count > 1)
             {
-                MaxLevel = data != null ? data.Max(a => a.MipLevel) : 0;
+                MaxLevel = data.Max(a => a.MipLevel);
             }
             else
             {
@@ -310,7 +309,7 @@ namespace XrEngine.OpenGL
                                 (SizedInternalFormat)_internalFormat,
                                 width,
                                 height,
-                                _depth);
+                                depth);
                         }
                     }
                     else
@@ -342,34 +341,34 @@ namespace XrEngine.OpenGL
 
                 if (data != null)
                 {
-                    var hasOneLevel = data.Count == 1 && data[0].MipLevel == 0;
-
-                    foreach (var level in data)
+                    foreach (var entry in data)
                     {
-
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
-                                             TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
+                                                   TextureTarget.TextureCubeMapPositiveX + (int)entry.Layer : Target;
 
                         byte* pData = null;
 
-                        if (level.Data != null)
-                            pData = level.Data.Lock();
+                        if (entry.Data != null)
+                            pData = entry.Data.Lock();
 
                         if (!_isAllocated || pData != null)
                         {
-                            GlUtils.GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
+                            GlUtils.GetPixelFormat(entry.Format, out var pixelFormat, out var pixelType);
 
-                            if (hasOneLevel && IsMutable)
+                            if (!_isAllocated)
                             {
+                                Debug.Assert(IsMutable);
+
                                 if (_depth > 1)
                                 {
+#warning I SHOULD ALLOCATE ONLY NEEDED MIP LEVELS AND NOT ONE TexImage3D for each LAYER 
                                     _gl.TexImage3D(
                                          realTarget,
-                                         0,
+                                         (int)entry.MipLevel,
                                          _internalFormat,
-                                         level.Width,
-                                         level.Height,
-                                         _depth,
+                                         entry.Width,
+                                         entry.Height,
+                                         entry.Depth,
                                          0,
                                          pixelFormat,
                                          pixelType,
@@ -379,29 +378,30 @@ namespace XrEngine.OpenGL
                                 {
                                     _gl.TexImage2D(
                                           realTarget,
-                                          0,
+                                          (int)entry.MipLevel,
                                           _internalFormat,
-                                          level.Width,
-                                          level.Height,
+                                          entry.Width,
+                                          entry.Height,
                                           0,
                                           pixelFormat,
                                           pixelType,
                                           pData);
                                 }
+
                             }
-                            else
+                            else if (_isAllocated)
                             {
                                 if (_depth > 1)
                                 {
                                     _gl.TexSubImage3D(
                                          realTarget,
-                                         (int)level.MipLevel,
+                                         (int)entry.MipLevel,
                                          0,
                                          0,
-                                         0,
-                                         level.Width,
-                                         level.Height,
-                                         level.Depth,
+                                         (int)entry.Layer,
+                                         entry.Width,
+                                         entry.Height,
+                                         entry.Depth,
                                          pixelFormat,
                                          pixelType,
                                          pData);
@@ -410,11 +410,11 @@ namespace XrEngine.OpenGL
                                 {
                                     _gl.TexSubImage2D(
                                             realTarget,
-                                            (int)level.MipLevel,
+                                            (int)entry.MipLevel,
                                             0,
                                             0,
-                                            level.Width,
-                                            level.Height,
+                                            entry.Width,
+                                            entry.Height,
                                             pixelFormat,
                                             pixelType,
                                             pData);
@@ -422,11 +422,13 @@ namespace XrEngine.OpenGL
 
                             }
 
-                            _isAllocated = true;
                         }
 
-                        level.Data?.Unlock();
+                        entry.Data?.Unlock();
                     }
+
+
+                    _isAllocated = true;
                 }
             }
             else
@@ -438,7 +440,7 @@ namespace XrEngine.OpenGL
                 foreach (var level in data)
                 {
                     var realTarget = Target == TextureTarget.TextureCubeMap ?
-                                    (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
+                                    (TextureTarget.TextureCubeMapPositiveX + (int)level.Layer) :
                                     Target;
 
                     Debug.Assert(level.Data != null);
@@ -473,11 +475,6 @@ namespace XrEngine.OpenGL
                 _gl.GenerateMipmap(Target);
         }
 
-        public void UpdateDate(params TextureData[] data)
-        {
-
-        }
-
         public void Clear(Color color, int level = 0)
         {
             var colorSpan = color.ToArray();
@@ -488,9 +485,7 @@ namespace XrEngine.OpenGL
 
             _clearExt.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
 #else
-
             _gl.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
-          
 #endif
         }
 
@@ -529,14 +524,13 @@ namespace XrEngine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureBorderColor, BorderColor.ToArray());
+
                 if (MaxAnisotropy > 0)
                     _gl.TexParameter(Target, TextureParameterName.TextureMaxAnisotropy, MaxAnisotropy);
             }
 
             if (!IsDepth)
             {
-
-
                 _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
                 _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
             }

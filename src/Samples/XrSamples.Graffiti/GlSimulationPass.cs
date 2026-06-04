@@ -43,8 +43,8 @@ namespace XrSamples.Graffiti
         protected readonly GlBuffer<PaintSimUniforms> _paintUniformsBuffer;
         protected PaintSimUniforms _paintUniforms;
 
-        protected readonly GlBuffer<PaintProjUniforms> _sprayUniformsBuffer;
-        protected PaintProjUniforms _sprayUniforms;
+        protected readonly GlBuffer<SprayUniforms> _sprayUniformsBuffer;
+        protected SprayUniforms _sprayUniforms;
 
         protected Vector3 _prevCanvasTarget;
         protected Pose3 _prevPose;
@@ -87,8 +87,8 @@ namespace XrSamples.Graffiti
             _resolveProgram = new GlComputeProgram(renderer.GL, "paint_res.comp", str => Embedded.GetString<GlSimulationPass>(str));
             _resolveProgram.Build();
 
-            _sprayUniformsBuffer = new GlBuffer<PaintProjUniforms>(_gl, BufferTargetARB.UniformBuffer);
-            _sprayUniforms = new PaintProjUniforms();
+            _sprayUniformsBuffer = new GlBuffer<SprayUniforms>(_gl, BufferTargetARB.UniformBuffer);
+            _sprayUniforms = new SprayUniforms();
 
             _paintStateBuffer = new GlBuffer<PaintStateBuffer>(_gl, BufferTargetARB.ShaderStorageBuffer);
             _paintState = new PaintStateBuffer();
@@ -115,7 +115,7 @@ namespace XrSamples.Graffiti
         }
 
         public static Rect2I ComputeSprayTextureRect(
-             in PaintProjUniforms uniforms,
+             in SprayUniforms uniforms,
              in Pose3 oldPose,
              in Pose3 curPose,
              in Vector3 canScale,
@@ -173,7 +173,7 @@ namespace XrSamples.Graffiti
         }
 
         private static void AccumulateSprayPoseBounds(
-            in PaintProjUniforms uniforms,
+            in SprayUniforms uniforms,
             in Matrix4x4 canWorld,
             in Quad3 canvasQuad,
             in Size2I textureSize,
@@ -200,19 +200,14 @@ namespace XrSamples.Graffiti
                 out var tangentLocal,
                 out var bitangentLocal);
 
-            Span<Vector2> circle = stackalloc Vector2[4]
-                    {
-                new( 1.0f,  0.0f),
-                new(-1.0f,  0.0f),
-                new( 0.0f,  1.0f),
-                new( 0.0f, -1.0f)
-            };
-
             var canvasPlane = canvasQuad.ToPlane();
 
-            for (int i = 0; i < circle.Length; i++)
+            const int sampleCount = 64;
+
+            for (int i = 0; i < sampleCount; i++)
             {
-                var c = circle[i];
+                float a = MathF.Tau * i / sampleCount;
+                var c = new Vector2(MathF.Cos(a), MathF.Sin(a));
 
                 var localCirclePoint =
                     sprayCenterLocal +
@@ -289,9 +284,9 @@ namespace XrSamples.Graffiti
                 _canvas.UndoRequest = false;
             }
 
-            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 10, true);
             GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 11);
             GlState.Current!.SetActiveBuffer(_paintStateBuffer, 12);
+            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 13);
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);
@@ -359,23 +354,24 @@ namespace XrSamples.Graffiti
                 _canvas!.SprayTexture.ToGlTexture().Recreate();
             }
 
-            _dryTex.Update(1, data);
-            _tempWetTex.Update(1, data);
-            _wetTex.Update(1, data);
-            _tempDryTex.Update(1, data);
-            _undoDryTex.Update(1, data);
-            _undoWetTex.Update(1, data);
+            _dryTex.Update(data);
+            _tempWetTex.Update(data);
+            _wetTex.Update(data);
+            _tempDryTex.Update(data);
+            _undoDryTex.Update(data);
+            _undoWetTex.Update(data);
 
-            _canvas!.ColorTexture.ToGlTexture().Update(1, data);
-            _canvas!.RoughnessTexture.ToGlTexture().Update(1, data);
-            _canvas!.NormalTexture.ToGlTexture().Update(1, data);
-            _canvas!.SprayTexture.ToGlTexture().Update(1, data);
+            _canvas!.ColorTexture.ToGlTexture().Update(data);
+            _canvas!.RoughnessTexture.ToGlTexture().Update(data);
+            _canvas!.NormalTexture.ToGlTexture().Update(data);
+            _canvas!.SprayTexture.ToGlTexture().Update(data);
 
             _sprayFrameBuffer.Configure(_canvas!.SprayTexture.ToGlTexture(), null, 1);
 
             _canvas.PaintTextures = [(Texture2D)_wetTex.ToEngineTexture(), (Texture2D)_dryTex.ToEngineTexture()];
 
-            ClearCanvas();
+            if (!_isFirstSizeUpdate)
+                ClearCanvas();
 
             _isFirstSizeUpdate = false;
 
@@ -419,8 +415,6 @@ namespace XrSamples.Graffiti
             _gl.DispatchCompute((_sprayRect.Width + 7) / 8, (_sprayRect.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
-
-
         }
 
         protected void RenderDry(RenderContext ctx)
@@ -608,8 +602,10 @@ namespace XrSamples.Graffiti
                 _isSprayClear = false;
 
                 _sprayRect = ComputeSprayTextureRect(_sprayUniforms,
-                    _prevPose, curPose, _can.Transform.Scale, canvasQuod, new Size2I(_wetTex.Width, _wetTex.Height), 0);
-            }
+                    _prevPose, curPose, _can.Transform.Scale, canvasQuod, new Size2I(_wetTex.Width, _wetTex.Height), 8);
+
+                //_sprayRect = new Rect2I(0, 0, _wetTex.Width, _wetTex.Height);
+            }   
             else
             {
                 if (isSpraying)

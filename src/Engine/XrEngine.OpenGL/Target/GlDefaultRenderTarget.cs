@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
                 isTexChanged = true;
             }
 
-            _color.Update(1, new TextureData
+            _color.Update(new TextureData
             {
                 Width = size.Width,
                 Height = size.Height,
@@ -85,7 +85,7 @@ namespace XrEngine.OpenGL
                     isTexChanged = true;
                 }
 
-                ((GlTexture)_depth).Update(1, new TextureData
+                ((GlTexture)_depth).Update(new TextureData
                 {
                     Width = size.Width,
                     Height = size.Height,

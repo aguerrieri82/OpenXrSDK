@@ -70,11 +70,13 @@ namespace XrSamples.Graffiti
                     var pose = _inputs.Right.GripPose.Value;
                     PlaceSelector(pose, new Vector3(0, 0.03f, 0));
                     _paintSelector.IsVisible = true;
+                    _host!.ActiveTool = GraffitiTool.PaintSelector;
                 }
                 else
                 {
                     _can.Color = _paintSelector.Colors[(int)_paintSelector.ActiveIndex];
                     _paintSelector.IsVisible = false;
+                    _host!.ActiveTool = GraffitiTool.None;
                 }
             }
 

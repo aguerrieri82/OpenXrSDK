@@ -13,7 +13,7 @@ namespace XrEngine
 
         public uint MipLevel { get; set; }
 
-        public uint Face { get; set; }
+        public uint Layer { get; set; }
 
         public TextureFormat Format { get; set; }
 

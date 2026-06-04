@@ -38,7 +38,7 @@ namespace XrSamples.Graffiti
             ComputeRays();
         }
 
-        public void Update(ref PaintProjUniforms uniforms)
+        public void Update(ref SprayUniforms uniforms)
         {
             if (_host == null)
                 return;

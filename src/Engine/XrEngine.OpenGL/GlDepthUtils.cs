@@ -35,6 +35,7 @@ namespace XrEngine.OpenGL
                 {
                     Width = width,
                     Height = height,
+                    Depth = arraySize,
                     Format = format,
                 };
 
@@ -50,7 +51,7 @@ namespace XrEngine.OpenGL
                     Target = arraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D,
                 };
 
-                tex.Update(arraySize, data);
+                tex.Update(data);
 
                 _depthTextures[key] = tex;
             }

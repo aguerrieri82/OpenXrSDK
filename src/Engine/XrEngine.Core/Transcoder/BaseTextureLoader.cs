@@ -101,9 +101,10 @@ namespace XrEngine
                     {
                         Width = (uint)MathF.Max(1, width >> mipLevel),
                         Height = (uint)MathF.Max(1, height >> mipLevel),
+                        Depth = faceCount,
                         MipLevel = (uint)mipLevel,
                         Format = format,
-                        Face = (uint)face,
+                        Layer = (uint)face,
                         BlockSize = blockSize,
                         Compression = comp,
                     };

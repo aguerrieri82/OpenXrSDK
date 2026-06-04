@@ -32,7 +32,7 @@ namespace XrSamples
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false,
+                IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false
