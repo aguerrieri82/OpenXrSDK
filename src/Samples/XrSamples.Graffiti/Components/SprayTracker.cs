@@ -21,7 +21,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f;
             SprayCenter = new Vector3(0.3f, 1.81f, 0f);
             RadialFalloff = 2.0f;
-            BaseDensity = 5f;
+            BaseDensity = 8f;
             IsEnabled = XrPlatform.IsEditor && false;
         }
 

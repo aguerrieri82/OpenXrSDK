@@ -4,11 +4,13 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
 using System.Numerics;
 using XrEngine;
 using XrEngine.OpenGL;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
+using System.Diagnostics;
 
 namespace XrSamples.Graffiti
 {
@@ -25,14 +27,18 @@ namespace XrSamples.Graffiti
         protected SprayTracker? _tracker;
 
         protected readonly GlComputeProgram _accumulateProgram;
+        protected readonly GlComputeProgram _dryProgram;
         protected readonly GlComputeProgram _dripProgram;
         protected readonly GlComputeProgram _resolveProgram;
         protected readonly GlSimpleProgram _sprayProgram;
 
         protected GlTexture _wetTex;
         protected GlTexture _tempWetTex;
+        protected GlTexture _undoWetTex;
+
         protected GlTexture _dryTex;
         protected GlTexture _tempDryTex;
+        protected GlTexture _undoDryTex;
 
         protected readonly GlBuffer<PaintSimUniforms> _paintUniformsBuffer;
         protected PaintSimUniforms _paintUniforms;
@@ -43,9 +49,16 @@ namespace XrSamples.Graffiti
         protected Vector3 _prevCanvasTarget;
         protected Pose3 _prevPose;
         protected long _lastFrame;
-        private bool _isSprayClear;
-        private Vector2 _lastCanvasSize;
-        private bool _isFirstSizeUpdate;
+        protected bool _isSprayClear;
+        protected Rect2I _sprayRect;
+        protected Vector2 _lastCanvasSize;
+        protected bool _isFirstSizeUpdate;
+        protected bool _spraySessionStarted;
+
+        protected readonly GlBuffer<PaintStateBuffer> _paintStateBuffer;
+        protected PaintStateBuffer _paintState;
+        protected IMemoryBuffer<byte>[] _readBuffer = new IMemoryBuffer<byte>[1];
+        private bool _hasUndo;
 
         public GlSimulationPass(OpenGLRender renderer)
             : base(renderer)
@@ -65,6 +78,9 @@ namespace XrSamples.Graffiti
             _accumulateProgram = new GlComputeProgram(renderer.GL, "paint_accumulate.comp", str => Embedded.GetString<GlSimulationPass>(str));
             _accumulateProgram.Build();
 
+            _dryProgram = new GlComputeProgram(renderer.GL, "paint_dry.comp", str => Embedded.GetString<GlSimulationPass>(str));
+            _dryProgram.Build();
+
             _dripProgram = new GlComputeProgram(renderer.GL, "paint_drip.comp", str => Embedded.GetString<GlSimulationPass>(str));
             _dripProgram.Build();
 
@@ -73,6 +89,9 @@ namespace XrSamples.Graffiti
 
             _sprayUniformsBuffer = new GlBuffer<PaintProjUniforms>(_gl, BufferTargetARB.UniformBuffer);
             _sprayUniforms = new PaintProjUniforms();
+
+            _paintStateBuffer = new GlBuffer<PaintStateBuffer>(_gl, BufferTargetARB.ShaderStorageBuffer);
+            _paintState = new PaintStateBuffer();
 
             GlTexture CreateTexture() => new(_gl)
             {
@@ -84,6 +103,9 @@ namespace XrSamples.Graffiti
             _dryTex = CreateTexture();
             _tempDryTex = CreateTexture();
 
+            _undoDryTex = CreateTexture();
+            _undoWetTex = CreateTexture();
+
             _paintUniformsBuffer = new GlBuffer<PaintSimUniforms>(_gl, BufferTargetARB.UniformBuffer);
             _paintUniforms = new PaintSimUniforms();
 
@@ -91,6 +113,152 @@ namespace XrSamples.Graffiti
             _renderer.EnableDebug(true);
 #endif
         }
+
+        public static Rect2I ComputeSprayTextureRect(
+             in PaintProjUniforms uniforms,
+             in Pose3 oldPose,
+             in Pose3 curPose,
+             in Vector3 canScale,
+             in Quad3 canvasQuad,
+             in Size2I textureSize,
+             int marginPixels = 8)
+        {
+            var bounds = new Bounds2
+            {
+                Min = new Vector2(float.PositiveInfinity, float.PositiveInfinity),
+                Max = new Vector2(float.NegativeInfinity, float.NegativeInfinity)
+            };
+
+            AccumulateSprayPoseBounds(
+                in uniforms,
+                oldPose.ToMatrix(canScale),
+                in canvasQuad,
+                in textureSize,
+                ref bounds);
+
+            AccumulateSprayPoseBounds(
+                in uniforms,
+                curPose.ToMatrix(canScale),
+                in canvasQuad,
+                in textureSize,
+                ref bounds);
+
+            if (!float.IsFinite(bounds.Min.X) || !float.IsFinite(bounds.Min.Y) ||
+                !float.IsFinite(bounds.Max.X) || !float.IsFinite(bounds.Max.Y))
+            {
+                return new Rect2I(0, 0, 0, 0);
+            }
+
+            int x0 = (int)MathF.Floor(bounds.Min.X) - marginPixels;
+            int y0 = (int)MathF.Floor(bounds.Min.Y) - marginPixels;
+            int x1 = (int)MathF.Ceiling(bounds.Max.X) + marginPixels;
+            int y1 = (int)MathF.Ceiling(bounds.Max.Y) + marginPixels;
+
+            x0 = Math.Clamp(x0, 0, (int)textureSize.Width);
+            y0 = Math.Clamp(y0, 0, (int)textureSize.Height);
+            x1 = Math.Clamp(x1, 0, (int)textureSize.Width);
+            y1 = Math.Clamp(y1, 0, (int)textureSize.Height);
+
+            int width = x1 - x0;
+            int height = y1 - y0;
+
+            if (width <= 0 || height <= 0)
+                return new Rect2I(0, 0, 0, 0);
+
+            return new Rect2I(
+                x0,
+                y0,
+                (uint)width,
+                (uint)height);
+        }
+
+        private static void AccumulateSprayPoseBounds(
+            in PaintProjUniforms uniforms,
+            in Matrix4x4 canWorld,
+            in Quad3 canvasQuad,
+            in Size2I textureSize,
+            ref Bounds2 bounds)
+        {
+            var sprayCenterLocal = uniforms.SprayCenterLocal;
+
+            var sprayDirectionLocal =
+                uniforms.SprayDirectionLocal.LengthSquared() > 0.000001f
+                    ? Vector3.Normalize(uniforms.SprayDirectionLocal)
+                    : Vector3.UnitZ;
+
+            float radius = uniforms.SprayRadius;
+            float angle = MathF.Max(uniforms.SpreadAngle, 0.0001f);
+
+            float h = radius / MathF.Tan(angle);
+
+            var localApex =
+                sprayCenterLocal -
+                sprayDirectionLocal * h;
+
+            MathUtils.BuildBasis(
+                sprayDirectionLocal,
+                out var tangentLocal,
+                out var bitangentLocal);
+
+            Span<Vector2> circle = stackalloc Vector2[4]
+                    {
+                new( 1.0f,  0.0f),
+                new(-1.0f,  0.0f),
+                new( 0.0f,  1.0f),
+                new( 0.0f, -1.0f)
+            };
+
+            var canvasPlane = canvasQuad.ToPlane();
+
+            for (int i = 0; i < circle.Length; i++)
+            {
+                var c = circle[i];
+
+                var localCirclePoint =
+                    sprayCenterLocal +
+                    tangentLocal * (c.X * radius) +
+                    bitangentLocal * (c.Y * radius);
+
+                var localRayDir =
+                    Vector3.Normalize(localCirclePoint - localApex);
+
+                var ray = new Ray3
+                {
+                    Origin = localCirclePoint.Transform(canWorld),
+                    Direction = localRayDir.ToDirection(canWorld)
+                };
+
+                if (!ray.Intersects(canvasPlane, out var worldHit))
+                    continue;
+
+                var canvasPoint = canvasQuad.LocalPointAt(worldHit);
+
+                if (!canvasPoint.InRange(Vector2.Zero, canvasQuad.Size))
+                    continue;
+
+                var pixel = CanvasPointToPixel(
+                    canvasPoint,
+                    canvasQuad.Size,
+                    textureSize);
+
+                bounds.Min = Vector2.Min(bounds.Min, pixel);
+                bounds.Max = Vector2.Max(bounds.Max, pixel);
+            }
+        }
+
+        private static Vector2 CanvasPointToPixel(
+            in Vector2 canvasPoint,
+            in Vector2 canvasSize,
+            in Size2I textureSize)
+        {
+            float u = canvasPoint.X / canvasSize.X;
+            float v = canvasPoint.Y / canvasSize.Y;
+
+            return new Vector2(
+                u * textureSize.Width,
+                (1.0f - v) * textureSize.Height);
+        }
+
 
         public override void Render(RenderContext ctx)
         {
@@ -115,11 +283,19 @@ namespace XrSamples.Graffiti
                 _canvas.ClearRequest = false;
             }
 
+            if (_canvas!.UndoRequest)
+            {
+                Undo();
+                _canvas.UndoRequest = false;
+            }
+
             GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 10, true);
             GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 11);
+            GlState.Current!.SetActiveBuffer(_paintStateBuffer, 12);
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);
+            RenderDry(ctx);
             RenderDrip(ctx);
             RenderResolve(ctx);
 
@@ -175,6 +351,8 @@ namespace XrSamples.Graffiti
                 _tempWetTex.Recreate();
                 _wetTex.Recreate();
                 _tempDryTex.Recreate();
+                _undoWetTex.Recreate();
+                _undoDryTex.Recreate();
                 _canvas!.ColorTexture.ToGlTexture().Recreate();
                 _canvas!.RoughnessTexture.ToGlTexture().Recreate();
                 _canvas!.NormalTexture.ToGlTexture().Recreate();
@@ -185,6 +363,8 @@ namespace XrSamples.Graffiti
             _tempWetTex.Update(1, data);
             _wetTex.Update(1, data);
             _tempDryTex.Update(1, data);
+            _undoDryTex.Update(1, data);
+            _undoWetTex.Update(1, data);
 
             _canvas!.ColorTexture.ToGlTexture().Update(1, data);
             _canvas!.RoughnessTexture.ToGlTexture().Update(1, data);
@@ -198,22 +378,36 @@ namespace XrSamples.Graffiti
             ClearCanvas();
 
             _isFirstSizeUpdate = false;
+
+            //_readBuffer[0] ??= MemoryBuffer.Create<byte>(data.Width * data.Height * 2);
+
+            _hasUndo = false;
         }
 
         protected void ClearCanvas()
         {
+            CreateUndoEntry();
+
             _wetTex.Clear(Color.Transparent);
             _tempWetTex.Clear(Color.Transparent);
+            
             _dryTex.Clear(Color.Transparent);
             _tempDryTex.Clear(Color.Transparent);
         }
 
         protected void RenderAccumulate(RenderContext ctx)
         {
-            _accumulateProgram.Use();
-
             _canvas!.Update(ctx, ref _paintUniforms);
+
+            _paintUniforms.ComputeSize = new Vector2I((int)_sprayRect.Width, (int)_sprayRect.Height);
+            _paintUniforms.ComputeOffset = new Vector2I(_sprayRect.X, _sprayRect.Y);
+            
             _paintUniformsBuffer.Update(_paintUniforms);
+
+            if (_sprayRect.Width == 0 || _sprayRect.Height == 0)
+                return;
+
+            _accumulateProgram.Use();
 
             _accumulateProgram.SetUniform("uIncomingDensity", _canvas.SprayTexture, 0);
 
@@ -221,11 +415,24 @@ namespace XrSamples.Graffiti
             _gl.BindImageTexture(2, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(3, _wetTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(4, _dryTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-        
-            _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
+
+            _gl.DispatchCompute((_sprayRect.Width + 7) / 8, (_sprayRect.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
+
+        }
+
+        protected void RenderDry(RenderContext ctx)
+        {
+            _dryProgram.Use();
+
+            _gl.BindImageTexture(1, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(3, _wetTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+
+            _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
+
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 
         protected void RenderDrip(RenderContext ctx)
@@ -234,7 +441,7 @@ namespace XrSamples.Graffiti
 
             _gl.BindImageTexture(0, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
-    
+
             _gl.BindImageTexture(2, _tempWetTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(3, _tempDryTex, 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
@@ -253,7 +460,7 @@ namespace XrSamples.Graffiti
 
             _gl.BindImageTexture(0, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
-   
+
             _gl.BindImageTexture(3, _canvas!.ColorTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(4, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(5, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
@@ -261,6 +468,33 @@ namespace XrSamples.Graffiti
             _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+        }
+
+        protected void Undo()
+        {
+            if (!_hasUndo)
+                return;
+
+            _undoDryTex.CopyTo(_dryTex);
+            _undoWetTex.CopyTo(_wetTex);
+
+            _hasUndo = false;
+        }
+
+        protected void CreateUndoEntry()
+        {
+            _dryTex.CopyTo(_undoDryTex);
+            _wetTex.CopyTo(_undoWetTex);
+            _hasUndo = true;
+
+            /*
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            _dryTex.Read(TextureFormat.RgbaFloat16, 0, null, _readBuffer);
+            _wetTex.Read(TextureFormat.RgbaFloat16, 0, null, _readBuffer);
+            timer.Stop();
+            Log.Warn(this, "READ TIME: {0}ms", timer.Elapsed.TotalMilliseconds);
+            */
         }
 
         protected void RenderSpray(RenderContext ctx)
@@ -281,7 +515,9 @@ namespace XrSamples.Graffiti
 
             var curPose = _can.GetWorldPose();
 
-            var mustDraw = _can!.SprayAperture > 0 && isInCanvas;
+            var isSpraying = _can!.SprayAperture > 0;
+
+            var mustDraw = isSpraying && isInCanvas;
 
             var useFrameBuffer = mustDraw || !_isSprayClear;
 
@@ -303,6 +539,14 @@ namespace XrSamples.Graffiti
                 _isSprayClear = true;
             }
 
+            if (!_spraySessionStarted && isSpraying)
+            {
+                CreateUndoEntry();
+                _spraySessionStarted = true;
+            }
+            else if (!isSpraying)
+                _spraySessionStarted = false;
+
             if (mustDraw)
             {
                 var distance = (curCanvasTarget - _prevCanvasTarget).Length();
@@ -315,6 +559,15 @@ namespace XrSamples.Graffiti
                 _brushSource!.Bind();
 
                 _sprayUniforms.DensityScale = _sprayUniforms.DensityScale / sampleCount;
+
+                _paintStateBuffer.Update(new PaintStateBuffer
+                {
+                    HasSprayFragments = 0,
+                    SprayMaxX = 0,
+                    SprayMaxY = 0,
+                    SprayMinY = 100000,
+                    SprayMinX = 100000,
+                });
 
                 if (!UseInstance)
                 {
@@ -348,16 +601,22 @@ namespace XrSamples.Graffiti
                     _brushSource.DrawInstances(sampleCount);
                 }
 
+                _paintStateBuffer.Read(MapBufferAccessMask.ReadBit, ref _paintState);
+
                 _brushSource.Unbind();
 
                 _isSprayClear = false;
+
+                _sprayRect = ComputeSprayTextureRect(_sprayUniforms,
+                    _prevPose, curPose, _can.Transform.Scale, canvasQuod, new Size2I(_wetTex.Width, _wetTex.Height), 0);
             }
             else
             {
-                if (_can!.SprayAperture > 0)
+                if (isSpraying)
                     _sprayUniformsBuffer.Update(_sprayUniforms);
+
+                _sprayRect = new Rect2I();
             }
-    
 
             _prevCanvasTarget = curCanvasTarget;
             _prevPose = curPose;

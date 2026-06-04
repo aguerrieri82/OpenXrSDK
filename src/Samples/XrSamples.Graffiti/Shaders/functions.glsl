@@ -1,4 +1,6 @@
-﻿void BuildBasis(
+﻿
+
+void BuildBasis(
     vec3 n,
     out vec3 tangent,
     out vec3 bitangent)
@@ -88,3 +90,9 @@ mat4 GetHostLocalToWorld()
     return BuildTransform(position, rotation, uHostScale);
 #endif
 }
+
+vec3 UnitColor(vec4 paint)
+{
+    return paint.a > EPS ? paint.rgb / paint.a : vec3(0.0);
+}
+

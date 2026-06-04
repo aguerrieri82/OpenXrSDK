@@ -141,6 +141,11 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
+        public void CopyTo(GlTexture dest, int level = 0, int depth = 0)
+        {
+            _gl.CopyImageSubData(_handle, (CopyImageSubDataTarget)Target, level, 0, 0, depth, dest.Handle, (CopyImageSubDataTarget)dest.Target, level, 0, 0, depth, _width, _height, _depth);
+        }
+
         public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             var result = new List<TextureData>();

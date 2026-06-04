@@ -28,10 +28,10 @@ namespace XrSamples.Graffiti
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f)
         {
-            DryRate = 0.75f;
+            DryRate = 0.3f;
             DensityToCoverage = 1.0f;
             NormalScale = 2.0f * 0.025f;
-            DryRoughness = 0.9f;
+            DryRoughness = 0.5f;
             WetRoughness = 0.05f;
             DripRate = 0.1f;
             GravityStrength = 1.0f;
@@ -107,6 +107,13 @@ namespace XrSamples.Graffiti
             ClearRequest = true;
         }
 
+
+        [Action]
+        public void Undo()
+        {
+            UndoRequest = true;
+        }
+
         public void Update(RenderContext ctx, ref PaintSimUniforms block)
         {
             _can ??= _scene!.Descendants<Can>().First()!;
@@ -123,7 +130,6 @@ namespace XrSamples.Graffiti
             block.DryRoughness = DryRoughness;
             block.WetRoughness = WetRoughness;
             block.NormalScale = NormalScale;
-            block.DensityToCoverage = DensityToCoverage;
             block.DryRate = DryRate;
             block.WetDripRate = DripRate;
             block.PaintOpacityScale = PaintOpacityScale;
@@ -194,6 +200,8 @@ namespace XrSamples.Graffiti
 
         internal bool ClearRequest { get; set; }
 
+        internal bool UndoRequest { get; set; }
+
         public PaintCanvasDebug Debug
         {
             get => _debug;
@@ -203,5 +211,7 @@ namespace XrSamples.Graffiti
                 UpdateDebug();
             }
         }
+
+
     }
 }

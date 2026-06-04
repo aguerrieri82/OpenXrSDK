@@ -173,6 +173,12 @@ namespace XrEngine.OpenGL
             return (T*)ptr;
         }
 
+        public unsafe void Read(MapBufferAccessMask access, ref T result)
+        {
+            result = *Map(MapBufferAccessMask.ReadBit);
+            Unmap();
+        }
+
         public void Unmap()
         {
             _gl.UnmapBuffer(_target);

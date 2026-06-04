@@ -1,4 +1,6 @@
-﻿layout(std140, binding = 10) uniform SprayProjectionBlock
+﻿const float EPS = 1e-6;
+
+layout(std140, binding = 10) uniform SprayProjectionBlock
 {
     mat4 uHostLocalToWorld;
     mat4 uCanvasWorldToLocal;
@@ -24,4 +26,14 @@
     int uStepCount;
 
     vec3 uHostScale;
+};
+
+layout(std430, binding = 12) buffer PaintStateBuffer
+{
+    uint HasSprayFragments;
+
+    uint SprayMinX;
+    uint SprayMinY;
+    uint SprayMaxX;
+    uint SprayMaxY;
 };

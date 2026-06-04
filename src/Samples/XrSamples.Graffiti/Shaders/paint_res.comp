@@ -13,6 +13,12 @@ layout(local_size_x = 8, local_size_y = 8) in;
 //   rgb = wetColor * wetDensity
 //   a   = wetDensity
 //
+// Assumed invariants:
+//   dry.a >= 0
+//   wet.a >= 0
+//   wet.a <= dry.a
+//   dry.rgb is already valid straight color
+//   wet is only material state, not extra visible density
 
 
 layout(rgba16f, binding = 0) readonly uniform highp image2D uWetPaint;
@@ -39,27 +45,30 @@ layout(rgba16f, binding = 5) writeonly uniform highp image2D uResolvedNormal;
 
 float VisibleCoverageFromDensity(float d)
 {
-    // Visible opacity comes only from dry/visible density.
-    // Do not clamp before exp(), otherwise density > 1 stops mattering.
-    return 1.0 - exp(-max(d, 0.0) * PaintOpacityScale);
+    // d is assumed >= 0.
+    // Do not clamp before exp(), otherwise density > 1 stops contributing.
+    return 1.0 - exp(-d * PaintOpacityScale);
 }
 
 
 float WetFactorFromDensity(float d)
 {
-    // Wet is not extra visible material.
-    // It is only a state factor for roughness/gloss/mobility.
-    return clamp(d, 0.0, 1.0);
+    // Model clamp, not safety:
+    // wet.a >= 1 means full wet material response.
+    return min(d, 1.0);
+}
+
+
+ivec2 ClampPixel(ivec2 p)
+{
+    return clamp(p, ivec2(0), CanvasSize - ivec2(1));
 }
 
 
 float VisibleDensityAt(ivec2 p)
 {
-    p = clamp(p, ivec2(0), CanvasSize - ivec2(1));
-
-    vec4 dry = imageLoad(uDryPaint, p);
-
-    return max(dry.a, 0.0);
+    vec4 dry = imageLoad(uDryPaint, ClampPixel(p));
+    return dry.a;
 }
 
 
@@ -92,8 +101,7 @@ void main()
     vec4 dry = imageLoad(uDryPaint, p);
 
     // Dry is the only visible paint source.
-    float visibleDensity = max(dry.a, 0.0);
-    float coverage = VisibleCoverageFromDensity(visibleDensity);
+    float coverage = VisibleCoverageFromDensity(dry.a);
 
     // Wet affects only material state.
     float wetFactor = WetFactorFromDensity(wet.a);
@@ -107,13 +115,11 @@ void main()
     vec3 normal = ResolveNormal(p);
     vec3 encodedNormal = normal * 0.5 + 0.5;
 
-    vec3 visibleColor = clamp(dry.rgb, vec3(0.0), vec3(1.0));
-
     imageStore(
         uResolvedColor,
         p,
         vec4(
-            visibleColor,
+            dry.rgb,
             coverage
         )
     );

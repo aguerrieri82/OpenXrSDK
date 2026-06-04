@@ -14,6 +14,7 @@ namespace XrSamples.Graffiti
         private PaintSelector? _paintSelector;
         private Can? _can;
         private double _lastScrollTime;
+        private double _clearStartTime;
 
         public void Configure(XrEngineApp e)
         {
@@ -47,8 +48,20 @@ namespace XrSamples.Graffiti
             var selectButton = _inputs.Right.ThumbstickClick;
             var hideButton = _inputs.Right.Button.BClick;
 
-            if (clearButton.IsChanged && clearButton.Value)
+            var clearDt = ctx.Time - _clearStartTime;
+
+            if (clearButton.IsChanged)
+            {
+                if (clearButton.Value)
+                    _clearStartTime = ctx.Time;
+                else if (clearDt < 2)
+                    _canvas.Undo();
+            }
+            else if (clearButton.Value && clearDt >= 2 && _clearStartTime > 0)
+            {
                 _canvas.Clear();
+                _clearStartTime = 0;
+            }
 
             if (selectButton.IsChanged && selectButton.Value)
             {

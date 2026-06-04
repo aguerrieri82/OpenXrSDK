@@ -1,58 +1,44 @@
 ﻿const float EPS = 1e-6;
 
-
-// One UBO shared by all paint compute shaders.
-// Some fields are unused by accumulate, some unused by resolve.
+// Shared by paint compute shaders.
+// Fields may be unused by a specific pass, but are used by the paint pipeline.
 layout(std140, binding = 11) uniform PaintParams
 {
-    // Texture/canvas size.
+    // Full paint texture/canvas size in texels.
     ivec2 CanvasSize;
+
+    // Compute dispatch rectangle.
+    // Shader pixel:
+    //   local = gl_GlobalInvocationID.xy
+    //   p     = ComputeOffset + local
+    //
+    // ComputeSize is the valid local size; dispatch groups may be rounded up.
+    ivec2 ComputeOffset;
+    ivec2 ComputeSize;
 
     // Simulation timing.
     float DeltaTime;
     float DryRate;
 
-    // Incoming paint color.
-    // Incoming density comes from uIncomingDensity.r.
-    // PaintColor.a is an optional density multiplier, normally 1.0.
-    vec4 PaintColor;
+    // Resolve opacity:
+    // coverage = 1.0 - exp(-dryDensity * PaintOpacityScale)
+    float PaintOpacityScale;
 
-    // Resolve: alpha/coverage conversion.
-    // coverage = clamp(totalDensity * DensityToCoverage, 0, 1)
-    float DensityToCoverage;
-
-    // Resolve: normal map height conversion.
-    // height = totalDensity * DensityToHeight
-    float DensityToHeight;
-
-    // Resolve: scales the normal slope.
+    // Resolve normal slope scale.
     float NormalScale;
 
-    // Resolve: material response.
-    float DryRoughness;
+    // Incoming paint color.
+    // rgb = paint color
+    // a   = incoming density multiplier
+    vec4 PaintColor;
 
+    // Resolve material response.
+    float DryRoughness;
     float WetRoughness;
     float Metallic;
 
-    
     // Drip simulation.
+    float WetDripRate;
     vec2 GravityCanvas;
     float GravityStrength;
-    float PaintOpacityScale;
-    float WetDripRate;
 };
-
-vec3 UnitColor(vec4 paint)
-{
-    return paint.a > EPS ? paint.rgb / paint.a : vec3(0.0);
-}
-
-float TotalDensity(vec4 dry, vec4 wet)
-{
-    return dry.a + wet.a;
-}
-
-float CoverageFromDensity(float density)
-{
-    return clamp(density * DensityToCoverage, 0.0, 1.0);
-}
