@@ -26,6 +26,16 @@ float Hash21(vec2 p)
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
 }
 
+float JitterPercent(float value, float percent, float rnd)
+{
+    return value * mix(1.0 - percent, 1.0 + percent, rnd);
+}
+
+float JitterSigned(float value, float percent, float rnd)
+{
+    return value * percent * (rnd * 2.0 - 1.0);
+}
+
 void main()
 {
     float distAlongLine =
@@ -38,12 +48,16 @@ void main()
         Hash11(vLineSeed + 17.31);
 
     /*
-        Keep global forward motion, but avoid identical conveyor-belt lines.
-        With your DotSpeed = 0.3, this gives roughly 0.24..0.36 m/s.
+        Keep clear forward motion, but vary speed per line.
+        Example with uDotSpeed = 0.3:
+        +/- 20% -> 0.24 .. 0.36
     */
     float lineSpeed =
-        uDotSpeed * mix(0.8, 1.2, rndLine);
+        JitterPercent(uDotSpeed, 0.20, rndLine);
 
+    /*
+        Global forward motion + stable phase offset per line.
+    */
     float dist =
         distAlongLine
         - uTime * lineSpeed
@@ -61,25 +75,29 @@ void main()
         local += period;
     }
 
+    /*
+        Stable randomness per dot cell on this line.
+    */
     float rndA = Hash21(vec2(vLineSeed, cell));
     float rndB = Hash21(vec2(vLineSeed + 19.7, cell));
     float rndC = Hash21(vec2(vLineSeed + 43.2, cell));
+    float rndD = Hash21(vec2(vLineSeed + 71.9, cell));
 
     /*
-        With DotLength = 0.002, do not over-randomize length.
-        Otherwise dots become too noisy / disappear.
+        Dot length randomized proportionally.
+        With uDotLength = 0.002 and +/- 45%
+        => about 0.0011 .. 0.0029
     */
     float dotLength =
-        uDotLength * mix(0.65, 1.6, rndA);
+        max(JitterPercent(uDotLength, 0.45, rndA), 0.000001);
 
     /*
-        Small deterministic position jitter inside the gap.
-        Keep it limited because your gap is 10x the dot length.
+        Small deterministic local jitter based on the gap size.
     */
-    local += (rndB - 0.5) * uGapLength * 0.35;
+    local += JitterSigned(uGapLength, 0.35, rndB);
 
     /*
-        Soft edge, but not larger than the dot itself.
+        Soft edges, scaled to the actual dot size.
     */
     float edgeSoftness =
         min(0.0007, dotLength * 0.45);
@@ -89,21 +107,42 @@ void main()
         (1.0 - smoothstep(dotLength - edgeSoftness, dotLength, local));
 
     /*
-        Do not kill too many dots with your sparse pattern.
+        Do not kill too many dots: keep sparse but not empty.
     */
     float alive =
         step(0.08, rndA);
 
     dotMask *= alive;
 
+    /*
+        Ramp up/down brightness inside each dot.
+        0 at start, peak in the middle, 0 at end.
+    */
+    float dotPos01 =
+        clamp(local / dotLength, 0.0, 1.0);
+
+    float dotEnvelope =
+        pow(sin(dotPos01 * 3.14159265), 1.3);
+
+    /*
+        Random alpha/intensity variation per dot.
+    */
     float dotStrength =
         mix(0.45, 1.0, rndC);
+
+    /*
+        Random color brightness per dot.
+        Keeps color livelier without changing hue.
+    */
+    float dotBrightness =
+        mix(0.75, 1.35, rndD);
 
     float lengthFade =
         exp(-vRayLength * uRayLengthFalloff);
 
     float density =
         dotMask *
+        dotEnvelope *
         dotStrength *
         lengthFade *
         uDensityScale;
@@ -113,5 +152,8 @@ void main()
 
     density = clamp(density, 0.0, 1.0);
 
-    FragColor = vec4(uPaintColor, density);
+    vec3 color =
+        uPaintColor * dotBrightness;
+
+    FragColor = vec4(color, density);
 }

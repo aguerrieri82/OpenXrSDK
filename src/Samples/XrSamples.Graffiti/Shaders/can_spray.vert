@@ -13,38 +13,86 @@ flat out vec3 vLineDirWorld;
 
 uniform mat4 uViewProjection;
 uniform float uSprayFarDistance;
+uniform float uTime;
+
+/*
+    Direction jitter amount.
+
+    0.015 = subtle
+    0.030 = visible but still coherent
+    0.060 = more chaotic
+
+    With SprayFarDistance = 1.0, 0.03 means roughly a few cm
+    transverse deviation at the far endpoint.
+*/
+const float RayJitter = 0.02;
+
+float Hash11(float x)
+{
+    return fract(sin(x * 127.1) * 43758.5453123);
+}
+
+vec2 Hash12(float x)
+{
+    return vec2(
+        Hash11(x + 11.13),
+        Hash11(x + 47.71)
+    );
+}
+
+vec2 Rotate2(vec2 p, float a)
+{
+    float s = sin(a);
+    float c = cos(a);
+
+    return vec2(
+        p.x * c - p.y * s,
+        p.x * s + p.y * c
+    );
+}
 
 void main()
 {
     mat4 hostLocalToWorld = GetHostLocalToWorld();
 
-    /*
-        Mesh layout must be:
-        A, A, B, B, C, C, ...
-        Draw with GL_LINES.
+    bool isFar =
+        (gl_VertexID & 1) != 0;
 
-        Even vertex = near point
-        Odd  vertex = far  point
-    */
-    bool isFar = (gl_VertexID & 1) != 0;
+    float lineSeed =
+        float(gl_VertexID >> 1);
 
-    /*
-        Source circle point.
-        Input circle radius is 0.5.
-    */
-    vec2 circlePoint = aPosition.xy;
+    vec2 circlePoint =
+        aPosition.xy;
 
-    vec3 sprayDirLocal = normalize(uSprayDirectionLocal);
+    const float ApertureRotationSpeed = 0.75;
+
+    float rndRot =
+        Hash11(lineSeed + 91.37);
+
+    float apertureAngle =
+        uTime * ApertureRotationSpeed
+        + rndRot * 6.28318530718;
+
+    circlePoint =
+        Rotate2(circlePoint, apertureAngle);
+
+    vec3 sprayDirLocal =
+        normalize(uSprayDirectionLocal);
 
     vec3 tangentLocal;
     vec3 bitangentLocal;
-    BuildBasis(sprayDirLocal, tangentLocal, bitangentLocal);
+
+    BuildBasis(
+        sprayDirLocal,
+        tangentLocal,
+        bitangentLocal);
 
     /*
         Aperture/source point on the spray disk.
-        Since the source mesh radius is 0.5,
-        multiplying by 2.0 maps it to radius 1.0,
-        then scaling by uSprayRadius gives the real radius.
+
+        Source mesh radius = 0.5.
+        Multiplying by 2.0 maps it to radius 1.0.
+        Scaling by uSprayRadius gives real aperture radius.
     */
     vec3 sourceLocal =
         uSprayCenterLocal
@@ -54,14 +102,18 @@ void main()
     /*
         Cone apex from spread angle.
     */
-    float angle = max(uSpreadAngle, 0.0001);
-    float h = uSprayRadius / tan(angle);
+    float angle =
+        max(uSpreadAngle, 0.0001);
+
+    float h =
+        uSprayRadius / tan(angle);
 
     vec3 apexLocal =
         uSprayCenterLocal - sprayDirLocal * h;
 
     /*
-        True ray direction from apex through source point.
+        Ideal cone ray direction:
+        from apex through source aperture point.
     */
     vec3 rayDirLocal =
         normalize(sourceLocal - apexLocal);
@@ -73,15 +125,49 @@ void main()
         normalize((hostLocalToWorld * vec4(rayDirLocal, 0.0)).xyz);
 
     /*
-        Near point is exactly the source point.
-        Far point is source + rayDir * uSprayFarDistance.
+        Deterministic per-line random angular deviation.
+        The near point remains fixed.
+        Only the visual ray direction is perturbed.
     */
-    float finalDistance = isFar ? uSprayFarDistance : 0.0;
+    vec2 rnd =
+        Hash12(lineSeed) * 2.0 - 1.0;
+
+    vec3 helper =
+        abs(dot(rayDirWorld, vec3(0.0, 1.0, 0.0))) < 0.999
+            ? vec3(0.0, 1.0, 0.0)
+            : vec3(1.0, 0.0, 0.0);
+
+    vec3 rayTangentWorld =
+        normalize(cross(helper, rayDirWorld));
+
+    vec3 rayBitangentWorld =
+        normalize(cross(rayDirWorld, rayTangentWorld));
+
+    vec3 jitterDirWorld =
+        rayTangentWorld * rnd.x
+        + rayBitangentWorld * rnd.y;
+
+    float jitterLen =
+        length(jitterDirWorld);
+
+    if (jitterLen > 0.00001)
+        jitterDirWorld /= jitterLen;
+
+    vec3 visualRayDirWorld =
+        normalize(rayDirWorld + jitterDirWorld * RayJitter);
+
+    /*
+        Near point is exactly the source point.
+        Far point is source + jittered direction * uSprayFarDistance.
+    */
+    float finalDistance =
+        isFar ? uSprayFarDistance : 0.0;
 
     if (isFar)
     {
         /*
             Clip the far point if the ray hits the actual canvas first.
+
             Canvas plane is local z = 0.
             We also require the hit to lie inside the canvas rectangle.
         */
@@ -89,18 +175,20 @@ void main()
             (uCanvasWorldToLocal * vec4(sourceWorld, 1.0)).xyz;
 
         vec3 rayDirCanvas =
-            (uCanvasWorldToLocal * vec4(rayDirWorld, 0.0)).xyz;
+            (uCanvasWorldToLocal * vec4(visualRayDirWorld, 0.0)).xyz;
 
         if (abs(rayDirCanvas.z) > 0.00001)
         {
-            float tHit = -rayOriginCanvas.z / rayDirCanvas.z;
+            float tHit =
+                -rayOriginCanvas.z / rayDirCanvas.z;
 
             if (tHit > 0.0 && tHit < finalDistance)
             {
                 vec3 hitCanvas =
                     rayOriginCanvas + rayDirCanvas * tHit;
 
-                vec2 halfCanvas = uCanvasSize * 0.5;
+                vec2 halfCanvas =
+                    uCanvasSize * 0.5;
 
                 bool insideCanvas =
                     abs(hitCanvas.x) <= halfCanvas.x &&
@@ -113,30 +201,35 @@ void main()
     }
 
     vec3 pointWorld =
-        sourceWorld + rayDirWorld * finalDistance;
+        sourceWorld + visualRayDirWorld * finalDistance;
 
     vRayT =
         uSprayFarDistance > 0.0
             ? finalDistance / uSprayFarDistance
             : 0.0;
 
-    vRayT = clamp(vRayT, 0.0, 1.0);
+    vRayT =
+        clamp(vRayT, 0.0, 1.0);
+
+    vRayLength =
+        finalDistance;
+
+    vLineSeed =
+        lineSeed;
+
+    vWorldPos =
+        pointWorld;
+
+    vLineStartWorld =
+        sourceWorld;
 
     /*
-        Interpolates from 0 at the source to the real segment length
-        at the far endpoint (or clipped endpoint).
+        Important: fragment shader must use the same visual direction,
+        otherwise meter-based dot spacing is slightly wrong after jitter.
     */
-    vRayLength = finalDistance;
+    vLineDirWorld =
+        visualRayDirWorld;
 
-    /*
-        Same seed for both duplicated vertices of the same line.
-    */
-
-    vLineSeed = float(gl_VertexID >> 1);
-
-    vWorldPos = pointWorld;
-    vLineStartWorld = sourceWorld;
-    vLineDirWorld = rayDirWorld;
-
-    gl_Position = uViewProjection * vec4(pointWorld, 1.0);
+    gl_Position =
+        uViewProjection * vec4(pointWorld, 1.0);
 }

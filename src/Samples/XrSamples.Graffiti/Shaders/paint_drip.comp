@@ -2,11 +2,38 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
-layout(rgba16f, binding = 0) readonly  uniform highp image2D uPaintIn;
-layout(rgba16f, binding = 1) writeonly uniform highp image2D uPaintOut;
+
+// New drip model:
+//
+// uDryPaint:
+//   rgb = visible / resolved paint color
+//   a   = total deposited visible density
+//
+// uWetPaint:
+//   rgb = wetColor * wetDensity
+//   a   = wetDensity
+//
+// Important:
+//   wet.a is NOT extra material.
+//   wet.a is the amount of dry.a that is currently mobile/drippable.
+//
+// Therefore, when dripping moves x:
+//   dry.a moves by x
+//   wet.a moves by x
+//
+// Drip visible color comes from dry.rgb.
+// Wet.rgb moves only to preserve future wet mixing state.
+
+
+layout(rgba16f, binding = 0) readonly uniform highp image2D uWetPaintIn;
+layout(rgba16f, binding = 1) readonly uniform highp image2D uDryPaintIn;
+
+layout(rgba16f, binding = 2) writeonly uniform highp image2D uWetPaintOut;
+layout(rgba16f, binding = 3) writeonly uniform highp image2D uDryPaintOut;
 
 const float CENTER_DRIP_WEIGHT = 0.70;
 const float SIDE_DRIP_WEIGHT   = 0.15;
+
 
 bool Inside(ivec2 p)
 {
@@ -17,6 +44,7 @@ bool Inside(ivec2 p)
         p.y < CanvasSize.y;
 }
 
+
 ivec2 GetForwardStep(vec2 g)
 {
     // Use dominant axis to avoid diagonal stair-step artifacts.
@@ -26,42 +54,132 @@ ivec2 GetForwardStep(vec2 g)
     return ivec2(0, g.y > 0.0 ? 1 : -1);
 }
 
+
 ivec2 GetSideStep(ivec2 forward)
 {
     return ivec2(-forward.y, forward.x);
 }
 
-vec4 ComputeWetOutflow(vec4 wetPaint)
-{
-    float density = wetPaint.a;
 
-    if (density <= EPS)
-        return vec4(0.0);
+vec3 ColorFromPremul(vec4 v)
+{
+    if (v.a <= EPS)
+        return vec3(0.0);
+
+    return v.rgb / v.a;
+}
+
+
+vec3 MixByDensity(
+    vec3 oldColor,
+    float oldDensity,
+    vec3 addColor,
+    float addDensity)
+{
+    float totalDensity = oldDensity + addDensity;
+
+    if (totalDensity <= EPS)
+        return addColor;
+
+    return
+        (oldColor * oldDensity + addColor * addDensity)
+        / totalDensity;
+}
+
+
+void AddDryContribution(
+    inout vec4 dry,
+    vec3 addColor,
+    float addDensity)
+{
+    if (addDensity <= EPS)
+        return;
+
+    dry.rgb = MixByDensity(
+        dry.rgb,
+        dry.a,
+        addColor,
+        addDensity
+    );
+
+    dry.a += addDensity;
+}
+
+
+void AddWetContribution(
+    inout vec4 wet,
+    vec3 addColor,
+    float addDensity)
+{
+    if (addDensity <= EPS)
+        return;
+
+    vec3 wetColor = ColorFromPremul(wet);
+
+    wetColor = MixByDensity(
+        wetColor,
+        wet.a,
+        addColor,
+        addDensity
+    );
+
+    wet.a += addDensity;
+    wet.rgb = wetColor * wet.a;
+}
+
+
+// Computes the actual amount that leaves this texel before distribution.
+//
+// The moved amount must be limited by both:
+//   wet.a = drippable/mobile amount
+//   dry.a = visible material available
+//
+// The same returned density is moved in both dry and wet textures.
+float ComputeDripAmount(vec4 wet, vec4 dry)
+{
+    float drippable = min(wet.a, dry.a);
+
+    if (drippable <= EPS)
+        return 0.0;
 
     // Density-driven drip.
-    // Low density naturally moves very little.
+    // Since wet.a is the mobile amount, use wet/drippable density as driver.
     float moveDensity =
-        density *
-        density *
+        drippable *
+        drippable *
         WetDripRate *
         GravityStrength *
         DeltaTime;
 
-    moveDensity = clamp(moveDensity, 0.0, density);
-
-    float f = moveDensity / density;
-
-    return wetPaint * f;
+    return clamp(moveDensity, 0.0, drippable);
 }
 
-vec4 IncomingFromSource(ivec2 source, float weight)
+
+float IncomingAmountFromSource(ivec2 source, float weight)
 {
     if (!Inside(source))
-        return vec4(0.0);
+        return 0.0;
 
-    vec4 srcWet = imageLoad(uPaintIn, source);
-    return ComputeWetOutflow(srcWet) * weight;
+    vec4 srcWet = imageLoad(uWetPaintIn, source);
+    vec4 srcDry = imageLoad(uDryPaintIn, source);
+
+    return ComputeDripAmount(srcWet, srcDry) * weight;
 }
+
+
+vec3 IncomingDryColorFromSource(ivec2 source)
+{
+    vec4 srcDry = imageLoad(uDryPaintIn, source);
+    return srcDry.rgb;
+}
+
+
+vec3 IncomingWetColorFromSource(ivec2 source)
+{
+    vec4 srcWet = imageLoad(uWetPaintIn, source);
+    return ColorFromPremul(srcWet);
+}
+
 
 void main()
 {
@@ -70,8 +188,11 @@ void main()
     if (!Inside(p))
         return;
 
-    vec4 wet = imageLoad(uPaintIn, p);
+    vec4 wet = imageLoad(uWetPaintIn, p);
+    vec4 dry = imageLoad(uDryPaintIn, p);
+
     vec4 resultWet = wet;
+    vec4 resultDry = dry;
 
     vec2 g = GravityCanvas;
 
@@ -80,13 +201,11 @@ void main()
         ivec2 forward = GetForwardStep(g);
         ivec2 side    = GetSideStep(forward);
 
-        vec4 selfOutflow = ComputeWetOutflow(wet);
+        // ------------------------------------------------------------
+        // 1) Remove outgoing drip from current texel.
+        // ------------------------------------------------------------
 
-        // ---------------------------------------------------------------------
-        // Subtract only the amount that actually leaves this texel.
-        // Near texture borders, invalid destinations do not receive paint,
-        // so they should not be subtracted either.
-        // ---------------------------------------------------------------------
+        float selfDripAmount = ComputeDripAmount(wet, dry);
 
         float outgoingWeight = 0.0;
 
@@ -99,12 +218,28 @@ void main()
         if (Inside(p + forward - side))
             outgoingWeight += SIDE_DRIP_WEIGHT;
 
-        resultWet -= selfOutflow * outgoingWeight;
+        float selfOutgoingAmount = selfDripAmount * outgoingWeight;
 
-        // ---------------------------------------------------------------------
-        // Gather incoming paint from upstream sources.
+        // Same amount leaves both textures.
+        resultDry.a = max(resultDry.a - selfOutgoingAmount, 0.0);
+        resultWet.a = max(resultWet.a - selfOutgoingAmount, 0.0);
+
+        // Removing material with the same average color does not change dry.rgb.
+        // For wet, preserve wet color after density reduction.
+        if (resultWet.a > EPS && wet.a > EPS)
+        {
+            vec3 wetColor = wet.rgb / wet.a;
+            resultWet.rgb = wetColor * resultWet.a;
+        }
+        else
+        {
+            resultWet = vec4(0.0);
+        }
+
+        // ------------------------------------------------------------
+        // 2) Gather incoming drip from upstream sources.
         //
-        // A source S contributes to current pixel P if:
+        // Source S contributes to P if:
         //
         //   S + forward        == P
         //   S + forward + side == P
@@ -115,27 +250,81 @@ void main()
         //   S = P - forward
         //   S = P - forward - side
         //   S = P - forward + side
-        // ---------------------------------------------------------------------
+        // ------------------------------------------------------------
 
-        resultWet += IncomingFromSource(
-            p - forward,
-            CENTER_DRIP_WEIGHT
-        );
+        ivec2 src0 = p - forward;
+        ivec2 src1 = p - forward - side;
+        ivec2 src2 = p - forward + side;
 
-        resultWet += IncomingFromSource(
-            p - forward - side,
-            SIDE_DRIP_WEIGHT
-        );
+        float a0 = IncomingAmountFromSource(src0, CENTER_DRIP_WEIGHT);
+        float a1 = IncomingAmountFromSource(src1, SIDE_DRIP_WEIGHT);
+        float a2 = IncomingAmountFromSource(src2, SIDE_DRIP_WEIGHT);
 
-        resultWet += IncomingFromSource(
-            p - forward + side,
-            SIDE_DRIP_WEIGHT
-        );
+        if (a0 > EPS && Inside(src0))
+        {
+            AddDryContribution(
+                resultDry,
+                IncomingDryColorFromSource(src0),
+                a0
+            );
+
+            AddWetContribution(
+                resultWet,
+                IncomingWetColorFromSource(src0),
+                a0
+            );
+        }
+
+        if (a1 > EPS && Inside(src1))
+        {
+            AddDryContribution(
+                resultDry,
+                IncomingDryColorFromSource(src1),
+                a1
+            );
+
+            AddWetContribution(
+                resultWet,
+                IncomingWetColorFromSource(src1),
+                a1
+            );
+        }
+
+        if (a2 > EPS && Inside(src2))
+        {
+            AddDryContribution(
+                resultDry,
+                IncomingDryColorFromSource(src2),
+                a2
+            );
+
+            AddWetContribution(
+                resultWet,
+                IncomingWetColorFromSource(src2),
+                a2
+            );
+        }
     }
 
-    imageStore(
-        uPaintOut,
-        p,
-        max(resultWet, vec4(0.0))
-    );
+    // ------------------------------------------------------------
+    // Clamp sane storage.
+    // ------------------------------------------------------------
+
+    resultDry.rgb = clamp(resultDry.rgb, vec3(0.0), vec3(1.0));
+    resultDry.a   = max(resultDry.a, 0.0);
+
+    if (resultWet.a > EPS)
+    {
+        vec3 wetColor = clamp(resultWet.rgb / resultWet.a, vec3(0.0), vec3(1.0));
+        resultWet.rgb = wetColor * resultWet.a;
+        resultWet.a   = max(resultWet.a, 0.0);
+    }
+    else
+    {
+        resultWet = vec4(0.0);
+    }
+
+    imageStore(uWetPaintOut, p, resultWet);
+    imageStore(uDryPaintOut, p, resultDry);
+
 }

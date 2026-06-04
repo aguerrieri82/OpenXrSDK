@@ -2,12 +2,21 @@
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
+
+// New model:
+//
+// uDryPaint:
+//   rgb = visible / resolved paint color
+//   a   = deposited visible paint density
+//
+// uWetPaint:
+//   rgb = wetColor * wetDensity
+//   a   = wetDensity
+//
+
+
 layout(rgba16f, binding = 0) readonly uniform highp image2D uWetPaint;
 layout(rgba16f, binding = 1) readonly uniform highp image2D uDryPaint;
-
-// Recycled now as dry reference / target.
-// Not needed by resolve anymore, but kept bound for layout compatibility.
-layout(rgba16f, binding = 2) readonly uniform highp image2D uDrySurface;
 
 
 // Base color texture.
@@ -16,7 +25,7 @@ layout(rgba16f, binding = 2) readonly uniform highp image2D uDrySurface;
 layout(rgba16f, binding = 3) writeonly uniform highp image2D uResolvedColor;
 
 // PBR ORM-like texture.
-// r = roughness / unused depending on your pipeline
+// r = unused / fixed 1.0
 // g = roughness
 // b = metallic
 // a = coverage
@@ -28,64 +37,38 @@ layout(rgba16f, binding = 4) writeonly uniform highp image2D uResolvedRoughness;
 layout(rgba16f, binding = 5) writeonly uniform highp image2D uResolvedNormal;
 
 
-vec4 PremulOver(vec4 src, vec4 dst)
+float VisibleCoverageFromDensity(float d)
 {
-    return src + dst * (1.0 - src.a);
+    // Visible opacity comes only from dry/visible density.
+    // Do not clamp before exp(), otherwise density > 1 stops mattering.
+    return 1.0 - exp(-max(d, 0.0) * PaintOpacityScale);
 }
 
-float VisualCoverageFromDensity(float d)
+
+float WetFactorFromDensity(float d)
 {
-    // For the new model:
-    // density < 1  => partial coverage
-    // density >= 1 => covering
+    // Wet is not extra visible material.
+    // It is only a state factor for roughness/gloss/mobility.
     return clamp(d, 0.0, 1.0);
-
-    // If you later want the old nonlinear curve again, replace with:
-    // return CoverageFromDensity(d);
 }
 
-float DensityAt(ivec2 p)
+
+float VisibleDensityAt(ivec2 p)
 {
     p = clamp(p, ivec2(0), CanvasSize - ivec2(1));
 
     vec4 dry = imageLoad(uDryPaint, p);
-    vec4 wet = imageLoad(uWetPaint, p);
 
-    // Physical density for height/normal.
-    // Do not clamp here.
-    return dry.a + wet.a;
+    return max(dry.a, 0.0);
 }
 
-vec4 ResolveWetVisualPremul(vec4 wet)
-{
-    if (wet.a <= EPS)
-        return vec4(0.0);
-
-    vec3 wetColor = wet.rgb / wet.a;
-    float wetCoverage = clamp(wet.a, 0.0, 1.0);
-
-    return vec4(
-        wetColor * wetCoverage,
-        wetCoverage
-    );
-}
-
-float ResolveRoughness(vec4 visual, vec4 wet)
-{
-    if (visual.a <= EPS)
-        return DryRoughness;
-
-    float wetCoverage = VisualCoverageFromDensity(wet.a);
-
-    return mix(DryRoughness, WetRoughness, wetCoverage);
-}
 
 vec3 ResolveNormal(ivec2 p)
 {
-    float hL = DensityAt(p + ivec2(-1,  0));
-    float hR = DensityAt(p + ivec2( 1,  0));
-    float hD = DensityAt(p + ivec2( 0, -1));
-    float hU = DensityAt(p + ivec2( 0,  1));
+    float hL = VisibleDensityAt(p + ivec2(-1,  0));
+    float hR = VisibleDensityAt(p + ivec2( 1,  0));
+    float hD = VisibleDensityAt(p + ivec2( 0, -1));
+    float hU = VisibleDensityAt(p + ivec2( 0,  1));
 
     float dx = hR - hL;
     float dy = hU - hD;
@@ -97,6 +80,7 @@ vec3 ResolveNormal(ivec2 p)
     ));
 }
 
+
 void main()
 {
     ivec2 p = ivec2(gl_GlobalInvocationID.xy);
@@ -104,65 +88,33 @@ void main()
     if (any(greaterThanEqual(p, CanvasSize)))
         return;
 
-    vec4 wet        = imageLoad(uWetPaint, p);
-    vec4 dry        = imageLoad(uDryPaint, p);
-    vec4 dryPartial = imageLoad(uDrySurface, p);
+    vec4 wet = imageLoad(uWetPaint, p);
+    vec4 dry = imageLoad(uDryPaint, p);
 
-    float totalDensity = max(wet.a + dry.a, 0.0);
-    float coverage = clamp(totalDensity, 0.0, 1.0);
+    // Dry is the only visible paint source.
+    float visibleDensity = max(dry.a, 0.0);
+    float coverage = VisibleCoverageFromDensity(visibleDensity);
 
+    // Wet affects only material state.
+    float wetFactor = WetFactorFromDensity(wet.a);
 
-    bool hasCommittedDry = dry.a > EPS;
-    bool hasPartialDry   = dryPartial.a > EPS;
-
-    vec3 dryColor;
-
-    if (hasCommittedDry && hasPartialDry)
-    {
-        dryColor = mix(
-            dry.rgb,
-            dryPartial.rgb,
-            dryPartial.a
-        );
-    }
-    else if (hasCommittedDry)
-    {
-        dryColor = dry.rgb;
-    }
-    else if (hasPartialDry)
-    {
-        dryColor = dryPartial.rgb;
-    }
-    else
-    {
-        dryColor = vec3(0.0);
-    }
-
-    vec3 wetColor =
-        wet.a > EPS
-            ? wet.rgb / wet.a
-            : dryColor;
-
-    float wetCoverage = clamp(wet.a, 0.0, 1.0);
-
-    // Fresh wet paint has priority while present.
-    vec3 baseColor =
-        wet.a > EPS
-            ? mix(dryColor, wetColor, wetCoverage)
-            : dryColor;
-
-
-    float roughness = mix(DryRoughness, WetRoughness, wetCoverage);
+    float roughness = mix(
+        DryRoughness,
+        WetRoughness,
+        wetFactor
+    );
 
     vec3 normal = ResolveNormal(p);
     vec3 encodedNormal = normal * 0.5 + 0.5;
+
+    vec3 visibleColor = clamp(dry.rgb, vec3(0.0), vec3(1.0));
 
     imageStore(
         uResolvedColor,
         p,
         vec4(
-            clamp(baseColor, vec3(0.0), vec3(1.0)),
-            1.0 - exp(-totalDensity * PaintOpacityScale)
+            visibleColor,
+            coverage
         )
     );
 

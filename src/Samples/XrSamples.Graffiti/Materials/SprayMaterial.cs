@@ -21,8 +21,8 @@ namespace XrSamples.Graffiti
 
             SprayFarDistance = 1;
             RayLengthFalloff = 5f;
-            DotLength = 0.002f;
-            GapLength = 0.02f;
+            DotLength = 0.001f;
+            GapLength = 0.01f;
             DotSpeed = 0.3f;
             Alpha = AlphaMode.Blend;
         }

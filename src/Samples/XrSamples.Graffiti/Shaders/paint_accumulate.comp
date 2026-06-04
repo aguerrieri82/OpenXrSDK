@@ -6,22 +6,20 @@ layout(local_size_x = 8, local_size_y = 8) in;
 // Wet layer:
 //   rgb = wetColor * wetDensity
 //   a   = wetDensity
+//
+// Meaning unchanged:
+//   wet accumulates additively.
+//   wet.rgb is premultiplied by wet.a.
+//   wetColor = wet.rgb / wet.a.
 layout(rgba16f, binding = 1) readonly uniform highp image2D uWetPaint;
-
-// Dry committed layer:
-//   rgb = committed dry color
-//   a   = total dry density
+// Dry / visible layer:
+//   rgb = visible resolved color
+//   a   = accumulated visible density
 layout(rgba16f, binding = 2) readonly uniform highp image2D uDryPaint;
 
-// Dry pending/uncommitted layer:
-//   rgb = pending dry color
-//   a   = pending dry density
-layout(rgba16f, binding = 3) readonly uniform highp image2D uDrySurface;
 
-
-layout(rgba16f, binding = 4) writeonly uniform highp image2D uWetPaintOut;
-layout(rgba16f, binding = 5) writeonly uniform highp image2D uDryPaintOut;
-layout(rgba16f, binding = 6) writeonly uniform highp image2D uDrySurfaceOut;
+layout(rgba16f, binding = 3) writeonly uniform highp image2D uWetPaintOut;
+layout(rgba16f, binding = 4) writeonly uniform highp image2D uDryPaintOut;
 
 
 // Incoming density texture.
@@ -33,8 +31,8 @@ layout(binding = 0) uniform highp sampler2D uIncomingDensity;
 #define INPUT_EPS 0.0001
 #endif
 
-#ifndef COMMIT_EPS
-#define COMMIT_EPS 0.1
+#ifndef WET_CLEAR_EPS
+#define WET_CLEAR_EPS 0.0001
 #endif
 
 
@@ -54,22 +52,47 @@ vec3 MixByDensity(
         / totalDensity;
 }
 
-vec3 ResolveDryColor(vec4 dry, vec4 dryPartial)
+
+// Composite the newly resolved wet contribution into the visible layer.
+//
+// Rules:
+//
+//   dry.a < 1, wet.a < 1:
+//       mix proportionally by density
+//
+//   wet.a >= 1:
+//       wet fully replaces visible color
+//
+//   dry.a >= 1, wet.a < 1:
+//       wet covers dry proportionally to wet.a
+//       example: wet.a = 0.5 -> 50% mix with dry
+//
+vec3 MixWetIntoDry(
+    vec3 dryColor,
+    float dryDensity,
+    vec3 wetColor,
+    float wetDensity)
 {
-    bool hasDry = dry.a > EPS;
-    bool hasPartial = dryPartial.a > EPS;
+    if (wetDensity >= 1.0)
+        return wetColor;
 
-    if (hasDry && hasPartial)
-        return mix(dry.rgb, dryPartial.rgb, clamp(dryPartial.a, 0.0, 1.0));
+    if (dryDensity < 1.0)
+    {
+        return MixByDensity(
+            dryColor,
+            dryDensity,
+            wetColor,
+            wetDensity
+        );
+    }
 
-    if (hasDry)
-        return dry.rgb;
-
-    if (hasPartial)
-        return dryPartial.rgb;
-
-    return vec3(0.0);
+    return mix(
+        dryColor,
+        wetColor,
+        clamp(wetDensity, 0.0, 1.0)
+    );
 }
+
 
 void main()
 {
@@ -78,12 +101,19 @@ void main()
     if (any(greaterThanEqual(p, CanvasSize)))
         return;
 
-    vec4 wet        = imageLoad(uWetPaint, p);
-    vec4 dry        = imageLoad(uDryPaint, p);
-    vec4 dryPartial = imageLoad(uDrySurface, p);
+    vec4 wet = imageLoad(uWetPaint, p);
+    vec4 dry = imageLoad(uDryPaint, p);
 
     // ------------------------------------------------------------
-    // 1) Incoming spray: wet still mixes by mass.
+    // 1) Incoming spray.
+    //
+    // Wet still accumulates like before:
+    //
+    //   wet.rgb += incomingColor * incomingDensity
+    //   wet.a   += incomingDensity
+    //
+    // Then the newly incoming amount is immediately resolved into
+    // the dry/visible layer using the current mixed wet color.
     // ------------------------------------------------------------
 
     float incomingDensity =
@@ -91,12 +121,33 @@ void main()
 
     if (incomingDensity > INPUT_EPS)
     {
-        wet.rgb += PaintColor.rgb * incomingDensity;
+        vec3 incomingColor = clamp(PaintColor.rgb, vec3(0.0), vec3(1.0));
+
+        // Old wet accumulation behavior.
+        wet.rgb += incomingColor * incomingDensity;
         wet.a   += incomingDensity;
+
+        // Current mixed wet color after additive accumulation.
+        vec3 mixedWetColor = wet.rgb / wet.a;
+
+        // Only the newly incoming amount is transferred immediately
+        // into the visible layer.
+        dry.rgb = MixWetIntoDry(
+            dry.rgb,
+            dry.a,
+            mixedWetColor,
+            incomingDensity
+        );
+
+        // Dry density still accumulates total deposited material.
+        dry.a += incomingDensity;
     }
 
     // ------------------------------------------------------------
-    // 2) Drying: move wet mass into pending dry contribution.
+    // 2) Drying.
+    //
+    // Drying affects only the wet temporary state.
+    // It does not modify dry.rgb or dry.a.
     // ------------------------------------------------------------
 
     if (wet.a > EPS)
@@ -107,31 +158,10 @@ void main()
 
         wet.a -= deltaD;
 
-        if (wet.a > EPS)
+        if (wet.a > WET_CLEAR_EPS)
             wet.rgb = wetColor * wet.a;
         else
             wet = vec4(0.0);
-
-        // Total dry density increases immediately.
-        dry.a += deltaD;
-
-        // Pending dry color accumulates by density.
-        if (dryPartial.a <= EPS)
-        {
-            dryPartial.rgb = wetColor;
-            dryPartial.a   = deltaD;
-        }
-        else
-        {
-            dryPartial.rgb = MixByDensity(
-                dryPartial.rgb,
-                dryPartial.a,
-                wetColor,
-                deltaD
-            );
-
-            dryPartial.a += deltaD;
-        }
     }
     else
     {
@@ -139,32 +169,23 @@ void main()
     }
 
     // ------------------------------------------------------------
-    // 3) Commit pending dry only when no wet paint remains.
-    //
-    // Tiny pending dry remains uncommitted but still visible
-    // through resolve.
+    // 3) Clamp sane storage.
     // ------------------------------------------------------------
 
-    if (wet.a <= EPS && dryPartial.a > COMMIT_EPS)
+    dry.rgb = clamp(dry.rgb, vec3(0.0), vec3(1.0));
+    dry.a   = max(dry.a, 0.0);
+
+    if (wet.a > EPS)
     {
-        dry.rgb = ResolveDryColor(dry, dryPartial);
-
-        dryPartial = vec4(0.0);
+        vec3 wetColor = clamp(wet.rgb / wet.a, vec3(0.0), vec3(1.0));
+        wet.rgb = wetColor * wet.a;
+        wet.a = max(wet.a, 0.0);
     }
-
-    // ------------------------------------------------------------
-    // 4) Clamp sane storage.
-    // ------------------------------------------------------------
-
-    wet.rgb        = clamp(wet.rgb,        vec3(0.0), vec3(1.0) * max(wet.a, 1.0));
-    dry.rgb        = clamp(dry.rgb,        vec3(0.0), vec3(1.0));
-    dryPartial.rgb = clamp(dryPartial.rgb, vec3(0.0), vec3(1.0));
-
-    wet.a        = max(wet.a, 0.0);
-    dry.a        = max(dry.a, 0.0);
-    dryPartial.a = max(dryPartial.a, 0.0);
+    else
+    {
+        wet = vec4(0.0);
+    }
 
     imageStore(uWetPaintOut, p, wet);
     imageStore(uDryPaintOut, p, dry);
-    imageStore(uDrySurfaceOut, p, dryPartial);
 }
