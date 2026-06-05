@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using System.Reflection;
+using XrInteraction;
 
 
 namespace XrEngine.OpenXr.Android
@@ -21,6 +22,8 @@ namespace XrEngine.OpenXr.Android
             {
                 Log.Error(sender!, ex.Exception);
             };
+
+            Context.Implement<IMainActivity>(this);
         }
 
         protected abstract void BuildApp(XrEngineAppBuilder builder);

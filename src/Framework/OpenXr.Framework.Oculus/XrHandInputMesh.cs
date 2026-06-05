@@ -1,6 +1,7 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus
@@ -62,8 +63,8 @@ namespace OpenXr.Framework.Oculus
                     {
                         for (var i = 0; i < capsules.Length; i++)
                         {
-                            ref var v0 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element0);
-                            ref var v1 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element1);
+                            ref var v0 = ref Unsafe.AsRef<Vector3>(&pCap[i].Points.Element0);
+                            ref var v1 = ref Unsafe.AsRef<Vector3>(&pCap[i].Points.Element1);
                             v0 = _app.ReferenceFrame.Transform(v0);
                             v1 = _app.ReferenceFrame.Transform(v1);
                         }

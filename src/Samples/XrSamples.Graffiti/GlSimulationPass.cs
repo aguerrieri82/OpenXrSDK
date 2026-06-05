@@ -562,9 +562,10 @@ namespace XrSamples.Graffiti
                     SprayMinY = 100000,
                     SprayMinX = 100000,
                 });
-
+                Log.Debug(this, "Paint: {0} - {1}", sampleCount, _sprayUniforms.DensityScale);
                 if (!UseInstance)
                 {
+
                     for (var i = 0; i < sampleCount; ++i)
                     {
                         var factor =

@@ -42,3 +42,9 @@ layout(std140, binding = 11) uniform PaintParams
     vec2 GravityCanvas;
     float GravityStrength;
 };
+
+
+float DensityToCoverage(float density)
+{
+    return 1.0 - exp(-density * PaintOpacityScale);
+}

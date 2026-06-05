@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Timers;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
@@ -618,8 +619,17 @@ namespace OpenXr.Framework
             return state;
         }
 
+        public void DestroySpace(Space space)
+        {
+            CheckResult(_xr!.DestroySpace(space), "DestroySpace");
+        }
 
-        public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
+        public XrSpaceLocation LocateSpace(Space space, Space baseSpace)
+        {
+            return LocateSpace(space, baseSpace, FramePredictedDisplayTime);
+        }
+
+        public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time)
         {
             var result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
@@ -1449,6 +1459,11 @@ namespace OpenXr.Framework
             return true;
         }
 
+        public async Task WaitAsyncRequest<T>(ulong reqId)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region UTILS
@@ -1572,6 +1587,8 @@ namespace OpenXr.Framework
             }
             return grp;
         }
+
+
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;
 

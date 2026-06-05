@@ -189,6 +189,17 @@ namespace XrEngine.OpenXr
             return group;
         }
 
+        public Vector3 ReferenceFramePos
+        {
+            get => XrApp.Current!.ReferenceFrame.Position;
+
+            set => XrApp.Current!.ReferenceFrame = new Pose3
+            {
+                Position = value,
+                Orientation = XrApp.Current!.ReferenceFrame.Orientation
+            };
+        }
+
         public Group3D? Head { get; }
 
         public Group3D SceneRoot { get; }

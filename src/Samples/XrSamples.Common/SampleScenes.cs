@@ -771,7 +771,7 @@ namespace XrSamples
                         if (window == null)
                             return;
 
-                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace, e.XrApp.FramePredictedDisplayTime);
+                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace);
                         if (loc.IsValid)
                         {
                             var offset = mesh.GetProp<float>("Offset");
@@ -1527,7 +1527,7 @@ namespace XrSamples
                         if (XrApp.Current?.IsStarted == false)
                             return;
 
-                        var head = XrApp.Current!.LocateSpace(XrApp.Current.Head, XrApp.Current.Stage, XrApp.Current.FramePredictedDisplayTime).Pose;
+                        var head = XrApp.Current!.SpacesTracker.GetLastLocation(XrApp.Current.Head)!.Pose;
                         var ofs = new Vector3(0, 1.4f, 0);
 
                         var leftPos = (left.Value.Position - head.Position) + ofs;

@@ -126,7 +126,7 @@ namespace XrSamples
 
             _camera.UpdateTexture();
 
-            _lastCameraPose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+            _lastCameraPose = XrApp.Current.LocateSpace(XrApp.Current.Head,
                 XrApp.Current.ReferenceSpace, _camera.LastTimestamp).Pose;
 
             if (_rootPose == null)

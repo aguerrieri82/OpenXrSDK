@@ -69,7 +69,7 @@ namespace OpenXr.Framework
                             if (!xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.LocatableFB))
                                 await xrOculus.SetSpaceComponentStatusAsync(space.Space, SpaceComponentTypeFB.LocatableFB, true);
 
-                            var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.ReferenceSpace, 1);
+                            var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.ReferenceSpace);
                             item.Pose = local.Pose;
 
                         }

@@ -14,7 +14,7 @@ namespace XrEngine.OpenXr
         Right
     }
 
-    public static class XrEngineAppExtensions
+    public static class BuilderExtensions
     {
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = true) => self.ConfigureApp(e =>
@@ -286,6 +286,14 @@ namespace XrEngine.OpenXr
             });
             return self;
         }
+
+        /*
+
+        public static IWebBrowser AddWebView(this XrEngineAppBuilder builder)
+        {
+
+        }
+        */
 
     }
 }

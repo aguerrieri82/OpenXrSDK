@@ -48,11 +48,8 @@
             }
             else
             {
-                /*
-                if (_lastUpdateTime > 0 && _lastUpdateTime == ctx.Time)
-                    return;
-                */
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
+
                 try
                 {
 #if DEBUG
@@ -73,7 +70,6 @@
         protected bool IsStarted => _startTime != -1;
 
         protected double DeltaTime => _deltaTime;
-
 
         public event EventHandler? Started;
 

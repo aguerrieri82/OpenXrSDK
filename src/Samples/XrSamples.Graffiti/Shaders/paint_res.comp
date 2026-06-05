@@ -43,13 +43,6 @@ layout(rgba16f, binding = 4) writeonly uniform highp image2D uResolvedRoughness;
 layout(rgba16f, binding = 5) writeonly uniform highp image2D uResolvedNormal;
 
 
-float VisibleCoverageFromDensity(float d)
-{
-    // d is assumed >= 0.
-    // Do not clamp before exp(), otherwise density > 1 stops contributing.
-    return 1.0 - exp(-d * PaintOpacityScale);
-}
-
 
 float WetFactorFromDensity(float d)
 {
@@ -101,7 +94,7 @@ void main()
     vec4 dry = imageLoad(uDryPaint, p);
 
     // Dry is the only visible paint source.
-    float coverage = VisibleCoverageFromDensity(dry.a);
+    float coverage = DensityToCoverage(dry.a);
 
     // Wet affects only material state.
     float wetFactor = WetFactorFromDensity(wet.a);

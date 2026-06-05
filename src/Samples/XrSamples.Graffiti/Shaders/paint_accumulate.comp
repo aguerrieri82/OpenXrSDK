@@ -27,53 +27,15 @@ layout(binding = 0) uniform highp sampler2D uIncomingDensity;
 #define INPUT_EPS 0.0001
 
 
-vec3 MixByDensity(
-    vec3 oldColor,
-    float oldDensity,
-    vec3 newColor,
-    float newDensity)
-{
-    float totalDensity = oldDensity + newDensity;
-
-    return
-        (oldColor * oldDensity + newColor * newDensity)
-        / totalDensity;
-}
-
-
-// Composite the newly resolved wet contribution into the visible layer.
-//
-// Rules:
-//
-//   dry.a < 1, wet.a < 1:
-//       mix proportionally by density
-//
-//   wet.a >= 1:
-//       wet fully replaces visible color
-//
-//   dry.a >= 1, wet.a < 1:
-//       wet covers dry proportionally to wet.a
-//
 vec3 MixWetIntoDry(
     vec3 dryColor,
     float dryDensity,
     vec3 wetColor,
     float wetDensity)
 {
-    if (wetDensity >= 1.0)
-        return wetColor;
+    float wetCoverage = DensityToCoverage(wetDensity);
 
-    if (dryDensity < 1.0)
-    {
-        return MixByDensity(
-            dryColor,
-            dryDensity,
-            wetColor,
-            wetDensity
-        );
-    }
-
-    return mix(dryColor, wetColor, wetDensity);
+    return mix(dryColor, wetColor, wetCoverage);
 }
 
 

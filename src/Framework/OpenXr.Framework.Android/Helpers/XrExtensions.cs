@@ -6,7 +6,7 @@ using XrInteraction;
 
 namespace OpenXr.Framework
 {
-    public static unsafe class XrExtensions
+    public static class XrExtensions
     {
         public static XrAndroidSurfaceQuadLayer AddQuad(this XrLayerManager layers, Extent2Di size, GetQuadDelegate getQuad)
         {

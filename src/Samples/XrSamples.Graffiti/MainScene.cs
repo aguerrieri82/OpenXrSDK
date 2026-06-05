@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
+using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.OpenGL;
@@ -44,6 +46,7 @@ namespace XrSamples.Graffiti
 
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
+            this.AddComponent<SpatialAnchorGrid>();
 
             _canvasDrawer = this.AddComponent<CanvasDrawer>();
 
@@ -89,6 +92,17 @@ namespace XrSamples.Graffiti
             _paintSelector = AddChild(new PaintSelector());
         }
 
+
+        [Action]
+        public async Task DiscoverSpaces()
+        {
+            var meta = XrApp.Current!.Plugin<OculusXrPlugin>();
+
+            var spaces = await meta.DiscoverSpacesAsync();
+
+            Console.WriteLine(spaces);
+        }
+
         public GraffitiTool ActiveTool { get;  set; }
 
         public void Configure(XrEngineApp e)
@@ -96,6 +110,8 @@ namespace XrSamples.Graffiti
             _can.Configure(e);
             _input.Configure(e);
             _canvasDrawer.Configure(e);
+
+            this.Descendants<ImageLight>().First().Intensity = 0.8f;
 
             if (e.App.Renderer is OpenGLRender openGLRender)
                 openGLRender.AddPass(new GlSimulationPass(openGLRender), 0);

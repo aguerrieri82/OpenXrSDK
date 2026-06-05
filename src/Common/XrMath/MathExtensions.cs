@@ -40,7 +40,9 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 ToPose(in this Matrix4x4 self)
         {
-            Matrix4x4.Decompose(self, out var scale, out var orientation, out var translation);
+            if (!Matrix4x4.Decompose(self, out var scale, out var orientation, out var translation))
+                throw new InvalidOperationException("Matrix cannot be decomposed into scale, rotation, and translation.");
+
             return new Pose3
             {
                 Orientation = orientation,
@@ -492,13 +494,33 @@ namespace XrMath
             return self.Position + Vector3.Transform(other, self.Orientation);
         }
 
-
         public static bool IsIdentity(in this Pose3 self)
         {
             return self.Position == Vector3.Zero && self.Orientation == Quaternion.Identity;
         }
 
-
+        /// <summary>
+        /// Composes this pose with another pose.
+        /// </summary>
+        /// <remarks>
+        /// The composition order is:
+        /// <code>
+        /// result = self * other
+        /// </code>
+        ///
+        /// This means <paramref name="other"/> is applied first, then <paramref name="self"/>.
+        ///
+        /// For hierarchical transforms:
+        /// <code>
+        /// childWorldPose = parentWorldPose.Multiply(childLocalPose);
+        /// </code>
+        ///
+        /// So the left operand is the outer/parent transform, and the right operand is
+        /// the inner/local transform.
+        /// </remarks>
+        /// <param name="self">The outer/parent pose.</param>
+        /// <param name="other">The inner/local pose.</param>
+        /// <returns>The composed pose.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Multiply(in this Pose3 self, in Pose3 other)
         {
@@ -508,6 +530,17 @@ namespace XrMath
                 Position = self.Transform(other.Position)
             };
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Pose3 Add(in this Pose3 self, in Pose3 delta)
+        {
+            return new Pose3
+            {
+                Orientation = self.Orientation * delta.Orientation,
+                Position = self.Position + delta.Position
+            };
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Difference(in this Pose3 self, in Pose3 other)

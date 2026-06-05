@@ -35,8 +35,6 @@ namespace XrSamples.Android.Activities
         public GameActivity()
         {
             _permissions.Add("horizonos.permission.HEADSET_CAMERA");
-
-            XrEngine.Context.Implement<IMainActivity>(this);
         }
 
         protected override void OnLoad()

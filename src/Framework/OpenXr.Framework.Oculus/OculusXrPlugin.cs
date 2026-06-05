@@ -4,6 +4,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
+
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -29,7 +30,7 @@ namespace OpenXr.Framework.Oculus
         };
     }
 
-    public class OculusXrPlugin : XrBasePlugin, IDisposable
+    public partial class OculusXrPlugin : XrBasePlugin, IDisposable
     {
         public static readonly string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
 
@@ -48,6 +49,25 @@ namespace OpenXr.Framework.Oculus
             public unsafe void* Next;
         };
 
+
+        [StructLayout(LayoutKind.Sequential)]
+        unsafe struct SpaceFilterUuidMETA 
+        {
+            public StructureType Type;
+            public void* Next;
+            public uint UuidCount;
+            public UuidEXT* Uuids;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        unsafe struct SpaceFilterComponentMETA
+        {
+            public StructureType Type;
+            public void* Next;
+            public SpaceComponentTypeFB ComponentType;
+        }
+
+
         [StructLayout(LayoutKind.Sequential)]
         struct SpaceTriangleMeshMETA
         {
@@ -64,13 +84,20 @@ namespace OpenXr.Framework.Oculus
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Result GetSpaceTriangleMeshMETADelegate(Space space, ref SpaceTriangleMeshGetInfoMETA getInfo, ref SpaceTriangleMeshMETA triangleMeshOutput);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        delegate Result DiscoverSpacesMETADelegate(Session session, ref SpaceDiscoveryInfoMETA info, out ulong requestId);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        delegate Result RetrieveSpaceDiscoveryResultsMETADelegate(Session session, ulong requestId, ref SpaceDiscoveryResultsMETA result);
+
         GetSpaceTriangleMeshMETADelegate? GetSpaceTriangleMeshMETA;
 
+        DiscoverSpacesMETADelegate? DiscoverSpacesMETA;
+
+        RetrieveSpaceDiscoveryResultsMETADelegate? RetrieveSpaceDiscoveryResultsMETA;
+
         #endregion
-
-        #region DEPTH
-
-
+        #region STRUCTS
 
         #endregion
 
@@ -97,6 +124,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntityStorage? _spatialStorage;
         protected FBColorSpace? _colorSpace;
 
+
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
 
@@ -105,6 +133,7 @@ namespace OpenXr.Framework.Oculus
         public OculusXrPlugin()
             : this(OculusXrPluginOptions.Default)
         {
+
         }
 
         public OculusXrPlugin(OculusXrPluginOptions options)
@@ -138,10 +167,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_space_warp");
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
             extensions.Add("XR_META_hand_tracking_wide_motion_mode");
-
-
-
-
+            extensions.Add("XR_META_spatial_entity_discovery");
         }
 
         public unsafe override void OnInstanceCreated()
@@ -165,7 +191,11 @@ namespace OpenXr.Framework.Oculus
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
 
+            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrDiscoverSpacesMETA", &func), "Bind xrDiscoverSpacesMETA");
+            DiscoverSpacesMETA = Marshal.GetDelegateForFunctionPointer<DiscoverSpacesMETADelegate>(new nint(func.Handle));
 
+            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
+            RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
         }
 
         public override void OnSessionCreated()
@@ -210,7 +240,7 @@ namespace OpenXr.Framework.Oculus
             return Encoding.UTF8.GetString(buffer).Trim('\0').Split(',');
         }
 
-        public unsafe Task<Space> CreateAnchorAsync(Pose3 pose, Space refSpace)
+        public async Task<XrAnchorInfo> CreateAnchorAsync(Pose3 pose, Space refSpace)
         {
             var info = new SpatialAnchorCreateInfoFB()
             {
@@ -219,10 +249,13 @@ namespace OpenXr.Framework.Oculus
                 Space = refSpace
             };
 
-            ulong reqId = 1;
-            _app!.CheckResult(_spatial!.CreateSpatialAnchorFB(_app.Session, &info, ref reqId), "CreateSpatialAnchorFB");
+            ulong reqId = 0;
 
-            throw new NotImplementedException();
+            _app!.CheckResult(_spatial!.CreateSpatialAnchorFB(_app.Session, ref info, ref reqId), "CreateSpatialAnchorFB");
+
+            var res = await SubmitQuery<XrAnchorInfo>(reqId);
+
+            return res;
         }
 
         public async Task SaveSpaceAsync(Space space, bool saveLocal)
@@ -230,14 +263,6 @@ namespace OpenXr.Framework.Oculus
             if (!GetSpaceComponentEnabled(space, SpaceComponentTypeFB.StorableFB))
                 await SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.StorableFB, true);
 
-            var reqId = SaveSpaceRequest(space, saveLocal);
-
-            throw new NotImplementedException();
-
-        }
-
-        public unsafe ulong SaveSpaceRequest(Space space, bool saveLocal)
-        {
             var info = new SpaceSaveInfoFB()
             {
                 Type = StructureType.SpaceSaveInfoFB,
@@ -248,17 +273,13 @@ namespace OpenXr.Framework.Oculus
 
             ulong reqId = 0;
 
-            _app!.CheckResult(_spatialStorage!.SaveSpaceFB(_app.Session, &info, ref reqId), "SaveSpaceFB");
+            _app!.CheckResult(_spatialStorage!.SaveSpaceFB(_app.Session, ref info, ref reqId), "SaveSpaceFB");
 
-            return reqId;
+            _app!.CheckResult(await SubmitQuery<Result>(reqId), "SaveSpaceFBResult");
         }
 
-        public Task EraseSpaceAsync(Space space, bool isLocal)
-        {
-            throw new NotImplementedException();
-        }
 
-        public unsafe ulong EraseSpaceRequest(Space space, bool isLocal)
+        public async Task EraseSpaceAsync(Space space, bool isLocal)
         {
             var info = new SpaceEraseInfoFB()
             {
@@ -269,10 +290,51 @@ namespace OpenXr.Framework.Oculus
 
             ulong reqId = 0;
 
-            _app!.CheckResult(_spatialStorage!.EraseSpaceFB(_app.Session, &info, ref reqId), "EraseSpaceFB");
+            _app!.CheckResult(_spatialStorage!.EraseSpaceFB(_app.Session, ref info, ref reqId), "EraseSpaceFB");
 
-            return reqId;
+            _app!.CheckResult(await SubmitQuery<Result>(reqId), "EraseSpaceFBResult");
         }
+
+        public async Task<SpaceDiscoveryResultMETA[]> DiscoverSpacesAsync(Guid[]? ids = null, SpaceComponentTypeFB? componentType = null)
+        {
+            unsafe ulong DiscoverSpaces()
+            {
+                if (componentType != null)
+                    throw new NotImplementedException();
+
+                var info = new SpaceDiscoveryInfoMETA()
+                {
+                    Type = StructureType.SpaceDiscoveryInfoMeta,
+                };
+
+                var idFilter = new SpaceFilterUuidMETA()
+                {
+                    Type = StructureType.SpaceFilterUuidMeta,
+                };
+
+                fixed (Guid* pIds = ids)
+                {
+                    if (ids != null && ids.Length > 0)
+                    {
+                        info.FilterCount = 1;
+                        info.Filters = (SpaceFilterBaseHeaderMETA*)&idFilter;
+
+                        idFilter.UuidCount = (uint)ids.Length;
+                        idFilter.Uuids = (UuidEXT*)pIds;
+                    }
+
+                    _app!.CheckResult(DiscoverSpacesMETA!(_app.Session, ref info, out var reqId), "DiscoverSpacesMETA");
+
+                    return reqId;
+                }
+            }
+
+            var reqId = DiscoverSpaces();
+
+            var result = await SubmitQuery<SpaceDiscoveryResultMETA[]>(reqId);
+
+            return result;
+        } 
 
         public Rect2Df GetSpaceBoundingBox2D(Space space)
         {
@@ -341,6 +403,22 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
+        protected Task<T> SubmitQuery<T>(ulong reqId)
+        {
+            var hash = reqId.ToString();
+
+            var cs = new TaskCompletionSource<T>();
+
+            _queries[hash] = new ActiveQuery
+            {
+                ReqId = reqId,
+                Completion = cs,
+                Hash = hash
+            };
+
+            return cs.Task;
+        }
+
         protected TaskCompletionSource<T>? QueryCompletion<T>(ulong reqId)
         {
             lock (_queries)
@@ -400,6 +478,29 @@ namespace OpenXr.Framework.Oculus
 
                 return reqId;
             }
+        }
+
+        protected unsafe SpaceDiscoveryResultMETA[] GetSpaceDiscoveryResults(ulong reqId)
+        {
+            var result = new SpaceDiscoveryResultsMETA()
+            {
+                Type = StructureType.SpaceQueryResultsFB,
+            };
+
+            _app!.CheckResult(RetrieveSpaceDiscoveryResultsMETA!(_app!.Session, reqId, ref result), "RetrieveSpaceDiscoveryResultsMETA");
+
+            var results = new SpaceDiscoveryResultMETA[(int)result.ResultCountOutput];
+
+            fixed (SpaceDiscoveryResultMETA* ptr = results)
+            {
+                result.ResultCapacityInput = result.ResultCountOutput;
+                result.Results = ptr;
+                _app!.CheckResult(RetrieveSpaceDiscoveryResultsMETA!(_app!.Session, reqId, ref result), "RetrieveSpaceDiscoveryResultsMETA");
+            }
+
+            Array.Resize(ref results, (int)result.ResultCountOutput);
+
+            return results;
         }
 
         protected unsafe SpaceQueryResultFB[] GetSpaceQueryResults(ulong reqId)
@@ -529,6 +630,7 @@ namespace OpenXr.Framework.Oculus
                 query?.SetResult(data.Result);
             }
 
+
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
@@ -546,20 +648,59 @@ namespace OpenXr.Framework.Oculus
                 }
             }
 
+            else if (buffer.Type == StructureType.EventDataSpaceDiscoveryCompleteMeta)
+            {
+                var data = buffer.Convert().To<EventDataSpaceDiscoveryCompleteMETA>();
+
+                var query = QueryCompletion<Result>(data.RequestId);
+
+                query?.ScheduleCancel(TimeSpan.FromSeconds(5));
+            }
+
+            else if (buffer.Type == StructureType.EventDataSpaceDiscoveryResultsAvailableMeta)
+            {
+                var data = buffer.Convert().To<EventDataSpaceDiscoveryResultsAvailableMETA>();
+
+                var query = QueryCompletion<SpaceDiscoveryResultMETA[]>(data.RequestId);
+
+                try
+                {
+                    var result = GetSpaceDiscoveryResults(data.RequestId);
+                    query?.SetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    query?.SetException(ex);
+                }
+            }
             else if (buffer.Type == StructureType.EventDataSpatialAnchorCreateCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpatialAnchorCreateCompleteFB>();
+                var query = QueryCompletion<XrAnchorInfo>(data.RequestId);
 
+                if (data.Result == Result.Success)
+                    query?.SetResult(new XrAnchorInfo
+                    {
+                        Id = data.Uuid.ToGuid(),
+                        Space = data.Space
+                    });
+                else
+                    query?.SetException(new OpenXrException(data.Result, "EventDataSpatialAnchorCreateCompleteFB"));
             }
 
             else if (buffer.Type == StructureType.EventDataSpaceSaveCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceSaveCompleteFB>();
 
+                var query = QueryCompletion<Result>(data.RequestId);
+                query?.SetResult(data.Result);
+
             }
             else if (buffer.Type == StructureType.EventDataSpaceEraseCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceEraseCompleteFB>();
+                var query = QueryCompletion<Result>(data.RequestId);
+                query?.SetResult(data.Result);
             }
         }
 

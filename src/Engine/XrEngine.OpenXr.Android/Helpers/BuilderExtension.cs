@@ -16,26 +16,23 @@ namespace XrEngine.OpenXr.Android
             if (display == null)
                 return;
 
-            if (display != null)
+            var inputs = e.Inputs;
+
+            var xrInput = display.Scene?.Components<XrInputPointer>().FirstOrDefault();
+
+            if (xrInput == null)
             {
-                var inputs = e.Inputs;
-
-                var xrInput = display.Scene?.Components<XrInputPointer>().FirstOrDefault();
-
-                if (xrInput == null)
+                display.Scene!.AddComponent(new XrInputPointer
                 {
-                    display.Scene!.AddComponent(new XrInputPointer
-                    {
-                        PoseInput = inputs!.Right!.AimPose,
-                        RightButton = inputs!.Right!.SqueezeClick!,
-                        LeftButton = inputs!.Right!.TriggerClick!,
-                    });
-                }
-
-                var controller = display.AddComponent<SurfaceController>();
-
-                e.XrApp.Layers.AddWebView(context, display.BindToQuad(), controller);
+                    PoseInput = inputs!.Right!.AimPose,
+                    RightButton = inputs!.Right!.SqueezeClick!,
+                    LeftButton = inputs!.Right!.TriggerClick!,
+                });
             }
+
+            var controller = display.AddComponent<SurfaceController>();
+
+            e.XrApp.Layers.AddWebView(context, display.BindToQuad(), controller);
         });
     }
 }
