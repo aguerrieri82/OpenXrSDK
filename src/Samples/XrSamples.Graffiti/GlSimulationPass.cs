@@ -10,7 +10,6 @@ using XrEngine;
 using XrEngine.OpenGL;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
-using System.Diagnostics;
 
 namespace XrSamples.Graffiti
 {
@@ -596,7 +595,7 @@ namespace XrSamples.Graffiti
                     _brushSource.DrawInstances(sampleCount);
                 }
 
-                _paintStateBuffer.Read(MapBufferAccessMask.ReadBit, ref _paintState);
+               // _paintStateBuffer.Read(MapBufferAccessMask.ReadBit, ref _paintState);
 
                 _brushSource.Unbind();
 

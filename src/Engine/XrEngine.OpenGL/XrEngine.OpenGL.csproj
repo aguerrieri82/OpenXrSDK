@@ -15,12 +15,18 @@
 	<ItemGroup>
 	  <PackageReference Include="Silk.NET.OpenGL.Extensions.ARB" Version="2.23.0" />
 	  <PackageReference Include="Silk.NET.OpenGL.Extensions.EXT" Version="2.23.0" />
-
 	</ItemGroup>
 	
 	<ItemGroup>
+		<ProjectReference Include="..\..\Framework\OpenGLWrapper\OpenGLWrapper.csproj" />
 		<ProjectReference Include="..\XrEngine.Compression\XrEngine.Compression.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+
+	</ItemGroup>
+
+
+	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">
+		<Using Include="OpenGLWrapper.IGLWrapper" Alias="GL" />
 	</ItemGroup>
 
 

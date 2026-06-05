@@ -33,6 +33,9 @@
 		<ProjectReference Include="..\XrEngine.UI\XrEngine.UI.csproj" />
 	</ItemGroup>
 
+	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">
+		<Using Include="OpenGLWrapper.IGLWrapper" Alias="GL" />
+	</ItemGroup>
 
 
 </Project>

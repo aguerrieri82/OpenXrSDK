@@ -30,7 +30,11 @@ namespace OpenXr.Framework.OpenGL
                 throw new NotSupportedException();
 
 #if !GLES
+#if GL_WRAPPER
+            _gl = new OpenGLWrapper.GLDirectWrapper(_view.CreateOpenGL());
+#else
             _gl = _view.CreateOpenGL();
+#endif
 #endif
         }
 

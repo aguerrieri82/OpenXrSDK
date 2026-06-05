@@ -57,7 +57,11 @@ namespace XrSamples
                 var gl = view.CreateOpenGL();
 #endif
 
+#if GL_WRAPPER
+                var render = new OpenGLRender(new OpenGLWrapper.GLDirectWrapper(gl));
+#else
                 var render = new OpenGLRender(gl);
+#endif
                 render.EnableDebug();
 
                 app.Renderer = render;

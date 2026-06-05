@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
+using OpenGLWrapper;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
@@ -57,8 +58,11 @@ namespace XrEngine.OpenXr.Windows
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
         {
             var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
-
+#if GL_WRAPPER
+            renderEngine = new OpenGLRender(new GLDirectWrapper(_viewManager.View.CreateOpenGL()), glOptions);
+#else
             renderEngine = new OpenGLRender(_viewManager.View.CreateOpenGL(), glOptions);
+#endif
             xrDriver = new XrOpenGLGraphicDriver(_viewManager.View);
         }
 

@@ -216,6 +216,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Framework/OpenGLWrapper/OpenGLWrapper.csproj" Id="c32b41c8-9fe5-4a78-a024-c2bfdcf86516">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Framework/OpenXr.Entities/OpenXr.Entities.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />

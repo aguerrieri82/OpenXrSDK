@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System.Diagnostics;
+using XrMath;
 
 namespace XrEngine
 {
@@ -15,6 +16,7 @@ namespace XrEngine
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Warning);
         }
 
+        [Conditional("DEBUG")]
         public static void Debug(object source, string message, params object?[] args)
         {
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Debug);

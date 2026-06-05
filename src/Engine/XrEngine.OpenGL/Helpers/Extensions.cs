@@ -3,8 +3,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-
-
 #endif
 
 using XrEngine.Compression;

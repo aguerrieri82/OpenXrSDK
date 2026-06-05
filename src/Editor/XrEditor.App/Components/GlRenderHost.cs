@@ -259,8 +259,11 @@ namespace XrEditor
             if (_createContext)
                 CreateContext(handle);
 
+#if GL_WRAPPER
+            _gl = new OpenGLWrapper.GLDirectWrapper(Silk.NET.OpenGL.GL.GetApi(this));
+#else
             _gl = GL.GetApi(this);
-
+#endif
             return handle;
         }
 
