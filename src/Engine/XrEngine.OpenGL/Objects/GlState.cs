@@ -473,9 +473,6 @@ namespace XrEngine.OpenGL
             if (curSlotValue == buffer.Handle && !force)
                 return;
 
-            if (slot == 10)
-                Console.WriteLine("");
-
             _gl.BindBufferBase(buffer.Target, (uint)slot, buffer.Handle);
             buffer.Slot = slot;
 

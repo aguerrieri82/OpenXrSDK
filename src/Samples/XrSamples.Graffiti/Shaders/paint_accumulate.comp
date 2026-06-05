@@ -43,10 +43,10 @@ void main()
 {
     ivec2 local = ivec2(gl_GlobalInvocationID.xy);
 
-    if (any(greaterThanEqual(local, ComputeSize)))
-        return;
-
     ivec2 p = local + ComputeOffset;
+
+    if (any(greaterThanEqual(p, CanvasSize)))
+        return;
 
     vec4 wet = imageLoad(uWetPaint, p);
     vec4 dry = imageLoad(uDryPaint, p);
