@@ -1,15 +1,17 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System.Numerics;
-using XrMath;
 #else
 using Silk.NET.OpenGL;
 #endif
+
+using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
+        int _frame = 0;
 
 #if GLES
         readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
@@ -37,17 +39,22 @@ namespace XrEngine.OpenGL
             else
                 _renderer.Clear(_renderer.UpdateContext.PassCamera!.BackgroundColor);
 
+            _frame++;
+
             return true;
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color ||
+                                               (a.Type & GlLayerType.Static) == GlLayerType.Static ||
                                                (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline));
         }
 
         protected override void EndRender()
         {
+
+
             // _renderer.State.SetActiveProgram(0);
             // _renderer.RenderTarget!.End(false);
         }
@@ -110,6 +117,37 @@ namespace XrEngine.OpenGL
         {
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
+
+            var timer = Stopwatch.StartNew();
+
+#if GL_WRAPPER
+            
+            bool isRecording = false;
+
+            var wrapper = _gl as OpenGLWrapper.GlSwitchWrapper;
+
+            if (wrapper != null && layer.IsStatic)
+            {
+                if (layer.RenderActions.Count == 0 && _frame > 1000)
+                {
+                    _renderer.State.Reset();
+                    isRecording = true;
+                    wrapper.BeginRecord();
+                }
+                else if (layer.RenderActions.Count > 0)
+                {
+                    layer.Execute(wrapper.Enqueue.Instance);
+                    _renderer.State.Reset();
+
+                    if (layer.IsStatic && _frame % 100 == 0)
+                    {
+                        timer.Stop();
+                        Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
+                    }
+                    return;
+                }
+            }
+#endif
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
@@ -214,6 +252,17 @@ namespace XrEngine.OpenGL
 
             if (progChangeCount > 0)
                 Log.Debug(this, "Changes: {0}", progChangeCount);
+
+#if GL_WRAPPER
+            if (wrapper != null && isRecording)
+                layer.RenderActions.AddRange(wrapper.EndRecord());
+
+            if (layer.IsStatic && _frame % 100 == 0)
+            {
+                timer.Stop();
+                Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
+            }
+#endif
         }
 
 
@@ -291,8 +340,6 @@ namespace XrEngine.OpenGL
 
                     vHandler.Unbind();
                 }
-
-
             }
 
             _renderer.PopGroup();

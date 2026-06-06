@@ -17,6 +17,8 @@
 
         void Update(object value);
 
+        void Update(Func<object?> value);
+
         void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0);
 
         void Allocate(uint sizeInByte);
@@ -34,6 +36,8 @@
 
     public interface IBuffer<T> : IBuffer
     {
+        void Update(Func<(T, bool)> getValue);
+
         void Update(T value);
 
         void UpdateRange(ReadOnlySpan<T> value, int dstIndex);

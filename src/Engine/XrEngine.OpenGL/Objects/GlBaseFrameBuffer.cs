@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
 
             if (status != GLEnum.FramebufferComplete)
             {
-                throw new Exception($"Frame buffer state invalid: {status}");
+                //throw new Exception($"Frame buffer state invalid: {status}");
             }
 
             _isDirty = false;

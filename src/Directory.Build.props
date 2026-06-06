@@ -22,7 +22,7 @@
 		<NativePlatform>x64</NativePlatform>
 		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
 		<FilamentLink>PreBuilt</FilamentLink>
-		<DefineConstants>$(DefineConstants);GL_WRAPPER</DefineConstants>
+		<_DefineConstants>$(DefineConstants);GL_WRAPPER</_DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">

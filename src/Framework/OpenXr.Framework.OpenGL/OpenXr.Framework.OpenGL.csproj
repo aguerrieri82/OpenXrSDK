@@ -18,12 +18,14 @@
 
 
 	<ItemGroup>
-		<ProjectReference Include="..\OpenGLWrapper\OpenGLWrapper.csproj" />
+
 		<ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">
 		<Using Include="OpenGLWrapper.IGLWrapper" Alias="GL" />
+		<Using Include="OpenGLWrapper" />
+		<ProjectReference Include="..\OpenGLWrapper\OpenGLWrapper.csproj" />
 	</ItemGroup>
 
 

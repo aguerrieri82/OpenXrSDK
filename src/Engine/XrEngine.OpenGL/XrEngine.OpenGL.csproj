@@ -18,7 +18,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\..\Framework\OpenGLWrapper\OpenGLWrapper.csproj" />
+
 		<ProjectReference Include="..\XrEngine.Compression\XrEngine.Compression.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 
@@ -27,6 +27,8 @@
 
 	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">
 		<Using Include="OpenGLWrapper.IGLWrapper" Alias="GL" />
+		<Using Include="OpenGLWrapper" />
+		<ProjectReference Include="..\..\Framework\OpenGLWrapper\OpenGLWrapper.csproj" />
 	</ItemGroup>
 
 

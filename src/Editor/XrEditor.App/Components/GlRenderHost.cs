@@ -260,7 +260,7 @@ namespace XrEditor
                 CreateContext(handle);
 
 #if GL_WRAPPER
-            _gl = new OpenGLWrapper.GLDirectWrapper(Silk.NET.OpenGL.GL.GetApi(this));
+            _gl = new OpenGLWrapper.GlSwitchWrapper(Silk.NET.OpenGL.GL.GetApi(this));
 #else
             _gl = GL.GetApi(this);
 #endif

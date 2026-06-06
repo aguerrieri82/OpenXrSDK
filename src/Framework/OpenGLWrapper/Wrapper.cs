@@ -3,7 +3,7 @@
     public abstract class Wrapper<T>
     {
         protected List<Action<T>> _actions = [];
-        protected readonly T _instance;
+        protected T _instance;
 
         public Wrapper(T instance)
         {
@@ -25,6 +25,8 @@
         {
             _actions.Clear();
         }
+
+        public T Instance => _instance;
 
         public List<Action<T>> Actions => _actions;
 

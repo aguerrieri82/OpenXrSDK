@@ -135,14 +135,23 @@ namespace XrEngine
             {
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
 
+#if GL_WRAPPER
+                buffer.Update(() =>
+                {
+                    ctx.CurrentBuffer = buffer;
+                    var curValue = value(ctx);
+                    ctx.CurrentBuffer = null;
+                    return curValue;
+                });
+#else
                 ctx.CurrentBuffer = buffer;
-
+                
                 var curValue = value(ctx);
-
                 if (curValue != null)
                     buffer.Update(curValue.Value);
-
+     
                 ctx.CurrentBuffer = null;
+#endif
             });
 
             _result.Actions!.Add((ctx, up) =>

@@ -2,8 +2,10 @@
 
 #if GLES
 using Silk.NET.OpenGLES;
+using RealGL = Silk.NET.OpenGLES.GL;
 #else
 using Silk.NET.OpenGL;
+using RealGL = Silk.NET.OpenGL.GL;
 #endif
 
 using XrMath;
@@ -31,6 +33,7 @@ namespace XrEngine.OpenGL
         protected Camera? _lastCamera;
         protected int _lastDrawId;
         protected bool _isContentDirty;
+        protected List<Action<RealGL>> _renderActions = [];
 
         public GlLayerV2(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -508,6 +511,16 @@ namespace XrEngine.OpenGL
             value.IsDirty = true;
             _isContentDirty = true;
         }
+
+        public void Execute(RealGL gl)
+        {
+            foreach (var action in _renderActions)
+                action(gl);
+        }
+
+        public List<Action<RealGL>> RenderActions => _renderActions;    
+
+        public bool IsStatic => (_type & GlLayerType.Static) != 0; 
 
         public string? Name => _sceneLayer?.Name;
 

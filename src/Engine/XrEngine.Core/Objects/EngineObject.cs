@@ -16,7 +16,8 @@ namespace XrEngine
         Mutable = 0x60,
         NotifyChanged = 0x80,
         NoFrustumCulling = 0x100,
-        LargeOccluder = 0x200
+        LargeOccluder = 0x200,
+        Static = 0x400
     }
 
     public static class DynamicPropRegistry

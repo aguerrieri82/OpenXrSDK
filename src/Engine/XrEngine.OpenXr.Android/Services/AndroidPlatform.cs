@@ -107,7 +107,7 @@ namespace XrEngine.OpenXr.Android
 
 #if GL_WRAPPER
 
-                renderEngine = new OpenGLRender(new OpenGLWrapper.GLDirectWrapper(glDriver.GetApi<GL>()), glOptions);
+                renderEngine = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(glDriver.GetApi<GL>()), glOptions);
 #else
                 renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);
 #endif

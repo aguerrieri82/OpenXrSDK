@@ -59,7 +59,7 @@ namespace XrEngine.OpenXr.Windows
         {
             var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 #if GL_WRAPPER
-            renderEngine = new OpenGLRender(new GLDirectWrapper(_viewManager.View.CreateOpenGL()), glOptions);
+            renderEngine = new OpenGLRender(new GlSwitchWrapper(_viewManager.View.CreateOpenGL()), glOptions);
 #else
             renderEngine = new OpenGLRender(_viewManager.View.CreateOpenGL(), glOptions);
 #endif

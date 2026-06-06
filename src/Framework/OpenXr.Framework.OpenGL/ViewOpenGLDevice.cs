@@ -31,7 +31,7 @@ namespace OpenXr.Framework.OpenGL
 
 #if !GLES
 #if GL_WRAPPER
-            _gl = new OpenGLWrapper.GLDirectWrapper(_view.CreateOpenGL());
+            _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
 #else
             _gl = _view.CreateOpenGL();
 #endif

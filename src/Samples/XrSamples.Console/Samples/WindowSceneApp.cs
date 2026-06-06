@@ -58,7 +58,7 @@ namespace XrSamples
 #endif
 
 #if GL_WRAPPER
-                var render = new OpenGLRender(new OpenGLWrapper.GLDirectWrapper(gl));
+                var render = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl));
 #else
                 var render = new OpenGLRender(gl);
 #endif

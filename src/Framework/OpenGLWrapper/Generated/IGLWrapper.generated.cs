@@ -46,8 +46,6 @@ public unsafe partial interface IGLWrapper
 
     void BindAttribLocation(uint program, uint index, byte* name);
 
-    void BindAttribLocation(uint program, uint index, global::System.ReadOnlySpan<byte> name);
-
     void BindAttribLocation(uint program, uint index, string name);
 
     void BindBuffer(BufferTargetARB target, uint buffer);
@@ -70,10 +68,6 @@ public unsafe partial interface IGLWrapper
 
     void BindBuffersBase(BufferTargetARB target, uint first, uint count, Buffer* buffers);
 
-    void BindBuffersBase(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers);
-
-    void BindBuffersBase(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers);
-
     void BindBuffersBase(BufferTargetARB target, uint first, uint count, in uint buffers);
 
     void BindBuffersBase(BufferTargetARB target, uint first, uint count, uint* buffers);
@@ -85,10 +79,6 @@ public unsafe partial interface IGLWrapper
     void BindBuffersBase(GLEnum target, uint first, uint count, in Buffer buffers);
 
     void BindBuffersBase(GLEnum target, uint first, uint count, Buffer* buffers);
-
-    void BindBuffersBase(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers);
-
-    void BindBuffersBase(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers);
 
     void BindBuffersBase(GLEnum target, uint first, uint count, in uint buffers);
 
@@ -134,31 +124,9 @@ public unsafe partial interface IGLWrapper
 
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, Buffer* buffers, in nint offsets, nuint* sizes);
 
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, Buffer* buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, Buffer* buffers, nint* offsets, in nuint sizes);
 
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, Buffer* buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
 
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, in uint buffers, in nint offsets, in nuint sizes);
 
@@ -172,15 +140,9 @@ public unsafe partial interface IGLWrapper
 
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, uint* buffers, in nint offsets, nuint* sizes);
 
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, uint* buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, uint* buffers, nint* offsets, in nuint sizes);
 
     void BindBuffersRange(BufferTargetARB target, uint first, uint count, uint* buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(BufferTargetARB target, uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
 
     void BindBuffersRange(GLEnum target, uint first, Buffer* buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
 
@@ -222,31 +184,9 @@ public unsafe partial interface IGLWrapper
 
     void BindBuffersRange(GLEnum target, uint first, uint count, Buffer* buffers, in nint offsets, nuint* sizes);
 
-    void BindBuffersRange(GLEnum target, uint first, uint count, Buffer* buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
     void BindBuffersRange(GLEnum target, uint first, uint count, Buffer* buffers, nint* offsets, in nuint sizes);
 
     void BindBuffersRange(GLEnum target, uint first, uint count, Buffer* buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, nuint* sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
 
     void BindBuffersRange(GLEnum target, uint first, uint count, in uint buffers, in nint offsets, in nuint sizes);
 
@@ -260,29 +200,19 @@ public unsafe partial interface IGLWrapper
 
     void BindBuffersRange(GLEnum target, uint first, uint count, uint* buffers, in nint offsets, nuint* sizes);
 
-    void BindBuffersRange(GLEnum target, uint first, uint count, uint* buffers, nint* offsets, global::System.ReadOnlySpan<nuint> sizes);
-
     void BindBuffersRange(GLEnum target, uint first, uint count, uint* buffers, nint* offsets, in nuint sizes);
 
     void BindBuffersRange(GLEnum target, uint first, uint count, uint* buffers, nint* offsets, nuint* sizes);
 
-    void BindBuffersRange(GLEnum target, uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<nuint> sizes);
-
-    void BindBuffersRange(GLEnum target, uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, nuint* sizes);
-
     void BindFragDataLocation(uint program, uint color, in byte name);
 
     void BindFragDataLocation(uint program, uint color, byte* name);
-
-    void BindFragDataLocation(uint program, uint color, global::System.ReadOnlySpan<byte> name);
 
     void BindFragDataLocation(uint program, uint color, string name);
 
     void BindFragDataLocationIndexed(uint program, uint colorNumber, uint index, in byte name);
 
     void BindFragDataLocationIndexed(uint program, uint colorNumber, uint index, byte* name);
-
-    void BindFragDataLocationIndexed(uint program, uint colorNumber, uint index, global::System.ReadOnlySpan<byte> name);
 
     void BindFragDataLocationIndexed(uint program, uint colorNumber, uint index, string name);
 
@@ -306,10 +236,6 @@ public unsafe partial interface IGLWrapper
 
     void BindImageTextures(uint first, uint count, Texture* textures);
 
-    void BindImageTextures(uint first, uint count, global::System.ReadOnlySpan<Texture> textures);
-
-    void BindImageTextures(uint first, uint count, global::System.ReadOnlySpan<uint> textures);
-
     void BindImageTextures(uint first, uint count, in uint textures);
 
     void BindImageTextures(uint first, uint count, uint* textures);
@@ -330,10 +256,6 @@ public unsafe partial interface IGLWrapper
 
     void BindSamplers(uint first, uint count, Sampler* samplers);
 
-    void BindSamplers(uint first, uint count, global::System.ReadOnlySpan<Sampler> samplers);
-
-    void BindSamplers(uint first, uint count, global::System.ReadOnlySpan<uint> samplers);
-
     void BindSamplers(uint first, uint count, in uint samplers);
 
     void BindSamplers(uint first, uint count, uint* samplers);
@@ -351,10 +273,6 @@ public unsafe partial interface IGLWrapper
     void BindTextures(uint first, uint count, in Texture textures);
 
     void BindTextures(uint first, uint count, Texture* textures);
-
-    void BindTextures(uint first, uint count, global::System.ReadOnlySpan<Texture> textures);
-
-    void BindTextures(uint first, uint count, global::System.ReadOnlySpan<uint> textures);
 
     void BindTextures(uint first, uint count, in uint textures);
 
@@ -408,31 +326,9 @@ public unsafe partial interface IGLWrapper
 
     void BindVertexBuffers(uint first, uint count, Buffer* buffers, in nint offsets, uint* strides);
 
-    void BindVertexBuffers(uint first, uint count, Buffer* buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
     void BindVertexBuffers(uint first, uint count, Buffer* buffers, nint* offsets, in uint strides);
 
     void BindVertexBuffers(uint first, uint count, Buffer* buffers, nint* offsets, uint* strides);
-
-    void BindVertexBuffers(uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void BindVertexBuffers(uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, uint* strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, uint* strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void BindVertexBuffers(uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
 
     void BindVertexBuffers(uint first, uint count, in uint buffers, in nint offsets, in uint strides);
 
@@ -446,15 +342,9 @@ public unsafe partial interface IGLWrapper
 
     void BindVertexBuffers(uint first, uint count, uint* buffers, in nint offsets, uint* strides);
 
-    void BindVertexBuffers(uint first, uint count, uint* buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
     void BindVertexBuffers(uint first, uint count, uint* buffers, nint* offsets, in uint strides);
 
     void BindVertexBuffers(uint first, uint count, uint* buffers, nint* offsets, uint* strides);
-
-    void BindVertexBuffers(uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void BindVertexBuffers(uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
 
     void BlendColor(global::System.Drawing.Color color);
 
@@ -603,12 +493,6 @@ public unsafe partial interface IGLWrapper
     void BufferData<T0>(BufferTargetARB target, nuint size, in T0 data, GLEnum usage)
         where T0 : unmanaged;
 
-    void BufferData<T0>(BufferTargetARB target, nuint size, global::System.ReadOnlySpan<T0> data, BufferUsageARB usage)
-        where T0 : unmanaged;
-
-    void BufferData<T0>(BufferTargetARB target, nuint size, global::System.ReadOnlySpan<T0> data, GLEnum usage)
-        where T0 : unmanaged;
-
     void BufferData<T0>(GLEnum target, global::System.ReadOnlySpan<T0> data, BufferUsageARB usage)
         where T0 : unmanaged;
 
@@ -619,12 +503,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     void BufferData<T0>(GLEnum target, nuint size, in T0 data, GLEnum usage)
-        where T0 : unmanaged;
-
-    void BufferData<T0>(GLEnum target, nuint size, global::System.ReadOnlySpan<T0> data, BufferUsageARB usage)
-        where T0 : unmanaged;
-
-    void BufferData<T0>(GLEnum target, nuint size, global::System.ReadOnlySpan<T0> data, GLEnum usage)
         where T0 : unmanaged;
 
     void BufferStorage(BufferStorageTarget target, nuint size, void* data, BufferStorageMask flags);
@@ -647,12 +525,6 @@ public unsafe partial interface IGLWrapper
     void BufferStorage<T0>(BufferStorageTarget target, nuint size, in T0 data, uint flags)
         where T0 : unmanaged;
 
-    void BufferStorage<T0>(BufferStorageTarget target, nuint size, global::System.ReadOnlySpan<T0> data, BufferStorageMask flags)
-        where T0 : unmanaged;
-
-    void BufferStorage<T0>(BufferStorageTarget target, nuint size, global::System.ReadOnlySpan<T0> data, uint flags)
-        where T0 : unmanaged;
-
     void BufferStorage<T0>(GLEnum target, global::System.ReadOnlySpan<T0> data, BufferStorageMask flags)
         where T0 : unmanaged;
 
@@ -665,12 +537,6 @@ public unsafe partial interface IGLWrapper
     void BufferStorage<T0>(GLEnum target, nuint size, in T0 data, uint flags)
         where T0 : unmanaged;
 
-    void BufferStorage<T0>(GLEnum target, nuint size, global::System.ReadOnlySpan<T0> data, BufferStorageMask flags)
-        where T0 : unmanaged;
-
-    void BufferStorage<T0>(GLEnum target, nuint size, global::System.ReadOnlySpan<T0> data, uint flags)
-        where T0 : unmanaged;
-
     void BufferSubData(BufferTargetARB target, nint offset, nuint size, void* data);
 
     void BufferSubData(GLEnum target, nint offset, nuint size, void* data);
@@ -681,16 +547,10 @@ public unsafe partial interface IGLWrapper
     void BufferSubData<T0>(BufferTargetARB target, nint offset, nuint size, in T0 data)
         where T0 : unmanaged;
 
-    void BufferSubData<T0>(BufferTargetARB target, nint offset, nuint size, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void BufferSubData<T0>(GLEnum target, nint offset, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void BufferSubData<T0>(GLEnum target, nint offset, nuint size, in T0 data)
-        where T0 : unmanaged;
-
-    void BufferSubData<T0>(GLEnum target, nint offset, nuint size, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     GLEnum CheckFramebufferStatus(FramebufferTarget target);
@@ -717,12 +577,6 @@ public unsafe partial interface IGLWrapper
 
     void ClearBuffer(BufferKind buffer, int drawbuffer, int* value);
 
-    void ClearBuffer(BufferKind buffer, int drawbuffer, global::System.ReadOnlySpan<int> value);
-
-    void ClearBuffer(BufferKind buffer, int drawbuffer, global::System.ReadOnlySpan<float> value);
-
-    void ClearBuffer(BufferKind buffer, int drawbuffer, global::System.ReadOnlySpan<uint> value);
-
     void ClearBuffer(BufferKind buffer, int drawbuffer, in float value);
 
     void ClearBuffer(BufferKind buffer, int drawbuffer, float* value);
@@ -736,12 +590,6 @@ public unsafe partial interface IGLWrapper
     void ClearBuffer(GLEnum buffer, int drawbuffer, in int value);
 
     void ClearBuffer(GLEnum buffer, int drawbuffer, int* value);
-
-    void ClearBuffer(GLEnum buffer, int drawbuffer, global::System.ReadOnlySpan<int> value);
-
-    void ClearBuffer(GLEnum buffer, int drawbuffer, global::System.ReadOnlySpan<float> value);
-
-    void ClearBuffer(GLEnum buffer, int drawbuffer, global::System.ReadOnlySpan<uint> value);
 
     void ClearBuffer(GLEnum buffer, int drawbuffer, in float value);
 
@@ -788,97 +636,49 @@ public unsafe partial interface IGLWrapper
     void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(BufferStorageTarget target, GLEnum internalformat, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(BufferStorageTarget target, SizedInternalFormat internalformat, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(GLEnum target, GLEnum internalformat, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferData<T0>(GLEnum target, SizedInternalFormat internalformat, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, void* data);
@@ -916,97 +716,49 @@ public unsafe partial interface IGLWrapper
     void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(BufferTargetARB target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(BufferTargetARB target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(GLEnum target, GLEnum internalformat, nint offset, nuint size, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearBufferSubData<T0>(GLEnum target, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearColor(global::System.Drawing.Color color);
@@ -1039,49 +791,25 @@ public unsafe partial interface IGLWrapper
     void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferData<T0>(uint buffer, GLEnum internalformat, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferData<T0>(uint buffer, SizedInternalFormat internalformat, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferSubData(uint buffer, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, void* data);
@@ -1103,60 +831,30 @@ public unsafe partial interface IGLWrapper
     void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferSubData<T0>(uint buffer, GLEnum internalformat, nint offset, nuint size, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearNamedBufferSubData<T0>(uint buffer, SizedInternalFormat internalformat, nint offset, nuint size, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearNamedFramebuffer(uint framebuffer, BufferKind buffer, int drawbuffer, in int value);
 
     void ClearNamedFramebuffer(uint framebuffer, BufferKind buffer, int drawbuffer, int* value);
-
-    void ClearNamedFramebuffer(uint framebuffer, BufferKind buffer, int drawbuffer, global::System.ReadOnlySpan<int> value);
-
-    void ClearNamedFramebuffer(uint framebuffer, BufferKind buffer, int drawbuffer, global::System.ReadOnlySpan<float> value);
-
-    void ClearNamedFramebuffer(uint framebuffer, BufferKind buffer, int drawbuffer, global::System.ReadOnlySpan<uint> value);
 
     void ClearNamedFramebuffer(uint framebuffer, BufferKind buffer, int drawbuffer, in float value);
 
@@ -1171,12 +869,6 @@ public unsafe partial interface IGLWrapper
     void ClearNamedFramebuffer(uint framebuffer, GLEnum buffer, int drawbuffer, in int value);
 
     void ClearNamedFramebuffer(uint framebuffer, GLEnum buffer, int drawbuffer, int* value);
-
-    void ClearNamedFramebuffer(uint framebuffer, GLEnum buffer, int drawbuffer, global::System.ReadOnlySpan<int> value);
-
-    void ClearNamedFramebuffer(uint framebuffer, GLEnum buffer, int drawbuffer, global::System.ReadOnlySpan<float> value);
-
-    void ClearNamedFramebuffer(uint framebuffer, GLEnum buffer, int drawbuffer, global::System.ReadOnlySpan<uint> value);
 
     void ClearNamedFramebuffer(uint framebuffer, GLEnum buffer, int drawbuffer, in float value);
 
@@ -1201,25 +893,13 @@ public unsafe partial interface IGLWrapper
     void ClearTexImage<T0>(uint texture, int level, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearTexImage<T0>(uint texture, int level, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearTexImage<T0>(uint texture, int level, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearTexImage<T0>(uint texture, int level, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearTexImage<T0>(uint texture, int level, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearTexImage<T0>(uint texture, int level, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearTexImage<T0>(uint texture, int level, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearTexImage<T0>(uint texture, int level, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearTexSubImage(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, void* data);
@@ -1233,25 +913,13 @@ public unsafe partial interface IGLWrapper
     void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, in T0 data)
         where T0 : unmanaged;
 
-    void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, in T0 data)
-        where T0 : unmanaged;
-
-    void ClearTexSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     GLEnum ClientWaitSync(nint sync, SyncObjectMask flags, ulong timeout);
@@ -1270,15 +938,11 @@ public unsafe partial interface IGLWrapper
 
     void ColorMask(uint index, bool r, bool g, bool b, bool a);
 
-    void ColorP3(ColorPointerType type, global::System.ReadOnlySpan<uint> color);
-
     void ColorP3(ColorPointerType type, in uint color);
 
     void ColorP3(ColorPointerType type, uint* color);
 
     void ColorP3(ColorPointerType type, uint color);
-
-    void ColorP3(GLEnum type, global::System.ReadOnlySpan<uint> color);
 
     void ColorP3(GLEnum type, in uint color);
 
@@ -1286,15 +950,11 @@ public unsafe partial interface IGLWrapper
 
     void ColorP3(GLEnum type, uint color);
 
-    void ColorP4(ColorPointerType type, global::System.ReadOnlySpan<uint> color);
-
     void ColorP4(ColorPointerType type, in uint color);
 
     void ColorP4(ColorPointerType type, uint* color);
 
     void ColorP4(ColorPointerType type, uint color);
-
-    void ColorP4(GLEnum type, global::System.ReadOnlySpan<uint> color);
 
     void ColorP4(GLEnum type, in uint color);
 
@@ -1318,16 +978,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexImage1D<T0>(GLEnum target, int level, GLEnum internalformat, uint width, int border, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexImage1D<T0>(GLEnum target, int level, GLEnum internalformat, uint width, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage1D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, int border, global::System.ReadOnlySpan<T0> data)
@@ -1336,16 +990,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexImage1D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, int border, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexImage1D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage2D(GLEnum target, int level, GLEnum internalformat, uint width, uint height, int border, uint imageSize, void* data);
@@ -1362,16 +1010,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexImage2D<T0>(GLEnum target, int level, GLEnum internalformat, uint width, uint height, int border, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexImage2D<T0>(GLEnum target, int level, GLEnum internalformat, uint width, uint height, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage2D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, uint height, int border, global::System.ReadOnlySpan<T0> data)
@@ -1380,16 +1022,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexImage2D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, uint height, int border, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexImage2D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, uint height, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage3D(GLEnum target, int level, GLEnum internalformat, uint width, uint height, uint depth, int border, uint imageSize, void* data);
@@ -1406,16 +1042,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexImage3D<T0>(GLEnum target, int level, GLEnum internalformat, uint width, uint height, uint depth, int border, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexImage3D<T0>(GLEnum target, int level, GLEnum internalformat, uint width, uint height, uint depth, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage3D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, uint height, uint depth, int border, global::System.ReadOnlySpan<T0> data)
@@ -1424,16 +1054,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexImage3D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, uint height, uint depth, int border, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexImage3D<T0>(TextureTarget target, int level, GLEnum internalformat, uint width, uint height, uint depth, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage1D(GLEnum target, int level, int xoffset, uint width, GLEnum format, uint imageSize, void* data);
@@ -1450,16 +1074,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, global::System.ReadOnlySpan<T0> data)
@@ -1468,16 +1086,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage2D(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, void* data);
@@ -1494,16 +1106,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, global::System.ReadOnlySpan<T0> data)
@@ -1512,16 +1118,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage3D(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, void* data);
@@ -1538,16 +1138,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, global::System.ReadOnlySpan<T0> data)
@@ -1556,16 +1150,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTextureSubImage1D(uint texture, int level, int xoffset, uint width, GLEnum format, uint imageSize, void* data);
@@ -1578,16 +1166,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTextureSubImage2D(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, void* data);
@@ -1600,16 +1182,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTextureSubImage3D(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, void* data);
@@ -1622,16 +1198,10 @@ public unsafe partial interface IGLWrapper
     void CompressedTextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, in T0 data)
         where T0 : unmanaged;
 
-    void CompressedTextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, uint imageSize, global::System.ReadOnlySpan<T0> data)
-        where T0 : unmanaged;
-
     void CompressedTextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CompressedTextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, uint imageSize, in T0 data)
-        where T0 : unmanaged;
-
-    void CompressedTextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, InternalFormat format, uint imageSize, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void CopyBufferSubData(CopyBufferSubDataTarget readTarget, CopyBufferSubDataTarget writeTarget, nint readOffset, nint writeOffset, nuint size);
@@ -1698,10 +1268,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateBuffers(uint n, Buffer* buffers);
 
-    void CreateBuffers(uint n, global::System.Span<Buffer> buffers);
-
-    void CreateBuffers(uint n, global::System.Span<uint> buffers);
-
     void CreateBuffers(uint n, out uint buffers);
 
     void CreateBuffers(uint n, uint* buffers);
@@ -1717,10 +1283,6 @@ public unsafe partial interface IGLWrapper
     void CreateFramebuffers(uint n, out Framebuffer framebuffers);
 
     void CreateFramebuffers(uint n, Framebuffer* framebuffers);
-
-    void CreateFramebuffers(uint n, global::System.Span<Framebuffer> framebuffers);
-
-    void CreateFramebuffers(uint n, global::System.Span<uint> framebuffers);
 
     void CreateFramebuffers(uint n, out uint framebuffers);
 
@@ -1740,10 +1302,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateProgramPipelines(uint n, ProgramPipeline* pipelines);
 
-    void CreateProgramPipelines(uint n, global::System.Span<ProgramPipeline> pipelines);
-
-    void CreateProgramPipelines(uint n, global::System.Span<uint> pipelines);
-
     void CreateProgramPipelines(uint n, out uint pipelines);
 
     void CreateProgramPipelines(uint n, uint* pipelines);
@@ -1758,10 +1316,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateQueries(GLEnum target, uint n, Query* ids);
 
-    void CreateQueries(GLEnum target, uint n, global::System.Span<Query> ids);
-
-    void CreateQueries(GLEnum target, uint n, global::System.Span<uint> ids);
-
     void CreateQueries(GLEnum target, uint n, out uint ids);
 
     void CreateQueries(GLEnum target, uint n, uint* ids);
@@ -1775,10 +1329,6 @@ public unsafe partial interface IGLWrapper
     void CreateQueries(QueryTarget target, uint n, out Query ids);
 
     void CreateQueries(QueryTarget target, uint n, Query* ids);
-
-    void CreateQueries(QueryTarget target, uint n, global::System.Span<Query> ids);
-
-    void CreateQueries(QueryTarget target, uint n, global::System.Span<uint> ids);
 
     void CreateQueries(QueryTarget target, uint n, out uint ids);
 
@@ -1800,10 +1350,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateRenderbuffers(uint n, Renderbuffer* renderbuffers);
 
-    void CreateRenderbuffers(uint n, global::System.Span<Renderbuffer> renderbuffers);
-
-    void CreateRenderbuffers(uint n, global::System.Span<uint> renderbuffers);
-
     void CreateRenderbuffers(uint n, out uint renderbuffers);
 
     void CreateRenderbuffers(uint n, uint* renderbuffers);
@@ -1819,10 +1365,6 @@ public unsafe partial interface IGLWrapper
     void CreateSamplers(uint n, out Sampler samplers);
 
     void CreateSamplers(uint n, Sampler* samplers);
-
-    void CreateSamplers(uint n, global::System.Span<Sampler> samplers);
-
-    void CreateSamplers(uint n, global::System.Span<uint> samplers);
 
     void CreateSamplers(uint n, out uint samplers);
 
@@ -1858,10 +1400,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateTextures(GLEnum target, uint n, Texture* textures);
 
-    void CreateTextures(GLEnum target, uint n, global::System.Span<Texture> textures);
-
-    void CreateTextures(GLEnum target, uint n, global::System.Span<uint> textures);
-
     void CreateTextures(GLEnum target, uint n, out uint textures);
 
     void CreateTextures(GLEnum target, uint n, uint* textures);
@@ -1875,10 +1413,6 @@ public unsafe partial interface IGLWrapper
     void CreateTextures(TextureTarget target, uint n, out Texture textures);
 
     void CreateTextures(TextureTarget target, uint n, Texture* textures);
-
-    void CreateTextures(TextureTarget target, uint n, global::System.Span<Texture> textures);
-
-    void CreateTextures(TextureTarget target, uint n, global::System.Span<uint> textures);
 
     void CreateTextures(TextureTarget target, uint n, out uint textures);
 
@@ -1896,10 +1430,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateTransformFeedbacks(uint n, TransformFeedback* ids);
 
-    void CreateTransformFeedbacks(uint n, global::System.Span<TransformFeedback> ids);
-
-    void CreateTransformFeedbacks(uint n, global::System.Span<uint> ids);
-
     void CreateTransformFeedbacks(uint n, out uint ids);
 
     void CreateTransformFeedbacks(uint n, uint* ids);
@@ -1916,10 +1446,6 @@ public unsafe partial interface IGLWrapper
 
     void CreateVertexArrays(uint n, VertexArray* arrays);
 
-    void CreateVertexArrays(uint n, global::System.Span<VertexArray> arrays);
-
-    void CreateVertexArrays(uint n, global::System.Span<uint> arrays);
-
     void CreateVertexArrays(uint n, out uint arrays);
 
     void CreateVertexArrays(uint n, uint* arrays);
@@ -1933,12 +1459,7 @@ public unsafe partial interface IGLWrapper
     void DebugMessageCallback<T0>(DebugProc callback, in T0 userParam)
         where T0 : unmanaged;
 
-    void DebugMessageCallback<T0>(DebugProc callback, global::System.ReadOnlySpan<T0> userParam)
-        where T0 : unmanaged;
-
     void DebugMessageControl(DebugSource source, DebugType type, DebugSeverity severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
-    void DebugMessageControl(DebugSource source, DebugType type, DebugSeverity severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
     void DebugMessageControl(DebugSource source, DebugType type, DebugSeverity severity, uint count, in uint ids, bool enabled);
 
@@ -1946,15 +1467,11 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageControl(DebugSource source, DebugType type, GLEnum severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
-    void DebugMessageControl(DebugSource source, DebugType type, GLEnum severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
     void DebugMessageControl(DebugSource source, DebugType type, GLEnum severity, uint count, in uint ids, bool enabled);
 
     void DebugMessageControl(DebugSource source, DebugType type, GLEnum severity, uint count, uint* ids, bool enabled);
 
     void DebugMessageControl(DebugSource source, GLEnum type, DebugSeverity severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
-    void DebugMessageControl(DebugSource source, GLEnum type, DebugSeverity severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
     void DebugMessageControl(DebugSource source, GLEnum type, DebugSeverity severity, uint count, in uint ids, bool enabled);
 
@@ -1962,15 +1479,11 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageControl(DebugSource source, GLEnum type, GLEnum severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
-    void DebugMessageControl(DebugSource source, GLEnum type, GLEnum severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
     void DebugMessageControl(DebugSource source, GLEnum type, GLEnum severity, uint count, in uint ids, bool enabled);
 
     void DebugMessageControl(DebugSource source, GLEnum type, GLEnum severity, uint count, uint* ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, DebugType type, DebugSeverity severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
-    void DebugMessageControl(GLEnum source, DebugType type, DebugSeverity severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, DebugType type, DebugSeverity severity, uint count, in uint ids, bool enabled);
 
@@ -1978,23 +1491,17 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageControl(GLEnum source, DebugType type, GLEnum severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
-    void DebugMessageControl(GLEnum source, DebugType type, GLEnum severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
     void DebugMessageControl(GLEnum source, DebugType type, GLEnum severity, uint count, in uint ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, DebugType type, GLEnum severity, uint count, uint* ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, GLEnum type, DebugSeverity severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
-    void DebugMessageControl(GLEnum source, GLEnum type, DebugSeverity severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
     void DebugMessageControl(GLEnum source, GLEnum type, DebugSeverity severity, uint count, in uint ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, GLEnum type, DebugSeverity severity, uint count, uint* ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, GLEnum type, GLEnum severity, global::System.ReadOnlySpan<uint> ids, bool enabled);
-
-    void DebugMessageControl(GLEnum source, GLEnum type, GLEnum severity, uint count, global::System.ReadOnlySpan<uint> ids, bool enabled);
 
     void DebugMessageControl(GLEnum source, GLEnum type, GLEnum severity, uint count, in uint ids, bool enabled);
 
@@ -2004,15 +1511,11 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageInsert(DebugSource source, DebugType type, uint id, DebugSeverity severity, uint length, byte* buf);
 
-    void DebugMessageInsert(DebugSource source, DebugType type, uint id, DebugSeverity severity, uint length, global::System.ReadOnlySpan<byte> buf);
-
     void DebugMessageInsert(DebugSource source, DebugType type, uint id, DebugSeverity severity, uint length, string buf);
 
     void DebugMessageInsert(DebugSource source, DebugType type, uint id, GLEnum severity, uint length, in byte buf);
 
     void DebugMessageInsert(DebugSource source, DebugType type, uint id, GLEnum severity, uint length, byte* buf);
-
-    void DebugMessageInsert(DebugSource source, DebugType type, uint id, GLEnum severity, uint length, global::System.ReadOnlySpan<byte> buf);
 
     void DebugMessageInsert(DebugSource source, DebugType type, uint id, GLEnum severity, uint length, string buf);
 
@@ -2020,15 +1523,11 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageInsert(DebugSource source, GLEnum type, uint id, DebugSeverity severity, uint length, byte* buf);
 
-    void DebugMessageInsert(DebugSource source, GLEnum type, uint id, DebugSeverity severity, uint length, global::System.ReadOnlySpan<byte> buf);
-
     void DebugMessageInsert(DebugSource source, GLEnum type, uint id, DebugSeverity severity, uint length, string buf);
 
     void DebugMessageInsert(DebugSource source, GLEnum type, uint id, GLEnum severity, uint length, in byte buf);
 
     void DebugMessageInsert(DebugSource source, GLEnum type, uint id, GLEnum severity, uint length, byte* buf);
-
-    void DebugMessageInsert(DebugSource source, GLEnum type, uint id, GLEnum severity, uint length, global::System.ReadOnlySpan<byte> buf);
 
     void DebugMessageInsert(DebugSource source, GLEnum type, uint id, GLEnum severity, uint length, string buf);
 
@@ -2036,15 +1535,11 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageInsert(GLEnum source, DebugType type, uint id, DebugSeverity severity, uint length, byte* buf);
 
-    void DebugMessageInsert(GLEnum source, DebugType type, uint id, DebugSeverity severity, uint length, global::System.ReadOnlySpan<byte> buf);
-
     void DebugMessageInsert(GLEnum source, DebugType type, uint id, DebugSeverity severity, uint length, string buf);
 
     void DebugMessageInsert(GLEnum source, DebugType type, uint id, GLEnum severity, uint length, in byte buf);
 
     void DebugMessageInsert(GLEnum source, DebugType type, uint id, GLEnum severity, uint length, byte* buf);
-
-    void DebugMessageInsert(GLEnum source, DebugType type, uint id, GLEnum severity, uint length, global::System.ReadOnlySpan<byte> buf);
 
     void DebugMessageInsert(GLEnum source, DebugType type, uint id, GLEnum severity, uint length, string buf);
 
@@ -2052,15 +1547,11 @@ public unsafe partial interface IGLWrapper
 
     void DebugMessageInsert(GLEnum source, GLEnum type, uint id, DebugSeverity severity, uint length, byte* buf);
 
-    void DebugMessageInsert(GLEnum source, GLEnum type, uint id, DebugSeverity severity, uint length, global::System.ReadOnlySpan<byte> buf);
-
     void DebugMessageInsert(GLEnum source, GLEnum type, uint id, DebugSeverity severity, uint length, string buf);
 
     void DebugMessageInsert(GLEnum source, GLEnum type, uint id, GLEnum severity, uint length, in byte buf);
 
     void DebugMessageInsert(GLEnum source, GLEnum type, uint id, GLEnum severity, uint length, byte* buf);
-
-    void DebugMessageInsert(GLEnum source, GLEnum type, uint id, GLEnum severity, uint length, global::System.ReadOnlySpan<byte> buf);
 
     void DebugMessageInsert(GLEnum source, GLEnum type, uint id, GLEnum severity, uint length, string buf);
 
@@ -2073,10 +1564,6 @@ public unsafe partial interface IGLWrapper
     void DeleteBuffers(uint n, in Buffer buffers);
 
     void DeleteBuffers(uint n, Buffer* buffers);
-
-    void DeleteBuffers(uint n, global::System.ReadOnlySpan<Buffer> buffers);
-
-    void DeleteBuffers(uint n, global::System.ReadOnlySpan<uint> buffers);
 
     void DeleteBuffers(uint n, in uint buffers);
 
@@ -2091,10 +1578,6 @@ public unsafe partial interface IGLWrapper
     void DeleteFramebuffers(uint n, in Framebuffer framebuffers);
 
     void DeleteFramebuffers(uint n, Framebuffer* framebuffers);
-
-    void DeleteFramebuffers(uint n, global::System.ReadOnlySpan<Framebuffer> framebuffers);
-
-    void DeleteFramebuffers(uint n, global::System.ReadOnlySpan<uint> framebuffers);
 
     void DeleteFramebuffers(uint n, in uint framebuffers);
 
@@ -2112,10 +1595,6 @@ public unsafe partial interface IGLWrapper
 
     void DeleteProgramPipelines(uint n, ProgramPipeline* pipelines);
 
-    void DeleteProgramPipelines(uint n, global::System.ReadOnlySpan<ProgramPipeline> pipelines);
-
-    void DeleteProgramPipelines(uint n, global::System.ReadOnlySpan<uint> pipelines);
-
     void DeleteProgramPipelines(uint n, in uint pipelines);
 
     void DeleteProgramPipelines(uint n, uint* pipelines);
@@ -2127,10 +1606,6 @@ public unsafe partial interface IGLWrapper
     void DeleteQueries(uint n, in Query ids);
 
     void DeleteQueries(uint n, Query* ids);
-
-    void DeleteQueries(uint n, global::System.ReadOnlySpan<Query> ids);
-
-    void DeleteQueries(uint n, global::System.ReadOnlySpan<uint> ids);
 
     void DeleteQueries(uint n, in uint ids);
 
@@ -2148,10 +1623,6 @@ public unsafe partial interface IGLWrapper
 
     void DeleteRenderbuffers(uint n, Renderbuffer* renderbuffers);
 
-    void DeleteRenderbuffers(uint n, global::System.ReadOnlySpan<Renderbuffer> renderbuffers);
-
-    void DeleteRenderbuffers(uint n, global::System.ReadOnlySpan<uint> renderbuffers);
-
     void DeleteRenderbuffers(uint n, in uint renderbuffers);
 
     void DeleteRenderbuffers(uint n, uint* renderbuffers);
@@ -2165,10 +1636,6 @@ public unsafe partial interface IGLWrapper
     void DeleteSamplers(uint count, in Sampler samplers);
 
     void DeleteSamplers(uint count, Sampler* samplers);
-
-    void DeleteSamplers(uint count, global::System.ReadOnlySpan<Sampler> samplers);
-
-    void DeleteSamplers(uint count, global::System.ReadOnlySpan<uint> samplers);
 
     void DeleteSamplers(uint count, in uint samplers);
 
@@ -2188,10 +1655,6 @@ public unsafe partial interface IGLWrapper
 
     void DeleteTextures(uint n, Texture* textures);
 
-    void DeleteTextures(uint n, global::System.ReadOnlySpan<Texture> textures);
-
-    void DeleteTextures(uint n, global::System.ReadOnlySpan<uint> textures);
-
     void DeleteTextures(uint n, in uint textures);
 
     void DeleteTextures(uint n, uint* textures);
@@ -2206,10 +1669,6 @@ public unsafe partial interface IGLWrapper
 
     void DeleteTransformFeedbacks(uint n, TransformFeedback* ids);
 
-    void DeleteTransformFeedbacks(uint n, global::System.ReadOnlySpan<TransformFeedback> ids);
-
-    void DeleteTransformFeedbacks(uint n, global::System.ReadOnlySpan<uint> ids);
-
     void DeleteTransformFeedbacks(uint n, in uint ids);
 
     void DeleteTransformFeedbacks(uint n, uint* ids);
@@ -2223,10 +1682,6 @@ public unsafe partial interface IGLWrapper
     void DeleteVertexArrays(uint n, in VertexArray arrays);
 
     void DeleteVertexArrays(uint n, VertexArray* arrays);
-
-    void DeleteVertexArrays(uint n, global::System.ReadOnlySpan<VertexArray> arrays);
-
-    void DeleteVertexArrays(uint n, global::System.ReadOnlySpan<uint> arrays);
 
     void DeleteVertexArrays(uint n, in uint arrays);
 
@@ -2245,8 +1700,6 @@ public unsafe partial interface IGLWrapper
     void DepthRangeArray(uint first, uint count, in double v);
 
     void DepthRangeArray(uint first, uint count, double* v);
-
-    void DepthRangeArray(uint first, uint count, global::System.ReadOnlySpan<double> v);
 
     void DepthRangeIndexed(uint index, double n, double f);
 
@@ -2279,13 +1732,7 @@ public unsafe partial interface IGLWrapper
     void DrawArraysIndirect<T0>(GLEnum mode, in T0 indirect)
         where T0 : unmanaged;
 
-    void DrawArraysIndirect<T0>(GLEnum mode, global::System.ReadOnlySpan<T0> indirect)
-        where T0 : unmanaged;
-
     void DrawArraysIndirect<T0>(PrimitiveType mode, in T0 indirect)
-        where T0 : unmanaged;
-
-    void DrawArraysIndirect<T0>(PrimitiveType mode, global::System.ReadOnlySpan<T0> indirect)
         where T0 : unmanaged;
 
     void DrawArraysInstanced(GLEnum mode, int first, uint count, uint instancecount);
@@ -2312,10 +1759,6 @@ public unsafe partial interface IGLWrapper
 
     void DrawBuffers(uint n, GLEnum* bufs);
 
-    void DrawBuffers(uint n, global::System.ReadOnlySpan<DrawBufferMode> bufs);
-
-    void DrawBuffers(uint n, global::System.ReadOnlySpan<GLEnum> bufs);
-
     void DrawElements(GLEnum mode, uint count, DrawElementsType type, void* indices);
 
     void DrawElements(GLEnum mode, uint count, GLEnum type, void* indices);
@@ -2327,25 +1770,13 @@ public unsafe partial interface IGLWrapper
     void DrawElements<T0>(GLEnum mode, uint count, DrawElementsType type, in T0 indices)
         where T0 : unmanaged;
 
-    void DrawElements<T0>(GLEnum mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices)
-        where T0 : unmanaged;
-
     void DrawElements<T0>(GLEnum mode, uint count, GLEnum type, in T0 indices)
-        where T0 : unmanaged;
-
-    void DrawElements<T0>(GLEnum mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices)
         where T0 : unmanaged;
 
     void DrawElements<T0>(PrimitiveType mode, uint count, DrawElementsType type, in T0 indices)
         where T0 : unmanaged;
 
-    void DrawElements<T0>(PrimitiveType mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices)
-        where T0 : unmanaged;
-
     void DrawElements<T0>(PrimitiveType mode, uint count, GLEnum type, in T0 indices)
-        where T0 : unmanaged;
-
-    void DrawElements<T0>(PrimitiveType mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices)
         where T0 : unmanaged;
 
     void DrawElementsBaseVertex(GLEnum mode, uint count, DrawElementsType type, void* indices, int basevertex);
@@ -2359,25 +1790,13 @@ public unsafe partial interface IGLWrapper
     void DrawElementsBaseVertex<T0>(GLEnum mode, uint count, DrawElementsType type, in T0 indices, int basevertex)
         where T0 : unmanaged;
 
-    void DrawElementsBaseVertex<T0>(GLEnum mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, int basevertex)
-        where T0 : unmanaged;
-
     void DrawElementsBaseVertex<T0>(GLEnum mode, uint count, GLEnum type, in T0 indices, int basevertex)
-        where T0 : unmanaged;
-
-    void DrawElementsBaseVertex<T0>(GLEnum mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, int basevertex)
         where T0 : unmanaged;
 
     void DrawElementsBaseVertex<T0>(PrimitiveType mode, uint count, DrawElementsType type, in T0 indices, int basevertex)
         where T0 : unmanaged;
 
-    void DrawElementsBaseVertex<T0>(PrimitiveType mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, int basevertex)
-        where T0 : unmanaged;
-
     void DrawElementsBaseVertex<T0>(PrimitiveType mode, uint count, GLEnum type, in T0 indices, int basevertex)
-        where T0 : unmanaged;
-
-    void DrawElementsBaseVertex<T0>(PrimitiveType mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, int basevertex)
         where T0 : unmanaged;
 
     void DrawElementsIndirect(GLEnum mode, DrawElementsType type, void* indirect);
@@ -2391,25 +1810,13 @@ public unsafe partial interface IGLWrapper
     void DrawElementsIndirect<T0>(GLEnum mode, DrawElementsType type, in T0 indirect)
         where T0 : unmanaged;
 
-    void DrawElementsIndirect<T0>(GLEnum mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indirect)
-        where T0 : unmanaged;
-
     void DrawElementsIndirect<T0>(GLEnum mode, GLEnum type, in T0 indirect)
-        where T0 : unmanaged;
-
-    void DrawElementsIndirect<T0>(GLEnum mode, GLEnum type, global::System.ReadOnlySpan<T0> indirect)
         where T0 : unmanaged;
 
     void DrawElementsIndirect<T0>(PrimitiveType mode, DrawElementsType type, in T0 indirect)
         where T0 : unmanaged;
 
-    void DrawElementsIndirect<T0>(PrimitiveType mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indirect)
-        where T0 : unmanaged;
-
     void DrawElementsIndirect<T0>(PrimitiveType mode, GLEnum type, in T0 indirect)
-        where T0 : unmanaged;
-
-    void DrawElementsIndirect<T0>(PrimitiveType mode, GLEnum type, global::System.ReadOnlySpan<T0> indirect)
         where T0 : unmanaged;
 
     void DrawElementsInstanced(GLEnum mode, uint count, DrawElementsType type, void* indices, uint instancecount);
@@ -2423,25 +1830,13 @@ public unsafe partial interface IGLWrapper
     void DrawElementsInstanced<T0>(GLEnum mode, uint count, DrawElementsType type, in T0 indices, uint instancecount)
         where T0 : unmanaged;
 
-    void DrawElementsInstanced<T0>(GLEnum mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount)
-        where T0 : unmanaged;
-
     void DrawElementsInstanced<T0>(GLEnum mode, uint count, GLEnum type, in T0 indices, uint instancecount)
-        where T0 : unmanaged;
-
-    void DrawElementsInstanced<T0>(GLEnum mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount)
         where T0 : unmanaged;
 
     void DrawElementsInstanced<T0>(PrimitiveType mode, uint count, DrawElementsType type, in T0 indices, uint instancecount)
         where T0 : unmanaged;
 
-    void DrawElementsInstanced<T0>(PrimitiveType mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount)
-        where T0 : unmanaged;
-
     void DrawElementsInstanced<T0>(PrimitiveType mode, uint count, GLEnum type, in T0 indices, uint instancecount)
-        where T0 : unmanaged;
-
-    void DrawElementsInstanced<T0>(PrimitiveType mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount)
         where T0 : unmanaged;
 
     void DrawElementsInstancedBaseInstance(GLEnum mode, uint count, DrawElementsType type, void* indices, uint instancecount, uint baseinstance);
@@ -2461,13 +1856,7 @@ public unsafe partial interface IGLWrapper
     void DrawElementsInstancedBaseInstance<T0>(GLEnum mode, uint count, DrawElementsType type, in T0 indices, uint instancecount, uint baseinstance)
         where T0 : unmanaged;
 
-    void DrawElementsInstancedBaseInstance<T0>(GLEnum mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, uint baseinstance)
-        where T0 : unmanaged;
-
     void DrawElementsInstancedBaseInstance<T0>(GLEnum mode, uint count, GLEnum type, in T0 indices, uint instancecount, uint baseinstance)
-        where T0 : unmanaged;
-
-    void DrawElementsInstancedBaseInstance<T0>(GLEnum mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount, uint baseinstance)
         where T0 : unmanaged;
 
     void DrawElementsInstancedBaseInstance<T0>(PrimitiveType mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, uint baseinstance)
@@ -2479,13 +1868,7 @@ public unsafe partial interface IGLWrapper
     void DrawElementsInstancedBaseInstance<T0>(PrimitiveType mode, uint count, DrawElementsType type, in T0 indices, uint instancecount, uint baseinstance)
         where T0 : unmanaged;
 
-    void DrawElementsInstancedBaseInstance<T0>(PrimitiveType mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, uint baseinstance)
-        where T0 : unmanaged;
-
     void DrawElementsInstancedBaseInstance<T0>(PrimitiveType mode, uint count, GLEnum type, in T0 indices, uint instancecount, uint baseinstance)
-        where T0 : unmanaged;
-
-    void DrawElementsInstancedBaseInstance<T0>(PrimitiveType mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount, uint baseinstance)
         where T0 : unmanaged;
 
     void DrawElementsInstancedBaseVertex(GLEnum mode, uint count, DrawElementsType type, void* indices, uint instancecount, int basevertex);
@@ -2499,25 +1882,13 @@ public unsafe partial interface IGLWrapper
     void DrawElementsInstancedBaseVertex<T0>(GLEnum mode, uint count, DrawElementsType type, in T0 indices, uint instancecount, int basevertex)
         where T0 : unmanaged;
 
-    void DrawElementsInstancedBaseVertex<T0>(GLEnum mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex)
-        where T0 : unmanaged;
-
     void DrawElementsInstancedBaseVertex<T0>(GLEnum mode, uint count, GLEnum type, in T0 indices, uint instancecount, int basevertex)
-        where T0 : unmanaged;
-
-    void DrawElementsInstancedBaseVertex<T0>(GLEnum mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex)
         where T0 : unmanaged;
 
     void DrawElementsInstancedBaseVertex<T0>(PrimitiveType mode, uint count, DrawElementsType type, in T0 indices, uint instancecount, int basevertex)
         where T0 : unmanaged;
 
-    void DrawElementsInstancedBaseVertex<T0>(PrimitiveType mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex)
-        where T0 : unmanaged;
-
     void DrawElementsInstancedBaseVertex<T0>(PrimitiveType mode, uint count, GLEnum type, in T0 indices, uint instancecount, int basevertex)
-        where T0 : unmanaged;
-
-    void DrawElementsInstancedBaseVertex<T0>(PrimitiveType mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex)
         where T0 : unmanaged;
 
     void DrawElementsInstancedBaseVertexBaseInstance(GLEnum mode, uint count, DrawElementsType type, void* indices, uint instancecount, int basevertex, uint baseinstance);
@@ -2537,13 +1908,7 @@ public unsafe partial interface IGLWrapper
     void DrawElementsInstancedBaseVertexBaseInstance<T0>(GLEnum mode, uint count, DrawElementsType type, in T0 indices, uint instancecount, int basevertex, uint baseinstance)
         where T0 : unmanaged;
 
-    void DrawElementsInstancedBaseVertexBaseInstance<T0>(GLEnum mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex, uint baseinstance)
-        where T0 : unmanaged;
-
     void DrawElementsInstancedBaseVertexBaseInstance<T0>(GLEnum mode, uint count, GLEnum type, in T0 indices, uint instancecount, int basevertex, uint baseinstance)
-        where T0 : unmanaged;
-
-    void DrawElementsInstancedBaseVertexBaseInstance<T0>(GLEnum mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex, uint baseinstance)
         where T0 : unmanaged;
 
     void DrawElementsInstancedBaseVertexBaseInstance<T0>(PrimitiveType mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex, uint baseinstance)
@@ -2555,13 +1920,7 @@ public unsafe partial interface IGLWrapper
     void DrawElementsInstancedBaseVertexBaseInstance<T0>(PrimitiveType mode, uint count, DrawElementsType type, in T0 indices, uint instancecount, int basevertex, uint baseinstance)
         where T0 : unmanaged;
 
-    void DrawElementsInstancedBaseVertexBaseInstance<T0>(PrimitiveType mode, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex, uint baseinstance)
-        where T0 : unmanaged;
-
     void DrawElementsInstancedBaseVertexBaseInstance<T0>(PrimitiveType mode, uint count, GLEnum type, in T0 indices, uint instancecount, int basevertex, uint baseinstance)
-        where T0 : unmanaged;
-
-    void DrawElementsInstancedBaseVertexBaseInstance<T0>(PrimitiveType mode, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, uint instancecount, int basevertex, uint baseinstance)
         where T0 : unmanaged;
 
     void DrawRangeElements(GLEnum mode, uint start, uint end, uint count, DrawElementsType type, void* indices);
@@ -2575,25 +1934,13 @@ public unsafe partial interface IGLWrapper
     void DrawRangeElements<T0>(GLEnum mode, uint start, uint end, uint count, DrawElementsType type, in T0 indices)
         where T0 : unmanaged;
 
-    void DrawRangeElements<T0>(GLEnum mode, uint start, uint end, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices)
-        where T0 : unmanaged;
-
     void DrawRangeElements<T0>(GLEnum mode, uint start, uint end, uint count, GLEnum type, in T0 indices)
-        where T0 : unmanaged;
-
-    void DrawRangeElements<T0>(GLEnum mode, uint start, uint end, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices)
         where T0 : unmanaged;
 
     void DrawRangeElements<T0>(PrimitiveType mode, uint start, uint end, uint count, DrawElementsType type, in T0 indices)
         where T0 : unmanaged;
 
-    void DrawRangeElements<T0>(PrimitiveType mode, uint start, uint end, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices)
-        where T0 : unmanaged;
-
     void DrawRangeElements<T0>(PrimitiveType mode, uint start, uint end, uint count, GLEnum type, in T0 indices)
-        where T0 : unmanaged;
-
-    void DrawRangeElements<T0>(PrimitiveType mode, uint start, uint end, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices)
         where T0 : unmanaged;
 
     void DrawRangeElementsBaseVertex(GLEnum mode, uint start, uint end, uint count, DrawElementsType type, void* indices, int basevertex);
@@ -2607,25 +1954,13 @@ public unsafe partial interface IGLWrapper
     void DrawRangeElementsBaseVertex<T0>(GLEnum mode, uint start, uint end, uint count, DrawElementsType type, in T0 indices, int basevertex)
         where T0 : unmanaged;
 
-    void DrawRangeElementsBaseVertex<T0>(GLEnum mode, uint start, uint end, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, int basevertex)
-        where T0 : unmanaged;
-
     void DrawRangeElementsBaseVertex<T0>(GLEnum mode, uint start, uint end, uint count, GLEnum type, in T0 indices, int basevertex)
-        where T0 : unmanaged;
-
-    void DrawRangeElementsBaseVertex<T0>(GLEnum mode, uint start, uint end, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, int basevertex)
         where T0 : unmanaged;
 
     void DrawRangeElementsBaseVertex<T0>(PrimitiveType mode, uint start, uint end, uint count, DrawElementsType type, in T0 indices, int basevertex)
         where T0 : unmanaged;
 
-    void DrawRangeElementsBaseVertex<T0>(PrimitiveType mode, uint start, uint end, uint count, DrawElementsType type, global::System.ReadOnlySpan<T0> indices, int basevertex)
-        where T0 : unmanaged;
-
     void DrawRangeElementsBaseVertex<T0>(PrimitiveType mode, uint start, uint end, uint count, GLEnum type, in T0 indices, int basevertex)
-        where T0 : unmanaged;
-
-    void DrawRangeElementsBaseVertex<T0>(PrimitiveType mode, uint start, uint end, uint count, GLEnum type, global::System.ReadOnlySpan<T0> indices, int basevertex)
         where T0 : unmanaged;
 
     void DrawTransformFeedback(GLEnum mode, uint id);
@@ -2790,10 +2125,6 @@ public unsafe partial interface IGLWrapper
 
     void GenBuffers(uint n, Buffer* buffers);
 
-    void GenBuffers(uint n, global::System.Span<Buffer> buffers);
-
-    void GenBuffers(uint n, global::System.Span<uint> buffers);
-
     void GenBuffers(uint n, out uint buffers);
 
     void GenBuffers(uint n, uint* buffers);
@@ -2809,10 +2140,6 @@ public unsafe partial interface IGLWrapper
     void GenFramebuffers(uint n, out Framebuffer framebuffers);
 
     void GenFramebuffers(uint n, Framebuffer* framebuffers);
-
-    void GenFramebuffers(uint n, global::System.Span<Framebuffer> framebuffers);
-
-    void GenFramebuffers(uint n, global::System.Span<uint> framebuffers);
 
     void GenFramebuffers(uint n, out uint framebuffers);
 
@@ -2830,10 +2157,6 @@ public unsafe partial interface IGLWrapper
 
     void GenProgramPipelines(uint n, ProgramPipeline* pipelines);
 
-    void GenProgramPipelines(uint n, global::System.Span<ProgramPipeline> pipelines);
-
-    void GenProgramPipelines(uint n, global::System.Span<uint> pipelines);
-
     void GenProgramPipelines(uint n, out uint pipelines);
 
     void GenProgramPipelines(uint n, uint* pipelines);
@@ -2847,10 +2170,6 @@ public unsafe partial interface IGLWrapper
     void GenQueries(uint n, out Query ids);
 
     void GenQueries(uint n, Query* ids);
-
-    void GenQueries(uint n, global::System.Span<Query> ids);
-
-    void GenQueries(uint n, global::System.Span<uint> ids);
 
     void GenQueries(uint n, out uint ids);
 
@@ -2870,10 +2189,6 @@ public unsafe partial interface IGLWrapper
 
     void GenRenderbuffers(uint n, Renderbuffer* renderbuffers);
 
-    void GenRenderbuffers(uint n, global::System.Span<Renderbuffer> renderbuffers);
-
-    void GenRenderbuffers(uint n, global::System.Span<uint> renderbuffers);
-
     void GenRenderbuffers(uint n, out uint renderbuffers);
 
     void GenRenderbuffers(uint n, uint* renderbuffers);
@@ -2889,10 +2204,6 @@ public unsafe partial interface IGLWrapper
     void GenSamplers(uint count, out Sampler samplers);
 
     void GenSamplers(uint count, Sampler* samplers);
-
-    void GenSamplers(uint count, global::System.Span<Sampler> samplers);
-
-    void GenSamplers(uint count, global::System.Span<uint> samplers);
 
     void GenSamplers(uint count, out uint samplers);
 
@@ -2910,10 +2221,6 @@ public unsafe partial interface IGLWrapper
 
     void GenTextures(uint n, Texture* textures);
 
-    void GenTextures(uint n, global::System.Span<Texture> textures);
-
-    void GenTextures(uint n, global::System.Span<uint> textures);
-
     void GenTextures(uint n, out uint textures);
 
     void GenTextures(uint n, uint* textures);
@@ -2929,10 +2236,6 @@ public unsafe partial interface IGLWrapper
     void GenTransformFeedbacks(uint n, out TransformFeedback ids);
 
     void GenTransformFeedbacks(uint n, TransformFeedback* ids);
-
-    void GenTransformFeedbacks(uint n, global::System.Span<TransformFeedback> ids);
-
-    void GenTransformFeedbacks(uint n, global::System.Span<uint> ids);
 
     void GenTransformFeedbacks(uint n, out uint ids);
 
@@ -2950,10 +2253,6 @@ public unsafe partial interface IGLWrapper
 
     void GenVertexArrays(uint n, VertexArray* arrays);
 
-    void GenVertexArrays(uint n, global::System.Span<VertexArray> arrays);
-
-    void GenVertexArrays(uint n, global::System.Span<uint> arrays);
-
     void GenVertexArrays(uint n, out uint arrays);
 
     void GenVertexArrays(uint n, uint* arrays);
@@ -2970,15 +2269,11 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveAtomicCounterBuffer(uint program, uint bufferIndex, AtomicCounterBufferPName pname, int* @params);
 
-    void GetActiveAtomicCounterBuffer(uint program, uint bufferIndex, AtomicCounterBufferPName pname, global::System.Span<int> @params);
-
     int GetActiveAtomicCounterBuffer(uint program, uint bufferIndex, GLEnum pname);
 
     void GetActiveAtomicCounterBuffer(uint program, uint bufferIndex, GLEnum pname, out int @params);
 
     void GetActiveAtomicCounterBuffer(uint program, uint bufferIndex, GLEnum pname, int* @params);
-
-    void GetActiveAtomicCounterBuffer(uint program, uint bufferIndex, GLEnum pname, global::System.Span<int> @params);
 
     string GetActiveAttrib(uint program, uint index, out int size, out AttributeType type);
 
@@ -3045,54 +2340,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveAttrib(uint program, uint index, uint* length, int* size, GLEnum* type, global::System.Span<byte> name);
 
     void GetActiveAttrib(uint program, uint index, uint* length, int* size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, AttributeType* type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, AttributeType* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, GLEnum* type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, AttributeType* type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, AttributeType* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, GLEnum* type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<string> name);
 
     byte GetActiveAttrib(uint program, uint index, uint bufSize, out uint length, out int size, out AttributeType type);
 
@@ -3204,10 +2451,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, AttributeType* type, byte* name);
 
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, AttributeType* type, global::System.Span<string> name);
-
     void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, AttributeType* type, out string name);
 
     byte GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, out GLEnum type);
@@ -3224,47 +2467,7 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, byte* name);
 
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, global::System.Span<string> name);
-
     void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, out string name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, AttributeType* type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, AttributeType* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, GLEnum* type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveAttrib(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<string> name);
 
     void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, out uint length, global::System.Span<byte> name);
 
@@ -3273,12 +2476,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint* length, global::System.Span<byte> name);
 
     void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint* length, global::System.Span<string> name);
-
-    void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, global::System.Span<uint> length, byte* name);
-
-    void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<string> name);
 
     byte GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, out uint length);
 
@@ -3294,10 +2491,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, byte* name);
 
-    void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, global::System.Span<string> name);
-
     void GetActiveSubroutineName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, out string name);
 
     void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, out uint length, global::System.Span<byte> name);
@@ -3307,12 +2500,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint* length, global::System.Span<byte> name);
 
     void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint* length, global::System.Span<string> name);
-
-    void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, global::System.Span<uint> length, byte* name);
-
-    void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<string> name);
 
     byte GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, out uint length);
 
@@ -3328,10 +2515,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, byte* name);
 
-    void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, global::System.Span<string> name);
-
     void GetActiveSubroutineName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, out string name);
 
     int GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, GLEnum pname);
@@ -3340,15 +2523,11 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, GLEnum pname, int* values);
 
-    void GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, GLEnum pname, global::System.Span<int> values);
-
     int GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, SubroutineParameterName pname);
 
     void GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, SubroutineParameterName pname, out int values);
 
     void GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, SubroutineParameterName pname, int* values);
-
-    void GetActiveSubroutineUniform(uint program, GLEnum shadertype, uint index, SubroutineParameterName pname, global::System.Span<int> values);
 
     int GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, GLEnum pname);
 
@@ -3356,15 +2535,11 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, GLEnum pname, int* values);
 
-    void GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, GLEnum pname, global::System.Span<int> values);
-
     int GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, SubroutineParameterName pname);
 
     void GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, SubroutineParameterName pname, out int values);
 
     void GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, SubroutineParameterName pname, int* values);
-
-    void GetActiveSubroutineUniform(uint program, ShaderType shadertype, uint index, SubroutineParameterName pname, global::System.Span<int> values);
 
     void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, out uint length, global::System.Span<byte> name);
 
@@ -3373,12 +2548,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint* length, global::System.Span<byte> name);
 
     void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint* length, global::System.Span<string> name);
-
-    void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, global::System.Span<uint> length, byte* name);
-
-    void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<string> name);
 
     byte GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, out uint length);
 
@@ -3394,10 +2563,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, byte* name);
 
-    void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, global::System.Span<string> name);
-
     void GetActiveSubroutineUniformName(uint program, GLEnum shadertype, uint index, uint bufSize, uint* length, out string name);
 
     void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, out uint length, global::System.Span<byte> name);
@@ -3407,12 +2572,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint* length, global::System.Span<byte> name);
 
     void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint* length, global::System.Span<string> name);
-
-    void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, global::System.Span<uint> length, byte* name);
-
-    void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<string> name);
 
     byte GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, out uint length);
 
@@ -3427,10 +2586,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, out byte name);
 
     void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, byte* name);
-
-    void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, global::System.Span<byte> name);
-
-    void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, global::System.Span<string> name);
 
     void GetActiveSubroutineUniformName(uint program, ShaderType shadertype, uint index, uint bufSize, uint* length, out string name);
 
@@ -3499,54 +2654,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveUniform(uint program, uint index, uint* length, int* size, UniformType* type, global::System.Span<byte> name);
 
     void GetActiveUniform(uint program, uint index, uint* length, int* size, UniformType* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, GLEnum* type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, UniformType* type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, UniformType* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, UniformType* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<UniformType> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<UniformType> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, int* size, global::System.Span<UniformType> type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, GLEnum* type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, UniformType* type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, UniformType* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, UniformType* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<UniformType> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<UniformType> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<int> size, global::System.Span<UniformType> type, global::System.Span<string> name);
 
     byte GetActiveUniform(uint program, uint index, uint bufSize, out uint length, out int size, out GLEnum type);
 
@@ -3658,10 +2765,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, byte* name);
 
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, global::System.Span<string> name);
-
     void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, GLEnum* type, out string name);
 
     byte GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, out UniformType type);
@@ -3678,47 +2781,7 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, UniformType* type, byte* name);
 
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, UniformType* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, UniformType* type, global::System.Span<string> name);
-
     void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, UniformType* type, out string name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<UniformType> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<UniformType> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, int* size, global::System.Span<UniformType> type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, GLEnum* type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, GLEnum* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, UniformType* type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, UniformType* type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, UniformType* type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<UniformType> type, byte* name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<UniformType> type, global::System.Span<byte> name);
-
-    void GetActiveUniform(uint program, uint index, uint bufSize, uint* length, global::System.Span<int> size, global::System.Span<UniformType> type, global::System.Span<string> name);
 
     int GetActiveUniformBlock(uint program, uint uniformBlockIndex, GLEnum pname);
 
@@ -3726,15 +2789,11 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveUniformBlock(uint program, uint uniformBlockIndex, GLEnum pname, int* @params);
 
-    void GetActiveUniformBlock(uint program, uint uniformBlockIndex, GLEnum pname, global::System.Span<int> @params);
-
     int GetActiveUniformBlock(uint program, uint uniformBlockIndex, UniformBlockPName pname);
 
     void GetActiveUniformBlock(uint program, uint uniformBlockIndex, UniformBlockPName pname, out int @params);
 
     void GetActiveUniformBlock(uint program, uint uniformBlockIndex, UniformBlockPName pname, int* @params);
-
-    void GetActiveUniformBlock(uint program, uint uniformBlockIndex, UniformBlockPName pname, global::System.Span<int> @params);
 
     void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, out uint length, global::System.Span<byte> uniformBlockName);
 
@@ -3743,12 +2802,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint* length, global::System.Span<byte> uniformBlockName);
 
     void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint* length, global::System.Span<string> uniformBlockName);
-
-    void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, global::System.Span<uint> length, byte* uniformBlockName);
-
-    void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> uniformBlockName);
-
-    void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, global::System.Span<uint> length, global::System.Span<string> uniformBlockName);
 
     byte GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, out uint length);
 
@@ -3764,10 +2817,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, uint* length, byte* uniformBlockName);
 
-    void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, uint* length, global::System.Span<byte> uniformBlockName);
-
-    void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, uint* length, global::System.Span<string> uniformBlockName);
-
     void GetActiveUniformBlockName(uint program, uint uniformBlockIndex, uint bufSize, uint* length, out string uniformBlockName);
 
     void GetActiveUniformName(uint program, uint uniformIndex, out uint length, global::System.Span<byte> uniformName);
@@ -3777,12 +2826,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveUniformName(uint program, uint uniformIndex, uint* length, global::System.Span<byte> uniformName);
 
     void GetActiveUniformName(uint program, uint uniformIndex, uint* length, global::System.Span<string> uniformName);
-
-    void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, global::System.Span<uint> length, byte* uniformName);
-
-    void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> uniformName);
-
-    void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, global::System.Span<uint> length, global::System.Span<string> uniformName);
 
     byte GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, out uint length);
 
@@ -3798,10 +2841,6 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, uint* length, byte* uniformName);
 
-    void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, uint* length, global::System.Span<byte> uniformName);
-
-    void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, uint* length, global::System.Span<string> uniformName);
-
     void GetActiveUniformName(uint program, uint uniformIndex, uint bufSize, uint* length, out string uniformName);
 
     int GetActiveUniforms(uint program, global::System.ReadOnlySpan<uint> uniformIndices, GLEnum pname);
@@ -3815,14 +2854,6 @@ public unsafe partial interface IGLWrapper
     void GetActiveUniforms(uint program, global::System.ReadOnlySpan<uint> uniformIndices, UniformPName pname, out int @params);
 
     void GetActiveUniforms(uint program, global::System.ReadOnlySpan<uint> uniformIndices, UniformPName pname, int* @params);
-
-    void GetActiveUniforms(uint program, uint uniformCount, global::System.ReadOnlySpan<uint> uniformIndices, GLEnum pname, int* @params);
-
-    void GetActiveUniforms(uint program, uint uniformCount, global::System.ReadOnlySpan<uint> uniformIndices, GLEnum pname, global::System.Span<int> @params);
-
-    void GetActiveUniforms(uint program, uint uniformCount, global::System.ReadOnlySpan<uint> uniformIndices, UniformPName pname, int* @params);
-
-    void GetActiveUniforms(uint program, uint uniformCount, global::System.ReadOnlySpan<uint> uniformIndices, UniformPName pname, global::System.Span<int> @params);
 
     int GetActiveUniforms(uint program, uint uniformCount, in uint uniformIndices, GLEnum pname);
 
@@ -3842,15 +2873,11 @@ public unsafe partial interface IGLWrapper
 
     void GetActiveUniforms(uint program, uint uniformCount, uint* uniformIndices, GLEnum pname, int* @params);
 
-    void GetActiveUniforms(uint program, uint uniformCount, uint* uniformIndices, GLEnum pname, global::System.Span<int> @params);
-
     int GetActiveUniforms(uint program, uint uniformCount, uint* uniformIndices, UniformPName pname);
 
     void GetActiveUniforms(uint program, uint uniformCount, uint* uniformIndices, UniformPName pname, out int @params);
 
     void GetActiveUniforms(uint program, uint uniformCount, uint* uniformIndices, UniformPName pname, int* @params);
-
-    void GetActiveUniforms(uint program, uint uniformCount, uint* uniformIndices, UniformPName pname, global::System.Span<int> @params);
 
     void GetAttachedShaders(uint program, out uint count, global::System.Span<Shader> shaders);
 
@@ -3859,14 +2886,6 @@ public unsafe partial interface IGLWrapper
     void GetAttachedShaders(uint program, uint* count, global::System.Span<Shader> shaders);
 
     void GetAttachedShaders(uint program, uint* count, global::System.Span<uint> shaders);
-
-    void GetAttachedShaders(uint program, uint maxCount, global::System.Span<uint> count, Shader* shaders);
-
-    void GetAttachedShaders(uint program, uint maxCount, global::System.Span<uint> count, global::System.Span<Shader> shaders);
-
-    void GetAttachedShaders(uint program, uint maxCount, global::System.Span<uint> count, global::System.Span<uint> shaders);
-
-    void GetAttachedShaders(uint program, uint maxCount, global::System.Span<uint> count, uint* shaders);
 
     uint GetAttachedShaders(uint program, uint maxCount, out uint count);
 
@@ -3884,10 +2903,6 @@ public unsafe partial interface IGLWrapper
 
     void GetAttachedShaders(uint program, uint maxCount, uint* count, Shader* shaders);
 
-    void GetAttachedShaders(uint program, uint maxCount, uint* count, global::System.Span<Shader> shaders);
-
-    void GetAttachedShaders(uint program, uint maxCount, uint* count, global::System.Span<uint> shaders);
-
     void GetAttachedShaders(uint program, uint maxCount, uint* count, out uint shaders);
 
     void GetAttachedShaders(uint program, uint maxCount, uint* count, uint* shaders);
@@ -3895,8 +2910,6 @@ public unsafe partial interface IGLWrapper
     int GetAttribLocation(uint program, in byte name);
 
     int GetAttribLocation(uint program, byte* name);
-
-    int GetAttribLocation(uint program, global::System.ReadOnlySpan<byte> name);
 
     int GetAttribLocation(uint program, string name);
 
@@ -3906,15 +2919,11 @@ public unsafe partial interface IGLWrapper
 
     void GetBoolean(BufferTargetARB target, uint index, bool* data);
 
-    void GetBoolean(BufferTargetARB target, uint index, global::System.Span<bool> data);
-
     bool GetBoolean(GLEnum pname);
 
     void GetBoolean(GLEnum pname, out bool data);
 
     void GetBoolean(GLEnum pname, bool* data);
-
-    void GetBoolean(GLEnum pname, global::System.Span<bool> data);
 
     bool GetBoolean(GLEnum target, uint index);
 
@@ -3922,15 +2931,11 @@ public unsafe partial interface IGLWrapper
 
     void GetBoolean(GLEnum target, uint index, bool* data);
 
-    void GetBoolean(GLEnum target, uint index, global::System.Span<bool> data);
-
     bool GetBoolean(GetPName pname);
 
     void GetBoolean(GetPName pname, out bool data);
 
     void GetBoolean(GetPName pname, bool* data);
-
-    void GetBoolean(GetPName pname, global::System.Span<bool> data);
 
     long GetBufferParameter(BufferTargetARB target, BufferPNameARB pname);
 
@@ -3942,10 +2947,6 @@ public unsafe partial interface IGLWrapper
 
     void GetBufferParameter(BufferTargetARB target, BufferPNameARB pname, long* @params);
 
-    void GetBufferParameter(BufferTargetARB target, BufferPNameARB pname, global::System.Span<int> @params);
-
-    void GetBufferParameter(BufferTargetARB target, BufferPNameARB pname, global::System.Span<long> @params);
-
     long GetBufferParameter(BufferTargetARB target, GLEnum pname);
 
     void GetBufferParameter(BufferTargetARB target, GLEnum pname, out int @params);
@@ -3955,10 +2956,6 @@ public unsafe partial interface IGLWrapper
     void GetBufferParameter(BufferTargetARB target, GLEnum pname, out long @params);
 
     void GetBufferParameter(BufferTargetARB target, GLEnum pname, long* @params);
-
-    void GetBufferParameter(BufferTargetARB target, GLEnum pname, global::System.Span<int> @params);
-
-    void GetBufferParameter(BufferTargetARB target, GLEnum pname, global::System.Span<long> @params);
 
     long GetBufferParameter(GLEnum target, BufferPNameARB pname);
 
@@ -3970,10 +2967,6 @@ public unsafe partial interface IGLWrapper
 
     void GetBufferParameter(GLEnum target, BufferPNameARB pname, long* @params);
 
-    void GetBufferParameter(GLEnum target, BufferPNameARB pname, global::System.Span<int> @params);
-
-    void GetBufferParameter(GLEnum target, BufferPNameARB pname, global::System.Span<long> @params);
-
     long GetBufferParameter(GLEnum target, GLEnum pname);
 
     void GetBufferParameter(GLEnum target, GLEnum pname, out int @params);
@@ -3983,10 +2976,6 @@ public unsafe partial interface IGLWrapper
     void GetBufferParameter(GLEnum target, GLEnum pname, out long @params);
 
     void GetBufferParameter(GLEnum target, GLEnum pname, long* @params);
-
-    void GetBufferParameter(GLEnum target, GLEnum pname, global::System.Span<int> @params);
-
-    void GetBufferParameter(GLEnum target, GLEnum pname, global::System.Span<long> @params);
 
     void* GetBufferPointer(BufferTargetARB target, BufferPointerNameARB pname);
 
@@ -4025,9 +3014,6 @@ public unsafe partial interface IGLWrapper
     T0 GetBufferSubData<T0>(BufferTargetARB target, nint offset, nuint size)
         where T0 : unmanaged;
 
-    void GetBufferSubData<T0>(BufferTargetARB target, nint offset, nuint size, global::System.Span<T0> data)
-        where T0 : unmanaged;
-
     void GetBufferSubData<T0>(GLEnum target, nint offset, global::System.Span<T0> data)
         where T0 : unmanaged;
 
@@ -4035,9 +3021,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetBufferSubData<T0>(GLEnum target, nint offset, nuint size)
-        where T0 : unmanaged;
-
-    void GetBufferSubData<T0>(GLEnum target, nint offset, nuint size, global::System.Span<T0> data)
         where T0 : unmanaged;
 
     void GetCompressedTexImage(GLEnum target, int level, void* img);
@@ -4050,16 +3033,10 @@ public unsafe partial interface IGLWrapper
     T0 GetCompressedTexImage<T0>(GLEnum target, int level)
         where T0 : unmanaged;
 
-    void GetCompressedTexImage<T0>(GLEnum target, int level, global::System.Span<T0> img)
-        where T0 : unmanaged;
-
     void GetCompressedTexImage<T0>(TextureTarget target, int level, out T0 img)
         where T0 : unmanaged;
 
     T0 GetCompressedTexImage<T0>(TextureTarget target, int level)
-        where T0 : unmanaged;
-
-    void GetCompressedTexImage<T0>(TextureTarget target, int level, global::System.Span<T0> img)
         where T0 : unmanaged;
 
     void GetCompressedTextureImage(uint texture, int level, uint bufSize, void* pixels);
@@ -4073,9 +3050,6 @@ public unsafe partial interface IGLWrapper
     T0 GetCompressedTextureImage<T0>(uint texture, int level, uint bufSize)
         where T0 : unmanaged;
 
-    void GetCompressedTextureImage<T0>(uint texture, int level, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetCompressedTextureSubImage(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, uint bufSize, void* pixels);
 
     void GetCompressedTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, global::System.Span<T0> pixels)
@@ -4085,9 +3059,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetCompressedTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetCompressedTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     uint GetDebugMessageLog(DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
@@ -6090,54 +5061,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, out DebugType types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, out uint ids, out DebugSeverity severities, out uint lengths, byte* messageLog);
@@ -6198,12 +5121,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, out DebugSeverity severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, out uint lengths, byte* messageLog);
@@ -6213,10 +5130,6 @@ public unsafe partial interface IGLWrapper
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, out string messageLog);
 
@@ -6232,12 +5145,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, out GLEnum severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, out uint lengths, byte* messageLog);
@@ -6248,35 +5155,7 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, out GLEnum types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
@@ -6374,54 +5253,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, out GLEnum types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, out uint ids, out DebugSeverity severities, out uint lengths, byte* messageLog);
@@ -6482,12 +5313,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, out DebugSeverity severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, out uint lengths, byte* messageLog);
@@ -6497,10 +5322,6 @@ public unsafe partial interface IGLWrapper
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, out string messageLog);
 
@@ -6516,12 +5337,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, out GLEnum severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, out uint lengths, byte* messageLog);
@@ -6532,227 +5347,7 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, DebugSource* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, out GLEnum sources, out DebugType types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
@@ -7234,54 +5829,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, out DebugType types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, out uint ids, out DebugSeverity severities, out uint lengths, byte* messageLog);
@@ -7342,12 +5889,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, out DebugSeverity severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, out uint lengths, byte* messageLog);
@@ -7357,10 +5898,6 @@ public unsafe partial interface IGLWrapper
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, out string messageLog);
 
@@ -7376,12 +5913,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, out GLEnum severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, out uint lengths, byte* messageLog);
@@ -7392,35 +5923,7 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, out GLEnum types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
@@ -7518,54 +6021,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, out GLEnum types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, out uint ids, out DebugSeverity severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, out uint ids, out DebugSeverity severities, out uint lengths, byte* messageLog);
@@ -7626,12 +6081,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, out DebugSeverity severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, out uint lengths, byte* messageLog);
@@ -7641,10 +6090,6 @@ public unsafe partial interface IGLWrapper
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, out string messageLog);
 
@@ -7660,12 +6105,6 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, out GLEnum severities, uint* lengths, out string messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, out uint lengths, out byte messageLog);
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, out uint lengths, byte* messageLog);
@@ -7676,995 +6115,7 @@ public unsafe partial interface IGLWrapper
 
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
 
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
     uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, out string messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, GLEnum* sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<DebugSource> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, DebugType* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, GLEnum* types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<DebugType> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, global::System.Span<uint> ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, DebugSeverity* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, GLEnum* severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<DebugSeverity> severities, uint* lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, global::System.Span<uint> lengths, global::System.Span<string> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, byte* messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<byte> messageLog);
-
-    uint GetDebugMessageLog(uint count, uint bufSize, global::System.Span<GLEnum> sources, global::System.Span<GLEnum> types, uint* ids, global::System.Span<GLEnum> severities, uint* lengths, global::System.Span<string> messageLog);
 
     double GetDouble(GLEnum pname);
 
@@ -8672,15 +6123,11 @@ public unsafe partial interface IGLWrapper
 
     void GetDouble(GLEnum pname, double* data);
 
-    void GetDouble(GLEnum pname, global::System.Span<double> data);
-
     double GetDouble(GLEnum target, uint index);
 
     void GetDouble(GLEnum target, uint index, out double data);
 
     void GetDouble(GLEnum target, uint index, double* data);
-
-    void GetDouble(GLEnum target, uint index, global::System.Span<double> data);
 
     double GetDouble(GetPName pname);
 
@@ -8688,15 +6135,11 @@ public unsafe partial interface IGLWrapper
 
     void GetDouble(GetPName pname, double* data);
 
-    void GetDouble(GetPName pname, global::System.Span<double> data);
-
     double GetDouble(GetPName target, uint index);
 
     void GetDouble(GetPName target, uint index, out double data);
 
     void GetDouble(GetPName target, uint index, double* data);
-
-    void GetDouble(GetPName target, uint index, global::System.Span<double> data);
 
     GLEnum GetError();
 
@@ -8714,15 +6157,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFloat(GLEnum pname, float* data);
 
-    void GetFloat(GLEnum pname, global::System.Span<float> data);
-
     float GetFloat(GLEnum target, uint index);
 
     void GetFloat(GLEnum target, uint index, out float data);
 
     void GetFloat(GLEnum target, uint index, float* data);
-
-    void GetFloat(GLEnum target, uint index, global::System.Span<float> data);
 
     float GetFloat(GetPName pname);
 
@@ -8730,29 +6169,21 @@ public unsafe partial interface IGLWrapper
 
     void GetFloat(GetPName pname, float* data);
 
-    void GetFloat(GetPName pname, global::System.Span<float> data);
-
     float GetFloat(GetPName target, uint index);
 
     void GetFloat(GetPName target, uint index, out float data);
 
     void GetFloat(GetPName target, uint index, float* data);
 
-    void GetFloat(GetPName target, uint index, global::System.Span<float> data);
-
     int GetFragDataIndex(uint program, in byte name);
 
     int GetFragDataIndex(uint program, byte* name);
-
-    int GetFragDataIndex(uint program, global::System.ReadOnlySpan<byte> name);
 
     int GetFragDataIndex(uint program, string name);
 
     int GetFragDataLocation(uint program, in byte name);
 
     int GetFragDataLocation(uint program, byte* name);
-
-    int GetFragDataLocation(uint program, global::System.ReadOnlySpan<byte> name);
 
     int GetFragDataLocation(uint program, string name);
 
@@ -8762,15 +6193,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFramebufferAttachmentParameter(FramebufferTarget target, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, int* @params);
 
-    void GetFramebufferAttachmentParameter(FramebufferTarget target, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
-
     int GetFramebufferAttachmentParameter(FramebufferTarget target, FramebufferAttachment attachment, GLEnum pname);
 
     void GetFramebufferAttachmentParameter(FramebufferTarget target, FramebufferAttachment attachment, GLEnum pname, out int @params);
 
     void GetFramebufferAttachmentParameter(FramebufferTarget target, FramebufferAttachment attachment, GLEnum pname, int* @params);
-
-    void GetFramebufferAttachmentParameter(FramebufferTarget target, FramebufferAttachment attachment, GLEnum pname, global::System.Span<int> @params);
 
     int GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, FramebufferAttachmentParameterName pname);
 
@@ -8778,15 +6205,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, FramebufferAttachmentParameterName pname, int* @params);
 
-    void GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
-
     int GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, GLEnum pname);
 
     void GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, GLEnum pname, out int @params);
 
     void GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, GLEnum pname, int* @params);
-
-    void GetFramebufferAttachmentParameter(FramebufferTarget target, GLEnum attachment, GLEnum pname, global::System.Span<int> @params);
 
     int GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname);
 
@@ -8794,15 +6217,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, int* @params);
 
-    void GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
-
     int GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, GLEnum pname);
 
     void GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, GLEnum pname, out int @params);
 
     void GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, GLEnum pname, int* @params);
-
-    void GetFramebufferAttachmentParameter(GLEnum target, FramebufferAttachment attachment, GLEnum pname, global::System.Span<int> @params);
 
     int GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, FramebufferAttachmentParameterName pname);
 
@@ -8810,15 +6229,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, FramebufferAttachmentParameterName pname, int* @params);
 
-    void GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
-
     int GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, GLEnum pname);
 
     void GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, GLEnum pname, out int @params);
 
     void GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, GLEnum pname, int* @params);
-
-    void GetFramebufferAttachmentParameter(GLEnum target, GLEnum attachment, GLEnum pname, global::System.Span<int> @params);
 
     int GetFramebufferParameter(FramebufferTarget target, FramebufferAttachmentParameterName pname);
 
@@ -8826,15 +6241,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFramebufferParameter(FramebufferTarget target, FramebufferAttachmentParameterName pname, int* @params);
 
-    void GetFramebufferParameter(FramebufferTarget target, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
-
     int GetFramebufferParameter(FramebufferTarget target, GLEnum pname);
 
     void GetFramebufferParameter(FramebufferTarget target, GLEnum pname, out int @params);
 
     void GetFramebufferParameter(FramebufferTarget target, GLEnum pname, int* @params);
-
-    void GetFramebufferParameter(FramebufferTarget target, GLEnum pname, global::System.Span<int> @params);
 
     int GetFramebufferParameter(GLEnum target, FramebufferAttachmentParameterName pname);
 
@@ -8842,15 +6253,11 @@ public unsafe partial interface IGLWrapper
 
     void GetFramebufferParameter(GLEnum target, FramebufferAttachmentParameterName pname, int* @params);
 
-    void GetFramebufferParameter(GLEnum target, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
-
     int GetFramebufferParameter(GLEnum target, GLEnum pname);
 
     void GetFramebufferParameter(GLEnum target, GLEnum pname, out int @params);
 
     void GetFramebufferParameter(GLEnum target, GLEnum pname, int* @params);
-
-    void GetFramebufferParameter(GLEnum target, GLEnum pname, global::System.Span<int> @params);
 
     GLEnum GetGraphicsResetStatus();
 
@@ -8860,15 +6267,11 @@ public unsafe partial interface IGLWrapper
 
     void GetInteger(GLEnum pname, int* data);
 
-    void GetInteger(GLEnum pname, global::System.Span<int> data);
-
     int GetInteger(GLEnum target, uint index);
 
     void GetInteger(GLEnum target, uint index, out int data);
 
     void GetInteger(GLEnum target, uint index, int* data);
-
-    void GetInteger(GLEnum target, uint index, global::System.Span<int> data);
 
     int GetInteger(GetPName pname);
 
@@ -8876,15 +6279,11 @@ public unsafe partial interface IGLWrapper
 
     void GetInteger(GetPName pname, int* data);
 
-    void GetInteger(GetPName pname, global::System.Span<int> data);
-
     int GetInteger(GetPName target, uint index);
 
     void GetInteger(GetPName target, uint index, out int data);
 
     void GetInteger(GetPName target, uint index, int* data);
-
-    void GetInteger(GetPName target, uint index, global::System.Span<int> data);
 
     long GetInteger64(GLEnum pname);
 
@@ -8892,15 +6291,11 @@ public unsafe partial interface IGLWrapper
 
     void GetInteger64(GLEnum pname, long* data);
 
-    void GetInteger64(GLEnum pname, global::System.Span<long> data);
-
     long GetInteger64(GLEnum target, uint index);
 
     void GetInteger64(GLEnum target, uint index, out long data);
 
     void GetInteger64(GLEnum target, uint index, long* data);
-
-    void GetInteger64(GLEnum target, uint index, global::System.Span<long> data);
 
     long GetInteger64(GetPName pname);
 
@@ -8908,15 +6303,11 @@ public unsafe partial interface IGLWrapper
 
     void GetInteger64(GetPName pname, long* data);
 
-    void GetInteger64(GetPName pname, global::System.Span<long> data);
-
     long GetInteger64(GetPName target, uint index);
 
     void GetInteger64(GetPName target, uint index, out long data);
 
     void GetInteger64(GetPName target, uint index, long* data);
-
-    void GetInteger64(GetPName target, uint index, global::System.Span<long> data);
 
     long GetInternalformat(GLEnum target, GLEnum internalformat, GLEnum pname);
 
@@ -8934,10 +6325,6 @@ public unsafe partial interface IGLWrapper
 
     void GetInternalformat(GLEnum target, GLEnum internalformat, GLEnum pname, uint count, long* @params);
 
-    void GetInternalformat(GLEnum target, GLEnum internalformat, GLEnum pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(GLEnum target, GLEnum internalformat, GLEnum pname, uint count, global::System.Span<long> @params);
-
     long GetInternalformat(GLEnum target, GLEnum internalformat, InternalFormatPName pname);
 
     void GetInternalformat(GLEnum target, GLEnum internalformat, InternalFormatPName pname, global::System.Span<int> @params);
@@ -8953,10 +6340,6 @@ public unsafe partial interface IGLWrapper
     void GetInternalformat(GLEnum target, GLEnum internalformat, InternalFormatPName pname, uint count, out long @params);
 
     void GetInternalformat(GLEnum target, GLEnum internalformat, InternalFormatPName pname, uint count, long* @params);
-
-    void GetInternalformat(GLEnum target, GLEnum internalformat, InternalFormatPName pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(GLEnum target, GLEnum internalformat, InternalFormatPName pname, uint count, global::System.Span<long> @params);
 
     long GetInternalformat(GLEnum target, InternalFormat internalformat, GLEnum pname);
 
@@ -8974,10 +6357,6 @@ public unsafe partial interface IGLWrapper
 
     void GetInternalformat(GLEnum target, InternalFormat internalformat, GLEnum pname, uint count, long* @params);
 
-    void GetInternalformat(GLEnum target, InternalFormat internalformat, GLEnum pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(GLEnum target, InternalFormat internalformat, GLEnum pname, uint count, global::System.Span<long> @params);
-
     long GetInternalformat(GLEnum target, InternalFormat internalformat, InternalFormatPName pname);
 
     void GetInternalformat(GLEnum target, InternalFormat internalformat, InternalFormatPName pname, global::System.Span<int> @params);
@@ -8993,10 +6372,6 @@ public unsafe partial interface IGLWrapper
     void GetInternalformat(GLEnum target, InternalFormat internalformat, InternalFormatPName pname, uint count, out long @params);
 
     void GetInternalformat(GLEnum target, InternalFormat internalformat, InternalFormatPName pname, uint count, long* @params);
-
-    void GetInternalformat(GLEnum target, InternalFormat internalformat, InternalFormatPName pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(GLEnum target, InternalFormat internalformat, InternalFormatPName pname, uint count, global::System.Span<long> @params);
 
     long GetInternalformat(TextureTarget target, GLEnum internalformat, GLEnum pname);
 
@@ -9014,10 +6389,6 @@ public unsafe partial interface IGLWrapper
 
     void GetInternalformat(TextureTarget target, GLEnum internalformat, GLEnum pname, uint count, long* @params);
 
-    void GetInternalformat(TextureTarget target, GLEnum internalformat, GLEnum pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(TextureTarget target, GLEnum internalformat, GLEnum pname, uint count, global::System.Span<long> @params);
-
     long GetInternalformat(TextureTarget target, GLEnum internalformat, InternalFormatPName pname);
 
     void GetInternalformat(TextureTarget target, GLEnum internalformat, InternalFormatPName pname, global::System.Span<int> @params);
@@ -9033,10 +6404,6 @@ public unsafe partial interface IGLWrapper
     void GetInternalformat(TextureTarget target, GLEnum internalformat, InternalFormatPName pname, uint count, out long @params);
 
     void GetInternalformat(TextureTarget target, GLEnum internalformat, InternalFormatPName pname, uint count, long* @params);
-
-    void GetInternalformat(TextureTarget target, GLEnum internalformat, InternalFormatPName pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(TextureTarget target, GLEnum internalformat, InternalFormatPName pname, uint count, global::System.Span<long> @params);
 
     long GetInternalformat(TextureTarget target, InternalFormat internalformat, GLEnum pname);
 
@@ -9054,10 +6421,6 @@ public unsafe partial interface IGLWrapper
 
     void GetInternalformat(TextureTarget target, InternalFormat internalformat, GLEnum pname, uint count, long* @params);
 
-    void GetInternalformat(TextureTarget target, InternalFormat internalformat, GLEnum pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(TextureTarget target, InternalFormat internalformat, GLEnum pname, uint count, global::System.Span<long> @params);
-
     long GetInternalformat(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname);
 
     void GetInternalformat(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname, global::System.Span<int> @params);
@@ -9074,25 +6437,17 @@ public unsafe partial interface IGLWrapper
 
     void GetInternalformat(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname, uint count, long* @params);
 
-    void GetInternalformat(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname, uint count, global::System.Span<int> @params);
-
-    void GetInternalformat(TextureTarget target, InternalFormat internalformat, InternalFormatPName pname, uint count, global::System.Span<long> @params);
-
     float GetMultisample(GLEnum pname, uint index);
 
     void GetMultisample(GLEnum pname, uint index, out float val);
 
     void GetMultisample(GLEnum pname, uint index, float* val);
 
-    void GetMultisample(GLEnum pname, uint index, global::System.Span<float> val);
-
     float GetMultisample(GetMultisamplePNameNV pname, uint index);
 
     void GetMultisample(GetMultisamplePNameNV pname, uint index, out float val);
 
     void GetMultisample(GetMultisamplePNameNV pname, uint index, float* val);
-
-    void GetMultisample(GetMultisamplePNameNV pname, uint index, global::System.Span<float> val);
 
     int GetNamedBufferParameter(uint buffer, BufferPNameARB pname);
 
@@ -9104,10 +6459,6 @@ public unsafe partial interface IGLWrapper
 
     void GetNamedBufferParameter(uint buffer, BufferPNameARB pname, long* @params);
 
-    void GetNamedBufferParameter(uint buffer, BufferPNameARB pname, global::System.Span<int> @params);
-
-    void GetNamedBufferParameter(uint buffer, BufferPNameARB pname, global::System.Span<long> @params);
-
     int GetNamedBufferParameter(uint buffer, GLEnum pname);
 
     void GetNamedBufferParameter(uint buffer, GLEnum pname, out int @params);
@@ -9117,10 +6468,6 @@ public unsafe partial interface IGLWrapper
     void GetNamedBufferParameter(uint buffer, GLEnum pname, out long @params);
 
     void GetNamedBufferParameter(uint buffer, GLEnum pname, long* @params);
-
-    void GetNamedBufferParameter(uint buffer, GLEnum pname, global::System.Span<int> @params);
-
-    void GetNamedBufferParameter(uint buffer, GLEnum pname, global::System.Span<long> @params);
 
     void* GetNamedBufferPointer(uint buffer, BufferPointerNameARB pname);
 
@@ -9145,16 +6492,11 @@ public unsafe partial interface IGLWrapper
     T0 GetNamedBufferSubData<T0>(uint buffer, nint offset, nuint size)
         where T0 : unmanaged;
 
-    void GetNamedBufferSubData<T0>(uint buffer, nint offset, nuint size, global::System.Span<T0> data)
-        where T0 : unmanaged;
-
     int GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname);
 
     void GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, out int @params);
 
     void GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, int* @params);
-
-    void GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
 
     int GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, GLEnum pname);
 
@@ -9162,15 +6504,11 @@ public unsafe partial interface IGLWrapper
 
     void GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, GLEnum pname, int* @params);
 
-    void GetNamedFramebufferAttachmentParameter(uint framebuffer, FramebufferAttachment attachment, GLEnum pname, global::System.Span<int> @params);
-
     int GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, FramebufferAttachmentParameterName pname);
 
     void GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, FramebufferAttachmentParameterName pname, out int @params);
 
     void GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, FramebufferAttachmentParameterName pname, int* @params);
-
-    void GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, FramebufferAttachmentParameterName pname, global::System.Span<int> @params);
 
     int GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, GLEnum pname);
 
@@ -9178,15 +6516,11 @@ public unsafe partial interface IGLWrapper
 
     void GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, GLEnum pname, int* @params);
 
-    void GetNamedFramebufferAttachmentParameter(uint framebuffer, GLEnum attachment, GLEnum pname, global::System.Span<int> @params);
-
     int GetNamedFramebufferParameter(uint framebuffer, GLEnum pname);
 
     void GetNamedFramebufferParameter(uint framebuffer, GLEnum pname, out int param);
 
     void GetNamedFramebufferParameter(uint framebuffer, GLEnum pname, int* param);
-
-    void GetNamedFramebufferParameter(uint framebuffer, GLEnum pname, global::System.Span<int> param);
 
     int GetNamedFramebufferParameter(uint framebuffer, GetFramebufferParameter pname);
 
@@ -9194,23 +6528,17 @@ public unsafe partial interface IGLWrapper
 
     void GetNamedFramebufferParameter(uint framebuffer, GetFramebufferParameter pname, int* param);
 
-    void GetNamedFramebufferParameter(uint framebuffer, GetFramebufferParameter pname, global::System.Span<int> param);
-
     int GetNamedRenderbufferParameter(uint renderbuffer, GLEnum pname);
 
     void GetNamedRenderbufferParameter(uint renderbuffer, GLEnum pname, out int @params);
 
     void GetNamedRenderbufferParameter(uint renderbuffer, GLEnum pname, int* @params);
 
-    void GetNamedRenderbufferParameter(uint renderbuffer, GLEnum pname, global::System.Span<int> @params);
-
     int GetNamedRenderbufferParameter(uint renderbuffer, RenderbufferParameterName pname);
 
     void GetNamedRenderbufferParameter(uint renderbuffer, RenderbufferParameterName pname, out int @params);
 
     void GetNamedRenderbufferParameter(uint renderbuffer, RenderbufferParameterName pname, int* @params);
-
-    void GetNamedRenderbufferParameter(uint renderbuffer, RenderbufferParameterName pname, global::System.Span<int> @params);
 
     void GetObjectLabel(GLEnum identifier, uint name, out uint length, global::System.Span<byte> label);
 
@@ -9219,12 +6547,6 @@ public unsafe partial interface IGLWrapper
     void GetObjectLabel(GLEnum identifier, uint name, uint* length, global::System.Span<byte> label);
 
     void GetObjectLabel(GLEnum identifier, uint name, uint* length, global::System.Span<string> label);
-
-    void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, global::System.Span<uint> length, byte* label);
-
-    void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> label);
-
-    void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, global::System.Span<uint> length, global::System.Span<string> label);
 
     byte GetObjectLabel(GLEnum identifier, uint name, uint bufSize, out uint length);
 
@@ -9240,10 +6562,6 @@ public unsafe partial interface IGLWrapper
 
     void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, uint* length, byte* label);
 
-    void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, uint* length, global::System.Span<byte> label);
-
-    void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, uint* length, global::System.Span<string> label);
-
     void GetObjectLabel(GLEnum identifier, uint name, uint bufSize, uint* length, out string label);
 
     void GetObjectLabel(ObjectIdentifier identifier, uint name, out uint length, global::System.Span<byte> label);
@@ -9253,12 +6571,6 @@ public unsafe partial interface IGLWrapper
     void GetObjectLabel(ObjectIdentifier identifier, uint name, uint* length, global::System.Span<byte> label);
 
     void GetObjectLabel(ObjectIdentifier identifier, uint name, uint* length, global::System.Span<string> label);
-
-    void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, global::System.Span<uint> length, byte* label);
-
-    void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> label);
-
-    void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, global::System.Span<uint> length, global::System.Span<string> label);
 
     byte GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, out uint length);
 
@@ -9274,10 +6586,6 @@ public unsafe partial interface IGLWrapper
 
     void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, uint* length, byte* label);
 
-    void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, uint* length, global::System.Span<byte> label);
-
-    void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, uint* length, global::System.Span<string> label);
-
     void GetObjectLabel(ObjectIdentifier identifier, uint name, uint bufSize, uint* length, out string label);
 
     void GetObjectPtrLabel(void* ptr, out uint length, global::System.Span<byte> label);
@@ -9287,12 +6595,6 @@ public unsafe partial interface IGLWrapper
     void GetObjectPtrLabel(void* ptr, uint* length, global::System.Span<byte> label);
 
     void GetObjectPtrLabel(void* ptr, uint* length, global::System.Span<string> label);
-
-    void GetObjectPtrLabel(void* ptr, uint bufSize, global::System.Span<uint> length, byte* label);
-
-    void GetObjectPtrLabel(void* ptr, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> label);
-
-    void GetObjectPtrLabel(void* ptr, uint bufSize, global::System.Span<uint> length, global::System.Span<string> label);
 
     byte GetObjectPtrLabel(void* ptr, uint bufSize, out uint length);
 
@@ -9307,10 +6609,6 @@ public unsafe partial interface IGLWrapper
     void GetObjectPtrLabel(void* ptr, uint bufSize, uint* length, out byte label);
 
     void GetObjectPtrLabel(void* ptr, uint bufSize, uint* length, byte* label);
-
-    void GetObjectPtrLabel(void* ptr, uint bufSize, uint* length, global::System.Span<byte> label);
-
-    void GetObjectPtrLabel(void* ptr, uint bufSize, uint* length, global::System.Span<string> label);
 
     void GetObjectPtrLabel(void* ptr, uint bufSize, uint* length, out string label);
 
@@ -9350,24 +6648,6 @@ public unsafe partial interface IGLWrapper
     void GetObjectPtrLabel<T0>(in T0 ptr, uint bufSize, uint* length, out string label)
         where T0 : unmanaged;
 
-    void GetObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint bufSize, global::System.Span<uint> length, byte* label)
-        where T0 : unmanaged;
-
-    void GetObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> label)
-        where T0 : unmanaged;
-
-    void GetObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint bufSize, global::System.Span<uint> length, global::System.Span<string> label)
-        where T0 : unmanaged;
-
-    void GetObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint bufSize, uint* length, byte* label)
-        where T0 : unmanaged;
-
-    void GetObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint bufSize, uint* length, global::System.Span<byte> label)
-        where T0 : unmanaged;
-
-    void GetObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint bufSize, uint* length, global::System.Span<string> label)
-        where T0 : unmanaged;
-
     void* GetPointer(GLEnum pname);
 
     void GetPointer(GLEnum pname, out void* @params);
@@ -9386,19 +6666,11 @@ public unsafe partial interface IGLWrapper
 
     void GetProgram(uint program, GLEnum pname, int* @params);
 
-    void GetProgram(uint program, GLEnum pname, global::System.Span<int> @params);
-
     int GetProgram(uint program, ProgramPropertyARB pname);
 
     void GetProgram(uint program, ProgramPropertyARB pname, out int @params);
 
     void GetProgram(uint program, ProgramPropertyARB pname, int* @params);
-
-    void GetProgram(uint program, ProgramPropertyARB pname, global::System.Span<int> @params);
-
-    void GetProgramBinary(uint program, uint bufSize, global::System.Span<uint> length, GLEnum* binaryFormat, void* binary);
-
-    void GetProgramBinary(uint program, uint bufSize, global::System.Span<uint> length, global::System.Span<GLEnum> binaryFormat, void* binary);
 
     void GetProgramBinary(uint program, uint bufSize, out uint length, out GLEnum binaryFormat, void* binary);
 
@@ -9407,8 +6679,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramBinary(uint program, uint bufSize, uint* length, out GLEnum binaryFormat, void* binary);
 
     void GetProgramBinary(uint program, uint bufSize, uint* length, GLEnum* binaryFormat, void* binary);
-
-    void GetProgramBinary(uint program, uint bufSize, uint* length, global::System.Span<GLEnum> binaryFormat, void* binary);
 
     void GetProgramBinary<T0>(uint program, out uint length, out GLEnum binaryFormat, global::System.Span<T0> binary)
         where T0 : unmanaged;
@@ -9420,12 +6690,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     void GetProgramBinary<T0>(uint program, uint* length, GLEnum* binaryFormat, global::System.Span<T0> binary)
-        where T0 : unmanaged;
-
-    void GetProgramBinary<T0>(uint program, uint bufSize, global::System.Span<uint> length, GLEnum* binaryFormat, global::System.Span<T0> binary)
-        where T0 : unmanaged;
-
-    void GetProgramBinary<T0>(uint program, uint bufSize, global::System.Span<uint> length, global::System.Span<GLEnum> binaryFormat, global::System.Span<T0> binary)
         where T0 : unmanaged;
 
     void GetProgramBinary<T0>(uint program, uint bufSize, out uint length, out GLEnum binaryFormat, out T0 binary)
@@ -9452,12 +6716,6 @@ public unsafe partial interface IGLWrapper
     T0 GetProgramBinary<T0>(uint program, uint bufSize, uint* length, GLEnum* binaryFormat)
         where T0 : unmanaged;
 
-    void GetProgramBinary<T0>(uint program, uint bufSize, uint* length, GLEnum* binaryFormat, global::System.Span<T0> binary)
-        where T0 : unmanaged;
-
-    void GetProgramBinary<T0>(uint program, uint bufSize, uint* length, global::System.Span<GLEnum> binaryFormat, global::System.Span<T0> binary)
-        where T0 : unmanaged;
-
     string GetProgramInfoLog(uint program);
 
     void GetProgramInfoLog(uint program, out string info);
@@ -9469,12 +6727,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramInfoLog(uint program, uint* length, global::System.Span<byte> infoLog);
 
     void GetProgramInfoLog(uint program, uint* length, global::System.Span<string> infoLog);
-
-    void GetProgramInfoLog(uint program, uint bufSize, global::System.Span<uint> length, byte* infoLog);
-
-    void GetProgramInfoLog(uint program, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> infoLog);
-
-    void GetProgramInfoLog(uint program, uint bufSize, global::System.Span<uint> length, global::System.Span<string> infoLog);
 
     byte GetProgramInfoLog(uint program, uint bufSize, out uint length);
 
@@ -9490,10 +6742,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog);
 
-    void GetProgramInfoLog(uint program, uint bufSize, uint* length, global::System.Span<byte> infoLog);
-
-    void GetProgramInfoLog(uint program, uint bufSize, uint* length, global::System.Span<string> infoLog);
-
     void GetProgramInfoLog(uint program, uint bufSize, uint* length, out string infoLog);
 
     int GetProgramInterface(uint program, GLEnum programInterface, GLEnum pname);
@@ -9502,15 +6750,11 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramInterface(uint program, GLEnum programInterface, GLEnum pname, int* @params);
 
-    void GetProgramInterface(uint program, GLEnum programInterface, GLEnum pname, global::System.Span<int> @params);
-
     int GetProgramInterface(uint program, GLEnum programInterface, ProgramInterfacePName pname);
 
     void GetProgramInterface(uint program, GLEnum programInterface, ProgramInterfacePName pname, out int @params);
 
     void GetProgramInterface(uint program, GLEnum programInterface, ProgramInterfacePName pname, int* @params);
-
-    void GetProgramInterface(uint program, GLEnum programInterface, ProgramInterfacePName pname, global::System.Span<int> @params);
 
     int GetProgramInterface(uint program, ProgramInterface programInterface, GLEnum pname);
 
@@ -9518,15 +6762,11 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramInterface(uint program, ProgramInterface programInterface, GLEnum pname, int* @params);
 
-    void GetProgramInterface(uint program, ProgramInterface programInterface, GLEnum pname, global::System.Span<int> @params);
-
     int GetProgramInterface(uint program, ProgramInterface programInterface, ProgramInterfacePName pname);
 
     void GetProgramInterface(uint program, ProgramInterface programInterface, ProgramInterfacePName pname, out int @params);
 
     void GetProgramInterface(uint program, ProgramInterface programInterface, ProgramInterfacePName pname, int* @params);
-
-    void GetProgramInterface(uint program, ProgramInterface programInterface, ProgramInterfacePName pname, global::System.Span<int> @params);
 
     int GetProgramPipeline(uint pipeline, GLEnum pname);
 
@@ -9534,15 +6774,11 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramPipeline(uint pipeline, GLEnum pname, int* @params);
 
-    void GetProgramPipeline(uint pipeline, GLEnum pname, global::System.Span<int> @params);
-
     int GetProgramPipeline(uint pipeline, PipelineParameterName pname);
 
     void GetProgramPipeline(uint pipeline, PipelineParameterName pname, out int @params);
 
     void GetProgramPipeline(uint pipeline, PipelineParameterName pname, int* @params);
-
-    void GetProgramPipeline(uint pipeline, PipelineParameterName pname, global::System.Span<int> @params);
 
     void GetProgramPipelineInfoLog(uint pipeline, out uint length, global::System.Span<byte> infoLog);
 
@@ -9551,12 +6787,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramPipelineInfoLog(uint pipeline, uint* length, global::System.Span<byte> infoLog);
 
     void GetProgramPipelineInfoLog(uint pipeline, uint* length, global::System.Span<string> infoLog);
-
-    void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, global::System.Span<uint> length, byte* infoLog);
-
-    void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> infoLog);
-
-    void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, global::System.Span<uint> length, global::System.Span<string> infoLog);
 
     byte GetProgramPipelineInfoLog(uint pipeline, uint bufSize, out uint length);
 
@@ -9571,10 +6801,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, uint* length, out byte infoLog);
 
     void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, uint* length, byte* infoLog);
-
-    void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, uint* length, global::System.Span<byte> infoLog);
-
-    void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, uint* length, global::System.Span<string> infoLog);
 
     void GetProgramPipelineInfoLog(uint pipeline, uint bufSize, uint* length, out string infoLog);
 
@@ -9610,10 +6836,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint* length, global::System.Span<int> @params);
 
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
     int GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, out uint length);
 
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, out uint length, out int @params);
@@ -9625,8 +6847,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, uint* length, out int @params);
 
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, GLEnum* props, uint count, uint* length, global::System.Span<int> @params);
 
     int GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, in ProgramResourceProperty props, uint count, out uint length);
 
@@ -9644,10 +6864,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint* length, global::System.Span<int> @params);
 
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
     int GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, out uint length);
 
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, out uint length, out int @params);
@@ -9659,24 +6875,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, uint* length, out int @params);
 
     void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, uint* length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, uint* length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, GLEnum programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, uint* length, global::System.Span<int> @params);
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, global::System.ReadOnlySpan<GLEnum> props, out uint length, global::System.Span<int> @params);
 
@@ -9710,10 +6908,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint* length, global::System.Span<int> @params);
 
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
     int GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, out uint length);
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, out uint length, out int @params);
@@ -9725,8 +6919,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, uint* length, out int @params);
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, GLEnum* props, uint count, uint* length, global::System.Span<int> @params);
 
     int GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, in ProgramResourceProperty props, uint count, out uint length);
 
@@ -9744,10 +6936,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint* length, global::System.Span<int> @params);
 
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
     int GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, out uint length);
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, out uint length, out int @params);
@@ -9760,29 +6948,9 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, uint* length, int* @params);
 
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, ProgramResourceProperty* props, uint count, uint* length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<GLEnum> props, uint count, uint* length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, global::System.Span<uint> length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, global::System.Span<uint> length, global::System.Span<int> @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, uint* length, int* @params);
-
-    void GetProgramResource(uint program, ProgramInterface programInterface, uint index, uint propCount, global::System.ReadOnlySpan<ProgramResourceProperty> props, uint count, uint* length, global::System.Span<int> @params);
-
     uint GetProgramResourceIndex(uint program, GLEnum programInterface, in byte name);
 
     uint GetProgramResourceIndex(uint program, GLEnum programInterface, byte* name);
-
-    uint GetProgramResourceIndex(uint program, GLEnum programInterface, global::System.ReadOnlySpan<byte> name);
 
     uint GetProgramResourceIndex(uint program, GLEnum programInterface, string name);
 
@@ -9790,15 +6958,11 @@ public unsafe partial interface IGLWrapper
 
     uint GetProgramResourceIndex(uint program, ProgramInterface programInterface, byte* name);
 
-    uint GetProgramResourceIndex(uint program, ProgramInterface programInterface, global::System.ReadOnlySpan<byte> name);
-
     uint GetProgramResourceIndex(uint program, ProgramInterface programInterface, string name);
 
     int GetProgramResourceLocation(uint program, GLEnum programInterface, in byte name);
 
     int GetProgramResourceLocation(uint program, GLEnum programInterface, byte* name);
-
-    int GetProgramResourceLocation(uint program, GLEnum programInterface, global::System.ReadOnlySpan<byte> name);
 
     int GetProgramResourceLocation(uint program, GLEnum programInterface, string name);
 
@@ -9806,23 +6970,17 @@ public unsafe partial interface IGLWrapper
 
     int GetProgramResourceLocation(uint program, ProgramInterface programInterface, byte* name);
 
-    int GetProgramResourceLocation(uint program, ProgramInterface programInterface, global::System.ReadOnlySpan<byte> name);
-
     int GetProgramResourceLocation(uint program, ProgramInterface programInterface, string name);
 
     int GetProgramResourceLocationIndex(uint program, GLEnum programInterface, in byte name);
 
     int GetProgramResourceLocationIndex(uint program, GLEnum programInterface, byte* name);
 
-    int GetProgramResourceLocationIndex(uint program, GLEnum programInterface, global::System.ReadOnlySpan<byte> name);
-
     int GetProgramResourceLocationIndex(uint program, GLEnum programInterface, string name);
 
     int GetProgramResourceLocationIndex(uint program, ProgramInterface programInterface, in byte name);
 
     int GetProgramResourceLocationIndex(uint program, ProgramInterface programInterface, byte* name);
-
-    int GetProgramResourceLocationIndex(uint program, ProgramInterface programInterface, global::System.ReadOnlySpan<byte> name);
 
     int GetProgramResourceLocationIndex(uint program, ProgramInterface programInterface, string name);
 
@@ -9833,12 +6991,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint* length, global::System.Span<byte> name);
 
     void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint* length, global::System.Span<string> name);
-
-    void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, global::System.Span<uint> length, byte* name);
-
-    void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> name);
-
-    void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<string> name);
 
     byte GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, out uint length);
 
@@ -9854,10 +7006,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, uint* length, byte* name);
 
-    void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, uint* length, global::System.Span<byte> name);
-
-    void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, uint* length, global::System.Span<string> name);
-
     void GetProgramResourceName(uint program, GLEnum programInterface, uint index, uint bufSize, uint* length, out string name);
 
     void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, out uint length, global::System.Span<byte> name);
@@ -9867,12 +7015,6 @@ public unsafe partial interface IGLWrapper
     void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint* length, global::System.Span<byte> name);
 
     void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint* length, global::System.Span<string> name);
-
-    void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, global::System.Span<uint> length, byte* name);
-
-    void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> name);
-
-    void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<string> name);
 
     byte GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, out uint length);
 
@@ -9888,10 +7030,6 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, uint* length, byte* name);
 
-    void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, uint* length, global::System.Span<byte> name);
-
-    void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, uint* length, global::System.Span<string> name);
-
     void GetProgramResourceName(uint program, ProgramInterface programInterface, uint index, uint bufSize, uint* length, out string name);
 
     int GetProgramStage(uint program, GLEnum shadertype, GLEnum pname);
@@ -9900,15 +7038,11 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramStage(uint program, GLEnum shadertype, GLEnum pname, int* values);
 
-    void GetProgramStage(uint program, GLEnum shadertype, GLEnum pname, global::System.Span<int> values);
-
     int GetProgramStage(uint program, GLEnum shadertype, ProgramStagePName pname);
 
     void GetProgramStage(uint program, GLEnum shadertype, ProgramStagePName pname, out int values);
 
     void GetProgramStage(uint program, GLEnum shadertype, ProgramStagePName pname, int* values);
-
-    void GetProgramStage(uint program, GLEnum shadertype, ProgramStagePName pname, global::System.Span<int> values);
 
     int GetProgramStage(uint program, ShaderType shadertype, GLEnum pname);
 
@@ -9916,15 +7050,11 @@ public unsafe partial interface IGLWrapper
 
     void GetProgramStage(uint program, ShaderType shadertype, GLEnum pname, int* values);
 
-    void GetProgramStage(uint program, ShaderType shadertype, GLEnum pname, global::System.Span<int> values);
-
     int GetProgramStage(uint program, ShaderType shadertype, ProgramStagePName pname);
 
     void GetProgramStage(uint program, ShaderType shadertype, ProgramStagePName pname, out int values);
 
     void GetProgramStage(uint program, ShaderType shadertype, ProgramStagePName pname, int* values);
-
-    void GetProgramStage(uint program, ShaderType shadertype, ProgramStagePName pname, global::System.Span<int> values);
 
     int GetQuery(GLEnum target, GLEnum pname);
 
@@ -9932,15 +7062,11 @@ public unsafe partial interface IGLWrapper
 
     void GetQuery(GLEnum target, GLEnum pname, int* @params);
 
-    void GetQuery(GLEnum target, GLEnum pname, global::System.Span<int> @params);
-
     int GetQuery(GLEnum target, QueryParameterName pname);
 
     void GetQuery(GLEnum target, QueryParameterName pname, out int @params);
 
     void GetQuery(GLEnum target, QueryParameterName pname, int* @params);
-
-    void GetQuery(GLEnum target, QueryParameterName pname, global::System.Span<int> @params);
 
     int GetQuery(QueryTarget target, GLEnum pname);
 
@@ -9948,15 +7074,11 @@ public unsafe partial interface IGLWrapper
 
     void GetQuery(QueryTarget target, GLEnum pname, int* @params);
 
-    void GetQuery(QueryTarget target, GLEnum pname, global::System.Span<int> @params);
-
     int GetQuery(QueryTarget target, QueryParameterName pname);
 
     void GetQuery(QueryTarget target, QueryParameterName pname, out int @params);
 
     void GetQuery(QueryTarget target, QueryParameterName pname, int* @params);
-
-    void GetQuery(QueryTarget target, QueryParameterName pname, global::System.Span<int> @params);
 
     void GetQueryBufferObject(uint id, uint buffer, GLEnum pname, nint offset);
 
@@ -9968,15 +7090,11 @@ public unsafe partial interface IGLWrapper
 
     void GetQueryIndexed(GLEnum target, uint index, GLEnum pname, int* @params);
 
-    void GetQueryIndexed(GLEnum target, uint index, GLEnum pname, global::System.Span<int> @params);
-
     int GetQueryIndexed(GLEnum target, uint index, QueryParameterName pname);
 
     void GetQueryIndexed(GLEnum target, uint index, QueryParameterName pname, out int @params);
 
     void GetQueryIndexed(GLEnum target, uint index, QueryParameterName pname, int* @params);
-
-    void GetQueryIndexed(GLEnum target, uint index, QueryParameterName pname, global::System.Span<int> @params);
 
     int GetQueryIndexed(QueryTarget target, uint index, GLEnum pname);
 
@@ -9984,15 +7102,11 @@ public unsafe partial interface IGLWrapper
 
     void GetQueryIndexed(QueryTarget target, uint index, GLEnum pname, int* @params);
 
-    void GetQueryIndexed(QueryTarget target, uint index, GLEnum pname, global::System.Span<int> @params);
-
     int GetQueryIndexed(QueryTarget target, uint index, QueryParameterName pname);
 
     void GetQueryIndexed(QueryTarget target, uint index, QueryParameterName pname, out int @params);
 
     void GetQueryIndexed(QueryTarget target, uint index, QueryParameterName pname, int* @params);
-
-    void GetQueryIndexed(QueryTarget target, uint index, QueryParameterName pname, global::System.Span<int> @params);
 
     long GetQueryObject(uint id, GLEnum pname);
 
@@ -10003,14 +7117,6 @@ public unsafe partial interface IGLWrapper
     void GetQueryObject(uint id, GLEnum pname, out long @params);
 
     void GetQueryObject(uint id, GLEnum pname, long* @params);
-
-    void GetQueryObject(uint id, GLEnum pname, global::System.Span<int> @params);
-
-    void GetQueryObject(uint id, GLEnum pname, global::System.Span<long> @params);
-
-    void GetQueryObject(uint id, GLEnum pname, global::System.Span<uint> @params);
-
-    void GetQueryObject(uint id, GLEnum pname, global::System.Span<ulong> @params);
 
     void GetQueryObject(uint id, GLEnum pname, out uint @params);
 
@@ -10030,14 +7136,6 @@ public unsafe partial interface IGLWrapper
 
     void GetQueryObject(uint id, QueryObjectParameterName pname, long* @params);
 
-    void GetQueryObject(uint id, QueryObjectParameterName pname, global::System.Span<int> @params);
-
-    void GetQueryObject(uint id, QueryObjectParameterName pname, global::System.Span<long> @params);
-
-    void GetQueryObject(uint id, QueryObjectParameterName pname, global::System.Span<uint> @params);
-
-    void GetQueryObject(uint id, QueryObjectParameterName pname, global::System.Span<ulong> @params);
-
     void GetQueryObject(uint id, QueryObjectParameterName pname, out uint @params);
 
     void GetQueryObject(uint id, QueryObjectParameterName pname, uint* @params);
@@ -10052,15 +7150,11 @@ public unsafe partial interface IGLWrapper
 
     void GetRenderbufferParameter(GLEnum target, GLEnum pname, int* @params);
 
-    void GetRenderbufferParameter(GLEnum target, GLEnum pname, global::System.Span<int> @params);
-
     int GetRenderbufferParameter(GLEnum target, RenderbufferParameterName pname);
 
     void GetRenderbufferParameter(GLEnum target, RenderbufferParameterName pname, out int @params);
 
     void GetRenderbufferParameter(GLEnum target, RenderbufferParameterName pname, int* @params);
-
-    void GetRenderbufferParameter(GLEnum target, RenderbufferParameterName pname, global::System.Span<int> @params);
 
     int GetRenderbufferParameter(RenderbufferTarget target, GLEnum pname);
 
@@ -10068,15 +7162,11 @@ public unsafe partial interface IGLWrapper
 
     void GetRenderbufferParameter(RenderbufferTarget target, GLEnum pname, int* @params);
 
-    void GetRenderbufferParameter(RenderbufferTarget target, GLEnum pname, global::System.Span<int> @params);
-
     int GetRenderbufferParameter(RenderbufferTarget target, RenderbufferParameterName pname);
 
     void GetRenderbufferParameter(RenderbufferTarget target, RenderbufferParameterName pname, out int @params);
 
     void GetRenderbufferParameter(RenderbufferTarget target, RenderbufferParameterName pname, int* @params);
-
-    void GetRenderbufferParameter(RenderbufferTarget target, RenderbufferParameterName pname, global::System.Span<int> @params);
 
     int GetSamplerParameter(uint sampler, GLEnum pname);
 
@@ -10088,17 +7178,11 @@ public unsafe partial interface IGLWrapper
 
     void GetSamplerParameter(uint sampler, GLEnum pname, float* @params);
 
-    void GetSamplerParameter(uint sampler, GLEnum pname, global::System.Span<int> @params);
-
-    void GetSamplerParameter(uint sampler, GLEnum pname, global::System.Span<float> @params);
-
     float GetSamplerParameter(uint sampler, SamplerParameterF pname);
 
     void GetSamplerParameter(uint sampler, SamplerParameterF pname, out float @params);
 
     void GetSamplerParameter(uint sampler, SamplerParameterF pname, float* @params);
-
-    void GetSamplerParameter(uint sampler, SamplerParameterF pname, global::System.Span<float> @params);
 
     int GetSamplerParameter(uint sampler, SamplerParameterI pname);
 
@@ -10106,17 +7190,11 @@ public unsafe partial interface IGLWrapper
 
     void GetSamplerParameter(uint sampler, SamplerParameterI pname, int* @params);
 
-    void GetSamplerParameter(uint sampler, SamplerParameterI pname, global::System.Span<int> @params);
-
     int GetSamplerParameterI(uint sampler, GLEnum pname);
 
     void GetSamplerParameterI(uint sampler, GLEnum pname, out int @params);
 
     void GetSamplerParameterI(uint sampler, GLEnum pname, int* @params);
-
-    void GetSamplerParameterI(uint sampler, GLEnum pname, global::System.Span<int> @params);
-
-    void GetSamplerParameterI(uint sampler, GLEnum pname, global::System.Span<uint> @params);
 
     void GetSamplerParameterI(uint sampler, GLEnum pname, out uint @params);
 
@@ -10128,10 +7206,6 @@ public unsafe partial interface IGLWrapper
 
     void GetSamplerParameterI(uint sampler, SamplerParameterI pname, int* @params);
 
-    void GetSamplerParameterI(uint sampler, SamplerParameterI pname, global::System.Span<int> @params);
-
-    void GetSamplerParameterI(uint sampler, SamplerParameterI pname, global::System.Span<uint> @params);
-
     void GetSamplerParameterI(uint sampler, SamplerParameterI pname, out uint @params);
 
     void GetSamplerParameterI(uint sampler, SamplerParameterI pname, uint* @params);
@@ -10142,15 +7216,11 @@ public unsafe partial interface IGLWrapper
 
     void GetShader(uint shader, GLEnum pname, int* @params);
 
-    void GetShader(uint shader, GLEnum pname, global::System.Span<int> @params);
-
     int GetShader(uint shader, ShaderParameterName pname);
 
     void GetShader(uint shader, ShaderParameterName pname, out int @params);
 
     void GetShader(uint shader, ShaderParameterName pname, int* @params);
-
-    void GetShader(uint shader, ShaderParameterName pname, global::System.Span<int> @params);
 
     string GetShaderInfoLog(uint shader);
 
@@ -10163,12 +7233,6 @@ public unsafe partial interface IGLWrapper
     void GetShaderInfoLog(uint shader, uint* length, global::System.Span<byte> infoLog);
 
     void GetShaderInfoLog(uint shader, uint* length, global::System.Span<string> infoLog);
-
-    void GetShaderInfoLog(uint shader, uint bufSize, global::System.Span<uint> length, byte* infoLog);
-
-    void GetShaderInfoLog(uint shader, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> infoLog);
-
-    void GetShaderInfoLog(uint shader, uint bufSize, global::System.Span<uint> length, global::System.Span<string> infoLog);
 
     byte GetShaderInfoLog(uint shader, uint bufSize, out uint length);
 
@@ -10184,10 +7248,6 @@ public unsafe partial interface IGLWrapper
 
     void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog);
 
-    void GetShaderInfoLog(uint shader, uint bufSize, uint* length, global::System.Span<byte> infoLog);
-
-    void GetShaderInfoLog(uint shader, uint bufSize, uint* length, global::System.Span<string> infoLog);
-
     void GetShaderInfoLog(uint shader, uint bufSize, uint* length, out string infoLog);
 
     int GetShaderPrecisionFormat(GLEnum shadertype, GLEnum precisiontype, out int range);
@@ -10202,12 +7262,6 @@ public unsafe partial interface IGLWrapper
 
     void GetShaderPrecisionFormat(GLEnum shadertype, GLEnum precisiontype, int* range, int* precision);
 
-    void GetShaderPrecisionFormat(GLEnum shadertype, GLEnum precisiontype, int* range, global::System.Span<int> precision);
-
-    void GetShaderPrecisionFormat(GLEnum shadertype, GLEnum precisiontype, global::System.Span<int> range, int* precision);
-
-    void GetShaderPrecisionFormat(GLEnum shadertype, GLEnum precisiontype, global::System.Span<int> range, global::System.Span<int> precision);
-
     int GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, out int range);
 
     void GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, out int range, out int precision);
@@ -10219,12 +7273,6 @@ public unsafe partial interface IGLWrapper
     void GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, int* range, out int precision);
 
     void GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, int* range, int* precision);
-
-    void GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, int* range, global::System.Span<int> precision);
-
-    void GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, global::System.Span<int> range, int* precision);
-
-    void GetShaderPrecisionFormat(GLEnum shadertype, PrecisionType precisiontype, global::System.Span<int> range, global::System.Span<int> precision);
 
     int GetShaderPrecisionFormat(ShaderType shadertype, GLEnum precisiontype, out int range);
 
@@ -10238,12 +7286,6 @@ public unsafe partial interface IGLWrapper
 
     void GetShaderPrecisionFormat(ShaderType shadertype, GLEnum precisiontype, int* range, int* precision);
 
-    void GetShaderPrecisionFormat(ShaderType shadertype, GLEnum precisiontype, int* range, global::System.Span<int> precision);
-
-    void GetShaderPrecisionFormat(ShaderType shadertype, GLEnum precisiontype, global::System.Span<int> range, int* precision);
-
-    void GetShaderPrecisionFormat(ShaderType shadertype, GLEnum precisiontype, global::System.Span<int> range, global::System.Span<int> precision);
-
     int GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, out int range);
 
     void GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, out int range, out int precision);
@@ -10256,12 +7298,6 @@ public unsafe partial interface IGLWrapper
 
     void GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, int* range, int* precision);
 
-    void GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, int* range, global::System.Span<int> precision);
-
-    void GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, global::System.Span<int> range, int* precision);
-
-    void GetShaderPrecisionFormat(ShaderType shadertype, PrecisionType precisiontype, global::System.Span<int> range, global::System.Span<int> precision);
-
     void GetShaderSource(uint shader, out uint length, global::System.Span<byte> source);
 
     void GetShaderSource(uint shader, out uint length, global::System.Span<string> source);
@@ -10269,12 +7305,6 @@ public unsafe partial interface IGLWrapper
     void GetShaderSource(uint shader, uint* length, global::System.Span<byte> source);
 
     void GetShaderSource(uint shader, uint* length, global::System.Span<string> source);
-
-    void GetShaderSource(uint shader, uint bufSize, global::System.Span<uint> length, byte* source);
-
-    void GetShaderSource(uint shader, uint bufSize, global::System.Span<uint> length, global::System.Span<byte> source);
-
-    void GetShaderSource(uint shader, uint bufSize, global::System.Span<uint> length, global::System.Span<string> source);
 
     byte GetShaderSource(uint shader, uint bufSize, out uint length);
 
@@ -10289,10 +7319,6 @@ public unsafe partial interface IGLWrapper
     void GetShaderSource(uint shader, uint bufSize, uint* length, out byte source);
 
     void GetShaderSource(uint shader, uint bufSize, uint* length, byte* source);
-
-    void GetShaderSource(uint shader, uint bufSize, uint* length, global::System.Span<byte> source);
-
-    void GetShaderSource(uint shader, uint bufSize, uint* length, global::System.Span<string> source);
 
     void GetShaderSource(uint shader, uint bufSize, uint* length, out string source);
 
@@ -10316,15 +7342,11 @@ public unsafe partial interface IGLWrapper
 
     uint GetSubroutineIndex(uint program, GLEnum shadertype, byte* name);
 
-    uint GetSubroutineIndex(uint program, GLEnum shadertype, global::System.ReadOnlySpan<byte> name);
-
     uint GetSubroutineIndex(uint program, GLEnum shadertype, string name);
 
     uint GetSubroutineIndex(uint program, ShaderType shadertype, in byte name);
 
     uint GetSubroutineIndex(uint program, ShaderType shadertype, byte* name);
-
-    uint GetSubroutineIndex(uint program, ShaderType shadertype, global::System.ReadOnlySpan<byte> name);
 
     uint GetSubroutineIndex(uint program, ShaderType shadertype, string name);
 
@@ -10332,25 +7354,17 @@ public unsafe partial interface IGLWrapper
 
     int GetSubroutineUniformLocation(uint program, GLEnum shadertype, byte* name);
 
-    int GetSubroutineUniformLocation(uint program, GLEnum shadertype, global::System.ReadOnlySpan<byte> name);
-
     int GetSubroutineUniformLocation(uint program, GLEnum shadertype, string name);
 
     int GetSubroutineUniformLocation(uint program, ShaderType shadertype, in byte name);
 
     int GetSubroutineUniformLocation(uint program, ShaderType shadertype, byte* name);
 
-    int GetSubroutineUniformLocation(uint program, ShaderType shadertype, global::System.ReadOnlySpan<byte> name);
-
     int GetSubroutineUniformLocation(uint program, ShaderType shadertype, string name);
 
     void GetSync(nint sync, GLEnum pname, out uint length, global::System.Span<int> values);
 
     void GetSync(nint sync, GLEnum pname, uint* length, global::System.Span<int> values);
-
-    void GetSync(nint sync, GLEnum pname, uint count, global::System.Span<uint> length, int* values);
-
-    void GetSync(nint sync, GLEnum pname, uint count, global::System.Span<uint> length, global::System.Span<int> values);
 
     int GetSync(nint sync, GLEnum pname, uint count, out uint length);
 
@@ -10364,15 +7378,9 @@ public unsafe partial interface IGLWrapper
 
     void GetSync(nint sync, GLEnum pname, uint count, uint* length, int* values);
 
-    void GetSync(nint sync, GLEnum pname, uint count, uint* length, global::System.Span<int> values);
-
     void GetSync(nint sync, SyncParameterName pname, out uint length, global::System.Span<int> values);
 
     void GetSync(nint sync, SyncParameterName pname, uint* length, global::System.Span<int> values);
-
-    void GetSync(nint sync, SyncParameterName pname, uint count, global::System.Span<uint> length, int* values);
-
-    void GetSync(nint sync, SyncParameterName pname, uint count, global::System.Span<uint> length, global::System.Span<int> values);
 
     int GetSync(nint sync, SyncParameterName pname, uint count, out uint length);
 
@@ -10385,8 +7393,6 @@ public unsafe partial interface IGLWrapper
     void GetSync(nint sync, SyncParameterName pname, uint count, uint* length, out int values);
 
     void GetSync(nint sync, SyncParameterName pname, uint count, uint* length, int* values);
-
-    void GetSync(nint sync, SyncParameterName pname, uint count, uint* length, global::System.Span<int> values);
 
     void GetTexImage(GLEnum target, int level, GLEnum format, GLEnum type, void* pixels);
 
@@ -10410,16 +7416,10 @@ public unsafe partial interface IGLWrapper
     T0 GetTexImage<T0>(GLEnum target, int level, GLEnum format, GLEnum type)
         where T0 : unmanaged;
 
-    void GetTexImage<T0>(GLEnum target, int level, GLEnum format, GLEnum type, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTexImage<T0>(GLEnum target, int level, GLEnum format, PixelType type, out T0 pixels)
         where T0 : unmanaged;
 
     T0 GetTexImage<T0>(GLEnum target, int level, GLEnum format, PixelType type)
-        where T0 : unmanaged;
-
-    void GetTexImage<T0>(GLEnum target, int level, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetTexImage<T0>(GLEnum target, int level, PixelFormat format, GLEnum type, out T0 pixels)
@@ -10428,16 +7428,10 @@ public unsafe partial interface IGLWrapper
     T0 GetTexImage<T0>(GLEnum target, int level, PixelFormat format, GLEnum type)
         where T0 : unmanaged;
 
-    void GetTexImage<T0>(GLEnum target, int level, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTexImage<T0>(GLEnum target, int level, PixelFormat format, PixelType type, out T0 pixels)
         where T0 : unmanaged;
 
     T0 GetTexImage<T0>(GLEnum target, int level, PixelFormat format, PixelType type)
-        where T0 : unmanaged;
-
-    void GetTexImage<T0>(GLEnum target, int level, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetTexImage<T0>(TextureTarget target, int level, GLEnum format, GLEnum type, out T0 pixels)
@@ -10446,16 +7440,10 @@ public unsafe partial interface IGLWrapper
     T0 GetTexImage<T0>(TextureTarget target, int level, GLEnum format, GLEnum type)
         where T0 : unmanaged;
 
-    void GetTexImage<T0>(TextureTarget target, int level, GLEnum format, GLEnum type, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTexImage<T0>(TextureTarget target, int level, GLEnum format, PixelType type, out T0 pixels)
         where T0 : unmanaged;
 
     T0 GetTexImage<T0>(TextureTarget target, int level, GLEnum format, PixelType type)
-        where T0 : unmanaged;
-
-    void GetTexImage<T0>(TextureTarget target, int level, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetTexImage<T0>(TextureTarget target, int level, PixelFormat format, GLEnum type, out T0 pixels)
@@ -10464,16 +7452,10 @@ public unsafe partial interface IGLWrapper
     T0 GetTexImage<T0>(TextureTarget target, int level, PixelFormat format, GLEnum type)
         where T0 : unmanaged;
 
-    void GetTexImage<T0>(TextureTarget target, int level, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTexImage<T0>(TextureTarget target, int level, PixelFormat format, PixelType type, out T0 pixels)
         where T0 : unmanaged;
 
     T0 GetTexImage<T0>(TextureTarget target, int level, PixelFormat format, PixelType type)
-        where T0 : unmanaged;
-
-    void GetTexImage<T0>(TextureTarget target, int level, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     float GetTexLevelParameter(GLEnum target, int level, GLEnum pname);
@@ -10486,10 +7468,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTexLevelParameter(GLEnum target, int level, GLEnum pname, float* @params);
 
-    void GetTexLevelParameter(GLEnum target, int level, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTexLevelParameter(GLEnum target, int level, GLEnum pname, global::System.Span<float> @params);
-
     float GetTexLevelParameter(GLEnum target, int level, GetTextureParameter pname);
 
     void GetTexLevelParameter(GLEnum target, int level, GetTextureParameter pname, out int @params);
@@ -10499,10 +7477,6 @@ public unsafe partial interface IGLWrapper
     void GetTexLevelParameter(GLEnum target, int level, GetTextureParameter pname, out float @params);
 
     void GetTexLevelParameter(GLEnum target, int level, GetTextureParameter pname, float* @params);
-
-    void GetTexLevelParameter(GLEnum target, int level, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTexLevelParameter(GLEnum target, int level, GetTextureParameter pname, global::System.Span<float> @params);
 
     float GetTexLevelParameter(TextureTarget target, int level, GLEnum pname);
 
@@ -10514,10 +7488,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTexLevelParameter(TextureTarget target, int level, GLEnum pname, float* @params);
 
-    void GetTexLevelParameter(TextureTarget target, int level, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTexLevelParameter(TextureTarget target, int level, GLEnum pname, global::System.Span<float> @params);
-
     float GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname);
 
     void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, out int @params);
@@ -10527,10 +7497,6 @@ public unsafe partial interface IGLWrapper
     void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, out float @params);
 
     void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, float* @params);
-
-    void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTexLevelParameter(TextureTarget target, int level, GetTextureParameter pname, global::System.Span<float> @params);
 
     float GetTexParameter(GLEnum target, GLEnum pname);
 
@@ -10542,10 +7508,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTexParameter(GLEnum target, GLEnum pname, float* @params);
 
-    void GetTexParameter(GLEnum target, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTexParameter(GLEnum target, GLEnum pname, global::System.Span<float> @params);
-
     float GetTexParameter(GLEnum target, GetTextureParameter pname);
 
     void GetTexParameter(GLEnum target, GetTextureParameter pname, out int @params);
@@ -10555,10 +7517,6 @@ public unsafe partial interface IGLWrapper
     void GetTexParameter(GLEnum target, GetTextureParameter pname, out float @params);
 
     void GetTexParameter(GLEnum target, GetTextureParameter pname, float* @params);
-
-    void GetTexParameter(GLEnum target, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTexParameter(GLEnum target, GetTextureParameter pname, global::System.Span<float> @params);
 
     float GetTexParameter(TextureTarget target, GLEnum pname);
 
@@ -10570,10 +7528,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTexParameter(TextureTarget target, GLEnum pname, float* @params);
 
-    void GetTexParameter(TextureTarget target, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTexParameter(TextureTarget target, GLEnum pname, global::System.Span<float> @params);
-
     float GetTexParameter(TextureTarget target, GetTextureParameter pname);
 
     void GetTexParameter(TextureTarget target, GetTextureParameter pname, out int @params);
@@ -10584,19 +7538,11 @@ public unsafe partial interface IGLWrapper
 
     void GetTexParameter(TextureTarget target, GetTextureParameter pname, float* @params);
 
-    void GetTexParameter(TextureTarget target, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTexParameter(TextureTarget target, GetTextureParameter pname, global::System.Span<float> @params);
-
     int GetTexParameterI(GLEnum target, GLEnum pname);
 
     void GetTexParameterI(GLEnum target, GLEnum pname, out int @params);
 
     void GetTexParameterI(GLEnum target, GLEnum pname, int* @params);
-
-    void GetTexParameterI(GLEnum target, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTexParameterI(GLEnum target, GLEnum pname, global::System.Span<uint> @params);
 
     void GetTexParameterI(GLEnum target, GLEnum pname, out uint @params);
 
@@ -10608,10 +7554,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTexParameterI(GLEnum target, GetTextureParameter pname, int* @params);
 
-    void GetTexParameterI(GLEnum target, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTexParameterI(GLEnum target, GetTextureParameter pname, global::System.Span<uint> @params);
-
     void GetTexParameterI(GLEnum target, GetTextureParameter pname, out uint @params);
 
     void GetTexParameterI(GLEnum target, GetTextureParameter pname, uint* @params);
@@ -10622,10 +7564,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTexParameterI(TextureTarget target, GLEnum pname, int* @params);
 
-    void GetTexParameterI(TextureTarget target, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTexParameterI(TextureTarget target, GLEnum pname, global::System.Span<uint> @params);
-
     void GetTexParameterI(TextureTarget target, GLEnum pname, out uint @params);
 
     void GetTexParameterI(TextureTarget target, GLEnum pname, uint* @params);
@@ -10635,10 +7573,6 @@ public unsafe partial interface IGLWrapper
     void GetTexParameterI(TextureTarget target, GetTextureParameter pname, out int @params);
 
     void GetTexParameterI(TextureTarget target, GetTextureParameter pname, int* @params);
-
-    void GetTexParameterI(TextureTarget target, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTexParameterI(TextureTarget target, GetTextureParameter pname, global::System.Span<uint> @params);
 
     void GetTexParameterI(TextureTarget target, GetTextureParameter pname, out uint @params);
 
@@ -10661,9 +7595,6 @@ public unsafe partial interface IGLWrapper
     T0 GetTextureImage<T0>(uint texture, int level, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetTextureImage<T0>(uint texture, int level, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTextureImage<T0>(uint texture, int level, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -10671,9 +7602,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetTextureImage<T0>(uint texture, int level, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetTextureImage<T0>(uint texture, int level, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetTextureImage<T0>(uint texture, int level, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
@@ -10685,9 +7613,6 @@ public unsafe partial interface IGLWrapper
     T0 GetTextureImage<T0>(uint texture, int level, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetTextureImage<T0>(uint texture, int level, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTextureImage<T0>(uint texture, int level, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -10695,9 +7620,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetTextureImage<T0>(uint texture, int level, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetTextureImage<T0>(uint texture, int level, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     float GetTextureLevelParameter(uint texture, int level, GLEnum pname);
@@ -10710,10 +7632,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTextureLevelParameter(uint texture, int level, GLEnum pname, float* @params);
 
-    void GetTextureLevelParameter(uint texture, int level, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTextureLevelParameter(uint texture, int level, GLEnum pname, global::System.Span<float> @params);
-
     float GetTextureLevelParameter(uint texture, int level, GetTextureParameter pname);
 
     void GetTextureLevelParameter(uint texture, int level, GetTextureParameter pname, out int @params);
@@ -10723,10 +7641,6 @@ public unsafe partial interface IGLWrapper
     void GetTextureLevelParameter(uint texture, int level, GetTextureParameter pname, out float @params);
 
     void GetTextureLevelParameter(uint texture, int level, GetTextureParameter pname, float* @params);
-
-    void GetTextureLevelParameter(uint texture, int level, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTextureLevelParameter(uint texture, int level, GetTextureParameter pname, global::System.Span<float> @params);
 
     float GetTextureParameter(uint texture, GLEnum pname);
 
@@ -10738,10 +7652,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTextureParameter(uint texture, GLEnum pname, float* @params);
 
-    void GetTextureParameter(uint texture, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTextureParameter(uint texture, GLEnum pname, global::System.Span<float> @params);
-
     float GetTextureParameter(uint texture, GetTextureParameter pname);
 
     void GetTextureParameter(uint texture, GetTextureParameter pname, out int @params);
@@ -10752,19 +7662,11 @@ public unsafe partial interface IGLWrapper
 
     void GetTextureParameter(uint texture, GetTextureParameter pname, float* @params);
 
-    void GetTextureParameter(uint texture, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTextureParameter(uint texture, GetTextureParameter pname, global::System.Span<float> @params);
-
     int GetTextureParameterI(uint texture, GLEnum pname);
 
     void GetTextureParameterI(uint texture, GLEnum pname, out int @params);
 
     void GetTextureParameterI(uint texture, GLEnum pname, int* @params);
-
-    void GetTextureParameterI(uint texture, GLEnum pname, global::System.Span<int> @params);
-
-    void GetTextureParameterI(uint texture, GLEnum pname, global::System.Span<uint> @params);
 
     void GetTextureParameterI(uint texture, GLEnum pname, out uint @params);
 
@@ -10775,10 +7677,6 @@ public unsafe partial interface IGLWrapper
     void GetTextureParameterI(uint texture, GetTextureParameter pname, out int @params);
 
     void GetTextureParameterI(uint texture, GetTextureParameter pname, int* @params);
-
-    void GetTextureParameterI(uint texture, GetTextureParameter pname, global::System.Span<int> @params);
-
-    void GetTextureParameterI(uint texture, GetTextureParameter pname, global::System.Span<uint> @params);
 
     void GetTextureParameterI(uint texture, GetTextureParameter pname, out uint @params);
 
@@ -10801,9 +7699,6 @@ public unsafe partial interface IGLWrapper
     T0 GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -10811,9 +7706,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
@@ -10825,9 +7717,6 @@ public unsafe partial interface IGLWrapper
     T0 GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -10837,16 +7726,11 @@ public unsafe partial interface IGLWrapper
     T0 GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetTextureSubImage<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     int GetTransformFeedback(uint xfb, GLEnum pname);
 
     void GetTransformFeedback(uint xfb, GLEnum pname, out int param);
 
     void GetTransformFeedback(uint xfb, GLEnum pname, int* param);
-
-    void GetTransformFeedback(uint xfb, GLEnum pname, global::System.Span<int> param);
 
     int GetTransformFeedback(uint xfb, GLEnum pname, uint index);
 
@@ -10854,23 +7738,17 @@ public unsafe partial interface IGLWrapper
 
     void GetTransformFeedback(uint xfb, GLEnum pname, uint index, int* param);
 
-    void GetTransformFeedback(uint xfb, GLEnum pname, uint index, global::System.Span<int> param);
-
     int GetTransformFeedback(uint xfb, TransformFeedbackPName pname);
 
     void GetTransformFeedback(uint xfb, TransformFeedbackPName pname, out int param);
 
     void GetTransformFeedback(uint xfb, TransformFeedbackPName pname, int* param);
 
-    void GetTransformFeedback(uint xfb, TransformFeedbackPName pname, global::System.Span<int> param);
-
     int GetTransformFeedback(uint xfb, TransformFeedbackPName pname, uint index);
 
     void GetTransformFeedback(uint xfb, TransformFeedbackPName pname, uint index, out int param);
 
     void GetTransformFeedback(uint xfb, TransformFeedbackPName pname, uint index, int* param);
-
-    void GetTransformFeedback(uint xfb, TransformFeedbackPName pname, uint index, global::System.Span<int> param);
 
     void GetTransformFeedbackVarying(uint program, uint index, out uint length, out uint size, out AttributeType type, global::System.Span<byte> name);
 
@@ -10936,54 +7814,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTransformFeedbackVarying(uint program, uint index, uint* length, uint* size, GLEnum* type, global::System.Span<string> name);
 
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, AttributeType* type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, AttributeType* type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, GLEnum* type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, GLEnum* type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, global::System.Span<uint> size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, AttributeType* type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, AttributeType* type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, GLEnum* type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, GLEnum* type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, global::System.Span<uint> length, uint* size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
     byte GetTransformFeedbackVarying(uint program, uint index, uint bufSize, out uint length, out uint size, out AttributeType type);
 
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, out uint length, out uint size, out AttributeType type, out byte name);
@@ -11048,30 +7878,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, out uint length, uint* size, GLEnum* type, out string name);
 
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, AttributeType* type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, AttributeType* type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, GLEnum* type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, GLEnum* type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, global::System.Span<uint> size, global::System.Span<GLEnum> type, global::System.Span<string> name);
-
     byte GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, out uint size, out AttributeType type);
 
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, out uint size, out AttributeType type, out byte name);
@@ -11118,10 +7924,6 @@ public unsafe partial interface IGLWrapper
 
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, AttributeType* type, byte* name);
 
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, AttributeType* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, AttributeType* type, global::System.Span<string> name);
-
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, AttributeType* type, out string name);
 
     byte GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, out GLEnum type);
@@ -11138,23 +7940,7 @@ public unsafe partial interface IGLWrapper
 
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, GLEnum* type, byte* name);
 
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, GLEnum* type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, GLEnum* type, global::System.Span<string> name);
-
     void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, GLEnum* type, out string name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, global::System.Span<AttributeType> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, global::System.Span<AttributeType> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, global::System.Span<AttributeType> type, global::System.Span<string> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, global::System.Span<GLEnum> type, byte* name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, global::System.Span<GLEnum> type, global::System.Span<byte> name);
-
-    void GetTransformFeedbackVarying(uint program, uint index, uint bufSize, uint* length, uint* size, global::System.Span<GLEnum> type, global::System.Span<string> name);
 
     long GetTransformFeedbacki64(uint xfb, GLEnum pname, uint index);
 
@@ -11162,15 +7948,11 @@ public unsafe partial interface IGLWrapper
 
     void GetTransformFeedbacki64(uint xfb, GLEnum pname, uint index, long* param);
 
-    void GetTransformFeedbacki64(uint xfb, GLEnum pname, uint index, global::System.Span<long> param);
-
     long GetTransformFeedbacki64(uint xfb, TransformFeedbackPName pname, uint index);
 
     void GetTransformFeedbacki64(uint xfb, TransformFeedbackPName pname, uint index, out long param);
 
     void GetTransformFeedbacki64(uint xfb, TransformFeedbackPName pname, uint index, long* param);
-
-    void GetTransformFeedbacki64(uint xfb, TransformFeedbackPName pname, uint index, global::System.Span<long> param);
 
     double GetUniform(uint program, int location);
 
@@ -11186,14 +7968,6 @@ public unsafe partial interface IGLWrapper
 
     void GetUniform(uint program, int location, float* @params);
 
-    void GetUniform(uint program, int location, global::System.Span<double> @params);
-
-    void GetUniform(uint program, int location, global::System.Span<int> @params);
-
-    void GetUniform(uint program, int location, global::System.Span<float> @params);
-
-    void GetUniform(uint program, int location, global::System.Span<uint> @params);
-
     void GetUniform(uint program, int location, out uint @params);
 
     void GetUniform(uint program, int location, uint* @params);
@@ -11202,21 +7976,15 @@ public unsafe partial interface IGLWrapper
 
     uint GetUniformBlockIndex(uint program, byte* uniformBlockName);
 
-    uint GetUniformBlockIndex(uint program, global::System.ReadOnlySpan<byte> uniformBlockName);
-
     uint GetUniformBlockIndex(uint program, string uniformBlockName);
 
     uint GetUniformIndices(uint program, uint uniformCount, in byte* uniformNames);
-
-    void GetUniformIndices(uint program, uint uniformCount, in byte* uniformNames, global::System.Span<uint> uniformIndices);
 
     void GetUniformIndices(uint program, uint uniformCount, in byte* uniformNames, out uint uniformIndices);
 
     void GetUniformIndices(uint program, uint uniformCount, in byte* uniformNames, uint* uniformIndices);
 
     uint GetUniformIndices(uint program, uint uniformCount, byte** uniformNames);
-
-    void GetUniformIndices(uint program, uint uniformCount, byte** uniformNames, global::System.Span<uint> uniformIndices);
 
     void GetUniformIndices(uint program, uint uniformCount, byte** uniformNames, out uint uniformIndices);
 
@@ -11232,21 +8000,15 @@ public unsafe partial interface IGLWrapper
 
     int GetUniformLocation(uint program, byte* name);
 
-    int GetUniformLocation(uint program, global::System.ReadOnlySpan<byte> name);
-
     int GetUniformLocation(uint program, string name);
 
     uint GetUniformSubroutine(GLEnum shadertype, int location);
-
-    void GetUniformSubroutine(GLEnum shadertype, int location, global::System.Span<uint> @params);
 
     void GetUniformSubroutine(GLEnum shadertype, int location, out uint @params);
 
     void GetUniformSubroutine(GLEnum shadertype, int location, uint* @params);
 
     uint GetUniformSubroutine(ShaderType shadertype, int location);
-
-    void GetUniformSubroutine(ShaderType shadertype, int location, global::System.Span<uint> @params);
 
     void GetUniformSubroutine(ShaderType shadertype, int location, out uint @params);
 
@@ -11258,15 +8020,11 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexArray(uint vaobj, GLEnum pname, int* param);
 
-    void GetVertexArray(uint vaobj, GLEnum pname, global::System.Span<int> param);
-
     int GetVertexArray(uint vaobj, VertexArrayPName pname);
 
     void GetVertexArray(uint vaobj, VertexArrayPName pname, out int param);
 
     void GetVertexArray(uint vaobj, VertexArrayPName pname, int* param);
-
-    void GetVertexArray(uint vaobj, VertexArrayPName pname, global::System.Span<int> param);
 
     int GetVertexArrayIndexed(uint vaobj, uint index, GLEnum pname);
 
@@ -11274,15 +8032,11 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexArrayIndexed(uint vaobj, uint index, GLEnum pname, int* param);
 
-    void GetVertexArrayIndexed(uint vaobj, uint index, GLEnum pname, global::System.Span<int> param);
-
     int GetVertexArrayIndexed(uint vaobj, uint index, VertexArrayPName pname);
 
     void GetVertexArrayIndexed(uint vaobj, uint index, VertexArrayPName pname, out int param);
 
     void GetVertexArrayIndexed(uint vaobj, uint index, VertexArrayPName pname, int* param);
-
-    void GetVertexArrayIndexed(uint vaobj, uint index, VertexArrayPName pname, global::System.Span<int> param);
 
     long GetVertexArrayIndexed64(uint vaobj, uint index, GLEnum pname);
 
@@ -11290,15 +8044,11 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexArrayIndexed64(uint vaobj, uint index, GLEnum pname, long* param);
 
-    void GetVertexArrayIndexed64(uint vaobj, uint index, GLEnum pname, global::System.Span<long> param);
-
     long GetVertexArrayIndexed64(uint vaobj, uint index, VertexArrayPName pname);
 
     void GetVertexArrayIndexed64(uint vaobj, uint index, VertexArrayPName pname, out long param);
 
     void GetVertexArrayIndexed64(uint vaobj, uint index, VertexArrayPName pname, long* param);
-
-    void GetVertexArrayIndexed64(uint vaobj, uint index, VertexArrayPName pname, global::System.Span<long> param);
 
     double GetVertexAttrib(uint index, GLEnum pname);
 
@@ -11314,12 +8064,6 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexAttrib(uint index, GLEnum pname, float* @params);
 
-    void GetVertexAttrib(uint index, GLEnum pname, global::System.Span<double> @params);
-
-    void GetVertexAttrib(uint index, GLEnum pname, global::System.Span<int> @params);
-
-    void GetVertexAttrib(uint index, GLEnum pname, global::System.Span<float> @params);
-
     double GetVertexAttrib(uint index, VertexAttribPropertyARB pname);
 
     void GetVertexAttrib(uint index, VertexAttribPropertyARB pname, out double @params);
@@ -11334,21 +8078,11 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexAttrib(uint index, VertexAttribPropertyARB pname, float* @params);
 
-    void GetVertexAttrib(uint index, VertexAttribPropertyARB pname, global::System.Span<double> @params);
-
-    void GetVertexAttrib(uint index, VertexAttribPropertyARB pname, global::System.Span<int> @params);
-
-    void GetVertexAttrib(uint index, VertexAttribPropertyARB pname, global::System.Span<float> @params);
-
     int GetVertexAttribI(uint index, GLEnum pname);
 
     void GetVertexAttribI(uint index, GLEnum pname, out int @params);
 
     void GetVertexAttribI(uint index, GLEnum pname, int* @params);
-
-    void GetVertexAttribI(uint index, GLEnum pname, global::System.Span<int> @params);
-
-    void GetVertexAttribI(uint index, GLEnum pname, global::System.Span<uint> @params);
 
     void GetVertexAttribI(uint index, GLEnum pname, out uint @params);
 
@@ -11360,10 +8094,6 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexAttribI(uint index, VertexAttribEnum pname, int* @params);
 
-    void GetVertexAttribI(uint index, VertexAttribEnum pname, global::System.Span<int> @params);
-
-    void GetVertexAttribI(uint index, VertexAttribEnum pname, global::System.Span<uint> @params);
-
     void GetVertexAttribI(uint index, VertexAttribEnum pname, out uint @params);
 
     void GetVertexAttribI(uint index, VertexAttribEnum pname, uint* @params);
@@ -11374,15 +8104,11 @@ public unsafe partial interface IGLWrapper
 
     void GetVertexAttribL(uint index, GLEnum pname, double* @params);
 
-    void GetVertexAttribL(uint index, GLEnum pname, global::System.Span<double> @params);
-
     double GetVertexAttribL(uint index, VertexAttribEnum pname);
 
     void GetVertexAttribL(uint index, VertexAttribEnum pname, out double @params);
 
     void GetVertexAttribL(uint index, VertexAttribEnum pname, double* @params);
-
-    void GetVertexAttribL(uint index, VertexAttribEnum pname, global::System.Span<double> @params);
 
     void* GetVertexAttribPointer(uint index, GLEnum pname);
 
@@ -11421,9 +8147,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnColorTable<T0>(ColorTableTarget target, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnColorTable<T0>(ColorTableTarget target, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> table)
-        where T0 : unmanaged;
-
     void GetnColorTable<T0>(ColorTableTarget target, GLEnum format, PixelType type, global::System.Span<T0> table)
         where T0 : unmanaged;
 
@@ -11431,9 +8154,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnColorTable<T0>(ColorTableTarget target, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnColorTable<T0>(ColorTableTarget target, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> table)
         where T0 : unmanaged;
 
     void GetnColorTable<T0>(ColorTableTarget target, PixelFormat format, GLEnum type, global::System.Span<T0> table)
@@ -11445,9 +8165,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnColorTable<T0>(ColorTableTarget target, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnColorTable<T0>(ColorTableTarget target, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> table)
-        where T0 : unmanaged;
-
     void GetnColorTable<T0>(ColorTableTarget target, PixelFormat format, PixelType type, global::System.Span<T0> table)
         where T0 : unmanaged;
 
@@ -11455,9 +8172,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnColorTable<T0>(ColorTableTarget target, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnColorTable<T0>(ColorTableTarget target, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> table)
         where T0 : unmanaged;
 
     void GetnColorTable<T0>(GLEnum target, GLEnum format, GLEnum type, global::System.Span<T0> table)
@@ -11469,9 +8183,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnColorTable<T0>(GLEnum target, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnColorTable<T0>(GLEnum target, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> table)
-        where T0 : unmanaged;
-
     void GetnColorTable<T0>(GLEnum target, GLEnum format, PixelType type, global::System.Span<T0> table)
         where T0 : unmanaged;
 
@@ -11479,9 +8190,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnColorTable<T0>(GLEnum target, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnColorTable<T0>(GLEnum target, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> table)
         where T0 : unmanaged;
 
     void GetnColorTable<T0>(GLEnum target, PixelFormat format, GLEnum type, global::System.Span<T0> table)
@@ -11493,9 +8201,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnColorTable<T0>(GLEnum target, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnColorTable<T0>(GLEnum target, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> table)
-        where T0 : unmanaged;
-
     void GetnColorTable<T0>(GLEnum target, PixelFormat format, PixelType type, global::System.Span<T0> table)
         where T0 : unmanaged;
 
@@ -11503,9 +8208,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnColorTable<T0>(GLEnum target, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnColorTable<T0>(GLEnum target, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> table)
         where T0 : unmanaged;
 
     void GetnCompressedTexImage(GLEnum target, int lod, uint bufSize, void* pixels);
@@ -11521,9 +8223,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnCompressedTexImage<T0>(GLEnum target, int lod, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnCompressedTexImage<T0>(GLEnum target, int lod, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetnCompressedTexImage<T0>(TextureTarget target, int lod, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -11531,9 +8230,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnCompressedTexImage<T0>(TextureTarget target, int lod, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnCompressedTexImage<T0>(TextureTarget target, int lod, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetnConvolutionFilter(ConvolutionTarget target, GLEnum format, GLEnum type, uint bufSize, void* image);
@@ -11561,9 +8257,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnConvolutionFilter<T0>(ConvolutionTarget target, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnConvolutionFilter<T0>(ConvolutionTarget target, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> image)
-        where T0 : unmanaged;
-
     void GetnConvolutionFilter<T0>(ConvolutionTarget target, GLEnum format, PixelType type, global::System.Span<T0> image)
         where T0 : unmanaged;
 
@@ -11571,9 +8264,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnConvolutionFilter<T0>(ConvolutionTarget target, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnConvolutionFilter<T0>(ConvolutionTarget target, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> image)
         where T0 : unmanaged;
 
     void GetnConvolutionFilter<T0>(ConvolutionTarget target, PixelFormat format, GLEnum type, global::System.Span<T0> image)
@@ -11585,9 +8275,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnConvolutionFilter<T0>(ConvolutionTarget target, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnConvolutionFilter<T0>(ConvolutionTarget target, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> image)
-        where T0 : unmanaged;
-
     void GetnConvolutionFilter<T0>(ConvolutionTarget target, PixelFormat format, PixelType type, global::System.Span<T0> image)
         where T0 : unmanaged;
 
@@ -11595,9 +8282,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnConvolutionFilter<T0>(ConvolutionTarget target, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnConvolutionFilter<T0>(ConvolutionTarget target, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> image)
         where T0 : unmanaged;
 
     void GetnConvolutionFilter<T0>(GLEnum target, GLEnum format, GLEnum type, global::System.Span<T0> image)
@@ -11609,9 +8293,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnConvolutionFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnConvolutionFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> image)
-        where T0 : unmanaged;
-
     void GetnConvolutionFilter<T0>(GLEnum target, GLEnum format, PixelType type, global::System.Span<T0> image)
         where T0 : unmanaged;
 
@@ -11619,9 +8300,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnConvolutionFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnConvolutionFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> image)
         where T0 : unmanaged;
 
     void GetnConvolutionFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, global::System.Span<T0> image)
@@ -11633,9 +8311,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnConvolutionFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnConvolutionFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> image)
-        where T0 : unmanaged;
-
     void GetnConvolutionFilter<T0>(GLEnum target, PixelFormat format, PixelType type, global::System.Span<T0> image)
         where T0 : unmanaged;
 
@@ -11643,9 +8318,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnConvolutionFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnConvolutionFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> image)
         where T0 : unmanaged;
 
     void GetnHistogram(GLEnum target, bool reset, GLEnum format, GLEnum type, uint bufSize, void* values);
@@ -11673,9 +8345,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnHistogram<T0>(GLEnum target, bool reset, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnHistogram<T0>(GLEnum target, bool reset, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnHistogram<T0>(GLEnum target, bool reset, GLEnum format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11683,9 +8352,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnHistogram<T0>(GLEnum target, bool reset, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnHistogram<T0>(GLEnum target, bool reset, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     void GetnHistogram<T0>(GLEnum target, bool reset, PixelFormat format, GLEnum type, global::System.Span<T0> values)
@@ -11697,9 +8363,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnHistogram<T0>(GLEnum target, bool reset, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnHistogram<T0>(GLEnum target, bool reset, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnHistogram<T0>(GLEnum target, bool reset, PixelFormat format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11707,9 +8370,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnHistogram<T0>(GLEnum target, bool reset, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnHistogram<T0>(GLEnum target, bool reset, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     void GetnHistogram<T0>(HistogramTarget target, bool reset, GLEnum format, GLEnum type, global::System.Span<T0> values)
@@ -11721,9 +8381,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnHistogram<T0>(HistogramTarget target, bool reset, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnHistogram<T0>(HistogramTarget target, bool reset, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnHistogram<T0>(HistogramTarget target, bool reset, GLEnum format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11731,9 +8388,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnHistogram<T0>(HistogramTarget target, bool reset, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnHistogram<T0>(HistogramTarget target, bool reset, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     void GetnHistogram<T0>(HistogramTarget target, bool reset, PixelFormat format, GLEnum type, global::System.Span<T0> values)
@@ -11745,9 +8399,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnHistogram<T0>(HistogramTarget target, bool reset, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnHistogram<T0>(HistogramTarget target, bool reset, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnHistogram<T0>(HistogramTarget target, bool reset, PixelFormat format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11755,9 +8406,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnHistogram<T0>(HistogramTarget target, bool reset, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnHistogram<T0>(HistogramTarget target, bool reset, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     double GetnMap(GLEnum target, GLEnum query, uint bufSize);
@@ -11774,12 +8422,6 @@ public unsafe partial interface IGLWrapper
 
     void GetnMap(GLEnum target, GLEnum query, uint bufSize, float* v);
 
-    void GetnMap(GLEnum target, GLEnum query, uint bufSize, global::System.Span<double> v);
-
-    void GetnMap(GLEnum target, GLEnum query, uint bufSize, global::System.Span<int> v);
-
-    void GetnMap(GLEnum target, GLEnum query, uint bufSize, global::System.Span<float> v);
-
     double GetnMap(GLEnum target, MapQuery query, uint bufSize);
 
     void GetnMap(GLEnum target, MapQuery query, uint bufSize, out double v);
@@ -11793,12 +8435,6 @@ public unsafe partial interface IGLWrapper
     void GetnMap(GLEnum target, MapQuery query, uint bufSize, out float v);
 
     void GetnMap(GLEnum target, MapQuery query, uint bufSize, float* v);
-
-    void GetnMap(GLEnum target, MapQuery query, uint bufSize, global::System.Span<double> v);
-
-    void GetnMap(GLEnum target, MapQuery query, uint bufSize, global::System.Span<int> v);
-
-    void GetnMap(GLEnum target, MapQuery query, uint bufSize, global::System.Span<float> v);
 
     double GetnMap(MapTarget target, GLEnum query, uint bufSize);
 
@@ -11814,12 +8450,6 @@ public unsafe partial interface IGLWrapper
 
     void GetnMap(MapTarget target, GLEnum query, uint bufSize, float* v);
 
-    void GetnMap(MapTarget target, GLEnum query, uint bufSize, global::System.Span<double> v);
-
-    void GetnMap(MapTarget target, GLEnum query, uint bufSize, global::System.Span<int> v);
-
-    void GetnMap(MapTarget target, GLEnum query, uint bufSize, global::System.Span<float> v);
-
     double GetnMap(MapTarget target, MapQuery query, uint bufSize);
 
     void GetnMap(MapTarget target, MapQuery query, uint bufSize, out double v);
@@ -11833,12 +8463,6 @@ public unsafe partial interface IGLWrapper
     void GetnMap(MapTarget target, MapQuery query, uint bufSize, out float v);
 
     void GetnMap(MapTarget target, MapQuery query, uint bufSize, float* v);
-
-    void GetnMap(MapTarget target, MapQuery query, uint bufSize, global::System.Span<double> v);
-
-    void GetnMap(MapTarget target, MapQuery query, uint bufSize, global::System.Span<int> v);
-
-    void GetnMap(MapTarget target, MapQuery query, uint bufSize, global::System.Span<float> v);
 
     void GetnMinmax(GLEnum target, bool reset, GLEnum format, GLEnum type, uint bufSize, void* values);
 
@@ -11865,9 +8489,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnMinmax<T0>(GLEnum target, bool reset, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnMinmax<T0>(GLEnum target, bool reset, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnMinmax<T0>(GLEnum target, bool reset, GLEnum format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11875,9 +8496,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnMinmax<T0>(GLEnum target, bool reset, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnMinmax<T0>(GLEnum target, bool reset, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     void GetnMinmax<T0>(GLEnum target, bool reset, PixelFormat format, GLEnum type, global::System.Span<T0> values)
@@ -11889,9 +8507,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnMinmax<T0>(GLEnum target, bool reset, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnMinmax<T0>(GLEnum target, bool reset, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnMinmax<T0>(GLEnum target, bool reset, PixelFormat format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11899,9 +8514,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnMinmax<T0>(GLEnum target, bool reset, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnMinmax<T0>(GLEnum target, bool reset, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     void GetnMinmax<T0>(MinmaxTarget target, bool reset, GLEnum format, GLEnum type, global::System.Span<T0> values)
@@ -11913,9 +8525,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnMinmax<T0>(MinmaxTarget target, bool reset, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnMinmax<T0>(MinmaxTarget target, bool reset, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnMinmax<T0>(MinmaxTarget target, bool reset, GLEnum format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11923,9 +8532,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnMinmax<T0>(MinmaxTarget target, bool reset, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnMinmax<T0>(MinmaxTarget target, bool reset, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> values)
         where T0 : unmanaged;
 
     void GetnMinmax<T0>(MinmaxTarget target, bool reset, PixelFormat format, GLEnum type, global::System.Span<T0> values)
@@ -11937,9 +8543,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnMinmax<T0>(MinmaxTarget target, bool reset, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnMinmax<T0>(MinmaxTarget target, bool reset, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     void GetnMinmax<T0>(MinmaxTarget target, bool reset, PixelFormat format, PixelType type, global::System.Span<T0> values)
         where T0 : unmanaged;
 
@@ -11949,20 +8552,11 @@ public unsafe partial interface IGLWrapper
     T0 GetnMinmax<T0>(MinmaxTarget target, bool reset, PixelFormat format, PixelType type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnMinmax<T0>(MinmaxTarget target, bool reset, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> values)
-        where T0 : unmanaged;
-
     float GetnPixelMap(GLEnum map, uint bufSize);
 
     void GetnPixelMap(GLEnum map, uint bufSize, out float values);
 
     void GetnPixelMap(GLEnum map, uint bufSize, float* values);
-
-    void GetnPixelMap(GLEnum map, uint bufSize, global::System.Span<float> values);
-
-    void GetnPixelMap(GLEnum map, uint bufSize, global::System.Span<ushort> values);
-
-    void GetnPixelMap(GLEnum map, uint bufSize, global::System.Span<uint> values);
 
     void GetnPixelMap(GLEnum map, uint bufSize, out ushort values);
 
@@ -11977,12 +8571,6 @@ public unsafe partial interface IGLWrapper
     void GetnPixelMap(PixelMap map, uint bufSize, out float values);
 
     void GetnPixelMap(PixelMap map, uint bufSize, float* values);
-
-    void GetnPixelMap(PixelMap map, uint bufSize, global::System.Span<float> values);
-
-    void GetnPixelMap(PixelMap map, uint bufSize, global::System.Span<ushort> values);
-
-    void GetnPixelMap(PixelMap map, uint bufSize, global::System.Span<uint> values);
 
     void GetnPixelMap(PixelMap map, uint bufSize, out ushort values);
 
@@ -12003,10 +8591,6 @@ public unsafe partial interface IGLWrapper
     void GetnPolygonStipple(uint bufSize, out byte pattern);
 
     void GetnPolygonStipple(uint bufSize, byte* pattern);
-
-    void GetnPolygonStipple(uint bufSize, global::System.Span<byte> pattern);
-
-    void GetnPolygonStipple(uint bufSize, global::System.Span<string> pattern);
 
     void GetnPolygonStipple(uint bufSize, out string pattern);
 
@@ -12032,16 +8616,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
@@ -12050,16 +8628,10 @@ public unsafe partial interface IGLWrapper
     T0 GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
@@ -12068,16 +8640,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
         where T0 : unmanaged;
 
     T0 GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
@@ -12086,16 +8652,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
@@ -12104,16 +8664,10 @@ public unsafe partial interface IGLWrapper
     T0 GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
@@ -12122,16 +8676,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
         where T0 : unmanaged;
 
     T0 GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
@@ -12140,16 +8688,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
@@ -12158,16 +8700,10 @@ public unsafe partial interface IGLWrapper
     T0 GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
@@ -12176,16 +8712,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
         where T0 : unmanaged;
 
     T0 GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
@@ -12194,16 +8724,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
@@ -12212,16 +8736,10 @@ public unsafe partial interface IGLWrapper
     T0 GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, out T0 row, uint columnBufSize, void* column, void* span)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, void* span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, void* span)
@@ -12230,16 +8748,10 @@ public unsafe partial interface IGLWrapper
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column, void* span)
         where T0 : unmanaged;
 
-    void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, void* span)
-        where T0 : unmanaged;
-
     void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, out T0 span)
         where T0 : unmanaged;
 
     T0 GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column)
-        where T0 : unmanaged;
-
-    void GetnSeparableFilter<T0>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, void* column, global::System.Span<T0> span)
         where T0 : unmanaged;
 
     void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, GLEnum type, global::System.Span<T0> row, global::System.Span<T1> column, void* span)
@@ -12266,14 +8778,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12287,10 +8791,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12318,14 +8818,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12339,10 +8831,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12370,14 +8858,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12391,10 +8871,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12422,14 +8898,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12443,10 +8911,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12474,14 +8938,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12495,10 +8951,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12526,14 +8978,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12547,10 +8991,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12578,14 +9018,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12599,10 +9031,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12630,14 +9058,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged
         where T1 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, void* span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, void* column, global::System.Span<T1> span)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
     void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, global::System.Span<T0> column, out T1 span)
         where T0 : unmanaged
         where T1 : unmanaged;
@@ -12651,10 +9071,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged;
 
     T1 GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, out T0 column)
-        where T0 : unmanaged
-        where T1 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, void* row, uint columnBufSize, global::System.Span<T0> column, global::System.Span<T1> span)
         where T0 : unmanaged
         where T1 : unmanaged;
 
@@ -12674,11 +9090,6 @@ public unsafe partial interface IGLWrapper
         where T2 : unmanaged;
 
     T2 GetnSeparableFilter<T0, T1, T2>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, out T1 column)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1, T2>(GLEnum target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
         where T0 : unmanaged
         where T1 : unmanaged
         where T2 : unmanaged;
@@ -12703,11 +9114,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged
         where T2 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1, T2>(GLEnum target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
     void GetnSeparableFilter<T0, T1, T2>(GLEnum target, PixelFormat format, GLEnum type, global::System.Span<T0> row, global::System.Span<T1> column, out T2 span)
         where T0 : unmanaged
         where T1 : unmanaged
@@ -12724,11 +9130,6 @@ public unsafe partial interface IGLWrapper
         where T2 : unmanaged;
 
     T2 GetnSeparableFilter<T0, T1, T2>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, out T1 column)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1, T2>(GLEnum target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
         where T0 : unmanaged
         where T1 : unmanaged
         where T2 : unmanaged;
@@ -12753,11 +9154,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged
         where T2 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1, T2>(GLEnum target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
     void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, GLEnum format, GLEnum type, global::System.Span<T0> row, global::System.Span<T1> column, out T2 span)
         where T0 : unmanaged
         where T1 : unmanaged
@@ -12774,11 +9170,6 @@ public unsafe partial interface IGLWrapper
         where T2 : unmanaged;
 
     T2 GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, out T0 row, uint columnBufSize, out T1 column)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, GLEnum format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
         where T0 : unmanaged
         where T1 : unmanaged
         where T2 : unmanaged;
@@ -12803,11 +9194,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged
         where T2 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, GLEnum format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
     void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, PixelFormat format, GLEnum type, global::System.Span<T0> row, global::System.Span<T1> column, out T2 span)
         where T0 : unmanaged
         where T1 : unmanaged
@@ -12828,11 +9214,6 @@ public unsafe partial interface IGLWrapper
         where T1 : unmanaged
         where T2 : unmanaged;
 
-    void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, PixelFormat format, GLEnum type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
     void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, PixelFormat format, PixelType type, global::System.Span<T0> row, global::System.Span<T1> column, out T2 span)
         where T0 : unmanaged
         where T1 : unmanaged
@@ -12849,11 +9230,6 @@ public unsafe partial interface IGLWrapper
         where T2 : unmanaged;
 
     T2 GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, out T0 row, uint columnBufSize, out T1 column)
-        where T0 : unmanaged
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
-    void GetnSeparableFilter<T0, T1, T2>(SeparableTarget target, PixelFormat format, PixelType type, uint rowBufSize, global::System.Span<T0> row, uint columnBufSize, global::System.Span<T1> column, global::System.Span<T2> span)
         where T0 : unmanaged
         where T1 : unmanaged
         where T2 : unmanaged;
@@ -12883,9 +9259,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnTexImage<T0>(GLEnum target, int level, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnTexImage<T0>(GLEnum target, int level, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetnTexImage<T0>(GLEnum target, int level, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -12893,9 +9266,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnTexImage<T0>(GLEnum target, int level, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnTexImage<T0>(GLEnum target, int level, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetnTexImage<T0>(GLEnum target, int level, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
@@ -12907,9 +9277,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnTexImage<T0>(GLEnum target, int level, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnTexImage<T0>(GLEnum target, int level, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetnTexImage<T0>(GLEnum target, int level, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -12917,9 +9284,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnTexImage<T0>(GLEnum target, int level, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnTexImage<T0>(GLEnum target, int level, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetnTexImage<T0>(TextureTarget target, int level, GLEnum format, GLEnum type, global::System.Span<T0> pixels)
@@ -12931,9 +9295,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnTexImage<T0>(TextureTarget target, int level, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnTexImage<T0>(TextureTarget target, int level, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetnTexImage<T0>(TextureTarget target, int level, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -12941,9 +9302,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnTexImage<T0>(TextureTarget target, int level, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnTexImage<T0>(TextureTarget target, int level, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void GetnTexImage<T0>(TextureTarget target, int level, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
@@ -12955,9 +9313,6 @@ public unsafe partial interface IGLWrapper
     T0 GetnTexImage<T0>(TextureTarget target, int level, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void GetnTexImage<T0>(TextureTarget target, int level, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void GetnTexImage<T0>(TextureTarget target, int level, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
@@ -12965,9 +9320,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 GetnTexImage<T0>(TextureTarget target, int level, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void GetnTexImage<T0>(TextureTarget target, int level, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     double GetnUniform(uint program, int location);
@@ -12993,14 +9345,6 @@ public unsafe partial interface IGLWrapper
     void GetnUniform(uint program, int location, uint bufSize, out float @params);
 
     void GetnUniform(uint program, int location, uint bufSize, float* @params);
-
-    void GetnUniform(uint program, int location, uint bufSize, global::System.Span<double> @params);
-
-    void GetnUniform(uint program, int location, uint bufSize, global::System.Span<int> @params);
-
-    void GetnUniform(uint program, int location, uint bufSize, global::System.Span<float> @params);
-
-    void GetnUniform(uint program, int location, uint bufSize, global::System.Span<uint> @params);
 
     void GetnUniform(uint program, int location, uint bufSize, out uint @params);
 
@@ -13030,10 +9374,6 @@ public unsafe partial interface IGLWrapper
 
     void InvalidateFramebuffer(FramebufferTarget target, uint numAttachments, InvalidateFramebufferAttachment* attachments);
 
-    void InvalidateFramebuffer(FramebufferTarget target, uint numAttachments, global::System.ReadOnlySpan<GLEnum> attachments);
-
-    void InvalidateFramebuffer(FramebufferTarget target, uint numAttachments, global::System.ReadOnlySpan<InvalidateFramebufferAttachment> attachments);
-
     void InvalidateFramebuffer(GLEnum target, global::System.ReadOnlySpan<GLEnum> attachments);
 
     void InvalidateFramebuffer(GLEnum target, global::System.ReadOnlySpan<InvalidateFramebufferAttachment> attachments);
@@ -13045,10 +9385,6 @@ public unsafe partial interface IGLWrapper
     void InvalidateFramebuffer(GLEnum target, uint numAttachments, in InvalidateFramebufferAttachment attachments);
 
     void InvalidateFramebuffer(GLEnum target, uint numAttachments, InvalidateFramebufferAttachment* attachments);
-
-    void InvalidateFramebuffer(GLEnum target, uint numAttachments, global::System.ReadOnlySpan<GLEnum> attachments);
-
-    void InvalidateFramebuffer(GLEnum target, uint numAttachments, global::System.ReadOnlySpan<InvalidateFramebufferAttachment> attachments);
 
     void InvalidateNamedFramebufferData(uint framebuffer, global::System.ReadOnlySpan<FramebufferAttachment> attachments);
 
@@ -13062,10 +9398,6 @@ public unsafe partial interface IGLWrapper
 
     void InvalidateNamedFramebufferData(uint framebuffer, uint numAttachments, GLEnum* attachments);
 
-    void InvalidateNamedFramebufferData(uint framebuffer, uint numAttachments, global::System.ReadOnlySpan<FramebufferAttachment> attachments);
-
-    void InvalidateNamedFramebufferData(uint framebuffer, uint numAttachments, global::System.ReadOnlySpan<GLEnum> attachments);
-
     void InvalidateNamedFramebufferSubData(uint framebuffer, global::System.ReadOnlySpan<FramebufferAttachment> attachments, int x, int y, uint width, uint height);
 
     void InvalidateNamedFramebufferSubData(uint framebuffer, global::System.ReadOnlySpan<GLEnum> attachments, int x, int y, uint width, uint height);
@@ -13077,10 +9409,6 @@ public unsafe partial interface IGLWrapper
     void InvalidateNamedFramebufferSubData(uint framebuffer, uint numAttachments, in GLEnum attachments, int x, int y, uint width, uint height);
 
     void InvalidateNamedFramebufferSubData(uint framebuffer, uint numAttachments, GLEnum* attachments, int x, int y, uint width, uint height);
-
-    void InvalidateNamedFramebufferSubData(uint framebuffer, uint numAttachments, global::System.ReadOnlySpan<FramebufferAttachment> attachments, int x, int y, uint width, uint height);
-
-    void InvalidateNamedFramebufferSubData(uint framebuffer, uint numAttachments, global::System.ReadOnlySpan<GLEnum> attachments, int x, int y, uint width, uint height);
 
     void InvalidateSubFramebuffer(FramebufferTarget target, global::System.ReadOnlySpan<GLEnum> attachments, int x, int y, uint width, uint height);
 
@@ -13094,10 +9422,6 @@ public unsafe partial interface IGLWrapper
 
     void InvalidateSubFramebuffer(FramebufferTarget target, uint numAttachments, InvalidateFramebufferAttachment* attachments, int x, int y, uint width, uint height);
 
-    void InvalidateSubFramebuffer(FramebufferTarget target, uint numAttachments, global::System.ReadOnlySpan<GLEnum> attachments, int x, int y, uint width, uint height);
-
-    void InvalidateSubFramebuffer(FramebufferTarget target, uint numAttachments, global::System.ReadOnlySpan<InvalidateFramebufferAttachment> attachments, int x, int y, uint width, uint height);
-
     void InvalidateSubFramebuffer(GLEnum target, global::System.ReadOnlySpan<GLEnum> attachments, int x, int y, uint width, uint height);
 
     void InvalidateSubFramebuffer(GLEnum target, global::System.ReadOnlySpan<InvalidateFramebufferAttachment> attachments, int x, int y, uint width, uint height);
@@ -13109,10 +9433,6 @@ public unsafe partial interface IGLWrapper
     void InvalidateSubFramebuffer(GLEnum target, uint numAttachments, in InvalidateFramebufferAttachment attachments, int x, int y, uint width, uint height);
 
     void InvalidateSubFramebuffer(GLEnum target, uint numAttachments, InvalidateFramebufferAttachment* attachments, int x, int y, uint width, uint height);
-
-    void InvalidateSubFramebuffer(GLEnum target, uint numAttachments, global::System.ReadOnlySpan<GLEnum> attachments, int x, int y, uint width, uint height);
-
-    void InvalidateSubFramebuffer(GLEnum target, uint numAttachments, global::System.ReadOnlySpan<InvalidateFramebufferAttachment> attachments, int x, int y, uint width, uint height);
 
     void InvalidateTexImage(uint texture, int level);
 
@@ -13200,19 +9520,13 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawArrays(GLEnum mode, int* first, global::System.ReadOnlySpan<uint> count);
 
-    void MultiDrawArrays(GLEnum mode, int* first, global::System.ReadOnlySpan<uint> count, uint drawcount);
-
     void MultiDrawArrays(GLEnum mode, int* first, in uint count, uint drawcount);
 
     void MultiDrawArrays(GLEnum mode, int* first, uint* count, uint drawcount);
 
     void MultiDrawArrays(GLEnum mode, global::System.ReadOnlySpan<int> first, global::System.ReadOnlySpan<uint> count);
 
-    void MultiDrawArrays(GLEnum mode, global::System.ReadOnlySpan<int> first, global::System.ReadOnlySpan<uint> count, uint drawcount);
-
     void MultiDrawArrays(GLEnum mode, global::System.ReadOnlySpan<int> first, uint* count);
-
-    void MultiDrawArrays(GLEnum mode, global::System.ReadOnlySpan<int> first, uint* count, uint drawcount);
 
     void MultiDrawArrays(PrimitiveType mode, in int first, in uint count, uint drawcount);
 
@@ -13220,19 +9534,13 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawArrays(PrimitiveType mode, int* first, global::System.ReadOnlySpan<uint> count);
 
-    void MultiDrawArrays(PrimitiveType mode, int* first, global::System.ReadOnlySpan<uint> count, uint drawcount);
-
     void MultiDrawArrays(PrimitiveType mode, int* first, in uint count, uint drawcount);
 
     void MultiDrawArrays(PrimitiveType mode, int* first, uint* count, uint drawcount);
 
     void MultiDrawArrays(PrimitiveType mode, global::System.ReadOnlySpan<int> first, global::System.ReadOnlySpan<uint> count);
 
-    void MultiDrawArrays(PrimitiveType mode, global::System.ReadOnlySpan<int> first, global::System.ReadOnlySpan<uint> count, uint drawcount);
-
     void MultiDrawArrays(PrimitiveType mode, global::System.ReadOnlySpan<int> first, uint* count);
-
-    void MultiDrawArrays(PrimitiveType mode, global::System.ReadOnlySpan<int> first, uint* count, uint drawcount);
 
     void MultiDrawArraysIndirect(GLEnum mode, void* indirect, uint drawcount, uint stride);
 
@@ -13241,13 +9549,7 @@ public unsafe partial interface IGLWrapper
     void MultiDrawArraysIndirect<T0>(GLEnum mode, in T0 indirect, uint drawcount, uint stride)
         where T0 : unmanaged;
 
-    void MultiDrawArraysIndirect<T0>(GLEnum mode, global::System.ReadOnlySpan<T0> indirect, uint drawcount, uint stride)
-        where T0 : unmanaged;
-
     void MultiDrawArraysIndirect<T0>(PrimitiveType mode, in T0 indirect, uint drawcount, uint stride)
-        where T0 : unmanaged;
-
-    void MultiDrawArraysIndirect<T0>(PrimitiveType mode, global::System.ReadOnlySpan<T0> indirect, uint drawcount, uint stride)
         where T0 : unmanaged;
 
     void MultiDrawArraysIndirectCount(GLEnum mode, void* indirect, nint drawcount, uint maxdrawcount, uint stride);
@@ -13257,30 +9559,16 @@ public unsafe partial interface IGLWrapper
     void MultiDrawArraysIndirectCount<T0>(GLEnum mode, in T0 indirect, nint drawcount, uint maxdrawcount, uint stride)
         where T0 : unmanaged;
 
-    void MultiDrawArraysIndirectCount<T0>(GLEnum mode, global::System.ReadOnlySpan<T0> indirect, nint drawcount, uint maxdrawcount, uint stride)
-        where T0 : unmanaged;
-
     void MultiDrawArraysIndirectCount<T0>(PrimitiveType mode, in T0 indirect, nint drawcount, uint maxdrawcount, uint stride)
-        where T0 : unmanaged;
-
-    void MultiDrawArraysIndirectCount<T0>(PrimitiveType mode, global::System.ReadOnlySpan<T0> indirect, nint drawcount, uint maxdrawcount, uint stride)
         where T0 : unmanaged;
 
     void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices);
 
-    void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, uint drawcount);
-
     void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices);
-
-    void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, uint drawcount);
 
     void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices);
 
-    void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, uint drawcount);
-
     void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices);
-
-    void MultiDrawElements(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, uint drawcount);
 
     void MultiDrawElements(GLEnum mode, in uint count, DrawElementsType type, in void* indices, uint drawcount);
 
@@ -13300,19 +9588,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices);
 
-    void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, uint drawcount);
-
     void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices);
-
-    void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, uint drawcount);
 
     void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices);
 
-    void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, uint drawcount);
-
     void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices);
-
-    void MultiDrawElements(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, uint drawcount);
 
     void MultiDrawElements(PrimitiveType mode, in uint count, DrawElementsType type, in void* indices, uint drawcount);
 
@@ -13334,33 +9614,17 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, global::System.ReadOnlySpan<int> basevertex);
 
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, global::System.ReadOnlySpan<int> basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, global::System.ReadOnlySpan<int> basevertex);
 
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, global::System.ReadOnlySpan<int> basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, in uint count, DrawElementsType type, in void* indices, uint drawcount, in int basevertex);
 
@@ -13384,15 +9648,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, DrawElementsType type, in void* indices, uint drawcount, int* basevertex);
 
-    void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, DrawElementsType type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, DrawElementsType type, void** indices, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, DrawElementsType type, void** indices, uint drawcount, in int basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, DrawElementsType type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, DrawElementsType type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, in void* indices, global::System.ReadOnlySpan<int> basevertex);
 
@@ -13400,47 +9660,27 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, in void* indices, uint drawcount, int* basevertex);
 
-    void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, void** indices, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, void** indices, uint drawcount, in int basevertex);
 
     void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, void** indices, uint drawcount, int* basevertex);
 
-    void MultiDrawElementsBaseVertex(GLEnum mode, uint* count, GLEnum type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, global::System.ReadOnlySpan<int> basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, global::System.ReadOnlySpan<int> basevertex);
 
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, DrawElementsType type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, global::System.ReadOnlySpan<int> basevertex);
 
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, int* basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, global::System.ReadOnlySpan<int> basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, global::System.ReadOnlySpan<uint> count, GLEnum type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, in uint count, DrawElementsType type, in void* indices, uint drawcount, in int basevertex);
 
@@ -13464,15 +9704,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, DrawElementsType type, in void* indices, uint drawcount, int* basevertex);
 
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, DrawElementsType type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, DrawElementsType type, void** indices, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, DrawElementsType type, void** indices, uint drawcount, in int basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, DrawElementsType type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, DrawElementsType type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, in void* indices, global::System.ReadOnlySpan<int> basevertex);
 
@@ -13480,15 +9716,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, in void* indices, uint drawcount, int* basevertex);
 
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, in void* indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
-
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, void** indices, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, void** indices, uint drawcount, in int basevertex);
 
     void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, void** indices, uint drawcount, int* basevertex);
-
-    void MultiDrawElementsBaseVertex(PrimitiveType mode, uint* count, GLEnum type, void** indices, uint drawcount, global::System.ReadOnlySpan<int> basevertex);
 
     void MultiDrawElementsIndirect(GLEnum mode, DrawElementsType type, void* indirect, uint drawcount, uint stride);
 
@@ -13501,25 +9733,13 @@ public unsafe partial interface IGLWrapper
     void MultiDrawElementsIndirect<T0>(GLEnum mode, DrawElementsType type, in T0 indirect, uint drawcount, uint stride)
         where T0 : unmanaged;
 
-    void MultiDrawElementsIndirect<T0>(GLEnum mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indirect, uint drawcount, uint stride)
-        where T0 : unmanaged;
-
     void MultiDrawElementsIndirect<T0>(GLEnum mode, GLEnum type, in T0 indirect, uint drawcount, uint stride)
-        where T0 : unmanaged;
-
-    void MultiDrawElementsIndirect<T0>(GLEnum mode, GLEnum type, global::System.ReadOnlySpan<T0> indirect, uint drawcount, uint stride)
         where T0 : unmanaged;
 
     void MultiDrawElementsIndirect<T0>(PrimitiveType mode, DrawElementsType type, in T0 indirect, uint drawcount, uint stride)
         where T0 : unmanaged;
 
-    void MultiDrawElementsIndirect<T0>(PrimitiveType mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indirect, uint drawcount, uint stride)
-        where T0 : unmanaged;
-
     void MultiDrawElementsIndirect<T0>(PrimitiveType mode, GLEnum type, in T0 indirect, uint drawcount, uint stride)
-        where T0 : unmanaged;
-
-    void MultiDrawElementsIndirect<T0>(PrimitiveType mode, GLEnum type, global::System.ReadOnlySpan<T0> indirect, uint drawcount, uint stride)
         where T0 : unmanaged;
 
     void MultiDrawElementsIndirectCount(GLEnum mode, DrawElementsType type, void* indirect, nint drawcount, uint maxdrawcount, uint stride);
@@ -13533,28 +9753,14 @@ public unsafe partial interface IGLWrapper
     void MultiDrawElementsIndirectCount<T0>(GLEnum mode, DrawElementsType type, in T0 indirect, nint drawcount, uint maxdrawcount, uint stride)
         where T0 : unmanaged;
 
-    void MultiDrawElementsIndirectCount<T0>(GLEnum mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indirect, nint drawcount, uint maxdrawcount, uint stride)
-        where T0 : unmanaged;
-
     void MultiDrawElementsIndirectCount<T0>(GLEnum mode, GLEnum type, in T0 indirect, nint drawcount, uint maxdrawcount, uint stride)
-        where T0 : unmanaged;
-
-    void MultiDrawElementsIndirectCount<T0>(GLEnum mode, GLEnum type, global::System.ReadOnlySpan<T0> indirect, nint drawcount, uint maxdrawcount, uint stride)
         where T0 : unmanaged;
 
     void MultiDrawElementsIndirectCount<T0>(PrimitiveType mode, DrawElementsType type, in T0 indirect, nint drawcount, uint maxdrawcount, uint stride)
         where T0 : unmanaged;
 
-    void MultiDrawElementsIndirectCount<T0>(PrimitiveType mode, DrawElementsType type, global::System.ReadOnlySpan<T0> indirect, nint drawcount, uint maxdrawcount, uint stride)
-        where T0 : unmanaged;
-
     void MultiDrawElementsIndirectCount<T0>(PrimitiveType mode, GLEnum type, in T0 indirect, nint drawcount, uint maxdrawcount, uint stride)
         where T0 : unmanaged;
-
-    void MultiDrawElementsIndirectCount<T0>(PrimitiveType mode, GLEnum type, global::System.ReadOnlySpan<T0> indirect, nint drawcount, uint maxdrawcount, uint stride)
-        where T0 : unmanaged;
-
-    void MultiTexCoordP1(GLEnum texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP1(GLEnum texture, GLEnum type, in uint coords);
 
@@ -13562,15 +9768,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP1(GLEnum texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP1(GLEnum texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP1(GLEnum texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP1(GLEnum texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP1(GLEnum texture, TexCoordPointerType type, uint coords);
-
-    void MultiTexCoordP1(TextureUnit texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP1(TextureUnit texture, GLEnum type, in uint coords);
 
@@ -13578,15 +9780,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP1(TextureUnit texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP1(TextureUnit texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP1(TextureUnit texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP1(TextureUnit texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP1(TextureUnit texture, TexCoordPointerType type, uint coords);
-
-    void MultiTexCoordP2(GLEnum texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP2(GLEnum texture, GLEnum type, in uint coords);
 
@@ -13594,15 +9792,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP2(GLEnum texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP2(GLEnum texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP2(GLEnum texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP2(GLEnum texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP2(GLEnum texture, TexCoordPointerType type, uint coords);
-
-    void MultiTexCoordP2(TextureUnit texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP2(TextureUnit texture, GLEnum type, in uint coords);
 
@@ -13610,15 +9804,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP2(TextureUnit texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP2(TextureUnit texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP2(TextureUnit texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP2(TextureUnit texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP2(TextureUnit texture, TexCoordPointerType type, uint coords);
-
-    void MultiTexCoordP3(GLEnum texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP3(GLEnum texture, GLEnum type, in uint coords);
 
@@ -13626,15 +9816,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP3(GLEnum texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP3(GLEnum texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP3(GLEnum texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP3(GLEnum texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP3(GLEnum texture, TexCoordPointerType type, uint coords);
-
-    void MultiTexCoordP3(TextureUnit texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP3(TextureUnit texture, GLEnum type, in uint coords);
 
@@ -13642,15 +9828,11 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP3(TextureUnit texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP3(TextureUnit texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP3(TextureUnit texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP3(TextureUnit texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP3(TextureUnit texture, TexCoordPointerType type, uint coords);
-
-    void MultiTexCoordP4(GLEnum texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP4(GLEnum texture, GLEnum type, in uint coords);
 
@@ -13658,23 +9840,17 @@ public unsafe partial interface IGLWrapper
 
     void MultiTexCoordP4(GLEnum texture, GLEnum type, uint coords);
 
-    void MultiTexCoordP4(GLEnum texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP4(GLEnum texture, TexCoordPointerType type, in uint coords);
 
     void MultiTexCoordP4(GLEnum texture, TexCoordPointerType type, uint* coords);
 
     void MultiTexCoordP4(GLEnum texture, TexCoordPointerType type, uint coords);
 
-    void MultiTexCoordP4(TextureUnit texture, GLEnum type, global::System.ReadOnlySpan<uint> coords);
-
     void MultiTexCoordP4(TextureUnit texture, GLEnum type, in uint coords);
 
     void MultiTexCoordP4(TextureUnit texture, GLEnum type, uint* coords);
 
     void MultiTexCoordP4(TextureUnit texture, GLEnum type, uint coords);
-
-    void MultiTexCoordP4(TextureUnit texture, TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
 
     void MultiTexCoordP4(TextureUnit texture, TexCoordPointerType type, in uint coords);
 
@@ -13698,12 +9874,6 @@ public unsafe partial interface IGLWrapper
     void NamedBufferData<T0>(uint buffer, nuint size, in T0 data, GLEnum usage)
         where T0 : unmanaged;
 
-    void NamedBufferData<T0>(uint buffer, nuint size, global::System.ReadOnlySpan<T0> data, BufferUsageARB usage)
-        where T0 : unmanaged;
-
-    void NamedBufferData<T0>(uint buffer, nuint size, global::System.ReadOnlySpan<T0> data, GLEnum usage)
-        where T0 : unmanaged;
-
     void NamedBufferStorage(uint buffer, nuint size, void* data, BufferStorageMask flags);
 
     void NamedBufferStorage(uint buffer, nuint size, void* data, uint flags);
@@ -13720,21 +9890,12 @@ public unsafe partial interface IGLWrapper
     void NamedBufferStorage<T0>(uint buffer, nuint size, in T0 data, uint flags)
         where T0 : unmanaged;
 
-    void NamedBufferStorage<T0>(uint buffer, nuint size, global::System.ReadOnlySpan<T0> data, BufferStorageMask flags)
-        where T0 : unmanaged;
-
-    void NamedBufferStorage<T0>(uint buffer, nuint size, global::System.ReadOnlySpan<T0> data, uint flags)
-        where T0 : unmanaged;
-
     void NamedBufferSubData(uint buffer, nint offset, nuint size, void* data);
 
     void NamedBufferSubData<T0>(uint buffer, nint offset, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void NamedBufferSubData<T0>(uint buffer, nint offset, nuint size, in T0 data)
-        where T0 : unmanaged;
-
-    void NamedBufferSubData<T0>(uint buffer, nint offset, nuint size, global::System.ReadOnlySpan<T0> data)
         where T0 : unmanaged;
 
     void NamedFramebufferDrawBuffer(uint framebuffer, ColorBuffer buf);
@@ -13752,10 +9913,6 @@ public unsafe partial interface IGLWrapper
     void NamedFramebufferDrawBuffers(uint framebuffer, uint n, in GLEnum bufs);
 
     void NamedFramebufferDrawBuffers(uint framebuffer, uint n, GLEnum* bufs);
-
-    void NamedFramebufferDrawBuffers(uint framebuffer, uint n, global::System.ReadOnlySpan<ColorBuffer> bufs);
-
-    void NamedFramebufferDrawBuffers(uint framebuffer, uint n, global::System.ReadOnlySpan<GLEnum> bufs);
 
     void NamedFramebufferParameter(uint framebuffer, FramebufferParameterName pname, int param);
 
@@ -13789,15 +9946,11 @@ public unsafe partial interface IGLWrapper
 
     void NamedRenderbufferStorageMultisample(uint renderbuffer, uint samples, InternalFormat internalformat, uint width, uint height);
 
-    void NormalP3(GLEnum type, global::System.ReadOnlySpan<uint> coords);
-
     void NormalP3(GLEnum type, in uint coords);
 
     void NormalP3(GLEnum type, uint* coords);
 
     void NormalP3(GLEnum type, uint coords);
-
-    void NormalP3(NormalPointerType type, global::System.ReadOnlySpan<uint> coords);
 
     void NormalP3(NormalPointerType type, in uint coords);
 
@@ -13809,23 +9962,17 @@ public unsafe partial interface IGLWrapper
 
     void ObjectLabel(GLEnum identifier, uint name, uint length, byte* label);
 
-    void ObjectLabel(GLEnum identifier, uint name, uint length, global::System.ReadOnlySpan<byte> label);
-
     void ObjectLabel(GLEnum identifier, uint name, uint length, string label);
 
     void ObjectLabel(ObjectIdentifier identifier, uint name, uint length, in byte label);
 
     void ObjectLabel(ObjectIdentifier identifier, uint name, uint length, byte* label);
 
-    void ObjectLabel(ObjectIdentifier identifier, uint name, uint length, global::System.ReadOnlySpan<byte> label);
-
     void ObjectLabel(ObjectIdentifier identifier, uint name, uint length, string label);
 
     void ObjectPtrLabel(void* ptr, uint length, in byte label);
 
     void ObjectPtrLabel(void* ptr, uint length, byte* label);
-
-    void ObjectPtrLabel(void* ptr, uint length, global::System.ReadOnlySpan<byte> label);
 
     void ObjectPtrLabel(void* ptr, uint length, string label);
 
@@ -13838,26 +9985,13 @@ public unsafe partial interface IGLWrapper
     void ObjectPtrLabel<T0>(in T0 ptr, uint length, string label)
         where T0 : unmanaged;
 
-    void ObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint length, byte* label)
-        where T0 : unmanaged;
-
-    void ObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint length, global::System.ReadOnlySpan<byte> label)
-        where T0 : unmanaged;
-
-    void ObjectPtrLabel<T0>(global::System.ReadOnlySpan<T0> ptr, uint length, string label)
-        where T0 : unmanaged;
-
     void PatchParameter(GLEnum pname, int value);
-
-    void PatchParameter(GLEnum pname, global::System.ReadOnlySpan<float> values);
 
     void PatchParameter(GLEnum pname, in float values);
 
     void PatchParameter(GLEnum pname, float* values);
 
     void PatchParameter(PatchParameterName pname, int value);
-
-    void PatchParameter(PatchParameterName pname, global::System.ReadOnlySpan<float> values);
 
     void PatchParameter(PatchParameterName pname, in float values);
 
@@ -13879,10 +10013,6 @@ public unsafe partial interface IGLWrapper
 
     void PointParameter(GLEnum pname, int param);
 
-    void PointParameter(GLEnum pname, global::System.ReadOnlySpan<int> @params);
-
-    void PointParameter(GLEnum pname, global::System.ReadOnlySpan<float> @params);
-
     void PointParameter(GLEnum pname, in float @params);
 
     void PointParameter(GLEnum pname, float* @params);
@@ -13894,10 +10024,6 @@ public unsafe partial interface IGLWrapper
     void PointParameter(PointParameterNameARB pname, int* @params);
 
     void PointParameter(PointParameterNameARB pname, int param);
-
-    void PointParameter(PointParameterNameARB pname, global::System.ReadOnlySpan<int> @params);
-
-    void PointParameter(PointParameterNameARB pname, global::System.ReadOnlySpan<float> @params);
 
     void PointParameter(PointParameterNameARB pname, in float @params);
 
@@ -13931,9 +10057,6 @@ public unsafe partial interface IGLWrapper
     void ProgramBinary<T0>(uint program, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary)
         where T0 : unmanaged;
 
-    void ProgramBinary<T0>(uint program, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
     void ProgramParameter(uint program, GLEnum pname, int value);
 
     void ProgramParameter(uint program, ProgramParameterPName pname, int value);
@@ -13961,14 +10084,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniform1(uint program, int location, uint count, in int value);
 
     void ProgramUniform1(uint program, int location, uint count, int* value);
-
-    void ProgramUniform1(uint program, int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniform1(uint program, int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void ProgramUniform1(uint program, int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void ProgramUniform1(uint program, int location, uint count, global::System.ReadOnlySpan<uint> value);
 
     void ProgramUniform1(uint program, int location, uint count, in float value);
 
@@ -14003,14 +10118,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniform2(uint program, int location, uint count, in int value);
 
     void ProgramUniform2(uint program, int location, uint count, int* value);
-
-    void ProgramUniform2(uint program, int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniform2(uint program, int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void ProgramUniform2(uint program, int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void ProgramUniform2(uint program, int location, uint count, global::System.ReadOnlySpan<uint> value);
 
     void ProgramUniform2(uint program, int location, uint count, in float value);
 
@@ -14047,14 +10154,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniform3(uint program, int location, uint count, in int value);
 
     void ProgramUniform3(uint program, int location, uint count, int* value);
-
-    void ProgramUniform3(uint program, int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniform3(uint program, int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void ProgramUniform3(uint program, int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void ProgramUniform3(uint program, int location, uint count, global::System.ReadOnlySpan<uint> value);
 
     void ProgramUniform3(uint program, int location, uint count, in float value);
 
@@ -14094,14 +10193,6 @@ public unsafe partial interface IGLWrapper
 
     void ProgramUniform4(uint program, int location, uint count, int* value);
 
-    void ProgramUniform4(uint program, int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniform4(uint program, int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void ProgramUniform4(uint program, int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void ProgramUniform4(uint program, int location, uint count, global::System.ReadOnlySpan<uint> value);
-
     void ProgramUniform4(uint program, int location, uint count, in float value);
 
     void ProgramUniform4(uint program, int location, uint count, float* value);
@@ -14120,10 +10211,6 @@ public unsafe partial interface IGLWrapper
 
     void ProgramUniformMatrix2(uint program, int location, uint count, bool transpose, double* value);
 
-    void ProgramUniformMatrix2(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix2(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void ProgramUniformMatrix2(uint program, int location, uint count, bool transpose, in float value);
 
     void ProgramUniformMatrix2(uint program, int location, uint count, bool transpose, float* value);
@@ -14135,10 +10222,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniformMatrix2x3(uint program, int location, uint count, bool transpose, in double value);
 
     void ProgramUniformMatrix2x3(uint program, int location, uint count, bool transpose, double* value);
-
-    void ProgramUniformMatrix2x3(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix2x3(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void ProgramUniformMatrix2x3(uint program, int location, uint count, bool transpose, in float value);
 
@@ -14152,10 +10235,6 @@ public unsafe partial interface IGLWrapper
 
     void ProgramUniformMatrix2x4(uint program, int location, uint count, bool transpose, double* value);
 
-    void ProgramUniformMatrix2x4(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix2x4(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void ProgramUniformMatrix2x4(uint program, int location, uint count, bool transpose, in float value);
 
     void ProgramUniformMatrix2x4(uint program, int location, uint count, bool transpose, float* value);
@@ -14167,10 +10246,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniformMatrix3(uint program, int location, uint count, bool transpose, in double value);
 
     void ProgramUniformMatrix3(uint program, int location, uint count, bool transpose, double* value);
-
-    void ProgramUniformMatrix3(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix3(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void ProgramUniformMatrix3(uint program, int location, uint count, bool transpose, in float value);
 
@@ -14184,10 +10259,6 @@ public unsafe partial interface IGLWrapper
 
     void ProgramUniformMatrix3x2(uint program, int location, uint count, bool transpose, double* value);
 
-    void ProgramUniformMatrix3x2(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix3x2(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void ProgramUniformMatrix3x2(uint program, int location, uint count, bool transpose, in float value);
 
     void ProgramUniformMatrix3x2(uint program, int location, uint count, bool transpose, float* value);
@@ -14199,10 +10270,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniformMatrix3x4(uint program, int location, uint count, bool transpose, in double value);
 
     void ProgramUniformMatrix3x4(uint program, int location, uint count, bool transpose, double* value);
-
-    void ProgramUniformMatrix3x4(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix3x4(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void ProgramUniformMatrix3x4(uint program, int location, uint count, bool transpose, in float value);
 
@@ -14216,10 +10283,6 @@ public unsafe partial interface IGLWrapper
 
     void ProgramUniformMatrix4(uint program, int location, uint count, bool transpose, double* value);
 
-    void ProgramUniformMatrix4(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix4(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void ProgramUniformMatrix4(uint program, int location, uint count, bool transpose, in float value);
 
     void ProgramUniformMatrix4(uint program, int location, uint count, bool transpose, float* value);
@@ -14231,10 +10294,6 @@ public unsafe partial interface IGLWrapper
     void ProgramUniformMatrix4x2(uint program, int location, uint count, bool transpose, in double value);
 
     void ProgramUniformMatrix4x2(uint program, int location, uint count, bool transpose, double* value);
-
-    void ProgramUniformMatrix4x2(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix4x2(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void ProgramUniformMatrix4x2(uint program, int location, uint count, bool transpose, in float value);
 
@@ -14248,10 +10307,6 @@ public unsafe partial interface IGLWrapper
 
     void ProgramUniformMatrix4x3(uint program, int location, uint count, bool transpose, double* value);
 
-    void ProgramUniformMatrix4x3(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void ProgramUniformMatrix4x3(uint program, int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void ProgramUniformMatrix4x3(uint program, int location, uint count, bool transpose, in float value);
 
     void ProgramUniformMatrix4x3(uint program, int location, uint count, bool transpose, float* value);
@@ -14264,15 +10319,11 @@ public unsafe partial interface IGLWrapper
 
     void PushDebugGroup(DebugSource source, uint id, uint length, byte* message);
 
-    void PushDebugGroup(DebugSource source, uint id, uint length, global::System.ReadOnlySpan<byte> message);
-
     void PushDebugGroup(DebugSource source, uint id, uint length, string message);
 
     void PushDebugGroup(GLEnum source, uint id, uint length, in byte message);
 
     void PushDebugGroup(GLEnum source, uint id, uint length, byte* message);
-
-    void PushDebugGroup(GLEnum source, uint id, uint length, global::System.ReadOnlySpan<byte> message);
 
     void PushDebugGroup(GLEnum source, uint id, uint length, string message);
 
@@ -14298,16 +10349,10 @@ public unsafe partial interface IGLWrapper
     T0 ReadPixels<T0>(int x, int y, uint width, uint height, GLEnum format, GLEnum type)
         where T0 : unmanaged;
 
-    void ReadPixels<T0>(int x, int y, uint width, uint height, GLEnum format, GLEnum type, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void ReadPixels<T0>(int x, int y, uint width, uint height, GLEnum format, PixelType type, out T0 pixels)
         where T0 : unmanaged;
 
     T0 ReadPixels<T0>(int x, int y, uint width, uint height, GLEnum format, PixelType type)
-        where T0 : unmanaged;
-
-    void ReadPixels<T0>(int x, int y, uint width, uint height, GLEnum format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void ReadPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, GLEnum type, out T0 pixels)
@@ -14316,16 +10361,10 @@ public unsafe partial interface IGLWrapper
     T0 ReadPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, GLEnum type)
         where T0 : unmanaged;
 
-    void ReadPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, GLEnum type, global::System.Span<T0> pixels)
-        where T0 : unmanaged;
-
     void ReadPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, PixelType type, out T0 pixels)
         where T0 : unmanaged;
 
     T0 ReadPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, PixelType type)
-        where T0 : unmanaged;
-
-    void ReadPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, PixelType type, global::System.Span<T0> pixels)
         where T0 : unmanaged;
 
     void ReadnPixels(int x, int y, uint width, uint height, GLEnum format, GLEnum type, uint bufSize, void* data);
@@ -14345,9 +10384,6 @@ public unsafe partial interface IGLWrapper
     T0 ReadnPixels<T0>(int x, int y, uint width, uint height, GLEnum format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void ReadnPixels<T0>(int x, int y, uint width, uint height, GLEnum format, GLEnum type, uint bufSize, global::System.Span<T0> data)
-        where T0 : unmanaged;
-
     void ReadnPixels<T0>(int x, int y, uint width, uint height, GLEnum format, PixelType type, global::System.Span<T0> data)
         where T0 : unmanaged;
 
@@ -14355,9 +10391,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 ReadnPixels<T0>(int x, int y, uint width, uint height, GLEnum format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void ReadnPixels<T0>(int x, int y, uint width, uint height, GLEnum format, PixelType type, uint bufSize, global::System.Span<T0> data)
         where T0 : unmanaged;
 
     void ReadnPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, GLEnum type, global::System.Span<T0> data)
@@ -14369,9 +10402,6 @@ public unsafe partial interface IGLWrapper
     T0 ReadnPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, GLEnum type, uint bufSize)
         where T0 : unmanaged;
 
-    void ReadnPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, GLEnum type, uint bufSize, global::System.Span<T0> data)
-        where T0 : unmanaged;
-
     void ReadnPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, PixelType type, global::System.Span<T0> data)
         where T0 : unmanaged;
 
@@ -14379,9 +10409,6 @@ public unsafe partial interface IGLWrapper
         where T0 : unmanaged;
 
     T0 ReadnPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, PixelType type, uint bufSize)
-        where T0 : unmanaged;
-
-    void ReadnPixels<T0>(int x, int y, uint width, uint height, PixelFormat format, PixelType type, uint bufSize, global::System.Span<T0> data)
         where T0 : unmanaged;
 
     void ReleaseShaderCompiler();
@@ -14414,17 +10441,11 @@ public unsafe partial interface IGLWrapper
 
     void SamplerParameter(uint sampler, GLEnum pname, int param);
 
-    void SamplerParameter(uint sampler, GLEnum pname, global::System.ReadOnlySpan<int> param);
-
-    void SamplerParameter(uint sampler, GLEnum pname, global::System.ReadOnlySpan<float> param);
-
     void SamplerParameter(uint sampler, GLEnum pname, in float param);
 
     void SamplerParameter(uint sampler, GLEnum pname, float* param);
 
     void SamplerParameter(uint sampler, GLEnum pname, float param);
-
-    void SamplerParameter(uint sampler, SamplerParameterF pname, global::System.ReadOnlySpan<float> param);
 
     void SamplerParameter(uint sampler, SamplerParameterF pname, in float param);
 
@@ -14438,15 +10459,9 @@ public unsafe partial interface IGLWrapper
 
     void SamplerParameter(uint sampler, SamplerParameterI pname, int param);
 
-    void SamplerParameter(uint sampler, SamplerParameterI pname, global::System.ReadOnlySpan<int> param);
-
     void SamplerParameterI(uint sampler, GLEnum pname, in int param);
 
     void SamplerParameterI(uint sampler, GLEnum pname, int* param);
-
-    void SamplerParameterI(uint sampler, GLEnum pname, global::System.ReadOnlySpan<int> param);
-
-    void SamplerParameterI(uint sampler, GLEnum pname, global::System.ReadOnlySpan<uint> param);
 
     void SamplerParameterI(uint sampler, GLEnum pname, in uint param);
 
@@ -14455,10 +10470,6 @@ public unsafe partial interface IGLWrapper
     void SamplerParameterI(uint sampler, SamplerParameterI pname, in int param);
 
     void SamplerParameterI(uint sampler, SamplerParameterI pname, int* param);
-
-    void SamplerParameterI(uint sampler, SamplerParameterI pname, global::System.ReadOnlySpan<int> param);
-
-    void SamplerParameterI(uint sampler, SamplerParameterI pname, global::System.ReadOnlySpan<uint> param);
 
     void SamplerParameterI(uint sampler, SamplerParameterI pname, in uint param);
 
@@ -14470,25 +10481,17 @@ public unsafe partial interface IGLWrapper
 
     void ScissorArray(uint first, uint count, int* v);
 
-    void ScissorArray(uint first, uint count, global::System.ReadOnlySpan<int> v);
-
     void ScissorIndexed(uint index, in int v);
 
     void ScissorIndexed(uint index, int* v);
 
     void ScissorIndexed(uint index, int left, int bottom, uint width, uint height);
 
-    void ScissorIndexed(uint index, global::System.ReadOnlySpan<int> v);
-
-    void SecondaryColorP3(ColorPointerType type, global::System.ReadOnlySpan<uint> color);
-
     void SecondaryColorP3(ColorPointerType type, in uint color);
 
     void SecondaryColorP3(ColorPointerType type, uint* color);
 
     void SecondaryColorP3(ColorPointerType type, uint color);
-
-    void SecondaryColorP3(GLEnum type, global::System.ReadOnlySpan<uint> color);
 
     void SecondaryColorP3(GLEnum type, in uint color);
 
@@ -14511,14 +10514,6 @@ public unsafe partial interface IGLWrapper
     void ShaderBinary(uint count, Shader* shaders, GLEnum binaryFormat, void* binary, uint length);
 
     void ShaderBinary(uint count, Shader* shaders, ShaderBinaryFormat binaryFormat, void* binary, uint length);
-
-    void ShaderBinary(uint count, global::System.ReadOnlySpan<Shader> shaders, GLEnum binaryFormat, void* binary, uint length);
-
-    void ShaderBinary(uint count, global::System.ReadOnlySpan<Shader> shaders, ShaderBinaryFormat binaryFormat, void* binary, uint length);
-
-    void ShaderBinary(uint count, global::System.ReadOnlySpan<uint> shaders, GLEnum binaryFormat, void* binary, uint length);
-
-    void ShaderBinary(uint count, global::System.ReadOnlySpan<uint> shaders, ShaderBinaryFormat binaryFormat, void* binary, uint length);
 
     void ShaderBinary(uint count, in uint shaders, GLEnum binaryFormat, void* binary, uint length);
 
@@ -14552,28 +10547,10 @@ public unsafe partial interface IGLWrapper
     void ShaderBinary<T0>(uint count, Shader* shaders, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary)
         where T0 : unmanaged;
 
-    void ShaderBinary<T0>(uint count, Shader* shaders, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
     void ShaderBinary<T0>(uint count, Shader* shaders, ShaderBinaryFormat binaryFormat, in T0 binary, uint length)
         where T0 : unmanaged;
 
     void ShaderBinary<T0>(uint count, Shader* shaders, ShaderBinaryFormat binaryFormat, global::System.ReadOnlySpan<T0> binary)
-        where T0 : unmanaged;
-
-    void ShaderBinary<T0>(uint count, Shader* shaders, ShaderBinaryFormat binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
-    void ShaderBinary<T0>(uint count, global::System.ReadOnlySpan<Shader> shaders, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
-    void ShaderBinary<T0>(uint count, global::System.ReadOnlySpan<Shader> shaders, ShaderBinaryFormat binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
-    void ShaderBinary<T0>(uint count, global::System.ReadOnlySpan<uint> shaders, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
-    void ShaderBinary<T0>(uint count, global::System.ReadOnlySpan<uint> shaders, ShaderBinaryFormat binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
         where T0 : unmanaged;
 
     void ShaderBinary<T0>(uint count, in uint shaders, GLEnum binaryFormat, in T0 binary, uint length)
@@ -14588,16 +10565,10 @@ public unsafe partial interface IGLWrapper
     void ShaderBinary<T0>(uint count, uint* shaders, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary)
         where T0 : unmanaged;
 
-    void ShaderBinary<T0>(uint count, uint* shaders, GLEnum binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
-        where T0 : unmanaged;
-
     void ShaderBinary<T0>(uint count, uint* shaders, ShaderBinaryFormat binaryFormat, in T0 binary, uint length)
         where T0 : unmanaged;
 
     void ShaderBinary<T0>(uint count, uint* shaders, ShaderBinaryFormat binaryFormat, global::System.ReadOnlySpan<T0> binary)
-        where T0 : unmanaged;
-
-    void ShaderBinary<T0>(uint count, uint* shaders, ShaderBinaryFormat binaryFormat, global::System.ReadOnlySpan<T0> binary, uint length)
         where T0 : unmanaged;
 
     void ShaderSource(uint shader, in byte* @string, global::System.ReadOnlySpan<int> length);
@@ -14610,13 +10581,9 @@ public unsafe partial interface IGLWrapper
 
     void ShaderSource(uint shader, uint count, in byte* @string, int* length);
 
-    void ShaderSource(uint shader, uint count, in byte* @string, global::System.ReadOnlySpan<int> length);
-
     void ShaderSource(uint shader, uint count, byte** @string, in int length);
 
     void ShaderSource(uint shader, uint count, byte** @string, int* length);
-
-    void ShaderSource(uint shader, uint count, byte** @string, global::System.ReadOnlySpan<int> length);
 
     void ShaderSource(uint shader, uint count, string[] stringSa, in int length);
 
@@ -14644,27 +10611,13 @@ public unsafe partial interface IGLWrapper
 
     void SpecializeShader(uint shader, byte* pEntryPoint, uint* pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
 
-    void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, global::System.ReadOnlySpan<uint> pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
-
-    void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, global::System.ReadOnlySpan<uint> pConstantIndex, uint* pConstantValue);
-
     void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, in uint pConstantIndex, in uint pConstantValue);
 
     void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, in uint pConstantIndex, uint* pConstantValue);
 
-    void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
-
     void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, in uint pConstantValue);
 
     void SpecializeShader(uint shader, byte* pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, uint* pConstantValue);
-
-    void SpecializeShader(uint shader, global::System.ReadOnlySpan<byte> pEntryPoint, uint numSpecializationConstants, global::System.ReadOnlySpan<uint> pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
-
-    void SpecializeShader(uint shader, global::System.ReadOnlySpan<byte> pEntryPoint, uint numSpecializationConstants, global::System.ReadOnlySpan<uint> pConstantIndex, uint* pConstantValue);
-
-    void SpecializeShader(uint shader, global::System.ReadOnlySpan<byte> pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
-
-    void SpecializeShader(uint shader, global::System.ReadOnlySpan<byte> pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, uint* pConstantValue);
 
     void SpecializeShader(uint shader, string pEntryPoint, global::System.ReadOnlySpan<uint> pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
 
@@ -14672,15 +10625,9 @@ public unsafe partial interface IGLWrapper
 
     void SpecializeShader(uint shader, string pEntryPoint, uint* pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
 
-    void SpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, global::System.ReadOnlySpan<uint> pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
-
-    void SpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, global::System.ReadOnlySpan<uint> pConstantIndex, uint* pConstantValue);
-
     void SpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, in uint pConstantIndex, in uint pConstantValue);
 
     void SpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, in uint pConstantIndex, uint* pConstantValue);
-
-    void SpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, global::System.ReadOnlySpan<uint> pConstantValue);
 
     void SpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, in uint pConstantValue);
 
@@ -14768,15 +10715,11 @@ public unsafe partial interface IGLWrapper
 
     void TexBufferRange(TextureTarget target, SizedInternalFormat internalformat, uint buffer, nint offset, nuint size);
 
-    void TexCoordP1(GLEnum type, global::System.ReadOnlySpan<uint> coords);
-
     void TexCoordP1(GLEnum type, in uint coords);
 
     void TexCoordP1(GLEnum type, uint* coords);
 
     void TexCoordP1(GLEnum type, uint coords);
-
-    void TexCoordP1(TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
 
     void TexCoordP1(TexCoordPointerType type, in uint coords);
 
@@ -14784,15 +10727,11 @@ public unsafe partial interface IGLWrapper
 
     void TexCoordP1(TexCoordPointerType type, uint coords);
 
-    void TexCoordP2(GLEnum type, global::System.ReadOnlySpan<uint> coords);
-
     void TexCoordP2(GLEnum type, in uint coords);
 
     void TexCoordP2(GLEnum type, uint* coords);
 
     void TexCoordP2(GLEnum type, uint coords);
-
-    void TexCoordP2(TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
 
     void TexCoordP2(TexCoordPointerType type, in uint coords);
 
@@ -14800,15 +10739,11 @@ public unsafe partial interface IGLWrapper
 
     void TexCoordP2(TexCoordPointerType type, uint coords);
 
-    void TexCoordP3(GLEnum type, global::System.ReadOnlySpan<uint> coords);
-
     void TexCoordP3(GLEnum type, in uint coords);
 
     void TexCoordP3(GLEnum type, uint* coords);
 
     void TexCoordP3(GLEnum type, uint coords);
-
-    void TexCoordP3(TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
 
     void TexCoordP3(TexCoordPointerType type, in uint coords);
 
@@ -14816,15 +10751,11 @@ public unsafe partial interface IGLWrapper
 
     void TexCoordP3(TexCoordPointerType type, uint coords);
 
-    void TexCoordP4(GLEnum type, global::System.ReadOnlySpan<uint> coords);
-
     void TexCoordP4(GLEnum type, in uint coords);
 
     void TexCoordP4(GLEnum type, uint* coords);
 
     void TexCoordP4(GLEnum type, uint coords);
-
-    void TexCoordP4(TexCoordPointerType type, global::System.ReadOnlySpan<uint> coords);
 
     void TexCoordP4(TexCoordPointerType type, in uint coords);
 
@@ -14867,97 +10798,49 @@ public unsafe partial interface IGLWrapper
     void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(GLEnum target, int level, int internalformat, uint width, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage1D<T0>(TextureTarget target, int level, int internalformat, uint width, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, void* pixels);
@@ -14995,97 +10878,49 @@ public unsafe partial interface IGLWrapper
     void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage2D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage2DMultisample(GLEnum target, uint samples, GLEnum internalformat, uint width, uint height, bool fixedsamplelocations);
@@ -15131,97 +10966,49 @@ public unsafe partial interface IGLWrapper
     void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(GLEnum target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(GLEnum target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(TextureTarget target, int level, InternalFormat internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexImage3D<T0>(TextureTarget target, int level, int internalformat, uint width, uint height, uint depth, int border, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexImage3DMultisample(GLEnum target, uint samples, GLEnum internalformat, uint width, uint height, uint depth, bool fixedsamplelocations);
@@ -15238,10 +11025,6 @@ public unsafe partial interface IGLWrapper
 
     void TexParameter(GLEnum target, GLEnum pname, int param);
 
-    void TexParameter(GLEnum target, GLEnum pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameter(GLEnum target, GLEnum pname, global::System.ReadOnlySpan<float> @params);
-
     void TexParameter(GLEnum target, GLEnum pname, in float @params);
 
     void TexParameter(GLEnum target, GLEnum pname, float* @params);
@@ -15253,10 +11036,6 @@ public unsafe partial interface IGLWrapper
     void TexParameter(GLEnum target, TextureParameterName pname, int* @params);
 
     void TexParameter(GLEnum target, TextureParameterName pname, int param);
-
-    void TexParameter(GLEnum target, TextureParameterName pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameter(GLEnum target, TextureParameterName pname, global::System.ReadOnlySpan<float> @params);
 
     void TexParameter(GLEnum target, TextureParameterName pname, in float @params);
 
@@ -15270,10 +11049,6 @@ public unsafe partial interface IGLWrapper
 
     void TexParameter(TextureTarget target, GLEnum pname, int param);
 
-    void TexParameter(TextureTarget target, GLEnum pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameter(TextureTarget target, GLEnum pname, global::System.ReadOnlySpan<float> @params);
-
     void TexParameter(TextureTarget target, GLEnum pname, in float @params);
 
     void TexParameter(TextureTarget target, GLEnum pname, float* @params);
@@ -15286,10 +11061,6 @@ public unsafe partial interface IGLWrapper
 
     void TexParameter(TextureTarget target, TextureParameterName pname, int param);
 
-    void TexParameter(TextureTarget target, TextureParameterName pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameter(TextureTarget target, TextureParameterName pname, global::System.ReadOnlySpan<float> @params);
-
     void TexParameter(TextureTarget target, TextureParameterName pname, in float @params);
 
     void TexParameter(TextureTarget target, TextureParameterName pname, float* @params);
@@ -15300,10 +11071,6 @@ public unsafe partial interface IGLWrapper
 
     void TexParameterI(GLEnum target, GLEnum pname, int* @params);
 
-    void TexParameterI(GLEnum target, GLEnum pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameterI(GLEnum target, GLEnum pname, global::System.ReadOnlySpan<uint> @params);
-
     void TexParameterI(GLEnum target, GLEnum pname, in uint @params);
 
     void TexParameterI(GLEnum target, GLEnum pname, uint* @params);
@@ -15311,10 +11078,6 @@ public unsafe partial interface IGLWrapper
     void TexParameterI(GLEnum target, TextureParameterName pname, in int @params);
 
     void TexParameterI(GLEnum target, TextureParameterName pname, int* @params);
-
-    void TexParameterI(GLEnum target, TextureParameterName pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameterI(GLEnum target, TextureParameterName pname, global::System.ReadOnlySpan<uint> @params);
 
     void TexParameterI(GLEnum target, TextureParameterName pname, in uint @params);
 
@@ -15324,10 +11087,6 @@ public unsafe partial interface IGLWrapper
 
     void TexParameterI(TextureTarget target, GLEnum pname, int* @params);
 
-    void TexParameterI(TextureTarget target, GLEnum pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameterI(TextureTarget target, GLEnum pname, global::System.ReadOnlySpan<uint> @params);
-
     void TexParameterI(TextureTarget target, GLEnum pname, in uint @params);
 
     void TexParameterI(TextureTarget target, GLEnum pname, uint* @params);
@@ -15335,10 +11094,6 @@ public unsafe partial interface IGLWrapper
     void TexParameterI(TextureTarget target, TextureParameterName pname, in int @params);
 
     void TexParameterI(TextureTarget target, TextureParameterName pname, int* @params);
-
-    void TexParameterI(TextureTarget target, TextureParameterName pname, global::System.ReadOnlySpan<int> @params);
-
-    void TexParameterI(TextureTarget target, TextureParameterName pname, global::System.ReadOnlySpan<uint> @params);
 
     void TexParameterI(TextureTarget target, TextureParameterName pname, in uint @params);
 
@@ -15403,49 +11158,25 @@ public unsafe partial interface IGLWrapper
     void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage1D<T0>(GLEnum target, int level, int xoffset, uint width, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage1D<T0>(TextureTarget target, int level, int xoffset, uint width, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage2D(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, void* pixels);
@@ -15467,49 +11198,25 @@ public unsafe partial interface IGLWrapper
     void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage2D<T0>(GLEnum target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage2D<T0>(TextureTarget target, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage3D(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, void* pixels);
@@ -15531,49 +11238,25 @@ public unsafe partial interface IGLWrapper
     void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage3D<T0>(GLEnum target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TexSubImage3D<T0>(TextureTarget target, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureBarrier();
@@ -15592,10 +11275,6 @@ public unsafe partial interface IGLWrapper
 
     void TextureParameter(uint texture, GLEnum pname, int param);
 
-    void TextureParameter(uint texture, GLEnum pname, global::System.ReadOnlySpan<int> param);
-
-    void TextureParameter(uint texture, GLEnum pname, global::System.ReadOnlySpan<float> param);
-
     void TextureParameter(uint texture, GLEnum pname, in float param);
 
     void TextureParameter(uint texture, GLEnum pname, float* param);
@@ -15608,10 +11287,6 @@ public unsafe partial interface IGLWrapper
 
     void TextureParameter(uint texture, TextureParameterName pname, int param);
 
-    void TextureParameter(uint texture, TextureParameterName pname, global::System.ReadOnlySpan<int> param);
-
-    void TextureParameter(uint texture, TextureParameterName pname, global::System.ReadOnlySpan<float> param);
-
     void TextureParameter(uint texture, TextureParameterName pname, in float param);
 
     void TextureParameter(uint texture, TextureParameterName pname, float* param);
@@ -15622,10 +11297,6 @@ public unsafe partial interface IGLWrapper
 
     void TextureParameterI(uint texture, GLEnum pname, int* @params);
 
-    void TextureParameterI(uint texture, GLEnum pname, global::System.ReadOnlySpan<int> @params);
-
-    void TextureParameterI(uint texture, GLEnum pname, global::System.ReadOnlySpan<uint> @params);
-
     void TextureParameterI(uint texture, GLEnum pname, in uint @params);
 
     void TextureParameterI(uint texture, GLEnum pname, uint* @params);
@@ -15633,10 +11304,6 @@ public unsafe partial interface IGLWrapper
     void TextureParameterI(uint texture, TextureParameterName pname, in int @params);
 
     void TextureParameterI(uint texture, TextureParameterName pname, int* @params);
-
-    void TextureParameterI(uint texture, TextureParameterName pname, global::System.ReadOnlySpan<int> @params);
-
-    void TextureParameterI(uint texture, TextureParameterName pname, global::System.ReadOnlySpan<uint> @params);
 
     void TextureParameterI(uint texture, TextureParameterName pname, in uint @params);
 
@@ -15673,25 +11340,13 @@ public unsafe partial interface IGLWrapper
     void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TextureSubImage1D<T0>(uint texture, int level, int xoffset, uint width, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureSubImage2D(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, void* pixels);
@@ -15705,25 +11360,13 @@ public unsafe partial interface IGLWrapper
     void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TextureSubImage2D<T0>(uint texture, int level, int xoffset, int yoffset, uint width, uint height, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureSubImage3D(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, void* pixels);
@@ -15737,25 +11380,13 @@ public unsafe partial interface IGLWrapper
     void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, GLEnum format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, in T0 pixels)
         where T0 : unmanaged;
 
-    void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, GLEnum type, global::System.ReadOnlySpan<T0> pixels)
-        where T0 : unmanaged;
-
     void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, in T0 pixels)
-        where T0 : unmanaged;
-
-    void TextureSubImage3D<T0>(uint texture, int level, int xoffset, int yoffset, int zoffset, uint width, uint height, uint depth, PixelFormat format, PixelType type, global::System.ReadOnlySpan<T0> pixels)
         where T0 : unmanaged;
 
     void TextureView(uint texture, GLEnum target, uint origtexture, GLEnum internalformat, uint minlevel, uint numlevels, uint minlayer, uint numlayers);
@@ -15809,14 +11440,6 @@ public unsafe partial interface IGLWrapper
 
     void Uniform1(int location, uint count, int* value);
 
-    void Uniform1(int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void Uniform1(int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void Uniform1(int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void Uniform1(int location, uint count, global::System.ReadOnlySpan<uint> value);
-
     void Uniform1(int location, uint count, in float value);
 
     void Uniform1(int location, uint count, float* value);
@@ -15850,14 +11473,6 @@ public unsafe partial interface IGLWrapper
     void Uniform2(int location, uint count, in int value);
 
     void Uniform2(int location, uint count, int* value);
-
-    void Uniform2(int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void Uniform2(int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void Uniform2(int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void Uniform2(int location, uint count, global::System.ReadOnlySpan<uint> value);
 
     void Uniform2(int location, uint count, in float value);
 
@@ -15894,14 +11509,6 @@ public unsafe partial interface IGLWrapper
     void Uniform3(int location, uint count, in int value);
 
     void Uniform3(int location, uint count, int* value);
-
-    void Uniform3(int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void Uniform3(int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void Uniform3(int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void Uniform3(int location, uint count, global::System.ReadOnlySpan<uint> value);
 
     void Uniform3(int location, uint count, in float value);
 
@@ -15941,14 +11548,6 @@ public unsafe partial interface IGLWrapper
 
     void Uniform4(int location, uint count, int* value);
 
-    void Uniform4(int location, uint count, global::System.ReadOnlySpan<double> value);
-
-    void Uniform4(int location, uint count, global::System.ReadOnlySpan<int> value);
-
-    void Uniform4(int location, uint count, global::System.ReadOnlySpan<float> value);
-
-    void Uniform4(int location, uint count, global::System.ReadOnlySpan<uint> value);
-
     void Uniform4(int location, uint count, in float value);
 
     void Uniform4(int location, uint count, float* value);
@@ -15969,10 +11568,6 @@ public unsafe partial interface IGLWrapper
 
     void UniformMatrix2(int location, uint count, bool transpose, double* value);
 
-    void UniformMatrix2(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix2(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void UniformMatrix2(int location, uint count, bool transpose, in float value);
 
     void UniformMatrix2(int location, uint count, bool transpose, float* value);
@@ -15984,10 +11579,6 @@ public unsafe partial interface IGLWrapper
     void UniformMatrix2x3(int location, uint count, bool transpose, in double value);
 
     void UniformMatrix2x3(int location, uint count, bool transpose, double* value);
-
-    void UniformMatrix2x3(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix2x3(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void UniformMatrix2x3(int location, uint count, bool transpose, in float value);
 
@@ -16001,10 +11592,6 @@ public unsafe partial interface IGLWrapper
 
     void UniformMatrix2x4(int location, uint count, bool transpose, double* value);
 
-    void UniformMatrix2x4(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix2x4(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void UniformMatrix2x4(int location, uint count, bool transpose, in float value);
 
     void UniformMatrix2x4(int location, uint count, bool transpose, float* value);
@@ -16016,10 +11603,6 @@ public unsafe partial interface IGLWrapper
     void UniformMatrix3(int location, uint count, bool transpose, in double value);
 
     void UniformMatrix3(int location, uint count, bool transpose, double* value);
-
-    void UniformMatrix3(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix3(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void UniformMatrix3(int location, uint count, bool transpose, in float value);
 
@@ -16033,10 +11616,6 @@ public unsafe partial interface IGLWrapper
 
     void UniformMatrix3x2(int location, uint count, bool transpose, double* value);
 
-    void UniformMatrix3x2(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix3x2(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void UniformMatrix3x2(int location, uint count, bool transpose, in float value);
 
     void UniformMatrix3x2(int location, uint count, bool transpose, float* value);
@@ -16048,10 +11627,6 @@ public unsafe partial interface IGLWrapper
     void UniformMatrix3x4(int location, uint count, bool transpose, in double value);
 
     void UniformMatrix3x4(int location, uint count, bool transpose, double* value);
-
-    void UniformMatrix3x4(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix3x4(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void UniformMatrix3x4(int location, uint count, bool transpose, in float value);
 
@@ -16065,10 +11640,6 @@ public unsafe partial interface IGLWrapper
 
     void UniformMatrix4(int location, uint count, bool transpose, double* value);
 
-    void UniformMatrix4(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix4(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void UniformMatrix4(int location, uint count, bool transpose, in float value);
 
     void UniformMatrix4(int location, uint count, bool transpose, float* value);
@@ -16080,10 +11651,6 @@ public unsafe partial interface IGLWrapper
     void UniformMatrix4x2(int location, uint count, bool transpose, in double value);
 
     void UniformMatrix4x2(int location, uint count, bool transpose, double* value);
-
-    void UniformMatrix4x2(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix4x2(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
 
     void UniformMatrix4x2(int location, uint count, bool transpose, in float value);
 
@@ -16097,25 +11664,17 @@ public unsafe partial interface IGLWrapper
 
     void UniformMatrix4x3(int location, uint count, bool transpose, double* value);
 
-    void UniformMatrix4x3(int location, uint count, bool transpose, global::System.ReadOnlySpan<double> value);
-
-    void UniformMatrix4x3(int location, uint count, bool transpose, global::System.ReadOnlySpan<float> value);
-
     void UniformMatrix4x3(int location, uint count, bool transpose, in float value);
 
     void UniformMatrix4x3(int location, uint count, bool transpose, float* value);
 
     void UniformSubroutines(GLEnum shadertype, global::System.ReadOnlySpan<uint> indices);
 
-    void UniformSubroutines(GLEnum shadertype, uint count, global::System.ReadOnlySpan<uint> indices);
-
     void UniformSubroutines(GLEnum shadertype, uint count, in uint indices);
 
     void UniformSubroutines(GLEnum shadertype, uint count, uint* indices);
 
     void UniformSubroutines(ShaderType shadertype, global::System.ReadOnlySpan<uint> indices);
-
-    void UniformSubroutines(ShaderType shadertype, uint count, global::System.ReadOnlySpan<uint> indices);
 
     void UniformSubroutines(ShaderType shadertype, uint count, in uint indices);
 
@@ -16197,31 +11756,9 @@ public unsafe partial interface IGLWrapper
 
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, Buffer* buffers, in nint offsets, uint* strides);
 
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, Buffer* buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, Buffer* buffers, nint* offsets, in uint strides);
 
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, Buffer* buffers, nint* offsets, uint* strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, Buffer* buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, nint* offsets, uint* strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<Buffer> buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, nint* offsets, uint* strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, global::System.ReadOnlySpan<uint> buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
 
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, in uint buffers, in nint offsets, in uint strides);
 
@@ -16235,15 +11772,9 @@ public unsafe partial interface IGLWrapper
 
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, uint* buffers, in nint offsets, uint* strides);
 
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, uint* buffers, nint* offsets, global::System.ReadOnlySpan<uint> strides);
-
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, uint* buffers, nint* offsets, in uint strides);
 
     void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, uint* buffers, nint* offsets, uint* strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, global::System.ReadOnlySpan<uint> strides);
-
-    void VertexArrayVertexBuffers(uint vaobj, uint first, uint count, uint* buffers, global::System.ReadOnlySpan<nint> offsets, uint* strides);
 
     void VertexAttrib1(uint index, in double v);
 
@@ -16256,12 +11787,6 @@ public unsafe partial interface IGLWrapper
     void VertexAttrib1(uint index, short* v);
 
     void VertexAttrib1(uint index, short x);
-
-    void VertexAttrib1(uint index, global::System.ReadOnlySpan<double> v);
-
-    void VertexAttrib1(uint index, global::System.ReadOnlySpan<short> v);
-
-    void VertexAttrib1(uint index, global::System.ReadOnlySpan<float> v);
 
     void VertexAttrib1(uint index, in float v);
 
@@ -16285,12 +11810,6 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttrib2(uint index, global::System.Numerics.Vector2 v);
 
-    void VertexAttrib2(uint index, global::System.ReadOnlySpan<double> v);
-
-    void VertexAttrib2(uint index, global::System.ReadOnlySpan<short> v);
-
-    void VertexAttrib2(uint index, global::System.ReadOnlySpan<float> v);
-
     void VertexAttrib2(uint index, in float v);
 
     void VertexAttrib2(uint index, float* v);
@@ -16312,12 +11831,6 @@ public unsafe partial interface IGLWrapper
     void VertexAttrib3(uint index, ref global::System.Numerics.Vector3 v);
 
     void VertexAttrib3(uint index, global::System.Numerics.Vector3 v);
-
-    void VertexAttrib3(uint index, global::System.ReadOnlySpan<double> v);
-
-    void VertexAttrib3(uint index, global::System.ReadOnlySpan<short> v);
-
-    void VertexAttrib3(uint index, global::System.ReadOnlySpan<float> v);
 
     void VertexAttrib3(uint index, in float v);
 
@@ -16348,22 +11861,6 @@ public unsafe partial interface IGLWrapper
     void VertexAttrib4(uint index, ref global::System.Numerics.Vector4 v);
 
     void VertexAttrib4(uint index, global::System.Numerics.Vector4 v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<byte> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<double> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<short> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<int> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<sbyte> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<float> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<ushort> v);
-
-    void VertexAttrib4(uint index, global::System.ReadOnlySpan<uint> v);
 
     void VertexAttrib4(uint index, in sbyte v);
 
@@ -16399,18 +11896,6 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttrib4N(uint index, int* v);
 
-    void VertexAttrib4N(uint index, global::System.ReadOnlySpan<byte> v);
-
-    void VertexAttrib4N(uint index, global::System.ReadOnlySpan<short> v);
-
-    void VertexAttrib4N(uint index, global::System.ReadOnlySpan<int> v);
-
-    void VertexAttrib4N(uint index, global::System.ReadOnlySpan<sbyte> v);
-
-    void VertexAttrib4N(uint index, global::System.ReadOnlySpan<ushort> v);
-
-    void VertexAttrib4N(uint index, global::System.ReadOnlySpan<uint> v);
-
     void VertexAttrib4N(uint index, in sbyte v);
 
     void VertexAttrib4N(uint index, sbyte* v);
@@ -16439,10 +11924,6 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribI1(uint index, int x);
 
-    void VertexAttribI1(uint index, global::System.ReadOnlySpan<int> v);
-
-    void VertexAttribI1(uint index, global::System.ReadOnlySpan<uint> v);
-
     void VertexAttribI1(uint index, in uint v);
 
     void VertexAttribI1(uint index, uint* v);
@@ -16455,10 +11936,6 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribI2(uint index, int x, int y);
 
-    void VertexAttribI2(uint index, global::System.ReadOnlySpan<int> v);
-
-    void VertexAttribI2(uint index, global::System.ReadOnlySpan<uint> v);
-
     void VertexAttribI2(uint index, in uint v);
 
     void VertexAttribI2(uint index, uint* v);
@@ -16470,10 +11947,6 @@ public unsafe partial interface IGLWrapper
     void VertexAttribI3(uint index, int* v);
 
     void VertexAttribI3(uint index, int x, int y, int z);
-
-    void VertexAttribI3(uint index, global::System.ReadOnlySpan<int> v);
-
-    void VertexAttribI3(uint index, global::System.ReadOnlySpan<uint> v);
 
     void VertexAttribI3(uint index, in uint v);
 
@@ -16494,18 +11967,6 @@ public unsafe partial interface IGLWrapper
     void VertexAttribI4(uint index, int* v);
 
     void VertexAttribI4(uint index, int x, int y, int z, int w);
-
-    void VertexAttribI4(uint index, global::System.ReadOnlySpan<byte> v);
-
-    void VertexAttribI4(uint index, global::System.ReadOnlySpan<short> v);
-
-    void VertexAttribI4(uint index, global::System.ReadOnlySpan<int> v);
-
-    void VertexAttribI4(uint index, global::System.ReadOnlySpan<sbyte> v);
-
-    void VertexAttribI4(uint index, global::System.ReadOnlySpan<ushort> v);
-
-    void VertexAttribI4(uint index, global::System.ReadOnlySpan<uint> v);
 
     void VertexAttribI4(uint index, in sbyte v);
 
@@ -16541,15 +12002,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribL1(uint index, double x);
 
-    void VertexAttribL1(uint index, global::System.ReadOnlySpan<double> v);
-
     void VertexAttribL2(uint index, in double v);
 
     void VertexAttribL2(uint index, double* v);
 
     void VertexAttribL2(uint index, double x, double y);
-
-    void VertexAttribL2(uint index, global::System.ReadOnlySpan<double> v);
 
     void VertexAttribL3(uint index, in double v);
 
@@ -16557,15 +12014,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribL3(uint index, double x, double y, double z);
 
-    void VertexAttribL3(uint index, global::System.ReadOnlySpan<double> v);
-
     void VertexAttribL4(uint index, in double v);
 
     void VertexAttribL4(uint index, double* v);
 
     void VertexAttribL4(uint index, double x, double y, double z, double w);
-
-    void VertexAttribL4(uint index, global::System.ReadOnlySpan<double> v);
 
     void VertexAttribLFormat(uint attribindex, int size, GLEnum type, uint relativeoffset);
 
@@ -16575,15 +12028,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribLPointer(uint index, int size, VertexAttribLType type, uint stride, void* pointer);
 
-    void VertexAttribP1(uint index, GLEnum type, bool normalized, global::System.ReadOnlySpan<uint> value);
-
     void VertexAttribP1(uint index, GLEnum type, bool normalized, in uint value);
 
     void VertexAttribP1(uint index, GLEnum type, bool normalized, uint* value);
 
     void VertexAttribP1(uint index, GLEnum type, bool normalized, uint value);
-
-    void VertexAttribP1(uint index, VertexAttribPointerType type, bool normalized, global::System.ReadOnlySpan<uint> value);
 
     void VertexAttribP1(uint index, VertexAttribPointerType type, bool normalized, in uint value);
 
@@ -16591,15 +12040,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribP1(uint index, VertexAttribPointerType type, bool normalized, uint value);
 
-    void VertexAttribP2(uint index, GLEnum type, bool normalized, global::System.ReadOnlySpan<uint> value);
-
     void VertexAttribP2(uint index, GLEnum type, bool normalized, in uint value);
 
     void VertexAttribP2(uint index, GLEnum type, bool normalized, uint* value);
 
     void VertexAttribP2(uint index, GLEnum type, bool normalized, uint value);
-
-    void VertexAttribP2(uint index, VertexAttribPointerType type, bool normalized, global::System.ReadOnlySpan<uint> value);
 
     void VertexAttribP2(uint index, VertexAttribPointerType type, bool normalized, in uint value);
 
@@ -16607,15 +12052,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribP2(uint index, VertexAttribPointerType type, bool normalized, uint value);
 
-    void VertexAttribP3(uint index, GLEnum type, bool normalized, global::System.ReadOnlySpan<uint> value);
-
     void VertexAttribP3(uint index, GLEnum type, bool normalized, in uint value);
 
     void VertexAttribP3(uint index, GLEnum type, bool normalized, uint* value);
 
     void VertexAttribP3(uint index, GLEnum type, bool normalized, uint value);
-
-    void VertexAttribP3(uint index, VertexAttribPointerType type, bool normalized, global::System.ReadOnlySpan<uint> value);
 
     void VertexAttribP3(uint index, VertexAttribPointerType type, bool normalized, in uint value);
 
@@ -16623,15 +12064,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexAttribP3(uint index, VertexAttribPointerType type, bool normalized, uint value);
 
-    void VertexAttribP4(uint index, GLEnum type, bool normalized, global::System.ReadOnlySpan<uint> value);
-
     void VertexAttribP4(uint index, GLEnum type, bool normalized, in uint value);
 
     void VertexAttribP4(uint index, GLEnum type, bool normalized, uint* value);
 
     void VertexAttribP4(uint index, GLEnum type, bool normalized, uint value);
-
-    void VertexAttribP4(uint index, VertexAttribPointerType type, bool normalized, global::System.ReadOnlySpan<uint> value);
 
     void VertexAttribP4(uint index, VertexAttribPointerType type, bool normalized, in uint value);
 
@@ -16649,15 +12086,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexBindingDivisor(uint bindingindex, uint divisor);
 
-    void VertexP2(GLEnum type, global::System.ReadOnlySpan<uint> value);
-
     void VertexP2(GLEnum type, in uint value);
 
     void VertexP2(GLEnum type, uint* value);
 
     void VertexP2(GLEnum type, uint value);
-
-    void VertexP2(VertexPointerType type, global::System.ReadOnlySpan<uint> value);
 
     void VertexP2(VertexPointerType type, in uint value);
 
@@ -16665,15 +12098,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexP2(VertexPointerType type, uint value);
 
-    void VertexP3(GLEnum type, global::System.ReadOnlySpan<uint> value);
-
     void VertexP3(GLEnum type, in uint value);
 
     void VertexP3(GLEnum type, uint* value);
 
     void VertexP3(GLEnum type, uint value);
-
-    void VertexP3(VertexPointerType type, global::System.ReadOnlySpan<uint> value);
 
     void VertexP3(VertexPointerType type, in uint value);
 
@@ -16681,15 +12110,11 @@ public unsafe partial interface IGLWrapper
 
     void VertexP3(VertexPointerType type, uint value);
 
-    void VertexP4(GLEnum type, global::System.ReadOnlySpan<uint> value);
-
     void VertexP4(GLEnum type, in uint value);
 
     void VertexP4(GLEnum type, uint* value);
 
     void VertexP4(GLEnum type, uint value);
-
-    void VertexP4(VertexPointerType type, global::System.ReadOnlySpan<uint> value);
 
     void VertexP4(VertexPointerType type, in uint value);
 
@@ -16711,13 +12136,9 @@ public unsafe partial interface IGLWrapper
 
     void Viewport(int x, int y, uint width, uint height);
 
-    void ViewportArray(uint first, uint count, global::System.ReadOnlySpan<float> v);
-
     void ViewportArray(uint first, uint count, in float v);
 
     void ViewportArray(uint first, uint count, float* v);
-
-    void ViewportIndexed(uint index, global::System.ReadOnlySpan<float> v);
 
     void ViewportIndexed(uint index, in float v);
 

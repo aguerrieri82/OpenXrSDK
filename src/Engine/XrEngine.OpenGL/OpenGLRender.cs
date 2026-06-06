@@ -304,6 +304,9 @@ namespace XrEngine.OpenGL
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
                 AddLayer(scene, GlLayerType.Opaque, opaque);
 
+                var staticLayer = scene.EnsureLayer<StaticLayer>();
+                AddLayer(scene, GlLayerType.Static, staticLayer);
+
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     AddLayer(scene, GlLayerType.Custom, layer);
 

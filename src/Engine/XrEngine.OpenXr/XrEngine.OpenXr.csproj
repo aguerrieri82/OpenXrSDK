@@ -35,6 +35,7 @@
 
 	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">
 		<Using Include="OpenGLWrapper.IGLWrapper" Alias="GL" />
+		<Using Include="OpenGLWrapper" />
 	</ItemGroup>
 
 

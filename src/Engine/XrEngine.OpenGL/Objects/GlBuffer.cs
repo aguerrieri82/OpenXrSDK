@@ -55,6 +55,23 @@ namespace XrEngine.OpenGL
             };
         }
 
+        public void Update(Func<(T, bool)> getValue)
+        {
+#if GL_WRAPPER
+            _gl.BufferData(value =>
+            {
+                var (actualValue, hasValue) = value;
+
+                if (hasValue)
+                    Update(actualValue);
+            }, getValue);
+#else
+            var (actualValue, hasValue) = getValue();
+            if (hasValue)
+                Update(actualValue);
+#endif
+        }
+
         public unsafe void Update(void* data, uint sizeBytes, bool wait)
         {
             BeginUpdate();
@@ -217,6 +234,22 @@ namespace XrEngine.OpenGL
                 Update(tValue);
             else
                 throw new NotSupportedException();
+        }
+
+        void IBuffer.Update(Func<object?> getValue)
+        {
+            Update(() =>
+            {
+                var value = getValue();
+
+                if (value == null)
+                    return (default!, false);
+                
+                if (value is T tValue)
+                    return (tValue, true);
+
+                throw new NotSupportedException();
+            });
         }
 
         unsafe void IBuffer.UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0)
