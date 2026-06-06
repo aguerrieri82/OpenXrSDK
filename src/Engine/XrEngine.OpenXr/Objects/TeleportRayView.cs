@@ -19,6 +19,7 @@ namespace XrEngine.OpenXr
 
             Materials.Add(_material);
             //Materials.Add(new WireframeMaterial());
+            Flags |= EngineObjectFlags.NoFrustumCulling;
             Build();
         }
 
@@ -64,7 +65,7 @@ namespace XrEngine.OpenXr
             for (var i = 0; i < Segments; i++)
                 path[i] = new Vector2(0, i);
 
-            var pathPoly = new Poly2D() { Points = path };
+            var pathPoly = new Poly2D() { Points = path, IsClosed = false };
 
             var circle = new Circle2D()
             {

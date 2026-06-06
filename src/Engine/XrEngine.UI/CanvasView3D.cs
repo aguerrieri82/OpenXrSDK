@@ -38,6 +38,7 @@ namespace XrEngine.UI
 
             Geometry = quad;
             Mode = CanvasViewMode.Texture;
+            UseMips = true;
         }
 
         public void SetRenderTarget(nint imageId, uint width, uint height)
@@ -48,7 +49,7 @@ namespace XrEngine.UI
                 {
                     Width = width,
                     Height = height,
-                    Format = TextureFormat.Rgba32
+                    Format = TextureFormat.Rgba32,
                 };
                 CreateSurface(texture, imageId);
                 _targets[imageId] = texture;
@@ -85,7 +86,7 @@ namespace XrEngine.UI
 
             var surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
 
-            surfaceProvider!.BeginDrawSurface();
+            surfaceProvider!.BeginDrawSurface(canvas.Surface!, _activeTexture);
 
             Draw(canvas);
 
@@ -93,7 +94,7 @@ namespace XrEngine.UI
 
             surface.Flush();
 
-            surfaceProvider.EndDrawSurface();
+            surfaceProvider.EndDrawSurface(canvas.Surface!, _activeTexture);
         }
 
         protected virtual void Draw(SKCanvas canvas)
@@ -154,7 +155,14 @@ namespace XrEngine.UI
                     WrapT = WrapMode.ClampToEdge,
                     MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
+                    MipLevelCount = 0
                 };
+
+                if (UseMips)
+                {
+                    _defaultTexture.MipLevelCount = 4;
+                    _defaultTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
+                }
 
                 Materials.Add(new TextureMaterial(_defaultTexture)
                 {
@@ -236,5 +244,6 @@ namespace XrEngine.UI
             }
         }
 
+        public bool UseMips { get; set; }
     }
 }

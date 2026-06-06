@@ -38,7 +38,7 @@ namespace XrEngine
 
             var totLen = Length;
 
-            var pCount = IsClosed ? Points.Length + 1 : Points.Length;
+            var pCount = IsClosed ? Points.Length : Points.Length - 1;
 
             for (var i = 0; i < pCount; i++)
             {
@@ -55,7 +55,7 @@ namespace XrEngine
 
                 curLen += Vector2.Distance(p1, p2);
 
-                if (!IsClosed && i == pCount - 1)
+                if (IsClosed && i == pCount - 1)
                 {
                     yield return new CurvePoint
                     {

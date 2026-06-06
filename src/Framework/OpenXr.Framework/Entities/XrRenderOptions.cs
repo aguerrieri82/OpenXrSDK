@@ -16,8 +16,8 @@ namespace OpenXr.Framework
             ResolutionScale = 1;
             SampleCount = 1;
             RenderMode = XrRenderMode.SingleEye;
-            GpuLevel = PerfSettingsLevelEXT.SustainedHighExt;
-            CpuLevel = PerfSettingsLevelEXT.SustainedHighExt;
+            GpuLevel = PerfSettingsLevelEXT.BoostExt;
+            CpuLevel = PerfSettingsLevelEXT.BoostExt;
         }
 
         public Extent2Di Size { get; set; }

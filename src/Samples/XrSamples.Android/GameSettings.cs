@@ -35,7 +35,7 @@ namespace XrSamples
                 IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
-                FrustumCulling = false
+                FrustumCulling = true
             };
         }
 

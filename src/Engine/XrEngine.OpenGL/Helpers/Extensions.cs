@@ -233,6 +233,8 @@ namespace XrEngine.OpenGL
 
             else if (texture2D.MipLevelCount > 0)
                 glTexture.MaxLevel = texture2D.MipLevelCount - 1;
+            else
+                glTexture.MaxLevel = 0;
 
 
             glTexture.Version = texture2D.Version;

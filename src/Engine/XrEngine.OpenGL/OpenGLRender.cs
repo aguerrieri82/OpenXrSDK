@@ -303,9 +303,11 @@ namespace XrEngine.OpenGL
 
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
                 AddLayer(scene, GlLayerType.Opaque, opaque);
-
+                
+                /*
                 var staticLayer = scene.EnsureLayer<StaticLayer>();
                 AddLayer(scene, GlLayerType.Static, staticLayer);
+                */
 
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     AddLayer(scene, GlLayerType.Custom, layer);
@@ -452,7 +454,7 @@ namespace XrEngine.OpenGL
 
         #region ISurfaceProvider
 
-        public void BeginDrawSurface()
+        public void BeginDrawSurface(SKSurface surface, Texture2D texture)
         {
             EnsureThread();
 
@@ -461,7 +463,7 @@ namespace XrEngine.OpenGL
             _grContext!.ResetContext(GRGlBackendState.All);
         }
 
-        public void EndDrawSurface()
+        public void EndDrawSurface(SKSurface surface, Texture2D texture)
         {
             EnsureThread();
 
@@ -485,6 +487,9 @@ namespace XrEngine.OpenGL
             _glState.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
 
             ConfigureCaps();
+
+            if (texture.MipLevelCount > 1)
+                texture.ToGlTexture().GenerateMipmap();
         }
 
         public SKSurface CreateSurface(Texture2D texture, nint handle = 0)
@@ -500,6 +505,7 @@ namespace XrEngine.OpenGL
             });
 
             glTexture.Update(texture);
+            glTexture.GenerateMipmap();
 
             if (_grContext == null)
             {
@@ -524,10 +530,10 @@ namespace XrEngine.OpenGL
 
             var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format);
 
-            var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, true, gerTextInfo);
+            var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, glTexture.MaxLevel > 0, gerTextInfo);
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
-
+        
             return SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
         }
 

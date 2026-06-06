@@ -121,7 +121,7 @@ public static class Program
                 PublicParameters: method.GetParameters(),
                 Backend: backend));
         }
-
+        /*
         foreach (var method in overloadsType
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
             .Where(m => !m.IsSpecialName))
@@ -145,7 +145,7 @@ public static class Program
                 PublicParameters: ps.Skip(1).ToArray(),
                 Backend: backend));
         }
-
+        */
         return entries
             .OrderBy(e => e.Method.Name, StringComparer.Ordinal)
             .ThenBy(e => e.IsExtension ? 1 : 0)
@@ -194,7 +194,7 @@ public static class Program
 
         EmitHeader(sb);
 
-        sb.AppendLine("public unsafe partial class GLWrapper : global::XrEngine.Wrapper<GL>, IGLWrapper");
+        sb.AppendLine("public unsafe partial class GLWrapper : Wrapper<GL>, IGLWrapper");
         sb.AppendLine("{");
         sb.AppendLine("    public GLWrapper(GL instance)");
         sb.AppendLine("        : base(instance)");
@@ -415,7 +415,7 @@ public static class Program
         var method = entry.Method;
         var parameters = entry.PublicParameters;
 
-        sb.Append("    public ");
+        sb.Append("    public virtual ");
         sb.Append(GetTypeName(method.ReturnType));
         sb.Append(' ');
         sb.Append(method.Name);
@@ -929,7 +929,7 @@ public static class Program
 
         sb.AppendLine("public unsafe partial class GLForwardWrapper : IGLWrapper");
         sb.AppendLine("{");
-        sb.AppendLine("    private readonly IGLWrapper _instance;");
+        sb.AppendLine("    protected IGLWrapper _instance;");
         sb.AppendLine();
         sb.AppendLine("    public GLForwardWrapper(IGLWrapper instance)");
         sb.AppendLine("    {");
@@ -940,6 +940,8 @@ public static class Program
         if (contextType != null)
         {
             sb.AppendLine($"    public {GetTypeName(contextType)} Context => _instance.Context;");
+            sb.AppendLine();
+            sb.AppendLine($"    public IGLWrapper Instance => _instance;");
             sb.AppendLine();
         }
 

@@ -125,7 +125,7 @@ namespace XrSamples.Dnd
 
             _map.AddChild(floor);
             _map.AddChild(light);
-            _map.Flags |= EngineObjectFlags.Static;
+            //_map.Flags |= EngineObjectFlags.Static;
 
             return _map;
         }

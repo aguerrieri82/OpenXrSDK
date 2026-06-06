@@ -6,8 +6,8 @@ namespace XrEngine
     {
         SKSurface CreateSurface(Texture2D texture, nint handle = 0);
 
-        void BeginDrawSurface();
+        void BeginDrawSurface(SKSurface surface, Texture2D texture);
 
-        void EndDrawSurface();
+        void EndDrawSurface(SKSurface surface, Texture2D texture);
     }
 }

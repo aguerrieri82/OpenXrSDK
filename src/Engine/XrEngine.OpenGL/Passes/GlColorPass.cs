@@ -117,11 +117,10 @@ namespace XrEngine.OpenGL
         {
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
-
-            var timer = Stopwatch.StartNew();
-
 #if GL_WRAPPER
             
+            var timer = Stopwatch.StartNew();
+
             bool isRecording = false;
 
             var wrapper = _gl as OpenGLWrapper.GlSwitchWrapper;

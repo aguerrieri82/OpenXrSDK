@@ -30,7 +30,7 @@ namespace XrSamples.Dnd
                     .UseDefaultHDR()
                     .ConfigureApp(scene.InputController.Configure)
                     .ConfigureSampleApp()
-                    .UseTeleport(ControllerHand.Left, scene.Player);
+                    .UseTeleport(ControllerHand.Right, scene.Player);
         }
     }
 }

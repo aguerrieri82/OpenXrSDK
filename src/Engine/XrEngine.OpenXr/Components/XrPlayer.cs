@@ -29,29 +29,37 @@ namespace XrEngine.OpenXr
 
         public void Teleport(Vector3 position)
         {
-            if (XrApp.Current == null || !XrApp.Current.IsStarted)
+            var app = XrApp.Current;
+
+            if (app == null || !app.IsStarted)
                 return;
 
-            var newRef = new Pose3()
+            var targetHeadPosition = position;
+            targetHeadPosition.Y += Height;
+
+            var oldRef = app.ReferenceFrame;
+
+            var newRef = new Pose3
             {
-                Position = position,
+                Position = targetHeadPosition,
                 Orientation = Quaternion.Identity
             };
 
-            newRef.Position.Y += Height;
-
-            XrApp.Current.ReferenceFrame = Pose3.Identity;
-
-            var head = XrApp.Current.SpacesTracker.GetLastLocation(XrApp.Current.Head);
+            var head = app.SpacesTracker.GetLastLocation(app.Head);
 
             if (head != null && head.IsValid)
             {
+                var rawHeadPose = oldRef.Inverse().Multiply(head.Pose);
+
+                var rawHeadPosition = rawHeadPose.Position;
+
                 if (Height == 0)
-                    head.Pose.Position.Y = 0;
-                newRef.Position -= head.Pose.Position;
+                    rawHeadPosition.Y = 0;
+
+                newRef.Position = targetHeadPosition - rawHeadPosition;
             }
 
-            XrApp.Current.ReferenceFrame = newRef;
+            app.ReferenceFrame = newRef;
 
             _host!.WorldPosition = position;
         }
