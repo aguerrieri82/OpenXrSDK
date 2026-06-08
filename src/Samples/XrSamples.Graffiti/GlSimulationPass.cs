@@ -33,11 +33,11 @@ namespace XrSamples.Graffiti
 
         protected GlTexture _wetTex;
         protected GlTexture _tempWetTex;
-        protected GlTexture _undoWetTex;
+        protected GlTexture? _undoWetTex;
 
         protected GlTexture _dryTex;
         protected GlTexture _tempDryTex;
-        protected GlTexture _undoDryTex;
+        protected GlTexture? _undoDryTex;
 
         protected readonly GlBuffer<PaintSimUniforms> _paintUniformsBuffer;
         protected PaintSimUniforms _paintUniforms;
@@ -51,19 +51,21 @@ namespace XrSamples.Graffiti
         protected bool _isSprayClear;
         protected Rect2I _sprayRect;
         protected Vector2 _lastCanvasSize;
-        protected bool _isFirstSizeUpdate;
+        protected internal bool _isFirstSizeUpdate;
         protected bool _spraySessionStarted;
 
         protected readonly GlBuffer<PaintStateBuffer> _paintStateBuffer;
         protected PaintStateBuffer _paintState;
         protected IMemoryBuffer<byte>[] _readBuffer = new IMemoryBuffer<byte>[1];
-        private bool _hasUndo;
+        protected bool _hasUndo;
+        protected float _lastTextSize;
 
-        public GlSimulationPass(OpenGLRender renderer)
+        public GlSimulationPass(OpenGLRender renderer, bool reconstructMode)
             : base(renderer)
         {
             UseInstance = true;
             SprayMaxSamples = 100;
+            ReconstructMode = reconstructMode;
 
             _sprayFrameBuffer = new GlTextureFrameBuffer(_gl);
 
@@ -84,6 +86,7 @@ namespace XrSamples.Graffiti
             _dripProgram.Build();
 
             _resolveProgram = new GlComputeProgram(renderer.GL, "paint_res.comp", str => Embedded.GetString<GlSimulationPass>(str));
+            _resolveProgram.AddFeature($"COLOR_ONLY {(reconstructMode ? 1: 0)}");
             _resolveProgram.Build();
 
             _sprayUniformsBuffer = new GlBuffer<SprayUniforms>(_gl, BufferTargetARB.UniformBuffer);
@@ -102,11 +105,16 @@ namespace XrSamples.Graffiti
             _dryTex = CreateTexture();
             _tempDryTex = CreateTexture();
 
-            _undoDryTex = CreateTexture();
-            _undoWetTex = CreateTexture();
+            if (!ReconstructMode)
+            {
+                _undoDryTex = CreateTexture();
+                _undoWetTex = CreateTexture();
+            }
 
             _paintUniformsBuffer = new GlBuffer<PaintSimUniforms>(_gl, BufferTargetARB.UniformBuffer);
             _paintUniforms = new PaintSimUniforms();
+
+            _isFirstSizeUpdate = true;
 
 #if DEBUG
             _renderer.EnableDebug(true);
@@ -265,10 +273,11 @@ namespace XrSamples.Graffiti
             if (ctx.Frame == _lastFrame)
                 return;
 
-            if (_lastCanvasSize != _canvas!.Size)
+            if (_lastCanvasSize != _canvas!.Size || _lastTextSize != _canvas.TexelSize)
             {
                 UpdateCanvasSize();
                 _lastCanvasSize = _canvas.Size;
+                _lastTextSize = _canvas.TexelSize;
             }
 
             if (_canvas!.ClearRequest)
@@ -301,8 +310,6 @@ namespace XrSamples.Graffiti
 
         protected void Intialize(RenderContext ctx)
         {
-            _isFirstSizeUpdate = true;
-
             _canvas = ctx.Scene!.Descendants<PaintCanvas>().First();
             _brush = ctx.Scene!.Descendants<SprayBrush>().First();
             _can = ctx.Scene!.Descendants<Can>().First();
@@ -345,11 +352,17 @@ namespace XrSamples.Graffiti
                 _tempWetTex.Recreate();
                 _wetTex.Recreate();
                 _tempDryTex.Recreate();
-                _undoWetTex.Recreate();
-                _undoDryTex.Recreate();
+
+                if (!ReconstructMode)
+                {
+                    _undoWetTex?.Recreate();
+                    _undoDryTex?.Recreate();
+                    _canvas!.RoughnessTexture.ToGlTexture().Recreate();
+                    _canvas!.NormalTexture.ToGlTexture().Recreate();
+                }
+ 
                 _canvas!.ColorTexture.ToGlTexture().Recreate();
-                _canvas!.RoughnessTexture.ToGlTexture().Recreate();
-                _canvas!.NormalTexture.ToGlTexture().Recreate();
+
                 _canvas!.SprayTexture.ToGlTexture().Recreate();
             }
 
@@ -357,12 +370,23 @@ namespace XrSamples.Graffiti
             _tempWetTex.Update(data);
             _wetTex.Update(data);
             _tempDryTex.Update(data);
-            _undoDryTex.Update(data);
-            _undoWetTex.Update(data);
 
+            if (!ReconstructMode)
+            {
+                _undoDryTex?.Update(data);
+                _undoWetTex?.Update(data);
+
+                data.Format = TextureFormat.Rgba32;
+                _canvas!.RoughnessTexture.ToGlTexture().Update(data);
+
+                data.Format = TextureFormat.Rgba32;
+                _canvas!.NormalTexture.ToGlTexture().Update(data);
+            }
+
+            data.Format = TextureFormat.Rgba32;
             _canvas!.ColorTexture.ToGlTexture().Update(data);
-            _canvas!.RoughnessTexture.ToGlTexture().Update(data);
-            _canvas!.NormalTexture.ToGlTexture().Update(data);
+
+            data.Format = TextureFormat.GrayFloat16;
             _canvas!.SprayTexture.ToGlTexture().Update(data);
 
             _sprayFrameBuffer.Configure(_canvas!.SprayTexture.ToGlTexture(), null, 1);
@@ -454,13 +478,20 @@ namespace XrSamples.Graffiti
             _gl.BindImageTexture(0, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
 
-            _gl.BindImageTexture(3, _canvas!.ColorTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(4, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
-            _gl.BindImageTexture(5, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
+            _gl.BindImageTexture(3, _canvas!.ColorTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
+            _gl.BindImageTexture(4, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
+            _gl.BindImageTexture(5, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
 
             _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+
+            if (!ReconstructMode)
+            {
+                _canvas!.ColorTexture.ToGlTexture().GenerateMipmap();
+                _canvas!.RoughnessTexture.ToGlTexture().GenerateMipmap();
+                _canvas!.NormalTexture.ToGlTexture().GenerateMipmap();
+            }
         }
 
         protected void Undo()
@@ -468,16 +499,19 @@ namespace XrSamples.Graffiti
             if (!_hasUndo)
                 return;
 
-            _undoDryTex.CopyTo(_dryTex);
-            _undoWetTex.CopyTo(_wetTex);
+            _undoDryTex?.CopyTo(_dryTex);
+            _undoWetTex?.CopyTo(_wetTex);
 
             _hasUndo = false;
         }
 
         protected void CreateUndoEntry()
         {
-            _dryTex.CopyTo(_undoDryTex);
-            _wetTex.CopyTo(_undoWetTex);
+            if (ReconstructMode)
+                return;
+
+            _dryTex.CopyTo(_undoDryTex!);
+            _wetTex.CopyTo(_undoWetTex!);
             _hasUndo = true;
 
             /*
@@ -625,8 +659,9 @@ namespace XrSamples.Graffiti
             }
         }
 
+        public bool ReconstructMode { get; set; }
 
-        public bool UseInstance { get; set; }
+        public bool UseInstance { get; }
 
         public int SprayMaxSamples { get; set; }
     }

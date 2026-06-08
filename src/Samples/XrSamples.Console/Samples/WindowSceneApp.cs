@@ -12,6 +12,8 @@ using XrMath;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using XrSamples.Graffiti;
+using System.Diagnostics;
 
 
 
@@ -19,6 +21,14 @@ namespace XrSamples
 {
     public class WindowSceneApp
     {
+
+        public static readonly string[] AssetsPath = [
+            @"Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
+            @"D:\Projects\"];
+
         public static Task Run(IServiceProvider services)
         {
             ModuleManager.Instance.Init();
@@ -29,7 +39,11 @@ namespace XrSamples
 
             var app = builder
                 .UsePlatform<ConsolePlatform>()
-                .CreatePingPong()
+                .Configure(_ =>
+                {
+                    Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
+                })
+                .CreateGraffiti(true)
                 .Build()
                 .App;
 
@@ -47,6 +61,9 @@ namespace XrSamples
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
             }
 
+            UboSsbo1000DrawBenchmark? bench = null;
+            OpenGLRender? render = null;
+
             view.Load += () =>
             {
                 UpdateSize();
@@ -57,12 +74,17 @@ namespace XrSamples
                 var gl = view.CreateOpenGL();
 #endif
 
+
+                //bench = new UboSsbo1000DrawBenchmark(gl, gles: false);
+                //bench.Init();
+
 #if GL_WRAPPER
-                var render = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl));
+                render = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl));
 #else
-                var render = new OpenGLRender(gl);
+                render = new OpenGLRender(gl);
 #endif
                 render.EnableDebug();
+                render.AddPass(new GlSimulationPass(render, false), 0);
 
                 app.Renderer = render;
 
@@ -74,9 +96,30 @@ namespace XrSamples
                 UpdateSize();
             };
 
+            bool isRecorded = false; 
+
             view.Render += t =>
             {
                 app.RenderFrame();
+
+                if (!isRecorded)
+                {
+                    var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-130312.json");
+
+                    var generator = new CanvasImageGenerator((OpenGLRender)app.Renderer!);
+                    using var image = generator.Generate(record, 0.001f / 7f);
+
+                    Log.Debug(generator, "Encoding image...");
+
+                    using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                    using var outStream = File.OpenWrite("d:\\image.png");
+                    data.SaveTo(outStream);
+
+                    Log.Debug(generator, "Image saved");
+
+                    isRecorded = true;
+                }
+
             };
 
             view.Run();

@@ -253,6 +253,7 @@ namespace XrEngine.OpenXr
 
                 camera.Eyes ??= new CameraEye[2];
                 camera.IsStereo = true;
+                camera.IsMultiView = info.Mode == XrRenderMode.MultiView;
                 camera.Transform.Version++;
 
                 var eyes = camera.Eyes;

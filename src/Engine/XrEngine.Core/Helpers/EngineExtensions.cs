@@ -1125,122 +1125,81 @@ namespace XrEngine
             return corners;
         }
 
-        public static IList<Plane> FrustumPlanes(this Camera self, Plane[] planes)
+        public static void FrustumPlanes(this Matrix4x4 viewProj, Span<Plane> planes)
         {
-            var viewProjLeft = self.ViewProjection;
-            var viewProjRight = viewProjLeft;
+            if (planes.Length < 6)
+                throw new ArgumentException("Plane buffer must contain at least 6 elements.", nameof(planes));
 
-            if (self.Eyes != null && self.Eyes.Length > 1 && self.IsStereo)
-                viewProjRight = self.Eyes[1].ViewProj;
-
-            // Left plane
             planes[0] = new Plane(
-                viewProjLeft.M14 + viewProjLeft.M11,
-                viewProjLeft.M24 + viewProjLeft.M21,
-                viewProjLeft.M34 + viewProjLeft.M31,
-                viewProjLeft.M44 + viewProjLeft.M41
-            );
+                viewProj.M14 + viewProj.M11,
+                viewProj.M24 + viewProj.M21,
+                viewProj.M34 + viewProj.M31,
+                viewProj.M44 + viewProj.M41
+            ).Normalize();
 
-            // Right plane
             planes[1] = new Plane(
-                viewProjRight.M14 - viewProjRight.M11,
-                viewProjRight.M24 - viewProjRight.M21,
-                viewProjRight.M34 - viewProjRight.M31,
-                viewProjRight.M44 - viewProjRight.M41
-            );
+                viewProj.M14 - viewProj.M11,
+                viewProj.M24 - viewProj.M21,
+                viewProj.M34 - viewProj.M31,
+                viewProj.M44 - viewProj.M41
+            ).Normalize();
 
-            // Top plane
             planes[2] = new Plane(
-                viewProjLeft.M14 - viewProjLeft.M12,
-                viewProjLeft.M24 - viewProjLeft.M22,
-                viewProjLeft.M34 - viewProjLeft.M32,
-                viewProjLeft.M44 - viewProjLeft.M42
-            );
+                viewProj.M14 - viewProj.M12,
+                viewProj.M24 - viewProj.M22,
+                viewProj.M34 - viewProj.M32,
+                viewProj.M44 - viewProj.M42
+            ).Normalize();
 
-            // Bottom plane
             planes[3] = new Plane(
-                viewProjLeft.M14 + viewProjLeft.M12,
-                viewProjLeft.M24 + viewProjLeft.M22,
-                viewProjLeft.M34 + viewProjLeft.M32,
-                viewProjLeft.M44 + viewProjLeft.M42
-            );
+                viewProj.M14 + viewProj.M12,
+                viewProj.M24 + viewProj.M22,
+                viewProj.M34 + viewProj.M32,
+                viewProj.M44 + viewProj.M42
+            ).Normalize();
 
-            // Near plane
             planes[4] = new Plane(
-                viewProjLeft.M13,
-                viewProjLeft.M23,
-                viewProjLeft.M33,
-                viewProjLeft.M43
-            );
+                viewProj.M13,
+                viewProj.M23,
+                viewProj.M33,
+                viewProj.M43
+            ).Normalize();
 
-            // Far plane
             planes[5] = new Plane(
-                viewProjLeft.M14 - viewProjLeft.M13,
-                viewProjLeft.M24 - viewProjLeft.M23,
-                viewProjLeft.M34 - viewProjLeft.M33,
-                viewProjLeft.M44 - viewProjLeft.M43
-            );
+                viewProj.M14 - viewProj.M13,
+                viewProj.M24 - viewProj.M23,
+                viewProj.M34 - viewProj.M33,
+                viewProj.M44 - viewProj.M43
+            ).Normalize();
+        }
 
-            for (var i = 0; i < 6; i++)
-                planes[i] = Plane.Normalize(planes[i]);
+        public static Plane[] FrustumPlanes(
+            this Camera self,
+            Plane[]? planes,
+            out int count,
+            bool fullStereo = true)
+        {
+            var stereo =
+                fullStereo &&
+                self.IsStereo &&
+                self.Eyes?.Length > 1;
+
+            count = stereo ? 12 : 6;
+
+            if (planes == null || planes.Length < count)
+                Array.Resize(ref planes, count);
+
+            if (stereo)
+            {
+                self.Eyes![0].ViewProj.FrustumPlanes(planes.AsSpan(0, 6));
+                self.Eyes[1].ViewProj.FrustumPlanes(planes.AsSpan(6, 6));
+            }
+            else
+                self.ViewProjection.FrustumPlanes(planes.AsSpan(0, 6));
 
             return planes;
         }
 
-
-        /*
-        public static IEnumerable<Line3> FrustumLines(this Camera camera)
-        {
-            var minZ = 0;
-            var maxZ = 1;
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(-1, -1, minZ)),
-                To = camera.Unproject(new Vector3(-1, -1, maxZ)),
-            };
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(-1, 1, minZ)),
-                To = camera.Unproject(new Vector3(-1, 1, maxZ)),
-            };
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(1, 1, minZ)),
-                To = camera.Unproject(new Vector3(1, 1, maxZ)),
-            };
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(1, -1, minZ)),
-                To = camera.Unproject(new Vector3(1, -1, maxZ)),
-            };
-
-        }
-
-        public static bool CanSee(this Camera camera, Bounds3 bounds)
-        {
-            var boundsPoints = camera.Project(bounds.Points).ToArray();
-
-            var projBounds = boundsPoints.ComputeBounds(Matrix4x4.Identity);
-
-            var cameraBounds = new Bounds3()
-            {
-                Max = new Vector3(1.1f, 1.1f, 1.1f),
-                Min = new Vector3(-1.1f, -1.1f, -1.1f)
-            };
-
-
-            if (projBounds.Intersects(cameraBounds))
-                return true;
-
-            foreach (var line in camera.FrustumLines())
-            {
-                if (bounds.Intersects(line, out var _))
-                    return true;
-            }
-
-            return false;
-        }
-        */
 
         #endregion
 

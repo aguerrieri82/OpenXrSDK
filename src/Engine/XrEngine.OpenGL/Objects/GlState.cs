@@ -27,7 +27,7 @@ namespace XrEngine.OpenGL
             WriteDepth = null;
             UseDepth = null;
             DoubleSided = null;
-            WriteColor = null;
+            ColorMask = null;
             ActiveProgram = null;
             Wireframe = null;
             Alpha = null;
@@ -68,11 +68,11 @@ namespace XrEngine.OpenGL
             if (DoubleSided.HasValue)
                 SetDoubleSided(DoubleSided.Value, true);
 
-            if (WriteColor.HasValue)
-                SetWriteColor(WriteColor.Value, true);
+            if (ColorMask.HasValue)
+                SetColorMask((ColorMask.Value & 1) != 0, (ColorMask.Value & 2) != 0, (ColorMask.Value & 4) != 0, (ColorMask.Value & 8) != 0, true);
 
             if (ActiveProgram.HasValue)
-                SetActiveProgram(ActiveProgram.Value);
+                SetActiveProgram(ActiveProgram.Value, true);
 
             if (Wireframe.HasValue)
                 SetWireframe(Wireframe.Value, true);
@@ -106,7 +106,6 @@ namespace XrEngine.OpenGL
 
             foreach (var fb in BufferTargets)
                 BindBuffer(fb.Key, fb.Value, true);
-
 
             if (WriteStencil.HasValue)
                 SetWriteStencil(WriteStencil.Value, true);
@@ -302,17 +301,19 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void SetColorMask(bool r, bool g, bool b, bool a, bool force = false)
+        {
+            var mask = (r ? 1 : 0) + ((g ? 1 : 0) << 1) + ((b ? 1 : 0) << 2) + ((a ? 1 : 0) << 3);
+            if (ColorMask != mask || force)
+            {
+                _gl.ColorMask(r, g, b, a);
+                ColorMask = mask;
+            }
+        }
+
         public void SetWriteColor(bool value, bool force = false)
         {
-            if (WriteColor != value || force)
-            {
-                if (!value)
-                    _gl.ColorMask(false, false, false, false);
-                else
-                    _gl.ColorMask(true, true, true, true);
-
-                WriteColor = value;
-            }
+            SetColorMask(value, value, value, value, force);
         }
 
         public void SetLineWidth(float value, bool force = true)
@@ -499,7 +500,7 @@ namespace XrEngine.OpenGL
 
         public bool? DoubleSided;
 
-        public bool? WriteColor;
+        public int? ColorMask;
 
         public uint? ActiveProgram;
 

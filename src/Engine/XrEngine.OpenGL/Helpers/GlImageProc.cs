@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
 
             GlState.Current!.SetWriteDepth(false);
             GlState.Current!.SetUseDepth(false);
-            GlState.Current!.SetWriteColor(true);
+            GlState.Current!.SetColorMask(true, false, false, false);
 
             PrepareFrameBuffer(src.GL, dst);
             DrawQuad(src.GL);

@@ -61,12 +61,14 @@ namespace XrSamples.Graffiti
                     ViewSize = ctx.PassCamera.ViewSize,
                     NearPlane = ctx.PassCamera.Near,
                     FarPlane = ctx.PassCamera.Far,
+                    /*
                     FrustumPlane1 = ctx.FrustumPlanes[0],
                     FrustumPlane2 = ctx.FrustumPlanes[1],
                     FrustumPlane3 = ctx.FrustumPlanes[2],
                     FrustumPlane4 = ctx.FrustumPlanes[3],
                     FrustumPlane5 = ctx.FrustumPlanes[4],
                     FrustumPlane6 = ctx.FrustumPlanes[5],
+                    */
                     View = ctx.PassCamera.View,
                     Proj = ctx.PassCamera.Projection,
                 };

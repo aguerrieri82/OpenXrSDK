@@ -317,7 +317,8 @@ namespace XrSamples.Dnd
                             }
                             else
                             {
-                                _unusedTex.Add(impTex.name);
+                                lock (_unusedTex)
+                                    _unusedTex.Add(impTex.name);
                             }
                         });
                     }

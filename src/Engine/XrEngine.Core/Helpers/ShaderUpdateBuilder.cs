@@ -68,7 +68,7 @@ namespace XrEngine
 
         public string? LightsHash;
 
-        public readonly Plane[] FrustumPlanes;
+        public Plane[] FrustumPlanes;
 
         public IShadowMapProvider? ShadowMapProvider;
 

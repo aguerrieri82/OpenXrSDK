@@ -122,8 +122,12 @@ namespace XrEngine.OpenGL
             if (camera.Scene == null || _reflection == null)
                 return false;
 
-            if (!_reflection.Host!.IsVisible || !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes))
+            if (!_reflection.Host!.IsVisible ||
+                !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes
+                 .AsSpan(0, _renderer.UpdateContext.FrustumPlanesCount)))
+            {
                 return false;
+            }
 
             _oldCamera = _renderer.UpdateContext.PassCamera!;
 

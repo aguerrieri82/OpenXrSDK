@@ -28,21 +28,23 @@ layout(rgba16f, binding = 1) readonly uniform highp image2D uDryPaint;
 // Base color texture.
 // rgb = straight base color
 // a   = coverage
-layout(rgba16f, binding = 3) writeonly uniform highp image2D uResolvedColor;
+layout(rgba8, binding = 3) writeonly uniform highp image2D uResolvedColor;
 
-// PBR ORM-like texture.
-// r = unused / fixed 1.0
-// g = roughness
-// b = metallic
-// a = coverage
-layout(rgba16f, binding = 4) writeonly uniform highp image2D uResolvedRoughness;
+#if COLOR_ONLY != 1
 
-// Normal map.
-// rgb = encoded tangent-space normal
-// a   = coverage
-layout(rgba16f, binding = 5) writeonly uniform highp image2D uResolvedNormal;
+    // PBR ORM-like texture.
+    // r = unused / fixed 1.0
+    // g = roughness
+    // b = metallic
+    // a = coverage
+    layout(rgba8, binding = 4) writeonly uniform highp image2D uResolvedRoughness;
 
+    // Normal map.
+    // rgb = encoded tangent-space normal
+    // a   = coverage
+    layout(rgba8, binding = 5) writeonly uniform highp image2D uResolvedNormal;
 
+#endif
 
 float WetFactorFromDensity(float d)
 {
@@ -90,11 +92,23 @@ void main()
     if (any(greaterThanEqual(p, CanvasSize)))
         return;
 
-    vec4 wet = imageLoad(uWetPaint, p);
     vec4 dry = imageLoad(uDryPaint, p);
 
     // Dry is the only visible paint source.
     float coverage = DensityToCoverage(dry.a);
+
+    imageStore(
+        uResolvedColor,
+        p,
+        vec4(
+            dry.rgb,
+            coverage
+        )
+    );
+
+#if COLOR_ONLY != 1
+    
+    vec4 wet = imageLoad(uWetPaint, p);
 
     // Wet affects only material state.
     float wetFactor = WetFactorFromDensity(wet.a);
@@ -107,15 +121,6 @@ void main()
 
     vec3 normal = ResolveNormal(p);
     vec3 encodedNormal = normal * 0.5 + 0.5;
-
-    imageStore(
-        uResolvedColor,
-        p,
-        vec4(
-            dry.rgb,
-            coverage
-        )
-    );
 
     imageStore(
         uResolvedRoughness,
@@ -136,4 +141,8 @@ void main()
             coverage
         )
     );
+#endif
+
+
+
 }

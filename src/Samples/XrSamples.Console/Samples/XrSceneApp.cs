@@ -14,6 +14,15 @@ namespace XrSamples
 
         private static XrEngineApp? _game;
 
+
+        public static readonly string[] AssetsPath = [
+            @"Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
+            @"D:\Projects\"];
+
+
         public static Task Run(IServiceProvider services)
         {
             ModuleManager.Instance.Init();
@@ -24,8 +33,14 @@ namespace XrSamples
             _game = builder
                 .UseOpenGL()
                 .UsePlatform<ConsolePlatform>()
-                .CreateRoomManager()
+                .Configure(bld =>
+                {
+                    Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
+                })
+                .CreateHelmet()
                 .Build();
+
+
 
             _game.App.Start();
 

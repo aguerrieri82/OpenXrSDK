@@ -91,6 +91,7 @@ namespace XrSamples.Android.Activities
                     opt.UseOcclusionQuery = false;
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
+                    opt.Compression.Use = _settings.TextureCompression;
                 });
             else
                 ImageLight.UseCache = false;

@@ -2,8 +2,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Security.Cryptography;
-
 #endif
 
 
@@ -177,6 +175,8 @@ namespace XrEngine.OpenGL
         {
             throw new NotSupportedException();
         }
+
+        public GL Gl => _gl;
 
         public bool IsEnabled { get; set; }
     }

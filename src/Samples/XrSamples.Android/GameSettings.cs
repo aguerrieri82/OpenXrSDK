@@ -23,19 +23,22 @@ namespace XrSamples
 
         public bool FrustumCulling { get; set; }
 
+        public bool TextureCompression { get; set; }
+
 
         public static GameSettings Graffiti()
         {
             return new GameSettings
             {
-                SampleName = "DnD",
+                SampleName = "Graffiti",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
-                FrustumCulling = true
+                FrustumCulling = true,
+                TextureCompression = false
             };
         }
 

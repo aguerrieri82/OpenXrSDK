@@ -1,7 +1,9 @@
-﻿using System.Numerics;
+﻿using SkiaSharp;
+using System.Numerics;
 using XrEngine;
 using XrMath;
 using XrSamples.Graffiti.Shaders;
+using XrEngine.OpenGL;
 
 namespace XrSamples.Graffiti
 {
@@ -21,12 +23,12 @@ namespace XrSamples.Graffiti
         readonly Texture2D _roughnessTexture;
         readonly Texture2D _sprayTexture;
         private readonly TriangleMesh _quad;
-        private readonly float _texelSize;
+        private float _texelSize;
         private Can? _can;
         private PaintCanvasDebug _debug;
         private readonly PaintFrame _frame;
 
-        public PaintCanvas(Quad3 quad, float texelSize = 0.001f)
+        public PaintCanvas(Quad3 quad, float texelSize = 0.001f, bool useMips = true)
         {
             DryRate = 0.3f;
             DensityToCoverage = 1.0f;
@@ -37,14 +39,23 @@ namespace XrSamples.Graffiti
             GravityStrength = 1.0f;
             SpraySpacing = 0.002f;
             PaintOpacityScale = 2.5f;
+            SaveImageName = "d:\\canvas-saved.png";
 
             _size = quad.Size;
             _texelSize = texelSize;
 
+            Texture2D CreateTexture() => useMips ? new()
+            {
+                MinFilter = ScaleFilter.LinearMipmapLinear,
+                MipLevelCount = Utils.ComputeMaxMipLevel(
+                    (int)(_size.X / _texelSize),
+                    (int)(_size.Y / _texelSize), 128) + 1
+            } : new();
+
             _sprayTexture = new Texture2D();
-            _colorTexture = new Texture2D();
-            _normalTexture = new Texture2D();
-            _roughnessTexture = new Texture2D();
+            _colorTexture = CreateTexture();
+            _normalTexture = CreateTexture();
+            _roughnessTexture = CreateTexture();
 
             _quad = new TriangleMesh(new Quad3D(_size), new PbrV2Material()
             {
@@ -70,7 +81,7 @@ namespace XrSamples.Graffiti
             this.SetWorldPose(quad.Pose);
         }
 
-        public void SetCanvasSize(Vector2 newSize, Pose3 pose)
+        public void SetCanvasSize(Vector2 newSize, Pose3 pose, float texelSize)
         {
             var quad3D = (Quad3D)_quad.Geometry!;
 
@@ -82,6 +93,8 @@ namespace XrSamples.Graffiti
             _frame.Build();
 
             _size = newSize;
+
+            _texelSize = texelSize;
 
             this.SetWorldPose(pose);
         }
@@ -161,6 +174,25 @@ namespace XrSamples.Graffiti
 
             debugMat.NotifyChanged(ObjectChangeType.Material);
         }
+
+
+        [Action]
+        public async Task SaveImage()
+        {
+            _ = _scene!.App!.Renderer!.Dispatcher.ExecuteAsync(() =>
+            {
+                var texture = _colorTexture.ToGlTexture().Read(TextureFormat.Rgba32);
+                using var image = ImageUtils.ToBitmap(texture![0], false, SKAlphaType.Unpremul)!;
+                using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                using var outStream = File.OpenWrite(SaveImageName!);
+                data.SaveTo(outStream);
+
+                Log.Info(this, "Image saved");
+            });
+  
+        }
+
+        public string? SaveImageName { get; set; }
 
         public PaintFrame Frame => _frame;
 

@@ -207,14 +207,14 @@ namespace XrEngine
             return format[0];
         }
 
-        public static SKBitmap? ToBitmap(this TextureData data, bool flipY)
+        public static SKBitmap? ToBitmap(this TextureData data, bool flipY, SKAlphaType alphaType = SKAlphaType.Opaque)
         {
             if (data.Height == 0 || data.Width == 0)
                 return null;
 
             var pixelSize = GetPixelSizeByte(data.Format);
 
-            var image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), SKAlphaType.Opaque);
+            var image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), alphaType);
 
             Debug.Assert(data.Data != null);
 

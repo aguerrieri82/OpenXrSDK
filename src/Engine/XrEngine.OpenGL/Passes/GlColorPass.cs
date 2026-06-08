@@ -91,6 +91,7 @@ namespace XrEngine.OpenGL
             return progInst.UpdateProgram(updateContext);
         }
 
+        /*
         protected void SetBounds(Camera camera, Object3D obj)
         {
 
@@ -104,6 +105,7 @@ namespace XrEngine.OpenGL
 #endif
 
         }
+        */
 
         protected virtual void ConfigureCaps(ShaderMaterial material)
         {
@@ -156,7 +158,7 @@ namespace XrEngine.OpenGL
 
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
-            uint progChangeCount = 0;
+            uint globalProgChangesCount = 0;
 
             foreach (var shader in layer.Content.Contents)
             {
@@ -167,7 +169,7 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
-                foreach (var material in shader.Value.SortedContent!.OrderBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0))
+                foreach (var material in shader.Value.SortedContent!)
                 {
                     var matContent = material.Value;
 
@@ -182,7 +184,7 @@ namespace XrEngine.OpenGL
 
                     updateContext.ActiveComponents = matContent.ActiveComponents;
 
-                    var progUpdated = UpdateProgram(updateContext, progInst);
+                    var progChanged = UpdateProgram(updateContext, progInst);
 
                     var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
@@ -196,9 +198,9 @@ namespace XrEngine.OpenGL
 
                     ConfigureCaps(progInst.Material!);
 
-                    if (progUpdated)
+                    if (progChanged)
                     {
-                        progChangeCount++;
+                        globalProgChangesCount++;
                         layer.Invalidate(shader.Value);
                     }
 
@@ -232,7 +234,7 @@ namespace XrEngine.OpenGL
 
                                 progInst.UpdateModel(updateContext);
 
-                                SetBounds(updateContext.PassCamera!, draw.Object!);
+                                //SetBounds(updateContext.PassCamera!, draw.Object!);
 
                                 Draw(draw);
                             }
@@ -249,8 +251,8 @@ namespace XrEngine.OpenGL
 
             _renderer.PopGroup();
 
-            if (progChangeCount > 0)
-                Log.Debug(this, "Changes: {0}", progChangeCount);
+            if (globalProgChangesCount > 0)
+                Log.Debug(this, "Changes: {0}", globalProgChangesCount);
 
 #if GL_WRAPPER
             if (wrapper != null && isRecording)
@@ -332,7 +334,7 @@ namespace XrEngine.OpenGL
 
                         ConfigureCaps(draw.ProgramInstance!.Material!);
 
-                        SetBounds(updateContext.PassCamera!, draw.Object!);
+                        //SetBounds(updateContext.PassCamera!, draw.Object!);
 
                         Draw(draw);
                     }

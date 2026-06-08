@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
-using OpenGLWrapper;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;

@@ -7,7 +7,7 @@ namespace XrSamples.Graffiti
     public static class Builder
     {
         [Sample("Graffiti")]
-        public static XrEngineAppBuilder CreateGraffiti(this XrEngineAppBuilder builder)
+        public static XrEngineAppBuilder CreateGraffiti(this XrEngineAppBuilder builder, bool reconstructMode = false)
         {
             var halfAngle = MathF.PI / 20f;
             var bottomRadius = 0.01f;
@@ -32,7 +32,7 @@ namespace XrSamples.Graffiti
 
             var app = new EngineApp();
 
-            var scene = new MainScene();
+            var scene = new MainScene(reconstructMode);
 
             app.OpenScene(scene);
 

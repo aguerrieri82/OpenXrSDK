@@ -181,10 +181,10 @@ namespace XrEngine.OpenGL
 
                 var pixelSize = format.GetPixelSizeBit();
 
-                var bufferSize = pixelSize * w * h / 8;
+                var bufferSize = (pixelSize / 8) * w * h ;
 
-                var buffer = buffers?[result.Count] ?? MemoryBuffer.Create<byte>(bufferSize);
-                buffer.Allocate(bufferSize);
+                var buffer = buffers?[result.Count] ?? MemoryBuffer.Create<byte>((uint)bufferSize);
+                buffer.Allocate((uint)bufferSize);
 
                 var item = new TextureData
                 {

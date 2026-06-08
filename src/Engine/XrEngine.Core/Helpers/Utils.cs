@@ -6,6 +6,20 @@ namespace XrEngine
 {
     public static class Utils
     {
+        public static uint ComputeMaxMipLevel(int width, int height, int minSize)
+        {
+            int size = Math.Max(width, height);
+            uint level = 0;
+
+            while (size > minSize)
+            {
+                size >>= 1;
+                level++;
+            }
+
+            return level;
+        }
+
         public static Guid HashGuid(string text)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(text));
@@ -35,7 +49,7 @@ namespace XrEngine
             return true;
         }
 
-        public unsafe static bool ArrayEquals(int[] a, int[] b)
+        public static bool ArrayEquals(int[] a, int[] b)
         {
             var len = a.Length;
             if (len != b.Length)

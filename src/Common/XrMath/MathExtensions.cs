@@ -165,6 +165,12 @@ namespace XrMath
         #region PLANE
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Plane Normalize(in this Plane self)
+        {
+            return Plane.Normalize(self);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 ToVector4(in this Plane self)
         {
             return new Vector4(self.Normal, self.D);
@@ -288,14 +294,17 @@ namespace XrMath
             return result;
         }
 
-        public static bool IntersectFrustum(in this Bounds3 self, in Plane[] planes)
+        public static bool IntersectFrustum(in this Bounds3 self, in ReadOnlySpan<Plane> planes)
         {
+            if (planes.Length == 12)
+            {
+                return self.IntersectFrustum(planes.Slice(0, 6)) ||
+                       self.IntersectFrustum(planes.Slice(6, 6));
+            }
+
             for (var i = 0; i < planes.Length; i++)
             {
                 var plane = planes[i];
-
-                if (plane.Intersects(new Line3(self.Min, self.Max), out var _))
-                    return true;
 
                 var positiveVertex = new Vector3(
                     (plane.Normal.X >= 0) ? self.Max.X : self.Min.X,

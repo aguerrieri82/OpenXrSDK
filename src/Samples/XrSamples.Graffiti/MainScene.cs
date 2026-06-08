@@ -27,8 +27,10 @@ namespace XrSamples.Graffiti
         private readonly InputController _input;
         private readonly PaintSelector _paintSelector;
 
-        public MainScene()
+        public MainScene(bool reconstructMode)
         {
+            ReconstructMode = reconstructMode;
+
             if (XrPlatform.IsEditor)
                 AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -47,6 +49,7 @@ namespace XrSamples.Graffiti
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
             this.AddComponent<SpatialAnchorGrid>();
+            this.AddComponent<CanvasRecorder>();
 
             _canvasDrawer = this.AddComponent<CanvasDrawer>();
 
@@ -72,7 +75,7 @@ namespace XrSamples.Graffiti
                     Orientation = Quaternion.Identity
                 },
                 Size = new Vector2(2, 2)
-            }, 0.0010f);
+            }, 0.0010f, !reconstructMode);
 
             _spray = new SprayBrush(30, 10);
 
@@ -94,16 +97,30 @@ namespace XrSamples.Graffiti
 
 
         [Action]
-        public async Task DiscoverSpaces()
+        public async Task Reproduce()
         {
-            var meta = XrApp.Current!.Plugin<OculusXrPlugin>();
+            var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-130312.json");
 
-            var spaces = await meta.DiscoverSpacesAsync();
+            _ = App!.Renderer!.Dispatcher.ExecuteAsync(() =>
+            {
 
-            Console.WriteLine(spaces);
+                var generator = new CanvasImageGenerator();
+                using var image = generator.Generate(record, 0.001f / 6f);
+
+                Log.Debug(this, "Encoding image...");
+
+                using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+                using var outStream = File.OpenWrite("d:\\image.png");
+                data.SaveTo(outStream);
+
+                Log.Debug(this, "Image saved");
+
+            });
         }
 
         public GraffitiTool ActiveTool { get;  set; }
+
+        public bool ReconstructMode { get; set; }
 
         public void Configure(XrEngineApp e)
         {
@@ -113,8 +130,8 @@ namespace XrSamples.Graffiti
 
             this.Descendants<ImageLight>().First().Intensity = 0.8f;
 
-            if (e.App.Renderer is OpenGLRender openGLRender)
-                openGLRender.AddPass(new GlSimulationPass(openGLRender), 0);
+            if (e.App.Renderer is OpenGLRender openGLRender && !ReconstructMode)
+                openGLRender.AddPass(new GlSimulationPass(openGLRender, false), 0);
         }
     }
 }

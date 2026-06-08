@@ -6,6 +6,6 @@
 
         public long ImageLightVersion;
 
-
+        public int FrustumPlanesCount { get; internal set; }
     }
 }

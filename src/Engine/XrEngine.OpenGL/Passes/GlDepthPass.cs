@@ -117,8 +117,6 @@ namespace XrEngine.OpenGL
                 BorderColor = Color.White
             };
 
-
-
             if (_depthTexture.Width != curDepth.Width || _depthTexture.Height != curDepth.Height)
             {
                 _depthTexture.Update(new TextureData
@@ -212,8 +210,8 @@ namespace XrEngine.OpenGL
             _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, _depthData);
 
             var camera = _renderer.UpdateContext.PassCamera!;
-            var planes = new Plane[6];
-            camera.FrustumPlanes(planes);
+            var planes = camera.FrustumPlanes(new Plane[6], out var _); 
+            
 
             _renderer.State.LoadTexture(_depthTexture!, 0);
 

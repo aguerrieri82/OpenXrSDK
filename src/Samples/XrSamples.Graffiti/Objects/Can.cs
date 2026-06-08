@@ -134,7 +134,9 @@ namespace XrSamples.Graffiti
         {
             _spray ??= _scene?.Descendants<SprayRays>().First();
 
-            _sprayControl = _emitter!.Play(_sprayLoop!, () => Forward);
+            if (SoundEnabled)
+                _sprayControl = _emitter!.Play(_sprayLoop!, () => Forward);
+
             _isSpraying = true;
             _spray?.IsVisible = true;   
         }
@@ -184,5 +186,7 @@ namespace XrSamples.Graffiti
         }
 
         public Vector3 Offset { get; set; }
+
+        public bool SoundEnabled { get; set; }
     }
 }

@@ -119,7 +119,7 @@ namespace XrSamples.Graffiti
                     _state = State.Point1;
                     _frame?.IsVisible = false;
 
-                    _canvas.SetCanvasSize(_frame!.Size, _frame.GetWorldPose());
+                    _canvas.SetCanvasSize(_frame!.Size, _frame.GetWorldPose(), _canvas.TexelSize);
 
                     _host!.ActiveTool = GraffitiTool.None;
                 }

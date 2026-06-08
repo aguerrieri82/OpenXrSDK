@@ -177,5 +177,7 @@ namespace XrEngine
         public Size2I ViewSize { get; set; }
 
         public bool IsStereo { get; set; }
+
+        public bool IsMultiView { get; set; }
     }
 }

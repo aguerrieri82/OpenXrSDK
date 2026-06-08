@@ -104,6 +104,7 @@ namespace XrEngine.OpenGL
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
+       
                 return format switch
                 {
                     TextureFormat.Depth32Float => InternalFormat.DepthComponent32f,
