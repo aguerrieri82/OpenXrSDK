@@ -36,17 +36,19 @@ namespace XrSamples.Graffiti
 
             app.OpenScene(scene);
 
-            return builder.UseApp(app)
-                    //.AddPanel(new DndSettingsPanel(scene.Settings, scene))
-                    .UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr", false)
-                    .ConfigureApp(scene.Configure)
-                    .UseRightController()
-                    .UseInputs<XrOculusTouchController>(a => a
-                        .AddAction(b => b.Right!.Haptic)
-                        .AddAction(b => b.Right!.Thumbstick)
-                        .AddAction(b => b.Right!.ThumbstickClick))
-                    .AddPassthrough();
-            //.UseTeleport(ControllerHand.Left, scene.Player);
+            if (!reconstructMode)
+                builder.UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr", false);
+
+            builder.UseApp(app)
+                  .UseRightController()
+                  .UseInputs<XrOculusTouchController>(a => a
+                      .AddAction(b => b.Right!.Haptic)
+                      .AddAction(b => b.Right!.Thumbstick)
+                      .AddAction(b => b.Right!.ThumbstickClick))
+                  .AddPassthrough()
+                  .ConfigureApp(scene.Configure);
+
+            return builder;
         }
     }
 }

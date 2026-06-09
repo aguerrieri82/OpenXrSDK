@@ -1,6 +1,9 @@
 ﻿#include "Shared/uniforms.glsl"
 #include "Shared/position.glsl"
 
+#ifdef HAS_SKIN
+    #include "Shared/skin.glsl"
+#endif
 
 #ifdef PLANAR_REFLECTION
     #include "Shared/planar_reflection.glsl"
@@ -8,12 +11,12 @@
 #endif
 
 
-layout(location=0) in vec3 position;
-layout(location=1) in vec3 normal;
-layout(location=2) in vec2 texcoord;
+layout(location=0) in vec3 a_position;
+layout(location=1) in vec3 a_normal;
+layout(location=2) in vec2 a_texcoord;
 
 #ifdef HAS_TANGENTS
-    layout(location=4) in vec4 tangent;
+    layout(location=4) in vec4 a_tangent;
 #endif
 
 #ifdef USE_CLIP_PLANE 
@@ -51,7 +54,7 @@ layout(location=2) in vec2 texcoord;
 #endif
 
 #ifdef HAS_UV2
-    layout(location=3) in vec2 texcoord2;
+    layout(location=3) in vec2 a_texcoord2;
     out vec2 fUv2;
 #endif
 
@@ -103,19 +106,26 @@ void main()
         mat4 normalMatrix = uModel.normalMatrix;
     #endif
 
+    vec3 position = a_position;
+    vec3 normal = a_normal;
+
+    #ifdef HAS_SKIN
+        skinTransform(position, normal);
+    #endif
+
     vec4 pos = worldMatrix * vec4(position, 1.0);
     vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
 
 	fPos = pos.xyz; 
 
-	fUv = texcoord;
+	fUv = a_texcoord;
 
     #ifdef USE_CAMERA_POS
 	    fCameraPos = getViewPos();
     #endif
 
     #ifdef HAS_UV2
-        fUv2 = texcoord2;
+        fUv2 = a_texcoord2;
     #endif
     
     #ifdef PLANAR_REFLECTION
@@ -123,7 +133,7 @@ void main()
     #endif
 
 	#ifdef HAS_TEX_TRANSFORM
-	    fUv = (vec3(texcoord.xy, 1) * HAS_TEX_TRANSFORM).xy;
+	    fUv = (vec3(a_texcoord.xy, 1) * HAS_TEX_TRANSFORM).xy;
 	#endif
 
 	#ifdef USE_SHADOW_MAP
@@ -131,8 +141,8 @@ void main()
 	#endif
 
     #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-        vec3 T = normalize(vec3(worldMatrix * vec4(tangent.xyz, 0.0)));
-	    vec3 B = cross(N, T) * tangent.w;
+        vec3 T = normalize(vec3(worldMatrix * vec4(a_tangent.xyz, 0.0)));
+	    vec3 B = cross(N, T) * a_tangent.w;
 
         fTangentBasis = mat3(T, B, N);
 

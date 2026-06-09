@@ -12,7 +12,9 @@
         Color4 = 0x20,
         UV0 = 0x40,
         UV1 = 0x80,
-        Size = 0x100
+        Size = 0x100,
+        BlendIndex = 0x200,
+        BlendWeight = 0x400
     }
 
     [AttributeUsage(AttributeTargets.Field)]

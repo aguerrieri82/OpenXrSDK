@@ -147,16 +147,53 @@ namespace XrEngine
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
+
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
                 var stage = bld.Context.Stage;
 
-                if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
-                    return;
+                if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
+                    UpdateShaderModel(bld);
 
+                if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader)
+                    UpdateShaderGlobal(bld);
+            }
+
+            protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
+            {
+                if (!bld.Context.UseInstanceDraw)
+                {
+                    bld.LoadBuffer(ctx =>
+                    {
+                        if (ctx.Model == null || ctx.CurrentBuffer == null)
+                            return null;
+
+                        //Get the word matrix trigger the update
+                        var modelWord = ctx.Model.WorldMatrix;
+
+                        var curVersion = ctx.Model.Transform.Version;
+
+                        if (curVersion == ctx.CurrentBuffer.Version)
+                            return null;
+
+                        ctx.CurrentBuffer.Version = curVersion;
+
+                        return (ModelUniforms?)new ModelUniforms
+                        {
+                            NormalMatrix = ctx.Model.NormalMatrix,
+                            WorldMatrix = modelWord
+                        };
+                    }, 3, BufferStore.Model);
+                }
+
+                SkinVertexShader.UpdateShaderModel(bld);
+            }
+
+            protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)
+            {
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
-                var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
+                var hasPunctual = bld.Context.Lights != null &&  bld.Context.Lights.Any(a => a != imgLight);
 
                 bld.AddFeature("PBR_V2");
 
@@ -429,42 +466,15 @@ namespace XrEngine
         }
 
 
-        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
-        {
-            if (!bld.Context.UseInstanceDraw)
-            {
-                bld.LoadBuffer(ctx =>
-                {
-                    if (ctx.Model == null || ctx.CurrentBuffer == null)
-                        return null;
-
-                    //Get the word matrix trigger the update
-                    var modelWord = ctx.Model.WorldMatrix;
-
-                    var curVersion = ctx.Model.Transform.Version;
-
-                    if (curVersion == ctx.CurrentBuffer.Version)
-                        return null;
-
-                    ctx.CurrentBuffer.Version = curVersion;
-
-                    return (ModelUniforms?)new ModelUniforms
-                    {
-                        NormalMatrix = ctx.Model.NormalMatrix,
-                        WorldMatrix = modelWord
-                    };
-                }, 3, BufferStore.Model);
-            }
-        }
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-
-
             bld.AddFeature($"LOAD_FRAGMENT_PROPS {FragmentDefaultLoader ?? "LoadFragmentProperties()"}");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
+            if (HasSkin)
+                bld.AddFeature("HAS_SKIN");
+            
             if (UseInstanceDraw && bld.Context.UseInstanceDraw)
                 bld.AddFeature("USE_INSTANCE");
 
@@ -744,6 +754,8 @@ namespace XrEngine
         public Matrix3x3? UV0Transform { get; set; }
 
         public Matrix4x4? ColorMapProjection { get; set; }
+
+        public bool HasSkin { get; set; }
 
         bool IPbrMaterial.ToneMap
         {

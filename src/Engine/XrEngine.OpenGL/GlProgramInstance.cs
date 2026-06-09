@@ -31,12 +31,12 @@ namespace XrEngine.OpenGL
             Material = material;
             Global = global;
 
-            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
+            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(20));
             _materialBuffers = bufferMap.Buffers;
 
             if (model != null)
             {
-                bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
+                bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(20));
                 _modelBuffers = bufferMap.Buffers;
             }
             else
@@ -193,10 +193,10 @@ namespace XrEngine.OpenGL
             return changed;
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, bool isUniform)
         {
             if (store == BufferStore.Shader)
-                return Global.GetBuffer<T>(bufferId, store);
+                return Global.GetBuffer<T>(bufferId, store, isUniform);
 
             var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
 
@@ -206,7 +206,7 @@ namespace XrEngine.OpenGL
             var buffer = (IBuffer<T>?)storeBuffers[bufferId];
             if (buffer == null)
             {
-                buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
+                buffer = new GlBuffer<T>(_gl, isUniform ? BufferTargetARB.UniformBuffer : BufferTargetARB.ShaderStorageBuffer);
                 storeBuffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;

@@ -13,8 +13,6 @@ using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using XrSamples.Graffiti;
-using System.Diagnostics;
-
 
 
 namespace XrSamples
@@ -84,7 +82,7 @@ namespace XrSamples
                 render = new OpenGLRender(gl);
 #endif
                 render.EnableDebug();
-                render.AddPass(new GlSimulationPass(render, false), 0);
+                render.AddPass(new GlSimulationPass(render, true), 0);
 
                 app.Renderer = render;
 
@@ -104,10 +102,10 @@ namespace XrSamples
 
                 if (!isRecorded)
                 {
-                    var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-130312.json");
+                    var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-220511.json");
 
                     var generator = new CanvasImageGenerator((OpenGLRender)app.Renderer!);
-                    using var image = generator.Generate(record, 0.001f / 7f);
+                    using var image = generator.Generate(record, 0.001f / 1f);
 
                     Log.Debug(generator, "Encoding image...");
 
@@ -119,7 +117,6 @@ namespace XrSamples
 
                     isRecorded = true;
                 }
-
             };
 
             view.Run();

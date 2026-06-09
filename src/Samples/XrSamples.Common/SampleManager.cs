@@ -79,7 +79,13 @@ namespace XrSamples
                             Name = sample.Name,
                             Build = (XrEngineAppBuilder builder) =>
                             {
-                                method.Invoke(null, [builder]);
+                                var args = method.GetParameters();
+                                
+                                var argList = new object?[args.Length];
+                                argList[0] = builder;
+                                for (int i = 1; i < args.Length; i++)
+                                    argList[i] = args[i].DefaultValue;
+                                method.Invoke(null, argList);
                                 return builder;
                             }
                         });

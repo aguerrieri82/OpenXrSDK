@@ -9,6 +9,6 @@
 
     public interface IBufferProvider
     {
-        IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store);
+        IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, bool isUniform = true);
     }
 }

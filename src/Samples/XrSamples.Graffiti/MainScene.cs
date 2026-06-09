@@ -65,7 +65,7 @@ namespace XrSamples.Graffiti
                 });
             }
 
-            _can = new Can();
+            _can = new Can(reconstructMode);
 
             _canvas = new PaintCanvas(new Quad3
             {
@@ -93,6 +93,50 @@ namespace XrSamples.Graffiti
             });
 
             _paintSelector = AddChild(new PaintSelector());
+
+            /*
+            var geo = new BrickGeometry();
+
+            AddChild(new TriangleMesh(geo, new BrickMaterial
+            {
+                //Color = Color.Parse("#ff0000"),
+            })
+            {
+                Name = "Wall"
+            });
+
+            var data = geo.BuildDensityTexture(0.001f, -0.01f);
+
+            var tileSize = geo.DensityTileSize;
+            var wallMin = -geo.WallSize * 0.5f;
+
+            var scale = new Vector2(
+                geo.WallSize.X / tileSize.X,
+                geo.WallSize.Y / tileSize.Y);
+
+            var translate = new Vector2(
+                (wallMin.X - geo.Offset.X) / tileSize.X,
+                (wallMin.Y - geo.Offset.Y) / tileSize.Y);
+
+
+
+            var texture = Texture2D.FromData([data]);
+            texture.Format = TextureFormat.GrayFloat16;
+            texture.WrapT = WrapMode.Repeat;
+            texture.WrapS = WrapMode.Repeat;
+            texture.Transform = texture.Transform =
+                 Matrix3x3.CreateTranslation(translate.X, translate.Y) *
+                        Matrix3x3.CreateScale(scale.X, scale.Y);
+
+            AddChild(new TriangleMesh(new Quad3D(new Vector2(2,2)), new TextureMaterial
+            {
+                Texture = texture
+
+            })
+            {
+                Name = "WallImage"
+            });
+            */
         }
 
 
@@ -128,10 +172,13 @@ namespace XrSamples.Graffiti
             _input.Configure(e);
             _canvasDrawer.Configure(e);
 
-            this.Descendants<ImageLight>().First().Intensity = 0.8f;
+            if (!ReconstructMode)
+            {
+                this.Descendants<ImageLight>().First().Intensity = 0.8f;
 
-            if (e.App.Renderer is OpenGLRender openGLRender && !ReconstructMode)
-                openGLRender.AddPass(new GlSimulationPass(openGLRender, false), 0);
+                if (e.App.Renderer is OpenGLRender openGLRender)
+                    openGLRender.AddPass(new GlSimulationPass(openGLRender, false), 0);
+            }
         }
     }
 }

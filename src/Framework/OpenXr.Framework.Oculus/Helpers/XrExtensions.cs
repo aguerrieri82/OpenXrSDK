@@ -20,7 +20,21 @@ namespace OpenXr.Framework
             return new Guid(new Span<byte>(uuid.Data, 16));
         }
 
+        public static IEnumerable<SpaceQueryResultFB> SpaceWithComponents(this OculusXrPlugin xrOculus, IEnumerable<SpaceQueryResultFB> spaces, params SpaceComponentTypeFB[] componets)
+        {
+            foreach (var space in spaces)
+            {
+                var caps = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
+                if (componets.All(a => caps.Contains(a)))
+                    yield return space;
+            }
+        }
 
+        public static async Task EnsureSpaceComponentAsync(this OculusXrPlugin xrOculus, Space space, SpaceComponentTypeFB component)
+        {
+            if (!xrOculus.GetSpaceComponentEnabled(space, SpaceComponentTypeFB.LocatableFB))
+                await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
+        }
 
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {

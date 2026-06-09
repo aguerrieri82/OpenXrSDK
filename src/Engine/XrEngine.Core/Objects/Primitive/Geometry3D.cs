@@ -64,7 +64,7 @@ namespace XrEngine
             }
         }
 
-        public unsafe override void GetState(IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
             base.GetState(container);
             if (this is IGeneratedContent gen)

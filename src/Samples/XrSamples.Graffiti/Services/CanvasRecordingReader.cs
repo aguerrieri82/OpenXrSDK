@@ -16,6 +16,14 @@ namespace XrSamples.Graffiti
         float Time
     ) : CanvasRecordCommand(Time);
 
+    public sealed record UndoCommand(
+        float Time
+    ) : CanvasRecordCommand(Time);
+
+    public sealed record ClearCommand(
+        float Time
+    ) : CanvasRecordCommand(Time);
+
 
     public sealed record ChangeColorCommand(
         float Time,
@@ -126,6 +134,12 @@ namespace XrSamples.Graffiti
                 CanvasRecorder.OpType.SprayClose =>
                     ReadSprayClose(e, index, time),
 
+                CanvasRecorder.OpType.Undo =>
+                    ReadUndo(e, index, time),
+
+                CanvasRecorder.OpType.Clear =>
+                    ReadClear(e, index, time),
+
                 _ =>
                     throw new FormatException($"Unknown op type {(int)op} at entry {index}.")
             };
@@ -169,6 +183,24 @@ namespace XrSamples.Graffiti
             RequireCount(e, index, 2);
 
             return new SprayCloseCommand(
+                time
+            );
+        }
+
+        static UndoCommand ReadUndo(JsonElement e, int index, float time)
+        {
+            RequireCount(e, index, 2);
+
+            return new UndoCommand(
+                time
+            );
+        }
+
+        static ClearCommand ReadClear(JsonElement e, int index, float time)
+        {
+            RequireCount(e, index, 2);
+
+            return new ClearCommand(
                 time
             );
         }

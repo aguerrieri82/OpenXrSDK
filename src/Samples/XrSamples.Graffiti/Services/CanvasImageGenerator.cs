@@ -36,6 +36,83 @@ namespace XrSamples.Graffiti
             _simulation._isFirstSizeUpdate = false;
         }
 
+        protected List<CanvasRecordCommand> ProcessUndo(CanvasRecording recording)
+        {
+            var newCommands = new List<CanvasRecordCommand>();
+            var undoPoints = new List<int>();
+
+            int? openSprayStart = null;
+
+            for (var i = 0; i < recording.Commands.Count; i++)
+            {
+                var cmd = recording.Commands[i];
+
+                if (cmd is UndoCommand)
+                {
+                    if (newCommands.Count == 0)
+                        continue;
+
+                    int removeFrom;
+
+                    if (openSprayStart != null)
+                    {
+                        // Undo while still spraying:
+                        // remove from the first SprayCommand of the open spray session.
+                        removeFrom = openSprayStart.Value;
+                    }
+                    else if (newCommands[^1] is SprayCloseCommand)
+                    {
+                        // Undo immediately after spray close:
+                        // remove the whole just-closed spray session, including SprayClose.
+                        //
+                        // The last undo point is the SprayClose itself, so skip it.
+                        undoPoints.RemoveAt(undoPoints.Count - 1);
+
+                        removeFrom = undoPoints.Count > 0
+                            ? undoPoints[^1] + 1
+                            : 0;
+                    }
+                    else if (undoPoints.Count > 0)
+                    {
+                        // Normal undo:
+                        // remove commands after the last committed undo point.
+                        removeFrom = undoPoints[^1] + 1;
+                    }
+                    else
+                    {
+                        removeFrom = 0;
+                    }
+
+                    newCommands.RemoveRange(removeFrom, newCommands.Count - removeFrom);
+
+                    while (undoPoints.Count > 0 && undoPoints[^1] >= newCommands.Count)
+                        undoPoints.RemoveAt(undoPoints.Count - 1);
+
+                    openSprayStart = null;
+
+                    continue;
+                }
+
+                if (cmd is SprayCommand && openSprayStart == null)
+                    openSprayStart = newCommands.Count;
+
+                newCommands.Add(cmd);
+
+                if (cmd is SprayCloseCommand)
+                {
+                    openSprayStart = null;
+                    undoPoints.Add(newCommands.Count - 1);
+                }
+                else if (cmd is ClearCommand)
+                {
+                    openSprayStart = null;
+                    undoPoints.Add(newCommands.Count - 1);
+                }
+            }
+
+            return newCommands;
+        }
+
 
         public SKBitmap Generate(CanvasRecording recording, float texelSize, int fps = 72)
         {
@@ -61,7 +138,9 @@ namespace XrSamples.Graffiti
 
             _simulation.ReconstructMode = true;
 
-            foreach (var action in recording.Commands)
+            var newCommands = ProcessUndo(recording);
+
+            foreach (var action in newCommands)
             {
                 bool interpolateOn = false;
 
@@ -102,6 +181,14 @@ namespace XrSamples.Graffiti
                 {
                     isSpraying = false;
                     can.SprayAperture = 0;
+                }
+                else if (action is ClearCommand)
+                {
+                    _simulation.ClearCanvas();
+                }
+                else if (action is UndoCommand)
+                {
+                    throw new NotImplementedException();
                 }
 
                 var deltaStep = action.Time - ctx.Time;

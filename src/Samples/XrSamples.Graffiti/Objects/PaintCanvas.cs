@@ -1,9 +1,10 @@
 ﻿using SkiaSharp;
 using System.Numerics;
 using XrEngine;
-using XrMath;
-using XrSamples.Graffiti.Shaders;
 using XrEngine.OpenGL;
+using XrMath;
+using XrSamples.Graffiti.Objects;
+using XrSamples.Graffiti.Shaders;
 
 namespace XrSamples.Graffiti
 {
@@ -21,12 +22,13 @@ namespace XrSamples.Graffiti
         readonly Texture2D _colorTexture;
         readonly Texture2D _normalTexture;
         readonly Texture2D _roughnessTexture;
+        private Geometry3D _geo;
         readonly Texture2D _sprayTexture;
-        private readonly TriangleMesh _quad;
         private float _texelSize;
         private Can? _can;
         private PaintCanvasDebug _debug;
         private readonly PaintFrame _frame;
+        private readonly TriangleMesh _canvas;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f, bool useMips = true)
         {
@@ -57,7 +59,12 @@ namespace XrSamples.Graffiti
             _normalTexture = CreateTexture();
             _roughnessTexture = CreateTexture();
 
-            _quad = new TriangleMesh(new Quad3D(_size), new PbrV2Material()
+            _geo = new BrickGeometry()
+            {
+                WallSize = _size,
+            };
+
+            _canvas = new TriangleMesh(_geo, new BrickMaterial()
             {
                 ColorMap = _colorTexture,
                 NormalMap = _normalTexture,
@@ -65,7 +72,19 @@ namespace XrSamples.Graffiti
                 Alpha = AlphaMode.Blend
             });
 
-            _quad.Materials.Add(new DebugMaterial()
+            /*
+            _geo = new Quad3D(_size);
+
+            _canvas = new TriangleMesh(_geo, new PbrV2Material()
+            {
+                ColorMap = _colorTexture,
+                NormalMap = _normalTexture,
+                MetallicRoughnessMap = _roughnessTexture,
+                Alpha = AlphaMode.Blend
+            });
+            */
+
+            _canvas.Materials.Add(new DebugMaterial()
             {
                 IsEnabled = false
             });
@@ -75,7 +94,7 @@ namespace XrSamples.Graffiti
                 Color = new Color(0.0f, 0.0f, 0.7f),
             });
 
-            AddChild(_quad);
+            AddChild(_canvas);
             AddChild(_frame);
 
             this.SetWorldPose(quad.Pose);
@@ -83,11 +102,18 @@ namespace XrSamples.Graffiti
 
         public void SetCanvasSize(Vector2 newSize, Pose3 pose, float texelSize)
         {
-            var quad3D = (Quad3D)_quad.Geometry!;
+            if (_geo is Quad3D quad)
+            {
+                quad.Size = newSize;
+                quad.Build();
+            }
+            else if (_geo is BrickGeometry brick)
+            {
+                brick.WallSize = newSize;
+                brick.Build();
+            }
 
-            quad3D.Size = newSize;
-            quad3D.Build();
-            quad3D.NotifyChanged(ObjectChangeType.Geometry);
+            _geo.NotifyChanged(ObjectChangeType.Geometry);
 
             _frame.Size = newSize;
             _frame.Build();
@@ -151,10 +177,10 @@ namespace XrSamples.Graffiti
 
         protected void UpdateDebug()
         {
-            var debugMat = (DebugMaterial)_quad.Materials[1];
+            var debugMat = (DebugMaterial)_canvas.Materials[1];
 
             debugMat.IsEnabled = Debug != PaintCanvasDebug.None;
-            _quad.Materials[0].IsEnabled = !debugMat.IsEnabled;
+            _canvas.Materials[0].IsEnabled = !debugMat.IsEnabled;
 
             if (debugMat.IsEnabled)
             {

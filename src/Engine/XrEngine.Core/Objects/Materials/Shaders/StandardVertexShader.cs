@@ -44,6 +44,8 @@ namespace XrEngine
                     WorldMatrix = modelWord
                 };
             }, 3, BufferStore.Model);
+
+            SkinVertexShader.UpdateShaderModel(bld);
         }
 
         protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)

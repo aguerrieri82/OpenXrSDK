@@ -17,7 +17,7 @@ namespace XrSamples.Graffiti
         protected Color _lastColor;
         protected Pose3 _lastCanvasPose;
         protected Vector2 _lastCanvasSize;
-        protected double _startTime = 0;
+        protected double _startRecordTime = 0;
         private bool _wasSpraying;
 
         public enum OpType
@@ -26,11 +26,15 @@ namespace XrSamples.Graffiti
             ChangeColor,
             Canvas,
             Params,
-            SprayClose
+            SprayClose,
+            Undo,
+            Clear
         }
 
         public CanvasRecorder()
         {
+            UpdatePriority = 1;
+
             _outPath = Path.Combine(XrPlatform.Current!.PersistentPath, "Graffiti", "Recording");
             Directory.CreateDirectory(_outPath);
         }
@@ -39,6 +43,12 @@ namespace XrSamples.Graffiti
         {
             _can ??= _host!.Descendants<Can>().First();
             _canvas ??= _host!.Descendants<PaintCanvas>().First();
+
+            if (_canvas.UndoRequest)
+                Append(OpType.Undo, ctx.Time);
+
+            if (_canvas.ClearRequest)
+                Append(OpType.Clear, ctx.Time);
 
             if (_can.SprayAperture > 0)
             {
@@ -215,7 +225,7 @@ namespace XrSamples.Graffiti
                 var fileName = Path.Combine(_outPath, $"Graffiti-{DateTime.Now:yyyyMMdd-HHmmss}.json");
                 var stream = File.Create(fileName);
                 _writer = new StreamWriter(stream);
-                _startTime = time;
+                _startRecordTime = time;
             }
 
             if (!_isRecording)
@@ -227,7 +237,7 @@ namespace XrSamples.Graffiti
             Write("\n[");
             Write((int)type);
             Write(",");
-            Write((float)(time - _startTime));
+            Write((float)(time - _startRecordTime));
 
             var argI = 0;
             
@@ -239,6 +249,8 @@ namespace XrSamples.Graffiti
             }
 
             Write("]");
+
+            _writer.Flush();
 
             _entryCount++;
         }

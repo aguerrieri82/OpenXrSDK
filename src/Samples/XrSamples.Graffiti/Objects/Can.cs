@@ -29,18 +29,29 @@ namespace XrSamples.Graffiti
         private readonly SprayTracker? _tracker;
         private Color _color;
         private SprayRays? _spray;
+        private bool _reconstructMode;
 
-        public Can()
+        public Can(bool reconstructMode)
         {
-            var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb",
-                new GltfLoaderOptions
-                {
-                    MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrV2Material()
-                });
+            _reconstructMode = reconstructMode; 
 
-            _canBody = mesh.FindByName<Object3D>("CanYellow")!;
-            _cap = mesh.FindByName<Object3D>("Cap")!;
-            _cap.Transform.Orientation = new Quaternion(-6.181724E-08f, 0.70710677f, 0f, 0.70710677f);
+            if (reconstructMode)
+            {
+                _canBody = new TriangleMesh();
+                _cap = new TriangleMesh();  
+            }
+            else
+            {
+                var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb",
+                    new GltfLoaderOptions
+                    {
+                        MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrV2Material()
+                    });
+                _canBody = mesh.FindByName<Object3D>("CanYellow")!;
+                _cap = mesh.FindByName<Object3D>("Cap")!;
+                _cap.Transform.Orientation = new Quaternion(-6.181724E-08f, 0.70710677f, 0f, 0.70710677f);
+            }
+
 
             AddChild(_canBody!);
             AddChild(_cap!);
@@ -78,6 +89,8 @@ namespace XrSamples.Graffiti
             Offset = new Vector3(0, -0.04f, 0);
 
             Color = new Color(1, 0, 0);
+
+            SoundEnabled = !XrPlatform.IsEditor;
         }
 
         static string GetAssetPath(string name)
@@ -103,6 +116,9 @@ namespace XrSamples.Graffiti
 
         public override void Update(RenderContext ctx)
         {
+            if (_reconstructMode)
+                return;
+
             Debug.Assert(_inputs?.Right != null);
 
             var pose = _inputs.Right.GripPose;
@@ -180,8 +196,11 @@ namespace XrSamples.Graffiti
             set
             {
                 _color = value;
-                var mat = (CanMaterial)((TriangleMesh)_canBody).Materials[0];
-                mat.CanColor = _color;
+                if (!_reconstructMode)
+                {
+                    var mat = (CanMaterial)((TriangleMesh)_canBody).Materials[0];
+                    mat.CanColor = _color;
+                }
             }
         }
 

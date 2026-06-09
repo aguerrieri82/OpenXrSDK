@@ -16,7 +16,7 @@ namespace XrEngine.OpenGL
         protected readonly GlBuffer<TIndexType>? _iBuf;
         protected readonly DrawElementsType _drawType;
 
-        public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[]? index, GlVertexLayout layout)
+        public GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[]? index, GlVertexLayout layout)
             : this(gl,
                   new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
                   index == null || index.Length == 0 ? null : new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
@@ -85,8 +85,6 @@ namespace XrEngine.OpenGL
                     return;
                 _gl.DrawArrays(primitive, 0, _vBuf.ArrayLength);
             }
-
-
         }
 
         protected unsafe void Configure()

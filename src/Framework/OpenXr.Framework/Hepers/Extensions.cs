@@ -13,6 +13,16 @@ namespace OpenXr.Framework
             return new Vector3(value.X, value.Y, value.Z);
         }
 
+        public static Vector2 ToVector2(this Vector2f value)
+        {
+            return new Vector2(value.X, value.Y);
+        }
+
+        public static Vector4 ToVector4(this Vector4f value)
+        {
+            return new Vector4(value.X, value.Y, value.Z, value.W);
+        }
+
         public static Posef ToPoseF(this Pose3 pose)
         {
             return new Posef

@@ -362,7 +362,6 @@ namespace XrSamples.Graffiti
                 }
  
                 _canvas!.ColorTexture.ToGlTexture().Recreate();
-
                 _canvas!.SprayTexture.ToGlTexture().Recreate();
             }
 
@@ -403,7 +402,7 @@ namespace XrSamples.Graffiti
             _hasUndo = false;
         }
 
-        protected void ClearCanvas()
+        public void ClearCanvas()
         {
             CreateUndoEntry();
 
@@ -479,8 +478,12 @@ namespace XrSamples.Graffiti
             _gl.BindImageTexture(1, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
 
             _gl.BindImageTexture(3, _canvas!.ColorTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
-            _gl.BindImageTexture(4, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
-            _gl.BindImageTexture(5, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
+
+            if (!ReconstructMode)
+            {
+                _gl.BindImageTexture(4, _canvas!.RoughnessTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
+                _gl.BindImageTexture(5, _canvas!.NormalTexture.ToGlTexture(), 0, false, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba8);
+            }
 
             _gl.DispatchCompute((_wetTex.Width + 7) / 8, (_wetTex.Height + 7) / 8, 1);
 
@@ -513,15 +516,6 @@ namespace XrSamples.Graffiti
             _dryTex.CopyTo(_undoDryTex!);
             _wetTex.CopyTo(_undoWetTex!);
             _hasUndo = true;
-
-            /*
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
-            _dryTex.Read(TextureFormat.RgbaFloat16, 0, null, _readBuffer);
-            _wetTex.Read(TextureFormat.RgbaFloat16, 0, null, _readBuffer);
-            timer.Stop();
-            Log.Warn(this, "READ TIME: {0}ms", timer.Elapsed.TotalMilliseconds);
-            */
         }
 
         protected void RenderSpray(RenderContext ctx)
@@ -595,10 +589,9 @@ namespace XrSamples.Graffiti
                     SprayMinY = 100000,
                     SprayMinX = 100000,
                 });
-               // Log.Debug(this, "Paint: {0} - {1}", sampleCount, _sprayUniforms.DensityScale);
+
                 if (!UseInstance)
                 {
-
                     for (var i = 0; i < sampleCount; ++i)
                     {
                         var factor =

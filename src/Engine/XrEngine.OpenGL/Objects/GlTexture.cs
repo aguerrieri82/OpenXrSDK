@@ -258,7 +258,7 @@ namespace XrEngine.OpenGL
                 return;
 
             if (EnableDebug)
-                Log.Debug(this, "Update texture '{0}'", _handle);
+                Log.Debug(this, "Update texture '{0}' {1}x{2}", _handle, width, height);
 
             if (_width != width || _height != height || _depth != depth)
             {

@@ -83,7 +83,7 @@ namespace XrEditor.Services
 
             if (texture.Width == 0 || texture.Height == 0)
             {
-                var src = texture.Component<AssetSource>();
+                texture.TryComponent<AssetSource>(out var src);
                 if (src?.Asset != null)
                     src.Asset.Update(texture);
             }

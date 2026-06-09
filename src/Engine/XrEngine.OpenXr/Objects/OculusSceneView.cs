@@ -112,8 +112,7 @@ namespace XrEngine.OpenXr
 
                     if (isLocatable)
                     {
-                        if (!oculus.GetSpaceComponentEnabled(info.Space, SpaceComponentTypeFB.LocatableFB))
-                            await oculus.SetSpaceComponentStatusAsync(info.Space, SpaceComponentTypeFB.LocatableFB, true);
+                        await oculus.EnsureSpaceComponentAsync(info.Space, SpaceComponentTypeFB.LocatableFB);
 
                         model.AddComponent(new XrAnchorUpdate
                         {

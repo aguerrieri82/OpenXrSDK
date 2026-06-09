@@ -162,6 +162,31 @@ namespace XrEngine
             });
         }
 
+        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, bool isUniform) where T : struct
+        {
+            IBuffer<T>? buffer = null;
+
+            _result.BufferUpdates!.Add((ctx) =>
+            {
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, isUniform);
+
+                ctx.CurrentBuffer = buffer;
+
+                var curValue = value(ctx);
+                if (curValue != null)
+                    buffer.UpdateRange(curValue, 0);
+
+                ctx.CurrentBuffer = null;
+            });
+
+            _result.Actions!.Add((ctx, up) =>
+            {
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, isUniform);
+
+                up.LoadBuffer(buffer, slot);
+            });
+        }
+
 
         public readonly void ExecuteAction(UpdateUniformAction action)
         {

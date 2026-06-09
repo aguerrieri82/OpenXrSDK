@@ -12,6 +12,7 @@ namespace OpenXr.Framework.Oculus
         private XrHandMesh? _mesh;
         private HandTrackingCapsulesStateFB.CapsulesBuffer _capsules;
         private readonly HandJointVelocityEXT[] _velocities;
+        private HandJointLocationEXT[]? _joints;
         private float _scale;
 
         public XrHandInputMesh(XrApp app) : base(app)
@@ -30,7 +31,7 @@ namespace OpenXr.Framework.Oculus
                 OverrideValueInput = 1,
                 OverrideHandScale = 0,
             };
-
+        
             var capsuleState = new HandTrackingCapsulesStateFB
             {
                 Type = StructureType.HandTrackingCapsulesStateFB,

@@ -86,6 +86,7 @@ namespace XrEngine.OpenXr
             _anchors.Clear();
         }
 
+
         protected async Task LoadAnchorsAsync()
         {
             await ClearAsync(false);
@@ -99,8 +100,7 @@ namespace XrEngine.OpenXr
                 if (!supported.Contains(SpaceComponentTypeFB.LocatableFB))
                     continue;
 
-                if (!_oculus.GetSpaceComponentEnabled(anchor.Space, SpaceComponentTypeFB.LocatableFB))
-                    await _oculus.SetSpaceComponentStatusAsync(anchor.Space, SpaceComponentTypeFB.LocatableFB, true);
+                await _oculus.EnsureSpaceComponentAsync(anchor.Space, SpaceComponentTypeFB.LocatableFB);
 
                 var pose = XrApp.Current!.LocateSpace(anchor.Space, XrApp.Current.ReferenceSpace);
 
@@ -153,9 +153,7 @@ namespace XrEngine.OpenXr
                 {
                     var xrAnchor = await _oculus.CreateAnchorAsync(head.Pose, XrApp.Current.ReferenceSpace);
 
-     
-                    if (!_oculus.GetSpaceComponentEnabled(xrAnchor.Space, SpaceComponentTypeFB.LocatableFB))
-                        await _oculus.SetSpaceComponentStatusAsync(xrAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
+                    await _oculus.EnsureSpaceComponentAsync(xrAnchor.Space, SpaceComponentTypeFB.LocatableFB);
 
                     if (IsPersistent)
                         await _oculus.SaveSpaceAsync(xrAnchor.Space, true);

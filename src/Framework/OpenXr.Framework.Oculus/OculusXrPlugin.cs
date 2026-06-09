@@ -85,7 +85,7 @@ namespace OpenXr.Framework.Oculus
         delegate Result GetSpaceTriangleMeshMETADelegate(Space space, ref SpaceTriangleMeshGetInfoMETA getInfo, ref SpaceTriangleMeshMETA triangleMeshOutput);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate Result DiscoverSpacesMETADelegate(Session session, ref SpaceDiscoveryInfoMETA info, out ulong requestId);
+        delegate Result DiscoverSpacesMETADelegate(Session session, ref SpaceDiscoveryInfoMETA info, ref ulong requestId);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Result RetrieveSpaceDiscoveryResultsMETADelegate(Session session, ulong requestId, ref SpaceDiscoveryResultsMETA result);
@@ -103,11 +103,13 @@ namespace OpenXr.Framework.Oculus
 
         protected class ActiveQuery
         {
-            public string? Hash { get; set; }
+            public string? Hash;
 
-            public object? Completion { get; set; }
+            public object? Completion;
 
-            public ulong ReqId { get; set; }
+            public ulong ReqId;
+
+            public Type? ResultType;
         }
 
         protected FBScene? _scene;
@@ -242,62 +244,76 @@ namespace OpenXr.Framework.Oculus
 
         public async Task<XrAnchorInfo> CreateAnchorAsync(Pose3 pose, Space refSpace)
         {
-            var info = new SpatialAnchorCreateInfoFB()
+            ulong Request()
             {
-                Type = StructureType.SpatialAnchorCreateInfoFB,
-                PoseInSpace = pose.ToPoseF(),
-                Space = refSpace
-            };
+                var info = new SpatialAnchorCreateInfoFB()
+                {
+                    Type = StructureType.SpatialAnchorCreateInfoFB,
+                    PoseInSpace = pose.ToPoseF(),
+                    Space = refSpace
+                };
 
-            ulong reqId = 0;
+                ulong reqId = GenerateReqId();
 
-            _app!.CheckResult(_spatial!.CreateSpatialAnchorFB(_app.Session, ref info, ref reqId), "CreateSpatialAnchorFB");
+                _app!.CheckResult(_spatial!.CreateSpatialAnchorFB(_app.Session, ref info, ref reqId), "CreateSpatialAnchorFB");
 
-            var res = await SubmitQuery<XrAnchorInfo>(reqId);
+                return reqId;
+            }
+
+            var res = await SubmitQuery<XrAnchorInfo>("CreateSpatialAnchorFB", Request);
 
             return res;
         }
 
         public async Task SaveSpaceAsync(Space space, bool saveLocal)
         {
-            if (!GetSpaceComponentEnabled(space, SpaceComponentTypeFB.StorableFB))
-                await SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.StorableFB, true);
-
-            var info = new SpaceSaveInfoFB()
+            ulong Request()
             {
-                Type = StructureType.SpaceSaveInfoFB,
-                Space = space,
-                Location = saveLocal ? SpaceStorageLocationFB.LocalFB : SpaceStorageLocationFB.CloudFB,
-                PersistenceMode = SpacePersistenceModeFB.IndefiniteFB
-            };
+                var info = new SpaceSaveInfoFB()
+                {
+                    Type = StructureType.SpaceSaveInfoFB,
+                    Space = space,
+                    Location = saveLocal ? SpaceStorageLocationFB.LocalFB : SpaceStorageLocationFB.CloudFB,
+                    PersistenceMode = SpacePersistenceModeFB.IndefiniteFB
+                };
 
-            ulong reqId = 0;
+                ulong reqId = GenerateReqId();
 
-            _app!.CheckResult(_spatialStorage!.SaveSpaceFB(_app.Session, ref info, ref reqId), "SaveSpaceFB");
+                _app!.CheckResult(_spatialStorage!.SaveSpaceFB(_app.Session, ref info, ref reqId), "SaveSpaceFB");
 
-            _app!.CheckResult(await SubmitQuery<Result>(reqId), "SaveSpaceFBResult");
+                return reqId;
+            }
+
+            await this.EnsureSpaceComponentAsync(space, SpaceComponentTypeFB.StorableFB);
+
+            _app!.CheckResult(await SubmitQuery<Result>($"SaveSpaceFB:{space.Handle}", Request), "SaveSpaceFBResult");
         }
 
 
         public async Task EraseSpaceAsync(Space space, bool isLocal)
         {
-            var info = new SpaceEraseInfoFB()
+            ulong Request()
             {
-                Type = StructureType.SpaceEraseInfoFB,
-                Space = space,
-                Location = isLocal ? SpaceStorageLocationFB.LocalFB : SpaceStorageLocationFB.CloudFB,
-            };
+                var info = new SpaceEraseInfoFB()
+                {
+                    Type = StructureType.SpaceEraseInfoFB,
+                    Space = space,
+                    Location = isLocal ? SpaceStorageLocationFB.LocalFB : SpaceStorageLocationFB.CloudFB,
+                };
 
-            ulong reqId = 0;
+                ulong reqId = GenerateReqId();
 
-            _app!.CheckResult(_spatialStorage!.EraseSpaceFB(_app.Session, ref info, ref reqId), "EraseSpaceFB");
+                _app!.CheckResult(_spatialStorage!.EraseSpaceFB(_app.Session, ref info, ref reqId), "EraseSpaceFB");
 
-            _app!.CheckResult(await SubmitQuery<Result>(reqId), "EraseSpaceFBResult");
+                return reqId;
+            }
+
+            _app!.CheckResult(await SubmitQuery<Result>($"EraseSpaceFB:{space.Handle}", Request), "EraseSpaceFBResult");
         }
 
         public async Task<SpaceDiscoveryResultMETA[]> DiscoverSpacesAsync(Guid[]? ids = null, SpaceComponentTypeFB? componentType = null)
         {
-            unsafe ulong DiscoverSpaces()
+            unsafe ulong Request()
             {
                 if (componentType != null)
                     throw new NotImplementedException();
@@ -323,15 +339,15 @@ namespace OpenXr.Framework.Oculus
                         idFilter.Uuids = (UuidEXT*)pIds;
                     }
 
-                    _app!.CheckResult(DiscoverSpacesMETA!(_app.Session, ref info, out var reqId), "DiscoverSpacesMETA");
+                    ulong reqId = GenerateReqId();
+
+                    _app!.CheckResult(DiscoverSpacesMETA!(_app.Session, ref info, ref reqId), "DiscoverSpacesMETA");
 
                     return reqId;
                 }
             }
 
-            var reqId = DiscoverSpaces();
-
-            var result = await SubmitQuery<SpaceDiscoveryResultMETA[]>(reqId);
+            var result = await SubmitQuery<SpaceDiscoveryResultMETA[]>("DiscoverSpacesMETA", Request);
 
             return result;
         } 
@@ -366,21 +382,6 @@ namespace OpenXr.Framework.Oculus
             return status.Enabled != 0;
         }
 
-        public ulong SetSpaceComponentStatusRequest(Space space, SpaceComponentTypeFB componentType, bool enabled)
-        {
-            var info = new SpaceComponentStatusSetInfoFB
-            {
-                Type = StructureType.SpaceComponentStatusSetInfoFB,
-                ComponentType = componentType,
-                Enabled = (uint)(enabled ? 1 : 0),
-            };
-
-            var reqId = (ulong)new DateTime().Ticks;
-
-            _app!.CheckResult(_spatial!.SetSpaceComponentStatusFB(space, in info, ref reqId), "SetSpaceComponentStatusFB");
-
-            return reqId;
-        }
 
         protected Task<T> SubmitQuery<T>(string hash, Func<ulong> action)
         {
@@ -394,7 +395,8 @@ namespace OpenXr.Framework.Oculus
                     {
                         ReqId = reqId,
                         Completion = new TaskCompletionSource<T>(),
-                        Hash = hash
+                        Hash = hash,
+                        ResultType = typeof(T)
                     };
 
                     _queries[hash] = query;
@@ -403,10 +405,8 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-        protected Task<T> SubmitQuery<T>(ulong reqId)
+        protected Task<T> SubmitQuery<T>(string hash, ulong reqId)
         {
-            var hash = reqId.ToString();
-
             var cs = new TaskCompletionSource<T>();
 
             _queries[hash] = new ActiveQuery
@@ -423,7 +423,8 @@ namespace OpenXr.Framework.Oculus
         {
             lock (_queries)
             {
-                var query = _queries.Values.FirstOrDefault(a => a.ReqId == reqId);
+                var query = _queries.Values
+                    .FirstOrDefault(a => a.ReqId == reqId && a.ResultType == typeof(T));
 
                 if (query == null)
                     return null;
@@ -447,38 +448,6 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        protected unsafe ulong QueryAllAnchorsRequest(Guid[]? ids)
-        {
-            var hasIds = ids != null && ids.Length > 0;
-
-            ids ??= new Guid[1];
-
-            fixed (Guid* uuids = &ids[0])
-            {
-                var filter = new SpaceUuidFilterInfoFB();
-
-                if (hasIds)
-                {
-                    filter.Uuids = (UuidEXT*)uuids;
-                    filter.UuidCount = (uint)ids.Length;
-                    filter.Type = StructureType.SpaceUuidFilterInfoFB;
-                }
-
-                var query = new SpaceQueryInfoFB()
-                {
-                    Type = StructureType.SpaceQueryInfoFB,
-                    QueryAction = SpaceQueryActionFB.LoadFB,
-                    Filter = hasIds ? (SpaceFilterInfoBaseHeaderFB*)&filter : null,
-                    MaxResultCount = 100,
-                };
-
-                var reqId = (ulong)new DateTime().Ticks;
-
-                _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
-
-                return reqId;
-            }
-        }
 
         protected unsafe SpaceDiscoveryResultMETA[] GetSpaceDiscoveryResults(ulong reqId)
         {
@@ -583,27 +552,70 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-        public IEnumerable<SpaceQueryResultFB> SpaceWithComponents(IEnumerable<SpaceQueryResultFB> spaces, params SpaceComponentTypeFB[] componets)
+
+
+        protected ulong GenerateReqId()
         {
-            foreach (var space in spaces)
-            {
-                var caps = EnumerateSpaceSupportedComponentsFB(space.Space);
-                if (componets.All(a => caps.Contains(a)))
-                    yield return space;
-            }
+            return (ulong)(new Random().NextDouble() * ulong.MaxValue);
         }
 
         public Task<Result> SetSpaceComponentStatusAsync(Space space, SpaceComponentTypeFB componentType, bool enabled)
         {
-            var hash = $"{space.Handle}_{componentType}";
+            ulong Request()
+            {
+                var info = new SpaceComponentStatusSetInfoFB
+                {
+                    Type = StructureType.SpaceComponentStatusSetInfoFB,
+                    ComponentType = componentType,
+                    Enabled = (uint)(enabled ? 1 : 0),
+                };
 
-            return SubmitQuery<Result>(hash, () =>
-                       SetSpaceComponentStatusRequest(space, componentType, enabled));
+                var reqId = GenerateReqId();
+
+                _app!.CheckResult(_spatial!.SetSpaceComponentStatusFB(space, in info, ref reqId), "SetSpaceComponentStatusFB");
+
+                return reqId;
+            }
+ 
+            return SubmitQuery<Result>($"{space.Handle}:{componentType}", Request);
         }
 
         public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync(Guid[]? ids = null)
         {
-            return SubmitQuery<SpaceQueryResultFB[]>("AllAnchors", () => QueryAllAnchorsRequest(ids));
+            unsafe ulong Request()
+            {
+                var hasIds = ids != null && ids.Length > 0;
+
+                ids ??= new Guid[1];
+
+                fixed (Guid* uuids = &ids[0])
+                {
+                    var filter = new SpaceUuidFilterInfoFB();
+
+                    if (hasIds)
+                    {
+                        filter.Uuids = (UuidEXT*)uuids;
+                        filter.UuidCount = (uint)ids.Length;
+                        filter.Type = StructureType.SpaceUuidFilterInfoFB;
+                    }
+
+                    var query = new SpaceQueryInfoFB()
+                    {
+                        Type = StructureType.SpaceQueryInfoFB,
+                        QueryAction = SpaceQueryActionFB.LoadFB,
+                        Filter = hasIds ? (SpaceFilterInfoBaseHeaderFB*)&filter : null,
+                        MaxResultCount = 100,
+                    };
+
+                    var reqId = GenerateReqId();
+
+                    _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
+
+                    return reqId;
+                }
+            }
+
+            return SubmitQuery<SpaceQueryResultFB[]>("QuerySpacesFB", Request);
         }
 
         public override void HandleEvent(ref EventDataBuffer buffer)
@@ -837,7 +849,6 @@ namespace OpenXr.Framework.Oculus
 
         public void RequestDisplayRefreshRate(float value)
         {
-
             _app!.CheckResult(_refreshRate!.RequestDisplayRefreshRateFB(_app!.Session, value), "RequestDisplayRefreshRate");
         }
 
@@ -932,10 +943,12 @@ namespace OpenXr.Framework.Oculus
                 _app!.CheckResult(_handMesh!.GetHandMeshFB(tracker, ref mesh), "GetHandMeshFB");
             }
 
-            var result = new XrHandMesh();
-            result.Joints = new XrHandJoint[mesh.JointCountOutput];
-            result.Vertices = new XrHandVertex[mesh.VertexCountOutput];
-            result.Indices = new uint[mesh.IndexCountOutput];
+            var result = new XrHandMesh
+            {
+                Joints = new XrHandJoint[mesh.JointCountOutput],
+                Vertices = new XrHandVertex[mesh.VertexCountOutput],
+                Indices = new uint[mesh.IndexCountOutput]
+            };
 
             for (var i = 0; i < mesh.JointCountOutput; i++)
             {

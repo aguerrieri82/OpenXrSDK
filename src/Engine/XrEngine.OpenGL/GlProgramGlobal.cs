@@ -61,7 +61,7 @@ namespace XrEngine.OpenGL
             UpdateBuffers(ctx);
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, bool isUniform)
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
@@ -69,7 +69,7 @@ namespace XrEngine.OpenGL
             var buffer = (IBuffer<T>?)_bufferMap.Buffers[bufferId];
             if (buffer == null)
             {
-                buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
+                buffer = new GlBuffer<T>(_gl, isUniform ? BufferTargetARB.UniformBuffer : BufferTargetARB.ShaderStorageBuffer);
                 _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;
