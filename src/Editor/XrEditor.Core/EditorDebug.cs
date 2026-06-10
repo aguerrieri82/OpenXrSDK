@@ -49,7 +49,7 @@ namespace XrEditor
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 2)
+              .SetRenderQuality(1f, 1)
               .CreateHelmet()
               .Build();
     }

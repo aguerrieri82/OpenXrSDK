@@ -15,17 +15,28 @@ namespace XrEngine.OpenGL
         protected readonly GlRenderPassTarget _passTarget;
         protected readonly GlSimpleProgram _outlineProgram;
         protected Bounds2 _bounds;
+        protected Size2I _lastCameraSize;
+        protected float _downsampleFactor;
+        protected readonly bool _isDownsample;
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)
         {
             UseScissor = true;
+            
+            _downsampleFactor = _renderer.Options.Outline.DownsampleFactor;
+            _isDownsample = _downsampleFactor > 1f;
 
-            _passTarget = new GlRenderPassTarget(renderer.GL);
-            _passTarget.BoundEye = boundEye;
-            _passTarget.DepthMode = TargetDepthMode.None;
-            _passTarget.IsMultiView = isMultiView;
-            _passTarget.UseMultiViewTarget = true;
+            _passTarget = new GlRenderPassTarget(renderer.GL)
+            {
+                BoundEye = boundEye,
+                DepthMode = TargetDepthMode.None,
+                IsMultiView = isMultiView,
+                UseMultiViewTarget = true
+            };
+
+            if (_isDownsample)
+                _passTarget.AddExtra(TextureFormat.Rgba32, FramebufferAttachment.ColorAttachment1, true);
 
             _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
 
@@ -34,6 +45,8 @@ namespace XrEngine.OpenGL
                 _outlineProgram.AddExtension("GL_OVR_multiview2");
                 _outlineProgram.AddFeature("MULTI_VIEW");
             }
+
+            _outlineProgram.AddFeature($"OUTLINE_SIZE {_renderer.Options.Outline.Size}");
 
             _outlineProgram.Build();
         }
@@ -55,8 +68,14 @@ namespace XrEngine.OpenGL
             if (!Source.HasOutlines())
                 return false;
 
-            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.GrayInt8);
+            _lastCameraSize = camera.ViewSize;
+
+            _passTarget.Configure((uint)(camera.ViewSize.Width / _downsampleFactor), 
+                                  (uint)(camera.ViewSize.Height / _downsampleFactor), TextureFormat.GrayInt8);
             _passTarget.RenderTarget!.Begin(camera);
+
+            if (_isDownsample)
+                _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
 
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(false);
@@ -64,9 +83,14 @@ namespace XrEngine.OpenGL
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            _bounds = new Bounds2();
-            _bounds.Min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
-            _bounds.Max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+            if (_isDownsample)
+                _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment0);
+
+            _bounds = new Bounds2
+            {
+                Min = new Vector2(float.PositiveInfinity, float.PositiveInfinity),
+                Max = new Vector2(float.NegativeInfinity, float.NegativeInfinity)
+            };
 
             return base.BeginRender(camera);
         }
@@ -91,12 +115,17 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
-            _passTarget.RenderTarget!.End(true);
+            if (!_isDownsample)
+            {
+                _passTarget.RenderTarget!.End(true);
 
-            _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
+                _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
+            }
+            else
+                _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment1);
 
             _outlineProgram.Use();
-            _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
+
             _outlineProgram.SetUniform("uColor", _renderer.Options.Outline.Color);
             _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
 
@@ -115,6 +144,16 @@ namespace XrEngine.OpenGL
 
             if (UseScissor)
                 _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
+
+            if (_isDownsample)
+            {
+                _passTarget.RenderTarget!.End(true);
+
+                _renderer.UpdateContext.PassCamera!.ViewSize = _lastCameraSize;
+                _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
+
+                OverlayTexture(_passTarget.GetExtra(0)!);
+            }
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -199,6 +238,8 @@ namespace XrEngine.OpenGL
         public GlRenderPassTarget PassTarget => _passTarget;
 
         public bool UseScissor { get; set; }
+
+
 
     }
 }

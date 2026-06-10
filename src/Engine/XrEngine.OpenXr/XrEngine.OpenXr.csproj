@@ -11,6 +11,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Shaders\hand.frag" />
+	  <EmbeddedResource Include="Shaders\ghost.frag" />
 	  <EmbeddedResource Include="Shaders\depth_point.frag" />
 	  <EmbeddedResource Include="Shaders\motion_vectors.frag" />
 	  <EmbeddedResource Include="Shaders\motion_vectors.vert" />

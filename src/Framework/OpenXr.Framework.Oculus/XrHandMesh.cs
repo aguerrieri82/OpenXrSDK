@@ -34,5 +34,7 @@ namespace OpenXr.Framework.Oculus
         public HandCapsuleFB[]? Capsules;
 
         public uint[]? Indices;
+
+        public HandEXT Type;
     }
 }

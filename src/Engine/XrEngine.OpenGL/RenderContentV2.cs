@@ -24,6 +24,8 @@
         public KeyValuePair<ShaderMaterialKey, MaterialContentV2>[]? SortedContent = [];
 
         public bool IsDirty;
+
+        public int MaxPriority;
     }
 
     public class MaterialContentV2
@@ -65,5 +67,7 @@
         public long LayerVersion;
 
         public readonly Dictionary<Shader, ShaderContentV2> Contents = [];
+
+        public KeyValuePair<Shader, ShaderContentV2>[]? SortedContent = [];
     }
 }

@@ -60,8 +60,12 @@
 
         protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            if (HasSkin)
+                bld.AddFeature("HAS_SKIN");
 
         }
+
+        public bool HasSkin { get; set; }
 
         public long ContentVersion { get; set; }
 

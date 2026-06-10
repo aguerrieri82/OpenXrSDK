@@ -160,7 +160,7 @@ namespace XrEngine.OpenGL
 
             uint globalProgChangesCount = 0;
 
-            foreach (var shader in layer.Content.Contents)
+            foreach (var shader in layer.Content.SortedContent!)
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 

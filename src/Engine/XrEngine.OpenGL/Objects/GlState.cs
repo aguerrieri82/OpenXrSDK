@@ -440,14 +440,13 @@ namespace XrEngine.OpenGL
         public void SetWireframe(bool value, bool force = false)
         {
 #if !GLES
-            if (value != Wireframe || force)
+            //if (value != Wireframe || force)
             {
                 if (value)
                     _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
                 else
                 {
                     _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
-                    _gl.CullFace(TriangleFace.Back);
                 }
                 Wireframe = value;
             }

@@ -83,6 +83,7 @@ namespace OpenXr.Framework.Oculus
         public void LoadMesh()
         {
             _mesh = _oculus.GetHandMesh(_tracker);
+            _mesh.Type = _handType;
         }
 
         public Span<HandCapsuleFB> Capsules => _capsules.AsSpan();

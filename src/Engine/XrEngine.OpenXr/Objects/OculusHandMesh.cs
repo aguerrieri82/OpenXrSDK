@@ -20,10 +20,44 @@ namespace XrEngine.OpenXr
 
             Flags |= EngineObjectFlags.NoFrustumCulling;
 
+            /*
             Materials.Add(new PbrV2Material
             {
                 Color = "#ff0000",
                 HasSkin = true
+            });
+    */
+
+            Materials.Add(new DepthOnlyMaterial()
+            {
+                HasSkin = true
+            });
+       
+
+            Materials.Add(new HandMaterial()
+            {
+                Color = new Color(1, 1, 1, 0.15f),
+                WriteDepth = false,
+                HasSkin = true,
+                Alpha = AlphaMode.Blend,
+                FadeStart = -0.051f,
+                FadeEnd = 0.015f,
+                FadeSide = _mesh.Type == HandEXT.RightExt ? 1 : -1,
+                Priority = 1,
+            });
+
+            Materials.Add(new HandMaterial()
+            {
+                Color = new Color(1, 0, 0, 0.7f),
+                WriteDepth = false,
+                CullFront = true,
+                Priority = 2,
+                HasSkin = true,
+                Alpha = AlphaMode.Blend,
+                NormalScale = 0.003f,
+                FadeStart = -0.051f,
+                FadeEnd = 0.015f,
+                FadeSide = _mesh.Type == HandEXT.RightExt ? 1 : -1
             });
 
             _skinMatrices = new Matrix4x4[_mesh.Joints!.Length];
@@ -80,6 +114,15 @@ namespace XrEngine.OpenXr
             Geometry = geometry;    
         }
 
+        [Action]
+        public void Export()
+        {
+            var writer = new ObjWriter();
+            writer.Add(this);
+            File.WriteAllText("d:\\test.obj", writer.Text());
+
+        }
+
         public Matrix4x4[] SkinMatrices => _skinMatrices;
 
         SkinData[] ISkinnedMesh.Skin => ((SkinnedGeometry3D)_geometry!).Skin;
@@ -87,5 +130,7 @@ namespace XrEngine.OpenXr
         public long SkinVersion => 1;
 
         public long SkinMatricesVersion => _skinVersion;
+
+
     }
 }

@@ -113,10 +113,18 @@ void main()
         skinTransform(position, normal);
     #endif
 
+    #ifdef NORMAL_SCALE
+        position += normalize(normal) * NORMAL_SCALE;
+    #endif
+
     vec4 pos = worldMatrix * vec4(position, 1.0);
     vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
 
-	fPos = pos.xyz; 
+    #ifdef FRAG_RAW_POS
+        fPos = a_position;
+    #else
+	    fPos = pos.xyz; 
+    #endif
 
 	fUv = a_texcoord;
 

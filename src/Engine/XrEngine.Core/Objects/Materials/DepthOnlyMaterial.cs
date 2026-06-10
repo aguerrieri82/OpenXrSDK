@@ -20,7 +20,5 @@
             WriteColor = false;
             WriteDepth = true;
         }
-
-
     }
 }

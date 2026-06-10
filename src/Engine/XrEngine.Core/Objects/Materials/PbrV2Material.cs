@@ -755,7 +755,6 @@ namespace XrEngine
 
         public Matrix4x4? ColorMapProjection { get; set; }
 
-        public bool HasSkin { get; set; }
 
         bool IPbrMaterial.ToneMap
         {

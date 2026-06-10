@@ -112,6 +112,8 @@
 
         public bool DoubleSided { get; set; }
 
+        public bool CullFront { get; set; }
+
         public bool CastShadows { get; set; }
 
         public byte? WriteStencil { get; set; }

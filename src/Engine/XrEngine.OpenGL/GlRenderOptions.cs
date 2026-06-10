@@ -19,6 +19,8 @@ namespace XrEngine.OpenGL
         public float Size { get; set; }
 
         public bool IsMultiView { get; set; }
+
+        public float DownsampleFactor { get;  set; }
     }
 
     public class GlCompressionOptions
@@ -77,7 +79,8 @@ namespace XrEngine.OpenGL
             {
                 Use = false,
                 Color = new Color(1, 1, 0, 0.7f),
-                Size = 2
+                Size = 2,
+                DownsampleFactor = 1.5f
             };
 
             /*

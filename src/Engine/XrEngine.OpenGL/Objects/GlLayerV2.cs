@@ -303,12 +303,18 @@ namespace XrEngine.OpenGL
                     continue;
 
                 shaderContent.SortedContent = shaderContent.Contents
-                .OrderBy(a => a.Value.Material!.Priority)
-                .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0)
-                .ToArray();
+                    .OrderBy(a => a.Value.Material!.Priority)
+                    .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0)
+                    .ToArray();
 
                 shaderContent.IsDirty = true;
+
+                shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ? 0 : shaderContent.Contents.Max(a => a.Value.Material!.Priority);
             }
+
+            _content.SortedContent = _content.Contents
+                .OrderBy(a => a.Value.MaxPriority)
+                .ToArray();
 
         }
 

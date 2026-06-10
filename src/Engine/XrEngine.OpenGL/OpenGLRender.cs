@@ -191,6 +191,10 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.ScissorTest, false);
             _glState.EnableFeature(EnableCap.ProgramPointSize, true);
             _glState.EnableFeature(EnableCap.TextureCubeMapSeamless, true);
+            
+            _gl.Disable(EnableCap.SampleAlphaToCoverage);
+            _gl.Disable(EnableCap.SampleAlphaToOne);
+            _gl.Disable(EnableCap.SampleCoverage);
 
             PbrV2Material.SHADER.ToneMap = !_options.UseSRGB;
 
@@ -201,6 +205,7 @@ namespace XrEngine.OpenGL
             if (_glState.UseDepth != material.UseDepth || _glState.WriteDepth != material.WriteDepth)
                 _glState.EnableFeature(EnableCap.DepthTest, material.UseDepth || material.WriteDepth);
 
+            _glState.SetCullFace(material.CullFront ? TriangleFace.Front : TriangleFace.Back);
             _glState.SetUseDepth(material.UseDepth);
             _glState.SetWriteDepth(material.WriteDepth);
             _glState.SetDoubleSided(material.DoubleSided);

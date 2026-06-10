@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System.Globalization;
+using XrMath;
 
 namespace XrEngine
 {
@@ -14,7 +15,6 @@ namespace XrEngine
                 IsLit = false
             };
         }
-
 
         public ColorMaterial()
             : base()
@@ -38,17 +38,23 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            container.ReadObject<ColorMaterial>(this);
+            container.ReadObject(this);
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            if (NormalScale > 0)
+                bld.AddFeature($"NORMAL_SCALE {NormalScale.ToString("0.0#######", CultureInfo.InvariantCulture)}");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uColor", Color);
             });
+
+            base.UpdateShaderMaterial(bld);
         }
 
+        public float NormalScale { get; set; }
 
         public Color ShadowColor { get; set; }
 
