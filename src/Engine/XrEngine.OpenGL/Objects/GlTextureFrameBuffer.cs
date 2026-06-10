@@ -15,7 +15,7 @@ namespace XrEngine.OpenGL
         protected uint _sampleCount;
         private Size2I _size;
         protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
-        protected readonly MutableArray<DrawBufferMode> _drawBuffers;
+        protected readonly MutableArray<DrawBufferMode> _drawModes;
 
 #if GLES
         static ExtMultisampledRenderToTexture? _extMs;
@@ -24,7 +24,7 @@ namespace XrEngine.OpenGL
         public GlTextureFrameBuffer(GL gl)
            : base(gl)
         {
-            _drawBuffers = new MutableArray<DrawBufferMode> { Sort = true };
+            _drawModes = new MutableArray<DrawBufferMode> { Sort = true };
 #if GLES
             if (_extMs == null)
                 gl.TryGetExtension(out _extMs);
@@ -63,7 +63,7 @@ namespace XrEngine.OpenGL
                     0,
                     (int)colorIndex);
 
-                _drawBuffers.Add(DrawBufferMode.ColorAttachment0);
+                _drawModes.Add(DrawBufferMode.ColorAttachment0);
 
                 _isDirty = true;
             }
@@ -124,7 +124,7 @@ namespace XrEngine.OpenGL
         public override void Bind()
         {
             base.Bind();
-            GlState.Current!.SetDrawBuffers(_drawBuffers.Data);
+            SetDrawBuffers(_drawModes);
         }
 
         public void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot, bool useDraw)
@@ -165,7 +165,7 @@ namespace XrEngine.OpenGL
             _attachments[slot] = obj;
 
             if (useDraw)
-                _drawBuffers.Add((DrawBufferMode)slot);
+                _drawModes.Add((DrawBufferMode)slot);
 
             _isDirty = true;
         }

@@ -486,10 +486,10 @@ namespace XrEngine
                     {
                         var curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
 
-                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
+                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Version == curHash)
                             return null;
 
-                        ctx.CurrentBuffer.Hash = curHash;
+                        ctx.CurrentBuffer.Version = curHash;
 
                         Log.Debug(this, "Build light uniforms");
 
@@ -575,10 +575,10 @@ namespace XrEngine
                     {
                         var curHash = (int)imgLight.Version;
 
-                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
+                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Version == curHash)
                             return null;
 
-                        ctx.CurrentBuffer.Hash = curHash;
+                        ctx.CurrentBuffer.Version = curHash;
 
                         return (IBLUniforms?)new IBLUniforms
                         {

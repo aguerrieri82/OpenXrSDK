@@ -31,7 +31,7 @@ namespace XrEngine.OpenGL
              : base(gl)
         {
             _target = target;
-            Hash = -1;
+
             Version = -1;
             Slot = 0;
             Create();
@@ -280,7 +280,6 @@ namespace XrEngine.OpenGL
         }
 
 
-        public long Hash { get; set; }
 
         public long Version { get; set; }
 

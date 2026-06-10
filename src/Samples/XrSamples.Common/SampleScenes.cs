@@ -1209,7 +1209,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentDepth()
+                //.UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }

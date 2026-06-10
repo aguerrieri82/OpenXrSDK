@@ -29,7 +29,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -47,6 +47,9 @@ namespace XrEditor
 
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
+                  
+                  opt.Outline.IsMultiView = true;
+
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)

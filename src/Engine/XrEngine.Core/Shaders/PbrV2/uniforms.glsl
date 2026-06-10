@@ -27,3 +27,12 @@ layout(std140, binding=2) uniform Material
 	vec4 emissive;
 } uMaterial;
 
+
+layout(std140, binding = 4) uniform Ibl
+{
+    float uSpecularTextureLevels; 
+    float uIblIntensity;          
+    float uIblShadowStrength;    
+    vec3 uIblColor;    
+    mat3 uIblTransform; 
+};

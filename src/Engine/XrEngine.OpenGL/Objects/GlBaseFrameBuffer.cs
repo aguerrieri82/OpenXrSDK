@@ -10,6 +10,8 @@ namespace XrEngine.OpenGL
     public abstract class GlBaseFrameBuffer : GlObject
     {
         protected bool _isDirty = true;
+        protected DrawBufferMode[] _lastDrawModes = [];
+        protected ReadBufferMode _lastReadMode;
 
         public GlBaseFrameBuffer(GL gl)
             : base(gl)
@@ -34,19 +36,29 @@ namespace XrEngine.OpenGL
 
         public void SetDrawBuffers(params DrawBufferMode[] modes)
         {
+            if (Utils.ArrayEquals(modes, _lastDrawModes))
+                return;
+
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
 
             if (modes.Length == 0)
-                GlState.Current.SetDrawBuffers(GlState.DRAW_NONE);
+                _gl.DrawBuffers(GlState.DRAW_NONE);
             else
-                GlState.Current.SetDrawBuffers(modes);
+                _gl.DrawBuffers(modes);
+
+            _lastDrawModes = modes; 
         }
 
         public void SetReadBuffer(ReadBufferMode mode)
         {
+            if (_lastReadMode == mode)
+                return;
+
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
 
             _gl.ReadBuffer(mode);
+
+            _lastReadMode = mode;
         }
 
         public virtual void Bind()

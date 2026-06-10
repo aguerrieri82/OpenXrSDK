@@ -27,8 +27,6 @@
 
         void Unlock();
 
-        long Hash { get; set; }
-
         long Version { get; set; }
 
         uint SizeBytes { get; }

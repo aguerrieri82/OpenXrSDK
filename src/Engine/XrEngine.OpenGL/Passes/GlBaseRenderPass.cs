@@ -10,11 +10,13 @@ namespace XrEngine.OpenGL
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
         static GlSimpleProgram? _drawQuad;
+        static GlSimpleProgram? _drawQuadMv;
         static uint _emptyVertexArray;
 
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
         protected GL _gl;
+
 
         public GlBaseRenderPass(OpenGLRender renderer)
         {
@@ -128,24 +130,35 @@ namespace XrEngine.OpenGL
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 
-        protected void OverlayTexture(GlTexture texture)
+        protected void OverlayTexture(GlTexture texture, bool isMultiView)
         {
-            OverlayTexture(texture.ToEngineTexture());
+            OverlayTexture(texture.ToEngineTexture(), isMultiView);
         }
 
-        protected void OverlayTexture(Texture texture)
+        protected void OverlayTexture(Texture texture, bool isMultiView)
         {
-            if (_drawQuad == null)
+            if (_drawQuad == null && !isMultiView)
             {
                 _drawQuad = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
                 _drawQuad.Build();
             }
 
-            _drawQuad.Use();
-            _drawQuad.LoadTexture(texture, 0);
+            if (_drawQuadMv == null && isMultiView)
+            {
+                _drawQuadMv = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
+                _drawQuadMv.AddExtension("GL_OVR_multiview2");
+                _drawQuadMv.AddFeature("MULTI_VIEW");
+                _drawQuadMv.Build();
+            }
+
+            var curProg = isMultiView ? _drawQuadMv : _drawQuad;
+
+            curProg!.Use();
+            curProg.LoadTexture(texture, 0);
 
             _renderer.State.SetUseDepth(false);
             _renderer.State.SetWriteDepth(false);
+            _renderer.State.SetWriteColor(true);
             _renderer.State.SetAlphaMode(AlphaMode.Blend);
 
             DrawQuad();

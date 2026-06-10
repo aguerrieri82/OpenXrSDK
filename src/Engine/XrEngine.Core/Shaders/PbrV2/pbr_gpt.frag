@@ -62,13 +62,6 @@ layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
 
-uniform float uSpecularTextureLevels;
-uniform float uIblIntensity;
-uniform vec3 uIblColor;
-
-#ifdef USE_IBL_TRANSFORM
-	uniform mat3 uIblTransform;
-#endif
 
 #ifdef HAS_CLIP_VOLUME
 	uniform vec3 uClipMin;
@@ -357,13 +350,16 @@ void main()
 #if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
 	float shadow = calculateShadow(fPosLightSpace, N, shadowLightDir);
 
-#ifdef TRANSPARENT
-	vec3 color3 = shadow * uMaterial.shadowColor.rgb;
-	a = shadow * uMaterial.shadowColor.a;
-#else
-	directLighting *= vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
-	vec3 color3 = directLighting + ambientLighting;
-#endif
+	#ifdef TRANSPARENT
+		vec3 color3 = shadow * uMaterial.shadowColor.rgb;
+		a = shadow * uMaterial.shadowColor.a;
+	#else
+		vec3 shadowFactor = vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
+
+		vec3 color3 =
+			directLighting * shadowFactor +
+			ambientLighting * mix(vec3(1.0), shadowFactor, uIblShadowStrength);
+	#endif
 #else
 	vec3 color3 = directLighting + ambientLighting;
 #endif

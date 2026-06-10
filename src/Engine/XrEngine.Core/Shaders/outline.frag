@@ -10,18 +10,22 @@
 
 uniform vec4 uColor;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = FRAG_LOCATON) out vec4 fragColor;
 
 #ifdef MULTI_VIEW
-float FetchMask(ivec2 p)
-{
-    return texelFetch(srcImage, ivec3(p, gl_ViewID_OVR), 0).r;
-}
+
+    float FetchMask(ivec2 p)
+    {
+        return texelFetch(srcImage, ivec3(p, gl_ViewID_OVR), 0).r;
+    }
+
 #else
-float FetchMask(ivec2 p)
-{
-    return texelFetch(srcImage, p, 0).r;
-}
+
+    float FetchMask(ivec2 p)
+    {
+        return texelFetch(srcImage, p, 0).r;
+    }
+
 #endif
 
 bool HasMask(ivec2 p)

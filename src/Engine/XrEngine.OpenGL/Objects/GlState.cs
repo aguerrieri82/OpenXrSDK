@@ -45,7 +45,6 @@ namespace XrEngine.OpenGL
             FrameBufferTargets.Clear();
             BufferTargets.Clear();
             Features.Clear();
-            DrawBuffers = null;
             VertexArray = null;
             TexturesSlots.Clear();
             BufferSlots.Clear();
@@ -116,8 +115,6 @@ namespace XrEngine.OpenGL
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
 
-            if (DrawBuffers != null)
-                SetDrawBuffers(DrawBuffers, true);
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -163,7 +160,8 @@ namespace XrEngine.OpenGL
             if (View == null || !View.Equals(value) || force)
             {
                 _gl.Viewport(value.X, value.Y, value.Width, value.Height);
-                _gl.Scissor(value.X, value.Y, value.Width, value.Height);
+                
+                //_gl.Scissor(value.X, value.Y, value.Width, value.Height);
 
                 View = value;
             }
@@ -364,19 +362,6 @@ namespace XrEngine.OpenGL
         }
 
 
-        public void SetDrawBuffers(DrawBufferMode[] value, bool force = false)
-        {
-            _gl.DrawBuffers(value);
-            /*
-            var equals = DrawBuffers != null && Utils.ArrayEquals(DrawBuffers, value);
-
-            if (!equals || force)
-            {
-                DrawBuffers = value;   
-                _gl.DrawBuffers(value);
-            }
-            */
-        }
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
@@ -516,8 +501,6 @@ namespace XrEngine.OpenGL
         public byte? WriteStencil;
 
         public byte? StencilRef;
-
-        public DrawBufferMode[]? DrawBuffers;
 
         public GlStencilFunction? StencilFunc;
 

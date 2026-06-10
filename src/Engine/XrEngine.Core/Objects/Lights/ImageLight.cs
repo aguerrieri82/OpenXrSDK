@@ -137,6 +137,8 @@ namespace XrEngine
         [ValueType(ValueType.Radiant)]
         public float RotationY { get; set; }
 
+        public float ShadowStrength { get; set; }
+
         public Matrix3x3 LightTransform { get; set; }
 
         public static bool UseCache { get; set; } = true;

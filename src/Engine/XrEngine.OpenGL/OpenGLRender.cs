@@ -145,7 +145,7 @@ namespace XrEngine.OpenGL
         {
             _glState.Reset();
 
-            _glState.SetDrawBuffers(GlState.DRAW_COLOR_0);
+            _gl.DrawBuffers(GlState.DRAW_COLOR_0);
         }
 
         public unsafe void EnableDebug(bool sync = false)

@@ -133,7 +133,7 @@ namespace XrEngine.OpenGL
 
             if (DepthMode == TargetDepthMode.Create && (_depthBuffer == null || isColorChanged))
             {
-                if (_renderTarget is GlMultiViewRenderTarget)
+                if (IsMultiView)
                 {
                     _depthBuffer?.Dispose();
 
@@ -186,7 +186,7 @@ namespace XrEngine.OpenGL
                         MagFilter = TextureMagFilter.Linear,
                         MaxLevel = 0,
                         IsMutable = extra.IsMutable,
-                        Target = TextureTarget.Texture2D
+                        Target = depth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                     };
 
                     extra.Texture.Update(new TextureData

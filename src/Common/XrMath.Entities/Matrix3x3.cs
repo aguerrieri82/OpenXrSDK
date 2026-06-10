@@ -1,4 +1,7 @@
-﻿namespace XrMath
+﻿using System.Numerics;
+using XrMath.Entities;
+
+namespace XrMath
 {
     public struct Matrix3x3
     {
@@ -20,6 +23,27 @@
             M32 = values[7];
             M33 = values[8];
 
+        }
+
+        public readonly Vector4x3 ToVector4x3()
+        {
+            var result = default(Vector4x3);
+
+            result[0] = new Vector4(M11, M21, M31, 0.0f);
+            result[1] = new Vector4(M12, M22, M32, 0.0f);
+            result[2] = new Vector4(M13, M23, M33, 0.0f);
+
+            return result;
+        }
+
+        public readonly Matrix4x4 ToMatrix4x4()
+        {
+            return new Matrix4x4(
+                M11, M12, M13, 0.0f,
+                M21, M22, M23, 0.0f,
+                M31, M32, M33, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
+            );
         }
 
         public bool IsIdentity

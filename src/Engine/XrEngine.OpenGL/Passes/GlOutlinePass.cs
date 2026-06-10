@@ -13,9 +13,11 @@ namespace XrEngine.OpenGL
     public class GlOutlinePass : GlBaseSingleMaterialPass
     {
         protected readonly GlRenderPassTarget _passTarget;
+        protected readonly GlRenderPassTarget? _tempTarget;
         protected readonly GlSimpleProgram _outlineProgram;
         protected Bounds2 _bounds;
         protected Size2I _lastCameraSize;
+        protected Size2I _frameSize;
         protected float _downsampleFactor;
         protected readonly bool _isDownsample;
 
@@ -25,6 +27,7 @@ namespace XrEngine.OpenGL
             UseScissor = true;
             
             _downsampleFactor = _renderer.Options.Outline.DownsampleFactor;
+      
             _isDownsample = _downsampleFactor > 1f;
 
             _passTarget = new GlRenderPassTarget(renderer.GL)
@@ -35,8 +38,20 @@ namespace XrEngine.OpenGL
                 UseMultiViewTarget = true
             };
 
+            /*
             if (_isDownsample)
                 _passTarget.AddExtra(TextureFormat.Rgba32, FramebufferAttachment.ColorAttachment1, true);
+            */
+            if (_isDownsample)
+            {
+                _tempTarget = new GlRenderPassTarget(renderer.GL)
+                {
+                    BoundEye = boundEye,
+                    DepthMode = TargetDepthMode.None,
+                    IsMultiView = isMultiView,
+                    UseMultiViewTarget = true
+                };
+            }
 
             _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
 
@@ -46,6 +61,9 @@ namespace XrEngine.OpenGL
                 _outlineProgram.AddFeature("MULTI_VIEW");
             }
 
+            //_outlineProgram.AddFeature($"FRAG_LOCATON {(_isDownsample ? 1 : 0)}");
+
+            _outlineProgram.AddFeature($"FRAG_LOCATON 0");
             _outlineProgram.AddFeature($"OUTLINE_SIZE {_renderer.Options.Outline.Size}");
 
             _outlineProgram.Build();
@@ -65,26 +83,32 @@ namespace XrEngine.OpenGL
                 Source = source;
             }
 
+            if (_renderer.RenderTarget is not GlMultiViewRenderTarget && _passTarget.IsMultiView)
+                return false;
+
             if (!Source.HasOutlines())
                 return false;
 
             _lastCameraSize = camera.ViewSize;
 
-            _passTarget.Configure((uint)(camera.ViewSize.Width / _downsampleFactor), 
-                                  (uint)(camera.ViewSize.Height / _downsampleFactor), TextureFormat.GrayInt8);
-            _passTarget.RenderTarget!.Begin(camera);
+            _frameSize = new Size2I((uint)(camera.ViewSize.Width / _downsampleFactor), (uint)(camera.ViewSize.Height / _downsampleFactor));
 
+            _passTarget.Configure(_frameSize.Width,
+                                  _frameSize.Height, TextureFormat.GrayInt8);
+
+            _passTarget.RenderTarget!.Begin(camera);
+            
+         
+            /*
             if (_isDownsample)
                 _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
+            */
 
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetWriteColor(true);
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
-
-            if (_isDownsample)
-                _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment0);
 
             _bounds = new Bounds2
             {
@@ -115,15 +139,23 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
+            var camera = _renderer.UpdateContext.PassCamera!;
+
+            _passTarget.RenderTarget!.End(false);
+
             if (!_isDownsample)
             {
-                _passTarget.RenderTarget!.End(true);
-
-                _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
+                _renderer.RenderTarget!.Begin(camera);
             }
             else
-                _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment1);
+            {
+                _tempTarget!.Configure(_frameSize.Width,
+                                       _frameSize.Height, TextureFormat.Rgba32);
 
+                _tempTarget!.RenderTarget!.Begin(camera);
+                _gl.Clear(ClearBufferMask.ColorBufferBit);
+            }
+               
             _outlineProgram.Use();
 
             _outlineProgram.SetUniform("uColor", _renderer.Options.Outline.Color);
@@ -142,18 +174,21 @@ namespace XrEngine.OpenGL
 
             DrawQuad();
 
+
             if (UseScissor)
                 _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
 
             if (_isDownsample)
             {
-                _passTarget.RenderTarget!.End(true);
+                _tempTarget!.RenderTarget!.End(false);
 
-                _renderer.UpdateContext.PassCamera!.ViewSize = _lastCameraSize;
-                _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
+                camera.ViewSize = _lastCameraSize;
 
-                OverlayTexture(_passTarget.GetExtra(0)!);
+                _renderer.RenderTarget!.Begin(camera);
+
+                OverlayTexture(_tempTarget.ColorTexture!, _passTarget.IsMultiView);
             }
+
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -181,9 +216,13 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        static bool TryGetScreenPoint(Vector3 worldPos, Camera cam, out Vector2 screenPos)
+        bool TryGetScreenPoint(Vector3 worldPos, out Vector2 screenPos)
         {
-            var clipPos = Vector4.Transform(new Vector4(worldPos, 1), cam.ViewProjection);
+            var camera = _renderer.UpdateContext.PassCamera;
+
+            var viewProj = camera.Eyes != null ? camera.Eyes[Math.Max(camera.ActiveEye, 0)].ViewProj : camera.ViewProjection;
+
+            var clipPos = Vector4.Transform(new Vector4(worldPos, 1), viewProj);
 
             if (clipPos.W <= 0.001f)
             {
@@ -193,10 +232,9 @@ namespace XrEngine.OpenGL
 
             var ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
 
-            var viewSize = cam.ViewSize;
             screenPos = new Vector2(
-                (ndc.X + 1.0f) * 0.5f * viewSize.Width,
-                (ndc.Y + 1.0f) * 0.5f * viewSize.Height
+                (ndc.X + 1.0f) * 0.5f * _frameSize.Width,
+                (ndc.Y + 1.0f) * 0.5f * _frameSize.Height
             );
 
             return true;
@@ -212,7 +250,7 @@ namespace XrEngine.OpenGL
 
                 foreach (var corner in bound.Points)
                 {
-                    if (!TryGetScreenPoint(corner, _renderer.UpdateContext.PassCamera!, out var screen))
+                    if (!TryGetScreenPoint(corner, out var screen))
                     {
                         objectClipping = true;
                         break;

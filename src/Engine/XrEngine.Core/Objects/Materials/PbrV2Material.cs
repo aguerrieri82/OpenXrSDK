@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
+using XrMath.Entities;
 
 namespace XrEngine
 {
@@ -19,10 +20,11 @@ namespace XrEngine
 
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
     {
-        const int CAMERA_BUF = 1;
-        const int LIGHTS_BUF = 2;
-        const int MATERIAL_BUF = 3;
-
+        const int CAMERA_BUF = 0;
+        const int LIGHTS_BUF = 1;
+        const int MATERIAL_BUF = 2;
+        const int MODEL_BUF = 3;
+        const int IBL_BUF = 4;
 
         #region MaterialUniforms
 
@@ -99,6 +101,29 @@ namespace XrEngine
 
                 return _buffer;
             }
+        }
+
+        #endregion
+
+        #region IblUniforms
+
+        [StructLayout(LayoutKind.Explicit, Size = 80)]
+        public struct IblUniforms
+        {
+            [FieldOffset(0)]
+            public float SpecularTextureLevels;
+
+            [FieldOffset(4)]
+            public float IblIntensity;
+
+            [FieldOffset(8)]
+            public float IblShadowStrength;
+
+            [FieldOffset(16)]
+            public Vector3 IblColor;
+
+            [FieldOffset(32)]
+            public Vector4x3 IblTransform;
         }
 
         #endregion
@@ -183,7 +208,7 @@ namespace XrEngine
                             NormalMatrix = ctx.Model.NormalMatrix,
                             WorldMatrix = modelWord
                         };
-                    }, 3, BufferStore.Model);
+                    }, MODEL_BUF, BufferStore.Model);
                 }
 
                 SkinVertexShader.UpdateShaderModel(bld);
@@ -309,26 +334,19 @@ namespace XrEngine
 
                     return (CameraUniforms?)result;
 
-                }, 0, BufferStore.Shader);
+                }, CAMERA_BUF, BufferStore.Shader);
 
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var curHash = (bld.Context.Lights?.Sum(a => a.Version + a.ContentVersion) ?? -1);
+                    var curVer = (bld.Context.Lights?
+                            .Where(a=> a is not ImageLight)
+                            .Sum(a => a.Version + a.ContentVersion) ?? -1);
 
-                    if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
+                    if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Version == curVer)
                         return null;
 
-                    ctx.CurrentBuffer!.Hash = curHash;
-
-                    if (!hasPunctual)
-                    {
-                        return (LightListUniforms?)new LightListUniforms
-                        {
-                            Count = 0,
-                            Lights = []
-                        };
-                    }
+                    ctx.CurrentBuffer!.Version = curVer;
 
                     var lights = new List<LightUniforms>();
 
@@ -361,7 +379,7 @@ namespace XrEngine
                         Count = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
-                }, 1, BufferStore.Shader);
+                }, LIGHTS_BUF, BufferStore.Shader);
 
 
                 if (imgLight != null)
@@ -371,14 +389,28 @@ namespace XrEngine
                     if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
 
+                    bld.LoadBuffer(ctx =>
+                    {
+                        var version = imgLight.Version + imgLight.ContentVersion;
+
+                        if (version == ctx.CurrentBuffer!.Version)
+                            return null;
+
+                        ctx.CurrentBuffer!.Version = version;  
+
+                        return (IblUniforms?)new IblUniforms
+                        {
+                            SpecularTextureLevels = (float)imgLight.Textures.MipCount,
+                            IblIntensity = imgLight.Intensity,
+                            IblColor = imgLight.Color.ToVector3(),
+                            IblShadowStrength = imgLight.ShadowStrength,    
+                            IblTransform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3()
+                        };
+                    }, IBL_BUF, BufferStore.Shader);
+                  
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        up.SetUniform("uSpecularTextureLevels", (float)imgLight.Textures.MipCount);
-                        up.SetUniform("uIblIntensity", (float)imgLight.Intensity);
-                        up.SetUniform("uIblColor", new Vector3(imgLight.Color.R, imgLight.Color.G, imgLight.Color.B));
-
-                        if (hasTransform)
-                            up.SetUniform("uIblTransform", imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY));
+                        up.SetUniform("uIblTransform", imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY));
 
                         if (imgLight.Textures?.GGXEnv != null)
                             up.LoadTexture(imgLight.Textures.GGXEnv, 4);
@@ -451,6 +483,7 @@ namespace XrEngine
             OcclusionStrength = 1.0f;
             NormalScale = 1;
             UseInstanceDraw = true;
+            ForceIblTransform = false;
             Resolver = str =>
             {
                 if (str.Contains("fragment_defaults.glsl"))
@@ -517,7 +550,7 @@ namespace XrEngine
                     TexTransform = ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity
                 };
 
-            }, 2, BufferStore.Material);
+            }, MATERIAL_BUF, BufferStore.Material);
 
 
             if (EmissiveColor != Color.Transparent)
@@ -762,7 +795,7 @@ namespace XrEngine
             set => SHADER.ToneMap = value;
         }
 
-        public static bool ForceIblTransform { get; set; } = true;
+        public static bool ForceIblTransform { get; set; } 
 
     }
 }

@@ -155,7 +155,7 @@ namespace XrEngine.OpenGL
             if (mipLevel == 0)
                 targets.Add(DrawBufferMode.ColorAttachment6);
 
-            GlState.Current.SetDrawBuffers(targets.ToArray());
+            _gl.DrawBuffers(targets.ToArray());
         }
 
 
