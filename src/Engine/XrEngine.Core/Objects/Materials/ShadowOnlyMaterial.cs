@@ -25,14 +25,27 @@ namespace XrEngine.Objects
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var mode = bld.Context.ShadowMapProvider!.Options.Mode;
+            var options = bld.Context.ShadowMapProvider!.Options;
+
+            bld.AddFeature("SHADOW_MAP_MODE " + (int)options.Mode);
+
+            bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
+
+            if (options.UseShadowSampler)
+                bld.AddFeature("USE_SHADOW_SAMPLER");
 
             bld.ExecuteAction((ctx, up) =>
             {
                 if (bld.Context.ShadowMapProvider.ShadowMap != null)
-                    up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, 14);
+                    up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, TextureSlots.ShadowMap);
 
                 up.SetUniform("uShadowColor", ShadowColor);
+
+                if (options?.BiasMode == ShadowMapBiasMode.Value)
+                    up.SetUniform("uShadowBias", options!.Bias);
+
+                if (options?.Mode == ShadowMapMode.VSM)
+                    up.SetUniform("uLightBleed", options!.LightBleed);
             });
         }
 

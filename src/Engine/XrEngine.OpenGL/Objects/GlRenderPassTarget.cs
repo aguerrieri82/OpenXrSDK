@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
             _gl = gL;
             DepthMode = TargetDepthMode.Create;
             BoundEye = -1;
-            DepthFormat = TextureFormat.Depth24Float;
+            DepthFormat = TextureFormat.Depth24;
         }
 
 

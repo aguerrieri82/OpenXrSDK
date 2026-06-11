@@ -513,7 +513,7 @@ namespace XrEngine.OpenGL
             {
                 if (MinFilter == TextureMinFilter.NearestMipmapNearest)
                     MinFilter = TextureMinFilter.Nearest;
-                else
+                else if (MinFilter == TextureMinFilter.LinearMipmapLinear)
                     MinFilter = TextureMinFilter.Linear;
             }
 

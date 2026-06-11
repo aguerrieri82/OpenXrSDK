@@ -18,7 +18,7 @@ namespace XrEngine.OpenGL
         protected Bounds2 _bounds;
         protected Size2I _lastCameraSize;
         protected Size2I _frameSize;
-        protected float _downsampleFactor;
+        protected readonly float _downsampleFactor;
         protected readonly bool _isDownsample;
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
@@ -38,10 +38,6 @@ namespace XrEngine.OpenGL
                 UseMultiViewTarget = true
             };
 
-            /*
-            if (_isDownsample)
-                _passTarget.AddExtra(TextureFormat.Rgba32, FramebufferAttachment.ColorAttachment1, true);
-            */
             if (_isDownsample)
             {
                 _tempTarget = new GlRenderPassTarget(renderer.GL)
@@ -98,12 +94,6 @@ namespace XrEngine.OpenGL
 
             _passTarget.RenderTarget!.Begin(camera);
             
-         
-            /*
-            if (_isDownsample)
-                _passTarget.FrameBuffer!.SetDrawBuffers(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
-            */
-
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetWriteColor(true);
@@ -153,6 +143,7 @@ namespace XrEngine.OpenGL
                                        _frameSize.Height, TextureFormat.Rgba32);
 
                 _tempTarget!.RenderTarget!.Begin(camera);
+
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
             }
                
@@ -174,10 +165,6 @@ namespace XrEngine.OpenGL
 
             DrawQuad();
 
-
-            if (UseScissor)
-                _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
-
             if (_isDownsample)
             {
                 _tempTarget!.RenderTarget!.End(false);
@@ -186,9 +173,17 @@ namespace XrEngine.OpenGL
 
                 _renderer.RenderTarget!.Begin(camera);
 
+                if (UseScissor)
+                    _gl.Scissor((int)(_bounds.Min.X* _downsampleFactor),
+                        (int)(_bounds.Min.Y * _downsampleFactor),
+                        (uint)(_bounds.Size.X * _downsampleFactor),
+                        (uint)(_bounds.Size.Y * _downsampleFactor));
+
                 OverlayTexture(_tempTarget.ColorTexture!, _passTarget.IsMultiView);
             }
 
+            if (UseScissor)
+                _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -213,15 +208,12 @@ namespace XrEngine.OpenGL
         {
             _outlineProgram.Dispose();
             _passTarget.Dispose();
+            _tempTarget?.Dispose();
             base.Dispose();
         }
 
-        bool TryGetScreenPoint(Vector3 worldPos, out Vector2 screenPos)
+        bool TryGetScreenPoint(in Vector3 worldPos, in Matrix4x4 viewProj, out Vector2 screenPos)
         {
-            var camera = _renderer.UpdateContext.PassCamera;
-
-            var viewProj = camera.Eyes != null ? camera.Eyes[Math.Max(camera.ActiveEye, 0)].ViewProj : camera.ViewProjection;
-
             var clipPos = Vector4.Transform(new Vector4(worldPos, 1), viewProj);
 
             if (clipPos.W <= 0.001f)
@@ -244,27 +236,37 @@ namespace XrEngine.OpenGL
         {
             if (UseScissor)
             {
+                var camera = _renderer.UpdateContext.PassCamera!;
+
                 var bound = draw.Object!.WorldBounds;
 
                 var objectClipping = false;
 
+                int eyes = _passTarget.IsMultiView ? 2 : 1; 
+
                 foreach (var corner in bound.Points)
                 {
-                    if (!TryGetScreenPoint(corner, out var screen))
+                    for (var eye = 0; eye < eyes; eye++)
                     {
-                        objectClipping = true;
-                        break;
+                        var viewProj = camera!.Eyes != null ? 
+                            camera.Eyes[Math.Max(camera.ActiveEye, eye)].ViewProj : 
+                            camera.ViewProjection;
+
+                        if (!TryGetScreenPoint(corner, viewProj, out var screen))
+                        {
+                            objectClipping = true;
+                            break;
+                        }
+
+                        _bounds.Min = Vector2.Min(_bounds.Min, screen);
+                        _bounds.Max = Vector2.Max(_bounds.Max, screen);
                     }
-
-                    _bounds.Min = Vector2.Min(_bounds.Min, screen);
-                    _bounds.Max = Vector2.Max(_bounds.Max, screen);
                 }
-
+    
                 if (objectClipping)
                 {
-                    var size = _renderer.UpdateContext.PassCamera!.ViewSize;
                     _bounds.Min = Vector2.Zero;
-                    _bounds.Max = new Vector2(size.Width, size.Height);
+                    _bounds.Max = new Vector2(_frameSize.Width, _frameSize.Height);
                 }
             }
 
@@ -275,9 +277,6 @@ namespace XrEngine.OpenGL
 
         public GlRenderPassTarget PassTarget => _passTarget;
 
-        public bool UseScissor { get; set; }
-
-
-
+        public bool UseScissor;
     }
 }

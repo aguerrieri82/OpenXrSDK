@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using XrEngine.Objects;
 
 namespace XrEngine
 {
@@ -74,7 +75,7 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 if (planar.Texture != null)
-                    up.LoadTexture(planar.Texture, 7);
+                    up.LoadTexture(planar.Texture, TextureSlots.PlanarReflection);
 
                 if (PlanarReflection.IsMultiView)
                 {

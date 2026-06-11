@@ -37,6 +37,14 @@ namespace XrMath
         }
 
 
+        public static Matrix4x4 Invert(in this Matrix4x4 matrix)
+        {
+            Matrix4x4.Invert(matrix, out var result);
+            return result;
+        }
+
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 ToPose(in this Matrix4x4 self)
         {

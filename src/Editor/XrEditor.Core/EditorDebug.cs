@@ -42,18 +42,15 @@ namespace XrEditor
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 
-                  opt.Compression.Use = true;
+                  opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;
 
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
-                  
-                  opt.Outline.IsMultiView = true;
-
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)
-              .CreateHelmet()
+              .CreateRoomManager()
               .Build();
     }
 }

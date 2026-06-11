@@ -69,8 +69,8 @@ namespace XrEngine.OpenGL
                 Bias = 0,
                 BiasMode = ShadowMapBiasMode.Auto,
                 Size = 2048,
-                LightBleed = 0.1f,
-                BlurRadius = 10,
+                LightBleed = 0.15f,
+                BlurRadius = 2,
                 IsCasterMode = false,
                 UseFrustumIntersect = false,
                 Expand = new Vector3(0.1f, 0.1f, 0.1f)

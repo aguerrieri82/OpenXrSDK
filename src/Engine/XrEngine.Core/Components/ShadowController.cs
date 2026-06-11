@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.Components
 {
-    public class ShadowController : BaseComponent<Scene3D>
+    public class ShadowController : Behavior<Scene3D>
     {
         private IShadowMapProvider? _provider;
 
@@ -9,11 +9,12 @@
 
         }
 
-        protected override void OnAttach()
+
+        protected override void Start(RenderContext ctx)
         {
             _provider = _host?.App?.Renderer?.Feature<IShadowMapProvider>();
 
-            base.OnAttach();
+            base.Start(ctx);
         }
 
         [Action]

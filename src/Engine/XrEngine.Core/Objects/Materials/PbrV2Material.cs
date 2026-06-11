@@ -1,6 +1,7 @@
 ﻿using Common.Interop;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using XrEngine.Objects;
 using XrMath;
 using XrMath.Entities;
 
@@ -264,10 +265,13 @@ namespace XrEngine
                         bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
                         bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
 
+                        if (options.UseShadowSampler)
+                            bld.AddFeature("USE_SHADOW_SAMPLER");
+
                         bld.ExecuteAction((ctx, up) =>
                         {
                             if (ctx.ShadowMapProvider?.ShadowMap != null)
-                                up.LoadTexture(ctx.ShadowMapProvider.ShadowMap, 14);
+                                up.LoadTexture(ctx.ShadowMapProvider.ShadowMap, TextureSlots.ShadowMap);
 
                             if (options?.BiasMode == ShadowMapBiasMode.Value)
                                 up.SetUniform("uShadowBias", options!.Bias);
@@ -293,7 +297,7 @@ namespace XrEngine
                     {
                         var texture = envDepth.Acquire(_depthCamera);
                         if (texture != null)
-                            up.LoadTexture(texture, 8);
+                            up.LoadTexture(texture, TextureSlots.EnvDepth);
 
                         up.SetUniform("envDepthBias", envDepth.Bias);
 
@@ -369,7 +373,6 @@ namespace XrEngine
                                 Type = 1,
                                 Color = ((Vector3)directional.Color) * directional.Intensity,
                                 Direction = Vector3.Normalize(directional.Direction)
-
                             });
                         }
                     }
@@ -393,14 +396,14 @@ namespace XrEngine
                     {
                         var version = imgLight.Version + imgLight.ContentVersion;
 
-                        if (version == ctx.CurrentBuffer!.Version)
+                        if (ctx.CurrentBuffer == null || version == ctx.CurrentBuffer.Version)
                             return null;
 
                         ctx.CurrentBuffer!.Version = version;  
 
                         return (IblUniforms?)new IblUniforms
                         {
-                            SpecularTextureLevels = (float)imgLight.Textures.MipCount,
+                            SpecularTextureLevels = imgLight.Textures.MipCount,
                             IblIntensity = imgLight.Intensity,
                             IblColor = imgLight.Color.ToVector3(),
                             IblShadowStrength = imgLight.ShadowStrength,    
@@ -410,17 +413,14 @@ namespace XrEngine
                   
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        up.SetUniform("uIblTransform", imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY));
-
                         if (imgLight.Textures?.GGXEnv != null)
-                            up.LoadTexture(imgLight.Textures.GGXEnv, 4);
+                            up.LoadTexture(imgLight.Textures.GGXEnv, TextureSlots.IblGgxEnv);
 
                         if (imgLight.Textures?.LambertianEnv != null)
-                            up.LoadTexture(imgLight.Textures.LambertianEnv, 5);
+                            up.LoadTexture(imgLight.Textures.LambertianEnv, TextureSlots.IblLambertianEnv);
 
                         if (imgLight.Textures?.GGXLUT != null)
-                            up.LoadTexture(imgLight.Textures.GGXLUT, 6);
-
+                            up.LoadTexture(imgLight.Textures.GGXLUT, TextureSlots.IblGgxLut);
                     });
                 }
             }
@@ -571,7 +571,7 @@ namespace XrEngine
                     bld.ExecuteAction((ctx, up) =>
                     {
                         if (planar.Texture != null)
-                            up.LoadTexture(planar.Texture, 7);
+                            up.LoadTexture(planar.Texture, TextureSlots.PlanarReflection);
 
                         if (PlanarReflection.IsMultiView)
                         {
@@ -635,7 +635,7 @@ namespace XrEngine
                 {
                     if (HeightMap != null)
                     {
-                        up.LoadTexture(HeightMap.Texture!, 8);
+                        up.LoadTexture(HeightMap.Texture!, TextureSlots.HeightMap);
                         up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Texture.Width, HeightMap.Texture.Height));
                     }
                     up.SetUniform("uHeightNormalStrength", HeightMap!.NormalStrength);
@@ -652,7 +652,7 @@ namespace XrEngine
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
-                bld.LoadTexture(ctx => ColorMap, 0);
+                bld.LoadTexture(ctx => ColorMap, TextureSlots.Albedo);
 
                 bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
             }
@@ -660,13 +660,13 @@ namespace XrEngine
             if (MetallicRoughnessMap != null)
             {
                 bld.AddFeature("USE_METALROUGHNESS_MAP");
-                bld.LoadTexture(ctx => MetallicRoughnessMap, 2);
+                bld.LoadTexture(ctx => MetallicRoughnessMap, TextureSlots.MetallicRoughness);
             }
 
             else if (SpecularMap != null)
             {
                 bld.AddFeature("USE_SPECULAR_MAP");
-                bld.LoadTexture(ctx => SpecularMap, 2);
+                bld.LoadTexture(ctx => SpecularMap, TextureSlots.Specular);
             }
 
             if (NormalMap != null && NormalScale != 0)
@@ -676,14 +676,13 @@ namespace XrEngine
                 if (NormalMapFormat == NormalMapFormat.UnityBc3)
                     bld.AddFeature("NORMAL_MAP_BC3");
 
-                bld.LoadTexture(ctx =>
-                NormalMap, 1);
+                bld.LoadTexture(ctx => NormalMap, TextureSlots.Normal);
             }
 
             if (OcclusionMap != null)
             {
                 bld.AddFeature("USE_OCCLUSION_MAP");
-                bld.LoadTexture(ctx => OcclusionMap, 3);
+                bld.LoadTexture(ctx => OcclusionMap, TextureSlots.Occlusion);
             }
 
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)

@@ -7,7 +7,7 @@ namespace XrEngine
         Unknown,
 
         Depth32Float,
-        Depth24Float,
+        Depth24,
         Depth24Stencil8,
         Depth32Stencil8,
         Depth16,

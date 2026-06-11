@@ -1091,11 +1091,13 @@ namespace XrEngine
 
         public static Vector3[] FrustumPoints(this Camera self)
         {
-            var viewProjInvLeft = self.ViewProjectionInverse;
-
             var isStereo = self.Eyes != null && self.Eyes.Length > 1;
 
             var corners = new Vector3[isStereo ? 16 : 8];
+
+            var viewProjInvLeft = isStereo
+                ? self.Eyes![0].ViewProj.Invert()
+                : self.ViewProjectionInverse;
 
             corners[0] = new Vector3(-1, -1, 0).Project(viewProjInvLeft);
             corners[1] = new Vector3(1, -1, 0).Project(viewProjInvLeft);
@@ -1109,7 +1111,7 @@ namespace XrEngine
 
             if (isStereo)
             {
-                Matrix4x4.Invert(self.Eyes![1].ViewProj, out var viewProjInvRight);
+                var viewProjInvRight = self.Eyes![1].ViewProj.Invert();
 
                 corners[8] = new Vector3(-1, -1, 0).Project(viewProjInvRight);
                 corners[9] = new Vector3(1, -1, 0).Project(viewProjInvRight);

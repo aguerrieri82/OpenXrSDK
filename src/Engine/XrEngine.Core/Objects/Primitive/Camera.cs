@@ -12,8 +12,6 @@ namespace XrEngine
         public Matrix4x4 World;
 
         public Matrix4x4 Projection;
-
-
     }
 
     public abstract class Camera : Object3D

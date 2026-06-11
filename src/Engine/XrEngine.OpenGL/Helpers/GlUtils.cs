@@ -28,7 +28,7 @@ namespace XrEngine.OpenGL
             {
                 TextureFormat.Depth32Float or
                 TextureFormat.Depth16 or
-                TextureFormat.Depth24Float => PixelFormat.DepthComponent,
+                TextureFormat.Depth24 => PixelFormat.DepthComponent,
 
                 TextureFormat.Depth32Stencil8 or
                 TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
@@ -69,8 +69,9 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgFloat32 or
                 TextureFormat.RgFloat16 or
                 TextureFormat.GrayFloat32 or
-                TextureFormat.GrayFloat16 or
-                TextureFormat.Depth24Float => PixelType.Float,
+                TextureFormat.GrayFloat16 => PixelType.Float,
+
+                TextureFormat.Depth24 => PixelType.Int,
 
                 TextureFormat.RgbFloat16 => PixelType.HalfFloat,
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
@@ -108,7 +109,7 @@ namespace XrEngine.OpenGL
                 return format switch
                 {
                     TextureFormat.Depth32Float => InternalFormat.DepthComponent32f,
-                    TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
+                    TextureFormat.Depth24 => InternalFormat.DepthComponent24,
                     TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
                     TextureFormat.Depth32Stencil8 => InternalFormat.Depth32fStencil8,
                     TextureFormat.Depth16 => InternalFormat.DepthComponent16,
@@ -240,7 +241,7 @@ namespace XrEngine.OpenGL
                 //InternalFormat.DepthComponent16 => TextureFormat.GrayInt16,
                 InternalFormat.R8 => TextureFormat.GrayInt8,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
-                InternalFormat.DepthComponent24 => TextureFormat.Depth24Float,
+                InternalFormat.DepthComponent24 => TextureFormat.Depth24,
                 InternalFormat.Depth32fStencil8 => TextureFormat.Depth32Stencil8,
                 InternalFormat.DepthComponent32f => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,

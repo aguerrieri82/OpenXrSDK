@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using XrEngine.Objects;
+using XrMath;
 
 namespace XrEngine
 {
@@ -70,7 +71,7 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
-                    up.LoadTexture(Texture, 0);
+                    up.LoadTexture(Texture, TextureSlots.Albedo);
 
                 up.SetUniform("uColor", Color);
             });

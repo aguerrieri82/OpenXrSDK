@@ -562,7 +562,8 @@ namespace XrEngine
 
                         bld.ExecuteAction((ctx, up) =>
                         {
-                            up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
+                            if (ctx.ShadowMapProvider!.ShadowMap != null)
+                                up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
                             up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider!.LightCamera!.ViewProjection);
                         });
                     }

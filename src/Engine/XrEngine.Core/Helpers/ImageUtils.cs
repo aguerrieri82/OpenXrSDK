@@ -50,7 +50,7 @@ namespace XrEngine
                 TextureFormat.RgbFloat32 => 32 * 3,
                 TextureFormat.RgbaFloat32 => 32 * 4,
                 TextureFormat.RgbaFloat16 => 16 * 4,
-                TextureFormat.Depth24Float => 24,
+                TextureFormat.Depth24 => 24,
                 TextureFormat.Depth16 => 16,
                 TextureFormat.GrayInt8 => 8,
                 TextureFormat.GrayInt16 => 16,
