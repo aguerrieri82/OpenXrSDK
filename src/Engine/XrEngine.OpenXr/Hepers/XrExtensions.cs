@@ -264,8 +264,9 @@ namespace XrEngine.OpenXr
 
                     eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
                     eyes[i].Projection = transform.Projection;
-                    Matrix4x4.Invert(eyes[i].World, out eyes[i].View);
+                    eyes[i].View = eyes[i].World.Invert();
                     eyes[i].ViewProj = eyes[i].View * eyes[i].Projection;
+                    eyes[i].ViewProjInv = eyes[i].ViewProj.Invert();
                 }
 
                 if (info.Mode == XrRenderMode.SingleEye)

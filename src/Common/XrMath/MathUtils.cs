@@ -34,7 +34,7 @@ namespace XrMath
         public static Quaternion QuatFromForwardUp(Vector3 forward, Vector3 up)
         {
             var lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
-            Matrix4x4.Invert(lookAt, out var rotMatrix);
+            var rotMatrix = lookAt.Invert();
             return Quaternion.CreateFromRotationMatrix(rotMatrix);
         }
 

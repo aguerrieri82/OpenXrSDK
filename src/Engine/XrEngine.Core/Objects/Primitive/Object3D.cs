@@ -169,7 +169,7 @@ namespace XrEngine
 
         protected void UpdateWorldInverse()
         {
-            Matrix4x4.Invert(WorldMatrix, out _worldMatrixInverse);
+            _worldMatrixInverse = WorldMatrix.Invert();
             _worldInverseDirty = false;
         }
 

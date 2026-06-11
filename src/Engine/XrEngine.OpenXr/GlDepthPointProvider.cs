@@ -69,11 +69,8 @@ namespace XrEngine.OpenXr
             _program.Use();
             _program.LoadTexture(texture, 8);
 
-            Matrix4x4.Invert(_depthCamera.Eyes[0].ViewProj, out var mat0);
-            Matrix4x4.Invert(_depthCamera.Eyes[1].ViewProj, out var mat1);
-
-            _program.SetUniform("uDepthViewProjInv[0]", mat0);
-            _program.SetUniform("uDepthViewProjInv[1]", mat1);
+            _program.SetUniform("uDepthViewProjInv[0]", _depthCamera.Eyes[0].ViewProjInv);
+            _program.SetUniform("uDepthViewProjInv[1]", _depthCamera.Eyes[1].ViewProjInv);
             _program.SetUniform("uActiveEye", _depthCamera.ActiveEye);
 
             glState.SetUseDepth(false);

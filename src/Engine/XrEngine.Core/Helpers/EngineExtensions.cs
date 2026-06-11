@@ -1096,7 +1096,7 @@ namespace XrEngine
             var corners = new Vector3[isStereo ? 16 : 8];
 
             var viewProjInvLeft = isStereo
-                ? self.Eyes![0].ViewProj.Invert()
+                ? self.Eyes![0].ViewProjInv
                 : self.ViewProjectionInverse;
 
             corners[0] = new Vector3(-1, -1, 0).Project(viewProjInvLeft);
@@ -1111,7 +1111,7 @@ namespace XrEngine
 
             if (isStereo)
             {
-                var viewProjInvRight = self.Eyes![1].ViewProj.Invert();
+                var viewProjInvRight = self.Eyes![1].ViewProjInv;
 
                 corners[8] = new Vector3(-1, -1, 0).Project(viewProjInvRight);
                 corners[9] = new Vector3(1, -1, 0).Project(viewProjInvRight);

@@ -7,11 +7,14 @@ namespace XrEngine
     {
         public Matrix4x4 ViewProj;
 
+        public Matrix4x4 ViewProjInv;
+
         public Matrix4x4 View;
 
         public Matrix4x4 World;
 
         public Matrix4x4 Projection;
+
     }
 
     public abstract class Camera : Object3D
@@ -103,7 +106,7 @@ namespace XrEngine
             get => WorldMatrixInverse;
             set
             {
-                Matrix4x4.Invert(value, out var inverse);
+                var inverse = value.Invert();
                 WorldMatrix = inverse;
                 _viewProjDirty = true;
             }
@@ -115,7 +118,7 @@ namespace XrEngine
             set
             {
                 _proj = value;
-                Matrix4x4.Invert(_proj, out _projInverse);
+                _projInverse = _proj.Invert();
                 _viewProjDirty = true;
             }
         }
@@ -143,7 +146,7 @@ namespace XrEngine
         protected void UpdateViewProjection()
         {
             _viewProj = View * Projection;
-            Matrix4x4.Invert(_viewProj, out _viewProjInverse);
+            _viewProjInverse = _viewProj.Invert();
             _viewProjDirty = false;
         }
 

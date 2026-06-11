@@ -79,7 +79,7 @@ namespace XrEngine
 
         public void ApplyTransform(Matrix4x4 matrix)
         {
-            Matrix4x4.Invert(matrix, out var inverse);
+            var inverse = matrix.Invert();
 
             var normalMatrix = Matrix4x4.Transpose(inverse);
 

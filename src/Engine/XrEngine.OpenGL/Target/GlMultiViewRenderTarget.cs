@@ -12,7 +12,7 @@ using XrMath;
 namespace XrEngine.OpenGL
 {
 
-    [StructLayout(LayoutKind.Explicit, Size = 176)]
+    [StructLayout(LayoutKind.Explicit, Size = 304)]
     public struct SceneMatrices
     {
         [FieldOffset(0)]
@@ -28,7 +28,14 @@ namespace XrEngine.OpenGL
         public Vector3 Position2;
 
         [FieldOffset(160)]
+        public Matrix4x4 ViewProjInv1;
+
+        [FieldOffset(224)]
+        public Matrix4x4 ViewProjInv2;
+
+        [FieldOffset(288)]
         public float FarPlane;
+
     }
 
     public class GlMultiViewShaderHandler : IShaderHandler
@@ -59,6 +66,8 @@ namespace XrEngine.OpenGL
 
             _matrices.ViewProj1 = eyes[0].ViewProj;
             _matrices.ViewProj2 = eyes[1].ViewProj;
+            _matrices.ViewProjInv1 = eyes[0].ViewProjInv;
+            _matrices.ViewProjInv2 = eyes[1].ViewProjInv;
             _matrices.Position1 = eyes[0].World.Translation;
             _matrices.Position2 = eyes[1].World.Translation;
             _matrices.FarPlane = camera.Far;

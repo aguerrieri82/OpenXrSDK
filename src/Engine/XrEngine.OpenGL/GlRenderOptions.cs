@@ -55,6 +55,17 @@ namespace XrEngine.OpenGL
             SampleCount = 4;
             UseInstanceDraw = true;
             CacheUniforms = true;
+            ContactShadow = new()
+            {
+                Use = false,
+                MaxDistance = 0.12f,
+                Thickness = 0.015f,
+                Strength = 0.65f,
+                StepCount = 6.0f,
+                DepthBias = 0.0005f,
+                FadeDistance = 0.12f,
+                ApplyStrength = 1.0f
+            };
             Compression = new GlCompressionOptions
             {
                 Use = false,
@@ -92,6 +103,8 @@ namespace XrEngine.OpenGL
         public bool UseSRGB { get; set; }
 
         public string? ShaderVersion { get; set; }
+
+        public ContactShadowOptions ContactShadow { get; set; }
 
         public GlCompressionOptions Compression { get; set; }
 

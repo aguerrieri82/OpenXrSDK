@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
-            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass, options.SampleCount);
+            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass && !options.ContactShadow.Use, options.SampleCount);
             _target = _defaultTarget;
 
             _updateCtx = new GlUpdateContext
@@ -111,6 +111,12 @@ namespace XrEngine.OpenGL
                 _renderPasses.Add(new GlReflectionPass(this));
 
             _renderPasses.Add(new GlColorPass(this));
+
+            if (_options.ContactShadow.Use)
+            {
+                var contact = new GlContactShadowPass(this, -1, _options.ContactShadow.IsMultiView);
+                _renderPasses.Add(contact);
+            }
 
             if (_options.Outline.Use)
             {

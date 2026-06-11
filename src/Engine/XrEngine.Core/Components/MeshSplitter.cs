@@ -97,7 +97,7 @@ namespace XrEngine.Components
                 Position = Origin
             }.ToMatrix();
 
-            Matrix4x4.Invert(_boundsTransform, out var reverse);
+            var reverse = _boundsTransform.Invert();
 
             foreach (var triangle in _startGeo.Triangles())
             {
@@ -121,7 +121,7 @@ namespace XrEngine.Components
 
             canvas.Save();
 
-            Matrix4x4.Invert(_boundsTransform, out var reverse);
+            var reverse = _boundsTransform.Invert();
 
             canvas.State.Color = "#00A000";
             canvas.State.Transform = _host!.WorldMatrix;

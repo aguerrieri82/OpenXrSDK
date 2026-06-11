@@ -303,7 +303,7 @@ namespace XrEngine.OpenGL
                     continue;
 
                 shaderContent.SortedContent = shaderContent.Contents
-                    .OrderBy(a => a.Value.Material!.Priority)
+                    .OrderBy(a => a.Value.Material?.Priority)
                     .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0)
                     .ToArray();
 

@@ -132,8 +132,11 @@ namespace XrEngine
             {
                 _refCamera.Eyes[0].Projection = proj;
                 _refCamera.Eyes[0].ViewProj = _refCamera.Eyes[0].View * proj;
+                _refCamera.Eyes[0].ViewProjInv = _refCamera.Eyes[0].ViewProj.Invert();
+
                 _refCamera.Eyes[1].Projection = proj;
                 _refCamera.Eyes[1].ViewProj = _refCamera.Eyes[1].View * proj;
+                _refCamera.Eyes[1].ViewProjInv = _refCamera.Eyes[1].ViewProj.Invert();
             }
         }
 
@@ -213,12 +216,12 @@ namespace XrEngine
                         Vector3.Reflect(up, normal)
                     );
 
-                    Matrix4x4.Invert(refView, out var world);
-
-                    _refCamera.Eyes[i].World = world;
+                    
+                    _refCamera.Eyes[i].World = refView.Invert(); 
                     _refCamera.Eyes[i].Projection = _refCamera.Projection;
                     _refCamera.Eyes[i].View = refView;
                     _refCamera.Eyes[i].ViewProj = refView * _refCamera.Projection;
+                    _refCamera.Eyes[i].ViewProjInv = _refCamera.Eyes[i].ViewProj.Invert();
                 }
 
                 _refCamera.WorldMatrix = _refCamera.Eyes[0].World.InterpolateWorldMatrix(_refCamera.Eyes[1].World, 0.5f);

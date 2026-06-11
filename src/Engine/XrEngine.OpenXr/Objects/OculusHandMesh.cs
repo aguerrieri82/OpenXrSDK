@@ -72,7 +72,7 @@ namespace XrEngine.OpenXr
             for (int i = 0; i < _mesh.Joints!.Length; i++)
             {
                 var bind = _mesh.Joints[i].BindPose.ToPose3().ToMatrix();
-                Matrix4x4.Invert(bind, out _invBindMatrices[i]);
+                _invBindMatrices[i] = bind.Invert();
             }
         }
 

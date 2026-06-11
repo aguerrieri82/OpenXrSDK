@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    [StructLayout(LayoutKind.Explicit, Size = 400)]
+    [StructLayout(LayoutKind.Explicit, Size = 464)]
     public struct CameraUniforms
     {
         [FieldOffset(0)]
@@ -57,5 +57,8 @@ namespace XrEngine
 
         [FieldOffset(336)]
         public Matrix4x4 Proj;
+
+        [FieldOffset(400)]
+        public Matrix4x4 ViewProjInv;
     }
 }

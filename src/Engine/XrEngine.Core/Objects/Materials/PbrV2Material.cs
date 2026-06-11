@@ -330,6 +330,7 @@ namespace XrEngine
                         FrustumPlane6 = ctx.FrustumPlanes[5],
                         View = ctx.PassCamera.View,
                         Proj = ctx.PassCamera.Projection,
+                        ViewProjInv = ctx.PassCamera.ViewProjectionInverse,
                     };
 
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;

@@ -47,6 +47,11 @@ namespace XrEditor
 
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
+                  opt.ShadowMap.UseShadowSampler = false;
+
+                  opt.ContactShadow.Use = false;
+                  opt.ContactShadow.IsMultiView = false;
+
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)

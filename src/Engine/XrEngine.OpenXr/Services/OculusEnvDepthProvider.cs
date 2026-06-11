@@ -1,7 +1,8 @@
-﻿using OpenXr.Framework;
+﻿
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using XrMath;
 using Silk.NET.OpenXR;
-using System.Numerics;
 
 
 namespace XrEngine.OpenXr
@@ -60,9 +61,7 @@ namespace XrEngine.OpenXr
                     var view = data.Views[i];
                     var transform = XrCameraTransform.FromView(view.Pose.ToPose3(), view.Fov, depthCamera.Near, depthCamera.Far);
 
-                    var cameraView = new Matrix4x4();
-
-                    Matrix4x4.Invert(transform.Transform, out cameraView);
+                    var cameraView = transform.Transform.Invert();
 
                     depthCamera.Eyes[i] = new CameraEye
                     {
@@ -71,6 +70,8 @@ namespace XrEngine.OpenXr
                         View = cameraView,
                         ViewProj = cameraView * transform.Projection,
                     };
+
+                    depthCamera.Eyes[i].ViewProjInv = depthCamera.Eyes[i].ViewProj.Invert();
                 }
 
                 var img = _passTh.EnvironmentDepth.Images!.ItemPointer((int)data.SwapchainIndex);
