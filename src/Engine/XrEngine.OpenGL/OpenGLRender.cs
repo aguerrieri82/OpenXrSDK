@@ -197,7 +197,7 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.ScissorTest, false);
             _glState.EnableFeature(EnableCap.ProgramPointSize, true);
             _glState.EnableFeature(EnableCap.TextureCubeMapSeamless, true);
-            
+
             _gl.Disable(EnableCap.SampleAlphaToCoverage);
             _gl.Disable(EnableCap.SampleAlphaToOne);
             _gl.Disable(EnableCap.SampleCoverage);
@@ -314,7 +314,7 @@ namespace XrEngine.OpenGL
 
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
                 AddLayer(scene, GlLayerType.Opaque, opaque);
-                
+
                 /*
                 var staticLayer = scene.EnsureLayer<StaticLayer>();
                 AddLayer(scene, GlLayerType.Static, staticLayer);
@@ -544,7 +544,7 @@ namespace XrEngine.OpenGL
             var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, glTexture.MaxLevel > 0, gerTextInfo);
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
-        
+
             return SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
         }
 

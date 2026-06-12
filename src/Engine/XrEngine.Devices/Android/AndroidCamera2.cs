@@ -6,6 +6,7 @@ using Android.Graphics;
 using Android.Hardware.Camera2;
 using Android.Hardware.Camera2.Params;
 using Android.Media;
+using Android.Opengl;
 using Android.OS;
 using Android.Runtime;
 using Android.Util;
@@ -130,6 +131,7 @@ namespace XrEngine.Devices.Android
         protected Surface? _outSurface = null;
         protected Surface? _texSurface = null;
         protected CameraConfiguration? _configuration;
+        protected int[] _oldBinding = new int[1];
 
         public AndroidCamera2(string deviceId, CameraManager manager)
         {
@@ -242,7 +244,7 @@ namespace XrEngine.Devices.Android
                 _reader.SetOnImageAvailableListener(new ImageAvailableListener(this), _backgroundHandler);
                 outs.Add(new OutputConfiguration(_reader.Surface!));
             }
-       
+
             _outSurface = outSurface?.Native as Surface;
 
             if (_outSurface != null)
@@ -332,11 +334,12 @@ namespace XrEngine.Devices.Android
 
         public void StopCapture()
         {
+            _session?.Close();
+            _session = null;
+
             _executor?.Shutdown();
             _executor = null;
 
-            _session?.Close();
-            _session = null;
             _imageSize = null;
         }
 
@@ -384,7 +387,12 @@ namespace XrEngine.Devices.Android
 
         public void UpdateTexture()
         {
+            GLES20.GlGetIntegerv(GLES11Ext.GlTextureBindingExternalOes, _oldBinding, 0);
+
             _surfaceTex?.UpdateTexImage();
+
+            GLES20.GlBindTexture(GLES11Ext.GlTextureExternalOes, _oldBinding[0]);
+
             LastTimestamp = _surfaceTex?.Timestamp ?? 0;
         }
 

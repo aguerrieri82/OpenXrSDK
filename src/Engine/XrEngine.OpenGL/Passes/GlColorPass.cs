@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-using System.Numerics;
 
 namespace XrEngine.OpenGL
 {

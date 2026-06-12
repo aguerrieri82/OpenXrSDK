@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Runtime.CompilerServices;
 
 
 namespace XrEngine.OpenGL
@@ -244,7 +243,7 @@ namespace XrEngine.OpenGL
 
                 if (value == null)
                     return (default!, false);
-                
+
                 if (value is T tValue)
                     return (tValue, true);
 

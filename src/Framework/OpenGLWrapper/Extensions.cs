@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OpenGLWrapper
+﻿namespace OpenGLWrapper
 {
     public partial interface IGLWrapper
     {

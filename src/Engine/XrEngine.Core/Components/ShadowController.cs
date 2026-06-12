@@ -3,7 +3,7 @@
     public class ShadowController : Behavior<Scene3D>
     {
         private IShadowMapProvider? _mapProvider;
-        
+
         private IContactShadowProvider? _contactProvider;
 
         public ShadowController()

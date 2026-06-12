@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Objects
+﻿namespace XrEngine.Objects
 {
     public class SkinnedGeometry3D : Geometry3D
     {

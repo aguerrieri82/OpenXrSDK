@@ -213,7 +213,7 @@ namespace XrEngine.Reconstruct
                 _stats.RightFrame++;
             }
 
-            if (_screenRecorder.ProcessEncodedFrames(out var tsCap))
+            if (_screenRecorder!.ProcessEncodedFrames(out var tsCap))
             {
                 if (tsCap != 0)
                     capPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsCap * 1000).Pose;

@@ -529,9 +529,9 @@ namespace XrEngine.OpenGL
                 action(gl);
         }
 
-        public List<Action<RealGL>> RenderActions => _renderActions;    
+        public List<Action<RealGL>> RenderActions => _renderActions;
 
-        public bool IsStatic => (_type & GlLayerType.Static) != 0; 
+        public bool IsStatic => (_type & GlLayerType.Static) != 0;
 
         public string? Name => _sceneLayer?.Name;
 

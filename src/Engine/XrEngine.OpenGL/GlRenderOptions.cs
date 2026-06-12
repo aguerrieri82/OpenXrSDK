@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
 
         public bool IsMultiView { get; set; }
 
-        public float DownsampleFactor { get;  set; }
+        public float DownsampleFactor { get; set; }
     }
 
     public class GlCompressionOptions

@@ -54,7 +54,7 @@ namespace XrEngine.Devices.Android
 
                 var caps = (int[])chars.Get(CameraCharacteristics.RequestAvailableCapabilities)!;
 
-                bool isLogical =
+                var isLogical =
                     caps.Contains((int)RequestAvailableCapabilities.LogicalMultiCamera);
 
                 var phys = chars.PhysicalCameraIds?.ToArray();

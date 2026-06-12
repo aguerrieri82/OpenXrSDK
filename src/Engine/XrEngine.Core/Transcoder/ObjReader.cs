@@ -144,14 +144,14 @@ namespace XrEngine
                     // Read all polygon corners first.
                     var face = new VertexData[parts.Length - 1];
 
-                    for (int i = 1; i < parts.Length; i++)
+                    for (var i = 1; i < parts.Length; i++)
                         face[i - 1] = ReadFaceVertex(parts[i]);
 
                     // Triangulate as fan:
                     // 0,1,2
                     // 0,2,3
                     // 0,3,4
-                    for (int i = 1; i < face.Length - 1; i++)
+                    for (var i = 1; i < face.Length - 1; i++)
                     {
                         AddVertex(face[0]);
                         AddVertex(face[i]);

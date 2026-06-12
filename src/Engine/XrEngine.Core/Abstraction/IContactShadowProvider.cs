@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
 
     public class ContactShadowOptions

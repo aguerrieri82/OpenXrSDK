@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
         private long _updateFrame;
         private long _lightVersion;
         private ShadowMapMode _mode;
-        private bool _useShadowSampler;
+        private readonly bool _useShadowSampler;
 
         private readonly OrtoCamera _lightCamera;
 
@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
                 Name = "Shadow"
             };
 
-            var scaleDepth = _useShadowSampler && _mode != ShadowMapMode.VSM ? ScaleFilter.Linear : ScaleFilter.Nearest;   
+            var scaleDepth = _useShadowSampler && _mode != ShadowMapMode.VSM ? ScaleFilter.Linear : ScaleFilter.Nearest;
 
             _depthTexture = new Texture2D
             {
@@ -272,7 +272,7 @@ namespace XrEngine.OpenGL
             _renderer.State.EnableFeature(EnableCap.CullFace, true);
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
-                
+
             _oldCamera = _renderer.UpdateContext.PassCamera;
             _renderer.UpdateContext.PassCamera = _lightCamera;
             _renderer.UpdateContext.ContextVersion++;
@@ -320,7 +320,7 @@ namespace XrEngine.OpenGL
 
         public Camera LightCamera => _lightCamera;
 
-   
+
 
         ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap;
 

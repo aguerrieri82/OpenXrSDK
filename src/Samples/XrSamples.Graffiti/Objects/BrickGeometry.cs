@@ -1,9 +1,6 @@
 ﻿using Common.Interop;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using XrEngine;
 
 namespace XrSamples.Graffiti.Objects
@@ -161,7 +158,7 @@ namespace XrSamples.Graffiti.Objects
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float PositiveMod(float x, float m)
         {
-            float r = x % m;
+            var r = x % m;
             return r < 0.0f ? r + m : r;
         }
 
@@ -176,9 +173,9 @@ namespace XrSamples.Graffiti.Objects
                 return;
             }
 
-            Vector2 wallMin = -WallSize * 0.5f;
-            Vector2 wallMax = WallSize * 0.5f;
-            Vector2 pitch = BrickSize + MortarSize;
+            var wallMin = -WallSize * 0.5f;
+            var wallMax = WallSize * 0.5f;
+            var pitch = BrickSize + MortarSize;
 
             Vector2 ToUv(Vector2 p)
             {
@@ -207,13 +204,13 @@ namespace XrSamples.Graffiti.Objects
 
             void AddBrick(Vector2 min, Vector2 max)
             {
-                float x0 = min.X;
-                float y0 = min.Y;
-                float x1 = max.X;
-                float y1 = max.Y;
+                var x0 = min.X;
+                var y0 = min.Y;
+                var x1 = max.X;
+                var y1 = max.Y;
 
-                float width = x1 - x0;
-                float height = y1 - y0;
+                var width = x1 - x0;
+                var height = y1 - y0;
 
                 if (width <= 0.0f || height <= 0.0f)
                     return;
@@ -221,11 +218,11 @@ namespace XrSamples.Graffiti.Objects
                 if (Depth <= 0.0f)
                     return;
 
-                float skew = MathF.Abs(MortarSkew);
+                var skew = MathF.Abs(MortarSkew);
                 skew = MathF.Min(skew, MathF.Min(width, height) * 0.49f);
 
-                float z0 = 0.0f;
-                float z1 = Depth;
+                var z0 = 0.0f;
+                var z1 = Depth;
 
                 var b00 = new Vector3(x0, y0, z0);
                 var b10 = new Vector3(x1, y0, z0);
@@ -270,39 +267,39 @@ namespace XrSamples.Graffiti.Objects
 
             AddMortarPlane();
 
-            int firstRow = (int)MathF.Floor((wallMin.Y - Offset.Y - BrickSize.Y) / pitch.Y) - 1;
-            int lastRow = (int)MathF.Ceiling((wallMax.Y - Offset.Y) / pitch.Y) + 1;
+            var firstRow = (int)MathF.Floor((wallMin.Y - Offset.Y - BrickSize.Y) / pitch.Y) - 1;
+            var lastRow = (int)MathF.Ceiling((wallMax.Y - Offset.Y) / pitch.Y) + 1;
 
-            for (int row = firstRow; row <= lastRow; row++)
+            for (var row = firstRow; row <= lastRow; row++)
             {
-                float y0 = Offset.Y + row * pitch.Y;
-                float y1 = y0 + BrickSize.Y;
+                var y0 = Offset.Y + row * pitch.Y;
+                var y1 = y0 + BrickSize.Y;
 
                 if (y1 <= wallMin.Y || y0 >= wallMax.Y)
                     continue;
 
-                float cy0 = MathF.Max(y0, wallMin.Y);
-                float cy1 = MathF.Min(y1, wallMax.Y);
+                var cy0 = MathF.Max(y0, wallMin.Y);
+                var cy1 = MathF.Min(y1, wallMax.Y);
 
-                float rowOffset = (row & 1) != 0
+                var rowOffset = (row & 1) != 0
                     ? OddRowOffset
                     : 0.0f;
 
-                float xOffset = Offset.X + rowOffset;
+                var xOffset = Offset.X + rowOffset;
 
-                int firstCol = (int)MathF.Floor((wallMin.X - xOffset - BrickSize.X) / pitch.X) - 1;
-                int lastCol = (int)MathF.Ceiling((wallMax.X - xOffset) / pitch.X) + 1;
+                var firstCol = (int)MathF.Floor((wallMin.X - xOffset - BrickSize.X) / pitch.X) - 1;
+                var lastCol = (int)MathF.Ceiling((wallMax.X - xOffset) / pitch.X) + 1;
 
-                for (int col = firstCol; col <= lastCol; col++)
+                for (var col = firstCol; col <= lastCol; col++)
                 {
-                    float x0 = xOffset + col * pitch.X;
-                    float x1 = x0 + BrickSize.X;
+                    var x0 = xOffset + col * pitch.X;
+                    var x1 = x0 + BrickSize.X;
 
                     if (x1 <= wallMin.X || x0 >= wallMax.X)
                         continue;
 
-                    float cx0 = MathF.Max(x0, wallMin.X);
-                    float cx1 = MathF.Min(x1, wallMax.X);
+                    var cx0 = MathF.Max(x0, wallMin.X);
+                    var cx1 = MathF.Min(x1, wallMax.X);
 
                     AddBrick(
                         new Vector2(cx0, cy0),

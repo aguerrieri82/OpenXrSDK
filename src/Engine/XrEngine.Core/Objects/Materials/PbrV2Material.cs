@@ -219,7 +219,7 @@ namespace XrEngine
             {
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
-                var hasPunctual = bld.Context.Lights != null &&  bld.Context.Lights.Any(a => a != imgLight);
+                var hasPunctual = bld.Context.Lights != null && bld.Context.Lights.Any(a => a != imgLight);
 
                 bld.AddFeature("PBR_V2");
 
@@ -345,7 +345,7 @@ namespace XrEngine
                 bld.LoadBuffer((ctx) =>
                 {
                     var curVer = (bld.Context.Lights?
-                            .Where(a=> a is not ImageLight)
+                            .Where(a => a is not ImageLight)
                             .Sum(a => a.Version + a.ContentVersion) ?? -1);
 
                     if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Version == curVer)
@@ -400,18 +400,18 @@ namespace XrEngine
                         if (ctx.CurrentBuffer == null || version == ctx.CurrentBuffer.Version)
                             return null;
 
-                        ctx.CurrentBuffer!.Version = version;  
+                        ctx.CurrentBuffer!.Version = version;
 
                         return (IblUniforms?)new IblUniforms
                         {
                             SpecularTextureLevels = imgLight.Textures.MipCount,
                             IblIntensity = imgLight.Intensity,
                             IblColor = imgLight.Color.ToVector3(),
-                            IblShadowStrength = imgLight.ShadowStrength,    
+                            IblShadowStrength = imgLight.ShadowStrength,
                             IblTransform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3()
                         };
                     }, IBL_BUF, BufferStore.Shader);
-                  
+
                     bld.ExecuteAction((ctx, up) =>
                     {
                         if (imgLight.Textures?.GGXEnv != null)
@@ -492,7 +492,7 @@ namespace XrEngine
                     if (!string.IsNullOrWhiteSpace(FragmentDefaultShader))
                         return FragmentDefaultShader;
 
-                    return Embedded.GetString("PbrV2/pbr_defaults.glsl");  
+                    return Embedded.GetString("PbrV2/pbr_defaults.glsl");
                 }
 
                 return null;
@@ -508,7 +508,7 @@ namespace XrEngine
 
             if (HasSkin)
                 bld.AddFeature("HAS_SKIN");
-            
+
             if (UseInstanceDraw && bld.Context.UseInstanceDraw)
                 bld.AddFeature("USE_INSTANCE");
 
@@ -782,7 +782,7 @@ namespace XrEngine
 
         public string? FragmentDefaultShader { get; set; }
 
-        public string? FragmentDefaultLoader { get; set; }  
+        public string? FragmentDefaultLoader { get; set; }
 
         public Matrix3x3? UV0Transform { get; set; }
 
@@ -795,7 +795,7 @@ namespace XrEngine
             set => SHADER.ToneMap = value;
         }
 
-        public static bool ForceIblTransform { get; set; } 
+        public static bool ForceIblTransform { get; set; }
 
     }
 }

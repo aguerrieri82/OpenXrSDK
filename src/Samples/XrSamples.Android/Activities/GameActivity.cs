@@ -9,7 +9,6 @@ using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
-using XrInteraction;
 
 
 namespace XrSamples.Android.Activities

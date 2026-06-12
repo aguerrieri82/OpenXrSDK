@@ -156,7 +156,7 @@ namespace XrEngine.OpenGL
             return isChanged;
         }
 
-        public void LoadTexture(Texture value, int slot = 0)
+        public void LoadTexture(Texture value, int slot = 0, bool forceBinding = false)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
@@ -184,7 +184,7 @@ namespace XrEngine.OpenGL
 
                 var isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-                GlState.Current!.LoadTexture(glText, slot);
+                GlState.Current!.LoadTexture(glText, slot, forceBinding);
 
                 if (isUpdate)
                     glText.Update(tex2d);

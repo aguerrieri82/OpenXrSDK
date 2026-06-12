@@ -5,7 +5,7 @@ namespace XrEngine
 {
     public interface IUniformProvider
     {
-        void LoadTexture(Texture value, int slot = 0);
+        void LoadTexture(Texture value, int slot = 0, bool forceBinding = false);
 
         void SetUniform(string name, int value, bool optional = false);
 

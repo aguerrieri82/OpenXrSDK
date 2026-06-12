@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 using XrEngine;
 using XrMath;
 
@@ -41,7 +38,7 @@ namespace XrSamples.Graffiti
                 bld.SetUniform("uGapLength", GapLength);
                 bld.SetUniform("uDotSpeed", DotSpeed);
                 bld.SetUniform("uTime", ctx.Time);
-       
+
                 _can ??= ctx.Model?.Scene?.Descendants<Can>().First();
 
                 if (_can != null)
@@ -89,11 +86,11 @@ namespace XrSamples.Graffiti
         public float RayLengthFalloff { get; set; }
 
         public float DotLength { get; set; }
-        
+
         public float GapLength { get; set; }
-      
+
         public float DotSpeed { get; set; }
-        
+
         public Color PaintColor { get; set; }
     }
 }

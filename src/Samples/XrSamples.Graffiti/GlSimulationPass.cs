@@ -86,7 +86,7 @@ namespace XrSamples.Graffiti
             _dripProgram.Build();
 
             _resolveProgram = new GlComputeProgram(renderer.GL, "paint_res.comp", str => Embedded.GetString<GlSimulationPass>(str));
-            _resolveProgram.AddFeature($"COLOR_ONLY {(reconstructMode ? 1: 0)}");
+            _resolveProgram.AddFeature($"COLOR_ONLY {(reconstructMode ? 1 : 0)}");
             _resolveProgram.Build();
 
             _sprayUniformsBuffer = new GlBuffer<SprayUniforms>(_gl, BufferTargetARB.UniformBuffer);
@@ -156,18 +156,18 @@ namespace XrSamples.Graffiti
                 return new Rect2I(0, 0, 0, 0);
             }
 
-            int x0 = (int)MathF.Floor(bounds.Min.X) - marginPixels;
-            int y0 = (int)MathF.Floor(bounds.Min.Y) - marginPixels;
-            int x1 = (int)MathF.Ceiling(bounds.Max.X) + marginPixels;
-            int y1 = (int)MathF.Ceiling(bounds.Max.Y) + marginPixels;
+            var x0 = (int)MathF.Floor(bounds.Min.X) - marginPixels;
+            var y0 = (int)MathF.Floor(bounds.Min.Y) - marginPixels;
+            var x1 = (int)MathF.Ceiling(bounds.Max.X) + marginPixels;
+            var y1 = (int)MathF.Ceiling(bounds.Max.Y) + marginPixels;
 
             x0 = Math.Clamp(x0, 0, (int)textureSize.Width);
             y0 = Math.Clamp(y0, 0, (int)textureSize.Height);
             x1 = Math.Clamp(x1, 0, (int)textureSize.Width);
             y1 = Math.Clamp(y1, 0, (int)textureSize.Height);
 
-            int width = x1 - x0;
-            int height = y1 - y0;
+            var width = x1 - x0;
+            var height = y1 - y0;
 
             if (width <= 0 || height <= 0)
                 return new Rect2I(0, 0, 0, 0);
@@ -193,10 +193,10 @@ namespace XrSamples.Graffiti
                     ? Vector3.Normalize(uniforms.SprayDirectionLocal)
                     : Vector3.UnitZ;
 
-            float radius = uniforms.SprayRadius;
-            float angle = MathF.Max(uniforms.SpreadAngle, 0.0001f);
+            var radius = uniforms.SprayRadius;
+            var angle = MathF.Max(uniforms.SpreadAngle, 0.0001f);
 
-            float h = radius / MathF.Tan(angle);
+            var h = radius / MathF.Tan(angle);
 
             var localApex =
                 sprayCenterLocal -
@@ -211,9 +211,9 @@ namespace XrSamples.Graffiti
 
             const int sampleCount = 64;
 
-            for (int i = 0; i < sampleCount; i++)
+            for (var i = 0; i < sampleCount; i++)
             {
-                float a = MathF.Tau * i / sampleCount;
+                var a = MathF.Tau * i / sampleCount;
                 var c = new Vector2(MathF.Cos(a), MathF.Sin(a));
 
                 var localCirclePoint =
@@ -253,8 +253,8 @@ namespace XrSamples.Graffiti
             in Vector2 canvasSize,
             in Size2I textureSize)
         {
-            float u = canvasPoint.X / canvasSize.X;
-            float v = canvasPoint.Y / canvasSize.Y;
+            var u = canvasPoint.X / canvasSize.X;
+            var v = canvasPoint.Y / canvasSize.Y;
 
             return new Vector2(
                 u * textureSize.Width,
@@ -360,7 +360,7 @@ namespace XrSamples.Graffiti
                     _canvas!.RoughnessTexture.ToGlTexture().Recreate();
                     _canvas!.NormalTexture.ToGlTexture().Recreate();
                 }
- 
+
                 _canvas!.ColorTexture.ToGlTexture().Recreate();
                 _canvas!.SprayTexture.ToGlTexture().Recreate();
             }
@@ -408,7 +408,7 @@ namespace XrSamples.Graffiti
 
             _wetTex.Clear(Color.Transparent);
             _tempWetTex.Clear(Color.Transparent);
-            
+
             _dryTex.Clear(Color.Transparent);
             _tempDryTex.Clear(Color.Transparent);
         }
@@ -419,7 +419,7 @@ namespace XrSamples.Graffiti
 
             _paintUniforms.ComputeSize = new Vector2I((int)_sprayRect.Width, (int)_sprayRect.Height);
             _paintUniforms.ComputeOffset = new Vector2I(_sprayRect.X, _sprayRect.Y);
-            
+
             _paintUniformsBuffer.Update(_paintUniforms);
 
             if (_sprayRect.Width == 0 || _sprayRect.Height == 0)
@@ -622,7 +622,7 @@ namespace XrSamples.Graffiti
                     _brushSource.DrawInstances(sampleCount);
                 }
 
-               // _paintStateBuffer.Read(MapBufferAccessMask.ReadBit, ref _paintState);
+                // _paintStateBuffer.Read(MapBufferAccessMask.ReadBit, ref _paintState);
 
                 _brushSource.Unbind();
 
@@ -632,7 +632,7 @@ namespace XrSamples.Graffiti
                     _prevPose, curPose, _can.Transform.Scale, canvasQuod, new Size2I(_wetTex.Width, _wetTex.Height), 8);
 
                 //_sprayRect = new Rect2I(0, 0, _wetTex.Width, _wetTex.Height);
-            }   
+            }
             else
             {
                 if (isSpraying)

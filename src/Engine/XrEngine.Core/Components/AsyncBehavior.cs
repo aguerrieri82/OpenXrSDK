@@ -26,13 +26,13 @@
             {
                 if (!_updateTask.IsCompleted)
                     return;
-                
+
                 if (_updateTask.Exception != null)
                     throw _updateTask.Exception;
 
                 _updateTask = null;
             }
-     
+
             _updateTask = UpdateAsync();
         }
     }

@@ -12,7 +12,7 @@ namespace XrEngine.OpenXr
     {
         protected XrApp _xrApp;
         private bool _isInit;
-        private Texture2D? _controllerORMTex;
+        private readonly Texture2D? _controllerORMTex;
 
         public XrRoot()
         {
@@ -131,7 +131,7 @@ namespace XrEngine.OpenXr
                     group.WorldPosition = pose.Position;
                     group.WorldOrientation = pose.Orientation;
                 }
-              
+
                 if (model != null)
                     model.IsVisible = input.IsActive;
 

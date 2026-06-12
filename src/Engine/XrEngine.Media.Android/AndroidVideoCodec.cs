@@ -1,5 +1,6 @@
 ﻿using Android.Graphics;
 using Android.Media;
+using Android.Opengl;
 using Android.Views;
 using XrEngine.OpenGL;
 
@@ -15,6 +16,7 @@ namespace XrEngine.Media.Android
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
         private readonly long _timeout;
+        protected int[] _oldBinding = new int[1];
 
         public AndroidVideoCodec()
         {
@@ -95,7 +97,14 @@ namespace XrEngine.Media.Android
             {
                 _codec.ReleaseOutputBuffer(outBufferIndex, true);
 
-                _surfaceTex?.UpdateTexImage();
+                if (_surfaceTex != null)
+                {
+                    GLES20.GlGetIntegerv(GLES11Ext.GlTextureBindingExternalOes, _oldBinding, 0);
+
+                    _surfaceTex?.UpdateTexImage();
+
+                    GLES20.GlBindTexture(GLES11Ext.GlTextureExternalOes, _oldBinding[0]);
+                }
 
                 return true;
             }

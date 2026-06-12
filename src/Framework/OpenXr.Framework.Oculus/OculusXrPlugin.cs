@@ -51,7 +51,7 @@ namespace OpenXr.Framework.Oculus
 
 
         [StructLayout(LayoutKind.Sequential)]
-        unsafe struct SpaceFilterUuidMETA 
+        unsafe struct SpaceFilterUuidMETA
         {
             public StructureType Type;
             public void* Next;
@@ -253,7 +253,7 @@ namespace OpenXr.Framework.Oculus
                     Space = refSpace
                 };
 
-                ulong reqId = GenerateReqId();
+                var reqId = GenerateReqId();
 
                 _app!.CheckResult(_spatial!.CreateSpatialAnchorFB(_app.Session, ref info, ref reqId), "CreateSpatialAnchorFB");
 
@@ -277,7 +277,7 @@ namespace OpenXr.Framework.Oculus
                     PersistenceMode = SpacePersistenceModeFB.IndefiniteFB
                 };
 
-                ulong reqId = GenerateReqId();
+                var reqId = GenerateReqId();
 
                 _app!.CheckResult(_spatialStorage!.SaveSpaceFB(_app.Session, ref info, ref reqId), "SaveSpaceFB");
 
@@ -301,7 +301,7 @@ namespace OpenXr.Framework.Oculus
                     Location = isLocal ? SpaceStorageLocationFB.LocalFB : SpaceStorageLocationFB.CloudFB,
                 };
 
-                ulong reqId = GenerateReqId();
+                var reqId = GenerateReqId();
 
                 _app!.CheckResult(_spatialStorage!.EraseSpaceFB(_app.Session, ref info, ref reqId), "EraseSpaceFB");
 
@@ -339,7 +339,7 @@ namespace OpenXr.Framework.Oculus
                         idFilter.Uuids = (UuidEXT*)pIds;
                     }
 
-                    ulong reqId = GenerateReqId();
+                    var reqId = GenerateReqId();
 
                     _app!.CheckResult(DiscoverSpacesMETA!(_app.Session, ref info, ref reqId), "DiscoverSpacesMETA");
 
@@ -350,7 +350,7 @@ namespace OpenXr.Framework.Oculus
             var result = await SubmitQuery<SpaceDiscoveryResultMETA[]>("DiscoverSpacesMETA", Request);
 
             return result;
-        } 
+        }
 
         public Rect2Df GetSpaceBoundingBox2D(Space space)
         {
@@ -576,7 +576,7 @@ namespace OpenXr.Framework.Oculus
 
                 return reqId;
             }
- 
+
             return SubmitQuery<Result>($"{space.Handle}:{componentType}", Request);
         }
 

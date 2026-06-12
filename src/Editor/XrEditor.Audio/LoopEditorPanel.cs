@@ -249,7 +249,7 @@ namespace XrEditor.Audio
 
         }
 
-       
+
 
         public void GenerateLoops()
         {

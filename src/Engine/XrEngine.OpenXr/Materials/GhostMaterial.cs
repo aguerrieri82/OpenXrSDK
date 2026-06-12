@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -38,7 +35,7 @@ namespace XrEngine.OpenXr
             : base()
         {
             _shader = SHADER;
-            
+
             Color = new Color(1f, 0f, 0f, 1f);
             RimColor = new Color(1f, 0.25f, 0.1f, 1f);
 
@@ -67,18 +64,18 @@ namespace XrEngine.OpenXr
                     RimPower = RimPower,
                     RimStart = RimStart,
                 };
-            },16, BufferStore.Material);
+            }, 16, BufferStore.Material);
         }
 
 
         public Color Color { get; set; }
-        
+
         public Color RimColor { get; set; }
-        
+
         public float FillAlpha { get; set; }
-        
+
         public float RimStart { get; set; }
-        
+
         public float RimEnd { get; set; }
 
         public float RimPower { get; set; }

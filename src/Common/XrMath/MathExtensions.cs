@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -569,6 +570,28 @@ namespace XrMath
             };
         }
 
+        public static string ToCodeString(this Pose3 pose)
+        {
+            var p = pose.Position;
+            var q = pose.Orientation;
+            var c = CultureInfo.InvariantCulture;
+
+            // Formats to 9 significant digits (G9) to maintain precision
+            var posX = p.X.ToString("G9", c);
+            var posY = p.Y.ToString("G9", c);
+            var posZ = p.Z.ToString("G9", c);
+
+            var rotX = q.X.ToString("G9", c);
+            var rotY = q.Y.ToString("G9", c);
+            var rotZ = q.Z.ToString("G9", c);
+            var rotW = q.W.ToString("G9", c);
+
+            return $@"new Pose3
+            {{
+                Position = new Vector3({posX}f, {posY}f, {posZ}f),
+                Orientation = new Quaternion({rotX}f, {rotY}f, {rotZ}f, {rotW}f)
+            }}";
+        }
 
         public static Ray3 ToRay(in this Pose3 self)
         {
@@ -595,7 +618,7 @@ namespace XrMath
 
         #region TRIANGLE
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsCCW(in this Triangle3 self)
         {
             var normal = self.Normal();
@@ -920,7 +943,7 @@ namespace XrMath
                 return null;
         }
 
-        public static bool Intersects(in this Ray3 self,in Quad3 quad, out Vector3 intersectionPoint, float epsilon = EPSILON)
+        public static bool Intersects(in this Ray3 self, in Quad3 quad, out Vector3 intersectionPoint, float epsilon = EPSILON)
         {
             if (!self.Intersects(quad.ToPlane(), out intersectionPoint, epsilon))
                 return false;
@@ -1119,7 +1142,7 @@ namespace XrMath
 
         public static Vector3 ToVector3(in this Color self)
         {
-           return new Vector3(self.R, self.G, self.B);
+            return new Vector3(self.R, self.G, self.B);
         }
 
         public static Vector4 ToVector4(in this Color self)
@@ -1352,7 +1375,7 @@ namespace XrMath
 
         public static Vector2 ToVector2(in this Size2I self)
         {
-            return new Vector2(self.Width, self.Height);    
+            return new Vector2(self.Width, self.Height);
         }
 
         public static bool Contains(in this Rect2 self, in Vector2 point)

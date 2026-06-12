@@ -145,11 +145,11 @@ namespace XrEngine
                 });
 #else
                 ctx.CurrentBuffer = buffer;
-                
+
                 var curValue = value(ctx);
                 if (curValue != null)
                     buffer.Update(curValue.Value);
-     
+
                 ctx.CurrentBuffer = null;
 #endif
             });

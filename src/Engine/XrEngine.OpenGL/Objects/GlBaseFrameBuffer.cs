@@ -46,7 +46,7 @@ namespace XrEngine.OpenGL
             else
                 _gl.DrawBuffers(modes);
 
-            _lastDrawModes = modes; 
+            _lastDrawModes = modes;
         }
 
         public void SetReadBuffer(ReadBufferMode mode)

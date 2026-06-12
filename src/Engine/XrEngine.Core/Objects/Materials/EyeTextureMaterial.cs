@@ -4,7 +4,7 @@
     {
         public static readonly Shader SHADER;
 
-        
+
 
         static EyeTextureMaterial()
         {
@@ -53,15 +53,13 @@
 
             bld.ExecuteAction((ctx, up) =>
             {
-                if (LeftTexture == null || RightTexture == null)
-                    return;
+                if (FixedEye != 1 && LeftTexture != null)
+                    up.LoadTexture(LeftTexture, 0);
 
-                up.LoadTexture(LeftTexture, 0);
-
-                up.LoadTexture(RightTexture, 1);
+                if (FixedEye != 0 && RightTexture != null)
+                    up.LoadTexture(RightTexture, 1);
 
                 up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
-
             });
         }
 
@@ -79,6 +77,6 @@
 
         public Texture2D? RightTexture { get; set; }
 
-        public int FixedEye { get; set; }   
+        public int FixedEye { get; set; }
     }
 }

@@ -8,8 +8,8 @@ namespace OpenGLWrapper
 {
     public class GlSwitchWrapper : GLForwardWrapper
     {
-        GLWrapper _enqueue;
-        GLDirectWrapper _direct;
+        readonly GLWrapper _enqueue;
+        readonly GLDirectWrapper _direct;
 
         public GlSwitchWrapper(GL gl)
             : base(new GLDirectWrapper(gl))

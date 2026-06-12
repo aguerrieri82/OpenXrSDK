@@ -25,9 +25,9 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             UseScissor = true;
-            
+
             _downsampleFactor = _renderer.Options.Outline.DownsampleFactor;
-      
+
             _isDownsample = _downsampleFactor > 1f;
 
             _passTarget = new GlRenderPassTarget(renderer.GL)
@@ -93,7 +93,7 @@ namespace XrEngine.OpenGL
                                   _frameSize.Height, TextureFormat.GrayInt8);
 
             _passTarget.RenderTarget!.Begin(camera);
-            
+
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetWriteColor(true);
@@ -146,7 +146,7 @@ namespace XrEngine.OpenGL
 
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
             }
-               
+
             _outlineProgram.Use();
 
             _outlineProgram.SetUniform("uColor", _renderer.Options.Outline.Color);
@@ -174,7 +174,7 @@ namespace XrEngine.OpenGL
                 _renderer.RenderTarget!.Begin(camera);
 
                 if (UseScissor)
-                    _gl.Scissor((int)(_bounds.Min.X* _downsampleFactor),
+                    _gl.Scissor((int)(_bounds.Min.X * _downsampleFactor),
                         (int)(_bounds.Min.Y * _downsampleFactor),
                         (uint)(_bounds.Size.X * _downsampleFactor),
                         (uint)(_bounds.Size.Y * _downsampleFactor));
@@ -242,14 +242,14 @@ namespace XrEngine.OpenGL
 
                 var objectClipping = false;
 
-                int eyes = _passTarget.IsMultiView ? 2 : 1; 
+                var eyes = _passTarget.IsMultiView ? 2 : 1;
 
                 foreach (var corner in bound.Points)
                 {
                     for (var eye = 0; eye < eyes; eye++)
                     {
-                        var viewProj = camera!.Eyes != null ? 
-                            camera.Eyes[Math.Max(camera.ActiveEye, eye)].ViewProj : 
+                        var viewProj = camera!.Eyes != null ?
+                            camera.Eyes[Math.Max(camera.ActiveEye, eye)].ViewProj :
                             camera.ViewProjection;
 
                         if (!TryGetScreenPoint(corner, viewProj, out var screen))
@@ -262,7 +262,7 @@ namespace XrEngine.OpenGL
                         _bounds.Max = Vector2.Max(_bounds.Max, screen);
                     }
                 }
-    
+
                 if (objectClipping)
                 {
                     _bounds.Min = Vector2.Zero;

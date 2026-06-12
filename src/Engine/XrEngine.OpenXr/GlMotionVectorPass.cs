@@ -122,7 +122,7 @@ namespace XrEngine.OpenXr
 
         protected override IEnumerable<IGlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) != 0); 
+            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) != 0);
         }
 
         public override void Dispose()

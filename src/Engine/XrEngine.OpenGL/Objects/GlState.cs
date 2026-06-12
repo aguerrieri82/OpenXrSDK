@@ -7,7 +7,6 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
 using XrMath;
-using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -160,7 +159,7 @@ namespace XrEngine.OpenGL
             if (View == null || !View.Equals(value) || force)
             {
                 _gl.Viewport(value.X, value.Y, value.Width, value.Height);
-                
+
                 //_gl.Scissor(value.X, value.Y, value.Width, value.Height);
 
                 View = value;
@@ -287,7 +286,7 @@ namespace XrEngine.OpenGL
                     {
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
                         _gl.BlendFunc(BlendingFactor.One, BlendingFactor.One);
-                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd,BlendEquationModeEXT.FuncAdd);
+                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.FuncAdd);
                     }
                     else
                     {

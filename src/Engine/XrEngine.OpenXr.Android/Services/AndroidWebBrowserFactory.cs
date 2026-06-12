@@ -1,6 +1,4 @@
-﻿using Android.Views;
-using OpenXr.Framework;
-using OpenXr.Framework.Android;
+﻿using OpenXr.Framework;
 using System.Diagnostics;
 using XrEngine.UI.Web;
 using XrInteraction;

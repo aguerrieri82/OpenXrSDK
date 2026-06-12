@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Silk.NET.OpenGL;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Silk.NET.OpenGL;
 
 [StructLayout(LayoutKind.Explicit, Size = 144)]
 public struct ModelUniforms
@@ -51,7 +50,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
     private int _uboOffsetAlignment;
     private int _ssboOffsetAlignment;
     private int _maxUniformBlockSize;
-    private int _maxShaderStorageBlockSize;
+    private readonly int _maxShaderStorageBlockSize;
 
     public UboSsbo1000DrawBenchmark(GL gl, bool gles)
     {
@@ -121,7 +120,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
         _gl.Disable(EnableCap.Blend);
         _gl.Disable(EnableCap.CullFace);
 
-        for (int i = 0; i < warmupIterations; i++)
+        for (var i = 0; i < warmupIterations; i++)
         {
             DrawA_PerDrawUbo();
             DrawB_SsboBindRange();
@@ -192,16 +191,16 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
         var sw = Stopwatch.StartNew();
 
-        for (int i = 0; i < iterations; i++)
+        for (var i = 0; i < iterations; i++)
             draw();
 
         _gl.Finish();
 
         sw.Stop();
 
-        double totalMs = sw.Elapsed.TotalMilliseconds;
-        double frameMs = totalMs / iterations;
-        double drawUs = frameMs * 1000.0 / DrawCount;
+        var totalMs = sw.Elapsed.TotalMilliseconds;
+        var frameMs = totalMs / iterations;
+        var drawUs = frameMs * 1000.0 / DrawCount;
 
         Console.WriteLine(name);
         Console.WriteLine($"  total     : {totalMs:F3} ms");
@@ -215,15 +214,15 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
         var sw = Stopwatch.StartNew();
 
-        for (int frame = 0; frame < iterations; frame++)
+        for (var frame = 0; frame < iterations; frame++)
             update(frame);
 
         _gl.Finish();
 
         sw.Stop();
 
-        double totalMs = sw.Elapsed.TotalMilliseconds;
-        double avgMs = totalMs / iterations;
+        var totalMs = sw.Elapsed.TotalMilliseconds;
+        var avgMs = totalMs / iterations;
 
         Console.WriteLine(name);
         Console.WriteLine($"  total : {totalMs:F3} ms");
@@ -263,7 +262,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
         _gl.UseProgram(_programUbo);
         _gl.BindVertexArray(_vao);
 
-        for (int i = 0; i < DrawCount; i++)
+        for (var i = 0; i < DrawCount; i++)
         {
             _gl.BindBufferBase(
                 BufferTargetARB.UniformBuffer,
@@ -281,13 +280,13 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
         _gl.UseProgram(_programSsboRange);
         _gl.BindVertexArray(_vao);
 
-        for (int i = 0; i < DrawCount; i++)
+        for (var i = 0; i < DrawCount; i++)
         {
             _gl.BindBufferRange(
                 BufferTargetARB.ShaderStorageBuffer,
                 SsboBinding,
                 _rangeSsbo,
-                (nint)(i * _ssboRangeStride),
+                i * _ssboRangeStride,
                 (nuint)_modelSize);
 
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
@@ -306,7 +305,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
             SsboBinding,
             _indexedSsbo);
 
-        for (int i = 0; i < DrawCount; i++)
+        for (var i = 0; i < DrawCount; i++)
         {
             _gl.Uniform1(_uDrawIndexLocation, i);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
@@ -320,9 +319,9 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
         if (changedIndices.Length == 0)
             return;
 
-        for (int n = 0; n < changedIndices.Length; n++)
+        for (var n = 0; n < changedIndices.Length; n++)
         {
-            int i = changedIndices[n];
+            var i = changedIndices[n];
 
             var model = MakeUpdatedModel(i, frame);
 
@@ -340,7 +339,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
     private void UpdateB1_SsboFull(int frame)
     {
-        for (int i = 0; i < DrawCount; i++)
+        for (var i = 0; i < DrawCount; i++)
             _updateScratch[i] = MakeUpdatedModel(i, frame);
 
         _gl.BindBuffer(BufferTargetARB.ShaderStorageBuffer, _indexedSsbo);
@@ -364,15 +363,15 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
         _gl.BindBuffer(BufferTargetARB.ShaderStorageBuffer, _indexedSsbo);
 
-        for (int n = 0; n < changedIndices.Length; n++)
+        for (var n = 0; n < changedIndices.Length; n++)
         {
-            int i = changedIndices[n];
+            var i = changedIndices[n];
 
             var model = MakeUpdatedModel(i, frame);
 
             _gl.BufferSubData(
                 BufferTargetARB.ShaderStorageBuffer,
-                (nint)(i * _modelSize),
+                i * _modelSize,
                 (nuint)_modelSize,
                 &model);
         }
@@ -387,12 +386,12 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
         _gl.BindBuffer(BufferTargetARB.ShaderStorageBuffer, _indexedSsbo);
 
-        int runStart = changedIndices[0];
-        int previous = changedIndices[0];
+        var runStart = changedIndices[0];
+        var previous = changedIndices[0];
 
-        for (int n = 1; n <= changedIndices.Length; n++)
+        for (var n = 1; n <= changedIndices.Length; n++)
         {
-            bool flush =
+            var flush =
                 n == changedIndices.Length ||
                 changedIndices[n] != previous + 1;
 
@@ -417,16 +416,16 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
     private void UploadIndexedSsboRun(int startIndex, int endIndexInclusive, int frame)
     {
-        int count = endIndexInclusive - startIndex + 1;
+        var count = endIndexInclusive - startIndex + 1;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             _updateScratch[i] = MakeUpdatedModel(startIndex + i, frame);
 
         fixed (ModelUniforms* p = _updateScratch)
         {
             _gl.BufferSubData(
                 BufferTargetARB.ShaderStorageBuffer,
-                (nint)(startIndex * _modelSize),
+                startIndex * _modelSize,
                 (nuint)(count * _modelSize),
                 p);
         }
@@ -475,7 +474,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
     {
         _models = new ModelUniforms[DrawCount];
 
-        for (int i = 0; i < DrawCount; i++)
+        for (var i = 0; i < DrawCount; i++)
             _models[i] = MakeUpdatedModel(i, 0);
     }
 
@@ -488,7 +487,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
             _gl.GenBuffers(DrawCount, pBuffers);
         }
 
-        for (int i = 0; i < DrawCount; i++)
+        for (var i = 0; i < DrawCount; i++)
         {
             _gl.BindBuffer(BufferTargetARB.UniformBuffer, _perDrawUbos[i]);
 
@@ -509,13 +508,13 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
     {
         _rangeSsbo = _gl.GenBuffer();
 
-        int totalSize = _ssboRangeStride * DrawCount;
-        byte[] temp = new byte[totalSize];
+        var totalSize = _ssboRangeStride * DrawCount;
+        var temp = new byte[totalSize];
 
         fixed (byte* pTemp = temp)
         fixed (ModelUniforms* pModels = _models)
         {
-            for (int i = 0; i < DrawCount; i++)
+            for (var i = 0; i < DrawCount; i++)
             {
                 System.Buffer.MemoryCopy(
                     pModels + i,
@@ -540,7 +539,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
     {
         _indexedSsbo = _gl.GenBuffer();
 
-        int totalSize = _modelSize * DrawCount;
+        var totalSize = _modelSize * DrawCount;
 
         _gl.BindBuffer(BufferTargetARB.ShaderStorageBuffer, _indexedSsbo);
 
@@ -558,21 +557,21 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
     private uint CreateProgram(string vertexSource, string fragmentSource)
     {
-        uint vs = CompileShader(ShaderType.VertexShader, vertexSource);
-        uint fs = CompileShader(ShaderType.FragmentShader, fragmentSource);
+        var vs = CompileShader(ShaderType.VertexShader, vertexSource);
+        var fs = CompileShader(ShaderType.FragmentShader, fragmentSource);
 
-        uint program = _gl.CreateProgram();
+        var program = _gl.CreateProgram();
 
         _gl.AttachShader(program, vs);
         _gl.AttachShader(program, fs);
 
         _gl.LinkProgram(program);
 
-        _gl.GetProgram(program, ProgramPropertyARB.LinkStatus, out int status);
+        _gl.GetProgram(program, ProgramPropertyARB.LinkStatus, out var status);
 
         if (status == 0)
         {
-            string log = _gl.GetProgramInfoLog(program);
+            var log = _gl.GetProgramInfoLog(program);
             throw new InvalidOperationException("Program link failed:\n" + log);
         }
 
@@ -586,16 +585,16 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
     private uint CompileShader(ShaderType type, string source)
     {
-        uint shader = _gl.CreateShader(type);
+        var shader = _gl.CreateShader(type);
 
         _gl.ShaderSource(shader, source);
         _gl.CompileShader(shader);
 
-        _gl.GetShader(shader, ShaderParameterName.CompileStatus, out int status);
+        _gl.GetShader(shader, ShaderParameterName.CompileStatus, out var status);
 
         if (status == 0)
         {
-            string log = _gl.GetShaderInfoLog(shader);
+            var log = _gl.GetShaderInfoLog(shader);
             throw new InvalidOperationException($"{type} compile failed:\n{log}\n\nSource:\n{source}");
         }
 
@@ -604,7 +603,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
     private void BindUniformBlock(uint program, string blockName, uint bindingPoint)
     {
-        uint blockIndex = _gl.GetUniformBlockIndex(program, blockName);
+        var blockIndex = _gl.GetUniformBlockIndex(program, blockName);
 
         if (blockIndex == uint.MaxValue)
             throw new InvalidOperationException($"Uniform block not found: {blockName}");
@@ -614,7 +613,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
     private void BindShaderStorageBlock(uint program, string blockName, uint bindingPoint)
     {
-        uint blockIndex = _gl.GetProgramResourceIndex(
+        var blockIndex = _gl.GetProgramResourceIndex(
             program,
             ProgramInterface.ShaderStorageBlock,
             blockName);
@@ -823,10 +822,10 @@ void main()
 
     private static ModelUniforms MakeUpdatedModel(int i, int frame)
     {
-        float t = frame * 0.001f;
+        var t = frame * 0.001f;
 
-        float x = ((i % 50) - 25) * 0.035f;
-        float y = ((i / 50) - 10) * 0.035f;
+        var x = ((i % 50) - 25) * 0.035f;
+        var y = ((i / 50) - 10) * 0.035f;
 
         x += MathF.Sin(t + i * 0.01f) * 0.001f;
         y += MathF.Cos(t + i * 0.01f) * 0.001f;
@@ -852,7 +851,7 @@ void main()
 
         var result = new int[count];
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             result[i] = start + i;
 
         return result;
@@ -869,10 +868,10 @@ void main()
 
         var used = new bool[DrawCount];
 
-        int step = 997;
-        int value = 17;
+        var step = 997;
+        var value = 17;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             while (used[value])
                 value = (value + 1) % DrawCount;

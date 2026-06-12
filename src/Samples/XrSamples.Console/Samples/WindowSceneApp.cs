@@ -94,7 +94,7 @@ namespace XrSamples
                 UpdateSize();
             };
 
-            bool isRecorded = false; 
+            var isRecorded = false;
 
             view.Render += t =>
             {

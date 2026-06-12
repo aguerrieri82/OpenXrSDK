@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Globalization;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -32,7 +27,7 @@ namespace XrEngine.OpenXr
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.AddFeature("FRAG_RAW_POS");
-            bld.AddFeature($"NORMAL_SCALE {NormalScale.ToString("0.0#######", CultureInfo.InvariantCulture)}"); 
+            bld.AddFeature($"NORMAL_SCALE {NormalScale.ToString("0.0#######", CultureInfo.InvariantCulture)}");
 
             bld.ExecuteAction((ctx, up) =>
             {
@@ -41,10 +36,10 @@ namespace XrEngine.OpenXr
                 up.SetUniform("uFadeStart", FadeStart);
                 up.SetUniform("uFadeSide", FadeSide);
             });
-            
+
             base.UpdateShaderMaterial(bld);
         }
-        
+
 
         public Color Color { get; set; }
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XrEngine.UI.Web;
+﻿using XrEngine.UI.Web;
 using XrMath;
 
 namespace XrEngine.Browser.Win

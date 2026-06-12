@@ -33,6 +33,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+
+
 #if !__ANDROID__
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
@@ -498,7 +500,7 @@ namespace XrSamples
                        opt.ShadowMap.LightBleed = 1;
                        opt.ShadowMap.BlurRadius = 2;
                        opt.ShadowMap.Mode = ShadowMapMode.PCF;
-                       opt.ShadowMap.UseFrustumIntersect = true;    
+                       opt.ShadowMap.UseFrustumIntersect = true;
                    })
                    //.AddFloorShadow()
                    .UsePhysics(new PhysicsOptions
@@ -1593,6 +1595,75 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+
+        public static XrEngineAppBuilder CreatePoseTest(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+
+            var left = new Pose3
+            {
+                Position = new Vector3(-0.0320870019f, -0.0172204766f, -0.0633444414f),
+                Orientation = new Quaternion(-0.995334148f, -0.00154464366f, -0.00174995663f, 0.0964596644f)
+            };
+
+            var right = new Pose3
+            {
+                Position = new Vector3(0.0315504968f, -0.017489884f, -0.0631345809f),
+                Orientation = new Quaternion(-0.995401025f, 0.00226922776f, 0.00283159781f, 0.0957266465f)
+            };
+
+            Pose3 GetLensPose(Pose3 curPose)
+            {
+                var realPos = curPose.Position;
+                realPos.X = -realPos.X;
+
+                var rawRot = curPose.Orientation;
+
+                var rot = rawRot;
+                rot.Y = -rot.Y;
+                rot.Z = -rot.Z;
+                rot = Quaternion.Normalize(rot);
+
+                var worldRot = Quaternion.Inverse(rot);
+                var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+
+                return new Pose3
+                {
+                    Position = realPos,
+                    Orientation = Quaternion.Normalize(worldRot * sensorFix)
+                };
+            }
+
+            var headeset = new Group3D() { Name = "Headset" };
+
+            headeset.AddChild(new PoseView(left, "Left", "#ff00ff"));
+            headeset.AddChild(new PoseView(right, "Right", "#ffff00"));
+            headeset.AddChild(new PoseView(new Pose3(), "Origin", "#ffffff"));
+
+            scene.AddChild(headeset);
+
+
+            var headeset2 = new Group3D() { Name = "Headset2" };
+
+            headeset2.AddChild(new PoseView(GetLensPose(left), "Left", "#ff00ff"));
+            headeset2.AddChild(new PoseView(GetLensPose(right), "Right", "#ffff00"));
+            headeset2.AddChild(new PoseView(new Pose3(), "Origin", "#ffffff"));
+
+            scene.AddChild(headeset2);
+
+
+            scene.AddChild(headeset);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+
         [Sample("Capture")]
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
@@ -1760,6 +1831,30 @@ namespace XrSamples
                 return quadToSensor * sensorToHead * headMatrix;
             }
 
+            static Matrix4x4 ComputeQuadMatrixScaledFrom1m(
+                Matrix4x4 headMatrix,
+                Matrix4x4 eyeMatrix,
+                CameraParams cam,
+                float distanceMeters)
+            {
+                const float referenceDistance = 3.0f;
+
+                var quadAt1m =
+                    ComputeQuadMatrixV2(headMatrix, cam, referenceDistance);
+
+                var scale =
+                    distanceMeters / referenceDistance;
+
+                var eyePos = eyeMatrix.Translation;
+
+                var aroundEye =
+                    Matrix4x4.CreateTranslation(-eyePos) *
+                    Matrix4x4.CreateScale(scale) *
+                    Matrix4x4.CreateTranslation(eyePos);
+
+                return quadAt1m * aroundEye;
+            }
+
 
             var app = CreateBaseScene();
 
@@ -1790,22 +1885,22 @@ namespace XrSamples
 
             var mainLeft = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
             {
-                FixedEye = 1,
+                FixedEye = 0,
                 UseDepth = false
             });
 
             mainLeft.Name = "MainLeft";
             mainLeft.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
-      
+
             var right = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
             {
-                FixedEye = 0,
+                FixedEye = 1,
                 UseDepth = false
             });
 
             right.Name = "Right";
             right.Transform.Scale = mainLeft.Transform.Scale;
-      
+
             scene.AddChild(mainLeft);
             scene.AddChild(right);
 
@@ -1816,7 +1911,7 @@ namespace XrSamples
             ICameraDevice? cameraLeft = null;
             ICameraDevice? cameraRight = null;
 
-            Vector3 leftPos = Vector3.Zero;
+            var leftPos = Vector3.Zero;
 
             scene.AddBehavior(async (_, _) =>
             {
@@ -1827,7 +1922,7 @@ namespace XrSamples
                 if (aPressed)
                     mustTrack = !mustTrack;
 
-                if (cameraState == 0 && leftTex.Handle != 0)
+                if (cameraState == 0 && rightTex.Handle != 0 && leftTex.Handle != 0)
                 {
                     cameraState = 1;
 
@@ -1866,19 +1961,20 @@ namespace XrSamples
                     if (cameraLeft!.LastTimestamp == 0 || cameraRight!.LastTimestamp == 0)
                         return;
 
-                    var leftPose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                    var headLeftTime = XrApp.Current!.LocateSpace(XrApp.Current.Head,
                         XrApp.Current.ReferenceSpace, cameraLeft!.LastTimestamp).Pose;
 
-                    var rightPose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                    var headRightTime = XrApp.Current!.LocateSpace(XrApp.Current.Head,
                         XrApp.Current.ReferenceSpace, cameraRight!.LastTimestamp).Pose;
 
                     if (mustTrack)
                     {
-            
-                        mainLeft.WorldMatrix = ComputeQuadMatrixV2(rightPose.ToMatrix(), leftParams, 2f);
-                        right.WorldMatrix = ComputeQuadMatrixV2(rightPose.ToMatrix(), rightParams, 2f);
-                    }
+                        var thumb = XrEngineApp.Current?.Inputs?.Right?.Thumbstick!.Value;
 
+                        mainLeft.WorldMatrix = ComputeQuadMatrixScaledFrom1m(headLeftTime.ToMatrix(), scene.ActiveCamera.Eyes[0].World, leftParams, 2f + (thumb!.Value.Y * 2f));
+                        right.WorldMatrix = ComputeQuadMatrixScaledFrom1m(headRightTime.ToMatrix(), scene.ActiveCamera.Eyes[1].World, rightParams, 2f + (thumb!.Value.Y * 2f));
+
+                    }
                 }
             });
 

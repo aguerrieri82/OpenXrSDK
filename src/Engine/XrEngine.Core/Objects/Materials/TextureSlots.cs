@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Objects
+﻿namespace XrEngine.Objects
 {
     public static class TextureSlots
     {

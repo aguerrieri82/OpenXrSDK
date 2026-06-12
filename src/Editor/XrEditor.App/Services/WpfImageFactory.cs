@@ -1,6 +1,5 @@
 ﻿using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using XrEditor.Abstraction;
 using XrEngine;
 
 namespace XrEditor.Services

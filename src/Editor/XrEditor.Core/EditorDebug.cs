@@ -1,8 +1,6 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
-using XrSamples.Dnd;
-using XrSamples.Graffiti;
 
 namespace XrEditor
 {
@@ -55,7 +53,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)
-              .CreatePortal()
+              .CreatePoseTest()
               .Build();
     }
 }

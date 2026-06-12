@@ -11,7 +11,7 @@ namespace XrEngine.OpenXr
     {
         readonly XrHandMesh _mesh;
         protected Matrix4x4[] _invBindMatrices;
-        protected Matrix4x4[] _skinMatrices; 
+        protected Matrix4x4[] _skinMatrices;
         protected long _skinVersion;
 
         public OculusHandMesh(XrHandMesh mesh)
@@ -32,7 +32,7 @@ namespace XrEngine.OpenXr
             {
                 HasSkin = true
             });
-       
+
 
             Materials.Add(new HandMaterial()
             {
@@ -69,7 +69,7 @@ namespace XrEngine.OpenXr
 
         void BuildInverseBind()
         {
-            for (int i = 0; i < _mesh.Joints!.Length; i++)
+            for (var i = 0; i < _mesh.Joints!.Length; i++)
             {
                 var bind = _mesh.Joints[i].BindPose.ToPose3().ToMatrix();
                 _invBindMatrices[i] = bind.Invert();
@@ -78,7 +78,7 @@ namespace XrEngine.OpenXr
 
         public void Update(HandJointLocationEXT[] joints)
         {
-            for (int i = 0; i < _skinMatrices.Length; i++)
+            for (var i = 0; i < _skinMatrices.Length; i++)
             {
                 var current = joints[i].Pose.ToPose3().ToMatrix();
 
@@ -87,7 +87,7 @@ namespace XrEngine.OpenXr
             _skinVersion++;
         }
 
-        public void  CreateGeometry()
+        public void CreateGeometry()
         {
             var geometry = new SkinnedGeometry3D
             {
@@ -100,7 +100,7 @@ namespace XrEngine.OpenXr
                     VertexComponent.UV0
             };
 
-            for (int i = 0; i < _mesh.Vertices.Length; i++)
+            for (var i = 0; i < _mesh.Vertices.Length; i++)
             {
                 var ix = _mesh.Vertices[i].BlendIndex;
 
@@ -111,7 +111,7 @@ namespace XrEngine.OpenXr
                 geometry.Skin[i].JointWeights = _mesh.Vertices[i].BlendWeight.ToVector4();
             }
 
-            Geometry = geometry;    
+            Geometry = geometry;
         }
 
         [Action]

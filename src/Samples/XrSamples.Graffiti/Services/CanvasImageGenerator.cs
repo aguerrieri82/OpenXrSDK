@@ -5,9 +5,9 @@ using XrEngine.OpenXr;
 
 namespace XrSamples.Graffiti
 {
-    public class CanvasImageGenerator 
+    public class CanvasImageGenerator
     {
-        GlSimulationPass _simulation;
+        readonly GlSimulationPass _simulation;
 
         public static CanvasImageGenerator Build(IXrEnginePlatform platform)
         {
@@ -132,7 +132,7 @@ namespace XrSamples.Graffiti
 
             can.SoundEnabled = false;
 
-            bool isSpraying = false;
+            var isSpraying = false;
 
             Log.Info(this, "Simulation Start");
 
@@ -142,9 +142,9 @@ namespace XrSamples.Graffiti
 
             foreach (var action in newCommands)
             {
-                bool interpolateOn = false;
+                var interpolateOn = false;
 
-                if (action is ParamsCommand paramsCmd)  
+                if (action is ParamsCommand paramsCmd)
                 {
                     canvas.DryRoughness = paramsCmd.DryRoughness;
                     canvas.WetRoughness = paramsCmd.WetRoughness;

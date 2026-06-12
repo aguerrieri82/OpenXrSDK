@@ -63,7 +63,7 @@ namespace XrEngine.OpenGL
                 {
                     var singleView = new GlTextureRenderTarget(_gl);
 
-                    var useRenderTarger = !OpenGLRender.Current!.Options.UseDepthPass && 
+                    var useRenderTarger = !OpenGLRender.Current!.Options.UseDepthPass &&
                                           !OpenGLRender.Current!.Options.ContactShadow.Use;
 
                     if (useRenderTarger)

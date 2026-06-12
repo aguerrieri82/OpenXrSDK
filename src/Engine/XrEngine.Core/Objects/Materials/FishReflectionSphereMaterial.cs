@@ -97,7 +97,7 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            if (OperatingSystem.IsAndroid() && IsExternal) 
+            if (OperatingSystem.IsAndroid() && IsExternal)
             {
                 bld.AddExtension("GL_OES_EGL_image_external_essl3");
                 bld.AddFeature("EXTERNAL");
@@ -112,7 +112,7 @@ namespace XrEngine
             if (DebugMode)
                 bld.AddFeature("DEBUG");
 
-            bld.AddFeature($"MODE { (int)Mode}");
+            bld.AddFeature($"MODE {(int)Mode}");
 
             bld.ExecuteAction((ctx, up) =>
             {

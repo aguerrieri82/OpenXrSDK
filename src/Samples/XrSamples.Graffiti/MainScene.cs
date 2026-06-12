@@ -1,6 +1,4 @@
-﻿using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.OpenGL;
@@ -162,7 +160,7 @@ namespace XrSamples.Graffiti
             });
         }
 
-        public GraffitiTool ActiveTool { get;  set; }
+        public GraffitiTool ActiveTool { get; set; }
 
         public bool ReconstructMode { get; set; }
 

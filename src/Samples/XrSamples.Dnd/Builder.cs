@@ -14,7 +14,7 @@ namespace XrSamples.Dnd
 
             var scene = new DndScene();
 
-            
+
             var map = scene.LoadMap("Dnd/tavern");
 
             scene.LoadAsync("65718833435872349").Wait();

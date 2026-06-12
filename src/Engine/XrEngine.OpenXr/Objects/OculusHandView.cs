@@ -106,7 +106,7 @@ namespace XrEngine.OpenXr
                     _hand = new OculusHandMesh(_input.Mesh!);
                     AddChild(_hand);
                 }
-               
+
                 _isInit = true;
             }
 
@@ -136,7 +136,7 @@ namespace XrEngine.OpenXr
                         mesh.Transform.SetScale(_input.Scale);
                     }
                 }
-  
+
                 if (ShowHand)
                 {
                     _hand!.Update(_input.Joints!);

@@ -8,7 +8,7 @@ namespace XrEngine
     {
         public static uint ComputeMaxMipLevel(int width, int height, int minSize)
         {
-            int size = Math.Max(width, height);
+            var size = Math.Max(width, height);
             uint level = 0;
 
             while (size > minSize)

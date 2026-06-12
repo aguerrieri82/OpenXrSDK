@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='__Release'">
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
@@ -33,7 +33,7 @@
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)'=='__Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>

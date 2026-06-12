@@ -62,38 +62,38 @@ namespace XrEngine
 
         public void Build()
         {
-            int slices = Math.Max(3, Slices);
-            int stacks = Math.Max(1, Stacks);
+            var slices = Math.Max(3, Slices);
+            var stacks = Math.Max(1, Stacks);
 
             var vertices = new VertexData[(slices + 1) * (stacks + 1)];
             var indices = new uint[slices * stacks * 6];
 
-            int vi = 0;
+            var vi = 0;
 
-            for (int sy = 0; sy <= stacks; sy++)
+            for (var sy = 0; sy <= stacks; sy++)
             {
-                float fy = sy / (float)stacks;
+                var fy = sy / (float)stacks;
 
                 // 0      = fisheye center direction
                 // PI / 2 = hemisphere edge
-                float alpha = fy * MathF.PI * 0.5f;
+                var alpha = fy * MathF.PI * 0.5f;
 
-                float sinA = MathF.Sin(alpha);
-                float cosA = MathF.Cos(alpha);
+                var sinA = MathF.Sin(alpha);
+                var cosA = MathF.Cos(alpha);
 
                 // Your convention:
                 // 180° fisheye => FOV = PI
                 // hemisphere edge alpha = PI / 2
                 // UV radius at edge = 0.5
-                float fishR = alpha / MathF.PI;
+                var fishR = alpha / MathF.PI;
 
-                for (int sx = 0; sx <= slices; sx++)
+                for (var sx = 0; sx <= slices; sx++)
                 {
-                    float fx = sx / (float)slices;
-                    float beta = fx * MathF.PI * 2.0f;
+                    var fx = sx / (float)slices;
+                    var beta = fx * MathF.PI * 2.0f;
 
-                    float cosB = MathF.Cos(beta);
-                    float sinB = MathF.Sin(beta);
+                    var cosB = MathF.Cos(beta);
+                    var sinB = MathF.Sin(beta);
 
                     // Matches shader convention:
                     // lng = atan(-p.y, -p.x)
@@ -122,17 +122,17 @@ namespace XrEngine
                 }
             }
 
-            int ii = 0;
-            int stride = slices + 1;
+            var ii = 0;
+            var stride = slices + 1;
 
-            for (int sy = 0; sy < stacks; sy++)
+            for (var sy = 0; sy < stacks; sy++)
             {
-                for (int sx = 0; sx < slices; sx++)
+                for (var sx = 0; sx < slices; sx++)
                 {
-                    uint i0 = (uint)(sy * stride + sx);
-                    uint i1 = i0 + 1;
-                    uint i2 = i0 + (uint)stride;
-                    uint i3 = i2 + 1;
+                    var i0 = (uint)(sy * stride + sx);
+                    var i1 = i0 + 1;
+                    var i2 = i0 + (uint)stride;
+                    var i3 = i2 + 1;
 
                     if (Inward)
                     {

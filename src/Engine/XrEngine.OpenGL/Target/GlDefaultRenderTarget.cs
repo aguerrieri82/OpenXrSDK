@@ -21,7 +21,7 @@ namespace XrEngine.OpenGL
         private IGlRenderAttachment? _depth;
         private readonly GlTextureFrameBuffer _frameBuffer;
         private readonly uint _sampleCount;
-        private bool _useRenderBuffer;
+        private readonly bool _useRenderBuffer;
 
 
         public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount)

@@ -36,10 +36,10 @@ namespace XrEngine.Audio
             fixed (byte* srcBytes = _buffer)
             fixed (byte* dstBytes = mono)
             {
-                short* src = (short*)srcBytes;
-                short* dst = (short*)dstBytes;
+                var src = (short*)srcBytes;
+                var dst = (short*)dstBytes;
 
-                for (int i = 0; i < frameCount; i++)
+                for (var i = 0; i < frameCount; i++)
                 {
                     var o = i << 1;
 
@@ -56,10 +56,10 @@ namespace XrEngine.Audio
                 SampleRate = _format.SampleRate,
                 SampleType = _format.SampleType,
             });
-            
+
             result.Range.StartTime = Range.StartTime;
             result.Range.EndTime = Range.EndTime;
-       
+
             return result;
         }
 

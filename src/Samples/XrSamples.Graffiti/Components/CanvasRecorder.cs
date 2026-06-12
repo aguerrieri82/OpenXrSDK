@@ -88,7 +88,7 @@ namespace XrSamples.Graffiti
                 if (_lastColor != _can.Color)
                 {
                     Append(OpType.ChangeColor, ctx.Time, _can.Color);
-                    _lastColor = _can.Color;    
+                    _lastColor = _can.Color;
                 }
 
                 Append(OpType.Spray, ctx.Time, canPose, _can.SprayAperture);
@@ -195,7 +195,7 @@ namespace XrSamples.Graffiti
         {
             if (!_isRecording)
                 return;
-            
+
             Write("\n]");
 
             _writer!.Close();
@@ -240,7 +240,7 @@ namespace XrSamples.Graffiti
             Write((float)(time - _startRecordTime));
 
             var argI = 0;
-            
+
             foreach (var p in args)
             {
                 Write(",");

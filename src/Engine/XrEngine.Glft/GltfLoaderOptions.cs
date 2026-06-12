@@ -9,7 +9,7 @@
             MaterialFactory = _ => new PbrV2Material();
         }
 
-        public Func<int, PbrV2Material> MaterialFactory {  get; set; }
+        public Func<int, PbrV2Material> MaterialFactory { get; set; }
 
         public bool ConvertColorTextureSRgb { get; set; }
 

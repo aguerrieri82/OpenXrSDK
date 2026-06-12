@@ -29,16 +29,16 @@ namespace XrSamples.Graffiti
         private readonly SprayTracker? _tracker;
         private Color _color;
         private SprayRays? _spray;
-        private bool _reconstructMode;
+        private readonly bool _reconstructMode;
 
         public Can(bool reconstructMode)
         {
-            _reconstructMode = reconstructMode; 
+            _reconstructMode = reconstructMode;
 
             if (reconstructMode)
             {
                 _canBody = new TriangleMesh();
-                _cap = new TriangleMesh();  
+                _cap = new TriangleMesh();
             }
             else
             {
@@ -154,7 +154,7 @@ namespace XrSamples.Graffiti
                 _sprayControl = _emitter!.Play(_sprayLoop!, () => Forward);
 
             _isSpraying = true;
-            _spray?.IsVisible = true;   
+            _spray?.IsVisible = true;
         }
 
         protected void OnSprayEnd()

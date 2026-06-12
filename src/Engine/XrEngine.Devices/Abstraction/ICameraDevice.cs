@@ -72,13 +72,16 @@ namespace XrEngine.Devices
             if (Rotation == null || Position == null)
                 return Pose3.Identity;
 
-            var worldRot = Quaternion.Inverse(Rotation!.Value);
-            var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, (float)Math.PI);
+            var realPos = Position.Value;
+            var rawRot = Rotation.Value;
 
-            return new Pose3()
+            var worldRot = Quaternion.Inverse(rawRot);
+            var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+
+            return new Pose3
             {
-                Position = Position!.Value,
-                Orientation = worldRot * sensorFix
+                Position = realPos,
+                Orientation = Quaternion.Normalize(worldRot * sensorFix)
             };
         }
 

@@ -1,11 +1,7 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -169,7 +165,7 @@ namespace XrEngine.OpenXr
             foreach (var anchor in _anchors)
             {
                 var location = XrApp.Current!.SpacesTracker.GetLastLocation(anchor.Space);
-                
+
                 if (location == null || !location.IsValid)
                     continue;
 

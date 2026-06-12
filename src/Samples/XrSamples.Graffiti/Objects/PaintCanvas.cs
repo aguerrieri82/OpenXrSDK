@@ -18,17 +18,17 @@ namespace XrSamples.Graffiti
 
     public class PaintCanvas : Group3D
     {
-        private Vector2 _size;
-        readonly Texture2D _colorTexture;
-        readonly Texture2D _normalTexture;
-        readonly Texture2D _roughnessTexture;
-        private Geometry3D _geo;
-        readonly Texture2D _sprayTexture;
-        private float _texelSize;
-        private Can? _can;
-        private PaintCanvasDebug _debug;
-        private readonly PaintFrame _frame;
-        private readonly TriangleMesh _canvas;
+        protected Vector2 _size;
+        protected readonly Texture2D _colorTexture;
+        protected readonly Texture2D _normalTexture;
+        protected readonly Texture2D _roughnessTexture;
+        protected readonly Geometry3D _geo;
+        protected readonly Texture2D _sprayTexture;
+        protected float _texelSize;
+        protected Can? _can;
+        protected PaintCanvasDebug _debug;
+        protected readonly PaintFrame _frame;
+        protected readonly TriangleMesh _canvas;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f, bool useMips = true)
         {
@@ -215,7 +215,7 @@ namespace XrSamples.Graffiti
 
                 Log.Info(this, "Image saved");
             });
-  
+
         }
 
         public string? SaveImageName { get; set; }

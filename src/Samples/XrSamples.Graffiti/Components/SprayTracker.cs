@@ -61,7 +61,7 @@ namespace XrSamples.Graffiti
 
             uniforms.CanvasSize = _canvas.Size;
 
-            var flow = MathF.Pow(_host.SprayAperture, 1.5f);     
+            var flow = MathF.Pow(_host.SprayAperture, 1.5f);
             uniforms.DensityScale = BaseDensity * flow;
             uniforms.RadialFalloff = RadialFalloff;
         }
