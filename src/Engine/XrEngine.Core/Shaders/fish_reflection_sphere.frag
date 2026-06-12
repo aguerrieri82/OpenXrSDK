@@ -1,13 +1,26 @@
-﻿#include "Shared/uniforms.glsl"
+﻿#define FRAGMENT_SHADER
+
+#include "Shared/uniforms.glsl"
+#include "Shared/position.glsl"
 
 in vec3 fPos;
 in vec3 fNormal;
 in vec2 fUv;
 
-#ifdef EXTERNAL
-    uniform samplerExternalOES uTexture;
+#define MODE_Mono   0
+#define MODE_Stereo 1
+#define MODE_Eye    2
+
+#if MODE == MODE_Eye
+    #define TEX_COUNT 2
 #else
-    uniform sampler2D uTexture;
+    #define TEX_COUNT 1
+#endif
+
+#ifdef EXTERNAL
+    layout(binding = 0) uniform samplerExternalOES uTexture[TEX_COUNT];
+#else
+    layout(binding = 0) uniform sampler2D uTexture[TEX_COUNT];
 #endif
 
 uniform vec3  uSphereCenter;
@@ -86,7 +99,14 @@ void main()
         activeEye = uActiveEye;
     #endif
 
-    vec3 cameraPos = uCamera.pos;
+    #if MODE == MODE_Eye
+        uint texIndex = activeEye;
+    #else
+        uint texIndex = 0u;
+    #endif
+    
+
+    vec3 cameraPos = getViewPos();
 
 	vec3 viewDir = normalize(cameraPos - fPos);
 
@@ -95,7 +115,7 @@ void main()
     if (raySphereIntersect(cameraPos, viewDir, uSphereCenter, uSphereRadius, polar))
     {
     	vec2 pfish = sampleFish(polar, uFov);
-	    FragColor = vec4(texture(uTexture, pfish).rgb, 1.0);
+	    FragColor = vec4(texture(uTexture[texIndex], pfish).rgb, 1.0);
     }
 
     if (uBorder > 0.0)
@@ -112,10 +132,9 @@ void main()
 
     #ifdef DEBUG
 
-
     vec2 tex = mapCircularUV(fUv, uTexCenter[activeEye], uTexRadius[activeEye]);
     
-    FragColor = vec4(texture(uTexture, tex).rgb, 1.0);
+    FragColor = vec4(texture(uTexture[texIndex], tex).rgb, 1.0);
 
     #endif
 }

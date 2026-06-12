@@ -55,7 +55,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)
-              .CreateRoomManager()
+              .CreatePortal()
               .Build();
     }
 }

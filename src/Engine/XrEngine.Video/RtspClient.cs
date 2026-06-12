@@ -213,10 +213,6 @@ namespace VirtualCamera.IPCamera
             return Convert.ToHexStringLower(MD5.HashData(Encoding.ASCII.GetBytes(input)));
         }
 
-
-
-
-
         public IList<RtspStream> Describe(string streamName)
         {
             var header = new Dictionary<string, string>();

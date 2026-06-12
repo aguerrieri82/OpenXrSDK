@@ -97,7 +97,7 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            if (OperatingSystem.IsAndroid())
+            if (OperatingSystem.IsAndroid() && IsExternal) 
             {
                 bld.AddExtension("GL_OES_EGL_image_external_essl3");
                 bld.AddFeature("EXTERNAL");
@@ -112,6 +112,8 @@ namespace XrEngine
             if (DebugMode)
                 bld.AddFeature("DEBUG");
 
+            bld.AddFeature($"MODE { (int)Mode}");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ((PerspectiveCamera)ctx.PassCamera!);
@@ -119,10 +121,13 @@ namespace XrEngine
                 up.SetUniform("uSphereCenter", SphereCenter);
                 up.SetUniform("uSphereRadius", SphereRadius);
 
-                if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
-                    up.SetUniform("uTexture", RightTexture!, 0);
+                if (Mode == FishReflectionMode.Eye)
+                {
+                    up.LoadTexture(LeftMainTexture!, 0);
+                    up.LoadTexture(RightTexture!, 1);
+                }
                 else
-                    up.SetUniform("uTexture", LeftMainTexture!, 0);
+                    up.LoadTexture(LeftMainTexture!, 0);
 
                 up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
                 up.SetUniform("uTexCenter", TextureCenter);
@@ -143,6 +148,8 @@ namespace XrEngine
             RightTexture = null;
             base.Dispose();
         }
+
+        public bool IsExternal { get; set; }
 
         public FishReflectionMode Mode { get; set; }
 

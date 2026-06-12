@@ -14,6 +14,10 @@ layout(location=0) out vec4 FragColor;
 
     void main()
     {
+        #ifdef FIXED_EYE
+            if (gl_ViewID_OVR != uint(FIXED_EYE))
+                discard;
+        #endif
         if (gl_ViewID_OVR == 0u)
             FragColor = texture(uTextureLeft, fUv);
         else 
@@ -25,6 +29,11 @@ layout(location=0) out vec4 FragColor;
 
     void main()
     {
+        #ifdef FIXED_EYE
+            if (uActiveEye != uint(FIXED_EYE))
+                discard;
+        #endif
+
         if (uActiveEye == 0u)
             FragColor = texture(uTextureLeft, fUv);
         else 

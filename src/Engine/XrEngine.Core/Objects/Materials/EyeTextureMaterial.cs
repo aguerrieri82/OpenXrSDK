@@ -4,6 +4,8 @@
     {
         public static readonly Shader SHADER;
 
+        
+
         static EyeTextureMaterial()
         {
             SHADER = new StandardVertexShader
@@ -16,6 +18,7 @@
             : base()
         {
             _shader = SHADER;
+            FixedEye = -1;
         }
 
         public EyeTextureMaterial(Texture2D left, Texture2D right)
@@ -45,6 +48,9 @@
                 bld.AddFeature("EXTERNAL");
             }
 
+            if (FixedEye != -1)
+                bld.AddFeature($"FIXED_EYE {FixedEye}");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (LeftTexture == null || RightTexture == null)
@@ -72,5 +78,7 @@
         public Texture2D? LeftTexture { get; set; }
 
         public Texture2D? RightTexture { get; set; }
+
+        public int FixedEye { get; set; }   
     }
 }

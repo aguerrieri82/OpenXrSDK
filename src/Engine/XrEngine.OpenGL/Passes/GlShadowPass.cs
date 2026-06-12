@@ -35,7 +35,7 @@ namespace XrEngine.OpenGL
         {
             _mode = renderer.Options.ShadowMap.Mode;
 
-            _useShadowSampler = renderer.Options.ShadowMap.UseShadowSampler;
+            _useShadowSampler = renderer.Options.ShadowMap.UseShadowSampler && _mode != ShadowMapMode.VSM;
 
             _lightCamera = new OrtoCamera
             {

@@ -76,14 +76,15 @@ namespace XrEngine.OpenGL
             };
             ShadowMap = new ShadowMapOptions()
             {
-                Mode = ShadowMapMode.VSM,
-                Bias = 0,
-                BiasMode = ShadowMapBiasMode.Auto,
+                Mode = ShadowMapMode.PCF,
+                Bias = 0.001f,
+                BiasMode = ShadowMapBiasMode.Value,
                 Size = 2048,
                 LightBleed = 0.15f,
                 BlurRadius = 2,
                 IsCasterMode = false,
                 UseFrustumIntersect = false,
+                UseShadowSampler = true,
                 Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
             Outline = new GlOutlineOptions()

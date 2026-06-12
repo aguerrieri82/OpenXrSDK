@@ -287,6 +287,7 @@ namespace XrSamples
                    .UseRightController()
                    .AddRightPointer()
                    .UseInputs<XrOculusTouchController>(a => a
+                       .AddAction(b => b.Right!.Thumbstick)
                        .AddAction(b => b.Right!.Haptic)
                        .AddAction(b => b.Left!.Haptic))
                    .UseRayCollider()
@@ -497,6 +498,7 @@ namespace XrSamples
                        opt.ShadowMap.LightBleed = 1;
                        opt.ShadowMap.BlurRadius = 2;
                        opt.ShadowMap.Mode = ShadowMapMode.PCF;
+                       opt.ShadowMap.UseFrustumIntersect = true;    
                    })
                    //.AddFloorShadow()
                    .UsePhysics(new PhysicsOptions
@@ -602,14 +604,23 @@ namespace XrSamples
                 Border = 0.1f,
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend,
+                Mode = FishReflectionMode.Eye
             };
 
             var mesh = new TriangleMesh(new Quad3D(), mat);
-
             mesh.Name = "mesh";
-
             scene.AddChild(mesh);
+            /*
 
+
+            var mesh2 = new TriangleMesh(new FishEyeHemisphere(), new TextureMaterial
+            {
+                Texture = left,
+                CullFront = true
+            });
+
+            scene.AddChild(mesh2);
+            */
 
             return builder
                 .UseApp(app)
@@ -642,10 +653,11 @@ namespace XrSamples
                                 {
                                     var pos = window.Pose.Value.Position;
 
+                                    /*
                                     pos.X += 0.16f;
                                     pos.Z += 0.05f;
                                     pos.Y -= 0.05f;
-
+                                    */
                                     mesh.Transform.Position = pos;
                                     mesh.Transform.Orientation = window.Pose.Value.Orientation;
 
@@ -729,7 +741,8 @@ namespace XrSamples
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend,
                 TextureCenter = [c1u, c2u],
-                TextureRadius = [s1u, s2u]
+                TextureRadius = [s1u, s2u],
+                IsExternal = true
             };
 
             var mat2 = new TextureMaterial(videoTex);
@@ -742,7 +755,7 @@ namespace XrSamples
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
-                Source = new Uri(GetAssetPath("Fish/bandicam 2025-01-21 00-44-12-973.mp4")),
+                Source = new Uri(GetAssetPath("Fish/0eb494e4-2537-4650-8718-9d6798c76898.mp4")),
                 //Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
                 //Source = new Uri("rtsp://admin:123@192.168.1.148:8554/live"),
                 //Source = new Uri("rtsp://192.168.1.89:554/videodevice"),
@@ -1584,6 +1597,142 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
 
+            static Rect2 CalcSensorCropRegion(
+                float sensorWidth,
+                float sensorHeight,
+                float currentWidth,
+                float currentHeight)
+            {
+                var scaleX = currentWidth / sensorWidth;
+                var scaleY = currentHeight / sensorHeight;
+
+                var maxScale = MathF.Max(scaleX, scaleY);
+
+                scaleX /= maxScale;
+                scaleY /= maxScale;
+
+                return new Rect2
+                {
+                    X = sensorWidth * (1.0f - scaleX) * 0.5f,
+                    Y = sensorHeight * (1.0f - scaleY) * 0.5f,
+                    Width = sensorWidth * scaleX,
+                    Height = sensorHeight * scaleY
+                };
+            }
+
+            static Vector3 ViewportPointToLocalRay(
+                CameraParams cam,
+                float u,
+                float v)
+            {
+                var fx = cam.Fx;
+                var fy = cam.Fy;
+                var cx = cam.Cx;
+                var cy = cam.Cy;
+
+                var sensorW = cam.SensorSize!.Value.Width;
+                var sensorH = cam.SensorSize.Value.Height;
+
+                // If current == sensor, this becomes full sensor rect.
+                var currentW = cam.CurrentSize.Width;
+                var currentH = cam.CurrentSize.Height;
+
+                var crop = CalcSensorCropRegion(
+                    sensorW,
+                    sensorH,
+                    currentW,
+                    currentH);
+
+                var x = (crop.X + crop.Width * u - cx) / fx;
+                var y = (crop.Y + crop.Height * v - cy) / fy;
+
+                // Unity uses +Z forward in camera local.
+                // We return the same logical ray direction here.
+                return Vector3.Normalize(new Vector3(x, y, 1.0f));
+            }
+
+            static Matrix4x4 ComputeQuadMatrixV3(
+                Matrix4x4 headMatrix,
+                CameraParams cam,
+                float distanceMeters)
+            {
+                if (cam.Intrinsic == null ||
+                    cam.SensorSize == null ||
+                    !cam.Position.HasValue ||
+                    !cam.Rotation.HasValue)
+                {
+                    return Matrix4x4.Identity;
+                }
+
+                var leftRay = ViewportPointToLocalRay(cam, 0.0f, 0.5f);
+                var rightRay = ViewportPointToLocalRay(cam, 1.0f, 0.5f);
+
+                var dot = Vector3.Dot(leftRay, rightRay);
+                dot = Math.Clamp(dot, -1.0f, 1.0f);
+
+                var horizontalFov = MathF.Acos(dot);
+
+                var canvasWidth = 2.0f * distanceMeters * MathF.Tan(horizontalFov * 0.5f);
+
+                var w = cam.SensorSize.Value.Width;
+                var h = cam.SensorSize.Value.Height;
+
+                var aspect = h / w;
+                var canvasHeight = canvasWidth * aspect;
+
+                var quadToSensor =
+                    Matrix4x4.CreateScale(canvasWidth, canvasHeight, 1.0f) *
+                    Matrix4x4.CreateTranslation(0f, 0f, -distanceMeters);
+
+                var sensorToHead = cam.GetLensPose().ToMatrix();
+
+                return quadToSensor * sensorToHead * headMatrix;
+            }
+
+            static Matrix4x4 ComputeQuadMatrixV2(
+                Matrix4x4 headMatrix,
+                CameraParams cam,
+                float distanceMeters)
+            {
+
+                var fx = cam.Fx;
+                var fy = cam.Fy;
+                var cx = cam.Cx;
+                var cy = cam.Cy;
+
+                var sensorW = cam.SensorSize!.Value.Width;
+                var sensorH = cam.SensorSize.Value.Height;
+
+                var currentW = cam.CurrentSize.Width;
+                var currentH = cam.CurrentSize.Height;
+
+                var crop = CalcSensorCropRegion(
+                    sensorW,
+                    sensorH,
+                    currentW,
+                    currentH);
+
+                var x0 = distanceMeters * ((crop.X - cx) / fx);
+                var x1 = distanceMeters * ((crop.X + crop.Width - cx) / fx);
+
+                var y0 = distanceMeters * ((crop.Y - cy) / fy);
+                var y1 = distanceMeters * ((crop.Y + crop.Height - cy) / fy);
+
+                var centerX = (x0 + x1) * 0.5f;
+                var centerY = (y0 + y1) * 0.5f;
+
+                var scaleX = x1 - x0;
+                var scaleY = y1 - y0;
+
+                var quadToSensor =
+                    Matrix4x4.CreateScale(scaleX, scaleY, 1.0f) *
+                    Matrix4x4.CreateTranslation(centerX, centerY, -distanceMeters);
+
+                var sensorToHead = cam.GetLensPose().ToMatrix();
+
+                return quadToSensor * sensorToHead * headMatrix;
+            }
+
             static Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
             {
                 if (cam.Intrinsic == null || cam.SensorSize == null ||
@@ -1616,7 +1765,8 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            CameraParams centerParams = new();
+            CameraParams leftParams = new();
+            CameraParams rightParams = new();
 
             var leftTex = new Texture2D
             {
@@ -1638,13 +1788,26 @@ namespace XrSamples
                 Type = TextureType.External
             };
 
-            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
+            var mainLeft = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
+            {
+                FixedEye = 1,
+                UseDepth = false
+            });
 
-            display.Name = "camera_display";
-            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
-            display.AddComponent<MeshCollider>();
+            mainLeft.Name = "MainLeft";
+            mainLeft.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+      
+            var right = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
+            {
+                FixedEye = 0,
+                UseDepth = false
+            });
 
-            scene.AddChild(display);
+            right.Name = "Right";
+            right.Transform.Scale = mainLeft.Transform.Scale;
+      
+            scene.AddChild(mainLeft);
+            scene.AddChild(right);
 
             var cameraState = 0;
 
@@ -1653,7 +1816,9 @@ namespace XrSamples
             ICameraDevice? cameraLeft = null;
             ICameraDevice? cameraRight = null;
 
-            scene.AddBehavior((_, _) =>
+            Vector3 leftPos = Vector3.Zero;
+
+            scene.AddBehavior(async (_, _) =>
             {
                 var button = XrEngineApp.Current?.Inputs?.Right?.Button?.BClick;
 
@@ -1682,15 +1847,13 @@ namespace XrSamples
 
                         var curFormat = formats.Last();
 
-                        await cameraLeft.StartCaptureAsync(curFormat, leftTex);
-                        await cameraRight.StartCaptureAsync(curFormat, rightTex);
+                        await Task.WhenAll(cameraLeft.StartCaptureAsync(curFormat, leftTex),
+                                           cameraRight.StartCaptureAsync(curFormat, rightTex));
 
                         cameraState = 2;
 
-                        var leftParams = cameraLeft.GetParams();
-                        var rightParams = cameraRight.GetParams();
-
-                        centerParams = leftParams;
+                        leftParams = cameraLeft.GetParams();
+                        rightParams = cameraRight.GetParams();
 
                     });
                 }
@@ -1700,11 +1863,22 @@ namespace XrSamples
                     cameraLeft?.UpdateTexture();
                     cameraRight?.UpdateTexture();
 
-                    var pose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                    if (cameraLeft!.LastTimestamp == 0 || cameraRight!.LastTimestamp == 0)
+                        return;
+
+                    var leftPose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
                         XrApp.Current.ReferenceSpace, cameraLeft!.LastTimestamp).Pose;
 
+                    var rightPose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                        XrApp.Current.ReferenceSpace, cameraRight!.LastTimestamp).Pose;
+
                     if (mustTrack)
-                        display.WorldMatrix = ComputeQuadMatrix(pose.ToMatrix(), centerParams, 2f);
+                    {
+            
+                        mainLeft.WorldMatrix = ComputeQuadMatrixV2(rightPose.ToMatrix(), leftParams, 2f);
+                        right.WorldMatrix = ComputeQuadMatrixV2(rightPose.ToMatrix(), rightParams, 2f);
+                    }
+
                 }
             });
 

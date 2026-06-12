@@ -52,6 +52,13 @@ namespace XrEngine.Devices.Android
                 var source = chars.Get(new CameraCharacteristics.Key(KEY_CAMERA_SOURCE, javaType));
                 var pos = chars.Get(new CameraCharacteristics.Key(KEY_CAMERA_POSITION, javaType));
 
+                var caps = (int[])chars.Get(CameraCharacteristics.RequestAvailableCapabilities)!;
+
+                bool isLogical =
+                    caps.Contains((int)RequestAvailableCapabilities.LogicalMultiCamera);
+
+                var phys = chars.PhysicalCameraIds?.ToArray();
+
                 string? direction;
                 string? posName;
                 string? sourceName;

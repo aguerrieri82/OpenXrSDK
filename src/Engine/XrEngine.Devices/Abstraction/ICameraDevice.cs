@@ -45,6 +45,8 @@ namespace XrEngine.Devices
 
         public Size2I? SensorSize { get; set; }
 
+        public Size2I CurrentSize { get; set; }
+
         public CameraParamsRange<int> SensitivityISO { get; set; }
 
         public CameraParamsRange<long> ExpositionTimeNs { get; set; }
@@ -62,6 +64,8 @@ namespace XrEngine.Devices
         public Vector2 Center => new(Cx, Cy);
 
         public Vector2 Fov => new(Fx, Fy);
+
+
 
         public Pose3 GetLensPose()
         {

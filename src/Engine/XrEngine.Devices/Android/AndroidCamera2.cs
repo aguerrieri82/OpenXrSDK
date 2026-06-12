@@ -11,6 +11,7 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Common.Interop;
+using Java.Text;
 using Java.Util.Concurrent;
 using System;
 using System.Diagnostics.Metrics;
@@ -120,6 +121,7 @@ namespace XrEngine.Devices.Android
         protected IExecutorService? _executor;
         protected ImageReaderA? _reader;
         protected CameraCaptureSession? _session;
+        private VideoFormat _format;
         protected HandlerThread? _backgroundThread;
         protected Handler? _backgroundHandler;
         protected int? _imageSize;
@@ -127,7 +129,7 @@ namespace XrEngine.Devices.Android
         protected CameraCharacteristics? _chars;
         protected Surface? _outSurface = null;
         protected Surface? _texSurface = null;
-        private CameraConfiguration _configuration;
+        protected CameraConfiguration? _configuration;
 
         public AndroidCamera2(string deviceId, CameraManager manager)
         {
@@ -212,6 +214,7 @@ namespace XrEngine.Devices.Android
                 Position = new System.Numerics.Vector3(trans[0], trans[1], trans[2]),
                 Intrinsic = calib,
                 SensorSize = new Size2I((uint)sensorSize.Width, (uint)sensorSize.Height),
+                CurrentSize = new Size2I((uint)_format.Width, (uint)_format.Height),
                 SensitivityISO = new CameraParamsRange<int>
                 {
                     Min = (int)(isoRange?.Lower ?? 0),
@@ -231,11 +234,15 @@ namespace XrEngine.Devices.Android
 
             _executor = Executors.NewSingleThreadExecutor()!;
 
-            _reader = ImageReaderA.NewInstance(format.Width, format.Height, ToAndroid(format.ImageFormat), 2);
-            _reader.SetOnImageAvailableListener(new ImageAvailableListener(this), _backgroundHandler);
+            List<OutputConfiguration> outs = [];
 
-            List<OutputConfiguration> outs = [new OutputConfiguration(_reader.Surface!)];
-
+            if (NewImage != null)
+            {
+                _reader = ImageReaderA.NewInstance(format.Width, format.Height, ToAndroid(format.ImageFormat), 2);
+                _reader.SetOnImageAvailableListener(new ImageAvailableListener(this), _backgroundHandler);
+                outs.Add(new OutputConfiguration(_reader.Surface!));
+            }
+       
             _outSurface = outSurface?.Native as Surface;
 
             if (_outSurface != null)
@@ -268,6 +275,7 @@ namespace XrEngine.Devices.Android
 
             _session = await _sessionSource.Task;
 
+            _format = format;
 
             Rebuild();
         }
@@ -276,10 +284,11 @@ namespace XrEngine.Devices.Android
         {
             Debug.Assert(_session != null);
             Debug.Assert(_device != null);
-            Debug.Assert(_reader != null);
 
             var captureRequest = _device.CreateCaptureRequest(CameraTemplate.Record);
-            captureRequest.AddTarget(_reader.Surface!);
+
+            if (_reader != null)
+                captureRequest.AddTarget(_reader.Surface!);
 
             if (_texSurface != null)
                 captureRequest.AddTarget(_texSurface);
@@ -377,7 +386,6 @@ namespace XrEngine.Devices.Android
         {
             _surfaceTex?.UpdateTexImage();
             LastTimestamp = _surfaceTex?.Timestamp ?? 0;
-
         }
 
         public void Dispose()
@@ -385,8 +393,6 @@ namespace XrEngine.Devices.Android
             Close();
             GC.SuppressFinalize(this);
         }
-
-
 
         unsafe void GetImageData(Image image, IMemoryBuffer<byte> buffer)
         {
