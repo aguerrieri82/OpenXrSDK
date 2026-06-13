@@ -5,7 +5,6 @@ using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
-using XrEngine.Devices;
 using XrEngine.Media;
 using XrEngine.Media.FFmpeg;
 using XrEngine.OpenXr;
@@ -19,7 +18,6 @@ namespace XrEditor
 
         public App()
         {
-            UsbCameraLib.Init();
 
             Gpu.EnableNvAPi();
 

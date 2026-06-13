@@ -6,6 +6,8 @@ using Android.OS;
 using XrEngine.Devices;
 using ContextA = global::Android.Content.Context;
 using ActivityA = global::Android.App.Activity;
+using Android;
+using Android.Content.PM;
 
 
 namespace XrEngine.Android.Devices
@@ -18,7 +20,7 @@ namespace XrEngine.Android.Devices
 
         private UsbPermissionReceiver? _receiver;
         private bool _receiverRegistered;
-
+        private TaskCompletionSource<bool>? _pendingCameraPermission;
         private readonly Dictionary<string, TaskCompletionSource<bool>> _permissionRequests = new();
 
         public AndroidUsbCameraManager(ActivityA activity)
@@ -29,6 +31,58 @@ namespace XrEngine.Android.Devices
 
             Context.Implement(this);
         }
+
+        private async Task EnsureUsbVideoGateAsync()
+        {
+            if (Build.VERSION.SdkInt < BuildVersionCodes.M)
+                return;
+
+            if (_activity.CheckSelfPermission(Manifest.Permission.Camera) ==
+                Permission.Granted)
+            {
+                return;
+            }
+
+            var tcs = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            const int requestCode = 1007;
+
+            // You need to forward OnRequestPermissionsResult from the Activity,
+            // or implement this through ActivityResult APIs if available.
+            _pendingCameraPermission = tcs;
+
+            _activity.RunOnUiThread(() =>
+            {
+                _activity.RequestPermissions(
+                    new[] { Manifest.Permission.Camera },
+                    requestCode);
+            });
+
+            if (!await tcs.Task.ConfigureAwait(false))
+                throw new UnauthorizedAccessException("CAMERA permission denied; Android requires it for USB video-class devices.");
+        }
+
+        public bool OnRequestPermissionsResult(
+            int requestCode,
+            string[] permissions,
+            Permission[] grantResults)
+        {
+            if (requestCode != 1007)
+                return false;
+
+            var tcs = _pendingCameraPermission;
+            _pendingCameraPermission = null;
+
+            bool granted =
+                grantResults.Length > 0 &&
+                grantResults[0] == Permission.Granted;
+
+            tcs?.TrySetResult(granted);
+
+            return true;
+        }
+
 
         public void Start()
         {
@@ -70,6 +124,8 @@ namespace XrEngine.Android.Devices
 
             if (device == null)
                 throw new InvalidOperationException($"USB camera not found: {id}");
+
+            await EnsureUsbVideoGateAsync();
 
             RegisterReceiver();
 

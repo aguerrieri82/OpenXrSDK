@@ -49,5 +49,7 @@ namespace Common.Interop
         uint Size { get; }
 
         Span<T> AsSpan();
+
+        T[] AsArray();
     }
 }

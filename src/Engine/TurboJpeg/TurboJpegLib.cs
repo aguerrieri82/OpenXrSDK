@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 
 namespace TurboJpeg
 {
@@ -187,13 +188,13 @@ namespace TurboJpeg
 
 
         [DllImport(DllName)]
-        public static extern void tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
+        public static extern int tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
 
         [DllImport(DllName)]
-        public static extern void tjDecompress2(IntPtr handle, byte* jpegBuf, ulong jpegSize, byte* dstBuf, int width, int pitch, int height, TJPF pixelFormat, TJFLAG flags);
+        public static extern int tjDecompress2(IntPtr handle, byte* jpegBuf, ulong jpegSize, byte* dstBuf, int width, int pitch, int height, TJPF pixelFormat, TJFLAG flags);
 
         [DllImport(DllName)]
-        public static extern void tjDestroy(IntPtr handle);
+        public static extern int tjDestroy(IntPtr handle);
 
 
         public static ImageData Decompress(byte[] data)

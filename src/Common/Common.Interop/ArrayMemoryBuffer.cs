@@ -62,6 +62,12 @@ namespace Common.Interop
             return _data;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T[] AsArray()
+        {
+            return _data;
+        }
+
         public void Dispose()
         {
             if (_handle.IsAllocated)

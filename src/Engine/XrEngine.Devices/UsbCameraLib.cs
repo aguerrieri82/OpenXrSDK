@@ -139,7 +139,7 @@ namespace XrEngine.Devices
         public static extern void CloseStream(this CameraHandle camera);
 
         [DllImport(Dll)]
-        public static extern int PullFrame(this CameraHandle camera, int timeoutMs, out FrameInfo outFrame);
+        public static extern int PullFrame(this CameraHandle camera, int timeoutMs, ref FrameInfo outFrame);
 
         [DllImport(Dll)]
         public static extern int CopyFrame(this CameraHandle camera, nint dst, int dstBytes, out int outBytesWritten);

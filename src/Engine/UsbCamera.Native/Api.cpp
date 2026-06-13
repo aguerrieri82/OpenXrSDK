@@ -760,6 +760,19 @@ EXPORT int APIENTRY PullFrame(CameraState* state, int timeoutMs, FrameInfo* outF
     outFrame->data = (const uint8_t*)frame->data;
     outFrame->dataBytes = (int)frame->data_bytes;
 
+
+    DBGPRINTF(
+        "PullFrame data src=%p out=%p bytes=%d frame=%p outFrame=%p, (%d, %d, %d)",
+        frame->data,
+        outFrame->data,
+        outFrame->dataBytes,
+        frame,
+        outFrame,
+        outFrame->data[0],
+        outFrame->data[1],
+        outFrame->data[2]
+    );
+
     SetError(state, "");
     return 0;
 }

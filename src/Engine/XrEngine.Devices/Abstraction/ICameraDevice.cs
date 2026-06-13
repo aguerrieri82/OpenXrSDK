@@ -118,6 +118,8 @@ namespace XrEngine.Devices
 
         void Configure(CameraConfiguration configuration);
 
+        bool IsOpen { get; }
+
         Task OpenAsync();
 
         CameraParams GetParams();

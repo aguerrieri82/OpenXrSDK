@@ -254,6 +254,10 @@
     </Project>
   </Folder>
   <Folder Name="/Samples/">
+    <Project Path="Samples/EngineSamples.Android/EngineSamples.Android.csproj" Id="b204259a-b168-4e99-9970-36bb49b4da5f">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Samples/XrSamples.Android/XrSamples.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />

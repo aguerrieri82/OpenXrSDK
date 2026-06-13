@@ -471,6 +471,8 @@ namespace XrEngine.Devices.Android
         public long LastFrame { get; private set; }
 
         public long LastTimestamp { get; private set; }
+
+        public bool IsOpen => throw new NotImplementedException();
     }
 }
 

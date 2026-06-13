@@ -44,6 +44,7 @@ namespace XrEngine.Devices
 
         private byte[]? _jpegBuffer;
         private long _lastUpdateFrame;
+        private bool _isClosing;
         private readonly Action<IMemoryBuffer<byte>> _getDataAction;
 
         public UsbCamera(int fd, int vendorId, int productId)
@@ -132,6 +133,8 @@ namespace XrEngine.Devices
 
         public void StopCapture()
         {
+            Log.Info(this, "StopCapture");
+
             var cancel = _cancel;
             var task = _captureTask;
 
@@ -141,7 +144,7 @@ namespace XrEngine.Devices
             if (cancel != null)
             {
                 cancel.Cancel();
-
+ 
                 try
                 {
                     task?.Wait();
@@ -164,6 +167,13 @@ namespace XrEngine.Devices
 
         public void Close()
         {
+            if (_isClosing)
+                return;
+            
+            _isClosing = true;
+
+            Log.Info(this, "Close");
+
             StopCapture();
 
             if (!_handle.IsNull)
@@ -190,6 +200,8 @@ namespace XrEngine.Devices
                 TurboJpegLib.tjDestroy(_jpegDecoder);
                 _jpegDecoder = 0;
             }
+
+            _isClosing = false;
         }
 
         public void Dispose()
@@ -230,7 +242,7 @@ namespace XrEngine.Devices
                 if (_lastUpdateFrame == _lastFrame)
                     return;
 
-                Log.Info(this, "Update Texture");
+                Log.Debug(this, "Update Texture");
 
                 _outTexture.LoadData(new TextureData
                 {
@@ -343,62 +355,82 @@ namespace XrEngine.Devices
                 _jpegBuffer = new byte[size];
         }
 
-        private void CaptureLoop(CancellationToken cancel)
+        private unsafe void CaptureLoop(CancellationToken cancel)
         {
             bool decodeMjpg = _selectedNativeFormatIndex >= 0 &&
                               _formatDecodeMjpg[_selectedNativeFormatIndex];
 
+            int poolFailCount = 0;
+
             while (!cancel.IsCancellationRequested)
             {
-                int res = _handle.PullFrame(1000, out var frame);
-
-                if (res < 0)
+                try
                 {
-                    if (cancel.IsCancellationRequested)
-                        return;
+                    var frame = new FrameInfo();
+                    int res = _handle.PullFrame(1000, ref frame);
 
-                    Log.Warn(this, $"Pull Frame Failed: {0}", _handle.GetLastError());
-                    continue;
+                    if (res < 0)
+                    {
+                        if (cancel.IsCancellationRequested)
+                            return;
+
+                        Log.Warn(this, $"Pull Frame Failed: {0}", _handle.GetLastError());
+                        
+                        poolFailCount++;
+                        
+                        if (poolFailCount > 5)
+                            throw new Exception("Unable to read");
+
+                        continue;
+                    }
+
+                    if (frame.Data == 0 || frame.DataBytes <= 0)
+                        continue;
+
+                    poolFailCount = 0;
+
+                    Log.Debug(this, $"New Frame! D: {frame.Data:X} S: {((IntPtr)(void*)&frame):X}");
+
+                    var nativeFormat = ToImageFormat(frame.FrameFormat);
+
+                    if (decodeMjpg)
+                    {
+                        if (nativeFormat != ImageFormat.MJPG)
+                            throw new NotSupportedException($"Expected MJPG frame, got {nativeFormat}.");
+
+                        int decodedSize = frame.Width * frame.Height * 4;
+
+                        EnsureBuffers(decodedSize);
+                        EnsureJpegBuffer(frame.DataBytes);
+
+                        Marshal.Copy(frame.Data, _jpegBuffer!, 0, frame.DataBytes);
+
+                        DecodeMjpgToRgb32(_jpegBuffer!, frame.DataBytes, _writeBuffer!, frame.Width, frame.Height);
+
+                        PublishFrame(
+                            frame.Width,
+                            frame.Height,
+                            ImageFormat.Rgb32,
+                            decodedSize);
+                    }
+                    else
+                    {
+                        EnsureBuffers(frame.DataBytes);
+
+                        Marshal.Copy(frame.Data, _writeBuffer!, 0, frame.DataBytes);
+
+                        PublishFrame(
+                            frame.Width,
+                            frame.Height,
+                            nativeFormat,
+                            frame.DataBytes);
+                    }
                 }
-
-                if (frame.Data == 0 || frame.DataBytes <= 0)
-                    continue;
-
-                Log.Info(this, "New Frame!");
-
-                var nativeFormat = ToImageFormat(frame.FrameFormat);
-
-                if (decodeMjpg)
+                catch (Exception ex)
                 {
-                    if (nativeFormat != ImageFormat.MJPG)
-                        throw new NotSupportedException($"Expected MJPG frame, got {nativeFormat}.");
+                    Log.Error(this, ex, "Pull {0}");
 
-                    int decodedSize = frame.Width * frame.Height * 4;
-
-                    EnsureBuffers(decodedSize);
-                    EnsureJpegBuffer(frame.DataBytes);
-
-                    Marshal.Copy(frame.Data, _jpegBuffer!, 0, frame.DataBytes);
-
-                    DecodeMjpgToRgb32(_jpegBuffer!, frame.DataBytes, _writeBuffer!, frame.Width, frame.Height);
-
-                    PublishFrame(
-                        frame.Width,
-                        frame.Height,
-                        ImageFormat.Rgb32,
-                        decodedSize);
-                }
-                else
-                {
-                    EnsureBuffers(frame.DataBytes);
-
-                    Marshal.Copy(frame.Data, _writeBuffer!, 0, frame.DataBytes);
-
-                    PublishFrame(
-                        frame.Width,
-                        frame.Height,
-                        nativeFormat,
-                        frame.DataBytes);
+                    Task.Run(() => Close());
                 }
             }
         }
@@ -463,7 +495,8 @@ namespace XrEngine.Devices
             fixed (byte* pJpeg = jpeg)
             fixed (byte* pDst = dst)
             {
-                TurboJpegLib.tjDecompressHeader2(
+
+                var res = TurboJpegLib.tjDecompressHeader2(
                     _jpegDecoder,
                     pJpeg,
                     (ulong)jpegSize,
@@ -471,17 +504,19 @@ namespace XrEngine.Devices
                     out int height,
                     out _);
 
-                if (width != expectedWidth || height != expectedHeight)
-                    throw new InvalidOperationException("MJPG decoded size changed.");
+                Log.Debug(this, $"Bytes: {pJpeg[0]},{pJpeg[1]},{pJpeg[2]}");
 
-                TurboJpegLib.tjDecompress2(
+                if (width != expectedWidth || height != expectedHeight)
+                    throw new InvalidOperationException($"MJPG decoded size changed: {res}: {width}x{height} - {expectedWidth}x{expectedHeight}.");
+ 
+                res = TurboJpegLib.tjDecompress2(
                     _jpegDecoder,
                     pJpeg,
                     (ulong)jpegSize,
                     pDst,
-                    width,
-                    width * 4,
-                    height,
+                    expectedWidth,
+                    expectedWidth * 4,
+                    expectedHeight,
                     TurboJpegLib.TJPF.TJPF_RGBA,
                     TurboJpegLib.TJFLAG.TJFLAG_FASTDCT |
                     TurboJpegLib.TJFLAG.TJFLAG_FASTUPSAMPLE);
@@ -547,6 +582,8 @@ namespace XrEngine.Devices
         public long LastFrame => Interlocked.Read(ref _lastFrame);
 
         public long LastTimestamp => Interlocked.Read(ref _lastTimestamp);
+
+        public bool IsOpen => !_handle.IsNull;
 
     }
 }
