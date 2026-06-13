@@ -19,7 +19,6 @@
 
         Task<ICameraDevice> OpenCameraAsync(string id);
 
-
     }
 }
 

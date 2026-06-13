@@ -5,11 +5,19 @@
 
         Task? _updateTask;
 
+        protected override void OnAttach()
+        {
+            Dispatcher = EngineApp.Current!.Dispatcher;
+
+            base.OnAttach();
+        }
+
         protected virtual Task UpdateAsync()
         {
             return Task.CompletedTask;
         }
 
+        [Obsolete]
         protected virtual Task StartAsync()
         {
             return Task.CompletedTask;
@@ -35,6 +43,8 @@
 
             _updateTask = UpdateAsync();
         }
+
+        protected IDispatcher? Dispatcher { get; set; }
     }
 
 

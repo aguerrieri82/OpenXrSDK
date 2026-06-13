@@ -1,8 +1,8 @@
 using _Microsoft.Android.Resource.Designer;
 using Android.Content;
 using Android.Content.PM;
-
 using System.Text.Json;
+using XrEngine.Android.Devices;
 using XrEngine.OpenXr;
 
 namespace XrSamples.Android.Activities
@@ -18,15 +18,16 @@ namespace XrSamples.Android.Activities
 
     public class SelectActivity : Activity
     {
-        const string TAG = nameof(SelectActivity);
-
         private readonly GameSettings _settings = GameSettings.Graffiti();
         private IList<AppSample>? _samples;
 
+
+        public SelectActivity()
+        {
+        }
+
         protected override void OnCreate(Bundle? savedInstanceState)
         {
-            System.Diagnostics.Debug.WriteLine("Hello from SelectActivity.OnCreate");
-
             base.OnCreate(savedInstanceState);
 
             if (!string.IsNullOrWhiteSpace(_settings.SampleName) && savedInstanceState == null)
@@ -121,6 +122,7 @@ namespace XrSamples.Android.Activities
             {
                 _settings.UseSpaceWarp = e.IsChecked;
             };
+
         }
 
         protected void StartGame()

@@ -169,7 +169,7 @@ namespace XrEngine.Reconstruct
             };
 
 #if __ANDROID__
-            img.BootTime = Android.OS.SystemClock.ElapsedRealtimeNanos();
+            img.BootTime = global::Android.OS.SystemClock.ElapsedRealtimeNanos();
             img.NanoTime = Java.Lang.JavaSystem.NanoTime();
 #endif
             _stats!.Images.Add(img);

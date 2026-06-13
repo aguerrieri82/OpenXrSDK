@@ -1,5 +1,7 @@
 ﻿using Android.Runtime;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using XrEngine.Devices;
 using XrEngine.Media;
 using XrEngine.Media.Android;
 
@@ -10,7 +12,10 @@ namespace XrSamples
     {
         public App(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)
         {
+
         }
+
+       
 
         public override void OnCreate()
         {

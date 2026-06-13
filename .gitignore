@@ -387,3 +387,6 @@ Makefile
 /third-party/astc-encoder-native/out-android
 /third-party/astc-encoder-native/out-win
 /src/Samples/XrSamples.Graffiti/Assets/
+/libs/libuvc/win-x64/libusb-1.0.exp
+/libs/libuvc/win-x64/uvc.exp
+/src/Engine/UsbCamera.Native/libs/arm64-v8a

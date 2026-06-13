@@ -30,7 +30,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Capture",
+                //SampleName = "Usb Camera",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,

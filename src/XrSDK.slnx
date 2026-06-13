@@ -109,6 +109,9 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/UsbCamera.Native/UsbCamera.Native.vcxproj" Id="2c76cc93-d850-4f2d-9f4f-283c15bec3b3">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+    </Project>
     <Project Path="Engine/XrEngine.AI/XrEngine.AI.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />

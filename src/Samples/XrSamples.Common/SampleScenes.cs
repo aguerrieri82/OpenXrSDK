@@ -24,32 +24,29 @@ using XrEngine.Video;
 using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
-using XrEngine.Media;
 using XrEngine.Reconstruct;
 
 #if GLES
-using Silk.NET.OpenGLES;
+using XrEngine.Media;
 #else
 using Silk.NET.OpenGL;
 #endif
 
-
-
 #if !__ANDROID__
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
+using XrEngine.Media;
+#else
+using XrEngine.Android.Devices;
 #endif
 
 namespace XrSamples
 {
-
-
     public static class SampleScenes
     {
         static readonly GltfLoaderOptions GltfOptions = new()
         {
             ConvertColorTextureSRgb = true,
-
         };
 
         static string GetAssetPath(string name)
@@ -732,8 +729,10 @@ namespace XrSamples
                 MinFilter = ScaleFilter.Linear,
             };
 
+            /*
             if (OperatingSystem.IsAndroid())
                 videoTex.Type = TextureType.External;
+            */
 
             var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
@@ -744,7 +743,7 @@ namespace XrSamples
                 Alpha = AlphaMode.Blend,
                 TextureCenter = [c1u, c2u],
                 TextureRadius = [s1u, s2u],
-                IsExternal = true
+                //IsExternal = true
             };
 
             var mat2 = new TextureMaterial(videoTex);
@@ -754,6 +753,9 @@ namespace XrSamples
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(0, 1f, 0);
 
+            mesh.AddComponent(new CameraTexturePlayer(videoTex));
+
+            /*
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
@@ -762,8 +764,9 @@ namespace XrSamples
                 //Source = new Uri("rtsp://admin:123@192.168.1.148:8554/live"),
                 //Source = new Uri("rtsp://192.168.1.89:554/videodevice"),
                 //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
-                //Reader = new RtspVideoReader()
+                Reader = new RtspVideoReader()
             });
+            */
 
             mesh.Name = "mesh";
 
@@ -1602,7 +1605,6 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-
             var left = new Pose3
             {
                 Position = new Vector3(-0.0320870019f, -0.0172204766f, -0.0633444414f),
@@ -1664,9 +1666,107 @@ namespace XrSamples
         }
 
 
+        [Sample("Usb Camera")]
+        public static XrEngineAppBuilder CreateUsbCamera(this XrEngineAppBuilder builder)
+        {
+            ICameraManager manager = null;
+
+#if __ANDROID__
+            manager = Context.Require<AndroidUsbCameraManager>();
+#endif
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var texture = new Texture2D
+            {
+                Format = TextureFormat.Rgba32,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+            };
+
+            var main = new TriangleMesh(Quad3D.Default, new TextureMaterial(texture)
+            {
+            });
+
+            main.Name = "Usb";
+            main.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+
+            scene.AddChild(main);
+
+            var cameraState = 0;
+
+            ICameraDevice? camera = null;
+
+            scene.AddBehavior(async (_, _) =>
+            {
+                var button = XrEngineApp.Current?.Inputs?.Right?.Button?.BClick;
+
+                var aPressed = button != null && button.IsChanged && button.Value;
+
+                if (cameraState == 0 && texture.Handle != 0)
+                {
+                    var cameras = manager!.GetCameras();
+
+                    if (cameras == null || cameras.Count == 0)
+                        return;
+
+                    cameraState = 1;
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            camera = await manager.OpenCameraAsync(cameras[0].Id!);
+
+                            var formats = camera.GetSupportedFormats();
+
+                            var curFormat = formats
+                               .Where(a => a.ImageFormat == ImageFormat.Rgb32)
+                               .OrderByDescending(a => a.Width * a.Height)
+                               .ThenByDescending(a => a.FrameRate)
+                               .FirstOrDefault();
+
+                            var ratio = (float)curFormat.Width / curFormat.Height;
+                            var height = 0.5f;
+                            var width = height * ratio;
+
+                            _ = scene.App!.Dispatcher.ExecuteAsync(() =>
+                            {
+                                main.Transform.Scale = new Vector3(width, height, 0.01f);
+                            });
+
+                            await camera.StartCaptureAsync(curFormat, texture);
+
+                            cameraState = 2;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("Usb", ex);
+                        }
+            
+                    });
+                }
+
+                if (cameraState == 2)
+                    camera?.UpdateTexture();
+            });
+
+            return builder
+                .UseApp(app)
+                .UseClickMoveFront(main)
+                .ConfigureSampleApp();
+        }
+
+
+
         [Sample("Capture")]
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
+            #region HELPERS
 
             static Rect2 CalcSensorCropRegion(
                 float sensorWidth,
@@ -1855,6 +1955,7 @@ namespace XrSamples
                 return quadAt1m * aroundEye;
             }
 
+            #endregion
 
             var app = CreateBaseScene();
 
@@ -1890,7 +1991,7 @@ namespace XrSamples
             });
 
             mainLeft.Name = "MainLeft";
-            mainLeft.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+            mainLeft.Transform.Scale = new Vector3(0.7f, 0.7f, 0.01f);
 
             var right = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
             {
@@ -1931,6 +2032,8 @@ namespace XrSamples
                         var manager = Context.Require<ICameraManager>();
 
                         var cameras = manager.GetCameras();
+
+                        Log.Info("", "CAMERAS: {0}", string.Join(',', cameras.Select(a => a.Id)));
 
                         var infoLeft = cameras.First(a => a.Source == 0 && a.Position == 0);
                         var infoRight = cameras.First(a => a.Source == 0 && a.Position == 1);

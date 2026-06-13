@@ -7,6 +7,7 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
+using XrEngine.Android.Devices;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
@@ -29,11 +30,12 @@ namespace XrSamples.Android.Activities
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
         private GameSettings? _settings;
-
+        private AndroidUsbCameraManager? _usbCameraManager;
 
         public GameActivity()
         {
             _permissions.Add("horizonos.permission.HEADSET_CAMERA");
+
         }
 
         protected override void OnLoad()
@@ -52,7 +54,29 @@ namespace XrSamples.Android.Activities
 
             _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
 
+            _usbCameraManager = new AndroidUsbCameraManager(this);
+
             base.OnLoad();
+        }
+
+        protected override void OnStart()
+        {
+            base.OnStart();
+            _usbCameraManager?.Start();
+        }
+
+        protected override void OnStop()
+        {
+            _usbCameraManager?.Stop();
+            base.OnStop();
+        }
+
+        protected override void OnDestroy()
+        {
+            _usbCameraManager?.Dispose();
+            _usbCameraManager = null;
+
+            base.OnDestroy();
         }
 
         protected override void OnXrAppStarted(XrApp app)
