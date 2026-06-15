@@ -107,6 +107,7 @@ namespace OpenXr.Framework.Android
                     {
                         _xrApp.Logger.LogError(ex.ToString());
                         _xrApp.Stop();
+                        throw;
                     }
                 }
             }

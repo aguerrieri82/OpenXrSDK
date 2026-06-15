@@ -1,6 +1,7 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
+using Silk.NET.Core.Native;
 using Silk.NET.OpenGL;
 #endif
 
@@ -66,42 +67,58 @@ namespace XrEngine.OpenGL
             {
                 _dstFB = new GlTextureFrameBuffer(gl);
                 _dstFB.Target = FramebufferTarget.DrawFramebuffer;
-                _dstFB.SetDrawBuffers();
             }
-
+            
             if (_srcFB == null)
             {
                 _srcFB = new GlTextureFrameBuffer(gl);
                 _srcFB.Target = FramebufferTarget.ReadFramebuffer;
-                _srcFB.SetDrawBuffers();
             }
 
             var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false, GlUtils.GetTextureFormat(src.Depth.InternalFormat));
+
+            src.Unbind();
 
             _dstFB.Bind();
 
             _srcFB.Bind();
 
+            var attachment = GlUtils.IsDepthStencil(depth.InternalFormat) ?
+                FramebufferAttachment.DepthStencilAttachment :
+                FramebufferAttachment.DepthAttachment;
+
             for (var i = 0; i < arraySize; i++)
             {
-                gl.FramebufferTextureLayer(
-                    FramebufferTarget.ReadFramebuffer,
-                    FramebufferAttachment.DepthAttachment,
-                     src.Depth!.Handle, 0, i);
-
-                _srcFB.Check();
+                if (src is GlMultiViewFrameBuffer)
+                {
+                    GlMultiViewFrameBuffer.FramebufferTextureMultisampleMultiviewOVR!(
+                       FramebufferTarget.ReadFramebuffer,
+                       attachment,
+                       src.Depth.Handle,
+                       0,
+                       src.SampleCount,
+                       (uint)i, 1);
+                }
+                else
+                {
+                    gl.FramebufferTextureLayer(
+                        FramebufferTarget.ReadFramebuffer,
+                        attachment,
+                        src.Depth.Handle, 0, i);
+                }
 
                 gl.FramebufferTextureLayer(
                     FramebufferTarget.DrawFramebuffer,
-                    FramebufferAttachment.DepthAttachment,
-                     depth.Handle, 0, i);
-
-                _dstFB.Check();
+                    attachment,
+                    depth.Handle, 0, i);
 
                 gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
                     0, 0, (int)depth.Width, (int)depth.Height,
                     ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
             }
+
+            _dstFB.Unbind();
+            _srcFB.Unbind();
 
             src.Bind();
 
@@ -132,17 +149,37 @@ namespace XrEngine.OpenGL
             return depth;
         }
 
-        public static GlTexture GetDepthUsingCopy(GL gl, object src)
+        public static GlTexture GetDepthUsingCopy(GL gl, IGlFrameBuffer src, GlTexture? depthTex)
         {
-            var depth = GetDepthTexture(gl, 0, 0, 1, true);
+            var arraySize = (depthTex?.Depth == null ? 1u : depthTex.Depth);
+            
+            var mutable = arraySize == 1;
 
-            depth.Bind();
+            var format = depthTex != null ? GlUtils.GetTextureFormat(depthTex.InternalFormat) : TextureFormat.Depth32Stencil8;
+            var width = depthTex?.Width ?? 0;
+            var height = depthTex?.Height ?? 0;
 
-            gl.CopyTexImage2D(depth.Target, 0, InternalFormat.DepthComponent, 0, 0, depth.Width, depth.Height, 0);
+            var depthCopyTex = GetDepthTexture(gl, width, height, arraySize, mutable, format);
 
-            depth.Unbind();
 
-            return depth;
+            if (depthTex != null)
+            {
+                depthTex.CopyTo(depthCopyTex);
+            }
+            else
+            {
+
+                depthCopyTex.Bind();
+
+                GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, src.Handle);
+                
+                gl.CopyTexImage2D(depthCopyTex.Target, 0, InternalFormat.DepthComponent, 0, 0, depthCopyTex.Width, depthCopyTex.Height, 0);
+
+                depthCopyTex.Unbind();
+            }
+
+
+            return depthCopyTex;
         }
 
     }

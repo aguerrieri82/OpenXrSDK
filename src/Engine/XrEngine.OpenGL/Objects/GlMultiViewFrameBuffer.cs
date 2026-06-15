@@ -13,7 +13,7 @@ namespace XrEngine.OpenGL
     {
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void FramebufferTextureMultiviewOVRDelegate(
+        public delegate void FramebufferTextureMultiviewOVRDelegate(
             FramebufferTarget target,
             FramebufferAttachment attachment,
             uint texture,
@@ -23,7 +23,7 @@ namespace XrEngine.OpenGL
         );
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void FramebufferTextureMultisampleMultiviewOVRDelegate(
+        public delegate void FramebufferTextureMultisampleMultiviewOVRDelegate(
             FramebufferTarget target,
             FramebufferAttachment attachment,
             uint texture,
@@ -33,9 +33,9 @@ namespace XrEngine.OpenGL
             uint numViews
         );
 
-        static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
+        public static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
 
-        static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
+        public static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
 
         protected uint _width;
         protected uint _height;
@@ -104,7 +104,7 @@ namespace XrEngine.OpenGL
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
 
-            if (_sampleCount > 1)
+            if (_sampleCount > 1 && (attachment is GlTexture tex) && tex.Target == TextureTarget.Texture2DArray)
             {
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
@@ -200,7 +200,6 @@ namespace XrEngine.OpenGL
             if (attachment == FramebufferAttachment.DepthAttachment && _sampleCount > 1)
                 return GlDepthUtils.GetDepthUsingFramebufferArray(_gl, this, 2);
             */
-
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return _color;
 
@@ -215,6 +214,8 @@ namespace XrEngine.OpenGL
         public GlTexture? Color => _color;
 
         public IGlRenderAttachment? Depth => _depth;
+
+        public uint SampleCount => _sampleCount;    
 
     }
 }

@@ -5,6 +5,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 using XrEngine.Compression;
 
 namespace XrEngine.OpenGL
@@ -362,5 +363,136 @@ namespace XrEngine.OpenGL
 
         }
 
+        [Conditional("DEBUG")]
+        public static unsafe void DumpTextureState(this GlTexture texture, string? name = null)
+        {
+            const TextureTarget GL_TEXTURE_EXTERNAL_OES = (TextureTarget)0x8D65;
+            const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
+
+            var gl = texture.GL;
+            var target = texture.Target;
+
+
+            static GLEnum GetTextureBindingEnum(TextureTarget target)
+            {
+                return target switch
+                {
+                    TextureTarget.Texture2D => GLEnum.TextureBinding2D,
+                    TextureTarget.Texture2DArray => GLEnum.TextureBinding2DArray,
+                    TextureTarget.Texture3D => GLEnum.TextureBinding3D,
+                    TextureTarget.TextureCubeMap => GLEnum.TextureBindingCubeMap,
+                    TextureTarget.Texture2DMultisample => GLEnum.TextureBinding2DMultisample,
+                    TextureTarget.Texture2DMultisampleArray => GLEnum.TextureBinding2DMultisampleArray,
+                    GL_TEXTURE_EXTERNAL_OES => GL_TEXTURE_BINDING_EXTERNAL_OES,
+                    _ => throw new NotSupportedException($"Unsupported texture target: {target}")
+                };
+            }
+
+
+            void DumpInt(GLEnum pname, string label)
+            {
+                gl.GetTexParameter(target, pname, out int value);
+                Debug.WriteLine($"{label}: {value}");
+            }
+
+            void DumpEnum(GLEnum pname, string label)
+            {
+                gl.GetTexParameter(target, pname, out int value);
+                Debug.WriteLine($"{label}: {(GLEnum)value} ({value})");
+            }
+
+            void DumpFloatArray(GLEnum pname, string label, int count)
+            {
+                float* values = stackalloc float[count];
+                gl.GetTexParameter(target, pname, values);
+
+                var text = string.Join(", ", Enumerable.Range(0, count).Select(i => values[i].ToString("0.###")));
+                Debug.WriteLine($"{label}: {text}");
+            }
+
+            void DumpLevel()
+            {
+                const int level = 0;
+
+                Debug.WriteLine("Level 0:");
+
+                DumpLevelInt(GLEnum.TextureWidth, level, "  WIDTH");
+                DumpLevelInt(GLEnum.TextureHeight, level, "  HEIGHT");
+
+                if (target == TextureTarget.Texture2DArray ||
+                    target == TextureTarget.Texture3D)
+                {
+                    DumpLevelInt(GLEnum.TextureDepth, level, "  DEPTH");
+                }
+
+                DumpLevelEnum(GLEnum.TextureInternalFormat, level, "  INTERNAL_FORMAT");
+
+                if (target == TextureTarget.Texture2DMultisample ||
+                    target == TextureTarget.Texture2DMultisampleArray)
+                {
+                    DumpLevelInt(GLEnum.TextureSamples, level, "  SAMPLES");
+                    DumpLevelInt(GLEnum.TextureFixedSampleLocations, level, "  FIXED_SAMPLE_LOCATIONS");
+                }
+            }
+
+            void DumpLevelInt(GLEnum pname, int level, string label)
+            {
+                int value = 0;
+                gl.GetTexLevelParameter(target, level, pname, &value);
+                Debug.WriteLine($"{label}: {value}");
+            }
+
+            void DumpLevelEnum(GLEnum pname, int level, string label)
+            {
+                int value = 0;
+                gl.GetTexLevelParameter(target, level, pname, &value);
+                Debug.WriteLine($"{label}: {(GLEnum)value} ({value})");
+            }
+
+
+            int previous = 0;
+            gl.GetInteger(GetTextureBindingEnum(target), &previous);
+
+            gl.BindTexture(target, texture);
+
+            Debug.WriteLine("");
+            Debug.WriteLine($"--- Texture state {(name != null ? $"[{name}]" : "")} ---");
+            Debug.WriteLine($"Handle: {texture}");
+            Debug.WriteLine($"Target: {target}");
+
+            DumpFloatArray(GLEnum.TextureBorderColor, "BORDER_COLOR", 4);
+
+            DumpInt(GLEnum.TextureBaseLevel, "BASE_LEVEL");
+            DumpInt(GLEnum.TextureMaxLevel, "MAX_LEVEL");
+
+            DumpEnum(GLEnum.TextureMinFilter, "MIN_FILTER");
+            DumpEnum(GLEnum.TextureMagFilter, "MAG_FILTER");
+
+            DumpEnum(GLEnum.TextureWrapS, "WRAP_S");
+            DumpEnum(GLEnum.TextureWrapT, "WRAP_T");
+
+            if (target == TextureTarget.Texture2DArray ||
+                target == TextureTarget.Texture3D)
+            {
+                DumpEnum(GLEnum.TextureWrapR, "WRAP_R");
+            }
+
+            DumpEnum(GLEnum.TextureCompareMode, "COMPARE_MODE");
+            DumpEnum(GLEnum.TextureCompareFunc, "COMPARE_FUNC");
+
+            DumpEnum(GLEnum.TextureImmutableFormat, "IMMUTABLE_FORMAT");
+
+            DumpLevel();
+
+            gl.BindTexture(target, (uint)previous);
+
+            var err = gl.GetError();
+            if (err != GLEnum.NoError)
+                Debug.WriteLine($"GL error after DumpTextureState: {err}");
+
+            Debug.WriteLine("--- End texture state ---");
+            Debug.WriteLine("");
+
+        }
     }
 }

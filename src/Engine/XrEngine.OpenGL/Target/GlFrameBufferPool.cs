@@ -12,11 +12,16 @@ namespace XrEngine.OpenGL
         private readonly GL _gl;
         private readonly bool _multiView;
         private readonly Dictionary<uint, IGlRenderTarget> _targets = [];
-
+        private readonly bool _isGlEs;
         public GlFrameBufferPool(GL gl, bool multiView)
         {
             _gl = gl;
             _multiView = multiView;
+
+
+#if GLES
+            _isGlEs = true;
+#endif
 
             DepthFormat = TextureFormat.Depth24Stencil8;
             //DepthFormat = TextureFormat.Depth16;
@@ -52,18 +57,20 @@ namespace XrEngine.OpenGL
 
             if (!_targets.TryGetValue(colorTex * 10000 + depthTex, out var target))
             {
-                var glColor = GlTexture.Attach(_gl, colorTex, sampleCount);
-
                 GlTexture? glDepth = null;
 
+                var texSampleCount = _isGlEs && _multiView ? 1 : sampleCount;
+
+                var glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
+
                 if (depthTex != 0)
-                    glDepth = GlTexture.Attach(_gl, depthTex, sampleCount);
+                    glDepth = GlTexture.Attach(_gl, depthTex, texSampleCount);
 
                 if (_multiView)
                 {
                     var multiView = new GlMultiViewRenderTarget(_gl);
                     
-                    glDepth ??= CreateDepth(glColor, 2, sampleCount);
+                    glDepth ??= CreateDepth(glColor, 2, texSampleCount);
 
                     multiView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     target = multiView;
@@ -86,7 +93,7 @@ namespace XrEngine.OpenGL
                         {
                             var renderBuf = new GlRenderBuffer(_gl);
                             var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
-                            renderBuf.Update(glColor.Width, glColor.Height, sampleCount, intFormat);
+                            renderBuf.Update(glColor.Width, glColor.Height, texSampleCount, intFormat);
                             depthAttachment = renderBuf;
                         }
 
@@ -94,7 +101,8 @@ namespace XrEngine.OpenGL
                     }
                     else
                     {
-                        glDepth ??= CreateDepth(glColor, 1, sampleCount);
+                        glDepth ??= CreateDepth(glColor, 1, texSampleCount);
+
                         singleView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     }
 

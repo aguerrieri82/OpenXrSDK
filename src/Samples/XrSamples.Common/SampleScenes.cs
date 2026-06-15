@@ -181,7 +181,7 @@ namespace XrSamples
                 {
                     e.App.ActiveScene!.AddChild(panel);
 
-                    if (XrPlatform.IsAndroid)
+                    //if (XrPlatform.IsAndroid)
                         panel.CreateOverlay(e.XrApp);
                 });
         }

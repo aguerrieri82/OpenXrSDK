@@ -4,10 +4,18 @@
 
 #ifdef TEXTURE_ARRAY
     uniform int uViewIndex;
+
+    int getViewIndex()
+    {
+        return uViewIndex;
+    }
 #endif
 
 #ifdef MULTI_VIEW
-    int uViewIndex = int(gl_ViewID_OVR);
+    int getViewIndex()
+    {
+        return int(gl_ViewID_OVR);
+    }
 #endif
 
 #ifdef MULTISAMPLE
@@ -24,7 +32,7 @@
             float d = 1.0;
 
             for (int i = 0; i < DEPTH_SAMPLES; i++)
-                d = min(d, texelFetch(uDepth, ivec3(p, uViewIndex), i).r);
+                d = min(d, texelFetch(uDepth, ivec3(p, getViewIndex()), i).r);
 
             return d;
         }
@@ -59,7 +67,7 @@
 
         float getDepth(vec2 pos) 
         {
-            return texture(uDepth, vec3(pos, uViewIndex)).r; 
+            return texture(uDepth, vec3(pos, getViewIndex())).r; 
         }
 
     #else

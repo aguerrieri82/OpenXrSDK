@@ -1,7 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-
 using Silk.NET.OpenGL;
 #endif
 
@@ -44,7 +43,7 @@ namespace XrEngine.OpenGL
             var options = XrApp.Current!.RenderOptions;
 
             _program.AddFeature("CAMERA_UNIFORMS");
-
+        
             if (isMultiView)
                 _program.AddFeature("TEXTURE_ARRAY");
 
@@ -53,7 +52,10 @@ namespace XrEngine.OpenGL
                 _program.AddFeature("MULTISAMPLE");
                 _program.AddFeature($"DEPTH_SAMPLES {sampleCount}");
             }
-
+            /*
+            _program.AddExtension("GL_OVR_multiview2");
+            _program.AddFeature("MULTI_VIEW");
+            */
             _program.Build();
             _quod = quod;
         }

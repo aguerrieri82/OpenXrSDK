@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr
                 var options = XrApp.Current!.RenderOptions;
 
                 var isMultiView = options.RenderMode == XrRenderMode.MultiView;
-                var sampleCount = XrPlatform.IsAndroid ? 1 : options.SampleCount;
+                var sampleCount = XrPlatform.IsAndroid && isMultiView ? 1 : options.SampleCount;
                 pass = new GlQuodCullPass(renderer, texture, isMultiView, sampleCount);
                 _passes[texture] = pass;
             }

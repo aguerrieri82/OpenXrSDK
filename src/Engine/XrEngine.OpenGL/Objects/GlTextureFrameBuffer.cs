@@ -74,9 +74,9 @@ namespace XrEngine.OpenGL
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
-                if (depth is GlTexture depthTex && (depthTex.Depth > 1 || depthTex.Target == TextureTarget.Texture2DArray))
+                if (depth is GlTexture depthTex && (depthTex.Depth > 1 && depthTex.Target == TextureTarget.Texture2DArray))
                 {
-#if GLES
+#if GLES__
                     _extMs?.FramebufferTexture2DMultisample(
                         Target,
                         attachment,
@@ -141,10 +141,10 @@ namespace XrEngine.OpenGL
             if (obj is GlTexture tex)
             {
                 var useMs = false;
-                if (_sampleCount > 1)
+        
+                if (_sampleCount > 1 && tex.Target == TextureTarget.Texture2D)
                 {
 #if GLES
-
                     _extMs?.FramebufferTexture2DMultisample(
                         Target,
                         slot,
@@ -154,6 +154,7 @@ namespace XrEngine.OpenGL
                     useMs = true;
 #endif
                 }
+             
 
                 if (!useMs)
                 {
@@ -303,7 +304,7 @@ namespace XrEngine.OpenGL
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.DepthAttachment && Depth is GlRenderBuffer)
-                return GlDepthUtils.GetDepthUsingCopy(_gl, this);
+                return GlDepthUtils.GetDepthUsingCopy(_gl, this, Depth as GlTexture);
 
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return Color;
@@ -327,5 +328,7 @@ namespace XrEngine.OpenGL
         public GlTexture? Color { get; protected set; }
 
         public IGlRenderAttachment? Depth { get; protected set; }
+
+        public uint SampleCount => _sampleCount;
     }
 }

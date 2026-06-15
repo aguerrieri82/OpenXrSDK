@@ -29,8 +29,8 @@ namespace XrSamples
         public static GameSettings Graffiti()
         {
             return new GameSettings
-            {
-                SampleName = "Ping Pong",
+            { 
+                //SampleName = "Ping Pong",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,

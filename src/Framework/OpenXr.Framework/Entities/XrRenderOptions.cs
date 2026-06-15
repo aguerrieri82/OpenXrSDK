@@ -18,7 +18,7 @@ namespace OpenXr.Framework
             RenderMode = XrRenderMode.SingleEye;
             GpuLevel = PerfSettingsLevelEXT.BoostExt;
             CpuLevel = PerfSettingsLevelEXT.BoostExt;
-            UseProjectionDepth = true;
+            UseProjectionDepth = false;
             UseQuodDepthCull = true;
         }
 

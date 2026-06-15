@@ -370,11 +370,9 @@ namespace XrEngine.OpenGL
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
-
             if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
             {
                 FrameBufferTargets[target] = value;
-
 
                 if (target == FramebufferTarget.Framebuffer)
                 {

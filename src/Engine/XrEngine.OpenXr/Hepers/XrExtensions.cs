@@ -27,7 +27,12 @@ namespace XrEngine.OpenXr
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
             canvas.Mode = CanvasViewMode.RenderTarget;
-            canvas.EnableDepthCull = app.RenderOptions.UseQuodDepthCull;
+            
+            canvas.EnableDepthCull = app.RenderOptions.UseQuodDepthCull && (
+                     app.RenderOptions.SampleCount <= 1 ||
+                     !XrPlatform.IsAndroid ||
+                     app.RenderOptions.RenderMode != XrRenderMode.MultiView);
+
 
             bool RenderQuod(SwapchainImageBaseHeader* image, Size2I size, long predTime, int eye)
             {
@@ -227,10 +232,6 @@ namespace XrEngine.OpenXr
             var pool = new GlFrameBufferPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
 
-            bool isGlEs = false;
-#if GLES
-            isGlEs = true;
-#endif
 
             xrApp.SessionChanged += (s, e) =>
             {
@@ -239,7 +240,7 @@ namespace XrEngine.OpenXr
             };
 
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
-                pool.GetRenderTarget(colorTex, depthTex, isGlEs ? 1 : xrApp.RenderOptions.SampleCount));
+                pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount));
         }
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)

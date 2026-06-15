@@ -133,12 +133,15 @@ namespace XrEngine.OpenGL
             MaxLevel = (uint)ml;
 
 #warning IMPROVE
+
             if (GlUtils.HasDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
             {
                 MinFilter = TextureMinFilter.Nearest;
                 MagFilter = TextureMagFilter.Nearest;
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
+
+                this.DumpTextureState();
             }
 
             Unbind();
