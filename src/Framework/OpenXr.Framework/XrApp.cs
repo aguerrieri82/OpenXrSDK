@@ -10,7 +10,10 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Json;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
@@ -68,18 +71,21 @@ namespace OpenXr.Framework
         protected readonly Dictionary<string, IXrInput> _inputs = [];
         protected readonly Dictionary<string, XrHaptic> _haptics = [];
         protected readonly List<string> _extensions = [];
+        protected readonly List<string> _apiLayers = [];
         protected readonly List<string> _interactionProfiles = [];
         protected readonly IXrPlugin[] _plugins;
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
         protected readonly XrSpacesTracker _tracker;
-        protected KhrConvertTimespecTime _convertTime;
+        protected DebugUtilsMessengerEXT _messenger;
 
         //TODO leave here or move?
         protected ExtPerformanceSettings? _perfSettings;
         protected internal ExtHandTracking? _handTracking;
-        protected KhrVisibilityMask _visibilityMask;
+        protected KhrVisibilityMask? _visibilityMask;
+        protected ExtDebugUtils? _debugUtils;
+        protected KhrConvertTimespecTime? _convertTime;
 
         protected XrAppState _state;
         protected bool _isValid; //TODO rethink on _state
@@ -103,9 +109,11 @@ namespace OpenXr.Framework
             _extensions.Add(ExtHandTracking.ExtensionName);
             _extensions.Add("XR_KHR_locate_spaces");
             _extensions.Add("XR_KHR_convert_timespec_time");
-            _extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+            _extensions.Add("XR_KHR_composition_layer_depth");
             _extensions.Add(KhrVisibilityMask.ExtensionName);
+            _extensions.Add(ExtDebugUtils.ExtensionName);
 
+            _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
             Current = this;
             ReferenceFrame = Pose3.Identity;
@@ -139,11 +147,22 @@ namespace OpenXr.Framework
                             i--;
                         }
                     }
+
+                    var supportedLayers = GetSupportedApiLayers();
+                    for (var i = 0; i < _apiLayers.Count; i++)
+                    {
+                        if (!supportedLayers.Contains(_apiLayers[i]))
+                        {
+                            _logger.LogWarning("{ext} not supported", _apiLayers[i]);
+                            _apiLayers.RemoveAt(i);
+                            i--;
+                        }
+                    }
                 }
 
                 if (_instance.Handle == 0)
                 {
-                    CreateInstance(AppDomain.CurrentDomain.FriendlyName, "OpenXr.Framework", _extensions);
+                    CreateInstance(AppDomain.CurrentDomain.FriendlyName, "OpenXr.Framework", _extensions, _apiLayers);
 
                     CreateActionSet("default", "default");
 
@@ -156,9 +175,21 @@ namespace OpenXr.Framework
 
                     PluginInvoke(p => p.OnInstanceCreated(), true);
 
-                    _xr.TryGetInstanceExtension<ExtPerformanceSettings>(null, _instance, out _perfSettings);
-                    _xr.TryGetInstanceExtension<ExtHandTracking>(null, _instance, out _handTracking);
-                    _xr.TryGetInstanceExtension<KhrVisibilityMask>(null, _instance, out _visibilityMask);
+                    _xr.TryGetInstanceExtension(null, _instance, out _perfSettings);
+                    _xr.TryGetInstanceExtension(null, _instance, out _handTracking);
+                    _xr.TryGetInstanceExtension(null, _instance, out _visibilityMask);
+                    _xr.TryGetInstanceExtension(null, _instance, out _debugUtils);
+                    _xr.TryGetInstanceExtension(null, _instance, out _convertTime);
+
+                    EnableDebug(
+                        DebugUtilsMessageSeverityFlagsEXT.InfoBitExt |
+                        DebugUtilsMessageSeverityFlagsEXT.WarningBitExt |
+                        DebugUtilsMessageSeverityFlagsEXT.ErrorBitExt,
+
+                        DebugUtilsMessageTypeFlagsEXT.ValidationBitExt |
+                        DebugUtilsMessageTypeFlagsEXT.GeneralBitExt |
+                        DebugUtilsMessageTypeFlagsEXT.ConformanceBitExt |
+                        DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt);
                 }
 
                 _state = XrAppState.Initialized;
@@ -186,6 +217,8 @@ namespace OpenXr.Framework
         public Mesh2 GetVisibilityMask(uint viewIndex, VisibilityMaskTypeKHR type = VisibilityMaskTypeKHR.VisibleTriangleMeshKhr)
         {
 
+            Debug.Assert(_visibilityMask != null);
+
             var result = new VisibilityMaskKHR
             {
                 Type = StructureType.VisibilityMaskKhr,
@@ -208,7 +241,6 @@ namespace OpenXr.Framework
                 result.IndexCapacityInput = (uint)ixBuffer.Length;
 
                 CheckResult(_visibilityMask.GetVisibilityMask(_session, _viewInfo!.Type, viewIndex, type, ref result), "GetVisibilityMask");
-
             }
 
             var mesh = new Mesh2
@@ -219,15 +251,50 @@ namespace OpenXr.Framework
 
             return mesh;
         }
+     
+        uint DebugCallback(
+            DebugUtilsMessageSeverityFlagsEXT messageSeverity,
+            DebugUtilsMessageTypeFlagsEXT messageTypes,
+            DebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData)
+        {
+            var funcName = pCallbackData->FunctionName != null ?
+                Marshal.PtrToStringUTF8((nint)pCallbackData->FunctionName) : "";
+
+            var msg = pCallbackData->Message != null ?
+                Marshal.PtrToStringUTF8((nint)pCallbackData->Message) : "";
+
+            _logger.LogWarning($"{funcName}: {msg}");
+
+
+            return 0;
+        }
+
+        public void DisableDebug()
+        {
+            if (_messenger.Handle == 0)
+                return;
+
+            CheckResult(_debugUtils!.DestroyDebugUtilsMessenger(_messenger), "DestroyDebugUtilsMessenger");
+        }
+
+        public void EnableDebug(DebugUtilsMessageSeverityFlagsEXT severity, DebugUtilsMessageTypeFlagsEXT types)
+        {
+            var info = new DebugUtilsMessengerCreateInfoEXT
+            {
+                Type = StructureType.DebugUtilsMessengerCreateInfoExt,
+                MessageSeverities = severity,
+                MessageTypes = types,
+                UserCallback = new PfnDebugUtilsMessengerCallbackEXT(DebugCallback)
+            };
+
+            CheckResult(_debugUtils!.CreateDebugUtilsMessenger(_instance, ref info, ref _messenger), "CreateDebugUtilsMessenger");
+        }
 
         public long XrTimeToBootTime(long xrTime)
         {
             if (_convertTime == null)
-            {
-                if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
-                    throw new NotSupportedException();
-
-            }
+                throw new NotSupportedException();
 
             var timespec = new Timespec();
 
@@ -239,11 +306,7 @@ namespace OpenXr.Framework
         public long BootTimeToXrTime(long bootTime)
         {
             if (_convertTime == null)
-            {
-                if (!_xr!.TryGetInstanceExtension(null, _instance, out _convertTime))
-                    throw new NotSupportedException();
-
-            }
+                throw new NotSupportedException();
 
             bootTime += GetBootToMonotonicOffsetNs();
 
@@ -373,7 +436,7 @@ namespace OpenXr.Framework
             _logger.LogInformation("Stopped");
         }
 
-        #endregion
+#endregion
 
         #region INSTANCE & SYSTEM
 
@@ -397,6 +460,27 @@ namespace OpenXr.Framework
             return result;
         }
 
+        protected IList<string> GetSupportedApiLayers()
+        {
+            uint propCount = 0;
+            
+            CheckResult(_xr!.EnumerateApiLayerProperties(0, &propCount, null), "EnumerateApiLayerProperties");
+
+            var props = CreateStructArray<ApiLayerProperties>((int)propCount, StructureType.ApiLayerProperties);
+
+            CheckResult(_xr.EnumerateApiLayerProperties(ref propCount, props.AsSpan()), "EnumerateInstanceExtensionProperties");
+
+            var result = new List<string>();
+            for (var i = 0; i < props.Length; i++)
+            {
+                fixed (void* pExtName = props[i].LayerName)
+                    result.Add(Marshal.PtrToStringAnsi((nint)pExtName)!);
+            }
+
+            return result;
+        }
+
+
         protected InstanceProperties GetInstanceProperties()
         {
             var props = new InstanceProperties(StructureType.InstanceProperties);
@@ -407,7 +491,7 @@ namespace OpenXr.Framework
 
         }
 
-        protected Instance CreateInstance(string appName, string engineName, IList<string> extensions)
+        protected Instance CreateInstance(string appName, string engineName, IList<string> extensions, IList<string> apiLayers)
         {
             var appInfo = new ApplicationInfo()
             {
@@ -422,11 +506,15 @@ namespace OpenXr.Framework
 
             var requestedExtensions = SilkMarshal.StringArrayToPtr(extensions.ToArray());
 
+            var requestedApiLayers = SilkMarshal.StringArrayToPtr(apiLayers.ToArray());
+
             var instanceCreateInfo = new InstanceCreateInfo
             (
                 applicationInfo: appInfo,
                 enabledExtensionCount: (uint)extensions.Count,
-                enabledExtensionNames: (byte**)requestedExtensions
+                enabledExtensionNames: (byte**)requestedExtensions,
+                enabledApiLayerCount: (uint)apiLayers.Count,
+                enabledApiLayerNames: (byte**)requestedApiLayers
             );
 
             CheckResult(_xr!.CreateInstance(in instanceCreateInfo, ref _instance), "CreateInstance");
@@ -880,12 +968,17 @@ namespace OpenXr.Framework
 
             var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
 
-            var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);/* | SwapchainUsageFlags.SampledBit;*/
+            var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);
 
-            return CreateSwapChain(size, format, arraySize, usage);
+            if (isDepth)
+                usage |= SwapchainUsageFlags.SampledBit;
+      
+            var sampleCount = _renderOptions.RenderMode == XrRenderMode.MultiView ? 1 : _renderOptions.SampleCount;
+
+            return CreateSwapChain(size, format, arraySize, usage, sampleCount, true);
         }
 
-        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = true)
+        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, uint sampleCount, bool mainSwapChain)
         {
             var info = new SwapchainCreateInfo
             {
@@ -896,7 +989,7 @@ namespace OpenXr.Framework
                 ArraySize = arraySize,
                 MipCount = 1,
                 FaceCount = 1,
-                SampleCount = 1,
+                SampleCount = sampleCount,
                 UsageFlags = usage
             };
 
@@ -992,6 +1085,8 @@ namespace OpenXr.Framework
             }
             finally
             {
+                if (layers == null)
+                    layerCount = 0;
                 EndFrame(frameTime, ref layers, layerCount);
 
                 //FramePredictedDisplayTime = 0;
@@ -1030,9 +1125,193 @@ namespace OpenXr.Framework
         }
 
 
+        public  unsafe void DumpLayersJson(ref CompositionLayerBaseHeader*[] layers, uint count)
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+
+            var typeMap = new Dictionary<StructureType, Type>
+            {
+                [StructureType.CompositionLayerProjection] = typeof(CompositionLayerProjection),
+                [StructureType.CompositionLayerProjectionView] = typeof(CompositionLayerProjectionView),
+                [StructureType.CompositionLayerDepthInfoKhr] = typeof(CompositionLayerDepthInfoKHR),
+                [StructureType.CompositionLayerQuad] = typeof(CompositionLayerQuad),
+                [StructureType.CompositionLayerDepthTestFB] = typeof(CompositionLayerDepthTestFB),
+
+                // keep only if your binding has these
+                [StructureType.CompositionLayerCylinderKhr] = typeof(CompositionLayerCylinderKHR),
+                [StructureType.CompositionLayerCubeKhr] = typeof(CompositionLayerCubeKHR),
+                [StructureType.CompositionLayerEquirectKhr] = typeof(CompositionLayerEquirectKHR),
+                [StructureType.CompositionLayerEquirect2Khr] = typeof(CompositionLayerEquirect2KHR),
+            };
+
+            var n = Math.Min(count, (uint)layers.Length);
+            var result = new Dictionary<string, object?>
+            {
+                ["count"] = count,
+                ["arrayLength"] = layers.Length,
+                ["dumpedCount"] = n
+            };
+
+            var outLayers = new List<object?>();
+
+            for (uint i = 0; i < n; i++)
+            {
+                var layer = layers[i];
+
+                if (layer == null)
+                {
+                    outLayers.Add(null);
+                    continue;
+                }
+
+                var type = layer->Type;
+                var actualType = typeMap.TryGetValue(type, out var t)
+                    ? t
+                    : typeof(CompositionLayerBaseHeader);
+
+                outLayers.Add(DumpStruct(actualType, layer));
+            }
+
+            result["layers"] = outLayers;
+
+            Debug.WriteLine(JsonSerializer.Serialize(result, options));
+
+            object? DumpStruct(Type type, void* ptr)
+            {
+                if (ptr == null)
+                    return null;
+
+                var obj = new Dictionary<string, object?>
+                {
+                    ["$ptr"] = $"0x{(nint)ptr:X}",
+                    ["$type"] = type.FullName
+                };
+
+                foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    var offset = (int)Marshal.OffsetOf(type, field.Name);
+                    var fieldPtr = (byte*)ptr + offset;
+
+                    obj[field.Name] = DumpField(type, ptr, field, fieldPtr);
+                }
+
+                return obj;
+            }
+
+            object? DumpField(Type ownerType, void* ownerPtr, FieldInfo field, void* fieldPtr)
+            {
+                var ft = field.FieldType;
+
+                if (ft.IsPointer)
+                {
+                    var p = *(void**)fieldPtr;
+
+                    if (p == null)
+                        return null;
+
+                    if (field.Name == "Next")
+                        return DumpNextChain((BaseInStructure*)p);
+
+                    if (ownerType == typeof(CompositionLayerProjection) &&
+                        field.Name == "Views" &&
+                        ft.GetElementType() == typeof(CompositionLayerProjectionView))
+                    {
+                        var viewCountField = ownerType.GetField("ViewCount", BindingFlags.Public | BindingFlags.Instance)!;
+                        var viewCountOffset = (int)Marshal.OffsetOf(ownerType, viewCountField.Name);
+                        var viewCount = *(uint*)((byte*)ownerPtr + viewCountOffset);
+
+                        var views = new List<object?>();
+
+                        var viewSize = Marshal.SizeOf<CompositionLayerProjectionView>();
+
+                        for (uint i = 0; i < viewCount; i++)
+                        {
+                            var viewPtr = (byte*)p + i * viewSize;
+                            views.Add(DumpStruct(typeof(CompositionLayerProjectionView), viewPtr));
+                        }
+
+                        return views;
+                    }
+
+                    return $"0x{(nint)p:X}";
+                }
+
+                if (ft.IsEnum)
+                    return DumpEnum(ft, fieldPtr);
+
+                if (ft == typeof(byte)) return *(byte*)fieldPtr;
+                if (ft == typeof(sbyte)) return *(sbyte*)fieldPtr;
+                if (ft == typeof(short)) return *(short*)fieldPtr;
+                if (ft == typeof(ushort)) return *(ushort*)fieldPtr;
+                if (ft == typeof(int)) return *(int*)fieldPtr;
+                if (ft == typeof(uint)) return *(uint*)fieldPtr;
+                if (ft == typeof(long)) return *(long*)fieldPtr;
+                if (ft == typeof(ulong)) return *(ulong*)fieldPtr;
+                if (ft == typeof(float)) return *(float*)fieldPtr;
+                if (ft == typeof(double)) return *(double*)fieldPtr;
+                if (ft == typeof(bool)) return *(bool*)fieldPtr;
+
+                if (ft == typeof(nint) || ft == typeof(IntPtr))
+                    return $"0x{(*(nint*)fieldPtr):X}";
+
+                if (ft == typeof(nuint) || ft == typeof(UIntPtr))
+                    return $"0x{(*(nuint*)fieldPtr):X}";
+
+                if (ft.IsValueType)
+                    return DumpStruct(ft, fieldPtr);
+
+                return $"<unsupported {ft.FullName}>";
+            }
+
+            object DumpEnum(Type enumType, void* ptr)
+            {
+                var raw = ReadEnumRaw(enumType, ptr);
+
+                return new Dictionary<string, object?>
+                {
+                    ["value"] = raw,
+                    ["name"] = Enum.ToObject(enumType, raw).ToString()
+                };
+            }
+
+            long ReadEnumRaw(Type enumType, void* ptr)
+            {
+                var u = Enum.GetUnderlyingType(enumType);
+
+                if (u == typeof(byte)) return *(byte*)ptr;
+                if (u == typeof(sbyte)) return *(sbyte*)ptr;
+                if (u == typeof(short)) return *(short*)ptr;
+                if (u == typeof(ushort)) return *(ushort*)ptr;
+                if (u == typeof(int)) return *(int*)ptr;
+                if (u == typeof(uint)) return *(uint*)ptr;
+                if (u == typeof(long)) return *(long*)ptr;
+
+                return unchecked((long)*(ulong*)ptr);
+            }
+
+            object DumpNextChain(BaseInStructure* next)
+            {
+                var chain = new List<object?>();
+
+                var type = next->Type;
+                var actualType = typeMap.TryGetValue(type, out var t)
+                    ? t
+                    : typeof(BaseInStructure);
+
+                chain.Add(DumpStruct(actualType, next));
+
+                return chain;
+            }
+        }
+
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
         {
             AssertSessionCreated();
+
+            //DumpLayersJson(ref layers, count);
 
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {

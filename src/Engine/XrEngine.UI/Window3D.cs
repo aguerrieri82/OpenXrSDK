@@ -19,6 +19,7 @@ namespace XrEngine.UI
 
         protected override void Start(RenderContext ctx)
         {
+
             Pointers ??= Scene?
                 .Components<IComponent>()
                 .OfType<IRayPointer>()

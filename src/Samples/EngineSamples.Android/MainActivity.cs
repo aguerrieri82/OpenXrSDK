@@ -99,6 +99,8 @@ namespace EngineSamples.Android
 
         private async Task WatchCameraAsync(CancellationToken cancel)
         {
+            await Task.Delay(400);
+
             while (!cancel.IsCancellationRequested)
             {
                 try
@@ -140,6 +142,7 @@ namespace EngineSamples.Android
                     }
 
                     var selected = formats
+                        .Where(a=> a.Width < 1000)
                         .OrderByDescending(a => a.Width * a.Height)
                         .ThenByDescending(a => a.FrameRate)
                         .First(a => a.ImageFormat == XrEngine.Media.ImageFormat.Rgb32);

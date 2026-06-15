@@ -30,7 +30,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "Usb Camera",
+                SampleName = "Ping Pong",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,

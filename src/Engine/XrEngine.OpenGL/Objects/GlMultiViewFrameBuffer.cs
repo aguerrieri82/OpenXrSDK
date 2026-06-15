@@ -196,8 +196,10 @@ namespace XrEngine.OpenGL
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
+            /*
             if (attachment == FramebufferAttachment.DepthAttachment && _sampleCount > 1)
                 return GlDepthUtils.GetDepthUsingFramebufferArray(_gl, this, 2);
+            */
 
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return _color;

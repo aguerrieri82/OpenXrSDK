@@ -27,8 +27,8 @@ namespace OpenXr.Framework.Oculus
         private Extent2Di _motionImageSize;
         private bool _lastSpaceWarpActive;
 
-        public unsafe XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IMotionVectorProvider provider)
-            : base(renderView)
+        public unsafe XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IMotionVectorProvider provider, bool useDepthSwapchain)
+            : base(renderView, useDepthSwapchain)
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));
             _motionProvider = provider;
@@ -66,7 +66,9 @@ namespace OpenXr.Framework.Oculus
                     _motionImageSize,
                     _motionProvider.MotionVectorFormat, // Rgba16f
                     _warpTexArray ? 2 : 1u,
-                    SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit, false);
+                    SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit, 
+                    1,
+                    false);
 
                 _spaceWarpData[i].ColorImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData[i].ColorSwapchain);
 
@@ -74,7 +76,9 @@ namespace OpenXr.Framework.Oculus
                     _motionImageSize,
                     _motionProvider.DepthFormat, // DepthComponent16
                     _warpTexArray ? 2 : 1u,
-                    SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit, false);
+                    SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit,
+                    1,
+                    false);
 
                 _spaceWarpData[i].DepthImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData[i].DepthSwapchain);
             }
@@ -101,7 +105,7 @@ namespace OpenXr.Framework.Oculus
                     if (_motionProvider.IsActive)
                         StructChain.AddNextStruct(ref projViews[i], _spaceWarpInfo.ItemPointer(i));
                     else
-                        projViews[i].Next = null;
+                        StructChain.RemoveNextStruct(ref projViews[i], _spaceWarpInfo.ItemPointer(i));
                 }
                 _lastSpaceWarpActive = _motionProvider.IsActive;
             }

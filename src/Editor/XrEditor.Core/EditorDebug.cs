@@ -1,6 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
+using XrSamples.Dnd;
 
 namespace XrEditor
 {
@@ -27,7 +28,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+              //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -52,8 +53,8 @@ namespace XrEditor
 
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 1)
-              .CreatePoseTest()
+              .SetRenderQuality(1f, 2)
+              .CreateDnd()
               .Build();
     }
 }

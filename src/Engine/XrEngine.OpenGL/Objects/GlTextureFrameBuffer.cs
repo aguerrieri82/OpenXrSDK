@@ -76,12 +76,21 @@ namespace XrEngine.OpenGL
 
                 if (depth is GlTexture depthTex && (depthTex.Depth > 1 || depthTex.Target == TextureTarget.Texture2DArray))
                 {
+#if GLES
+                    _extMs?.FramebufferTexture2DMultisample(
+                        Target,
+                        attachment,
+                        TextureTarget.Texture2DArray,
+                        depthTex, (int)depthIndex, _sampleCount);
+
+#else
                     _gl.FramebufferTextureLayer(
                         Target,
                         attachment,
                         depthTex,
                         0,
                         (int)depthIndex);
+#endif
 
                     _isDirty = true;
                 }
@@ -135,11 +144,13 @@ namespace XrEngine.OpenGL
                 if (_sampleCount > 1)
                 {
 #if GLES
+
                     _extMs?.FramebufferTexture2DMultisample(
                         Target,
                         slot,
-                        tex.Target,
+                        TextureTarget.Texture2D,
                         tex, 0, _sampleCount);
+
                     useMs = true;
 #endif
                 }

@@ -11,6 +11,8 @@ namespace XrEngine.OpenXr
         {
             TypeStateManager.Instance.Register(new XrInputStateManager());
 
+            Context.Implement<IQuodDepthCull>(() => new QuodDepthCullProvider());
+
             Context.Implement<IDepthPointProvider>(() => new GlDepthPointProvider(OpenGLRender.Current!.GL));
 
             Embedded.Register(typeof(Module).Assembly);

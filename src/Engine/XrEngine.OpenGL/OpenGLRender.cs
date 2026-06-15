@@ -57,6 +57,9 @@ namespace XrEngine.OpenGL
             public static readonly DynamicProp GlQuery = new(nameof(GlQuery));
 
             public static readonly DynamicProp BufferMap = new(nameof(BufferMap));
+
+            public static readonly DynamicProp[] RenderTarget = [new("RenderTargetEye0"), new("RenderTargetEye1")];
+
         }
 
         #region CONSTRUCTORS
@@ -242,7 +245,11 @@ namespace XrEngine.OpenGL
 
         public void AddPass(IGlRenderPass pass, int position)
         {
-            _renderPasses.Insert(position, pass);
+            if (position == -1)
+                _renderPasses.Add(pass);
+            else
+                _renderPasses.Insert(position, pass);
+
         }
 
         protected void UpdateLights(Scene3D scene)
@@ -382,9 +389,7 @@ namespace XrEngine.OpenGL
         [Conditional("DEBUG")]
         public void PushGroup(string message)
         {
-
             _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, (uint)message.Length, message);
-
         }
 
         [Conditional("DEBUG")]
@@ -430,7 +435,7 @@ namespace XrEngine.OpenGL
 
             _dispatcher.ProcessQueue();
 
-            _target.End(true);
+            _target.End(_options.InvalidateDepth);
 
             if (flush)
                 _gl.Flush();
@@ -503,20 +508,14 @@ namespace XrEngine.OpenGL
                 texture.ToGlTexture().GenerateMipmap();
         }
 
-        public SKSurface CreateSurface(Texture2D texture, nint handle = 0)
+        public SKSurface CreateSurface(Texture2D texture)
         {
             EnsureThread();
 
-            var glTexture = texture.GetGlResource(a =>
-            {
-                if (handle == 0)
-                    return texture.ToGlTexture();
+            var glTexture = texture.ToGlTexture();
 
-                return GlTexture.Attach(_gl, (uint)handle);
-            });
-
-            glTexture.Update(texture);
-            glTexture.GenerateMipmap();
+            if (glTexture.Version != texture.Version)
+                glTexture.Update(texture);
 
             if (_grContext == null)
             {
@@ -545,7 +544,11 @@ namespace XrEngine.OpenGL
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
 
-            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
+            var surface = SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
+            
+            _glState.Reset();
+
+            return surface ?? throw new Exception("Surface creation failed");
         }
 
         #endregion
@@ -668,6 +671,18 @@ namespace XrEngine.OpenGL
             return texFb.ReadColor(format);
         }
 
+        public Texture2D AttachTexture(uint texId)
+        {
+            var glTex = GlTexture.Attach(_gl, texId);
+            return glTex.ToEngineTexture(new Texture2D());
+
+        }
+
+        public void CopyTexture(Texture2D src, Texture2D dst)
+        {
+            src.ToGlTexture().CopyTo(dst.ToGlTexture());
+        }
+
         public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
         {
             EnsureThread();
@@ -766,6 +781,7 @@ namespace XrEngine.OpenGL
         public void Resume()
         {
         }
+
 
         #endregion
 

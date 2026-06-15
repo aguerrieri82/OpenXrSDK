@@ -13,7 +13,7 @@
             return vertSrc != null &&
                    vertSrc.Materials.
                         OfType<ShaderMaterial>().
-                        Any(a => a.Alpha != AlphaMode.Blend && a.Alpha != AlphaMode.Mask);
+                        Any(a => a.Alpha == AlphaMode.Opaque || a.Alpha == AlphaMode.BlendMain);
         }
 
         protected override bool AffectChange(ObjectChange change)

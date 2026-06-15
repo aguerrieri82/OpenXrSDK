@@ -1,5 +1,6 @@
 ﻿using Common.Interop;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 
@@ -19,15 +20,16 @@ namespace OpenXr.Framework
 
     }
 
-    public unsafe delegate void RenderViewDelegate(ref RenderViewInfo info);
+    public delegate void RenderViewDelegate(ref RenderViewInfo info);
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         protected readonly RenderViewDelegate? _renderView;
         protected XrSwapchainInfo[]? _swapchains;
-        protected bool _useDepthSWC = false;
+        protected bool _useDepthSWC;
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
+
 
         XrProjectionLayer()
         {
@@ -38,13 +40,15 @@ namespace OpenXr.Framework
             _header.ValueRef.LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
-            Priority = 10;
+
+            Priority = XrLayerPriority.Projection;
         }
 
-        public XrProjectionLayer(RenderViewDelegate renderView)
+        public XrProjectionLayer(RenderViewDelegate renderView, bool useDepthSwapchain)
             : this()
         {
             _renderView = renderView;
+            _useDepthSWC = useDepthSwapchain;
         }
 
         public override void Dispose()
@@ -141,8 +145,8 @@ namespace OpenXr.Framework
                         depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
                         depthInfo->MinDepth = 0;
                         depthInfo->MaxDepth = 1;
-                        depthInfo->NearZ = 0;
-                        depthInfo->FarZ = 0;
+                        depthInfo->NearZ = 0.01f;
+                        depthInfo->FarZ = 100;
                         depthInfo->Next = null;
                         depthInfo->SubImage.Swapchain = swapchain.DepthSwapchain;
                         depthInfo->SubImage.ImageRect = projView.SubImage.ImageRect;

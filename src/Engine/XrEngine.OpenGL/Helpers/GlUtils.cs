@@ -261,6 +261,11 @@ namespace XrEngine.OpenGL
                    format == InternalFormat.Depth32fStencil8NV;
         }
 
+        public static bool HasDepth(InternalFormat format)
+        {
+            return IsDepth(format) || IsDepthStencil(format);
+        }
+
         public static bool IsDepth(InternalFormat format)
         {
             return format == InternalFormat.DepthComponent ||

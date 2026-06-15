@@ -1,6 +1,8 @@
-﻿using Silk.NET.OpenXR;
+﻿using OpenXr.Framework.Layers;
+using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+
 using XrMath;
 
 namespace OpenXr.Framework
@@ -44,7 +46,7 @@ namespace OpenXr.Framework
             return new Quaternionf(quat.X, quat.Y, quat.Z, quat.W);
         }
 
-        public static unsafe Pose3 ToPose3(this Posef pose)
+        public static Pose3 ToPose3(this Posef pose)
         {
             return new Pose3
             {
@@ -53,9 +55,29 @@ namespace OpenXr.Framework
             };
         }
 
-        public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView)
+        public static XrTextureQuadLayer[] AddStereoQuod(this XrLayerManager manager, GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size, int priority = XrLayerPriority.BaseQuods)
         {
-            manager.List.Add(new XrProjectionLayer(renderView));
+            var eye0 = new XrTextureQuadLayer(getQuad, renderQuad, size);
+            var eye1 = new XrTextureQuadLayer(getQuad, renderQuad, size);
+
+            var swapchain = new XrSwapchain(XrApp.Current!, 2);
+
+            eye0.ConfigureStereo(swapchain, 0);
+            eye1.ConfigureStereo(swapchain, 1);
+
+            eye0.Priority = priority;
+            eye1.Priority = priority;
+
+            manager.Add(eye0);
+            manager.Add(eye1);
+
+            return [eye0, eye1];
+        }   
+
+
+        public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView, bool useDepthSwapchain)
+        {
+            manager.List.Add(new XrProjectionLayer(renderView, useDepthSwapchain));
         }
 
         public static void ScheduleCancel<T>(this TaskCompletionSource<T> completionSource, TimeSpan time)

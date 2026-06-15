@@ -15,6 +15,7 @@ using static XrEngine.Filament.FilamentLib;
 using System.Diagnostics;
 using OpenXr.Framework.Oculus;
 using Common.Interop;
+using OpenXr.Framework.Layers;
 
 
 namespace XrEngine.OpenXr
@@ -26,25 +27,35 @@ namespace XrEngine.OpenXr
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
             canvas.Mode = CanvasViewMode.RenderTarget;
+            canvas.EnableDepthCull = app.RenderOptions.UseQuodDepthCull;
 
-            var layer = new XrTextureQuadLayer(canvas.BindToQuad(), (image, size, predTime) =>
+            bool RenderQuod(SwapchainImageBaseHeader* image, Size2I size, long predTime, int eye)
             {
                 if (image == null)
-                    return canvas.NeedDraw;
+                    return canvas.EnableDepthCull || canvas.NeedDraw;
 
                 //TODO handle vulkan
                 var glImage = (SwapchainImageOpenGLKHR*)image;
 
-                canvas.SetRenderTarget((nint)glImage->Image, size.Width, size.Height);
+                canvas.SetRenderTarget(glImage->Image, size.Width, size.Height, eye);
                 canvas.Draw();
 
                 return true;
+            }
 
-            }, canvas.PixelSize);
+            if (canvas.EnableDepthCull)
+            {
+                app.Layers.AddStereoQuod(canvas.BindToQuad(), RenderQuod, canvas.PixelSize, XrLayerPriority.UiQuods);
+            }
+            else
+            {
+                var layer = new XrTextureQuadLayer(canvas.BindToQuad(), RenderQuod, canvas.PixelSize);
 
-            layer.Priority = 5;
+                layer.Priority = XrLayerPriority.UiQuods;
 
-            app.Layers.Add(layer);
+                app.Layers.Add(layer);
+            }
+
         }
 
         public static GetQuadDelegate BindToQuad(this TriangleMesh mesh)
@@ -206,7 +217,7 @@ namespace XrEngine.OpenXr
                 }
             }
 
-            xrApp.Layers.AddProjection(RenderView);
+            xrApp.Layers.AddProjection(RenderView, xrApp.RenderOptions.UseProjectionDepth);
 
             return renderer;
         }
@@ -216,6 +227,11 @@ namespace XrEngine.OpenXr
             var pool = new GlFrameBufferPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
 
+            bool isGlEs = false;
+#if GLES
+            isGlEs = true;
+#endif
+
             xrApp.SessionChanged += (s, e) =>
             {
                 if (xrApp.State == XrAppState.Stopped)
@@ -223,7 +239,7 @@ namespace XrEngine.OpenXr
             };
 
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
-                pool.GetRenderTarget(colorTex, xrApp.RenderOptions.SampleCount));
+                pool.GetRenderTarget(colorTex, depthTex, isGlEs ? 1 : xrApp.RenderOptions.SampleCount));
         }
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)
@@ -282,6 +298,8 @@ namespace XrEngine.OpenXr
 
                         var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
+                        camera.SetProp(OpenGLRender.Props.RenderTarget[i], renderTarget);
+
                         renderer.SetRenderTarget(renderTarget);
 
                         camera.Projection = eyes[i].Projection;
@@ -311,6 +329,8 @@ namespace XrEngine.OpenXr
 
                     var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
+                    camera.SetProp(OpenGLRender.Props.RenderTarget[0], renderTarget);
+
                     renderer.SetRenderTarget(renderTarget);
 
                     camera.Projection = eyes[0].Projection;
@@ -330,15 +350,20 @@ namespace XrEngine.OpenXr
                 }
             }
 
+            var useDepth = xrApp.RenderOptions.UseProjectionDepth;
+
             if (renderer.HasPass<GlMotionVectorPass>())
             {
-                var provider = new GlMotionVectorProvider(app, renderer);
-                provider.IsActive = true;
+                var provider = new GlMotionVectorProvider(app, renderer)
+                {
+                    IsActive = true
+                };
+
                 Context.Implement<IMotionVectorProvider>(provider);
-                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider, useDepth));
             }
             else
-                xrApp.Layers.AddProjection(RenderView);
+                xrApp.Layers.AddProjection(RenderView, useDepth);
 
             return renderer;
         }

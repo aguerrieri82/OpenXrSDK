@@ -1,4 +1,5 @@
 ﻿using Common.Interop;
+using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 using System.Diagnostics;
@@ -30,7 +31,7 @@ namespace OpenXr.Framework.Oculus
         {
             _envDepth = new XrEnvironmentDepth();
             Purpose = PassthroughLayerPurposeFB.ReconstructionFB;
-            Priority = 0;
+            Priority = XrLayerPriority.Passthrough;
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)

@@ -6,7 +6,8 @@
         Mask = 1,
         Blend = 2,
         BlendMain = 4 | Blend,
-        Add = Blend | 8
+        Add = Blend | 8,
+        Punch = Blend | 16,
     }
 
     public enum StencilFunction

@@ -286,7 +286,13 @@ namespace XrEngine.OpenGL
                     {
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
                         _gl.BlendFunc(BlendingFactor.One, BlendingFactor.One);
-                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.FuncAdd);
+                    }
+                    else if (value == AlphaMode.Punch)
+                    {
+                        _gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha,
+                                              BlendingFactor.Zero, BlendingFactor.OneMinusSrcAlpha);
+
+                        _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
                     }
                     else
                     {

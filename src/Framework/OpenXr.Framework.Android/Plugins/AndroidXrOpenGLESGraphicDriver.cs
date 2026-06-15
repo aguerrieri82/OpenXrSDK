@@ -52,8 +52,14 @@ namespace OpenXr.Framework.Android
             var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
-            result.DepthFormat = (long)InternalFormat.Depth32fStencil8;
+            result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
 
+        }
+
+        public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
+        {
+            info.SampleCount = 1;
+            base.ConfigureSwapchain(ref info);
         }
 
         public GraphicsBinding CreateBinding()

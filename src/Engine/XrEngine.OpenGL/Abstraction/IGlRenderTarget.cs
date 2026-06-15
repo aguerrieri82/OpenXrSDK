@@ -10,7 +10,7 @@ namespace XrEngine.OpenGL
     {
         void Begin(Camera camera);
 
-        void End(bool finalPass);
+        void End(bool discardDepth);
 
         GlTexture? QueryTexture(FramebufferAttachment attachment);
 

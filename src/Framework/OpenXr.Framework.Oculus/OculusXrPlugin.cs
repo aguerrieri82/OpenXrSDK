@@ -170,6 +170,8 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
             extensions.Add("XR_META_hand_tracking_wide_motion_mode");
             extensions.Add("XR_META_spatial_entity_discovery");
+            extensions.Add("XR_FB_composition_layer_depth_test");
+            extensions.Add("XR_META_hand_tracking_wide_motion_mode");
         }
 
         public unsafe override void OnInstanceCreated()

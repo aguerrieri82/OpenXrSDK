@@ -76,7 +76,7 @@ namespace XrEngine.OpenGL
                 _srcFB.SetDrawBuffers();
             }
 
-            var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false);
+            var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false, GlUtils.GetTextureFormat(src.Depth.InternalFormat));
 
             _dstFB.Bind();
 

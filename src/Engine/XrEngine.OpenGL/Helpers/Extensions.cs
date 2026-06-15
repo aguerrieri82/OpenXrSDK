@@ -296,7 +296,7 @@ namespace XrEngine.OpenGL
             return result;
 
         }
-        public static Texture ToEngineTexture(this GlTexture glTexture, Texture2D result, TextureFormat? readFormat = null)
+        public static Texture2D ToEngineTexture(this GlTexture glTexture, Texture2D result, TextureFormat? readFormat = null)
         {
             result.Width = glTexture.Width;
             result.Height = glTexture.Height;

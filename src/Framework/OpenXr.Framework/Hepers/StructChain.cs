@@ -21,6 +21,34 @@ namespace OpenXr.Framework
             return null;
         }
 
+        public static unsafe void RemoveNextStruct<T>(ref T obj, void* next) where T : unmanaged
+        {
+            if (next == null)
+                return;
+
+            fixed (void* ptr = &obj)
+            {
+                var root = (BaseInStructure*)ptr;
+                var target = (BaseInStructure*)next;
+
+                var prev = root;
+                var cur = root->Next;
+
+                while (cur != null)
+                {
+                    if (cur == target) // remove exact struct instance
+                    {
+                        prev->Next = cur->Next;
+                        cur->Next = null;
+                        return;
+                    }
+
+                    prev = cur;
+                    cur = cur->Next;
+                }
+            }
+        }
+
         public static unsafe void AddNextStruct<T>(ref T obj, void* next) where T : unmanaged
         {
             var nextBase = (BaseInStructure*)next;

@@ -1,87 +1,118 @@
 ﻿
-    #ifdef MULTI_VIEW
+#ifdef MULTI_VIEW
 
-        #define NUM_VIEWS 2
+    #define NUM_VIEWS 2
     
-        #ifndef FRAGMENT_SHADER
+    #ifndef FRAGMENT_SHADER
 
-            layout(num_views=NUM_VIEWS) in;
+        layout(num_views=NUM_VIEWS) in;
 
-        #endif  
+    #endif  
 
-        layout(std140, binding=10) uniform SceneMatrices
-        {
-            uniform mat4 viewProj[NUM_VIEWS];
-            uniform vec3 position[NUM_VIEWS];
-            mat4 viewProjInv[NUM_VIEWS];
-            float farPlane;
-        } uMatrices;
+    layout(std140, binding=10) uniform SceneMatrices
+    {
+        uniform mat4 viewProj[NUM_VIEWS];
+        uniform vec3 position[NUM_VIEWS];
+        mat4 viewProjInv[NUM_VIEWS];
+        float farPlane;
+    } uMatrices;
+
+    vec3 getViewPos() 
+    {
+        return uMatrices.position[gl_ViewID_OVR];   
+    }
+
+    mat4 getViewProj() 
+    {
+        return uMatrices.viewProj[gl_ViewID_OVR];   
+    }
+
+    mat4 getViewProjInv()
+    {
+        return uMatrices.viewProjInv[gl_ViewID_OVR];
+    }
+
+    float getFarPlane() 
+    {
+        return uMatrices.farPlane;
+    }
+
+#else
+
+    #ifdef CAMERA_UNIFORMS
+
+        uniform vec3 uCameraPos;
+        uniform mat4 uViewProj;
+        uniform float uFarPlane;
+        uniform mat4 uViewProjInv;
 
         vec3 getViewPos() 
         {
-           return uMatrices.position[gl_ViewID_OVR];   
+            return uCameraPos;   
         }
 
         mat4 getViewProj() 
         {
-           return uMatrices.viewProj[gl_ViewID_OVR];   
-        }
-
-        mat4 getViewProjInv()
-        {
-            return uMatrices.viewProjInv[gl_ViewID_OVR];
+            return uViewProj;   
         }
 
         float getFarPlane() 
         {
-           return uMatrices.farPlane;
+            return uFarPlane;   
+        }
+
+        mat4 getViewProjInv()
+        {
+            return uViewProjInv;
         }
 
     #else
 
         vec3 getViewPos() 
         {
-           return uCamera.pos;   
+            return uCamera.pos;   
         }
 
         mat4 getViewProj() 
         {
-           return uCamera.viewProj;   
+            return uCamera.viewProj;   
         }
 
         float getFarPlane() 
         {
-           return uCamera.farPlane;   
+            return uCamera.farPlane;   
         }
 
         mat4 getViewProjInv()
         {
-           return uCamera.viewProjInv;
+            return uCamera.viewProjInv;
         }
 
     #endif
 
-    #ifndef FRAGMENT_SHADER
+#endif
 
-    void computePos(vec4 pos) 
-    {
+#ifndef FRAGMENT_SHADER
 
-        #ifdef USE_HEIGHT_MAP
+void computePos(vec4 pos) 
+{
 
-            gl_Position = pos;
+    #ifdef USE_HEIGHT_MAP
 
-        #else
-            gl_Position = getViewProj() * pos;
+        gl_Position = pos;
 
-            #ifdef ZLOG_F
-                gl_Position.z = log2(max(ZLOG_F, 1.0 + gl_Position.w)) / log2(getFarPlane() + 1.0) * gl_Position.w;
-            #endif
+    #else
+        gl_Position = getViewProj() * pos;
 
-            #ifdef FORCE_Z
-                gl_Position.z = FORCE_Z * gl_Position.w;
-            #endif
-
+        #ifdef ZLOG_F
+            gl_Position.z = log2(max(ZLOG_F, 1.0 + gl_Position.w)) / log2(getFarPlane() + 1.0) * gl_Position.w;
         #endif
-    }
+
+        #ifdef FORCE_Z
+            gl_Position.z = FORCE_Z * gl_Position.w;
+        #endif
 
     #endif
+}
+
+#endif

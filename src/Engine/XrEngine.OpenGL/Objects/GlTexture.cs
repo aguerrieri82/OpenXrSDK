@@ -28,6 +28,7 @@ namespace XrEngine.OpenGL
         protected bool _isAllocated;
         protected static uint _texReadFbId = 0;
         protected uint _depth;
+        protected bool _isAttached;
 
         public GlTexture(GL gl)
             : base(gl)
@@ -67,6 +68,8 @@ namespace XrEngine.OpenGL
             _attached[handle] = this;
 
             _handle = handle;
+
+            _isAttached = true; 
 
             Target = target != 0 ? target : _gl.GetTextureTarget(handle);
 
@@ -130,7 +133,7 @@ namespace XrEngine.OpenGL
             MaxLevel = (uint)ml;
 
 #warning IMPROVE
-            if (GlUtils.IsDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
+            if (GlUtils.HasDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
             {
                 MinFilter = TextureMinFilter.Nearest;
                 MagFilter = TextureMagFilter.Nearest;
@@ -143,7 +146,7 @@ namespace XrEngine.OpenGL
 
         public void CopyTo(GlTexture dest, int level = 0, int depth = 0)
         {
-            _gl.CopyImageSubData(_handle, (CopyImageSubDataTarget)Target, level, 0, 0, depth, dest.Handle, (CopyImageSubDataTarget)dest.Target, level, 0, 0, depth, _width, _height, _depth);
+            _gl.CopyImageSubData(_handle, (CopyImageSubDataTarget)Target, level, 0, 0, depth, dest.Handle, (CopyImageSubDataTarget)dest.Target, level, 0, 0, depth, _width, _height, Math.Max(_depth, 1));
         }
 
         public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
@@ -300,7 +303,16 @@ namespace XrEngine.OpenGL
                     if (_depth > 1)
                     {
                         if (SampleCount > 1 && Target == TextureTarget.Texture2DMultisampleArray)
-                            throw new NotSupportedException();
+                        {
+                            _gl.TexStorage3DMultisample(
+                                Target,
+                                SampleCount,
+                                (SizedInternalFormat)_internalFormat,
+                                width,
+                                height,
+                                depth,
+                                true);
+                        }
                         else
                         {
                             _gl.TexStorage3D(
@@ -310,6 +322,7 @@ namespace XrEngine.OpenGL
                                 width,
                                 height,
                                 depth);
+
                         }
                     }
                     else
@@ -627,6 +640,8 @@ namespace XrEngine.OpenGL
         public uint Height => _height;
 
         public uint Depth => _depth;
+
+        public bool IsAttached => _isAttached;
 
         public bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
 

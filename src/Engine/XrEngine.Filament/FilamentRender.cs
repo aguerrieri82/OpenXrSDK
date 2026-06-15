@@ -935,6 +935,16 @@ namespace XrEngine.Filament
             throw new NotImplementedException();
         }
 
+        public void CopyTexture(Texture2D src, Texture2D dst)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Texture2D AttachTexture(uint texId)
+        {
+            throw new NotImplementedException();
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;

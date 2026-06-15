@@ -165,12 +165,15 @@ namespace XrSamples
 
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
         {
-            var panel = new Window3D();
+            var panel = new Window3D
+            {
+                Name = "UI Panel",
+                Size = new Size2(0.8f, 0.5f),
+                DpiScale = 1.6f,
+                Content = uiRoot,
+                WorldPosition = new Vector3(0, 1, 0),
+            };
 
-            panel.Size = new Size2(0.8f, 0.5f);
-            panel.DpiScale = 1.6f;
-            panel.Content = uiRoot;
-            panel.WorldPosition = new Vector3(0, 1, 0);
 
             return builder
                 .UseClickMoveFront(panel, 0.5f)
@@ -178,9 +181,8 @@ namespace XrSamples
                 {
                     e.App.ActiveScene!.AddChild(panel);
 
-                    if (RuntimeInformation.RuntimeIdentifier.StartsWith("android"))
+                    if (XrPlatform.IsAndroid)
                         panel.CreateOverlay(e.XrApp);
-
                 });
         }
 

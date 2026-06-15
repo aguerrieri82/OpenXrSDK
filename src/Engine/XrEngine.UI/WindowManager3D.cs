@@ -9,6 +9,7 @@ namespace XrEngine.UI
         public WindowManager3D()
         {
             UiManager.WindowManager = this;
+            Context.Implement<IUiWindowManager>(this);
         }
 
         public IUiWindow CreateWindow(Size2 size, Vector3 position, UiElement content)

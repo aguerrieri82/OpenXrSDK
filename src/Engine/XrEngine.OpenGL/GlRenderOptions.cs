@@ -141,6 +141,8 @@ namespace XrEngine.OpenGL
 
         public bool CacheUniforms { get; set; }
 
+        public bool InvalidateDepth { get; set; }
+
         public static GlRenderOptions Default() => new();
 
     }

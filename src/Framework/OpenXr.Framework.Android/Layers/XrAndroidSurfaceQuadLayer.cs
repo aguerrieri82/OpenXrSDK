@@ -13,6 +13,7 @@ namespace OpenXr.Framework.Android
         protected Extent2Di _size;
         protected SemaphoreSlim _surfaceLock = new(1, 1);
         protected NativeStruct<CompositionLayerImageLayoutFB> _layerFlags;
+        protected Swapchain _swapchain;
 
         protected XrAndroidSurfaceQuadLayer(GetQuadDelegate getQuad)
             : base(getQuad)

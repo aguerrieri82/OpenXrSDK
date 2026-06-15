@@ -17,45 +17,54 @@ namespace XrEngine.OpenGL
         {
             _gl = gl;
             _multiView = multiView;
+
             DepthFormat = TextureFormat.Depth24Stencil8;
             //DepthFormat = TextureFormat.Depth16;
         }
 
-        protected GlTexture CreateDepth(GlTexture color, uint arraySize)
+        protected GlTexture CreateDepth(GlTexture color, uint arraySize, uint sampleCount)
         {
             var depthTex = new GlTexture(_gl)
             {
                 MinFilter = TextureMinFilter.Nearest,
                 MagFilter = TextureMagFilter.Nearest,
+                SampleCount = sampleCount,
                 MaxLevel = 0
             };
 
             if (arraySize == 1)
             {
-                depthTex.Target = TextureTarget.Texture2D;
+                depthTex.Target = sampleCount <= 1 ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
                 depthTex.Update(color.Width, color.Height, 1, DepthFormat);
             }
             else
             {
-                depthTex.Target = TextureTarget.Texture2DArray;
+                depthTex.Target = sampleCount <= 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2DMultisampleArray;
                 depthTex.Update(color.Width, color.Height, arraySize, DepthFormat);
             }
 
             return depthTex;
         }
 
-        public IGlRenderTarget GetRenderTarget(uint colorTex, uint sampleCount)
+        public IGlRenderTarget GetRenderTarget(uint colorTex, uint depthTex, uint sampleCount)
         {
-            if (!_targets.TryGetValue(colorTex, out var target))
-            {
-                var glColor = GlTexture.Attach(_gl, colorTex);
+            var targetId = colorTex * 10000 + depthTex;
 
-                GlTexture glDepth;
+            if (!_targets.TryGetValue(colorTex * 10000 + depthTex, out var target))
+            {
+                var glColor = GlTexture.Attach(_gl, colorTex, sampleCount);
+
+                GlTexture? glDepth = null;
+
+                if (depthTex != 0)
+                    glDepth = GlTexture.Attach(_gl, depthTex, sampleCount);
 
                 if (_multiView)
                 {
                     var multiView = new GlMultiViewRenderTarget(_gl);
-                    glDepth = CreateDepth(glColor, 2);
+                    
+                    glDepth ??= CreateDepth(glColor, 2, sampleCount);
+
                     multiView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     target = multiView;
                 }
@@ -66,24 +75,33 @@ namespace XrEngine.OpenGL
                     var useRenderTarger = !OpenGLRender.Current!.Options.UseDepthPass &&
                                           !OpenGLRender.Current!.Options.ContactShadow.Use;
 
+                    //TODO: change
+                    useRenderTarger = false;
+
                     if (useRenderTarger)
                     {
-                        var renderBuf = new GlRenderBuffer(_gl);
-                        var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
+                        IGlRenderAttachment? depthAttachment = glDepth;
 
-                        renderBuf.Update(glColor.Width, glColor.Height, sampleCount, intFormat);
-                        singleView.FrameBuffer.Configure(glColor, renderBuf, sampleCount);
+                        if (depthAttachment == null)
+                        {
+                            var renderBuf = new GlRenderBuffer(_gl);
+                            var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
+                            renderBuf.Update(glColor.Width, glColor.Height, sampleCount, intFormat);
+                            depthAttachment = renderBuf;
+                        }
+
+                        singleView.FrameBuffer.Configure(glColor, depthAttachment, sampleCount);
                     }
                     else
                     {
-                        glDepth = CreateDepth(glColor, 1);
+                        glDepth ??= CreateDepth(glColor, 1, sampleCount);
                         singleView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     }
 
                     target = singleView;
                 }
 
-                _targets[colorTex] = target;
+                _targets[targetId] = target;
             }
 
             return target;

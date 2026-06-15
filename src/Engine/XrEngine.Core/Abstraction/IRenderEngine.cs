@@ -13,6 +13,7 @@ namespace XrEngine
 
         void Resume();
 
+
         T? Feature<T>() where T : class;
 
         Texture2D? GetDepth();
@@ -20,6 +21,10 @@ namespace XrEngine
         Texture2D? GetShadowMap();
 
         IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null);
+
+        void CopyTexture(Texture2D src, Texture2D dst);
+
+        Texture2D AttachTexture(uint texId);
 
         IDispatcher Dispatcher { get; }
     }

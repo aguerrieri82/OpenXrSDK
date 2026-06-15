@@ -89,7 +89,7 @@ namespace XrEngine.OpenGL
 
             var isColorChanged = _colorTexture != _lastColorTexture;
 
-            var depth = IsMultiView ? 2u : 1u;
+            var arrayDepth = IsMultiView ? 2u : 1u;
 
             if (_renderTarget == null)
             {
@@ -115,12 +115,12 @@ namespace XrEngine.OpenGL
                     BorderColor = _colorTexture?.BorderColor ?? Color.White,
                     MaxLevel = 0,
                     EnableDebug = false,
-                    Target = depth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
+                    Target = arrayDepth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                 };
 
                 _colorTexture.Update(new TextureData
                 {
-                    Depth = depth,
+                    Depth = arrayDepth,
                     Width = width,
                     Height = height,
                     Format = format
@@ -186,12 +186,12 @@ namespace XrEngine.OpenGL
                         MagFilter = TextureMagFilter.Linear,
                         MaxLevel = 0,
                         IsMutable = extra.IsMutable,
-                        Target = depth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
+                        Target = arrayDepth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                     };
 
                     extra.Texture.Update(new TextureData
                     {
-                        Depth = depth,
+                        Depth = arrayDepth,
                         Width = width,
                         Height = height,
                         Format = extra.Format

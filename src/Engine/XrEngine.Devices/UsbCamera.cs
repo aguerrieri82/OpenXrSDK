@@ -362,6 +362,8 @@ namespace XrEngine.Devices
 
             int poolFailCount = 0;
 
+            Thread.Sleep(500);
+
             while (!cancel.IsCancellationRequested)
             {
                 try
