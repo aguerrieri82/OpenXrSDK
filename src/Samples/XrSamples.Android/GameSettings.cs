@@ -30,11 +30,11 @@ namespace XrSamples
         {
             return new GameSettings
             { 
-                //SampleName = "Ping Pong",
-                Msaa = 2,
+                //SampleName = "Capture",
+                Msaa = 1,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
+                IsMultiView = false,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false,

@@ -13,11 +13,18 @@
         public string? Name { get; set; }
     }
 
+
+
     public interface ICameraManager
     {
         IList<CameraDeviceInfo> GetCameras();
 
         Task<ICameraDevice> OpenCameraAsync(string id);
+
+    }
+
+    public interface ILocalCameraManger : ICameraManager
+    {
 
     }
 }

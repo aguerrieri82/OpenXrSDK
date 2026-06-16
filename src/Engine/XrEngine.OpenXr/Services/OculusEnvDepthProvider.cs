@@ -36,7 +36,7 @@ namespace XrEngine.OpenXr
             if (!_passTh.IsStarted)
                 return null;
 
-            if (_xrApp.FramePredictedDisplayTime == _lastFrameTime)
+            if (_xrApp.FramePredictedDisplayTime == _lastFrameTime || Freeze)
             {
                 depthCamera.Far = _lastCamera!.Far;
                 depthCamera.Near = _lastCamera.Near;
@@ -131,6 +131,8 @@ namespace XrEngine.OpenXr
         public float Bias { get; set; }
 
         public bool Blur { get; set; }
+
+        public bool Freeze { get; set; }
 
         public bool RemoveHand
         {

@@ -162,6 +162,18 @@ namespace XrEngine
             }
         }
 
+        public static void CastShadows(this Object3D self, bool value)
+        {
+            foreach (var mat in self.MaterialsDeep<IShadowMaterial>())
+            {
+                if (mat.CastShadows != value)
+                {
+                    mat.CastShadows = value;
+                    mat.NotifyChanged(ObjectChangeType.Render);
+                }
+            }
+        }
+
         public static IEnumerable<T> MaterialsDeep<T>(this Object3D self) where T : IMaterial
         {
             return self.DescendantsOrSelf()
@@ -1089,40 +1101,49 @@ namespace XrEngine
                 yield return vertex.Project(viewProjInv);
         }
 
-        public static Vector3[] FrustumPoints(this Camera self)
+        public static Vector3[] FrustumPoints(this Camera self, float? farPlane = null)
         {
+            static void Fill(Camera self, Matrix4x4 viewProjInv, Vector3[] corners, int offset, float? farPlane)
+            {
+                var n0 = new Vector3(-1, -1, 0).Project(viewProjInv);
+                var n1 = new Vector3(1, -1, 0).Project(viewProjInv);
+                var n2 = new Vector3(-1, 1, 0).Project(viewProjInv);
+                var n3 = new Vector3(1, 1, 0).Project(viewProjInv);
+
+                var f0 = new Vector3(-1, -1, 1).Project(viewProjInv);
+                var f1 = new Vector3(1, -1, 1).Project(viewProjInv);
+                var f2 = new Vector3(-1, 1, 1).Project(viewProjInv);
+                var f3 = new Vector3(1, 1, 1).Project(viewProjInv);
+
+                if (farPlane.HasValue)
+                {
+                    var t = (farPlane.Value - self.Near) / (self.Far - self.Near);
+
+                    f0 = n0 + (f0 - n0) * t;
+                    f1 = n1 + (f1 - n1) * t;
+                    f2 = n2 + (f2 - n2) * t;
+                    f3 = n3 + (f3 - n3) * t;
+                }
+
+                corners[offset + 0] = n0;
+                corners[offset + 1] = n1;
+                corners[offset + 2] = n2;
+                corners[offset + 3] = n3;
+
+                corners[offset + 4] = f0;
+                corners[offset + 5] = f1;
+                corners[offset + 6] = f2;
+                corners[offset + 7] = f3;
+            }
+
             var isStereo = self.Eyes != null && self.Eyes.Length > 1;
 
             var corners = new Vector3[isStereo ? 16 : 8];
 
-            var viewProjInvLeft = isStereo
-                ? self.Eyes![0].ViewProjInv
-                : self.ViewProjectionInverse;
-
-            corners[0] = new Vector3(-1, -1, 0).Project(viewProjInvLeft);
-            corners[1] = new Vector3(1, -1, 0).Project(viewProjInvLeft);
-            corners[2] = new Vector3(-1, 1, 0).Project(viewProjInvLeft);
-            corners[3] = new Vector3(1, 1, 0).Project(viewProjInvLeft);
-
-            corners[4] = new Vector3(-1, -1, 1).Project(viewProjInvLeft);
-            corners[5] = new Vector3(1, -1, 1).Project(viewProjInvLeft);
-            corners[6] = new Vector3(-1, 1, 1).Project(viewProjInvLeft);
-            corners[7] = new Vector3(1, 1, 1).Project(viewProjInvLeft);
+            Fill(self, isStereo ? self.Eyes![0].ViewProjInv : self.ViewProjectionInverse, corners, 0, farPlane);
 
             if (isStereo)
-            {
-                var viewProjInvRight = self.Eyes![1].ViewProjInv;
-
-                corners[8] = new Vector3(-1, -1, 0).Project(viewProjInvRight);
-                corners[9] = new Vector3(1, -1, 0).Project(viewProjInvRight);
-                corners[10] = new Vector3(-1, 1, 0).Project(viewProjInvRight);
-                corners[11] = new Vector3(1, 1, 0).Project(viewProjInvRight);
-
-                corners[12] = new Vector3(-1, -1, 1).Project(viewProjInvRight);
-                corners[13] = new Vector3(1, -1, 1).Project(viewProjInvRight);
-                corners[14] = new Vector3(-1, 1, 1).Project(viewProjInvRight);
-                corners[15] = new Vector3(1, 1, 1).Project(viewProjInvRight);
-            }
+                Fill(self, self.Eyes![1].ViewProjInv, corners, 8, farPlane);
 
             return corners;
         }

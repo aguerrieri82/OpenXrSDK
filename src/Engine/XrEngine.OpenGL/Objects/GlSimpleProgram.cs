@@ -17,6 +17,8 @@ namespace XrEngine.OpenGL
         readonly string? _tcSourceName;
         readonly string? _teSourceName;
 
+        protected bool _isBuilt;
+
         public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string?> resolver)
             : base(gl, resolver)
         {
@@ -66,6 +68,8 @@ namespace XrEngine.OpenGL
                 _boundBuffers[i] = 0;
 
             Log.Debug(this, "Program built");
+
+            _isBuilt = true;    
         }
 
         public override void Dispose()
@@ -94,5 +98,7 @@ namespace XrEngine.OpenGL
         public GlShader? TessControl { get; set; }
 
         public GlShader? TessEval { get; set; }
+
+        public bool IsBuilt => _isBuilt;
     }
 }

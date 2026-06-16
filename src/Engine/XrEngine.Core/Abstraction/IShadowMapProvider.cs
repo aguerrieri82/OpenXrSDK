@@ -42,6 +42,10 @@ namespace XrEngine
         public bool UseFrustumIntersect { get; set; }
 
         public bool UseShadowSampler { get; set; }
+
+        public bool UseVirtualReceiver { get; set; }
+
+        public float? FrustumMaxDistance { get; set; }
     }
 
     public interface IShadowMapProvider

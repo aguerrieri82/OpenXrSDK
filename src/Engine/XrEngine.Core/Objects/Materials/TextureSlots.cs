@@ -18,5 +18,7 @@
         public const int HeightMap = 8;
 
         public const int ShadowMap = 14;
+
+        public const int ProjDepth = 10;
     }
 }

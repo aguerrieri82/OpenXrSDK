@@ -5,6 +5,7 @@ using Silk.NET.OpenXR;
 using XrEngine.Objects;
 using XrEngine.OpenGL;
 using XrEngine.Physics;
+using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -266,6 +267,36 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder UseEnvironmentShadow(this XrEngineAppBuilder self, Color shadowColor, float maxDistance = 4f)
+        {
+            self.ConfigureApp(e =>
+            {
+                if (e.App.Renderer is not OpenGLRender openGl)
+                    return;
+
+                openGl.Options.ShadowMap.UseVirtualReceiver = true;
+                openGl.Options.ShadowMap.FrustumMaxDistance = maxDistance;
+
+                openGl.AddPass(new GlEnvDepthShadowPass(openGl)
+                {
+                    ShadowColor = shadowColor
+                }, -1);
+
+                var scene = e.App.ActiveScene!;
+
+                scene.AddBehavior((_, ctx) =>
+                {
+                    var aclick = e.Inputs!.Right!.Button.AClick;
+                    if (aclick.IsChanged && aclick.IsActive && aclick.Value)
+                    {
+                        var provider = scene.ActiveCamera.Feature<IEnvDepthProvider>();
+                        if (provider != null)
+                            provider.Freeze = !provider.Freeze;
+                    }
+                });
+            });
+            return self;
+        }
 
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)
         {

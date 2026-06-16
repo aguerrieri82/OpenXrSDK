@@ -165,22 +165,33 @@ namespace XrEngine.OpenGL
 
             var options = _renderer.Options.ShadowMap;
 
-            var receiveBoundsLight = recvLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
+     
             var castBoundsLight = castLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
 
+        
             Bounds3 receiverBoundsLight;
 
-            if (options.UseFrustumIntersect)
+            if (options.UseVirtualReceiver)
             {
-                var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints();
-                var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
-
-                if (!frustumLightBounds.Intersects(receiveBoundsLight, out receiverBoundsLight))
-                    return false;
+                var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints(options.FrustumMaxDistance);
+                receiverBoundsLight = frustumPoints.ComputeBounds(_lightCamera.View);
             }
             else
             {
-                receiverBoundsLight = receiveBoundsLight;
+                var receiveBoundsLight = recvLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
+
+                if (options.UseFrustumIntersect)
+                {
+                    var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints(options.FrustumMaxDistance);
+                    var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
+
+                    if (!frustumLightBounds.Intersects(receiveBoundsLight, out receiverBoundsLight))
+                        return false;
+                }
+                else
+                {
+                    receiverBoundsLight = receiveBoundsLight;
+                }
             }
 
             receiverBoundsLight.Min -= options.Expand;
@@ -233,12 +244,13 @@ namespace XrEngine.OpenGL
             if (_light == null)
                 return false;
 
-            if (recLayer.Content.Count == 0)
+            if (recLayer.Content.Count == 0 && !_renderer.Options.ShadowMap.UseVirtualReceiver)
                 return false;
 
             var curLightVers = _light.ContentVersion + _light.Version;
 
             if (!_renderer.Options.ShadowMap.UseFrustumIntersect &&
+                !_renderer.Options.ShadowMap.UseVirtualReceiver &&
                 recLayer.ContentVersion == _recLayerVersion &&
                 castLayer.ContentVersion == _castLayerVersion &&
                 curLightVers == _lightVersion)

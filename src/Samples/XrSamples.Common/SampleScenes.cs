@@ -36,6 +36,7 @@ using Silk.NET.OpenGL;
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
 using XrEngine.Media;
+using Silk.NET.Vulkan;
 #else
 using XrEngine.Android.Devices;
 #endif
@@ -130,6 +131,70 @@ namespace XrSamples
             });
         }
 
+        public static XrEngineAppBuilder UseShadows(this XrEngineAppBuilder builder)
+        {
+            return builder
+                 .UseInputs<XrOculusTouchController>(a => a
+                           .AddAction(b => b.Right!.Thumbstick))
+                .ConfigureApp(e =>
+                {
+                    var scene = e.App.ActiveScene!;
+
+                    var sun = scene.Descendants<SunLight>().FirstOrDefault();
+
+                    if (sun == null)
+                        return;
+
+                    float azimuth = 0.0f;
+                    float tilt = 0.0f;
+
+                    const float azimuthSpeed = 0.055f;
+                    const float tiltSpeed = 0.035f;
+                    const float maxTilt = MathF.PI * 0.49f;
+
+                    sun.IsVisible = true;
+                    sun.CastShadows = true;
+
+                    var view = scene.AddChild(new SunLightView(sun)
+                    {
+                        UseRoof = false
+                    });
+
+                    view.WorldPosition = new Vector3(0, 2f, 0);
+
+                    scene.AddBehavior((_, ctx) =>
+                    {
+                        var thumb = e.Inputs!.Right!.Thumbstick;
+
+
+                        if (thumb!.IsActive && thumb.IsChanged)
+                        {
+                            var v = thumb.Value;
+
+                            if (MathF.Abs(v.X) > MathF.Abs(v.Y))
+                            {
+                                azimuth += v.X * azimuthSpeed;
+                            }
+                            else
+                            {
+                                tilt += v.Y * tiltSpeed;
+                                tilt = Math.Clamp(tilt, 0.0f, maxTilt);
+                            }
+
+                            var sinTilt = MathF.Sin(tilt);
+                            var cosTilt = MathF.Cos(tilt);
+
+                            sun.Direction = Vector3.Normalize(new Vector3(
+                                MathF.Sin(azimuth) * sinTilt,
+                               -cosTilt,
+                                MathF.Cos(azimuth) * sinTilt
+                            ));
+                        }
+
+                    });
+                });
+        }
+
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
@@ -182,7 +247,7 @@ namespace XrSamples
                     e.App.ActiveScene!.AddChild(panel);
 
                     //if (XrPlatform.IsAndroid)
-                        panel.CreateOverlay(e.XrApp);
+                    panel.CreateOverlay(e.XrApp);
                 });
         }
 
@@ -1210,7 +1275,6 @@ namespace XrSamples
         [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -1223,14 +1287,16 @@ namespace XrSamples
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
             mesh.UseEnvDepth(true);
-
+            mesh.CastShadows(true);
 
             scene.AddChild(mesh);
 
             return builder
                 .UseApp(app)
-                //.UseEnvironmentDepth()
+                .UseEnvironmentDepth()
+                .UseEnvironmentShadow(new Color(0, 0, 0, 0.7f))
                 .UseDefaultHDR()
+                .UseShadows()
                 .ConfigureSampleApp();
         }
 
@@ -1749,7 +1815,7 @@ namespace XrSamples
                         {
                             Log.Error("Usb", ex);
                         }
-            
+
                     });
                 }
 
@@ -2031,7 +2097,7 @@ namespace XrSamples
 
                     _ = Task.Run(async () =>
                     {
-                        var manager = Context.Require<ICameraManager>();
+                        var manager = Context.Require<ILocalCameraManger>();
 
                         var cameras = manager.GetCameras();
 

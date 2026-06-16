@@ -6,14 +6,13 @@ using Silk.NET.OpenGL;
 
 using XrMath;
 using OpenXr.Framework;
+using XrEngine.Objects;
 
 
 namespace XrEngine.OpenGL
 {
     public class GlQuodCullPass : GlBaseRenderPass
     {
-        const int DEPTH_TEX_SLOT = 10;
-        const int COLOR_TEX_SLOT = 0;
 
         protected readonly GlRenderPassTarget _passTarget;
         protected readonly GlSimpleProgram _program;
@@ -24,7 +23,6 @@ namespace XrEngine.OpenGL
         public GlQuodCullPass(OpenGLRender renderer, IQuodTexture quod, bool isMultiView, uint sampleCount)
             : base(renderer)
         {
-
             _sampleCount = sampleCount;
 
             _passTarget = new GlRenderPassTarget(renderer.GL)
@@ -62,6 +60,9 @@ namespace XrEngine.OpenGL
 
         public override void Render(RenderContext ctx)
         {
+            if (!IsEnabled)
+                return;
+
             if (!_quod.EnableDepthCull || _quod.ActiveTexture == null || _quod.DrawTexture == null)
                 return;
 
@@ -106,8 +107,8 @@ namespace XrEngine.OpenGL
 
             //depthTexture.Target = TextureTarget.Texture2DMultisampleArray;
 
-            GlState.Current!.LoadTexture(depthTexture, DEPTH_TEX_SLOT, true);
-            GlState.Current!.LoadTexture(_quod.DrawTexture!.ToGlTexture(), COLOR_TEX_SLOT, true);
+            GlState.Current!.LoadTexture(depthTexture, TextureSlots.ProjDepth, true);
+            GlState.Current!.LoadTexture(_quod.DrawTexture!.ToGlTexture(), TextureSlots.Albedo, true);
 
             DrawQuad();
 

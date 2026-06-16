@@ -19,6 +19,8 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
+        public static readonly bool DisableDualRender = true;
+        
 
         public static readonly string[] AssetsPath = [
             @"Assets\",
@@ -28,7 +30,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -53,8 +55,8 @@ namespace XrEditor
 
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 2)
-              .CreateDnd()
+              .SetRenderQuality(1f, 1)
+              .CreateHelmet()
               .Build();
     }
 }

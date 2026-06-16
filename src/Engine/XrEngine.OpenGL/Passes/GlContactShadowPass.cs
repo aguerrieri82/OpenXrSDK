@@ -88,7 +88,6 @@ namespace XrEngine.OpenGL
                 _contactProgram.AddExtension("GL_OVR_multiview2");
                 _contactProgram.AddFeature("MULTI_VIEW");
 
-
                 _applyProgram.AddExtension("GL_OVR_multiview2");
                 _applyProgram.AddFeature("MULTI_VIEW");
             }
@@ -180,7 +179,7 @@ namespace XrEngine.OpenGL
                 StepCount = options.StepCount,
                 DepthBias = options.DepthBias,
                 FadeDistance = options.FadeDistance,
-                ViewSize = _renderer.UpdateContext.PassCamera.ViewSize.ToVector2()
+                ViewSize = _renderer.UpdateContext.PassCamera!.ViewSize.ToVector2()
             };
 
             _uniforms.Update(data);

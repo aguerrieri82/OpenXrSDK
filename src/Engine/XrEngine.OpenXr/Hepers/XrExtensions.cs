@@ -361,6 +361,7 @@ namespace XrEngine.OpenXr
                 };
 
                 Context.Implement<IMotionVectorProvider>(provider);
+
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider, useDepth));
             }
             else

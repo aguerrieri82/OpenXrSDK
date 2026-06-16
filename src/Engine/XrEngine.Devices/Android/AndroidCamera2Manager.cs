@@ -10,7 +10,7 @@ namespace XrEngine.Devices.Android
 {
 
     [SupportedOSPlatform("android29.0")]
-    public class AndroidCamera2Manager : ICameraManager
+    public class AndroidCamera2Manager : ILocalCameraManger
     {
         const string KEY_CAMERA_POSITION = "com.meta.extra_metadata.position";
         const string KEY_CAMERA_SOURCE = "com.meta.extra_metadata.camera_source";

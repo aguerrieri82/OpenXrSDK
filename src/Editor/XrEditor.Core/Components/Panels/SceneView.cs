@@ -253,7 +253,7 @@ namespace XrEditor
                         {
                         }
 
-                        if (_renderSurface.SupportsDualRender)
+                        if (_renderSurface.SupportsDualRender && !EditorDebug.DisableDualRender)
                         {
                             _camera.IsStereo = false;
                             _render.SetRenderTarget(null);

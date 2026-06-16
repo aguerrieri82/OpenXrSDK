@@ -23,8 +23,10 @@ namespace XrEngine.OpenXr
         {
             _gl = gl;
 
-            _target = new GlRenderPassTarget(gl);
-            _target.DepthMode = TargetDepthMode.None;
+            _target = new GlRenderPassTarget(gl)
+            {
+                DepthMode = TargetDepthMode.None
+            };
 
             _depthCamera = new PerspectiveCamera();
 

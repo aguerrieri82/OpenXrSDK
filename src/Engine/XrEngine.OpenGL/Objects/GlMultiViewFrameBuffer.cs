@@ -49,10 +49,10 @@ namespace XrEngine.OpenGL
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
         {
-
             _handle = _gl.GenFramebuffer();
             _target = TextureTarget.Texture2DArray;
             _gl.CheckError();
+
 
             BindFunctions(gl);
         }
