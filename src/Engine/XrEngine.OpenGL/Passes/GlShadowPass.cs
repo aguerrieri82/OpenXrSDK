@@ -27,6 +27,7 @@ namespace XrEngine.OpenGL
         private long _lightVersion;
         private ShadowMapMode _mode;
         private readonly bool _useShadowSampler;
+        private float _lastUpdateTime;
 
         private readonly OrtoCamera _lightCamera;
 
@@ -233,7 +234,6 @@ namespace XrEngine.OpenGL
                 Initialize();
             }
 
-
             //Debug.Assert(camera.Scene != null);
             var shadowRenderLayer = SelectLayers().First();
             var scene = shadowRenderLayer.Scene!;
@@ -247,6 +247,10 @@ namespace XrEngine.OpenGL
             if (recLayer.Content.Count == 0 && !_renderer.Options.ShadowMap.UseVirtualReceiver)
                 return false;
 
+            var updateInterval = _renderer.Options.ShadowMap.UpdateInterval;
+            if (updateInterval > 0 && (_renderer.UpdateContext.Time - _lastUpdateTime) < updateInterval)
+                return false;
+      
             var curLightVers = _light.ContentVersion + _light.Version;
 
             if (!_renderer.Options.ShadowMap.UseFrustumIntersect &&
@@ -293,10 +297,12 @@ namespace XrEngine.OpenGL
             _castLayerVersion = castLayer.ContentVersion;
             _lightVersion = curLightVers;
 
+
+            _lastUpdateTime = _renderer.UpdateContext.Time;
+
             return base.BeginRender(camera);
         }
-
-
+     
         protected override void EndRender()
         {
             _renderer.UpdateContext.PassCamera = _oldCamera;
@@ -331,8 +337,6 @@ namespace XrEngine.OpenGL
         public Texture2D? DepthTexture => _light == null ? null : (_mode == ShadowMapMode.VSM ? _vcmMomentsTex : _depthTexture);
 
         public Camera LightCamera => _lightCamera;
-
-
 
         ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap;
 

@@ -19,12 +19,15 @@ namespace XrEngine.OpenXr
 
         public GlEnvDepthShadowPass(OpenGLRender renderer) : base(renderer)
         {
+            UseGrid = true;
+            GridSize = new Size2I(50, 50);
+
             _depthCamera = new PerspectiveCamera();
 
             _program = new GlSimpleProgram(
                 renderer.GL,
-                "[XrEngine.Core]fullscreen.vert",
-                "env_depth_shadow.frag",
+                UseGrid ? "env_depth_shadow.vert" : "[XrEngine.Core]fullscreen.vert",
+                UseGrid ? "env_depth_shadow_grid.frag" : "env_depth_shadow.frag",
                 str => Embedded.GetString<GlQuodCullPass>(str));
 
             _program.AddFeature("USE_SHADOW_MAP");
@@ -97,9 +100,9 @@ namespace XrEngine.OpenXr
 
             _program.Use();
 
-            GlState.Current!.LoadTexture(projDepthTex, TextureSlots.ProjDepth);
-            GlState.Current!.LoadTexture(envDepthTex.ToGlTexture(), TextureSlots.EnvDepth);;
-            GlState.Current!.LoadTexture(shadowProvider.ShadowMap!.ToGlTexture(), TextureSlots.ShadowMap, false);
+            _renderer.State.LoadTexture(projDepthTex, TextureSlots.ProjDepth);
+            _renderer.State.LoadTexture(envDepthTex.ToGlTexture(), TextureSlots.EnvDepth);;
+            _renderer.State.LoadTexture(shadowProvider.ShadowMap!.ToGlTexture(), TextureSlots.ShadowMap, false);
 
             if (shOptions.BiasMode == ShadowMapBiasMode.Value)
                 _program.SetUniform("uShadowBias", shOptions!.Bias);
@@ -121,9 +124,20 @@ namespace XrEngine.OpenXr
                     camera.Eyes[camera.ActiveEye].ViewProj);
             }
 
-            DrawQuad();
+            if (UseGrid)
+            {
+                var vertexCount = (GridSize.Width - 1) * (GridSize.Height - 1) * 6;
+                _program.SetUniform("uGridSize", new Vector2I((int)GridSize.Width, (int)GridSize.Height));
+                _renderer.State.EnableFeature(EnableCap.CullFace, false);
+                DrawVirtual(vertexCount);
+            }
+            else
+                DrawQuad();
         }
 
+        public bool UseGrid { get; set; }
+
+        public Size2I GridSize { get; set; }
 
         public Color ShadowColor { get; set; }
 

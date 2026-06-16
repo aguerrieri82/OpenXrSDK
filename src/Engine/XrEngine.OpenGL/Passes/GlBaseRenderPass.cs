@@ -164,13 +164,18 @@ namespace XrEngine.OpenGL
             DrawQuad();
         }
 
-        protected void DrawQuad()
+        protected void DrawVirtual(uint vertices)
         {
             if (_emptyVertexArray == 0)
                 _emptyVertexArray = _gl.GenVertexArray();
 
             _renderer.State.BindVertexArray(_emptyVertexArray);
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertices);
+        }
+
+        protected void DrawQuad()
+        {
+            DrawVirtual(3);
         }
 
 

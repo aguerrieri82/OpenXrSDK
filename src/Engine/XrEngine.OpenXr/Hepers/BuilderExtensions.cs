@@ -276,6 +276,7 @@ namespace XrEngine.OpenXr
 
                 openGl.Options.ShadowMap.UseVirtualReceiver = true;
                 openGl.Options.ShadowMap.FrustumMaxDistance = maxDistance;
+                //openGl.Options.ShadowMap.UpdateInterval = 0.1f;
 
                 openGl.AddPass(new GlEnvDepthShadowPass(openGl)
                 {
@@ -286,10 +287,10 @@ namespace XrEngine.OpenXr
 
                 scene.AddBehavior((_, ctx) =>
                 {
-                    var aclick = e.Inputs!.Right!.Button.AClick;
+                    var aclick = e.Inputs!.Right!.Button!.AClick!;
                     if (aclick.IsChanged && aclick.IsActive && aclick.Value)
                     {
-                        var provider = scene.ActiveCamera.Feature<IEnvDepthProvider>();
+                        var provider = scene.ActiveCamera!.Feature<IEnvDepthProvider>();
                         if (provider != null)
                             provider.Freeze = !provider.Freeze;
                     }

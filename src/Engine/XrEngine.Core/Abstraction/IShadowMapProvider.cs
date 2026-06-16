@@ -46,6 +46,8 @@ namespace XrEngine
         public bool UseVirtualReceiver { get; set; }
 
         public float? FrustumMaxDistance { get; set; }
+
+        public float UpdateInterval { get; set; }   
     }
 
     public interface IShadowMapProvider
