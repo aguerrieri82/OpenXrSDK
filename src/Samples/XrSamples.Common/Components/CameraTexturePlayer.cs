@@ -57,6 +57,8 @@ namespace XrSamples
                     var height = 0.5f;
                     var width = height * ratio;
 
+                    _host!.Transform.SetScale(width, height, _host.Transform.Scale.Z);
+
                     await _camera.StartCaptureAsync(curFormat, Texture);
                 }
 

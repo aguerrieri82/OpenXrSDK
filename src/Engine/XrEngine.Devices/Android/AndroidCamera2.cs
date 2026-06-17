@@ -254,6 +254,12 @@ namespace XrEngine.Devices.Android
             {
                 var glText = outTexture!.Handle;
 
+                if (glText == 0)
+                    throw new InvalidOperationException("Texture is empty");
+
+                if (outTexture.Type != TextureType.External)
+                    throw new InvalidOperationException("Texture must be external");
+
                 _surfaceTex = new SurfaceTexture((int)glText);
                 _surfaceTex.SetDefaultBufferSize(format.Width, format.Height);
 

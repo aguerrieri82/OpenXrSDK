@@ -1,4 +1,18 @@
-﻿using CanvasUI;
+﻿#if GLES
+    using XrEngine.Media;
+#else
+    using Silk.NET.OpenGL;
+#endif
+
+#if !__ANDROID__
+    using XrEngine.Browser.Win;
+    using XrEngine.UI.Web;
+    using XrEngine.Media;
+#else
+    using XrEngine.Android.Devices;
+#endif
+
+using CanvasUI;
 using DrumsVR.Game;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
@@ -6,7 +20,6 @@ using PhysX;
 using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Audio;
@@ -25,21 +38,10 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Reconstruct;
+using XrSamples.Components;
+using XrEngine.OpenGL;
 
-#if GLES
-using XrEngine.Media;
-#else
-using Silk.NET.OpenGL;
-#endif
 
-#if !__ANDROID__
-using XrEngine.Browser.Win;
-using XrEngine.UI.Web;
-using XrEngine.Media;
-using Silk.NET.Vulkan;
-#else
-using XrEngine.Android.Devices;
-#endif
 
 namespace XrSamples
 {
@@ -134,7 +136,15 @@ namespace XrSamples
         public static XrEngineAppBuilder UseShadows(this XrEngineAppBuilder builder)
         {
             return builder
-                 .UseInputs<XrOculusTouchController>(a => a
+                .SetGlOptions(opt =>
+                {
+                    opt.ShadowMap.UseShadowSampler = true;
+                    opt.ShadowMap.UseVirtualReceiver = true;
+                    opt.ShadowMap.FrustumMaxDistance = 4f;
+                    opt.ShadowMap.Mode = ShadowMapMode.PCF;
+                    opt.ShadowMap.Size = 1024;
+                })
+                .UseInputs<XrOculusTouchController>(a => a
                            .AddAction(b => b.Right!.Thumbstick))
                 .ConfigureApp(e =>
                 {
@@ -1286,19 +1296,47 @@ namespace XrSamples
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
-            mesh.UseEnvDepth(true);
+            //mesh.UseEnvDepth(true);
             mesh.CastShadows(true);
 
             scene.AddChild(mesh);
+            scene.AddChild(new EnvDepthMesh(new Size2I(50u, 50u)));
 
             return builder
                 .UseApp(app)
                 .UseEnvironmentDepth()
-                .UseEnvironmentShadow(new Color(0, 0, 0, 0.7f))
+                //.UseEnvironmentShadow(new Color(0, 0, 0, 0.7f))
                 .UseDefaultHDR()
                 .UseShadows()
                 .ConfigureSampleApp();
         }
+
+
+        [Sample("Depth Snapeshot")]
+        public static XrEngineAppBuilder CreateDepthSnapeshot(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var group = scene.AddChild(new Group3D());
+
+            var snapeshot = new DepthSnapeshot();
+
+            group.AddComponent(snapeshot);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentDepth()
+                .UseDefaultHDR()
+                .ConfigureSampleApp()
+                .ConfigureApp(a =>
+                {
+                    OpenGLRender.Current.EnableDebug(true);
+                    snapeshot.ConfigureInput(a.Inputs!);
+                });
+        }
+
 
 
         [Sample("Tac")]

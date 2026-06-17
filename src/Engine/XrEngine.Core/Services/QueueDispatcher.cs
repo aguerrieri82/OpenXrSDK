@@ -13,7 +13,12 @@ namespace XrEngine
 
         protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
-        protected Thread? _thread;
+        protected readonly Thread _thread;
+
+        public QueueDispatcher()
+        {
+            _thread = Thread.CurrentThread;
+        }
 
         public async Task ExecuteAsync(Action action)
         {
@@ -62,8 +67,10 @@ namespace XrEngine
             if (_isProcessingQueue)
                 return;
 
+            if (_thread != Thread.CurrentThread)
+                throw new InvalidOperationException("ProcessQueue outside the dispatcher thread");
+
             _isProcessingQueue = true;
-            _thread = Thread.CurrentThread;
 
             try
             {
@@ -86,5 +93,7 @@ namespace XrEngine
                 _isProcessingQueue = false;
             }
         }
+
+        public Thread Thread => _thread;
     }
 }

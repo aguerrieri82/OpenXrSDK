@@ -128,7 +128,7 @@ namespace XrEngine.OpenGL
                 });
             }
 
-            GlImageProc.Instance.CopyDepth(provider.FrameBuffer, _depthTexture);
+            GlImageProc.CopyDepth(provider.FrameBuffer, _depthTexture);
 
             var w = _depthTexture.Width;
             var h = _depthTexture.Height;

@@ -175,7 +175,7 @@ namespace XrEngine
 
         public Geometry3D Clone()
         {
-            var result = new Geometry3D();
+            var result = Utils.CreateInstance<Geometry3D>(GetType());
             result.Vertices = new VertexData[_vertices.Length];
             Array.Copy(_vertices, result.Vertices, _vertices.Length);
             result.Indices = new uint[_indices.Length];
@@ -184,7 +184,14 @@ namespace XrEngine
             result._bounds = _bounds;
             result._boundsDirty = _boundsDirty;
 
+            CloneWork(result);
+
             return result;
+        }
+
+        protected virtual void CloneWork(Geometry3D result)
+        {
+
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;

@@ -13,6 +13,7 @@ using XrMath;
 namespace XrEngine.OpenGL
 {
 
+    [Obsolete]
     public class GlLayer : IDisposable, IGlLayer
     {
         protected readonly OpenGLRender _render;

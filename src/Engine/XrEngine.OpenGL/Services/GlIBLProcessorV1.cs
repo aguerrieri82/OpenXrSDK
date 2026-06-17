@@ -10,6 +10,7 @@ using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
+    [Obsolete]
     public class GlIBLProcessorV1 : IDisposable
     {
         public enum Distribution

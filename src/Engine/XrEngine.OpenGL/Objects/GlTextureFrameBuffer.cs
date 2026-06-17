@@ -129,6 +129,11 @@ namespace XrEngine.OpenGL
             UpdateSize();
         }
 
+        public void BindRead(ReadBufferMode mode)
+        {
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            _gl.ReadBuffer(mode);
+        }
 
         public override void Bind()
         {

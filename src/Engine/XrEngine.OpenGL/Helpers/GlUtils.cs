@@ -20,8 +20,6 @@ namespace XrEngine.OpenGL
             return 1;
         }
 
-
-
         public static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
         {
             pixelFormat = format switch
@@ -71,13 +69,13 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayFloat32 or
                 TextureFormat.GrayFloat16 => PixelType.Float,
 
-                TextureFormat.Depth24 => PixelType.Int,
+                TextureFormat.Depth24 => PixelType.UnsignedInt,
 
                 TextureFormat.RgbFloat16 => PixelType.HalfFloat,
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
 
 
-                TextureFormat.Depth16 => PixelType.Short,
+                TextureFormat.Depth16 => PixelType.UnsignedShort,
 
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
@@ -100,7 +98,7 @@ namespace XrEngine.OpenGL
             };
         }
 
-        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression, uint blockSize = 0)
+        public static InternalFormat GetInternalFormat(this TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, uint blockSize = 0)
         {
 
             if (compression == TextureCompressionFormat.Uncompressed)
@@ -225,7 +223,7 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public static TextureFormat GetTextureFormat(InternalFormat internalFormat)
+        public static TextureFormat GetTextureFormat(this InternalFormat internalFormat)
         {
             return internalFormat switch
             {
@@ -261,12 +259,12 @@ namespace XrEngine.OpenGL
                    format == InternalFormat.Depth32fStencil8NV;
         }
 
-        public static bool HasDepth(InternalFormat format)
+        public static bool HasDepth(this InternalFormat format)
         {
             return IsDepth(format) || IsDepthStencil(format);
         }
 
-        public static bool IsDepth(InternalFormat format)
+        public static bool IsDepth(this InternalFormat format)
         {
             return format == InternalFormat.DepthComponent ||
                    format == InternalFormat.DepthComponent16 ||
@@ -278,6 +276,7 @@ namespace XrEngine.OpenGL
                    format == InternalFormat.DepthComponent24Oes ||
                    format == InternalFormat.DepthComponent24Sgix ||
                    format == InternalFormat.DepthComponent32 ||
+                   format == InternalFormat.DepthComponent32f ||
                    format == InternalFormat.DepthComponent32fNV ||
                    format == InternalFormat.DepthComponent32Oes ||
                    format == InternalFormat.DepthComponent32Sgix;

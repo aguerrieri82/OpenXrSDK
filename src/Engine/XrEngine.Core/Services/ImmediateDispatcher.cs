@@ -12,5 +12,7 @@
         {
             return Task.FromResult(action());
         }
+
+        public Thread Thread => Thread.CurrentThread;
     }
 }

@@ -60,5 +60,22 @@ namespace XrEngine
                     return false;
             return true;
         }
+
+
+        public static T CreateInstance<T>(Type actualType)
+        {
+            var ctor = actualType.GetConstructors()
+                .FirstOrDefault(c => c.GetParameters().All(p => p.IsOptional));
+
+            if (ctor == null)
+                return Activator.CreateInstance<T>();
+
+            var args = ctor.GetParameters()
+                .Select(p => p.DefaultValue)
+                .ToArray();
+
+            var instance = ctor.Invoke(args);
+            return (T)instance;
+        }
     }
 }

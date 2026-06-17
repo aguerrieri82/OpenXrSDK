@@ -53,12 +53,12 @@ namespace XrEngine.OpenGL
             {
                 var info = infos[i];
 
-
-                var item = new GlVertexAttribute();
-
-                item.Name = info.Ref!.Name;
-                item.Location = info.Ref.Location;
-                item.Component = info.Ref.Component;
+                var item = new GlVertexAttribute
+                {
+                    Name = info.Ref!.Name,
+                    Location = info.Ref.Location,
+                    Component = info.Ref.Component
+                };
 
                 if (info.Type == typeof(Vector3))
                 {

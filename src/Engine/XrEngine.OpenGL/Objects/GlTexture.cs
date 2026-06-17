@@ -20,13 +20,12 @@ namespace XrEngine.OpenGL
         static ExtClearTexture? _clearExt;
 #endif
 
-
         protected uint _width;
         protected uint _height;
         protected bool _isCompressed;
         protected InternalFormat _internalFormat;
         protected bool _isAllocated;
-        protected static uint _texReadFbId = 0;
+
         protected uint _depth;
         protected bool _isAttached;
 
@@ -150,103 +149,6 @@ namespace XrEngine.OpenGL
         public void CopyTo(GlTexture dest, int level = 0, int depth = 0)
         {
             _gl.CopyImageSubData(_handle, (CopyImageSubDataTarget)Target, level, 0, 0, depth, dest.Handle, (CopyImageSubDataTarget)dest.Target, level, 0, 0, depth, _width, _height, Math.Max(_depth, 1));
-        }
-
-        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null, IList<IMemoryBuffer<byte>>? buffers = null)
-        {
-            var result = new List<TextureData>();
-
-            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0, uint depth = 0)
-            {
-                if (target == TextureTarget.Texture2DArray)
-                {
-                    _gl.FramebufferTextureLayer(
-                         FramebufferTarget.ReadFramebuffer,
-                         FramebufferAttachment.ColorAttachment0,
-                         _handle,
-                         (int)mipLevel,
-                         (int)depth);
-                }
-                else
-                {
-                    _gl.FramebufferTexture2D(
-                         FramebufferTarget.ReadFramebuffer,
-                         FramebufferAttachment.ColorAttachment0,
-                         target,
-                         _handle, (int)mipLevel);
-                }
-
-                var status = _gl.CheckFramebufferStatus(FramebufferTarget.ReadFramebuffer);
-                if (status != GLEnum.FramebufferComplete)
-                    throw new Exception($"Framebuffer incomplete at mip {mipLevel}: {status}");
-
-                var w = Width >> (int)mipLevel;
-                var h = Height >> (int)mipLevel;
-
-                GlState.Current!.SetView(new Rect2I(0, 0, w, h));
-
-                var pixelSize = format.GetPixelSizeBit();
-
-                var bufferSize = (pixelSize / 8) * w * h;
-
-                var buffer = buffers?[result.Count] ?? MemoryBuffer.Create<byte>(bufferSize);
-                buffer.Allocate(bufferSize);
-
-                var item = new TextureData
-                {
-                    Width = w,
-                    Height = h,
-                    Format = format,
-                    MipLevel = mipLevel,
-                    Layer = face,
-                    Data = buffer
-                };
-
-                GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
-
-                using var pData = buffer.MemoryLock();
-
-                GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
-
-                _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
-
-                _gl.CheckError();
-
-                result.Add(item);
-            }
-
-            Bind();
-
-            if (_texReadFbId == 0)
-                _texReadFbId = _gl.GenFramebuffer();
-
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _texReadFbId);
-            _gl.ReadBuffer(GLEnum.ColorAttachment0);
-
-            if (endMipLevel == null)
-                endMipLevel = MaxLevel;
-
-            for (var mipLevel = startMipLevel; mipLevel <= endMipLevel; mipLevel++)
-            {
-                if (Target == TextureTarget.TextureCubeMap)
-                {
-                    for (var face = 0; face < 6; face++)
-                        ReadTarget(TextureTarget.TextureCubeMapPositiveX + face, mipLevel, (uint)face);
-                }
-                else if (Target == TextureTarget.Texture2DArray)
-                {
-                    for (uint i = 0; i < _depth; i++)
-                        ReadTarget(Target, mipLevel, 0, i);
-                }
-                else
-                    ReadTarget(Target, mipLevel);
-            }
-
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
-
-            Unbind();
-
-            return result;
         }
 
         public void Update(params TextureData[] data)

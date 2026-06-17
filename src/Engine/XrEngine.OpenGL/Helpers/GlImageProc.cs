@@ -4,30 +4,55 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
+using XrMath;
+using System.Diagnostics;
+
 
 namespace XrEngine.OpenGL
 {
-    public class GlImageProc
+    public static class GlImageProc
     {
-        readonly Dictionary<string, GlSimpleProgram> _programs = [];
-        uint _emptyVertexArray;
-        GlTextureFrameBuffer? _frameBuffer;
+        static readonly Dictionary<string, GlSimpleProgram> _programs = [];
+        static uint _emptyVertexArray;
+        static GlTextureFrameBuffer? _frameBuffer;
+        static GlTextureFrameBuffer? _texReadFb;
 
-        protected GlSimpleProgram LoadProgram(GL gl, string fragmentSource, params string[] features)
+        static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string[] features, string[] extensions)
         {
             if (!_programs.TryGetValue(fragmentSource, out var program))
             {
                 program = new GlSimpleProgram(gl, "fullscreen.vert", fragmentSource, str => Embedded.GetString<Material>(str));
-                foreach (var feature in features)
+                
+                foreach (var ext in extensions.Where(a => !string.IsNullOrWhiteSpace(a)))
+                    program.AddExtension(ext);
+
+                foreach (var feature in features.Where(a=> !string.IsNullOrWhiteSpace(a)))
                     program.AddFeature(feature);
+                
                 program.Build();
+
                 _programs[fragmentSource] = program;
             }
             program.Use();
             return program;
         }
 
-        protected void DrawQuad(GL gl)
+        static void PrepareFrameBuffer(GL gl, GlTexture? color = null, IGlRenderAttachment? depth = null)
+        {
+            _frameBuffer ??= GlTempAllocator.FrameBuffer(gl);
+            _frameBuffer.Configure(color, depth, 1);
+            _frameBuffer.Bind();
+        }
+
+        static void PrepareFrameBuffer(GL gl, GlTexture? color, uint colorIndex)
+        {
+            _frameBuffer ??= GlTempAllocator.FrameBuffer(gl);
+            _frameBuffer.Configure(color, colorIndex, null, 0, 1);
+            _frameBuffer.Bind();
+        }
+
+        public static void DrawVirtual(GL gl, uint vertices)
         {
             if (_emptyVertexArray == 0)
                 _emptyVertexArray = gl.GenVertexArray();
@@ -36,29 +61,192 @@ namespace XrEngine.OpenGL
             gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
-        protected void PrepareFrameBuffer(GL gl, GlTexture? color = null, IGlRenderAttachment? depth = null)
+        public static void DrawQuad(GL gl)
         {
-            _frameBuffer ??= new GlTextureFrameBuffer(gl);
-            _frameBuffer.Configure(color, depth, 1);
-            _frameBuffer.Bind();
+            DrawVirtual(gl, 3);
         }
 
-        public void CopyDepth(IGlFrameBuffer src, GlTexture dst)
+        public static void CopyDepth(IGlFrameBuffer src, GlTexture dst)
         {
-            LoadProgram(src.GL, "copy_red.frag");
+            CopyDepth((GlTexture)src.Depth!, dst);
+            src.Bind();
+        }
 
-            GlState.Current!.LoadTexture((GlTexture)src.Depth!, 0);
+        public static void CopyDepth(GlTexture src, GlTexture dst)
+        {
 
+
+            var prog = LoadProgram(src.GL, "copy_red.frag", src.Depth > 1 ? ["TEXTURE_ARRAY"] : [], []);
+
+            GlState.Current!.SetView(new Rect2I(0, 0, src.Width, src.Height));
             GlState.Current!.SetWriteDepth(false);
             GlState.Current!.SetUseDepth(false);
             GlState.Current!.SetColorMask(true, false, false, false);
 
-            PrepareFrameBuffer(src.GL, dst);
-            DrawQuad(src.GL);
-            src.Bind();
+            GlState.Current!.LoadTexture(src, 0);
+
+            if (src.Depth > 1)
+            {
+                Debug.Assert(src.Depth == dst.Depth);
+
+                for (uint i = 0; i < src.Depth; i++)
+                {
+                    prog.SetUniform("uIndex", (int)i);
+                    PrepareFrameBuffer(src.GL, dst, i);
+                    DrawQuad(src.GL);
+                }
+            }
+            else
+            {
+                PrepareFrameBuffer(src.GL, dst);
+                DrawQuad(src.GL);
+            }
         }
 
+        public static void CopyColor(GlTexture src, GlTexture dst)
+        {
+            var GL_TEXTURE_EXTERNAL_OES =  (TextureTarget)0x8D65; // 36197
 
-        public static readonly GlImageProc Instance = new GlImageProc();
+            var prog = LoadProgram(src.GL, "texture_full.frag", 
+                src.Target == GL_TEXTURE_EXTERNAL_OES ? ["EXTERNAL"] : [],
+                src.Target == GL_TEXTURE_EXTERNAL_OES ? ["GL_OES_EGL_image_external_essl3 "] : []
+             );
+
+            GlState.Current!.SetView(new Rect2I(0, 0, src.Width, src.Height));
+            GlState.Current!.SetWriteDepth(false);
+            GlState.Current!.SetUseDepth(false);
+            GlState.Current!.SetWriteColor(true);
+
+            GlState.Current!.LoadTexture(src, 0);
+
+            PrepareFrameBuffer(src.GL, dst);
+
+            DrawQuad(src.GL);
+        }
+
+        public unsafe static IList<TextureData>? Read(this GlTexture src,
+            TextureFormat format,
+            uint startMipLevel = 0,
+            uint? endMipLevel = null,
+            IList<IMemoryBuffer<byte>>? buffers = null)
+        {
+            var internalFormat = src.InternalFormat;
+
+            var gl = src.GL;
+
+            if (internalFormat.IsDepth())
+            {
+                var tmp = GlTempAllocator.StaticTexture(
+                    src.GL,
+                    src.Width,
+                    src.Height,
+                    src.Depth,
+                    format);
+
+                CopyDepth(src, tmp);
+
+                return Read(tmp, format, 0, 0, buffers);
+            }
+
+            var result = new List<TextureData>();
+
+            var attachment = FramebufferAttachment.ColorAttachment0;
+
+            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0, uint depth = 0)
+            {
+                if (target == TextureTarget.Texture2DArray)
+                {
+                    gl.FramebufferTextureLayer(
+                         FramebufferTarget.ReadFramebuffer,
+                         attachment,
+                         src.Handle,
+                         (int)mipLevel,
+                         (int)depth);
+                }
+                else
+                {
+                    gl.FramebufferTexture2D(
+                         FramebufferTarget.ReadFramebuffer,
+                         attachment,
+                         target,
+                         src.Handle,
+                         (int)mipLevel);
+                }
+
+                var status = src.GL.CheckFramebufferStatus(FramebufferTarget.ReadFramebuffer);
+                
+                if (status != GLEnum.FramebufferComplete)
+                    throw new Exception($"Framebuffer incomplete at mip {mipLevel}: {status}");
+
+                var w = src.Width >> (int)mipLevel;
+                var h = src.Height >> (int)mipLevel;
+
+                GlState.Current!.SetView(new Rect2I(0, 0, w, h));
+
+                var pixelSize = format.GetPixelSizeBit();
+
+                var bufferSize = (pixelSize / 8) * w * h;
+
+                var buffer = buffers?[result.Count] ?? MemoryBuffer.Create<byte>(bufferSize);
+
+                buffer.Allocate(bufferSize);
+
+                var item = new TextureData
+                {
+                    Width = w,
+                    Height = h,
+                    Format = format,
+                    MipLevel = mipLevel,
+                    Layer = face,
+                    Data = buffer
+                };
+
+                GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
+
+                using var pData = buffer.MemoryLock();
+
+                GlState.Current!.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
+
+                gl.CheckError();
+
+                gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
+
+                gl.CheckError();
+
+                result.Add(item);
+            }
+
+            src.Bind();
+
+            _texReadFb ??= GlTempAllocator.FrameBuffer(gl, "TEX_READ");
+
+            _texReadFb.BindRead(ReadBufferMode.ColorAttachment0);
+
+            endMipLevel ??= src.MaxLevel;
+
+            for (var mipLevel = startMipLevel; mipLevel <= endMipLevel; mipLevel++)
+            {
+                if (src.Target == TextureTarget.TextureCubeMap)
+                {
+                    for (var face = 0; face < 6; face++)
+                        ReadTarget(TextureTarget.TextureCubeMapPositiveX + face, mipLevel, (uint)face);
+                }
+                else if (src.Target == TextureTarget.Texture2DArray)
+                {
+                    for (uint i = 0; i < src.Depth; i++)
+                        ReadTarget(src.Target, mipLevel, 0, i);
+                }
+                else
+                {
+                    ReadTarget(src.Target, mipLevel);
+                }
+            }
+
+            _texReadFb.Unbind();
+
+            src.Unbind();
+
+            return result;
+        }
     }
 }

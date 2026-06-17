@@ -27,6 +27,11 @@ namespace XrEngine.OpenXr
             Blur = true;
         }
 
+        public Texture2D? Acquire(Camera depthCamera, out long frameTime)
+        {
+            frameTime = _lastFrameTime;
+            return Acquire(depthCamera);
+        }
 
         public unsafe Texture2D? Acquire(Camera depthCamera)
         {

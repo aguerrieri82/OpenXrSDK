@@ -9,14 +9,12 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
-        static GlSimpleProgram? _drawQuad;
-        static GlSimpleProgram? _drawQuadMv;
-        static uint _emptyVertexArray;
+        static GlSimpleProgram? _texFullProg;
+        static GlSimpleProgram? _texFullProgMV;
 
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
         protected GL _gl;
-
 
         public GlBaseRenderPass(OpenGLRender renderer)
         {
@@ -137,21 +135,21 @@ namespace XrEngine.OpenGL
 
         protected void OverlayTexture(Texture texture, bool isMultiView)
         {
-            if (_drawQuad == null && !isMultiView)
+            if (_texFullProg == null && !isMultiView)
             {
-                _drawQuad = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
-                _drawQuad.Build();
+                _texFullProg = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
+                _texFullProg.Build();
             }
 
-            if (_drawQuadMv == null && isMultiView)
+            if (_texFullProgMV == null && isMultiView)
             {
-                _drawQuadMv = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
-                _drawQuadMv.AddExtension("GL_OVR_multiview2");
-                _drawQuadMv.AddFeature("MULTI_VIEW");
-                _drawQuadMv.Build();
+                _texFullProgMV = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
+                _texFullProgMV.AddExtension("GL_OVR_multiview2");
+                _texFullProgMV.AddFeature("MULTI_VIEW");
+                _texFullProgMV.Build();
             }
 
-            var curProg = isMultiView ? _drawQuadMv : _drawQuad;
+            var curProg = isMultiView ? _texFullProgMV : _texFullProg;
 
             curProg!.Use();
             curProg.LoadTexture(texture, 0);
@@ -166,18 +164,13 @@ namespace XrEngine.OpenGL
 
         protected void DrawVirtual(uint vertices)
         {
-            if (_emptyVertexArray == 0)
-                _emptyVertexArray = _gl.GenVertexArray();
-
-            _renderer.State.BindVertexArray(_emptyVertexArray);
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertices);
+            GlImageProc.DrawVirtual(_gl, vertices);
         }
 
         protected void DrawQuad()
         {
-            DrawVirtual(3);
+            GlImageProc.DrawQuad(_gl);
         }
-
 
         public virtual void Dispose()
         {

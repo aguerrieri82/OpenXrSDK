@@ -29,6 +29,7 @@ namespace XrEngine.OpenGL
                     var view = new int[4];
 
                     gl.GetInteger(GetPName.Viewport, view);
+
                     width = (uint)view[2];
                     height = (uint)view[3];
                 }
@@ -161,14 +162,12 @@ namespace XrEngine.OpenGL
 
             var depthCopyTex = GetDepthTexture(gl, width, height, arraySize, mutable, format);
 
-
             if (depthTex != null)
             {
                 depthTex.CopyTo(depthCopyTex);
             }
             else
             {
-
                 depthCopyTex.Bind();
 
                 GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, src.Handle);
@@ -178,8 +177,15 @@ namespace XrEngine.OpenGL
                 depthCopyTex.Unbind();
             }
 
-
             return depthCopyTex;
+        }
+
+        public static void Dispose()
+        {
+            foreach (var item in _depthTextures)
+                item.Value.Dispose();
+
+            _depthTextures.Clear();
         }
 
     }

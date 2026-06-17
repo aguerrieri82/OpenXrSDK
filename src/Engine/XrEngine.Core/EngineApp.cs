@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using XrEngine.Services;
+using XrMath;
 
 namespace XrEngine
 {
@@ -26,8 +27,8 @@ namespace XrEngine
         {
             _stats = new EngineAppStats();
             _context = new RenderContext();
-            //_changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             _dispatcher = new QueueDispatcher();
+            
             //TODO set current by hand (more app in editor)
             if (Current == null)
             {
@@ -67,6 +68,8 @@ namespace XrEngine
             }
 
             _playState = PlayState.Start;
+
+            //SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_dispatcher));
 
             OnStarted();
         }

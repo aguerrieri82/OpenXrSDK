@@ -11,7 +11,12 @@ layout(location=0) out vec4 FragColor;
     }
 
 #else
-    layout(binding=0) uniform sampler2D uTexture;
+
+    #ifdef EXTERNAL
+        layout(binding=0) uniform samplerExternalOES uTexture;
+    #else
+        layout(binding=0) uniform sampler2D uTexture;
+    #endif
 
     void main()
     {

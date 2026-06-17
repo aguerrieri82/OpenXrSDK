@@ -10,7 +10,7 @@ using XrEngine.Compression;
 
 namespace XrEngine.OpenGL
 {
-    public static class Extensions
+    public static class GlExtensions
     {
         public static void CheckError(this GL gl, bool log = true)
         {

@@ -65,7 +65,29 @@ namespace XrEngine.Devices
 
         public Vector2 Fov => new(Fx, Fy);
 
+        public Matrix4x4 CreateProjection(float near, float far)
+        {
+            var w = CurrentSize.Width;
+            var h = CurrentSize.Height;
 
+            var fx = Fx;
+            var fy = Fy;
+            var cx = Cx;
+            var cy = Cy;
+
+            return new Matrix4x4(
+                2.0f * fx / w, 0.0f, 0.0f, 0.0f,
+                0.0f, 2.0f * fy / h, 0.0f, 0.0f,
+                (w - 2.0f * cx) / w,
+                (2.0f * cy - h) / h,
+                -(far + near) / (far - near),
+                -1.0f,
+                0.0f,
+                0.0f,
+                -(2.0f * far * near) / (far - near),
+                0.0f
+            );
+        }
 
         public Pose3 GetLensPose()
         {
