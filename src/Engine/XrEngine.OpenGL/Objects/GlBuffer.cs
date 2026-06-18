@@ -273,6 +273,8 @@ namespace XrEngine.OpenGL
             {
                 Unbind();
                 _gl.DeleteBuffer(_handle);
+
+                Log.Debug(this, "Buffer {0} ({1}) deleted", _handle, Target);
             }
 
             base.Dispose();

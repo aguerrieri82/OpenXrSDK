@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Windows.Controls;
 using XrEngine;
+using XrEngine.OpenXr;
 using XrEngine.Reconstruct;
 using XrMath;
 
@@ -47,6 +48,7 @@ namespace XrEditor.Plot
         private bool _autoOffset;
         private float _depthCutOff;
         private Bounds3 _roomBounds;
+        private TriangleMesh? _depthMesh;
 
         public ReconstructPanel()
         {
@@ -133,6 +135,54 @@ namespace XrEditor.Plot
             OnPropertyChanged(nameof(ColorOffset));
 
             UpdateImages();
+            UpdateMesh();
+        }
+
+        protected unsafe void UpdateMesh()
+        {
+            var scene = EngineApp.Current?.ActiveScene;
+
+            if (scene == null) 
+                return;
+
+            if (_curDepth?.Left?.Data == null)
+                return;
+
+            if (_curColor?.Left?.Data == null)
+                return;
+
+            if (_depthMesh == null)
+            {
+                _depthMesh = new TriangleMesh();
+                _depthMesh.Materials.Add(new TextureMaterial(new Texture2D()
+                {
+                    MipLevelCount = 0,
+                }));
+                scene.AddChild(_depthMesh);
+            }
+    
+            using var data = _curDepth.Left.Data.MemoryLock();
+
+            var geo = EnvDepthMesh.CreateDepthColorGrid(data.Data,
+                (int)_curDepth.Width, (int)_curDepth.Height,
+                320,
+                320,
+                (_curDepth.Left.View * _curDepth.Left.Proj).Invert(),
+                 _reader!.LeftCamera!.GetViewProj(_curColor.Left.Pose!.Value));
+
+            _depthMesh.Geometry = geo;
+
+            _depthMesh.NotifyChanged(ObjectChangeType.Geometry);
+
+            var tex = ((TextureMaterial)_depthMesh.Materials[0]).Texture;
+            tex!.LoadData(new TextureData
+            {
+                Width = _curColor.Width,
+                Height = _curColor.Height,
+                Format = TextureFormat.Rgb24,
+                Data = _curColor.Left.Data
+            });
+        
         }
 
         protected void UpdateImages()
@@ -170,19 +220,15 @@ namespace XrEditor.Plot
             if (_colorMode == ColorMode.Screen)
             {
                 repData = _reader.AlignColorToDepth(
-                     _curDepth.Left.ProjData!.AsSpan(),
-                     (int)_curDepth.Width,
-                     (int)_curDepth.Height,
-                     depthEye.View,
-                     depthEye.Proj,
-                     _curScreen!.Data!.AsSpan(),
-                     1280,
-                     1280,
-                     _curScreen.Pose!.Value,
-                     _reader.LeftCamera!,
-                     _fovScale,
-                     _center,
-                     true);
+                 _curDepth.Left.ProjData!.AsSpan(),
+                 (int)_curDepth.Width,
+                 (int)_curDepth.Height,
+                _curScreen!.Data!.AsSpan(),
+                 (int)_curColor.Width,
+                 (int)_curColor.Height,
+                 _reader.LeftCamera!.GetViewProj(_curScreen.Pose!.Value),
+                 true);
+
 
                 ColorImage.Image = Context.Require<IImageFactory>().CreateImage(
                     _curScreen.Data.AsSpan(),
@@ -198,15 +244,10 @@ namespace XrEditor.Plot
                      _curDepth.Left.ProjData!.AsSpan(),
                      (int)_curDepth.Width,
                      (int)_curDepth.Height,
-                     depthEye.View,
-                     depthEye.Proj,
                      colorEye.Data!.AsSpan(),
                      (int)_curColor.Width,
                      (int)_curColor.Height,
-                      colorEye.Pose!.Value,
-                     _reader.LeftCamera!,
-                     _fovScale,
-                     _center,
+                     _reader.LeftCamera!.GetViewProj(colorEye.Pose!.Value),
                      true);
 
                 ColorImage.Image = Context.Require<IImageFactory>().CreateImage(

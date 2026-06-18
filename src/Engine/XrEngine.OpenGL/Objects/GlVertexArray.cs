@@ -117,7 +117,14 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             if (_handle != 0)
+            {
                 _gl.DeleteVertexArray(_handle);
+                Log.Debug(this, "VA {0} deleted", _handle);
+            }
+
+            _iBuf?.Dispose();
+
+            _vBuf.Dispose();
 
             base.Dispose();
         }

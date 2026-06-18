@@ -478,6 +478,7 @@ namespace XrEngine.OpenGL
                 GlState.Current!.ResetTextures();
                 _gl.DeleteTexture(_handle);
                 _attached.Remove(_handle);
+                Log.Debug(this, "Tex {0} deleted", _handle);
             }
 
             if (Source is Texture tex)

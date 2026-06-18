@@ -945,6 +945,11 @@ namespace XrEngine.Filament
             throw new NotImplementedException();
         }
 
+        public void LoadTexture(Texture2D texture)
+        {
+            throw new NotImplementedException();
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;

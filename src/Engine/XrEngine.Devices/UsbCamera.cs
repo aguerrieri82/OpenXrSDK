@@ -587,5 +587,6 @@ namespace XrEngine.Devices
 
         public bool IsOpen => !_handle.IsNull;
 
+        public bool IsCapturing => _captureTask != null && !_captureTask.IsCompleted;
     }
 }

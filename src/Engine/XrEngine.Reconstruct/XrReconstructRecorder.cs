@@ -75,7 +75,7 @@ namespace XrEngine.Reconstruct
         {
             _outPath = outPath;
 
-            var manager = Context.Require<ICameraManager>();
+            var manager = Context.Require<ILocalCameraManger>();
             var outZPath = Path.Combine(outPath, "out-z.bin");
             var outMetaPath = Path.Combine(outPath, "out-meta.json");
             var outPath1 = Path.Combine(outPath, "outL.mp4");
@@ -189,7 +189,7 @@ namespace XrEngine.Reconstruct
 
             var depth = activeCamera.Feature<IEnvDepthProvider>();
 
-            var dephTex = depth!.Acquire(_depthCamera!);
+            var dephTex = depth!.Acquire(_depthCamera!, out var depthTime);
 
             if (dephTex != null)
             {
@@ -273,14 +273,14 @@ namespace XrEngine.Reconstruct
                         Proj = _depthCamera!.Eyes![0].Projection.ToFloatArray(),
                         View = _depthCamera.Eyes[0].View.ToFloatArray(),
                         Frame = _stats.DepthFrame,
-                        Time = displayTimeXr
+                        Time = depthTime
                     },
                     RightDepth = new EyeData
                     {
                         Proj = _depthCamera.Eyes[1]!.Projection.ToFloatArray(),
                         View = _depthCamera.Eyes[1].View.ToFloatArray(),
                         Frame = _stats.DepthFrame,
-                        Time = displayTimeXr
+                        Time = depthTime
                     },
                     Screen = new EyeData
                     {

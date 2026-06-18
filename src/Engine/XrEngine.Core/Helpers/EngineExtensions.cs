@@ -1384,5 +1384,15 @@ namespace XrEngine
 
 
         #endregion
+
+        #region TEXTURE2D
+
+        public static void Generate(this Texture2D texture)
+        {
+            var render = EngineApp.Current!.Renderer!;
+            render.LoadTexture(texture);
+        }
+
+        #endregion
     }
 }

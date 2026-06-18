@@ -61,39 +61,6 @@ namespace XrEngine.Reconstruct
             AttachCamera = true;
         }
 
-        Matrix4x4 ComputeProjViewMatrix(Matrix4x4 headMatrix, CameraParams cam)
-        {
-            var fx = cam.Intrinsic![0];
-            var fy = cam.Intrinsic[1];
-            var cx = cam.Intrinsic[2];
-            var cy = cam.Intrinsic[3];
-            var w = cam.SensorSize!.Value.Width;
-            var h = cam.SensorSize.Value.Height;
-
-            var near = 0.1f;
-            var far = 100.0f;
-
-            var projection = new Matrix4x4();
-
-            projection.M11 = (2.0f * fx) / w;
-            projection.M22 = (2.0f * fy) / h;
-
-            projection.M31 = 1.0f - (2.0f * cx) / w;
-            projection.M32 = -(1.0f - (2.0f * cy) / h);
-
-            projection.M33 = -(far + near) / (far - near);
-            projection.M34 = -1.0f;
-
-            projection.M43 = -(2.0f * far * near) / (far - near);
-            projection.M44 = 0.0f;
-
-
-            var sensorWorldMatrix = cam.GetLensPose().ToMatrix() * headMatrix;
-
-            Matrix4x4.Invert(sensorWorldMatrix, out var viewMatrix);
-
-            return viewMatrix * projection;
-        }
 
         Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
         {
@@ -177,7 +144,7 @@ namespace XrEngine.Reconstruct
             if (AttachCamera)
                 _host!.ActiveCamera!.SetWorldPose(combinedPose);
 
-            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = ComputeProjViewMatrix(pose.ToMatrix(), camera);
+            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
 
         }
 
@@ -261,7 +228,7 @@ namespace XrEngine.Reconstruct
             if (AttachCamera)
                 _host!.ActiveCamera!.SetWorldPose(pose);
 
-            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = ComputeProjViewMatrix(pose.ToMatrix(), camera);
+            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
             ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = Matrix4x4.Identity;
         }
 

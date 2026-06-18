@@ -50,6 +50,8 @@ namespace XrEngine.OpenGL
         protected List<IGlLayer> _activeLayers = [];
         protected GlTextureFilter _textureFilter;
 
+        private bool _isDebug;
+
         public static class Props
         {
             public static readonly DynamicProp GlResId = new(nameof(GlResId));
@@ -656,26 +658,12 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        #region IO
-
-        public TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba32)
-        {
-            EnsureThread();
-
-            if (_target is not GlTextureRenderTarget texTarget)
-                throw new NotSupportedException();
-
-            if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
-                throw new NotSupportedException();
-
-            return texFb.ReadColor(format);
-        }
+        #region TEXTURE
 
         public Texture2D AttachTexture(uint texId)
         {
             var glTex = GlTexture.Attach(_gl, texId);
             return glTex.ToEngineTexture(new Texture2D());
-
         }
 
         public void CopyTexture(Texture2D src, Texture2D dst)
@@ -690,26 +678,34 @@ namespace XrEngine.OpenGL
             var glTex = texture.ToGlTexture();
 
             PushGroup($"ReadTexture {glTex.Handle}");
-            
+
             var data = glTex.Read(format, startMipLevel, endMipLevel, buffers);
-            
+
             PopGroup();
 
             return data;
         }
 
-        public T? Feature<T>() where T : class
+        public void LoadTexture(Texture2D texture)
         {
-            if (this is T result)
-                return result;
+            texture.ToGlTexture();
+        }
 
-            if (typeof(T) == typeof(IShadowMapProvider))
-                return _shadowPass as T;
+        #endregion
 
-            if (typeof(T) == typeof(ITextureFilterProvider))
-                return _textureFilter as T;
+        #region IO
 
-            return (T?)_renderPasses.FirstOrDefault(a => a is T);
+        public TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba32)
+        {
+            EnsureThread();
+
+            if (_target is not GlTextureRenderTarget texTarget)
+                throw new NotSupportedException();
+
+            if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
+                throw new NotSupportedException();
+
+            return texFb.ReadColor(format);
         }
 
         public Texture2D? GetShadowMap()
@@ -743,6 +739,21 @@ namespace XrEngine.OpenGL
         #endregion
 
         #region MISC
+
+        public T? Feature<T>() where T : class
+        {
+            if (this is T result)
+                return result;
+
+            if (typeof(T) == typeof(IShadowMapProvider))
+                return _shadowPass as T;
+
+            if (typeof(T) == typeof(ITextureFilterProvider))
+                return _textureFilter as T;
+
+            return (T?)_renderPasses.FirstOrDefault(a => a is T);
+        }
+
 
         public unsafe string[] GetExtensions()
         {
@@ -807,10 +818,8 @@ namespace XrEngine.OpenGL
         public static int SuspendErrors { get; set; }
 
 
-
-
         [ThreadStatic]
         public static OpenGLRender? Current;
-        private bool _isDebug;
+
     }
 }

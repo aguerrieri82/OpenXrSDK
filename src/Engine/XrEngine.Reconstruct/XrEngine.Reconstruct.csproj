@@ -5,6 +5,8 @@
 		<SingleProject>true</SingleProject>
 	</PropertyGroup>
 
+
+
 	<ItemGroup>
     <ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
     <ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />

@@ -256,8 +256,8 @@ namespace XrSamples
                 {
                     e.App.ActiveScene!.AddChild(panel);
 
-                    //if (XrPlatform.IsAndroid)
-                    panel.CreateOverlay(e.XrApp);
+                    if (XrPlatform.IsAndroid)
+                        panel.CreateOverlay(e.XrApp);
                 });
         }
 
@@ -306,7 +306,6 @@ namespace XrSamples
                             texView.Texture = sp.ShadowMap;
                             depthView.NotifyChanged(ObjectChangeType.Render);
                         }
-
                     }
                     else
                     {
@@ -325,9 +324,6 @@ namespace XrSamples
                             depthView.NotifyChanged(ObjectChangeType.Render);
                         }
                     }
-
-
-
                 });
             }
 

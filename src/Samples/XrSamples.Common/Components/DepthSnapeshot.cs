@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Numerics;
 
 using XrEngine;
+using XrEngine.Devices;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
@@ -17,8 +18,6 @@ namespace XrSamples.Components
             public TriangleMesh? Mesh;
 
             public Texture2D? CameraTexture;
-
-            public Pose3? HeadPose;
 
             public Matrix4x4 DepthView;
 
@@ -36,7 +35,7 @@ namespace XrSamples.Components
         }
 
 
-        CameraCapture? _capture;
+        CameraController? _capture;
         EnvDepthMesh? _envDepth;
         XrBoolInput? _captureBtn;
         XrBoolInput? _deleteBtn;
@@ -49,36 +48,33 @@ namespace XrSamples.Components
 
             if (!_host.Scene.TryComponent(out _capture))
             {
-                _capture = new CameraCapture();
+                _capture = new CameraController();
                 _host.Scene.AddComponent(_capture); 
             }
 
             _envDepth = _host.Scene.Descendants<EnvDepthMesh>().FirstOrDefault();
 
             _envDepth ??= _host.AddChild(new EnvDepthMesh(new Size2I(300, 300)));
-        
+
+            _ = _capture.StartCameraAsync(OculusCameras.Left);
 
             base.Start(ctx);
         }
 
         public DepthFrame? CreateSnapeshot()
         {
-            if (_capture?.Camera == null || _capture.Camera.LastFrame == 0)
+            var camera = _capture!.GetCameraStatus(OculusCameras.Left);
+
+            if (!camera.IsActive)
                 return null;
 
-            var cameraTime = _capture.Camera.LastTimestamp;
+            var cameraTime = camera.FrameTime;
 
-            var headPose = XrApp.Current!.LocateSpace(XrApp.Current!.Head, XrApp.Current.ReferenceSpace, cameraTime).Pose;
-
-            var camParams = _capture.Camera.GetParams();
-
-            var cameraWorld = camParams.GetLensPose().ToMatrix() * headPose.ToMatrix();
+            var cameraWorld = camera.Pose?.ToMatrix() ?? Matrix4x4.Identity;
 
             Matrix4x4.Invert(cameraWorld, out var cameraView);
 
-            var cameraProj = camParams.CreateProjection(0.05f, 20.0f);
-
-            var cameraViewProj = cameraView * cameraProj;
+            var cameraViewProj = cameraView * camera.Proj!.Value;
 
             var frozenMesh = _envDepth!.Freeze(cameraViewProj);
 
@@ -89,32 +85,31 @@ namespace XrSamples.Components
 
             var frameTexture = new Texture2D
             {
-                Width = _capture.Texture.Width,
-                Height = _capture.Texture.Height,
+                Width = camera.Texture!.Width,
+                Height = camera.Texture.Height,
                 MipLevelCount = 0,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
                 Format = TextureFormat.Rgba32,
-                Name = $"Frame {_capture.Camera.LastFrame}"
+                Name = $"Frame {camera.Frame}"
             };
 
-            GlImageProc.CopyColor(_capture.Texture.ToGlTexture(), frameTexture.ToGlTexture());
+            GlImageProc.CopyColor(camera.Texture!.ToGlTexture(), frameTexture.ToGlTexture());
 
             frozenMesh.Materials.Add(new TextureMaterial(frameTexture));
             
             var frame = new DepthFrame
             {
-                CameraProj = cameraProj,
+                CameraProj = camera.Proj!.Value,
                 CameraView = cameraView,
                 CameraXrTime = cameraTime,
                 Mesh = frozenMesh,
-                HeadPose = headPose,
                 DepthView = mat.DepthCamera.Eyes![0].View,
                 DepthProj = mat.DepthCamera.Eyes![0].Projection,
                 DepthXrTime = mat.LastFrameTime,
-                FrameXrTime = XrApp.Current.FramePredictedDisplayTime,
+                FrameXrTime = XrApp.Current!.FramePredictedDisplayTime,
                 CameraTexture = frameTexture
             };
 
@@ -130,10 +125,8 @@ namespace XrSamples.Components
 
             _frames.RemoveAt(_frames.Count - 1);
 
-            //lastFrame.CameraTexture!.Dispose();
-            //lastFrame.Mesh!.Dispose();
-
-            lastFrame.Mesh!.Remove();
+            lastFrame.CameraTexture!.Dispose();
+            lastFrame.Mesh!.Dispose();
         }
 
         protected override void Update(RenderContext ctx)

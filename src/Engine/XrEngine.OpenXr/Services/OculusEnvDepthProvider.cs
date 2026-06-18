@@ -29,8 +29,9 @@ namespace XrEngine.OpenXr
 
         public Texture2D? Acquire(Camera depthCamera, out long frameTime)
         {
+            var result = Acquire(depthCamera);
             frameTime = _lastFrameTime;
-            return Acquire(depthCamera);
+            return result;
         }
 
         public unsafe Texture2D? Acquire(Camera depthCamera)

@@ -50,7 +50,7 @@ namespace XrEngine.OpenXr
         }
 
 
-        protected unsafe Geometry3D CreateDepthColorGrid(
+        public static unsafe Geometry3D CreateDepthColorGrid(
             ushort* depth,
             int depthWidth,
             int depthHeight,

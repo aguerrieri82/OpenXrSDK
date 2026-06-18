@@ -13,7 +13,7 @@ namespace XrEngine
 
         protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
-        protected readonly Thread _thread;
+        protected Thread _thread;
 
         public QueueDispatcher()
         {
@@ -67,9 +67,11 @@ namespace XrEngine
             if (_isProcessingQueue)
                 return;
 
+            _thread = Thread.CurrentThread;
+            /*
             if (_thread != Thread.CurrentThread)
                 throw new InvalidOperationException("ProcessQueue outside the dispatcher thread");
-
+            */
             _isProcessingQueue = true;
 
             try

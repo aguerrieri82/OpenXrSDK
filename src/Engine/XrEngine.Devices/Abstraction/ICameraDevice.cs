@@ -65,7 +65,16 @@ namespace XrEngine.Devices
 
         public Vector2 Fov => new(Fx, Fy);
 
-        public Matrix4x4 CreateProjection(float near, float far)
+        public Matrix4x4 GetViewProj(Pose3 headPose)
+        {
+            var sensorWorldMatrix = GetLensPose().ToMatrix() * headPose.ToMatrix();
+
+            Matrix4x4.Invert(sensorWorldMatrix, out var viewMatrix);
+
+            return viewMatrix * GetProjection(0.1f, 10f);
+        }
+
+        public Matrix4x4 GetProjection(float near, float far)
         {
             var w = CurrentSize.Width;
             var h = CurrentSize.Height;
@@ -106,7 +115,6 @@ namespace XrEngine.Devices
                 Orientation = Quaternion.Normalize(worldRot * sensorFix)
             };
         }
-
     }
 
     public enum CameraParamMode
@@ -141,6 +149,8 @@ namespace XrEngine.Devices
         void Configure(CameraConfiguration configuration);
 
         bool IsOpen { get; }
+
+        bool IsCapturing { get; }
 
         Task OpenAsync();
 

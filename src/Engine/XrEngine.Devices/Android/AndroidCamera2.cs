@@ -189,7 +189,6 @@ namespace XrEngine.Devices.Android
             _device = await _openSource.Task;
 
             _chars = _manager.GetCameraCharacteristics(_deviceId);
-
         }
 
 
@@ -347,6 +346,7 @@ namespace XrEngine.Devices.Android
             _executor = null;
 
             _imageSize = null;
+
         }
 
         public void Close()
@@ -478,7 +478,9 @@ namespace XrEngine.Devices.Android
 
         public long LastTimestamp { get; private set; }
 
-        public bool IsOpen => throw new NotImplementedException();
+        public bool IsOpen => _device != null;
+
+        public bool IsCapturing => _session != null;
     }
 }
 

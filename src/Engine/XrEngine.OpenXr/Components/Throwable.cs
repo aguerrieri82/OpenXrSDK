@@ -193,7 +193,6 @@ namespace XrEngine.OpenXr
 
             if (mustThrow)
             {
-
                 var velocity = Vector3.Zero;
                 var angVel = Vector3.Zero;
                 Vector3 lastWordPos;

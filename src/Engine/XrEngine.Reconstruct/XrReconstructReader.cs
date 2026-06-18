@@ -184,7 +184,7 @@ namespace XrEngine.Reconstruct
             _sceneModel = AssetLoader.Instance.Load<TriangleMesh>(scenePath);
         }
 
-        public void ReconstructDepth(DepthFrame frame, uint width, uint height, float zCutOff, uint maxW = 288)
+        public void ReconstructDepth(DepthFrame frame, uint width, uint height, float zCutOff, uint maxW = 320)
         {
             var zData = frame.Data!.AsSpan();
 
@@ -344,7 +344,7 @@ namespace XrEngine.Reconstruct
             }
             else
             {
-                _leftColorReader!.SeekToFrame(frameIndex);
+                _leftColorReader!.SeekToFrame(frameIndex - 1);
                 _leftColorReader!.TryDecodeNextFrame(leftData);
                 File.WriteAllBytes(cacheLeft, leftData.Data!.AsSpan());
             }
@@ -527,7 +527,7 @@ namespace XrEngine.Reconstruct
 
             var size = result.Width * result.Height;
             var sizeBytes = size * 2;
-            var ofs = frameIndex * sizeBytes * 2;
+            var ofs = (frameIndex -1) * sizeBytes * 2;
 
             _zStream!.Position = ofs;
 
@@ -536,7 +536,7 @@ namespace XrEngine.Reconstruct
             result.Left.View = MathUtils.CreateMatrix(meta.LeftDepth!.View!);
 
 
-            result.Right.Data = MemoryBuffer.CreateOrResize(result.Left.Data, size);
+            result.Right.Data = MemoryBuffer.CreateOrResize(result.Right.Data, size);
             result.Right.Proj = MathUtils.CreateMatrix(meta.RightDepth!.Proj!);
             result.Right.View = MathUtils.CreateMatrix(meta.RightDepth!.View!);
 
@@ -593,18 +593,17 @@ namespace XrEngine.Reconstruct
 
 
         public unsafe byte[] AlignColorToDepth(
-            Span<Vector3> depthPixels, int depthW, int depthH,
-            Matrix4x4 depthView, Matrix4x4 depthProj,
-            Span<byte> colorPixels, int colorW, int colorH,
-            Pose3 headPose,
-            CameraParams camera,
-            float fovScale,
-            Vector2 centerOfs,
-            bool reverse)
+            Span<Vector3> depthPixels,
+            int depthW,
+            int depthH,
+            Span<byte> colorPixels,
+            int colorW,
+            int colorH,
+            Matrix4x4 colorViewProj,
+            bool flipY = true,
+            bool flipX = false)
         {
             var result = new byte[depthW * depthH * 3];
-
-            Matrix4x4.Invert(camera.GetLensPose().ToMatrix() * headPose.ToMatrix(), out var rgbView);
 
             fixed (Vector3* pDepth = depthPixels)
             fixed (byte* pColor = colorPixels)
@@ -612,49 +611,49 @@ namespace XrEngine.Reconstruct
             {
                 var dstIndex = 0;
 
-                var wInv = 1.0f / depthW;
-                var hInv = 1.0f / depthH;
-
                 for (var y = 0; y < depthH; y++)
                 {
                     for (var x = 0; x < depthW; x++)
                     {
                         var worldPos = pDepth[dstIndex];
 
-                        var ptColor = Vector3.Transform(worldPos, rgbView);
+                        var colorClip = Vector4.Transform(new Vector4(worldPos, 1.0f), colorViewProj);
 
-                        if ((ptColor.Z >= -0.05f && reverse) || (ptColor.Z <= 0.05f && !reverse))
+                        if (colorClip.W == 0)
                         {
                             dstIndex++;
                             continue;
                         }
 
-                        var invZ = 1.0f / ptColor.Z;
+                        var invW = 1.0f / colorClip.W;
 
-                        var c_u = (ptColor.X * invZ) * camera.Fx * fovScale + camera.Cx + centerOfs.X;
-                        var c_v = (ptColor.Y * invZ) * camera.Fy * fovScale + camera.Cy + centerOfs.Y;
-                        var cX = (int)c_u;
-                        var cY = (int)c_v;
+                        var u = colorClip.X * invW * 0.5f + 0.5f;
+                        var v = colorClip.Y * invW * 0.5f + 0.5f;
 
-                        if (reverse)
-                            cX = colorW - cX;
+                        if (flipY)
+                            v = 1.0f - v;
 
+                        if (flipX)
+                            u = 1.0f - u;
+
+                        var cX = (int)(u * colorW);
+                        var cY = (int)(v * colorH);
 
                         if (cX >= 0 && cX < colorW && cY >= 0 && cY < colorH)
                         {
                             var dstIdx = dstIndex * 3;
                             var srcIdx = (cY * colorW + cX) * 3;
+
                             pResult[dstIdx] = pColor[srcIdx];
                             pResult[dstIdx + 1] = pColor[srcIdx + 1];
                             pResult[dstIdx + 2] = pColor[srcIdx + 2];
                         }
 
                         dstIndex++;
-
                     }
-
                 }
             }
+
             return result;
         }
 
