@@ -39,9 +39,11 @@
             OnAttach();
         }
 
-        void IComponent.Detach()
+        void IComponent.Detach(bool isDispose)
         {
             _host = default;
+            if (isDispose && this is IDisposable disp)
+                disp.Dispose();
         }
 
         public virtual void GetState(IStateContainer container)

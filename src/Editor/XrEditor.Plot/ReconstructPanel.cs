@@ -49,6 +49,7 @@ namespace XrEditor.Plot
         private float _depthCutOff;
         private Bounds3 _roomBounds;
         private TriangleMesh? _depthMesh;
+        private bool _isUpdatingMesh;
 
         public ReconstructPanel()
         {
@@ -96,7 +97,7 @@ namespace XrEditor.Plot
             Log.Info(this, "{0} Points Exported!", points.Count);
         }
 
-        public void ReadFrame(int frameIndex)
+        public async void ReadFrame(int frameIndex)
         {
             if (_reader == null)
                 return;
@@ -135,12 +136,17 @@ namespace XrEditor.Plot
             OnPropertyChanged(nameof(ColorOffset));
 
             UpdateImages();
-            UpdateMesh();
+
+            if (EngineApp.IsCreated)
+            {
+                await EngineApp.MainThread;
+                UpdateMesh();
+            }
         }
 
         protected unsafe void UpdateMesh()
         {
-            var scene = EngineApp.Current?.ActiveScene;
+            var scene = EngineApp.Current.ActiveScene;
 
             if (scene == null) 
                 return;
@@ -151,16 +157,6 @@ namespace XrEditor.Plot
             if (_curColor?.Left?.Data == null)
                 return;
 
-            if (_depthMesh == null)
-            {
-                _depthMesh = new TriangleMesh();
-                _depthMesh.Materials.Add(new TextureMaterial(new Texture2D()
-                {
-                    MipLevelCount = 0,
-                }));
-                scene.AddChild(_depthMesh);
-            }
-    
             using var data = _curDepth.Left.Data.MemoryLock();
 
             var geo = EnvDepthMesh.CreateDepthColorGrid(data.Data,
@@ -170,11 +166,20 @@ namespace XrEditor.Plot
                 (_curDepth.Left.View * _curDepth.Left.Proj).Invert(),
                  _reader!.LeftCamera!.GetViewProj(_curColor.Left.Pose!.Value));
 
-            _depthMesh.Geometry = geo;
+            if (_depthMesh == null)
+            {
+                _depthMesh = new TriangleMesh(geo, new TextureMaterial(new Texture2D()
+                {
+                    MipLevelCount = 0,
+                }));
 
-            _depthMesh.NotifyChanged(ObjectChangeType.Geometry);
+                scene.AddChild(_depthMesh);
+            }
+            else
+                _depthMesh.Geometry = geo;
 
             var tex = ((TextureMaterial)_depthMesh.Materials[0]).Texture;
+
             tex!.LoadData(new TextureData
             {
                 Width = _curColor.Width,
@@ -182,7 +187,8 @@ namespace XrEditor.Plot
                 Format = TextureFormat.Rgb24,
                 Data = _curColor.Left.Data
             });
-        
+
+            _depthMesh.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         protected void UpdateImages()

@@ -157,7 +157,7 @@ namespace XrEngine
 
         public void NotifyChanged(ObjectChange change)
         {
-            if ((Flags & EngineObjectFlags.NotifyChanged) == 0)
+            if (!this.Is(EngineObjectFlags.NotifyChanged))
                 return;
 
             if (_updateCount > 0)
@@ -213,8 +213,10 @@ namespace XrEngine
         {
             if (_components != null)
             {
-                foreach (var component in _components.OfType<IDisposable>())
-                    component.Dispose();
+                foreach (var component in _components)
+                    component.Detach(true);
+
+                _components.Clear();
                 _components = null;
             }
 

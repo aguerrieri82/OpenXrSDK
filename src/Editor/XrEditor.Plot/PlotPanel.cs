@@ -81,12 +81,14 @@ namespace XrEditor.Plot
             return hash;
         }
 
-        protected void OnNotify(bool force)
+        protected  async void  OnNotify(bool force)
         {
+            await UiThread;
+
             if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs || force)
             {
                 _lastNotifyTime = DateTime.UtcNow;
-                _mainDispatcher.Execute(() => Plotter.NotifyChanged(null));
+                Plotter.NotifyChanged(null);
             }
         }
 
@@ -96,7 +98,7 @@ namespace XrEditor.Plot
                 LogValue(name, fValue);
         }
 
-        public void LogValue(string name, float value)
+        public async void LogValue(string name, float value)
         {
             var serie = (DiscretePlotterSerie?)Plotter.Series.FirstOrDefault(a => a.Name == name);
 
@@ -112,7 +114,9 @@ namespace XrEditor.Plot
                     SampleMode = SerieSampleMode.Nearest
                 };
 
-                _mainDispatcher.Execute(() => Plotter.Series.Add(serie));
+                await UiThread;
+
+                Plotter.Series.Add(serie);
             }
 
             _lastValueTime = DateTime.UtcNow;
@@ -147,18 +151,16 @@ namespace XrEditor.Plot
             base.GetState(container);
         }
 
-        public void Checkpoint(string name, Color color)
+        public async void Checkpoint(string name, Color color)
         {
-            _mainDispatcher.Execute(() =>
-            {
-                Plotter.ReferencesX.Add(new PlotterReference()
-                {
-                    Value = EngineApp.Current!.Stats.Frame,
-                    Name = name,
-                    Color = color
-                });
-            });
+            await UiThread;
 
+            Plotter.ReferencesX.Add(new PlotterReference()
+            {
+                Value = EngineApp.Current!.Stats.Frame,
+                Name = name,
+                Color = color
+            });
         }
 
         public Plotter Plotter { get; }

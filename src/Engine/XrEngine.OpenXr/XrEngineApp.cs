@@ -45,7 +45,6 @@ namespace XrEngine.OpenXr
             _app.Renderer = renderEngine;
 
             _xrApp = _platform.CreateXrApp(xrDriver);
-
             _xrApp.RenderOptions.SampleCount = _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
             _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;

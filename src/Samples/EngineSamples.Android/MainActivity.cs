@@ -2,13 +2,12 @@ using Android.Content.PM;
 using Android.Graphics;
 using Android.Hardware.Usb;
 using Android.Runtime;
-using Android.Util;
 using Common.Interop;
 using XrEngine;
-using XrEngine.Android.Devices;
 using XrEngine.Devices;
+using XrEngine.Devices.Android;
 using XrEngine.OpenXr;
-using static Android.Views.Choreographer;
+
 using ImageFormat = XrEngine.Media.ImageFormat;
 using Log = Android.Util.Log;
 

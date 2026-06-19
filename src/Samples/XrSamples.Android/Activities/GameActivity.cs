@@ -7,7 +7,7 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
-using XrEngine.Android.Devices;
+using XrEngine.Devices.Android;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 

@@ -141,7 +141,7 @@ namespace XrEditor.Services
 
             _app.RenderFrame();
 
-            var data = ((IFrameReader)_app.Renderer!).ReadFrame(_texture.Format);
+            var data = ((IFrameReader)_app.Renderer).ReadFrame(_texture.Format);
 
             _engine.SetRenderTarget(null);
 

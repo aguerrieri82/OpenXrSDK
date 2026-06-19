@@ -22,11 +22,11 @@ namespace XrSamples.Graffiti
                 .UseOpenGL()
                 .Build();
 
-            return new CanvasImageGenerator((OpenGLRender)engApp.App.Renderer!);
+            return new CanvasImageGenerator((OpenGLRender)engApp.App.Renderer);
         }
 
         public CanvasImageGenerator()
-            : this((OpenGLRender)EngineApp.Current!.Renderer!)
+            : this((OpenGLRender)EngineApp.Current.Renderer)
         {
         }
 

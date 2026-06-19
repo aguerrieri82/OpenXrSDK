@@ -47,7 +47,7 @@ namespace XrEngine.UI
         {
             if (!_targets.TryGetValue(imageId, out var texture))
             {
-                texture = _scene!.App!.Renderer!.AttachTexture(imageId);
+                texture = _scene!.App!.Renderer.AttachTexture(imageId);
 
                 if (!EnableDepthCull)
                     CreateSurface(texture);
@@ -83,7 +83,7 @@ namespace XrEngine.UI
             }
 
             else if (_lastDrawTexture != null && _lastDrawTexture != _activeTexture && !EnableDepthCull)
-                _scene!.App!.Renderer!.CopyTexture(_lastDrawTexture, _activeTexture!);
+                _scene!.App!.Renderer.CopyTexture(_lastDrawTexture, _activeTexture!);
 
             if (EnableDepthCull)
             {

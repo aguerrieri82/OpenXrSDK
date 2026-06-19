@@ -26,13 +26,16 @@ namespace XrEditor
             CloseCommand = new Command(CloseAsync);
         }
 
-        private void FillMenu()
+        private async void FillMenu()
         {
+            await UiThread;
+
             var addGrp = Menu.AddGroup("Add");
             var pm = Context.Require<PanelManager>();
+
             foreach (var info in pm.PanelsInfo)
             {
-                addGrp.AddButton("", () =>
+                addGrp.AddButton("", async () =>
                 {
                     var instance = pm.Panel(info.PanelId);
                     if (instance == null)
@@ -41,11 +44,7 @@ namespace XrEditor
                     if (!Panels.Contains(instance))
                         Panels.Add(instance);
 
-                    Context.Require<IMainDispatcher>().Execute(() =>
-                    {
-                        ActivePanel = instance;
-                    });
-
+                    ActivePanel = instance;
 
                 }, info.Title);
             }

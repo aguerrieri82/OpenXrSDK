@@ -99,7 +99,7 @@ namespace XrEngine.OpenXr
 
                     if (Blur)
                     {
-                        var filter = _host?.Scene?.App?.Renderer?.Feature<ITextureFilterProvider>();
+                        var filter = _host?.Scene?.App?.Renderer.Feature<ITextureFilterProvider>();
                         if (filter != null)
                         {
                             _outTexture ??= new Texture2D()

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Xml.Schema;
 using XrEngine;
 using XrInteraction;
 using XrMath;
@@ -12,12 +13,10 @@ namespace XrEditor
     {
         protected SceneView? _sceneView;
         protected bool _isActive;
-        protected readonly IMainDispatcher _main;
 
         public BasePointerTool()
         {
             _isActive = true;
-            _main = Context.Require<IMainDispatcher>();
         }
 
         public virtual void Attach(SceneView view)
@@ -93,7 +92,7 @@ namespace XrEditor
 
         }
 
-        protected IDispatcher AppDispatcher => _sceneView?.Scene?.App?.Dispatcher ?? throw new NullReferenceException();
+        protected DispatcherSwitch UiThread => Context.Require<IMainDispatcher>().Switch;
 
         public bool IsActive => _isActive;
     }

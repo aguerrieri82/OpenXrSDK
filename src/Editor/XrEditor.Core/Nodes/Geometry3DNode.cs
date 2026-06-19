@@ -12,8 +12,6 @@ namespace XrEditor.Nodes
             _autoGenProps = true;
         }
 
-
-
         public async Task<NativeImage?> CreatePreviewAsync()
         {
             var preview = Context.Require<RenderPreviewCreator>();

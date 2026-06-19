@@ -82,9 +82,16 @@ namespace OpenXr.Framework.Android
 
         void RunAppThread()
         {
-            _loopThread = new Thread(RunApp);
-            _loopThread.Name = "XrEngine Render Thread";
+            _loopThread = new Thread(RunApp)
+            {
+                Name = "XrEngine Render Thread"
+            };
+
             _loopThread.Start();
+        }
+
+        protected virtual void ConfigureMainLoop()
+        {
         }
 
         void RunApp()
@@ -96,6 +103,8 @@ namespace OpenXr.Framework.Android
                 _xrApp.Start();
 
                 _mainThread.ExecuteAsync(() => OnXrAppStarted(_xrApp)).Wait();
+
+                ConfigureMainLoop();
 
                 while (_xrApp.IsStarted)
                 {

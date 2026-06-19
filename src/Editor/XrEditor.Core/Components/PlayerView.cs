@@ -32,7 +32,7 @@ namespace XrEditor
             GC.SuppressFinalize(this);
         }
 
-        private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private async void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(_editValue.Length))
                 OnPropertyChanged(nameof(Length));
@@ -40,12 +40,11 @@ namespace XrEditor
             if (e.PropertyName == nameof(_editValue.Frame))
                 OnPropertyChanged(nameof(Position));
 
-
             if (e.PropertyName == nameof(_editValue.PlayState))
             {
-                _ = Context.Require<IMainDispatcher>().ExecuteAsync(() => UpdateCommands());
+                await UiThread;
+                UpdateCommands();
             }
-
         }
 
         public void Play()

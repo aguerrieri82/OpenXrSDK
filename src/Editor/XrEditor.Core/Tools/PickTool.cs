@@ -71,39 +71,40 @@ namespace XrEditor
 
             Object3D? newPick = null;
 
-            await AppDispatcher.ExecuteAsync(() =>
-            {
-                if (_hitTest != null)
-                {
-                    var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
-                    if (result.Object == null)
-                        _lastCollision = null;
-                    else
-                    {
-                        _lastCollision = new Collision
-                        {
-                            Object = result.Object,
-                            Normal = result.Normal,
-                            Point = result.Pos,
-                            LocalPoint = result.Object!.ToLocal(result.Pos),
-                        };
-                    }
+            await EngineApp.MainThread;
 
-                }
+            if (_hitTest != null)
+            {
+                var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+
+                if (result.Object == null)
+                    _lastCollision = null;
                 else
                 {
-                    _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
-
-                    _lastCollision = _collisions.OrderBy(a => a.Distance)
-                                                .FirstOrDefault();
+                    _lastCollision = new Collision
+                    {
+                        Object = result.Object,
+                        Normal = result.Normal,
+                        Point = result.Pos,
+                        LocalPoint = result.Object!.ToLocal(result.Pos),
+                    };
                 }
 
-                newPick = _lastCollision?.Object;
+            }
+            else
+            {
+                _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
 
-                _isPicking = false;
+                _lastCollision = _collisions.OrderBy(a => a.Distance)
+                                            .FirstOrDefault();
+            }
 
-            }).ConfigureAwait(false);
 
+            await UiThread;
+
+            newPick = _lastCollision?.Object;
+
+            _isPicking = false;
 
             if (newPick != null && !CanPick(newPick))
                 newPick = null;

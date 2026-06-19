@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -87,26 +88,24 @@ namespace XrEditor
             };
         }
 
-        public void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)
+        public async void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)
         {
-            Context.Require<IMainDispatcher>().ExecuteAsync(async () =>
+            await UiThread;
+
+            var color = type switch
             {
-                var color = type switch
-                {
-                    MessageType.Error => "red",
-                    MessageType.Info => "blue",
-                    _ => throw new NotSupportedException()
-                };
+                MessageType.Error => "red",
+                MessageType.Info => "blue",
+                _ => throw new NotSupportedException()
+            };
 
-                var msg = new MessageView(this, message, color);
+            var msg = new MessageView(this, message, color);
 
-                Messages.Add(msg);
+            Messages.Add(msg);
 
-                await UIUtils.DelayAsync(TimeSpan.FromMilliseconds(showTimeMs));
+            await UIUtils.DelayAsync(TimeSpan.FromMilliseconds(showTimeMs));
 
-                msg.Close();
-
-            });
+            msg.Close();
         }
 
         public void GetState(IStateContainer container)

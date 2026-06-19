@@ -38,10 +38,9 @@ namespace XrEditor
                     IsActive = wasActive;
                 }
             });
+
             _isEnabled = true;
         }
-
-
 
         public static void CreateActions(object obj, IList<ActionView> actions)
         {
@@ -60,10 +59,9 @@ namespace XrEditor
                 if (name.EndsWith("Async"))
                     name = name[..^5];
 
-                var propView = new ActionView
+                var propView = new ActionView(() => method.Invoke(obj, null), EngineApp.Current.Dispatcher)
                 {
-                    DisplayName = name,
-                    ExecuteCommand = new Command(() => method.Invoke(obj, null)),
+                    DisplayName = method.Name
                 };
 
                 actions.Add(propView);

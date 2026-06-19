@@ -143,21 +143,18 @@ namespace XrSamples.Graffiti
         {
             var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-130312.json");
 
-            _ = App!.Renderer!.Dispatcher.ExecuteAsync(() =>
-            {
+            await EngineApp.RenderThread;
 
-                var generator = new CanvasImageGenerator();
-                using var image = generator.Generate(record, 0.001f / 6f);
+            var generator = new CanvasImageGenerator();
+            using var image = generator.Generate(record, 0.001f / 6f);
 
-                Log.Debug(this, "Encoding image...");
+            Log.Debug(this, "Encoding image...");
 
-                using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-                using var outStream = File.OpenWrite("d:\\image.png");
-                data.SaveTo(outStream);
+            using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+            using var outStream = File.OpenWrite("d:\\image.png");
+            data.SaveTo(outStream);
 
-                Log.Debug(this, "Image saved");
-
-            });
+            Log.Debug(this, "Image saved");
         }
 
         public GraffitiTool ActiveTool { get; set; }

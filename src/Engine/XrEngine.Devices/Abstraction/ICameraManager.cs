@@ -13,8 +13,6 @@
         public string? Name { get; set; }
     }
 
-
-
     public interface ICameraManager
     {
         IList<CameraDeviceInfo> GetCameras();
@@ -24,6 +22,11 @@
     }
 
     public interface ILocalCameraManger : ICameraManager
+    {
+
+    }
+
+    public interface IUsbCameraManger : ICameraManager
     {
 
     }

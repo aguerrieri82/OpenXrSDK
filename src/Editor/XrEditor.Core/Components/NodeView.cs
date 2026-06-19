@@ -52,22 +52,21 @@ namespace XrEditor
             }
         }
 
-        protected void OnChildRemoved(INode sender, INode child)
+        protected async void OnChildRemoved(INode sender, INode child)
         {
-            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
-            {
-                var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
-                childView?.Remove();
-            });
+            await UiThread;
+
+            var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
+            childView?.Remove();
         }
 
-        protected void OnChildAdded(INode sender, INode child)
+        protected async void OnChildAdded(INode sender, INode child)
         {
-            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
-            {
-                var childView = _panel.CreateNode(child, _host);
-                _host.AddChild(childView!);
-            });
+            await UiThread;
+
+            var childView = _panel.CreateNode(child, _host);
+
+            _host.AddChild(childView!);
         }
 
 

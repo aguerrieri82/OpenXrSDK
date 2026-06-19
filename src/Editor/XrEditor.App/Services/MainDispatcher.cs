@@ -4,14 +4,13 @@ namespace XrEditor
 {
     public class MainDispatcher : IMainDispatcher
     {
-        public bool IsCurrentThread => Application.Current.Dispatcher.Thread == Thread.CurrentThread;
 
         public async Task ExecuteAsync(Action action)
         {
             if (Application.Current == null)
                 return;
 
-            if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
+            if (Thread == Thread.CurrentThread)
                 action();
             else
             {
@@ -24,13 +23,26 @@ namespace XrEditor
 
                 }
             }
-
         }
+
+        public async Task<T> ExecuteAsync<T>(Func<T> action)
+        {
+            T result = default!;
+
+            await ExecuteAsync(() =>
+            {
+                result = action();
+                return Task.CompletedTask;
+            });
+
+            return result;
+        }
+
 
         public void Execute(Action action)
         {
 
-            if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
+            if (Thread == Thread.CurrentThread)
                 action();
             else
             {
@@ -43,7 +55,13 @@ namespace XrEditor
 
                 }
             }
-
         }
+
+        public void Post(Action action)
+        {
+            Execute(action);
+        }
+
+        public Thread Thread => Application.Current.Dispatcher.Thread;
     }
 }

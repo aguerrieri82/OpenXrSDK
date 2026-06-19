@@ -30,16 +30,17 @@ namespace XrEditor.Nodes
 
         protected virtual void OnObjectChanged(EngineObject obj, ObjectChange change)
         {
-            OnNodeChanged();
+            _ = OnNodeChanged();
         }
 
-        protected virtual void OnNodeChanged()
+        protected virtual async Task OnNodeChanged()
         {
             if (_nodeChanged == null)
                 return;
 
-            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
-                _nodeChanged?.Invoke(this, EventArgs.Empty));
+            await UiThread;
+
+            _nodeChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public virtual void Actions(IList<ActionView> result)

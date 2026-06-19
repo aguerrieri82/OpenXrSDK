@@ -1,6 +1,8 @@
 ﻿
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Xml.Schema;
+using XrEngine;
 
 namespace XrEditor
 {
@@ -8,6 +10,7 @@ namespace XrEditor
     {
         public BaseView()
         {
+
         }
 
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -26,5 +29,7 @@ namespace XrEditor
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected DispatcherSwitch UiThread => Context.Require<IMainDispatcher>().Switch;
     }
 }

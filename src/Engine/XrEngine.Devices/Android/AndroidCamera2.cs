@@ -180,12 +180,16 @@ namespace XrEngine.Devices.Android
 
         public async Task OpenAsync()
         {
+            if (_device != null)
+                return;
+
             _backgroundThread = new HandlerThread("CameraBackground");
             _backgroundThread.Start();
             _backgroundHandler = new Handler(_backgroundThread.Looper!);
 
+
             _openSource = new TaskCompletionSource<CameraDevice>();
-            _manager.OpenCamera(_deviceId, new CameraDeviceState(this), new Handler(Looper.MainLooper!));
+            _manager.OpenCamera(_deviceId, new CameraDeviceState(this), _backgroundHandler);
             _device = await _openSource.Task;
 
             _chars = _manager.GetCameraCharacteristics(_deviceId);
@@ -231,7 +235,11 @@ namespace XrEngine.Devices.Android
 
         public async Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null, NativeSurface? outSurface = null)
         {
-            Debug.Assert(_device != null);
+            if (_device == null)
+                throw new Exception("Device closed");
+
+            if (_session != null)
+                StopCapture();
 
             _executor = Executors.NewSingleThreadExecutor()!;
 
@@ -327,7 +335,7 @@ namespace XrEngine.Devices.Android
                 }
             }
 
-            _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), new Handler(_backgroundHandler!.Looper));
+            _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), _backgroundHandler);
         }
 
 
@@ -340,9 +348,11 @@ namespace XrEngine.Devices.Android
         public void StopCapture()
         {
             _session?.Close();
+            _session?.Dispose();
             _session = null;
 
             _executor?.Shutdown();
+            _executor?.Dispose();
             _executor = null;
 
             _imageSize = null;
@@ -354,8 +364,10 @@ namespace XrEngine.Devices.Android
             StopCapture();
 
             _device?.Close();
+            _device?.Dispose();
             _device = null;
 
+            _surfaceTex?.Dispose();
             _surfaceTex?.Dispose();
             _surfaceTex = null;
 
@@ -369,7 +381,10 @@ namespace XrEngine.Devices.Android
             {
             }
 
+            _backgroundThread?.Dispose();
             _backgroundThread = null;
+
+            _backgroundHandler?.Dispose();
             _backgroundHandler = null;
         }
 

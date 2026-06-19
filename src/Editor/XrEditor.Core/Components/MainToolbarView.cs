@@ -17,12 +17,12 @@ namespace XrEditor
         public async Task SaveAsync()
         {
             var container = new JsonStateContainer();
+
             var scene = EngineApp.Current!.ActiveScene!;
 
-            await EngineApp.Current.Dispatcher.ExecuteAsync(() =>
-            {
-                scene.GetState(container);
-            });
+            await EngineApp.MainThread;
+            
+            scene.GetState(container);
 
             var json = container.AsJson();
             var fileName = $"scene-{scene.Id}.json";
@@ -45,10 +45,9 @@ namespace XrEditor
             var container = new JsonStateContainer(json);
             container.Context.Flags |= StateContextFlags.Update;
 
-            await EngineApp.Current.Dispatcher.ExecuteAsync(() =>
-            {
-                scene.SetState(container);
-            });
+            await EngineApp.MainThread;
+
+            scene.SetState(container);
         }
 
         public void HideUnselected(bool value)

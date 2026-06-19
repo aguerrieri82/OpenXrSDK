@@ -77,7 +77,7 @@ namespace XrSamples
                 return;
             }
 
-            var texData = _host!.Scene!.App!.Renderer!.ReadTexture(texture, texture.Format)![0];
+            var texData = _host!.Scene!.App!.Renderer.ReadTexture(texture, texture.Format)![0];
 
             using var data = texData.Data!.MemoryLock();
 

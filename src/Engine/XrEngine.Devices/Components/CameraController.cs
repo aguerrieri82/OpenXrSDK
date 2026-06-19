@@ -33,7 +33,7 @@ namespace XrEngine.Devices
         public VideoFormat Format;
     }
 
-    public class CameraController : AsyncBehavior<Scene3D>
+    public class CameraController : AsyncBehavior<Scene3D>, IDisposable
     {
         private ICameraManager? _manager;
         private ICameraPoseProvider? _poseProvider;
@@ -43,11 +43,10 @@ namespace XrEngine.Devices
         {
         }
 
-        public CameraController(ICameraManager manager)
+        public CameraController(ICameraManager? manager)
         {
             _manager = manager;
         }
-
 
         protected override void OnAttach()
         {
@@ -112,19 +111,24 @@ namespace XrEngine.Devices
             {
                 status.Texture?.Dispose();
 
-                status.Texture = new Texture2D()
+                if (GetTexture != null)
+                    status.Texture = GetTexture(cameraId);
+                else
                 {
-                    Format = TextureFormat.Rgba32,
-                    WrapT = WrapMode.ClampToEdge,
-                    WrapS = WrapMode.ClampToEdge,
-                    MagFilter = ScaleFilter.Linear,
-                    MinFilter = ScaleFilter.Linear,
-                    Type = TextureType.External,
-                    Width = (uint)format.Width,
-                    Height = (uint)format.Height
-                };
+                    status.Texture = new Texture2D()
+                    {
+                        Format = TextureFormat.Rgba32,
+                        WrapT = WrapMode.ClampToEdge,
+                        WrapS = WrapMode.ClampToEdge,
+                        MagFilter = ScaleFilter.Linear,
+                        MinFilter = ScaleFilter.Linear,
+                        Type = TextureType.External,
+                        Width = (uint)format.Width,
+                        Height = (uint)format.Height
+                    };
+                }
 
-                await Dispatcher!.ExecuteAsync(() => status.Texture.Generate());
+                status.Texture.Generate();
 
             }
 
@@ -163,7 +167,7 @@ namespace XrEngine.Devices
             return status;
         }
 
-        protected override async Task UpdateAsync()
+        protected override async Task UpdateAsync(RenderContext ctx)
         {
             foreach (var camera in _cameras.Values)
             {
@@ -193,6 +197,19 @@ namespace XrEngine.Devices
             }
         }
 
+        public void Dispose()
+        {
+            foreach (var camera in _cameras.Values)
+            {
+                if (camera.Device is IDisposable disp)
+                    disp.Dispose();
+            }
+
+            GC.SuppressFinalize(this);
+        }
+
         public ICameraManager? Manger => _manager;
+
+        public Func<string, Texture2D>? GetTexture { get; set; }
     }
 }

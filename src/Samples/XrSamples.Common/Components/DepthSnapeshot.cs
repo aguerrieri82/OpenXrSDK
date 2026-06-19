@@ -83,6 +83,8 @@ namespace XrSamples.Components
 
             var mat = (EnvDepthMaterial)_envDepth.Materials[0];
 
+
+
             var frameTexture = new Texture2D
             {
                 Width = camera.Texture!.Width,
@@ -98,8 +100,15 @@ namespace XrSamples.Components
 
             GlImageProc.CopyColor(camera.Texture!.ToGlTexture(), frameTexture.ToGlTexture());
 
-            frozenMesh.Materials.Add(new TextureMaterial(frameTexture));
-            
+            frozenMesh.Materials.Add(new TextureMaterial(frameTexture)
+            {
+                Priority = _frames.Count,
+                WriteDepth = false,
+                UseDepth = false,
+                Color = new Color(1,1,1,0.9f),
+                Alpha = AlphaMode.Blend
+            });
+
             var frame = new DepthFrame
             {
                 CameraProj = camera.Proj!.Value,

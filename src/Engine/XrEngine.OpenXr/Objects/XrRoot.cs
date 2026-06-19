@@ -39,15 +39,11 @@ namespace XrEngine.OpenXr
 
                 if (oculus != null)
                 {
-                    Task.Run(async () =>
+                    _ = Task.Run(async () =>
                     {
-
-                        //var layout = oculus.GetSpaceRoomLayout(_xrApp.Stage);
-
                         var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
                         {
                             Components = XrAnchorComponent.All,
-                            //Ids = [layout.FloorUuid.ToGuid()],
                             Labels = ["FLOOR"]
                         });
 
@@ -56,18 +52,16 @@ namespace XrEngine.OpenXr
                         if (floor == null)
                             return;
 
-                        _ = _scene!.App!.Dispatcher.ExecuteAsync(() =>
+                        await EngineApp.MainThread;
+
+                        SceneRoot.AddComponent(new XrAnchorUpdate()
                         {
-                            SceneRoot.AddComponent(new XrAnchorUpdate()
-                            {
-                                Space = new Space(floor.Space),
-                                UpdateInterval = TimeSpan.FromMilliseconds(300),
-                                LogChanges = true
-                            });
+                            Space = new Space(floor.Space),
+                            UpdateInterval = TimeSpan.FromMilliseconds(300),
+                            LogChanges = true
                         });
                     });
                 }
-                ;
 
                 Head?.AddComponent(new XrAnchorUpdate()
                 {

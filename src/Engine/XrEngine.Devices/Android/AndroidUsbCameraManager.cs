@@ -10,9 +10,9 @@ using Android;
 using Android.Content.PM;
 
 
-namespace XrEngine.Android.Devices
+namespace XrEngine.Devices.Android
 {
-    public sealed class AndroidUsbCameraManager : Java.Lang.Object, ICameraManager, IDisposable
+    public sealed class AndroidUsbCameraManager : Java.Lang.Object, IUsbCameraManger, IDisposable
     {
         private readonly ActivityA _activity;
         private readonly UsbManager _usbManager;
@@ -30,6 +30,7 @@ namespace XrEngine.Android.Devices
             _permissionAction = $"{activity.PackageName}.USB_PERMISSION";
 
             Context.Implement(this);
+            Context.Implement<IUsbCameraManger>(this);
         }
 
         private async Task EnsureUsbVideoGateAsync()

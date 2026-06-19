@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace XrEngine
 {
@@ -18,6 +19,20 @@ namespace XrEngine
         public QueueDispatcher()
         {
             _thread = Thread.CurrentThread;
+        }
+
+        public void Post(Action action)
+        {
+            var task = new QueueTask()
+            {
+                Action = () =>
+                {
+                    action();
+                    return null;
+                }
+            };
+
+            _queue.Enqueue(task);
         }
 
         public async Task ExecuteAsync(Action action)
@@ -68,10 +83,7 @@ namespace XrEngine
                 return;
 
             _thread = Thread.CurrentThread;
-            /*
-            if (_thread != Thread.CurrentThread)
-                throw new InvalidOperationException("ProcessQueue outside the dispatcher thread");
-            */
+
             _isProcessingQueue = true;
 
             try
@@ -82,11 +94,11 @@ namespace XrEngine
                     {
                         var result = task.Action!();
 
-                        task.Completion!.SetResult(result);
+                        task.Completion?.SetResult(result);
                     }
                     catch (Exception ex)
                     {
-                        task.Completion!.SetException(ex);
+                        task.Completion?.SetException(ex);
                     }
                 }
             }
@@ -97,5 +109,7 @@ namespace XrEngine
         }
 
         public Thread Thread => _thread;
+
+        public DispatcherSwitch Switch => new(this);
     }
 }

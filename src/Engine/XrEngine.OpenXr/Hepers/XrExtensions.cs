@@ -247,7 +247,7 @@ namespace XrEngine.OpenXr
         {
             OpenGLRender renderer;
 
-            if (app.Renderer == null)
+            if (!app.HasRenderer)
             {
                 var driver = xrApp.Plugin<IXrGraphicDriver>();
 

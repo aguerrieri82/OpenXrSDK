@@ -1,11 +1,9 @@
-﻿namespace XrEditor
+﻿using XrEngine;
+
+namespace XrEditor
 {
-    public interface IMainDispatcher
+    public interface IMainDispatcher : IDispatcher
     {
-        Task ExecuteAsync(Action action);
-
         void Execute(Action action);
-
-        bool IsCurrentThread { get; }
     }
 }

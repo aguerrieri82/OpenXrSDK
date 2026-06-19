@@ -182,14 +182,13 @@ namespace XrEngine.OpenGL
 
             });
 
-            await render.Dispatcher.ExecuteAsync(() =>
-            {
-                glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth,
-                    newData[0].Format,
-                    newData[0].Compression,
-                    newData,
-                    newData[0].BlockSize);
-            });
+            await render.Dispatcher.Switch;
+
+            glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth,
+                   newData[0].Format,
+                   newData[0].Compression,
+                   newData,
+                   newData[0].BlockSize);
         }
 
         public static void Update(this GlTexture glTexture, Texture2D texture2D)

@@ -1,6 +1,8 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using System.Diagnostics;
 using System.Reflection;
+using XrEngine.Services;
 using XrInteraction;
 
 
@@ -61,6 +63,11 @@ namespace XrEngine.OpenXr.Android
             Visit(entry);
 
             global::Android.Util.Log.Debug(nameof(XrEngineActivity), $"End preload");
+        }
+
+        protected override void ConfigureMainLoop()
+        {
+            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
         }
 
 

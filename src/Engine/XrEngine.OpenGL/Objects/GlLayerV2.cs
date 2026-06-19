@@ -103,45 +103,58 @@ namespace XrEngine.OpenGL
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
 
-            var clean = new List<Action>();
-
-            foreach (var shader in _content.Contents)
+            foreach (var shaderEntry in _content.Contents.ToArray())
             {
-                foreach (var material in shader.Value.Contents)
+                var shaderContent = shaderEntry.Value;
+
+                foreach (var materialEntry in shaderContent.Contents.ToArray())
                 {
-                    foreach (var vertex in material.Value.Contents)
+                    var materialContent = materialEntry.Value;
+                    var materialChanged = false;
+
+                    foreach (var vertexEntry in materialContent.Contents.ToArray())
                     {
-                        for (var i = vertex.Value.Contents.Count - 1; i >= 0; i--)
+                        var vertexContent = vertexEntry.Value;
+                        var removed = false;
+
+                        for (var i = vertexContent.Contents.Count - 1; i >= 0; i--)
                         {
-                            var draw = vertex.Value.Contents[i];
+                            var draw = vertexContent.Contents[i];
 
                             if (draw.Object == obj3d)
-                                vertex.Value.Contents.RemoveAt(i);
+                            {
+                                vertexContent.Contents.RemoveAt(i);
+                                removed = true;
+                            }
                         }
 
-                        if (vertex.Value.Contents.Count == 0)
-                            clean.Add(() =>
-                            {
-                                material.Value.Contents.Remove(vertex.Key);
-                                if (incremental)
-                                    Update(material.Value);
-                            });
+                        if (!removed)
+                            continue;
+
+                        vertexContent.ContentVersion++;
+                        materialChanged = true;
+
+                        if (vertexContent.Contents.Count == 0)
+                            materialContent.Contents.Remove(vertexEntry.Key);
                     }
 
-                    if (material.Value.Contents.Count == 0)
-                        clean.Add(() =>
-                        {
-                            shader.Value.Contents.Remove(material.Key);
-                            Invalidate(shader.Value);
-                        });
+                    if (!materialChanged)
+                        continue;
+
+                    if (materialContent.Contents.Count == 0)
+                    {
+                        shaderContent.Contents.Remove(materialEntry.Key);
+                        Invalidate(shaderContent);
+                    }
+                    else if (incremental)
+                    {
+                        Update(materialContent);
+                    }
                 }
 
-                if (shader.Value.Contents.Count == 0)
-                    clean.Add(() => _content.Contents.Remove(shader.Key));
+                if (shaderContent.Contents.Count == 0)
+                    _content.Contents.Remove(shaderEntry.Key);
             }
-
-            foreach (var action in clean)
-                action();
 
             _isContentDirty = true;
         }
@@ -242,10 +255,11 @@ namespace XrEngine.OpenGL
                     Object = obj3d,
                     ProgramInstance = materialContent.ProgramInstance
                 });
-
             }
 
             _isContentDirty = true;
+
+            //Rebuild();
         }
 
         private void Update(MaterialContentV2 materialContent)

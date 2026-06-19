@@ -15,7 +15,7 @@ namespace XrEditor.Services
         protected DateTime _lastUpdate;
         protected bool _isDirty;
         protected bool _isActive;
-        protected IMainDispatcher _main;
+        protected IMainDispatcher _mainDispatcher;
         protected Task _updateLoop;
         protected bool _isDisposed;
         private bool _updating;
@@ -23,7 +23,7 @@ namespace XrEditor.Services
         public BaseUIRetainLogger()
         {
             _isActive = true;
-            _main = Context.Require<IMainDispatcher>();
+            _mainDispatcher = Context.Require<IMainDispatcher>();
             _messages = [];
             _updateLoop = UpdateLoopTask();
         }
@@ -54,15 +54,14 @@ namespace XrEditor.Services
             _lastUpdate = invokeTime;
             _isDirty = false;
 
-            await _main.ExecuteAsync(() =>
-            {
-                if (_messages.Count > 0)
-                    UpdateMessages();
+            await _mainDispatcher.Switch;
 
-                UpdateProgress(progressCurrent, progressTotal, progressMgs);
+            if (!_messages.IsEmpty)
+                UpdateMessages();
 
-                _updating = false;
-            });
+            UpdateProgress(progressCurrent, progressTotal, progressMgs);
+
+            _updating = false;
         }
 
         protected abstract void UpdateMessages();

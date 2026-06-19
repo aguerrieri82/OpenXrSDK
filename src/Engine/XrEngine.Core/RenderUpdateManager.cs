@@ -139,7 +139,6 @@ namespace XrEngine
                             item.Update(ctx);
                     }
                 }
-                ;
             }
             finally
             {

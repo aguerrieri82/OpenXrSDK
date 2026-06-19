@@ -41,7 +41,7 @@ namespace XrEngine
 
             var fullPath = Path.Combine(_cacheBasePath, fileName);
 
-            var data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
+            var data = EngineApp.Current.Renderer.ReadTexture(texture, texture.Format, 0, null);
             if (data == null)
                 return false;
 

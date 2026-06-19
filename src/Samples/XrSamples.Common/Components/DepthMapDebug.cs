@@ -17,7 +17,7 @@ namespace XrSamples
         protected override void Start(RenderContext ctx)
         {
             ActiveObject = "#3396";
-            _renderer = (OpenGLRender)ctx.Scene!.App!.Renderer!;
+            _renderer = (OpenGLRender)ctx.Scene!.App!.Renderer;
             _depthPass = _renderer.Pass<GlDepthPass>()!;
             _opaque = (GlLayerV2)_renderer.Layers.First(a => a.Type == GlLayerType.Opaque);
 

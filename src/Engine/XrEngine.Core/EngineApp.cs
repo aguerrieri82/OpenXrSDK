@@ -1,4 +1,4 @@
-﻿using XrEngine.Services;
+﻿
 using XrMath;
 
 namespace XrEngine
@@ -13,13 +13,15 @@ namespace XrEngine
 
     public class EngineApp : IAsyncDisposable
     {
+        static EngineApp? _current;
+
         protected readonly HashSet<Scene3D> _scenes = [];
         protected readonly RenderContext _context;
         protected float _startTime;
         protected Scene3D? _activeScene;
         protected readonly EngineAppStats _stats;
         protected PlayState _playState;
-        protected Thread? _renderThread;
+        protected IRenderEngine? _renderer;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
@@ -30,9 +32,9 @@ namespace XrEngine
             _dispatcher = new QueueDispatcher();
             
             //TODO set current by hand (more app in editor)
-            if (Current == null)
+            if (_current == null)
             {
-                Current = this;
+                _current = this;
                 Context.Implement(this);
             }
         }
@@ -69,8 +71,6 @@ namespace XrEngine
 
             _playState = PlayState.Start;
 
-            //SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_dispatcher));
-
             OnStarted();
         }
 
@@ -93,13 +93,13 @@ namespace XrEngine
 
         public bool BeginFrame()
         {
-            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+            _dispatcher.ProcessQueue();
+
+            if (_activeScene == null || _activeScene.ActiveCamera == null || _renderer == null) 
                 return false;
 
             _context.Frame++;
             _context.Scene = _activeScene;
-
-            _renderThread = Thread.CurrentThread;
 
             if (_playState == PlayState.Start)
             {
@@ -115,8 +115,6 @@ namespace XrEngine
                 _activeScene.Update(_context);
             }
 
-            _dispatcher.ProcessQueue();
-
             _activeScene.DrawGizmos();
 
             _stats.BeginFrame();
@@ -126,7 +124,6 @@ namespace XrEngine
 
         public void RenderScene(Camera? camera = null, bool flush = true)
         {
-
             if (_activeScene == null || Renderer == null)
                 return;
 
@@ -185,12 +182,27 @@ namespace XrEngine
 
         public Scene3D? ActiveScene => _activeScene;
 
-        public Thread? RenderThread => _renderThread;
+        public bool HasRenderer => _renderer != null;
 
-        public IRenderEngine? Renderer { get; set; }
+        public IRenderEngine Renderer
+        {
+            get => _renderer ?? throw new NotSupportedException();
+
+            set => _renderer = value;
+        }
 
         public IReferenceTime? ReferenceTime { get; set; }
 
-        public static EngineApp? Current { get; private set; }
+        public static EngineApp Current
+        {
+            set => _current = value;
+            get => _current ?? throw new NotSupportedException();
+        }
+
+        public static bool IsCreated => _current != null;
+
+        public static DispatcherSwitch MainThread => Current.Dispatcher.Switch;
+
+        public static DispatcherSwitch RenderThread => Current.Renderer.Dispatcher.Switch;
     }
 }

@@ -9,7 +9,7 @@
     using XrEngine.UI.Web;
     using XrEngine.Media;
 #else
-    using XrEngine.Android.Devices;
+    using XrEngine.Devices.Android;
 #endif
 
 using CanvasUI;
@@ -295,7 +295,7 @@ namespace XrSamples
 
                 depth.AddBehavior((_, _) =>
                 {
-                    var sp = depth.Scene!.App!.Renderer!.Feature<IShadowMapProvider>()!;
+                    var sp = depth.Scene!.App!.Renderer.Feature<IShadowMapProvider>()!;
 
                     if (sp.Options.Mode == ShadowMapMode.VSM)
                     {
@@ -793,6 +793,13 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
+            ICameraManager? manager = null;
+
+#if __ANDROID__
+            manager = Context.Require<AndroidUsbCameraManager>();
+#endif
+            var controller = scene.AddComponent(new CameraController(manager));
+
             var videoTex = new Texture2D
             {
                 Format = TextureFormat.Rgba32,
@@ -801,6 +808,8 @@ namespace XrSamples
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
             };
+
+            controller.GetTexture = _ => videoTex;
 
             /*
             if (OperatingSystem.IsAndroid())
@@ -819,14 +828,10 @@ namespace XrSamples
                 //IsExternal = true
             };
 
-            var mat2 = new TextureMaterial(videoTex);
-
             var mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(0, 1f, 0);
-
-            mesh.AddComponent(new CameraTexturePlayer(videoTex));
 
             /*
             mesh.AddComponent(new VideoTexturePlayer()
@@ -1328,7 +1333,7 @@ namespace XrSamples
                 .ConfigureSampleApp()
                 .ConfigureApp(a =>
                 {
-                    OpenGLRender.Current.EnableDebug(true);
+                    OpenGLRender.Current!.EnableDebug(true);
                     snapeshot.ConfigureInput(a.Inputs!);
                 });
         }
@@ -1771,7 +1776,7 @@ namespace XrSamples
         [Sample("Usb Camera")]
         public static XrEngineAppBuilder CreateUsbCamera(this XrEngineAppBuilder builder)
         {
-            ICameraManager manager = null;
+            ICameraManager? manager = null;
 
 #if __ANDROID__
             manager = Context.Require<AndroidUsbCameraManager>();
@@ -1836,10 +1841,9 @@ namespace XrSamples
                             var height = 0.5f;
                             var width = height * ratio;
 
-                            _ = scene.App!.Dispatcher.ExecuteAsync(() =>
-                            {
-                                main.Transform.Scale = new Vector3(width, height, 0.01f);
-                            });
+                            await EngineApp.MainThread;
+
+                            main.Transform.Scale = new Vector3(width, height, 0.01f);
 
                             await camera.StartCaptureAsync(curFormat, texture);
 

@@ -17,7 +17,6 @@ namespace XrEditor
         private readonly ObservableCollection<PropertiesGroupView> _groups = [];
         private readonly List<PropertyView> _props = [];
         private ImageView? _nodePreview;
-        private IDispatcher? _renderDispatcher;
         private int _isUpdatingProps;
 
         public PropertiesEditor(PropertiesEditorMode mode, Guid panelId)
@@ -217,15 +216,17 @@ namespace XrEditor
 
             var obj = (EngineObject)_activeNode!.Value;
 
-            await EngineApp.Current!.Dispatcher.ExecuteAsync(() => obj.AddComponent(comp));
-
             var grp = CreateProps(comp.GetNode());
 
             if (grp != null)
                 _groups.Add(grp);
+
+            await EngineApp.MainThread;
+
+            obj.AddComponent(comp);
         }
 
-        protected virtual void OnNodeChanged(object? sender, EventArgs e)
+        protected async virtual void OnNodeChanged(object? sender, EventArgs e)
         {
             if (_isUpdatingProps > 0)
                 return;
@@ -248,14 +249,12 @@ namespace XrEditor
 
             _isUpdatingProps++;
 
-            _renderDispatcher ??= EngineApp.Current!.Dispatcher;
+            await EngineApp.MainThread;
 
-            _renderDispatcher.ExecuteAsync(() =>
-            {
-                foreach (var update in updates)
-                    update();
-                _isUpdatingProps--;
-            });
+            foreach (var update in updates)
+                update();
+
+            _isUpdatingProps--;
         }
 
         public ObservableCollection<PropertiesGroupView> Groups => _groups;

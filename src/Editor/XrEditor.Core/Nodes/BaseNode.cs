@@ -1,4 +1,6 @@
 ﻿
+using XrEngine;
+
 namespace XrEditor.Nodes
 {
     public abstract class BaseNode<T> : IEditableNode where T : notnull
@@ -52,5 +54,7 @@ namespace XrEditor.Nodes
         object INode.Value => _value;
 
         public INode? Parent => _parent;
+
+        protected DispatcherSwitch UiThread => Context.Require<IMainDispatcher>().Switch;
     }
 }

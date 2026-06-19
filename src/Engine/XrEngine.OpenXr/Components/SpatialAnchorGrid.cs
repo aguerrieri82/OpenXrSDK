@@ -123,7 +123,7 @@ namespace XrEngine.OpenXr
         }
 
 
-        protected override async Task UpdateAsync()
+        protected override async Task UpdateAsync(RenderContext ctx)
         {
             if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;

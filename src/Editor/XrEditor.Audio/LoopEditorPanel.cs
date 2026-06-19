@@ -246,12 +246,9 @@ namespace XrEditor.Audio
             _statusText = ToolBar.AddText("");
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_insights", () => Task.Run(GenerateLoops));
-
         }
 
-
-
-        public void GenerateLoops()
+        public async void GenerateLoops()
         {
             _settings.Offset = 0;
             var slices = new List<AudioSlice>();
@@ -283,9 +280,10 @@ namespace XrEditor.Audio
 
             var json = JsonConvert.SerializeObject(slices);
 
-            _mainDispatcher.Execute(() => Context.Require<IClipboard>().Copy(json, "text/json"));
-        }
+            await UiThread;
 
+            Context.Require<IClipboard>().Copy(json, "text/json");
+        }
 
         public Task PlayAsync()
         {

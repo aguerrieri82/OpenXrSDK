@@ -49,15 +49,14 @@ namespace XrEngine.OpenXr
             return new TriangleMesh(geoEye);
         }
 
-
         public static unsafe Geometry3D CreateDepthColorGrid(
-            ushort* depth,
-            int depthWidth,
-            int depthHeight,
-            int gridWidth,
-            int gridHeight,
-            Matrix4x4 depthViewProjInv,
-            Matrix4x4 colorViewProj)
+    ushort* depth,
+    int depthWidth,
+    int depthHeight,
+    int gridWidth,
+    int gridHeight,
+    Matrix4x4 depthViewProjInv,
+    Matrix4x4 colorViewProj)
         {
             var vertices = new VertexData[gridWidth * gridHeight];
             var valid = new bool[gridWidth * gridHeight];
@@ -69,10 +68,11 @@ namespace XrEngine.OpenXr
             var maxDepthX = depthWidth - 1;
             var maxDepthY = depthHeight - 1;
 
+            const float maxWorldEdge = 0.10f;
+            const float maxWorldEdgeSq = maxWorldEdge * maxWorldEdge;
+
             static bool KeepTriangle(uint i0, uint i1, uint i2, VertexData[] vertices, bool[] valid)
             {
-                const float maxWorldEdge = 0.10f;
-
                 if (!valid[i0] || !valid[i1] || !valid[i2])
                     return false;
 
@@ -80,13 +80,13 @@ namespace XrEngine.OpenXr
                 var p1 = vertices[i1].Pos;
                 var p2 = vertices[i2].Pos;
 
-                if (Vector3.Distance(p0, p1) > maxWorldEdge)
+                if (Vector3.DistanceSquared(p0, p1) > maxWorldEdgeSq)
                     return false;
 
-                if (Vector3.Distance(p1, p2) > maxWorldEdge)
+                if (Vector3.DistanceSquared(p1, p2) > maxWorldEdgeSq)
                     return false;
 
-                if (Vector3.Distance(p2, p0) > maxWorldEdge)
+                if (Vector3.DistanceSquared(p2, p0) > maxWorldEdgeSq)
                     return false;
 
                 return true;
@@ -122,7 +122,7 @@ namespace XrEngine.OpenXr
 
                     var world4 = Vector4.Transform(clip, depthViewProjInv);
 
-                    if (world4.W == 0)
+                    if (world4.W == 0.0f)
                     {
                         valid[index] = false;
                         continue;
@@ -138,7 +138,7 @@ namespace XrEngine.OpenXr
 
                     var colorClip = Vector4.Transform(new Vector4(world, 1.0f), colorViewProj);
 
-                    if (colorClip.W == 0)
+                    if (colorClip.W == 0.0f)
                     {
                         valid[index] = false;
                         continue;
@@ -151,7 +151,14 @@ namespace XrEngine.OpenXr
                         colorClip.Y * invColorW * 0.5f + 0.5f
                     );
 
-                    colorUv.Y = 1 - colorUv.Y;
+                    colorUv.Y = 1.0f - colorUv.Y;
+
+                    if (colorUv.X < 0.0f || colorUv.X > 1.0f ||
+                        colorUv.Y < 0.0f || colorUv.Y > 1.0f)
+                    {
+                        valid[index] = false;
+                        continue;
+                    }
 
                     vertices[index] = new VertexData
                     {
@@ -195,7 +202,9 @@ namespace XrEngine.OpenXr
             {
                 Vertices = vertices,
                 Indices = indices.ToArray(),
-                ActiveComponents = VertexComponent.Position | VertexComponent.UV0 | VertexComponent.Normal
+                ActiveComponents = VertexComponent.Position |
+                                   VertexComponent.UV0 |
+                                   VertexComponent.Normal
             };
 
             result.ComputeNormals();

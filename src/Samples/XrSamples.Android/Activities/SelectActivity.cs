@@ -2,7 +2,6 @@ using _Microsoft.Android.Resource.Designer;
 using Android.Content;
 using Android.Content.PM;
 using System.Text.Json;
-using XrEngine.Android.Devices;
 using XrEngine.OpenXr;
 
 namespace XrSamples.Android.Activities

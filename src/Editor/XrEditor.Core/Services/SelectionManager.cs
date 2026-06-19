@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using XrEngine;
 
 namespace XrEditor.Services
@@ -8,12 +9,12 @@ namespace XrEditor.Services
         protected BulkObservableCollection<INode> _items = [];
         protected bool _isChanged;
         protected int _update;
-        protected readonly IMainDispatcher _main;
+        protected readonly IMainDispatcher _mainDispatcher;
 
         public SelectionManager()
         {
             _items.CollectionChanged += OnChanged;
-            _main = Context.Require<IMainDispatcher>();
+            _mainDispatcher = Context.Require<IMainDispatcher>();
         }
 
         protected virtual void NotifyChanged()
@@ -44,13 +45,16 @@ namespace XrEditor.Services
                 NotifyChanged();
         }
 
-        public void Clear() => _main.ExecuteAsync(() =>
+        public async void Clear()
         {
+            await _mainDispatcher.Switch;
             _items.Clear();
-        });
+        }
 
-        public void Set(params INode[] items) => _main.ExecuteAsync(() =>
+        public async void Set(params INode[] items) 
         {
+            await _mainDispatcher.Switch;
+
             BeginUpdate();
 
             _items.Clear();
@@ -58,7 +62,7 @@ namespace XrEditor.Services
                 _items.Add(item);
 
             EndUpdate();
-        });
+        }
 
         public bool IsSelected(INode value)
         {

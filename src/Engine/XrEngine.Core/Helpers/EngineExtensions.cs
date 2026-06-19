@@ -1389,7 +1389,7 @@ namespace XrEngine
 
         public static void Generate(this Texture2D texture)
         {
-            var render = EngineApp.Current!.Renderer!;
+            var render = EngineApp.Current.Renderer;
             render.LoadTexture(texture);
         }
 

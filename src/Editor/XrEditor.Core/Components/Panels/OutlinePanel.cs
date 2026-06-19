@@ -57,8 +57,6 @@ namespace XrEditor
 
         private void OnSelectionChanged(ListTreeNodeView obj)
         {
-            Debug.Assert(_mainDispatcher.IsCurrentThread);
-
             var node = ((NodeView)obj.Header!).Node;
 
             var curSelected = _selection.IsSelected(node);

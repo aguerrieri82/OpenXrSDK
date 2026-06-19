@@ -33,7 +33,7 @@ namespace XrSamples
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
         private readonly Timer _notifyTimer;
-        private IDispatcher? _dispatcher;
+
 
         public PlotterTimeLogger(Plotter plotter)
         {
@@ -56,13 +56,15 @@ namespace XrSamples
             RetainTimeMs = 500;
         }
 
-        protected void OnNotify()
+        protected async void OnNotify()
         {
             if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs)
             {
                 _lastNotifyTime = DateTime.UtcNow;
-                if (EnsureDispatcher())
-                    _dispatcher.ExecuteAsync(() => _plotter.NotifyChanged(null));
+                
+                await EngineApp.MainThread;
+
+                _plotter.NotifyChanged(null);
             }
         }
 
@@ -75,22 +77,18 @@ namespace XrSamples
         }
 
 
-        public void Checkpoint(string name, Color color)
+        public async void Checkpoint(string name, Color color)
         {
             if (!IsEnabled)
                 return;
 
-            if (!EnsureDispatcher())
-                return;
+            await EngineApp.MainThread;
 
-            _dispatcher.ExecuteAsync(() =>
+            _plotter.ReferencesX.Add(new PlotterReference()
             {
-                _plotter.ReferencesX.Add(new PlotterReference()
-                {
-                    Value = EngineApp.Current!.Stats.Frame,
-                    Name = name,
-                    Color = color
-                });
+                Value = EngineApp.Current!.Stats.Frame,
+                Name = name,
+                Color = color
             });
         }
 
@@ -104,7 +102,7 @@ namespace XrSamples
         }
 
 
-        public void LogValue(string name, float value)
+        public async void LogValue(string name, float value)
         {
             if (!IsEnabled)
                 return;
@@ -123,8 +121,9 @@ namespace XrSamples
                     SampleMode = SerieSampleMode.Nearest
                 };
 
-                if (EnsureDispatcher())
-                    _dispatcher.ExecuteAsync(() => _plotter.Series.Add(serie));
+                await EngineApp.MainThread;
+
+                _plotter.Series.Add(serie);
             }
 
             _lastValueTime = DateTime.UtcNow;
@@ -147,14 +146,6 @@ namespace XrSamples
             _plotter.Series.Clear();
             _plotter.ReferencesX.Clear();
         }
-
-        [MemberNotNullWhen(true, nameof(_dispatcher))]
-        protected bool EnsureDispatcher()
-        {
-            _dispatcher = EngineApp.Current?.Renderer?.Dispatcher;
-            return _dispatcher != null;
-        }
-
 
         public int RetainTimeMs { get; set; }
 

@@ -5,7 +5,7 @@ namespace XrEngine
     {
         void Attach(IComponentHost host);
 
-        void Detach();
+        void Detach(bool isDispose = false);
 
         void Suspend();
 

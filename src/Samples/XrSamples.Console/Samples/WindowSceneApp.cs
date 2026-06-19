@@ -104,7 +104,8 @@ namespace XrSamples
                 {
                     var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-220511.json");
 
-                    var generator = new CanvasImageGenerator((OpenGLRender)app.Renderer!);
+                    var generator = new CanvasImageGenerator((OpenGLRender)app.Renderer);
+
                     using var image = generator.Generate(record, 0.001f / 1f);
 
                     Log.Debug(generator, "Encoding image...");

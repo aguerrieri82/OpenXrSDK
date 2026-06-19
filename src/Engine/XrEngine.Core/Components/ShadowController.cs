@@ -11,13 +11,10 @@
 
         }
 
-
         protected override void Start(RenderContext ctx)
         {
-            _mapProvider = _host?.App?.Renderer?.Feature<IShadowMapProvider>();
-            _contactProvider = _host?.App?.Renderer?.Feature<IContactShadowProvider>();
-
-            base.Start(ctx);
+            _mapProvider = _host?.App?.Renderer.Feature<IShadowMapProvider>();
+            _contactProvider = _host?.App?.Renderer.Feature<IContactShadowProvider>();
         }
 
         [Action]

@@ -203,19 +203,15 @@ namespace XrSamples.Graffiti
 
 
         [Action]
-        public async Task SaveImage()
+        public void SaveImage()
         {
-            _ = _scene!.App!.Renderer!.Dispatcher.ExecuteAsync(() =>
-            {
-                var texture = _colorTexture.ToGlTexture().Read(TextureFormat.Rgba32);
-                using var image = ImageUtils.ToBitmap(texture![0], false, SKAlphaType.Unpremul)!;
-                using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-                using var outStream = File.OpenWrite(SaveImageName!);
-                data.SaveTo(outStream);
+            var texture = _colorTexture.ToGlTexture().Read(TextureFormat.Rgba32);
+            using var image = ImageUtils.ToBitmap(texture![0], false, SKAlphaType.Unpremul)!;
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var outStream = File.OpenWrite(SaveImageName!);
+            data.SaveTo(outStream);
 
-                Log.Info(this, "Image saved");
-            });
-
+            Log.Info(this, "Image saved");
         }
 
         public string? SaveImageName { get; set; }
