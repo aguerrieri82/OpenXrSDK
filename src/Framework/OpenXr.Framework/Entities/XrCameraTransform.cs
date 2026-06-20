@@ -22,17 +22,18 @@ namespace OpenXr.Framework
 
         public static XrCameraTransform FromView(Pose3 pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-            var result = new XrCameraTransform();
+            var result = new XrCameraTransform
+            {
+                Projection = CreateProjectionFov(
+                       MathF.Tan(fov.AngleLeft),
+                       MathF.Tan(fov.AngleRight),
+                       MathF.Tan(reverseUpDown ? fov.AngleDown : fov.AngleUp),
+                       MathF.Tan(reverseUpDown ? fov.AngleUp : fov.AngleDown),
+                       nearPlane,
+                       farPlane),
 
-            result.Projection = CreateProjectionFov(
-                   MathF.Tan(fov.AngleLeft),
-                   MathF.Tan(fov.AngleRight),
-                   MathF.Tan(reverseUpDown ? fov.AngleDown : fov.AngleUp),
-                   MathF.Tan(reverseUpDown ? fov.AngleUp : fov.AngleDown),
-                   nearPlane,
-                   farPlane);
-
-            result.Transform = pose.ToMatrix();
+                Transform = pose.ToMatrix()
+            };
 
             return result;
         }

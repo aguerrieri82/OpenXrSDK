@@ -5,7 +5,7 @@ namespace XrEngine.Helpers
 {
     public static class TextureFactory
     {
-        public unsafe static Texture2D CreateChecker()
+        public static Texture2D CreateChecker()
         {
             return CreateChecker(16, 16, Color.White, Color.Black);
         }

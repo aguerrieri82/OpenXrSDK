@@ -39,10 +39,10 @@ namespace XrEditor
         }
 
 
-        public void Execute(Action action)
+        public void Execute(Action action, bool force)
         {
 
-            if (Thread == Thread.CurrentThread)
+            if (!force && Thread == Thread.CurrentThread)
                 action();
             else
             {
@@ -59,7 +59,7 @@ namespace XrEditor
 
         public void Post(Action action)
         {
-            Execute(action);
+            Execute(action, false);
         }
 
         public Thread Thread => Application.Current.Dispatcher.Thread;

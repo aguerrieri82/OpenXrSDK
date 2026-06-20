@@ -201,7 +201,5 @@ namespace XrEngine
         {
             return self.Context.Is(flag);
         }
-
-
     }
 }

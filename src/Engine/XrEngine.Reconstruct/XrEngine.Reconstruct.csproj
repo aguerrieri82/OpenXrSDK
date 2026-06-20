@@ -5,17 +5,17 @@
 		<SingleProject>true</SingleProject>
 	</PropertyGroup>
 
-
+	<ItemGroup>
+		<ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />
+		<ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<EmbeddedResource Include="Shaders\*" />
+	</ItemGroup>
 
 	<ItemGroup>
-    <ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />
-    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
-  </ItemGroup>
-
-
-
-	<ItemGroup>
-	  <Folder Include="Objects\" />
+		<Folder Include="Objects\" />
 	</ItemGroup>
 
 </Project>

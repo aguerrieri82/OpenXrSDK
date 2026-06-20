@@ -1,0 +1,80 @@
+﻿namespace XrEngine
+{
+    public abstract class Behavior<T> : BaseComponent<T>, IBehavior, IComponent<T> where T : EngineObject
+    {
+        protected double _startTime;
+        protected double _lastUpdateTime;
+        protected double _deltaTime;
+
+        public Behavior()
+        {
+            _isEnabled = true;
+            _startTime = -1;
+        }
+
+        public virtual void Reset(bool onlySelf = false)
+        {
+            _startTime = -1;
+            _lastUpdateTime = 0;
+        }
+
+
+        protected virtual void Start(RenderContext ctx)
+        {
+
+        }
+
+        protected virtual void Update(RenderContext ctx)
+        {
+
+        }
+
+        public void ForceUpdate(RenderContext ctx)
+        {
+            ((IRenderUpdate)this).Update(ctx);
+        }
+
+        void IRenderUpdate.Update(RenderContext ctx)
+        {
+            if (!_isEnabled || _suspendCount > 0 || _host == null)
+                return;
+
+            if (_startTime == -1)
+            {
+                Start(ctx);
+                Log.Debug(this, "Started component {0}", GetType().Name);
+                _startTime = ctx.Time;
+                Started?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
+
+                try
+                {
+#if DEBUG
+                    EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+#else
+                    Update(ctx);
+#endif
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(this, ex, "Update error: {0}");
+                }
+
+                _lastUpdateTime = ctx.Time;
+            }
+        }
+
+        protected bool IsStarted => _startTime != -1;
+
+        protected double DeltaTime => _deltaTime;
+
+        public event EventHandler? Started;
+
+        public IUpdateGroup? UpdateGroup { get; set; }
+
+        public int UpdatePriority { get; protected set; }
+    }
+}

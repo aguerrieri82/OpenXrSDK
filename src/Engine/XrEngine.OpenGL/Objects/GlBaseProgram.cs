@@ -190,6 +190,10 @@ namespace XrEngine.OpenGL
                     glText.Update(tex2d);
             }
         }
+        public void SetUniform(string name, bool value, bool optional = false)
+        {
+            SetUniform(name, value ? 1 : 0, optional);
+        }
 
         public void SetUniform(string name, int value, bool optional = false)
         {
@@ -434,5 +438,7 @@ namespace XrEngine.OpenGL
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
+
+
     }
 }

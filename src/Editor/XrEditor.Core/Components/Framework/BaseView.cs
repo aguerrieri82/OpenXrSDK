@@ -8,6 +8,8 @@ namespace XrEditor
 {
     public abstract class BaseView : INotifyPropertyChanged
     {
+        protected static IMainDispatcher _mainDispatcher = Context.Require<IMainDispatcher>();
+
         public BaseView()
         {
 
@@ -30,6 +32,6 @@ namespace XrEditor
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected DispatcherSwitch UiThread => Context.Require<IMainDispatcher>().Switch;
+        protected DispatcherSwitch UiThread => _mainDispatcher.Switch;
     }
 }

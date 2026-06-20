@@ -242,6 +242,8 @@ namespace XrEditor
 
         protected virtual void OnSelectionChanged()
         {
+            Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
+
             if (_isSelected)
                 _host._selectedItems.Add(this);
             else
@@ -264,14 +266,38 @@ namespace XrEditor
                 if (_isSelected == value)
                     return;
 
-                Log.Debug(this, "Sel: {0} ({1})", value, this.Header);
-
-                _isSelected = value;
-
-                OnSelectionChanged();
-
-                OnPropertyChanged(nameof(IsSelected));
+                SetSelectedCore(value, notifySelectionChanged: true);
             }
+        }
+
+        internal void SetSelectedFromSelectionManager(bool value)
+        {
+            if (_isSelected == value)
+                return;
+
+            SetSelectedCore(value, notifySelectionChanged: false);
+        }
+
+        private void SetSelectedCore(bool value, bool notifySelectionChanged)
+        {
+            _isSelected = value;
+
+            Log.Debug(this, "[Sel] IsSelected: {0} ({1})", value, Header);
+
+            Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
+
+            if (_isSelected)
+                _host._selectedItems.Add(this);
+            else
+                _host._selectedItems.Remove(this);
+
+            if (notifySelectionChanged)
+                SelectionChanged?.Invoke(this);
+
+            Context.Require<IMainDispatcher>().Execute(() =>
+            {
+                OnPropertyChanged(nameof(IsSelected));
+            }, true);
         }
 
         public bool IsExpanded

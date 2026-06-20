@@ -38,7 +38,7 @@ namespace XrSamples
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = false,
-                TextureCompression = false
+                TextureCompression = true
             };
         }
 

@@ -25,6 +25,10 @@ namespace XrEngine
         protected Matrix4x4 _viewProjInverse;
         protected Vector3 _target;
         protected bool _viewProjDirty = true;
+        protected bool _projDirty = true;
+        protected bool _projInverseDirty = true;
+        protected float _near;
+        protected float _far;
 
         public Camera()
         {
@@ -80,15 +84,44 @@ namespace XrEngine
 
         protected virtual void CopyFrom(Camera camera)
         {
-            BackgroundColor = camera.BackgroundColor;
-            Near = camera.Near;
-            Far = camera.Far;
-            Exposure = camera.Exposure;
-            Projection = camera.Projection;
-            WorldMatrix = camera.WorldMatrix;
+            _near = camera.Near;
+            _far = camera.Far;
+            _proj = camera.Projection;
             _target = camera.Target;
+            _viewProjDirty = true;
+            _projInverseDirty = true;
+
+            BackgroundColor = camera.BackgroundColor;
+            Exposure = camera.Exposure;
+            WorldMatrix = camera.WorldMatrix;
             Eyes = camera.Eyes;
             ActiveEye = camera.ActiveEye;
+        }
+
+
+        protected virtual void ExtractProjectionInternals()
+        {
+
+        }
+
+        protected virtual void BuildProjection()
+        {
+
+        }
+
+        protected void UpdateViewProjectionAndInverse()
+        {
+            _viewProj = View * Projection;
+            _viewProjInverse = _viewProj.Invert();
+            _viewProjDirty = false;
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ChangeType.Transform))
+                _viewProjDirty = true;
+
+            base.OnChanged(change);
         }
 
 
@@ -114,12 +147,21 @@ namespace XrEngine
 
         public Matrix4x4 Projection
         {
-            get => _proj;
+            get
+            {
+                if (_projDirty)
+                    BuildProjection();
+                return _proj;
+            }
             set
             {
+                if (value == _proj)
+                    return;
+
                 _proj = value;
-                _projInverse = _proj.Invert();
+                _projInverseDirty = true;
                 _viewProjDirty = true;
+                ExtractProjectionInternals();
             }
         }
 
@@ -128,7 +170,7 @@ namespace XrEngine
             get
             {
                 if (_viewProjDirty)
-                    UpdateViewProjection();
+                    UpdateViewProjectionAndInverse();
                 return _viewProj;
             }
         }
@@ -138,35 +180,57 @@ namespace XrEngine
             get
             {
                 if (_viewProjDirty)
-                    UpdateViewProjection();
+                    UpdateViewProjectionAndInverse();
                 return _viewProjInverse;
             }
         }
 
-        protected void UpdateViewProjection()
+        public Matrix4x4 ProjectionInverse
         {
-            _viewProj = View * Projection;
-            _viewProjInverse = _viewProj.Invert();
-            _viewProjDirty = false;
+            get
+            {
+                if (_projInverseDirty)
+                {
+                    _projInverse = _proj.Invert();
+                    _projInverseDirty = false;
+                }
+
+                return _projInverse;
+            }
         }
-
-        protected override void OnChanged(ObjectChange change)
-        {
-            if (change.IsAny(ChangeType.Transform))
-                _viewProjDirty = true;
-
-            base.OnChanged(change);
-        }
-
-        public Matrix4x4 ProjectionInverse => _projInverse;
 
         public Matrix4x4 ViewInverse => WorldMatrix;
 
         public Color BackgroundColor { get; set; }
 
-        public float Near { get; set; }
 
-        public float Far { get; set; }
+        [Range(0.01f, 1f, 0.01f)]
+        public float Near
+        {
+            get => _near;
+            set
+            {
+                if (_near == value)
+                    return;
+                _near = value;
+                _projDirty = true;
+                _viewProjDirty = true;
+            }
+        }
+
+        [Range(0.5f, 1000, 1)]
+        public float Far
+        {
+            get => _far;
+            set
+            {
+                if (_far == value)
+                    return;
+                _far = value;
+                _projDirty = true;
+                _viewProjDirty = true;
+            }
+        }
 
         [Range(0, 10, 0.1f)]
         public float Exposure { get; set; }

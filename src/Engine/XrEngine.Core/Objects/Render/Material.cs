@@ -24,10 +24,10 @@ namespace XrEngine
         Always = 0x0207
     }
 
-    public abstract class Material : EngineObject, IHosted, IMaterial
+    public abstract partial class Material : EngineObject, IHosted, IMaterial
     {
         protected HashSet<EngineObject> _hosts = [];
-        protected bool _isEnabled;
+
 
         public Material()
         {
@@ -98,9 +98,7 @@ namespace XrEngine
         [Action]
         public virtual void Reload()
         {
-
-            this.OnChanged(ChangeType.Material);
-
+            OnChanged(ChangeType.Material);
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;
@@ -133,17 +131,9 @@ namespace XrEngine
 
         public int Priority { get; set; }
 
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set
-            {
-                if (_isEnabled == value)
-                    return;
-                _isEnabled = value;
-                NotifyChanged(ChangeType.MaterialEnabled);
-            }
-        }
+
+        [Notify(ChangeType.MaterialEnabled)]
+        public partial bool IsEnabled { get; set; }
 
         public virtual Material Clone()
         {

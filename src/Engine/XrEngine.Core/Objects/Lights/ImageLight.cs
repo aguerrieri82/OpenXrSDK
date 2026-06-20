@@ -98,10 +98,10 @@ namespace XrEngine
         {
             if (!string.IsNullOrWhiteSpace(_cacheBasePath))
             {
-                SaveCacheTexture<TextureCube>("lamb.pvr", Textures!.LambertianEnv);
-                SaveCacheTexture<TextureCube>("ggx.pvr", Textures!.GGXEnv);
-                SaveCacheTexture<Texture2D>("ggx_lut.pvr", Textures!.GGXLUT);
-                SaveCacheTexture<TextureCube>("env.pvr", Textures!.Env);
+                SaveCacheTexture("lamb.pvr", Textures!.LambertianEnv);
+                SaveCacheTexture("ggx.pvr", Textures!.GGXEnv);
+                SaveCacheTexture("ggx_lut.pvr", Textures!.GGXLUT);
+                SaveCacheTexture("env.pvr", Textures!.Env);
             }
             Textures.GGXLUT!.NeverCompress = true;
         }

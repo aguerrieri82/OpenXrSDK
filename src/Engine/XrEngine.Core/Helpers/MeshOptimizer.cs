@@ -62,9 +62,7 @@ namespace XrEngine
                 Array.Resize(ref result, (int)count);
                 geometry.Vertices = result;
             }
-
         }
-
 
         public static void OptimizeVertexCache(Geometry3D geometry)
         {
@@ -79,7 +77,6 @@ namespace XrEngine
 
             geometry.Indices = result;
         }
-
 
         public unsafe static void Simplify(Geometry3D geometry, float targetIndicesFactor = 0.5f, float targetError = 0.01f)
         {

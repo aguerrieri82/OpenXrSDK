@@ -364,11 +364,13 @@ namespace XrEngine.OpenGL
                 cache.Version = scene.Layers.Version;
             }
 
+            /*
             foreach (var layer in _activeLayers)
             {
                 if (layer.NeedUpdate)
                     layer.Rebuild();
             }
+            */
         }
 
         protected void EnsureThread()

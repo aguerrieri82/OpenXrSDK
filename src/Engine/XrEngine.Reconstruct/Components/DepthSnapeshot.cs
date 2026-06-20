@@ -1,14 +1,10 @@
 ﻿using Common.Interop;
-using glTFLoader.Schema;
 using OpenXr.Framework;
-
 using System.Diagnostics;
 using System.Numerics;
-
 using System.Text.Json;
-
+using XrEngine.Abstraction;
 using XrEngine.Devices;
-
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
@@ -20,6 +16,29 @@ namespace XrEngine.Reconstruct
         Read,
         Capture,
         Record
+    }
+
+    public class CaptureFrame : BaseComponent<TriangleMesh>, ISelectionHandler
+    {
+        [Action]
+        public void GoToPose()
+        {
+            Debug.Assert(_host?.Scene?.ActiveCamera != null);
+            Debug.Assert(Meta != null);
+
+            _host.Scene.ActiveCamera.View = Meta.CameraView;
+            _host.Scene.ActiveCamera.Projection = Meta.CameraProj;
+            _host.Scene.ActiveCamera.Far = 100;
+        }
+
+        public void OnSelected(Object3D obj, bool isSelected)
+        {
+            _host!.Materials[1].IsEnabled = isSelected;
+        }
+
+        public Texture2D? Texture { get;  set; }
+
+        public DepthSnapeshot.DepthFrameMeta? Meta { get;  set; }
     }
 
     public class DepthSnapeshot : Behavior<Group3D>
@@ -184,12 +203,24 @@ namespace XrEngine.Reconstruct
 
         protected Material CreateMaterial(Texture2D texture)
         {
+            if (_mode == DepthSnapeshotMode.Read)
+            {
+                return new GridMaterial()
+                {
+                    Priority = -1000 + _frames.Count,
+                    WriteDepth = true,
+                    UseDepth = true,
+                    Alpha = AlphaMode.Blend,
+                    Texture = texture
+                };
+            }
+           
             return new TextureMaterial(texture)
             {
                 Priority = -1000 + _frames.Count,
-                WriteDepth = false,
-                UseDepth = false,
-                Color = new Color(1, 1, 1, 0.9f),
+                WriteDepth = true,
+                UseDepth = true,
+                Color = new Color(1, 1, 1, 1f),
                 Alpha = AlphaMode.Blend
             };
         }
@@ -200,11 +231,11 @@ namespace XrEngine.Reconstruct
             {
                 Width = width,
                 Height = height,
-                MipLevelCount = 0,
+                MipLevelCount = 5,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
-                MinFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.LinearMipmapLinear,
                 Format = TextureFormat.Rgba32,
             };
         }
@@ -212,7 +243,6 @@ namespace XrEngine.Reconstruct
         public unsafe void Load(
             string path,
             bool clear = false,
-            bool cleanup = true,
             float cleanupMargin = -0.01f)
         {
             if (clear)
@@ -233,6 +263,7 @@ namespace XrEngine.Reconstruct
 
             var splats = new List<SplatData>();
 
+  
             foreach (var frameDir in frameDirs)
             {
                 var metaPath = Path.Combine(frameDir, "meta.json");
@@ -254,7 +285,7 @@ namespace XrEngine.Reconstruct
 
                 var colorViewProj = meta.CameraView * meta.CameraProj;
 
-                if (cleanup && splats.Count > 0)
+                if (Clip && splats.Count > 0)
                 {
                     var write = 0;
 
@@ -310,15 +341,28 @@ namespace XrEngine.Reconstruct
                 }
 
                 var mesh = new TriangleMesh(geometry);
+                mesh.Name = $"Frame {meta.Frame}";
                 mesh.SetProp("CameraView", meta.CameraView);
-
+ 
                 var colorTexture = LoadColorTextureRaw(
                     colorPath,
                     meta.ColorWidth,
                     meta.ColorHeight,
-                    $"Frame {meta.Frame}");
+                    $"Tex Frame {meta.Frame}");
 
                 mesh.Materials.Add(CreateMaterial(colorTexture));
+                mesh.Materials.Add(new WireframeMaterial()
+                {
+                    Color = new Color(1, 1, 1, 1),
+                    IsEnabled = false
+                });
+
+                mesh.AddComponent(new CaptureFrame
+                {
+                    Meta = meta,
+                    Texture = colorTexture
+                });
+
 
                 if (SplatMode)
                 {
@@ -531,7 +575,6 @@ namespace XrEngine.Reconstruct
                 DeleteLast();
         }
 
-
         public void ConfigureInput(IXrBasicInteractionProfile input)
         {
             _captureBtn = input.Right!.Button!.AClick!;
@@ -540,10 +583,11 @@ namespace XrEngine.Reconstruct
 
         public string SessionPath => _sessionPath;
 
-
         public int GridSize { get; set; }
 
-        public bool SplatMode { get; set; } 
+        public bool SplatMode { get; set; }
+
+        public bool Clip { get; set; }
 
 
         [Range(0, 10f, 0.1f)]

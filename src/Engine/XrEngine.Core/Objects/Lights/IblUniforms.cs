@@ -1,4 +1,0 @@
-﻿namespace XrEngine.Objects
-{
-
-}

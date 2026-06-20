@@ -70,6 +70,7 @@ namespace XrEditor
 
                 var outlineMeshes = _lastSelection
                     .Select(a => a.Value)
+                    .Union(_lastSelection.Select(a=> a.Parent?.Value))
                     .OfType<Object3D>()
                     .Where(a => a is not Scene3D)
                     .SelectMany(a => a.DescendantsOrSelf())

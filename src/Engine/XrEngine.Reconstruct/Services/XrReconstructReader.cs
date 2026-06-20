@@ -192,11 +192,12 @@ namespace XrEngine.Reconstruct
 
             var zProjData = frame.ProjData!.AsSpan();
 
-            var camera = new PerspectiveCamera();
-
-            camera.View = frame.View;
-            camera.Projection = frame.Proj;
-            camera.ViewSize = new Size2I(width, height);
+            var camera = new PerspectiveCamera
+            {
+                View = frame.View,
+                Projection = frame.Proj,
+                ViewSize = new Size2I(width, height)
+            };
 
             if (maxW == 0)
                 maxW = width;

@@ -7,6 +7,8 @@ namespace XrEngine
     {
         void LoadTexture(Texture value, int slot = 0, bool forceBinding = false);
 
+        void SetUniform(string name, bool value, bool optional = false);
+
         void SetUniform(string name, int value, bool optional = false);
 
         void SetUniform(string name, uint value, bool optional = false);

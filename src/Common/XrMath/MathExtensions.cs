@@ -1356,6 +1356,16 @@ namespace XrMath
 
         #region MISC
 
+        public static float ToRadians(this float value)
+        {
+            return (float)(value * (Math.PI / 180.0));
+        }
+
+        public static float ToDegrees(this float value)
+        {
+            return (float)(value * (180.0 / Math.PI));
+        }
+
         public static Poly2 ToPoly2(in this Rect2 self)
         {
             return new Poly2

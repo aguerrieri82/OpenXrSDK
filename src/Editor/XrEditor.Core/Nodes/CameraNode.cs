@@ -14,11 +14,11 @@ namespace XrEditor.Nodes
         {
             // base.EditorProperties(binder, curProps);
 
-            binder.PropertyChanged += (_, prop, _, _) =>
+            binder.PropertyChanged += async (_, prop, _, _) =>
             {
+                await EngineApp.MainThread;
+
                 _value.NotifyChanged(ChangeType.Render);
-                if (prop.Name == nameof(PerspectiveCamera.FovDegree) || prop.Name == nameof(Camera.Near) || prop.Name == nameof(Camera.Far))
-                    ((PerspectiveCamera)(object)_value).UpdateProjection();
             };
 
             curProps.Add(new PropertyView

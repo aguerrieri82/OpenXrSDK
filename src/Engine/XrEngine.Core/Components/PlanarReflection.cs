@@ -22,7 +22,6 @@ namespace XrEngine
         public PlanarReflection()
             : this(1024)
         {
-
         }
 
         public PlanarReflection(uint textureSize, PlanarReflectionMode mode = PlanarReflectionMode.ColorOnly)
@@ -115,7 +114,6 @@ namespace XrEngine
                 return;
 
             _refCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
-            _refCamera.UpdateProjection();
 
             var newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
 
@@ -246,11 +244,9 @@ namespace XrEngine
             _host.UpdateBounds();
 
             if (DynamicFov)
-                _refCamera.FovDegree = (mainCamera as PerspectiveCamera)?.GetFov() ?? 0;
+                _refCamera.FovDegree = ((PerspectiveCamera)mainCamera).FovDegree;
             else
                 _refCamera.FovDegree = FovDegree;
-
-            _refCamera.UpdateProjection();
 
             _clipBounds = _host.WorldBounds!.Points.Select(_refCamera.Project).ComputeBounds();
 

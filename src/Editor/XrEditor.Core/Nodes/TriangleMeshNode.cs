@@ -16,7 +16,8 @@ namespace XrEditor.Nodes
                 var factory = Context.Require<NodeManager>();
 
                 foreach (var material in _value.Materials)
-                    yield return factory.CreateNode(material);
+                    yield return factory.CreateNode(material, this);
+
 
                 if (_value.Geometry != null)
                     yield return factory.CreateNode(_value.Geometry);

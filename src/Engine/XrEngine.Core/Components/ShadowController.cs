@@ -1,21 +1,11 @@
 ﻿namespace XrEngine.Components
 {
-    public class ShadowController : Behavior<Scene3D>
+    public class ShadowController : BaseComponent<Scene3D>
     {
         private IShadowMapProvider? _mapProvider;
 
         private IContactShadowProvider? _contactProvider;
 
-        public ShadowController()
-        {
-
-        }
-
-        protected override void Start(RenderContext ctx)
-        {
-            _mapProvider = _host?.App?.Renderer.Feature<IShadowMapProvider>();
-            _contactProvider = _host?.App?.Renderer.Feature<IContactShadowProvider>();
-        }
 
         [Action]
         public void Apply()
@@ -26,13 +16,21 @@
 
         public ShadowMapOptions? MapOptions
         {
-            get => _mapProvider?.Options;
+            get
+            {
+                _mapProvider ??= _host?.App?.Renderer.Feature<IShadowMapProvider>();
+                return _mapProvider?.Options;
+            }
             set => throw new NotSupportedException();
         }
 
         public ContactShadowOptions? ContactOptions
         {
-            get => _contactProvider?.Options;
+            get
+            {
+                _contactProvider ??= _host?.App?.Renderer.Feature<IContactShadowProvider>();
+                return _contactProvider?.Options;
+            }
             set => throw new NotSupportedException();
         }
     }

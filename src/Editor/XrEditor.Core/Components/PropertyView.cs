@@ -21,7 +21,7 @@ namespace XrEditor
 
         public static void CreateProperties(object obj, Type? objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged)
         {
-            var binding = BindingFlags.Public | BindingFlags.Instance;
+            var binding = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
 
             if (objType == null)
                 objType = obj.GetType();

@@ -153,7 +153,6 @@ namespace XrSamples.Earth
             if (LockCamera)
             {
                 camera.FovDegree = 45f * (1f / Zoom);
-                camera.UpdateProjection();
 
                 var cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
 

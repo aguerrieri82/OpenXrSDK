@@ -13,7 +13,6 @@ namespace XrEngine.Components
         TriangleMesh? _splittedMesh;
         Geometry3D? _startGeo;
 
-
         public MeshSplitter()
         {
         }
@@ -49,8 +48,10 @@ namespace XrEngine.Components
 
             if (_splittedMesh == null)
             {
-                _splittedMesh = new TriangleMesh();
-                _splittedMesh.Name = SplittedName;
+                _splittedMesh = new TriangleMesh
+                {
+                    Name = SplittedName
+                };
 
                 foreach (var material in _host.Materials)
                     _splittedMesh.Materials.Add(material);

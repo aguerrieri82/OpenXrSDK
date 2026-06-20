@@ -312,6 +312,7 @@ namespace XrEditor
             {
                 if (persp.FovDegree == 0)
                     persp.FovDegree = 45;
+
                 persp.SetFov(persp.FovDegree, width, height);
             }
         }
