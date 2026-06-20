@@ -9,6 +9,13 @@ namespace XrEngine.OpenGL
 {
     public static class GlUtils
     {
+
+#if GLES
+        public const bool IsES = true;
+#else
+        public const bool IsES = false;
+#endif
+
         public static int CalculateUnpackAlignment(uint width, uint bytesPerPixel)
         {
             var rowSize = width * bytesPerPixel;

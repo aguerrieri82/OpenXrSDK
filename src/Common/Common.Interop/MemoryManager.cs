@@ -1,10 +1,13 @@
 ﻿using System.Collections.Concurrent; // Added for thread safety
 using System.Runtime.InteropServices;
 
+#pragma warning disable CS0649
+
 namespace Common.Interop
 {
     public static unsafe class MemoryManager
     {
+
         struct MemoryBlock
         {
             public nint Data;

@@ -282,19 +282,21 @@ namespace XrEditor
             }
         }
 
-        protected virtual async Task OnSceneChanged()
+        protected virtual async void OnSceneChanged()
         {
-            await UiThread;
+            await _sceneDispatcher.Switch;
 
             _sceneCamera.Remove();
 
             _scene?.AddChild(_sceneCamera);
 
+            await UiThread;
+
             foreach (var tool in _tools)
                 tool.NotifySceneChanged();
 
             SceneChanged?.Invoke(_scene);
-        }
+         }
 
         protected void UpdateSize()
         {
@@ -396,9 +398,9 @@ namespace XrEditor
 
         public override Task CloseAsync()
         {
-            StopApp(false);
+            _ = StopApp(false);
 
-            StopXr();
+            _ = StopXr();
 
             Stop();
 

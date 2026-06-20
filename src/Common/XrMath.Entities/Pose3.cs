@@ -15,7 +15,7 @@ namespace XrMath
             Orientation = Quaternion.Identity;
         }
 
-        public readonly override bool Equals(object obj)
+        public readonly override bool Equals(object? obj)
         {
             if (obj is Pose3 other)
                 return other.Position == Position && other.Orientation == Orientation;

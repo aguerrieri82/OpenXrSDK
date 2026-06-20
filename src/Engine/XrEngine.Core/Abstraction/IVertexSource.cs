@@ -22,6 +22,8 @@
 
         int RenderPriority { get; }
 
+        int InstanceCount => 1;
+
         void NotifyLoaded();
     }
 

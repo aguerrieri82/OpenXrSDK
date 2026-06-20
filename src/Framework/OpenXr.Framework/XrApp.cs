@@ -376,7 +376,6 @@ namespace OpenXr.Framework
             CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.GpuExt, _renderOptions.GpuLevel), "PerfSettingsSetPerformanceLevel");
 
             CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.CpuExt, _renderOptions.CpuLevel), "PerfSettingsSetPerformanceLevel");
-
         }
 
         protected void DestroyInstance()
@@ -1806,10 +1805,14 @@ namespace OpenXr.Framework
         {
             Debug.Assert(viewInfo.BlendModes != null);
 
+            /*
             EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend, EnvironmentBlendMode.Opaque];
-
             result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
+            */
+
+            result.BlendMode = EnvironmentBlendMode.Opaque;
             result.Size = viewInfo.RecommendedImageRect;
+
             //TODO change this
             //result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
 

@@ -38,7 +38,7 @@ namespace XrEngine
 
             this.ComputeIndices();
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
         public Vector3 Center { get; set; }

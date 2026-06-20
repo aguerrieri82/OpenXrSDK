@@ -49,6 +49,7 @@ namespace XrEngine.OpenGL
         readonly GlVertexArray<TVert, TInd> _vertices;
         readonly PrimitiveType _primitive;
         readonly IVertexSource<TVert, TInd> _source;
+        readonly GL _gl;
         EngineObject? _sourceObject;
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
@@ -65,6 +66,8 @@ namespace XrEngine.OpenGL
             _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout);
 
             _primitive = GlPrimitive(_source.Primitive);
+
+            _gl = gl;
 
             Version = -1;
         }
@@ -96,12 +99,18 @@ namespace XrEngine.OpenGL
 
         public override void DrawInstances(int count, DrawPrimitive? forcePrimitive = null)
         {
+
             _vertices.DrawInstances(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive, count);
         }
 
         public override void Draw(DrawPrimitive? forcePrimitive = null)
         {
-            _vertices.Draw(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive);
+            if (_source.InstanceCount > 1)
+            {
+                DrawInstances(_source.InstanceCount , forcePrimitive);
+            }
+            else
+                _vertices.Draw(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive);
         }
 
         public override void Update()

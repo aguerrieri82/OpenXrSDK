@@ -30,6 +30,23 @@ namespace XrEngine.OpenGL
     {
         public static GlVertexLayout FromType<T>(VertexComponent activeComponents) where T : unmanaged
         {
+            if (typeof(T) == typeof(Vector2))
+            {
+                return new GlVertexLayout
+                {
+                    Attributes = [new GlVertexAttribute
+                    {
+                        Name = "aCorner",
+                        Location = 0,
+                        Type = VertexAttribPointerType.Float,
+                        Count = 2,
+                        Offset = 0,
+                        Component = VertexComponent.Position
+                    }],
+                    Size = (uint)Marshal.SizeOf<T>()
+                };
+            }
+
             var fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
             var infos = fields.Select(a => new

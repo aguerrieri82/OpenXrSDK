@@ -7,6 +7,8 @@ using Silk.NET.OpenGL;
 using Silk.NET.OpenXR;
 using Silk.NET.Windowing;
 
+#pragma warning disable CA1422
+
 namespace OpenXr.Framework.OpenGL
 {
     public class ViewOpenGLDevice : IOpenGLDevice
@@ -30,11 +32,14 @@ namespace OpenXr.Framework.OpenGL
                 throw new NotSupportedException();
 
 #if !GLES
-#if GL_WRAPPER
-            _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
+    #if GL_WRAPPER
+                    _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
+    #else
+                    _gl = _view.CreateOpenGL();
+    #endif
+
 #else
-            _gl = _view.CreateOpenGL();
-#endif
+                _gl = _view.CreateOpenGLES();
 #endif
         }
 
@@ -43,5 +48,6 @@ namespace OpenXr.Framework.OpenGL
         public nint GlCtx => _glctx;
 
         public GL Gl => _gl;
+
     }
 }

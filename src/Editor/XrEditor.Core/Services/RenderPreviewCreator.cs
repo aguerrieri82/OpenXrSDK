@@ -51,7 +51,7 @@ namespace XrEditor.Services
             _light = new ImageLight();
             _light.LoadPanorama("res://asset/Envs/pisa.hdr");
             _light.Intensity = 2.5f;
-            _light.NotifyChanged(ObjectChangeType.Render);
+            _light.NotifyChanged(ChangeType.Render);
 
             _app = new EngineApp();
             _app.Renderer = _engine;
@@ -95,7 +95,7 @@ namespace XrEditor.Services
                 texture.Transform = null;
 
                 _textureMaterial.Texture = texture;
-                _textureMaterial.NotifyChanged(ObjectChangeType.Render);
+                _textureMaterial.NotifyChanged(ChangeType.Render);
 
                 _mesh.Materials.Clear();
                 _mesh.Materials.Add(_textureMaterial);
@@ -120,7 +120,7 @@ namespace XrEditor.Services
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();
             _mesh.Materials.Add(material.Clone());
-            _mesh.NotifyChanged(ObjectChangeType.Render);
+            _mesh.NotifyChanged(ChangeType.Render);
 
             var diagonal = geometry.Bounds.Size.Length();
             var distance = diagonal / (2 * MathF.Tan((45f / 180f * MathF.PI) / 2));

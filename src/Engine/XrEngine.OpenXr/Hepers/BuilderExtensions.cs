@@ -77,7 +77,7 @@ namespace XrEngine.OpenXr
                      LeftButton = curHand.TriggerClick!,
                  };
 
-                 Func<bool> trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.8f;
+                 Func<bool> trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.5f;
 
                  target ??= e.App.ActiveScene!.AddComponent<SceneTeleportTarget>();
 

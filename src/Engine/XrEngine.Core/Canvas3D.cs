@@ -153,7 +153,7 @@ namespace XrEngine
         public void Flush()
         {
             _lineMesh.Vertices = _data.ToArray(); ;
-            _lineMesh.NotifyChanged(ObjectChangeType.Geometry);
+            _lineMesh.NotifyChanged(ChangeType.Geometry);
         }
 
         public void DrawCircle(Pose3 pose, float radius, int segments = 30)

@@ -3,6 +3,8 @@ using Android.Content.PM;
 using Android.Media.Projection;
 using Android.OS;
 
+#pragma warning disable CA1422
+#pragma warning disable CA1416
 
 namespace XrEngine.Media.Android
 {

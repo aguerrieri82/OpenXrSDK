@@ -111,7 +111,7 @@ namespace XrSamples
                 else
                     mesh.Materials[0] = matHide;
 
-                mesh.NotifyChanged(ObjectChangeType.Render);
+                mesh.NotifyChanged(ChangeType.Render);
             }
 
             Apply(racket!, Racket);
@@ -132,7 +132,7 @@ namespace XrSamples
             if (light != null)
             {
                 light.Intensity = LightIntensity;
-                light.NotifyChanged(ObjectChangeType.Render);
+                light.NotifyChanged(ChangeType.Render);
             }
 
 
@@ -179,7 +179,7 @@ namespace XrSamples
 
                     (generator.Material as IPbrMaterial)!.Roughness = obj!.BallMaterial!.Roughness;
                     (generator.Material as IPbrMaterial)!.Metalness = obj!.BallMaterial!.Metallic;
-                    generator.Material.NotifyChanged(ObjectChangeType.Render);
+                    generator.Material.NotifyChanged(ChangeType.Render);
 
                 }
                 if (property.Name!.Contains("Exposure"))
@@ -190,7 +190,7 @@ namespace XrSamples
                 {
                     var light = scene.Descendants<ImageLight>().First();
                     light.Intensity = obj!.LightIntensity;
-                    light.NotifyChanged(ObjectChangeType.Render);
+                    light.NotifyChanged(ChangeType.Render);
                 }
             }
 

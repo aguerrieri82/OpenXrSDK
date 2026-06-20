@@ -40,7 +40,7 @@ namespace XrSamples.Dnd
             point.IsVisible = PointInt > 0;
             point.Intensity = PointInt;
             point.Range = PointRange;
-            point.NotifyChanged(ObjectChangeType.Property);
+            point.NotifyChanged(ChangeType.Property);
 
             //image.IsVisible = ImageInt > 0;
             image.Intensity = ImageInt;

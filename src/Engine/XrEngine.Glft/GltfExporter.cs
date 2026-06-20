@@ -68,8 +68,7 @@ public class GltfExporter
     }
 
     private MemoryStream? _binStream;
-    private Gltf _root;
-
+    private Gltf? _root;
 
     protected void ExportGeometry(Geometry3D geometry)
     {

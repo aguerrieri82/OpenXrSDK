@@ -64,7 +64,7 @@ namespace XrEngine
         {
             _isDirty = true;
 
-            _host?.NotifyChanged(ObjectChangeType.Transform);
+            _host?.NotifyChanged(ChangeType.Transform);
 
             Version++;
         }
@@ -158,7 +158,7 @@ namespace XrEngine
             _rotation = _orientation.ToEuler();
             _matrix = matrix;
 
-            _host?.NotifyChanged(ObjectChangeType.Transform);
+            _host?.NotifyChanged(ChangeType.Transform);
             Version++;
         }
 
@@ -183,7 +183,7 @@ namespace XrEngine
             _orientation = container.Read<Quaternion>(nameof(Orientation));
             _localPivot = container.Read<Vector3>(nameof(LocalPivot));
             _isDirty = true;
-            _host?.NotifyChanged(ObjectChangeType.Transform);
+            _host?.NotifyChanged(ChangeType.Transform);
         }
 
         public ref Matrix4x4 Matrix

@@ -52,7 +52,7 @@ namespace XrSamples.Dnd
             foreach (var material in materials)
             {
                 material.Simplified = !material.Simplified;
-                material.NotifyChanged(ObjectChangeType.Property);
+                material.NotifyChanged(ChangeType.Property);
             }
         }
 

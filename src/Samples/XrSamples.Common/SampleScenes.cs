@@ -38,7 +38,6 @@ using XrMath;
 using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Reconstruct;
-using XrSamples.Components;
 using XrEngine.OpenGL;
 
 
@@ -304,7 +303,7 @@ namespace XrSamples
                         if (texView.Texture == null)
                         {
                             texView.Texture = sp.ShadowMap;
-                            depthView.NotifyChanged(ObjectChangeType.Render);
+                            depthView.NotifyChanged(ChangeType.Render);
                         }
                     }
                     else
@@ -315,13 +314,13 @@ namespace XrSamples
                         if (depthView.Texture == null)
                         {
                             depthView.Texture = sp.ShadowMap;
-                            depthView.NotifyChanged(ObjectChangeType.Render);
+                            depthView.NotifyChanged(ChangeType.Render);
                         }
 
                         if (depthView.Camera == null)
                         {
                             depthView.Camera = sp.LightCamera;
-                            depthView.NotifyChanged(ObjectChangeType.Render);
+                            depthView.NotifyChanged(ChangeType.Render);
                         }
                     }
                 });
@@ -1322,15 +1321,35 @@ namespace XrSamples
 
             var group = scene.AddChild(new Group3D());
 
-            var snapeshot = new DepthSnapeshot();
+            var snapeshot = group.AddComponent(new DepthSnapeshot(DepthSnapeshotMode.Read)
+            {
+                SplatMode = false,
+                GridSize = 300
+            });
 
-            group.AddComponent(snapeshot);
+            var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
+            snapeshot.Load(path);
+
+            var player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
+            {
+                IsVisible = false,
+                Name = "Player"
+            };
+
+            player.Transform.SetScale(0.3f, 1.7f, 0.3f);
+            player.AddComponent(new XrPlayer
+            {
+                Height = 0f
+            });
+
+            scene.AddChild(player);
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentDepth()
+                //.UseEnvironmentDepth()
                 .UseDefaultHDR()
-                .ConfigureSampleApp()
+                .UseTeleport(ControllerHand.Right, player, new FloorTeleportTarget())
+                .ConfigureSampleApp(false)
                 .ConfigureApp(a =>
                 {
                     OpenGLRender.Current!.EnableDebug(true);
@@ -1697,11 +1716,18 @@ namespace XrSamples
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
-            scene.AddComponent(new XrReconstructPlayer());
+            //scene.AddComponent(new XrReconstructPlayer());
+
+            var group = scene.AddChild(new Group3D());
+
+            var snap = group.AddComponent(new DepthSnapeshot(DepthSnapeshotMode.Read));
+            
+            //snap.Load("D:\\20260619_080632_705");
+            snap.Load("D:\\20260619_094000_765");
 
             return builder
                 .UseApp(app)
-                .UseDefaultHDR()
+                .UseEnvironmentHDR("res://asset/Envs/Neutral.hdr")
                 .ConfigureSampleApp();
         }
 

@@ -3,12 +3,13 @@
 using Android.Content;
 using Android.Hardware.Usb;
 using Android.OS;
-using XrEngine.Devices;
 using ContextA = global::Android.Content.Context;
 using ActivityA = global::Android.App.Activity;
 using Android;
 using Android.Content.PM;
 
+#pragma warning disable CA1416
+#pragma warning disable CA1422
 
 namespace XrEngine.Devices.Android
 {

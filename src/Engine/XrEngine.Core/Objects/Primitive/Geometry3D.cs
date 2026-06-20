@@ -89,7 +89,7 @@ namespace XrEngine
                 Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
             }
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
         public void Rebuild()
@@ -105,7 +105,7 @@ namespace XrEngine
             Vertices = vertices;
             Indices = [];
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
         public void UpdateBounds()
@@ -140,7 +140,7 @@ namespace XrEngine
             for (var i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV *= scale;
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
         public Bounds3 Bounds
@@ -155,7 +155,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Geometry))
+            if (change.IsAny(ChangeType.Geometry))
                 _boundsDirty = true;
 
             base.OnChanged(change);

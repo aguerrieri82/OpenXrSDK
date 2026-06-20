@@ -54,11 +54,7 @@ namespace XrEngine.OpenGL
             {
                 layer.Prepare(ctx);
 
-                if (layer is GlLayer glLayer)
-                {
-                    RenderLayer(glLayer);
-                }
-                else if (layer is GlLayerV2 glLayer2)
+                if (layer is GlLayerV2 glLayer2)
                 {
                     RenderLayer(glLayer2);
                 }
@@ -175,11 +171,6 @@ namespace XrEngine.OpenGL
         public virtual void Dispose()
         {
             GC.SuppressFinalize(this);
-        }
-
-        public virtual void RenderLayer(GlLayer layer)
-        {
-            throw new NotSupportedException();
         }
 
         public virtual void RenderLayer(GlLayerV2 layer)

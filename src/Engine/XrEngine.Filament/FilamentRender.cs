@@ -508,7 +508,7 @@ namespace XrEngine.Filament
 
             geo.Changed += (s, c) =>
             {
-                if (c.IsAny(ObjectChangeType.Geometry))
+                if (c.IsAny(ChangeType.Geometry))
                     Create(true);
             };
         }
@@ -638,7 +638,7 @@ namespace XrEngine.Filament
 
             mat.Changed += (s, c) =>
             {
-                if (c.IsAny(ObjectChangeType.MaterialEnabled))
+                if (c.IsAny(ChangeType.MaterialEnabled))
                 {
                     foreach (var host in mat.Hosts.OfType<Object3D>())
                         SetObjVisible(_app, host.Id, host.IsVisible && mat.IsEnabled);
@@ -738,7 +738,7 @@ namespace XrEngine.Filament
 
             mesh.Changed += (s, c) =>
             {
-                if (c.IsAny(ObjectChangeType.Geometry))
+                if (c.IsAny(ChangeType.Geometry))
                     CreateGeometry(true);
             };
         }
@@ -767,7 +767,7 @@ namespace XrEngine.Filament
 
             mesh.Changed += (s, c) =>
             {
-                if (c.IsAny(ObjectChangeType.Render) && mesh.Materials.Count > 0)
+                if (c.IsAny(ChangeType.Render) && mesh.Materials.Count > 0)
                 {
                     var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
                     SetMeshMaterial(_app, id, matId);
@@ -779,10 +779,10 @@ namespace XrEngine.Filament
 
         protected void OnObjectChanged(Object3D obj, ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Transform))
+            if (change.IsAny(ChangeType.Transform))
                 SetObjTransform(_app, obj.Id, obj.Transform.Matrix);
 
-            if (change.IsAny(ObjectChangeType.Visibility))
+            if (change.IsAny(ChangeType.Visibility))
             {
                 foreach (var item in obj.DescendantsOrSelf())
                     SetObjVisible(_app, item.Id, item.IsVisible);

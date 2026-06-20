@@ -85,6 +85,13 @@ namespace XrEngine.OpenGL
             return UpdateProgramResult.Changed;
         }
 
+        protected override bool CanDraw(DrawContent draw)
+        {
+            if (draw.Object is SplatMesh)
+                return false; 
+            return base.CanDraw(draw);
+        }
+
         protected override void Draw(DrawContent draw)
         {
             _objects.Add(draw.Object);

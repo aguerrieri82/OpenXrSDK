@@ -1,11 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿
 using OpenXr.Framework;
 using System.Numerics;
+using System.Text.Json;
 using XrEngine;
 using XrMath;
 
 namespace XrSamples
 {
+    [Obsolete]
     public class DepthScanner : Behavior<Object3D>
     {
         readonly List<PointData> _points = [];
@@ -52,7 +54,7 @@ namespace XrSamples
                 if (_host is PointMesh pm)
                 {
                     pm.Vertices = [];
-                    pm.NotifyChanged(ObjectChangeType.Geometry);
+                    pm.NotifyChanged(ChangeType.Geometry);
                 }
             }
 
@@ -73,7 +75,7 @@ namespace XrSamples
             {
                 texture.MagFilter = ScaleFilter.Nearest;
                 texture.MinFilter = ScaleFilter.Nearest;
-                texture.NotifyChanged(ObjectChangeType.Render);
+                texture.NotifyChanged(ChangeType.Render);
                 return;
             }
 
@@ -114,7 +116,7 @@ namespace XrSamples
                     });
 
                 pm.Vertices = _points.ToArray();
-                pm.NotifyChanged(ObjectChangeType.Geometry);
+                pm.NotifyChanged(ChangeType.Geometry);
             }
 
             if (!string.IsNullOrWhiteSpace(SavePath))
@@ -144,7 +146,7 @@ namespace XrSamples
                     File.WriteAllBytes(Path.Join(baseDir, $"{ctx.Frame}-points.bin"), span);
                 }
 
-                var json = JsonConvert.SerializeObject(camera);
+                var json = JsonSerializer.Serialize(camera);
 
                 File.WriteAllText(Path.Join(baseDir, $"{ctx.Frame}-camera.json"), json);
             }

@@ -5,12 +5,14 @@
 
     <DataTemplate DataType="{x:Type plot:ReconstructPanel}">
 
-        <StackPanel Orientation="Vertical">
+        <StackPanel Margin="10" Orientation="Vertical">
             <DockPanel>
                 <Label DockPanel.Dock="Left">Frame:</Label>
+                <Button DockPanel.Dock="Right" Margin="5,0,5,0" Width="70" Command="{Binding SelectCommand}">Select</Button>
                 <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
                     <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding FrameIndex}" />
                 </Border>
+
                 <Slider Minimum="0" Maximum="{Binding TotalFrames}" Value="{Binding FrameIndex}" />
             </DockPanel>
             <DockPanel>
@@ -20,27 +22,7 @@
                 </Border>
                 <Slider Minimum="-200" Maximum="220" Value="{Binding ColorOffset}" />
             </DockPanel>
-            <DockPanel>
-                <Label DockPanel.Dock="Left">FOV:</Label>
-                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
-                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding FovScale, StringFormat={}{0:F2}}" />
-                </Border>
-                <Slider Minimum="0" Maximum="2" Value="{Binding FovScale}" />
-            </DockPanel>
-            <DockPanel>
-                <Label DockPanel.Dock="Left">CX:</Label>
-                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
-                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding CenterX, StringFormat={}{0:F2}}" />
-                </Border>
-                <Slider Minimum="-1280" Maximum="1280" Value="{Binding CenterX}" />
-            </DockPanel>
-            <DockPanel>
-                <Label DockPanel.Dock="Left">CY:</Label>
-                <Border DockPanel.Dock="Right" BorderThickness="1" BorderBrush="#ccc">
-                    <TextBlock MinWidth="50" TextAlignment="Center"  Padding="2" Text="{Binding CenterY, StringFormat={}{0:F2}}" />
-                </Border>
-                <Slider Minimum="-1280" Maximum="1280" Value="{Binding CenterY}" />
-            </DockPanel>
+
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>

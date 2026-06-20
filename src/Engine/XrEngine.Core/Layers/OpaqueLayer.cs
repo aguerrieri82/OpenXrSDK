@@ -18,10 +18,10 @@
 
         protected override bool AffectChange(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Scene))
+            if (change.IsAny(ChangeType.Scene))
                 return true;
 
-            if (change.IsAny(ObjectChangeType.Material))
+            if (change.IsAny(ChangeType.Material))
             {
                 _version++;
                 return true;

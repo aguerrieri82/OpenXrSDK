@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     public class Scene3D : Group3D, IObjectChangeListener
     {
@@ -85,7 +87,7 @@
             _app = app;
 
             foreach (var obj in this.TypeLayerContent<Object3D>())
-                NotifyChanged(obj, ObjectChangeType.SceneAdd);
+                NotifyChanged(obj, ChangeType.SceneAdd);
         }
 
         public void Render(RenderContext ctx)
@@ -95,25 +97,31 @@
 
         public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
+            if (_app != null && Thread.CurrentThread != _app.Dispatcher.Thread)
+            {
+                Log.Warn(this, "Scene change outside main thread");
+            }
+    
+
+            //Debug.Assert();
 
             change.Target ??= sender;
 
             //Log.Debug(this, "Scene Change: {0}", change.Type);
 
-            if (!change.IsAny(ObjectChangeType.Transform) &&
+            if (!change.IsAny(ChangeType.Transform) &&
                 !change.Targets<object>().All(a => a is Material) &&
-                (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))
+                (change.Target is not Light || !change.IsAny(ChangeType.Render)))
             {
                 Version++;
 
                 UpdateDrawGizmos();
             }
 
-            if (change.IsAny(ObjectChangeType.Scene,
-                             ObjectChangeType.MateriaAdd,
-                             ObjectChangeType.MateriaRemove,
-                             ObjectChangeType.Components))
+            if (change.IsAny(ChangeType.Scene,
+                             ChangeType.MateriaAdd,
+                             ChangeType.MateriaRemove,
+                             ChangeType.Components))
             {
                 ContentVersion++;
             }

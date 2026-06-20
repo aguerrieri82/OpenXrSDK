@@ -1,5 +1,4 @@
 ﻿using XrEngine.Objects;
-using XrEngine.OpenGL;
 using XrMath;
 
 namespace XrEngine.OpenXr

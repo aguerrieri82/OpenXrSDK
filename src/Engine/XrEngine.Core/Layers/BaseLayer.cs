@@ -38,7 +38,7 @@
             if (!IsEnabled || !_handleNotifications)
                 return;
 
-            if (sender is Group3D group && change.IsAny(ObjectChangeType.Scene))
+            if (sender is Group3D group && change.IsAny(ChangeType.Scene))
             {
                 foreach (var child in group.DescendantsOrSelf())
                     NotifyChangedWork(child, change.Type);

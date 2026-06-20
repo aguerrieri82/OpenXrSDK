@@ -49,7 +49,7 @@ namespace XrEngine.OpenGL
             _usage = _target switch
             {
                 BufferTargetARB.UniformBuffer => BufferUsageARB.StreamDraw,
-                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.DynamicDraw,
+                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.StaticDraw,
                 _ => BufferUsageARB.StaticDraw
             };
         }
@@ -251,7 +251,7 @@ namespace XrEngine.OpenGL
             });
         }
 
-        unsafe void IBuffer.UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0)
+        unsafe void IBuffer.UpdateRange(ReadOnlySpan<byte> value, int dstIndex)
         {
             fixed (byte* pData = &value[0])
                 UpdateRange(pData, (uint)value.Length, dstIndex * sizeof(T), true);

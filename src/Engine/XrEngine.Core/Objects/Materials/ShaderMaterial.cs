@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public abstract class ShaderMaterial : Material, IShaderHandler
+    public class ShaderMaterial : Material, IShaderHandler
     {
         protected Shader? _shader;
         protected long _lastLightVersion = -1;
@@ -26,13 +26,13 @@
                 if (value == _shader)
                     return;
                 _shader = value;
-                NotifyChanged(ObjectChangeType.Render);
+                NotifyChanged(ChangeType.Render);
             }
         }
 
         public override void Reload()
         {
-            _shader?.NotifyChanged(ObjectChangeType.Material);
+            _shader?.NotifyChanged(ChangeType.Material);
             base.Reload();
         }
 

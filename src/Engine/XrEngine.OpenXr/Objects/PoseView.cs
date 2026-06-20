@@ -5,8 +5,8 @@ namespace XrEngine.OpenXr
 {
     public class PoseView : Group3D
     {
-        readonly TriangleMesh _rayX;
-        readonly TriangleMesh _rayY;
+        // readonly TriangleMesh _rayX;
+        //readonly TriangleMesh _rayY;
         readonly TriangleMesh _rayZ;
         readonly TriangleMesh _box;
         readonly TriangleMesh[] _rays;

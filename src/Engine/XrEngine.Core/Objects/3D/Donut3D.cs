@@ -61,7 +61,7 @@ namespace XrEngine
 
             this.ComputeIndices();
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
         public uint Subs { get; set; }

@@ -148,6 +148,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Generator/XrEngine.Generator.csproj" Id="16d4ad08-8bbd-46b6-9118-b23d2431ea39">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Glft/XrEngine.Gltf.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />

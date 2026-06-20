@@ -16,7 +16,7 @@ namespace XrEditor.Nodes
 
             binder.PropertyChanged += (_, prop, _, _) =>
             {
-                _value.NotifyChanged(ObjectChangeType.Render);
+                _value.NotifyChanged(ChangeType.Render);
                 if (prop.Name == nameof(PerspectiveCamera.FovDegree) || prop.Name == nameof(Camera.Near) || prop.Name == nameof(Camera.Far))
                     ((PerspectiveCamera)(object)_value).UpdateProjection();
             };

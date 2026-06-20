@@ -43,5 +43,15 @@
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
 	</PropertyGroup>
-	
+
+	<ItemGroup>
+		<_ProjectReferenceNames Include="@(ProjectReference->'%(Filename)')" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' and '$(MSBuildProjectName)' != 'XrEngine.Generator'">
+		<ProjectReference Include="$(SolutionDir)\Engine\XrEngine.Generator\XrEngine.Generator.csproj"
+						  OutputItemType="Analyzer"
+						  ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
 </Project>

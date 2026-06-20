@@ -109,7 +109,7 @@ namespace XrEngine
                     curVer[i].Pos = (starVerPosWorld + verDelta).Transform(mesh.WorldMatrixInverse);
                 }
 
-                mesh.Geometry.NotifyChanged(ObjectChangeType.Geometry);
+                mesh.Geometry.NotifyChanged(ChangeType.Geometry);
             }
 
             _host.Transform.Set(curTransform);

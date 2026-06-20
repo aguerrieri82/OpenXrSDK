@@ -29,10 +29,10 @@ namespace OpenAl.Framework.Helpers
 
         }
 
-        public static alcGetInteger64vSOFTDelegate GetInteger64;
+        public static alcGetInteger64vSOFTDelegate? GetInteger64;
 
-        public static alGetSourcei64vSOFTDelegate GetSourceInteger64;
+        public static alGetSourcei64vSOFTDelegate? GetSourceInteger64;
 
-        public static alGetSourcedvSOFTDelegate GetSourceDouble;
+        public static alGetSourcedvSOFTDelegate? GetSourceDouble;
     }
 }

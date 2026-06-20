@@ -22,7 +22,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Visibility))
+            if (change.IsAny(ChangeType.Visibility))
             {
                 foreach (var child in this.Descendants())
                     child._visibleDirty = true;
@@ -113,7 +113,7 @@ namespace XrEngine
 
             //child.EnsureId();
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ChildAdd, child));
+            NotifyChanged(new ObjectChange(ChangeType.ChildAdd, child));
 
             InvalidateBounds();
 
@@ -163,7 +163,7 @@ namespace XrEngine
 
             child.SetParent(null, preserveTransform);
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ChildRemove, child));
+            NotifyChanged(new ObjectChange(ChangeType.ChildRemove, child));
 
             InvalidateBounds();
         }

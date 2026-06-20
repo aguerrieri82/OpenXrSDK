@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Text;
 
 #pragma warning disable CA1422
-
+#pragma warning disable CA1416
 
 
 namespace XrEngine.Devices.Android

@@ -321,7 +321,7 @@ namespace XrEngine.OpenGL
                     .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0)
                     .ToArray();
 
-                shaderContent.IsDirty = true;
+                shaderContent.IsDirty = false;
 
                 shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ? 0 : shaderContent.Contents.Max(a => a.Value.Material!.Priority);
             }

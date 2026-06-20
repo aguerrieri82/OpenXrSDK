@@ -51,7 +51,7 @@ namespace XrEngine.Video
                         Texture.Data = [_data];
                         Texture.Width = _data.Width;
                         Texture.Height = _data.Height;
-                        Texture.NotifyChanged(ObjectChangeType.Render);
+                        Texture.NotifyChanged(ChangeType.Render);
                     }
 
                     _lastFrameTime = ctx.Time;

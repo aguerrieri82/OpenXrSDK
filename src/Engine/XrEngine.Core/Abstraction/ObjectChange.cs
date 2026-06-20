@@ -3,7 +3,7 @@
 namespace XrEngine
 {
     [Flags]
-    public enum ObjectChangeType
+    public enum ChangeType
     {
         Unspecified = 0,
         Visibility = 1,
@@ -76,14 +76,14 @@ namespace XrEngine
 
     public struct ObjectChange
     {
-        public ObjectChange(ObjectChangeType type, object? target = null, IList<string>? properties = null)
+        public ObjectChange(ChangeType type, object? target = null, IList<string>? properties = null)
         {
             Type = type;
             Target = target;
             Properties = properties;
         }
 
-        public readonly bool IsAny(params ObjectChangeType[] types)
+        public readonly bool IsAny(params ChangeType[] types)
         {
             foreach (var t in types)
                 if ((Type & t) == t)
@@ -103,13 +103,13 @@ namespace XrEngine
             }
         }
 
-        public static implicit operator ObjectChange(ObjectChangeType type)
+        public static implicit operator ObjectChange(ChangeType type)
         {
             return new ObjectChange(type);
         }
 
 
-        public ObjectChangeType Type;
+        public ChangeType Type;
 
         public object? Target;
 

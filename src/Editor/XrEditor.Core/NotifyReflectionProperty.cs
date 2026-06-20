@@ -24,7 +24,7 @@ namespace XrEditor
 
                 obj.NotifyChanged(new ObjectChange
                 {
-                    Type = ObjectChangeType.Property,
+                    Type = ChangeType.Property,
                     Target = obj,
                     Properties = [Name!]
                 });

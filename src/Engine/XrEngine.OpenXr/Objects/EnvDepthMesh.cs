@@ -50,13 +50,13 @@ namespace XrEngine.OpenXr
         }
 
         public static unsafe Geometry3D CreateDepthColorGrid(
-    ushort* depth,
-    int depthWidth,
-    int depthHeight,
-    int gridWidth,
-    int gridHeight,
-    Matrix4x4 depthViewProjInv,
-    Matrix4x4 colorViewProj)
+            ushort* depth,
+            int depthWidth,
+            int depthHeight,
+            int gridWidth,
+            int gridHeight,
+            Matrix4x4 depthViewProjInv,
+            Matrix4x4 colorViewProj)
         {
             var vertices = new VertexData[gridWidth * gridHeight];
             var valid = new bool[gridWidth * gridHeight];

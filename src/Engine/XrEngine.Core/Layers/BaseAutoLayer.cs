@@ -39,7 +39,7 @@ namespace XrEngine
             if (sender is T tObj && AffectChange(change))
             {
                 EngineApp.Current!.Stats.LayerChanges++;
-                if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))
+                if (change.IsAny(ChangeType.SceneRemove) || !BelongsToLayer(tObj))
                     Remove(tObj);
                 else
                     Add(tObj);

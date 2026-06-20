@@ -232,6 +232,14 @@ namespace XrEngine.OpenGL
 
             _glState.UpdateStencil();
 
+            if (material.PolygonOffset.Y != 0)
+            {
+                _glState.EnableFeature(EnableCap.PolygonOffsetFill, true);
+                _gl.PolygonOffset(material.PolygonOffset.X, material.PolygonOffset.Y);
+            }
+            else
+                _glState.EnableFeature(EnableCap.PolygonOffsetFill, false);
+
             if (material is ILineMaterial line)
                 _glState.SetLineWidth(line.LineWidth);
         }
@@ -296,10 +304,7 @@ namespace XrEngine.OpenGL
 
         public IGlLayer AddLayer(Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
-            IGlLayer layer = _options.UseLayerV2 ?
-                new GlLayerV2(this, scene, type, sceneLayer) :
-                new GlLayer(this, scene, type, sceneLayer);
-
+            var layer = new GlLayerV2(this, scene, type, sceneLayer);
             _activeLayers.Add(layer);
             return layer;
         }

@@ -31,7 +31,7 @@
 
         public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.Render) && sender is TriangleMesh mesh)
+            if (change.IsAny(ChangeType.SceneAdd, ChangeType.Render) && sender is TriangleMesh mesh)
             {
                 foreach (var material in mesh.Materials.OfType<ShaderMaterial>())
                 {

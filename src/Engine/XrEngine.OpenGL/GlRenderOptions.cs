@@ -49,7 +49,6 @@ namespace XrEngine.OpenGL
             UseDepthPass = false;
             SortByCameraDistance = true;
             UseSRGB = false;
-            UseLayerV2 = true;
             RequireTextureCompression = true;
             UseVolume = true;
             SampleCount = 4;
@@ -134,8 +133,6 @@ namespace XrEngine.OpenGL
         public GlOutlineOptions Outline { get; }
 
         public bool SortByCameraDistance { get; set; }
-
-        public bool UseLayerV2 { get; set; }
 
         public bool UseInstanceDraw { get; set; }
 

@@ -153,60 +153,6 @@ namespace XrEngine.OpenGL
         }
 
 
-        public override void RenderLayer(GlLayer layer)
-        {
-            Debug.Assert(_programInstance != null);
-
-            var updateContext = _renderer.UpdateContext;
-
-            updateContext.UseInstanceDraw = false;
-
-            foreach (var shader in layer.Content.ShaderContentsSorted!)
-            {
-                IEnumerable<VertexContent> vertices = shader.Value.ContentsSorted!;
-
-                if (SortByCameraDistance)
-                    vertices = vertices.OrderBy(a => a.AvgDistance);
-
-                foreach (var vertex in vertices)
-                {
-                    var vHandler = vertex.VertexHandler!;
-
-                    if (vHandler.NeedUpdate)
-                        vHandler.Update();
-
-                    updateContext.ActiveComponents = vertex.ActiveComponents;
-
-                    vHandler.Bind();
-
-                    foreach (var draw in vertex.Contents)
-                    {
-                        if (!CanDraw(draw))
-                            continue;
-
-                        updateContext.Model = draw.Object;
-
-                        var drawMaterial = draw.ProgramInstance!.Material;
-
-                        var upRes = UpdateProgram(updateContext, drawMaterial);
-
-                        if (upRes == UpdateProgramResult.Skip)
-                            continue;
-
-                        UpdateProgram(updateContext, draw.Object!);
-
-                        _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
-                        _programInstance.UpdateBuffers(updateContext);
-
-                        Draw(draw);
-
-                    }
-
-                    vHandler.Unbind();
-                }
-            }
-        }
-
         protected virtual bool CanDraw(DrawContent draw)
         {
             return !draw.IsHidden;

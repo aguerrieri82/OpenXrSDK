@@ -138,7 +138,7 @@ namespace XrEngine
             _components ??= [];
             _components.Add(component);
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentAdd, component));
+            NotifyChanged(new ObjectChange(ChangeType.ComponentAdd, component));
 
             return component;
         }
@@ -152,7 +152,7 @@ namespace XrEngine
 
             _components?.Remove(component);
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentRemove, component));
+            NotifyChanged(new ObjectChange(ChangeType.ComponentRemove, component));
         }
 
         public void NotifyChanged(ObjectChange change)
@@ -201,6 +201,8 @@ namespace XrEngine
                 return default;
             return (T)result;
         }
+
+
 
         public object? GetProp(int propId)
         {

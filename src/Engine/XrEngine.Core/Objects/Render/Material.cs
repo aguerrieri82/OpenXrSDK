@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Numerics;
+
+namespace XrEngine
 {
     public enum AlphaMode
     {
@@ -67,7 +69,7 @@
         protected override void SetStateWork(IStateContainer container)
         {
             container.ReadObject(this);
-            NotifyChanged(ObjectChangeType.Render);
+            NotifyChanged(ChangeType.Render);
             base.SetStateWork(container);
         }
 
@@ -97,7 +99,7 @@
         public virtual void Reload()
         {
 
-            this.OnChanged(ObjectChangeType.Material);
+            this.OnChanged(ChangeType.Material);
 
         }
 
@@ -121,6 +123,8 @@
 
         public byte? CompareStencilMask { get; set; }
 
+        public Vector2 PolygonOffset { get; set; }
+
         public StencilFunction StencilFunction { get; set; }
 
         public AlphaMode Alpha { get; set; }
@@ -137,7 +141,7 @@
                 if (_isEnabled == value)
                     return;
                 _isEnabled = value;
-                NotifyChanged(ObjectChangeType.MaterialEnabled);
+                NotifyChanged(ChangeType.MaterialEnabled);
             }
         }
 

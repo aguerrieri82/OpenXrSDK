@@ -93,8 +93,9 @@ namespace XrEngine.OpenGL
 
             if (_depth is GlRenderBuffer renderBuffer)
                 renderBuffer.Update(size.Width, size.Height, _sampleCount, InternalFormat.Depth24Stencil8);
-            else
-                ((GlTexture)_depth).Update(new TextureData
+
+            else if (_depth is GlTexture glTex)
+                glTex.Update(new TextureData
                 {
                     Width = size.Width,
                     Height = size.Height,
@@ -126,6 +127,8 @@ namespace XrEngine.OpenGL
 
         public void End(bool discardDepth)
         {
+           // _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
+
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _frameBuffer.Handle);
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
 

@@ -107,7 +107,7 @@ namespace XrEngine
                 WrapS = WrapMode.ClampToEdge;
             }
 
-            NotifyChanged(ObjectChangeType.Render);
+            NotifyChanged(ChangeType.Render);
         }
 
         public void NotifyLoaded()

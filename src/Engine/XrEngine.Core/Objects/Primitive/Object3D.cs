@@ -65,7 +65,7 @@ namespace XrEngine
             _transform.Version++;
 
             if (IsNotifyChangedScene())
-                _scene?.NotifyChanged(this, ObjectChangeType.Transform);
+                _scene?.NotifyChanged(this, ChangeType.Transform);
         }
 
         bool IsNotifyChangedScene()
@@ -121,7 +121,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Transform))
+            if (change.IsAny(ChangeType.Transform))
             {
                 InvalidateWorld();
 
@@ -129,11 +129,11 @@ namespace XrEngine
                     _parent?.InvalidateBounds();
             }
 
-            if (change.IsAny(ObjectChangeType.Geometry))
+            if (change.IsAny(ChangeType.Geometry))
                 InvalidateBounds();
 
             //Transform changes are notified when world matrix is updated
-            if (_parent != null && change.Type != ObjectChangeType.Transform)
+            if (_parent != null && change.Type != ChangeType.Transform)
                 _scene?.NotifyChanged(this, change);
 
             base.OnChanged(change);
@@ -181,14 +181,14 @@ namespace XrEngine
 
         internal void SetParent(Group3D? value, bool preserveTransform)
         {
-            var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
+            var changeType = ChangeType.Parent | ChangeType.Transform;
 
             var curWorldMatrix = WorldMatrix;
 
             _parent = value;
 
             if (_scene == null && value != null)
-                changeType |= ObjectChangeType.SceneAdd;
+                changeType |= ChangeType.SceneAdd;
 
             var oldScene = _scene;
 
@@ -196,7 +196,7 @@ namespace XrEngine
 
             if (_scene == null)
             {
-                changeType |= ObjectChangeType.SceneRemove;
+                changeType |= ChangeType.SceneRemove;
                 oldScene?.NotifyChanged(this, changeType);
             }
 
@@ -254,7 +254,7 @@ namespace XrEngine
                     return;
                 _isVisible = value;
                 _visibleDirty = true;
-                NotifyChanged(ObjectChangeType.Visibility);
+                NotifyChanged(ChangeType.Visibility);
             }
         }
 

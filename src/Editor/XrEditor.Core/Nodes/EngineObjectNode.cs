@@ -20,7 +20,7 @@ namespace XrEditor.Nodes
 
         public void EditorProperties(IList<PropertyView> curProps)
         {
-            var binder = new Binder<T>(_value);
+            var binder = new Binder<T>(_value, a => EngineApp.Current.Dispatcher.Post(a));
             EditorProperties(binder, curProps);
         }
 
@@ -30,10 +30,10 @@ namespace XrEditor.Nodes
 
         protected virtual void OnObjectChanged(EngineObject obj, ObjectChange change)
         {
-            _ = OnNodeChanged();
+            OnNodeChanged();
         }
 
-        protected virtual async Task OnNodeChanged()
+        protected virtual async void OnNodeChanged()
         {
             if (_nodeChanged == null)
                 return;

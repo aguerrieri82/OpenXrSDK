@@ -30,7 +30,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+              //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -38,8 +38,7 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
-                  opt.UseLayerV2 = true;
-                  opt.SampleCount = 4;
+                  opt.SampleCount = 1;
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 

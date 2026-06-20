@@ -12,17 +12,12 @@ namespace XrEngine.OpenGL
         private readonly GL _gl;
         private readonly bool _multiView;
         private readonly Dictionary<uint, IGlRenderTarget> _targets = [];
-        private readonly bool _isGlEs;
 
 
         public GlFrameBufferPool(GL gl, bool multiView)
         {
             _gl = gl;
             _multiView = multiView;
-
-#if GLES
-            _isGlEs = true;
-#endif
             DepthFormat = TextureFormat.Depth24Stencil8;
         }
 
@@ -58,7 +53,7 @@ namespace XrEngine.OpenGL
             {
                 GlTexture? glDepth = null;
 
-                var texSampleCount = _isGlEs && _multiView ? 1 : sampleCount;
+                var texSampleCount = GlUtils.IsES && _multiView ? 1 : sampleCount;
 
                 var glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
 

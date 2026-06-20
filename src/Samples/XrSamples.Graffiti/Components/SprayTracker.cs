@@ -127,7 +127,7 @@ namespace XrSamples.Graffiti
                 _brush.Geometry!.Vertices[i].Pos = _intersets[i];
             }
 
-            _brush.Geometry!.NotifyChanged(ObjectChangeType.Geometry);
+            _brush.Geometry!.NotifyChanged(ChangeType.Geometry);
             _brush.Geometry.ComputeNormals();
             _brush.IsVisible = true;
         }

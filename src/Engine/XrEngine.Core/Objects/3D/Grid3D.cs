@@ -72,7 +72,7 @@ namespace XrEngine
 
             ActiveComponents = VertexComponent.Position | VertexComponent.UV0 | VertexComponent.Normal;
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
 

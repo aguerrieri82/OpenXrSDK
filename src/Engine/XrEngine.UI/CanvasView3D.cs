@@ -159,7 +159,7 @@ namespace XrEngine.UI
             {
                 _defaultTexture.Width = _pixelSize.Width;
                 _defaultTexture.Height = _pixelSize.Height;
-                _defaultTexture.NotifyChanged(ObjectChangeType.Unspecified);
+                _defaultTexture.NotifyChanged(ChangeType.Unspecified);
 
                 CreateSurface(_defaultTexture);
             }

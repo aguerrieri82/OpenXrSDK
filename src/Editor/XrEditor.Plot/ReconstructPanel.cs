@@ -41,21 +41,17 @@ namespace XrEditor.Plot
         private EyesFrame<DepthFrame>? _curDepth;
         private EyesFrame<ColorFrame>? _curColor;
         private int _colorOffset;
-        private float _fovScale;
-        private Vector2 _center;
         private ColorMode _colorMode;
         private ColorFrame? _curScreen;
         private bool _autoOffset;
         private float _depthCutOff;
         private Bounds3 _roomBounds;
         private TriangleMesh? _depthMesh;
-        private bool _isUpdatingMesh;
+        private int _meshCount;
 
         public ReconstructPanel()
         {
             _overlay = 0f;
-            _fovScale = 1f;
-            _center.X = -530;
             _autoOffset = true;
             _depthCutOff = 1;
             _axis = VectorAxis.Y;
@@ -73,6 +69,7 @@ namespace XrEditor.Plot
             VoxelStartFrame = 141;
             VoxelEndFrame = 151;
             ExportPointsCommand = new Command(ExportPoints);
+            SelectCommand = new Command(SelectMesh);
         }
 
         protected override Task LoadAsync()
@@ -144,6 +141,40 @@ namespace XrEditor.Plot
             }
         }
 
+        protected async void SelectMesh()
+        {
+            var scene = EngineApp.Current.ActiveScene;
+
+            if (scene == null || _depthMesh == null)
+                return;
+
+            await EngineApp.MainThread;
+
+            var tex = new Texture2D();
+
+            tex!.LoadData(new TextureData
+            {
+                Width = _curColor!.Width,
+                Height = _curColor.Height,
+                Format = TextureFormat.Rgb24,
+                Data = _curColor.Left.Data
+            });
+
+            var mesh = new TriangleMesh(_depthMesh.Geometry!, new TextureMaterial(tex)
+            {
+                Alpha = AlphaMode.Blend,
+                UseDepth = false,
+                WriteDepth = false,
+                Priority = _meshCount++
+            });
+
+            scene.AddChild(mesh);
+
+            _depthMesh.Materials[0].Priority = _meshCount + 1;
+            _depthMesh.Materials[0].NotifyChanged(ChangeType.Material);
+
+        }
+
         protected unsafe void UpdateMesh()
         {
             var scene = EngineApp.Current.ActiveScene;
@@ -188,7 +219,7 @@ namespace XrEditor.Plot
                 Data = _curColor.Left.Data
             });
 
-            _depthMesh.NotifyChanged(ObjectChangeType.Geometry);
+            _depthMesh.NotifyChanged(ChangeType.Geometry);
         }
 
         protected void UpdateImages()
@@ -339,16 +370,6 @@ namespace XrEditor.Plot
             }
         }
 
-        public float FovScale
-        {
-            get => _fovScale;
-            set
-            {
-                _fovScale = value;
-                OnPropertyChanged(nameof(FovScale));
-                UpdateImages();
-            }
-        }
 
         public float DepthCutOff
         {
@@ -357,28 +378,6 @@ namespace XrEditor.Plot
             {
                 _depthCutOff = value;
                 OnPropertyChanged(nameof(DepthCutOff));
-                UpdateImages();
-            }
-        }
-
-        public float CenterX
-        {
-            get => _center.X;
-            set
-            {
-                _center.X = value;
-                OnPropertyChanged(nameof(CenterX));
-                UpdateImages();
-            }
-        }
-
-        public float CenterY
-        {
-            get => _center.Y;
-            set
-            {
-                _center.Y = value;
-                OnPropertyChanged(nameof(CenterY));
                 UpdateImages();
             }
         }
@@ -405,6 +404,8 @@ namespace XrEditor.Plot
 
             }
         }
+
+        public Command SelectCommand { get; }
 
         public Command ExportPointsCommand { get; }
 

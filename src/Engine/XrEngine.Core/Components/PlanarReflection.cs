@@ -75,7 +75,7 @@ namespace XrEngine
                     tex.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
 
                     if (texChanged)
-                        tex.NotifyChanged(ObjectChangeType.Render);
+                        tex.NotifyChanged(ChangeType.Render);
                 }
                 else if (MaterialOverride is BasicMaterial bsc)
                 {
@@ -91,7 +91,7 @@ namespace XrEngine
                     bsc.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
 
                     if (texChanged)
-                        bsc.NotifyChanged(ObjectChangeType.Render);
+                        bsc.NotifyChanged(ChangeType.Render);
 
                 }
 
@@ -263,7 +263,7 @@ namespace XrEngine
 
         public void DrawGizmos(Canvas3D canvas)
         {
-            return;
+            /*
             var bounds = _host!.WorldBounds;
             var pos = bounds.Center;
             canvas.Save();
@@ -271,7 +271,7 @@ namespace XrEngine
             canvas.DrawPlane(_plane, pos, 1, 2, 0.1f);
             canvas.DrawLine(pos, pos + _plane.Normal);
             canvas.Restore();
-
+            */
         }
 
         [Range(-1, 1, 0.001f)]

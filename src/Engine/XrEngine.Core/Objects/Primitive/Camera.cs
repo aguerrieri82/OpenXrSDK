@@ -152,7 +152,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Transform))
+            if (change.IsAny(ChangeType.Transform))
                 _viewProjDirty = true;
 
             base.OnChanged(change);

@@ -13,7 +13,7 @@ namespace XrEditor.Nodes
 
         public void EditorProperties(IList<PropertyView> curProps)
         {
-            var binder = new Binder<Transform3D>(_value);
+            var binder = new Binder<Transform3D>(_value, a => EngineApp.Current.Dispatcher.Post(a));
 
             curProps.Add(new PropertyView
             {

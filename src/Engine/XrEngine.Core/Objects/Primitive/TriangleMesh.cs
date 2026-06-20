@@ -76,7 +76,7 @@ namespace XrEngine
                     foreach (var item in e.OldItems!.Cast<Material>())
                         item.Detach(this, false);
 
-                    NotifyChanged(new ObjectChange(ObjectChangeType.MateriaRemove, e.OldItems));
+                    NotifyChanged(new ObjectChange(ChangeType.MateriaRemove, e.OldItems));
                 }
             }
 
@@ -85,7 +85,7 @@ namespace XrEngine
                 foreach (var item in e.NewItems.Cast<Material>())
                     item.Attach(this);
 
-                NotifyChanged(new ObjectChange(ObjectChangeType.MateriaAdd, e.NewItems));
+                NotifyChanged(new ObjectChange(ChangeType.MateriaAdd, e.NewItems));
             }
         }
 
@@ -110,7 +110,7 @@ namespace XrEngine
                 if (_geometry != null)
                     _geometry.Attach(this);
 
-                NotifyChanged(ObjectChangeType.Geometry);
+                NotifyChanged(ChangeType.Geometry);
             }
         }
 

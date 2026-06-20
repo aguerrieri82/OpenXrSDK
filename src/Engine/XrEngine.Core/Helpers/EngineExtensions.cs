@@ -157,7 +157,7 @@ namespace XrEngine
                 if (mat.UseEnvDepth != value)
                 {
                     mat.UseEnvDepth = value;
-                    mat.NotifyChanged(ObjectChangeType.Render);
+                    mat.NotifyChanged(ChangeType.Render);
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace XrEngine
                 if (mat.CastShadows != value)
                 {
                     mat.CastShadows = value;
-                    mat.NotifyChanged(ObjectChangeType.Render);
+                    mat.NotifyChanged(ChangeType.Render);
                 }
             }
         }
@@ -572,7 +572,7 @@ namespace XrEngine
 
             self.Vertices = vertex.ToArray();
             self.ComputeIndices();
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static Geometry3D TransformToLine(this Geometry3D self)
@@ -694,7 +694,7 @@ namespace XrEngine
                 }
             }
             self.ActiveComponents |= VertexComponent.Normal;
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void ToTriangles(this Geometry3D self)
@@ -719,7 +719,7 @@ namespace XrEngine
 
             self.Indices = newIndices.ToArray();
             self.Primitive = DrawPrimitive.Triangle;
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void EnsureIndices(this Geometry3D self)
@@ -730,7 +730,7 @@ namespace XrEngine
                 for (var i = 0; i < self.Vertices.Length; i++)
                     self.Indices[i] = (uint)i;
             }
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void SmoothNormals(this Geometry3D self)
@@ -779,7 +779,7 @@ namespace XrEngine
                         self.Vertices[index].Normal = avg;
                 }
             }
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static IEnumerable<Triangle3> Triangles(this Geometry3D self)
@@ -921,7 +921,7 @@ namespace XrEngine
             }
 
             self.ActiveComponents |= VertexComponent.Tangent;
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void SetVertexData<T>(this Geometry3D self, VertexAssignDelegate<T> selector, T[] array)
@@ -939,7 +939,7 @@ namespace XrEngine
             for (var i = 0; i < array.Length; i++)
                 selector(ref self.Vertices[i], array[i]);
 
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform)
@@ -1020,7 +1020,7 @@ namespace XrEngine
             self.Indices = indices;
             self.Vertices = newVertices.ToArray();
 
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         #endregion
@@ -1297,7 +1297,7 @@ namespace XrEngine
                 if (material.Color != color)
                 {
                     material.Color = color;
-                    ((Material)material).NotifyChanged(ObjectChangeType.Render);
+                    ((Material)material).NotifyChanged(ChangeType.Render);
                 }
             }
 
@@ -1310,7 +1310,7 @@ namespace XrEngine
             if ((Vector4)src.Color != (Vector4)color)
             {
                 ((IColorSource)self).Color = color;
-                self.NotifyChanged(ObjectChangeType.Render);
+                self.NotifyChanged(ChangeType.Render);
                 return true;
             }
             return false;

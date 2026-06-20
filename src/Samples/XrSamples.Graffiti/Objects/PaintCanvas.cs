@@ -113,7 +113,7 @@ namespace XrSamples.Graffiti
                 brick.Build();
             }
 
-            _geo.NotifyChanged(ObjectChangeType.Geometry);
+            _geo.NotifyChanged(ChangeType.Geometry);
 
             _frame.Size = newSize;
             _frame.Build();
@@ -198,7 +198,7 @@ namespace XrSamples.Graffiti
                 }
             }
 
-            debugMat.NotifyChanged(ObjectChangeType.Material);
+            debugMat.NotifyChanged(ChangeType.Material);
         }
 
 

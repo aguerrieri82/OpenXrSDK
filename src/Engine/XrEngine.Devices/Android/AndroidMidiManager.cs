@@ -6,6 +6,9 @@ using System.Runtime.Versioning;
 using ContextA = global::Android.Content.Context;
 using MidiDeviceInfo2 = Android.Media.Midi.MidiDeviceInfo;
 
+#pragma warning disable CA1416
+#pragma warning disable CA1422
+
 namespace XrEngine.Devices.Android
 {
     [SupportedOSPlatform("android23.0")]

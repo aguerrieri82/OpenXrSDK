@@ -89,9 +89,9 @@ namespace XrEngine
             }
 
             Panorama = (Texture2D)loader.LoadAsset(uri, typeof(Texture2D), null, _loaderOptions);
-            Panorama.NotifyChanged(ObjectChangeType.Render);
+            Panorama.NotifyChanged(ChangeType.Render);
 
-            NotifyChanged(ObjectChangeType.Render);
+            NotifyChanged(ChangeType.Render);
         }
 
         public void NotifyIBLCreated()
@@ -119,7 +119,7 @@ namespace XrEngine
             RotationY = container.Read<float>(nameof(RotationY));
             Panorama = container.Read("Panorama", Panorama);
             if (Panorama != null)
-                Panorama.NotifyChanged(ObjectChangeType.Render);
+                Panorama.NotifyChanged(ChangeType.Render);
         }
 
         public override void Dispose()

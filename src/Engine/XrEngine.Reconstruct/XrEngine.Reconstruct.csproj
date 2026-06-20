@@ -8,10 +8,14 @@
 
 
 	<ItemGroup>
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
     <ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />
-    <ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
-    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
   </ItemGroup>
+
+
+
+	<ItemGroup>
+	  <Folder Include="Objects\" />
+	</ItemGroup>
 
 </Project>

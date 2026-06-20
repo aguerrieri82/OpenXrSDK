@@ -210,6 +210,7 @@ namespace OpenXr.Framework.Oculus
 
         public void SetColorSpace(ColorSpaceFB colorSpace)
         {
+            Debug.Assert(_colorSpace != null);
             _app!.CheckResult(_colorSpace.SetColorSpaceFB(_app!.Session, colorSpace), "SetColorSpaceFB");
         }
 

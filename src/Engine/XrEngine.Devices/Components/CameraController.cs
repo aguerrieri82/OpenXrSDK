@@ -50,6 +50,7 @@ namespace XrEngine.Devices
 
         protected override void OnAttach()
         {
+
             _manager ??= Context.Require<ILocalCameraManger>();
 
             if (_poseProvider == null)
