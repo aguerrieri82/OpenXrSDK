@@ -113,14 +113,70 @@ void main()
         return;
     }
 
-    vec3 normal = normalize(cross(p1 - p0, p2 - p0));
+    /*
+    vec3 n = normalize(cross(p1 - p0, p2 - p0));
 
-    float frontness = abs(dot(normal, normalize(uCaptureCameraRight)));
+    vec3 camRight = normalize(uCaptureCameraRight);
+    vec3 camForward = normalize(uCaptureCameraForward);
+    vec3 camUp = normalize(cross(camRight, camForward));
 
-    if (uCullLateralFaces && frontness > uMinFrontness)
+    vec3 r0 = normalize(p0 - uCaptureCameraPos);
+    vec3 r1 = normalize(p1 - uCaptureCameraPos);
+    vec3 r2 = normalize(p2 - uCaptureCameraPos);
+
+    // Normal of the local vertical ray-plane.
+    // At image center this is ~cameraRight.
+    // Near the frustum sides it rotates with the ray.
+    vec3 side0 = normalize(cross(camUp, r0));
+    vec3 side1 = normalize(cross(camUp, r1));
+    vec3 side2 = normalize(cross(camUp, r2));
+
+    float lateral0 = abs(dot(n, side0));
+    float lateral1 = abs(dot(n, side1));
+    float lateral2 = abs(dot(n, side2));
+
+    // Require all triangle rays to agree that this is lateral.
+    float lateral = min(lateral0, min(lateral1, lateral2));
+
+    if (uCullLateralFaces && lateral > uMinFrontness)
     {
-        EmitTriangle(3, maxEdge, maxLen, distanceToCapture, frontness);
+        EmitTriangle(3, maxEdge, maxLen, distanceToCapture, lateral);
         return;
+    }
+    */
+
+    float frontness = 0.0;
+
+    if (uCullLateralFaces)
+    {
+        vec2 uv0 = gs_in[0].uv;
+        vec2 uv1 = gs_in[1].uv;
+        vec2 uv2 = gs_in[2].uv;
+
+        vec3 e1 = p1 - p0;
+        vec3 e2 = p2 - p0;
+
+        vec2 duv1 = uv1 - uv0;
+        vec2 duv2 = uv2 - uv0;
+
+        float det = duv1.x * duv2.y - duv2.x * duv1.y;
+
+        if (abs(det) > 0.00000001)
+        {
+            float invDet = 1.0 / det;
+
+            vec3 tangent = normalize((e1 * duv2.y - e2 * duv1.y) * invDet);
+
+            vec3 ray = normalize(center - uCaptureCameraPos);
+
+            frontness = abs(dot(tangent, ray));
+
+            if (frontness > uMinFrontness)
+            {
+                EmitTriangle(3, maxEdge, maxLen, distanceToCapture, frontness);
+                return;
+            }
+        }
     }
 
     EmitTriangle(0, maxEdge, maxLen, distanceToCapture, frontness);

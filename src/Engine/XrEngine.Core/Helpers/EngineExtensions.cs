@@ -945,7 +945,7 @@ namespace XrEngine
         public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform)
         {
             if (self.Vertices != null)
-                return self.ExtractPositions().ComputeBounds(transform);
+                return self.ExtractPositions(true).ComputeBounds(transform);
 
             return new Bounds3();
         }

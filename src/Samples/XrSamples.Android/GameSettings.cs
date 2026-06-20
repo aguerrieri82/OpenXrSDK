@@ -34,10 +34,10 @@ namespace XrSamples
                 Msaa = 1,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
+                IsMultiView = false,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
-                FrustumCulling = false,
+                FrustumCulling = true,
                 TextureCompression = true
             };
         }

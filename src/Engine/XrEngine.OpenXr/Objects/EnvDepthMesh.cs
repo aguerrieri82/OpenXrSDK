@@ -73,8 +73,6 @@ namespace XrEngine.OpenXr
 
             static bool KeepTriangle(uint i0, uint i1, uint i2, VertexData[] vertices, bool[] valid)
             {
-                return true;
-
                 if (!valid[i0] || !valid[i1] || !valid[i2])
                     return false;
 
@@ -155,15 +153,13 @@ namespace XrEngine.OpenXr
 
                     colorUv.Y = 1.0f - colorUv.Y;
 
-                    /*
                     if (colorUv.X < 0.0f || colorUv.X > 1.0f ||
                         colorUv.Y < 0.0f || colorUv.Y > 1.0f)
                     {
                         valid[index] = false;
                         continue;
                     }
-                    */
-
+            
                     vertices[index] = new VertexData
                     {
                         Pos = world,
@@ -212,6 +208,7 @@ namespace XrEngine.OpenXr
             };
 
             result.ComputeNormals();
+            result.UpdateBounds();
 
             return result;
         }

@@ -82,7 +82,7 @@ namespace XrEditor
             {
                 var node = ((NodeView)curSel.Header!).Node;
                 if (!newSelection.Contains(node))
-                    curSel.SetSelectedFromSelectionManager(false);
+                    curSel.IsSelected = false;
             }
 
             foreach (var item in newSelection)
@@ -90,7 +90,7 @@ namespace XrEditor
                 Log.Debug(this, "[Sel-Man] new-selection: {0}", item.Value);
 
                 if (_listNodeMap.TryGetValue(item, out var listNode))
-                    listNode.SetSelectedFromSelectionManager(true);
+                    listNode.SetSelectedCore(true, false);
             }
 
             _mainDispatcher.Execute(() =>

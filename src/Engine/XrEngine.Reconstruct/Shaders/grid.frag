@@ -10,16 +10,43 @@
     flat float frontness;
 } fs_in;
 
-uniform sampler2D uTexture;
+layout(binding=0) uniform sampler2D uTexture;
+layout(binding=1) uniform sampler2D uDepth;
+
 uniform bool uShowRejected;
+uniform float uAlpha;
+uniform float uDepthBias;
 
 out vec4 outColor;
+
+bool IsKilledByAccumDepth()
+{
+    if (uDepthBias <= 0.0)
+        return false;
+
+    ivec2 p = ivec2(gl_FragCoord.xy);
+    ivec2 size = textureSize(uDepth, 0);
+
+    if (p.x < 0 || p.y < 0 || p.x >= size.x || p.y >= size.y)
+        return false;
+
+    float oldDepth = texelFetch(uDepth, p, 0).r;
+
+    // Standard depth: 1.0 means empty / far clear.
+    if (oldDepth >= 0.999999)
+        return false;
+
+    float myDepth = gl_FragCoord.z;
+
+    return abs(myDepth - oldDepth) <= uDepthBias;
+}
 
 void main()
 {
     if (fs_in.reason == 0)
     {
         outColor = texture(uTexture, fs_in.uv);
+        outColor.a = uAlpha;
         return;
     }
 

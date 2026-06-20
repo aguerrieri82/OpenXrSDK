@@ -92,13 +92,22 @@ namespace XrEngine.Reconstruct
 
                 up.SetUniform("uMinFrontness", MinFrontness);
                 up.SetUniform("uMaxCaptureDistance", MaxCaptureDistance);
+                up.SetUniform("uAlpha", BaseAlpha);
+                up.SetUniform("uDepthBias", LogDepthBias(DepthBias));
 
                 if (Texture != null)
                     up.LoadTexture(Texture, 0);
+
+                var depth = ctx.RenderEngine!.GetDepth();
+                if (depth != null)
+                    up.LoadTexture(depth, 1);
             });
 
             base.UpdateShaderMaterial(bld);
         }
+
+        static float LogDepthBias(float t) => t <= 0 ? 0f : 0.00001f * MathF.Pow(0.005f / 0.00001f, t);
+
 
         public static bool CullInvalidUv { get; set; } = true;
 
@@ -111,7 +120,7 @@ namespace XrEngine.Reconstruct
         public static bool ShowRejected { get; set; } = false;
 
         [Range(0.005f, 0.20f, 0.001f)]
-        public static float MaxEdgeBase { get; set; } = 0.04f;
+        public static float MaxEdgeBase { get; set; } = 0.125f;
 
         [Range(0.0f, 0.02f, 0.0005f)]
         public static float MaxEdgePerMeter { get; set; } = 0.0f;
@@ -123,5 +132,10 @@ namespace XrEngine.Reconstruct
         public static float MaxCaptureDistance { get; set; } = 4.0f;
 
         public Texture2D? Texture { get; set; }
-    }
+
+        public static float BaseAlpha { get; set; } = 0.9f;
+
+        [Range(0, 1f, 0.01f)]
+        public static float DepthBias { get; set; }
+    } 
 }

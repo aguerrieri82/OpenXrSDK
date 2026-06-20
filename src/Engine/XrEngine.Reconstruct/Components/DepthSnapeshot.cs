@@ -33,10 +33,12 @@ namespace XrEngine.Reconstruct
 
         public void OnSelected(Object3D obj, bool isSelected)
         {
-            _host!.Materials[1].IsEnabled = isSelected;
+             _host!.Materials[1].IsEnabled = isSelected && ShowWireFrame;
         }
 
         public Texture2D? Texture { get;  set; }
+
+        public bool ShowWireFrame { get; set; }
 
         public DepthSnapeshot.DepthFrameMeta? Meta { get;  set; }
     }
@@ -219,7 +221,7 @@ namespace XrEngine.Reconstruct
             {
                 Priority = -1000 + _frames.Count,
                 WriteDepth = true,
-                UseDepth = true,
+                UseDepth = false,
                 Color = new Color(1, 1, 1, 1f),
                 Alpha = AlphaMode.Blend
             };
@@ -357,6 +359,7 @@ namespace XrEngine.Reconstruct
                     IsEnabled = false
                 });
 
+
                 mesh.AddComponent(new CaptureFrame
                 {
                     Meta = meta,
@@ -395,6 +398,18 @@ namespace XrEngine.Reconstruct
                 if (!SplatMode)
                     _host!.AddChild(mesh);
             }
+
+            var count1 = 0;
+            foreach (var child in _host!.Children.OfType<TriangleMesh>())
+                count1 += child.Geometry!.Vertices.Length;
+
+            TemporalGridCleaner.BuildCleanVertices(_host!.Children.OfType<TriangleMesh>().ToArray(), 0.20f, ProbeMode.Normal);
+
+            var count2 = 0;
+            foreach (var child in _host!.Children.OfType<TriangleMesh>())
+                count2 += child.Geometry!.Vertices.Length;
+
+            Log.Warn(this, "Cleanup: {0} vs {1}", count1, count2);
 
             _frameIndex = _frames.Count == 0
                 ? 0

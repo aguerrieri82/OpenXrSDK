@@ -263,23 +263,15 @@ namespace XrEditor
             get => _isSelected;
             set
             {
-                if (_isSelected == value)
-                    return;
-
                 SetSelectedCore(value, notifySelectionChanged: true);
             }
         }
 
-        internal void SetSelectedFromSelectionManager(bool value)
+        internal void SetSelectedCore(bool value, bool notifySelectionChanged)
         {
             if (_isSelected == value)
                 return;
 
-            SetSelectedCore(value, notifySelectionChanged: false);
-        }
-
-        private void SetSelectedCore(bool value, bool notifySelectionChanged)
-        {
             _isSelected = value;
 
             Log.Debug(this, "[Sel] IsSelected: {0} ({1})", value, Header);
@@ -294,10 +286,7 @@ namespace XrEditor
             if (notifySelectionChanged)
                 SelectionChanged?.Invoke(this);
 
-            Context.Require<IMainDispatcher>().Execute(() =>
-            {
-                OnPropertyChanged(nameof(IsSelected));
-            }, true);
+            OnPropertyChanged(nameof(IsSelected));
         }
 
         public bool IsExpanded
