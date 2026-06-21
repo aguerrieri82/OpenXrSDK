@@ -48,6 +48,7 @@ namespace XrEditor.Plot
         private Bounds3 _roomBounds;
         private TriangleMesh? _depthMesh;
         private int _meshCount;
+        private DepthGeometryGenerator _generator;
 
         public ReconstructPanel()
         {
@@ -75,7 +76,6 @@ namespace XrEditor.Plot
         protected override Task LoadAsync()
         {
             _reader = XrReconstructReader.Current;
-            _reader.Open("D:\\Projects\\XrEditor\\Capture");
 
             OnPropertyChanged(nameof(TotalFrames));
             ReadFrame(0);
@@ -190,10 +190,10 @@ namespace XrEditor.Plot
 
             using var data = _curDepth.Left.Data.MemoryLock();
 
-            var geo = EnvDepthMesh.CreateDepthColorGrid(data.Data,
+            _generator ??= new DepthGeometryGenerator(320, 320);
+
+            var geo = _generator.CreateGeometry(data.Data,
                 (int)_curDepth.Width, (int)_curDepth.Height,
-                320,
-                320,
                 (_curDepth.Left.View * _curDepth.Left.Proj).Invert(),
                  _reader!.LeftCamera!.GetViewProj(_curColor.Left.Pose!.Value));
 

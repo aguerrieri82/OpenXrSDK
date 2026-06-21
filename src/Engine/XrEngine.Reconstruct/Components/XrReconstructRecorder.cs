@@ -198,7 +198,7 @@ namespace XrEngine.Reconstruct
                 _zStream!.Write(_buffers![0].AsSpan());
                 _zStream.Write(_buffers![1].AsSpan());
 
-                _stats.DepthFrame++;
+                _stats.DepthFrames++;
             }
 
             var rightPose = Pose3.Identity;
@@ -210,14 +210,14 @@ namespace XrEngine.Reconstruct
             {
                 if (tsRight != 0)
                     rightPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsRight * 1000).Pose;
-                _stats.RightFrame++;
+                _stats.RightFrames++;
             }
 
             if (_screenRecorder!.ProcessEncodedFrames(out var tsCap))
             {
                 if (tsCap != 0)
                     capPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsCap * 1000).Pose;
-                _stats.ScreenFrame++;
+                _stats.ScreenFrames++;
             }
 
 
@@ -228,7 +228,7 @@ namespace XrEngine.Reconstruct
                 if (!hasFrame)
                     return;
 
-                _stats!.LeftFrame++;
+                _stats!.LeftFrames++;
 
                 if (tsLeft != 0)
                     leftPose = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, tsLeft * 1000).Pose;
@@ -258,7 +258,7 @@ namespace XrEngine.Reconstruct
                         View = activeCamera.Eyes[0].View.ToFloatArray(),
                         Pose = leftPose,
                         Time = tsLeft,
-                        Frame = _stats.LeftFrame
+                        Frame = _stats.LeftFrames
                     },
                     RightColor = new EyeData
                     {
@@ -266,27 +266,27 @@ namespace XrEngine.Reconstruct
                         View = activeCamera.Eyes[1].View.ToFloatArray(),
                         Pose = rightPose,
                         Time = tsRight,
-                        Frame = _stats.RightFrame
+                        Frame = _stats.RightFrames
                     },
                     LeftDepth = new EyeData
                     {
                         Proj = _depthCamera!.Eyes![0].Projection.ToFloatArray(),
                         View = _depthCamera.Eyes[0].View.ToFloatArray(),
-                        Frame = _stats.DepthFrame,
+                        Frame = _stats.DepthFrames,
                         Time = depthTime
                     },
                     RightDepth = new EyeData
                     {
                         Proj = _depthCamera.Eyes[1]!.Projection.ToFloatArray(),
                         View = _depthCamera.Eyes[1].View.ToFloatArray(),
-                        Frame = _stats.DepthFrame,
+                        Frame = _stats.DepthFrames,
                         Time = depthTime
                     },
                     Screen = new EyeData
                     {
                         Time = tsCap,
                         Pose = capPose,
-                        Frame = _stats.ScreenFrame,
+                        Frame = _stats.ScreenFrames,
                         View = captureView.ToFloatArray()
                     }
                 };

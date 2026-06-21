@@ -141,10 +141,11 @@ namespace XrEngine.OpenGL
                     if (!materialChanged)
                         continue;
 
+                    Invalidate(shaderContent);
+
                     if (materialContent.Contents.Count == 0)
                     {
                         shaderContent.Contents.Remove(materialEntry.Key);
-                        Invalidate(shaderContent);
                     }
                     else if (incremental)
                     {
@@ -155,8 +156,6 @@ namespace XrEngine.OpenGL
                 if (shaderContent.Contents.Count == 0)
                     _content.Contents.Remove(shaderEntry.Key);
             }
-
-            _isContentDirty = true;
         }
 
         protected void AddContent(Object3D obj3d, bool incremental)

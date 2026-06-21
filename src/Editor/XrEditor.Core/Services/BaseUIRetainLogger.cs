@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using XrEngine;
 
 namespace XrEditor.Services
@@ -92,6 +93,12 @@ namespace XrEditor.Services
                 _ = UpdateAsync();
             else
                 _isDirty = true;
+
+#if DEBUG
+            var src = source is Type type ? type.Name : source.GetType().Name;
+
+            Debug.WriteLine("[{0}] {1} {2}", src, text, level.ToString().Substring(0, 3).ToUpper());
+#endif
         }
 
         public virtual void LogProgress(object source, double current, double total, string? message = null, bool retain = false)

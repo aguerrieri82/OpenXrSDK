@@ -55,7 +55,8 @@ namespace XrEngine
 
         public override void LoadData(IList<TextureData> data, bool initSampler = true)
         {
-            Height = data[0].Height;
+            Height = data.Max(a => a.Height);
+            Depth = data.Max(a => a.Layer) + 1;
 
             if (initSampler)
             {
@@ -63,6 +64,7 @@ namespace XrEngine
                 if (data.Count > 1)
                     MipLevelCount = data.Max(a => a.MipLevel) + 1;
             }
+
             base.LoadData(data, initSampler);
         }
 

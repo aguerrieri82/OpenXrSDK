@@ -39,7 +39,7 @@
   </Folder>
   <Folder Name="/#Third/">
     <Project Path="../third-party/etcpak/EtcPack.vcxproj" Id="151a0d98-7e72-4d78-8c7e-c2bbdba4d75d">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <BuildType Project="Release" />
     </Project>
     <Project Path="../third-party/glTF-CSharp-Loader/glTFLoader/glTFLoader.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -261,6 +261,7 @@
     <Project Path="Samples/EngineSamples.Android/EngineSamples.Android.csproj" Id="b204259a-b168-4e99-9970-36bb49b4da5f">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Debug|*" />
     </Project>
     <Project Path="Samples/XrSamples.Android/XrSamples.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />

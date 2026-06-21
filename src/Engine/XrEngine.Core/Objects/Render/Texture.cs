@@ -1,4 +1,5 @@
 ﻿
+
 namespace XrEngine
 {
 
@@ -96,7 +97,7 @@ namespace XrEngine
         public virtual void LoadData(IList<TextureData> data, bool initSampler = true)
         {
             Data = data;
-            Width = data[0].Width;
+            Width = data.Max(a => a.Width);
             Format = data[0].Format;
             Compression = data[0].Compression;
 

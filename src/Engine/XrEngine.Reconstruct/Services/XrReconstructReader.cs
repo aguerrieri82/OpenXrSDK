@@ -1,9 +1,12 @@
 ﻿using Common.Interop;
+using SkiaSharp;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using XrEngine.Compression;
 using XrEngine.Devices;
 using XrEngine.Media;
 using XrMath;
@@ -138,7 +141,7 @@ namespace XrEngine.Reconstruct
             File.WriteAllText(outPath, JsonSerializer.Serialize(frameArray));
         }
 
-        public void Open(string path)
+        public unsafe void Open(string path)
         {
             _basePath = path;
 
@@ -182,7 +185,44 @@ namespace XrEngine.Reconstruct
 
 
             _sceneModel = AssetLoader.Instance.Load<TriangleMesh>(scenePath);
+
+            /*
+            var img = new PngLib.ImageData();
+            var pngBuf = new PngLib.MemoryBuffer();
+
+            var stream = new MemoryStream();
+
+            var startFrame = _meta.Min(a => a.LeftDepth.Frame);
+            var endFrame = _meta.Max(a => a.LeftDepth.Frame);
+
+            var count = 0;
+
+            for (var i = startFrame; i <= endFrame; i++)
+            {
+                var frame = ReadDepth(i);
+                if (frame == null)
+                {
+                    Debug.WriteLine("Missing frame {0}", i);
+                    continue;
+                }
+
+                count++;
+                using var leftData = frame!.Left.Data!.MemoryLock();
+                using var rightData = frame.Right.Data!.MemoryLock();
+
+                PngLib.EncodeGray16(leftData, (int)frame.Width, (int)frame.Height, 3, ref pngBuf);
+                stream.Write(pngBuf.Span);
+
+                PngLib.EncodeGray16(rightData, (int)frame.Width, (int)frame.Height, 3, ref pngBuf);
+                stream.Write(pngBuf.Span);
+
+                Log.Info(this, "Compressing {0} - {1} MB", i, stream.Length / 1024 / 1024);
+            }
+
+            pngBuf.Dispose();
+            */
         }
+
 
         public void ReconstructDepth(DepthFrame frame, uint width, uint height, float zCutOff, uint maxW = 320)
         {

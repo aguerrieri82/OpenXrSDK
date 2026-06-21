@@ -141,8 +141,9 @@ namespace XrEngine
 
         public override void Dispose()
         {
-            _parent?.RemoveChild(this);
             base.Dispose();
+            _parent?.RemoveChild(this);
+
         }
 
         public float DistanceTo(Vector3 point)

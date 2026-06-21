@@ -29,7 +29,21 @@ namespace XrEngine.Reconstruct
         public GridMaterial()
         {
             _shader = SHADER;
+
             Alpha = AlphaMode.Blend;
+            CullInvalidUv = false;
+            CullLongEdge = false;
+            CullLateralFaces = false;
+            CullDistance = false;
+            ShowRejected = false;
+
+            MaxEdgeBase = 0.125f;
+            MaxEdgePerMeter = 0.0f;
+            MinFrontness = 0.25f;
+            MaxCaptureDistance = 4.0f;
+
+            BaseAlpha = 0.9f;
+            DepthBias = 0.0f;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
@@ -109,31 +123,31 @@ namespace XrEngine.Reconstruct
         static float LogDepthBias(float t) => t <= 0 ? 0f : 0.00001f * MathF.Pow(0.005f / 0.00001f, t);
 
 
-        public static bool CullInvalidUv { get; set; } = true;
+        public static bool CullInvalidUv { get; set; }
 
-        public static bool CullLongEdge { get; set; } = true;
+        public static bool CullLongEdge { get; set; }
 
-        public static bool CullLateralFaces { get; set; } = false;
+        public static bool CullLateralFaces { get; set; }
 
-        public static bool CullDistance { get; set; } = false;
+        public static bool CullDistance { get; set; }
 
-        public static bool ShowRejected { get; set; } = false;
+        public static bool ShowRejected { get; set; }
 
         [Range(0.005f, 0.20f, 0.001f)]
-        public static float MaxEdgeBase { get; set; } = 0.125f;
+        public static float MaxEdgeBase { get; set; }
 
         [Range(0.0f, 0.02f, 0.0005f)]
-        public static float MaxEdgePerMeter { get; set; } = 0.0f;
+        public static float MaxEdgePerMeter { get; set; }
 
         [Range(0.0f, 1.0f, 0.01f)]
-        public static float MinFrontness { get; set; } = 0.25f;
+        public static float MinFrontness { get; set; }
 
         [Range(0.1f, 20.0f, 0.1f)]
-        public static float MaxCaptureDistance { get; set; } = 4.0f;
+        public static float MaxCaptureDistance { get; set; }
 
         public Texture2D? Texture { get; set; }
 
-        public static float BaseAlpha { get; set; } = 0.9f;
+        public static float BaseAlpha { get; set; }
 
         [Range(0, 1f, 0.01f)]
         public static float DepthBias { get; set; }

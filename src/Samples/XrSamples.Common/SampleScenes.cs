@@ -1740,8 +1740,10 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
+            //XrReconstructReader.Current.Open("D:\\Projects\\XrEditor\\Capture");
+
             var scene = app.ActiveScene!;
-            //scene.AddComponent(new XrReconstructPlayer());
+            //var player = scene.AddComponent(new XrReconstructPlayer());
 
             var group = scene.AddChild(new Group3D());
 
@@ -1751,9 +1753,8 @@ namespace XrSamples
                 Clip = false,
                 GridSize =150
             });
-            
-            //snap.Load("D:\\20260619_080632_705");
-            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_094000_765");
+
+            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
 
             return builder
                 .UseApp(app)

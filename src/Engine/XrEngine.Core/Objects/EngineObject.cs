@@ -63,6 +63,7 @@ namespace XrEngine
         protected ObjectId _id;
         protected ObjectChangeSet _lastChanges;
         protected int _updateCount;
+        private bool _isDisposed;
 
         public EngineObject()
         {
@@ -234,6 +235,8 @@ namespace XrEngine
             ObjectBinder.Unbind(this);
 
             GC.SuppressFinalize(this);
+
+            _isDisposed = true;
         }
 
         public void EnsureId()
@@ -267,6 +270,8 @@ namespace XrEngine
         public long Version { get; protected set; }
 
         public EngineObjectFlags Flags { get; set; }
+
+        public bool IsDisposed => _isDisposed;
 
         public ObjectId Id
         {

@@ -1,4 +1,5 @@
-﻿namespace XrEngine
+﻿
+namespace XrEngine
 {
     public enum DetachedLayerUsage
     {
@@ -48,16 +49,23 @@
         public void Add(Object3D item)
         {
             item._scene = _manager?.Scene;
+            item.Changed += OnItemChanged;
             _content.Add(item);
             NotifyChanged();
             OnChanged(item, Layer3DChangeType.Added);
+        }
+
+        private void OnItemChanged(EngineObject obj, ObjectChange change)
+        {
+            if (obj is Object3D object3D && change.IsAny(ChangeType.SceneRemove) && obj.IsDisposed)
+                Remove(object3D);
         }
 
         public void Remove(Object3D item)
         {
             if (item._scene == _manager!.Scene)
                 item._scene = null;
-
+            item.Changed -= OnItemChanged;
             _content.Remove(item);
             NotifyChanged();
             OnChanged(item, Layer3DChangeType.Removed);

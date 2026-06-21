@@ -21,12 +21,12 @@ namespace XrEngine.Reconstruct
 
         public Pose3 ScenePosition { get; set; }
 
-        public int DepthFrame { get; set; }
+        public int DepthFrames { get; set; }
 
-        public int RightFrame { get; set; }
+        public int RightFrames { get; set; }
 
-        public int ScreenFrame { get; set; }
+        public int ScreenFrames { get; set; }
 
-        public int LeftFrame { get; set; }
+        public int LeftFrames { get; set; }
     }
 }

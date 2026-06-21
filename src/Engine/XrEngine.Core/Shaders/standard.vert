@@ -83,6 +83,10 @@ out vec2 fUv;
     out vec4 fProjCoord;
 #endif
 
+#ifdef TANGENT_AS_CONST
+    flat out vec4 fConst;
+#endif 
+
 void main()
 {
     #ifdef USE_INSTANCE
@@ -165,6 +169,10 @@ void main()
     #ifdef HAS_COLORMAP_PROJ
         fProjCoord = uColorMapProj * pos;
     #endif
+
+    #ifdef TANGENT_AS_CONST
+        fConst = a_tangent;
+    #endif 
 
     computePos(pos);
 }

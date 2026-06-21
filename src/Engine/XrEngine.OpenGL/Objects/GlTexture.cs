@@ -319,7 +319,7 @@ namespace XrEngine.OpenGL
                                          (int)entry.Layer,
                                          entry.Width,
                                          entry.Height,
-                                         entry.Depth,
+                                         1,
                                          pixelFormat,
                                          pixelType,
                                          pData);

@@ -104,6 +104,10 @@ namespace XrEngine.Reconstruct
         XrBoolInput? _captureBtn;
         XrBoolInput? _deleteBtn;
         IMemoryBuffer<byte>[]? _buffers;
+        DepthGeometryGenerator _generator;
+        string? _lastPath;
+        TriangleMesh? _recMesh;
+        Texture2D? _colorArrayTex;
         readonly DepthSnapeshotMode _mode;
         readonly string _sessionPath;
         readonly List<DepthFrame> _frames = [];
@@ -123,6 +127,10 @@ namespace XrEngine.Reconstruct
             _mode = mode;
 
             GridSize = 300;
+
+            MeshParams = new();
+
+            _generator = new DepthGeometryGenerator(GridSize, GridSize);
         }
 
 
@@ -242,11 +250,102 @@ namespace XrEngine.Reconstruct
             };
         }
 
+        [Action]
+        public void GenerateMesh()
+        {
+            var rec = new VoxelMeshReconstructor();
+            rec.SetParams(MeshParams);
+
+            var proj = new MeshTextureProjection();
+
+            var colorFrames = new List<ColorProjectionFrame>();
+
+            var skipRec = false;
+
+            if (File.Exists("d:\\mesh.obj") && false)
+            {
+                Log.Info(this, "Load geometry");
+                _recMesh = AssetLoader.Instance.Load<TriangleMesh>("d:\\mesh.obj");
+                skipRec = true;
+            }
+            else
+            {
+                _recMesh ??= new TriangleMesh(new Geometry3D());
+            }
+
+            if (_recMesh.Parent == null)
+            {
+                _recMesh.Geometry!.ActiveComponents = VertexComponent.Normal
+                        | VertexComponent.Position | 
+                          VertexComponent.UV0 | VertexComponent.UV1 | 
+                          VertexComponent.Tangent;
+
+                _recMesh.Materials.Add(new MultiTextureMaterial()
+                {
+                    Texture = _colorArrayTex
+                });
+
+                _host!.Scene!.AddChild(_recMesh);
+            }
+
+            foreach (var item in _host!.Children.OfType<TriangleMesh>())
+            {
+                if (!item.TryComponent<CaptureFrame>(out var frame))
+                    continue;
+
+                if (!skipRec)
+                {
+                    Log.Debug(this, "Feed frame {0}", frame.Meta!.Frame);
+                    rec.FeedFrame(item.Geometry!);
+                }
+
+
+                colorFrames.Add(new ColorProjectionFrame(
+                    frame.Meta!.Frame, 
+                    frame.Meta.CameraView.Invert().Translation, 
+                    frame.Meta.CameraView * frame.Meta.CameraProj));
+            }
+
+            if (!skipRec)
+            {
+                Log.Info(this, "Extarcting mesh");
+
+                rec.ExtractMesh(_recMesh.Geometry!);
+
+                var objWriter = new ObjWriter();
+                objWriter.Add(_recMesh);
+                File.WriteAllText("d:\\mesh.obj", objWriter.Text());
+            }
+
+            Log.Info(this, "Color projection");
+
+            proj.Project(_recMesh.Geometry!, colorFrames);
+
+            Log.Info(this, "Compute indexs");
+
+            //_recMesh.Geometry!.ComputeIndices();
+
+            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry!.Vertices.Length, _recMesh.Geometry.Indices.Length);
+
+            _recMesh.NotifyChanged(ChangeType.Geometry);
+        }
+
+        [Action]
+        public void Rebuild()
+        {
+            if (_lastPath == null)
+                return;
+
+            Load(_lastPath, true);
+        }
+
         public unsafe void Load(
             string path,
             bool clear = false,
             float cleanupMargin = -0.01f)
         {
+            _lastPath = path;
+
             if (clear)
             {
                 foreach (var frame in _frames)
@@ -265,7 +364,8 @@ namespace XrEngine.Reconstruct
 
             var splats = new List<SplatData>();
 
-  
+            var texArrayData = new List<TextureData>();
+
             foreach (var frameDir in frameDirs)
             {
                 var metaPath = Path.Combine(frameDir, "meta.json");
@@ -330,20 +430,21 @@ namespace XrEngine.Reconstruct
 
                 fixed (byte* pBytes = depthBytes)
                 {
-                    geometry = EnvDepthMesh.CreateDepthColorGrid(
+                    geometry = _generator.CreateGeometry(
                         (ushort*)pBytes,
                         meta.DepthWidth,
                         meta.DepthHeight,
-                        GridSize,
-                        GridSize,
                         Matrix4x4.Invert(meta.DepthView * meta.DepthProj, out var inv)
                             ? inv
                             : Matrix4x4.Identity,
                         colorViewProj);
                 }
 
-                var mesh = new TriangleMesh(geometry);
-                mesh.Name = $"Frame {meta.Frame}";
+                var mesh = new TriangleMesh(geometry)
+                {
+                    Name = $"Frame {meta.Frame}"
+                };
+
                 mesh.SetProp("CameraView", meta.CameraView);
  
                 var colorTexture = LoadColorTextureRaw(
@@ -352,6 +453,17 @@ namespace XrEngine.Reconstruct
                     meta.ColorHeight,
                     $"Tex Frame {meta.Frame}");
 
+                var colorData = colorTexture.Data![0];
+
+                texArrayData.Add(new TextureData
+                {
+                    Width = colorData.Width,
+                    Height = colorData.Height,
+                    Data = colorData.Data,
+                    Layer = (uint)meta.Frame,
+                    Format = colorData.Format
+                });
+
                 mesh.Materials.Add(CreateMaterial(colorTexture));
                 mesh.Materials.Add(new WireframeMaterial()
                 {
@@ -359,20 +471,18 @@ namespace XrEngine.Reconstruct
                     IsEnabled = false
                 });
 
-
                 mesh.AddComponent(new CaptureFrame
                 {
                     Meta = meta,
                     Texture = colorTexture
                 });
 
-
                 if (SplatMode)
                 {
                     DepthGridSplatBuilder.CreateSplats(
                         splats,
                         geometry,
-                        colorTexture.Data![0].Data!,
+                        colorData.Data!,
                         (int)colorTexture.Width,
                         (int)colorTexture.Height);
                 }
@@ -399,17 +509,14 @@ namespace XrEngine.Reconstruct
                     _host!.AddChild(mesh);
             }
 
-            var count1 = 0;
-            foreach (var child in _host!.Children.OfType<TriangleMesh>())
-                count1 += child.Geometry!.Vertices.Length;
+            _colorArrayTex = new Texture2D()
+            {
 
-            TemporalGridCleaner.BuildCleanVertices(_host!.Children.OfType<TriangleMesh>().ToArray(), 0.20f, ProbeMode.Normal);
+            };
 
-            var count2 = 0;
-            foreach (var child in _host!.Children.OfType<TriangleMesh>())
-                count2 += child.Geometry!.Vertices.Length;
+            _colorArrayTex.LoadData(texArrayData);
 
-            Log.Warn(this, "Cleanup: {0} vs {1}", count1, count2);
+            //TemporalGridCleaner.BuildCleanVertices(_host!.Children.OfType<TriangleMesh>().ToArray(), 0.20f, ProbeMode.Normal);
 
             _frameIndex = _frames.Count == 0
                 ? 0
@@ -596,6 +703,15 @@ namespace XrEngine.Reconstruct
             _deleteBtn = input.Right!.Button!.BClick!;
         }
 
+        public DepthGeometryGenerator Generator
+        {
+            get => _generator;
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public string SessionPath => _sessionPath;
 
         public int GridSize { get; set; }
@@ -624,5 +740,7 @@ namespace XrEngine.Reconstruct
 
         [Range(0, 1f, 0.01f)]
         public float FullAlphaOrientationDot { get; set; } = 0.95f;
+
+        public VoxelMeshReconstructorParams MeshParams { get;  set; } 
     }
 }
