@@ -18,11 +18,23 @@ namespace XrEngine.OpenGL
         static GlTextureFrameBuffer? _frameBuffer;
         static GlTextureFrameBuffer? _texReadFb;
 
+        static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource)
+        {
+            return LoadProgram(gl, fragmentSource, vertexSource, [], []);
+        }
+
         static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string[] features, string[] extensions)
         {
-            if (!_programs.TryGetValue(fragmentSource, out var program))
+            return LoadProgram(gl, fragmentSource, "fullscreen.vert", features, extensions); 
+        }
+
+        static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource, string[] features, string[] extensions)
+        {
+            var key = vertexSource + "_" + fragmentSource;
+
+            if (!_programs.TryGetValue(key, out var program))
             {
-                program = new GlSimpleProgram(gl, "fullscreen.vert", fragmentSource, str => Embedded.GetString<Material>(str));
+                program = new GlSimpleProgram(gl, vertexSource, fragmentSource, str => Embedded.GetString<Material>(str));
                 
                 foreach (var ext in extensions.Where(a => !string.IsNullOrWhiteSpace(a)))
                     program.AddExtension(ext);
@@ -32,7 +44,7 @@ namespace XrEngine.OpenGL
                 
                 program.Build();
 
-                _programs[fragmentSource] = program;
+                _programs[key] = program;
             }
             program.Use();
             return program;
@@ -61,6 +73,33 @@ namespace XrEngine.OpenGL
             gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
+
+        public static void DrawGeometry(GL gl, Geometry3D geo, Texture2D srcImge, GlTexture dstImage, string fragName)
+        {
+            PrepareFrameBuffer(gl, dstImage);
+
+            var prog = LoadProgram(gl, fragName, "image_proc.vert");
+
+            prog.Use();
+            prog.LoadTexture(srcImge, 0);
+
+            var mesh = new TriangleMesh(geo);
+
+            using var vs = new GlVertexSourceHandler<VertexData, uint>(gl, mesh);
+            vs.Update();
+
+            GlState.Current!.SetView(new Rect2I
+            {
+                Width = dstImage.Width,
+                Height = dstImage.Height
+            });
+
+            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+
+            vs.Bind();
+            vs.Draw();
+        }
+
         public static void DrawQuad(GL gl)
         {
             DrawVirtual(gl, 3);
@@ -74,8 +113,6 @@ namespace XrEngine.OpenGL
 
         public static void CopyDepth(GlTexture src, GlTexture dst)
         {
-
-
             var prog = LoadProgram(src.GL, "copy_red.frag", src.Depth > 1 ? ["TEXTURE_ARRAY"] : [], []);
 
             GlState.Current!.SetView(new Rect2I(0, 0, src.Width, src.Height));

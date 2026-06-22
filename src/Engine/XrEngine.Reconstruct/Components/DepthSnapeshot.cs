@@ -129,6 +129,7 @@ namespace XrEngine.Reconstruct
             GridSize = 300;
 
             MeshParams = new();
+            GeneratorParams = new();
 
             _generator = new DepthGeometryGenerator(GridSize, GridSize);
         }
@@ -262,10 +263,14 @@ namespace XrEngine.Reconstruct
 
             var skipRec = false;
 
-            if (File.Exists("d:\\mesh.obj") && false)
+            var cacheName = Path.Combine(_lastPath!, "reconstruct.obj");
+
+            Debug.Assert(_colorArrayTex != null);
+        
+            if (File.Exists(cacheName) && UseMeshCache)
             {
                 Log.Info(this, "Load geometry");
-                _recMesh = AssetLoader.Instance.Load<TriangleMesh>("d:\\mesh.obj");
+                _recMesh = AssetLoader.Instance.Load<TriangleMesh>(cacheName);
                 skipRec = true;
             }
             else
@@ -295,10 +300,9 @@ namespace XrEngine.Reconstruct
 
                 if (!skipRec)
                 {
-                    Log.Debug(this, "Feed frame {0}", frame.Meta!.Frame);
+                    Log.Info(this, "Feed frame {0}", frame.Meta!.Frame);
                     rec.FeedFrame(item.Geometry!);
                 }
-
 
                 colorFrames.Add(new ColorProjectionFrame(
                     frame.Meta!.Frame, 
@@ -314,7 +318,7 @@ namespace XrEngine.Reconstruct
 
                 var objWriter = new ObjWriter();
                 objWriter.Add(_recMesh);
-                File.WriteAllText("d:\\mesh.obj", objWriter.Text());
+                File.WriteAllText(cacheName, objWriter.Text());
             }
 
             Log.Info(this, "Color projection");
@@ -323,11 +327,24 @@ namespace XrEngine.Reconstruct
 
             Log.Info(this, "Compute indexs");
 
-            //_recMesh.Geometry!.ComputeIndices();
-
             Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry!.Vertices.Length, _recMesh.Geometry.Indices.Length);
 
-            _recMesh.NotifyChanged(ChangeType.Geometry);
+            var builder = new TextureAtlasLayoutBuilder
+            {
+                TextureWidth = 1280,
+                TextureHeight = 1280,
+                SourceTextureCount = _host.Children.Count,
+                Padding = 2,
+                SourceBorderPixels = 2,
+                BytesPerPixel = 4
+            };
+
+            var tex = builder.GenerateAtlasTexture([_recMesh.Geometry], _colorArrayTex);
+
+            _recMesh.Materials.Clear();
+            _recMesh.Materials.Add(new TextureMaterial(tex));
+
+            _recMesh.NotifyChanged(ChangeType.Geometry | ChangeType.Material);
         }
 
         [Action]
@@ -365,6 +382,8 @@ namespace XrEngine.Reconstruct
             var splats = new List<SplatData>();
 
             var texArrayData = new List<TextureData>();
+
+            _generator.SetParams(GeneratorParams);
 
             foreach (var frameDir in frameDirs)
             {
@@ -509,11 +528,13 @@ namespace XrEngine.Reconstruct
                     _host!.AddChild(mesh);
             }
 
+
             _colorArrayTex = new Texture2D()
             {
-
+                MinFilter = ScaleFilter.Linear,
+                MagFilter = ScaleFilter.Linear,
+                MipLevelCount = 0
             };
-
             _colorArrayTex.LoadData(texArrayData);
 
             //TemporalGridCleaner.BuildCleanVertices(_host!.Children.OfType<TriangleMesh>().ToArray(), 0.20f, ProbeMode.Normal);
@@ -618,59 +639,6 @@ namespace XrEngine.Reconstruct
         }
 
 
-        protected void UpdateAlphaDistance(RenderContext ctx)
-        {
-            var currentCameraPos = ctx.Camera!.WorldPosition;
-            var currentViewInv = ctx.Camera.ViewProjectionInverse;
-            var currentForward = ctx.Camera.Forward;
-
-            foreach (var child in _host!.Children)
-            {
-                if (child is not TriangleMesh mesh)
-                    continue;
-
-                var captureView = mesh.GetProp<Matrix4x4>("CameraView");
-
-                if (mesh.Materials.Count == 0 || mesh.Materials[0] is not TextureMaterial mat)
-                    continue;
-
-                var captureViewInv = captureView.Invert();
-
-                var captureCameraPos = captureViewInv.Translation;
-
-                var captureForward = -Vector3.Normalize(new Vector3(
-                    captureViewInv.M31,
-                    captureViewInv.M32,
-                    captureViewInv.M33
-                ));
-
-                var d = Vector3.Distance(currentCameraPos, captureCameraPos);
-
-                var distanceT = Math.Clamp(
-                    (d - FullAlphaDistance) / (ZeroAlphaDistance - FullAlphaDistance),
-                    0.0f,
-                    1.0f
-                );
-
-                var distanceWeight = 1.0f - distanceT;
-
-                var orientationDot = Vector3.Dot(currentForward, captureForward);
-
-                var orientationT = Math.Clamp(
-                    (orientationDot - ZeroAlphaOrientationDot) /
-                    (FullAlphaOrientationDot - ZeroAlphaOrientationDot),
-                    0.0f,
-                    1.0f
-                );
-
-                var weight = distanceWeight * orientationT;
-
-                var alpha = MinAlpha + (MaxAlpha - MinAlpha) * weight;
-
-                mat.Color = new Color(1, 1, 1, alpha);
-            }
-        }
-
         protected override void Update(RenderContext ctx)
         {
             if (_mode == DepthSnapeshotMode.Read)
@@ -703,14 +671,7 @@ namespace XrEngine.Reconstruct
             _deleteBtn = input.Right!.Button!.BClick!;
         }
 
-        public DepthGeometryGenerator Generator
-        {
-            get => _generator;
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
+
 
         public string SessionPath => _sessionPath;
 
@@ -720,27 +681,10 @@ namespace XrEngine.Reconstruct
 
         public bool Clip { get; set; }
 
+        public bool UseMeshCache { get; set; }
 
-        [Range(0, 10f, 0.1f)]
-        public float FullAlphaDistance { get; set; } = 0.20f;
+        public VoxelMeshReconstructorParams MeshParams { get;  set; }
 
-        [Range(0, 10f, 0.1f)]
-        public float ZeroAlphaDistance { get; set; } = 1.25f;
-
-
-        [Range(0, 1f, 0.01f)]
-        public float MinAlpha { get; set; } = 0.05f;
-
-        [Range(0, 1f, 0.01f)]
-        public float MaxAlpha { get; set; } = 0.90f;
-
-
-        [Range(0, 1f, 0.01f)]
-        public float ZeroAlphaOrientationDot { get; set; } = 0.30f;
-
-        [Range(0, 1f, 0.01f)]
-        public float FullAlphaOrientationDot { get; set; } = 0.95f;
-
-        public VoxelMeshReconstructorParams MeshParams { get;  set; } 
+        public DepthGeometryGeneratorParams GeneratorParams { get; set; }
     }
 }

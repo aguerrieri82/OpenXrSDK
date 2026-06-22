@@ -1320,6 +1320,7 @@ namespace XrSamples
             var scene = app.ActiveScene!;
 
             var group = scene.AddChild(new Group3D());
+            group.IsVisible = false;
 
             var mode = DepthSnapeshotMode.Read;
 
@@ -1331,11 +1332,11 @@ namespace XrSamples
 
             TriangleMesh player = null;
 
-
             if (mode== DepthSnapeshotMode.Read)
             {
                 var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
                 snapeshot.Load(path);
+                snapeshot.GenerateMesh();
 
                 player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
                 {
@@ -1751,10 +1752,11 @@ namespace XrSamples
             {
                 SplatMode = false,
                 Clip = false,
-                GridSize =150
+                GridSize = 320
             });
 
-            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
+            //snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
+            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_094000_765");
 
             return builder
                 .UseApp(app)

@@ -3,7 +3,8 @@
     public enum Layer3DChangeType
     {
         Added,
-        Removed
+        Removed,
+        Updated
     }
 
     public class Layer3DChange

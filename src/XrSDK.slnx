@@ -88,7 +88,7 @@
   </Folder>
   <Folder Name="/Engine/">
     <Project Path="Engine/Draco.Native/Draco.Native.vcxproj" Id="7637ab55-a272-4390-8222-8397150fe18f">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <BuildType Project="Release" />
     </Project>
     <Project Path="Engine/Fftw/Fftw.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -125,7 +125,7 @@
       <Platform Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Bullet.Native/XrEngine.Bullet.Native.vcxproj" Id="0208e53b-0e5c-4d0c-99c6-f3874e844e1d">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <BuildType Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.Bullet/XrEngine.Bullet.csproj" Id="f7b59f46-9789-4a87-abed-4007380893ff">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -262,6 +262,7 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
       <Deploy Solution="Debug|*" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Samples/XrSamples.Android/XrSamples.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />

@@ -1,10 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace XrEngine.OpenXr
 {
+    public sealed class DepthGeometryGeneratorParams
+    {
+        public DepthGeometryGeneratorParams()
+        {
+            EnableUvFilter = true;
+            EnableUvAreaRatioFilter = true;
+
+            MinUvWorldAreaRatio = 0.0f;
+            MaxUvWorldAreaRatio = 25.0f;
+
+            MinWorldTriangleArea = 0.000001f;
+            MinUvTriangleArea = 0.00000001f;
+        }
+
+        public bool EnableUvFilter { get; set; }
+        public bool EnableUvAreaRatioFilter { get; set; }
+
+        public float MinUvWorldAreaRatio { get; set; }
+        public float MaxUvWorldAreaRatio { get; set; }
+
+        public float MinWorldTriangleArea { get; set; }
+        public float MinUvTriangleArea { get; set; }
+    }
+
     public sealed unsafe class DepthGeometryGenerator
     {
         private struct GridVertex
@@ -14,39 +37,114 @@ namespace XrEngine.OpenXr
             public bool Valid;
         }
 
-
         private readonly int _gridWidth;
         private readonly int _gridHeight;
+        private readonly int _maxVertexCount;
 
         private readonly GridVertex[] _grid;
-        private readonly List<VertexData> _vertices;
+        private readonly VertexData[] _vertexBuffer;
+        private readonly uint[] _indexBuffer;
+
+        private readonly float[] _uvX;
+        private readonly float[] _uvY;
+        private readonly float[] _clipX;
+        private readonly float[] _clipY;
+        private readonly int[] _sampleX;
+        private readonly int[] _sampleY;
+
+        private int _sampleDepthWidth;
+        private int _sampleDepthHeight;
+
+        private bool _enableUvFilter;
+        private bool _enableUvAreaRatioFilter;
+
+        private float _minUvWorldAreaRatio;
+        private float _maxUvWorldAreaRatio;
+
+        private float _minWorldTriangleArea;
+        private float _minUvTriangleArea;
+
+        private float _minWorldCrossLenSq;
+        private float _minUvDet;
+        private float _minRatioSq;
+        private float _maxRatioSq;
 
         public DepthGeometryGenerator(int gridWidth, int gridHeight)
         {
             _gridWidth = gridWidth;
             _gridHeight = gridHeight;
 
+            _maxVertexCount = (gridWidth - 1) * (gridHeight - 1) * 6;
+
             _grid = new GridVertex[gridWidth * gridHeight];
-            _vertices = new List<VertexData>((gridWidth - 1) * (gridHeight - 1) * 6);
+            _vertexBuffer = new VertexData[_maxVertexCount];
+            _indexBuffer = new uint[_maxVertexCount];
 
-            EnableUvFilter = true;
-            EnableUvAreaRatioFilter = true;
+            _uvX = new float[gridWidth];
+            _uvY = new float[gridHeight];
+            _clipX = new float[gridWidth];
+            _clipY = new float[gridHeight];
+            _sampleX = new int[gridWidth];
+            _sampleY = new int[gridHeight];
 
-            MinUvWorldAreaRatio = 0;
-            MaxUvWorldAreaRatio = 25;
+            var invGridW = 1.0f / (gridWidth - 1);
+            var invGridH = 1.0f / (gridHeight - 1);
 
-            MinWorldTriangleArea = 0.000001f;
-            MinUvTriangleArea = 0.00000001f;
+            for (var x = 0; x < gridWidth; x++)
+            {
+                var uv = x * invGridW;
+
+                _uvX[x] = uv;
+                _clipX[x] = uv * 2.0f - 1.0f;
+            }
+
+            for (var y = 0; y < gridHeight; y++)
+            {
+                var uv = y * invGridH;
+
+                _uvY[y] = uv;
+                _clipY[y] = uv * 2.0f - 1.0f;
+            }
+
+            SetParams(new DepthGeometryGeneratorParams());
         }
 
-        public Geometry3D CreateGeometry(ushort* depth,
+        public void SetParams(DepthGeometryGeneratorParams parameters)
+        {
+            _enableUvFilter = parameters.EnableUvFilter;
+            _enableUvAreaRatioFilter = parameters.EnableUvAreaRatioFilter;
+
+            _minUvWorldAreaRatio = parameters.MinUvWorldAreaRatio;
+            _maxUvWorldAreaRatio = parameters.MaxUvWorldAreaRatio;
+
+            _minWorldTriangleArea = parameters.MinWorldTriangleArea;
+            _minUvTriangleArea = parameters.MinUvTriangleArea;
+
+            var minWorldCrossLen = _minWorldTriangleArea * 2.0f;
+
+            _minWorldCrossLenSq = minWorldCrossLen * minWorldCrossLen;
+            _minUvDet = _minUvTriangleArea * 2.0f;
+            _minRatioSq = _minUvWorldAreaRatio * _minUvWorldAreaRatio;
+            _maxRatioSq = _maxUvWorldAreaRatio * _maxUvWorldAreaRatio;
+        }
+
+        public Geometry3D CreateGeometry(
+            ushort* depth,
             int depthWidth,
             int depthHeight,
             Matrix4x4 depthViewProjInv,
             Matrix4x4 colorViewPro)
         {
             var geo = new Geometry3D();
-            UpdateGeometry(geo, depth, depthWidth, depthHeight, depthViewProjInv, colorViewPro);
+
+            UpdateGeometry(
+                geo,
+                depth,
+                depthWidth,
+                depthHeight,
+                depthViewProjInv,
+                colorViewPro);
+
             return geo;
         }
 
@@ -58,204 +156,242 @@ namespace XrEngine.OpenXr
             Matrix4x4 depthViewProjInv,
             Matrix4x4 colorViewProj)
         {
+            UpdateDepthSampling(depthWidth, depthHeight);
+
             BuildGrid(
                 depth,
                 depthWidth,
-                depthHeight,
                 depthViewProjInv,
                 colorViewProj);
 
-            BuildTriangles();
+            var vertexCount = BuildTriangles();
 
-            geometry.Vertices = _vertices.ToArray();
+            if (vertexCount == 0)
+            {
+                geometry.Vertices = Array.Empty<VertexData>();
+                geometry.Indices = Array.Empty<uint>();
+            }
+            else
+            {
+                var vertices = GC.AllocateUninitializedArray<VertexData>(vertexCount);
+                var indices = GC.AllocateUninitializedArray<uint>(vertexCount);
+
+                Array.Copy(_vertexBuffer, vertices, vertexCount);
+                Array.Copy(_indexBuffer, indices, vertexCount);
+
+                geometry.Vertices = vertices;
+                geometry.Indices = indices;
+            }
 
             geometry.ActiveComponents =
                 VertexComponent.Position |
                 VertexComponent.UV0 |
                 VertexComponent.Normal;
 
-            geometry.ComputeNormals();
             geometry.UpdateBounds();
-            geometry.ComputeIndices();
+        }
+
+        private void UpdateDepthSampling(int depthWidth, int depthHeight)
+        {
+            if (_sampleDepthWidth == depthWidth &&
+                _sampleDepthHeight == depthHeight)
+                return;
+
+            _sampleDepthWidth = depthWidth;
+            _sampleDepthHeight = depthHeight;
+
+            var maxDepthX = depthWidth - 1;
+            var maxDepthY = depthHeight - 1;
+
+            for (var x = 0; x < _gridWidth; x++)
+                _sampleX[x] = (int)MathF.Round(_uvX[x] * maxDepthX);
+
+            for (var y = 0; y < _gridHeight; y++)
+                _sampleY[y] = (int)MathF.Round(_uvY[y] * maxDepthY);
         }
 
         private void BuildGrid(
             ushort* depth,
             int depthWidth,
-            int depthHeight,
             Matrix4x4 depthViewProjInv,
             Matrix4x4 colorViewProj)
         {
-            var invGridW = 1.0f / (_gridWidth - 1);
-            var invGridH = 1.0f / (_gridHeight - 1);
+            var depthScale = 1.0f / ushort.MaxValue;
+            var enableUvFilter = _enableUvFilter;
 
-            var maxDepthX = depthWidth - 1;
-            var maxDepthY = depthHeight - 1;
-
-            for (var y = 0; y < _gridHeight; y++)
+            fixed (GridVertex* grid = _grid)
+            fixed (int* sampleX = _sampleX)
+            fixed (int* sampleY = _sampleY)
+            fixed (float* clipX = _clipX)
+            fixed (float* clipY = _clipY)
             {
-                var uvY = y * invGridH;
-                var dy = (int)MathF.Round(uvY * maxDepthY);
-
-                for (var x = 0; x < _gridWidth; x++)
+                for (var y = 0; y < _gridHeight; y++)
                 {
-                    var uvX = x * invGridW;
-                    var dx = (int)MathF.Round(uvX * maxDepthX);
+                    var depthRow = sampleY[y] * depthWidth;
+                    var cy = clipY[y];
+                    var gridRow = y * _gridWidth;
 
-                    var index = y * _gridWidth + x;
-                    ref var gv = ref _grid[index];
+                    for (var x = 0; x < _gridWidth; x++)
+                    {
+                        var index = gridRow + x;
+                        var gv = grid + index;
 
-                    gv.Valid = false;
+                        gv->Valid = false;
 
-                    var rawD = depth[dy * depthWidth + dx];
+                        var rawD = depth[depthRow + sampleX[x]];
 
-                    if (rawD == 0 || rawD == ushort.MaxValue)
-                        continue;
+                        if (rawD == 0 || rawD == ushort.MaxValue)
+                            continue;
 
-                    var d = rawD / (float)ushort.MaxValue;
+                        var clip = new Vector4(
+                            clipX[x],
+                            cy,
+                            rawD * depthScale * 2.0f - 1.0f,
+                            1.0f);
 
-                    var clip = new Vector4(
-                        uvX * 2.0f - 1.0f,
-                        uvY * 2.0f - 1.0f,
-                        d * 2.0f - 1.0f,
-                        1.0f);
+                        var world4 = Vector4.Transform(clip, depthViewProjInv);
 
-                    var world4 = Vector4.Transform(clip, depthViewProjInv);
+                        if (world4.W == 0.0f)
+                            continue;
 
-                    if (world4.W == 0.0f)
-                        continue;
+                        var invW = 1.0f / world4.W;
 
-                    var invW = 1.0f / world4.W;
+                        var world = new Vector3(
+                            world4.X * invW,
+                            world4.Y * invW,
+                            world4.Z * invW);
 
-                    var world = new Vector3(
-                        world4.X * invW,
-                        world4.Y * invW,
-                        world4.Z * invW);
+                        var colorClip = Vector4.Transform(
+                            new Vector4(world, 1.0f),
+                            colorViewProj);
 
-                    var colorClip = Vector4.Transform(new Vector4(world, 1.0f), colorViewProj);
+                        if (colorClip.W == 0.0f)
+                            continue;
 
-                    if (colorClip.W == 0.0f)
-                        continue;
+                        var invColorW = 1.0f / colorClip.W;
 
-                    var invColorW = 1.0f / colorClip.W;
+                        var u = colorClip.X * invColorW * 0.5f + 0.5f;
+                        var v = 0.5f - colorClip.Y * invColorW * 0.5f;
 
-                    var colorUv = new Vector2(
-                        colorClip.X * invColorW * 0.5f + 0.5f,
-                        colorClip.Y * invColorW * 0.5f + 0.5f);
+                        if (enableUvFilter)
+                        {
+                            if (u < 0.0f || u > 1.0f ||
+                                v < 0.0f || v > 1.0f)
+                                continue;
+                        }
 
-                    colorUv.Y = 1.0f - colorUv.Y;
-
-                    gv.Pos = world;
-                    gv.UV = colorUv;
-                    gv.Valid = true;
+                        gv->Pos = world;
+                        gv->UV = new Vector2(u, v);
+                        gv->Valid = true;
+                    }
                 }
             }
         }
 
-        private void BuildTriangles()
+        private int BuildTriangles()
         {
-            _vertices.Clear();
+            var vertexCount = 0;
 
-            for (var y = 0; y < _gridHeight - 1; y++)
+            fixed (GridVertex* grid = _grid)
+            fixed (VertexData* vertices = _vertexBuffer)
+            fixed (uint* indices = _indexBuffer)
             {
-                var row0 = y * _gridWidth;
-                var row1 = row0 + _gridWidth;
-
-                for (var x = 0; x < _gridWidth - 1; x++)
+                for (var y = 0; y < _gridHeight - 1; y++)
                 {
-                    var i0 = row0 + x;
-                    var i1 = i0 + 1;
-                    var i2 = row1 + x;
-                    var i3 = i2 + 1;
+                    var row0 = y * _gridWidth;
+                    var row1 = row0 + _gridWidth;
 
-                    EmitTriangle(i0, i1, i2);
-                    EmitTriangle(i1, i3, i2);
+                    for (var x = 0; x < _gridWidth - 1; x++)
+                    {
+                        var i0 = row0 + x;
+                        var i1 = i0 + 1;
+                        var i2 = row1 + x;
+                        var i3 = i2 + 1;
+
+                        EmitTriangle(grid, vertices, indices, i0, i1, i2, ref vertexCount);
+                        EmitTriangle(grid, vertices, indices, i1, i3, i2, ref vertexCount);
+                    }
                 }
             }
+
+            return vertexCount;
         }
 
-        private void EmitTriangle(int i0, int i1, int i2)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EmitTriangle(
+            GridVertex* grid,
+            VertexData* vertices,
+            uint* indices,
+            int i0,
+            int i1,
+            int i2,
+            ref int vertexCount)
         {
-            ref var a = ref _grid[i0];
-            ref var b = ref _grid[i1];
-            ref var c = ref _grid[i2];
+            var a = grid + i0;
+            var b = grid + i1;
+            var c = grid + i2;
 
-            if (!a.Valid || !b.Valid || !c.Valid)
+            if (!a->Valid || !b->Valid || !c->Valid)
                 return;
 
-            if (EnableUvFilter)
+            var ab = b->Pos - a->Pos;
+            var ac = c->Pos - a->Pos;
+
+            var faceNormal = Vector3.Cross(ab, ac);
+            var crossLenSq = faceNormal.LengthSquared();
+
+            if (crossLenSq <= 0.0000000001f)
+                return;
+
+            if (_enableUvAreaRatioFilter)
             {
-                if (!IsUvCovered(a.UV) ||
-                    !IsUvCovered(b.UV) ||
-                    !IsUvCovered(c.UV))
+                if (crossLenSq < _minWorldCrossLenSq)
+                    return;
+
+                var uvAb = b->UV - a->UV;
+                var uvAc = c->UV - a->UV;
+
+                var uvDet = MathF.Abs(uvAb.X * uvAc.Y - uvAb.Y * uvAc.X);
+
+                if (uvDet < _minUvDet)
+                    return;
+
+                var ratioSq = crossLenSq / (uvDet * uvDet);
+
+                if (ratioSq < _minRatioSq ||
+                    ratioSq > _maxRatioSq)
                     return;
             }
 
-            if (EnableUvAreaRatioFilter)
+            var normal = faceNormal * (1.0f / MathF.Sqrt(crossLenSq));
+            var start = (uint)vertexCount;
+
+            vertices[vertexCount + 0] = new VertexData
             {
-                var worldArea = TriangleArea3D(a.Pos, b.Pos, c.Pos);
+                Pos = a->Pos,
+                UV = a->UV,
+                Normal = normal
+            };
 
-                if (worldArea < MinWorldTriangleArea)
-                    return;
-
-                var uvArea = TriangleArea2D(a.UV, b.UV, c.UV);
-
-                if (uvArea < MinUvTriangleArea)
-                    return;
-
-                var ratio = worldArea / uvArea;
-
-                if (ratio < MinUvWorldAreaRatio ||
-                    ratio > MaxUvWorldAreaRatio)
-                    return;
-            }
-
-            _vertices.Add(new VertexData
+            vertices[vertexCount + 1] = new VertexData
             {
-                Pos = a.Pos,
-                UV = a.UV
-            });
+                Pos = b->Pos,
+                UV = b->UV,
+                Normal = normal
+            };
 
-            _vertices.Add(new VertexData
+            vertices[vertexCount + 2] = new VertexData
             {
-                Pos = b.Pos,
-                UV = b.UV
-            });
+                Pos = c->Pos,
+                UV = c->UV,
+                Normal = normal
+            };
 
-            _vertices.Add(new VertexData
-            {
-                Pos = c.Pos,
-                UV = c.UV
-            });
+            indices[vertexCount + 0] = start + 0;
+            indices[vertexCount + 1] = start + 1;
+            indices[vertexCount + 2] = start + 2;
+
+            vertexCount += 3;
         }
-
-        private static bool IsUvCovered(Vector2 uv)
-        {
-            return uv.X >= 0.0f && uv.X <= 1.0f &&
-                   uv.Y >= 0.0f && uv.Y <= 1.0f;
-        }
-
-        private static float TriangleArea3D(Vector3 a, Vector3 b, Vector3 c)
-        {
-            return Vector3.Cross(b - a, c - a).Length() * 0.5f;
-        }
-
-        private static float TriangleArea2D(Vector2 a, Vector2 b, Vector2 c)
-        {
-            var ab = b - a;
-            var ac = c - a;
-
-            return MathF.Abs(ab.X * ac.Y - ab.Y * ac.X) * 0.5f;
-        }
-
-        public bool EnableUvFilter { get; set; } 
-        public bool EnableUvAreaRatioFilter { get; set; } 
-
-        public float MinUvWorldAreaRatio { get; set; } 
-        public float MaxUvWorldAreaRatio { get; set; } 
-
-        public float MinWorldTriangleArea { get; set; } 
-        public float MinUvTriangleArea { get; set; }
-
     }
 }

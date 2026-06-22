@@ -50,11 +50,12 @@ namespace XrEngine.OpenGL
 
         private void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
         {
-            if (change.Type == Layer3DChangeType.Added)
-                AddContent((Object3D)change.Item, true);
 
-            else if (change.Type == Layer3DChangeType.Removed)
+           if (change.Type == Layer3DChangeType.Removed || change.Type == Layer3DChangeType.Updated)
                 RemoveContent((Object3D)change.Item, true);
+
+            if (change.Type == Layer3DChangeType.Added || change.Type == Layer3DChangeType.Updated)
+                AddContent((Object3D)change.Item, true);
 
             _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
         }

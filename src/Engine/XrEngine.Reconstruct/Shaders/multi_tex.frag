@@ -24,4 +24,5 @@ void main()
         ? mix(c0, c1, 0.5)
         : c0;
 
+    color = c0;
 }

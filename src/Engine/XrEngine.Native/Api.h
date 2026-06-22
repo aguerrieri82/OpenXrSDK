@@ -21,9 +21,16 @@ extern "C" {
 		uint32_t dstW, uint32_t dstH, uint8_t* dst,
 		uint32_t channels);
 
-	EXPORT void SleepUntil(uint64_t timeNs);
+	EXPORT void APIENTRY SleepUntil(uint64_t timeNs);
 
-	EXPORT void SleepFor(uint64_t timeNs);
+	EXPORT void APIENTRY SleepFor(uint64_t timeNs);
 
-	EXPORT uint64_t Now();
+	EXPORT uint64_t APIENTRY Now();
+
+	EXPORT int APIENTRY RdcTriggerCapture();
+
+	EXPORT int APIENTRY RdcEndFrameCapture(bool launchReplay);
+
+	EXPORT int APIENTRY RdcStartFrameCapture();
+
 }

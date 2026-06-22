@@ -272,3 +272,78 @@ uint64_t Now() {
 
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
 }
+
+static RENDERDOC_API_1_6_0* GetRenderDoc()
+{
+
+#ifdef _WINDOWS
+
+    HMODULE mod = GetModuleHandleA("renderdoc.dll"); // do NOT LoadLibrary here
+
+    if (!mod)
+        return nullptr;
+
+    auto getApi = (pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
+
+    if (!getApi)
+        return nullptr;
+
+#else
+    void* mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD);
+
+    if (!mod)
+        return nullptr;
+
+    auto getApi = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+
+#endif
+
+    RENDERDOC_API_1_6_0* rdoc = nullptr;
+
+    if (getApi(eRENDERDOC_API_Version_1_6_0, (void**)&rdoc) != 1)
+        return nullptr;
+
+    return rdoc;
+ 
+}
+
+int RdcTriggerCapture() {
+
+    auto rdoc = GetRenderDoc();
+    if (rdoc) {
+        rdoc->TriggerCapture();
+        return 0;
+    }
+    return -1;
+}
+
+int RdcStartFrameCapture() {
+
+    auto rdoc = GetRenderDoc();
+    if (rdoc) {
+        rdoc->StartFrameCapture(nullptr, nullptr);
+        return 0;
+    }
+    return -1;
+}
+
+
+int RdcEndFrameCapture(bool launchReplay) {
+
+    auto rdoc = GetRenderDoc();
+
+    if (rdoc) {
+        rdoc->EndFrameCapture(nullptr, nullptr);
+
+        if (launchReplay) {
+            if (!rdoc->IsTargetControlConnected())
+                rdoc->LaunchReplayUI(1, nullptr);
+            else
+                rdoc->ShowReplayUI();
+        }
+
+        return 0;
+    }
+
+    return -1;
+}
