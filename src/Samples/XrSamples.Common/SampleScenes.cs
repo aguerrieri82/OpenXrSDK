@@ -1371,7 +1371,7 @@ namespace XrSamples
                     {
                         await EngineApp.RenderThread;
 
-                        snapeshot.GenerateMesh();
+                        snapeshot.GenerateMeshAsync();
                     });
 
 
@@ -1762,8 +1762,8 @@ namespace XrSamples
                 GridSize = 320
             });
 
+            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_094000_765");
             //snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
-            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
 
             return builder
                 .UseApp(app)
@@ -2156,6 +2156,7 @@ namespace XrSamples
                 Type = TextureType.External
             };
 
+
             var mainLeft = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
             {
                 FixedEye = 0,
@@ -2195,8 +2196,11 @@ namespace XrSamples
                 if (aPressed)
                     mustTrack = !mustTrack;
 
-                if (cameraState == 0 && rightTex.Handle != 0 && leftTex.Handle != 0)
+                if (cameraState == 0)
                 {
+                    rightTex.Generate();
+                    leftTex.Generate();
+
                     cameraState = 1;
 
                     _ = Task.Run(async () =>

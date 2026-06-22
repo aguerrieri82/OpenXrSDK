@@ -14,6 +14,7 @@ using Android.Views;
 using Common.Interop;
 using Java.Text;
 using Java.Util.Concurrent;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Diagnostics.Metrics;
 using System.Runtime.Versioning;
@@ -109,7 +110,9 @@ namespace XrEngine.Devices.Android
                 CaptureRequest request,
                 TotalCaptureResult result)
             {
+                
                 _host.LastFrame = result.FrameNumber;
+
             }
         }
 
@@ -209,9 +212,21 @@ namespace XrEngine.Devices.Android
 
             var isManualSupported = capabilities?.Contains((int)RequestAvailableCapabilities.ManualSensor);
 
+            var aeModes = (int[]?)_chars.Get(CameraCharacteristics.ControlAeAvailableModes);
+
             var isoRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.SensorInfoSensitivityRange)!;
 
             var timeRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.SensorInfoExposureTimeRange)!;
+
+            var hasAeOff = aeModes?.Contains((int)ControlAEMode.Off) == true;
+
+            var aeLockAvailable = _chars.Get(CameraCharacteristics.ControlAeLockAvailable);
+
+            var awbLockAvailable = _chars.Get(CameraCharacteristics.ControlAwbLockAvailable);
+
+            var compensationRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.ControlAeCompensationRange);
+
+            var compensationStep = _chars.Get(CameraCharacteristics.ControlAeCompensationStep);
 
             return new CameraParams
             {

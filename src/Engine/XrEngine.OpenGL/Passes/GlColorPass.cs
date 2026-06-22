@@ -2,8 +2,9 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-#endif
 
+#endif
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -115,6 +116,8 @@ namespace XrEngine.OpenGL
 
         public override void RenderLayer(GlLayerV2 layer)
         {
+            Debug.Assert(Thread.CurrentThread == OpenGLRender.Current!.Dispatcher.Thread);
+
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
 #if GL_WRAPPER

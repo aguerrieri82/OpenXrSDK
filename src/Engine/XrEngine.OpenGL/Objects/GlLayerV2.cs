@@ -1,4 +1,6 @@
 ﻿using System.Runtime.InteropServices;
+using System.Diagnostics;
+
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -101,6 +103,8 @@ namespace XrEngine.OpenGL
 
         protected void RemoveContent(Object3D obj3d, bool incremental)
         {
+            Debug.Assert(Thread.CurrentThread == OpenGLRender.Current!.Dispatcher.Thread);
+
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
 
@@ -161,6 +165,8 @@ namespace XrEngine.OpenGL
 
         protected void AddContent(Object3D obj3d, bool incremental)
         {
+            Debug.Assert(Thread.CurrentThread == OpenGLRender.Current!.Dispatcher.Thread);
+
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
 

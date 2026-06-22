@@ -210,7 +210,7 @@ namespace XrEngine.Reconstruct
         }
 
 
-        public Texture2D GenerateAtlasTexture(IReadOnlyList<Geometry3D> geometries, Texture2D texArray)
+        public async Task<Texture2D> GenerateAtlasTextureAsync(IReadOnlyList<Geometry3D> geometries, Texture2D texArray, float[] exposures)
         {
 
             var layout = Build(geometries);
@@ -232,6 +232,8 @@ namespace XrEngine.Reconstruct
                 Width = (uint)layout.AtlasWidth,
                 Height = (uint)layout.AtlasHeight,
             });
+
+            await EngineApp.RenderThread;
 
             var glTex = texture.ToGlTexture();
 

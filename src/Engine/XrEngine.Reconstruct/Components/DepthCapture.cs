@@ -1,10 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
+using OpenXr.Framework;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
@@ -12,8 +13,6 @@ using XrEngine.Devices;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
-using Common.Interop;
-using OpenXr.Framework;
 
 namespace XrEngine.Reconstruct
 {
@@ -44,17 +43,19 @@ namespace XrEngine.Reconstruct
 
         public void OnSelected(Object3D obj, bool isSelected)
         {
-             _host!.Materials[1].IsEnabled = isSelected && ShowWireFrame;
+            _host!.Materials[1].IsEnabled = isSelected && ShowWireFrame;
         }
 
-        public Texture2D? Texture { get;  set; }
+        public Texture2D? Texture { get; set; }
 
         public bool ShowWireFrame { get; set; }
 
         [Range(-1, 1, 0.01f)]
         public float Exposure { get; set; }
 
-        public DepthCapture.DepthFrameMeta? Meta { get;  set; }
+        public DepthCapture.DepthFrameMeta? Meta { get; set; }
+
+        public IMemoryBuffer<byte>? ColorData;
     }
 
     public class DepthCapture : Behavior<Group3D>
@@ -77,7 +78,7 @@ namespace XrEngine.Reconstruct
 
             public long CameraXrTime;
 
-            public long FrameXrTime;    
+            public long FrameXrTime;
         }
 
         public class DepthFrameMeta
@@ -104,30 +105,28 @@ namespace XrEngine.Reconstruct
             public long FrameXrTime;
         }
 
-        static readonly JsonSerializerOptions _jsonOptions = new()
+        private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             IncludeFields = true,
             WriteIndented = true
         };
 
-
-        int _frameIndex;
-        SplatMesh? _splatMesh;
-        CameraController? _capture;
-        EnvDepthMesh? _envDepth;
-        XrBoolInput? _captureBtn;
-        XrBoolInput? _deleteBtn;
-        IMemoryBuffer<byte>[]? _buffers;
-        DepthGeometryGenerator _generator;
-        string? _lastPath;
-        TriangleMesh? _recMesh;
-        Texture2D? _colorArrayTex;
-        GlTexture? _depthTex;
-        Texture2D? _atlasTex;
-        readonly DepthSnapeshotMode _mode;
-        readonly string _sessionPath;
-        readonly List<DepthFrame> _frames = [];
-
+        private int _frameIndex;
+        private SplatMesh? _splatMesh;
+        private CameraController? _capture;
+        private EnvDepthMesh? _envDepth;
+        private XrBoolInput? _captureBtn;
+        private XrBoolInput? _deleteBtn;
+        private IMemoryBuffer<byte>[]? _buffers;
+        private readonly DepthGeometryGenerator _generator;
+        private string? _lastPath;
+        private TriangleMesh? _recMesh;
+        private Texture2D? _colorArrayTex;
+        private GlTexture? _depthTex;
+        private Texture2D? _atlasTex;
+        private readonly DepthSnapeshotMode _mode;
+        private readonly string _sessionPath;
+        private readonly List<DepthFrame> _frames = [];
 
         public DepthCapture(DepthSnapeshotMode mode)
         {
@@ -138,7 +137,9 @@ namespace XrEngine.Reconstruct
                 Directory.CreateDirectory(_sessionPath);
             }
             else
+            {
                 _sessionPath = "";
+            }
 
             _mode = mode;
 
@@ -146,6 +147,7 @@ namespace XrEngine.Reconstruct
             DepthMapSize = 300;
             UseMeshCache = true;
             BuildAtlas = true;
+            ComputeIndices = true;
             UseDepthOcclusion = true;
 
             MeshParams = new();
@@ -166,17 +168,16 @@ namespace XrEngine.Reconstruct
             if (!_host.Scene.TryComponent(out _capture))
             {
                 _capture = new CameraController();
-                _host.Scene.AddComponent(_capture); 
+                _host.Scene.AddComponent(_capture);
             }
 
             _envDepth = _host.Scene.Descendants<EnvDepthMesh>().FirstOrDefault();
-
             _envDepth ??= _host.AddChild(new EnvDepthMesh(new Size2I(300, 300)));
 
             _ = _capture.StartCameraAsync(OculusCameras.Left);
         }
 
-        unsafe void SaveTextureRaw(Texture2D texture, TextureFormat format, int bytesPerPixel, string path)
+        private unsafe void SaveTextureRaw(Texture2D texture, TextureFormat format, int bytesPerPixel, string path)
         {
             _buffers ??= [MemoryBuffer.Create<byte>(16), MemoryBuffer.Create<byte>(16)];
 
@@ -190,10 +191,8 @@ namespace XrEngine.Reconstruct
             file.Write(new ReadOnlySpan<byte>(pTex.Data, size));
         }
 
-        Texture2D LoadColorTextureRaw(string path, int width, int height, string name)
+        private Texture2D LoadColorTextureRaw(string path, int width, int height, string name)
         {
-            var data = File.ReadAllBytes(path);
-
             var texture = CreateTexture((uint)width, (uint)height);
 
             texture.LoadData(new TextureData
@@ -201,28 +200,26 @@ namespace XrEngine.Reconstruct
                 Width = (uint)width,
                 Height = (uint)height,
                 Format = TextureFormat.Rgba32,
-                Data = MemoryBuffer.Create(data)
+                Data = MemoryBuffer.Create(File.ReadAllBytes(path))
             });
 
             return texture;
         }
 
-        void SaveFrame(DepthFrame frame, DepthFrameMeta meta)
+        private void SaveFrame(DepthFrame frame, DepthFrameMeta meta)
         {
             var framePath = Path.Combine(_sessionPath, $"frame_{meta.Frame:000000}");
             Directory.CreateDirectory(framePath);
 
-            var jsonPath = Path.Combine(framePath, "meta.json");
-            var depthPath = Path.Combine(framePath, "depth_u16.raw");
-            var colorPath = Path.Combine(framePath, "color_rgba.raw");
-
-            File.WriteAllText(jsonPath, JsonSerializer.Serialize(meta, _jsonOptions));
+            File.WriteAllText(
+                Path.Combine(framePath, "meta.json"),
+                JsonSerializer.Serialize(meta, _jsonOptions));
 
             SaveTextureRaw(
                 frame.CameraTexture!,
                 TextureFormat.Rgba32,
                 4,
-                colorPath);
+                Path.Combine(framePath, "color_rgba.raw"));
 
             var mat = (EnvDepthMaterial)_envDepth!.Materials[0];
 
@@ -230,14 +227,14 @@ namespace XrEngine.Reconstruct
                 mat.LastTexture!,
                 TextureFormat.GrayInt16,
                 2,
-                depthPath);
+                Path.Combine(framePath, "depth_u16.raw"));
         }
 
         protected Material CreateMaterial(Texture2D texture)
         {
             if (_mode == DepthSnapeshotMode.Read)
             {
-                return new GridMaterial()
+                return new GridMaterial
                 {
                     Priority = -1000 + _frames.Count,
                     WriteDepth = true,
@@ -246,7 +243,7 @@ namespace XrEngine.Reconstruct
                     Texture = texture
                 };
             }
-           
+
             return new TextureMaterial(texture)
             {
                 Priority = -1000 + _frames.Count,
@@ -268,17 +265,27 @@ namespace XrEngine.Reconstruct
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.LinearMipmapLinear,
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba32
             };
         }
 
-        IMemoryBuffer<byte> GenerateDepth(Matrix4x4 cameraViewProj)
+        private async Task<IMemoryBuffer<byte>> GenerateDepthAsync(Matrix4x4 cameraViewProj)
         {
+            await EngineApp.RenderThread;
+
             var gl = OpenGLRender.Current?.GL;
             if (gl == null)
                 throw new InvalidOperationException();
 
-            _depthTex = GlTempAllocator.StaticTexture(gl, (uint)DepthMapSize, (uint)DepthMapSize, 1, TextureFormat.Depth16);
+            Debug.Assert(_recMesh != null);
+
+
+            _depthTex = GlTempAllocator.StaticTexture(
+                gl,
+                (uint)DepthMapSize,
+                (uint)DepthMapSize,
+                1,
+                TextureFormat.Depth16);
 
             if (_depthTex.MinFilter != TextureMinFilter.Nearest)
             {
@@ -286,8 +293,6 @@ namespace XrEngine.Reconstruct
                 _depthTex.MagFilter = TextureMagFilter.Nearest;
                 _depthTex.Update();
             }
-
-            Debug.Assert(_recMesh != null);
 
             GlState.Current!.SetView(new Rect2I
             {
@@ -297,27 +302,34 @@ namespace XrEngine.Reconstruct
 
             var fb = GlImageProc.PrepareFrameBuffer(gl, null, (IGlRenderAttachment)_depthTex);
 
-            var prog = GlImageProc.LoadProgram(gl, "empty.frag", "basic.vert");
-            prog.Use();
-            prog.SetUniform("uViewProj", cameraViewProj);
-            prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
+            try
+            {
+                var prog = GlImageProc.LoadProgram(gl, "empty.frag", "basic.vert");
 
-            GlState.Current.SetWriteDepth(true);
-            GlState.Current.SetUseDepth(true);
-            GlState.Current.SetWriteColor(false);
-            GlState.Current.SetClearColor(Color.Transparent);
+                prog.Use();
+                prog.SetUniform("uViewProj", cameraViewProj);
+                prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
 
-            gl.Clear(ClearBufferMask.DepthBufferBit);
+                GlState.Current.SetWriteDepth(true);
+                GlState.Current.SetUseDepth(true);
+                GlState.Current.SetWriteColor(false);
+                GlState.Current.SetClearColor(Color.Transparent);
 
-            var vertexHandler = _recMesh.Geometry!.GetGlResource(a => GlVertexSourceHandle.Create(gl, _recMesh));
+                gl.Clear(ClearBufferMask.DepthBufferBit);
 
-             if (vertexHandler.NeedUpdate)
-                vertexHandler.Update();
+                var vertexHandler = _recMesh.Geometry!.GetGlResource(a => GlVertexSourceHandle.Create(gl, _recMesh));
 
-            vertexHandler.Bind();
-            vertexHandler.Draw();
+                if (vertexHandler.NeedUpdate)
+                    vertexHandler.Update();
 
-            fb.Unbind();
+                vertexHandler.Bind();
+                vertexHandler.Draw();
+            }
+            finally
+            {
+                fb.Unbind();
+                GlState.Current!.SetWriteColor(true);
+            }
 
             var data = GlImageProc.Read(_depthTex, TextureFormat.GrayInt16);
 
@@ -327,8 +339,12 @@ namespace XrEngine.Reconstruct
         }
 
         [Action]
-        public void GenerateMesh()
+        public async Task GenerateMeshAsync()
         {
+            Debug.Assert(_lastPath != null);
+            Debug.Assert(_colorArrayTex != null);
+            Debug.Assert(_host != null);
+
             var rec = new VoxelMeshReconstructor();
             rec.SetParams(MeshParams);
 
@@ -336,55 +352,67 @@ namespace XrEngine.Reconstruct
             proj.SetParams(ProjParams);
 
             var colorFrames = new List<ColorProjectionFrame>();
+            var cacheName = Path.Combine(_lastPath, "reconstruct.obj");
+            var skipRec = File.Exists(cacheName) && UseMeshCache;
 
-            var skipRec = false;
-
-            var cacheName = Path.Combine(_lastPath!, "reconstruct.obj");
-
-            Debug.Assert(_colorArrayTex != null);
-        
-            if (File.Exists(cacheName) && UseMeshCache)
+            if (skipRec)
             {
                 Log.Info(this, "Load geometry");
                 _recMesh = AssetLoader.Instance.Load<TriangleMesh>(cacheName);
-                skipRec = true;
             }
             else
             {
                 _recMesh ??= new TriangleMesh(new Geometry3D());
             }
 
-            _recMesh.Geometry!.ActiveComponents = VertexComponent.Normal
-                | VertexComponent.Position |
-                  VertexComponent.UV0 | VertexComponent.UV1 |
-                  VertexComponent.Tangent;
+            Debug.Assert(_recMesh.Geometry != null);
 
+            _recMesh.Geometry.ActiveComponents =
+                VertexComponent.Normal |
+                VertexComponent.Position |
+                VertexComponent.UV0 |
+                VertexComponent.UV1 |
+                VertexComponent.Tangent;
 
-            foreach (var item in _host!.Children.OfType<TriangleMesh>())
+            var colorData = new List<IMemoryBuffer<byte>>();
+
+            var colorSize = new Size2I();
+
+            foreach (var mesh in _host.Children.OfType<TriangleMesh>())
             {
-                if (!item.TryComponent<CaptureFrame>(out var frame))
+                if (!mesh.TryComponent<CaptureFrame>(out var frame))
                     continue;
+
+                var meta = frame.Meta!;
+                var cameraViewProj = meta.CameraView * meta.CameraProj;
+                
+                colorSize.Width = (uint)meta.ColorWidth;
+                colorSize.Height = (uint)meta.ColorHeight;
+
 
                 if (!skipRec)
                 {
-                    Log.Info(this, "Feed frame {0}", frame.Meta!.Frame);
-                    rec.FeedFrame(item.Geometry!);
+                    Log.Info(this, "Feed frame {0}", meta.Frame);
+                    rec.FeedFrame(mesh.Geometry!);
                 }
 
                 colorFrames.Add(new ColorProjectionFrame(
-                    frame.Meta!.Frame, 
-                    frame.Meta.CameraView.Invert().Translation, 
-                    frame.Meta.CameraView * frame.Meta.CameraProj));
+                    meta.Frame,
+                    meta.CameraView.Invert().Translation,
+                    cameraViewProj));
+
+                colorData.Add(frame.ColorData!);
             }
 
             if (!skipRec)
             {
                 Log.Info(this, "Extracting mesh");
 
-                rec.ExtractMesh(_recMesh.Geometry!);
+                rec.ExtractMesh(_recMesh.Geometry);
 
                 var objWriter = new ObjWriter();
                 objWriter.Add(_recMesh);
+
                 File.WriteAllText(cacheName, objWriter.Text());
             }
 
@@ -394,52 +422,74 @@ namespace XrEngine.Reconstruct
                 {
                     Log.Info(this, "Generate deph {0}", frame.ImageIndex);
 
-                    frame.DepthMap = GenerateDepth(frame.ViewProj);
+                    frame.DepthMap = await GenerateDepthAsync(frame.ViewProj);
                     frame.DepthWidth = DepthMapSize;
                     frame.DepthHeight = DepthMapSize;
-
                 }
+            }
+
+            float[] exposures = [];
+
+            if (SolveExposure)
+            {
+                Log.Info(this, "Solving exposure");
+
+                var solver = new FrameExposureSolver();
+
+                solver.SetParams(ExposeParams);
+
+                exposures = solver.Compute(
+                    _recMesh.Geometry,
+                    colorData.ToArray(),
+                    (int)colorSize.Width,
+                    (int)colorSize.Height);
+
             }
 
             Log.Info(this, "Color projection");
 
-            proj.Project(_recMesh.Geometry!, colorFrames);
-
-            var builder = new TextureAtlasLayoutBuilder
-            {
-                TextureWidth = 1280,
-                TextureHeight = 1280,
-                SourceTextureCount = _host.Children.Count,
-                Padding = 2,
-                SourceBorderPixels = 2,
-                BytesPerPixel = 4
-            };
+            proj.Project(_recMesh.Geometry, colorFrames);
 
             _recMesh.Materials.Clear();
 
             if (BuildAtlas)
             {
+                var builder = new TextureAtlasLayoutBuilder
+                {
+                    TextureWidth = 1280,
+                    TextureHeight = 1280,
+                    SourceTextureCount = _host.Children.Count,
+                    Padding = 2,
+                    SourceBorderPixels = 2,
+                    BytesPerPixel = 4
+                };
+
                 _atlasTex?.Dispose();
-                _atlasTex = builder.GenerateAtlasTexture([_recMesh.Geometry!], _colorArrayTex);
+
+                _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
 
                 _recMesh.Materials.Add(new TextureMaterial(_atlasTex));
             }
             else
             {
-                _recMesh.Materials.Add(new MultiTextureMaterial()
+                _recMesh.Materials.Add(new MultiTextureMaterial
                 {
-                    Texture = _colorArrayTex
+                    Texture = _colorArrayTex,
+                    Exposure = exposures
                 });
             }
 
             Log.Info(this, "Compute indexs");
 
-            _recMesh.Geometry!.ComputeIndices();
+            if (ComputeIndices)
+                _recMesh.Geometry.ComputeIndices();
+            else
+                _recMesh.Geometry.NotifyChanged(ChangeType.Geometry);
 
             if (_recMesh.Parent == null)
-                _host!.Scene!.AddChild(_recMesh);
+                _host.Scene!.AddChild(_recMesh);
 
-            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry!.Vertices.Length, _recMesh.Geometry.Indices.Length);
+            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
 
             _recMesh.NotifyChanged(ChangeType.Geometry | ChangeType.Material);
         }
@@ -452,7 +502,6 @@ namespace XrEngine.Reconstruct
 
             Load(_lastPath, true);
         }
-
 
         public unsafe void Load(
             string path,
@@ -478,7 +527,6 @@ namespace XrEngine.Reconstruct
                 .ToArray();
 
             var splats = new List<SplatData>();
-
             var texArrayData = new List<TextureData>();
 
             _generator.SetParams(GeneratorParams);
@@ -505,41 +553,7 @@ namespace XrEngine.Reconstruct
                 var colorViewProj = meta.CameraView * meta.CameraProj;
 
                 if (Clip && splats.Count > 0)
-                {
-                    var write = 0;
-
-                    for (var read = 0; read < splats.Count; read++)
-                    {
-                        var splat = splats[read];
-
-                        var clip = Vector4.Transform(
-                            new Vector4(splat.Position, 1.0f),
-                            colorViewProj
-                        );
-
-                        var remove = false;
-
-                        if (clip.W > 0.00001f)
-                        {
-                            var invW = 1.0f / clip.W;
-
-                            var x = clip.X * invW;
-                            var y = clip.Y * invW;
-                            var z = clip.Z * invW;
-
-                            remove =
-                                x >= -1.0f - cleanupMargin && x <= 1.0f + cleanupMargin &&
-                                y >= -1.0f - cleanupMargin && y <= 1.0f + cleanupMargin &&
-                                z >= -1.0f - cleanupMargin && z <= 1.0f + cleanupMargin;
-                        }
-
-                        if (!remove)
-                            splats[write++] = splat;
-                    }
-
-                    if (write < splats.Count)
-                        splats.RemoveRange(write, splats.Count - write);
-                }
+                    RemoveSplatsInsideFrame(splats, colorViewProj, cleanupMargin);
 
                 var depthBytes = File.ReadAllBytes(depthPath);
 
@@ -562,8 +576,6 @@ namespace XrEngine.Reconstruct
                     Name = $"Frame {meta.Frame}"
                 };
 
-                mesh.SetProp("CameraView", meta.CameraView);
- 
                 var colorTexture = LoadColorTextureRaw(
                     colorPath,
                     meta.ColorWidth,
@@ -582,7 +594,8 @@ namespace XrEngine.Reconstruct
                 });
 
                 mesh.Materials.Add(CreateMaterial(colorTexture));
-                mesh.Materials.Add(new WireframeMaterial()
+
+                mesh.Materials.Add(new WireframeMaterial
                 {
                     Color = new Color(1, 1, 1, 1),
                     IsEnabled = false
@@ -591,7 +604,8 @@ namespace XrEngine.Reconstruct
                 mesh.AddComponent(new CaptureFrame
                 {
                     Meta = meta,
-                    Texture = colorTexture
+                    Texture = colorTexture,
+                    ColorData = colorData.Data
                 });
 
                 if (SplatMode)
@@ -604,7 +618,7 @@ namespace XrEngine.Reconstruct
                         (int)colorTexture.Height);
                 }
 
-                var frame = new DepthFrame
+                _frames.Add(new DepthFrame
                 {
                     Mesh = mesh,
                     CameraTexture = colorTexture,
@@ -618,16 +632,13 @@ namespace XrEngine.Reconstruct
                     CameraXrTime = meta.CameraXrTime,
                     DepthXrTime = meta.DepthXrTime,
                     FrameXrTime = meta.FrameXrTime
-                };
-
-                _frames.Add(frame);
+                });
 
                 if (!SplatMode)
                     _host!.AddChild(mesh);
             }
 
-
-            _colorArrayTex = new Texture2D()
+            _colorArrayTex = new Texture2D
             {
                 MinFilter = ScaleFilter.Linear,
                 MagFilter = ScaleFilter.Linear,
@@ -636,19 +647,7 @@ namespace XrEngine.Reconstruct
 
             _colorArrayTex.LoadData(texArrayData);
 
-            if (SolveExposure)
-            {
-                Log.Info(this, "Solving exposure");
-
-                var solver = new FrameExposureSolver();
-
-                solver.SetParams(ExposeParams);
-                solver.Compute(_host!.Children.OfType<TriangleMesh>().ToArray(), texArrayData.Select(a => a.Data!).ToArray());
-            }
-
-            _frameIndex = _frames.Count == 0
-                ? 0
-                : _frames.Count;
+            _frameIndex = _frames.Count;
 
             if (SplatMode)
             {
@@ -659,6 +658,34 @@ namespace XrEngine.Reconstruct
             Log.Info(this, "Done!");
         }
 
+        private void RemoveSplatsInsideFrame(List<SplatData> splats, Matrix4x4 colorViewProj, float cleanupMargin)
+        {
+            var write = 0;
+
+            for (var read = 0; read < splats.Count; read++)
+            {
+                var splat = splats[read];
+                var clip = Vector4.Transform(new Vector4(splat.Position, 1.0f), colorViewProj);
+                var remove = false;
+
+                if (clip.W > 0.00001f)
+                {
+                    var p = clip / clip.W;
+
+                    remove =
+                        p.X >= -1.0f - cleanupMargin && p.X <= 1.0f + cleanupMargin &&
+                        p.Y >= -1.0f - cleanupMargin && p.Y <= 1.0f + cleanupMargin &&
+                        p.Z >= -1.0f - cleanupMargin && p.Z <= 1.0f + cleanupMargin;
+                }
+
+                if (!remove)
+                    splats[write++] = splat;
+            }
+
+            if (write < splats.Count)
+                splats.RemoveRange(write, splats.Count - write);
+        }
+
         public DepthFrame? CreateSnapeshot()
         {
             var camera = _capture!.GetCameraStatus(OculusCameras.Left);
@@ -667,12 +694,12 @@ namespace XrEngine.Reconstruct
                 return null;
 
             var cameraTime = camera.FrameTime;
-
             var cameraWorld = camera.Pose?.ToMatrix() ?? Matrix4x4.Identity;
 
             Matrix4x4.Invert(cameraWorld, out var cameraView);
 
-            var cameraViewProj = cameraView * camera.Proj!.Value;
+            var cameraProj = camera.Proj!.Value;
+            var cameraViewProj = cameraView * cameraProj;
 
             var frozenMesh = _envDepth!.Freeze(cameraViewProj);
 
@@ -680,24 +707,26 @@ namespace XrEngine.Reconstruct
                 return null;
 
             var mat = (EnvDepthMaterial)_envDepth.Materials[0];
-
             var frameTexture = CreateTexture(camera.Texture!.Width, camera.Texture.Height);
 
             GlImageProc.CopyColor(camera.Texture!.ToGlTexture(), frameTexture.ToGlTexture());
 
             frozenMesh.Materials.Add(CreateMaterial(frameTexture));
-          
+
             var frame = new DepthFrame
             {
-                CameraProj = camera.Proj!.Value,
+                CameraProj = cameraProj,
                 CameraView = cameraView,
                 CameraXrTime = cameraTime,
+
                 Mesh = frozenMesh,
+                CameraTexture = frameTexture,
+
                 DepthView = mat.DepthCamera.Eyes![0].View,
                 DepthProj = mat.DepthCamera.Eyes![0].Projection,
                 DepthXrTime = mat.LastFrameTime,
-                FrameXrTime = XrApp.Current!.FramePredictedDisplayTime,
-                CameraTexture = frameTexture
+
+                FrameXrTime = XrApp.Current!.FramePredictedDisplayTime
             };
 
             if (_mode == DepthSnapeshotMode.Record)
@@ -708,7 +737,7 @@ namespace XrEngine.Reconstruct
                 {
                     Frame = _frameIndex++,
 
-                    ColorWidth = (int)camera.Texture!.Width,
+                    ColorWidth = (int)camera.Texture.Width,
                     ColorHeight = (int)camera.Texture.Height,
 
                     DepthWidth = (int)mat.LastTexture!.Width,
@@ -717,7 +746,7 @@ namespace XrEngine.Reconstruct
                     GridWidth = (int)size.Width,
                     GridHeight = (int)size.Height,
 
-                    CameraProj = camera.Proj!.Value,
+                    CameraProj = cameraProj,
                     CameraView = cameraView,
 
                     DepthView = mat.DepthCamera.Eyes![0].View,
@@ -725,7 +754,7 @@ namespace XrEngine.Reconstruct
 
                     CameraXrTime = cameraTime,
                     DepthXrTime = mat.LastFrameTime,
-                    FrameXrTime = XrApp.Current!.FramePredictedDisplayTime
+                    FrameXrTime = frame.FrameXrTime
                 };
 
                 SaveFrame(frame, meta);
@@ -738,7 +767,7 @@ namespace XrEngine.Reconstruct
         {
             if (_frames.Count == 0)
                 return;
-            
+
             var lastFrame = _frames[^1];
 
             _frames.RemoveAt(_frames.Count - 1);
@@ -746,7 +775,6 @@ namespace XrEngine.Reconstruct
             lastFrame.CameraTexture!.Dispose();
             lastFrame.Mesh!.Dispose();
         }
-
 
         protected override void Update(RenderContext ctx)
         {
@@ -756,24 +784,23 @@ namespace XrEngine.Reconstruct
                 {
                     if (!mesh.TryComponent<CaptureFrame>(out var frame))
                         continue;
-                   
-                    var mat = mesh.Materials[0] as GridMaterial;
-                    mat?.Exposure = frame.Exposure;
 
+                    if (mesh.Materials[0] is GridMaterial mat)
+                        mat.Exposure = frame.Exposure;
                 }
+
                 return;
             }
 
             Debug.Assert(_captureBtn != null && _deleteBtn != null);
 
-            if (_captureBtn.IsChanged && _captureBtn!.Value)
+            if (_captureBtn.IsChanged && _captureBtn.Value)
             {
                 var frame = CreateSnapeshot();
 
                 if (frame != null)
                 {
                     _frames.Add(frame);
-
                     _host!.AddChild(frame.Mesh!);
                 }
             }
@@ -806,7 +833,9 @@ namespace XrEngine.Reconstruct
 
         public bool BuildAtlas { get; set; }
 
-        public VoxelMeshReconstructorParams MeshParams { get;  set; }
+        public bool ComputeIndices { get; set; }
+
+        public VoxelMeshReconstructorParams MeshParams { get; set; }
 
         public DepthGeometryGeneratorParams GeneratorParams { get; set; }
 

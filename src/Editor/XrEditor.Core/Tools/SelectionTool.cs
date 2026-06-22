@@ -59,12 +59,14 @@ namespace XrEditor
             return _lastOutline.Count > 0;
         }
 
-        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
 
             if (_selectionLayer != null)
             {
+                await EngineApp.MainThread;
+                 
                 _selectionLayer.BeginUpdate();
                 _selectionLayer.Clear();
 
@@ -79,10 +81,13 @@ namespace XrEditor
 
                 _lastOutline = outlineMeshes.ToHashSet();
 
+
                 foreach (var item in _lastOutline)
                     _selectionLayer.Add(item);
 
                 _selectionLayer.EndUpdate();
+
+                await UiThread;
             }
         }
         protected override void OnPointerDown(Pointer2Event ev)

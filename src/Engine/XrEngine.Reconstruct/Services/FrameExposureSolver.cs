@@ -1,10 +1,8 @@
 ﻿using Common.Interop;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using XrMath;
-using static XrEngine.Reconstruct.DepthCapture;
+using System.Runtime.CompilerServices;
 
 namespace XrEngine.Reconstruct
 {
@@ -13,22 +11,20 @@ namespace XrEngine.Reconstruct
         public FrameExposureSolverParams()
         {
             BytesPerPixel = 4;
-            TriangleStep = 4;
+            TriangleStep = 10;
             PatchRadius = 1;
 
-            MaxSamplesPerPair = 512;
-            MinSamplesPerEdge = 24;
-
-            BoundsPadding = 0.05f;
+            MaxSamplesPerPair = 2048;
+            MinSamplesPerPair = 3;
 
             MinLuma = 0.03f;
             MaxLuma = 0.97f;
 
-            SolverIterations = 48;
+            SolverIterations = 30;
             SolverRelaxation = 0.65f;
 
-            MinExposure = -1.3862944f;
-            MaxExposure = 1.3862944f;
+            MinExposure = MathF.Log(0.25f);
+            MaxExposure = MathF.Log(4f);
         }
 
         public int BytesPerPixel { get; set; }
@@ -39,9 +35,7 @@ namespace XrEngine.Reconstruct
 
         public int MaxSamplesPerPair { get; set; }
 
-        public int MinSamplesPerEdge { get; set; }
-
-        public float BoundsPadding { get; set; }
+        public int MinSamplesPerPair { get; set; }
 
         public float MinLuma { get; set; }
 
@@ -60,32 +54,16 @@ namespace XrEngine.Reconstruct
     {
         #region Private Structs
 
-        private struct MeshInfo
+        private sealed class PairSamples
         {
-            public int Index;
-            public int ImageIndex;
-            public TriangleMesh Mesh;
-            public Geometry3D Geometry;
-            public CaptureFrame Frame;
-            public DepthFrameMeta Meta;
-            public Matrix4x4 WorldMatrix;
-            public Matrix4x4 CameraViewProj;
-            public Bounds3 Bounds;
-            public List<Sample> Samples;
-        }
+            public PairSamples(int capacity)
+            {
+                Values = new float[capacity];
+            }
 
-        private struct ImageView
-        {
-            public byte* Data;
-            public int Width;
-            public int Height;
-            public int Stride;
-        }
+            public readonly float[] Values;
 
-        private struct Sample
-        {
-            public Vector3 WorldPos;
-            public float Luma;
+            public int Count;
         }
 
         private struct ExposureEdge
@@ -98,17 +76,25 @@ namespace XrEngine.Reconstruct
 
         #endregion
 
-        private const bool FlipProjectedY = false;
-        private const bool FlipImageY = false;
+        private const float OneThird = 0.33333334f;
+
+        private FrameExposureSolverParams _params;
+
+        private MemoryLock<byte>[]? _imageLocks;
+
+        private PairSamples?[]? _pairs;
+
+        private int _width;
+        private int _height;
+        private int _frameCount;
+        private int _stride;
 
         private int _bytesPerPixel;
         private int _triangleStep;
         private int _patchRadius;
 
         private int _maxSamplesPerPair;
-        private int _minSamplesPerEdge;
-
-        private float _boundsPadding;
+        private int _minSamplesPerPair;
 
         private float _minLuma;
         private float _maxLuma;
@@ -124,253 +110,188 @@ namespace XrEngine.Reconstruct
             SetParams(new FrameExposureSolverParams());
         }
 
-        public void SetParams(FrameExposureSolverParams p)
+        public void SetParams(FrameExposureSolverParams parameters)
         {
-            _bytesPerPixel = p.BytesPerPixel;
-            _triangleStep = p.TriangleStep;
-            _patchRadius = p.PatchRadius;
+            _params = parameters;
 
-            _maxSamplesPerPair = p.MaxSamplesPerPair;
-            _minSamplesPerEdge = p.MinSamplesPerEdge;
+            _bytesPerPixel = parameters.BytesPerPixel;
+            _triangleStep = parameters.TriangleStep;
+            _patchRadius = parameters.PatchRadius;
 
-            _boundsPadding = p.BoundsPadding;
+            _maxSamplesPerPair = parameters.MaxSamplesPerPair;
+            _minSamplesPerPair = parameters.MinSamplesPerPair;
 
-            _minLuma = p.MinLuma;
-            _maxLuma = p.MaxLuma;
+            _minLuma = parameters.MinLuma;
+            _maxLuma = parameters.MaxLuma;
 
-            _solverIterations = p.SolverIterations;
-            _solverRelaxation = p.SolverRelaxation;
+            _solverIterations = parameters.SolverIterations;
+            _solverRelaxation = parameters.SolverRelaxation;
 
-            _minExposure = p.MinExposure;
-            _maxExposure = p.MaxExposure;
+            _minExposure = parameters.MinExposure;
+            _maxExposure = parameters.MaxExposure;
         }
 
-        public float[] Compute(IReadOnlyList<TriangleMesh> meshes, IMemoryBuffer<byte>[] images)
+        public float[] Compute(
+            Geometry3D geometry,
+            IMemoryBuffer<byte>[] images,
+            int width,
+            int height)
         {
-            var locks = new MemoryLock<byte>[images.Length];
-            var locked = new bool[images.Length];
+            _width = width;
+            _height = height;
+            _frameCount = images.Length;
+            _stride = width * _bytesPerPixel;
+
+            _pairs = new PairSamples[_frameCount * _frameCount];
+            _imageLocks = new MemoryLock<byte>[_frameCount];
 
             try
             {
-                var imageViews = new ImageView[images.Length];
-
                 for (var i = 0; i < images.Length; i++)
+                    _imageLocks[i] = images[i].MemoryLock();
+
+                var vertices = geometry.Vertices!;
+                var indices = geometry.Indices;
+
+                fixed (VertexData* vertexPtr = vertices)
                 {
-                    locks[i] = images[i].MemoryLock();
-                    locked[i] = true;
+                    if (indices != null && indices.Length >= 3)
+                    {
+                        fixed (uint* indexPtr = indices)
+                        {
+                            var triIndex = 0;
+
+                            for (var i = 0; i + 2 < indices.Length; i += 3, triIndex++)
+                            {
+                                if (triIndex % _triangleStep != 0)
+                                    continue;
+
+                                CollectTriangle(
+                                    vertexPtr[(int)indexPtr[i + 0]],
+                                    vertexPtr[(int)indexPtr[i + 1]],
+                                    vertexPtr[(int)indexPtr[i + 2]]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var triIndex = 0;
+
+                        for (var i = 0; i + 2 < vertices.Length; i += 3, triIndex++)
+                        {
+                            if (triIndex % _triangleStep != 0)
+                                continue;
+
+                            CollectTriangle(
+                                vertexPtr[i + 0],
+                                vertexPtr[i + 1],
+                                vertexPtr[i + 2]);
+                        }
+                    }
                 }
 
-                var infos = CollectMeshes(meshes, images, locks, imageViews);
+                var edges = BuildEdges();
+                var exposure = Solve(edges);
 
-                for (var i = 0; i < infos.Count; i++)
-                    infos[i] = BuildSamples(infos[i], imageViews[infos[i].ImageIndex]);
+                Exposures = exposure;
 
-                var edges = BuildEdges(infos, imageViews);
-                var exposure = Solve(infos.Count, edges);
-
-                var result = new float[images.Length];
-
-                for (var i = 0; i < infos.Count; i++)
-                {
-                    var value = exposure[i];
-
-                    infos[i].Frame.Exposure = value;
-                    result[infos[i].ImageIndex] = value;
-                }
-
-                return result;
+                return exposure;
             }
             finally
             {
-                for (var i = 0; i < locks.Length; i++)
+                if (_imageLocks != null)
                 {
-                    if (locked[i])
-                        locks[i].Dispose();
+                    for (var i = 0; i < _imageLocks.Length; i++)
+                        _imageLocks[i].Dispose();
                 }
+
+                _imageLocks = null;
+                _pairs = null;
             }
         }
 
-        private List<MeshInfo> CollectMeshes(
-            IReadOnlyList<TriangleMesh> meshes,
-            IMemoryBuffer<byte>[] images,
-            MemoryLock<byte>[] locks,
-            ImageView[] imageViews)
+        private void CollectTriangle(VertexData a, VertexData b, VertexData c)
         {
-            var result = new List<MeshInfo>();
+            var image0 = (int)a.Tangent.X;
+            var image1 = (int)a.Tangent.Y;
 
-            foreach (var mesh in meshes)
+            if (image1 < 0 || image0 == image1)
+                return;
+
+            var pairA = image0;
+            var pairB = image1;
+            var sign = 1.0f;
+
+            if (pairA > pairB)
             {
-                if (!mesh.TryComponent<CaptureFrame>(out var frame))
-                    continue;
-
-                if (frame.Meta == null)
-                    continue;
-
-                var imageIndex = frame.Meta.Frame;
-
-                if (imageIndex < 0 || imageIndex >= images.Length)
-                    continue;
-
-                var geometry = mesh.Geometry;
-
-                if (geometry?.Vertices == null || geometry.Vertices.Length == 0)
-                    continue;
-
-                imageViews[imageIndex] = new ImageView
-                {
-                    Data = locks[imageIndex].Data,
-                    Width = frame.Meta.ColorWidth,
-                    Height = frame.Meta.ColorHeight,
-                    Stride = frame.Meta.ColorWidth * _bytesPerPixel
-                };
-
-                result.Add(new MeshInfo
-                {
-                    Index = result.Count,
-                    ImageIndex = imageIndex,
-                    Mesh = mesh,
-                    Geometry = geometry,
-                    Frame = frame,
-                    Meta = frame.Meta,
-                    WorldMatrix = mesh.WorldMatrix,
-                    CameraViewProj = frame.Meta.CameraView * frame.Meta.CameraProj,
-                    Bounds = new Bounds3
-                    {
-                        Min = mesh.WorldBounds.Min,
-                        Max = mesh.WorldBounds.Max,
-                    },
-                    Samples = new List<Sample>()
-                });
+                pairA = image1;
+                pairB = image0;
+                sign = -1.0f;
             }
 
-            return result;
-        }
+            var pairIndex = pairA * _frameCount + pairB;
+            var pair = _pairs![pairIndex];
 
-        private MeshInfo BuildSamples(MeshInfo info, ImageView image)
-        {
-            var vertices = info.Geometry.Vertices;
-            var indices = info.Geometry.Indices;
-
-            if (indices == null || indices.Length < 3)
-                return info;
-
-            var triIndex = 0;
-
-            for (var i = 0; i + 2 < indices.Length; i += 3, triIndex++)
+            if (pair == null)
             {
-                if (triIndex % _triangleStep != 0)
-                    continue;
-
-                var i0 = (int)indices[i + 0];
-                var i1 = (int)indices[i + 1];
-                var i2 = (int)indices[i + 2];
-
-                if (i0 < 0 || i0 >= vertices.Length ||
-                    i1 < 0 || i1 >= vertices.Length ||
-                    i2 < 0 || i2 >= vertices.Length)
-                    continue;
-
-                var v0 = vertices[i0];
-                var v1 = vertices[i1];
-                var v2 = vertices[i2];
-
-                var uv = (v0.UV + v1.UV + v2.UV) / 3.0f;
-
-                if (!IsUvDefined(uv))
-                    continue;
-
-                if (!TrySampleLuma(image, uv, out var luma))
-                    continue;
-
-                var pos = (v0.Pos + v1.Pos + v2.Pos) / 3.0f;
-
-                info.Samples.Add(new Sample
-                {
-                    WorldPos = Vector3.Transform(pos, info.WorldMatrix),
-                    Luma = luma
-                });
+                pair = new PairSamples(_maxSamplesPerPair);
+                _pairs[pairIndex] = pair;
+            }
+            else if (pair.Count >= _maxSamplesPerPair)
+            {
+                return;
             }
 
-            return info;
+            var uv0 = (a.UV + b.UV + c.UV) * OneThird;
+            var uv1 = (a.UV1 + b.UV1 + c.UV1) * OneThird;
+
+            var imagePtr0 = _imageLocks![image0].Data;
+            var imagePtr1 = _imageLocks![image1].Data;
+
+            if (!TrySampleLuma(imagePtr0, uv0, out var luma0) ||
+                !TrySampleLuma(imagePtr1, uv1, out var luma1))
+            {
+                return;
+            }
+
+            pair.Values[pair.Count++] = (MathF.Log(luma0) - MathF.Log(luma1)) * sign;
         }
 
-        private List<ExposureEdge> BuildEdges(List<MeshInfo> infos, ImageView[] images)
+        private List<ExposureEdge> BuildEdges()
         {
             var edges = new List<ExposureEdge>();
 
-            for (var i = 0; i < infos.Count; i++)
+            for (var a = 0; a < _frameCount - 1; a++)
             {
-                for (var j = i + 1; j < infos.Count; j++)
+                for (var b = a + 1; b < _frameCount; b++)
                 {
-                    if (!BoundsIntersect(infos[i].Bounds, infos[j].Bounds, _boundsPadding))
+                    var pair = _pairs![a * _frameCount + b];
+
+                    if (pair == null || pair.Count < _minSamplesPerPair)
                         continue;
 
-                    if (TryCreateEdge(infos[i], infos[j], images, out var edge))
-                        edges.Add(edge);
+                    Array.Sort(pair.Values, 0, pair.Count);
+
+                    var median = pair.Values[pair.Count / 2];
+
+                    edges.Add(new ExposureEdge
+                    {
+                        A = a,
+                        B = b,
+                        Delta = Math.Clamp(median, _minExposure, _maxExposure),
+                        Weight = MathF.Sqrt(pair.Count)
+                    });
                 }
             }
 
             return edges;
         }
 
-        private bool TryCreateEdge(MeshInfo a, MeshInfo b, ImageView[] images, out ExposureEdge edge)
+        private float[] Solve(List<ExposureEdge> edges)
         {
-            edge = default;
-
-            var deltas = new List<float>(_maxSamplesPerPair * 2);
-
-            CollectDeltas(a, b, images[b.ImageIndex], 1.0f, deltas);
-            CollectDeltas(b, a, images[a.ImageIndex], -1.0f, deltas);
-
-            if (deltas.Count < _minSamplesPerEdge)
-                return false;
-
-            deltas.Sort();
-
-            var median = deltas[deltas.Count / 2];
-
-            edge = new ExposureEdge
-            {
-                A = a.Index,
-                B = b.Index,
-                Delta = Math.Clamp(median, _minExposure, _maxExposure),
-                Weight = MathF.Sqrt(deltas.Count)
-            };
-
-            return true;
-        }
-
-        private void CollectDeltas(
-            MeshInfo source,
-            MeshInfo target,
-            ImageView targetImage,
-            float sign,
-            List<float> deltas)
-        {
-            var count = 0;
-
-            foreach (var sample in source.Samples)
-            {
-                if (!TryProject(sample.WorldPos, target.CameraViewProj, out var targetUv))
-                    continue;
-
-                if (!TrySampleLuma(targetImage, targetUv, out var targetLuma))
-                    continue;
-
-                deltas.Add((MathF.Log(sample.Luma) - MathF.Log(targetLuma)) * sign);
-
-                count++;
-
-                if (count >= _maxSamplesPerPair)
-                    break;
-            }
-        }
-
-        private float[] Solve(int count, List<ExposureEdge> edges)
-        {
-            var exposure = new float[count];
-            var next = new float[count];
-            var weightSum = new float[count];
+            var exposure = new float[_frameCount];
+            var next = new float[_frameCount];
+            var weightSum = new float[_frameCount];
 
             if (edges.Count == 0)
                 return exposure;
@@ -393,7 +314,7 @@ namespace XrEngine.Reconstruct
                     weightSum[b] += w;
                 }
 
-                for (var i = 0; i < count; i++)
+                for (var i = 0; i < _frameCount; i++)
                 {
                     if (weightSum[i] == 0.0f)
                         continue;
@@ -412,101 +333,67 @@ namespace XrEngine.Reconstruct
             return exposure;
         }
 
-        private bool TryProject(Vector3 worldPos, Matrix4x4 viewProj, out Vector2 uv)
+        private bool TrySampleLuma(byte* image, Vector2 uv, out float luma)
         {
-            uv = default;
+            var x = (int)(uv.X * (_width - 1) + 0.5f);
+            var y = (int)(uv.Y * (_height - 1) + 0.5f);
 
-            var clip = Vector4.Transform(new Vector4(worldPos, 1.0f), viewProj);
+            if (_patchRadius == 0)
+            {
+                var ptr = image + y * _stride + x * _bytesPerPixel;
 
-            if (clip.W <= 0.0001f)
-                return false;
+                luma =
+                    ptr[0] * 0.0008337255f +
+                    ptr[1] * 0.0028047059f +
+                    ptr[2] * 0.00028313726f;
 
-            var invW = 1.0f / clip.W;
+                return luma >= _minLuma && luma <= _maxLuma;
+            }
 
-            var ndcX = clip.X * invW;
-            var ndcY = clip.Y * invW;
-
-            if (ndcX < -1.0f || ndcX > 1.0f ||
-                ndcY < -1.0f || ndcY > 1.0f)
-                return false;
-
-            uv = new Vector2(
-                ndcX * 0.5f + 0.5f,
-                ndcY * 0.5f + 0.5f);
-
-
-            return true;
-        }
-
-        private bool TrySampleLuma(ImageView image, Vector2 uv, out float luma)
-        {
-            luma = 0.0f;
-
-            if (!IsUvDefined(uv))
-                return false;
-
-            var v = FlipImageY ? 1.0f - uv.Y : uv.Y;
-
-            var x = (int)MathF.Round(uv.X * (image.Width - 1));
-            var y = (int)MathF.Round(v * (image.Height - 1));
+            var x0 = Math.Max(0, x - _patchRadius);
+            var y0 = Math.Max(0, y - _patchRadius);
+            var x1 = Math.Min(_width - 1, x + _patchRadius);
+            var y1 = Math.Min(_height - 1, y + _patchRadius);
 
             var sum = 0.0f;
             var count = 0;
 
-            for (var py = -_patchRadius; py <= _patchRadius; py++)
+            for (var py = y0; py <= y1; py++)
             {
-                var sy = y + py;
+                var row = image + py * _stride;
 
-                if (sy < 0 || sy >= image.Height)
-                    continue;
-
-                for (var px = -_patchRadius; px <= _patchRadius; px++)
+                for (var px = x0; px <= x1; px++)
                 {
-                    var sx = x + px;
+                    var ptr = row + px * _bytesPerPixel;
 
-                    if (sx < 0 || sx >= image.Width)
+                    var sample =
+                        ptr[0] * 0.0008337255f +
+                        ptr[1] * 0.0028047059f +
+                        ptr[2] * 0.00028313726f;
+
+                    if (sample < _minLuma || sample > _maxLuma)
                         continue;
 
-                    var ptr = image.Data + sy * image.Stride + sx * _bytesPerPixel;
-
-                    var r = ptr[0] / 255.0f;
-                    var g = ptr[1] / 255.0f;
-                    var b = ptr[2] / 255.0f;
-
-                    var yLum = r * 0.2126f + g * 0.7152f + b * 0.0722f;
-
-                    if (yLum < _minLuma || yLum > _maxLuma)
-                        continue;
-
-                    sum += yLum;
+                    sum += sample;
                     count++;
                 }
             }
 
             if (count == 0)
+            {
+                luma = 0.0f;
                 return false;
+            }
 
             luma = sum / count;
             return true;
         }
 
-        private static bool BoundsIntersect(Bounds3 a, Bounds3 b, float padding)
-        {
-            return a.Min.X - padding <= b.Max.X && a.Max.X + padding >= b.Min.X &&
-                   a.Min.Y - padding <= b.Max.Y && a.Max.Y + padding >= b.Min.Y &&
-                   a.Min.Z - padding <= b.Max.Z && a.Max.Z + padding >= b.Min.Z;
-        }
-
-        private static bool IsUvDefined(Vector2 uv)
-        {
-            return uv.X >= 0.0f && uv.X <= 1.0f &&
-                   uv.Y >= 0.0f && uv.Y <= 1.0f;
-        }
-
         private static void NormalizeMedian(float[] values)
         {
-            var sorted = values.ToArray();
+            var sorted = new float[values.Length];
 
+            Array.Copy(values, sorted, values.Length);
             Array.Sort(sorted);
 
             var median = sorted[sorted.Length / 2];
@@ -514,5 +401,13 @@ namespace XrEngine.Reconstruct
             for (var i = 0; i < values.Length; i++)
                 values[i] -= median;
         }
+
+        public FrameExposureSolverParams Params
+        {
+            get => _params;
+            set => SetParams(value);
+        }
+
+        public float[] Exposures { get; private set; } = [];
     }
 }

@@ -123,13 +123,13 @@ namespace XrEngine.OpenGL
             if (!_values.TryGetValue(name, out var lastValue))
                 isChanged = true;
 
-            if (lastValue is Array lastArray)
+            if (value is Array curArray)
             {
-                var curArray = (Array)value;
+                var lastArray = (Array?)lastValue;
 
                 if (!isChanged)
                 {
-                    if (lastArray.Length != curArray.Length)
+                    if (lastArray == null || lastArray.Length != curArray.Length)
                         isChanged = true;
                     else
                     {
