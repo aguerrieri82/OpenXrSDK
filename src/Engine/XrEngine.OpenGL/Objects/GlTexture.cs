@@ -549,7 +549,7 @@ namespace XrEngine.OpenGL
 
         public bool IsAttached => _isAttached;
 
-        public bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
+        public bool IsDepth => _internalFormat.IsDepth();
 
     }
 }

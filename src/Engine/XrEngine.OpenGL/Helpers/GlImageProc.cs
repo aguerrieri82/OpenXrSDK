@@ -7,12 +7,83 @@ using Silk.NET.OpenGL;
 using Common.Interop;
 using XrMath;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 
 namespace XrEngine.OpenGL
 {
     public static class GlImageProc
     {
+
+        static class ShaderHash
+        {
+            private const ulong Offset = 14695981039346656037UL;
+            private const ulong Prime = 1099511628211UL;
+
+            public static ulong Compute(
+                string fragmentSource,
+                string vertexSource,
+                string[] features,
+                string[] extensions)
+            {
+                var h = Offset;
+
+                Add(ref h, fragmentSource);
+                Add(ref h, vertexSource);
+
+                Add(ref h, features.Length);
+                for (var i = 0; i < features.Length; i++)
+                    Add(ref h, features[i]);
+
+                Add(ref h, extensions.Length);
+                for (var i = 0; i < extensions.Length; i++)
+                    Add(ref h, extensions[i]);
+
+                return h;
+            }
+
+            public static string ComputeHex(
+                string fragmentSource,
+                string vertexSource,
+                string[] features,
+                string[] extensions)
+            {
+                return Compute(fragmentSource, vertexSource, features, extensions).ToString("X16");
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void Add(ref ulong h, int value)
+            {
+                unchecked
+                {
+                    h ^= (uint)value;
+                    h *= Prime;
+                    h ^= (uint)(value >> 16);
+                    h *= Prime;
+                }
+            }
+
+            private static void Add(ref ulong h, string value)
+            {
+                unchecked
+                {
+                    Add(ref h, value.Length);
+
+                    for (var i = 0; i < value.Length; i++)
+                    {
+                        var c = value[i];
+
+                        h ^= (byte)c;
+                        h *= Prime;
+
+                        h ^= (byte)(c >> 8);
+                        h *= Prime;
+                    }
+                }
+            }
+        }
+
+
         static readonly Dictionary<string, GlSimpleProgram> _programs = [];
         static uint _emptyVertexArray;
         static GlTextureFrameBuffer? _frameBuffer;
@@ -25,23 +96,23 @@ namespace XrEngine.OpenGL
 
         public static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string[] features, string[] extensions)
         {
-            return LoadProgram(gl, fragmentSource, "fullscreen.vert", features, extensions); 
+            return LoadProgram(gl, fragmentSource, "fullscreen.vert", features, extensions);
         }
 
         public static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource, string[] features, string[] extensions)
         {
-            var key = vertexSource + "_" + fragmentSource;
+            var key = ShaderHash.ComputeHex(fragmentSource, vertexSource, features, extensions);
 
             if (!_programs.TryGetValue(key, out var program))
             {
                 program = new GlSimpleProgram(gl, vertexSource, fragmentSource, str => Embedded.GetString<Material>(str));
-                
+
                 foreach (var ext in extensions.Where(a => !string.IsNullOrWhiteSpace(a)))
                     program.AddExtension(ext);
 
-                foreach (var feature in features.Where(a=> !string.IsNullOrWhiteSpace(a)))
+                foreach (var feature in features.Where(a => !string.IsNullOrWhiteSpace(a)))
                     program.AddFeature(feature);
-                
+
                 program.Build();
 
                 _programs[key] = program;
@@ -75,7 +146,7 @@ namespace XrEngine.OpenGL
             gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
-
+        /*
         public static void DrawGeometry(GL gl, Geometry3D geo, Texture2D srcImge, GlTexture dstImage, string fragName)
         {
             EngineNativeLib.RdcStartFrameCapture();
@@ -108,6 +179,7 @@ namespace XrEngine.OpenGL
 
             EngineNativeLib.RdcEndFrameCapture(false);
         }
+        */
 
         public static void DrawQuad(GL gl)
         {
@@ -151,9 +223,9 @@ namespace XrEngine.OpenGL
 
         public static void CopyColor(GlTexture src, GlTexture dst)
         {
-            var GL_TEXTURE_EXTERNAL_OES =  (TextureTarget)0x8D65; // 36197
+            var GL_TEXTURE_EXTERNAL_OES = (TextureTarget)0x8D65; // 36197
 
-            var prog = LoadProgram(src.GL, "texture_full.frag", 
+            var prog = LoadProgram(src.GL, "texture_full.frag",
                 src.Target == GL_TEXTURE_EXTERNAL_OES ? ["EXTERNAL"] : [],
                 src.Target == GL_TEXTURE_EXTERNAL_OES ? ["GL_OES_EGL_image_external_essl3 "] : []
              );
@@ -220,7 +292,7 @@ namespace XrEngine.OpenGL
                 }
 
                 var status = src.GL.CheckFramebufferStatus(FramebufferTarget.ReadFramebuffer);
-                
+
                 if (status != GLEnum.FramebufferComplete)
                     throw new Exception($"Framebuffer incomplete at mip {mipLevel}: {status}");
 

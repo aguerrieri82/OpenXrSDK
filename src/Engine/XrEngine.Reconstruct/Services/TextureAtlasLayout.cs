@@ -2,6 +2,8 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using SkiaSharp;
+
 #endif
 
 
@@ -11,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using XrEngine.OpenGL;
+using XrMath;
 
 namespace XrEngine.Reconstruct
 {
@@ -235,9 +238,47 @@ namespace XrEngine.Reconstruct
 
             await EngineApp.RenderThread;
 
+            //EngineNativeLib.RdcStartFrameCapture();
+
             var glTex = texture.ToGlTexture();
 
-            GlImageProc.DrawGeometry(gl, geo, texArray, glTex, "[XrEngine.Reconstruct]multi_tex.frag");
+            GlImageProc.PrepareFrameBuffer(gl, glTex);
+
+            string[] features = [];
+            
+            var hasExposure = exposures.Length > 0;
+
+            if (hasExposure)
+                features = [$"IMG_COUNT {exposures.Length}", "USE_EXPOSURE"];
+
+            var prog = GlImageProc.LoadProgram(gl, "[XrEngine.Reconstruct]multi_tex.frag", "image_proc.vert", features, []);
+
+            prog.LoadTexture(texArray, 0);
+
+            if (hasExposure)
+                prog.SetUniform("uExposure", exposures!);
+
+            var mesh = new TriangleMesh(geo);
+
+            using var vs = new GlVertexSourceHandler<VertexData, uint>(gl, mesh);
+
+            vs.Update();
+
+            GlState.Current!.SetView(new Rect2I
+            {
+                Width = glTex.Width,
+                Height = glTex.Height
+            });
+
+            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+            GlState.Current.SetWriteDepth(false);
+            GlState.Current.SetUseDepth(false);
+            GlState.Current.SetWriteColor(true);
+
+            vs.Bind();
+            vs.Draw();
+
+            //EngineNativeLib.RdcEndFrameCapture(false);
 
             XrEngine.Log.Info(this, "Final atlas {0}x{1}", layout.AtlasWidth, layout.AtlasHeight);
 

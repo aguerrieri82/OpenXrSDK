@@ -13,6 +13,7 @@ using XrEngine.Devices;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
+using glTFLoader.Schema;
 
 namespace XrEngine.Reconstruct
 {
@@ -149,6 +150,8 @@ namespace XrEngine.Reconstruct
             BuildAtlas = true;
             ComputeIndices = true;
             UseDepthOcclusion = true;
+            SolveExposure = true;
+            Optimize = true;
 
             MeshParams = new();
             GeneratorParams = new();
@@ -279,7 +282,6 @@ namespace XrEngine.Reconstruct
 
             Debug.Assert(_recMesh != null);
 
-
             _depthTex = GlTempAllocator.StaticTexture(
                 gl,
                 (uint)DepthMapSize,
@@ -287,7 +289,7 @@ namespace XrEngine.Reconstruct
                 1,
                 TextureFormat.Depth16);
 
-            if (_depthTex.MinFilter != TextureMinFilter.Nearest)
+            if (_depthTex.MinFilter != TextureMinFilter.Nearest || _depthTex.MagFilter != TextureMagFilter.Nearest)
             {
                 _depthTex.MinFilter = TextureMinFilter.Nearest;
                 _depthTex.MagFilter = TextureMagFilter.Nearest;
@@ -314,6 +316,7 @@ namespace XrEngine.Reconstruct
                 GlState.Current.SetUseDepth(true);
                 GlState.Current.SetWriteColor(false);
                 GlState.Current.SetClearColor(Color.Transparent);
+                GlState.Current.SetAlphaMode(AlphaMode.Opaque);
 
                 gl.Clear(ClearBufferMask.DepthBufferBit);
 
@@ -374,6 +377,7 @@ namespace XrEngine.Reconstruct
                 VertexComponent.UV1 |
                 VertexComponent.Tangent;
 
+
             var colorData = new List<IMemoryBuffer<byte>>();
 
             var colorSize = new Size2I();
@@ -388,7 +392,6 @@ namespace XrEngine.Reconstruct
                 
                 colorSize.Width = (uint)meta.ColorWidth;
                 colorSize.Height = (uint)meta.ColorHeight;
-
 
                 if (!skipRec)
                 {
@@ -416,24 +419,36 @@ namespace XrEngine.Reconstruct
                 File.WriteAllText(cacheName, objWriter.Text());
             }
 
+            Log.Warn(this, "Mesh extracted {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+
             if (UseDepthOcclusion)
             {
                 foreach (var frame in colorFrames)
                 {
                     Log.Info(this, "Generate deph {0}", frame.ImageIndex);
 
+                    if (frame.ImageIndex == 0)
+                        EngineNativeLib.RdcStartFrameCapture();
+
                     frame.DepthMap = await GenerateDepthAsync(frame.ViewProj);
                     frame.DepthWidth = DepthMapSize;
                     frame.DepthHeight = DepthMapSize;
+
+                    if (frame.ImageIndex == 0)
+                        EngineNativeLib.RdcEndFrameCapture(false);
                 }
             }
 
             float[] exposures = [];
 
+            Log.Info(this, "Color projection");
+
+            proj.Project(_recMesh.Geometry, colorFrames);
+
             if (SolveExposure)
             {
                 Log.Info(this, "Solving exposure");
-
+      
                 var solver = new FrameExposureSolver();
 
                 solver.SetParams(ExposeParams);
@@ -443,17 +458,14 @@ namespace XrEngine.Reconstruct
                     colorData.ToArray(),
                     (int)colorSize.Width,
                     (int)colorSize.Height);
-
             }
-
-            Log.Info(this, "Color projection");
-
-            proj.Project(_recMesh.Geometry, colorFrames);
 
             _recMesh.Materials.Clear();
 
             if (BuildAtlas)
             {
+                Log.Info(this, "Bulding atlas");
+
                 var builder = new TextureAtlasLayoutBuilder
                 {
                     TextureWidth = 1280,
@@ -479,17 +491,26 @@ namespace XrEngine.Reconstruct
                 });
             }
 
-            Log.Info(this, "Compute indexs");
-
             if (ComputeIndices)
+            {
+                Log.Info(this, "Compute Indices");
                 _recMesh.Geometry.ComputeIndices();
+            }
             else
                 _recMesh.Geometry.NotifyChanged(ChangeType.Geometry);
 
-            if (_recMesh.Parent == null)
-                _host.Scene!.AddChild(_recMesh);
+            if (Optimize)
+            {
+                Log.Info(this, "Optmize");
+                MeshOptimizer.OptimizeVertexCache(_recMesh.Geometry!);
+                MeshOptimizer.OptimizeOverdraw(_recMesh.Geometry!, 1.05f);
+                MeshOptimizer.OptimizeVertexFetch(_recMesh.Geometry!);
+            }
 
             Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+
+            if (_recMesh.Parent == null)
+                _host.Scene!.AddChild(_recMesh);
 
             _recMesh.NotifyChanged(ChangeType.Geometry | ChangeType.Material);
         }
@@ -825,6 +846,8 @@ namespace XrEngine.Reconstruct
 
         public bool SplatMode { get; set; }
 
+        public bool Optimize { get; set; }
+
         public bool Clip { get; set; }
 
         public bool UseMeshCache { get; set; }
@@ -842,5 +865,6 @@ namespace XrEngine.Reconstruct
         public FrameExposureSolverParams ExposeParams { get; set; }
 
         public MeshTextureProjectionParams ProjParams { get; set; }
+
     }
 }

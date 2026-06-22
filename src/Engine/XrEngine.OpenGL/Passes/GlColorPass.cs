@@ -116,7 +116,7 @@ namespace XrEngine.OpenGL
 
         public override void RenderLayer(GlLayerV2 layer)
         {
-            Debug.Assert(Thread.CurrentThread == OpenGLRender.Current!.Dispatcher.Thread);
+            GlUtils.EnsureRenderThread();
 
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;

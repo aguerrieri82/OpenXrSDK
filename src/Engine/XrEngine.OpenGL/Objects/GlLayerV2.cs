@@ -75,6 +75,8 @@ namespace XrEngine.OpenGL
 
         public void Rebuild()
         {
+            GlUtils.EnsureRenderThread();
+
             Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _sceneLayer?.Name ?? "Main");
 
             _content.Contents.Clear();
@@ -103,7 +105,7 @@ namespace XrEngine.OpenGL
 
         protected void RemoveContent(Object3D obj3d, bool incremental)
         {
-            Debug.Assert(Thread.CurrentThread == OpenGLRender.Current!.Dispatcher.Thread);
+            GlUtils.EnsureRenderThread();
 
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
@@ -165,7 +167,7 @@ namespace XrEngine.OpenGL
 
         protected void AddContent(Object3D obj3d, bool incremental)
         {
-            Debug.Assert(Thread.CurrentThread == OpenGLRender.Current!.Dispatcher.Thread);
+            GlUtils.EnsureRenderThread();
 
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;

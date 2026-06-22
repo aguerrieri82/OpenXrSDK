@@ -2,8 +2,9 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-#endif
 
+#endif
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -287,6 +288,12 @@ namespace XrEngine.OpenGL
                    format == InternalFormat.DepthComponent32fNV ||
                    format == InternalFormat.DepthComponent32Oes ||
                    format == InternalFormat.DepthComponent32Sgix;
+        }
+
+
+        public static void EnsureRenderThread()
+        {
+            Debug.Assert(OpenGLRender.Current != null && Thread.CurrentThread == OpenGLRender.Current.Dispatcher.Thread);
         }
     }
 }
