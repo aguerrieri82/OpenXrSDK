@@ -289,12 +289,26 @@ static RENDERDOC_API_1_6_0* GetRenderDoc()
         return nullptr;
 
 #else
-    void* mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD);
+    
+    void* mod = nullptr;
 
-    if (!mod)
+    auto getApi = (pRENDERDOC_GetAPI)dlsym(RTLD_DEFAULT, "RENDERDOC_GetAPI");
+
+    if (!getApi)
+    {
+        mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD);
+
+        if (!mod)
+            mod = dlopen("libVkLayer_GLES_RenderDoc.so", RTLD_NOW | RTLD_NOLOAD);
+
+        if (!mod)
+            return nullptr;
+
+        getApi = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+    }
+
+    if (!getApi)
         return nullptr;
-
-    auto getApi = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
 
 #endif
 

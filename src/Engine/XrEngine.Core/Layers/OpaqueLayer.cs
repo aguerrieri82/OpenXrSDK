@@ -18,10 +18,10 @@
 
         protected override void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
-            if (change.IsAny(ChangeType.Material))
-                OnChanged(sender, Layer3DChangeType.Updated);
-
             base.NotifyChangedWork(sender, change);
+
+            if (change.IsAny(ChangeType.Material) && Contains(sender))
+                OnChanged(sender, Layer3DChangeType.Updated);
         }
 
         protected override bool AffectChange(ObjectChange change)

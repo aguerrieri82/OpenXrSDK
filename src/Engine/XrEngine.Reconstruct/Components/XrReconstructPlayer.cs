@@ -167,7 +167,6 @@ namespace XrEngine.Reconstruct
                 }
             }
 
-
             var screen = _reader.ReadScreen(screenFrame);
 
             _leftFrame.LoadData(new TextureData
@@ -178,7 +177,7 @@ namespace XrEngine.Reconstruct
                 Format = TextureFormat.Rgb24
             });
 
-            var proj = MathUtils.CreateMatrix(metaColor.LeftDepth!.Proj!);
+            var proj = MathUtils.CreateMatrix(metaColor!.LeftDepth!.Proj!);
 
             var eyePose = new Pose3()
             {

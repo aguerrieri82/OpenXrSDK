@@ -31,14 +31,14 @@ namespace XrSamples
             return new GameSettings
             { 
                 SampleName = "Depth Snapeshot",
-                Msaa = 1,
+                Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false,
+                IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = true
+                TextureCompression = false
             };
         }
 

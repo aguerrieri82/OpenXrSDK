@@ -212,10 +212,10 @@ namespace XrEngine.Reconstruct
 
         public Texture2D GenerateAtlasTexture(IReadOnlyList<Geometry3D> geometries, Texture2D texArray)
         {
-            EngineNativeLib.RdcStartFrameCapture();
 
             var layout = Build(geometries);
             var geo = CreateAtlasGeometry(layout);
+
             RemapGeometryUvs(geometries, layout);
 
             var gl = OpenGLRender.Current!.GL;
@@ -237,9 +237,7 @@ namespace XrEngine.Reconstruct
 
             GlImageProc.DrawGeometry(gl, geo, texArray, glTex, "[XrEngine.Reconstruct]multi_tex.frag");
 
-            gl.Finish();
-
-            EngineNativeLib.RdcEndFrameCapture(true);
+            XrEngine.Log.Info(this, "Final atlas {0}x{1}", layout.AtlasWidth, layout.AtlasHeight);
 
             return texture;
         }

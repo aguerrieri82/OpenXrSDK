@@ -18,17 +18,17 @@ namespace XrEngine.OpenGL
         static GlTextureFrameBuffer? _frameBuffer;
         static GlTextureFrameBuffer? _texReadFb;
 
-        static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource)
+        public static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource)
         {
             return LoadProgram(gl, fragmentSource, vertexSource, [], []);
         }
 
-        static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string[] features, string[] extensions)
+        public static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string[] features, string[] extensions)
         {
             return LoadProgram(gl, fragmentSource, "fullscreen.vert", features, extensions); 
         }
 
-        static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource, string[] features, string[] extensions)
+        public static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource, string[] features, string[] extensions)
         {
             var key = vertexSource + "_" + fragmentSource;
 
@@ -50,18 +50,20 @@ namespace XrEngine.OpenGL
             return program;
         }
 
-        static void PrepareFrameBuffer(GL gl, GlTexture? color = null, IGlRenderAttachment? depth = null)
+        public static GlTextureFrameBuffer PrepareFrameBuffer(GL gl, GlTexture? color = null, IGlRenderAttachment? depth = null)
         {
             _frameBuffer ??= GlTempAllocator.FrameBuffer(gl);
             _frameBuffer.Configure(color, depth, 1);
             _frameBuffer.Bind();
+            return _frameBuffer;
         }
 
-        static void PrepareFrameBuffer(GL gl, GlTexture? color, uint colorIndex)
+        public static GlTextureFrameBuffer PrepareFrameBuffer(GL gl, GlTexture? color, uint colorIndex)
         {
             _frameBuffer ??= GlTempAllocator.FrameBuffer(gl);
             _frameBuffer.Configure(color, colorIndex, null, 0, 1);
             _frameBuffer.Bind();
+            return _frameBuffer;
         }
 
         public static void DrawVirtual(GL gl, uint vertices)
@@ -76,6 +78,8 @@ namespace XrEngine.OpenGL
 
         public static void DrawGeometry(GL gl, Geometry3D geo, Texture2D srcImge, GlTexture dstImage, string fragName)
         {
+            EngineNativeLib.RdcStartFrameCapture();
+
             PrepareFrameBuffer(gl, dstImage);
 
             var prog = LoadProgram(gl, fragName, "image_proc.vert");
@@ -95,9 +99,14 @@ namespace XrEngine.OpenGL
             });
 
             GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+            GlState.Current.SetWriteDepth(false);
+            GlState.Current.SetUseDepth(false);
+            GlState.Current.SetWriteColor(true);
 
             vs.Bind();
             vs.Draw();
+
+            EngineNativeLib.RdcEndFrameCapture(false);
         }
 
         public static void DrawQuad(GL gl)

@@ -93,7 +93,11 @@ namespace XrEngine.OpenGL
 
             Bind();
 
+            _vBuf.Bind();
+
             Configure();
+
+            _vBuf.Unbind();
 
             Unbind();
         }
@@ -166,7 +170,10 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
+                Unbind();
+
                 _gl.DeleteVertexArray(_handle);
+                
                 Log.Debug(this, "VA {0} deleted", _handle);
             }
 

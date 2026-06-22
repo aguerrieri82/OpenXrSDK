@@ -166,6 +166,16 @@ namespace XrEngine.OpenGL
 
             foreach (var realMaterial in vrtSrc.Materials.OfType<ShaderMaterial>())
             {
+
+#warning IMPROVE THIS!! 
+
+                if (Type == GlLayerType.Color && realMaterial.Alpha != AlphaMode.Opaque)
+                    continue;
+
+                if (Type == GlLayerType.Blend && (realMaterial.Alpha & AlphaMode.Blend) != 0)
+                    continue;
+//
+
                 var material = ReplaceMaterial(realMaterial);
 
                 if (material.Shader == null)

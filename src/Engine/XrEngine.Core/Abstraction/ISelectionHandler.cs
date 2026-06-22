@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace XrEngine.Abstraction
+namespace XrEngine
 {
     public interface ISelectionHandler
     {

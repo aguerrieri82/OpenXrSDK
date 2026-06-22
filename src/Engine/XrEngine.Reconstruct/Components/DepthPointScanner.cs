@@ -8,7 +8,7 @@ using XrMath;
 namespace XrSamples
 {
     [Obsolete]
-    public class DepthScanner : Behavior<Object3D>
+    public class DepthPointScanner : Behavior<Object3D>
     {
         readonly List<PointData> _points = [];
         double _lastScanTime;
@@ -26,7 +26,7 @@ namespace XrSamples
             public Matrix4x4 Proj;
         }
 
-        public DepthScanner()
+        public DepthPointScanner()
         {
             _depthCamera = new PerspectiveCamera();
             Color = "#ff0000";

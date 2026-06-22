@@ -1,13 +1,19 @@
-﻿using Common.Interop;
-using OpenXr.Framework;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+
+using Silk.NET.OpenGL;
+#endif
+
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
-using XrEngine.Abstraction;
 using XrEngine.Devices;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
+using Common.Interop;
+using OpenXr.Framework;
 
 namespace XrEngine.Reconstruct
 {
@@ -48,10 +54,10 @@ namespace XrEngine.Reconstruct
         [Range(-1, 1, 0.01f)]
         public float Exposure { get; set; }
 
-        public DepthSnapeshot.DepthFrameMeta? Meta { get;  set; }
+        public DepthCapture.DepthFrameMeta? Meta { get;  set; }
     }
 
-    public class DepthSnapeshot : Behavior<Group3D>
+    public class DepthCapture : Behavior<Group3D>
     {
         public class DepthFrame
         {
@@ -116,12 +122,14 @@ namespace XrEngine.Reconstruct
         string? _lastPath;
         TriangleMesh? _recMesh;
         Texture2D? _colorArrayTex;
+        GlTexture? _depthTex;
+        Texture2D? _atlasTex;
         readonly DepthSnapeshotMode _mode;
         readonly string _sessionPath;
         readonly List<DepthFrame> _frames = [];
 
 
-        public DepthSnapeshot(DepthSnapeshotMode mode)
+        public DepthCapture(DepthSnapeshotMode mode)
         {
             if (mode == DepthSnapeshotMode.Record)
             {
@@ -135,14 +143,18 @@ namespace XrEngine.Reconstruct
             _mode = mode;
 
             GridSize = 300;
+            DepthMapSize = 300;
+            UseMeshCache = true;
+            BuildAtlas = true;
+            UseDepthOcclusion = true;
 
             MeshParams = new();
             GeneratorParams = new();
-            SolverParams = new();
+            ExposeParams = new();
+            ProjParams = new();
 
             _generator = new DepthGeometryGenerator(GridSize, GridSize);
         }
-
 
         protected override void Start(RenderContext ctx)
         {
@@ -260,6 +272,60 @@ namespace XrEngine.Reconstruct
             };
         }
 
+        IMemoryBuffer<byte> GenerateDepth(Matrix4x4 cameraViewProj)
+        {
+            var gl = OpenGLRender.Current?.GL;
+            if (gl == null)
+                throw new InvalidOperationException();
+
+            _depthTex = GlTempAllocator.StaticTexture(gl, (uint)DepthMapSize, (uint)DepthMapSize, 1, TextureFormat.Depth16);
+
+            if (_depthTex.MinFilter != TextureMinFilter.Nearest)
+            {
+                _depthTex.MinFilter = TextureMinFilter.Nearest;
+                _depthTex.MagFilter = TextureMagFilter.Nearest;
+                _depthTex.Update();
+            }
+
+            Debug.Assert(_recMesh != null);
+
+            GlState.Current!.SetView(new Rect2I
+            {
+                Width = _depthTex.Width,
+                Height = _depthTex.Height
+            });
+
+            var fb = GlImageProc.PrepareFrameBuffer(gl, null, (IGlRenderAttachment)_depthTex);
+
+            var prog = GlImageProc.LoadProgram(gl, "empty.frag", "basic.vert");
+            prog.Use();
+            prog.SetUniform("uViewProj", cameraViewProj);
+            prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
+
+            GlState.Current.SetWriteDepth(true);
+            GlState.Current.SetUseDepth(true);
+            GlState.Current.SetWriteColor(false);
+            GlState.Current.SetClearColor(Color.Transparent);
+
+            gl.Clear(ClearBufferMask.DepthBufferBit);
+
+            var vertexHandler = _recMesh.Geometry!.GetGlResource(a => GlVertexSourceHandle.Create(gl, _recMesh));
+
+             if (vertexHandler.NeedUpdate)
+                vertexHandler.Update();
+
+            vertexHandler.Bind();
+            vertexHandler.Draw();
+
+            fb.Unbind();
+
+            var data = GlImageProc.Read(_depthTex, TextureFormat.GrayInt16);
+
+            Debug.Assert(data != null && data.Count == 1);
+
+            return data[0].Data!;
+        }
+
         [Action]
         public void GenerateMesh()
         {
@@ -267,6 +333,7 @@ namespace XrEngine.Reconstruct
             rec.SetParams(MeshParams);
 
             var proj = new MeshTextureProjection();
+            proj.SetParams(ProjParams);
 
             var colorFrames = new List<ColorProjectionFrame>();
 
@@ -287,20 +354,11 @@ namespace XrEngine.Reconstruct
                 _recMesh ??= new TriangleMesh(new Geometry3D());
             }
 
-            if (_recMesh.Parent == null)
-            {
-                _recMesh.Geometry!.ActiveComponents = VertexComponent.Normal
-                        | VertexComponent.Position | 
-                          VertexComponent.UV0 | VertexComponent.UV1 | 
-                          VertexComponent.Tangent;
+            _recMesh.Geometry!.ActiveComponents = VertexComponent.Normal
+                | VertexComponent.Position |
+                  VertexComponent.UV0 | VertexComponent.UV1 |
+                  VertexComponent.Tangent;
 
-                _recMesh.Materials.Add(new MultiTextureMaterial()
-                {
-                    Texture = _colorArrayTex
-                });
-
-                _host!.Scene!.AddChild(_recMesh);
-            }
 
             foreach (var item in _host!.Children.OfType<TriangleMesh>())
             {
@@ -321,13 +379,26 @@ namespace XrEngine.Reconstruct
 
             if (!skipRec)
             {
-                Log.Info(this, "Extarcting mesh");
+                Log.Info(this, "Extracting mesh");
 
                 rec.ExtractMesh(_recMesh.Geometry!);
 
                 var objWriter = new ObjWriter();
                 objWriter.Add(_recMesh);
                 File.WriteAllText(cacheName, objWriter.Text());
+            }
+
+            if (UseDepthOcclusion)
+            {
+                foreach (var frame in colorFrames)
+                {
+                    Log.Info(this, "Generate deph {0}", frame.ImageIndex);
+
+                    frame.DepthMap = GenerateDepth(frame.ViewProj);
+                    frame.DepthWidth = DepthMapSize;
+                    frame.DepthHeight = DepthMapSize;
+
+                }
             }
 
             Log.Info(this, "Color projection");
@@ -344,15 +415,29 @@ namespace XrEngine.Reconstruct
                 BytesPerPixel = 4
             };
 
-            var tex = builder.GenerateAtlasTexture([_recMesh.Geometry!], _colorArrayTex);
-
             _recMesh.Materials.Clear();
-            _recMesh.Materials.Add(new TextureMaterial(tex));
 
+            if (BuildAtlas)
+            {
+                _atlasTex?.Dispose();
+                _atlasTex = builder.GenerateAtlasTexture([_recMesh.Geometry!], _colorArrayTex);
+
+                _recMesh.Materials.Add(new TextureMaterial(_atlasTex));
+            }
+            else
+            {
+                _recMesh.Materials.Add(new MultiTextureMaterial()
+                {
+                    Texture = _colorArrayTex
+                });
+            }
 
             Log.Info(this, "Compute indexs");
 
             _recMesh.Geometry!.ComputeIndices();
+
+            if (_recMesh.Parent == null)
+                _host!.Scene!.AddChild(_recMesh);
 
             Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry!.Vertices.Length, _recMesh.Geometry.Indices.Length);
 
@@ -557,7 +642,7 @@ namespace XrEngine.Reconstruct
 
                 var solver = new FrameExposureSolver();
 
-                solver.SetParams(SolverParams);
+                solver.SetParams(ExposeParams);
                 solver.Compute(_host!.Children.OfType<TriangleMesh>().ToArray(), texArrayData.Select(a => a.Data!).ToArray());
             }
 
@@ -703,9 +788,9 @@ namespace XrEngine.Reconstruct
             _deleteBtn = input.Right!.Button!.BClick!;
         }
 
-
-
         public string SessionPath => _sessionPath;
+
+        public int DepthMapSize { get; set; }
 
         public int GridSize { get; set; }
 
@@ -717,10 +802,16 @@ namespace XrEngine.Reconstruct
 
         public bool UseMeshCache { get; set; }
 
+        public bool UseDepthOcclusion { get; set; }
+
+        public bool BuildAtlas { get; set; }
+
         public VoxelMeshReconstructorParams MeshParams { get;  set; }
 
         public DepthGeometryGeneratorParams GeneratorParams { get; set; }
 
-        public FrameExposureSolverParams SolverParams { get; set; }
+        public FrameExposureSolverParams ExposeParams { get; set; }
+
+        public MeshTextureProjectionParams ProjParams { get; set; }
     }
 }

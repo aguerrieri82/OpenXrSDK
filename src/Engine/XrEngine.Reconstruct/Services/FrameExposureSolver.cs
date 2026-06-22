@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using XrMath;
-using static XrEngine.Reconstruct.DepthSnapeshot;
+using static XrEngine.Reconstruct.DepthCapture;
 
 namespace XrEngine.Reconstruct
 {
@@ -434,8 +434,6 @@ namespace XrEngine.Reconstruct
                 ndcX * 0.5f + 0.5f,
                 ndcY * 0.5f + 0.5f);
 
-            if (FlipProjectedY)
-                uv.Y = 1.0f - uv.Y;
 
             return true;
         }

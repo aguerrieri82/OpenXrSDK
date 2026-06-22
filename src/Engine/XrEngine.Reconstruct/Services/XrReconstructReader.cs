@@ -97,7 +97,6 @@ namespace XrEngine.Reconstruct
         private IVideoReader? _leftColorReader;
         private IVideoReader? _rightColorReader;
         private string? _basePath;
-        private static readonly bool _fixView = false;
         private IVideoReader? _scrColorReader;
         private RecordStats? _stats;
         private TriangleMesh? _sceneModel;

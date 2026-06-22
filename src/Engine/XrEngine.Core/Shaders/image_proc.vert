@@ -3,6 +3,8 @@ layout(location=2) in vec2 a_texcoord;
 layout(location=4) in vec4 a_tangent;
 
 out vec2 fUv;
+out vec2 fUv2;
+
 flat out vec4 fConst;
 
 void main()

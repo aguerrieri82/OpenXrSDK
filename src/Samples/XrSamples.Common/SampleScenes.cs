@@ -1324,10 +1324,11 @@ namespace XrSamples
 
             var mode = DepthSnapeshotMode.Read;
 
-            var snapeshot = group.AddComponent(new DepthSnapeshot(mode)
+            var snapeshot = group.AddComponent(new DepthCapture(mode)
             {
                 SplatMode = false,
-                GridSize = 200
+                GridSize = 320,
+                UseMeshCache = true
             });
 
             TriangleMesh player = null;
@@ -1336,7 +1337,6 @@ namespace XrSamples
             {
                 var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
                 snapeshot.Load(path);
-                snapeshot.GenerateMesh();
 
                 player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
                 {
@@ -1353,12 +1353,11 @@ namespace XrSamples
                 scene.AddChild(player);
             }
 
-
             return builder
                 .UseApp(app)
                 .UseEnvironmentDepth()
                 .UseDefaultHDR()
-                .UseTeleport(ControllerHand.Right, player, new FloorTeleportTarget())
+                .UseTeleport(ControllerHand.Right, player!, new FloorTeleportTarget())
                 .ConfigureSampleApp(false)
                 .ConfigureApp(a =>
                 {
@@ -1367,6 +1366,14 @@ namespace XrSamples
 
                     if (mode != DepthSnapeshotMode.Read)
                         return;
+
+                    Task.Run(async () =>
+                    {
+                        await EngineApp.RenderThread;
+
+                        snapeshot.GenerateMesh();
+                    });
+
 
                     group.AddBehavior((_, ctx) =>
                     {
@@ -1479,7 +1486,7 @@ namespace XrSamples
 
 
             var points = new PointMesh();
-            var depth = points.AddComponent(new DepthScanner
+            var depth = points.AddComponent(new DepthPointScanner
             {
                 SavePath = Path.Join(XrPlatform.Current!.PersistentPath, "Scanner"),
             });
@@ -1748,7 +1755,7 @@ namespace XrSamples
 
             var group = scene.AddChild(new Group3D());
 
-            var snap = group.AddComponent(new DepthSnapeshot(DepthSnapeshotMode.Read)
+            var snap = group.AddComponent(new DepthCapture(DepthSnapeshotMode.Read)
             {
                 SplatMode = false,
                 Clip = false,
@@ -1756,7 +1763,7 @@ namespace XrSamples
             });
 
             //snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
-            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_094000_765");
+            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
 
             return builder
                 .UseApp(app)
@@ -2333,8 +2340,6 @@ namespace XrSamples
                 .UseSceneMesh(true, false)
                 .ConfigureSampleApp();
         }
-
-
 
         [Sample("Midi")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)

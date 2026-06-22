@@ -329,6 +329,8 @@ namespace XrEngine.Reconstruct
 
             var json = JsonSerializer.Serialize(_stats, JSON_OPT);
 
+            Debug.Assert(_outPath != null);
+
             File.WriteAllText(Path.Combine(_outPath, "stats.json"), json);
         }
 

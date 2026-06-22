@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 
 using Common.Interop;
 using XrMath;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine.OpenGL
 {
@@ -123,6 +124,13 @@ namespace XrEngine.OpenGL
                     FramebufferAttachment.DepthAttachment;
                 BindAttachment(Depth, attachment, false);
             }
+            else
+                _gl.FramebufferTexture2D(
+                    FramebufferTarget.Framebuffer,
+                    FramebufferAttachment.DepthStencilAttachment,
+                    TextureTarget.Texture2D,
+                    0,
+                    0);
 
             Check();
 

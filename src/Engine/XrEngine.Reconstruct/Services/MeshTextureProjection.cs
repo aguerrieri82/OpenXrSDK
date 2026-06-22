@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Interop;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -6,24 +7,78 @@ using System.Runtime.InteropServices;
 
 namespace XrEngine.Reconstruct
 {
-    public readonly struct ColorProjectionFrame
+    public class ColorProjectionFrame
     {
-        public ColorProjectionFrame(int imageIndex, Vector3 cameraPosition, Matrix4x4 viewProj)
+        public ColorProjectionFrame(
+            int imageIndex,
+            Vector3 cameraPosition,
+            Matrix4x4 viewProj,
+            IMemoryBuffer<byte>? depthMap = null,
+            int depthWidth = 0,
+            int depthHeight = 0)
         {
             ImageIndex = imageIndex;
             CameraPosition = cameraPosition;
             ViewProj = viewProj;
+            DepthMap = depthMap;
+            DepthWidth = depthWidth;
+            DepthHeight = depthHeight;
         }
 
-        public readonly int ImageIndex;
+        public int ImageIndex;
 
-        public readonly Vector3 CameraPosition;
+        public Vector3 CameraPosition;
 
-        public readonly Matrix4x4 ViewProj;
+        public Matrix4x4 ViewProj;
+
+        public IMemoryBuffer<byte>? DepthMap;
+
+        public int DepthWidth;
+
+        public int DepthHeight;
     }
 
-    public sealed class MeshTextureProjection
+    public sealed class MeshTextureProjectionParams
     {
+        public MeshTextureProjectionParams()
+        {
+            UvBorder = 0.01f;
+            PreferCameraDistance = true;
+            DepthBias = 200;
+            MinVisibleSamples = 1; //Max 3
+        }
+
+        public float UvBorder { get; set; }
+
+        public bool PreferCameraDistance { get; set; }
+
+        public int DepthBias { get; set; }
+
+        public int MinVisibleSamples { get; set; }
+    }
+
+    public sealed unsafe class MeshTextureProjection
+    {
+        private const float OneThird = 0.33333334f;
+
+        private static readonly Vector4 ProjectionScale = new(0.5f, -0.5f, 0.5f, 0.0f);
+
+        private static readonly Vector4 ProjectionOffset = new(0.5f, 0.5f, 0.5f, 0.0f);
+
+        private MemoryLock<byte>[]? _depthLocks;
+
+        private float _uvBorder;
+
+        private float _uvMax;
+
+        private bool _preferCameraDistance;
+
+        private ushort _depthBias;
+
+        private int _minVisibleSamples;
+        private int _visibleDepth;
+        private int _hiddenDepth;
+
         #region Private Structs
 
         private struct Candidate
@@ -39,11 +94,24 @@ namespace XrEngine.Reconstruct
 
         public MeshTextureProjection()
         {
-            UvBorder = 0.01f;
-            PreferCameraDistance = true;
+            SetParams(new MeshTextureProjectionParams());
         }
 
-        public unsafe void Project(Geometry3D geometry, IReadOnlyList<ColorProjectionFrame> frames)
+        public MeshTextureProjection(MeshTextureProjectionParams parameters)
+        {
+            SetParams(parameters);
+        }
+
+        public void SetParams(MeshTextureProjectionParams parameters)
+        {
+            _uvBorder = parameters.UvBorder;
+            _uvMax = 1.0f - _uvBorder;
+            _preferCameraDistance = parameters.PreferCameraDistance;
+            _depthBias = (ushort)parameters.DepthBias;
+            _minVisibleSamples = Math.Clamp(parameters.MinVisibleSamples, 1, 4);
+        }
+
+        public void Project(Geometry3D geometry, IReadOnlyList<ColorProjectionFrame> frames)
         {
             var sourceVertices = geometry.Vertices;
 
@@ -70,96 +138,117 @@ namespace XrEngine.Reconstruct
                 frameSpan = copiedFrames;
             }
 
-            var maxTriangleCount = sourceIndices != null && sourceIndices.Length >= 3
-                ? sourceIndices.Length / 3
-                : sourceVertices.Length / 3;
+            _depthLocks = new MemoryLock<byte>[frameCount];
 
-            var targetVertices = new VertexData[maxTriangleCount * 3];
-            var targetIndices = new uint[maxTriangleCount * 3];
-
-            var vertexCount = 0;
-            var indexCount = 0;
-
-            var uvBorder = UvBorder;
-            var uvMax = 1.0f - uvBorder;
-            var preferCameraDistance = PreferCameraDistance;
-
-            fixed (ColorProjectionFrame* framePtr = frameSpan)
-            fixed (VertexData* sourceVertexPtr = sourceVertices)
-            fixed (VertexData* targetVertexPtr = targetVertices)
-            fixed (uint* targetIndexPtr = targetIndices)
+            try
             {
-                if (sourceIndices != null && sourceIndices.Length >= 3)
+                LockDepthMaps(frameSpan);
+
+                var maxTriangleCount = sourceIndices != null && sourceIndices.Length >= 3
+                    ? sourceIndices.Length / 3
+                    : sourceVertices.Length / 3;
+
+                var targetVertices = new VertexData[maxTriangleCount * 3];
+                var targetIndices = new uint[maxTriangleCount * 3];
+
+                var vertexCount = 0;
+                var indexCount = 0;
+
+                fixed (VertexData* sourceVertexPtr = sourceVertices)
+                fixed (VertexData* targetVertexPtr = targetVertices)
+                fixed (uint* targetIndexPtr = targetIndices)
                 {
-                    fixed (uint* sourceIndexPtr = sourceIndices)
+                    if (sourceIndices != null && sourceIndices.Length >= 3)
                     {
-                        for (var i = 0; i + 2 < sourceIndices.Length; i += 3)
+                        fixed (uint* sourceIndexPtr = sourceIndices)
+                        {
+                            for (var i = 0; i + 2 < sourceIndices.Length; i += 3)
+                            {
+                                EmitProjectedTriangle(
+                                    sourceVertexPtr[(int)sourceIndexPtr[i + 0]],
+                                    sourceVertexPtr[(int)sourceIndexPtr[i + 1]],
+                                    sourceVertexPtr[(int)sourceIndexPtr[i + 2]],
+                                    frameSpan,
+                                    targetVertexPtr,
+                                    targetIndexPtr,
+                                    ref vertexCount,
+                                    ref indexCount);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (var i = 0; i + 2 < sourceVertices.Length; i += 3)
                         {
                             EmitProjectedTriangle(
-                                sourceVertexPtr[(int)sourceIndexPtr[i + 0]],
-                                sourceVertexPtr[(int)sourceIndexPtr[i + 1]],
-                                sourceVertexPtr[(int)sourceIndexPtr[i + 2]],
-                                framePtr,
-                                frameCount,
+                                sourceVertexPtr[i + 0],
+                                sourceVertexPtr[i + 1],
+                                sourceVertexPtr[i + 2],
+                                frameSpan,
                                 targetVertexPtr,
                                 targetIndexPtr,
                                 ref vertexCount,
-                                ref indexCount,
-                                uvBorder,
-                                uvMax,
-                                preferCameraDistance);
+                                ref indexCount);
                         }
                     }
                 }
-                else
-                {
-                    for (var i = 0; i + 2 < sourceVertices.Length; i += 3)
-                    {
-                        EmitProjectedTriangle(
-                            sourceVertexPtr[i + 0],
-                            sourceVertexPtr[i + 1],
-                            sourceVertexPtr[i + 2],
-                            framePtr,
-                            frameCount,
-                            targetVertexPtr,
-                            targetIndexPtr,
-                            ref vertexCount,
-                            ref indexCount,
-                            uvBorder,
-                            uvMax,
-                            preferCameraDistance);
-                    }
-                }
+
+                if (vertexCount != targetVertices.Length)
+                    Array.Resize(ref targetVertices, vertexCount);
+
+                if (indexCount != targetIndices.Length)
+                    Array.Resize(ref targetIndices, indexCount);
+
+                geometry.Vertices = targetVertices;
+                geometry.Indices = targetIndices;
+
+                geometry.ActiveComponents |=
+                    VertexComponent.UV0 |
+                    VertexComponent.UV1 |
+                    VertexComponent.Tangent;
             }
-
-            if (vertexCount != targetVertices.Length)
-                Array.Resize(ref targetVertices, vertexCount);
-
-            if (indexCount != targetIndices.Length)
-                Array.Resize(ref targetIndices, indexCount);
-
-            geometry.Vertices = targetVertices;
-            geometry.Indices = targetIndices;
-
-            geometry.ActiveComponents |=
-                VertexComponent.UV0 |
-                VertexComponent.UV1 |
-                VertexComponent.Tangent;
+            finally
+            {
+                UnlockDepthMaps();
+            }
         }
 
-        private static unsafe void EmitProjectedTriangle(
+        private void LockDepthMaps(ReadOnlySpan<ColorProjectionFrame> frames)
+        {
+            for (var i = 0; i < frames.Length; i++)
+            {
+                ref readonly var frame = ref frames[i];
+
+                if (frame.DepthMap == null || frame.DepthWidth <= 0 || frame.DepthHeight <= 0)
+                    continue;
+
+                _depthLocks![i] = frame.DepthMap.MemoryLock();
+            }
+        }
+
+        private void UnlockDepthMaps()
+        {
+            if (_depthLocks == null)
+                return;
+
+            for (var i = 0; i < _depthLocks.Length; i++)
+            {
+                if (_depthLocks[i].Data != null)
+                    _depthLocks[i].Dispose();
+            }
+
+            _depthLocks = null;
+        }
+
+        private void EmitProjectedTriangle(
             VertexData a,
             VertexData b,
             VertexData c,
-            ColorProjectionFrame* frames,
-            int frameCount,
+            ReadOnlySpan<ColorProjectionFrame> frames,
             VertexData* vertices,
             uint* indices,
             ref int vertexCount,
-            ref int indexCount,
-            float uvBorder,
-            float uvMax,
-            bool preferCameraDistance)
+            ref int indexCount)
         {
             var best0 = new Candidate
             {
@@ -173,33 +262,73 @@ namespace XrEngine.Reconstruct
                 Score = float.MaxValue
             };
 
-            var center = (a.Pos + b.Pos + c.Pos) * 0.33333334f;
+            var center = (a.Pos + b.Pos + c.Pos) * OneThird;
 
-            for (var i = 0; i < frameCount; i++)
+            for (var i = 0; i < frames.Length; i++)
             {
                 ref readonly var frame = ref frames[i];
 
-                if (!TryProject(a.Pos, in frame, uvBorder, uvMax, out var uvA) ||
-                    !TryProject(b.Pos, in frame, uvBorder, uvMax, out var uvB) ||
-                    !TryProject(c.Pos, in frame, uvBorder, uvMax, out var uvC))
+                if (!TryProject(a.Pos, in frame, out var uvA, out var depthA) ||
+                    !TryProject(b.Pos, in frame, out var uvB, out var depthB) ||
+                    !TryProject(c.Pos, in frame, out var uvC, out var depthC))
+                {
                     continue;
+                }
+
+                var frameDepth = (ushort*)_depthLocks![i].Data;
+
+                if (frameDepth != null)
+                {
+                    if (!TryProject(center, in frame, out var uvCenter, out var depthCenter))
+                        continue;
+
+                    var visibleSamples = 0;
+                    var remainingSamples = 4;
+
+                    if (IsVisibleInDepthMap(uvCenter, depthCenter, frameDepth, frame.DepthWidth, frame.DepthHeight))
+                    {
+                        visibleSamples++;
+                        _visibleDepth++;
+                    }
+                    else
+                        _hiddenDepth++;
+
+                    remainingSamples--;
+
+                    if (visibleSamples + remainingSamples < _minVisibleSamples)
+                        continue;
+
+                    if (IsVisibleInDepthMap(uvA, depthA, frameDepth, frame.DepthWidth, frame.DepthHeight))
+                        visibleSamples++;
+
+                    remainingSamples--;
+
+                    if (visibleSamples + remainingSamples < _minVisibleSamples)
+                        continue;
+
+                    if (IsVisibleInDepthMap(uvB, depthB, frameDepth, frame.DepthWidth, frame.DepthHeight))
+                        visibleSamples++;
+
+                    remainingSamples--;
+
+                    if (visibleSamples + remainingSamples < _minVisibleSamples)
+                        continue;
+
+                    if (IsVisibleInDepthMap(uvC, depthC, frameDepth, frame.DepthWidth, frame.DepthHeight))
+                        visibleSamples++;
+
+                    if (visibleSamples < _minVisibleSamples)
+                        continue;
+                }
 
                 var score = 0.0f;
 
-                // Prefer closer capture camera, then slightly prefer projections near texture center.
-                if (preferCameraDistance)
-                {
-                    var dx = center.X - frame.CameraPosition.X;
-                    var dy = center.Y - frame.CameraPosition.Y;
-                    var dz = center.Z - frame.CameraPosition.Z;
+                if (_preferCameraDistance)
+                    score += Vector3.DistanceSquared(center, frame.CameraPosition);
 
-                    score += dx * dx + dy * dy + dz * dz;
-                }
+                var uvCenter2 = (uvA + uvB + uvC) * OneThird - new Vector2(0.5f);
 
-                var uvCenterX = (uvA.X + uvB.X + uvC.X) * 0.33333334f - 0.5f;
-                var uvCenterY = (uvA.Y + uvB.Y + uvC.Y) * 0.33333334f - 0.5f;
-
-                score += (uvCenterX * uvCenterX + uvCenterY * uvCenterY) * 0.05f;
+                score += Vector2.Dot(uvCenter2, uvCenter2) * 0.05f;
 
                 var candidate = new Candidate
                 {
@@ -243,6 +372,25 @@ namespace XrEngine.Reconstruct
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsVisibleInDepthMap(
+            Vector2 uv,
+            ushort depth,
+            ushort* depthData,
+            int width,
+            int height)
+        {
+            var x = (int)(uv.X * width);
+            var y = height - 1 - (int)(uv.Y * height);
+
+            if ((uint)x >= (uint)width || (uint)y >= (uint)height)
+                return false;
+
+            var mapDepth = depthData[(y * width) + x];
+
+            return depth <= mapDepth + _depthBias;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ApplyProjection(
             ref VertexData vertex,
             int image0,
@@ -261,38 +409,38 @@ namespace XrEngine.Reconstruct
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool TryProject(
+        private bool TryProject(
             Vector3 position,
             in ColorProjectionFrame frame,
-            float uvBorder,
-            float uvMax,
-            out Vector2 uv)
+            out Vector2 uv,
+            out ushort depth)
         {
-            var m = frame.ViewProj;
+            var clip = Vector4.Transform(new Vector4(position, 1.0f), frame.ViewProj);
 
-            var clipX = position.X * m.M11 + position.Y * m.M21 + position.Z * m.M31 + m.M41;
-            var clipY = position.X * m.M12 + position.Y * m.M22 + position.Z * m.M32 + m.M42;
-            var clipW = position.X * m.M14 + position.Y * m.M24 + position.Z * m.M34 + m.M44;
-
-            if (clipW <= 0.0f)
+            if (clip.W <= 0.0f)
             {
                 uv = default;
+                depth = 0;
                 return false;
             }
 
-            var invW = 1.0f / clipW;
+            var p = Vector4.Divide(clip, clip.W);
 
-            var x = clipX * invW * 0.5f + 0.5f;
-            var y = 0.5f - clipY * invW * 0.5f;
+            p = Vector4.Multiply(p, ProjectionScale) + ProjectionOffset;
 
-            uv = new Vector2(x, y);
+            if (p.X < _uvBorder || p.X > _uvMax ||
+                p.Y < _uvBorder || p.Y > _uvMax ||
+                p.Z < 0.0f || p.Z > 1.0f)
+            {
+                uv = default;
+                depth = 0;
+                return false;
+            }
 
-            return x >= uvBorder && x <= uvMax &&
-                   y >= uvBorder && y <= uvMax;
+            uv = new Vector2(p.X, p.Y);
+            depth = (ushort)(p.Z * 65535.0f + 0.5f);
+
+            return true;
         }
-
-        public float UvBorder { get; set; }
-
-        public bool PreferCameraDistance { get; set; }
     }
 }
