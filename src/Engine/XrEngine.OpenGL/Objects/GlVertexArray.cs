@@ -11,9 +11,9 @@ namespace XrEngine.OpenGL
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
-        protected readonly GlVertexLayout _layout;
+        protected GlVertexLayout _layout;
         protected readonly GlBuffer<TVertexType> _vBuf;
-        protected readonly GlBuffer<TIndexType>? _iBuf;
+        protected GlBuffer<TIndexType>? _iBuf;
         protected readonly DrawElementsType _drawType;
 
         public GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[]? index, GlVertexLayout layout)
@@ -87,6 +87,17 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void UpdateLayout(GlVertexLayout layout)
+        {
+            _layout = layout;
+
+            Bind();
+
+            Configure();
+
+            Unbind();
+        }
+
         protected unsafe void Configure()
         {
             foreach (var attr in _layout.Attributes!)
@@ -99,9 +110,46 @@ namespace XrEngine.OpenGL
         public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
             _vBuf.UpdateRange(vertices);
-            _iBuf?.UpdateRange(indices);
             _vBuf.ArrayLength = (uint)vertices.Length;
-            _iBuf?.ArrayLength = (uint)(indices?.Length ?? 0);
+
+            var hasIndices = indices != null && indices.Length > 0;
+
+            if (hasIndices)
+            {
+                if (_iBuf == null)
+                {
+                    _iBuf = new GlBuffer<TIndexType>(
+                        _gl,
+                        indices!,
+                        BufferTargetARB.ElementArrayBuffer);
+
+                    Bind();
+
+                    _iBuf.Bind();
+
+                    Unbind();
+
+                    _iBuf.Unbind();
+                }
+                else
+                    _iBuf.UpdateRange(indices!);
+
+                _iBuf.ArrayLength = (uint)indices!.Length;
+
+                return;
+            }
+
+            if (_iBuf == null)
+                return;
+
+            Bind();
+
+            GlState.Current!.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+
+            Unbind();
+
+            _iBuf.Dispose();
+            _iBuf = null;
         }
 
         public void Bind()

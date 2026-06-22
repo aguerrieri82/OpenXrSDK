@@ -16,6 +16,7 @@ layout(binding=1) uniform sampler2D uDepth;
 uniform bool uShowRejected;
 uniform float uAlpha;
 uniform float uDepthBias;
+uniform float uExposure;
 
 out vec4 outColor;
 
@@ -44,8 +45,16 @@ bool IsKilledByAccumDepth()
 void main()
 {
     if (fs_in.reason == 0)
-    {
-        outColor = texture(uTexture, fs_in.uv);
+    {  
+        vec4 c = texture(uTexture, fs_in.uv);
+
+        float y = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+        float y2 = y * exp(uExposure);
+
+        float s = y2 / max(y, 0.003);
+        s = clamp(s, 0.25, 4.0);
+
+        outColor = vec4(c.rgb * s, 1.0);
         outColor.a = uAlpha;
         return;
     }

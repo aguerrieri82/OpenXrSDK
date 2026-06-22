@@ -44,6 +44,8 @@ namespace XrEngine.Reconstruct
 
             BaseAlpha = 0.9f;
             DepthBias = 0.0f;
+
+            Exposure = 0;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
@@ -108,6 +110,7 @@ namespace XrEngine.Reconstruct
                 up.SetUniform("uMaxCaptureDistance", MaxCaptureDistance);
                 up.SetUniform("uAlpha", BaseAlpha);
                 up.SetUniform("uDepthBias", LogDepthBias(DepthBias));
+                up.SetUniform("uExposure", Exposure);
 
                 if (Texture != null)
                     up.LoadTexture(Texture, 0);
@@ -145,11 +148,16 @@ namespace XrEngine.Reconstruct
         [Range(0.1f, 20.0f, 0.1f)]
         public static float MaxCaptureDistance { get; set; }
 
-        public Texture2D? Texture { get; set; }
-
         public static float BaseAlpha { get; set; }
 
         [Range(0, 1f, 0.01f)]
         public static float DepthBias { get; set; }
-    } 
+
+
+        [Range(0, 1, 0.01f)]
+        public float Exposure { get; set; }
+
+        public Texture2D? Texture { get; set; }
+
+    }
 }

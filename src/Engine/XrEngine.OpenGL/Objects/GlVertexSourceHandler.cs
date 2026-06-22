@@ -3,6 +3,7 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 using SkiaSharp;
+using System.Diagnostics.CodeAnalysis;
 #endif
 
 
@@ -51,25 +52,44 @@ namespace XrEngine.OpenGL
         readonly IVertexSource<TVert, TInd> _source;
         readonly GL _gl;
         EngineObject? _sourceObject;
+        VertexComponent _lastComponents;
+
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
         {
-            var lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
-
-            if (!_layouts.TryGetValue(lKey, out var layout))
-            {
-                layout = GlVertexLayout.FromType<TVert>(source.ActiveComponents);
-                _layouts[lKey] = layout;
-            }
-
             _source = source;
-            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout);
+
+            UpdateLayout(out var layout);
+
+            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout!);
 
             _primitive = GlPrimitive(_source.Primitive);
 
             _gl = gl;
 
             Version = -1;
+        }
+
+
+        protected bool UpdateLayout(out GlVertexLayout? layout)
+        {
+            if (_lastComponents == _source.ActiveComponents)
+            {
+                layout = null;
+                return false;
+            }
+
+            var lKey = string.Concat(typeof(TVert).FullName, _source.ActiveComponents);
+
+            if (!_layouts.TryGetValue(lKey, out layout))
+            {
+                layout = GlVertexLayout.FromType<TVert>(_source.ActiveComponents);
+                _layouts[lKey] = layout;
+            }
+
+            _lastComponents = _source.ActiveComponents;
+
+            return true;
         }
 
         static PrimitiveType GlPrimitive(DrawPrimitive drawPrimitive)
@@ -115,6 +135,8 @@ namespace XrEngine.OpenGL
 
         public override void Update()
         {
+            if (UpdateLayout(out var layout))
+                _vertices.UpdateLayout(layout!);
 
             _vertices.Update(_source.Vertices, _source.Indices);
 

@@ -36,14 +36,21 @@ namespace XrEngine
 
         protected override void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
-            if (sender is T tObj && AffectChange(change))
+            if (sender is T tObj)
             {
-                EngineApp.Current!.Stats.LayerChanges++;
-                if (change.IsAny(ChangeType.SceneRemove) || !BelongsToLayer(tObj))
-                    Remove(tObj);
-                else
-                    Add(tObj);
+                if (AffectChange(change))
+                {
+                    EngineApp.Current!.Stats.LayerChanges++;
+                    if (change.IsAny(ChangeType.SceneRemove) || !BelongsToLayer(tObj))
+                        Remove(tObj);
+                    else
+                        Add(tObj);
+                }
+
+
             }
+  
+  
         }
 
         protected bool Contains(T obj)

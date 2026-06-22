@@ -3,6 +3,8 @@ in vec2 fUv2;
 
 flat in vec4 fConst;
 
+uniform float uExposure;
+
 layout(binding=0) uniform highp sampler2DArray uTextureArray;
 
 layout(location = 0) out vec4 color;

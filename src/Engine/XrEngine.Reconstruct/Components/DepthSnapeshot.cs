@@ -20,6 +20,11 @@ namespace XrEngine.Reconstruct
 
     public class CaptureFrame : BaseComponent<TriangleMesh>, ISelectionHandler
     {
+        public CaptureFrame()
+        {
+            Exposure = 0;
+        }
+
         [Action]
         public void GoToPose()
         {
@@ -39,6 +44,9 @@ namespace XrEngine.Reconstruct
         public Texture2D? Texture { get;  set; }
 
         public bool ShowWireFrame { get; set; }
+
+        [Range(-1, 1, 0.01f)]
+        public float Exposure { get; set; }
 
         public DepthSnapeshot.DepthFrameMeta? Meta { get;  set; }
     }
@@ -130,6 +138,7 @@ namespace XrEngine.Reconstruct
 
             MeshParams = new();
             GeneratorParams = new();
+            SolverParams = new();
 
             _generator = new DepthGeometryGenerator(GridSize, GridSize);
         }
@@ -325,10 +334,6 @@ namespace XrEngine.Reconstruct
 
             proj.Project(_recMesh.Geometry!, colorFrames);
 
-            Log.Info(this, "Compute indexs");
-
-            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry!.Vertices.Length, _recMesh.Geometry.Indices.Length);
-
             var builder = new TextureAtlasLayoutBuilder
             {
                 TextureWidth = 1280,
@@ -339,10 +344,17 @@ namespace XrEngine.Reconstruct
                 BytesPerPixel = 4
             };
 
-            var tex = builder.GenerateAtlasTexture([_recMesh.Geometry], _colorArrayTex);
+            var tex = builder.GenerateAtlasTexture([_recMesh.Geometry!], _colorArrayTex);
 
             _recMesh.Materials.Clear();
             _recMesh.Materials.Add(new TextureMaterial(tex));
+
+
+            Log.Info(this, "Compute indexs");
+
+            _recMesh.Geometry!.ComputeIndices();
+
+            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry!.Vertices.Length, _recMesh.Geometry.Indices.Length);
 
             _recMesh.NotifyChanged(ChangeType.Geometry | ChangeType.Material);
         }
@@ -355,6 +367,7 @@ namespace XrEngine.Reconstruct
 
             Load(_lastPath, true);
         }
+
 
         public unsafe void Load(
             string path,
@@ -535,9 +548,18 @@ namespace XrEngine.Reconstruct
                 MagFilter = ScaleFilter.Linear,
                 MipLevelCount = 0
             };
+
             _colorArrayTex.LoadData(texArrayData);
 
-            //TemporalGridCleaner.BuildCleanVertices(_host!.Children.OfType<TriangleMesh>().ToArray(), 0.20f, ProbeMode.Normal);
+            if (SolveExposure)
+            {
+                Log.Info(this, "Solving exposure");
+
+                var solver = new FrameExposureSolver();
+
+                solver.SetParams(SolverParams);
+                solver.Compute(_host!.Children.OfType<TriangleMesh>().ToArray(), texArrayData.Select(a => a.Data!).ToArray());
+            }
 
             _frameIndex = _frames.Count == 0
                 ? 0
@@ -548,6 +570,8 @@ namespace XrEngine.Reconstruct
                 _splatMesh = new SplatMesh(splats.ToArray());
                 _host!.AddChild(_splatMesh);
             }
+
+            Log.Info(this, "Done!");
         }
 
         public DepthFrame? CreateSnapeshot()
@@ -643,7 +667,15 @@ namespace XrEngine.Reconstruct
         {
             if (_mode == DepthSnapeshotMode.Read)
             {
-                //UpdateAlphaDistance(ctx);
+                foreach (var mesh in _host!.Children.OfType<TriangleMesh>())
+                {
+                    if (!mesh.TryComponent<CaptureFrame>(out var frame))
+                        continue;
+                   
+                    var mat = mesh.Materials[0] as GridMaterial;
+                    mat?.Exposure = frame.Exposure;
+
+                }
                 return;
             }
 
@@ -677,6 +709,8 @@ namespace XrEngine.Reconstruct
 
         public int GridSize { get; set; }
 
+        public bool SolveExposure { get; set; }
+
         public bool SplatMode { get; set; }
 
         public bool Clip { get; set; }
@@ -686,5 +720,7 @@ namespace XrEngine.Reconstruct
         public VoxelMeshReconstructorParams MeshParams { get;  set; }
 
         public DepthGeometryGeneratorParams GeneratorParams { get; set; }
+
+        public FrameExposureSolverParams SolverParams { get; set; }
     }
 }

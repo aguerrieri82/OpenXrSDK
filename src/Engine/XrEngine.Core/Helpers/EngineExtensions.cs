@@ -993,31 +993,61 @@ namespace XrEngine
 
         public static void ComputeIndices(this Geometry3D self, int decimals = 5)
         {
+            var sourceVertices = self.Vertices!;
+            var sourceIndices = self.Indices;
 
-            var hasesh = new Dictionary<Vector512<float>, uint>();
-            var newVertices = new List<VertexData>(self.Vertices.Length);
+            var map = new Dictionary<Vector256<float>, uint>();
+            var newVertices = new List<VertexData>(sourceVertices.Length);
+            map.EnsureCapacity(sourceVertices.Length);
 
-            Vector512<float> Hash(in VertexData vert)
+            Vector256<float> Hash(in VertexData vert)
             {
-                var pos2 = vert.Pos.Round(decimals);
-                return Vector512.Create(pos2.X, pos2.Y, pos2.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
+                var pos = vert.Pos.Round(decimals);
+
+                return Vector256.Create(
+                    pos.X,
+                    pos.Y,
+                    pos.Z,
+                    vert.Normal.X,
+                    vert.Normal.Y,
+                    vert.Normal.Z,
+                    vert.UV.X,
+                    vert.UV.Y);
             }
 
-            foreach (ref var vert in self.Vertices.AsSpan())
+            uint GetIndex(in VertexData vert)
             {
                 var hash = Hash(vert);
-                if (!hasesh.ContainsKey(hash))
-                {
-                    hasesh[hash] = (uint)newVertices.Count;
-                    newVertices.Add(vert);
-                }
+
+                if (map.TryGetValue(hash, out var index))
+                    return index;
+
+                index = (uint)newVertices.Count;
+                map.Add(hash, index);
+                newVertices.Add(vert);
+
+                return index;
             }
 
-            var indices = new uint[self.Vertices.Length];
-            for (var i = 0; i < indices.Length; i++)
-                indices[i] = hasesh[Hash(self.Vertices[i])];
+            if (sourceIndices != null && sourceIndices.Length > 0 && sourceIndices.Length != sourceVertices.Length)
+            {
+                var newIndices = new uint[sourceIndices.Length];
 
-            self.Indices = indices;
+                for (var i = 0; i < sourceIndices.Length; i++)
+                    newIndices[i] = GetIndex(sourceVertices[(int)sourceIndices[i]]);
+
+                self.Indices = newIndices;
+            }
+            else
+            {
+                var newIndices = new uint[sourceVertices.Length];
+
+                for (var i = 0; i < sourceVertices.Length; i++)
+                    newIndices[i] = GetIndex(sourceVertices[i]);
+
+                self.Indices = newIndices;
+            }
+
             self.Vertices = newVertices.ToArray();
 
             self.NotifyChanged(ChangeType.Geometry);

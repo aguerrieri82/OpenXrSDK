@@ -19,6 +19,7 @@ namespace XrEngine.Reconstruct
         public MultiTextureMaterial()
         {
             _shader = SHADER;
+            Exposure = 1;
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
@@ -30,10 +31,15 @@ namespace XrEngine.Reconstruct
             bld.ExecuteAction((ctx, up) =>
             {
                 up.LoadTexture(Texture!, 1);
+                up.SetUniform("uExposure", Exposure);
             });
 
             base.UpdateShaderMaterial(bld);
         }
+
+
+        [Range(0,1, 0.01f)]
+        public float Exposure { get; set; }
 
         public Texture2D? Texture { get; set; }
     }

@@ -18,6 +18,14 @@
                                 (a.Alpha == AlphaMode.Mask && a is not IVolumeMaterial));
         }
 
+        protected override void NotifyChangedWork(Object3D sender, ObjectChange change)
+        {
+            if (change.IsAny(ChangeType.Material))
+                OnChanged(sender, Layer3DChangeType.Updated);
+
+            base.NotifyChangedWork(sender, change);
+        }
+
         protected override bool AffectChange(ObjectChange change)
         {
             if (change.IsAny(ChangeType.Scene))
