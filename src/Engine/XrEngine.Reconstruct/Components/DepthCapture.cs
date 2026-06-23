@@ -119,12 +119,13 @@ namespace XrEngine.Reconstruct
         private XrBoolInput? _captureBtn;
         private XrBoolInput? _deleteBtn;
         private IMemoryBuffer<byte>[]? _buffers;
-        private readonly DepthGeometryGenerator _generator;
         private string? _lastPath;
         private TriangleMesh? _recMesh;
         private Texture2D? _colorArrayTex;
-        private GlTexture? _depthTex;
+        private GlTexture? _tempDepthTex;
         private Texture2D? _atlasTex;
+        private Material? _wireMat;
+        private Material? _colorMar;
         private readonly DepthSnapeshotMode _mode;
         private readonly string _sessionPath;
         private readonly List<DepthFrame> _frames = [];
@@ -146,19 +147,26 @@ namespace XrEngine.Reconstruct
 
             GridSize = 300;
             DepthMapSize = 300;
+            AtlasSize = 8192;
             UseMeshCache = true;
             BuildAtlas = true;
             ComputeIndices = true;
             UseDepthOcclusion = true;
             SolveExposure = true;
             Optimize = true;
+            OptimizeTollerance = 0.05f;
+            UnwrapUv = true;
+            UnwrapFrontness = 0.15f;
+            UnwrapDepthBias = 5f;
 
             MeshParams = new();
             GeneratorParams = new();
             ExposeParams = new();
             ProjParams = new();
+            UvUnwrapParams = new();
 
-            _generator = new DepthGeometryGenerator(GridSize, GridSize);
+            OptimizeTollerance = 0.04f;
+            MeshParams.VoxelSize = 0.05f;
         }
 
         protected override void Start(RenderContext ctx)
@@ -272,7 +280,87 @@ namespace XrEngine.Reconstruct
             };
         }
 
-        private async Task<IMemoryBuffer<byte>> GenerateDepthAsync(Matrix4x4 cameraViewProj)
+
+        private async Task ProjColorAsync(ColorProjectionFrame frame)
+        {
+            Debug.Assert(_colorArrayTex != null);
+
+            await EngineApp.RenderThread;
+
+            var gl = OpenGLRender.Current?.GL;
+            if (gl == null)
+                throw new InvalidOperationException();
+
+            Debug.Assert(_recMesh != null);
+
+            var useDepth = UseDepthOcclusion && frame.DepthTexture != null;
+
+            var prog = GlImageProc.LoadProgram(gl,
+                "[XrEngine.Reconstruct]mesh_uv_proj.frag",
+                "[XrEngine.Reconstruct]mesh_uv_proj.vert",
+                useDepth ? ["USE_DEPTH"] : [], []);
+
+            prog.SetUniform("uCaptureViewProj", frame.ViewProj);
+            prog.SetUniform("uCaptureCameraPos", frame.CameraPosition);
+            prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
+            prog.SetUniform("uMinFrontness", UnwrapFrontness);
+            prog.SetUniform("uColorIndex", frame.ImageIndex);
+            prog.LoadTexture(_colorArrayTex, 0);
+
+            if (useDepth)
+            {
+                prog.SetUniform("uDepthBias", UnwrapDepthBias / 1000f);
+                prog.LoadTexture(frame.DepthTexture!, 1);
+            }
+
+            var fb = GlImageProc.PrepareFrameBuffer(gl, _atlasTex.ToGlTexture());
+
+            var vertexHandler = _recMesh.Geometry!.GetGlResource(a => GlVertexSourceHandle.Create(gl, _recMesh));
+
+            if (vertexHandler.NeedUpdate)
+                vertexHandler.Update();
+
+            GlState.Current!.SetWriteDepth(false);
+            GlState.Current.SetUseDepth(false);
+            GlState.Current.SetWriteColor(true);
+            GlState.Current.SetAlphaMode(AlphaMode.Add);
+            GlState.Current.SetDoubleSided(true);
+            GlState.Current.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
+
+            if (frame.ImageIndex == 0)
+            {
+                GlState.Current.SetClearColor(Color.Transparent);
+                gl.Clear(ClearBufferMask.ColorBufferBit);
+            }
+
+            vertexHandler.Bind();
+            vertexHandler.Draw();
+        }
+
+        private async Task ResolveColorAsync()
+        {
+            Debug.Assert(_atlasTex != null);
+
+            await EngineApp.RenderThread;
+
+            var gl = OpenGLRender.Current?.GL;
+            if (gl == null)
+                throw new InvalidOperationException();
+
+            var fb = GlImageProc.PrepareFrameBuffer(gl, _atlasTex.ToGlTexture());
+            
+            GlState.Current.SetDoubleSided(false);
+            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+
+            var prog = GlImageProc.LoadProgram(gl, "[XrEngine.Reconstruct]resolve.frag", [], []);
+
+            prog.LoadTexture(_atlasTex, 0);
+
+            GlImageProc.DrawQuad(gl);
+        }
+
+
+        private async Task<IMemoryBuffer<byte>> GenerateDepthAsync(Matrix4x4 cameraViewProj, Texture2D? depthTex)
         {
             await EngineApp.RenderThread;
 
@@ -282,27 +370,55 @@ namespace XrEngine.Reconstruct
 
             Debug.Assert(_recMesh != null);
 
-            _depthTex = GlTempAllocator.StaticTexture(
-                gl,
-                (uint)DepthMapSize,
-                (uint)DepthMapSize,
-                1,
-                TextureFormat.Depth16);
+            GlTexture glDepthTex;
 
-            if (_depthTex.MinFilter != TextureMinFilter.Nearest || _depthTex.MagFilter != TextureMagFilter.Nearest)
+            if (depthTex == null)
             {
-                _depthTex.MinFilter = TextureMinFilter.Nearest;
-                _depthTex.MagFilter = TextureMagFilter.Nearest;
-                _depthTex.Update();
+                if (_tempDepthTex == null)
+                {
+                    _tempDepthTex = GlTempAllocator.StaticTexture(
+                         gl,
+                         (uint)DepthMapSize,
+                         (uint)DepthMapSize,
+                         1,
+                         TextureFormat.Depth16);
+                }
+
+                glDepthTex = _tempDepthTex;
+            }
+            else
+            {
+                if (depthTex.Width == 0)
+                {
+                    depthTex.MinFilter = ScaleFilter.Nearest;
+                    depthTex.MagFilter = ScaleFilter.Nearest;
+                    depthTex.MipLevelCount = 0;
+
+                    depthTex.LoadData(new TextureData
+                    {
+                        Width = (uint)DepthMapSize,
+                        Height = (uint)DepthMapSize,
+                        Format = TextureFormat.Depth16
+                    });
+                }
+
+                glDepthTex = depthTex.ToGlTexture();
+            }
+
+            if (glDepthTex.MinFilter != TextureMinFilter.Nearest || glDepthTex.MagFilter != TextureMagFilter.Nearest)
+            {
+                glDepthTex.MinFilter = TextureMinFilter.Nearest;
+                glDepthTex.MagFilter = TextureMagFilter.Nearest;
+                glDepthTex.Update();
             }
 
             GlState.Current!.SetView(new Rect2I
             {
-                Width = _depthTex.Width,
-                Height = _depthTex.Height
+                Width = glDepthTex.Width,
+                Height = glDepthTex.Height
             });
 
-            var fb = GlImageProc.PrepareFrameBuffer(gl, null, (IGlRenderAttachment)_depthTex);
+            var fb = GlImageProc.PrepareFrameBuffer(gl, null, (IGlRenderAttachment)glDepthTex);
 
             try
             {
@@ -334,7 +450,7 @@ namespace XrEngine.Reconstruct
                 GlState.Current!.SetWriteColor(true);
             }
 
-            var data = GlImageProc.Read(_depthTex, TextureFormat.GrayInt16);
+            var data = GlImageProc.Read(glDepthTex, TextureFormat.GrayInt16);
 
             Debug.Assert(data != null && data.Count == 1);
 
@@ -351,14 +467,11 @@ namespace XrEngine.Reconstruct
             var rec = new VoxelMeshReconstructor();
             rec.SetParams(MeshParams);
 
-            var proj = new MeshTextureProjection();
-            proj.SetParams(ProjParams);
-
             var colorFrames = new List<ColorProjectionFrame>();
             var cacheName = Path.Combine(_lastPath, "reconstruct.obj");
-            var skipRec = File.Exists(cacheName) && UseMeshCache;
+            var skipReconstruct = File.Exists(cacheName) && UseMeshCache;
 
-            if (skipRec)
+            if (skipReconstruct)
             {
                 Log.Info(this, "Load geometry");
                 _recMesh?.Dispose();
@@ -389,11 +502,11 @@ namespace XrEngine.Reconstruct
 
                 var meta = frame.Meta!;
                 var cameraViewProj = meta.CameraView * meta.CameraProj;
-                
+
                 colorSize.Width = (uint)meta.ColorWidth;
                 colorSize.Height = (uint)meta.ColorHeight;
 
-                if (!skipRec)
+                if (!skipReconstruct)
                 {
                     Log.Info(this, "Feed frame {0}", meta.Frame);
                     rec.FeedFrame(mesh.Geometry!);
@@ -407,7 +520,7 @@ namespace XrEngine.Reconstruct
                 colorData.Add(frame.ColorData!);
             }
 
-            if (!skipRec)
+            if (!skipReconstruct)
             {
                 Log.Info(this, "Extracting mesh");
 
@@ -424,7 +537,11 @@ namespace XrEngine.Reconstruct
 
             if (Optimize)
             {
-                MeshCollapse.CollapseCloseVertices(_recMesh.Geometry!, 0.05f);
+                Log.Warn(this, "Collapse vertices");
+
+                _recMesh.Geometry.ComputeIndices(2);
+
+                MeshCollapse.CollapseCloseVertices(_recMesh.Geometry!, OptimizeTollerance);
 
                 Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
             }
@@ -434,75 +551,131 @@ namespace XrEngine.Reconstruct
                 foreach (var frame in colorFrames)
                 {
                     Log.Info(this, "Generate deph {0}", frame.ImageIndex);
-
+                    /*
                     if (frame.ImageIndex == 0)
                         EngineNativeLib.RdcStartFrameCapture();
+                    */
 
-                    frame.DepthMap = await GenerateDepthAsync(frame.ViewProj);
+                    if (UnwrapUv)
+                    {
+                        if (frame.DepthTexture != null && frame.DepthTexture.Width != DepthMapSize)
+                            frame.DepthTexture.Dispose();
+
+                        frame.DepthTexture = new Texture2D();
+                    }
+      
+                    frame.DepthMap = await GenerateDepthAsync(frame.ViewProj, frame.DepthTexture);
                     frame.DepthWidth = DepthMapSize;
                     frame.DepthHeight = DepthMapSize;
 
+                    /*
                     if (frame.ImageIndex == 0)
                         EngineNativeLib.RdcEndFrameCapture(false);
+                    */
                 }
             }
 
             float[] exposures = [];
 
-            Log.Info(this, "Color projection");
-
-            proj.Project(_recMesh.Geometry, colorFrames);
-
-            if (SolveExposure)
-            {
-                Log.Info(this, "Solving exposure");
-      
-                var solver = new FrameExposureSolver();
-
-                solver.SetParams(ExposeParams);
-
-                exposures = solver.Compute(
-                    _recMesh.Geometry,
-                    colorData.ToArray(),
-                    (int)colorSize.Width,
-                    (int)colorSize.Height);
-            }
-
             _recMesh.Materials.Clear();
 
-            if (BuildAtlas)
+            if (UnwrapUv)
             {
-                Log.Info(this, "Bulding atlas");
+                Log.Info(this, "UV Unwrap");
 
-                var builder = new TextureAtlasLayoutBuilder
+                var uvUnwrap = new MeshUvUnwrapper();
+                uvUnwrap.SetParameters(UvUnwrapParams);
+                uvUnwrap.Unwrap(_recMesh.Geometry);
+
+                if (BuildAtlas)
                 {
-                    TextureWidth = 1280,
-                    TextureHeight = 1280,
-                    SourceTextureCount = _host.Children.Count,
-                    Padding = 2,
-                    SourceBorderPixels = 2,
-                    BytesPerPixel = 4
-                };
+                    _atlasTex?.Dispose();
 
-                _atlasTex?.Dispose();
+                    EngineNativeLib.RdcStartFrameCapture();
 
-                _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
+                    _atlasTex = Texture2D.FromData([new TextureData
+                    {
+                        Width = (uint)AtlasSize,
+                        Height = (uint)AtlasSize,
+                        Format = TextureFormat.RgbaFloat16,
+                    }]);
 
-                _recMesh.Materials.Add(new TextureMaterial(_atlasTex));
-  
+                    foreach (var frame in colorFrames)
+                    {
+                        Log.Info(this, "Proj color {0}", frame.ImageIndex);
+
+                        await ProjColorAsync(frame);
+                    }
+
+                    await ResolveColorAsync();
+
+                    EngineNativeLib.RdcEndFrameCapture(false);
+
+                    _recMesh.Materials.Add(new TextureMaterial(_atlasTex!));
+                }
             }
             else
             {
-                _recMesh.Materials.Add(new WireframeMaterial() { Color = Color.White });
+                Log.Info(this, "Color projection");
 
-                _recMesh.Materials.Add(new MultiTextureMaterial
+                var proj = new MeshTextureProjection();
+                proj.SetParams(ProjParams);
+                proj.Project(_recMesh.Geometry, colorFrames);
+
+                if (SolveExposure)
                 {
-                    Texture = _colorArrayTex,
-                    Exposure = exposures
-                });
+                    Log.Info(this, "Solving exposure");
+
+                    var solver = new FrameExposureSolver();
+
+                    solver.SetParams(ExposeParams);
+
+                    exposures = solver.Compute(
+                        _recMesh.Geometry,
+                        colorData.ToArray(),
+                        (int)colorSize.Width,
+                        (int)colorSize.Height);
+                }
             }
 
-            _recMesh.Materials.Add(new WireframeMaterial() { Color = Color.White });
+
+
+            if (!UnwrapUv)
+            {
+                if (BuildAtlas)
+                {
+                    Log.Info(this, "Bulding atlas");
+
+                    var builder = new TextureAtlasLayoutBuilder
+                    {
+                        TextureWidth = 1280,
+                        TextureHeight = 1280,
+                        SourceTextureCount = _host.Children.Count,
+                        Padding = 2,
+                        SourceBorderPixels = 2,
+                        BytesPerPixel = 4
+                    };
+
+                    _atlasTex?.Dispose();
+                    _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
+                    _recMesh.Materials.Add(new TextureMaterial(_atlasTex));
+
+                }
+                else
+                {
+                    _recMesh.Materials.Add(new MultiTextureMaterial
+                    {
+                        Texture = _colorArrayTex,
+                        Exposure = exposures
+                    });
+                }
+            }
+
+            _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
+            _colorMar ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
+
+            _recMesh.Materials.Add(_wireMat);
+            _recMesh.Materials.Add(_colorMar);
 
             if (ComputeIndices)
             {
@@ -515,7 +688,6 @@ namespace XrEngine.Reconstruct
             if (Optimize)
             {
                 Log.Info(this, "Optmize");
-
                 MeshOptimizer.Optimize(_recMesh.Geometry!);
             }
 
@@ -562,7 +734,8 @@ namespace XrEngine.Reconstruct
             var splats = new List<SplatData>();
             var texArrayData = new List<TextureData>();
 
-            _generator.SetParams(GeneratorParams);
+            var generator = new DepthGeometryGenerator(GridSize, GridSize);
+            generator.SetParams(GeneratorParams);
 
             foreach (var frameDir in frameDirs)
             {
@@ -594,7 +767,7 @@ namespace XrEngine.Reconstruct
 
                 fixed (byte* pBytes = depthBytes)
                 {
-                    geometry = _generator.CreateGeometry(
+                    geometry = generator.CreateGeometry(
                         (ushort*)pBytes,
                         meta.DepthWidth,
                         meta.DepthHeight,
@@ -822,6 +995,9 @@ namespace XrEngine.Reconstruct
                         mat.Exposure = frame.Exposure;
                 }
 
+                //_wireMat?.IsEnabled = ShowWireframe;
+                //_colorMar?.IsEnabled = ShowWireframe;
+
                 return;
             }
 
@@ -840,6 +1016,8 @@ namespace XrEngine.Reconstruct
 
             if (_deleteBtn.IsChanged && _deleteBtn.Value)
                 DeleteLast();
+
+
         }
 
         public void ConfigureInput(IXrBasicInteractionProfile input)
@@ -856,6 +1034,8 @@ namespace XrEngine.Reconstruct
 
         public int GridSize { get; set; }
 
+        public int AtlasSize { get; set; }
+
         public bool SolveExposure { get; set; }
 
         public bool SplatMode { get; set; }
@@ -871,6 +1051,21 @@ namespace XrEngine.Reconstruct
         public bool BuildAtlas { get; set; }
 
         public bool ComputeIndices { get; set; }
+
+        public bool ShowWireframe { get; set; }
+
+        public bool UnwrapUv { get; set; }
+
+        public float OptimizeTollerance { get; set; }
+
+
+        [Range(0, 1, 0.01f)]
+        public float UnwrapFrontness { get; set; }
+
+        [Range(0, 1, 0.1f)]
+        public float UnwrapDepthBias { get; set; }
+
+        public MeshUvUnwrapperParams UvUnwrapParams { get; set; }
 
         public VoxelMeshReconstructorParams MeshParams { get; set; }
 

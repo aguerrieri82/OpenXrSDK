@@ -33,6 +33,8 @@ namespace XrEngine.Reconstruct
 
         public IMemoryBuffer<byte>? DepthMap;
 
+        public Texture2D? DepthTexture;
+
         public int DepthWidth;
 
         public int DepthHeight;
