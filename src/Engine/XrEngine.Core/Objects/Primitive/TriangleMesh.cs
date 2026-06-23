@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine
@@ -14,6 +15,7 @@ namespace XrEngine
             _materials = [];
             _materials.CollectionChanged += OnMaterialsChanged;
             BoundUpdateMode = UpdateMode.Automatic;
+            Export = new(this);
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -127,6 +129,13 @@ namespace XrEngine
             base.Dispose();
         }
 
+
+        [Action]
+        public void DoExport()
+        {
+            Export.Export();
+        }
+
         public int RenderPriority { get; set; }
 
         public IList<Material> Materials => _materials;
@@ -134,6 +143,8 @@ namespace XrEngine
         public Bounds3 LocalBounds => _geometry?.Bounds ?? Bounds3.Zero;
 
         public UpdateMode BoundUpdateMode { get; set; }
+
+        public MeshExportInfo<TriangleMesh> Export { get; set; }
 
         #region IVertexSource
 

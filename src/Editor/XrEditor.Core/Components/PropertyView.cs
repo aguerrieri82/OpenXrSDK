@@ -19,7 +19,7 @@ namespace XrEditor
             CreateProperties(obj, objType, null, result, propertyChanged);
         }
 
-        public static void CreateProperties(object obj, Type? objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged)
+        public static void CreateProperties(object obj, Type? objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged, string? category = null)
         {
             var binding = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
 
@@ -85,7 +85,7 @@ namespace XrEditor
                     {
                         var value = prop.GetValue(obj);
                         if (value != null)
-                            CreateProperties(value, null, host ?? obj, result, propertyChanged);
+                            CreateProperties(value, null, host ?? obj, result, propertyChanged, prop.Name);
                     }
 
                     continue;
@@ -101,9 +101,9 @@ namespace XrEditor
                 var propView = new PropertyView
                 {
                     Label = prop.Name,
-                    Category = host != null ? obj.GetType().Name : null,
+                    Category = !string.IsNullOrWhiteSpace(category) ? category : (host != null ? obj.GetType().Name : null),
                     Editor = editor,
-                };
+                }; 
 
                 result.Add(propView);
             }

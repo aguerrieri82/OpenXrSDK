@@ -361,7 +361,8 @@ namespace XrEngine.Reconstruct
             if (skipRec)
             {
                 Log.Info(this, "Load geometry");
-                _recMesh = AssetLoader.Instance.Load<TriangleMesh>(cacheName);
+                _recMesh?.Dispose();
+                _recMesh = AssetLoader.Instance.Load<TriangleMesh>(cacheName, new BasicLoaderOptions { UseCache = false });
             }
             else
             {
@@ -376,7 +377,6 @@ namespace XrEngine.Reconstruct
                 VertexComponent.UV0 |
                 VertexComponent.UV1 |
                 VertexComponent.Tangent;
-
 
             var colorData = new List<IMemoryBuffer<byte>>();
 
@@ -420,6 +420,14 @@ namespace XrEngine.Reconstruct
             }
 
             Log.Warn(this, "Mesh extracted {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+
+
+            if (Optimize)
+            {
+                MeshCollapse.CollapseCloseVertices(_recMesh.Geometry!, 0.05f);
+
+                Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+            }
 
             if (UseDepthOcclusion)
             {
@@ -481,15 +489,20 @@ namespace XrEngine.Reconstruct
                 _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
 
                 _recMesh.Materials.Add(new TextureMaterial(_atlasTex));
+  
             }
             else
             {
+                _recMesh.Materials.Add(new WireframeMaterial() { Color = Color.White });
+
                 _recMesh.Materials.Add(new MultiTextureMaterial
                 {
                     Texture = _colorArrayTex,
                     Exposure = exposures
                 });
             }
+
+            _recMesh.Materials.Add(new WireframeMaterial() { Color = Color.White });
 
             if (ComputeIndices)
             {
@@ -502,9 +515,8 @@ namespace XrEngine.Reconstruct
             if (Optimize)
             {
                 Log.Info(this, "Optmize");
-                MeshOptimizer.OptimizeVertexCache(_recMesh.Geometry!);
-                MeshOptimizer.OptimizeOverdraw(_recMesh.Geometry!, 1.05f);
-                MeshOptimizer.OptimizeVertexFetch(_recMesh.Geometry!);
+
+                MeshOptimizer.Optimize(_recMesh.Geometry!);
             }
 
             Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
