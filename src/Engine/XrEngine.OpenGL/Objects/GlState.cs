@@ -25,7 +25,6 @@ namespace XrEngine.OpenGL
         {
             WriteDepth = null;
             UseDepth = null;
-            DoubleSided = null;
             ColorMask = null;
             ActiveProgram = null;
             Wireframe = null;
@@ -62,9 +61,6 @@ namespace XrEngine.OpenGL
 
             if (UseDepth.HasValue)
                 SetUseDepth(UseDepth.Value, true);
-
-            if (DoubleSided.HasValue)
-                SetDoubleSided(DoubleSided.Value, true);
 
             if (ColorMask.HasValue)
                 SetColorMask((ColorMask.Value & 1) != 0, (ColorMask.Value & 2) != 0, (ColorMask.Value & 4) != 0, (ColorMask.Value & 8) != 0, true);
@@ -113,7 +109,6 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
-
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -251,16 +246,14 @@ namespace XrEngine.OpenGL
                     _gl.DepthFunc(DepthFunction.Lequal);
 
                 UseDepth = value;
+
+                UpdateDepth();
             }
         }
 
         public void SetDoubleSided(bool value, bool force = false)
         {
-            if (DoubleSided != value || force)
-            {
-                EnableFeature(EnableCap.CullFace, !value);
-                DoubleSided = value;
-            }
+            EnableFeature(EnableCap.CullFace, !value);
         }
 
         public void SetWriteDepth(bool value, bool force = false)
@@ -269,7 +262,13 @@ namespace XrEngine.OpenGL
             {
                 _gl.DepthMask(value);
                 WriteDepth = value;
+                UpdateDepth();
             }
+        }
+
+        protected void UpdateDepth()
+        {
+            EnableFeature(EnableCap.DepthTest, WriteDepth == true || UseDepth == true);
         }
 
         public void SetAlphaMode(AlphaMode value, bool force = false)
@@ -428,7 +427,7 @@ namespace XrEngine.OpenGL
         public void SetWireframe(bool value, bool force = false)
         {
 #if !GLES
-            //if (value != Wireframe || force)
+            if (value != Wireframe || force)
             {
                 if (value)
                     _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
@@ -484,8 +483,6 @@ namespace XrEngine.OpenGL
         public bool? WriteDepth;
 
         public bool? UseDepth;
-
-        public bool? DoubleSided;
 
         public int? ColorMask;
 

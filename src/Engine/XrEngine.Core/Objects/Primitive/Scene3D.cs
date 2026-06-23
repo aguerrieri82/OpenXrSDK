@@ -47,7 +47,7 @@ namespace XrEngine
                 }
             }
 
-            //_gizmos.Flush();
+            _gizmos.Flush();
         }
 
         public override void Update(RenderContext ctx)

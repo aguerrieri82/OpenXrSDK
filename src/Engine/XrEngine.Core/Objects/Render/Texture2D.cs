@@ -60,9 +60,14 @@ namespace XrEngine
 
             if (initSampler)
             {
-                WrapT = WrapMode.ClampToEdge;
+                if (WrapT == 0)
+                    WrapT = WrapMode.ClampToEdge;
+
                 if (data.Count > 1)
                     MipLevelCount = data.Max(a => a.MipLevel) + 1;
+
+                if (MipLevelCount > 0 && MinFilter == 0)
+                    MinFilter = ScaleFilter.LinearMipmapLinear;
             }
 
             base.LoadData(data, initSampler);

@@ -205,7 +205,7 @@ namespace XrEngine.OpenGL
 
                 if (!_isAllocated && !IsMutable)
                 {
-                    if (_depth > 1)
+                    if (_depth > 1 && Target != TextureTarget.TextureCubeMap)
                     {
                         if (SampleCount > 1 && Target == TextureTarget.Texture2DMultisampleArray)
                         {
@@ -309,7 +309,7 @@ namespace XrEngine.OpenGL
                             }
                             else if (_isAllocated)
                             {
-                                if (_depth > 1)
+                                if (_depth > 1 && Target != TextureTarget.TextureCubeMap)
                                 {
                                     _gl.TexSubImage3D(
                                          realTarget,

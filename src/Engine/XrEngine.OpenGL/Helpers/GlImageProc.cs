@@ -197,9 +197,15 @@ namespace XrEngine.OpenGL
             var prog = LoadProgram(src.GL, "copy_red.frag", src.Depth > 1 ? ["TEXTURE_ARRAY"] : [], []);
 
             GlState.Current!.SetView(new Rect2I(0, 0, src.Width, src.Height));
-            GlState.Current!.SetWriteDepth(false);
-            GlState.Current!.SetUseDepth(false);
-            GlState.Current!.SetColorMask(true, false, false, false);
+
+            GlState.Current.SetWriteDepth(false);
+            GlState.Current.SetUseDepth(false);
+            GlState.Current.SetColorMask(true, false, false, false);
+            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+            GlState.Current.EnableFeature(EnableCap.CullFace, false);
+            GlState.Current.EnableFeature(EnableCap.ScissorTest, false);
+            GlState.Current.EnableFeature(EnableCap.StencilTest, false);
+            GlState.Current.SetWireframe(false);
 
             GlState.Current!.LoadTexture(src, 0);
 

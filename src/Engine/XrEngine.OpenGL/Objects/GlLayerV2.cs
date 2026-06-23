@@ -180,7 +180,7 @@ namespace XrEngine.OpenGL
                 if (Type == GlLayerType.Color && realMaterial.Alpha != AlphaMode.Opaque)
                     continue;
 
-                if (Type == GlLayerType.Blend && (realMaterial.Alpha & AlphaMode.Blend) != 0)
+                if (Type == GlLayerType.Blend && (realMaterial.Alpha & AlphaMode.Blend) == 0)
                     continue;
 //
 

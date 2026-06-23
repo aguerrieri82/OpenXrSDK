@@ -836,6 +836,8 @@ namespace XrEngine.Reconstruct
             _deleteBtn = input.Right!.Button!.BClick!;
         }
 
+        public TriangleMesh? Mesh => _recMesh;
+
         public string SessionPath => _sessionPath;
 
         public int DepthMapSize { get; set; }

@@ -103,9 +103,14 @@ namespace XrEngine
 
             if (initSampler)
             {
-                MagFilter = ScaleFilter.Linear;
-                //MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
-                WrapS = WrapMode.ClampToEdge;
+                if (MinFilter == 0)
+                    MinFilter = ScaleFilter.Linear;
+
+                if (MagFilter == 0)
+                    MagFilter = ScaleFilter.Linear;
+
+                if (WrapS == 0)
+                    WrapS = WrapMode.ClampToEdge;
             }
 
             NotifyChanged(ChangeType.Render);

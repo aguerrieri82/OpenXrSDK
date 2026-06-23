@@ -55,7 +55,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)
-              .CreateReconstructPlayer()
+              .CreateDepthSnapeshot()
               .Build();
     }
 }

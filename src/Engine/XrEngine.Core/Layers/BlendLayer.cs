@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     public class BlendLayer : BaseAutoLayer<Object3D>
     {
@@ -9,6 +11,7 @@
 
         protected override bool BelongsToLayer(Object3D obj)
         {
+
             var vertSrc = obj.Feature<IVertexSource>();
             return vertSrc != null &&
                    vertSrc.Materials.

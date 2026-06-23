@@ -234,7 +234,7 @@ namespace XrEngine.Reconstruct
                 Format = TextureFormat.Rgb24,
                 Width = (uint)layout.AtlasWidth,
                 Height = (uint)layout.AtlasHeight,
-            });
+            }, false);
 
             await EngineApp.RenderThread;
 

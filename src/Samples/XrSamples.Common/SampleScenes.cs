@@ -1387,7 +1387,7 @@ namespace XrSamples
                             var val = thumb.Value.X;
                             if (Math.Abs(val) > 0.4f)
                             {
-                                group.Transform.SetPositionY(group.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
+                                snapeshot.Mesh?.Transform.SetPositionY(group.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
                             }
                         }
                     });
