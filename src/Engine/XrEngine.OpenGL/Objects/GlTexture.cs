@@ -9,7 +9,6 @@ using Common.Interop;
 using System.Diagnostics;
 using XrMath;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlTexture : GlObject, IGlRenderAttachment
@@ -29,6 +28,7 @@ namespace XrEngine.OpenGL
         protected uint _depth;
         protected bool _isAttached;
 
+
         public GlTexture(GL gl)
             : base(gl)
         {
@@ -42,13 +42,13 @@ namespace XrEngine.OpenGL
             Create();
         }
 
-
         public GlTexture(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
             : base(gl)
         {
             SampleCount = sampleCount;
             Attach(handle, target);
         }
+
 
         public void Recreate()
         {
@@ -62,21 +62,39 @@ namespace XrEngine.OpenGL
             _attached[_handle] = this;
         }
 
+        public void SetTarget(TextureTarget target)
+        {
+            if (target == 0 || Target == target)
+                return;
+
+            if (_isAttached)
+                throw new InvalidOperationException("Cannot change the target of an attached texture");
+
+            if (_isAllocated)
+                Recreate();
+
+            Target = target;
+        }
+
         public void Attach(uint handle, TextureTarget target = 0)
         {
             _attached[handle] = this;
 
             _handle = handle;
-
-            _isAttached = true; 
+            _isAttached = true;
+            _isAllocated = true;
 
             Target = target != 0 ? target : _gl.GetTextureTarget(handle);
 
             Bind();
 
-            var isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            var isMultiSample =
+                Target == TextureTarget.Texture2DMultisample ||
+                Target == TextureTarget.Texture2DMultisampleArray;
 
-            var levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
+            var levelTarget = Target == TextureTarget.TextureCubeMap
+                ? TextureTarget.TextureCubeMapPositiveX
+                : Target;
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureWidth, out int w);
             _width = (uint)w;
@@ -85,17 +103,7 @@ namespace XrEngine.OpenGL
             _height = (uint)h;
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureDepthExt, out int depth);
-            _depth = (uint)depth;
-
-            //NOTE: sometimes in level 0 sometimes 1, to investigate
-            for (var level = 0; level < 2; level++)
-            {
-                _gl.GetTexLevelParameter(levelTarget, level, GetTextureParameter.TextureInternalFormat, out int intf);
-                _internalFormat = (InternalFormat)intf;
-                if (intf != 0)
-                    break;
-            }
-            //
+            _depth = Math.Max((uint)depth, 1);
 
             if (isMultiSample)
             {
@@ -122,7 +130,6 @@ namespace XrEngine.OpenGL
                 var color = new float[4];
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureBorderColor, color);
                 BorderColor = new Color(color);
-
             }
 
             _gl.GetTexParameter(Target, GetTextureParameter.TextureBaseLevelSgis, out int bl);
@@ -131,16 +138,28 @@ namespace XrEngine.OpenGL
             _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
             MaxLevel = (uint)ml;
 
-#warning IMPROVE
+            for (var level = (int)BaseLevel; level <= 2; level++)
+            {
+                _gl.GetTexLevelParameter(levelTarget, level, GetTextureParameter.TextureInternalFormat, out int intf);
+                _internalFormat = (InternalFormat)intf;
 
-            if (GlUtils.HasDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
+                if (intf != 0)
+                    break;
+
+                if (level == BaseLevel)
+                    Log.Warn(this, "Tex {0} Internal format not found at level {1}", _handle, level);
+            }
+
+            if (_internalFormat.HasDepth() &&
+                (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
             {
                 MinFilter = TextureMinFilter.Nearest;
                 MagFilter = TextureMagFilter.Nearest;
+
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
 
-                this.DumpTextureState();
+                this.DumpState();
             }
 
             Unbind();
@@ -148,249 +167,195 @@ namespace XrEngine.OpenGL
 
         public void CopyTo(GlTexture dest, int level = 0, int depth = 0)
         {
-            _gl.CopyImageSubData(_handle, (CopyImageSubDataTarget)Target, level, 0, 0, depth, dest.Handle, (CopyImageSubDataTarget)dest.Target, level, 0, 0, depth, _width, _height, Math.Max(_depth, 1));
+            _gl.CopyImageSubData(
+                _handle,
+                (CopyImageSubDataTarget)Target,
+                level,
+                0,
+                0,
+                depth,
+                dest.Handle,
+                (CopyImageSubDataTarget)dest.Target,
+                level,
+                0,
+                0,
+                depth,
+                _width,
+                _height,
+                Math.Max(_depth, 1));
         }
 
         public void Update(params TextureData[] data)
         {
             if (data.Length == 0)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Texture data is empty");
 
-            Update(data[0].Width, data[0].Height, data[0].Depth, data[0].Format, data[0].Compression, data, data[0].BlockSize);
+            var width = data.Max(a => a.Width);
+            var height = data.Max(a => a.Height);
+            var depth = GetDataDepth(data);
+
+            UploadFull(
+                width,
+                height,
+                depth,
+                data[0].Format,
+                data[0].Compression,
+                data,
+                data[0].BlockSize);
         }
 
-        //TODO: separate allocation from update
-        public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null, uint blockSize = 0)
+        [Obsolete("Use Allocate, UploadFull, or UploadRegion. This method mixes storage description and upload policy.")]
+        public void Update(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format,
+            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
+            IList<TextureData>? data = null,
+            uint blockSize = 0)
+        {
+            if (data != null)
+            {
+                UploadFull(width, height, depth, format, compression, data, blockSize);
+                return;
+            }
+
+            Allocate(width, height, depth, format, compression, blockSize);
+        }
+
+        public void Allocate(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format,
+            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
+            uint blockSize = 0)
         {
             if (width == 0 || height == 0)
                 return;
 
+            if (compression != TextureCompressionFormat.Uncompressed)
+                throw new InvalidOperationException("Compressed textures require a full compressed upload");
+
             if (EnableDebug)
-                Log.Debug(this, "Update texture '{0}' {1}x{2}", _handle, width, height);
+                Log.Debug(this, "Allocate texture '{0}' {1}x{2}x{3}", _handle, width, height, Math.Max(depth, 1));
 
-            if (_width != width || _height != height || _depth != depth)
-            {
-                if (!IsMutable && _isAllocated)
-                    throw new InvalidOperationException("Immutable texture size changed");
-                _isAllocated = false;
-            }
+            _internalFormat = GlUtils.GetInternalFormat(format, compression, blockSize);
 
-            _width = width;
-            _height = height;
-            _depth = depth;
-
-            if (data != null && data.Count > 1)
-            {
-                MaxLevel = data.Max(a => a.MipLevel);
-            }
-            else
-            {
-                if (MaxLevel > 0)
-                {
-                    var realMax = (uint)MathF.Floor(MathF.Log2(Math.Max(_width, _height)));
-                    if (MaxLevel > realMax)
-                        MaxLevel = realMax;
-                }
-            }
+            ClampMaxLevel(width, height);
 
             Bind();
 
             UpdateSampler();
 
+            AllocateStorage(width, height, depth, format);
+
+            Unbind();
+        }
+
+        public void UploadFull(IList<TextureData> data)
+        {
+            if (data.Count == 0)
+                throw new InvalidOperationException("Texture data is empty");
+
+            var width = data.Max(a => a.Width);
+            var height = data.Max(a => a.Height);
+            var depth = GetDataDepth(data);
+            var blockSize = data[0].BlockSize;
+
+            UploadFull(width, height, depth, data[0].Format, data[0].Compression, data, blockSize);
+        }
+
+        public void UploadFull(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format,
+            TextureCompressionFormat compression,
+            IList<TextureData> data,
+            uint blockSize = 0)
+        {
+            if (data.Count == 0)
+                throw new InvalidOperationException("Texture data is empty");
+
+            if (width == 0 || height == 0)
+                return;
+
+            if (EnableDebug)
+                Log.Debug(this, "Upload texture '{0}' {1}x{2}x{3}", _handle, width, height, Math.Max(depth, 1));
+
+            if (data.Count > 1)
+                MaxLevel = data.Max(a => a.MipLevel);
+            else
+                ClampMaxLevel(width, height);
+
             _internalFormat = GlUtils.GetInternalFormat(format, compression, blockSize);
 
+            Bind();
+
+            UpdateSampler();
+
             if (compression == TextureCompressionFormat.Uncompressed)
+                UploadUncompressedFull(width, height, depth, format, data);
+            else
+                UploadCompressedFull(width, height, depth, data);
+
+            if (data.Count == 1 && MaxLevel > 0 && !_isCompressed)
+                _gl.GenerateMipmap(Target);
+
+            Unbind();
+        }
+
+        public unsafe void UploadRegion(TextureRegion region)
+        {
+            if (region.Data == null)
+                throw new InvalidOperationException("Upload region has no data");
+
+            if (!_isAllocated)
+                throw new InvalidOperationException("Texture storage is not allocated");
+
+            if (_isCompressed)
+                throw new NotSupportedException("Use full compressed uploads for compressed textures");
+
+            Bind();
+
+            GlUtils.GetPixelFormat(region.Format, out var pixelFormat, out var pixelType);
+
+            using var pData = region.Data.MemoryLock();
+
+            var realTarget = GetLayerTarget(region.Layer);
+            var uploadDepth = Math.Max(region.Depth, 1);
+
+            if (Target != TextureTarget.TextureCubeMap && _depth > 1)
             {
-                Debug.Assert(!_isCompressed);
-
-                if (!_isAllocated && !IsMutable)
-                {
-                    if (_depth > 1 && Target != TextureTarget.TextureCubeMap)
-                    {
-                        if (SampleCount > 1 && Target == TextureTarget.Texture2DMultisampleArray)
-                        {
-                            _gl.TexStorage3DMultisample(
-                                Target,
-                                SampleCount,
-                                (SizedInternalFormat)_internalFormat,
-                                width,
-                                height,
-                                depth,
-                                true);
-                        }
-                        else
-                        {
-                            _gl.TexStorage3D(
-                                Target,
-                                MaxLevel + 1,
-                                (SizedInternalFormat)_internalFormat,
-                                width,
-                                height,
-                                depth);
-
-                        }
-                    }
-                    else
-                    {
-                        if (SampleCount > 1 && Target == TextureTarget.Texture2DMultisample)
-                        {
-                            _gl.TexStorage2DMultisample(
-                                 Target,
-                                 SampleCount,
-                                 (SizedInternalFormat)_internalFormat,
-                                 width,
-                                 height,
-                                 true);
-                        }
-                        else
-                        {
-                            _gl.TexStorage2D(Target,
-                                   MaxLevel + 1,
-                                   (SizedInternalFormat)_internalFormat,
-                                   width,
-                                   height);
-
-                        }
-                    }
-
-                    _isAllocated = true;
-                }
-
-
-                if (data != null)
-                {
-                    foreach (var entry in data)
-                    {
-                        var realTarget = Target == TextureTarget.TextureCubeMap ?
-                                                   TextureTarget.TextureCubeMapPositiveX + (int)entry.Layer : Target;
-
-                        byte* pData = null;
-
-                        if (entry.Data != null)
-                            pData = entry.Data.Lock();
-
-                        if (!_isAllocated || pData != null)
-                        {
-                            GlUtils.GetPixelFormat(entry.Format, out var pixelFormat, out var pixelType);
-
-                            if (!_isAllocated)
-                            {
-                                Debug.Assert(IsMutable);
-
-                                if (_depth > 1)
-                                {
-#warning I SHOULD ALLOCATE ONLY NEEDED MIP LEVELS AND NOT ONE TexImage3D for each LAYER 
-                                    _gl.TexImage3D(
-                                         realTarget,
-                                         (int)entry.MipLevel,
-                                         _internalFormat,
-                                         entry.Width,
-                                         entry.Height,
-                                         entry.Depth,
-                                         0,
-                                         pixelFormat,
-                                         pixelType,
-                                         pData);
-                                }
-                                else
-                                {
-                                    _gl.TexImage2D(
-                                          realTarget,
-                                          (int)entry.MipLevel,
-                                          _internalFormat,
-                                          entry.Width,
-                                          entry.Height,
-                                          0,
-                                          pixelFormat,
-                                          pixelType,
-                                          pData);
-                                }
-
-                            }
-                            else if (_isAllocated)
-                            {
-                                if (_depth > 1 && Target != TextureTarget.TextureCubeMap)
-                                {
-                                    _gl.TexSubImage3D(
-                                         realTarget,
-                                         (int)entry.MipLevel,
-                                         0,
-                                         0,
-                                         (int)entry.Layer,
-                                         entry.Width,
-                                         entry.Height,
-                                         1,
-                                         pixelFormat,
-                                         pixelType,
-                                         pData);
-                                }
-                                else
-                                {
-                                    _gl.TexSubImage2D(
-                                            realTarget,
-                                            (int)entry.MipLevel,
-                                            0,
-                                            0,
-                                            entry.Width,
-                                            entry.Height,
-                                            pixelFormat,
-                                            pixelType,
-                                            pData);
-                                }
-
-                            }
-
-                        }
-
-                        entry.Data?.Unlock();
-                    }
-
-
-                    _isAllocated = true;
-                }
+                _gl.TexSubImage3D(
+                    realTarget,
+                    (int)region.MipLevel,
+                    region.X,
+                    region.Y,
+                    region.Z,
+                    region.Width,
+                    region.Height,
+                    uploadDepth,
+                    pixelFormat,
+                    pixelType,
+                    pData);
             }
             else
             {
-                Debug.Assert(data != null);
-
-                uint maxLevel = 0;
-
-                foreach (var level in data)
-                {
-                    var realTarget = Target == TextureTarget.TextureCubeMap ?
-                                    (TextureTarget.TextureCubeMapPositiveX + (int)level.Layer) :
-                                    Target;
-
-                    Debug.Assert(level.Data != null);
-
-                    using var pData = level.Data.MemoryLock();
-
-                    _gl.CompressedTexImage2D(
-                        realTarget,
-                        (int)level.MipLevel,
-                        _internalFormat,
-                        level.Width,
-                        level.Height,
-                        0,
-                        level.Data.Size,
-                        pData);
-
-                    _gl.CheckError();
-
-                    maxLevel = Math.Max(level.MipLevel, maxLevel);
-                }
-
-                if (maxLevel != MaxLevel)
-                {
-                    MaxLevel = maxLevel;
-                    UpdateSampler();
-                }
-
-                _isCompressed = true;
+                _gl.TexSubImage2D(
+                    realTarget,
+                    (int)region.MipLevel,
+                    region.X,
+                    region.Y,
+                    region.Width,
+                    region.Height,
+                    pixelFormat,
+                    pixelType,
+                    pData);
             }
 
-            if (data != null && data.Count == 1 && MaxLevel > 0 && !_isCompressed)
-                _gl.GenerateMipmap(Target);
+            Unbind();
         }
 
         public void Clear(Color color, int level = 0)
@@ -401,7 +366,7 @@ namespace XrEngine.OpenGL
             if (_clearExt == null)
                 _gl.TryGetExtension<ExtClearTexture>(out _clearExt);
 
-            _clearExt.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
+            _clearExt!.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
 #else
             _gl.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
 #endif
@@ -410,15 +375,15 @@ namespace XrEngine.OpenGL
         public void Update()
         {
             Bind();
-
             UpdateSampler();
-
             Unbind();
         }
 
         protected internal void UpdateSampler()
         {
-            var isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            var isMultiSample =
+                Target == TextureTarget.Texture2DMultisample ||
+                Target == TextureTarget.Texture2DMultisampleArray;
 
             if (MaxLevel > 0)
             {
@@ -476,9 +441,14 @@ namespace XrEngine.OpenGL
             if (_handle != 0)
             {
                 GlState.Current!.ResetTextures();
-                _gl.DeleteTexture(_handle);
+
+                if (!_isAttached)
+                    _gl.DeleteTexture(_handle);
+
                 _attached.Remove(_handle);
-                Log.Debug(this, "Tex {0} deleted", _handle);
+
+                if (!_isAttached)
+                    Log.Debug(this, "Tex {0} deleted", _handle);
             }
 
             if (Source is Texture tex)
@@ -488,6 +458,7 @@ namespace XrEngine.OpenGL
             }
 
             _isAllocated = false;
+            _isAttached = false;
             _width = 0;
             _height = 0;
             _isCompressed = false;
@@ -508,8 +479,365 @@ namespace XrEngine.OpenGL
         {
             if (!_attached.TryGetValue(handle, out var texture))
                 texture = new GlTexture(gl, handle, sampleCount, target);
+
             return texture;
         }
+
+
+        protected unsafe void UploadUncompressedFull(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format,
+            IList<TextureData> data)
+        {
+            AllocateStorage(width, height, depth, format);
+
+            GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
+
+            foreach (var entry in data)
+            {
+                if (entry.Data == null)
+                    continue;
+
+                var realTarget = GetLayerTarget(entry.Layer);
+                var uploadDepth = Math.Max(entry.Depth, 1);
+
+                using var pData = entry.Data.MemoryLock();
+
+                if (Target != TextureTarget.TextureCubeMap && _depth > 1)
+                {
+                    _gl.TexSubImage3D(
+                        realTarget,
+                        (int)entry.MipLevel,
+                        0,
+                        0,
+                        (int)entry.Layer,
+                        entry.Width,
+                        entry.Height,
+                        uploadDepth,
+                        pixelFormat,
+                        pixelType,
+                        pData);
+                }
+                else
+                {
+                    _gl.TexSubImage2D(
+                        realTarget,
+                        (int)entry.MipLevel,
+                        0,
+                        0,
+                        entry.Width,
+                        entry.Height,
+                        pixelFormat,
+                        pixelType,
+                        pData);
+                }
+            }
+
+            _isCompressed = false;
+        }
+
+        protected unsafe void UploadCompressedFull(
+            uint width,
+            uint height,
+            uint depth,
+            IList<TextureData> data)
+        {
+            if (Target == TextureTarget.Texture2DArray ||
+                Target == TextureTarget.Texture2DMultisampleArray)
+            {
+                AllocateCompressedArrayStorage(width, height, depth);
+
+                foreach (var entry in data)
+                {
+                    if (entry.Data == null)
+                        throw new InvalidOperationException("Compressed texture data is missing");
+
+                    using var pData = entry.Data.MemoryLock();
+
+                    _gl.CompressedTexSubImage3D(
+                        Target,
+                        (int)entry.MipLevel,
+                        0,
+                        0,
+                        (int)entry.Layer,
+                        entry.Width,
+                        entry.Height,
+                        1,
+                        _internalFormat,
+                        entry.Data.Size,
+                        pData);
+
+                    _gl.CheckError();
+                }
+            }
+            else
+            {
+                foreach (var entry in data)
+                {
+                    if (entry.Data == null)
+                        throw new InvalidOperationException("Compressed texture data is missing");
+
+                    var realTarget = GetLayerTarget(entry.Layer);
+
+                    using var pData = entry.Data.MemoryLock();
+
+                    _gl.CompressedTexImage2D(
+                        realTarget,
+                        (int)entry.MipLevel,
+                        _internalFormat,
+                        entry.Width,
+                        entry.Height,
+                        0,
+                        entry.Data.Size,
+                        pData);
+
+                    _gl.CheckError();
+                }
+
+                _width = width;
+                _height = height;
+                _depth = Math.Max(depth, 1);
+                _isAllocated = true;
+            }
+
+            _isCompressed = true;
+        }
+
+        protected void AllocateStorage(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format)
+        {
+            var normalizedDepth = Math.Max(depth, 1);
+
+            if (_width != width ||
+                _height != height ||
+                _depth != normalizedDepth ||
+                _internalFormat != 0 && _internalFormat != GlUtils.GetInternalFormat(format, TextureCompressionFormat.Uncompressed, 0))
+            {
+                if (!IsMutable && _isAllocated)
+                    throw new InvalidOperationException("Immutable texture storage changed");
+
+                _isAllocated = false;
+            }
+
+            _width = width;
+            _height = height;
+            _depth = normalizedDepth;
+
+            if (_isAllocated)
+                return;
+
+            if (SampleCount > 1)
+            {
+                AllocateMultisampleStorage(width, height, normalizedDepth);
+                _isAllocated = true;
+                return;
+            }
+
+            if (!IsMutable)
+            {
+                AllocateImmutableStorage(width, height, normalizedDepth);
+                _isAllocated = true;
+                return;
+            }
+
+            AllocateMutableStorage(width, height, normalizedDepth, format);
+            _isAllocated = true;
+        }
+
+        protected void AllocateImmutableStorage(uint width, uint height, uint depth)
+        {
+            if (depth > 1 && Target != TextureTarget.TextureCubeMap)
+            {
+                _gl.TexStorage3D(
+                    Target,
+                    MaxLevel + 1,
+                    (SizedInternalFormat)_internalFormat,
+                    width,
+                    height,
+                    depth);
+            }
+            else
+            {
+                _gl.TexStorage2D(
+                    Target,
+                    MaxLevel + 1,
+                    (SizedInternalFormat)_internalFormat,
+                    width,
+                    height);
+            }
+        }
+
+        protected unsafe void AllocateMutableStorage(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format)
+        {
+            GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
+
+            if (Target == TextureTarget.TextureCubeMap)
+            {
+                for (var face = 0; face < 6; face++)
+                {
+                    var realTarget = (TextureTarget)((int)TextureTarget.TextureCubeMapPositiveX + face);
+
+                    for (uint level = 0; level <= MaxLevel; level++)
+                    {
+                        var levelWidth = GetMipSize(width, level);
+                        var levelHeight = GetMipSize(height, level);
+
+                        _gl.TexImage2D(
+                            realTarget,
+                            (int)level,
+                            _internalFormat,
+                            levelWidth,
+                            levelHeight,
+                            0,
+                            pixelFormat,
+                            pixelType,
+                            null);
+                    }
+                }
+
+                return;
+            }
+
+            if (depth > 1)
+            {
+                for (uint level = 0; level <= MaxLevel; level++)
+                {
+                    var levelWidth = GetMipSize(width, level);
+                    var levelHeight = GetMipSize(height, level);
+
+                    _gl.TexImage3D(
+                        Target,
+                        (int)level,
+                        _internalFormat,
+                        levelWidth,
+                        levelHeight,
+                        depth,
+                        0,
+                        pixelFormat,
+                        pixelType,
+                        null);
+                }
+
+                return;
+            }
+
+            for (uint level = 0; level <= MaxLevel; level++)
+            {
+                var levelWidth = GetMipSize(width, level);
+                var levelHeight = GetMipSize(height, level);
+
+                _gl.TexImage2D(
+                    Target,
+                    (int)level,
+                    _internalFormat,
+                    levelWidth,
+                    levelHeight,
+                    0,
+                    pixelFormat,
+                    pixelType,
+                    null);
+            }
+        }
+
+        protected void AllocateMultisampleStorage(uint width, uint height, uint depth)
+        {
+            if (depth > 1 && Target == TextureTarget.Texture2DMultisampleArray)
+            {
+                _gl.TexStorage3DMultisample(
+                    Target,
+                    SampleCount,
+                    (SizedInternalFormat)_internalFormat,
+                    width,
+                    height,
+                    depth,
+                    true);
+
+                return;
+            }
+
+            _gl.TexStorage2DMultisample(
+                Target,
+                SampleCount,
+                (SizedInternalFormat)_internalFormat,
+                width,
+                height,
+                true);
+        }
+
+        protected void AllocateCompressedArrayStorage(uint width, uint height, uint depth)
+        {
+            var normalizedDepth = Math.Max(depth, 1);
+
+            if (_width != width ||
+                _height != height ||
+                _depth != normalizedDepth ||
+                _internalFormat == 0)
+            {
+                if (_isAllocated)
+                    throw new InvalidOperationException("Compressed array texture storage changed");
+
+                _isAllocated = false;
+            }
+
+            _width = width;
+            _height = height;
+            _depth = normalizedDepth;
+
+            if (_isAllocated)
+                return;
+
+            _gl.TexStorage3D(
+                Target,
+                MaxLevel + 1,
+                (SizedInternalFormat)_internalFormat,
+                width,
+                height,
+                normalizedDepth);
+
+            _isAllocated = true;
+        }
+
+        protected TextureTarget GetLayerTarget(uint layer)
+        {
+            if (Target == TextureTarget.TextureCubeMap)
+                return (TextureTarget)((int)TextureTarget.TextureCubeMapPositiveX + (int)layer);
+
+            return Target;
+        }
+
+        protected void ClampMaxLevel(uint width, uint height)
+        {
+            if (MaxLevel == 0)
+                return;
+
+            var realMax = (uint)MathF.Floor(MathF.Log2(Math.Max(width, height)));
+
+            if (MaxLevel > realMax)
+                MaxLevel = realMax;
+        }
+
+        protected static uint GetMipSize(uint size, uint level)
+        {
+            return Math.Max(size >> (int)level, 1);
+        }
+
+        protected static uint GetDataDepth(IList<TextureData> data)
+        {
+            var depthFromLayers = data.Max(a => a.Layer) + 1;
+            var depthFromData = data.Max(a => a.Depth);
+
+            return Math.Max(depthFromLayers, Math.Max(depthFromData, 1));
+        }
+
 
         public long Version { get; set; }
 
@@ -550,6 +878,5 @@ namespace XrEngine.OpenGL
         public bool IsAttached => _isAttached;
 
         public bool IsDepth => _internalFormat.IsDepth();
-
     }
 }

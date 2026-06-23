@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEngine
 {
-
+  
     public class Texture2D : Texture
     {
         public static Texture2D FromImage(string fileName)
@@ -46,31 +46,72 @@ namespace XrEngine
             return new Texture2D(data);
         }
 
-        public Texture2D() { }
+
+        public Texture2D()
+        {
+        }
 
         public Texture2D(IList<TextureData> data)
             : base(data)
         {
         }
 
+
         public override void LoadData(IList<TextureData> data, bool initSampler = true)
         {
+            if (data.Count == 0)
+                throw new InvalidOperationException("Texture data is empty");
+
             Height = data.Max(a => a.Height);
-            Depth = data.Max(a => a.Layer) + 1;
 
-            if (initSampler)
-            {
-                if (WrapT == 0)
-                    WrapT = WrapMode.ClampToEdge;
+            var depthFromLayers = data.Max(a => a.Layer) + 1;
+            var depthFromData = data.Max(a => a.Depth);
 
-                if (data.Count > 1)
-                    MipLevelCount = data.Max(a => a.MipLevel) + 1;
+            Depth = Math.Max(depthFromLayers, Math.Max(depthFromData, 1));
 
-                if (MipLevelCount > 0 && MinFilter == 0)
-                    MinFilter = ScaleFilter.LinearMipmapLinear;
-            }
+            if (data.Count > 1)
+                MipLevelCount = data.Max(a => a.MipLevel) + 1;
+            else
+                MipLevelCount = 0;
 
             base.LoadData(data, initSampler);
+        }
+
+        public void SetDescription(
+            uint width,
+            uint height,
+            TextureFormat format,
+            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
+            bool initSampler = true)
+        {
+            SetDescription(width, height, 1, format, compression, 0, initSampler);
+        }
+
+        public void SetDescription(
+            uint width,
+            uint height,
+            uint depth,
+            TextureFormat format,
+            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
+            uint mipLevelCount = 0,
+            bool initSampler = true)
+        {
+            Height = height;
+            Depth = Math.Max(depth, 1);
+            MipLevelCount = mipLevelCount;
+
+            base.SetDescription(width, format, compression, initSampler);
+        }
+
+        protected override void InitSampler()
+        {
+            if (WrapT == 0)
+                WrapT = WrapMode.ClampToEdge;
+
+            if (MipLevelCount > 0 && MinFilter == 0)
+                MinFilter = ScaleFilter.LinearMipmapLinear;
+
+            base.InitSampler();
         }
 
 

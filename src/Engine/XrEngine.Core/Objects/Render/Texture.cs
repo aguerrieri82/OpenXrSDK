@@ -1,7 +1,11 @@
-﻿
+﻿using Common.Interop;
+using XrEngine;
+
+
 
 namespace XrEngine
 {
+
 
     public enum TextureFormat
     {
@@ -41,6 +45,7 @@ namespace XrEngine
         GrayRawSInt16
     }
 
+
     public enum TextureCompressionFormat
     {
         Uncompressed = 0,
@@ -50,9 +55,8 @@ namespace XrEngine
         Bc1 = 0x31545844,
         Bc7 = 0x20374342,
         Astc = 0x43545341
-
-
     }
+
 
     public enum WrapMode
     {
@@ -62,6 +66,7 @@ namespace XrEngine
         MirrorRepeat = 33648,
     }
 
+
     public enum ScaleFilter
     {
         Nearest = 9728,
@@ -69,6 +74,7 @@ namespace XrEngine
         LinearMipmapLinear = 9987,
         TriLinear = LinearMipmapLinear
     }
+
 
     public enum TextureType
     {
@@ -80,14 +86,17 @@ namespace XrEngine
     }
 
 
-    public abstract class Texture : EngineObject, IDisposable
+    public abstract class Texture : EngineObject, IDisposable, IGpuObject
     {
-        protected Texture() { }
+        protected Texture()
+        {
+        }
 
         protected Texture(IList<TextureData> data)
         {
             LoadData(data);
         }
+
 
         public void LoadData(TextureData data, bool initSampler = true)
         {
@@ -96,24 +105,47 @@ namespace XrEngine
 
         public virtual void LoadData(IList<TextureData> data, bool initSampler = true)
         {
+            if (data.Count == 0)
+                throw new InvalidOperationException("Texture data is empty");
+
             Data = data;
             Width = data.Max(a => a.Width);
             Format = data[0].Format;
             Compression = data[0].Compression;
 
             if (initSampler)
-            {
-                if (MinFilter == 0)
-                    MinFilter = ScaleFilter.Linear;
-
-                if (MagFilter == 0)
-                    MagFilter = ScaleFilter.Linear;
-
-                if (WrapS == 0)
-                    WrapS = WrapMode.ClampToEdge;
-            }
+                InitSampler();
 
             NotifyChanged(ChangeType.Render);
+        }
+
+        public virtual void SetDescription(
+            uint width,
+            TextureFormat format,
+            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
+            bool initSampler = true)
+        {
+            Width = width;
+            Format = format;
+            Compression = compression;
+            Data = null;
+
+            if (initSampler)
+                InitSampler();
+
+            NotifyChanged(ChangeType.Render);
+        }
+
+        protected virtual void InitSampler()
+        {
+            if (MinFilter == 0)
+                MinFilter = ScaleFilter.Linear;
+
+            if (MagFilter == 0)
+                MagFilter = ScaleFilter.Linear;
+
+            if (WrapS == 0)
+                WrapS = WrapMode.ClampToEdge;
         }
 
         public void NotifyLoaded()
@@ -132,6 +164,7 @@ namespace XrEngine
         {
             parts.Add($"Texture-{DateTime.UtcNow.Ticks}");
         }
+
 
         public IList<TextureData>? Data { get; set; }
 
@@ -155,4 +188,6 @@ namespace XrEngine
 
         public string? Hash { get; set; }
     }
+
+
 }

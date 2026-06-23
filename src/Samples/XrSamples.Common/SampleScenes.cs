@@ -42,6 +42,7 @@ using XrEngine.OpenGL;
 
 
 
+
 namespace XrSamples
 {
     public static class SampleScenes
@@ -1387,13 +1388,62 @@ namespace XrSamples
                             var val = thumb.Value.X;
                             if (Math.Abs(val) > 0.4f)
                             {
-                                snapeshot.Mesh?.Transform.SetPositionY(group.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
+                                snapeshot.Mesh?.Transform.SetPositionY(snapeshot.Mesh.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
                             }
                         }
                     });
                 });
         }
 
+
+        [Sample("Snapeshot View")]
+        public static XrEngineAppBuilder CreateDepthSnapeshotView(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
+
+            var mesh = AssetLoader.Instance.Load<TriangleMesh>(Path.Combine(path, "reconstruct_final.obj"));
+            var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(path, "reconstruct_final.jpg"));
+            mesh.Materials.Add(new TextureMaterial(tex));
+
+            scene.AddChild(mesh);
+
+            var player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
+            {
+                IsVisible = false,
+                Name = "Player"
+            };
+
+            player.Transform.SetScale(0.3f, 1.7f, 0.3f);
+            player.AddComponent(new XrPlayer
+            {
+                Height = 0f
+            });
+
+            scene.AddChild(player);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .UseTeleport(ControllerHand.Right, player!, new FloorTeleportTarget())
+                .ConfigureSampleApp(false)
+                .ConfigureApp(a =>
+                {
+                    scene.AddBehavior((_, ctx) =>
+                    {
+                        var thumb = a.Inputs!.Right!.Thumbstick;
+                        if (thumb!.IsActive)
+                        {
+                            var val = thumb.Value.X;
+                            if (Math.Abs(val) > 0.4f)
+                                mesh.Transform.SetPositionY(mesh.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
+                        }
+                    });
+                });
+        }
 
 
         [Sample("Tac")]

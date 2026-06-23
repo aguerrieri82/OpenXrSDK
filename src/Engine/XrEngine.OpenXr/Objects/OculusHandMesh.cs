@@ -82,7 +82,7 @@ namespace XrEngine.OpenXr
             {
                 var current = joints[i].Pose.ToPose3().ToMatrix();
 
-                _skinMatrices[i] = _invBindMatrices[i] * current;
+                _skinMatrices[i] = _invBindMatrices[i] * current * XrApp.Current!.ReferenceFrame.ToMatrix();
             }
             _skinVersion++;
         }

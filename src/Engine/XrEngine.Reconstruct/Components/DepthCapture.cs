@@ -13,6 +13,7 @@ using XrEngine.Devices;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
+using TurboJpeg;
 
 
 namespace XrEngine.Reconstruct
@@ -1565,6 +1566,36 @@ namespace XrEngine.Reconstruct
         {
             _captureBtn = input.Right!.Button!.AClick!;
             _deleteBtn = input.Right!.Button!.BClick!;
+        }
+
+
+        [Action]
+        public async Task Export()
+        {
+            if (_recMesh == null)
+                return;
+
+            var objWriter = new ObjWriter();
+
+            objWriter.Add(_recMesh);
+
+            File.WriteAllText(Path.Combine(_lastPath!, "reconstruct_final.obj"), objWriter.Text());
+
+            if (_atlasTex != null)
+            {
+                await EngineApp.RenderThread;
+
+                var data = GlImageProc.Read(_atlasTex.ToGlTexture(), TextureFormat.Rgb24);
+
+                var jpeg = TurboJpegLib.Compress(new TurboJpegLib.ImageData
+                {
+                    Data = data![0]!.Data!.AsSpan().ToArray(),
+                    Width = (int)_atlasTex.Width,
+                    Height = (int)_atlasTex.Height
+                }, 90, TurboJpegLib.TJPF.TJPF_RGB);
+
+                File.WriteAllBytes(Path.Combine(_lastPath!, "reconstruct_final.jpg"), jpeg);
+            }
         }
 
         public TriangleMesh? Mesh => _recMesh;

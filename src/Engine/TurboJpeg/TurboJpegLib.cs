@@ -182,44 +182,188 @@ namespace TurboJpeg
 
         const string DllName = "turbojpeg-native";
 
+        [DllImport(DllName)]
+        public static extern IntPtr tjInitCompress();
 
         [DllImport(DllName)]
         public static extern IntPtr tjInitDecompress();
 
+        [DllImport(DllName)]
+        public static extern int tjCompress2(
+            IntPtr handle,
+            byte* srcBuf,
+            int width,
+            int pitch,
+            int height,
+            TJPF pixelFormat,
+            ref IntPtr jpegBuf,
+            ref ulong jpegSize,
+            TJSAMP jpegSubsamp,
+            int jpegQual,
+            TJFLAG flags);
 
         [DllImport(DllName)]
-        public static extern int tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
+        public static extern int tjDecompressHeader2(
+            IntPtr handle,
+            byte* jpegBuf,
+            ulong jpegSize,
+            out int width,
+            out int height,
+            out TJSAMP jpegSubsamp);
 
         [DllImport(DllName)]
-        public static extern int tjDecompress2(IntPtr handle, byte* jpegBuf, ulong jpegSize, byte* dstBuf, int width, int pitch, int height, TJPF pixelFormat, TJFLAG flags);
+        public static extern int tjDecompress2(
+            IntPtr handle,
+            byte* jpegBuf,
+            ulong jpegSize,
+            byte* dstBuf,
+            int width,
+            int pitch,
+            int height,
+            TJPF pixelFormat,
+            TJFLAG flags);
+
+        [DllImport(DllName)]
+        public static extern void tjFree(IntPtr buffer);
 
         [DllImport(DllName)]
         public static extern int tjDestroy(IntPtr handle);
 
+        [DllImport(DllName)]
+        private static extern IntPtr tjGetErrorStr();
+
+        public static byte[] Compress(
+            ImageData image,
+            int quality = 90,
+            TJPF pixelFormat = TJPF.TJPF_RGBA,
+            TJSAMP subSamp = TJSAMP.TJSAMP_420,
+            TJFLAG flags = TJFLAG.TJFLAG_FASTDCT)
+        {
+            if (image.Data == null)
+                throw new ArgumentException("Image data is null", nameof(image));
+
+            return Compress(image.Data, image.Width, image.Height, quality, subSamp, pixelFormat, flags);
+        }
+
+        public static byte[] Compress(
+            byte[] rgba,
+            int width,
+            int height,
+            int quality = 90,
+            TJSAMP subSamp = TJSAMP.TJSAMP_420,
+            TJPF pixelFormat = TJPF.TJPF_RGBA,
+            TJFLAG flags = TJFLAG.TJFLAG_FASTDCT)
+        {
+            var handle = tjInitCompress();
+
+            if (handle == IntPtr.Zero)
+                throw new InvalidOperationException("tjInitCompress failed");
+
+            var jpegBuf = IntPtr.Zero;
+            var jpegSize = 0UL;
+
+            try
+            {
+                fixed (byte* pIn = rgba)
+                {
+                    var result = tjCompress2(
+                        handle,
+                        pIn,
+                        width,
+                        0,
+                        height,
+                        pixelFormat,
+                        ref jpegBuf,
+                        ref jpegSize,
+                        subSamp,
+                        quality,
+                        flags);
+
+                    if (result != 0)
+                        throw new InvalidOperationException("tjCompress2 failed: " + GetError());
+                }
+
+                if (jpegSize > int.MaxValue)
+                    throw new InvalidOperationException("Compressed JPEG is too large");
+
+                var res = new byte[(int)jpegSize];
+                Marshal.Copy(jpegBuf, res, 0, res.Length);
+
+                return res;
+            }
+            finally
+            {
+                if (jpegBuf != IntPtr.Zero)
+                    tjFree(jpegBuf);
+
+                tjDestroy(handle);
+            }
+        }
 
         public static ImageData Decompress(byte[] data)
         {
-            var res = new ImageData();
+            var handle = tjInitDecompress();
 
-            var handler = tjInitDecompress();
+            if (handle == IntPtr.Zero)
+                throw new InvalidOperationException("tjInitDecompress failed");
 
-            fixed (byte* pIn = data)
+            try
             {
-                tjDecompressHeader2(handler, pIn, (ulong)data.Length, out var width, out var height, out var subSamp);
-                res.Width = width;
-                res.Height = height;
-                res.Data = new byte[width * height * 4];
-
-                fixed (byte* pOut = res.Data)
+                fixed (byte* pIn = data)
                 {
-                    tjDecompress2(handler, pIn, (ulong)data.Length, pOut, width, 0, height, TJPF.TJPF_RGBA, TJFLAG.TJFLAG_FASTDCT);
+                    var result = tjDecompressHeader2(
+                        handle,
+                        pIn,
+                        (ulong)data.Length,
+                        out var width,
+                        out var height,
+                        out var subSamp);
+
+                    if (result != 0)
+                        throw new InvalidOperationException("tjDecompressHeader2 failed: " + GetError());
+
+                    var res = new ImageData
+                    {
+                        Width = width,
+                        Height = height,
+                        Data = new byte[width * height * 4]
+                    };
+
+                    fixed (byte* pOut = res.Data)
+                    {
+                        result = tjDecompress2(
+                            handle,
+                            pIn,
+                            (ulong)data.Length,
+                            pOut,
+                            width,
+                            0,
+                            height,
+                            TJPF.TJPF_RGBA,
+                            TJFLAG.TJFLAG_FASTDCT);
+
+                        if (result != 0)
+                            throw new InvalidOperationException("tjDecompress2 failed: " + GetError());
+                    }
+
+                    return res;
                 }
             }
+            finally
+            {
+                tjDestroy(handle);
+            }
+        }
 
-            tjDestroy(handler);
+        private static string GetError()
+        {
+            var ptr = tjGetErrorStr();
 
-            return res;
+            if (ptr == IntPtr.Zero)
+                return "Unknown TurboJPEG error";
 
+            return Marshal.PtrToStringAnsi(ptr) ?? "Unknown TurboJPEG error";
         }
     }
 }
+

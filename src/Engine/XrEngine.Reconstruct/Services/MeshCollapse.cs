@@ -46,13 +46,15 @@ namespace XrEngine
                 int newVertexCount,
                 int oldTriangleCount,
                 int newTriangleCount,
-                int removedZeroAreaTriangles)
+                int removedZeroAreaTriangles,
+                int recoveredSingleTriangleHoles)
             {
                 OldVertexCount = oldVertexCount;
                 NewVertexCount = newVertexCount;
                 OldTriangleCount = oldTriangleCount;
                 NewTriangleCount = newTriangleCount;
                 RemovedZeroAreaTriangles = removedZeroAreaTriangles;
+                RecoveredSingleTriangleHoles = recoveredSingleTriangleHoles;
             }
 
             public int OldVertexCount { get; }
@@ -64,6 +66,8 @@ namespace XrEngine
             public int NewTriangleCount { get; }
 
             public int RemovedZeroAreaTriangles { get; }
+
+            public int RecoveredSingleTriangleHoles { get; }
         }
 
         #endregion
@@ -123,6 +127,13 @@ namespace XrEngine
         /// This is not triangle area directly; it is based on <c>LengthSquared(Cross(edge1, edge2))</c>.
         /// Keep very small unless collapsed triangles leave visible needle/degenerate artifacts.
         /// </param>
+        /// <param name="recoverSingleTriangleHoles">
+        /// If true, does a final conservative recovery pass for triangles removed only by the area filter.
+        ///
+        /// A removed triangle is restored only when all 3 of its edges already touch alive triangles.
+        /// This fills isolated single-triangle holes caused by over-aggressive collapse cleanup without
+        /// resurrecting open-border garbage or duplicated-index degenerate triangles.
+        /// </param>
         /// <returns>
         /// Counts describing how much geometry was removed by the collapse.
         /// </returns>
@@ -132,7 +143,8 @@ namespace XrEngine
             float cellSize = 0,
             bool averageUv = false,
             bool recomputeNormals = true,
-            float areaEpsilon = 0.000000000001f)
+            float areaEpsilon = 0.000000000001f,
+            bool recoverSingleTriangleHoles = false)
         {
             geometry.EnsureIndices();
 
@@ -157,7 +169,9 @@ namespace XrEngine
                 remap,
                 newVertices,
                 areaEpsilon,
-                out var removedZeroAreaTriangles);
+                recoverSingleTriangleHoles,
+                out var removedZeroAreaTriangles,
+                out var recoveredSingleTriangleHoles);
 
             CompactUsedVertices(ref newVertices, newIndices);
 
@@ -172,7 +186,8 @@ namespace XrEngine
                 newVertices.Length,
                 oldIndices.Length / 3,
                 newIndices.Length / 3,
-                removedZeroAreaTriangles);
+                removedZeroAreaTriangles,
+                recoveredSingleTriangleHoles);
         }
 
         private static Dictionary<CellKey, List<int>> BuildVertexIndex(
@@ -287,20 +302,32 @@ namespace XrEngine
             uint[] remap,
             VertexData[] vertices,
             float areaEpsilon,
-            out int removedZeroAreaTriangles)
+            bool recoverSingleTriangleHoles,
+            out int removedZeroAreaTriangles,
+            out int recoveredSingleTriangleHoles)
         {
-            var result = new List<uint>(oldIndices.Length);
-            removedZeroAreaTriangles = 0;
+            var triCount = oldIndices.Length / 3;
+            var remappedIndices = new uint[oldIndices.Length];
+            var alive = new bool[triCount];
+            var recoverable = new bool[triCount];
 
-            for (var i = 0; i < oldIndices.Length; i += 3)
+            var removedCandidates = 0;
+
+            for (var tri = 0; tri < triCount; tri++)
             {
+                var i = tri * 3;
+
                 var a = remap[oldIndices[i + 0]];
                 var b = remap[oldIndices[i + 1]];
                 var c = remap[oldIndices[i + 2]];
 
+                remappedIndices[i + 0] = a;
+                remappedIndices[i + 1] = b;
+                remappedIndices[i + 2] = c;
+
                 if (a == b || b == c || c == a)
                 {
-                    removedZeroAreaTriangles++;
+                    removedCandidates++;
                     continue;
                 }
 
@@ -312,16 +339,126 @@ namespace XrEngine
 
                 if (areaSq <= areaEpsilon)
                 {
-                    removedZeroAreaTriangles++;
+                    removedCandidates++;
+                    recoverable[tri] = true;
                     continue;
                 }
 
-                result.Add(a);
-                result.Add(b);
-                result.Add(c);
+                alive[tri] = true;
+            }
+
+            if (recoverSingleTriangleHoles)
+                recoveredSingleTriangleHoles = RecoverSingleTriangleHoles(remappedIndices, alive, recoverable);
+            else
+                recoveredSingleTriangleHoles = 0;
+
+            removedZeroAreaTriangles = removedCandidates - recoveredSingleTriangleHoles;
+
+            var result = new List<uint>(oldIndices.Length);
+
+            for (var tri = 0; tri < triCount; tri++)
+            {
+                if (!alive[tri])
+                    continue;
+
+                var i = tri * 3;
+
+                result.Add(remappedIndices[i + 0]);
+                result.Add(remappedIndices[i + 1]);
+                result.Add(remappedIndices[i + 2]);
             }
 
             return result.ToArray();
+        }
+
+        private static int RecoverSingleTriangleHoles(
+            uint[] indices,
+            bool[] alive,
+            bool[] recoverable)
+        {
+            var triCount = indices.Length / 3;
+            var baseAlive = (bool[])alive.Clone();
+            var edges = new Dictionary<ulong, List<int>>(triCount * 3);
+
+            for (var tri = 0; tri < triCount; tri++)
+            {
+                var i = tri * 3;
+
+                AddEdge(edges, indices[i + 0], indices[i + 1], tri);
+                AddEdge(edges, indices[i + 1], indices[i + 2], tri);
+                AddEdge(edges, indices[i + 2], indices[i + 0], tri);
+            }
+
+            var recovered = 0;
+
+            for (var tri = 0; tri < triCount; tri++)
+            {
+                if (baseAlive[tri])
+                    continue;
+
+                if (!recoverable[tri])
+                    continue;
+
+                var i = tri * 3;
+
+                if (!HasAliveEdgeNeighbor(edges, baseAlive, indices[i + 0], indices[i + 1], tri))
+                    continue;
+
+                if (!HasAliveEdgeNeighbor(edges, baseAlive, indices[i + 1], indices[i + 2], tri))
+                    continue;
+
+                if (!HasAliveEdgeNeighbor(edges, baseAlive, indices[i + 2], indices[i + 0], tri))
+                    continue;
+
+                alive[tri] = true;
+                recovered++;
+            }
+
+            return recovered;
+        }
+
+        private static void AddEdge(
+            Dictionary<ulong, List<int>> edges,
+            uint a,
+            uint b,
+            int tri)
+        {
+            var key = EdgeKey(a, b);
+
+            if (!edges.TryGetValue(key, out var list))
+            {
+                list = new List<int>(2);
+                edges[key] = list;
+            }
+
+            list.Add(tri);
+        }
+
+        private static bool HasAliveEdgeNeighbor(
+            Dictionary<ulong, List<int>> edges,
+            bool[] alive,
+            uint a,
+            uint b,
+            int self)
+        {
+            if (!edges.TryGetValue(EdgeKey(a, b), out var list))
+                return false;
+
+            foreach (var tri in list)
+            {
+                if (tri != self && alive[tri])
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static ulong EdgeKey(uint a, uint b)
+        {
+            if (a > b)
+                (a, b) = (b, a);
+
+            return ((ulong)a << 32) | b;
         }
 
         private static void CompactUsedVertices(ref VertexData[] vertices, uint[] indices)

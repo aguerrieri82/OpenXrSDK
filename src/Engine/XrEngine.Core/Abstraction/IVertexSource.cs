@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using XrEngine;
+
+namespace XrEngine
 {
     public enum DrawPrimitive
     {
@@ -10,7 +12,7 @@
         Quad
     }
 
-    public interface IVertexSource : ILayer3DItem
+    public interface IVertexSource : ILayer3DItem, IGpuObject
     {
         DrawPrimitive Primitive { get; }
 
@@ -24,7 +26,7 @@
 
         int InstanceCount => 1;
 
-        void NotifyLoaded();
+
     }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource

@@ -2,7 +2,6 @@
 
 namespace XrEngine
 {
-
     public class TextureData
     {
         public uint Width { get; set; }
