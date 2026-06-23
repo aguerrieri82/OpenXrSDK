@@ -24,26 +24,135 @@ namespace XrEngine
             CoplanarPlaneDistance = 0.08f;
         }
 
+        /// <summary>
+        /// Size of the UV layout target used by the unwrapper, in pixels.
+        ///
+        /// This controls packing scale and padding conversion while generating UVs.
+        /// It should usually match the final atlas bake size, otherwise padding/texel density assumptions
+        /// will not match the baked texture.
+        ///
+        /// Suggested:
+        /// 4096 for tests;
+        /// 8192 for final higher-detail room bakes.
+        /// </summary>
         public int AtlasSize { get; set; }
 
+        /// <summary>
+        /// Empty pixel border reserved around each UV island during packing.
+        ///
+        /// Padding does not fill border pixels by itself; it only creates room between islands.
+        /// Texture cracks from bilinear/mipmap sampling are fixed later by atlas dilation.
+        ///
+        /// Suggested:
+        /// 4-6 for normal use;
+        /// 8-12 if mipmaps or heavy filtering need more safe space.
+        /// </summary>
         public int Padding { get; set; }
 
+        /// <summary>
+        /// Allows the packer to rotate UV islands by 90 degrees to improve atlas usage.
+        ///
+        /// This does not change the 3D geometry and is normally safe.
+        /// Disable only when debugging UV orientation or if some downstream tool expects stable chart rotation.
+        /// </summary>
         public bool AllowRotate { get; set; }
 
+        /// <summary>
+        /// Maximum normal angle, in degrees, allowed while growing a connected UV chart.
+        ///
+        /// Higher values merge more triangles into larger islands, reducing seams and island count, but can
+        /// flatten curved/corner regions into one chart and increase UV distortion.
+        ///
+        /// Suggested:
+        /// 45 for conservative planar charts;
+        /// 60-70 for reconstructed room meshes where too many tiny islands are worse than mild distortion.
+        /// </summary>
         public float MaxAngleDeg { get; set; }
 
+        /// <summary>
+        /// Maximum distance from the current chart plane accepted while growing a chart, in meters.
+        ///
+        /// This lets slightly noisy or non-perfectly-planar reconstructed triangles stay in the same island.
+        /// Too low creates many fragmented islands. Too high can merge surfaces that should become separate
+        /// charts and may cause projection distortion.
+        ///
+        /// Suggested:
+        /// about 1-2 times the reconstruction voxel size;
+        /// 0.05-0.10 for the current room reconstruction tests.
+        /// </summary>
         public float PlaneDistance { get; set; }
 
+        /// <summary>
+        /// Minimum triangle count below which an island is considered too small and should try to merge into
+        /// a neighboring island.
+        ///
+        /// This reduces tiny UV islands created by noisy topology or local normal changes.
+        /// Too high can force bad merges across real seams.
+        ///
+        /// Suggested:
+        /// 50-100 for conservative cleanup;
+        /// 150-200 when the unwrap produces too many small fragments.
+        /// </summary>
         public int MinIslandTriangles { get; set; }
 
+        /// <summary>
+        /// Minimum 3D surface area below which an island is considered too small and should try to merge into
+        /// a neighboring island.
+        ///
+        /// Complements MinIslandTriangles: catches tiny islands even when tessellation density varies.
+        /// Units are square meters.
+        ///
+        /// Suggested:
+        /// 0.005-0.01 for small-detail preservation;
+        /// 0.02-0.03 for more aggressive room-mesh cleanup.
+        /// </summary>
         public float MinIslandArea { get; set; }
 
+        /// <summary>
+        /// Number of iterative passes used to merge small islands into adjacent compatible islands.
+        ///
+        /// More passes allow cleanup to propagate after earlier merges. Too many passes with permissive
+        /// thresholds can over-merge charts.
+        ///
+        /// Suggested:
+        /// 4-6 for light cleanup;
+        /// 8-12 for noisy reconstructed meshes.
+        /// </summary>
         public int MergePasses { get; set; }
 
+        /// <summary>
+        /// Number of passes that try to merge separate but compatible coplanar charts.
+        ///
+        /// This is dangerous compared to adjacency-based merging: disconnected coplanar surfaces can overlap
+        /// after planar UV projection, especially opposite/parallel walls or separate patches on the same plane.
+        ///
+        /// Suggested:
+        /// 0 for safest atlas/no-overlap behavior;
+        /// 1-2 only when atlas fragmentation is excessive and charts are known to be safe to merge.
+        /// </summary>
         public int CoplanarMergePasses { get; set; }
 
+        /// <summary>
+        /// Maximum normal angle, in degrees, accepted by the coplanar chart merge pass.
+        ///
+        /// Lower values reduce the risk of merging unrelated surfaces.
+        ///
+        /// Suggested:
+        /// 15-25 for cautious coplanar cleanup;
+        /// avoid high values unless overlap debugging proves it is safe.
+        /// </summary>
         public float CoplanarMaxAngleDeg { get; set; }
 
+        /// <summary>
+        /// Maximum plane distance, in meters, accepted by the coplanar chart merge pass.
+        ///
+        /// This should usually be no larger than PlaneDistance. Larger values can merge separated surfaces
+        /// that only happen to be roughly parallel/coplanar, causing UV overlap or texture contamination.
+        ///
+        /// Suggested:
+        /// 0.03-0.08 depending on voxel size and reconstruction noise;
+        /// use 0 with CoplanarMergePasses = 0 to disable this risk entirely.
+        /// </summary>
         public float CoplanarPlaneDistance { get; set; }
     }
 

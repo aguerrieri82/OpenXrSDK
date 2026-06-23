@@ -18,13 +18,78 @@ namespace XrEngine.OpenXr
             MinUvTriangleArea = 0.00000001f;
         }
 
+        /// <summary>
+        /// Rejects depth-grid vertices whose reprojection into the RGB camera falls outside the color image.
+        ///
+        /// This is usually enabled because a generated depth triangle is useful only if it can also receive
+        /// color from the paired camera frame.
+        ///
+        /// Disable only for debugging raw depth geometry without caring whether color projection is valid.
+        /// </summary>
         public bool EnableUvFilter { get; set; }
+
+        /// <summary>
+        /// Rejects triangles whose world-space area and projected color-UV area are inconsistent.
+        ///
+        /// This catches triangles created across depth discontinuities or bad projection zones:
+        /// a triangle may be valid in the depth grid but become extremely stretched either in world space or
+        /// in color-camera UV space.
+        ///
+        /// Keep enabled for reconstruction input. Disable only when debugging why triangles are being removed.
+        /// </summary>
         public bool EnableUvAreaRatioFilter { get; set; }
 
+        /// <summary>
+        /// Lower bound for the world-area / UV-area ratio test.
+        ///
+        /// Despite the property name, the current implementation computes:
+        ///
+        ///     worldArea / uvArea
+        ///
+        /// Values below this are rejected. Keeping this at 0 disables the lower-ratio rejection, which is
+        /// normally fine because the dangerous case is usually the opposite: huge world triangles compressed
+        /// into tiny UV regions.
+        ///
+        /// Suggested:
+        /// 0.0 for normal use.
+        /// </summary>
         public float MinUvWorldAreaRatio { get; set; }
+
+        /// <summary>
+        /// Upper bound for the world-area / UV-area ratio test.
+        ///
+        /// This rejects triangles that cover too much 3D surface for too little projected RGB-camera area.
+        /// Those are usually long/stretched triangles across depth breaks, grazing surfaces, or projection
+        /// artifacts that would smear color badly.
+        ///
+        /// Suggested:
+        /// 20-30 for current reconstruction tests;
+        /// lower if stretched triangles leak through;
+        /// higher if valid large/flat surfaces are being cut too aggressively.
+        /// </summary>
         public float MaxUvWorldAreaRatio { get; set; }
 
+        /// <summary>
+        /// Minimum accepted world-space triangle area, in square meters.
+        ///
+        /// Very tiny triangles are usually numerical debris from depth-grid discontinuities or duplicated
+        /// samples. Removing them makes later voxel fusion, collapse and UV unwrap cleaner.
+        ///
+        /// Suggested:
+        /// keep very small, around 1e-6, unless tiny noisy fragments are clearly visible.
+        /// </summary>
         public float MinWorldTriangleArea { get; set; }
+
+        /// <summary>
+        /// Minimum accepted projected UV triangle area.
+        ///
+        /// Triangles that collapse to an almost-zero area in the RGB camera image cannot be textured reliably:
+        /// many world positions would sample almost the same color pixel, producing smearing.
+        ///
+        /// Suggested:
+        /// keep very small, around 1e-8.
+        /// Raise only if very thin projected color slivers create visible artifacts.
+        /// </summary>
         public float MinUvTriangleArea { get; set; }
     }
 

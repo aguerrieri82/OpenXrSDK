@@ -17,12 +17,53 @@ namespace XrEngine.Reconstruct
             MaxTriangleEdge = 0.0f;
         }
 
+        /// <summary>
+        /// Spatial resolution of the fused reconstruction grid, in world units/meters.
+        ///
+        /// This is the main geometry/detail knob:
+        /// smaller values preserve more detail but create more voxels, more vertices, more noise and slower extraction;
+        /// larger values produce a smoother/coarser mesh and absorb more frame-to-frame depth jitter.
+        ///
+        /// Suggested:
+        /// 0.03-0.05 for detailed room/object reconstruction;
+        /// 0.08-0.10 for fast/debug/coarser reconstruction.
+        /// </summary>
         public float VoxelSize { get; set; }
 
+        /// <summary>
+        /// Signed-distance fusion band around each observed surface, in world units/meters.
+        ///
+        /// A depth sample does not affect only one infinitely thin surface point: it contributes evidence
+        /// within this distance around the measured surface. Larger values make different captures blend more
+        /// easily and fill small inconsistencies, but can thicken surfaces or smear close parallel geometry.
+        ///
+        /// Usually keep this around 2-4 times VoxelSize.
+        /// </summary>
         public float TruncationDistance { get; set; }
 
+        /// <summary>
+        /// Minimum number of supporting observations required before extracted geometry is trusted.
+        ///
+        /// 1 keeps every observed surface and maximizes coverage, but also keeps single-frame noise.
+        /// Higher values remove weak/noisy geometry, but can delete areas seen by only one capture.
+        ///
+        /// Suggested:
+        /// 1 for maximum coverage/debug;
+        /// 2+ only when captures overlap enough and isolated depth noise is a real problem.
+        /// </summary>
         public int MinObservations { get; set; }
 
+        /// <summary>
+        /// Optional maximum triangle edge length after extraction, in world units/meters.
+        ///
+        /// 0 disables this filter.
+        /// Use it to reject stretched triangles created across depth discontinuities or poorly supported
+        /// voxel transitions. Too low will punch holes in valid large/flat surfaces.
+        ///
+        /// Suggested:
+        /// 0 disabled while tuning reconstruction;
+        /// about 2-4 times VoxelSize if long-edge artifacts appear.
+        /// </summary>
         public float MaxTriangleEdge { get; set; }
     }
 

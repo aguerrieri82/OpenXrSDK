@@ -1,16 +1,5 @@
-﻿#if GLES
-using Silk.NET.OpenGLES;
-#else
-using Silk.NET.OpenGL;
-using SkiaSharp;
-
-#endif
-
-
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using XrEngine.OpenGL;
 using XrMath;
@@ -123,6 +112,115 @@ namespace XrEngine.Reconstruct
         public IReadOnlyList<TextureAtlasEntry> Entries { get; }
     }
 
+    public sealed class TextureAtlasLayoutBuilderParams
+    {
+        public TextureAtlasLayoutBuilderParams()
+        {
+            TextureWidth = 1280;
+            TextureHeight = 1280;
+            Padding = 2;
+            SourceBorderPixels = 2;
+            BytesPerPixel = 4;
+            SourceTextureCount = 0;
+            RectAlignment = 4;
+            WidthSearchStep = 64;
+            MaxWidthSearchSteps = 512;
+            AllowAtlasRotation = true;
+        }
+
+        /// <summary>
+        /// Width of each source texture layer in pixels.
+        ///
+        /// Must match the real source camera texture width, because source UVs are converted to source
+        /// pixel coordinates before oriented bounds are computed.
+        /// </summary>
+        public int TextureWidth { get; set; }
+
+        /// <summary>
+        /// Height of each source texture layer in pixels.
+        ///
+        /// Must match the real source camera texture height.
+        /// </summary>
+        public int TextureHeight { get; set; }
+
+        /// <summary>
+        /// Atlas-space empty border around each packed source rectangle.
+        ///
+        /// This separates copied source regions so filtering does not immediately sample a neighboring
+        /// packed region.
+        ///
+        /// Suggested:
+        /// 2 for compact legacy atlas packing;
+        /// 4+ if atlas filtering artifacts appear.
+        /// </summary>
+        public int Padding { get; set; }
+
+        /// <summary>
+        /// Extra source-image border included around the actually used UV region before packing.
+        ///
+        /// This copies a small amount of neighboring source image around the used polygon, reducing edge
+        /// sampling artifacts after remapping into the atlas.
+        ///
+        /// Suggested:
+        /// 1-2 normally.
+        /// </summary>
+        public int SourceBorderPixels { get; set; }
+
+        /// <summary>
+        /// Bytes per source pixel, used only for memory/statistics estimates.
+        ///
+        /// RGBA8 = 4, RGB24 = 3.
+        /// Does not change the render texture format.
+        /// </summary>
+        public int BytesPerPixel { get; set; }
+
+        /// <summary>
+        /// Total number of source textures used for memory/statistics reporting.
+        ///
+        /// If 0, the builder uses the number of texture entries actually referenced by the geometry.
+        /// Set this when the texture array contains more source images than the current geometry uses.
+        /// </summary>
+        public int SourceTextureCount { get; set; }
+
+        /// <summary>
+        /// Pixel alignment for packed rectangles and final atlas dimensions.
+        ///
+        /// Suggested:
+        /// 4 for normal use.
+        /// </summary>
+        public int RectAlignment { get; set; }
+
+        /// <summary>
+        /// Width increment used while searching candidate atlas widths.
+        ///
+        /// Smaller values can find a tighter atlas but increase packing cost.
+        /// Larger values are faster but may waste atlas area.
+        ///
+        /// Suggested:
+        /// 64 normally.
+        /// </summary>
+        public int WidthSearchStep { get; set; }
+
+        /// <summary>
+        /// Maximum number of atlas-width candidates tested.
+        ///
+        /// If the possible width range is too large, the effective search step is increased so the search
+        /// stays bounded.
+        ///
+        /// Suggested:
+        /// 512 for normal/offline generation.
+        /// </summary>
+        public int MaxWidthSearchSteps { get; set; }
+
+        /// <summary>
+        /// Allows packed source rectangles to rotate by 90 degrees.
+        ///
+        /// Usually improves packing efficiency.
+        /// Disable only when debugging atlas orientation or when fixed source orientation is required.
+        /// </summary>
+        public bool AllowAtlasRotation { get; set; }
+    }
+
     public sealed class TextureAtlasLayoutBuilder
     {
         #region Private Structs
@@ -198,24 +296,41 @@ namespace XrEngine.Reconstruct
 
         #endregion
 
+        private int _textureWidth;
+        private int _textureHeight;
+        private int _padding;
+        private int _sourceBorderPixels;
+        private int _bytesPerPixel;
+        private int _sourceTextureCount;
+        private int _rectAlignment;
+        private int _widthSearchStep;
+        private int _maxWidthSearchSteps;
+        private bool _allowAtlasRotation;
+
         public TextureAtlasLayoutBuilder()
         {
-            TextureWidth = 1280;
-            TextureHeight = 1280;
-            Padding = 2;
-            SourceBorderPixels = 2;
-            BytesPerPixel = 4;
-            SourceTextureCount = 0;
-            RectAlignment = 4;
-            WidthSearchStep = 64;
-            MaxWidthSearchSteps = 512;
-            AllowAtlasRotation = true;
+            SetParams(new TextureAtlasLayoutBuilderParams());
         }
 
-
-        public async Task<Texture2D> GenerateAtlasTextureAsync(IReadOnlyList<Geometry3D> geometries, Texture2D texArray, float[] exposures)
+        public void SetParams(TextureAtlasLayoutBuilderParams parameters)
         {
+            _textureWidth = parameters.TextureWidth;
+            _textureHeight = parameters.TextureHeight;
+            _padding = parameters.Padding;
+            _sourceBorderPixels = parameters.SourceBorderPixels;
+            _bytesPerPixel = parameters.BytesPerPixel;
+            _sourceTextureCount = parameters.SourceTextureCount;
+            _rectAlignment = parameters.RectAlignment;
+            _widthSearchStep = parameters.WidthSearchStep;
+            _maxWidthSearchSteps = parameters.MaxWidthSearchSteps;
+            _allowAtlasRotation = parameters.AllowAtlasRotation;
+        }
 
+        public async Task<Texture2D> GenerateAtlasTextureAsync(
+            IReadOnlyList<Geometry3D> geometries,
+            Texture2D texArray,
+            float[] exposures)
+        {
             var layout = Build(geometries);
             var geo = CreateAtlasGeometry(layout);
 
@@ -238,20 +353,23 @@ namespace XrEngine.Reconstruct
 
             await EngineApp.RenderThread;
 
-            //EngineNativeLib.RdcStartFrameCapture();
-
             var glTex = texture.ToGlTexture();
 
             GlImageProc.PrepareFrameBuffer(gl, glTex);
 
             string[] features = [];
-            
+
             var hasExposure = exposures.Length > 0;
 
             if (hasExposure)
                 features = [$"IMG_COUNT {exposures.Length}", "USE_EXPOSURE"];
 
-            var prog = GlImageProc.LoadProgram(gl, "[XrEngine.Reconstruct]multi_tex.frag", "image_proc.vert", features, []);
+            var prog = GlImageProc.LoadProgram(
+                gl,
+                "[XrEngine.Reconstruct]multi_tex.frag",
+                "image_proc.vert",
+                features,
+                []);
 
             prog.LoadTexture(texArray, 0);
 
@@ -277,8 +395,6 @@ namespace XrEngine.Reconstruct
 
             vs.Bind();
             vs.Draw();
-
-            //EngineNativeLib.RdcEndFrameCapture(false);
 
             XrEngine.Log.Info(this, "Final atlas {0}x{1}", layout.AtlasWidth, layout.AtlasHeight);
 
@@ -315,19 +431,19 @@ namespace XrEngine.Reconstruct
                         a.Rect.AxisY,
                         a.Rect.Width,
                         a.Rect.Height,
-                        a.X + Padding,
-                        a.Y + Padding,
+                        a.X + _padding,
+                        a.Y + _padding,
                         atlasWidth,
                         atlasHeight,
                         a.Rotated);
                 })
                 .ToArray();
 
-            var sourceTextureCount = SourceTextureCount > 0 ? SourceTextureCount : usedPoints.Count;
+            var sourceTextureCount = _sourceTextureCount > 0 ? _sourceTextureCount : usedPoints.Count;
 
-            var fullMemory = (long)sourceTextureCount * TextureWidth * TextureHeight * BytesPerPixel;
-            var orientedBoundsMemory = rects.Sum(a => a.Area * BytesPerPixel);
-            var atlasMemory = (long)pack.Width * pack.Height * BytesPerPixel;
+            var fullMemory = (long)sourceTextureCount * _textureWidth * _textureHeight * _bytesPerPixel;
+            var orientedBoundsMemory = rects.Sum(a => a.Area * _bytesPerPixel);
+            var atlasMemory = (long)pack.Width * pack.Height * _bytesPerPixel;
 
             var layout = new TextureAtlasLayout(
                 pack.Width,
@@ -341,7 +457,6 @@ namespace XrEngine.Reconstruct
 
             return layout;
         }
-
 
         public Geometry3D CreateAtlasGeometry(TextureAtlasLayout layout)
         {
@@ -443,8 +558,8 @@ namespace XrEngine.Reconstruct
         public Vector2 RemapUv(Vector2 sourceUv, TextureAtlasEntry entry, int atlasWidth, int atlasHeight)
         {
             var sourcePixel = new Vector2(
-                sourceUv.X * TextureWidth,
-                sourceUv.Y * TextureHeight);
+                sourceUv.X * _textureWidth,
+                sourceUv.Y * _textureHeight);
 
             var delta = sourcePixel - entry.SourceOrigin;
 
@@ -464,8 +579,8 @@ namespace XrEngine.Reconstruct
             var sourcePixel = entry.GetSourcePoint(local.X, local.Y);
 
             return new Vector2(
-                sourcePixel.X / TextureWidth,
-                sourcePixel.Y / TextureHeight);
+                sourcePixel.X / _textureWidth,
+                sourcePixel.Y / _textureHeight);
         }
 
         private static Vector2 AtlasPixelToSourceLocal(TextureAtlasEntry entry, Vector2 atlasPixel)
@@ -530,7 +645,9 @@ namespace XrEngine.Reconstruct
                         if (i0 < 0 || i0 >= vertices.Length ||
                             i1 < 0 || i1 >= vertices.Length ||
                             i2 < 0 || i2 >= vertices.Length)
+                        {
                             continue;
+                        }
 
                         var v0 = vertices[i0];
                         var v1 = vertices[i1];
@@ -573,13 +690,13 @@ namespace XrEngine.Reconstruct
                 return new OrientedRect
                 {
                     ImageIndex = imageIndex,
-                    Origin = hull[0] - new Vector2(0.5f + SourceBorderPixels),
+                    Origin = hull[0] - new Vector2(0.5f + _sourceBorderPixels),
                     AxisX = Vector2.UnitX,
                     AxisY = Vector2.UnitY,
-                    Width = 1.0f + SourceBorderPixels * 2.0f,
-                    Height = 1.0f + SourceBorderPixels * 2.0f,
-                    ContentWidth = Align((int)MathF.Ceiling(1.0f + SourceBorderPixels * 2.0f), RectAlignment),
-                    ContentHeight = Align((int)MathF.Ceiling(1.0f + SourceBorderPixels * 2.0f), RectAlignment)
+                    Width = 1.0f + _sourceBorderPixels * 2.0f,
+                    Height = 1.0f + _sourceBorderPixels * 2.0f,
+                    ContentWidth = Align((int)MathF.Ceiling(1.0f + _sourceBorderPixels * 2.0f), _rectAlignment),
+                    ContentHeight = Align((int)MathF.Ceiling(1.0f + _sourceBorderPixels * 2.0f), _rectAlignment)
                 };
             }
 
@@ -629,10 +746,10 @@ namespace XrEngine.Reconstruct
                 ExpandThinAxis(ref minX, ref maxX);
                 ExpandThinAxis(ref minY, ref maxY);
 
-                minX -= SourceBorderPixels;
-                minY -= SourceBorderPixels;
-                maxX += SourceBorderPixels;
-                maxY += SourceBorderPixels;
+                minX -= _sourceBorderPixels;
+                minY -= _sourceBorderPixels;
+                maxX += _sourceBorderPixels;
+                maxY += _sourceBorderPixels;
 
                 var width = maxX - minX;
                 var height = maxY - minY;
@@ -657,8 +774,8 @@ namespace XrEngine.Reconstruct
                 AxisY = bestAxisY,
                 Width = bestWidth,
                 Height = bestHeight,
-                ContentWidth = Align((int)MathF.Ceiling(bestWidth), RectAlignment),
-                ContentHeight = Align((int)MathF.Ceiling(bestHeight), RectAlignment)
+                ContentWidth = Align((int)MathF.Ceiling(bestWidth), _rectAlignment),
+                ContentHeight = Align((int)MathF.Ceiling(bestHeight), _rectAlignment)
             };
         }
 
@@ -678,10 +795,10 @@ namespace XrEngine.Reconstruct
                 .Select(a => new PackItem
                 {
                     Rect = a,
-                    Width = a.ContentWidth + Padding * 2,
-                    Height = a.ContentHeight + Padding * 2,
-                    RotatedWidth = a.ContentHeight + Padding * 2,
-                    RotatedHeight = a.ContentWidth + Padding * 2
+                    Width = a.ContentWidth + _padding * 2,
+                    Height = a.ContentHeight + _padding * 2,
+                    RotatedWidth = a.ContentHeight + _padding * 2,
+                    RotatedHeight = a.ContentWidth + _padding * 2
                 })
                 .OrderByDescending(a => Math.Max(a.Width * a.Height, a.RotatedWidth * a.RotatedHeight))
                 .ThenByDescending(a => Math.Max(a.Width, a.Height))
@@ -691,15 +808,15 @@ namespace XrEngine.Reconstruct
             var totalArea = items.Sum(a => (long)a.Width * a.Height);
 
             var minWidth = items.Max(a =>
-                AllowAtlasRotation
+                _allowAtlasRotation
                     ? Math.Min(a.Width, a.RotatedWidth)
                     : a.Width);
 
             var range = Math.Max(0, totalWidth - minWidth);
-            var step = WidthSearchStep;
+            var step = _widthSearchStep;
 
-            if (range / Math.Max(1, step) > MaxWidthSearchSteps)
-                step = Align(range / MaxWidthSearchSteps, WidthSearchStep);
+            if (range / Math.Max(1, step) > _maxWidthSearchSteps)
+                step = Align(range / _maxWidthSearchSteps, _widthSearchStep);
 
             var best = new PackResult
             {
@@ -719,8 +836,11 @@ namespace XrEngine.Reconstruct
                     continue;
                 }
 
-                if (candidate.Area == best.Area && Math.Max(candidate.Width, candidate.Height) < Math.Max(best.Width, best.Height))
+                if (candidate.Area == best.Area &&
+                    Math.Max(candidate.Width, candidate.Height) < Math.Max(best.Width, best.Height))
+                {
                     best = candidate;
+                }
             }
 
             var squareGuess = Align((int)Math.Ceiling(Math.Sqrt(totalArea)), step);
@@ -731,8 +851,8 @@ namespace XrEngine.Reconstruct
                     best = squareCandidate;
             }
 
-            best.Width = Align(best.Width, RectAlignment);
-            best.Height = Align(best.Height, RectAlignment);
+            best.Width = Align(best.Width, _rectAlignment);
+            best.Height = Align(best.Height, _rectAlignment);
 
             return best;
         }
@@ -740,14 +860,14 @@ namespace XrEngine.Reconstruct
         private bool TryPack(List<PackItem> items, int atlasWidth, out PackResult result)
         {
             var nodes = new List<SkylineNode>
+        {
+            new SkylineNode
             {
-                new SkylineNode
-                {
-                    X = 0,
-                    Y = 0,
-                    Width = atlasWidth
-                }
-            };
+                X = 0,
+                Y = 0,
+                Width = atlasWidth
+            }
+        };
 
             var packed = new List<PackedItem>(items.Count);
             var atlasHeight = 0;
@@ -764,7 +884,7 @@ namespace XrEngine.Reconstruct
 
                 FindBestPosition(nodes, atlasWidth, item, item.Width, item.Height, false, ref bestNode, ref bestX, ref bestY, ref bestWidth, ref bestHeight, ref bestRotated, ref bestBottom);
 
-                if (AllowAtlasRotation && item.Width != item.RotatedWidth)
+                if (_allowAtlasRotation && item.Width != item.RotatedWidth)
                     FindBestPosition(nodes, atlasWidth, item, item.RotatedWidth, item.RotatedHeight, true, ref bestNode, ref bestX, ref bestY, ref bestWidth, ref bestHeight, ref bestRotated, ref bestBottom);
 
                 if (bestNode < 0)
@@ -958,8 +1078,8 @@ namespace XrEngine.Reconstruct
         private Vector2 ToPixel(Vector2 uv)
         {
             return new Vector2(
-                uv.X * TextureWidth,
-                uv.Y * TextureHeight);
+                uv.X * _textureWidth,
+                uv.Y * _textureHeight);
         }
 
         private static void AddPoint(Dictionary<int, List<Vector2>> result, int imageIndex, Vector2 point)
@@ -1003,8 +1123,8 @@ namespace XrEngine.Reconstruct
         private void LogLayout(TextureAtlasLayout layout)
         {
             LogLine($"Atlas layout");
-            LogLine($"  source texture: {TextureWidth}x{TextureHeight}, bpp={BytesPerPixel}");
-            LogLine($"  source textures: {(SourceTextureCount > 0 ? SourceTextureCount : layout.Entries.Count)}");
+            LogLine($"  source texture: {_textureWidth}x{_textureHeight}, bpp={_bytesPerPixel}");
+            LogLine($"  source textures: {(_sourceTextureCount > 0 ? _sourceTextureCount : layout.Entries.Count)}");
             LogLine($"  entries: {layout.Entries.Count}");
             LogLine($"  atlas: {layout.AtlasWidth}x{layout.AtlasHeight}");
 
@@ -1059,26 +1179,6 @@ namespace XrEngine.Reconstruct
 
             return value * 100.0 / total;
         }
-
-        public int TextureWidth { get; set; }
-
-        public int TextureHeight { get; set; }
-
-        public int Padding { get; set; }
-
-        public int SourceBorderPixels { get; set; }
-
-        public int BytesPerPixel { get; set; }
-
-        public int SourceTextureCount { get; set; }
-
-        public int RectAlignment { get; set; }
-
-        public int WidthSearchStep { get; set; }
-
-        public int MaxWidthSearchSteps { get; set; }
-
-        public bool AllowAtlasRotation { get; set; }
 
         public Action<string>? Log { get; set; }
     }

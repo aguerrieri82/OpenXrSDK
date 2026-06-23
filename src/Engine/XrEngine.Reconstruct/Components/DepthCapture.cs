@@ -13,7 +13,7 @@ using XrEngine.Devices;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
-using glTFLoader.Schema;
+
 
 namespace XrEngine.Reconstruct
 {
@@ -59,8 +59,422 @@ namespace XrEngine.Reconstruct
         public IMemoryBuffer<byte>? ColorData;
     }
 
+    #region COMMENT
+
+    /*
+     * DEPTH SNAPSHOT RECONSTRUCTION PIPELINE
+     * ======================================
+     *
+     * This behavior is the coordinator for turning a set of Quest depth/color snapshots into a usable
+     * reconstructed scene mesh.
+     *
+     * The important mental model is:
+     *
+     *      many partial depth frames
+     *          -> many partial meshes
+     *          -> one fused mesh
+     *          -> cleanup / simplification
+     *          -> optional UV unwrap
+     *          -> optional baked color atlas
+     *
+     *
+     * FRAME DATA
+     * ----------
+     *
+     * Each captured frame contains:
+     *
+     *   - a depth-derived mesh patch
+     *   - the RGB camera image
+     *   - camera view/projection metadata
+     *   - depth view/projection metadata
+     *
+     * In Record mode, this is persisted as raw files on disk.
+     * In Read mode, those files are loaded back into per-frame TriangleMesh objects.
+     *
+     * The per-frame meshes are useful for preview/debugging, but they are not the final mesh. They are
+     * input samples for the reconstruction stage.
+     *
+     *
+     * *
+     * DEPTH PATCH EXTRACTION
+     * ----------------------
+     *
+     * Before voxel fusion, each recorded depth frame is converted into a temporary depth patch mesh.
+     * This is done by DepthGeometryGenerator.
+     *
+     * The generator does not try to reconstruct the whole scene. It only turns one depth image into one
+     * local piece of observed surface:
+     *
+     *      raw depth map
+     *          -> sampled depth grid
+     *          -> unprojected world points
+     *          -> depth-grid triangles
+     *          -> per-frame mesh patch
+     *
+     * Each sampled depth value is unprojected through the depth camera matrix to recover a 3D world point.
+     * The same world point is then projected into the RGB camera to compute the color UV for that vertex.
+     *
+     * So every generated vertex already contains:
+     *
+     *      position = world-space point from depth
+     *      uv       = where that point lands in the RGB image
+     *
+     * The output patch is still a rough depth-grid mesh. It can contain missing regions, jagged borders,
+     * discontinuity artifacts and duplicated surfaces relative to other frames. That is expected. The patch
+     * is only input evidence for the later voxel reconstruction.
+     *
+     *
+     * DEPTH PATCH FILTERS
+     * -------------------
+     *
+     * The generator filters bad samples before they reach the voxel stage. This is important because voxel
+     * fusion can absorb small noise, but it should not be fed obviously wrong triangles.
+     *
+     * Vertex UV filter:
+     *
+     *      Rejects vertices whose projected RGB UV is outside the camera image.
+     *
+     * This removes depth points that exist in the depth frame but cannot be colored by the paired RGB frame.
+     * It also avoids later projection using clamped/invalid color pixels.
+     *
+     * Triangle validity filter:
+     *
+     *      A grid quad emits two triangles only when all three vertices are valid.
+     *
+     * This naturally cuts holes around missing depth samples or points outside the RGB image.
+     *
+     * World-area filter:
+     *
+     *      Rejects triangles that are almost zero-area in 3D.
+     *
+     * These are usually degenerate depth samples or numerical debris. Keeping them adds noise but no useful
+     * surface information.
+     *
+     * UV-area filter:
+     *
+     *      Rejects triangles that collapse to almost zero area in RGB image space.
+     *
+     * Those triangles cannot be textured reliably because a large or thin 3D region would sample almost the
+     * same RGB pixel.
+     *
+     * World/UV area-ratio filter:
+     *
+     *      Rejects triangles whose 3D area and RGB-projected area are inconsistent.
+     *
+     * The current implementation effectively tests:
+     *
+     *      worldArea / uvArea
+     *
+     * This catches the classic bad depth-grid triangles:
+     *
+     *      - long triangles stretched across depth discontinuities
+     *      - grazing triangles that would smear color
+     *      - triangles joining foreground/background surfaces
+     *      - projection artifacts where a large 3D surface maps to a tiny color region
+     *
+     * These filters are not meant to make the patch perfect. They only remove the worst input triangles
+     * before voxel fusion. Later stages still handle the real cleanup:
+     *
+     *      voxel fusion        -> merges overlapping frame evidence
+     *      vertex collapse     -> removes near-duplicates / turns soup into topology
+     *      UV unwrap/projection -> builds final texture space
+     *
+     * GeneratorParams controls this extraction stage. If the final reconstruction has flying curtains or
+     * smeared color from depth edges, tune the patch filters first. If the final mesh is simply too dense
+     * or too coarse, tune MeshParams / voxel size instead.
+     *
+     *
+     * GEOMETRY RECONSTRUCTION
+     * -----------------------
+     *
+     * The final mesh is produced by VoxelMeshReconstructor.
+     *
+     * Conceptually, every input depth mesh contributes surface evidence into a voxel/spatial structure.
+     * The extractor then produces a single reconstructed mesh from that fused spatial representation.
+     *
+     * This is different from simply keeping all frame meshes:
+     *
+     *   - overlapping captures are merged
+     *   - duplicate surfaces are reduced
+     *   - small frame-to-frame inconsistencies are absorbed by the voxel resolution
+     *   - the result becomes one persistent scene mesh
+     *
+     * MeshParams controls this stage. The most important parameter is voxel size:
+     *
+     *   - smaller voxel size: more detail, more vertices, more noise, slower
+     *   - larger voxel size: smoother/coarser, fewer vertices, faster
+     *
+     * UseMeshCache can skip this expensive reconstruction step by loading reconstruct.obj.
+     * Disable the cache when changing reconstruction parameters or when the source frames changed.
+     *
+     *
+     * OPTIMIZATION / CLEANUP
+     * ----------------------
+     *
+     * After extraction the mesh can still contain too many vertices and near-duplicates.
+     *
+     * The Optimize path first computes/welds indices and then collapses close vertices. This is important
+     * because topology-based operations are meaningless while the mesh is still effectively triangle soup.
+     *
+     * OptimizeTollerance controls how aggressively nearby vertices are merged:
+     *
+     *   - too small: keeps noise and duplicate seams
+     *   - too large: destroys detail, creates wrong joins, can damage UV unwrap later
+     *
+     * MeshOptimizer is applied later as a rendering/index-buffer optimization pass. It should not be
+     * confused with geometric cleanup: it improves runtime mesh layout, not reconstruction quality.
+     *
+     *
+     *
+     * TWO TEXTURING STRATEGIES
+     * ------------------------
+     *
+     * 1) UnwrapUv == false
+     *
+     *    Legacy projection mode.
+     *    MeshTextureProjection assigns capture-frame/color choices directly to the geometry.
+     *
+     *    This path can also run FrameExposureSolver. That solver estimates per-frame exposure corrections
+     *    so frames captured under different auto-exposure levels blend/look more consistent.
+     *
+     *    Output can be:
+     *
+     *      - a packed old-style atlas
+     *      - or a texture-array material with per-frame exposure values
+     *
+     * 2) UnwrapUv == true
+     *
+     *    Preferred final mode.
+     *    MeshUvUnwrapper creates a real atlas UV layout for the fused mesh.
+     *    Capture colors are projected into that atlas using weighted accumulation, then resolved.
+     *
+     *    Output:
+     *
+     *      - one reconstructed mesh
+     *      - one normal texture atlas
+     *      - normal TextureMaterial path
+     *      
+     *      
+     * UV UNWRAP
+     * ---------
+     *
+     * The UV unwrap stage should group connected, reasonably planar surface regions into charts.
+     *
+     * The goal is not perfect artist-quality UVs. The goal is a stable atlas that:
+     *
+     *   - avoids triangle-per-island output
+     *   - avoids UV overlaps
+     *   - keeps connected surfaces together when reasonable
+     *   - leaves enough padding for filtering/dilation
+     *
+     * UvUnwrapParams controls chart creation, chart merging, packing and padding.
+     *
+     * Important rule:
+     *
+     *      disconnected coplanar surfaces are dangerous to merge
+     *
+     * because projection to a chart plane can collapse unrelated surfaces onto overlapping UV space.
+     * Prefer solving atlas waste with better packing, not by merging unrelated geometry into the same chart.
+     *
+     *
+     * ATLAS COLOR PROJECTION
+     * ----------------------
+     *
+     * The atlas bake renders the final reconstructed mesh in UV space.
+     *
+     * For each atlas fragment we still know the original 3D world position. That world position is
+     * projected into every capture camera. If a capture sees that point, its color contributes to the
+     * atlas texel.
+     *
+     * The atlas texture during projection is not final color. It is a weighted accumulator:
+     *
+     *      rgb = sum(captureColor * weight)
+     *      a   = sum(weight)
+     *
+     * Resolve later converts this to:
+     *
+     *      finalColor = rgb / a
+     *
+     *
+     * VISIBILITY
+     * ----------
+     *
+     * Wrong-wall rejection is handled by depth occlusion, not by normals.
+     *
+     * For each capture, the final reconstructed mesh can be rendered from that capture pose to generate
+     * a depth texture. During projection, the current 3D point is compared against that depth texture.
+     *
+     * A point is rejected only when it is behind the visible reconstructed surface:
+     *
+     *      pointDepth > sampledDepth + bias
+     *
+     * Do not require exact depth equality. The fused/optimized mesh will not exactly match the original
+     * depth samples, and exact matching creates holes.
+     *
+     *
+     * NORMALS AND FRONTNESS
+     * ---------------------
+     *
+     * Reconstructed normals are not always sign-coherent. Some local patches can point backwards even
+     * when the surface is valid.
+     *
+     * For atlas baking, normal sign should not decide visibility. Use two-sided frontness:
+     *
+     *      abs(dot(normal, toCaptureCamera))
+     *
+     * Frontness is a quality term:
+     *
+     *   - frontal views get higher weight
+     *   - grazing views get lower weight or are discarded
+     *
+     * Depth decides whether the point is visible.
+     * Frontness decides whether the sample is useful.
+     *
+     *
+     * DISTANCE WEIGHT
+     * ---------------
+     *
+     * Close captures usually contain sharper image detail.
+     *
+     * Distance weighting biases the bake toward closer captures:
+     *
+     *      weight *= pow(referenceDistance / cameraDistance, power)
+     *
+     * Use power 0 to disable it.
+     * Use power 1-2 for mild preference.
+     * Use power 3+ when close captures should dominate strongly.
+     *
+     *
+     * RESOLVE AND DILATION
+     * --------------------
+     *
+     * Resolve converts weighted accumulation into final color and keeps alpha as a coverage mask.
+     *
+     * Dilation then expands valid texels into neighboring invalid texels in atlas space.
+     *
+     * This fixes texture-filtering cracks:
+     *
+     *   - padding creates empty room between UV islands
+     *   - dilation fills that room with edge color
+     *
+     * Without dilation, bilinear filtering and mipmaps can sample black/unwritten texels just outside an
+     * island and produce visible cracks.
+     *
+     *
+     * 
+     * EXPOSURE SOLVE IN THE NON-UV PATH
+     * ---------------------------------
+     *
+     * The old non-unwrap projection path can compensate per-frame camera exposure before building the
+     * final material/atlas.
+     *
+     * This matters because the Quest camera auto-exposure is not locked: two captures of the same wall
+     * can have different brightness even if the geometry projection is correct.
+     *
+     * In the UnwrapUv == false path:
+     *
+     *   1. MeshTextureProjection chooses which capture/image contributes to each mesh region.
+     *   2. FrameExposureSolver estimates relative exposure offsets between frames.
+     *   3. Those exposure values are used when building the old atlas or when rendering the texture array.
+     *
+     * This is not the same as ResolveColorAsync().
+     *
+     *   - FrameExposureSolver works on source-frame brightness consistency.
+     *   - ResolveColorAsync() works on the weighted UV-atlas accumulator produced by the unwrap bake.
+     *
+     * The current UnwrapUv == true atlas bake does not yet use that exposure solve directly. If auto-exposure
+     * differences become visible in the baked atlas, the same idea should be applied before or during
+     * accumulation, by weighting/adjusting each capture frame color before it contributes to the atlas.
+     *
+     *
+     * PARAMETER GROUPS
+     * ----------------
+     *
+     * Geometry capture / depth patch extraction:
+     *
+     *      GridSize
+     *      GeneratorParams
+     *
+     * Fused mesh reconstruction:
+     *
+     *      MeshParams
+     *      UseMeshCache
+     *
+     * Geometric cleanup:
+     *
+     *      Optimize
+     *      OptimizeTollerance
+     *      ComputeIndices
+     *
+     * UV charting/packing:
+     *
+     *      UvUnwrapParams
+     *
+     * Atlas projection and resolve:
+     *
+     *      UvProjParams
+     *
+     * Legacy direct color projection / exposure compensation:
+     *
+     *      ProjParams
+     *      ExposeParams
+     *      SolveExposure
+     *      
+     *      
+     * COMMON MODES
+     * ------------
+     *
+     * Fast geometry debug:
+     *
+     *      UseMeshCache = false when changing reconstruction
+     *      BuildAtlas = false
+     *      UnwrapUv can be false
+     *
+     * UV/debug bake:
+     *
+     *      UseMeshCache = true
+     *      UnwrapUv = true
+     *      BuildAtlas = true
+     *      smaller AtlasSize
+     *
+     * Final bake:
+     *
+     *      UseMeshCache = true after geometry is stable
+     *      Optimize = true
+     *      UnwrapUv = true
+     *      BuildAtlas = true
+     *      UseDepthOcclusion = true
+     *      enough dilation passes to cover filtering/mipmap seams
+     *
+     *
+     * FAILURE MAP
+     * -----------
+     *
+     * Too many vertices:
+     *      voxel size too small, Optimize disabled, collapse tolerance too low.
+     *
+     * Lost detail / melted geometry:
+     *      voxel size too large or OptimizeTollerance too high.
+     *
+     * Holes in atlas:
+     *      depth bias too strict, frontness too strict, bad signed-normal rejection.
+     *
+     * Wrong surface color:
+     *      depth occlusion disabled, depth UV convention wrong, or depth bias too permissive.
+     *
+     * Dark/striped atlas before resolve:
+     *      looking at weighted accumulation instead of resolved color.
+     *
+     * Black cracks on UV borders:
+     *      outside-island texels are unwritten; resolve+dilation required.
+     */
+
+    #endregion
+
     public class DepthCapture : Behavior<Group3D>
     {
+        #region STRUCTS 
+
         public class DepthFrame
         {
             public TriangleMesh? Mesh;
@@ -106,6 +520,86 @@ namespace XrEngine.Reconstruct
             public long FrameXrTime;
         }
 
+        public class UvAtlasProjectionParams
+        {
+            public UvAtlasProjectionParams()
+            {
+                AtlasSize = 8192;
+
+                MinFrontness = 0.02f;
+                DepthBiasMillimeters = 5.0f;
+
+                DistanceRef = 1.0f;
+                DistanceWeightPower = 3.0f;
+                MinDistanceWeight = 0.0f;
+
+                ResolveMinWeight = 0.00001f;
+                DilationPasses = 1;
+            }
+
+            /// <summary>
+            /// Size of the generated UV atlas texture.
+            /// Suggested: 4096 for tests, 8192 for final room-scale bake.
+            /// Higher values preserve more projected image detail but make projection/resolve/dilation slower.
+            /// </summary>
+            public int AtlasSize { get; set; }
+
+            /// <summary>
+            /// Minimum two-sided frontness accepted during UV atlas projection.
+            /// The shader should use abs(dot(normal, toCamera)) because reconstructed normals can be flipped.
+            /// Suggested: 0.01-0.03 for noisy reconstructed meshes.
+            /// Higher values reject grazing views but can create holes.
+            /// </summary>
+            public float MinFrontness { get; set; }
+
+            /// <summary>
+            /// Depth occlusion tolerance in millimeters, used only when DepthCapture.UseDepthOcclusion is enabled.
+            /// Suggested: 3-5 mm.
+            /// Too low creates holes because the fused mesh does not exactly match the generated depth map.
+            /// Too high can allow wrong surfaces to pass near depth discontinuities.
+            /// </summary>
+            public float DepthBiasMillimeters { get; set; }
+
+            /// <summary>
+            /// Reference distance in meters for distance weighting.
+            /// Usually keep this at 1.0.
+            /// </summary>
+            public float DistanceRef { get; set; }
+
+            /// <summary>
+            /// Controls how strongly close captures dominate far captures.
+            /// 0 disables distance weighting.
+            /// 1-2 gives mild/strong close-frame preference.
+            /// 3 is aggressive and useful when close frames are visibly sharper.
+            /// </summary>
+            public float DistanceWeightPower { get; set; }
+
+            /// <summary>
+            /// Lower clamp for distance weight.
+            /// 0 lets far captures contribute almost nothing.
+            /// 0.02-0.05 keeps far captures alive for weak fill.
+            /// </summary>
+            public float MinDistanceWeight { get; set; }
+
+            /// <summary>
+            /// Minimum accumulated projection weight required for a texel to be valid after resolve.
+            /// Typical: 0.00001.
+            /// Raise only if very weak/noisy texels survive the resolve.
+            /// </summary>
+            public float ResolveMinWeight { get; set; }
+
+            /// <summary>
+            /// Number of atlas-space dilation passes after resolve.
+            /// This fills unwritten texels around UV islands to prevent black seams from bilinear/mip sampling.
+            /// 0 disables dilation.
+            /// 1-2 is usually enough for bilinear cracks.
+            /// 8-12 if mipmaps expose seams.
+            /// </summary>
+            public int DilationPasses { get; set; }
+        }
+
+        #endregion
+
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             IncludeFields = true,
@@ -147,7 +641,6 @@ namespace XrEngine.Reconstruct
 
             GridSize = 300;
             DepthMapSize = 300;
-            AtlasSize = 8192;
             UseMeshCache = true;
             BuildAtlas = true;
             ComputeIndices = true;
@@ -156,14 +649,13 @@ namespace XrEngine.Reconstruct
             Optimize = true;
             OptimizeTollerance = 0.05f;
             UnwrapUv = true;
-            UnwrapFrontness = 0.15f;
-            UnwrapDepthBias = 5f;
 
             MeshParams = new();
             GeneratorParams = new();
             ExposeParams = new();
             ProjParams = new();
             UvUnwrapParams = new();
+            UvProjParams = new();
 
             OptimizeTollerance = 0.04f;
             MeshParams.VoxelSize = 0.05f;
@@ -284,14 +776,14 @@ namespace XrEngine.Reconstruct
         private async Task ProjColorAsync(ColorProjectionFrame frame)
         {
             Debug.Assert(_colorArrayTex != null);
+            Debug.Assert(_atlasTex != null);
+            Debug.Assert(_recMesh != null);
 
             await EngineApp.RenderThread;
 
             var gl = OpenGLRender.Current?.GL;
             if (gl == null)
                 throw new InvalidOperationException();
-
-            Debug.Assert(_recMesh != null);
 
             var useDepth = UseDepthOcclusion && frame.DepthTexture != null;
 
@@ -303,18 +795,18 @@ namespace XrEngine.Reconstruct
             prog.SetUniform("uCaptureViewProj", frame.ViewProj);
             prog.SetUniform("uCaptureCameraPos", frame.CameraPosition);
             prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
-            prog.SetUniform("uMinFrontness", UnwrapFrontness);
+            prog.SetUniform("uMinFrontness", UvProjParams.MinFrontness);
             prog.SetUniform("uColorIndex", frame.ImageIndex);
 
-            prog.SetUniform("uDistanceRef", 1.0f);
-            prog.SetUniform("uDistanceWeightPower", 3f);
-            prog.SetUniform("uMinDistanceWeight", 0f);
+            prog.SetUniform("uDistanceRef", UvProjParams.DistanceRef);
+            prog.SetUniform("uDistanceWeightPower", UvProjParams.DistanceWeightPower);
+            prog.SetUniform("uMinDistanceWeight", UvProjParams.MinDistanceWeight);
 
             prog.LoadTexture(_colorArrayTex, 0);
 
             if (useDepth)
             {
-                prog.SetUniform("uDepthBias", UnwrapDepthBias / 1000f);
+                prog.SetUniform("uDepthBias", UvProjParams.DepthBiasMillimeters / 1000f);
                 prog.LoadTexture(frame.DepthTexture!, 1);
             }
 
@@ -353,9 +845,6 @@ namespace XrEngine.Reconstruct
             if (gl == null)
                 throw new InvalidOperationException();
 
-            const int dilationPasses = 1;
-            const float minWeight = 0.00001f;
-
             var atlasGlTex = _atlasTex.ToGlTexture();
 
             var tempGlTex = GlTempAllocator.StaticTexture(
@@ -382,7 +871,7 @@ namespace XrEngine.Reconstruct
             // tempTex : resolved rgba(color, coverage)
             GlImageProc.PrepareFrameBuffer(gl, tempGlTex);
 
-            resolveProg.SetUniform("uMinWeight", minWeight);
+            resolveProg.SetUniform("uMinWeight", UvProjParams.ResolveMinWeight);
             resolveProg.LoadTexture(_atlasTex, 0);
 
             GlImageProc.DrawQuad(gl);
@@ -396,7 +885,7 @@ namespace XrEngine.Reconstruct
             var sourceGlTex = tempGlTex;
             var targetGlTex = atlasGlTex;
 
-            for (var i = 0; i < dilationPasses; i++)
+            for (var i = 0; i < UvProjParams.DilationPasses; i++)
             {
                 GlImageProc.PrepareFrameBuffer(gl, targetGlTex);
 
@@ -652,8 +1141,8 @@ namespace XrEngine.Reconstruct
 
                     _atlasTex = Texture2D.FromData([new TextureData
                     {
-                        Width = (uint)AtlasSize,
-                        Height = (uint)AtlasSize,
+                        Width = (uint)UvProjParams.AtlasSize,
+                        Height = (uint)UvProjParams.AtlasSize,
                         Format = TextureFormat.RgbaFloat16,
                     }]);
 
@@ -697,23 +1186,18 @@ namespace XrEngine.Reconstruct
                 }
             }
 
-
-
             if (!UnwrapUv)
             {
                 if (BuildAtlas)
                 {
                     Log.Info(this, "Bulding atlas");
 
-                    var builder = new TextureAtlasLayoutBuilder
+                    var builder = new TextureAtlasLayoutBuilder();
+
+                    builder.SetParams(new()
                     {
-                        TextureWidth = 1280,
-                        TextureHeight = 1280,
-                        SourceTextureCount = _host.Children.Count,
-                        Padding = 2,
-                        SourceBorderPixels = 2,
-                        BytesPerPixel = 4
-                    };
+                        SourceTextureCount = _host.Children.Count
+                    });
 
                     _atlasTex?.Dispose();
                     _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
@@ -1075,8 +1559,6 @@ namespace XrEngine.Reconstruct
 
             if (_deleteBtn.IsChanged && _deleteBtn.Value)
                 DeleteLast();
-
-
         }
 
         public void ConfigureInput(IXrBasicInteractionProfile input)
@@ -1092,8 +1574,6 @@ namespace XrEngine.Reconstruct
         public int DepthMapSize { get; set; }
 
         public int GridSize { get; set; }
-
-        public int AtlasSize { get; set; }
 
         public bool SolveExposure { get; set; }
 
@@ -1117,12 +1597,7 @@ namespace XrEngine.Reconstruct
 
         public float OptimizeTollerance { get; set; }
 
-
-        [Range(0, 1, 0.01f)]
-        public float UnwrapFrontness { get; set; }
-
-        [Range(0, 1, 0.1f)]
-        public float UnwrapDepthBias { get; set; }
+        public UvAtlasProjectionParams UvProjParams { get; set; }
 
         public MeshUvUnwrapperParams UvUnwrapParams { get; set; }
 

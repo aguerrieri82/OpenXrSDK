@@ -27,26 +27,124 @@ namespace XrEngine.Reconstruct
             MaxExposure = MathF.Log(4f);
         }
 
+        /// <summary>
+        /// Number of bytes per source texture pixel.
+        ///
+        /// Current capture data is RGBA8, so this should normally stay 4.
+        /// Change only if the raw color buffer layout changes.
+        /// </summary>
         public int BytesPerPixel { get; set; }
 
+        /// <summary>
+        /// Subsampling step over projected mesh triangles.
+        ///
+        /// The exposure solver does not need every triangle. It only needs enough overlapping color samples
+        /// between frame pairs to estimate relative brightness.
+        ///
+        /// Lower values increase samples and accuracy but cost more CPU.
+        /// Higher values are faster but may miss overlap regions.
+        ///
+        /// Suggested:
+        /// 5 for more accurate/offline solve;
+        /// 10 good default;
+        /// 20 for faster rough estimates.
+        /// </summary>
         public int TriangleStep { get; set; }
 
+        /// <summary>
+        /// Pixel radius around each projected sample used to compare local color patches.
+        ///
+        /// 0 compares a single pixel.
+        /// 1 samples a small 3x3 neighborhood, reducing noise and tiny projection mismatches.
+        /// Larger values blur the comparison and can mix across edges.
+        ///
+        /// Suggested:
+        /// 1 as default;
+        /// 0 only for very sharp/debug comparison;
+        /// 2 only if projection jitter is visibly noisy.
+        /// </summary>
         public int PatchRadius { get; set; }
 
+        /// <summary>
+        /// Maximum number of valid overlap samples kept for each frame pair.
+        ///
+        /// Limits solver cost when two frames have a lot of shared visible geometry.
+        /// More samples improve robustness but quickly become redundant.
+        ///
+        /// Suggested:
+        /// 1024-2048 for normal use;
+        /// 4096 for slower but more stable solves.
+        /// </summary>
         public int MaxSamplesPerPair { get; set; }
 
+        /// <summary>
+        /// Minimum number of valid overlap samples required before a frame pair contributes to the solve.
+        ///
+        /// Very weak overlap pairs are noisy and can destabilize exposure estimation.
+        ///
+        /// Suggested:
+        /// 3-8. Raise if tiny accidental overlaps produce bad exposure links.
+        /// </summary>
         public int MinSamplesPerPair { get; set; }
 
+        /// <summary>
+        /// Minimum accepted luminance for exposure comparison.
+        ///
+        /// Very dark pixels are unreliable because noise, compression and quantization dominate.
+        ///
+        /// Suggested:
+        /// 0.02-0.05.
+        /// </summary>
         public float MinLuma { get; set; }
 
+        /// <summary>
+        /// Maximum accepted luminance for exposure comparison.
+        ///
+        /// Very bright pixels are often clipped or near saturation, so they no longer contain reliable
+        /// exposure information.
+        ///
+        /// Suggested:
+        /// 0.95-0.98.
+        /// </summary>
         public float MaxLuma { get; set; }
 
+        /// <summary>
+        /// Number of relaxation iterations used by the exposure graph solver.
+        ///
+        /// More iterations allow exposure offsets to propagate through the frame-overlap graph.
+        /// Too few iterations can leave inconsistent brightness between distant but connected frames.
+        ///
+        /// Suggested:
+        /// 20-30 normally;
+        /// 50 if the frame graph is long/sparse.
+        /// </summary>
         public int SolverIterations { get; set; }
 
+        /// <summary>
+        /// Relaxation factor for each exposure solver iteration.
+        ///
+        /// Lower values converge more slowly but are more stable.
+        /// Higher values converge faster but can oscillate if pair estimates are noisy.
+        ///
+        /// Suggested:
+        /// 0.5-0.7.
+        /// </summary>
         public float SolverRelaxation { get; set; }
 
+        /// <summary>
+        /// Lower clamp for solved exposure correction, stored in log space.
+        ///
+        /// MathF.Log(0.25) means a frame can be darkened/brightened down to 25% relative scale.
+        /// Keeps bad overlap estimates from producing extreme corrections.
+        /// </summary>
         public float MinExposure { get; set; }
 
+        /// <summary>
+        /// Upper clamp for solved exposure correction, stored in log space.
+        ///
+        /// MathF.Log(4) means a frame can be corrected up to 4x relative scale.
+        /// Keeps bad overlap estimates from producing extreme corrections.
+        /// </summary>
         public float MaxExposure { get; set; }
     }
 

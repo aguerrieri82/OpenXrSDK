@@ -47,15 +47,65 @@ namespace XrEngine.Reconstruct
             UvBorder = 0.01f;
             PreferCameraDistance = true;
             DepthBias = 200;
-            MinVisibleSamples = 1; //Max 3
+            MinVisibleSamples = 1; // Max 3
         }
 
+        /// <summary>
+        /// Margin excluded near the source image UV border.
+        ///
+        /// Projection samples close to 0/1 UV are fragile: small calibration/projection errors can sample
+        /// outside the camera image or hit clamped edge pixels. This margin rejects those border samples.
+        ///
+        /// Suggested:
+        /// 0.005-0.01 normally;
+        /// increase if projected colors smear at image borders;
+        /// decrease only if too much useful coverage is being rejected.
+        /// </summary>
         public float UvBorder { get; set; }
 
+        /// <summary>
+        /// When multiple capture frames can color the same surface, prefer the frame whose camera is closer
+        /// to the 3D point.
+        ///
+        /// Closer frames usually contain more texture detail and less projection blur.
+        /// Disable only when testing pure visibility/projection behavior or when distance preference creates
+        /// unstable frame switching.
+        /// </summary>
         public bool PreferCameraDistance { get; set; }
 
+        /// <summary>
+        /// Visibility tolerance used by the legacy non-unwrap projection path when comparing against the
+        /// 16-bit depth map.
+        ///
+        /// The comparison is:
+        ///
+        ///     projectedDepth <= depthMapValue + DepthBias
+        ///
+        /// so the sample is accepted if the projected mesh point is in front of the stored depth, or only
+        /// slightly behind it within this tolerance.
+        ///
+        /// Units are raw ushort depth units, not meters and not millimeters. The practical value depends on
+        /// how the depth buffer was encoded. In the current pipeline, 200 works as a good tolerance: large
+        /// enough to absorb projection/reconstruction mismatch, small enough to reject clearly hidden surfaces.
+        ///
+        /// Suggested:
+        /// 100 = stricter, may reject valid samples;
+        /// 200 = current working default;
+        /// 300+ = more permissive, may leak colors from hidden/back surfaces.
+        /// </summary>
         public int DepthBias { get; set; }
 
+        /// <summary>
+        /// Minimum number of visibility confirmations required before a projected color choice is accepted.
+        ///
+        /// Higher values reject unstable samples, but they can also create holes when only one frame sees a
+        /// region clearly.
+        ///
+        /// Suggested:
+        /// 1 for maximum coverage;
+        /// 2 for stricter projection if enough overlapping captures exist;
+        /// 3 is the practical upper limit and can be too aggressive.
+        /// </summary>
         public int MinVisibleSamples { get; set; }
     }
 

@@ -68,6 +68,64 @@ namespace XrEngine
 
         #endregion
 
+
+        /// <summary>
+        /// Collapses vertices that are spatially closer than <paramref name="distance"/> and rebuilds the
+        /// indexed mesh using the collapsed vertices.
+        ///
+        /// This is mainly used to turn noisy / duplicated reconstruction output into a real shared-index mesh.
+        /// It is especially important before topology-based operations, because triangle-soup geometry can look
+        /// connected visually while still having no shared vertices.
+        ///
+        /// After collapsing, triangles that become degenerate or effectively zero-area are removed, then unused
+        /// vertices are compacted.
+        /// </summary>
+        /// <param name="geometry">
+        /// Geometry to modify in place.
+        /// The geometry is forced to indexed form before collapsing.
+        /// </param>
+        /// <param name="distance">
+        /// Maximum world-space distance between vertices that should be merged.
+        ///
+        /// This is the main cleanup strength:
+        /// smaller values preserve detail but leave more duplicate/seam vertices;
+        /// larger values remove more noise but can weld surfaces that should stay separate.
+        ///
+        /// Suggested:
+        /// around the reconstruction tolerance / voxel noise scale.
+        /// For the current reconstruction tests, values around 0.03-0.05 have been useful.
+        /// </param>
+        /// <param name="cellSize">
+        /// Spatial hash cell size used to accelerate neighbor lookup.
+        ///
+        /// 0 means automatic: <c>distance * 4</c>.
+        /// Usually leave this at 0. Set manually only if profiling shows bad bucket distribution.
+        /// Too small creates many cells; too large puts too many vertices in each cell.
+        /// </param>
+        /// <param name="averageUv">
+        /// If true, collapsed vertices receive the average UV of all merged vertices.
+        /// If false, the collapsed vertex keeps the anchor vertex UV.
+        ///
+        /// Usually false for meshes where UV islands/seams already matter, because averaging UVs across seams
+        /// can corrupt the unwrap/projection data.
+        /// Use true only when UVs are temporary or known to be continuous.
+        /// </param>
+        /// <param name="recomputeNormals">
+        /// If true, normals are recomputed after topology changes.
+        ///
+        /// Usually true after geometric collapse, because merged vertices and removed triangles make old normals
+        /// unreliable. Set false only if normals will be recomputed later anyway.
+        /// </param>
+        /// <param name="areaEpsilon">
+        /// Squared cross-product threshold used to remove triangles that become effectively zero-area after
+        /// vertex collapse.
+        ///
+        /// This is not triangle area directly; it is based on <c>LengthSquared(Cross(edge1, edge2))</c>.
+        /// Keep very small unless collapsed triangles leave visible needle/degenerate artifacts.
+        /// </param>
+        /// <returns>
+        /// Counts describing how much geometry was removed by the collapse.
+        /// </returns>
         public static CollapseResult CollapseCloseVertices(
             Geometry3D geometry,
             float distance,
