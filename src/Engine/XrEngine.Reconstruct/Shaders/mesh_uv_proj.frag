@@ -15,6 +15,10 @@ uniform int uColorIndex;
 
 uniform float uMinFrontness;
 
+uniform float uDistanceRef;
+uniform float uDistanceWeightPower;
+uniform float uMinDistanceWeight;
+
 layout(location = 0) out vec4 outAccum;
 
 const bool FLIP_COLOR_Y = true;
@@ -60,8 +64,17 @@ void main()
 
 #endif
 
-    vec3 toCamera = normalize(uCaptureCameraPos - vWorldPos);
-    float frontness = dot(normalize(vWorldNormal), toCamera);
+    vec3 toCameraVec = uCaptureCameraPos - vWorldPos;
+    float cameraDistance = length(toCameraVec);
+    vec3 toCamera = toCameraVec / max(cameraDistance, 0.0001);
+
+    vec3 vertexNormal = normalize(vWorldNormal);
+
+    // make normal two-sided / camera-facing
+    if (dot(vertexNormal, toCamera) < 0.0)
+        vertexNormal = -vertexNormal;
+
+    float frontness = dot(vertexNormal, toCamera);
 
     if (frontness < uMinFrontness)
         discard;
@@ -71,7 +84,16 @@ void main()
         vec3(colorUv, float(uColorIndex))
     ).rgb;
 
-    float weight = frontness * frontness;
+    float angleWeight = frontness * frontness;
+
+    float distanceWeight = pow(
+        uDistanceRef / max(cameraDistance, 0.001),
+        uDistanceWeightPower
+    );
+
+    distanceWeight = clamp(distanceWeight, uMinDistanceWeight, 1.0);
+
+    float weight = angleWeight * distanceWeight;
 
     outAccum = vec4(color * weight, weight);
 }

@@ -1,20 +1,19 @@
-﻿
-layout(location = 0) out vec4 color;
+﻿layout(binding = 0) uniform highp sampler2D uAccumTexture;
 
-layout(binding = 0) uniform sampler2D uAccumTexture;
+uniform float uMinWeight;
 
-in vec2 fUv;
+layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    vec4 a = texture(uAccumTexture, fUv);
+    ivec2 p = ivec2(gl_FragCoord.xy);
+    vec4 a = texelFetch(uAccumTexture, p, 0);
 
-    if (a.a > 0.00001)
+    if (a.a <= uMinWeight)
     {
-        color.rgb = a.rgb / a.a;
-        color.a = 1.0;
+        outColor = vec4(0.0);
+        return;
     }
-    else
-        color = vec4(0.0);
 
+    outColor = vec4(a.rgb / a.a, 1.0);
 }

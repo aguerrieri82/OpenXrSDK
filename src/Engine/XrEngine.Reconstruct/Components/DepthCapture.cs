@@ -305,6 +305,11 @@ namespace XrEngine.Reconstruct
             prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
             prog.SetUniform("uMinFrontness", UnwrapFrontness);
             prog.SetUniform("uColorIndex", frame.ImageIndex);
+
+            prog.SetUniform("uDistanceRef", 1.0f);
+            prog.SetUniform("uDistanceWeightPower", 3f);
+            prog.SetUniform("uMinDistanceWeight", 0f);
+
             prog.LoadTexture(_colorArrayTex, 0);
 
             if (useDepth)
@@ -337,6 +342,7 @@ namespace XrEngine.Reconstruct
             vertexHandler.Draw();
         }
 
+
         private async Task ResolveColorAsync()
         {
             Debug.Assert(_atlasTex != null);
@@ -347,17 +353,68 @@ namespace XrEngine.Reconstruct
             if (gl == null)
                 throw new InvalidOperationException();
 
-            var fb = GlImageProc.PrepareFrameBuffer(gl, _atlasTex.ToGlTexture());
-            
+            const int dilationPasses = 1;
+            const float minWeight = 0.00001f;
+
+            var atlasGlTex = _atlasTex.ToGlTexture();
+
+            var tempGlTex = GlTempAllocator.StaticTexture(
+                gl,
+                _atlasTex.Width,
+                _atlasTex.Height,
+                1,
+                TextureFormat.RgbaFloat16);
+
+            GlState.Current!.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
+            GlState.Current.SetWriteDepth(false);
+            GlState.Current.SetUseDepth(false);
+            GlState.Current.SetWriteColor(true);
             GlState.Current.SetDoubleSided(false);
             GlState.Current.SetAlphaMode(AlphaMode.Opaque);
 
-            var prog = GlImageProc.LoadProgram(gl, "[XrEngine.Reconstruct]resolve.frag", [], []);
+            var resolveProg = GlImageProc.LoadProgram(
+                gl,
+                "[XrEngine.Reconstruct]resolve.frag",
+                [],
+                []);
 
-            prog.LoadTexture(_atlasTex, 0);
+            // atlasTex: accumulated rgba(sum(color * weight), sum(weight))
+            // tempTex : resolved rgba(color, coverage)
+            GlImageProc.PrepareFrameBuffer(gl, tempGlTex);
+
+            resolveProg.SetUniform("uMinWeight", minWeight);
+            resolveProg.LoadTexture(_atlasTex, 0);
 
             GlImageProc.DrawQuad(gl);
+
+            var dilateProg = GlImageProc.LoadProgram(
+                gl,
+                "[XrEngine.Reconstruct]dilate.frag",
+                [],
+                []);
+
+            var sourceGlTex = tempGlTex;
+            var targetGlTex = atlasGlTex;
+
+            for (var i = 0; i < dilationPasses; i++)
+            {
+                GlImageProc.PrepareFrameBuffer(gl, targetGlTex);
+
+                dilateProg.LoadTexture(sourceGlTex.ToEngineTexture(), 0);
+
+                GlImageProc.DrawQuad(gl);
+
+                (sourceGlTex, targetGlTex) = (targetGlTex, sourceGlTex);
+            }
+
+            if (!ReferenceEquals(sourceGlTex, atlasGlTex))
+                GlImageProc.CopyColor(sourceGlTex, atlasGlTex);
+
+            //atlasGlTex.MinFilter = TextureMinFilter.LinearMipmapLinear;
+            //atlasGlTex.MagFilter = TextureMagFilter.Linear;
+            //atlasGlTex.Update();
         }
+
 
 
         private async Task<IMemoryBuffer<byte>> GenerateDepthAsync(Matrix4x4 cameraViewProj, Texture2D? depthTex)
@@ -606,6 +663,8 @@ namespace XrEngine.Reconstruct
 
                         await ProjColorAsync(frame);
                     }
+
+                    Log.Info(this, "Resolve color");
 
                     await ResolveColorAsync();
 
