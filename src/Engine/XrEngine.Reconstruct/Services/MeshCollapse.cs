@@ -4,7 +4,32 @@ using System.Numerics;
 
 namespace XrEngine
 {
-    public static class MeshCollapse
+    public sealed class MeshCollapseParams
+    {
+        public MeshCollapseParams()
+        {
+            Distance = 0.04f;
+            CellSize = 0.0f;
+            AverageUv = false;
+            RecomputeNormals = true;
+            AreaEpsilon = 1E-07f;
+            RecoverSingleTriangleHoles = false;
+        }
+
+        public float Distance { get; set; }
+
+        public float CellSize { get; set; }
+
+        public bool AverageUv { get; set; }
+
+        public bool RecomputeNormals { get; set; }
+
+        public float AreaEpsilon { get; set; }
+
+        public bool RecoverSingleTriangleHoles { get; set; }
+    }
+
+    public sealed class MeshCollapse
     {
         #region Private Structs
 
@@ -39,6 +64,69 @@ namespace XrEngine
             public int Z { get; }
         }
 
+        private readonly struct TriangleKey : IEquatable<TriangleKey>
+        {
+            public TriangleKey(uint a, uint b, uint c)
+            {
+                if (a > b)
+                    (a, b) = (b, a);
+
+                if (b > c)
+                    (b, c) = (c, b);
+
+                if (a > b)
+                    (a, b) = (b, a);
+
+                A = a;
+                B = b;
+                C = c;
+            }
+
+            public bool Equals(TriangleKey other)
+            {
+                return A == other.A && B == other.B && C == other.C;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is TriangleKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(A, B, C);
+            }
+
+            public uint A { get; }
+
+            public uint B { get; }
+
+            public uint C { get; }
+        }
+
+        private struct EdgeInfo
+        {
+            public EdgeInfo(uint a, uint b, Vector3 normal)
+            {
+                A = a;
+                B = b;
+                Count = 1;
+                NormalSum = normal;
+            }
+
+            public uint A;
+
+            public uint B;
+
+            public int Count;
+
+            public Vector3 NormalSum;
+        }
+
+        #endregion
+
+        #region Public Structs
+
         public readonly struct CollapseResult
         {
             public CollapseResult(
@@ -72,113 +160,64 @@ namespace XrEngine
 
         #endregion
 
+        private float _distance;
+        private float _cellSize;
+        private bool _averageUv;
+        private bool _recomputeNormals;
+        private float _areaEpsilon;
+        private bool _recoverSingleTriangleHoles;
 
-        /// <summary>
-        /// Collapses vertices that are spatially closer than <paramref name="distance"/> and rebuilds the
-        /// indexed mesh using the collapsed vertices.
-        ///
-        /// This is mainly used to turn noisy / duplicated reconstruction output into a real shared-index mesh.
-        /// It is especially important before topology-based operations, because triangle-soup geometry can look
-        /// connected visually while still having no shared vertices.
-        ///
-        /// After collapsing, triangles that become degenerate or effectively zero-area are removed, then unused
-        /// vertices are compacted.
-        /// </summary>
-        /// <param name="geometry">
-        /// Geometry to modify in place.
-        /// The geometry is forced to indexed form before collapsing.
-        /// </param>
-        /// <param name="distance">
-        /// Maximum world-space distance between vertices that should be merged.
-        ///
-        /// This is the main cleanup strength:
-        /// smaller values preserve detail but leave more duplicate/seam vertices;
-        /// larger values remove more noise but can weld surfaces that should stay separate.
-        ///
-        /// Suggested:
-        /// around the reconstruction tolerance / voxel noise scale.
-        /// For the current reconstruction tests, values around 0.03-0.05 have been useful.
-        /// </param>
-        /// <param name="cellSize">
-        /// Spatial hash cell size used to accelerate neighbor lookup.
-        ///
-        /// 0 means automatic: <c>distance * 4</c>.
-        /// Usually leave this at 0. Set manually only if profiling shows bad bucket distribution.
-        /// Too small creates many cells; too large puts too many vertices in each cell.
-        /// </param>
-        /// <param name="averageUv">
-        /// If true, collapsed vertices receive the average UV of all merged vertices.
-        /// If false, the collapsed vertex keeps the anchor vertex UV.
-        ///
-        /// Usually false for meshes where UV islands/seams already matter, because averaging UVs across seams
-        /// can corrupt the unwrap/projection data.
-        /// Use true only when UVs are temporary or known to be continuous.
-        /// </param>
-        /// <param name="recomputeNormals">
-        /// If true, normals are recomputed after topology changes.
-        ///
-        /// Usually true after geometric collapse, because merged vertices and removed triangles make old normals
-        /// unreliable. Set false only if normals will be recomputed later anyway.
-        /// </param>
-        /// <param name="areaEpsilon">
-        /// Squared cross-product threshold used to remove triangles that become effectively zero-area after
-        /// vertex collapse.
-        ///
-        /// This is not triangle area directly; it is based on <c>LengthSquared(Cross(edge1, edge2))</c>.
-        /// Keep very small unless collapsed triangles leave visible needle/degenerate artifacts.
-        /// </param>
-        /// <param name="recoverSingleTriangleHoles">
-        /// If true, does a final conservative recovery pass for triangles removed only by the area filter.
-        ///
-        /// A removed triangle is restored only when all 3 of its edges already touch alive triangles.
-        /// This fills isolated single-triangle holes caused by over-aggressive collapse cleanup without
-        /// resurrecting open-border garbage or duplicated-index degenerate triangles.
-        /// </param>
-        /// <returns>
-        /// Counts describing how much geometry was removed by the collapse.
-        /// </returns>
-        public static CollapseResult CollapseCloseVertices(
-            Geometry3D geometry,
-            float distance,
-            float cellSize = 0,
-            bool averageUv = false,
-            bool recomputeNormals = true,
-            float areaEpsilon = 0.000000000001f,
-            bool recoverSingleTriangleHoles = false)
+        public MeshCollapse()
+        {
+            SetParameters(new MeshCollapseParams());
+        }
+
+        public MeshCollapse(MeshCollapseParams parameters)
+        {
+            SetParameters(parameters);
+        }
+
+        public void SetParameters(MeshCollapseParams parameters)
+        {
+            _distance = parameters.Distance;
+            _cellSize = parameters.CellSize > 0.0f ? parameters.CellSize : parameters.Distance * 4.0f;
+            _averageUv = parameters.AverageUv;
+            _recomputeNormals = parameters.RecomputeNormals;
+            _areaEpsilon = parameters.AreaEpsilon;
+            _recoverSingleTriangleHoles = parameters.RecoverSingleTriangleHoles;
+        }
+
+        public CollapseResult CollapseCloseVertices(Geometry3D geometry)
         {
             geometry.EnsureIndices();
-
-            if (cellSize <= 0)
-                cellSize = distance * 4.0f;
 
             var oldVertices = geometry.Vertices;
             var oldIndices = geometry.Indices;
 
-            var vertexIndex = BuildVertexIndex(oldVertices, cellSize);
+            var vertexIndex = BuildVertexIndex(oldVertices);
 
             var remap = CollapseVertices(
                 oldVertices,
                 vertexIndex,
-                distance,
-                cellSize,
-                averageUv,
                 out var newVertices);
 
             var newIndices = RebuildTriangles(
                 oldIndices,
                 remap,
                 newVertices,
-                areaEpsilon,
-                recoverSingleTriangleHoles,
-                out var removedZeroAreaTriangles,
-                out var recoveredSingleTriangleHoles);
+                out var removedZeroAreaTriangles);
 
             CompactUsedVertices(ref newVertices, newIndices);
+
+            var recoveredSingleTriangleHoles = 0;
+
+            if (_recoverSingleTriangleHoles)
+                recoveredSingleTriangleHoles = RecoverSingleTriangleHoles(newVertices, ref newIndices);
 
             geometry.Vertices = newVertices;
             geometry.Indices = newIndices;
 
-            if (recomputeNormals)
+            if (_recomputeNormals)
                 geometry.ComputeNormals();
 
             return new CollapseResult(
@@ -190,15 +229,13 @@ namespace XrEngine
                 recoveredSingleTriangleHoles);
         }
 
-        private static Dictionary<CellKey, List<int>> BuildVertexIndex(
-            VertexData[] vertices,
-            float cellSize)
+        private Dictionary<CellKey, List<int>> BuildVertexIndex(VertexData[] vertices)
         {
             var result = new Dictionary<CellKey, List<int>>();
 
             for (var i = 0; i < vertices.Length; i++)
             {
-                var cell = GetCell(vertices[i].Pos, cellSize);
+                var cell = GetCell(vertices[i].Pos);
 
                 if (!result.TryGetValue(cell, out var list))
                 {
@@ -212,16 +249,13 @@ namespace XrEngine
             return result;
         }
 
-        private static uint[] CollapseVertices(
+        private uint[] CollapseVertices(
             VertexData[] vertices,
             Dictionary<CellKey, List<int>> vertexIndex,
-            float distance,
-            float cellSize,
-            bool averageUv,
             out VertexData[] newVertices)
         {
-            var distanceSq = distance * distance;
-            var neighborRadius = Math.Max(1, (int)MathF.Ceiling(distance / cellSize));
+            var distanceSq = _distance * _distance;
+            var neighborRadius = Math.Max(1, (int)MathF.Ceiling(_distance / _cellSize));
 
             var remap = new uint[vertices.Length];
             Array.Fill(remap, uint.MaxValue);
@@ -235,8 +269,7 @@ namespace XrEngine
 
                 var anchor = vertices[i];
                 var anchorPos = anchor.Pos;
-                var anchorCell = GetCell(anchorPos, cellSize);
-
+                var anchorCell = GetCell(anchorPos);
                 var newIndex = (uint)result.Count;
 
                 var sumPos = Vector3.Zero;
@@ -286,7 +319,7 @@ namespace XrEngine
                 if (sumNormal.LengthSquared() > 0.000001f)
                     collapsed.Normal = Vector3.Normalize(sumNormal);
 
-                if (averageUv)
+                if (_averageUv)
                     collapsed.UV = sumUv / count;
 
                 result.Add(collapsed);
@@ -297,21 +330,16 @@ namespace XrEngine
             return remap;
         }
 
-        private static uint[] RebuildTriangles(
+        private uint[] RebuildTriangles(
             uint[] oldIndices,
             uint[] remap,
             VertexData[] vertices,
-            float areaEpsilon,
-            bool recoverSingleTriangleHoles,
-            out int removedZeroAreaTriangles,
-            out int recoveredSingleTriangleHoles)
+            out int removedZeroAreaTriangles)
         {
+            var result = new List<uint>(oldIndices.Length);
             var triCount = oldIndices.Length / 3;
-            var remappedIndices = new uint[oldIndices.Length];
-            var alive = new bool[triCount];
-            var recoverable = new bool[triCount];
 
-            var removedCandidates = 0;
+            removedZeroAreaTriangles = 0;
 
             for (var tri = 0; tri < triCount; tri++)
             {
@@ -321,13 +349,9 @@ namespace XrEngine
                 var b = remap[oldIndices[i + 1]];
                 var c = remap[oldIndices[i + 2]];
 
-                remappedIndices[i + 0] = a;
-                remappedIndices[i + 1] = b;
-                remappedIndices[i + 2] = c;
-
                 if (a == b || b == c || c == a)
                 {
-                    removedCandidates++;
+                    removedZeroAreaTriangles++;
                     continue;
                 }
 
@@ -337,123 +361,203 @@ namespace XrEngine
 
                 var areaSq = Vector3.Cross(p1 - p0, p2 - p0).LengthSquared();
 
-                if (areaSq <= areaEpsilon)
+                if (areaSq <= _areaEpsilon)
                 {
-                    removedCandidates++;
-                    recoverable[tri] = true;
+                    removedZeroAreaTriangles++;
                     continue;
                 }
 
-                alive[tri] = true;
-            }
-
-            if (recoverSingleTriangleHoles)
-                recoveredSingleTriangleHoles = RecoverSingleTriangleHoles(remappedIndices, alive, recoverable);
-            else
-                recoveredSingleTriangleHoles = 0;
-
-            removedZeroAreaTriangles = removedCandidates - recoveredSingleTriangleHoles;
-
-            var result = new List<uint>(oldIndices.Length);
-
-            for (var tri = 0; tri < triCount; tri++)
-            {
-                if (!alive[tri])
-                    continue;
-
-                var i = tri * 3;
-
-                result.Add(remappedIndices[i + 0]);
-                result.Add(remappedIndices[i + 1]);
-                result.Add(remappedIndices[i + 2]);
+                result.Add(a);
+                result.Add(b);
+                result.Add(c);
             }
 
             return result.ToArray();
         }
 
-        private static int RecoverSingleTriangleHoles(
-            uint[] indices,
-            bool[] alive,
-            bool[] recoverable)
+        private int RecoverSingleTriangleHoles(VertexData[] vertices, ref uint[] indices)
         {
             var triCount = indices.Length / 3;
-            var baseAlive = (bool[])alive.Clone();
-            var edges = new Dictionary<ulong, List<int>>(triCount * 3);
+
+            if (triCount == 0)
+                return 0;
+
+            var edges = new Dictionary<ulong, EdgeInfo>(triCount * 3);
+            var triangles = new HashSet<TriangleKey>();
+            var boundaryAdjacency = new Dictionary<uint, List<uint>>();
 
             for (var tri = 0; tri < triCount; tri++)
             {
                 var i = tri * 3;
 
-                AddEdge(edges, indices[i + 0], indices[i + 1], tri);
-                AddEdge(edges, indices[i + 1], indices[i + 2], tri);
-                AddEdge(edges, indices[i + 2], indices[i + 0], tri);
+                var a = indices[i + 0];
+                var b = indices[i + 1];
+                var c = indices[i + 2];
+
+                triangles.Add(new TriangleKey(a, b, c));
+
+                var normal = GetTriangleNormal(vertices, a, b, c);
+
+                AddEdge(edges, a, b, normal);
+                AddEdge(edges, b, c, normal);
+                AddEdge(edges, c, a, normal);
             }
+
+            foreach (var item in edges.Values)
+            {
+                if (item.Count != 1)
+                    continue;
+
+                AddBoundaryAdjacency(boundaryAdjacency, item.A, item.B);
+                AddBoundaryAdjacency(boundaryAdjacency, item.B, item.A);
+            }
+
+            if (boundaryAdjacency.Count == 0)
+                return 0;
+
+            var result = new List<uint>(indices.Length + 128 * 3);
+            result.AddRange(indices);
 
             var recovered = 0;
 
-            for (var tri = 0; tri < triCount; tri++)
+            foreach (var item in edges.Values)
             {
-                if (baseAlive[tri])
+                if (item.Count != 1)
                     continue;
 
-                if (!recoverable[tri])
+                var a = item.A;
+                var b = item.B;
+
+                if (!boundaryAdjacency.TryGetValue(a, out var aEdges))
                     continue;
 
-                var i = tri * 3;
+                foreach (var c in aEdges)
+                {
+                    if (c == a || c == b)
+                        continue;
 
-                if (!HasAliveEdgeNeighbor(edges, baseAlive, indices[i + 0], indices[i + 1], tri))
-                    continue;
+                    if (!HasBoundaryNeighbor(boundaryAdjacency, b, c))
+                        continue;
 
-                if (!HasAliveEdgeNeighbor(edges, baseAlive, indices[i + 1], indices[i + 2], tri))
-                    continue;
+                    var key = new TriangleKey(a, b, c);
 
-                if (!HasAliveEdgeNeighbor(edges, baseAlive, indices[i + 2], indices[i + 0], tri))
-                    continue;
+                    if (triangles.Contains(key))
+                        continue;
 
-                alive[tri] = true;
-                recovered++;
+                    var p0 = vertices[a].Pos;
+                    var p1 = vertices[b].Pos;
+                    var p2 = vertices[c].Pos;
+
+                    var normal = Vector3.Cross(p1 - p0, p2 - p0);
+
+                    if (normal.LengthSquared() <= _areaEpsilon)
+                        continue;
+
+                    var neighborNormal =
+                        GetEdgeNormal(edges, a, b) +
+                        GetEdgeNormal(edges, b, c) +
+                        GetEdgeNormal(edges, c, a);
+
+                    triangles.Add(key);
+
+                    if (neighborNormal.LengthSquared() > 0.000001f && Vector3.Dot(normal, neighborNormal) < 0.0f)
+                    {
+                        result.Add(a);
+                        result.Add(c);
+                        result.Add(b);
+                    }
+                    else
+                    {
+                        result.Add(a);
+                        result.Add(b);
+                        result.Add(c);
+                    }
+
+                    recovered++;
+                }
             }
+
+            if (recovered > 0)
+                indices = result.ToArray();
 
             return recovered;
         }
 
-        private static void AddEdge(
-            Dictionary<ulong, List<int>> edges,
+        private void AddEdge(
+            Dictionary<ulong, EdgeInfo> edges,
             uint a,
             uint b,
-            int tri)
+            Vector3 normal)
         {
             var key = EdgeKey(a, b);
 
-            if (!edges.TryGetValue(key, out var list))
+            if (edges.TryGetValue(key, out var item))
             {
-                list = new List<int>(2);
-                edges[key] = list;
+                item.Count++;
+                item.NormalSum += normal;
+                edges[key] = item;
+                return;
             }
 
-            list.Add(tri);
+            edges[key] = new EdgeInfo(a, b, normal);
         }
 
-        private static bool HasAliveEdgeNeighbor(
-            Dictionary<ulong, List<int>> edges,
-            bool[] alive,
+        private void AddBoundaryAdjacency(
+            Dictionary<uint, List<uint>> adjacency,
             uint a,
-            uint b,
-            int self)
+            uint b)
         {
-            if (!edges.TryGetValue(EdgeKey(a, b), out var list))
+            if (!adjacency.TryGetValue(a, out var list))
+            {
+                list = new List<uint>(4);
+                adjacency[a] = list;
+            }
+
+            list.Add(b);
+        }
+
+        private bool HasBoundaryNeighbor(
+            Dictionary<uint, List<uint>> adjacency,
+            uint a,
+            uint b)
+        {
+            if (!adjacency.TryGetValue(a, out var list))
                 return false;
 
-            foreach (var tri in list)
+            foreach (var item in list)
             {
-                if (tri != self && alive[tri])
+                if (item == b)
                     return true;
             }
 
             return false;
         }
 
-        private static ulong EdgeKey(uint a, uint b)
+        private Vector3 GetEdgeNormal(
+            Dictionary<ulong, EdgeInfo> edges,
+            uint a,
+            uint b)
+        {
+            if (!edges.TryGetValue(EdgeKey(a, b), out var item))
+                return Vector3.Zero;
+
+            return item.NormalSum;
+        }
+
+        private Vector3 GetTriangleNormal(
+            VertexData[] vertices,
+            uint a,
+            uint b,
+            uint c)
+        {
+            var p0 = vertices[a].Pos;
+            var p1 = vertices[b].Pos;
+            var p2 = vertices[c].Pos;
+
+            return Vector3.Cross(p1 - p0, p2 - p0);
+        }
+
+        private ulong EdgeKey(uint a, uint b)
         {
             if (a > b)
                 (a, b) = (b, a);
@@ -461,7 +565,7 @@ namespace XrEngine
             return ((ulong)a << 32) | b;
         }
 
-        private static void CompactUsedVertices(ref VertexData[] vertices, uint[] indices)
+        private void CompactUsedVertices(ref VertexData[] vertices, uint[] indices)
         {
             var remap = new int[vertices.Length];
             Array.Fill(remap, -1);
@@ -486,12 +590,12 @@ namespace XrEngine
             vertices = result.ToArray();
         }
 
-        private static CellKey GetCell(Vector3 pos, float cellSize)
+        private CellKey GetCell(Vector3 pos)
         {
             return new CellKey(
-                (int)MathF.Floor(pos.X / cellSize),
-                (int)MathF.Floor(pos.Y / cellSize),
-                (int)MathF.Floor(pos.Z / cellSize));
+                (int)MathF.Floor(pos.X / _cellSize),
+                (int)MathF.Floor(pos.Y / _cellSize),
+                (int)MathF.Floor(pos.Z / _cellSize));
         }
     }
 }

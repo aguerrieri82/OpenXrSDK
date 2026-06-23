@@ -648,7 +648,6 @@ namespace XrEngine.Reconstruct
             UseDepthOcclusion = true;
             SolveExposure = true;
             Optimize = true;
-            OptimizeTollerance = 0.05f;
             UnwrapUv = true;
 
             MeshParams = new();
@@ -657,8 +656,9 @@ namespace XrEngine.Reconstruct
             ProjParams = new();
             UvUnwrapParams = new();
             UvProjParams = new();
+            MeshCollapse = new();
 
-            OptimizeTollerance = 0.04f;
+            MeshCollapse.Distance = 0.04f;
             MeshParams.VoxelSize = 0.05f;
         }
 
@@ -1086,9 +1086,11 @@ namespace XrEngine.Reconstruct
             {
                 Log.Warn(this, "Collapse vertices");
 
-                _recMesh.Geometry.ComputeIndices(2);
+                //_recMesh.Geometry.ComputeIndices(2);
 
-                MeshCollapse.CollapseCloseVertices(_recMesh.Geometry!, OptimizeTollerance);
+                var collapse = new MeshCollapse(MeshCollapse);
+
+                collapse.CollapseCloseVertices(_recMesh.Geometry!);
 
                 Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
             }
@@ -1626,7 +1628,8 @@ namespace XrEngine.Reconstruct
 
         public bool UnwrapUv { get; set; }
 
-        public float OptimizeTollerance { get; set; }
+
+        public MeshCollapseParams MeshCollapse { get; set; }
 
         public UvAtlasProjectionParams UvProjParams { get; set; }
 

@@ -1339,8 +1339,8 @@ namespace XrSamples
 
             if (mode== DepthSnapeshotMode.Read)
             {
-                var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
-                //var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_080632_705");
+                //var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
+                var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_080632_705");
                 snapeshot.Load(path);
 
                 player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
