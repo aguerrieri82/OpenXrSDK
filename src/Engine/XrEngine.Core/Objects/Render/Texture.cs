@@ -42,7 +42,9 @@ namespace XrEngine
         GrayInt8,
         GrayInt16,
 
-        GrayRawSInt16
+        GrayRawSInt16,
+        GrayUint32,
+        RgUint32
     }
 
 

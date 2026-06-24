@@ -96,7 +96,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            CompactVertices(geometry);
+            //CompactVertices(geometry);
             OptimizeVertexCache(geometry);
             OptimizeOverdraw(geometry, overdrawThreshold);
             OptimizeVertexFetch(geometry);

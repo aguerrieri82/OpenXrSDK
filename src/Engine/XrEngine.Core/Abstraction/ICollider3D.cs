@@ -18,6 +18,8 @@ namespace XrEngine
         public Object3D? Object;
 
         public Vector4? Tangent;
+
+        public uint TriangleId;
     }
 
 

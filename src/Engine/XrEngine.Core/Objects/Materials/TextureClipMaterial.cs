@@ -26,14 +26,6 @@ namespace XrEngine
             Color = Color.White;
         }
 
-        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
-        {
-            bld.ExecuteAction((ctx, up) =>
-            {
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-            });
-        }
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>

@@ -27,18 +27,8 @@ namespace XrEngine
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uColor", UIntToRGBA(DrawId));
+                up.SetUniform("uDrawId", DrawId);
             });
-        }
-
-
-        static Color UIntToRGBA(uint color)
-        {
-            var a = ((color >> 24) & 0xFF) / 255f;
-            var b = ((color >> 16) & 0xFF) / 255f;
-            var g = ((color >> 8) & 0xFF) / 255f;
-            var r = (color & 0xFF) / 255f;
-            return new Color(r, g, b, a);
         }
 
 

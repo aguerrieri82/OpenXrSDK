@@ -12,12 +12,14 @@ layout (location = 2) in vec2 a_texcoord_0;
 #endif
 
 out vec2 fUv;
-uniform mat4 uModel;
 
 void main()
 {
-    gl_Position = uModel * vec4(a_position, 1.0);
-    gl_Position.z = -gl_Position.w;
-
     fUv = a_texcoord_0;
+
+    vec2 clip;
+    clip.x = a_position.x >= 0.0 ? 1.0 : -1.0;
+    clip.y = a_position.y >= 0.0 ? 1.0 : -1.0;
+
+    gl_Position = vec4(clip, -1.0, 1.0);
 }

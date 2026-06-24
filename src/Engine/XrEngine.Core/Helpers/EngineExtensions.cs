@@ -561,6 +561,18 @@ namespace XrEngine
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
 
+        public static void FlipYUV(this Geometry3D self)
+        {
+            var span = self.Vertices.AsSpan();
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                ref var ver = ref span[i];
+                ver.UV.Y = 1 - ver.UV.Y;
+            }
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
         public static void Rebuild(this Geometry3D self, IEnumerable<Triangle3> triangles)
         {
             var vertex = new List<VertexData>();

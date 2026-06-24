@@ -6,7 +6,7 @@ using XrMath;
 
 namespace XrEditor
 {
-    public abstract class PickTool : BasePointerTool, IDrawGizmos, IRayPointer
+    public abstract class PickTool : BasePointerTool, IDrawGizmos, IRayPointer, IObjectPicker
     {
         protected Object3D? _currentPick;
         protected Color? _oldColor;
@@ -15,6 +15,8 @@ namespace XrEditor
         protected bool _isPicking;
         protected IViewHitTest? _hitTest;
         protected readonly ConcurrentBag<Collision> _collisions = [];
+        protected TaskCompletionSource<Collision?>? _pickTask;
+        private Func<Collision, bool>? _pickSelector;
 
         public PickTool()
         {
@@ -43,16 +45,24 @@ namespace XrEditor
             _lastRay.IsActive = true;
         }
 
-        protected override void OnPointerDown(Pointer2Event ev)
+        protected override async void OnPointerDown(Pointer2Event ev)
         {
             UpdateRay(ev);
-            base.OnPointerDown(ev);
+
+            if (_pickTask != null && _lastCollision != null)
+            {
+                if (_pickSelector != null && _pickSelector(_lastCollision))
+                {
+                    await EngineApp.MainThread;
+                    _pickTask.SetResult(_lastCollision);
+                    _pickTask = null;
+                }
+            }
         }
 
         protected override void OnPointerUp(Pointer2Event ev)
         {
             UpdateRay(ev);
-            base.OnPointerUp(ev);
         }
 
         protected override async void OnPointerMove(Pointer2Event ev)
@@ -86,6 +96,7 @@ namespace XrEditor
                         Object = result.Object,
                         Normal = result.Normal,
                         Point = result.Pos,
+                        TriangleId = result.Index,
                         LocalPoint = result.Object!.ToLocal(result.Pos),
                     };
                 }
@@ -160,6 +171,13 @@ namespace XrEditor
         {
             if (_sceneView?.ActiveTool == this)
                 _sceneView.ActiveTool = null;
+        }
+
+        public Task<Collision> PickAsync(Func<Collision, bool> selector)
+        {
+            _pickSelector = selector;
+            _pickTask ??= new TaskCompletionSource<Collision?>();
+            return _pickTask.Task!;
         }
 
         public bool IsCaptured => _sceneView?.ActiveTool == this;

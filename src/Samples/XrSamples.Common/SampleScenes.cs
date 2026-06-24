@@ -1321,6 +1321,7 @@ namespace XrSamples
             var scene = app.ActiveScene!;
 
             var group = scene.AddChild(new Group3D());
+            group.Name = "Depth Frames";
             group.IsVisible = false;
 
             var mode = DepthSnapeshotMode.Read;

@@ -40,11 +40,7 @@ namespace XrEngine
             this.ComputeTangents();
         }
 
-        public void FlipYUV()
-        {
-            for (var i = 0; i < _vertices.Length; i++)
-                _vertices[i].UV.Y = _vertices[i].UV.Y == 0 ? 1 : 0;
-        }
+   
 
         public Vector2 Size { get; set; }
 

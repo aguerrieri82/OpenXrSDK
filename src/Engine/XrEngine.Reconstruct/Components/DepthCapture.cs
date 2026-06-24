@@ -14,6 +14,7 @@ using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
 using TurboJpeg;
+using XrEngine.UI;
 
 
 namespace XrEngine.Reconstruct
@@ -621,6 +622,7 @@ namespace XrEngine.Reconstruct
         private Texture2D? _atlasTex;
         private Material? _wireMat;
         private Material? _colorMar;
+        private TextureMaterial _texMat;
         private readonly DepthSnapeshotMode _mode;
         private readonly string _sessionPath;
         private readonly List<DepthFrame> _frames = [];
@@ -656,9 +658,9 @@ namespace XrEngine.Reconstruct
             ProjParams = new();
             UvUnwrapParams = new();
             UvProjParams = new();
-            MeshCollapse = new();
+            CollapseParams = new();
 
-            MeshCollapse.Distance = 0.04f;
+            CollapseParams.Distance = 0.04f;
             MeshParams.VoxelSize = 0.05f;
         }
 
@@ -1023,11 +1025,18 @@ namespace XrEngine.Reconstruct
                 Log.Info(this, "Load geometry");
                 _recMesh?.Dispose();
                 _recMesh = AssetLoader.Instance.Load<TriangleMesh>(cacheName, new BasicLoaderOptions { UseCache = false });
+                _recMesh.AddComponent<MeshDebugger>();
             }
             else
             {
-                _recMesh ??= new TriangleMesh(new Geometry3D());
+                if (_recMesh == null)
+                {
+                    _recMesh = new TriangleMesh(new Geometry3D());
+                    _recMesh.AddComponent<MeshDebugger>();
+                }
             }
+
+            _recMesh.Name = "Reconstruction";
 
             Debug.Assert(_recMesh.Geometry != null);
 
@@ -1086,9 +1095,7 @@ namespace XrEngine.Reconstruct
             {
                 Log.Warn(this, "Collapse vertices");
 
-                //_recMesh.Geometry.ComputeIndices(2);
-
-                var collapse = new MeshCollapse(MeshCollapse);
+                var collapse = new MeshCollapse(CollapseParams);
 
                 collapse.CollapseCloseVertices(_recMesh.Geometry!);
 
@@ -1128,6 +1135,10 @@ namespace XrEngine.Reconstruct
 
             _recMesh.Materials.Clear();
 
+            _texMat ??= new TextureMaterial() { };
+            _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
+            _colorMar ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
+
             if (UnwrapUv)
             {
                 Log.Info(this, "UV Unwrap");
@@ -1135,6 +1146,17 @@ namespace XrEngine.Reconstruct
                 var uvUnwrap = new MeshUvUnwrapper();
                 uvUnwrap.SetParameters(UvUnwrapParams);
                 uvUnwrap.Unwrap(_recMesh.Geometry);
+
+                var filler = new MeshUvSingleTriangleHoleFiller(new MeshUvSingleTriangleHoleFillParams
+                {
+                    AtlasSize = UvProjParams.AtlasSize,
+                    UvMergePixels = 3f,
+                    Passes = 0,
+                    MinTriangleArea = 0f,
+                    MaxEdgeLength = 0.0f
+                });
+
+                filler.Fill(_recMesh.Geometry);
 
                 if (BuildAtlas)
                 {
@@ -1162,7 +1184,9 @@ namespace XrEngine.Reconstruct
 
                     EngineNativeLib.RdcEndFrameCapture(false);
 
-                    _recMesh.Materials.Add(new TextureMaterial(_atlasTex!));
+                    _texMat.Texture = _atlasTex;
+
+                    _recMesh.Materials.Add(_texMat);
                 }
             }
             else
@@ -1204,7 +1228,8 @@ namespace XrEngine.Reconstruct
 
                     _atlasTex?.Dispose();
                     _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
-                    _recMesh.Materials.Add(new TextureMaterial(_atlasTex));
+                    _texMat.Texture = _atlasTex;
+                    _recMesh.Materials.Add(_texMat);
 
                 }
                 else
@@ -1217,8 +1242,6 @@ namespace XrEngine.Reconstruct
                 }
             }
 
-            _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
-            _colorMar ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
 
             _recMesh.Materials.Add(_wireMat);
             _recMesh.Materials.Add(_colorMar);
@@ -1541,8 +1564,9 @@ namespace XrEngine.Reconstruct
                         mat.Exposure = frame.Exposure;
                 }
 
-                //_wireMat?.IsEnabled = ShowWireframe;
-                //_colorMar?.IsEnabled = ShowWireframe;
+                _wireMat?.IsEnabled = ShowWireframe;
+                _colorMar?.IsEnabled = ShowWireframe;
+                _texMat?.IsEnabled = !ShowWireframe;
 
                 return;
             }
@@ -1598,6 +1622,8 @@ namespace XrEngine.Reconstruct
 
                 File.WriteAllBytes(Path.Combine(_lastPath!, "reconstruct_final.jpg"), jpeg);
             }
+
+            Log.Info(this, "Exported on {0}", _lastPath);
         }
 
         public TriangleMesh? Mesh => _recMesh;
@@ -1629,7 +1655,7 @@ namespace XrEngine.Reconstruct
         public bool UnwrapUv { get; set; }
 
 
-        public MeshCollapseParams MeshCollapse { get; set; }
+        public MeshCollapseParams CollapseParams { get; set; }
 
         public UvAtlasProjectionParams UvProjParams { get; set; }
 
@@ -1642,6 +1668,8 @@ namespace XrEngine.Reconstruct
         public FrameExposureSolverParams ExposeParams { get; set; }
 
         public MeshTextureProjectionParams ProjParams { get; set; }
+
+        public string DebugTriangles { get; set; }
 
     }
 }

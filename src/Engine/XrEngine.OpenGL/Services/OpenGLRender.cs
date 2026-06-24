@@ -483,6 +483,8 @@ namespace XrEngine.OpenGL
         {
             EnsureThread();
 
+            PushGroup("Draw surface");
+
             var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
             _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
             _grContext!.ResetContext(GRGlBackendState.All);
@@ -515,6 +517,8 @@ namespace XrEngine.OpenGL
 
             if (texture.MipLevelCount > 1)
                 texture.ToGlTexture().GenerateMipmap();
+
+            PopGroup();
         }
 
         public SKSurface CreateSurface(Texture2D texture)

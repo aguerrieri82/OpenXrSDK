@@ -129,7 +129,7 @@ namespace XrEditor
             return IntPtr.Zero;
         }
 
-        protected unsafe override HandleRef BuildWindowCore(HandleRef hwndParent)
+        protected override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
             if (DesignerProperties.GetIsInDesignMode(this))
                 return new HandleRef(null, 0);
@@ -149,7 +149,7 @@ namespace XrEditor
             }
         }
 
-        public virtual void EnableVSync(bool enable)
+        public virtual void EnableVSync(bool enable, int scale = 1)
         {
         }
 

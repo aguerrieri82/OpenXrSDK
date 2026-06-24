@@ -45,7 +45,7 @@ namespace XrEditor
             }
         }
 
-        public override void EnableVSync(bool enable)
+        public override void EnableVSync(bool enable, int scale = 1)
         {
 
         }

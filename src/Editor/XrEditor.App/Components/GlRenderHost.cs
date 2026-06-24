@@ -284,7 +284,7 @@ namespace XrEditor
         }
 
 
-        public override void EnableVSync(bool enable)
+        public override void EnableVSync(bool enable, int scale = 1)
         {
             if (wglSwapIntervalEXT == null)
             {
@@ -292,7 +292,7 @@ namespace XrEditor
                 wglSwapIntervalEXT = Marshal.GetDelegateForFunctionPointer<wglSwapIntervalEXTPtr>(addr);
             }
 
-            var res = wglSwapIntervalEXT(enable ? 1 : 0);
+            var res = wglSwapIntervalEXT(enable ? scale : 0);
         }
 
         public override void SwapBuffers()

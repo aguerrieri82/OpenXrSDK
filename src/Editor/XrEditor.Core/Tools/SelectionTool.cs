@@ -18,6 +18,7 @@ namespace XrEditor
         public SelectionTool()
         {
             Context.Implement<IOutlineSource>(this);
+            Context.Implement<IObjectPicker>(this);
 
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
@@ -106,6 +107,7 @@ namespace XrEditor
                 {
                     _selection.Set(_nodes.CreateNode(_currentPick));
                     Log.Info(this, _lastCollision?.Point.ToString() ?? "");
+                    Log.Info(this, _lastCollision?.TriangleId.ToString() ?? "");
                 }
 
             }

@@ -1,11 +1,14 @@
 ﻿in vec3 fNormal;
-uniform vec4 uColor;
 
-layout(location=0) out vec4 FragColor;
+uniform uint uDrawId;
+
+layout(location=0) out uvec2 Ids;
 layout(location=1) out vec3 Normal;
 
 void main()
 {    
-   FragColor = uColor;
+   Ids.x = uDrawId;
+   Ids.y = uint(gl_PrimitiveID);
+
    Normal = normalize(fNormal);
 }

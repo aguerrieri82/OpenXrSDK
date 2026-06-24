@@ -19,7 +19,7 @@ namespace XrEditor
 
         void SwapBuffers();
 
-        void EnableVSync(bool enable);
+        void EnableVSync(bool enable, int scale = 1);
 
         public bool SupportsDualRender { get; }
 

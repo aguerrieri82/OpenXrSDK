@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Numerics;
 
 namespace XrEngine
@@ -191,9 +192,9 @@ namespace XrEngine
                 return HashCode.Combine(A, B);
             }
 
-            public uint A { get; }
-
-            public uint B { get; }
+            public readonly uint A;
+            
+            public readonly uint B;       
         }
 
         private readonly struct VertexKey : IEquatable<VertexKey>
@@ -220,9 +221,9 @@ namespace XrEngine
                 return HashCode.Combine(VertexIndex, ChartIndex);
             }
 
-            public uint VertexIndex { get; }
+            public readonly uint VertexIndex;
 
-            public int ChartIndex { get; }
+            public readonly int ChartIndex;
         }
 
         private readonly struct PackRect
@@ -235,13 +236,13 @@ namespace XrEngine
                 Height = height;
             }
 
-            public int X { get; }
+            public readonly int X;
 
-            public int Y { get; }
+            public readonly int Y;
 
-            public int Width { get; }
+            public readonly int Width;
 
-            public int Height { get; }
+            public readonly int Height;
 
             public int Right => X + Width;
 

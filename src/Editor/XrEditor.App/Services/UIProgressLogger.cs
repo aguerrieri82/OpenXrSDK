@@ -15,7 +15,7 @@ namespace XrEditor
 
         public UIProgressLogger()
         {
-            MaxLines = 500;
+            MaxLines = 5000;
         }
 
         public void Init(RichTextBox textBox, ProgressBar progressBar)

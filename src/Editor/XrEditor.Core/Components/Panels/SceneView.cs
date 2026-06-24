@@ -241,7 +241,7 @@ namespace XrEditor
 
             _render = _engine!.App.Renderer;
 
-            _renderSurface.EnableVSync(EditorDebug.EnableVSync);
+            _renderSurface.EnableVSync(EditorDebug.EnableVSync, 4);
 
             Context.Implement(_tools.OfType<IOutlineSource>().First());
 

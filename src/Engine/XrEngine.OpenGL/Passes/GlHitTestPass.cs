@@ -35,7 +35,7 @@ namespace XrEngine.OpenGL
             if (x >= _lastSize.Width || y >= _lastSize.Height)
                 return result;
 
-            uint objId = 0;
+            var ids = new uint[2];
             var normal = Vector3.Zero;
             float depth = 1;
             var txY = _lastSize.Height - y;
@@ -43,18 +43,19 @@ namespace XrEngine.OpenGL
             _passTarget.FrameBuffer!.Bind();
 
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, &objId);
+            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.RGInteger, PixelType.UnsignedInt, ids);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment1);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgb, PixelType.Float, &normal);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.DepthComponent, PixelType.Float, &depth);
 
-            if (objId <= 0 || objId >= _objects.Count)
+            if (ids[0] <= 0 || ids[0] >= _objects.Count)
                 return result;
 
-            result.Object = _objects[(int)objId];
+            result.Object = _objects[(int)ids[0]];
             result.Normal = normal;
             result.Depth = depth;
             result.Pos = ToView(x, y, result.Depth).Project(_lastViewProjInv);
+            result.Index = ids[1];
 
             return result;
         }
@@ -112,7 +113,7 @@ namespace XrEngine.OpenGL
             if (_renderer.RenderTarget is not GlDefaultRenderTarget)
                 return false;
 
-            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.RgUint32);
 
             if (_passTarget.RenderTarget == null)
                 return false;

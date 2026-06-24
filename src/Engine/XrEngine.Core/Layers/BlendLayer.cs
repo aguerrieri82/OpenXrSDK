@@ -16,9 +16,8 @@ namespace XrEngine
             return vertSrc != null &&
                    vertSrc.Materials.
                         OfType<ShaderMaterial>().
-                        Any(a => a.Alpha == AlphaMode.Blend || 
-                                 a.Alpha == AlphaMode.Punch ||
-                                (a.Alpha == AlphaMode.Mask && a is not IVolumeMaterial));
+                        Any(a => ((a.Alpha & AlphaMode.Blend) != 0 && a.Alpha != AlphaMode.BlendMain) ||
+                                  (a.Alpha == AlphaMode.Mask && a is not IVolumeMaterial));
         }
 
         protected override void NotifyChangedWork(Object3D sender, ObjectChange change)

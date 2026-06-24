@@ -635,6 +635,12 @@ namespace XrMath
             return Vector3.Normalize(normal);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Center(in this Triangle3 self)
+        {
+            return (self.V0 + self.V1 + self.V2) / 3.0f;
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Triangle3 Transform(in this Triangle3 self, Matrix4x4 matrix)

@@ -8,6 +8,7 @@ namespace XrEngine
         public Vector3 Normal;
         public Vector3 Pos;
         public float Depth;
+        public uint Index;
     }
 
     public interface IViewHitTest

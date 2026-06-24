@@ -27,6 +27,7 @@ namespace XrEngine.UI
         protected Texture2D? _defaultTexture;
         protected Texture2D? _lastDrawTexture;
         protected CanvasViewMode _mode;
+        protected Camera? _lastCamera;
 
         public CanvasView3D()
         {
@@ -37,6 +38,7 @@ namespace XrEngine.UI
 
             var quad = new Quad3D();
             quad.FlipYUV();
+
 
             Geometry = quad;
             Mode = CanvasViewMode.Texture;
@@ -67,6 +69,8 @@ namespace XrEngine.UI
             {
                 if (_sizeDirty)
                     UpdateSize();
+
+                _lastCamera = ctx.Camera;
 
                 Draw();
             }
@@ -167,6 +171,15 @@ namespace XrEngine.UI
             _sizeDirty = false;
         }
 
+        protected virtual Material CreateMaterial(Texture2D texture)
+        {
+            return new TextureMaterial(texture)
+            {
+                DoubleSided = true,
+                Alpha = AlphaMode.Blend,
+            };
+        }
+
         protected virtual void UpdateMode()
         {
             while (Materials.Count > 0)
@@ -190,11 +203,7 @@ namespace XrEngine.UI
                     _defaultTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
                 }
 
-                Materials.Add(new TextureMaterial(_defaultTexture)
-                {
-                    DoubleSided = true,
-                    Alpha = AlphaMode.Blend,
-                });
+                Materials.Add(CreateMaterial(_defaultTexture));
 
                 _activeTexture = _defaultTexture;
             }
@@ -267,7 +276,6 @@ namespace XrEngine.UI
                 _dpiScale = value;
             }
         }
-
 
         public Texture2D? DrawTexture => _defaultTexture;
 

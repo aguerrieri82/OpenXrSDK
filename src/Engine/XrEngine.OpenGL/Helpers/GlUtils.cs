@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 
 #endif
 using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
@@ -47,14 +48,20 @@ namespace XrEngine.OpenGL
                 TextureFormat.SBgra32 or
                 TextureFormat.Bgra32 => PixelFormat.Bgra,
 
+                TextureFormat.GrayUint32 => PixelFormat.RedInteger,
+
                 TextureFormat.GrayInt8 or
+
                 TextureFormat.GrayInt16 => PixelFormat.Red,
 
                 TextureFormat.GrayRawSInt16 => PixelFormat.RedInteger,
 
                 TextureFormat.RgFloat32 or
                 TextureFormat.RgFloat16 or
+     
                 TextureFormat.Rg88 => PixelFormat.RG,
+
+                TextureFormat.RgUint32 => PixelFormat.RGInteger,
 
                 TextureFormat.GrayFloat32 or
                 TextureFormat.GrayFloat16 => PixelFormat.Red,
@@ -77,7 +84,10 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayFloat32 or
                 TextureFormat.GrayFloat16 => PixelType.Float,
 
-                TextureFormat.Depth24 => PixelType.UnsignedInt,
+                TextureFormat.Depth24 or
+                TextureFormat.RgUint32 or
+                TextureFormat.GrayUint32 => PixelType.UnsignedInt,
+
 
                 TextureFormat.RgbFloat16 => PixelType.HalfFloat,
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
@@ -92,6 +102,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayInt16 => PixelType.UnsignedShort,
 
                 TextureFormat.GrayRawSInt16 => PixelType.Short,
+
 
                 TextureFormat.Rgba32 or
                 TextureFormat.Bgra32 or
@@ -129,6 +140,9 @@ namespace XrEngine.OpenGL
                     TextureFormat.GrayInt8 => InternalFormat.R8,
                     TextureFormat.GrayInt16 => InternalFormat.R16,
                     TextureFormat.GrayRawSInt16 => InternalFormat.R16i,
+                    TextureFormat.GrayUint32 => InternalFormat.R32ui,
+
+                    TextureFormat.RgUint32 => InternalFormat.RG32ui,
 
                     TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
 
@@ -253,6 +267,8 @@ namespace XrEngine.OpenGL
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent16 => TextureFormat.Depth16,
                 InternalFormat.Rgb8 => TextureFormat.Rgb24,
+                InternalFormat.RG32ui => TextureFormat.RgUint32,
+                InternalFormat.R32ui => TextureFormat.GrayUint32,
                 _ => throw new NotSupportedException(),
             };
         }
