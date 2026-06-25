@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
+using XrMath;
 
 namespace XrEngine.Reconstruct
 {
@@ -70,42 +71,6 @@ namespace XrEngine.Reconstruct
     public sealed class VoxelMeshReconstructor
     {
         #region Private Structs
-
-        private readonly struct VoxelKey : IEquatable<VoxelKey>
-        {
-            public VoxelKey(int x, int y, int z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-            }
-
-            public bool Equals(VoxelKey other)
-            {
-                return X == other.X && Y == other.Y && Z == other.Z;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is VoxelKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return (int)(
-                        (uint)X * 73856093u ^
-                        (uint)Y * 19349663u ^
-                        (uint)Z * 83492791u);
-                }
-            }
-
-            public readonly int X;
-            public readonly int Y;
-            public readonly int Z;
-        }
-
         private struct Voxel
         {
             public float Distance;
@@ -132,8 +97,8 @@ namespace XrEngine.Reconstruct
             0, 4, 5, 6
         };
 
-        private readonly Dictionary<VoxelKey, Voxel> _voxels;
-        private readonly HashSet<VoxelKey> _activeCells;
+        private readonly Dictionary<Vector3I, Voxel> _voxels;
+        private readonly HashSet<Vector3I> _activeCells;
 
         private float _truncationDistance;
         private float _truncationDistanceInv;
@@ -153,8 +118,8 @@ namespace XrEngine.Reconstruct
             var voxelVolume = _voxelSize * _voxelSize * _voxelSize;
             var size = (int)(roomVolume / voxelVolume * 0.2f);
 
-            _activeCells = new HashSet<VoxelKey>(size);
-            _voxels = new Dictionary<VoxelKey, Voxel>(size);
+            _activeCells = new HashSet<Vector3I>(size);
+            _voxels = new Dictionary<Vector3I, Voxel>(size);
         }
 
         public void SetParams(VoxelMeshReconstructorParams parameters)
@@ -322,13 +287,13 @@ namespace XrEngine.Reconstruct
                         else if (tsdf > 1.0f)
                             tsdf = 1.0f;
 
-                        IntegrateVoxel(new VoxelKey(x, y, z), tsdf, normal);
+                        IntegrateVoxel(new Vector3I(x, y, z), tsdf, normal);
                     }
                 }
             }
         }
 
-        private void IntegrateVoxel(VoxelKey key, float distance, Vector3 normal)
+        private void IntegrateVoxel(Vector3I key, float distance, Vector3 normal)
         {
             ref var voxel = ref CollectionsMarshal.GetValueRefOrAddDefault(_voxels, key, out var exists);
 
@@ -342,32 +307,32 @@ namespace XrEngine.Reconstruct
             if (exists)
                 return;
 
-            _activeCells.Add(new VoxelKey(key.X - 1, key.Y - 1, key.Z - 1));
-            _activeCells.Add(new VoxelKey(key.X + 0, key.Y - 1, key.Z - 1));
-            _activeCells.Add(new VoxelKey(key.X - 1, key.Y + 0, key.Z - 1));
-            _activeCells.Add(new VoxelKey(key.X + 0, key.Y + 0, key.Z - 1));
-            _activeCells.Add(new VoxelKey(key.X - 1, key.Y - 1, key.Z + 0));
-            _activeCells.Add(new VoxelKey(key.X + 0, key.Y - 1, key.Z + 0));
-            _activeCells.Add(new VoxelKey(key.X - 1, key.Y + 0, key.Z + 0));
-            _activeCells.Add(new VoxelKey(key.X + 0, key.Y + 0, key.Z + 0));
+            _activeCells.Add(new Vector3I(key.X - 1, key.Y - 1, key.Z - 1));
+            _activeCells.Add(new Vector3I(key.X + 0, key.Y - 1, key.Z - 1));
+            _activeCells.Add(new Vector3I(key.X - 1, key.Y + 0, key.Z - 1));
+            _activeCells.Add(new Vector3I(key.X + 0, key.Y + 0, key.Z - 1));
+            _activeCells.Add(new Vector3I(key.X - 1, key.Y - 1, key.Z + 0));
+            _activeCells.Add(new Vector3I(key.X + 0, key.Y - 1, key.Z + 0));
+            _activeCells.Add(new Vector3I(key.X - 1, key.Y + 0, key.Z + 0));
+            _activeCells.Add(new Vector3I(key.X + 0, key.Y + 0, key.Z + 0));
         }
 
-        private unsafe bool TryReadCube(VoxelKey key, Corner* corners)
+        private unsafe bool TryReadCube(Vector3I key, Corner* corners)
         {
-            if (!TryReadCorner(new VoxelKey(key.X + 0, key.Y + 0, key.Z + 0), out corners[0])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 1, key.Y + 0, key.Z + 0), out corners[1])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 1, key.Y + 1, key.Z + 0), out corners[2])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 0, key.Y + 1, key.Z + 0), out corners[3])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 0, key.Y + 0, key.Z + 1), out corners[4])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 1, key.Y + 0, key.Z + 1), out corners[5])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 1, key.Y + 1, key.Z + 1), out corners[6])) return false;
-            if (!TryReadCorner(new VoxelKey(key.X + 0, key.Y + 1, key.Z + 1), out corners[7])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 0, key.Y + 0, key.Z + 0), out corners[0])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 1, key.Y + 0, key.Z + 0), out corners[1])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 1, key.Y + 1, key.Z + 0), out corners[2])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 0, key.Y + 1, key.Z + 0), out corners[3])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 0, key.Y + 0, key.Z + 1), out corners[4])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 1, key.Y + 0, key.Z + 1), out corners[5])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 1, key.Y + 1, key.Z + 1), out corners[6])) return false;
+            if (!TryReadCorner(new Vector3I(key.X + 0, key.Y + 1, key.Z + 1), out corners[7])) return false;
 
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryReadCorner(VoxelKey key, out Corner corner)
+        private bool TryReadCorner(Vector3I key, out Corner corner)
         {
             if (!_voxels.TryGetValue(key, out var voxel))
             {
@@ -533,7 +498,7 @@ namespace XrEngine.Reconstruct
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private VoxelKey ToKey(Vector3 p)
+        private Vector3I ToKey(Vector3 p)
         {
             var vec = p.AsVector128Unsafe();
 
@@ -542,11 +507,11 @@ namespace XrEngine.Reconstruct
 
             var iVec = Vector128.ConvertToInt32(vec);
 
-            return new VoxelKey(iVec[0], iVec[1], iVec[2]);
+            return new Vector3I(iVec[0], iVec[1], iVec[2]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector3 VoxelCenter(VoxelKey key)
+        private Vector3 VoxelCenter(Vector3I key)
         {
             return new Vector3(
                 (key.X + 0.5f) * _voxelSize,

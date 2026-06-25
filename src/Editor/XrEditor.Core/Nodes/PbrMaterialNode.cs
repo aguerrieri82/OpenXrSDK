@@ -28,6 +28,9 @@ namespace XrEditor.Nodes
 
                 if (_value.OcclusionMap != null)
                     yield return factory.CreateNode(_value.OcclusionMap);
+
+                foreach (var child in base.Children)
+                    yield return child;
             }
         }
 

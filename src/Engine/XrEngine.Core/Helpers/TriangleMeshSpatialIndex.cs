@@ -8,111 +8,18 @@ namespace XrEngine
 {
     public sealed class TriangleMeshSpatialIndex
     {
-        #region Private Structs
-
-        private readonly struct CellKey : IEquatable<CellKey>
-        {
-            public CellKey(int x, int y, int z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-            }
-
-            public bool Equals(CellKey other)
-            {
-                return X == other.X && Y == other.Y && Z == other.Z;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is CellKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = X;
-                    hash = (hash * 397) ^ Y;
-                    hash = (hash * 397) ^ Z;
-                    return hash;
-                }
-            }
-
-            public readonly int X;
-
-            public readonly int Y;
-
-            public readonly int Z;
-        }
-
-        #endregion
-
         #region Public Structs
 
-        public readonly struct Triangle
-        {
-            public Triangle(int triangleId, uint a, uint b, uint c, VertexData[] vertices)
-            {
-                TriangleId = triangleId;
-
-                A = a;
-                B = b;
-                C = c;
-
-                V0 = vertices[(int)a].Pos;
-                V1 = vertices[(int)b].Pos;
-                V2 = vertices[(int)c].Pos;
-
-                Min = Vector3.Min(Vector3.Min(V0, V1), V2);
-                Max = Vector3.Max(Vector3.Max(V0, V1), V2);
-                Center = (V0 + V1 + V2) / 3.0f;
-
-                var normal = Vector3.Cross(V1 - V0, V2 - V0);
-                AreaSq = normal.LengthSquared();
-
-                Normal = AreaSq > NormalLengthSqEpsilon
-                    ? Vector3.Normalize(normal)
-                    : Vector3.Zero;
-            }
-
-            public readonly int TriangleId;
-
-            public readonly uint A;
-
-            public readonly uint B;
-
-            public readonly uint C;
-
-            public readonly Vector3 V0;
-
-            public readonly Vector3 V1;
-
-            public readonly Vector3 V2;
-
-            public readonly Vector3 Min;
-
-            public readonly Vector3 Max;
-
-            public readonly Vector3 Center;
-
-            public readonly Vector3 Normal;
-
-            public readonly float AreaSq;
-
-            public bool IsDegenerate => AreaSq <= NormalLengthSqEpsilon;
-        }
 
         public readonly struct TriangleSearchHit
         {
-            public TriangleSearchHit(Triangle triangle, float centerDistanceSq)
+            public TriangleSearchHit(Triangle3 triangle, float centerDistanceSq)
             {
                 Triangle = triangle;
                 CenterDistanceSq = centerDistanceSq;
             }
 
-            public readonly Triangle Triangle;
+            public readonly Triangle3 Triangle;
 
             public readonly float CenterDistanceSq;
 
@@ -127,9 +34,9 @@ namespace XrEngine
 
         private VertexData[] _vertices;
         private uint[] _indices;
-        private Triangle[] _triangles;
-        private CellKey[][] _triangleCells;
-        private Dictionary<CellKey, List<int>> _cells;
+        private Triangle3[] _triangles;
+        private Vector3I[][] _triangleCells;
+        private Dictionary<Vector3I, List<int>> _cells;
         private int[] _visitStamp;
         private int _stamp;
         private float _cellSize;
@@ -140,9 +47,9 @@ namespace XrEngine
             _geometry = geometry;
             _vertices = Array.Empty<VertexData>();
             _indices = Array.Empty<uint>();
-            _triangles = Array.Empty<Triangle>();
-            _triangleCells = Array.Empty<CellKey[]>();
-            _cells = new Dictionary<CellKey, List<int>>();
+            _triangles = Array.Empty<Triangle3>();
+            _triangleCells = Array.Empty<Vector3I[]>();
+            _cells = new Dictionary<Vector3I, List<int>>();
             _visitStamp = Array.Empty<int>();
             _cellSize = cellSize;
             _lastVersion = -1;
@@ -167,10 +74,10 @@ namespace XrEngine
 
             var triCount = _indices.Length / 3;
 
-            _triangles = new Triangle[triCount];
-            _triangleCells = new CellKey[triCount][];
+            _triangles = new Triangle3[triCount];
+            _triangleCells = new Vector3I[triCount][];
             _visitStamp = new int[triCount];
-            _cells = new Dictionary<CellKey, List<int>>(triCount);
+            _cells = new Dictionary<Vector3I, List<int>>(triCount);
             _stamp = 0;
 
             for (var tri = 0; tri < triCount; tri++)
@@ -224,7 +131,7 @@ namespace XrEngine
                 UpdateTriangle(triangleIds[i]);
         }
 
-        public Triangle GetTriangle(int triangleId)
+        public Triangle3 GetTriangle(int triangleId)
         {
             EnsureUpdated();
 
@@ -234,7 +141,7 @@ namespace XrEngine
             return _triangles[triangleId];
         }
 
-        public bool TryGetTriangle(int triangleId, out Triangle triangle)
+        public bool TryGetTriangle(int triangleId, out Triangle3 triangle)
         {
             EnsureUpdated();
 
@@ -432,7 +339,7 @@ namespace XrEngine
                 {
                     for (var x = minCell.X; x <= maxCell.X; x++)
                     {
-                        var key = new CellKey(x, y, z);
+                        var key = new Vector3I(x, y, z);
 
                         if (!_cells.TryGetValue(key, out var list))
                             continue;
@@ -464,7 +371,7 @@ namespace XrEngine
         public void ForEachTriangleBounds(
             Vector3 min,
             Vector3 max,
-            Action<Triangle> callback,
+            Action<Triangle3> callback,
             bool preciseBounds = true)
         {
             EnsureUpdated();
@@ -479,7 +386,7 @@ namespace XrEngine
                 {
                     for (var x = minCell.X; x <= maxCell.X; x++)
                     {
-                        var key = new CellKey(x, y, z);
+                        var key = new Vector3I(x, y, z);
 
                         if (!_cells.TryGetValue(key, out var list))
                             continue;
@@ -509,8 +416,8 @@ namespace XrEngine
         {
             _vertices = Array.Empty<VertexData>();
             _indices = Array.Empty<uint>();
-            _triangles = Array.Empty<Triangle>();
-            _triangleCells = Array.Empty<CellKey[]>();
+            _triangles = Array.Empty<Triangle3>();
+            _triangleCells = Array.Empty<Vector3I[]>();
             _cells.Clear();
             _visitStamp = Array.Empty<int>();
             _stamp = 0;
@@ -536,7 +443,7 @@ namespace XrEngine
                 {
                     for (var x = minCell.X; x <= maxCell.X; x++)
                     {
-                        var key = new CellKey(x, y, z);
+                        var key = new Vector3I(x, y, z);
 
                         if (!_cells.TryGetValue(key, out var list))
                             continue;
@@ -567,23 +474,30 @@ namespace XrEngine
             }
         }
 
-        private Triangle BuildTriangle(int triangleId)
+        private Triangle3 BuildTriangle(int triangleId)
         {
             var i = triangleId * 3;
 
-            return new Triangle(
-                triangleId,
-                _indices[i + 0],
-                _indices[i + 1],
-                _indices[i + 2],
-                _vertices);
+            var res = new Triangle3()
+            {
+                Id = triangleId,
+                I0 = _indices[i + 0],
+                I1 = _indices[i + 1],
+                I2 = _indices[i + 2],
+
+            };
+            res.V0 = _vertices[res.I0].Pos;
+            res.V1 = _vertices[res.I1].Pos;
+            res.V2 = _vertices[res.I2].Pos;
+
+            return res;
         }
 
-        private CellKey[] AddTriangleToCells(int triangleId, Vector3 min, Vector3 max)
+        private Vector3I[] AddTriangleToCells(int triangleId, Vector3 min, Vector3 max)
         {
             var minCell = GetCell(min);
             var maxCell = GetCell(max);
-            var keys = new List<CellKey>(8);
+            var keys = new List<Vector3I>(8);
 
             for (var z = minCell.Z; z <= maxCell.Z; z++)
             {
@@ -591,7 +505,7 @@ namespace XrEngine
                 {
                     for (var x = minCell.X; x <= maxCell.X; x++)
                     {
-                        var key = new CellKey(x, y, z);
+                        var key = new Vector3I(x, y, z);
 
                         if (!_cells.TryGetValue(key, out var list))
                         {
@@ -632,7 +546,7 @@ namespace XrEngine
                     _cells.Remove(key);
             }
 
-            _triangleCells[triangleId] = Array.Empty<CellKey>();
+            _triangleCells[triangleId] = Array.Empty<Vector3I>();
         }
 
         private void BeginVisit()
@@ -646,9 +560,9 @@ namespace XrEngine
             }
         }
 
-        private CellKey GetCell(Vector3 pos)
+        private Vector3I GetCell(Vector3 pos)
         {
-            return new CellKey(
+            return new Vector3I(
                 (int)MathF.Floor(pos.X / _cellSize),
                 (int)MathF.Floor(pos.Y / _cellSize),
                 (int)MathF.Floor(pos.Z / _cellSize));

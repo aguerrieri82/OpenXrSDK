@@ -1,4 +1,5 @@
-﻿using UI.Binding;
+﻿using Silk.NET.Vulkan;
+using UI.Binding;
 using XrEngine;
 using ValueType = XrEngine.ValueType;
 
@@ -55,7 +56,6 @@ namespace XrEditor
             };
         }
 
-
         public IValueScale Scale
         {
             get => _scale;
@@ -92,20 +92,32 @@ namespace XrEditor
             var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
 
             var result = new FloatEditor();
-
-            if (range != null)
-            {
-                result.Scale = new ValueScale()
-                {
-                    ScaleMin = range.Min,
-                    ScaleMax = range.Max,
-                    ScaleStep = range.Step,
-                    ScaleSmallStep = range.Step
-                };
-            }
-
-            else if (valueType == ValueType.Radiant)
+            if (valueType == ValueType.Radiant)
                 result.Scale = RadDegreeScale.Instance;
+            else
+            {
+                if (range == null)
+                {
+                    result.Scale = new ValueScale
+                    {
+                        ScaleMin = 0,
+                        ScaleMax = 1,
+                        ScaleStep = 0.1f,
+                        ScaleSmallStep = 0.1f,
+                    };
+                }
+                else
+                {
+                    result.Scale = new ValueScale()
+                    {
+                        ScaleMin = range.Min,
+                        ScaleMax = range.Max,
+                        ScaleStep = range.Step,
+                        ScaleSmallStep = range.Step
+                    };
+                }
+       
+            }
 
             return result;
         }

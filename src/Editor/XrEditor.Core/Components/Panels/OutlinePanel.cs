@@ -149,7 +149,7 @@ namespace XrEditor
             var root = CreateNode(_sceneView?.Scene, null);
             _treeView.Items.Clear();
             if (root != null)
-                _treeView.Items.Add(root!);
+                _treeView.Items.Add(root);
         }
 
         public static OutlinePanel? Instance { get; internal set; }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using XrMath;
 
 
 namespace XrEngine
@@ -10,13 +12,14 @@ namespace XrEngine
     {
         public MeshCollapseParams()
         {
+            CollapsePases = 1;
             Distance = 0.04f;
             CellSize = 0.0f;
             AverageUv = false;
             RecomputeNormals = true;
             AreaEpsilon = 1e-008f;
             SmallTriangleCollapsePasses = 0;
-            RemoveDuplicateTriangles = false;
+            RemoveDuplicateTriangles = true;
             RemoveNonManifoldBranches = false;
             FixWinding = true;
             RecoverSingleTriangleHoles = false;
@@ -57,110 +60,14 @@ namespace XrEngine
         public float MaxRecoverHoleEdgeLength { get; set; }
 
         public float BoundaryWeldDistance { get; set; }
+
+        public int CollapsePases { get; set; }
     }
 
     public unsafe sealed class MeshCollapse
     {
         #region Private Structs
 
-        private readonly struct CellKey : IEquatable<CellKey>
-        {
-            public CellKey(int x, int y, int z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-            }
-
-            public bool Equals(CellKey other)
-            {
-                return X == other.X && Y == other.Y && Z == other.Z;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is CellKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = X;
-                    hash = (hash * 397) ^ Y;
-                    hash = (hash * 397) ^ Z;
-                    return hash;
-                }
-            }
-
-            public readonly int X;
-
-            public readonly int Y;
-
-            public readonly int Z;
-        }
-
-        private readonly struct TriangleKey : IEquatable<TriangleKey>
-        {
-            public TriangleKey(uint a, uint b, uint c)
-            {
-                if (a > b)
-                    (a, b) = (b, a);
-
-                if (b > c)
-                    (b, c) = (c, b);
-
-                if (a > b)
-                    (a, b) = (b, a);
-
-                A = a;
-                B = b;
-                C = c;
-            }
-
-            public bool Equals(TriangleKey other)
-            {
-                return A == other.A && B == other.B && C == other.C;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is TriangleKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = (int)A;
-                    hash = (hash * 397) ^ (int)B;
-                    hash = (hash * 397) ^ (int)C;
-                    return hash;
-                }
-            }
-
-            public readonly uint A;
-
-            public readonly uint B;
-
-            public readonly uint C;
-        }
-
-        private struct TriangleRef
-        {
-            public TriangleRef(uint a, uint b, uint c)
-            {
-                A = a;
-                B = b;
-                C = c;
-            }
-
-            public uint A;
-
-            public uint B;
-
-            public uint C;
-        }
 
         private struct EdgeInfo
         {
@@ -333,7 +240,7 @@ namespace XrEngine
             public TopologyCache()
             {
                 Edges = new Dictionary<ulong, EdgeInfo>();
-                Triangles = new Dictionary<TriangleKey, TriangleRef>();
+                Triangles = new Dictionary<MeshTriangleKey, TriangleIndex3>();
                 BoundaryAdjacency = new Dictionary<uint, List<uint>>();
             }
 
@@ -371,10 +278,10 @@ namespace XrEngine
                         if (a == b || b == c || c == a)
                             continue;
 
-                        var key = new TriangleKey(a, b, c);
+                        var key = new MeshTriangleKey(a, b, c);
 
                         if (!Triangles.ContainsKey(key))
-                            Triangles.Add(key, new TriangleRef(a, b, c));
+                            Triangles.Add(key, new TriangleIndex3(a, b, c));
 
                         if (!buildEdges)
                             continue;
@@ -411,7 +318,7 @@ namespace XrEngine
 
             public Dictionary<ulong, EdgeInfo> Edges { get; }
 
-            public Dictionary<TriangleKey, TriangleRef> Triangles { get; }
+            public Dictionary<MeshTriangleKey, TriangleIndex3> Triangles { get; }
 
             public Dictionary<uint, List<uint>> BoundaryAdjacency { get; }
 
@@ -486,6 +393,7 @@ namespace XrEngine
         private int _maxRecoverHoleSides;
         private float _maxRecoverHoleEdgeLength;
         private float _boundaryWeldDistance;
+        private int _collapsePases;
 
         public MeshCollapse()
         {
@@ -514,6 +422,7 @@ namespace XrEngine
             _maxRecoverHoleSides = parameters.MaxRecoverHoleSides;
             _maxRecoverHoleEdgeLength = parameters.MaxRecoverHoleEdgeLength;
             _boundaryWeldDistance = parameters.BoundaryWeldDistance;
+            _collapsePases = parameters.CollapsePases;
         }
 
         public CollapseResult CollapseCloseVertices(Geometry3D geometry)
@@ -530,11 +439,7 @@ namespace XrEngine
 
             var vertexHeads = BuildVertexIndex(oldVertices, out var nextVertexInCell);
 
-            var remap = CollapseVertices(
-                oldVertices,
-                vertexHeads,
-                nextVertexInCell,
-                out var newVertices);
+            var remap = CollapseVerticesMultiPass(oldVertices, out var newVertices);
 
             Log.Debug(this, "MeshCollapse vertex-weld: v={0}->{1}", oldVertices.Length, newVertices.Length);
 
@@ -544,7 +449,12 @@ namespace XrEngine
                 newVertices,
                 out var collapsedSmallAreaTriangles);
 
-            Log.Debug(this, "MeshCollapse small-tri-collapse: passes={0} collapsed={1}", _smallTriangleCollapsePasses, collapsedSmallAreaTriangles);
+            Log.Debug(
+            this,
+            "MeshCollapse vertex-weld: passes={0} v={1}->{2}",
+            _collapsePases,
+            oldVertices.Length,
+            newVertices.Length);
 
             var newIndices = RebuildTriangles(
                 oldIndices,
@@ -559,8 +469,15 @@ namespace XrEngine
             var recoveredSingleTriangleHoles = 0;
             var fixedWindingTriangles = 0;
 
+            var recoveryEnabled =
+                _recoverSingleTriangleHoles ||
+                _recoverSmallBoundaryHoles ||
+                _recoverBoundaryWedges;
+
             RemoveDuplicatesStage("post-collapse", ref newIndices, topology, ref removedDuplicateTriangles);
-            RepairNonManifoldStage("post-collapse", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
+
+            if (_removeNonManifoldBranches)
+                RepairNonManifoldStage("post-collapse", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
 
             var compact = CompactUsedVertices(ref newVertices, newIndices);
             Log.Debug(this, "MeshCollapse compact post-collapse: v={0}->{1}", compact.OldVertexCount, compact.NewVertexCount);
@@ -579,70 +496,86 @@ namespace XrEngine
                     boundaryWeld.RemovedTriangles);
 
                 RemoveDuplicatesStage("post-boundary-weld", ref newIndices, topology, ref removedDuplicateTriangles);
-                RepairNonManifoldStage("post-boundary-weld", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
+
+                if (_removeNonManifoldBranches)
+                    RepairNonManifoldStage("post-boundary-weld", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
 
                 compact = CompactUsedVertices(ref newVertices, newIndices);
                 Log.Debug(this, "MeshCollapse compact post-boundary-weld: v={0}->{1}", compact.OldVertexCount, compact.NewVertexCount);
             }
 
-            if (_fixWinding)
+            var topologyChangedAfterWinding = false;
+
+            if (_fixWinding && recoveryEnabled)
                 fixedWindingTriangles += FixWindingStage("pre-recover", ref newIndices);
 
-            topology.Build(newVertices, newIndices, true, true);
-
-            if (topology.NonManifoldEdges > 0)
+            if (recoveryEnabled)
             {
-                Log.Debug(
-                    this,
-                    "MeshCollapse recover skipped: boundaryE={0} nonManifoldE={1}",
-                    topology.BoundaryEdges,
-                    topology.NonManifoldEdges);
-            }
-            else
-            {
-                if (_recoverSingleTriangleHoles)
-                {
-                    var recovered = RecoverSingleTriangleHoles(newVertices, ref newIndices, topology);
-                    recoveredSingleTriangleHoles += recovered;
-
-                    Log.Debug(this, "MeshCollapse recover-single: added={0} boundaryE={1} nonManifoldE={2}", recovered, topology.BoundaryEdges, topology.NonManifoldEdges);
-
-                    if (recovered > 0)
-                    {
-                        RemoveDuplicatesStage("post-recover-single", ref newIndices, topology, ref removedDuplicateTriangles);
-                        RepairNonManifoldStage("post-recover-single", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
-                    }
-                }
-
                 topology.Build(newVertices, newIndices, true, true);
 
-                if (_recoverBoundaryWedges && topology.NonManifoldEdges == 0)
+                if (topology.NonManifoldEdges > 0)
                 {
-                    var recovered = RecoverBoundaryWedges(newVertices, ref newIndices, topology);
-                    recoveredSingleTriangleHoles += recovered;
-
-                    Log.Debug(this, "MeshCollapse recover-wedges: added={0} boundaryE={1} nonManifoldE={2}", recovered, topology.BoundaryEdges, topology.NonManifoldEdges);
-
-                    if (recovered > 0)
-                    {
-                        RemoveDuplicatesStage("post-recover-wedges", ref newIndices, topology, ref removedDuplicateTriangles);
-                        RepairNonManifoldStage("post-recover-wedges", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
-                    }
+                    Log.Debug(
+                        this,
+                        "MeshCollapse recover skipped: boundaryE={0} nonManifoldE={1}",
+                        topology.BoundaryEdges,
+                        topology.NonManifoldEdges);
                 }
-
-                topology.Build(newVertices, newIndices, true, true);
-
-                if (_recoverSmallBoundaryHoles && topology.NonManifoldEdges == 0)
+                else
                 {
-                    var recovered = RecoverSmallBoundaryHoles(newVertices, ref newIndices, topology);
-                    recoveredSingleTriangleHoles += recovered;
-
-                    Log.Debug(this, "MeshCollapse recover-small-loops: added={0} boundaryE={1} nonManifoldE={2}", recovered, topology.BoundaryEdges, topology.NonManifoldEdges);
-
-                    if (recovered > 0)
+                    if (_recoverSingleTriangleHoles)
                     {
-                        RemoveDuplicatesStage("post-recover-small-loops", ref newIndices, topology, ref removedDuplicateTriangles);
-                        RepairNonManifoldStage("post-recover-small-loops", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
+                        var recovered = RecoverSingleTriangleHoles(newVertices, ref newIndices, topology);
+                        recoveredSingleTriangleHoles += recovered;
+                        topologyChangedAfterWinding |= recovered > 0;
+
+                        Log.Debug(this, "MeshCollapse recover-single: added={0} boundaryE={1} nonManifoldE={2}", recovered, topology.BoundaryEdges, topology.NonManifoldEdges);
+
+                        if (recovered > 0)
+                        {
+                            RemoveDuplicatesStage("post-recover-single", ref newIndices, topology, ref removedDuplicateTriangles);
+
+                            if (_removeNonManifoldBranches)
+                                RepairNonManifoldStage("post-recover-single", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
+                        }
+                    }
+
+                    topology.Build(newVertices, newIndices, true, true);
+
+                    if (_recoverBoundaryWedges && topology.NonManifoldEdges == 0)
+                    {
+                        var recovered = RecoverBoundaryWedges(newVertices, ref newIndices, topology);
+                        recoveredSingleTriangleHoles += recovered;
+                        topologyChangedAfterWinding |= recovered > 0;
+
+                        Log.Debug(this, "MeshCollapse recover-wedges: added={0} boundaryE={1} nonManifoldE={2}", recovered, topology.BoundaryEdges, topology.NonManifoldEdges);
+
+                        if (recovered > 0)
+                        {
+                            RemoveDuplicatesStage("post-recover-wedges", ref newIndices, topology, ref removedDuplicateTriangles);
+
+                            if (_removeNonManifoldBranches)
+                                RepairNonManifoldStage("post-recover-wedges", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
+                        }
+                    }
+
+                    topology.Build(newVertices, newIndices, true, true);
+
+                    if (_recoverSmallBoundaryHoles && topology.NonManifoldEdges == 0)
+                    {
+                        var recovered = RecoverSmallBoundaryHoles(newVertices, ref newIndices, topology);
+                        recoveredSingleTriangleHoles += recovered;
+                        topologyChangedAfterWinding |= recovered > 0;
+
+                        Log.Debug(this, "MeshCollapse recover-small-loops: added={0} boundaryE={1} nonManifoldE={2}", recovered, topology.BoundaryEdges, topology.NonManifoldEdges);
+
+                        if (recovered > 0)
+                        {
+                            RemoveDuplicatesStage("post-recover-small-loops", ref newIndices, topology, ref removedDuplicateTriangles);
+
+                            if (_removeNonManifoldBranches)
+                                RepairNonManifoldStage("post-recover-small-loops", newVertices, ref newIndices, topology, ref removedNonManifoldTriangles);
+                        }
                     }
                 }
             }
@@ -653,7 +586,7 @@ namespace XrEngine
                 Log.Debug(this, "MeshCollapse compact final: v={0}->{1}", compact.OldVertexCount, compact.NewVertexCount);
             }
 
-            if (_fixWinding)
+            if (_fixWinding && (!recoveryEnabled || topologyChangedAfterWinding))
                 fixedWindingTriangles += FixWindingStage("final", ref newIndices);
 
             geometry.Vertices = newVertices;
@@ -736,6 +669,8 @@ namespace XrEngine
                 repair.Iterations);
         }
 
+
+
         private int FixWindingStage(string stage, ref uint[] indices)
         {
             var windingResult = FixWinding(ref indices);
@@ -752,11 +687,11 @@ namespace XrEngine
             return windingResult.FlippedTriangles;
         }
 
-        private Dictionary<CellKey, int> BuildVertexIndex(
+        private Dictionary<Vector3I, int> BuildVertexIndex(
             VertexData[] vertices,
             out int[] nextVertexInCell)
         {
-            var result = new Dictionary<CellKey, int>(vertices.Length);
+            var result = new Dictionary<Vector3I, int>(vertices.Length);
             nextVertexInCell = new int[vertices.Length];
 
             fixed (VertexData* pVertices = vertices)
@@ -777,10 +712,50 @@ namespace XrEngine
 
             return result;
         }
+        private uint[] CollapseVerticesMultiPass(VertexData[] oldVertices, out VertexData[] newVertices)
+        {
+            var passCount = Math.Max(1, _collapsePases);
+
+            var currentVertices = oldVertices;
+            uint[]? remap = null;
+
+            for (var pass = 0; pass < passCount; pass++)
+            {
+                var vertexHeads = BuildVertexIndex(currentVertices, out var nextVertexInCell);
+
+                var passRemap = CollapseVertices(
+                    currentVertices,
+                    vertexHeads,
+                    nextVertexInCell,
+                    out var passVertices);
+
+                if (remap == null)
+                {
+                    remap = passRemap;
+                }
+                else
+                {
+                    for (var i = 0; i < remap.Length; i++)
+                        remap[i] = passRemap[(int)remap[i]];
+                }
+
+                if (passVertices.Length == currentVertices.Length)
+                {
+                    currentVertices = passVertices;
+                    break;
+                }
+
+                currentVertices = passVertices;
+            }
+
+            newVertices = currentVertices;
+
+            return remap!;
+        }
 
         private uint[] CollapseVertices(
             VertexData[] vertices,
-            Dictionary<CellKey, int> vertexHeads,
+            Dictionary<Vector3I, int> vertexHeads,
             int[] nextVertexInCell,
             out VertexData[] newVertices)
         {
@@ -817,7 +792,7 @@ namespace XrEngine
                         {
                             for (var x = -neighborRadius; x <= neighborRadius; x++)
                             {
-                                var key = new CellKey(
+                                var key = new Vector3I(
                                     anchorCell.X + x,
                                     anchorCell.Y + y,
                                     anchorCell.Z + z);
@@ -1011,7 +986,7 @@ namespace XrEngine
                         continue;
                     }
 
-                    var key = new TriangleKey(a, b, c);
+                    var key = new MeshTriangleKey(a, b, c);
 
                     if (topology.Triangles.TryGetValue(key, out var existing))
                     {
@@ -1023,7 +998,7 @@ namespace XrEngine
                         continue;
                     }
 
-                    topology.Triangles.Add(key, new TriangleRef(a, b, c));
+                    topology.Triangles.Add(key, new TriangleIndex3(a, b, c));
 
                     pResult[write++] = a;
                     pResult[write++] = b;
@@ -1395,7 +1370,7 @@ namespace XrEngine
             uint to,
             int triangle)
         {
-            var key = EdgeKey(from, to);
+            var key = new MeshEdgeKey(from, to).Packed;
 
             if (!edges.TryGetValue(key, out var list))
             {
@@ -1447,18 +1422,34 @@ namespace XrEngine
                 }
             }
 
-            var adjacency = new List<WindingConnection>?[triCount];
+            var parent = new int[triCount];
+            var rank = new byte[triCount];
+            var parity = new byte[triCount];
+
+            for (var i = 0; i < triCount; i++)
+                parent[i] = i;
+
             var manifoldEdges = 0;
             var nonManifoldEdges = 0;
+            var conflicts = 0;
 
             foreach (var edge in edges.Values)
             {
                 if (edge.Count == 2)
                 {
                     var constraint = -edge.FirstDirection * edge.SecondDirection;
+                    var relation = constraint < 0 ? 1 : 0;
 
-                    AddWindingConnection(adjacency, edge.FirstTriangle, edge.SecondTriangle, constraint);
-                    AddWindingConnection(adjacency, edge.SecondTriangle, edge.FirstTriangle, constraint);
+                    if (!UnionWinding(
+                        parent,
+                        rank,
+                        parity,
+                        edge.FirstTriangle,
+                        edge.SecondTriangle,
+                        relation))
+                    {
+                        conflicts++;
+                    }
 
                     manifoldEdges++;
                 }
@@ -1468,54 +1459,15 @@ namespace XrEngine
                 }
             }
 
-            var winding = new int[triCount];
-            var queue = new Queue<int>();
-            var conflicts = 0;
-
-            for (var start = 0; start < triCount; start++)
-            {
-                if (winding[start] != 0)
-                    continue;
-
-                if (adjacency[start] == null)
-                    continue;
-
-                winding[start] = 1;
-                queue.Enqueue(start);
-
-                while (queue.Count > 0)
-                {
-                    var tri = queue.Dequeue();
-                    var links = adjacency[tri];
-
-                    if (links == null)
-                        continue;
-
-                    for (var i = 0; i < links.Count; i++)
-                    {
-                        var link = links[i];
-                        var expected = winding[tri] * link.Constraint;
-
-                        if (winding[link.Triangle] == 0)
-                        {
-                            winding[link.Triangle] = expected;
-                            queue.Enqueue(link.Triangle);
-                            continue;
-                        }
-
-                        if (winding[link.Triangle] != expected)
-                            conflicts++;
-                    }
-                }
-            }
-
             var flipped = 0;
 
             fixed (uint* pIndices = indices)
             {
                 for (var tri = 0; tri < triCount; tri++)
                 {
-                    if (winding[tri] >= 0)
+                    FindWindingRoot(parent, parity, tri, out var triParity);
+
+                    if (triParity == 0)
                         continue;
 
                     var i = tri * 3;
@@ -1526,7 +1478,73 @@ namespace XrEngine
                 }
             }
 
-            return new WindingFixResult(flipped, manifoldEdges, nonManifoldEdges, conflicts / 2);
+            return new WindingFixResult(flipped, manifoldEdges, nonManifoldEdges, conflicts);
+        }
+
+        private static bool UnionWinding(
+            int[] parent,
+            byte[] rank,
+            byte[] parity,
+            int a,
+            int b,
+            int relation)
+        {
+            var rootA = FindWindingRoot(parent, parity, a, out var parityA);
+            var rootB = FindWindingRoot(parent, parity, b, out var parityB);
+
+            if (rootA == rootB)
+                return (parityA ^ parityB) == relation;
+
+            var rootParity = (byte)(relation ^ parityA ^ parityB);
+
+            if (rank[rootA] < rank[rootB])
+            {
+                parent[rootA] = rootB;
+                parity[rootA] = rootParity;
+            }
+            else
+            {
+                parent[rootB] = rootA;
+                parity[rootB] = rootParity;
+
+                if (rank[rootA] == rank[rootB])
+                    rank[rootA]++;
+            }
+
+            return true;
+        }
+
+        private static int FindWindingRoot(
+            int[] parent,
+            byte[] parity,
+            int index,
+            out int indexParity)
+        {
+            var root = index;
+            indexParity = 0;
+
+            while (parent[root] != root)
+            {
+                indexParity ^= parity[root];
+                root = parent[root];
+            }
+
+            var cur = index;
+            var curParity = 0;
+
+            while (parent[cur] != cur)
+            {
+                var next = parent[cur];
+                var edgeParity = parity[cur];
+
+                parent[cur] = root;
+                parity[cur] = (byte)(indexParity ^ curParity);
+
+                curParity ^= edgeParity;
+                cur = next;
+            }
+
+            return root;
         }
 
         private BoundaryWeldResult BoundaryWeld(VertexData[] vertices, ref uint[] indices, TopologyCache topology)
@@ -1569,7 +1587,7 @@ namespace XrEngine
             var parent = new uint[vertices.Length];
             var weights = new int[vertices.Length];
             var nextInCell = new int[vertices.Length];
-            var cellHeads = new Dictionary<CellKey, int>(boundaryCount * 2);
+            var cellHeads = new Dictionary<Vector3I, int>(boundaryCount * 2);
 
             fixed (uint* pParent = parent)
             fixed (int* pWeights = weights)
@@ -1612,7 +1630,7 @@ namespace XrEngine
                         {
                             for (var x = -1; x <= 1; x++)
                             {
-                                var key = new CellKey(
+                                var key = new Vector3I(
                                     cell.X + x,
                                     cell.Y + y,
                                     cell.Z + z);
@@ -1761,7 +1779,7 @@ namespace XrEngine
                         if (!HasBoundaryNeighbor(topology.BoundaryAdjacency, b, c))
                             continue;
 
-                        var key = new TriangleKey(a, b, c);
+                        var key = new MeshTriangleKey(a, b, c);
 
                         if (topology.Triangles.ContainsKey(key))
                             continue;
@@ -1799,7 +1817,7 @@ namespace XrEngine
                             GetEdgeNormal(topology.Edges, b, c) +
                             GetEdgeNormal(topology.Edges, c, a);
 
-                        topology.Triangles.Add(key, new TriangleRef(a, b, c));
+                        topology.Triangles.Add(key, new TriangleIndex3(a, b, c));
 
                         if (neighborNormal.LengthSquared() > NormalLengthSqEpsilon && Vector3.Dot(normal, neighborNormal) < 0.0f)
                         {
@@ -1866,7 +1884,7 @@ namespace XrEngine
                     if (a == b || a == m || b == m)
                         continue;
 
-                    var key = new TriangleKey(a, m, b);
+                    var key = new MeshTriangleKey(a, m, b);
 
                     if (topology.Triangles.ContainsKey(key))
                         continue;
@@ -1900,7 +1918,7 @@ namespace XrEngine
                         GetEdgeNormal(topology.Edges, a, m) +
                         GetEdgeNormal(topology.Edges, m, b);
 
-                    topology.Triangles.Add(key, new TriangleRef(a, m, b));
+                    topology.Triangles.Add(key, new TriangleIndex3(a, m, b));
 
                     if (neighborNormal.LengthSquared() > NormalLengthSqEpsilon && Vector3.Dot(normal, neighborNormal) < 0.0f)
                     {
@@ -2062,7 +2080,7 @@ namespace XrEngine
         private int AddLoopTriangles(
             VertexData* vertices,
             Dictionary<ulong, EdgeInfo> edges,
-            Dictionary<TriangleKey, TriangleRef> triangles,
+            Dictionary<MeshTriangleKey, TriangleIndex3> triangles,
             List<uint> result,
             List<uint> loop)
         {
@@ -2078,7 +2096,7 @@ namespace XrEngine
                 var b = loop[i];
                 var c = loop[i + 1];
 
-                var key = new TriangleKey(a, b, c);
+                var key = new MeshTriangleKey(a, b, c);
 
                 if (triangles.ContainsKey(key))
                     continue;
@@ -2090,7 +2108,7 @@ namespace XrEngine
 
                 var normal = GetTriangleNormal(vertices, a, b, c);
 
-                triangles.Add(key, new TriangleRef(a, b, c));
+                triangles.Add(key, new TriangleIndex3(a, b, c));
 
                 if (neighborNormal.LengthSquared() > NormalLengthSqEpsilon && Vector3.Dot(normal, neighborNormal) < 0.0f)
                 {
@@ -2284,7 +2302,7 @@ namespace XrEngine
             uint b,
             Vector3 normal)
         {
-            var key = EdgeKey(a, b);
+            var key = new MeshEdgeKey(a, b).Packed;
 
             if (edges.TryGetValue(key, out var item))
             {
@@ -2297,29 +2315,32 @@ namespace XrEngine
             edges[key] = new EdgeInfo(a, b, normal);
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AddWindingEdge(
             Dictionary<ulong, WindingEdgeUse> edges,
             uint from,
             uint to,
             int triangle)
         {
-            var key = EdgeKey(from, to);
+            var key = new MeshEdgeKey(from, to).Packed;
             var direction = from < to ? 1 : -1;
 
-            if (edges.TryGetValue(key, out var item))
-            {
-                if (item.Count == 1)
-                {
-                    item.SecondTriangle = triangle;
-                    item.SecondDirection = direction;
-                }
+            ref var item = ref CollectionsMarshal.GetValueRefOrAddDefault(edges, key, out var exists);
 
-                item.Count++;
-                edges[key] = item;
+            if (!exists)
+            {
+                item = new WindingEdgeUse(triangle, direction);
                 return;
             }
 
-            edges[key] = new WindingEdgeUse(triangle, direction);
+            if (item.Count == 1)
+            {
+                item.SecondTriangle = triangle;
+                item.SecondDirection = direction;
+            }
+
+            item.Count++;
         }
 
         private static void AddWindingConnection(
@@ -2390,13 +2411,13 @@ namespace XrEngine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetEdgeCount(Dictionary<ulong, int> edges, uint a, uint b)
         {
-            return edges.TryGetValue(EdgeKey(a, b), out var count) ? count : 0;
+            return edges.TryGetValue(new MeshEdgeKey(a, b).Packed, out var count) ? count : 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void IncrementEdgeCount(Dictionary<ulong, int> edges, uint a, uint b)
         {
-            var key = EdgeKey(a, b);
+            var key = new MeshEdgeKey(a, b).Packed;
 
             if (edges.TryGetValue(key, out var count))
             {
@@ -2413,20 +2434,10 @@ namespace XrEngine
             uint a,
             uint b)
         {
-            if (!edges.TryGetValue(EdgeKey(a, b), out var item))
+            if (!edges.TryGetValue(new MeshEdgeKey(a, b).Packed, out var item))
                 return Vector3.Zero;
 
             return item.NormalSum;
-        }
-
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong EdgeKey(uint a, uint b)
-        {
-            if (a > b)
-                (a, b) = (b, a);
-
-            return ((ulong)a << 32) | b;
         }
 
 
@@ -2446,15 +2457,15 @@ namespace XrEngine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private CellKey GetCell(Vector3 pos)
+        private Vector3I GetCell(Vector3 pos)
         {
             return GetCell(pos, _cellSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static CellKey GetCell(Vector3 pos, float cellSize)
+        private static Vector3I GetCell(Vector3 pos, float cellSize)
         {
-            return new CellKey(
+            return new Vector3I(
                 (int)MathF.Floor(pos.X / cellSize),
                 (int)MathF.Floor(pos.Y / cellSize),
                 (int)MathF.Floor(pos.Z / cellSize));

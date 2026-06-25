@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using XrEngine.UI;
 using XrMath;
-using static XrEngine.TriangleMeshSpatialIndex;
+
 
 namespace XrEngine.Reconstruct
 {
@@ -13,8 +13,8 @@ namespace XrEngine.Reconstruct
         TriangleMeshSpatialIndex? _index;
         CanvasView2D? _canvas;
         bool _showSlice;
-        List<Triangle>? _triangles;
-        List<Triangle>? _newTriangles;
+        List<Triangle3>? _triangles;
+        List<Triangle3>? _newTriangles;
 
 
         static string[] palette = new[]
@@ -81,7 +81,7 @@ namespace XrEngine.Reconstruct
       
                 foreach (var tri in _triangles)
                 {
-                    if (hideList.Contains(tri.TriangleId))
+                    if (hideList.Contains(tri.Id))
                     {
                         i++;
                         continue;
@@ -109,7 +109,7 @@ namespace XrEngine.Reconstruct
             {
                 foreach (var tri in _triangles)
                 {
-                    if (hideList.Contains(tri.TriangleId))
+                    if (hideList.Contains(tri.Id))
                         continue;
 
                     var value = new Triangle3(tri.V0, tri.V1, tri.V2);
@@ -123,7 +123,7 @@ namespace XrEngine.Reconstruct
                         ctx.Draw(new Line3(c, eps), "#ffff00", 3f);
                     }
 
-                    ctx.DrawText($"{tri.A} {tri.B} {tri.C} [{tri.TriangleId}]", eps, 45, "#ffffff");
+                    ctx.DrawText($"{tri.I0} {tri.I1} {tri.I2} [{tri.Id}]", eps, 45, "#ffffff");
                 }
             }
         }
@@ -173,15 +173,15 @@ namespace XrEngine.Reconstruct
             {
                 var tri = result[i].Triangle;
 
-                vertices[write] = sourceVertices[(int)tri.A];
+                vertices[write] = sourceVertices[(int)tri.I0];
                 indices[write] = (uint)write;
                 write++;
 
-                vertices[write] = sourceVertices[(int)tri.B];
+                vertices[write] = sourceVertices[(int)tri.I1];
                 indices[write] = (uint)write;
                 write++;
 
-                vertices[write] = sourceVertices[(int)tri.C];
+                vertices[write] = sourceVertices[(int)tri.I2];
                 indices[write] = (uint)write;
                 write++;
             }
@@ -220,19 +220,40 @@ namespace XrEngine.Reconstruct
 
             var filler = new MeshHoleFiller(new MeshHoleFillerParams
             {
-                BarycentricEpsilon = 1e-2f,
                 CoordMode = MeshVisualTriangleHoleFillCoordMode.Position
             });
             
-            Log.Debug(this, "Analyzing {0}...", _triangles.Count);
+            Log.Debug(this, "Analyzing {0}...", _triangles!.Count);
 
-            var indices = _triangles!.SelectMany(a => new uint[] { a.A, a.B, a.C }).ToArray();
+            var indices = _triangles!.SelectMany(a => new uint[] { a.I0, a.I1, a.I2 }).ToArray();
 
             var result = filler.FindMissingTriangles(_host!.Geometry!.Vertices, indices);
 
-            _newTriangles = result.Select(a => new Triangle(-1, a.A, a.B, a.C, _host.Geometry!.Vertices)).ToList();
+            _newTriangles = result.Select(a => BuildTriangle(a.A, a.B, a.C)).ToList();
 
             Log.Warn(this, "Found {0}", result.Count);
+        }
+
+
+        private Triangle3 BuildTriangle(uint a, uint b, uint c)
+        {
+
+            var res = new Triangle3()
+            {
+                Id = -1,
+                I0 = a,
+                I1 = b,
+                I2 = c,
+
+            };
+            
+            var vert = _host!.Geometry!.Vertices;
+
+            res.V0 = vert[res.I0].Pos;
+            res.V1 = vert[res.I1].Pos;
+            res.V2 = vert[res.I2].Pos;
+
+            return res;
         }
 
         public void Dispose()

@@ -35,6 +35,9 @@ namespace XrEditor.Nodes
                     else if (obj is Texture2D)
                         nodeType = typeof(Texture2DNode);
 
+                    else if (obj is Shader)
+                        nodeType = typeof(ShaderNode<>).MakeGenericType(obj.GetType());
+
                     else if (obj is Light)
                         nodeType = typeof(LightNode<>).MakeGenericType(obj.GetType());
 
@@ -49,6 +52,8 @@ namespace XrEditor.Nodes
 
                     else if (obj is Object3D)
                         nodeType = typeof(Object3DNode<>).MakeGenericType(obj.GetType());
+
+
 
                     else
                         nodeType = typeof(EngineObjectNode<>).MakeGenericType(obj.GetType());

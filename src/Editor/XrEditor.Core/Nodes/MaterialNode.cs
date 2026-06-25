@@ -18,6 +18,18 @@ namespace XrEditor.Nodes
         }
 
 
+        public override IEnumerable<INode> Children
+        {
+            get
+            {
+                var factory = Context.Require<NodeManager>();
+
+                if (_value is ShaderMaterial shad)
+                    yield return factory.CreateNode(shad.Shader!);
+            }
+        }
+
+
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             PropertyView.CreateProperties(_value, null, curProps);

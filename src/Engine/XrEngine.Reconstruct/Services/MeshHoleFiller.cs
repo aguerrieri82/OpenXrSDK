@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using XrMath;
 
 
 namespace XrEngine.Reconstruct
@@ -47,10 +48,8 @@ namespace XrEngine.Reconstruct
             MaxPasses = 2;
             MaxAddedTriangles = 0;
 
-            MinCoordArea = 1e-10f;
             MinGeometryArea = 1e-10f;
 
-            MaxCoordEdgeLength = 0.0f;
             MaxGeometryEdgeLength = 0.0f;
 
             MaxEdgeFactor = 3.0f;
@@ -59,25 +58,21 @@ namespace XrEngine.Reconstruct
             MinNormalDot = 0.0f;
             FixWinding = true;
 
-            RejectInsideVertices = true;
-            RejectCoveredCenter = true;
-            RejectEdgeIntersections = true;
-
-            BarycentricEpsilon = 1e-4f;
-            EdgeInteriorEpsilon = 1e-4f;
-            EdgeBoundaryEpsilon = 4e-4f;
-
-            PlaneTolerance = 0.0f;
-            PlaneToleranceFactor = 0.025f;
-
-            QueryPadding = 0.01f;
-
-            SpatialCellSize = 0.0f;
-            SpatialCellFactor = 3.0f;
-
             RejectCoveredArea = true;
             MaxCoveredAreaRatio = 0.80f;
-            MinCoveredArea = 1e-8f;
+
+            //RejectInsideVertices = true;
+            //RejectCoveredCenter = true;
+            //RejectEdgeIntersections = true;
+
+            //BarycentricEpsilon = 1e-4f;
+            //EdgeInteriorEpsilon = 1e-4f;
+            //EdgeBoundaryEpsilon = 4e-4f;
+
+            //PlaneTolerance = 0.0f;
+            //PlaneToleranceFactor = 0.025f;
+
+            //QueryPadding = 0.01f;
         }
 
         public MeshVisualTriangleHoleFillCoordMode CoordMode { get; set; }
@@ -90,11 +85,11 @@ namespace XrEngine.Reconstruct
 
         public int MaxAddedTriangles { get; set; }
 
-        public float MinCoordArea { get; set; }
+        //public float MinCoordArea { get; set; }
 
         public float MinGeometryArea { get; set; }
 
-        public float MaxCoordEdgeLength { get; set; }
+        //public float MaxCoordEdgeLength { get; set; }
 
         public float MaxGeometryEdgeLength { get; set; }
 
@@ -110,113 +105,33 @@ namespace XrEngine.Reconstruct
 
         public float MaxCoveredAreaRatio { get; set; }
 
-        public float MinCoveredArea { get; set; }
 
-        public bool RejectInsideVertices { get; set; }
+       // public float SpatialCellSize { get; set; }
 
-        public bool RejectCoveredCenter { get; set; }
+        //public float SpatialCellFactor { get; set; }
 
-        public bool RejectEdgeIntersections { get; set; }
+        //public bool RejectInsideVertices { get; set; }
 
-        public float BarycentricEpsilon { get; set; }
+        //public bool RejectCoveredCenter { get; set; }
 
-        public float EdgeInteriorEpsilon { get; set; }
+        //public bool RejectEdgeIntersections { get; set; }
 
-        public float EdgeBoundaryEpsilon { get; set; }
+        //public float BarycentricEpsilon { get; set; }
 
-        public float PlaneTolerance { get; set; }
+        //public float EdgeInteriorEpsilon { get; set; }
 
-        public float PlaneToleranceFactor { get; set; }
+        //public float EdgeBoundaryEpsilon { get; set; }
 
-        public float QueryPadding { get; set; }
+        //public float PlaneTolerance { get; set; }
 
-        public float SpatialCellSize { get; set; }
+        //public float PlaneToleranceFactor { get; set; }
 
-        public float SpatialCellFactor { get; set; }
+        //public float QueryPadding { get; set; }
     }
 
     public sealed class MeshHoleFiller
     {
         #region Private Structs
-
-        private readonly struct TriangleKey : IEquatable<TriangleKey>
-        {
-            public TriangleKey(int a, int b, int c)
-            {
-                if (a > b)
-                    (a, b) = (b, a);
-
-                if (b > c)
-                    (b, c) = (c, b);
-
-                if (a > b)
-                    (a, b) = (b, a);
-
-                A = a;
-                B = b;
-                C = c;
-            }
-
-            public bool Equals(TriangleKey other)
-            {
-                return A == other.A && B == other.B && C == other.C;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is TriangleKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = A;
-                    hash = (hash * 397) ^ B;
-                    hash = (hash * 397) ^ C;
-                    return hash;
-                }
-            }
-
-            public readonly int A;
-            public readonly int B;
-            public readonly int C;
-        }
-
-        private readonly struct CellKey : IEquatable<CellKey>
-        {
-            public CellKey(int x, int y, int z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-            }
-
-            public bool Equals(CellKey other)
-            {
-                return X == other.X && Y == other.Y && Z == other.Z;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is CellKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = X;
-                    hash = (hash * 397) ^ Y;
-                    hash = (hash * 397) ^ Z;
-                    return hash;
-                }
-            }
-
-            public readonly int X;
-            public readonly int Y;
-            public readonly int Z;
-        }
 
         private readonly struct Edge
         {
@@ -368,6 +283,19 @@ namespace XrEngine.Reconstruct
         private MeshVisualTriangleHoleFillCoordMode _coordMode;
         private MeshVisualTriangleHoleFillEdgeMode _edgeMode;
 
+        private bool _rejectInsideVertices = false;
+        private bool _rejectCoveredCenter = false;
+        private bool _rejectEdgeIntersections = false;
+
+        private const float _barycentricEpsilon = 1e-4f;
+        private const float _edgeInteriorEpsilon = 1e-4f;
+        private const float _edgeBoundaryEpsilon = 4e-4f;
+
+        private const float _planeTolerance = 0.0f;
+        private const float _planeToleranceFactor = 0.025f;
+
+        private const float _queryPadding = 0.01f;
+
         private int _atlasSize;
         private int _maxPasses;
         private int _maxAddedTriangles;
@@ -384,25 +312,14 @@ namespace XrEngine.Reconstruct
         private float _minNormalDot;
         private bool _fixWinding;
 
-        private bool _rejectInsideVertices;
-        private bool _rejectCoveredCenter;
-        private bool _rejectEdgeIntersections;
-
-        private float _barycentricEpsilon;
-        private float _edgeInteriorEpsilon;
-        private float _edgeBoundaryEpsilon;
-
-        private float _planeTolerance;
-        private float _planeToleranceFactor;
-
-        private float _queryPadding;
-
         private float _spatialCellSize;
         private float _spatialCellFactor;
 
         private bool _rejectCoveredArea;
         private float _maxCoveredAreaRatio;
-        private float _minCoveredArea;
+
+
+       // private float _minCoveredArea;
 
 
         private VertexData[] _vertices = Array.Empty<VertexData>();
@@ -411,10 +328,10 @@ namespace XrEngine.Reconstruct
         private Vector3[] _normalSums = Array.Empty<Vector3>();
 
         private HashSet<ulong> _edgeSet = new();
-        private HashSet<TriangleKey> _triangleSet = new();
-        private HashSet<TriangleKey> _candidateVisited = new();
+        private HashSet<MeshTriangleKey> _triangleSet = new();
+        private HashSet<MeshTriangleKey> _candidateVisited = new();
 
-        private Dictionary<CellKey, int> _gridHeads = new();
+        private Dictionary<Vector3I, int> _gridHeads = new();
         private int[] _gridTriangles = Array.Empty<int>();
         private int[] _gridNext = Array.Empty<int>();
         private int _gridCount;
@@ -463,10 +380,8 @@ namespace XrEngine.Reconstruct
             _maxPasses = Math.Max(1, parameters.MaxPasses);
             _maxAddedTriangles = Math.Max(0, parameters.MaxAddedTriangles);
 
-            _minCoordArea = Math.Max(0.0f, parameters.MinCoordArea);
             _minGeometryArea = Math.Max(0.0f, parameters.MinGeometryArea);
 
-            _maxCoordEdgeLength = Math.Max(0.0f, parameters.MaxCoordEdgeLength);
             _maxGeometryEdgeLength = Math.Max(0.0f, parameters.MaxGeometryEdgeLength);
 
             _maxEdgeFactor = Math.Max(0.0f, parameters.MaxEdgeFactor);
@@ -475,25 +390,24 @@ namespace XrEngine.Reconstruct
             _minNormalDot = Math.Clamp(parameters.MinNormalDot, 0.0f, 1.0f);
             _fixWinding = parameters.FixWinding;
 
-            _rejectInsideVertices = parameters.RejectInsideVertices;
-            _rejectCoveredCenter = parameters.RejectCoveredCenter;
-            _rejectEdgeIntersections = parameters.RejectEdgeIntersections;
+            // Non-area rejection tuning is intentionally kept private/dormant for later reactivation.
+            // _rejectInsideVertices = parameters.RejectInsideVertices;
+            // _rejectCoveredCenter = parameters.RejectCoveredCenter;
+            // _rejectEdgeIntersections = parameters.RejectEdgeIntersections;
 
-            _barycentricEpsilon = Math.Max(0.0f, parameters.BarycentricEpsilon);
-            _edgeInteriorEpsilon = Math.Max(0.0f, parameters.EdgeInteriorEpsilon);
-            _edgeBoundaryEpsilon = Math.Max(0.0f, parameters.EdgeBoundaryEpsilon);
+            // _barycentricEpsilon = Math.Max(0.0f, parameters.BarycentricEpsilon);
+            // _edgeInteriorEpsilon = Math.Max(0.0f, parameters.EdgeInteriorEpsilon);
+            // _edgeBoundaryEpsilon = Math.Max(0.0f, parameters.EdgeBoundaryEpsilon);
 
-            _planeTolerance = Math.Max(0.0f, parameters.PlaneTolerance);
-            _planeToleranceFactor = Math.Max(0.0f, parameters.PlaneToleranceFactor);
+            // _planeTolerance = Math.Max(0.0f, parameters.PlaneTolerance);
+            // _planeToleranceFactor = Math.Max(0.0f, parameters.PlaneToleranceFactor);
 
-            _queryPadding = Math.Max(0.0f, parameters.QueryPadding);
+            // _queryPadding = Math.Max(0.0f, parameters.QueryPadding);
 
-            _spatialCellSize = Math.Max(0.0f, parameters.SpatialCellSize);
-            _spatialCellFactor = Math.Max(0.1f, parameters.SpatialCellFactor);
 
             _rejectCoveredArea = parameters.RejectCoveredArea;
             _maxCoveredAreaRatio = Math.Clamp(parameters.MaxCoveredAreaRatio, 0.0f, 1.0f);
-            _minCoveredArea = Math.Max(0.0f, parameters.MinCoveredArea);
+           // _minCoveredArea = Math.Max(0.0f, parameters.MinCoveredArea);
         }
 
         public List<AddedTriangle> FindMissingTriangles(Geometry3D geometry)
@@ -665,7 +579,7 @@ namespace XrEngine.Reconstruct
                 if (ia == ib || ib == ic || ia == ic)
                     continue;
 
-                var key = new TriangleKey(ia, ib, ic);
+                var key = new MeshTriangleKey(ia, ib, ic);
 
                 if (!_triangleSet.Add(key))
                     continue;
@@ -675,9 +589,9 @@ namespace XrEngine.Reconstruct
                 _triangles[_triCount] = new Triangle(ia, ib, ic, _coords);
                 _triCount++;
 
-                _edgeSet.Add(EdgeKey(ia, ib));
-                _edgeSet.Add(EdgeKey(ib, ic));
-                _edgeSet.Add(EdgeKey(ic, ia));
+                _edgeSet.Add(new MeshEdgeKey(ia, ib).Packed);
+                _edgeSet.Add(new MeshEdgeKey(ib, ic).Packed);
+                _edgeSet.Add(new MeshEdgeKey(ic, ia).Packed);
 
                 var n = Vector3.Cross(_vertices[ib].Pos - _vertices[ia].Pos, _vertices[ic].Pos - _vertices[ia].Pos);
 
@@ -760,7 +674,13 @@ namespace XrEngine.Reconstruct
                 _adjacency[_cursor[b]++] = a;
             }
         }
-
+        private struct CandidateSeed
+        {
+            public int A;
+            public int B;
+            public int C;
+            public int Support;
+        }
         private int RunMode(bool twoEdges)
         {
             var addedThisRun = 0;
@@ -776,16 +696,17 @@ namespace XrEngine.Reconstruct
 
             _currentMaxCoordEdgeSq = maxCoordEdge > 0.0f ? maxCoordEdge * maxCoordEdge : float.MaxValue;
 
-            _candidateVisited.Clear();
-            _candidateVisited.EnsureCapacity(Math.Max(1024, _edgeSet.Count / 4));
+            var buckets = new List<CandidateSeed>?[_vertexCount];
 
-            for (var b = 0; b < _vertexCount; b++)
+            Parallel.For(0, _vertexCount, b =>
             {
                 var start = _offsets[b];
                 var end = _offsets[b + 1];
 
                 if (end - start < 2)
-                    continue;
+                    return;
+
+                List<CandidateSeed>? local = null;
 
                 for (var i = start; i < end - 1; i++)
                 {
@@ -798,7 +719,7 @@ namespace XrEngine.Reconstruct
                         if (a == c)
                             continue;
 
-                        var hasClosingEdge = _edgeSet.Contains(EdgeKey(a, c));
+                        var hasClosingEdge = _edgeSet.Contains(new MeshEdgeKey(a, c).Packed);
 
                         if (twoEdges)
                         {
@@ -811,12 +732,40 @@ namespace XrEngine.Reconstruct
                                 continue;
                         }
 
-                        if (TryAddCandidate(a, b, c, twoEdges ? 2 : 3))
-                            addedThisRun++;
+                        local ??= new List<CandidateSeed>();
 
-                        if (_result.Count >= _maxAddedLimit)
-                            return addedThisRun;
+                        local.Add(new CandidateSeed
+                        {
+                            A = a,
+                            B = b,
+                            C = c,
+                            Support = twoEdges ? 2 : 3
+                        });
                     }
+                }
+
+                buckets[b] = local;
+            });
+
+            _candidateVisited.Clear();
+            _candidateVisited.EnsureCapacity(Math.Max(1024, _edgeSet.Count / 4));
+
+            for (var b = 0; b < buckets.Length; b++)
+            {
+                var local = buckets[b];
+
+                if (local == null)
+                    continue;
+
+                for (var i = 0; i < local.Count; i++)
+                {
+                    var candidate = local[i];
+
+                    if (TryAddCandidate(candidate.A, candidate.B, candidate.C, candidate.Support))
+                        addedThisRun++;
+
+                    if (_result.Count >= _maxAddedLimit)
+                        return addedThisRun;
                 }
             }
 
@@ -825,7 +774,7 @@ namespace XrEngine.Reconstruct
 
         private bool TryAddCandidate(int a, int b, int c, int support)
         {
-            var candidateKey = new TriangleKey(a, b, c);
+            var candidateKey = new MeshTriangleKey(a, b, c);
 
             if (!_candidateVisited.Add(candidateKey))
                 return false;
@@ -858,9 +807,9 @@ namespace XrEngine.Reconstruct
             InsertTriangleToGrid(_triCount, _triangles[_triCount]);
             _triCount++;
 
-            _edgeSet.Add(EdgeKey(outA, outB));
-            _edgeSet.Add(EdgeKey(outB, outC));
-            _edgeSet.Add(EdgeKey(outC, outA));
+            _edgeSet.Add(new MeshEdgeKey(outA, outB).Packed);
+            _edgeSet.Add(new MeshEdgeKey(outB, outC).Packed);
+            _edgeSet.Add(new MeshEdgeKey(outC, outA).Packed);
 
             var n = Vector3.Cross(_vertices[outB].Pos - _vertices[outA].Pos, _vertices[outC].Pos - _vertices[outA].Pos);
 
@@ -939,7 +888,7 @@ namespace XrEngine.Reconstruct
 
             var candidateArea = MathF.Sqrt(candidate.CoordCrossSq) * 0.5f;
             var coveredArea = 0.0f;
-            var coveredLimit = MathF.Max(_minCoveredArea, candidateArea * _maxCoveredAreaRatio);
+            var coveredLimit = candidateArea * _maxCoveredAreaRatio;
 
             var minCellX = CellCoord(qMin.X, _invCellSize);
             var minCellY = CellCoord(qMin.Y, _invCellSize);
@@ -963,7 +912,7 @@ namespace XrEngine.Reconstruct
                 {
                     for (var gz = minCellZ; gz <= maxCellZ; gz++)
                     {
-                        if (!_gridHeads.TryGetValue(new CellKey(gx, gy, gz), out var entry))
+                        if (!_gridHeads.TryGetValue(new Vector3I(gx, gy, gz), out var entry))
                             continue;
 
                         while (entry >= 0)
@@ -1186,9 +1135,6 @@ namespace XrEngine.Reconstruct
 
             area = MathF.Abs(area) * 0.5f;
 
-            if (area <= _minCoveredArea)
-                return 0.0f;
-
             return area;
         }
 
@@ -1326,7 +1272,7 @@ namespace XrEngine.Reconstruct
                         EnsureCapacity(ref _gridTriangles, _gridCount + 1);
                         EnsureCapacity(ref _gridNext, _gridCount + 1);
 
-                        var key = new CellKey(x, y, z);
+                        var key = new Vector3I(x, y, z);
 
                         if (!_gridHeads.TryGetValue(key, out var head))
                             head = -1;
@@ -1339,14 +1285,6 @@ namespace XrEngine.Reconstruct
                     }
                 }
             }
-        }
-
-        private static ulong EdgeKey(int a, int b)
-        {
-            if (a > b)
-                (a, b) = (b, a);
-
-            return ((ulong)(uint)a << 32) | (uint)b;
         }
 
         private static int CellCoord(float value, float invCellSize)

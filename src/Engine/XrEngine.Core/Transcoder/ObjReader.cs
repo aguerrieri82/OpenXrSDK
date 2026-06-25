@@ -1,11 +1,32 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace XrEngine
 {
     public class ObjReader : BaseAssetLoader
     {
+        #region Private Structs
+
+        private readonly struct ObjVertexKey
+        {
+            public ObjVertexKey(int position, int uv, int normal)
+            {
+                Position = position;
+                UV = uv;
+                Normal = normal;
+            }
+
+            public readonly int Position;
+
+            public readonly int UV;
+
+            public readonly int Normal;
+        }
+
+        #endregion
+
         public ObjReader()
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
@@ -30,132 +51,126 @@ namespace XrEngine
         {
             var path = GetFilePath(uri);
 
-            using var stream = File.OpenRead(path);
-            using var reader = new StreamReader(stream);
+            using var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                1024 * 1024,
+                FileOptions.SequentialScan);
 
-            var positions = new List<Vector3>();
-            var normals = new List<Vector3>();
-            var uvs = new List<Vector2>();
+            using var reader = new StreamReader(stream, bufferSize: 1024 * 1024);
 
-            var vertices = new List<VertexData>();
-            var indices = new List<uint>();
+            var estimatedVertices = Math.Max(1024, (int)(stream.Length / 128));
+            var estimatedIndices = estimatedVertices * 6;
 
-            float Parse(string num)
+            var positions = new List<Vector3>(estimatedVertices);
+            var normals = new List<Vector3>(estimatedIndices);
+            var uvs = new List<Vector2>(estimatedIndices);
+
+            var vertices = new List<VertexData>(estimatedIndices);
+            var indices = new List<uint>(estimatedIndices);
+
+            void AddVertex(ObjVertexKey key)
             {
-                return float.Parse(num, CultureInfo.InvariantCulture);
-            }
-
-            int ParseObjIndex(string num, int count)
-            {
-                var ix = int.Parse(num, CultureInfo.InvariantCulture);
-
-                // OBJ indices are 1-based.
-                if (ix > 0)
-                    return ix - 1;
-
-                // Negative indices are relative to current list end.
-                if (ix < 0)
-                    return count + ix;
-
-                throw new FormatException("OBJ index 0 is invalid.");
-            }
-
-            VertexData ReadFaceVertex(string token)
-            {
-                // Supported:
-                // v
-                // v/vt
-                // v//vn
-                // v/vt/vn
-
-                var p = token.Split('/');
-
-                var vi = ParseObjIndex(p[0], positions.Count);
-
-                var result = new VertexData
+                var vertex = new VertexData
                 {
-                    Pos = positions[vi]
+                    Pos = positions[key.Position]
                 };
 
-                if (p.Length >= 2 && p[1].Length > 0)
-                {
-                    var ti = ParseObjIndex(p[1], uvs.Count);
-                    result.UV = uvs[ti];
-                }
+                if (key.UV >= 0)
+                    vertex.UV = uvs[key.UV];
 
-                if (p.Length >= 3 && p[2].Length > 0)
-                {
-                    var ni = ParseObjIndex(p[2], normals.Count);
-                    result.Normal = normals[ni];
-                }
+                if (key.Normal >= 0)
+                    vertex.Normal = normals[key.Normal];
 
-                return result;
-            }
+                var index = (uint)vertices.Count;
 
-            uint AddVertex(VertexData vertex)
-            {
-                var ix = (uint)vertices.Count;
                 vertices.Add(vertex);
-                indices.Add(ix);
-                return ix;
+                indices.Add(index);
             }
 
             string? line;
 
             while ((line = reader.ReadLine()) != null)
             {
-                line = line.Trim();
+                var span = line.AsSpan();
 
-                if (line.Length == 0 || line[0] == '#')
+                if (span.Length == 0 || span[0] == '#')
                     continue;
 
-                var parts = line.Split(
-                    (char[]?)null,
-                    StringSplitOptions.RemoveEmptyEntries);
-
-                if (parts.Length < 2)
+                if (!ReadToken(ref span, out var tag))
                     continue;
 
-                if (parts[0] == "v")
+                if (tag.Length == 1 && tag[0] == 'v')
                 {
-                    positions.Add(new Vector3(
-                        Parse(parts[1]),
-                        Parse(parts[2]),
-                        Parse(parts[3])));
-                }
-                else if (parts[0] == "vn")
-                {
-                    normals.Add(new Vector3(
-                        Parse(parts[1]),
-                        Parse(parts[2]),
-                        Parse(parts[3])).Normalize());
-                }
-                else if (parts[0] == "vt")
-                {
-                    uvs.Add(new Vector2(
-                        Parse(parts[1]),
-                        Parse(parts[2])));
-                }
-                else if (parts[0] == "f")
-                {
-                    if (parts.Length < 4)
+                    if (!ReadToken(ref span, out var x) ||
+                        !ReadToken(ref span, out var y) ||
+                        !ReadToken(ref span, out var z))
                         continue;
 
-                    // Read all polygon corners first.
-                    var face = new VertexData[parts.Length - 1];
+                    positions.Add(new Vector3(
+                        ParseFloat(x),
+                        ParseFloat(y),
+                        ParseFloat(z)));
 
-                    for (var i = 1; i < parts.Length; i++)
-                        face[i - 1] = ReadFaceVertex(parts[i]);
+                    continue;
+                }
 
-                    // Triangulate as fan:
-                    // 0,1,2
-                    // 0,2,3
-                    // 0,3,4
-                    for (var i = 1; i < face.Length - 1; i++)
+                if (tag.Length == 2 && tag[0] == 'v' && tag[1] == 'n')
+                {
+                    if (!ReadToken(ref span, out var x) ||
+                        !ReadToken(ref span, out var y) ||
+                        !ReadToken(ref span, out var z))
+                        continue;
+
+                    normals.Add(new Vector3(
+                        ParseFloat(x),
+                        ParseFloat(y),
+                        ParseFloat(z)).Normalize());
+
+                    continue;
+                }
+
+                if (tag.Length == 2 && tag[0] == 'v' && tag[1] == 't')
+                {
+                    if (!ReadToken(ref span, out var x) ||
+                        !ReadToken(ref span, out var y))
+                        continue;
+
+                    uvs.Add(new Vector2(
+                        ParseFloat(x),
+                        ParseFloat(y)));
+
+                    continue;
+                }
+
+                if (tag.Length == 1 && tag[0] == 'f')
+                {
+                    if (!ReadToken(ref span, out var firstToken) ||
+                        !ReadToken(ref span, out var prevToken) ||
+                        !ReadToken(ref span, out var curToken))
+                        continue;
+
+                    var first = ParseFaceVertexKey(firstToken, positions.Count, uvs.Count, normals.Count);
+                    var prev = ParseFaceVertexKey(prevToken, positions.Count, uvs.Count, normals.Count);
+                    var cur = ParseFaceVertexKey(curToken, positions.Count, uvs.Count, normals.Count);
+
+                    AddVertex(first);
+                    AddVertex(prev);
+                    AddVertex(cur);
+
+                    prev = cur;
+
+                    while (ReadToken(ref span, out curToken))
                     {
-                        AddVertex(face[0]);
-                        AddVertex(face[i]);
-                        AddVertex(face[i + 1]);
+                        cur = ParseFaceVertexKey(curToken, positions.Count, uvs.Count, normals.Count);
+
+                        AddVertex(first);
+                        AddVertex(prev);
+                        AddVertex(cur);
+
+                        prev = cur;
                     }
                 }
             }
@@ -175,6 +190,80 @@ namespace XrEngine
             };
 
             return new TriangleMesh(geo);
+        }
+
+        private static bool ReadToken(ref ReadOnlySpan<char> span, out ReadOnlySpan<char> token)
+        {
+            span = span.TrimStart();
+
+            if (span.Length == 0)
+            {
+                token = default;
+                return false;
+            }
+
+            var end = 0;
+
+            while (end < span.Length && !char.IsWhiteSpace(span[end]))
+                end++;
+
+            token = span[..end];
+            span = span[end..];
+
+            return true;
+        }
+
+        private static ObjVertexKey ParseFaceVertexKey(
+            ReadOnlySpan<char> token,
+            int positionCount,
+            int uvCount,
+            int normalCount)
+        {
+            var slash0 = token.IndexOf('/');
+
+            if (slash0 < 0)
+                return new ObjVertexKey(ParseObjIndex(token, positionCount), -1, -1);
+
+            var positionToken = token[..slash0];
+            var rest = token[(slash0 + 1)..];
+
+            var slash1 = rest.IndexOf('/');
+
+            if (slash1 < 0)
+            {
+                return new ObjVertexKey(
+                    ParseObjIndex(positionToken, positionCount),
+                    rest.Length > 0 ? ParseObjIndex(rest, uvCount) : -1,
+                    -1);
+            }
+
+            var uvToken = rest[..slash1];
+            var normalToken = rest[(slash1 + 1)..];
+
+            return new ObjVertexKey(
+                ParseObjIndex(positionToken, positionCount),
+                uvToken.Length > 0 ? ParseObjIndex(uvToken, uvCount) : -1,
+                normalToken.Length > 0 ? ParseObjIndex(normalToken, normalCount) : -1);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float ParseFloat(ReadOnlySpan<char> token)
+        {
+            return float.Parse(token, NumberStyles.Float, CultureInfo.InvariantCulture);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int ParseObjIndex(ReadOnlySpan<char> token, int count)
+        {
+            var index = int.Parse(token, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+            if (index > 0)
+                return index - 1;
+
+            if (index < 0)
+                return count + index;
+
+            throw new FormatException("OBJ index 0 is invalid.");
         }
 
         public static readonly ObjReader Instance = new();

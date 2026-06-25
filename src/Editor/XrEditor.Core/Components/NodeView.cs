@@ -56,7 +56,8 @@ namespace XrEditor
         {
             await UiThread;
 
-            var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
+            var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node.Value == child.Value);
+
             childView?.Remove();
         }
 
@@ -68,7 +69,6 @@ namespace XrEditor
 
             _host.AddChild(childView!);
         }
-
 
         protected void OnLoadChildren(ListTreeNodeView nodeView, IList<ListTreeNodeView> result)
         {

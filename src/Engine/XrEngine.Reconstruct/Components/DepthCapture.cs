@@ -620,8 +620,8 @@ namespace XrEngine.Reconstruct
         private Texture2D? _colorArrayTex;
         private GlTexture? _tempDepthTex;
         private Texture2D? _atlasTex;
-        private Material? _wireMat;
-        private Material? _colorMar;
+        private WireframeMaterial? _wireMat;
+        private PbrV2Material? _colorMar;
         private TextureMaterial? _texMat;
         private readonly DepthSnapeshotMode _mode;
         private readonly string _sessionPath;
@@ -1028,6 +1028,7 @@ namespace XrEngine.Reconstruct
                 _recMesh?.Dispose();
                 _recMesh = AssetLoader.Instance.Load<TriangleMesh>(cacheName, new BasicLoaderOptions { UseCache = false });
                 _recMesh.AddComponent<MeshDebugger>();
+                Log.Debug(this, "Loaded");
             }
             else
             {
@@ -1187,6 +1188,8 @@ namespace XrEngine.Reconstruct
                     EngineNativeLib.RdcEndFrameCapture(false);
 
                     _texMat.Texture = _atlasTex;
+
+                    _colorMar.ColorMap = _atlasTex;
 
                     _recMesh.Materials.Add(_texMat);
                 }

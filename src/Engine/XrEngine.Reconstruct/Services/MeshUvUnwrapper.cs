@@ -161,42 +161,6 @@ namespace XrEngine
     {
         #region Private Structs
 
-        private readonly struct EdgeKey : IEquatable<EdgeKey>
-        {
-            public EdgeKey(uint a, uint b)
-            {
-                if (a < b)
-                {
-                    A = a;
-                    B = b;
-                }
-                else
-                {
-                    A = b;
-                    B = a;
-                }
-            }
-
-            public bool Equals(EdgeKey other)
-            {
-                return A == other.A && B == other.B;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is EdgeKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(A, B);
-            }
-
-            public readonly uint A;
-            
-            public readonly uint B;       
-        }
-
         private readonly struct VertexKey : IEquatable<VertexKey>
         {
             public VertexKey(uint vertexIndex, int chartIndex)
@@ -447,7 +411,7 @@ namespace XrEngine
         {
             _adjacency = new List<int>[_triangles.Length];
 
-            var edges = new Dictionary<EdgeKey, int>(_triangles.Length * 3);
+            var edges = new Dictionary<MeshEdgeKey, int>(_triangles.Length * 3);
 
             for (var i = 0; i < _adjacency.Length; i++)
                 _adjacency[i] = new List<int>(3);
@@ -466,9 +430,9 @@ namespace XrEngine
             uint a,
             uint b,
             int tri,
-            Dictionary<EdgeKey, int> edges)
+            Dictionary<MeshEdgeKey, int> edges)
         {
-            var key = new EdgeKey(a, b);
+            var key = new MeshEdgeKey(a, b);
 
             if (edges.TryGetValue(key, out var otherTri))
             {
