@@ -5,7 +5,7 @@ using System.Text.Json;
 using XrEngine;
 using XrMath;
 
-namespace XrSamples
+namespace XrEngine.Reconstruct
 {
     [Obsolete]
     public class DepthPointScanner : Behavior<Object3D>

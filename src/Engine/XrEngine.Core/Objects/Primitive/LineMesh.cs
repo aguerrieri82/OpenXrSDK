@@ -9,6 +9,7 @@ namespace XrEngine
             Material = new LineMaterial();
             Material.Attach(this);
             Vertices = [];
+            Flags |= EngineObjectFlags.NoLogs;
             ActiveComponents = VertexComponent.Position | VertexComponent.Color4;
         }
 

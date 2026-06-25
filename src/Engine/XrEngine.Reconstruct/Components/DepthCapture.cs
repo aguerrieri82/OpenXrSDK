@@ -622,7 +622,7 @@ namespace XrEngine.Reconstruct
         private Texture2D? _atlasTex;
         private Material? _wireMat;
         private Material? _colorMar;
-        private TextureMaterial _texMat;
+        private TextureMaterial? _texMat;
         private readonly DepthSnapeshotMode _mode;
         private readonly string _sessionPath;
         private readonly List<DepthFrame> _frames = [];
@@ -651,6 +651,7 @@ namespace XrEngine.Reconstruct
             SolveExposure = true;
             Optimize = true;
             UnwrapUv = true;
+            FillHoles = true;
 
             MeshParams = new();
             GeneratorParams = new();
@@ -659,6 +660,7 @@ namespace XrEngine.Reconstruct
             UvUnwrapParams = new();
             UvProjParams = new();
             CollapseParams = new();
+            HoleParams = new();
 
             CollapseParams.Distance = 0.04f;
             MeshParams.VoxelSize = 0.05f;
@@ -1102,6 +1104,16 @@ namespace XrEngine.Reconstruct
                 Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
             }
 
+
+            if (FillHoles)
+            {
+                Log.Info(this, "Filling holes");
+                var filler = new MeshHoleFiller(HoleParams);
+                var fillRes = filler.FindMissingTriangles(_recMesh!.Geometry);
+                Log.Warn(this, "{0} triangles found", fillRes.Count);
+            }
+
+
             if (UseDepthOcclusion)
             {
                 foreach (var frame in colorFrames)
@@ -1139,6 +1151,7 @@ namespace XrEngine.Reconstruct
             _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
             _colorMar ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
 
+
             if (UnwrapUv)
             {
                 Log.Info(this, "UV Unwrap");
@@ -1146,17 +1159,6 @@ namespace XrEngine.Reconstruct
                 var uvUnwrap = new MeshUvUnwrapper();
                 uvUnwrap.SetParameters(UvUnwrapParams);
                 uvUnwrap.Unwrap(_recMesh.Geometry);
-
-                var filler = new MeshUvSingleTriangleHoleFiller(new MeshUvSingleTriangleHoleFillParams
-                {
-                    AtlasSize = UvProjParams.AtlasSize,
-                    UvMergePixels = 3f,
-                    Passes = 0,
-                    MinTriangleArea = 0f,
-                    MaxEdgeLength = 0.0f
-                });
-
-                filler.Fill(_recMesh.Geometry);
 
                 if (BuildAtlas)
                 {
@@ -1212,6 +1214,7 @@ namespace XrEngine.Reconstruct
                         (int)colorSize.Height);
                 }
             }
+
 
             if (!UnwrapUv)
             {
@@ -1564,9 +1567,9 @@ namespace XrEngine.Reconstruct
                         mat.Exposure = frame.Exposure;
                 }
 
-                _wireMat?.IsEnabled = ShowWireframe;
-                _colorMar?.IsEnabled = ShowWireframe;
-                _texMat?.IsEnabled = !ShowWireframe;
+                //_wireMat?.IsEnabled = ShowWireframe;
+                //_colorMar?.IsEnabled = ShowWireframe;
+                //_texMat?.IsEnabled = !ShowWireframe;
 
                 return;
             }
@@ -1654,6 +1657,7 @@ namespace XrEngine.Reconstruct
 
         public bool UnwrapUv { get; set; }
 
+        public bool FillHoles { get; private set; }
 
         public MeshCollapseParams CollapseParams { get; set; }
 
@@ -1669,7 +1673,9 @@ namespace XrEngine.Reconstruct
 
         public MeshTextureProjectionParams ProjParams { get; set; }
 
-        public string DebugTriangles { get; set; }
+        public MeshHoleFillerParams HoleParams { get; set; }
+
+        public string? DebugTriangles { get; set; }
 
     }
 }

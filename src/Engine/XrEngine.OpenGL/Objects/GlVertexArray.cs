@@ -113,6 +113,9 @@ namespace XrEngine.OpenGL
 
         public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
+            if (!NoLogs)
+                Log.Debug(this, "Update VA {0}", _handle);
+
             _vBuf.UpdateRange(vertices);
             _vBuf.ArrayLength = (uint)vertices.Length;
 
@@ -185,6 +188,8 @@ namespace XrEngine.OpenGL
         }
 
         public GlVertexLayout Layout => _layout;
+
+        public bool NoLogs;
 
         #region IGlVertexArray
 

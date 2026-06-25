@@ -5,6 +5,10 @@
 		<SingleProject>true</SingleProject>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+	  <DefineConstants>$(DefineConstants);MESH_HOLE_FILL_DIAGNOSTICS</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />
 		<ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />

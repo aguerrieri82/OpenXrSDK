@@ -63,6 +63,9 @@ namespace XrEngine.OpenGL
 
             _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout!);
 
+            if ((source.Object.Flags & EngineObjectFlags.NoLogs) != 0)
+                _vertices.NoLogs = true;
+
             _primitive = GlPrimitive(_source.Primitive);
 
             _gl = gl;
