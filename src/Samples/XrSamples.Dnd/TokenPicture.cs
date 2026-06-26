@@ -38,7 +38,7 @@ namespace XrSamples.Dnd
                 base.Start(ctx);
             }
 
-            protected override void Draw(SKCanvas canvas)
+            protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
             {
                 canvas.Clear();
 
@@ -96,8 +96,6 @@ namespace XrSamples.Dnd
                 canvas.DrawText(hp, (barWidth - size) / 2, _pixelSize.Height - height - _font2.Metrics.Bottom, _font2, _white);
 
                 _isDirty = false;
-
-                base.Draw(canvas);
             }
 
             public override bool NeedDraw => _isDirty;

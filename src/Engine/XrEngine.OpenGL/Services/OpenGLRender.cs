@@ -155,8 +155,7 @@ namespace XrEngine.OpenGL
         protected internal void ResetState()
         {
             _glState.Reset();
-
-            _gl.DrawBuffers(GlState.DRAW_COLOR_0);
+            //_gl.DrawBuffers(GlState.DRAW_COLOR_0);
         }
 
         public unsafe void EnableDebug(bool sync = false)
@@ -552,6 +551,7 @@ namespace XrEngine.OpenGL
                 format = InternalFormat.Rgba8;
 
             var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format);
+
 
             var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, glTexture.MaxLevel > 0, gerTextInfo);
 

@@ -11,32 +11,30 @@
 layout(location=0) out vec4 FragColor;
 
 #ifdef MULTI_VIEW
-
-    void main()
-    {
-        #ifdef FIXED_EYE
-            if (gl_ViewID_OVR != uint(FIXED_EYE))
-                discard;
-        #endif
-        if (gl_ViewID_OVR == 0u)
-            FragColor = texture(uTextureLeft, fUv);
-        else 
-            FragColor = texture(uTextureRight, fUv);
-    }
-
+    #define ACTIVE_EYE gl_ViewID_OVR
 #else
     uniform uint uActiveEye;
-
-    void main()
-    {
-        #ifdef FIXED_EYE
-            if (uActiveEye != uint(FIXED_EYE))
-                discard;
-        #endif
-
-        if (uActiveEye == 0u)
-            FragColor = texture(uTextureLeft, fUv);
-        else 
-            FragColor = texture(uTextureRight, fUv);
-    }
+    #define ACTIVE_EYE uActiveEye
 #endif
+
+
+#ifdef USE_COLOR
+    uniform vec4 uColor;
+#endif
+
+void main()
+{
+    #ifdef FIXED_EYE
+        if (ACTIVE_EYE != uint(FIXED_EYE))
+            discard;
+    #endif
+
+    if (ACTIVE_EYE == 0u)
+        FragColor = texture(uTextureLeft, fUv);
+    else 
+        FragColor = texture(uTextureRight, fUv);
+
+    #ifdef USE_COLOR
+        FragColor *= uColor;
+    #endif         
+}

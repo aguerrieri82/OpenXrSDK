@@ -621,8 +621,8 @@ namespace XrEngine.Reconstruct
         private GlTexture? _tempDepthTex;
         private Texture2D? _atlasTex;
         private WireframeMaterial? _wireMat;
-        private PbrV2Material? _colorMar;
-        private TextureMaterial? _texMat;
+        private PbrV2Material? _colorMat;
+        private Material? _texMat;
         private readonly DepthSnapeshotMode _mode;
         private readonly string _sessionPath;
         private readonly List<DepthFrame> _frames = [];
@@ -664,6 +664,9 @@ namespace XrEngine.Reconstruct
 
             CollapseParams.Distance = 0.04f;
             MeshParams.VoxelSize = 0.05f;
+
+            HoleParams.MaxPasses = 1;
+            HoleParams.EdgeMode = HoleFillMode.ThreeEdges;
         }
 
         protected override void Start(RenderContext ctx)
@@ -1132,7 +1135,7 @@ namespace XrEngine.Reconstruct
 
                         frame.DepthTexture = new Texture2D();
                     }
-      
+
                     frame.DepthMap = await GenerateDepthAsync(frame.ViewProj, frame.DepthTexture);
                     frame.DepthWidth = DepthMapSize;
                     frame.DepthHeight = DepthMapSize;
@@ -1146,11 +1149,9 @@ namespace XrEngine.Reconstruct
 
             float[] exposures = [];
 
-            _recMesh.Materials.Clear();
 
-            _texMat ??= new TextureMaterial() { };
             _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
-            _colorMar ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
+            _colorMat ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
 
 
             if (UnwrapUv)
@@ -1187,9 +1188,12 @@ namespace XrEngine.Reconstruct
 
                     EngineNativeLib.RdcEndFrameCapture(false);
 
-                    _texMat.Texture = _atlasTex;
+                    if (_texMat is not TextureMaterial)
+                        _texMat = new TextureMaterial();
 
-                    _colorMar.ColorMap = _atlasTex;
+                    ((TextureMaterial)_texMat).Texture = _atlasTex;
+
+                    //_colorMat.ColorMap = _atlasTex;
 
                     _recMesh.Materials.Add(_texMat);
                 }
@@ -1234,23 +1238,29 @@ namespace XrEngine.Reconstruct
 
                     _atlasTex?.Dispose();
                     _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
-                    _texMat.Texture = _atlasTex;
+
+
+                    if (_texMat is not TextureMaterial)
+                        _texMat = new TextureMaterial();
+
+                    ((TextureMaterial)_texMat).Texture = _atlasTex;
+
                     _recMesh.Materials.Add(_texMat);
 
                 }
                 else
                 {
-                    _recMesh.Materials.Add(new MultiTextureMaterial
+                    if (_texMat is not TextureMaterial)
                     {
-                        Texture = _colorArrayTex,
-                        Exposure = exposures
-                    });
+                        _texMat = new MultiTextureMaterial
+                        {
+
+                            Exposure = exposures
+                        };
+                    }
+                    ((MultiTextureMaterial)_texMat).Texture = _colorArrayTex;
                 }
             }
-
-
-            _recMesh.Materials.Add(_wireMat);
-            _recMesh.Materials.Add(_colorMar);
 
             if (ComputeIndices)
             {
@@ -1267,6 +1277,16 @@ namespace XrEngine.Reconstruct
             }
 
             Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+
+            await EngineApp.MainThread;
+
+            _recMesh.Materials.Clear();
+
+            if (_texMat != null)
+                _recMesh.Materials.Add(_texMat);
+
+            _recMesh.Materials.Add(_wireMat);
+            _recMesh.Materials.Add(_colorMat);
 
             if (_recMesh.Parent == null)
                 _host.Scene!.AddChild(_recMesh);

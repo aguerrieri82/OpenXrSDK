@@ -19,7 +19,7 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
-        public static readonly bool DisableDualRender = false;
+        public static readonly bool DisableDualRender = true;
         
 
         public static readonly string[] AssetsPath = [

@@ -1361,7 +1361,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentDepth()
+                //.UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .UseTeleport(ControllerHand.Right, player!, new FloorTeleportTarget())
                 .ConfigureSampleApp(false)
@@ -1526,7 +1526,7 @@ namespace XrSamples
             {
                 if (!isInit && window.ActiveTexture != null)
                 {
-                    mat.Texture = window.ActiveTexture;
+                    mat.MainLeftTexture = window.ActiveTexture;
                     var size = new Vector2(window.ActiveTexture.Width, window.ActiveTexture.Height);
                     var viewSize = new Vector2(scene.ActiveCamera!.ViewSize.Width, scene.ActiveCamera.ViewSize.Height);
                     var relSize = 2 * size / viewSize;

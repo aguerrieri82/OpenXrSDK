@@ -24,10 +24,11 @@ namespace XrEngine.UI
         protected Dictionary<uint, Texture2D> _targets = [];
         protected Texture2D? _activeTexture;
         protected int _activeEye;
-        protected Texture2D? _defaultTexture;
+        protected Texture2D? _defLeftTexture;
+        protected Texture2D? _defRightTexture;
         protected Texture2D? _lastDrawTexture;
         protected CanvasViewMode _mode;
-        protected Camera? _lastCamera;
+        private bool _isStereo;
 
         public CanvasView3D()
         {
@@ -70,19 +71,23 @@ namespace XrEngine.UI
                 if (_sizeDirty)
                     UpdateSize();
 
-                _lastCamera = ctx.Camera;
+                Draw(ctx);
 
-                Draw();
             }
         }
 
-        public void Draw()
+        public void Draw(RenderContext? ctx)
         {
-            var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ? _defaultTexture : _activeTexture;
+            var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ? 
+                _defLeftTexture : _activeTexture;
 
             if ((NeedDraw || _lastDrawTexture == null) && _activeEye <= 0)
             {
-                Draw(drawTexture);
+                Draw(drawTexture, ctx, 0);
+                
+                if (IsStereo && _mode == CanvasViewMode.Texture)
+                    Draw(_defRightTexture, ctx, 1);
+
                 _lastDrawTexture = drawTexture;
             }
 
@@ -96,7 +101,7 @@ namespace XrEngine.UI
             }
         }
 
-        protected void Draw(Texture2D? texture)
+        protected void Draw(Texture2D? texture, RenderContext? ctx, int activeEye)
         {
             Debug.Assert(texture != null);
 
@@ -116,7 +121,7 @@ namespace XrEngine.UI
 
             surfaceProvider!.BeginDrawSurface(canvas.Surface!, texture);
 
-            Draw(canvas);
+            Draw(canvas, ctx, activeEye);
 
             canvas.Flush();
 
@@ -125,7 +130,7 @@ namespace XrEngine.UI
             surfaceProvider.EndDrawSurface(canvas.Surface!, texture);
         }
 
-        protected virtual void Draw(SKCanvas canvas)
+        protected virtual void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
         {
 
         }
@@ -159,21 +164,39 @@ namespace XrEngine.UI
 
             Transform.Scale = new Vector3(Size.Width, Size.Height, 0.01f);
 
-            if (_defaultTexture != null)
+            if (_defLeftTexture != null)
             {
-                _defaultTexture.Width = _pixelSize.Width;
-                _defaultTexture.Height = _pixelSize.Height;
-                _defaultTexture.NotifyChanged(ChangeType.Unspecified);
+                _defLeftTexture.Width = _pixelSize.Width;
+                _defLeftTexture.Height = _pixelSize.Height;
+                _defLeftTexture.NotifyChanged(ChangeType.Unspecified);
 
-                CreateSurface(_defaultTexture);
+                CreateSurface(_defLeftTexture);
+            }
+
+            if (_defRightTexture != null)
+            {
+                _defRightTexture.Width = _pixelSize.Width;
+                _defRightTexture.Height = _pixelSize.Height;
+                _defRightTexture.NotifyChanged(ChangeType.Unspecified);
+
+                CreateSurface(_defRightTexture);
             }
 
             _sizeDirty = false;
         }
 
-        protected virtual Material CreateMaterial(Texture2D texture)
+        protected virtual Material CreateMaterial(Texture2D leftMain, Texture2D? right)
         {
-            return new TextureMaterial(texture)
+            if (IsStereo && right != null)
+            {
+                return new EyeTextureMaterial(leftMain, right)
+                {
+                    DoubleSided = true,
+                    Alpha = AlphaMode.Blend,
+                };
+            }
+
+            return new TextureMaterial(leftMain)
             {
                 DoubleSided = true,
                 Alpha = AlphaMode.Blend,
@@ -187,7 +210,7 @@ namespace XrEngine.UI
 
             if (_mode == CanvasViewMode.Texture)
             {
-                _defaultTexture ??= new Texture2D
+                _defLeftTexture ??= new Texture2D
                 {
                     Format = TextureFormat.Rgba32,
                     WrapS = WrapMode.ClampToEdge,
@@ -199,37 +222,38 @@ namespace XrEngine.UI
 
                 if (UseMips)
                 {
-                    _defaultTexture.MipLevelCount = 4;
-                    _defaultTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    _defLeftTexture.MipLevelCount = 4;
+                    _defLeftTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
                 }
 
-                Materials.Add(CreateMaterial(_defaultTexture));
+                if (IsStereo)
+                {
+                    _defRightTexture ??= new Texture2D
+                    {
+                        Format = TextureFormat.Rgba32,
+                        WrapS = WrapMode.ClampToEdge,
+                        WrapT = WrapMode.ClampToEdge,
+                        MinFilter = ScaleFilter.Linear,
+                        MagFilter = ScaleFilter.Linear,
+                        MipLevelCount = 0
+                    };
 
-                _activeTexture = _defaultTexture;
+                    if (UseMips)
+                    {
+                        _defRightTexture.MipLevelCount = 4;
+                        _defRightTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    }
+                }
+
+      
+                Materials.Add(CreateMaterial(_defLeftTexture, _defRightTexture));
+
+                _activeTexture = _defLeftTexture;
             }
             else
             {
                 _activeTexture = null;
                 UpdateSize();
-                /*
-                Materials.Add(new ColorMaterial
-                {
-                    Color = Color.Transparent,
-                    WriteColor = true,
-                    WriteDepth = true,
-                    DoubleSided = false,
-                });
-
-                if (_defaultTexture != null)
-                {
-                    _defaultTexture.Dispose();
-                    _defaultTexture = null;
-                }
-
-                _activeTexture = null;
-
-                UpdateSize();
-                */
             }
         }
 
@@ -277,7 +301,18 @@ namespace XrEngine.UI
             }
         }
 
-        public Texture2D? DrawTexture => _defaultTexture;
+        public bool IsStereo
+        {
+            get => _isStereo;
+            set
+            {
+                _isStereo = value;
+                UpdateMode();
+            }
+        }
+
+
+        public Texture2D? DrawTexture => _defLeftTexture;
 
         public int ActiveEye => _activeEye;
 
@@ -292,5 +327,7 @@ namespace XrEngine.UI
         public Size2I PixelSize => _pixelSize;
 
         public Texture2D? ActiveTexture => _activeTexture;
+
+
     }
 }

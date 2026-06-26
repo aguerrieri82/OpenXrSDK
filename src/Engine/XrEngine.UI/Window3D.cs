@@ -132,7 +132,7 @@ namespace XrEngine.UI
             (Content as UIRoot)?.SetViewport(0, 0, _pixelSize.Width / _dpiScale, _pixelSize.Height / _dpiScale);
         }
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
         {
             if (Content != null && Content.IsDirty)
             {

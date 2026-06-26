@@ -1,10 +1,13 @@
 ﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace XrEngine.UI
 {
+
+
     public class CanvasView2D : CanvasView3D
     {
         ScreenCanvas? screenCanvas;
@@ -12,15 +15,21 @@ namespace XrEngine.UI
         public CanvasView2D()
         {
             Flags |= EngineObjectFlags.NoFrustumCulling;
+            IsStereo = true;    
         }
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
         {
+            Debug.Assert(ctx?.Camera != null);
+
+            if (activeEye > 0 && (ctx.Camera.Eyes == null || ctx.Camera.Eyes.Length < 2))
+                return;
+
             screenCanvas ??= new ScreenCanvas();
 
-            screenCanvas.Configure(canvas, _lastCamera!, _pixelSize);
-
             canvas.Save();
+
+            screenCanvas.Configure(canvas, ctx.Camera, activeEye, _pixelSize);
 
             canvas.Clear();
    
@@ -29,24 +38,19 @@ namespace XrEngine.UI
             canvas.Restore();
         }
 
-        protected override Material CreateMaterial(Texture2D texture)
+        protected override Material CreateMaterial(Texture2D leftMain, Texture2D? right)
         {
             return new TextureClipMaterial()
             {
-                Texture = texture,
+                MainLeftTexture = leftMain,
+                RightTexture = right,
                 Alpha = AlphaMode.Blend,
+                IsStereo = IsStereo,
                 DoubleSided = true,
                 UseDepth = false,
-                WriteDepth = false, 
+                WriteDepth = false,
                 Priority = 10
             };
-        }
-
-        [Action]
-        public void FilpY()
-        {
-            _geometry!.FlipYUV();
-
         }
 
         public event Action<ScreenCanvas>? DrawCanvas;

@@ -43,7 +43,7 @@ namespace XrEngine.OpenXr
                 var glImage = (SwapchainImageOpenGLKHR*)image;
 
                 canvas.SetRenderTarget(glImage->Image, size.Width, size.Height, eye);
-                canvas.Draw();
+                canvas.Draw(null);
 
                 return true;
             }

@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class TextureClipMaterial : ShaderMaterial
+    public partial class TextureClipMaterial : ShaderMaterial
     {
         static readonly Shader SHADER;
 
@@ -13,7 +13,7 @@ namespace XrEngine
             {
                 Resolver = str => Embedded.GetString(str),
                 VertexSourceName = "clip.vert",
-                FragmentSourceName = "texture.frag",
+                FragmentSourceName = "texture_stereo.frag",
                 IsLit = false,
             };
         }
@@ -28,15 +28,38 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            if (!IsStereo)
+                bld.AddFeature("FIXED_EYE 0");
+
+            bld.AddFeature("USE_COLOR");
+
+            if (IsStereo)
+            {
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uActiveEye", (uint)ctx.PassCamera!.ActiveEye);
+
+                    if (RightTexture != null)
+                        up.LoadTexture(RightTexture, 1);
+                });
+            }
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uColor", Color);
-                if (Texture != null)
-                    up.LoadTexture(Texture, TextureSlots.Albedo);
+                
+                if (MainLeftTexture != null)
+                    up.LoadTexture(MainLeftTexture, 0);
+
             });
         }
 
-        public Texture2D? Texture { get; set; }
+        public Texture2D? MainLeftTexture { get; set; }
+
+        public Texture2D? RightTexture { get; set; }
+
+        [Notify(ChangeType.Material)]
+        public partial bool IsStereo { get; set; }
 
         public Color Color { get; set; }
 

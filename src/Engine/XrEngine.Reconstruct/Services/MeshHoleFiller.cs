@@ -7,13 +7,13 @@ using XrMath;
 
 namespace XrEngine.Reconstruct
 {
-    public enum MeshVisualTriangleHoleFillCoordMode
+    public enum HoleFillCoord
     {
         Position,
         Uv
     }
 
-    public enum MeshVisualTriangleHoleFillEdgeMode
+    public enum HoleFillMode
     {
         ThreeEdges,
         TwoEdges,
@@ -40,8 +40,8 @@ namespace XrEngine.Reconstruct
     {
         public MeshHoleFillerParams()
         {
-            CoordMode = MeshVisualTriangleHoleFillCoordMode.Position;
-            EdgeMode = MeshVisualTriangleHoleFillEdgeMode.ThreeThenTwoEdges;
+            CoordMode = HoleFillCoord.Position;
+            EdgeMode = HoleFillMode.ThreeThenTwoEdges;
 
             AtlasSize = 4096;
 
@@ -75,9 +75,9 @@ namespace XrEngine.Reconstruct
             //QueryPadding = 0.01f;
         }
 
-        public MeshVisualTriangleHoleFillCoordMode CoordMode { get; set; }
+        public HoleFillCoord CoordMode { get; set; }
 
-        public MeshVisualTriangleHoleFillEdgeMode EdgeMode { get; set; }
+        public HoleFillMode EdgeMode { get; set; }
 
         public int AtlasSize { get; set; }
 
@@ -280,8 +280,8 @@ namespace XrEngine.Reconstruct
 
         #endregion
 
-        private MeshVisualTriangleHoleFillCoordMode _coordMode;
-        private MeshVisualTriangleHoleFillEdgeMode _edgeMode;
+        private HoleFillCoord _coordMode;
+        private HoleFillMode _edgeMode;
 
         private bool _rejectInsideVertices = false;
         private bool _rejectCoveredCenter = false;
@@ -487,16 +487,16 @@ namespace XrEngine.Reconstruct
 
                 var addedThisPass = 0;
 
-                if (_edgeMode != MeshVisualTriangleHoleFillEdgeMode.TwoEdges)
+                if (_edgeMode != HoleFillMode.TwoEdges)
                     addedThisPass += RunMode(false);
 
-                if (addedThisPass == 0 && _edgeMode != MeshVisualTriangleHoleFillEdgeMode.ThreeEdges)
+                if (addedThisPass == 0 && _edgeMode != HoleFillMode.ThreeEdges)
                     addedThisPass += RunMode(true);
 
                 if (addedThisPass == 0)
                     break;
 
-                if (_edgeMode == MeshVisualTriangleHoleFillEdgeMode.ThreeEdges)
+                if (_edgeMode == HoleFillMode.ThreeEdges)
                     break;
             }
 
@@ -553,7 +553,7 @@ namespace XrEngine.Reconstruct
 
         private void BuildCoords()
         {
-            if (_coordMode == MeshVisualTriangleHoleFillCoordMode.Uv)
+            if (_coordMode == HoleFillCoord.Uv)
             {
                 for (var i = 0; i < _vertexCount; i++)
                     _coords[i] = new Vector3(_vertices[i].UV.X * _atlasSize, _vertices[i].UV.Y * _atlasSize, 0.0f);

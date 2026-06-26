@@ -70,10 +70,34 @@ namespace XrEngine.Reconstruct
 
         private void OnDraw(ScreenCanvas ctx)
         {
+            ctx.Padding = ctx.ToUvNoPad(UnitPoint.Pixel(10, 10));
+
+            var hX = ctx.Camera!.ViewSize.Width / 2;
+            var hY = ctx.Camera!.ViewSize.Height / 2;
+
+            ctx.Transform3 = Matrix4x4.Identity;
+
+            float padding = 0;
+
+            ctx.Distance = 5f;
+
+            ctx.DrawRect(hX, hY, hX - padding, hY - padding, "#ff0000", Color.Transparent, 0, DrawUnit.Pixel);
+
+            ctx.DrawRect(padding, padding, hX - padding, hY - padding, "#ff00ff", Color.Transparent, 0, DrawUnit.Pixel);
+
+           // ctx.DrawRect(0.25f, 0.25f, 0.5f, 0.5f, "#ffff00", Color.Transparent, 0, DrawUnit.Uv);
+
+            ctx.Distance = 0.3f;
+
+            ctx.DrawText("Hjello", UnitPoint.Uv(0.5f,0.5f), UnitValue.Uv(0.2f), Color.White);
+
+
             if (_newTriangles == null || _triangles == null || !IsEnabled)
                 return;
 
             var hideList = string.IsNullOrEmpty(HideList) ? [] : HideList.Split(',').Select(int.Parse).ToArray();
+
+            ctx.Transform3 = _host!.WorldMatrix;
 
             if (ShowTriangles)
             {
@@ -92,7 +116,7 @@ namespace XrEngine.Reconstruct
                     Color color = !value.IsCCW() ? "#0000ff80" : "#ff000080";
 
                     color = palette[(i*3) % palette.Length] + "A0";
-                    ctx.Draw(value, color, Color.Black, 2f);
+                    ctx.DrawTriangle(value, color, Color.Black, 2f);
                     i++;
                 }
   
@@ -100,7 +124,7 @@ namespace XrEngine.Reconstruct
                 {
                     var value = new Triangle3(tri.V0, tri.V1, tri.V2);
 
-                    ctx.Draw(value, "#333333E0", Color.Black, 2f);
+                    ctx.DrawTriangle(value, "#333333E0", Color.Black, 2f);
 
                 }
             }
@@ -115,17 +139,18 @@ namespace XrEngine.Reconstruct
                     var value = new Triangle3(tri.V0, tri.V1, tri.V2);
 
                     var c = value.Center();
-                    Vector3 eps = c;
+                    Vector3 textPos = c;
 
                     if (TextDistance > 0)
                     {
-                        eps += value.Normal() * TextDistance;
-                        ctx.Draw(new Line3(c, eps), "#ffff00", 3f);
+                        textPos += value.Normal() * TextDistance;
+                        ctx.DrawLine(new Line3(c, textPos), "#ffff00", 3f);
                     }
 
-                    ctx.DrawText($"{tri.I0} {tri.I1} {tri.I2} [{tri.Id}]", eps, 45, "#ffffff");
+                    ctx.DrawText($"{tri.I0} {tri.I1} {tri.I2} [{tri.Id}]", textPos, 18, "#ffffff");
                 }
             }
+
         }
 
         public void BuildSubMesh(int triangleId)
@@ -217,13 +242,15 @@ namespace XrEngine.Reconstruct
         [Action]
         public void Analyze()
         {
+            if (_triangles == null)
+                return;
 
             var filler = new MeshHoleFiller(new MeshHoleFillerParams
             {
-                CoordMode = MeshVisualTriangleHoleFillCoordMode.Position
+                CoordMode = HoleFillCoord.Position
             });
             
-            Log.Debug(this, "Analyzing {0}...", _triangles!.Count);
+            Log.Debug(this, "Analyzing {0}...", _triangles.Count);
 
             var indices = _triangles!.SelectMany(a => new uint[] { a.I0, a.I1, a.I2 }).ToArray();
 
