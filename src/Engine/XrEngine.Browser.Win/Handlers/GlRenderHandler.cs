@@ -33,12 +33,6 @@ namespace XrEngine.Browser.Win
 
             public nint InteropObject;
 
-            public long FrameVersion;
-
-            public long UploadedVersion;
-
-            public object? Lock;
-
             public TaskCompletionSource<long>? PaintTask;
 
             public bool HasValue;
@@ -77,6 +71,10 @@ namespace XrEngine.Browser.Win
 
         private BrowserEye _captureEye;
         private bool _disposed;
+        private int _frameRequested;
+        private bool _frameReady;
+
+        private readonly object _lock = new();
 
         public unsafe GlRenderHandler(GL gl, int width, int height, bool isStereo = false)
         {
@@ -109,24 +107,17 @@ namespace XrEngine.Browser.Win
             if (_interopDevice == 0)
                 throw new InvalidOperationException("NVDXInterop.DxopenDevice failed.");
 
-            if (_isStereo)
-            {
-                _left = CreateInteropTarget();
-                _right = CreateInteropTarget();
-                _captureEye = BrowserEye.None;
-            }
-            else
-            {
-                _mono = CreateInteropTarget();
-                _captureEye = BrowserEye.Mono;
-            }
+            _left = CreateInteropTarget();
+            _right = CreateInteropTarget();
+            _mono = CreateInteropTarget();
+
+            _captureEye = _isStereo ? BrowserEye.None : BrowserEye.Mono;
         }
 
         private unsafe InteropTarget CreateInteropTarget()
         {
             var target = new InteropTarget();
 
-            target.Lock = new();
             target.Texture = CreateD3DTexture();
             target.Resource = target.Texture.QueryInterface<ID3D11Resource>();
 
@@ -181,24 +172,33 @@ namespace XrEngine.Browser.Win
             return texture;
         }
 
+        public void ClearFrameRequest()
+        {
+            lock (_lock)
+            {
+                _frameRequested = 0;
+                _captureEye = BrowserEye.None;
+            }
+        }
+
         public void CaptureNextFrame(BrowserEye eye)
         {
-            if (!_isStereo)
+            lock (_lock)
             {
-                _captureEye = BrowserEye.Mono;
-                return;
-            }
+                _captureEye = eye;
 
-            _captureEye = eye;
+                if (eye == BrowserEye.None)
+                    _frameRequested--;
+            }
         }
 
         public Task<long> WaitNextPaintAsync(BrowserEye eye)
         {
             var target = GetTarget(eye);
 
-            lock (target!.Lock!)
+            lock (_lock)
             {
-                target.PaintTask = new TaskCompletionSource<long>(
+                target!.PaintTask = new TaskCompletionSource<long>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
 
                 return target.PaintTask.Task;
@@ -218,28 +218,35 @@ namespace XrEngine.Browser.Win
             var eye = _isStereo ? _captureEye : BrowserEye.Mono;
 
             if (eye == BrowserEye.None)
-                return;
+            {
+                lock (_lock)
+                    _frameRequested = 2;
+
+                eye = BrowserEye.Mono;
+            }
 
             var target = GetTarget(eye);
 
             TaskCompletionSource<long>? paintTask = null;
+
             long frameVersion = 0;
 
-            lock (target!.Lock!)
+            Log.Debug(this, "Render on {0}", eye);
+
+            lock (_lock)
             {
                 using var cefTexture = OpenCefTexture(handle);
                 using var cefResource = cefTexture.QueryInterface<ID3D11Resource>();
 
                 try
                 {
-                    _context.CopyResource(target.Resource, cefResource);
+                    _context.CopyResource(target!.Resource, cefResource);
                     _context.Flush();
 
-                    target.FrameVersion++;
-
-                    frameVersion = target.FrameVersion;
                     paintTask = target.PaintTask;
                     target.PaintTask = null;
+
+                    _frameReady = true;
                 }
                 catch
                 {
@@ -277,21 +284,11 @@ namespace XrEngine.Browser.Win
 
         public unsafe bool UpdateTexture(uint targetGlTexture, BrowserEye eye)
         {
-            if (!_isStereo)
-                eye = BrowserEye.Mono;
-            else if (eye != BrowserEye.Left && eye != BrowserEye.Right)
-                throw new ArgumentOutOfRangeException(nameof(eye));
-
             var target = GetTarget(eye);
 
-            lock (target!.Lock!)
+            lock (_lock)
             {
-                var frameVersion = target.FrameVersion;
-
-                if (target.UploadedVersion == frameVersion)
-                    return false;
-
-                var obj = target.InteropObject;
+                var obj = target!.InteropObject;
 
                 if (!_dxInterop.DxlockObjects(_interopDevice, 1, &obj))
                     return false;
@@ -315,7 +312,7 @@ namespace XrEngine.Browser.Win
                         (uint)_height,
                         1);
 
-                    target.UploadedVersion = frameVersion;
+                    _frameReady = false;
 
                     return true;
                 }
@@ -330,7 +327,7 @@ namespace XrEngine.Browser.Win
 
         private InteropTarget? GetTarget(BrowserEye eye)
         {
-            if (!_isStereo)
+            if (!_isStereo || eye == BrowserEye.Mono)
                 return _mono;
 
             if (eye == BrowserEye.Left)
@@ -464,29 +461,6 @@ namespace XrEngine.Browser.Win
             target = null;
         }
 
-        public bool HasFrameOf(BrowserEye eye)
-        {
-            var target = GetTarget(eye);
-
-            lock (target!.Lock!)
-                return target.FrameVersion != target.UploadedVersion;
-        }
-
-        public long FrameVersionOf(BrowserEye eye)
-        {
-            var target = GetTarget(eye);
-
-            lock (target!.Lock!)
-                return target.FrameVersion;
-        }
-
-        public long UploadedVersionOf(BrowserEye eye)
-        {
-            var target = GetTarget(eye);
-
-            lock (target!.Lock!)
-                return target.UploadedVersion;
-        }
 
         public int Width => _width;
 
@@ -494,9 +468,23 @@ namespace XrEngine.Browser.Win
 
         public bool IsStereo => _isStereo;
 
-        public bool HasFrame => _isStereo
-            ? HasFrameOf(BrowserEye.Left) || HasFrameOf(BrowserEye.Right)
-            : HasFrameOf(BrowserEye.Mono);
+        public bool FrameReady
+        {
+            get
+            {
+                lock (_lock)
+                    return _frameReady;
+            }
+        }
+
+        public bool FrameRequested
+        {
+            get
+            {
+                lock (_lock)
+                    return _frameRequested > 0;
+            }
+        }
 
     }
 }

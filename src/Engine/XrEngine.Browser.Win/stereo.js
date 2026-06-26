@@ -333,6 +333,11 @@
             `eye: ${state.eye}`;
     }
 
+    function check() {
+
+        return collectElements().length > 0;
+    }
+
     function refresh(info) {
 
         updateState(info);
@@ -550,7 +555,8 @@
     window.xrStereoUi = {
         refresh,
         reset,
-        state
+        state,
+        check
     };
 
     console.info("Stereo script injected");

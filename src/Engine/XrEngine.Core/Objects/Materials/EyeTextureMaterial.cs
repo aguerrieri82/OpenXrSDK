@@ -4,6 +4,12 @@
     {
         public static readonly Shader SHADER;
 
+        public enum CameraEye
+        {
+            None = -1,
+            Left = 0,
+            Right = 1
+        }
 
 
         static EyeTextureMaterial()
@@ -19,6 +25,7 @@
         {
             _shader = SHADER;
             FixedEye = -1;
+            DebugEye = CameraEye.None;
         }
 
         public EyeTextureMaterial(Texture2D left, Texture2D right)
@@ -26,6 +33,7 @@
         {
             LeftTexture = left;
             RightTexture = right;
+            DebugEye = CameraEye.None;
         }
 
         public override void GetState(IStateContainer container)
@@ -59,7 +67,10 @@
                 if (FixedEye != 0 && RightTexture != null)
                     up.LoadTexture(RightTexture, 1);
 
-                up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
+                if (DebugEye != CameraEye.None)
+                    up.SetUniform("uActiveEye", (uint)DebugEye);
+                else
+                    up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
             });
         }
 
@@ -78,5 +89,7 @@
         public Texture2D? RightTexture { get; set; }
 
         public int FixedEye { get; set; }
+
+        public CameraEye DebugEye { get; set; }
     }
 }

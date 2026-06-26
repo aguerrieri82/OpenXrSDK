@@ -144,6 +144,20 @@ namespace XrEngine.Browser.Win
             });
         }
 
+        public async Task<bool> HasStereoElementsAsync()
+        {
+            try
+            {
+                var res =await _browser.GetMainFrame().EvaluateScriptAsync("window.xrStereoUi.check()");
+
+                return res.Success && (bool)res.Result;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> RefreshStereoUiAsync(
               Camera camera,
               int activeEye,
@@ -231,11 +245,29 @@ namespace XrEngine.Browser.Win
             if (_browser?.RenderHandler is not GlRenderHandler handler)
                 return;
 
-            if (!handler.IsStereo)
+            if (!handler.FrameRequested)
                 return;
 
+            Log.Info(this, "Update stereo");
+
             EnsureTexture(leftTex);
+
             EnsureTexture(rightTex);
+
+            if (!await HasStereoElementsAsync())
+            {
+                if (handler.FrameReady)
+                {
+                    Log.Warn(this, "Update stereo, using mono");
+
+                    handler.ClearFrameRequest();
+
+                    await UpdateTextureAsync(leftTex, true);
+                    await UpdateTextureAsync(rightTex, true);
+                }
+
+                return;
+            }
 
             handler.CaptureNextFrame(BrowserEye.Left);
 
@@ -275,12 +307,15 @@ namespace XrEngine.Browser.Win
             handler.UpdateTexture((uint)rightTex.Handle, BrowserEye.Right);
         }
 
-        public async Task UpdateTextureAsync(Texture2D tex)
+        public async Task UpdateTextureAsync(Texture2D tex, bool force = false)
         {
             if (tex.Handle == 0)
                 return;
 
             if (_browser?.RenderHandler is not GlRenderHandler handler)
+                return;
+
+            if (!handler.FrameReady && !force)
                 return;
 
             if (tex.Width != Size.Width || tex.Height != Size.Height)
@@ -292,9 +327,6 @@ namespace XrEngine.Browser.Win
                     Format = TextureFormat.Bgra32
                 });
             }
-
-            if (!handler.HasFrame)
-                return;
 
             await EngineApp.RenderThread;
 
