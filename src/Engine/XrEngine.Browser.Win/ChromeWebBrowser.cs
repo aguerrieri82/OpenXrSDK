@@ -1,6 +1,8 @@
 ﻿using CefSharp;
 using CefSharp.Enums;
 using CefSharp.OffScreen;
+using Silk.NET.OpenGL;
+using System.Globalization;
 using System.Numerics;
 using System.Text.Json;
 using XrEngine.UI.Web;
@@ -10,6 +12,24 @@ namespace XrEngine.Browser.Win
 {
     public class ChromeWebBrowser : IDisposable, UI.Web.IWebBrowser
     {
+        public class XrStereoUiFrameReadyMessage
+        {
+            public string? Type { get; set; }
+
+            public int Frame { get; set; }
+
+            public float EyeX { get; set; }
+
+            public string? Reason { get; set; }
+
+            public double Time { get; set; }
+        }
+
+        static readonly JsonSerializerOptions JSON = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         protected ChromiumWebBrowser? _browser;
         protected IRequestContext? _requestContext;
         protected IBrowserHost? _host;
@@ -17,20 +37,33 @@ namespace XrEngine.Browser.Win
         protected DateTime _bufferTime;
         protected float _zoomLevel;
         protected string? _startUrl;
+        protected readonly GL? _gl;
 
-        public ChromeWebBrowser()
+        protected XrStereoUiFrameReadyMessage? _lastStereoFrameMessage;
+        protected TaskCompletionSource<XrStereoUiFrameReadyMessage>? _waitFrameTask;
+        protected BrowserEye _requestedStereoEye;
+        protected float _requestedStereoEyeX;
+
+        public ChromeWebBrowser(GL? gl = null)
         {
-            FrameRate = 30;
+            FrameRate = 60;
             CachePath = Path.GetFullPath("browser");
             ZoomLevel = 1;
             Size = new Size2I(800, 600);
             DpiScale = 1;
             _startUrl = "about:blank";
+            _gl = gl;
+
+            StereoIpd = 0.064f;
+            StereoPixelsPerMeter = new Vector2(1000, 1000);
+            IsStereo = false;
         }
 
         public async Task CreateAsync(string? startUrl = null)
         {
             await InitAsync();
+
+            await EngineApp.RenderThread;
 
             var browserSettings = new BrowserSettings
             {
@@ -48,8 +81,31 @@ namespace XrEngine.Browser.Win
 
             _requestContext = new RequestContext(requestContextSettings);
 
-            _browser = new ChromiumWebBrowser(startUrl ?? _startUrl, browserSettings, _requestContext);
-            _browser.Paint += OnPaint;
+            _browser = new ChromiumWebBrowser(
+                startUrl ?? _startUrl,
+                browserSettings,
+                _requestContext,
+                false);
+
+            if (_gl != null)
+            {
+                _browser.RenderHandler = new GlRenderHandler(
+                    _gl,
+                    (int)Size.Width,
+                    (int)Size.Height,
+                    IsStereo);
+            }
+            else
+            {
+                _browser.Paint += OnPaint;
+            }
+
+            var windowInfo = new WindowInfo();
+
+            windowInfo.SetAsWindowless(IntPtr.Zero);
+            windowInfo.SharedTextureEnabled = _gl != null;
+
+            _browser.CreateBrowser(windowInfo);
             _browser.FrameLoadStart += OnFrameLoad;
             _browser.JavascriptMessageReceived += OnMessage;
 
@@ -59,13 +115,41 @@ namespace XrEngine.Browser.Win
 
             _host = _browser.GetBrowserHost();
 
-
-            await UpdateAsync();
+            if (_gl != null)
+                _ = UpdateAsync();
+            else
+                await UpdateAsync();
         }
 
         private void OnMessage(object? sender, JavascriptMessageReceivedEventArgs e)
         {
-            MessageReceived?.Invoke(this, new MessageReceivedArgs(e.Message.ToString()!));
+            var str = e.Message.ToString();
+
+            try
+            {
+                var msg = JsonSerializer.Deserialize<XrStereoUiFrameReadyMessage>(str ?? "{}", JSON);
+
+                if (msg?.Type == "xrStereoUiFrameReady")
+                {
+                    _lastStereoFrameMessage = msg;
+
+                    if (MathF.Abs(msg.EyeX - _requestedStereoEyeX) > 0.0001f)
+                    {
+                        Log.Debug(
+                            this,
+                            "Stereo JS frame eye mismatch. Expected={0} Received={1}",
+                            _requestedStereoEyeX,
+                            msg.EyeX);
+                    }
+
+                    _waitFrameTask?.TrySetResult(msg);
+                }
+            }
+            catch
+            {
+            }
+
+            MessageReceived?.Invoke(this, new MessageReceivedArgs(str));
         }
 
         public void UpdatePointer(int id, Vector2 pos, TouchEventType eventType, CefEventFlags flags = CefEventFlags.None)
@@ -88,8 +172,150 @@ namespace XrEngine.Browser.Win
                 X = viewPos.X,
                 Y = viewPos.Y,
             });
+        }
 
+        public async Task<int?> RefreshStereoUiAsync(
+            float eyeX,
+            float baseDistance,
+            float pixelsPerMeterX,
+            float pixelsPerMeterY)
+        {
+            if (_browser == null)
+                return null;
 
+            var ci = CultureInfo.InvariantCulture;
+
+            _waitFrameTask = new TaskCompletionSource<XrStereoUiFrameReadyMessage>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            StereoPixelsPerMeter = new Vector2(60, 60);
+
+            var script = $$"""
+                if (!window.xrStereoUi)
+                    throw new Error("xrStereoUi was not injected");
+
+                window.xrStereoUi.refresh({
+                    eyeX: {{eyeX.ToString(ci)}},
+                    baseDistance: {{baseDistance.ToString(ci)}},
+                    pixelsPerMeterX: {{pixelsPerMeterX.ToString(ci)}},
+                    pixelsPerMeterY: {{pixelsPerMeterY.ToString(ci)}},
+                    viewportWidth: {{Size.Width}},
+                    viewportHeight: {{Size.Height}}
+                });
+            """;
+
+            var resp = await _browser.GetMainFrame().EvaluateScriptAsync(script);
+
+            if (!resp.Success)
+            {
+                _waitFrameTask = null;
+                return null;
+            }
+
+            var msg = await _waitFrameTask.Task;
+
+            _waitFrameTask = null;
+
+            return msg.Frame;
+        }
+
+        public async Task UpdateStereoTextureAsync(
+            Texture2D leftTex,
+            Texture2D rightTex,
+            float distance)
+        {
+            if (_browser?.RenderHandler is not GlRenderHandler handler)
+                return;
+
+            if (!handler.IsStereo)
+                return;
+
+            EnsureTexture(leftTex);
+            EnsureTexture(rightTex);
+
+            var leftEyeX = StereoIpd * 0.5f;
+            var rightEyeX = -StereoIpd * 0.5f;
+
+            _requestedStereoEye = BrowserEye.Left;
+            _requestedStereoEyeX = leftEyeX;
+
+            handler.CaptureNextFrame(BrowserEye.Left);
+
+            await RefreshStereoUiAsync(
+                leftEyeX,
+                distance,
+                StereoPixelsPerMeter.X,
+                StereoPixelsPerMeter.Y);
+
+            var leftPaintTask = handler.WaitNextPaintAsync(BrowserEye.Left);
+
+            _host?.Invalidate(PaintElementType.View);
+
+            await leftPaintTask;
+
+            _requestedStereoEye = BrowserEye.Right;
+            _requestedStereoEyeX = rightEyeX;
+
+            handler.CaptureNextFrame(BrowserEye.Right);
+
+            await RefreshStereoUiAsync(
+                rightEyeX,
+                distance,
+                StereoPixelsPerMeter.X,
+                StereoPixelsPerMeter.Y);
+
+            var rightPaintTask = handler.WaitNextPaintAsync(BrowserEye.Right);
+
+            _host?.Invalidate(PaintElementType.View);
+
+            await rightPaintTask;
+
+            await EngineApp.RenderThread;
+
+            handler.UpdateTexture((uint)leftTex.Handle, BrowserEye.Left);
+            handler.UpdateTexture((uint)rightTex.Handle, BrowserEye.Right);
+        }
+
+        public async Task UpdateTextureAsync(Texture2D tex)
+        {
+            if (tex.Handle == 0)
+                return;
+
+            if (_browser?.RenderHandler is not GlRenderHandler handler)
+                return;
+
+            if (tex.Width != Size.Width || tex.Height != Size.Height)
+            {
+                tex.LoadData(new TextureData()
+                {
+                    Width = Size.Width,
+                    Height = Size.Height,
+                    Format = TextureFormat.Bgra32
+                });
+            }
+
+            if (!handler.HasFrame)
+                return;
+
+            await EngineApp.RenderThread;
+
+            handler.UpdateTexture((uint)tex.Handle);
+        }
+
+        private void EnsureTexture(Texture2D tex)
+        {
+            if (tex.Handle == 0)
+                return;
+
+            if (tex.Width == Size.Width && tex.Height == Size.Height)
+                return;
+
+            tex.LoadData(new TextureData()
+            {
+                Width = Size.Width,
+                Height = Size.Height,
+                Format = TextureFormat.Bgra32
+            });
         }
 
         private void OnFrameLoad(object? sender, FrameLoadStartEventArgs e)
@@ -106,7 +332,7 @@ namespace XrEngine.Browser.Win
                 _buffer = new byte[bufSize];
 
             fixed (byte* pDest = _buffer)
-                Buffer.MemoryCopy((void*)e.BufferHandle, pDest, bufSize, bufSize);
+                System.Buffer.MemoryCopy((void*)e.BufferHandle, pDest, bufSize, bufSize);
 
             _bufferTime = DateTime.UtcNow;
         }
@@ -114,6 +340,7 @@ namespace XrEngine.Browser.Win
         async Task InitAsync()
         {
             Log.Info(this, "Init Browser");
+
             var settings = new CefSettings()
             {
                 CachePath = CachePath,
@@ -138,6 +365,7 @@ namespace XrEngine.Browser.Win
 
             settings.CefCommandLineArgs.Add("enable-media-stream", "1");
             settings.CefCommandLineArgs["autoplay-policy"] = "no-user-gesture-required";
+            settings.CefCommandLineArgs["force-high-performance-gpu"] = "1";
 
             Cef.EnableWaitForBrowsersToClose();
 
@@ -145,7 +373,6 @@ namespace XrEngine.Browser.Win
             if (!success)
                 throw new Exception();
         }
-
 
         public void ShowDevTools()
         {
@@ -156,7 +383,6 @@ namespace XrEngine.Browser.Win
         {
             _browser?.Reload();
         }
-
 
         public void Dispose()
         {
@@ -209,15 +435,24 @@ namespace XrEngine.Browser.Win
             {
                 if (_zoomLevel == value)
                     return;
+
                 _zoomLevel = value;
                 _browser?.SetZoomLevel(_zoomLevel);
             }
         }
+
+        public ChromiumWebBrowser? Chromium => _browser;
 
         public event EventHandler<MessageReceivedArgs>? MessageReceived;
 
         public string CachePath { get; set; }
 
         public int FrameRate { get; set; }
+
+        public float StereoIpd { get; set; }
+
+        public Vector2 StereoPixelsPerMeter { get; set; }
+
+        public bool IsStereo { get; set; }
     }
 }

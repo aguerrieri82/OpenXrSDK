@@ -28,7 +28,8 @@ namespace XrEngine.UI
         protected Texture2D? _defRightTexture;
         protected Texture2D? _lastDrawTexture;
         protected CanvasViewMode _mode;
-        private bool _isStereo;
+        protected bool _isStereo;
+
 
         public CanvasView3D()
         {
@@ -66,14 +67,11 @@ namespace XrEngine.UI
         {
             base.Update(ctx);
 
+            if (_sizeDirty)
+                UpdateSize();
+
             if (_activeTexture != null && _mode == CanvasViewMode.Texture)
-            {
-                if (_sizeDirty)
-                    UpdateSize();
-
                 Draw(ctx);
-
-            }
         }
 
         public void Draw(RenderContext? ctx)
@@ -81,25 +79,29 @@ namespace XrEngine.UI
             var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ? 
                 _defLeftTexture : _activeTexture;
 
-            if ((NeedDraw || _lastDrawTexture == null) && _activeEye <= 0)
+            if ((NeedDraw || _lastDrawTexture == null) && (_activeEye <= 0 || IsStereo))
             {
-                Draw(drawTexture, ctx, 0);
+                Draw(drawTexture, ctx, Math.Max(_activeEye, 0));
                 
                 if (IsStereo && _mode == CanvasViewMode.Texture)
+                {
+                    Debug.Assert(_activeEye <= 0);
                     Draw(_defRightTexture, ctx, 1);
-
+                }
+  
                 _lastDrawTexture = drawTexture;
             }
 
             else if (_lastDrawTexture != null && _lastDrawTexture != _activeTexture && !EnableDepthCull)
                 _scene!.App!.Renderer.CopyTexture(_lastDrawTexture, _activeTexture!);
 
-            if (EnableDepthCull)
+            if (EnableDepthCull && Mode == CanvasViewMode.RenderTarget)
             {
                 if (Context.TryRequire<IQuodDepthCull>(out var depthCull))
                     depthCull.Cull(this);
             }
         }
+
 
         protected void Draw(Texture2D? texture, RenderContext? ctx, int activeEye)
         {
@@ -226,7 +228,7 @@ namespace XrEngine.UI
                     _defLeftTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
                 }
 
-                if (IsStereo)
+                if (IsStereo && Mode == CanvasViewMode.Texture)
                 {
                     _defRightTexture ??= new Texture2D
                     {
@@ -251,10 +253,7 @@ namespace XrEngine.UI
                 _activeTexture = _defLeftTexture;
             }
             else
-            {
                 _activeTexture = null;
-                UpdateSize();
-            }
         }
 
 
@@ -324,8 +323,16 @@ namespace XrEngine.UI
 
         public abstract bool NeedDraw { get; }
 
-        public Size2I PixelSize => _pixelSize;
-
+        public Size2I PixelSize
+        {
+            get 
+            {
+                if (_sizeDirty)
+                    UpdateSize();
+                return _pixelSize;
+            }
+        }
+ 
         public Texture2D? ActiveTexture => _activeTexture;
 
 

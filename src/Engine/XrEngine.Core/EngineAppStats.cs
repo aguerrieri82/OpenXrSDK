@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace XrEngine
 {
@@ -7,7 +8,7 @@ namespace XrEngine
         protected int _fpsFrameCount;
         protected int _frameCount;
         protected DateTime _fpsLastTime;
-        protected Dictionary<string, double> _updateTimes = [];
+        protected ConcurrentDictionary<string, double> _updateTimes = [];
 
         public void BeginFrame()
         {

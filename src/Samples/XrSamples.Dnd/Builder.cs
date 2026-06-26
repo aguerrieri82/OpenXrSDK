@@ -14,7 +14,6 @@ namespace XrSamples.Dnd
 
             var scene = new DndScene();
 
-
             var map = scene.LoadMap("Dnd/tavern");
 
             scene.LoadAsync("65718833435872349").Wait();
@@ -27,7 +26,7 @@ namespace XrSamples.Dnd
             map.WorldMatrix = scene.Settings.MapTransform;
 
             return builder.UseApp(app)
-                    .AddPanel(new DndSettingsPanel(scene.Settings, scene))
+                    .AddPanel(new DndSettingsPanel(scene.Settings, scene), true)
                     .UseDefaultHDR()
                     .ConfigureApp(scene.InputController.Configure)
                     .ConfigureSampleApp()

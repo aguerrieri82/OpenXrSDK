@@ -126,7 +126,7 @@ namespace XrEngine
                 if (_scene.ContentVersion != _lastVersion)
                 {
                     Build();
-                    //isParallel = false;
+                    isParallel = false;
                 }
 
                 foreach (var grp in _groups)

@@ -1,4 +1,5 @@
-﻿using XrEngine.UI.Web;
+﻿using System.Diagnostics;
+using XrEngine.UI.Web;
 using XrMath;
 
 namespace XrEngine.Browser.Win
@@ -8,6 +9,8 @@ namespace XrEngine.Browser.Win
         public IWebBrowser CreateBrowser(WebBrowserOptions options)
         {
             var ui = options.DestMesh;
+
+            Debug.Assert(ui != null);
 
             var webView = new ChromeWebBrowserView
             {

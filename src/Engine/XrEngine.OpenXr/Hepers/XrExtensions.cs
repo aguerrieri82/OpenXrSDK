@@ -15,7 +15,7 @@ using static XrEngine.Filament.FilamentLib;
 using System.Diagnostics;
 using OpenXr.Framework.Oculus;
 using Common.Interop;
-using OpenXr.Framework.Layers;
+
 
 
 namespace XrEngine.OpenXr
@@ -26,41 +26,8 @@ namespace XrEngine.OpenXr
 
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
-            canvas.Mode = CanvasViewMode.RenderTarget;
-            
-            canvas.EnableDepthCull = app.RenderOptions.UseQuodDepthCull && (
-                     app.RenderOptions.SampleCount <= 1 ||
-                     !XrPlatform.IsAndroid ||
-                     app.RenderOptions.RenderMode != XrRenderMode.MultiView);
-
-
-            bool RenderQuod(SwapchainImageBaseHeader* image, Size2I size, long predTime, int eye)
-            {
-                if (image == null)
-                    return canvas.EnableDepthCull || canvas.NeedDraw;
-
-                //TODO handle vulkan
-                var glImage = (SwapchainImageOpenGLKHR*)image;
-
-                canvas.SetRenderTarget(glImage->Image, size.Width, size.Height, eye);
-                canvas.Draw(null);
-
-                return true;
-            }
-
-            if (canvas.EnableDepthCull)
-            {
-                app.Layers.AddStereoQuod(canvas.BindToQuad(), RenderQuod, canvas.PixelSize, XrLayerPriority.UiQuods);
-            }
-            else
-            {
-                var layer = new XrTextureQuadLayer(canvas.BindToQuad(), RenderQuod, canvas.PixelSize);
-
-                layer.Priority = XrLayerPriority.UiQuods;
-
-                app.Layers.Add(layer);
-            }
-
+            canvas.AddComponent(new XrQuodAttached(app));
+           
         }
 
         public static GetQuadDelegate BindToQuad(this TriangleMesh mesh)
@@ -69,7 +36,6 @@ namespace XrEngine.OpenXr
             {
                 var result = new Quad3
                 {
-                    //IsVisible = mesh.IsVisible && mesh.Parent != null,
                     Size = new Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
                     Pose = new Pose3
                     {

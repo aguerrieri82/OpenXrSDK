@@ -447,8 +447,10 @@ namespace XrEngine.OpenGL
 
                 _attached.Remove(_handle);
 
+                /*
                 if (!_isAttached)
                     Log.Debug(this, "Tex {0} deleted", _handle);
+                */
             }
 
             if (Source is Texture tex)

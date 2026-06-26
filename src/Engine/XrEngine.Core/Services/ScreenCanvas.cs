@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace XrEngine
@@ -147,6 +148,8 @@ namespace XrEngine
             FontFamily = OperatingSystem.IsAndroid() ? "Roboto" : "Segoe UI";
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SKPoint ToScreen(UnitPoint point)
         {
             if (!TryToScreen(point, out var result))
@@ -155,6 +158,7 @@ namespace XrEngine
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SKPoint ToScreen(Vector3 point)
         {
             if (!TryToScreen(point, out var result))
@@ -163,6 +167,7 @@ namespace XrEngine
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float ToScreenSize(UnitValue value, UnitPoint point)
         {
             if (!TryToScreenSize(value, point, out var result))
@@ -171,6 +176,7 @@ namespace XrEngine
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float ToScreenSize(UnitValue value, Vector3 point)
         {
             if (!TryToScreenSize(value, point, out var result))
@@ -179,10 +185,18 @@ namespace XrEngine
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 ToUvNoPad(UnitPoint value)
         {
             TryToUvNoPad(value, out var result);
             return result;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected bool TryToScreen(Vector3 point, out SKPoint result)
+        {
+            return TryToScreen(point, true, out result);
         }
 
         protected bool TryToUvNoPad(UnitPoint value, out Vector2 uv)
@@ -231,10 +245,6 @@ namespace XrEngine
             return TryToScreen(worldPoint, false, out result);
         }
 
-        protected bool TryToScreen(Vector3 point, out SKPoint result)
-        {
-            return TryToScreen(point, true, out result);
-        }
 
         protected bool TryToScreen(Vector3 point, bool applyTransform, out SKPoint result)
         {
@@ -396,6 +406,15 @@ namespace XrEngine
             }
         }
 
+        protected static SKColor ToSkColor(Color color)
+        {
+            return new SKColor(
+                (byte)(color.R * 255),
+                (byte)(color.G * 255),
+                (byte)(color.B * 255),
+                (byte)(color.A * 255));
+        }
+
         protected SKFont GetFont(float size)
         {
             if (!_fonts.TryGetValue(size, out var font))
@@ -409,15 +428,6 @@ namespace XrEngine
             }
 
             return font;
-        }
-
-        protected SKColor ToSkColor(Color color)
-        {
-            return new SKColor(
-                (byte)(color.R * 255),
-                (byte)(color.G * 255),
-                (byte)(color.B * 255),
-                (byte)(color.A * 255));
         }
 
         protected SKPaint GetFill(Color color)
@@ -457,7 +467,7 @@ namespace XrEngine
             return paint;
         }
 
-        protected SKPoint ToTextPoint(SKPoint point, SKFont font, Align vAlign)
+        protected static SKPoint ToTextPoint(SKPoint point, SKFont font, Align vAlign)
         {
             var metrics = font.Metrics;
 
@@ -630,6 +640,7 @@ namespace XrEngine
             UpdateView();
         }
 
+
         protected void UpdateView()
         {
             _hasUiPlane = false;
@@ -637,88 +648,59 @@ namespace XrEngine
             if (_camera == null)
                 return;
 
-            var distance = _distance == 0 ? _camera!.Near : _distance;
+            var distance = _distance == 0 ? _camera.Near : _distance;
 
             if (distance <= 0)
                 return;
 
-            var planePoint = _camera.WorldPosition + _camera.Forward * distance;
-            var planeNormal = _camera.Forward;
+            var center = _camera.WorldPosition + _camera.Forward * distance;
+            var right = _camera.Right;
+            var up = _camera.Up;
 
-            bool BuildPoint(Vector2 uv, out Vector3 point)
+            var minX = float.PositiveInfinity;
+            var maxX = float.NegativeInfinity;
+            var minY = float.PositiveInfinity;
+            var maxY = float.NegativeInfinity;
+
+            void AddProjection(Matrix4x4 proj, Vector3 eyeWorldPosition)
             {
-                var ndcX = uv.X * 2.0f - 1.0f;
-                var ndcY = 1.0f - uv.Y * 2.0f;
+                var localEye = eyeWorldPosition - _camera.WorldPosition;
 
-                var nearClip = new Vector4(ndcX, ndcY, 0.0f, 1.0f);
-                var farClip = new Vector4(ndcX, ndcY, 1.0f, 1.0f);
+                var eyeX = Vector3.Dot(localEye, right);
+                var eyeY = Vector3.Dot(localEye, up);
 
-                point = Vector3.Zero;
+                var halfW = distance / proj.M11;
+                var halfH = distance / proj.M22;
 
-                var count = 0;
-                var eyeCount = _camera.Eyes != null && _camera.Eyes.Length > 1
-                    ? _camera.Eyes.Length
-                    : 1;
+                minX = MathF.Min(minX, eyeX - halfW);
+                maxX = MathF.Max(maxX, eyeX + halfW);
 
-                for (var i = 0; i < eyeCount; i++)
-                {
-                    var invViewProj = _camera.Eyes != null && _camera.Eyes.Length > 1
-                        ? _camera.Eyes[i].ViewProjInv
-                        : _camera.ViewProjectionInverse;
-
-                    var nearWorld4 = Vector4.Transform(nearClip, invViewProj);
-                    var farWorld4 = Vector4.Transform(farClip, invViewProj);
-
-                    if (MathF.Abs(nearWorld4.W) <= 1e-8f || MathF.Abs(farWorld4.W) <= 1e-8f)
-                        continue;
-
-                    var nearWorld = new Vector3(
-                        nearWorld4.X / nearWorld4.W,
-                        nearWorld4.Y / nearWorld4.W,
-                        nearWorld4.Z / nearWorld4.W);
-
-                    var farWorld = new Vector3(
-                        farWorld4.X / farWorld4.W,
-                        farWorld4.Y / farWorld4.W,
-                        farWorld4.Z / farWorld4.W);
-
-                    var rayDir = Vector3.Normalize(farWorld - nearWorld);
-                    var denom = Vector3.Dot(rayDir, planeNormal);
-
-                    if (MathF.Abs(denom) <= 1e-8f)
-                        continue;
-
-                    var t = Vector3.Dot(planePoint - nearWorld, planeNormal) / denom;
-
-                    if (t < -1e-5f)
-                        continue;
-
-                    if (t < 0)
-                        t = 0;
-
-                    point += nearWorld + rayDir * t;
-                    count++;
-                }
-
-                if (count == 0)
-                    return false;
-
-                point /= count;
-                return true;
+                minY = MathF.Min(minY, eyeY - halfH);
+                maxY = MathF.Max(maxY, eyeY + halfH);
             }
 
-            if (!BuildPoint(new Vector2(0, 0), out var p00))
-                return;
+            if (_camera.Eyes != null && _camera.Eyes.Length > 1)
+            {
+                for (var i = 0; i < _camera.Eyes.Length; i++)
+                {
+                    var eye = _camera.Eyes[i];
 
-            if (!BuildPoint(new Vector2(1, 0), out var p10))
-                return;
+                    AddProjection(
+                        eye.Projection,
+                        eye.World.Translation);
+                }
+            }
+            else
+            {
+                AddProjection(
+                    _camera.Projection,
+                    _camera.WorldPosition);
+            }
 
-            if (!BuildPoint(new Vector2(0, 1), out var p01))
-                return;
 
-            _uiOrigin = p00;
-            _uiAxisX = p10 - p00;
-            _uiAxisY = p01 - p00;
+            _uiOrigin = center + right * minX + up * maxY;
+            _uiAxisX = right * (maxX - minX);
+            _uiAxisY = up * (minY - maxY);
             _hasUiPlane = true;
         }
 
@@ -737,7 +719,7 @@ namespace XrEngine
                     return;
                 _distance = value;
                 UpdateView();
-            }
+            }   
         }
 
 

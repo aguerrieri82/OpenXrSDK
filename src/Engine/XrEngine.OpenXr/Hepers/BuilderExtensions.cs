@@ -301,6 +301,12 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)
         {
+            if (XrPlatform.IsEditor)
+            {
+                Log.Error(self, "Environment Depth not ADDED in editor");
+                return self;
+            }
+
             self.ConfigureApp(e =>
             {
                 if (e.App.Renderer is not OpenGLRender openGl)

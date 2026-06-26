@@ -1,99 +1,160 @@
 ﻿using CefSharp;
 using Common.Interop;
+using Silk.NET.OpenGL;
 using XrEngine.UI.Web;
 using XrInteraction;
 using XrMath;
 
 namespace XrEngine.Browser.Win
 {
-    public class ChromeWebBrowserView : Behavior<TriangleMesh>
+    public class ChromeWebBrowserView : AsyncBehavior<TriangleMesh>
     {
         protected bool _isInit;
         protected ChromeWebBrowser _browser;
         protected DateTime _lastTexUpdateTime;
         protected ISurfaceInput? _input;
         protected string? _source;
+        protected readonly bool _cpuMode;
 
-        public ChromeWebBrowserView()
+        public ChromeWebBrowserView(GL? gl = null)
         {
-            _browser = new ChromeWebBrowser();
+            _cpuMode = gl == null;
+            _browser = new ChromeWebBrowser(gl);
             Size = new Size2I(1600, 1200);
         }
 
-        protected override void Start(RenderContext ctx)
+        protected override async Task StartAsync(RenderContext ctx)
         {
             if (!_isInit)
             {
-                _ = Task.Run(async () =>
+                if (RequestHandler != null)
+                    _browser.RequestHandler = RequestHandler;
+
+                _browser.IsStereo = IsStereo;
+
+                await _browser.CreateAsync(_source);
+
+                if (IsStereo)
                 {
-                    if (RequestHandler != null)
-                        _browser.RequestHandler = RequestHandler;
+                    _browser.Chromium!.LoadingStateChanged += OnLoadingStateChanged;
+                    _browser.Reload();
+                }
+                  
+                _isInit = true;
 
-                    await _browser.CreateAsync(_source);
-
-                    //_browser.ShowDevTools();
-                    _isInit = true;
-                    Log.Info(this, "Browser ready");
-                });
+                Log.Info(this, "Browser ready");
             }
 
             if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
             {
                 _host.Materials.Clear();
-                _host.Materials.Add(new TextureMaterial()
+
+                if (IsStereo)
                 {
-                    Texture = new Texture2D()
+                    _host.Materials.Add(new EyeTextureMaterial()
                     {
-                        Name = "Browser",
-                        Format = TextureFormat.Rgba32
-                    }
-                });
+                        LeftTexture = new Texture2D()
+                        {
+                            Name = "Browser Left",
+                            Format = TextureFormat.Rgba32
+                        },
+                        RightTexture = new Texture2D()
+                        {
+                            Name = "Browser Right",
+                            Format = TextureFormat.Rgba32
+                        }
+                    });
+                }
+                else
+                {
+                    _host.Materials.Add(new TextureMaterial()
+                    {
+                        Texture = new Texture2D()
+                        {
+                            Name = "Browser",
+                            Format = TextureFormat.Rgba32,
+                        }
+                    });
+                }
             }
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
         }
 
-        protected override void Update(RenderContext ctx)
+        private async void OnLoadingStateChanged(object? sender, LoadingStateChangedEventArgs e)
+        {
+            if (IsStereo && !e.IsLoading)
+            {
+                var script = Embedded.GetString<ChromeWebBrowserView>("stereo.js");
+
+                await _browser.Chromium.GetMainFrame().EvaluateScriptAsync(script);
+            }
+     
+        }
+
+        protected override void UpdateSync(RenderContext ctx)
+        {
+            if (!_isInit || _input == null)
+                return;
+
+            if (_input!.IsPointerValid)
+            {
+                if (_input.MainButton.IsChanged)
+                {
+                    if (_input.MainButton.IsDown)
+                        _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
+                    else
+                        _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
+                }
+                else
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton : CefEventFlags.None);
+            }
+        }
+
+        protected override async Task UpdateAsync(RenderContext ctx)
         {
             if (!_isInit)
                 return;
 
-            var texture = (_host?.Materials[0] as TextureMaterial)?.Texture;
-            if (texture == null)
-                return;
-
-            texture.SetFlag(EngineObjectFlags.EnableDebug, false);
-            texture.Type = TextureType.Buffer;
-
-            var time = _browser.FrameBufferTime;
-
-            if (_browser.FrameBuffer != null && _lastTexUpdateTime != time)
+            if (_cpuMode)
             {
-                texture.LoadData(new TextureData()
+                if (_host?.Materials[0] is not TextureMaterial tex || tex.Texture == null)
+                    return;
+
+                tex.Texture.SetFlag(EngineObjectFlags.EnableDebug, false);
+
+                tex.Texture.Type = TextureType.Buffer;
+
+                var time = _browser.FrameBufferTime;
+
+                if (_browser.FrameBuffer != null && _lastTexUpdateTime != time)
                 {
-                    Data = MemoryBuffer.Create(_browser.FrameBuffer),
-                    Width = _browser.Size.Width,
-                    Height = _browser.Size.Height,
-                    Format = TextureFormat.Bgra32
-                });
+                    tex.Texture.LoadData(new TextureData()
+                    {
+                        Data = MemoryBuffer.Create(_browser.FrameBuffer),
+                        Width = _browser.Size.Width,
+                        Height = _browser.Size.Height,
+                        Format = TextureFormat.Bgra32
+                    });
 
-                _lastTexUpdateTime = time;
-            }
-
-            if (!_input!.IsPointerValid)
-                return;
-
-            if (_input.MainButton.IsChanged)
-            {
-                if (_input.MainButton.IsDown)
-                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
-                else
-                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
+                    _lastTexUpdateTime = time;
+                }
             }
             else
-                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton : CefEventFlags.None);
+            {
+                if (_host?.Materials[0] is EyeTextureMaterial eyeMat)
+                {
+                    var dist = (ctx.Camera!.WorldPosition - _host.WorldPosition).Length();
 
+                    await _browser.UpdateStereoTextureAsync(eyeMat.LeftTexture!, eyeMat.RightTexture!, dist);
+                }
+                else if (_host?.Materials[0] is TextureMaterial tex && tex.Texture != null)
+                {
+                    await _browser.UpdateTextureAsync(tex.Texture);
+                }
+            }
         }
+
 
         [Action]
         public void ShowDevTools()
@@ -110,6 +171,8 @@ namespace XrEngine.Browser.Win
         public ChromeWebBrowser Browser => _browser;
 
         public IWebRequestHandler? RequestHandler { get; set; }
+
+        public bool IsStereo { get; set; }
 
 
         [Range(-10, 10, 0.1f)]
@@ -136,6 +199,7 @@ namespace XrEngine.Browser.Win
                 _ = _browser.NavigateAsync(_source ?? "about:blank");
             }
         }
+
 
     }
 }

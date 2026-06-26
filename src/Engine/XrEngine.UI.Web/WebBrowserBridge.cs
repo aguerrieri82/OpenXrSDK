@@ -33,6 +33,9 @@ namespace XrEngine.UI.Web
             public object?[]? Args { get; set; }
         }
 
+
+
+
         readonly IWebBrowser _webBrowser;
         readonly Dictionary<string, MappedMethod> _methods;
         readonly Dictionary<string, CallRequest> _callRequests = [];

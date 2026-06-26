@@ -238,7 +238,7 @@ namespace XrSamples
                 grid.IsVisible = false;
         });
 
-        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
+        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot, bool forceOverlay = false)
         {
             var panel = new Window3D
             {
@@ -256,7 +256,7 @@ namespace XrSamples
                 {
                     e.App.ActiveScene!.AddChild(panel);
 
-                    if (XrPlatform.IsAndroid)
+                    if (XrPlatform.IsAndroid || forceOverlay)
                         panel.CreateOverlay(e.XrApp);
                 });
         }
@@ -365,8 +365,15 @@ namespace XrSamples
                    .UseRayCollider()
                    .UseGrabbers();
 
-            if (!IsEditor && usePt)
+            if (IsEditor)
+            {
+                usePt = false;
+                Log.Error(builder, "Passtrhout not ADDED in editor");
+            }
+
+            if (usePt)
                 builder.AddPassthrough();
+
             return builder;
         }
 
@@ -1177,9 +1184,9 @@ namespace XrSamples
                 .AddFloorShadow(4, true)
                 .AddPassthrough()
 
-            .ConfigureApp(app =>
+            .ConfigureApp(e =>
             {
-                var scene = (RoomScene)app.App.ActiveScene!;
+                var scene = (RoomScene)e.App.ActiveScene!;
 
                 scene.AddChild<EnvironmentView>();
                 scene.AddComponent<ShadowController>();
@@ -1193,6 +1200,8 @@ namespace XrSamples
 
                 Task.Run(async () =>
                 {
+                    return;
+
                     var service = new IkeaKitchenService();
                     service.CachePath = "d:\\Projects\\Ikea";
                     service.Authorize("eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNjA0MjlUMDkyNTE5WiIsImV4cCI6IjIwMjYwNDMwVDA5MjUxOVoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.504f6e6434506b6354634838345365496a4d5276576c6b663272444c384c52366556394c4175796850346b3d");
@@ -1217,10 +1226,13 @@ namespace XrSamples
                 var ui = scene.UiPanel!;
 
 #if !__ANDROID__
-                var webView = new ChromeWebBrowserView
+                var gl = ((OpenGLRender)e.App.Renderer).GL;
+
+                var webView = new ChromeWebBrowserView(gl)
                 {
                     Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                     ZoomLevel = 0,
+                    IsStereo = true,
                     RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
                 };
 
@@ -1361,7 +1373,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                //.UseEnvironmentDepth()
+                .UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .UseTeleport(ControllerHand.Right, player!, new FloorTeleportTarget())
                 .ConfigureSampleApp(false)

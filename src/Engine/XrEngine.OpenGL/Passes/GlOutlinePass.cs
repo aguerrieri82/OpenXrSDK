@@ -72,6 +72,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
+
             if (Source == null)
             {
                 if (!Context.TryRequire<IOutlineSource>(out var source))

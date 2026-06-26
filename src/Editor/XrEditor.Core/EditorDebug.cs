@@ -19,7 +19,7 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
-        public static readonly bool DisableDualRender = true;
+        public static readonly bool DisableDualRender = false;
         
 
         public static readonly string[] AssetsPath = [
@@ -55,7 +55,8 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 1)
-              .CreateDepthSnapeshot()
+              .CreateRoomManager()  
+               //.CreateDepthSnapeshot()
               .Build();
     }
 }

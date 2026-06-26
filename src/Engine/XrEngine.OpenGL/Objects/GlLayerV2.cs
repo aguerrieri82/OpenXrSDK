@@ -50,8 +50,9 @@ namespace XrEngine.OpenGL
             Rebuild();
         }
 
-        private void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
+        private async void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
         {
+            await _render.Dispatcher.Switch;
 
            if (change.Type == Layer3DChangeType.Removed || change.Type == Layer3DChangeType.Updated)
                 RemoveContent((Object3D)change.Item, true);

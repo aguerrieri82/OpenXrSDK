@@ -105,8 +105,6 @@ namespace XrEngine.OpenGL
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            //depthTexture.Target = TextureTarget.Texture2DMultisampleArray;
-
             GlState.Current!.LoadTexture(depthTexture, TextureSlots.ProjDepth, true);
             GlState.Current!.LoadTexture(_quod.DrawTexture!.ToGlTexture(), TextureSlots.Albedo, true);
 

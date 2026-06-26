@@ -11,7 +11,11 @@ namespace XrEngine
         protected double _startTime;
         protected double _lastUpdateTime;
         protected double _deltaTime;
-
+        
+        public AsyncBehavior()
+        {
+            _startTime = -1;
+        }
 
         public virtual void Reset(bool onlySelf = false)
         {
@@ -67,6 +71,12 @@ namespace XrEngine
             return Task.CompletedTask;
         }
 
+
+        protected virtual void UpdateSync(RenderContext ctx)
+        {
+
+        }
+
         protected virtual Task UpdateAsync(RenderContext ctx)
         {
             return Task.CompletedTask;
@@ -75,6 +85,8 @@ namespace XrEngine
 
         void IRenderUpdate.Update(RenderContext ctx)
         {
+            UpdateSync(ctx);
+
             if (_updateTask != null)
             {
                 if (!_updateTask.IsCompleted)
