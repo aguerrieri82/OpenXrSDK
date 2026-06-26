@@ -18,8 +18,6 @@ namespace XrEngine.Browser.Win
 
             public int Frame { get; set; }
 
-            public float EyeX { get; set; }
-
             public string? Reason { get; set; }
 
             public double Time { get; set; }
@@ -39,10 +37,7 @@ namespace XrEngine.Browser.Win
         protected string? _startUrl;
         protected readonly GL? _gl;
 
-        protected XrStereoUiFrameReadyMessage? _lastStereoFrameMessage;
-        protected TaskCompletionSource<XrStereoUiFrameReadyMessage>? _waitFrameTask;
-        protected BrowserEye _requestedStereoEye;
-        protected float _requestedStereoEyeX;
+
 
         public ChromeWebBrowser(GL? gl = null)
         {
@@ -124,31 +119,6 @@ namespace XrEngine.Browser.Win
         private void OnMessage(object? sender, JavascriptMessageReceivedEventArgs e)
         {
             var str = e.Message.ToString();
-
-            try
-            {
-                var msg = JsonSerializer.Deserialize<XrStereoUiFrameReadyMessage>(str ?? "{}", JSON);
-
-                if (msg?.Type == "xrStereoUiFrameReady")
-                {
-                    _lastStereoFrameMessage = msg;
-
-                    if (MathF.Abs(msg.EyeX - _requestedStereoEyeX) > 0.0001f)
-                    {
-                        Log.Debug(
-                            this,
-                            "Stereo JS frame eye mismatch. Expected={0} Received={1}",
-                            _requestedStereoEyeX,
-                            msg.EyeX);
-                    }
-
-                    _waitFrameTask?.TrySetResult(msg);
-                }
-            }
-            catch
-            {
-            }
-
             MessageReceived?.Invoke(this, new MessageReceivedArgs(str));
         }
 
@@ -174,55 +144,89 @@ namespace XrEngine.Browser.Win
             });
         }
 
-        public async Task<int?> RefreshStereoUiAsync(
-            float eyeX,
-            float baseDistance,
-            float pixelsPerMeterX,
-            float pixelsPerMeterY)
+        public async Task<bool> RefreshStereoUiAsync(
+              Camera camera,
+              int activeEye,
+              Matrix4x4 panelWorld,
+              Size2 panelSize,
+              Size2 textureSize)
         {
-            if (_browser == null)
-                return null;
-
             var ci = CultureInfo.InvariantCulture;
 
-            _waitFrameTask = new TaskCompletionSource<XrStereoUiFrameReadyMessage>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            StereoPixelsPerMeter = new Vector2(60, 60);
+            var viewProj = camera.Eyes == null || camera.Eyes.Length < 2 ?
+                camera.ViewProjection :
+                camera.Eyes[activeEye].ViewProj;
+        
+            var eyeName = activeEye == 0 ? "left" : "right";
 
             var script = $$"""
                 if (!window.xrStereoUi)
                     throw new Error("xrStereoUi was not injected");
 
                 window.xrStereoUi.refresh({
-                    eyeX: {{eyeX.ToString(ci)}},
-                    baseDistance: {{baseDistance.ToString(ci)}},
-                    pixelsPerMeterX: {{pixelsPerMeterX.ToString(ci)}},
-                    pixelsPerMeterY: {{pixelsPerMeterY.ToString(ci)}},
-                    viewportWidth: {{Size.Width}},
-                    viewportHeight: {{Size.Height}}
+                    eye: "{{eyeName}}",
+                    activeEye: {{activeEye}},
+                    matrixConvention: "system-numerics-row-vector",
+
+                    viewProj: {{ToJsArray(viewProj)}},
+                    panelWorld: {{ToJsArray(panelWorld)}},
+
+                    panelWidthMeters: {{panelSize.Width.ToString(ci)}},
+                    panelHeightMeters: {{panelSize.Height.ToString(ci)}},
+
+                    viewportWidth: {{textureSize.Width.ToString(ci)}},
+                    viewportHeight: {{textureSize.Height.ToString(ci)}},
+
+                    depthSign: -1
                 });
             """;
 
-            var resp = await _browser.GetMainFrame().EvaluateScriptAsync(script);
-
-            if (!resp.Success)
+            try
             {
-                _waitFrameTask = null;
-                return null;
+                var resp = await _browser.GetMainFrame().EvaluateScriptAsync(script);
+                return resp.Success; 
             }
+            catch
+            {
+                return false;
+            }
+        }
 
-            var msg = await _waitFrameTask.Task;
+        private static string ToJsArray(Matrix4x4 m)
+        {
+            var ci = CultureInfo.InvariantCulture;
 
-            _waitFrameTask = null;
+            //m = Matrix4x4.Transpose(m);
 
-            return msg.Frame;
+            return "[" +
+                m.M11.ToString(ci) + "," +
+                m.M12.ToString(ci) + "," +
+                m.M13.ToString(ci) + "," +
+                m.M14.ToString(ci) + "," +
+
+                m.M21.ToString(ci) + "," +
+                m.M22.ToString(ci) + "," +
+                m.M23.ToString(ci) + "," +
+                m.M24.ToString(ci) + "," +
+
+                m.M31.ToString(ci) + "," +
+                m.M32.ToString(ci) + "," +
+                m.M33.ToString(ci) + "," +
+                m.M34.ToString(ci) + "," +
+
+                m.M41.ToString(ci) + "," +
+                m.M42.ToString(ci) + "," +
+                m.M43.ToString(ci) + "," +
+                m.M44.ToString(ci) +
+            "]";
         }
 
         public async Task UpdateStereoTextureAsync(
             Texture2D leftTex,
             Texture2D rightTex,
-            float distance)
+            Camera camera,
+            Matrix4x4 panelWorld,
+            Size2 panelSize)
         {
             if (_browser?.RenderHandler is not GlRenderHandler handler)
                 return;
@@ -233,19 +237,14 @@ namespace XrEngine.Browser.Win
             EnsureTexture(leftTex);
             EnsureTexture(rightTex);
 
-            var leftEyeX = StereoIpd * 0.5f;
-            var rightEyeX = -StereoIpd * 0.5f;
-
-            _requestedStereoEye = BrowserEye.Left;
-            _requestedStereoEyeX = leftEyeX;
-
             handler.CaptureNextFrame(BrowserEye.Left);
 
             await RefreshStereoUiAsync(
-                leftEyeX,
-                distance,
-                StereoPixelsPerMeter.X,
-                StereoPixelsPerMeter.Y);
+                camera,
+                0,
+                panelWorld,
+                panelSize,
+                new Size2(Size.Width, Size.Height));
 
             var leftPaintTask = handler.WaitNextPaintAsync(BrowserEye.Left);
 
@@ -253,22 +252,22 @@ namespace XrEngine.Browser.Win
 
             await leftPaintTask;
 
-            _requestedStereoEye = BrowserEye.Right;
-            _requestedStereoEyeX = rightEyeX;
-
             handler.CaptureNextFrame(BrowserEye.Right);
 
             await RefreshStereoUiAsync(
-                rightEyeX,
-                distance,
-                StereoPixelsPerMeter.X,
-                StereoPixelsPerMeter.Y);
+                camera,
+                1,
+                panelWorld,
+                panelSize,
+                new Size2(Size.Width, Size.Height));
 
             var rightPaintTask = handler.WaitNextPaintAsync(BrowserEye.Right);
 
             _host?.Invalidate(PaintElementType.View);
 
             await rightPaintTask;
+
+            handler.CaptureNextFrame(BrowserEye.None);
 
             await EngineApp.RenderThread;
 

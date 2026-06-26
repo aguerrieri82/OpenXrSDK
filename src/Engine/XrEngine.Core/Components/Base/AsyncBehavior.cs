@@ -55,6 +55,7 @@ namespace XrEngine
                 try
                 {
                     await UpdateAsync(ctx);
+                    await EngineApp.MainThread;
                 }
                 catch (Exception ex)
                 {

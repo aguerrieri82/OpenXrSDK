@@ -17,7 +17,8 @@ namespace XrEngine.Browser.Win
     {
         Mono = 0,
         Left = 1,
-        Right = 2
+        Right = 2,
+        None = 3
     }
 
     public sealed class GlRenderHandler : IRenderHandler, IDisposable
@@ -74,7 +75,7 @@ namespace XrEngine.Browser.Win
         private InteropTarget? _left;
         private InteropTarget? _right;
 
-        private int _captureEye;
+        private BrowserEye _captureEye;
         private bool _disposed;
 
         public unsafe GlRenderHandler(GL gl, int width, int height, bool isStereo = false)
@@ -112,12 +113,12 @@ namespace XrEngine.Browser.Win
             {
                 _left = CreateInteropTarget();
                 _right = CreateInteropTarget();
-                _captureEye = (int)BrowserEye.Left;
+                _captureEye = BrowserEye.None;
             }
             else
             {
                 _mono = CreateInteropTarget();
-                _captureEye = (int)BrowserEye.Mono;
+                _captureEye = BrowserEye.Mono;
             }
         }
 
@@ -184,14 +185,11 @@ namespace XrEngine.Browser.Win
         {
             if (!_isStereo)
             {
-                _captureEye = (int)BrowserEye.Mono;
+                _captureEye = BrowserEye.Mono;
                 return;
             }
 
-            if (eye != BrowserEye.Left && eye != BrowserEye.Right)
-                throw new ArgumentOutOfRangeException(nameof(eye));
-
-            _captureEye = (int)eye;
+            _captureEye = eye;
         }
 
         public Task<long> WaitNextPaintAsync(BrowserEye eye)
@@ -217,11 +215,9 @@ namespace XrEngine.Browser.Win
             if (handle == nint.Zero)
                 return;
 
-            var eye = _isStereo
-                ? (BrowserEye)_captureEye
-                : BrowserEye.Mono;
+            var eye = _isStereo ? _captureEye : BrowserEye.Mono;
 
-            if (_isStereo && eye == BrowserEye.Mono)
+            if (eye == BrowserEye.None)
                 return;
 
             var target = GetTarget(eye);
@@ -498,16 +494,9 @@ namespace XrEngine.Browser.Win
 
         public bool IsStereo => _isStereo;
 
-        public long FrameVersion => _isStereo
-            ? Math.Max(FrameVersionOf(BrowserEye.Left), FrameVersionOf(BrowserEye.Right))
-            : FrameVersionOf(BrowserEye.Mono);
-
         public bool HasFrame => _isStereo
             ? HasFrameOf(BrowserEye.Left) || HasFrameOf(BrowserEye.Right)
             : HasFrameOf(BrowserEye.Mono);
 
-        public bool HasFrameForCapture => HasFrameOf((BrowserEye)_captureEye);
-
-        public BrowserEye CaptureEye => (BrowserEye)_captureEye;
     }
 }

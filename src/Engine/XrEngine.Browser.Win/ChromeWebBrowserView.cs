@@ -144,9 +144,13 @@ namespace XrEngine.Browser.Win
             {
                 if (_host?.Materials[0] is EyeTextureMaterial eyeMat)
                 {
-                    var dist = (ctx.Camera!.WorldPosition - _host.WorldPosition).Length();
-
-                    await _browser.UpdateStereoTextureAsync(eyeMat.LeftTexture!, eyeMat.RightTexture!, dist);
+         
+                    await _browser.UpdateStereoTextureAsync(
+                        eyeMat.LeftTexture!, 
+                        eyeMat.RightTexture!, 
+                        ctx.Camera!, 
+                        _host.WorldMatrix!, 
+                        new Size2(_host.Transform.Scale.X, _host.Transform.Scale.Y));
                 }
                 else if (_host?.Materials[0] is TextureMaterial tex && tex.Texture != null)
                 {
