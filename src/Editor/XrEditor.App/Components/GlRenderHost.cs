@@ -6,6 +6,10 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using XrEngine;
 using XrEngine.OpenGL;
+using Silk.NET.WGL;
+using Tensorflow.Keras.Layers;
+
+
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -16,15 +20,17 @@ using Silk.NET.OpenGL;
 
 namespace XrEditor
 {
-    public class GlRenderHost : RenderHost, INativeContext, IOpenGLDevice, IXrGraphicProvider
+    public class GlRenderHost : RenderHost, IOpenGLDevice, IXrGraphicProvider, INativeContext
     {
         protected HwndSource? _hwndSource;
         protected GL? _gl;
-        protected readonly nint _hLib;
-        private readonly bool _createContext;
+        protected readonly WGL _wgl;
+        protected readonly bool _createContext;
         protected nint _glCtx;
         protected nint _hdc;
         protected bool _useEs;
+        protected static wglCreateContextAttribsARBPtr? CreateContextAttribsARB;
+        protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
 
         #region NATIVE
 
@@ -32,106 +38,14 @@ namespace XrEditor
 
         protected unsafe delegate nint wglCreateContextAttribsARBPtr(nint hDC, nint hshareContext, int* attribList);
 
-        protected static wglSwapIntervalEXTPtr? wglSwapIntervalEXT;
-
-        protected static wglCreateContextAttribsARBPtr? wglCreateContextAttribsARB;
-
-        [DllImport("Opengl32.dll")]
-        static extern IntPtr wglCreateContext(IntPtr hdc);
-
-        [DllImport("Opengl32.dll")]
-        static extern IntPtr wglDeleteContext(IntPtr hglrc);
-
-        [DllImport("Opengl32.dll", SetLastError = true)]
-        static extern IntPtr wglChoosePixelFormatARB(IntPtr hdc);
-
-        [DllImport("Opengl32.dll", SetLastError = true)]
-        static extern IntPtr wglGetProcAddress([MarshalAs(UnmanagedType.LPStr)] string unnamedParam1);
-
-        [DllImport("Opengl32.dll", SetLastError = true)]
-        static extern bool wglMakeCurrent(IntPtr hdc, IntPtr hglrc);
-
-        [DllImport("gdi32.dll", SetLastError = true)]
-        static extern int ChoosePixelFormat(IntPtr hDC,
-        [In, MarshalAs(UnmanagedType.LPStruct)] PIXELFORMATDESCRIPTOR ppfd);
-
-        [DllImport("gdi32.dll", SetLastError = true)]
-        static extern bool SetPixelFormat(IntPtr hDC, int iPixelFormat,
-            [In, MarshalAs(UnmanagedType.LPStruct)] PIXELFORMATDESCRIPTOR ppfd);
-
-        [DllImport("gdi32.dll")]
-        static extern int SwapBuffers(IntPtr hDC);
-
         [DllImport("User32.dll")]
         static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-
 
         [DllImport("User32.dll")]
         static extern IntPtr GetDC(IntPtr hWnd);
 
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procName);
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr LoadLibraryW([MarshalAs(UnmanagedType.LPWStr)] string lpLibFileName);
-
-        [StructLayout(LayoutKind.Explicit)]
-        class PIXELFORMATDESCRIPTOR
-        {
-            [FieldOffset(0)]
-            public UInt16 nSize;
-            [FieldOffset(2)]
-            public UInt16 nVersion;
-            [FieldOffset(4)]
-            public UInt32 dwFlags;
-            [FieldOffset(8)]
-            public Byte iPixelType;
-            [FieldOffset(9)]
-            public Byte cColorBits;
-            [FieldOffset(10)]
-            public Byte cRedBits;
-            [FieldOffset(11)]
-            public Byte cRedShift;
-            [FieldOffset(12)]
-            public Byte cGreenBits;
-            [FieldOffset(13)]
-            public Byte cGreenShift;
-            [FieldOffset(14)]
-            public Byte cBlueBits;
-            [FieldOffset(15)]
-            public Byte cBlueShift;
-            [FieldOffset(16)]
-            public Byte cAlphaBits;
-            [FieldOffset(17)]
-            public Byte cAlphaShift;
-            [FieldOffset(18)]
-            public Byte cAccumBits;
-            [FieldOffset(19)]
-            public Byte cAccumRedBits;
-            [FieldOffset(20)]
-            public Byte cAccumGreenBits;
-            [FieldOffset(21)]
-            public Byte cAccumBlueBits;
-            [FieldOffset(22)]
-            public Byte cAccumAlphaBits;
-            [FieldOffset(23)]
-            public Byte cDepthBits;
-            [FieldOffset(24)]
-            public Byte cStencilBits;
-            [FieldOffset(25)]
-            public Byte cAuxBuffers;
-            [FieldOffset(26)]
-            public SByte iLayerType;
-            [FieldOffset(27)]
-            public Byte bReserved;
-            [FieldOffset(28)]
-            public UInt32 dwLayerMask;
-            [FieldOffset(32)]
-            public UInt32 dwVisibleMask;
-            [FieldOffset(36)]
-            public UInt32 dwDamageMask;
-        }
+        [DllImport("gdi32.dll")]
+        static extern int SwapBuffers(IntPtr hDC);
 
         const byte PFD_TYPE_RGBA = 0;
         const byte PFD_TYPE_COLORINDEX = 1;
@@ -157,7 +71,6 @@ namespace XrEditor
         const sbyte PFD_OVERLAY_PLANE = 1;
         const sbyte PFD_UNDERLAY_PLANE = -1;
 
-
         const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
         const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
         const int WGL_CONTEXT_PROFILE_MASK_ARB = 0x9126;
@@ -170,37 +83,42 @@ namespace XrEditor
 
         public GlRenderHost(bool createContext = true, bool useEs = false)
         {
-            _hLib = LoadLibraryW("opengl32.dll");
+            _wgl = WGL.GetApi();
+
             _createContext = createContext;
             _useEs = useEs;
         }
 
         protected unsafe virtual void CreateContext(HandleRef handle)
         {
-            var pfd = new PIXELFORMATDESCRIPTOR
+            var pfd = new PixelFormatDescriptor
             {
-                nSize = (ushort)Marshal.SizeOf<PIXELFORMATDESCRIPTOR>(),
-                nVersion = 1,
-                iPixelType = PFD_TYPE_RGBA,
-                dwFlags = PFD_SUPPORT_OPENGL | PFD_SUPPORT_COMPOSITION | PFD_DIRECT3D_ACCELERATED | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-                iLayerType = PFD_MAIN_PLANE,
-                cColorBits = 24,
-                cAlphaBits = 8,
-                cDepthBits = 24,
-
-                cStencilBits = 8
+                NSize = (ushort)Marshal.SizeOf<PixelFormatDescriptor>(),
+                NVersion = 1,
+                IPixelType = PFD_TYPE_RGBA,
+                DwFlags = PFD_SUPPORT_OPENGL | PFD_SUPPORT_COMPOSITION | PFD_DIRECT3D_ACCELERATED | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+                ILayerType = (byte)PFD_MAIN_PLANE,
+                CColorBits = 24,
+                CAlphaBits = 8,
+                CDepthBits = 24,
+                CStencilBits = 8
             };
+
+            DefaultNativeContext.TryCreate("Opengl32.dll", out var opengl);
+            DefaultNativeContext.TryCreate("Gdi32.dll", out var gdi);
+
+            var wgl = new WGL(new MultiNativeContext(gdi,opengl));
 
             _hdc = GetDC(handle.Handle);
 
-            var pfIndex = ChoosePixelFormat(_hdc, pfd);
+            var pfIndex = wgl.ChoosePixelFormat(_hdc, ref pfd);
             if (pfIndex <= 0)
                 throw new Win32Exception();
 
-            if (!SetPixelFormat(_hdc, pfIndex, pfd))
+            if (!wgl.SetPixelFormat(_hdc, pfIndex, ref pfd))
                 throw new Win32Exception();
 
-            _glCtx = wglCreateContext(_hdc);
+            _glCtx = wgl.CreateContext(_hdc);
 
             if (_glCtx == IntPtr.Zero)
                 throw new Win32Exception();
@@ -209,8 +127,8 @@ namespace XrEditor
 
             // EnableVSync(false);
 
-            var pointer = GetProcAddress("wglCreateContextAttribsARB");
-            wglCreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<wglCreateContextAttribsARBPtr>(pointer);
+            CreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer
+                <wglCreateContextAttribsARBPtr>(wgl.GetProcAddress("wglCreateContextAttribsARB"));
 
             var attr = stackalloc int[11];
 
@@ -238,7 +156,6 @@ namespace XrEditor
             }
 
             attr[6] = 0;
-
             /*
             attr[6] = WGL_SAMPLE_BUFFERS_ARB;
             attr[7] = 1;
@@ -246,10 +163,7 @@ namespace XrEditor
             attr[8] = WGL_SAMPLES_ARB;
             attr[9] = 4;
             */
-
-
-            _glCtx = wglCreateContextAttribsARB(_hdc, _glCtx, attr);
-
+            _glCtx = CreateContextAttribsARB(_hdc, _glCtx, attr);
         }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -286,25 +200,22 @@ namespace XrEditor
 
         public override void EnableVSync(bool enable, int scale = 1)
         {
-            if (wglSwapIntervalEXT == null)
-            {
-                var addr = GetProcAddress("wglSwapIntervalEXT");
-                wglSwapIntervalEXT = Marshal.GetDelegateForFunctionPointer<wglSwapIntervalEXTPtr>(addr);
-            }
+            SwapIntervalEXT ??= Marshal.GetDelegateForFunctionPointer
+                    <wglSwapIntervalEXTPtr>(_wgl.GetProcAddress("wglSwapIntervalEXT"));
 
-            var res = wglSwapIntervalEXT(enable ? scale : 0);
+            var res = SwapIntervalEXT(enable ? scale : 0);
         }
 
         public override void SwapBuffers()
         {
-            _ = SwapBuffers(_hdc);
+           SwapBuffers(_hdc);
         }
 
         protected override void DestroyWindowCore(HandleRef hwnd)
         {
             if (_glCtx != 0)
             {
-                wglDeleteContext(_glCtx);
+                _wgl.DeleteContext(_glCtx);
                 _glCtx = 0;
             }
 
@@ -314,46 +225,40 @@ namespace XrEditor
             base.DestroyWindowCore(hwnd);
         }
 
-        public nint GetProcAddress(string proc, int? slot = null)
-        {
-            var addr = GetProcAddress(_hLib, proc);
-
-            if (addr == 0)
-            {
-                addr = wglGetProcAddress(proc);
-                /*
-                if (addr == 0)
-                    throw new NotSupportedException(proc);*/
-            }
-
-            return addr;
-        }
 
         public override void ReleaseContext()
         {
             if (_hdc == 0)
                 return;
 
-            if (!wglMakeCurrent(_hdc, IntPtr.Zero))
+            if (!_wgl.MakeCurrent(_hdc, IntPtr.Zero))
                 throw new Win32Exception();
         }
 
         public override bool TakeContext()
         {
-            if (!wglMakeCurrent(_hdc, _glCtx))
+            if (!_wgl.MakeCurrent(_hdc, _glCtx))
                 throw new Win32Exception();
             return true;
-        }
-
-        public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
-        {
-            addr = wglGetProcAddress(proc);
-            return addr != 0;
         }
 
         public IXrGraphicDriver CreateXrDriver()
         {
             return new XrOpenGLGraphicDriver(this);
+        }
+
+        public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
+        {
+            addr = GetProcAddress(proc);
+            return addr != IntPtr.Zero;
+        }
+
+        public nint GetProcAddress(string proc, int? slot = null)
+        {
+            var addr = _wgl.Context.GetProcAddress(proc);
+            if (addr == IntPtr.Zero)
+                addr = _wgl.GetProcAddress(proc);
+            return addr;
         }
 
         public GL Gl => _gl ?? throw new NullReferenceException();

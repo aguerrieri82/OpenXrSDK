@@ -3,7 +3,7 @@ using Android.Views;
 using Common.Interop;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
-
+  
 namespace OpenXr.Framework.Android
 {
     public class XrAndroidSurfaceQuadLayer : XrBaseQuadLayer
@@ -62,7 +62,7 @@ namespace OpenXr.Framework.Android
             _surfaceLock.Release();
         }
 
-        public unsafe override void Create()
+        public override void Create()
         {
             _xrApp!.Xr.TryGetInstanceExtension<KhrAndroidSurfaceSwapchain>(null, _xrApp!.Instance, out _androidSurface);
 
@@ -77,6 +77,7 @@ namespace OpenXr.Framework.Android
             {
                 Type = StructureType.AndroidSurfaceSwapchainCreateInfoFB,
                 CreateFlags = AndroidSurfaceSwapchainFlagsFB.None,
+                Next = null
             };
 
             //info.Next = &fbInfo;
@@ -91,7 +92,7 @@ namespace OpenXr.Framework.Android
                     ref surfaceHandle),
                 "CreateSwapchainAndroidSurface");
 
-            _surface = Surface.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;
+            _surface = Java.Lang.Object.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;
 
             _header.ValueRef.SubImage.Swapchain = _swapchain;
             _header.ValueRef.SubImage.ImageArrayIndex = 0;

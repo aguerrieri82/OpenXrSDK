@@ -28,7 +28,7 @@
 	}
 	
 
-	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo)
+	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo, float factor)
 	{
 
 		#ifdef PLANAR_REFLECTION_MV
@@ -55,7 +55,7 @@
 		#endif	
 			float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
 
-			float refFactor = clamp(fresnelFactor * (1.0 - roughness), 0.0, 1.0);
+			float refFactor = clamp(fresnelFactor * (1.0 - roughness) * factor, 0.0, 1.0);
 
 			refFactor = min(reflectionColor.a, refFactor);
 

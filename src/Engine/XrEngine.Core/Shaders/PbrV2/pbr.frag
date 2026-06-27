@@ -34,7 +34,6 @@ in vec3 fCameraPos;
 	in vec2 fUv2;
 #endif
 
-
 #ifdef USE_SHADOW_MAP
     in vec4 fPosLightSpace;
 #endif
@@ -43,7 +42,6 @@ in vec3 fCameraPos;
     in vec4 fProjCoord;
 #endif
 
-
 layout(location=0) out vec4 color;
 
 layout(binding=4) uniform samplerCube specularTexture;
@@ -51,21 +49,10 @@ layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
 
 
-uniform float uSpecularTextureLevels;
-uniform float uIblIntensity;
-uniform vec3 uIblColor;
-
-
-#ifdef USE_IBL_TRANSFORM
-	uniform mat3 uIblTransform;
-#endif
-
-
 #ifdef HAS_CLIP_VOLUME
 	uniform vec3 uClipMin;
 	uniform vec3 uClipMax;
 #endif
-
 
 struct FragmentProperties
 {
@@ -132,8 +119,11 @@ float rand(vec2 co) {
 vec3 addNoise(vec3 color)
 {
 	vec2 seed = vec2(fCameraPos.xy + fUv + vec2(gl_FragCoord));
+	
 	float noise = rand(seed);
-	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
+	
+	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) 
+					/ (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
     
 	color += noise * uCamera.depthNoiseFactor * min(linearDepth / uCamera.depthNoiseDistance, 1.0);
 
@@ -227,7 +217,6 @@ void main()
 				directLighting += albedo * Lradiance * cosLi;
 			#else
 
-				// --- FIX 1: clamp microfacet roughness for D/G ---
 				float r_micro = max(roughness, 0.045);      // microfacet eval roughness floor
 				float a       = r_micro * r_micro;          // Disney reparam (alpha)
 				float a2      = a * a;
@@ -237,7 +226,6 @@ void main()
 				float cosLh  = max(0.0, dot(N, Lh));
 				float cosVh  = max(0.0, dot(Lo, Lh));
 
-				// --- FIX 2: standard Fresnel for direct ---
 				vec3 F = fresnelSchlickRoughness(F0, cosVh, roughness);
 
 				// GGX NDF with clamped alpha
@@ -249,7 +237,6 @@ void main()
 				float k = (r * r) * 0.125;
 				float G  = gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
 
-				// --- FIX 3: Lambert diffuse uses 1/PI ---
 				vec3  kd        = mix(vec3(1.0) - F, vec3(0.0), metalness);
 				vec3  diffuseBRDF  = kd * albedo * (1.0 / PI);
 
@@ -282,10 +269,7 @@ void main()
 			ambientLighting = diffuseIBL;
 
 		#else
-			// Calculate Fresnel term for ambient lighting.
-			// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
-			// use cosLo instead of angle with light's half-vector (cosLh above).
-			// See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
+
 			vec3 F = fresnelSchlickRoughness(F0, cosLo, roughness);
 
 			// Get diffuse contribution factor (as with direct lighting).
@@ -320,7 +304,7 @@ void main()
 
 	
 	#ifdef PLANAR_REFLECTION
-		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo);
+		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo, uMaterial.planarFactor);
 	#endif
 
 
@@ -365,7 +349,6 @@ void main()
 	#ifdef USE_DEPTH_NOISE
 		color3 = addNoise(color3);	
 	#endif
-
 
 	// Final fragment color.
 	color = vec4(color3 * uCamera.exposure, a);

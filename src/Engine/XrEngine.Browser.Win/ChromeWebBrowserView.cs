@@ -30,16 +30,10 @@ namespace XrEngine.Browser.Win
                 if (RequestHandler != null)
                     _browser.RequestHandler = RequestHandler;
 
-                _browser.IsStereo = IsStereo;
-
                 await _browser.CreateAsync(_source);
 
-                if (IsStereo)
-                {
-                    _browser.Chromium!.LoadingStateChanged += OnLoadingStateChanged;
-                    _browser.Reload();
-                }
-                  
+                _browser.Chromium!.LoadingStateChanged += OnLoadingStateChanged;
+
                 _isInit = true;
 
                 Log.Info(this, "Browser ready");
@@ -49,33 +43,14 @@ namespace XrEngine.Browser.Win
             {
                 _host.Materials.Clear();
 
-                if (IsStereo)
+                _host.Materials.Add(new TextureMaterial()
                 {
-                    _host.Materials.Add(new EyeTextureMaterial()
+                    Texture = new Texture2D()
                     {
-                        LeftTexture = new Texture2D()
-                        {
-                            Name = "Browser Left",
-                            Format = TextureFormat.Rgba32
-                        },
-                        RightTexture = new Texture2D()
-                        {
-                            Name = "Browser Right",
-                            Format = TextureFormat.Rgba32
-                        }
-                    });
-                }
-                else
-                {
-                    _host.Materials.Add(new TextureMaterial()
-                    {
-                        Texture = new Texture2D()
-                        {
-                            Name = "Browser",
-                            Format = TextureFormat.Rgba32,
-                        }
-                    });
-                }
+                        Name = "Browser",
+                        Format = TextureFormat.Rgba32,
+                    }
+                });
             }
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
@@ -83,13 +58,12 @@ namespace XrEngine.Browser.Win
 
         private async void OnLoadingStateChanged(object? sender, LoadingStateChangedEventArgs e)
         {
-            if (IsStereo && !e.IsLoading)
+            if (!e.IsLoading)
             {
                 var script = Embedded.GetString<ChromeWebBrowserView>("stereo.js");
 
                 await _browser.Chromium.GetMainFrame().EvaluateScriptAsync(script);
             }
-     
         }
 
         protected override void UpdateSync(RenderContext ctx)
@@ -142,17 +116,7 @@ namespace XrEngine.Browser.Win
             }
             else
             {
-                if (_host?.Materials[0] is EyeTextureMaterial eyeMat)
-                {
-
-                    await _browser.UpdateStereoTextureAsync(
-                        eyeMat.LeftTexture!,
-                        eyeMat.RightTexture!,
-                        ctx.Camera!,
-                        _host.GetWorldPose().ToMatrix(),
-                        new Size2(_host.Transform.Scale.X, _host.Transform.Scale.Y));
-                }
-                else if (_host?.Materials[0] is TextureMaterial tex && tex.Texture != null)
+                if (_host?.Materials[0] is TextureMaterial tex && tex.Texture != null)
                 {
                     await _browser.UpdateTextureAsync(tex.Texture);
                 }
@@ -175,8 +139,6 @@ namespace XrEngine.Browser.Win
         public ChromeWebBrowser Browser => _browser;
 
         public IWebRequestHandler? RequestHandler { get; set; }
-
-        public bool IsStereo { get; set; }
 
 
         [Range(-10, 10, 0.1f)]
@@ -203,7 +165,5 @@ namespace XrEngine.Browser.Win
                 _ = _browser.NavigateAsync(_source ?? "about:blank");
             }
         }
-
-
     }
 }

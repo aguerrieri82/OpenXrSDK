@@ -359,21 +359,7 @@
 
         const elements = collectElements();
         const jobs = [];
-        /**
-        xrLog("panel-center", {
-            frame: state.frame,
-            eye: state.eye,
-            z0: panelCenter0,
-            zDepth005: panelCenterDepth,
-            delta: panelCenter0 && panelCenterDepth
-                ? {
-                    dx: panelCenterDepth.x - panelCenter0.x,
-                    dy: panelCenterDepth.y - panelCenter0.y
-                }
-                : null
-        }); */
-        //xrLogMatrix("viewProj", state.viewProj);
-        //xrLogMatrix("panelWorld", state.panelWorld);
+
 
         for (const el of elements) {
             const style = getComputedStyle(el);

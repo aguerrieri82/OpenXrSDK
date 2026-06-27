@@ -51,6 +51,7 @@ namespace XrEngine
 
             Offset = 0.01f;
             FovDegree = 45;
+            Strength = 1f;
         }
 
         public virtual bool PrepareMaterial(Material material)
@@ -270,6 +271,36 @@ namespace XrEngine
             */
         }
 
+        protected void NotifyMaterials()
+        {
+            Host!.NotifyChanged(ChangeType.Components);
+
+            if (_host is TriangleMesh mesh)
+            {
+                foreach (var mat in mesh.Materials)
+                    mat.NotifyChanged(ChangeType.Render);
+            }
+        }
+
+        protected override void OnEnabled()
+        {
+            NotifyMaterials();
+            base.OnEnabled();
+        }
+
+        protected override void OnDisabled()
+        {
+            NotifyMaterials();
+            base.OnDisabled();
+        }
+
+
+        [Action]
+        public void Apply()
+        {
+            NotifyMaterials();
+        }
+       
         [Range(-1, 1, 0.001f)]
         public float Offset { get; set; }
 
@@ -306,5 +337,8 @@ namespace XrEngine
 
         public static bool IsMultiView { get; set; }
 
+
+        [Range(0, 1, 0.01f)]
+        public float Strength { get; set; }
     }
 }

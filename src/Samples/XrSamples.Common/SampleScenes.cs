@@ -1228,11 +1228,10 @@ namespace XrSamples
 #if !__ANDROID__
                 var gl = ((OpenGLRender)e.App.Renderer).GL;
 
-                var webView = new ChromeWebBrowserView(gl)
+                var webView = new ChromeWebBrowserView()
                 {
                     Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                     ZoomLevel = 0,
-                    IsStereo = true,
                     RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
                 };
 

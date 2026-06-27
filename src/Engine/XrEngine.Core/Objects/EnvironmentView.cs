@@ -46,7 +46,8 @@ namespace XrEngine
 
             protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
             {
-                bld.AddFeature("UNIFORM_EXP");
+                bld.AddFeature("COLOR_CORRECT");
+                bld.AddFeature("MIP_FACTOR");
 
                 if (PbrV1Material.LinearOutput)
                     bld.AddFeature("LINEAR_OUTPUT");
@@ -55,18 +56,18 @@ namespace XrEngine
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    var image = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-                    var textures = image?.Textures;
+                    var light = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                    var textures = light?.Textures;
 
-                    if (image != null && textures != null && ctx.PassCamera != null)
+                    if (light != null && textures?.Env != null && ctx.PassCamera != null)
                     {
-                        up.SetUniform("uGGXEnvSampler", textures.Env!, 0);
+                        up.LoadTexture(textures.Env, 0);
+
                         up.SetUniform("uMipCount", (int)textures.MipCount);
-                        up.SetUniform("uEnvBlurNormalized", Blur);
-                        up.SetUniform("uEnvIntensity", image.Intensity);
-                        up.SetUniform("uViewProjectionMatrix", ctx.PassCamera.ViewProjection);
-                        up.SetUniform("uExposure", ctx.PassCamera.Exposure);
-                        up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.RotationY));
+                        up.SetUniform("uMipFactor", Blur);
+                        up.SetUniform("uIntensity", light.Intensity * ctx.PassCamera.Exposure);
+                        up.SetUniform("uCubeRotation", Matrix3x3.CreateRotationY(light.RotationY));
+
                     }
                 });
             }

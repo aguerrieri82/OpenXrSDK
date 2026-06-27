@@ -29,7 +29,7 @@ namespace XrEngine
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 144)]
+        [StructLayout(LayoutKind.Explicit, Size = 160)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -59,6 +59,9 @@ namespace XrEngine
 
             [FieldOffset(128)]
             public Vector4 EmissiveColor;
+
+            [FieldOffset(144)]
+            public float PlanarReflectionStrength;
         }
 
         #endregion
@@ -464,7 +467,7 @@ namespace XrEngine
         {
             SHADER = new PbrV2Shader
             {
-                FragmentSourceName = "PbrV2/pbr_gpt.frag",
+                FragmentSourceName = "PbrV2/pbr.frag",
                 VertexSourceName = "PbrV2/pbr.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
@@ -502,6 +505,8 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            PlanarReflection? planar = null;
+
             bld.AddFeature($"LOAD_FRAGMENT_PROPS {FragmentDefaultLoader ?? "LoadFragmentProperties()"}");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
@@ -548,7 +553,8 @@ namespace XrEngine
                     NormalScale = NormalScale,
                     AlphaCutoff = AlphaCutoff,
                     EmissiveColor = EmissiveColor,
-                    TexTransform = ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity
+                    TexTransform = ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity,
+                    PlanarReflectionStrength = planar?.Strength ?? 0,
                 };
 
             }, MATERIAL_BUF, BufferStore.Material);
@@ -558,9 +564,10 @@ namespace XrEngine
                 bld.AddFeature("USE_EMISSIVE");
 
 
+
             if (_hosts.Count == 1)
             {
-                var planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
+                planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
 
                 if (planar != null && planar.IsEnabled)
                 {
@@ -763,7 +770,6 @@ namespace XrEngine
 
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }
-
 
         //TODO: Implement AlphaCutoff   
         public float AlphaCutoff { get; set; }

@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr.Android
 
             if (xrInput == null)
             {
-                scene.AddComponent(new XrInputPointer
+                scene!.AddComponent(new XrInputPointer
                 {
                     PoseInput = inputs!.Right!.AimPose,
                     RightButton = inputs!.Right!.SqueezeClick!,
