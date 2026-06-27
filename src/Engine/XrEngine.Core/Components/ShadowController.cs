@@ -11,7 +11,7 @@
         public void Apply()
         {
             foreach (var light in _host!.Children.OfType<DirectionalLight>())
-                light.ContentVersion++;
+                light.Invalidate();
         }
 
         public ShadowMapOptions? MapOptions

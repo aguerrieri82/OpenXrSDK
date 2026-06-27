@@ -4,6 +4,7 @@
     {
         protected Shader? _shader;
         protected long _lastLightVersion = -1;
+        protected long _contentVersion;
 
         public ShaderMaterial()
         {
@@ -32,7 +33,8 @@
 
         public override void Reload()
         {
-            _shader?.NotifyChanged(ChangeType.Material);
+            _shader?.NotifyChanged(ChangeType.Render);
+
             base.Reload();
         }
 
@@ -65,9 +67,14 @@
 
         }
 
+        public void Invalidate()
+        {
+            _contentVersion++;
+        }
+
         public bool HasSkin { get; set; }
 
-        public long ContentVersion { get; set; }
+        public long ContentVersion => _contentVersion;
 
         public Func<string, string?>? Resolver { get; set; }
     }

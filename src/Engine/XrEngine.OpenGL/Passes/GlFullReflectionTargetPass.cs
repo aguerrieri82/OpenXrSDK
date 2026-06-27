@@ -144,7 +144,7 @@ namespace XrEngine.OpenGL
                     );
 
                     _imageLight.LightTransform = refMatrix;
-                    _imageLight.ContentVersion++;
+                    _imageLight.Invalidate();
                 }
             }
             else
@@ -160,7 +160,7 @@ namespace XrEngine.OpenGL
             if (_imageLight != null)
             {
                 _imageLight.LightTransform = _oldImageLightTransform;
-                _imageLight.ContentVersion++;
+                _imageLight.Invalidate();
             }
         }
 

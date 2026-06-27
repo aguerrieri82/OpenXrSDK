@@ -21,11 +21,6 @@ namespace XrEngine
 
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
     {
-        const int CAMERA_BUF = 0;
-        const int LIGHTS_BUF = 1;
-        const int MATERIAL_BUF = 2;
-        const int MODEL_BUF = 3;
-        const int IBL_BUF = 4;
 
         #region MaterialUniforms
 
@@ -118,16 +113,16 @@ namespace XrEngine
             public float SpecularTextureLevels;
 
             [FieldOffset(4)]
-            public float IblIntensity;
+            public float Intensity;
 
             [FieldOffset(8)]
-            public float IblShadowStrength;
+            public float ShadowStrength;
 
             [FieldOffset(16)]
-            public Vector3 IblColor;
+            public Vector3 Color;
 
             [FieldOffset(32)]
-            public Vector4x3 IblTransform;
+            public Vector4x3 Transform;
         }
 
         #endregion
@@ -212,7 +207,7 @@ namespace XrEngine
                             NormalMatrix = ctx.Model.NormalMatrix,
                             WorldMatrix = modelWord
                         };
-                    }, MODEL_BUF, BufferStore.Model);
+                    }, UniformsSlots.Model, BufferStore.Model);
                 }
 
                 SkinVertexShader.UpdateShaderModel(bld);
@@ -342,7 +337,7 @@ namespace XrEngine
 
                     return (CameraUniforms?)result;
 
-                }, CAMERA_BUF, BufferStore.Shader);
+                }, UniformsSlots.Camera, BufferStore.Shader);
 
 
                 bld.LoadBuffer((ctx) =>
@@ -386,7 +381,7 @@ namespace XrEngine
                         Count = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
-                }, LIGHTS_BUF, BufferStore.Shader);
+                }, UniformsSlots.Lights, BufferStore.Shader);
 
 
                 if (imgLight != null)
@@ -408,12 +403,12 @@ namespace XrEngine
                         return (IblUniforms?)new IblUniforms
                         {
                             SpecularTextureLevels = imgLight.Textures.MipCount,
-                            IblIntensity = imgLight.Intensity,
-                            IblColor = imgLight.Color.ToVector3(),
-                            IblShadowStrength = imgLight.ShadowStrength,
-                            IblTransform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3()
+                            Intensity = imgLight.Intensity,
+                            Color = imgLight.Color.ToVector3(),
+                            ShadowStrength = imgLight.ShadowStrength,
+                            Transform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3()
                         };
-                    }, IBL_BUF, BufferStore.Shader);
+                    }, UniformsSlots.Ibl, BufferStore.Shader);
 
                     bld.ExecuteAction((ctx, up) =>
                     {
@@ -467,7 +462,7 @@ namespace XrEngine
         {
             SHADER = new PbrV2Shader
             {
-                FragmentSourceName = "PbrV2/pbr.frag",
+                FragmentSourceName = "PbrV2/pbr_gpt.frag",
                 VertexSourceName = "PbrV2/pbr.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
@@ -557,7 +552,7 @@ namespace XrEngine
                     PlanarReflectionStrength = planar?.Strength ?? 0,
                 };
 
-            }, MATERIAL_BUF, BufferStore.Material);
+            }, UniformsSlots.Material, BufferStore.Material);
 
 
             if (EmissiveColor != Color.Transparent)

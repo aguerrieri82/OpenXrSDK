@@ -165,11 +165,9 @@ namespace XrEngine.OpenGL
             _lightCamera.CreateViewFromDirection(_light.Direction, Vector3.UnitY);
 
             var options = _renderer.Options.ShadowMap;
-
      
             var castBoundsLight = castLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
 
-        
             Bounds3 receiverBoundsLight;
 
             if (options.UseVirtualReceiver)

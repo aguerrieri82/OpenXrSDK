@@ -32,7 +32,7 @@ namespace XrEngine.OpenXr
             _material.Points = points.ToArray();
 
             if (oldCount != _material.Points.Length)
-                _material.NotifyChanged(ChangeType.Material);
+                _material.NotifyChanged(ChangeType.Render);
 
             /*
             for (var i = 0; i < _vertices.Length; i++)

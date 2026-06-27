@@ -117,10 +117,10 @@ namespace XrEngine.Objects.Materials
         [Range(0, 0.1f, 0.0005f)]
         public float DistanceScale { get; set; }
 
-        [Notify(ChangeType.Material)]
+        [Notify(ChangeType.Render)]
         public partial bool UseCameraFacing { get; set; }
 
-        [Notify(ChangeType.Material)]
+        [Notify(ChangeType.Render)]
         public partial bool UseDistanceScale { get; set; }
 
         [Range(0, 1f, 0.01f)]

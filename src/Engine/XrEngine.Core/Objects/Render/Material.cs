@@ -98,7 +98,7 @@ namespace XrEngine
         [Action]
         public virtual void Reload()
         {
-            OnChanged(ChangeType.Material);
+            OnChanged(ChangeType.Render);
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;

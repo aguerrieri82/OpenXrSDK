@@ -99,11 +99,9 @@ namespace XrEngine
         {
             if (_app != null && Thread.CurrentThread != _app.Dispatcher.Thread)
             {
-                Log.Warn(this, "Scene change outside main thread");
+                if (!UpdateManager.IsUpdating)
+                    Log.Warn(this, "Scene change outside main thread");
             }
-    
-
-            //Debug.Assert();
 
             change.Target ??= sender;
 

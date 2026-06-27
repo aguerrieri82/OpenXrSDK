@@ -570,6 +570,7 @@ namespace XrEngine
                 ref var ver = ref span[i];
                 ver.UV.Y = 1 - ver.UV.Y;
             }
+
             self.NotifyChanged(ChangeType.Geometry);
         }
 

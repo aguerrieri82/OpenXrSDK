@@ -273,8 +273,6 @@ namespace XrEngine
 
         protected void NotifyMaterials()
         {
-            Host!.NotifyChanged(ChangeType.Components);
-
             if (_host is TriangleMesh mesh)
             {
                 foreach (var mat in mesh.Materials)

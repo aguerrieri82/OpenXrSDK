@@ -24,6 +24,7 @@ namespace XrEngine
 
         protected readonly Scene3D _scene;
         protected long _lastVersion = -1;
+        protected bool _isUpdating;
         protected readonly List<UpdateGroup> _groups = [];
         protected readonly ConcurrentDictionary<Object3D, NotificationStatus> _notStatus = [];
 
@@ -118,6 +119,7 @@ namespace XrEngine
         public void Update(RenderContext ctx)
         {
             ctx.UpdateOnlySelf = true;
+            _isUpdating = true;
 
             try
             {
@@ -143,10 +145,15 @@ namespace XrEngine
             finally
             {
                 ctx.UpdateOnlySelf = false;
+                _isUpdating = false;
+
             }
         }
 
         public bool IsParallel { get; set; }
+
+
+        public bool IsUpdating => _isUpdating;
     }
 
 }

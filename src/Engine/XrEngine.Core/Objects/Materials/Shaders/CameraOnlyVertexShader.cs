@@ -30,7 +30,7 @@ namespace XrEngine
 
                     return (CameraUniforms?)result;
 
-                }, 0, BufferStore.Shader);
+                }, UniformsSlots.Camera, BufferStore.Shader);
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public unsafe struct DynamicBuffer : IDisposable
+    public struct DynamicBuffer : IDisposable
     {
         public nint Data;
 

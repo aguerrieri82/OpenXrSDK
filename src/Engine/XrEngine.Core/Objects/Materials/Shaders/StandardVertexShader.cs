@@ -43,7 +43,7 @@ namespace XrEngine
                     NormalMatrix = ctx.Model.NormalMatrix,
                     WorldMatrix = modelWord
                 };
-            }, 3, BufferStore.Model);
+            }, UniformsSlots.Model, BufferStore.Model);
 
             SkinVertexShader.UpdateShaderModel(bld);
         }
@@ -106,7 +106,7 @@ namespace XrEngine
 
                 return (CameraUniforms?)result;
 
-            }, 0, BufferStore.Shader);
+            }, UniformsSlots.Camera, BufferStore.Shader);
         }
 
 

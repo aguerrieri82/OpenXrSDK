@@ -22,6 +22,7 @@
 
     public interface ILayer3D : IObjectChangeListener
     {
+        void Invalidate();
 
         void Attach(LayerManager manager);
 

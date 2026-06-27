@@ -51,12 +51,12 @@ namespace XrEngine.Reconstruct
 
 
         [Range(0,1, 0.01f)]
-        [Notify(ChangeType.Material)]
+        [Notify(ChangeType.Render)]
         public partial float[] Exposure { get; set; }
 
         public Texture2D? Texture { get; set; }
 
-        [Notify(ChangeType.Material)]
+        [Notify(ChangeType.Render)]
         public partial bool MixColors { get; set; }
 
         public int ActiveEsposure

@@ -180,7 +180,7 @@ namespace XrSamples.Graffiti
                 }
 
                 mat.IsEnabled = true;
-                mat.ContentVersion++;
+                mat.Invalidate();
             }
         }
 

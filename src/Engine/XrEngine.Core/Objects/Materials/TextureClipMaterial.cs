@@ -58,7 +58,7 @@ namespace XrEngine
 
         public Texture2D? RightTexture { get; set; }
 
-        [Notify(ChangeType.Material)]
+        [Notify(ChangeType.Render)]
         public partial bool IsStereo { get; set; }
 
         public Color Color { get; set; }

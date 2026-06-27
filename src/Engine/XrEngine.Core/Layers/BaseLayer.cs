@@ -47,6 +47,11 @@
                 NotifyChangedWork(sender, change);
         }
 
+        public void Invalidate()
+        {
+            _version++;
+        }
+
         protected virtual void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
 

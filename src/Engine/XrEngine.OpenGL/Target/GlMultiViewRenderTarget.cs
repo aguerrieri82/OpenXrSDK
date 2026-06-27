@@ -54,7 +54,7 @@ namespace XrEngine.OpenGL
             bld.AddFeature("MULTI_VIEW");
 
             if (bld.Context.Stage == UpdateShaderStage.Shader)
-                bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, 10, BufferStore.Shader);
+                bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, UniformsSlots.MultiView, BufferStore.Shader);
         }
 
         public void SetCamera(Camera camera)

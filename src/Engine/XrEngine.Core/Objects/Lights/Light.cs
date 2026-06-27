@@ -4,11 +4,18 @@ namespace XrEngine
 {
     public abstract class Light : Object3D
     {
+        protected int _contentVersion;
+
         public Light()
         {
             Color = Color.White;
             Intensity = 1f;
             CastShadows = true;
+        }
+
+        public void Invalidate()
+        {
+            _contentVersion++;
         }
 
         protected override void OnChanged(ObjectChange change)
@@ -38,6 +45,6 @@ namespace XrEngine
         [Range(0, 10, 0.1f)]
         public float Intensity { get; set; }
 
-        public long ContentVersion { get; set; }
+        public long ContentVersion => _contentVersion;
     }
 }

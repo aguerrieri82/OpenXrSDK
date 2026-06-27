@@ -171,7 +171,7 @@ namespace XrEditor.Plot
             scene.AddChild(mesh);
 
             _depthMesh.Materials[0].Priority = _meshCount + 1;
-            _depthMesh.Materials[0].NotifyChanged(ChangeType.Material);
+            _depthMesh.Materials[0].NotifyChanged(ChangeType.Render);
 
         }
 

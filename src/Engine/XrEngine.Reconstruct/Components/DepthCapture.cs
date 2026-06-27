@@ -1291,7 +1291,7 @@ namespace XrEngine.Reconstruct
             if (_recMesh.Parent == null)
                 _host.Scene!.AddChild(_recMesh);
 
-            _recMesh.NotifyChanged(ChangeType.Geometry | ChangeType.Material);
+            _recMesh.NotifyChanged(ChangeType.Geometry | ChangeType.Render);
         }
 
         [Action]
