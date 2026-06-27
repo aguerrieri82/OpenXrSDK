@@ -59,7 +59,7 @@
 
             private readonly object _lock = new();
 
-            public unsafe GlRenderHandler(GL gl, int width, int height, bool isStereo = false)
+            public unsafe GlRenderHandler(GL gl, int width, int height)
             {
                 _gl = gl;
                 _width = width;

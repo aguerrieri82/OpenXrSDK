@@ -42,7 +42,7 @@ namespace XrEngine
                 return this;
 
 
-            AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA },
+            AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA, },
                         new VertexData { Pos = b, Normal = normal, UV = uvB },
                         new VertexData { Pos = c, Normal = normal, UV = uvC });
 
@@ -53,6 +53,45 @@ namespace XrEngine
         {
             Vertices.AddRange(vertices);
             return this;
+        }
+
+
+
+        public MeshBuilder AddQuad(Rect2 rect, float z = 0, bool uvFromRect = false)
+        {
+            var uvRect = uvFromRect
+                ? rect
+                : new Rect2(0f, 0f, 1f, 1f);
+
+            return AddQuad(rect, uvRect, z);
+        }
+
+        public MeshBuilder AddQuad(Rect2 rect, Rect2 uvRect, float z = 0)
+        {
+            var x0 = rect.X;
+            var y0 = rect.Y;
+            var x1 = rect.X + rect.Width;
+            var y1 = rect.Y + rect.Height;
+
+            var u0 = uvRect.X;
+            var v0 = uvRect.Y;
+            var u1 = uvRect.X + uvRect.Width;
+            var v1 = uvRect.Y + uvRect.Height;
+
+            var uvA = new Vector2(u0, 1f - v0);
+            var uvB = new Vector2(u1, 1f - v0);
+            var uvC = new Vector2(u1, 1f - v1);
+            var uvD = new Vector2(u0, 1f - v1);
+
+            return AddFace(
+                new Vector3(x0, y0, z),
+                new Vector3(x1, y0, z),
+                new Vector3(x1, y1, z),
+                new Vector3(x0, y1, z),
+                uvA,
+                uvB,
+                uvC,
+                uvD);
         }
 
         public MeshBuilder AddFace(Vector3 a, Vector3 b, Vector3 c, Vector3 d, bool reverse = false)
@@ -621,12 +660,16 @@ namespace XrEngine
         }
 
 
-        public Geometry3D ToGeometry(Geometry3D? result = null)
+        public Geometry3D ToGeometry(Geometry3D? result = null, bool computeIndices = true)
         {
             result ??= new Geometry3D();
             result.Vertices = Vertices.ToArray();
+            result.Indices = [];
             result.ActiveComponents |= VertexComponent.UV0;
-            result.ComputeIndices();
+            
+            if (computeIndices)
+                result.ComputeIndices();
+
             result.ComputeNormals();
             return result;
         }

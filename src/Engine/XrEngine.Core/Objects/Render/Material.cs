@@ -9,7 +9,8 @@ namespace XrEngine
         Blend = 2,
         BlendMain = 4 | Blend,
         Add = Blend | 8,
-        Punch = Blend | 16,
+        Min = Blend | 16,
+        Punch = Blend | 32,
     }
 
     public enum StencilFunction

@@ -5,14 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="stereo.js" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="stereo.js" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CefSharp.Common.NETCore" Version="147.0.100" />
     <PackageReference Include="CefSharp.OffScreen.NETCore" Version="147.0.100" />
     <PackageReference Include="Silk.NET.Direct3D11" Version="2.23.0" />

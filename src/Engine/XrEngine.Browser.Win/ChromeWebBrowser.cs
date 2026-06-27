@@ -12,21 +12,6 @@ namespace XrEngine.Browser.Win
 {
     public class ChromeWebBrowser : IDisposable, UI.Web.IWebBrowser
     {
-        public class XrStereoUiFrameReadyMessage
-        {
-            public string? Type { get; set; }
-
-            public int Frame { get; set; }
-
-            public string? Reason { get; set; }
-
-            public double Time { get; set; }
-        }
-
-        static readonly JsonSerializerOptions JSON = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
 
         protected ChromiumWebBrowser? _browser;
         protected IRequestContext? _requestContext;
@@ -36,7 +21,7 @@ namespace XrEngine.Browser.Win
         protected float _zoomLevel;
         protected string? _startUrl;
         protected readonly GL? _gl;
-
+        protected long _frame;
 
 
         public ChromeWebBrowser(GL? gl = null)
@@ -51,7 +36,6 @@ namespace XrEngine.Browser.Win
 
             StereoIpd = 0.064f;
             StereoPixelsPerMeter = new Vector2(1000, 1000);
-            IsStereo = false;
         }
 
         public async Task CreateAsync(string? startUrl = null)
@@ -87,8 +71,7 @@ namespace XrEngine.Browser.Win
                 _browser.RenderHandler = new GlRenderHandler(
                     _gl,
                     (int)Size.Width,
-                    (int)Size.Height,
-                    IsStereo);
+                    (int)Size.Height);
             }
             else
             {
@@ -144,96 +127,6 @@ namespace XrEngine.Browser.Win
             });
         }
 
-        public async Task<bool> HasStereoElementsAsync()
-        {
-            try
-            {
-                var res =await _browser.GetMainFrame().EvaluateScriptAsync("window.xrStereoUi.check()");
-
-                return res.Success && (bool)res.Result;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> RefreshStereoUiAsync(
-              Camera camera,
-              int activeEye,
-              Matrix4x4 panelWorld,
-              Size2 panelSize,
-              Size2 textureSize)
-        {
-            var ci = CultureInfo.InvariantCulture;
-
-            var viewProj = camera.Eyes == null || camera.Eyes.Length < 2 ?
-                camera.ViewProjection :
-                camera.Eyes[activeEye].ViewProj;
-        
-            var eyeName = activeEye == 0 ? "left" : "right";
-
-            var script = $$"""
-                if (!window.xrStereoUi)
-                    throw new Error("xrStereoUi was not injected");
-
-                window.xrStereoUi.refresh({
-                    eye: "{{eyeName}}",
-                    activeEye: {{activeEye}},
-                    matrixConvention: "system-numerics-row-vector",
-
-                    viewProj: {{ToJsArray(viewProj)}},
-                    panelWorld: {{ToJsArray(panelWorld)}},
-
-                    panelWidthMeters: {{panelSize.Width.ToString(ci)}},
-                    panelHeightMeters: {{panelSize.Height.ToString(ci)}},
-
-                    viewportWidth: {{textureSize.Width.ToString(ci)}},
-                    viewportHeight: {{textureSize.Height.ToString(ci)}},
-
-                    depthSign: -1
-                });
-            """;
-
-            try
-            {
-                var resp = await _browser.GetMainFrame().EvaluateScriptAsync(script);
-                return resp.Success; 
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static string ToJsArray(Matrix4x4 m)
-        {
-            var ci = CultureInfo.InvariantCulture;
-
-            //m = Matrix4x4.Transpose(m);
-
-            return "[" +
-                m.M11.ToString(ci) + "," +
-                m.M12.ToString(ci) + "," +
-                m.M13.ToString(ci) + "," +
-                m.M14.ToString(ci) + "," +
-
-                m.M21.ToString(ci) + "," +
-                m.M22.ToString(ci) + "," +
-                m.M23.ToString(ci) + "," +
-                m.M24.ToString(ci) + "," +
-
-                m.M31.ToString(ci) + "," +
-                m.M32.ToString(ci) + "," +
-                m.M33.ToString(ci) + "," +
-                m.M34.ToString(ci) + "," +
-
-                m.M41.ToString(ci) + "," +
-                m.M42.ToString(ci) + "," +
-                m.M43.ToString(ci) + "," +
-                m.M44.ToString(ci) +
-            "]";
-        }
 
         public async Task UpdateTextureAsync(Texture2D tex, bool force = false)
         {
@@ -294,6 +187,8 @@ namespace XrEngine.Browser.Win
                 System.Buffer.MemoryCopy((void*)e.BufferHandle, pDest, bufSize, bufSize);
 
             _bufferTime = DateTime.UtcNow;
+
+            _frame++;
         }
 
         async Task InitAsync()
@@ -412,6 +307,6 @@ namespace XrEngine.Browser.Win
 
         public Vector2 StereoPixelsPerMeter { get; set; }
 
-        public bool IsStereo { get; set; }
+        public long Frame => _frame;
     }
 }

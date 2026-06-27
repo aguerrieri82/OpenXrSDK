@@ -1,6 +1,8 @@
 ﻿using CefSharp;
+using CefSharp.DevTools.Debugger;
 using Common.Interop;
 using Silk.NET.OpenGL;
+using System.Text.Json;
 using XrEngine.UI.Web;
 using XrInteraction;
 using XrMath;
@@ -9,11 +11,20 @@ namespace XrEngine.Browser.Win
 {
     public class ChromeWebBrowserView : AsyncBehavior<TriangleMesh>
     {
+        static readonly JsonSerializerOptions JSON = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            IncludeFields = true
+        };
+
         protected bool _isInit;
         protected ChromeWebBrowser _browser;
         protected DateTime _lastTexUpdateTime;
         protected ISurfaceInput? _input;
         protected string? _source;
+        protected Texture2D? _texture;
+        protected long _lastElevFrame;
+        protected bool _injected;
         protected readonly bool _cpuMode;
 
         public ChromeWebBrowserView(GL? gl = null)
@@ -21,10 +32,65 @@ namespace XrEngine.Browser.Win
             _cpuMode = gl == null;
             _browser = new ChromeWebBrowser(gl);
             Size = new Size2I(1600, 1200);
+            EnableElevation = true;
+        }
+
+        protected async Task UpdateEleveationAsync()
+        {
+            string? json = null;
+
+            try
+            {
+                if (!_injected)
+                    await InjectScripts();
+
+                json = await _browser.Chromium.GetMainFrame().EvaluateScriptAsync<string>("domBridge.getElevatedElementsJson()");
+            }
+            catch
+            {
+            }
+
+            json ??= "[]";
+
+            var elevs = JsonSerializer.Deserialize<XrElevatedElement[]>(json, JSON)!;
+
+            var bulder = new MeshBuilder();
+
+            foreach (var ele in elevs)
+            {
+                var rect = ele.TextureRect
+                    .Scale(1f / Size.Width, 1f / Size.Height);
+
+                rect = new Rect2(
+                    rect.X,
+                    1f - rect.Y - rect.Height,
+                    rect.Width,
+                    rect.Height);
+
+                bulder.AddQuad(rect.Translate(-0.5f, -0.5f), rect, ele.Elevation);
+            }
+
+            bulder.AddQuad(new Rect2(-0.5f, -0.5f, 1, 1), 0, false);
+
+            bulder.ToGeometry(_host!.Geometry!, false);
+
+            var styles = elevs.Select(a => new QuadStyle
+            {
+                BackColor = a.Elevation < 0 ? Color.Transparent : a.Background,
+                Opacity = a.Opacity
+            }).Union([new()]).ToArray();
+
+            foreach (var mat in _host.Materials.OfType<TextureCutMaterial>())
+            {
+                mat.Styles = styles;
+                mat.Invalidate();
+            }
+  
         }
 
         protected override async Task StartAsync(RenderContext ctx)
         {
+
             if (!_isInit)
             {
                 if (RequestHandler != null)
@@ -39,31 +105,58 @@ namespace XrEngine.Browser.Win
                 Log.Info(this, "Browser ready");
             }
 
+            if (EnableElevation)
+            {
+                _host!.Geometry = new Geometry3D()
+                {
+                    ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0
+                };
+
+                _host!.Flags |= EngineObjectFlags.NoLogs;
+                _host!.Geometry!.Flags |= EngineObjectFlags.NoLogs;
+
+            }
+
+            _texture ??= new Texture2D()
+            {
+                Name = "Browser",
+                Format = TextureFormat.Rgba32,
+            };
+
             if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
             {
                 _host.Materials.Clear();
 
-                _host.Materials.Add(new TextureMaterial()
+                if (EnableElevation)
                 {
-                    Texture = new Texture2D()
-                    {
-                        Name = "Browser",
-                        Format = TextureFormat.Rgba32,
-                    }
-                });
+                    _host.Materials.Add(new TextureCutMaterial() { Alpha = AlphaMode.Blend, Texture = _texture, Mode = TextureCutMode.Layers, Priority = 0 });
+                    _host.Materials.Add(new TextureCutMaterial() { Alpha = AlphaMode.Blend, Texture = _texture, Mode = TextureCutMode.Main, WriteDepth = true, Priority = 1 });
+               }
+                else
+                    _host.Materials.Add(new TextureMaterial(_texture));
             }
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
+
+
         }
 
         private async void OnLoadingStateChanged(object? sender, LoadingStateChangedEventArgs e)
         {
             if (!e.IsLoading)
+               await InjectScripts();
+        }
+
+        protected async Task InjectScripts()
+        {
+            if (EnableElevation)
             {
-                var script = Embedded.GetString<ChromeWebBrowserView>("stereo.js");
+                var script = Embedded.GetString<UI.Web.IWebBrowser>("Scripts/XrDomBridge.js");
 
                 await _browser.Chromium.GetMainFrame().EvaluateScriptAsync(script);
             }
+
+            _injected = true;
         }
 
         protected override void UpdateSync(RenderContext ctx)
@@ -87,23 +180,20 @@ namespace XrEngine.Browser.Win
 
         protected override async Task UpdateAsync(RenderContext ctx)
         {
-            if (!_isInit)
+            if (!_isInit || _texture == null)
                 return;
 
             if (_cpuMode)
             {
-                if (_host?.Materials[0] is not TextureMaterial tex || tex.Texture == null)
-                    return;
+                _texture.SetFlag(EngineObjectFlags.EnableDebug, false);
 
-                tex.Texture.SetFlag(EngineObjectFlags.EnableDebug, false);
-
-                tex.Texture.Type = TextureType.Buffer;
+                _texture.Type = TextureType.Buffer;
 
                 var time = _browser.FrameBufferTime;
 
                 if (_browser.FrameBuffer != null && _lastTexUpdateTime != time)
                 {
-                    tex.Texture.LoadData(new TextureData()
+                    _texture.LoadData(new TextureData()
                     {
                         Data = MemoryBuffer.Create(_browser.FrameBuffer),
                         Width = _browser.Size.Width,
@@ -116,10 +206,14 @@ namespace XrEngine.Browser.Win
             }
             else
             {
-                if (_host?.Materials[0] is TextureMaterial tex && tex.Texture != null)
-                {
-                    await _browser.UpdateTextureAsync(tex.Texture);
-                }
+                if (_texture != null)
+                    await _browser.UpdateTextureAsync(_texture);
+            }
+
+            if (EnableElevation && _browser.Frame != _lastElevFrame)
+            {
+                await UpdateEleveationAsync();
+                _lastElevFrame = _browser.Frame;
             }
         }
 
@@ -139,6 +233,8 @@ namespace XrEngine.Browser.Win
         public ChromeWebBrowser Browser => _browser;
 
         public IWebRequestHandler? RequestHandler { get; set; }
+
+        public bool EnableElevation { get; set; }
 
 
         [Range(-10, 10, 0.1f)]

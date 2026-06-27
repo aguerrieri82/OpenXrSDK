@@ -1,8 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-
+		<TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
 	</PropertyGroup>
+	
+	<Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+	
+	<ItemGroup>
+	  <None Remove="Scripts\XrDomBridge.js" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <EmbeddedResource Include="Scripts\*.js" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />

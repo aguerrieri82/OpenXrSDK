@@ -456,7 +456,7 @@ namespace XrMath
 
         #endregion
 
-        #region POSE
+        #region POSE 
 
         public static Pose3 Lerp(in this Pose3 self, in Pose3 other, float otherWeight)
         {
@@ -1360,7 +1360,28 @@ namespace XrMath
 
         #endregion
 
-        #region MISC
+        #region RECT2
+
+        public static Rect2 Scale(this in Rect2 self, float value)
+        {
+            return Scale(self, value, value);
+        }
+
+        public static Rect2 Scale(this in Rect2 self, float x, float y)
+        {
+            return new Rect2(self.X * x, self.Y * y, self.Width * x, self.Height * y);
+        }
+
+
+        public static Rect2 Translate(this in Rect2 self, float x, float y)
+        {
+            return new Rect2(self.X + x, self.Y + y, self.Width, self.Height);
+        }
+
+
+        #endregion
+
+            #region MISC
 
         public static float ToRadians(this float value)
         {

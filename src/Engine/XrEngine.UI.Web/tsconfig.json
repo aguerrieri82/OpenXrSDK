@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": false,
+    "removeComments": false,
+    "sourceMap": false,
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "ESNext.String"],
+    "target": "esnext"
+  },
+  "compileOnSave": true
+}
+  

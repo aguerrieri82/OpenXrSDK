@@ -38,7 +38,7 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
-                  opt.SampleCount = 1;
+                  opt.SampleCount = 4;
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 
@@ -54,7 +54,7 @@ namespace XrEditor
 
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 1)
+              .SetRenderQuality(1f, 2)
               .CreateRoomManager()  
                //.CreateDepthSnapeshot()
               .Build();

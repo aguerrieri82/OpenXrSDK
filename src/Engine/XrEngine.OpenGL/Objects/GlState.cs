@@ -286,6 +286,11 @@ namespace XrEngine.OpenGL
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
                         _gl.BlendFunc(BlendingFactor.One, BlendingFactor.One);
                     }
+                    else if(value == AlphaMode.Min)
+                    {
+                        _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Min);
+                    }
                     else if (value == AlphaMode.Punch)
                     {
                         _gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha,
@@ -296,7 +301,7 @@ namespace XrEngine.OpenGL
                     else
                     {
                         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.FuncAdd);
+                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
                     }
 
                 }
