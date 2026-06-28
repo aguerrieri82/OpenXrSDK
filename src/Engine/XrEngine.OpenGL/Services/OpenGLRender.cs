@@ -212,9 +212,6 @@ namespace XrEngine.OpenGL
 
         public void ConfigureCaps(ShaderMaterial material)
         {
-            if (_glState.UseDepth != material.UseDepth || _glState.WriteDepth != material.WriteDepth)
-                _glState.EnableFeature(EnableCap.DepthTest, material.UseDepth || material.WriteDepth);
-
             _glState.SetCullFace(material.CullFront ? TriangleFace.Front : TriangleFace.Back);
             _glState.SetUseDepth(material.UseDepth);
             _glState.SetWriteDepth(material.WriteDepth);
@@ -229,8 +226,6 @@ namespace XrEngine.OpenGL
 
             _glState.EnableFeature(EnableCap.ClipDistance0, material.UseClipDistance);
 
-            _glState.UpdateStencil();
-
             if (material.PolygonOffset.Y != 0)
             {
                 _glState.EnableFeature(EnableCap.PolygonOffsetFill, true);
@@ -241,6 +236,8 @@ namespace XrEngine.OpenGL
 
             if (material is ILineMaterial line)
                 _glState.SetLineWidth(line.LineWidth);
+
+            _glState.Commit();
         }
 
         #endregion

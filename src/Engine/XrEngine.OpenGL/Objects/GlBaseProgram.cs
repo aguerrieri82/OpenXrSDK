@@ -36,7 +36,8 @@ namespace XrEngine.OpenGL
         protected virtual void Create(params uint[] shaders)
         {
             _handle = _gl.CreateProgram();
-            GlDebug.Log($"CreateProgram {_handle}");
+
+            GlDebug.Log(this, "CreateProgram {0}", _handle);
 
             foreach (var shader in shaders.Where(a => a != 0))
                 _gl.AttachShader(_handle, shader);
@@ -57,14 +58,14 @@ namespace XrEngine.OpenGL
         {
             GlState.Current!.SetActiveProgram(this);
 
-            GlDebug.Log($"UseProgram {_handle}");
+            GlDebug.Log(this,"UseProgram {0}", _handle);
         }
 
         public void Unbind()
         {
             GlState.Current!.SetActiveProgram(0);
 
-            GlDebug.Log($"UseProgram NULL");
+            GlDebug.Log(this, "UseProgram NULL");
         }
 
         protected IEnumerable<string> GetUniformNames()

@@ -39,7 +39,7 @@ namespace XrEngine.OpenGL
         [MemberNotNull(nameof(Fragment))]
         public override void Build()
         {
-            Log.Debug(this, "Building program {0}...", _handle);
+            GlDebug.Log(this, "Building program {0}...", _handle);
 
             var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
             var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             for (var i = 0; i < _boundBuffers.Length; i++)
                 _boundBuffers[i] = 0;
 
-            Log.Debug(this, "Program built");
+            GlDebug.Log(this, "Program built");
 
             _isBuilt = true;    
         }

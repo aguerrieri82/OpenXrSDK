@@ -24,7 +24,7 @@ namespace XrEngine.OpenGL
 
         protected override void Initialize()
         {
-            _programInstance = CreateProgram(CreateMaterial());
+            _programInstance = GetProgramInstance(CreateMaterial());
         }
 
         protected virtual void Draw(DrawContent draw)

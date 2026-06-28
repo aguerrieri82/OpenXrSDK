@@ -41,7 +41,6 @@ namespace XrEngine.OpenGL
             }
             else
                 _modelBuffers = [];
-
         }
 
         public void UpdateModel(UpdateShaderContext ctx)
@@ -105,8 +104,6 @@ namespace XrEngine.OpenGL
             if (useGeo)
                 localBuilder.AddFeature("USE_GEO_SHADER");
 
-            //localBuilder.AddFeature($"SHADER_VER {shader.Version}");
-
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
             _materialUpdate = localBuilder.Result;
@@ -167,14 +164,6 @@ namespace XrEngine.OpenGL
 
                 foreach (var ext in Global.ShaderUpdate!.Extensions!)
                     program.AddExtension(ext);
-
-                /*
-                foreach (var feature in Global.Update!.Features!)
-                    program.AddFeature(feature);
-                */
-
-                //TODO not working
-                //program.AddFeature("ZLOG_F 0.0001");
 
                 program.Build();
 

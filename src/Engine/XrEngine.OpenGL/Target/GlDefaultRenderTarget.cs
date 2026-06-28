@@ -2,15 +2,10 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-
 #endif
 
-
 using System.Diagnostics;
-
-
 using XrMath;
-
 
 namespace XrEngine.OpenGL
 {
@@ -127,12 +122,13 @@ namespace XrEngine.OpenGL
 
         public void End(bool discardDepth)
         {
-           // _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
+            if (discardDepth)
+                _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
 
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _frameBuffer.Handle);
+            _frameBuffer.BindRead(ReadBufferMode.ColorAttachment0);
+
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
 
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             _gl.DrawBuffers(GlState.DRAW_BACK);
 
             var w = _frameBuffer.Color!.Width;

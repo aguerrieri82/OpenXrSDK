@@ -246,8 +246,6 @@ namespace XrEngine.OpenGL
                     _gl.DepthFunc(DepthFunction.Lequal);
 
                 UseDepth = value;
-
-                UpdateDepth();
             }
         }
 
@@ -262,12 +260,13 @@ namespace XrEngine.OpenGL
             {
                 _gl.DepthMask(value);
                 WriteDepth = value;
-                UpdateDepth();
             }
         }
 
-        protected void UpdateDepth()
+        public void Commit()
         {
+            UpdateStencil();
+
             EnableFeature(EnableCap.DepthTest, WriteDepth == true || UseDepth == true);
         }
 

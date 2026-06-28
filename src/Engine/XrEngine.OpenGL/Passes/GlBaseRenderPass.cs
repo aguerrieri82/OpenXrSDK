@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using Silk.NET.OpenGL.Extensions.ARB;
 #endif
 
 
@@ -9,8 +10,9 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
-        static GlSimpleProgram? _texFullProg;
-        static GlSimpleProgram? _texFullProgMV;
+        static OverlayTextureEffect _overlayEffect = new();
+        static readonly Dictionary<ShaderMaterial, GlProgramInstance> _instances = [];
+
 
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
@@ -23,6 +25,12 @@ namespace XrEngine.OpenGL
             IsEnabled = true;
         }
 
+
+        public void UseEffect(ShaderMaterial material)
+        {
+            UseProgram(GetProgramInstance(material), true);
+        }
+        
         public virtual void Configure(RenderContext ctx)
         {
         }
@@ -78,10 +86,15 @@ namespace XrEngine.OpenGL
             return _renderer.RenderTarget;
         }
 
-        protected GlProgramInstance CreateProgram(ShaderMaterial material)
+        protected GlProgramInstance GetProgramInstance(ShaderMaterial material)
         {
-            var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_gl, material.Shader!));
-            return new GlProgramInstance(_gl, material, global, null);
+            if (!_instances.TryGetValue(material, out var instance))
+            {
+                var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_gl, material.Shader!));
+                instance = new GlProgramInstance(_renderer.GL, material, global, null);
+                _instances[material] = instance;
+            }
+            return instance;
         }
 
         protected void UseProgram(GlProgramInstance instance, bool updateUniforms)
@@ -89,6 +102,7 @@ namespace XrEngine.OpenGL
             var updateContext = _renderer.UpdateContext;
 
             updateContext.Shader = instance.Material.Shader;
+            updateContext.Stage = UpdateShaderStage.Material;
 
             instance.Global!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
@@ -110,18 +124,6 @@ namespace XrEngine.OpenGL
                 instance.UpdateUniforms(updateContext, false);
                 instance.UpdateBuffers(updateContext);
             }
-
-        }
-
-
-        protected void ProcessImage(GlTexture src, GlTexture dst)
-        {
-            _gl.BindImageTexture(0, src, 0, false, 0, GLEnum.ReadOnly, src.InternalFormat);
-            _gl.CheckError();
-            _gl.BindImageTexture(1, dst, 0, false, 0, GLEnum.WriteOnly, dst.InternalFormat);
-            _gl.CheckError();
-            _gl.DispatchCompute((src.Width + 15) / 16, (src.Height + 15) / 16, 1);
-            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 
         protected void OverlayTexture(GlTexture texture, bool isMultiView)
@@ -131,30 +133,11 @@ namespace XrEngine.OpenGL
 
         protected void OverlayTexture(Texture texture, bool isMultiView)
         {
-            if (_texFullProg == null && !isMultiView)
-            {
-                _texFullProg = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
-                _texFullProg.Build();
-            }
+            _overlayEffect ??= new();
+            _overlayEffect.Texture = texture;
 
-            if (_texFullProgMV == null && isMultiView)
-            {
-                _texFullProgMV = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
-                _texFullProgMV.AddExtension("GL_OVR_multiview2");
-                _texFullProgMV.AddFeature("MULTI_VIEW");
-                _texFullProgMV.Build();
-            }
-
-            var curProg = isMultiView ? _texFullProgMV : _texFullProg;
-
-            curProg!.Use();
-            curProg.LoadTexture(texture, 0);
-
-            _renderer.State.SetUseDepth(false);
-            _renderer.State.SetWriteDepth(false);
-            _renderer.State.SetWriteColor(true);
-            _renderer.State.SetAlphaMode(AlphaMode.Blend);
-
+            UseEffect(_overlayEffect);
+            
             DrawQuad();
         }
 

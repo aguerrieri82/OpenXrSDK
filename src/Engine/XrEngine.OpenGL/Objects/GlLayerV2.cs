@@ -101,7 +101,7 @@ namespace XrEngine.OpenGL
 
             _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
 
-            Log.Debug(this, "Content Build");
+            GlDebug.Log(this, "Content Build");
         }
 
         protected void RemoveContent(Object3D obj3d, bool incremental)

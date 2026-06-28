@@ -136,7 +136,7 @@ namespace XrEngine.OpenGL
         public override void Update()
         {
             if ((_source.Object.Flags & EngineObjectFlags.NoLogs) != 0)
-                _vertices.NoLogs = true;
+                _vertices.EnableDebug = true;
 
             if (UpdateLayout(out var layout))
                 _vertices.UpdateLayout(layout!);

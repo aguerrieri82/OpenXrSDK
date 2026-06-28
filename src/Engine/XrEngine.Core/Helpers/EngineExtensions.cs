@@ -958,9 +958,24 @@ namespace XrEngine
         public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform)
         {
             if (self.Vertices != null)
-                return self.ExtractPositions(true).ComputeBounds(transform);
+            {
+                var builder = new Bounds3Builder();
 
-            return new Bounds3();
+                if (transform.IsIdentity)
+                {
+                    foreach (var v in self.Vertices)
+                        builder.Add(v.Pos);
+                }
+                else
+                {
+                    foreach (var v in self.Vertices)
+                        builder.Add(v.Pos.Transform(transform));
+                }
+
+                return builder.Result;
+            }
+
+            return Bounds3.Zero;
         }
 
 

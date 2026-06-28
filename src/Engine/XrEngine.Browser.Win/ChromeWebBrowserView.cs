@@ -2,6 +2,7 @@
 using CefSharp.DevTools.Debugger;
 using Common.Interop;
 using Silk.NET.OpenGL;
+using System.Diagnostics;
 using System.Text.Json;
 using XrEngine.UI.Web;
 using XrInteraction;
@@ -37,6 +38,8 @@ namespace XrEngine.Browser.Win
 
         protected async Task UpdateEleveationAsync()
         {
+            Debug.Assert(_host?.Geometry != null);
+
             string? json = null;
 
             try
@@ -72,7 +75,9 @@ namespace XrEngine.Browser.Win
 
             bulder.AddQuad(new Rect2(-0.5f, -0.5f, 1, 1), 0, false);
 
-            bulder.ToGeometry(_host!.Geometry!, false);
+            bulder.ToGeometry(_host.Geometry, false);
+
+            _host.UpdateBounds();
 
             var styles = elevs.Select(a => new QuadStyle
             {
@@ -129,8 +134,21 @@ namespace XrEngine.Browser.Win
 
                 if (EnableElevation)
                 {
-                    _host.Materials.Add(new TextureCutMaterial() { Alpha = AlphaMode.Blend, Texture = _texture, Mode = TextureCutMode.Layers, Priority = 0 });
-                    _host.Materials.Add(new TextureCutMaterial() { Alpha = AlphaMode.Blend, Texture = _texture, Mode = TextureCutMode.Main, WriteDepth = true, Priority = 1 });
+                    _host.Materials.Add(new TextureCutMaterial() 
+                    { 
+                        Alpha = AlphaMode.Blend, 
+                        Texture = _texture, 
+                        Mode = TextureCutMode.Layers,
+                        Priority = 0 
+                    });
+
+                    _host.Materials.Add(new TextureCutMaterial() 
+                    { 
+                        Alpha = AlphaMode.Blend, 
+                        Texture = _texture, 
+                        Mode = TextureCutMode.Main, 
+                        Priority = 1 
+                    });
                }
                 else
                     _host.Materials.Add(new TextureMaterial(_texture));

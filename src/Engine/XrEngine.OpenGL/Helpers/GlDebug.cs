@@ -5,9 +5,9 @@ namespace XrEngine.OpenGL
     public static class GlDebug
     {
         [Conditional("LOGGL")]
-        public static void Log(string message)
+        public static void Log(object sender, string message, params object?[] args)
         {
-            Console.WriteLine(message);
+            Console.WriteLine(message, args);
         }
     }
 }

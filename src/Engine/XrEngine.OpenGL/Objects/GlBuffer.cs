@@ -202,7 +202,6 @@ namespace XrEngine.OpenGL
             EndUpdate();
         }
 
-
         public unsafe void Update(T value)
         {
             if (value is IDynamicBuffer dynamic)
@@ -274,12 +273,11 @@ namespace XrEngine.OpenGL
                 Unbind();
                 _gl.DeleteBuffer(_handle);
 
-                Log.Debug(this, "Buffer {0} ({1}) deleted", _handle, Target);
+                GlDebug.Log(this, "Buffer {0} ({1}) deleted", _handle, Target);
             }
 
             base.Dispose();
         }
-
 
 
         public long Version { get; set; }

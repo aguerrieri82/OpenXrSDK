@@ -23,7 +23,7 @@ namespace XrEngine.OpenGL
         [MemberNotNull(nameof(Computer))]
         public override void Build()
         {
-            Log.Debug(this, "Building program {0}...", _handle);
+            GlDebug.Log(this, "Building program {0}...", _handle);
 
             var cSource = PatchShader(_cSource, ShaderType.ComputeShader);
 
@@ -36,7 +36,7 @@ namespace XrEngine.OpenGL
             for (var i = 0; i < _boundBuffers.Length; i++)
                 _boundBuffers[i] = 0;
 
-            Log.Debug(this, "Program built");
+            GlDebug.Log(this, "Program built");
         }
 
         public override void Dispose()

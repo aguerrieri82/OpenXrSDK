@@ -238,7 +238,7 @@ namespace XrEngine.OpenGL
                 throw new InvalidOperationException("Compressed textures require a full compressed upload");
 
             if (EnableDebug)
-                Log.Debug(this, "Allocate texture '{0}' {1}x{2}x{3}", _handle, width, height, Math.Max(depth, 1));
+                GlDebug.Log(this, "Allocate texture '{0}' {1}x{2}x{3}", _handle, width, height, Math.Max(depth, 1));
 
             _internalFormat = GlUtils.GetInternalFormat(format, compression, blockSize);
 
@@ -282,7 +282,7 @@ namespace XrEngine.OpenGL
                 return;
 
             if (EnableDebug)
-                Log.Debug(this, "Upload texture '{0}' {1}x{2}x{3}", _handle, width, height, Math.Max(depth, 1));
+                GlDebug.Log(this, "Upload texture '{0}' {1}x{2}x{3}", _handle, width, height, Math.Max(depth, 1));
 
             if (data.Count > 1)
                 MaxLevel = data.Max(a => a.MipLevel);
@@ -447,10 +447,8 @@ namespace XrEngine.OpenGL
 
                 _attached.Remove(_handle);
 
-                /*
-                if (!_isAttached)
-                    Log.Debug(this, "Tex {0} deleted", _handle);
-                */
+                if (EnableDebug && !_isAttached)
+                    GlDebug.Log(this, "Tex {0} deleted", _handle);
             }
 
             if (Source is Texture tex)

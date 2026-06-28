@@ -178,7 +178,7 @@ namespace XrEngine.OpenGL
         {
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
-            _programInstance = CreateProgram(_reflection.MaterialOverride!);
+            _programInstance = GetProgramInstance(_reflection.MaterialOverride!);
         }
     }
 }

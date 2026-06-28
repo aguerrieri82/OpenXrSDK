@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 
 using XrMath;
 using System.Numerics;
+using XrEngine.Objects;
 
 namespace XrEngine.OpenGL
 {
@@ -14,7 +15,7 @@ namespace XrEngine.OpenGL
     {
         protected readonly GlRenderPassTarget _passTarget;
         protected readonly GlRenderPassTarget? _tempTarget;
-        protected readonly GlSimpleProgram _outlineProgram;
+        protected readonly OutlineEffect _outlineMat;
         protected Bounds2 _bounds;
         protected Size2I _lastCameraSize;
         protected Size2I _frameSize;
@@ -49,20 +50,12 @@ namespace XrEngine.OpenGL
                 };
             }
 
-            _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
-
-            if (isMultiView)
+            _outlineMat = new OutlineEffect()
             {
-                _outlineProgram.AddExtension("GL_OVR_multiview2");
-                _outlineProgram.AddFeature("MULTI_VIEW");
-            }
-
-            //_outlineProgram.AddFeature($"FRAG_LOCATON {(_isDownsample ? 1 : 0)}");
-
-            _outlineProgram.AddFeature($"FRAG_LOCATON 0");
-            _outlineProgram.AddFeature($"OUTLINE_SIZE {_renderer.Options.Outline.Size}");
-
-            _outlineProgram.Build();
+                IsMultiView = isMultiView,
+                OutlineSize = _renderer.Options.Outline.Size,
+                Color = _renderer.Options.Outline.Color,
+            };
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -148,11 +141,6 @@ namespace XrEngine.OpenGL
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
             }
 
-            _outlineProgram.Use();
-
-            _outlineProgram.SetUniform("uColor", _renderer.Options.Outline.Color);
-            _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
-
             if (UseScissor)
             {
                 var padding = (int)_renderer.Options.Outline.Size + 2;
@@ -163,6 +151,10 @@ namespace XrEngine.OpenGL
 
                 _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
             }
+
+            _outlineMat.Texture = _passTarget.ColorTexture!.ToEngineTexture();
+
+            UseEffect(_outlineMat);
 
             DrawQuad();
 
@@ -207,7 +199,7 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _outlineProgram.Dispose();
+            _outlineMat.Dispose();
             _passTarget.Dispose();
             _tempTarget?.Dispose();
             base.Dispose();

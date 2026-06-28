@@ -113,8 +113,8 @@ namespace XrEngine.OpenGL
 
         public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
-            if (!NoLogs)
-                Log.Debug(this, "Update VA {0}", _handle);
+            if (EnableDebug)
+                GlDebug.Log(this, "Update VA {0}", _handle);
 
             _vBuf.UpdateRange(vertices);
             _vBuf.ArrayLength = (uint)vertices.Length;
@@ -176,8 +176,9 @@ namespace XrEngine.OpenGL
                 Unbind();
 
                 _gl.DeleteVertexArray(_handle);
-                
-                Log.Debug(this, "VA {0} deleted", _handle);
+
+                if (EnableDebug)
+                    GlDebug.Log(this, "VA {0} deleted", _handle);
             }
 
             _iBuf?.Dispose();
@@ -189,7 +190,7 @@ namespace XrEngine.OpenGL
 
         public GlVertexLayout Layout => _layout;
 
-        public bool NoLogs;
+        public bool EnableDebug;
 
         #region IGlVertexArray
 
