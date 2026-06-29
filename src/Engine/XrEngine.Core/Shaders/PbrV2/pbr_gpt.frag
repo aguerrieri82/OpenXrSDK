@@ -388,8 +388,9 @@ void main()
     #endif
 #endif
 
-#if ALPHA_MODE == 2
-	a = max(uMaterial.alphaCutoff, a);
+#if ALPHA_MODE == 5
+	if (a < uMaterial.alphaCutoff)
+		discard;
 #endif
 
 #ifdef USE_DEPTH_NOISE

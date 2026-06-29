@@ -2258,7 +2258,7 @@ namespace XrSamples
 
             var leftTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.SRgba32,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -2268,7 +2268,7 @@ namespace XrSamples
 
             var rightTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.SRgba32,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,

@@ -178,10 +178,14 @@ namespace XrEngine.OpenGL
 
 #warning IMPROVE THIS!! 
 
-                if (Type == GlLayerType.Color && realMaterial.Alpha != AlphaMode.Opaque)
+                var isColor = realMaterial.Alpha == AlphaMode.Opaque || 
+                              realMaterial.Alpha == AlphaMode.BlendMain || 
+                              realMaterial.Alpha == AlphaMode.Mask;
+
+                if (Type == GlLayerType.Color && !isColor)
                     continue;
 
-                if (Type == GlLayerType.Blend && (realMaterial.Alpha & AlphaMode.Blend) == 0)
+                if (Type == GlLayerType.Blend && isColor)
                     continue;
 //
 

@@ -710,7 +710,7 @@ namespace XrEngine.Reconstruct
             {
                 Width = (uint)width,
                 Height = (uint)height,
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.SRgba32,
                 Data = MemoryBuffer.Create(File.ReadAllBytes(path))
             });
 

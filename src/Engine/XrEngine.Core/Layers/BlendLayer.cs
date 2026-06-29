@@ -16,7 +16,7 @@ namespace XrEngine
             return vertSrc != null &&
                    vertSrc.Materials.
                         OfType<ShaderMaterial>().
-                        Any(a => ((a.Alpha & AlphaMode.Blend) != 0 && a.Alpha != AlphaMode.BlendMain) ||
+                        Any(a => !(a.Alpha == AlphaMode.Opaque || a.Alpha == AlphaMode.BlendMain || a.Alpha == AlphaMode.Mask) ||
                                   (a.Alpha == AlphaMode.Mask && a is not IVolumeMaterial));
         }
 

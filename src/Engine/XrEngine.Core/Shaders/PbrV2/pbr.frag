@@ -17,6 +17,7 @@ const vec3 Fdielectric = vec3(0.04);
 #define DEBUG_ROUGHNESS  6
 #define DEBUG_IRRADIANCE 7
 
+
 in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
@@ -355,8 +356,9 @@ void main()
 
 
 	//Blend
-	#if ALPHA_MODE == 2
-		a = max(uMaterial.alphaCutoff, a);
+	#if ALPHA_MODE == 5
+		if (a < uMaterial.alphaCutoff)
+			discard;
 	#endif
 
 	#ifdef USE_DEPTH_NOISE
