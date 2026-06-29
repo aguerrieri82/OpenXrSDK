@@ -116,6 +116,8 @@ namespace XrSamples.Android.Activities
                     opt.FrustumCulling = _settings.FrustumCulling;
                     opt.Compression.Use = _settings.TextureCompression;
                     opt.UseSRGB = false;
+                    opt.ToneMap = ToneMapMode.Neutral;
+                   
                 });
             else
                 ImageLight.UseCache = false;
@@ -123,7 +125,7 @@ namespace XrSamples.Android.Activities
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(1f, (uint)_settings.Msaa, true);
+            builder.SetRenderQuality(1f, (uint)_settings.Msaa, false);
 
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));

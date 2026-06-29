@@ -44,6 +44,7 @@ namespace OpenXr.Framework
             layer.Size.Width = quad.Size.X;
             layer.Size.Height = quad.Size.Y;
             layer.Pose = _xrApp!.ReferenceFrame.Inverse().Multiply(quad.Pose).ToPoseF();
+
             layer.Next = _depthTest.Pointer;
 
             return true;

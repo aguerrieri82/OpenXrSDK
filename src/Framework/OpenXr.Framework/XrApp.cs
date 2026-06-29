@@ -1310,7 +1310,6 @@ namespace OpenXr.Framework
         {
             AssertSessionCreated();
 
-            //DumpLayersJson(ref layers, count);
 
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {
@@ -1323,7 +1322,16 @@ namespace OpenXr.Framework
                     Layers = pLayers
                 };
 
-                CheckResult(_xr.EndFrame(_session, in frameEndInfo), "EndFrame");
+                try
+                {
+                    CheckResult(_xr.EndFrame(_session, in frameEndInfo), "EndFrame");
+                }
+                catch
+                {
+                    DumpLayersJson(ref layers, count);
+                    throw;
+                }
+
             }
         }
 

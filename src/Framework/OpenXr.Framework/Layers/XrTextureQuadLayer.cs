@@ -16,6 +16,7 @@ namespace OpenXr.Framework
         protected int _eye;
         protected XrSwapchain? _swapchain;
 
+
         public XrTextureQuadLayer(GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size)
             : base(getQuad)
         {
@@ -41,7 +42,7 @@ namespace OpenXr.Framework
             if (!_swapchain.IsCreated)
             {
                 _swapchain.Create(extent,
-                    _xrApp!.RenderOptions.ColorFormat, _eye != -1 ? 2u : 1u,
+                    _xrApp.RenderOptions.ColorFormat, _eye != -1 ? 2u : 1u,
                     SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit, 1, false);
             }
 
@@ -52,8 +53,6 @@ namespace OpenXr.Framework
             _header.ValueRef.SubImage.ImageRect.Extent = extent;
             _header.ValueRef.EyeVisibility = _eye == -1 ? EyeVisibility.Both : (_eye == 0 ? EyeVisibility.Left : EyeVisibility.Right);
             _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
-
-            base.Create();
         }
 
 
@@ -66,8 +65,11 @@ namespace OpenXr.Framework
             if (!base.Update(ref layer, ref views, predTime))
                 return false;
 
+#warning TODO: COPY THE OLD FRAME INSTEAD!
+            /*
             if (!_renderQuad(null, new Size2I(), 0, _eye))
-                return true;
+                return false;
+            */
 
             var index = _swapchain.Acquire();
 

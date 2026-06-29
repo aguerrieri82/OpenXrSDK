@@ -260,7 +260,7 @@ namespace XrSamples
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
-
+              
                     if (XrPlatform.IsAndroid || forceOverlay)
                         panel.CreateOverlay(e.XrApp);
                 });

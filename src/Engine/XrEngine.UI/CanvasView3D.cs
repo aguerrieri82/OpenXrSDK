@@ -41,7 +41,6 @@ namespace XrEngine.UI
             var quad = new Quad3D();
             quad.FlipYUV();
 
-
             Geometry = quad;
             Mode = CanvasViewMode.Texture;
             UseMips = false;

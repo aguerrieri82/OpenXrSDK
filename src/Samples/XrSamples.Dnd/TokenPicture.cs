@@ -5,6 +5,7 @@ using XrEngine;
 using XrEngine.UI;
 using XrMath;
 
+
 namespace XrSamples.Dnd
 {
     public partial class Token
@@ -17,6 +18,7 @@ namespace XrSamples.Dnd
             SKFont? _font1;
             SKFont? _font2;
             SKPaint? _white;
+            private Task? _loadTask;
 
             public TokenPicture()
             {
@@ -40,15 +42,24 @@ namespace XrSamples.Dnd
 
             protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
             {
-                canvas.Clear();
 
-                _image ??= ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!).Result;
+                if (_image == null)
+                {
+                    _loadTask ??= Task.Run(async () =>
+                    {
+                        _image = await ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!);
+                    });
 
+                    if (!_loadTask.IsCompleted)
+                        return;
+                }
+           
                 var height = (int)(PixelSize.Height * 0.1);
                 var barHeight = (int)(PixelSize.Height * 0.05);
 
-                canvas.Save();
+                canvas.Clear();
 
+                canvas.Save();
 
                 if (_vttToken!.TokenStyleSelect == "circle")
                 {

@@ -57,8 +57,8 @@ namespace XrEditor
 
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 2, false)
-              .CreateHelmet()  
+              .SetRenderQuality(1f, 2, true)
+              .CreateDnd()  
                //.CreateDepthSnapeshot()
               .Build();
     }
