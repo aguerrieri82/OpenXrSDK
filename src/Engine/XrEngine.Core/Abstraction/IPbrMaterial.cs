@@ -32,8 +32,6 @@ namespace XrEngine
 
         float Roughness { get; set; }
 
-        bool ToneMap { get; set; }
-
         float AlphaCutoff { get; set; }
 
         Matrix3x3? UV0Transform { get; set; }

@@ -121,6 +121,8 @@ namespace XrEngine.Compression
 
             if (CachePath != null)
             {
+                ClearCache();
+
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
 
                 lock (_cacheLock)

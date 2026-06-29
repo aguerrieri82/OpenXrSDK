@@ -288,6 +288,13 @@ namespace XrEngine.OpenGL
             return IsDepth(format) || IsDepthStencil(format);
         }
 
+        public static bool IsSrgb(this InternalFormat format)
+        {
+            return format == InternalFormat.Srgb8Alpha8 ||
+                   format == InternalFormat.Srgb ||
+                   format == InternalFormat.Srgb8;
+        }
+
         public static bool IsDepth(this InternalFormat format)
         {
             return format == InternalFormat.DepthComponent ||

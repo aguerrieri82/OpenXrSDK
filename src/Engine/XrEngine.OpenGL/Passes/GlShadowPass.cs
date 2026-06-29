@@ -268,7 +268,7 @@ namespace XrEngine.OpenGL
 
             _updateFrame = frame;
 
-            _frameBuffer!.Bind();
+            _frameBuffer!.BindDraw();
 
             _renderer.State.SetWriteDepth(true);
 

@@ -1,5 +1,6 @@
 ﻿#if GLES
     using XrEngine.Media;
+    using Silk.NET.OpenGLES;
 #else
     using Silk.NET.OpenGL;
 #endif
@@ -39,6 +40,10 @@ using RoomDesigner.Ikea;
 using RoomDesigner.Game.Ikea;
 using XrEngine.Reconstruct;
 using XrEngine.OpenGL;
+using XrSamples.Components;
+
+
+
 
 
 
@@ -669,7 +674,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var options = new TextureLoadOptions() { Format = TextureFormat.SRgba32 };
+            var options = new TextureLoadOptions() { IsSrgb = true };
 
             var left = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_left.jpg", options);
             var right = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_right.jpg", options);
@@ -1228,7 +1233,7 @@ namespace XrSamples
 #if !__ANDROID__
                 var gl = ((OpenGLRender)e.App.Renderer).GL;
 
-                var webView = new ChromeWebBrowserView()
+                var webView = new ChromeWebBrowserView(gl)
                 {
                     Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                     ZoomLevel = 0,
@@ -1245,8 +1250,57 @@ namespace XrSamples
             return builder;
         }
 
+        [Sample("Tone Control")]
+        public static XrEngineAppBuilder CreateToneControl(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
 
-        [Sample("CreateDrums")]
+            var scene = app.ActiveScene!;
+
+            var tc = scene.AddComponent(new ToneControl());
+
+            var mat1 = new TextureMaterial();
+            var mat2 = new PbrV2Material();
+
+            var quod1 = scene.AddChild(new TriangleMesh(Quad3D.Default, mat1));
+
+            quod1.Materials.Add(mat2);
+
+
+            void LoadTexture(bool isSrgb)
+            {
+                var fileName = "D:\\Projects\\XrEditor\\Cache\\Download\\493AE6FA342EE91A1979CB965B081079.jpg";
+
+                mat1.Texture = AssetLoader.Instance.Load<Texture2D>(fileName, new TextureLoadOptions
+                {
+                    IsSrgb = isSrgb,
+                    UseCache = false,
+                    MimeType = "image/jpeg"
+                });
+
+                mat2.ColorMap = mat1.Texture;
+
+                mat1.IsEnabled = !tc.ShowPbr;
+                mat2.IsEnabled = tc.ShowPbr;
+
+            }
+
+            tc.Changed = () =>
+            {
+                LoadTexture(tc.TexSRgb);
+            };
+
+            LoadTexture(true);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+
+
+        [Sample("Drums")]
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
 #if WINDOWS

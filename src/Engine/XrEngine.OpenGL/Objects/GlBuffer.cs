@@ -49,7 +49,7 @@ namespace XrEngine.OpenGL
             _usage = _target switch
             {
                 BufferTargetARB.UniformBuffer => BufferUsageARB.StreamDraw,
-                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.StaticDraw,
+                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.DynamicDraw,
                 _ => BufferUsageARB.StaticDraw
             };
         }

@@ -1,5 +1,4 @@
 ﻿using CefSharp;
-using CefSharp.DevTools.Debugger;
 using Common.Interop;
 using Silk.NET.OpenGL;
 using System.Diagnostics;
@@ -27,11 +26,13 @@ namespace XrEngine.Browser.Win
         protected long _lastElevFrame;
         protected bool _injected;
         protected readonly bool _cpuMode;
+        TextureFormat _format;
 
         public ChromeWebBrowserView(GL? gl = null)
         {
             _cpuMode = gl == null;
             _browser = new ChromeWebBrowser(gl);
+            _format = TextureFormat.SBgra32;
             Size = new Size2I(1600, 1200);
             EnableElevation = true;
         }
@@ -125,7 +126,7 @@ namespace XrEngine.Browser.Win
             _texture ??= new Texture2D()
             {
                 Name = "Browser",
-                Format = TextureFormat.Rgba32,
+                Format = _format,
             };
 
             if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
@@ -216,7 +217,7 @@ namespace XrEngine.Browser.Win
                         Data = MemoryBuffer.Create(_browser.FrameBuffer),
                         Width = _browser.Size.Width,
                         Height = _browser.Size.Height,
-                        Format = TextureFormat.Bgra32
+                        Format = _format
                     });
 
                     _lastTexUpdateTime = time;
@@ -226,7 +227,10 @@ namespace XrEngine.Browser.Win
             {
                 if (_texture != null)
                     await _browser.UpdateTextureAsync(_texture);
+
+
             }
+
 
             if (EnableElevation && _browser.Frame != _lastElevFrame)
             {

@@ -9,6 +9,7 @@
         {
         }
 
+
         public IAssetLoader GetLoader(Uri uri)
         {
             var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out var resType));

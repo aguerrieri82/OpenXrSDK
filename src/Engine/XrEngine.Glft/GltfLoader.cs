@@ -1,14 +1,11 @@
-﻿using Common.Interop;
-using glTFLoader.Schema;
+﻿using glTFLoader.Schema;
 using Newtonsoft.Json.Linq;
-using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using TurboJpeg;
 
 using XrMath;
 
@@ -162,43 +159,29 @@ namespace XrEngine.Gltf
                     else
                         throw new NotSupportedException();
 
-                    //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
 
                     Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                    if (img.MimeType == Image.MimeTypeEnum.image_jpeg)
-                    {
-                        var outImg = TurboJpegLib.Decompress(data);
-
-                        Debug.Assert(outImg.Data != null);
-
-                        return new TextureData
-                        {
-                            Data = MemoryBuffer.Create(outImg.Data),
-                            Width = (uint)outImg.Width,
-                            Height = (uint)outImg.Height,
-                            Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                        };
-                    }
-
+                    Uri uri;
+                    var mimeType = img.MimeType.ToString()?.Replace('_', '/');
+                    if (string.IsNullOrEmpty(mimeType))
+                        uri = new Uri("file://" + img.Uri   );
                     else
+                        uri = AssetLoader.Instance.GetMimeUri(mimeType);
+
+                    var loader = (ITextureLoader)AssetLoader.Instance.GetLoader(uri);
+                    
+                    using var stream = new MemoryStream(data);
+
+                    var texData = loader.LoadTexture(stream, new TextureLoadOptions
                     {
-                        using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
-                        return new TextureData
-                        {
-                            Data = MemoryBuffer.Create(image.Bytes),
-                            Width = (uint)image.Width,
-                            Height = (uint)image.Height,
-                            Format = image.ColorType switch
-                            {
-                                SKColorType.Srgba8888 => TextureFormat.SRgba32,
-                                SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
-                                SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                                SKColorType.Gray8 => TextureFormat.GrayInt8,
-                                _ => throw new NotSupportedException()
-                            }
-                        };
-                    }
+                        IsSrgb = useSrgb 
+                    });
+
+                    if (texData.Count == 0)
+                        throw new InvalidOperationException();
+
+                    return texData[0];
 
                 }
                 finally

@@ -546,7 +546,7 @@ namespace XrSamples.Graffiti
 
             if (useFrameBuffer)
             {
-                _sprayFrameBuffer.Bind();
+                _sprayFrameBuffer.BindDraw();
 
                 GlState.Current!.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
 

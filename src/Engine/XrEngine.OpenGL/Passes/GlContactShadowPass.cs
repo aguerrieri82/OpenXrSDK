@@ -158,7 +158,7 @@ namespace XrEngine.OpenGL
 
             _applyProgram.Use();
 
-            GlState.Current!.LoadTexture(_passTarget.ColorTexture!, MASK_TEX_SLOT, true);
+            GlState.Current!.LoadTexture(_passTarget.Color!, MASK_TEX_SLOT, true);
             _applyProgram.SetUniform("uApplyStrength", 1f);
 
             _renderer.State.SetAlphaMode(AlphaMode.Blend);

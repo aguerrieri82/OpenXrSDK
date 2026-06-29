@@ -94,10 +94,8 @@ namespace XrEngine.OpenGL
                 DownsampleFactor = 1.5f
             };
 
-            /*
-            PbrMaterial.LinearOutput = true;
-            PbrMaterial.ToneMap = PbrMaterial.ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
-            */
+            UseSRGB = true;
+            ToneMap = ToneMapMode.Neutral;
         }
 
         public bool UseSRGB { get; set; }
@@ -139,6 +137,8 @@ namespace XrEngine.OpenGL
         public bool CacheUniforms { get; set; }
 
         public bool InvalidateDepth { get; set; }
+
+        public ToneMapMode ToneMap { get; set; }
 
         public static GlRenderOptions Default() => new();
 

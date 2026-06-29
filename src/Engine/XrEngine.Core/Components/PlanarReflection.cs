@@ -283,13 +283,11 @@ namespace XrEngine
         protected override void OnEnabled()
         {
             NotifyMaterials();
-            base.OnEnabled();
         }
 
         protected override void OnDisabled()
         {
             NotifyMaterials();
-            base.OnDisabled();
         }
 
 

@@ -18,13 +18,19 @@ namespace XrEngine.OpenGL
 
         GlTexture GetOrCreateEffect(FramebufferAttachment slot);
 
+        void CopyTo(IGlFrameBuffer dst, ClearBufferMask mask = ClearBufferMask.ColorBufferBit);
+
         void Bind();
+
+        void BindDraw();
+
+        void BindDraw(params DrawBufferMode[] modes);
+
+        void BindRead(ReadBufferMode mode);
 
         void Unbind();
 
         void Check(bool force = false);
-
-        void SetDrawBuffers(params DrawBufferMode[] modes);
 
         Size2I Size { get; }
 

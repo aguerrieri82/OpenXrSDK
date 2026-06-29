@@ -89,6 +89,8 @@ namespace XrEngine
         public bool UseInstanceDraw;
 
         public float Time;
+
+        public bool IsSrgb;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

@@ -80,7 +80,6 @@ namespace XrEngine.OpenGL
             _depth = depthTex;
             _sampleCount = sampleCount;
 
-
             Bind();
 
             BindAttachment(_color, FramebufferAttachment.ColorAttachment0, true);
@@ -99,7 +98,8 @@ namespace XrEngine.OpenGL
             _size = new Size2I(_color.Width, _color.Height);
         }
 
-        public void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw)
+
+        public override void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw)
         {
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
@@ -110,7 +110,7 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
 
                 FramebufferTextureMultisampleMultiviewOVR(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
                     0,
@@ -123,7 +123,7 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
 
                 FramebufferTextureMultiviewOVR!(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
                     0, 0, 2);
@@ -134,7 +134,7 @@ namespace XrEngine.OpenGL
 
         public void Detach(FramebufferAttachment attachment)
         {
-            Bind();
+            BindDraw();
 
             if (_sampleCount > 1)
             {
@@ -142,7 +142,7 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
 
                 FramebufferTextureMultisampleMultiviewOVR(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     attachment,
                     0,
                     0,
@@ -158,7 +158,7 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
 
                 FramebufferTextureMultiviewOVR(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     attachment,
                     0,
                     0, 0, 2);
@@ -166,7 +166,7 @@ namespace XrEngine.OpenGL
                 _gl.CheckError();
             }
 
-            var status = _gl.CheckFramebufferStatus(Target);
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -174,7 +174,7 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
+        public override GlTexture GetOrCreateEffect(FramebufferAttachment slot)
         {
             if (Color == null)
                 throw new NotSupportedException();
@@ -183,9 +183,10 @@ namespace XrEngine.OpenGL
             {
                 var glTex = Color.Clone(false);
 
-                Bind();
+                BindDraw(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
+
                 BindAttachment(glTex, slot, true);
-                SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
+
                 Check();
 
                 obj = glTex;
@@ -196,10 +197,6 @@ namespace XrEngine.OpenGL
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
-            /*
-            if (attachment == FramebufferAttachment.DepthAttachment && _sampleCount > 1)
-                return GlDepthUtils.GetDepthUsingFramebufferArray(_gl, this, 2);
-            */
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return _color;
 
@@ -209,13 +206,13 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public Size2I Size => _size;
+        public override Size2I Size => _size;
 
-        public GlTexture? Color => _color;
+        public override GlTexture? Color => _color;
 
-        public IGlRenderAttachment? Depth => _depth;
+        public override IGlRenderAttachment? Depth => _depth;
 
-        public uint SampleCount => _sampleCount;    
+        public override uint SampleCount => _sampleCount;    
 
     }
 }

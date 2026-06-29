@@ -244,7 +244,7 @@ namespace XrEngine
 
                     var tex2D = AssetLoader.Instance.Load<Texture2D>(texUri, new TextureLoadOptions
                     {
-                        Format = texture.IsSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                        IsSrgb = texture.IsSrgb,
                         MimeType = texture.MimeType
                     });
 

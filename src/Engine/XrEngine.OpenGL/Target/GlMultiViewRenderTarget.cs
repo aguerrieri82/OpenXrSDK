@@ -96,7 +96,7 @@ namespace XrEngine.OpenGL
             camera.ViewSize = _frameBuffer.Size;
             GlState.Current!.SetView(new Rect2I(camera.ViewSize));
 
-            _frameBuffer.Bind();
+            _frameBuffer.BindDraw();
 
             GlMultiViewShaderHandler.Instance.SetCamera(camera);
         }
@@ -104,10 +104,7 @@ namespace XrEngine.OpenGL
         public void End(bool discardDepth)
         {
             if (discardDepth)
-            {
-                _frameBuffer.Bind();
-                _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
-            }
+                _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, DepthStencilAttachment);
 
             _frameBuffer.Unbind();
         }

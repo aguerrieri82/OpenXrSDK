@@ -337,9 +337,22 @@ void main()
 		color3 += uMaterial.emissive.rgb * uMaterial.emissive.a * cosLo;
 	#endif
 	
-	#ifdef TONEMAP
-		color3 = linearTosRGB(toneMapNeutral(color3));
+
+	#ifdef TONE_MAP
+
+		#if TONE_MAP == 1
+			color3.rgb = toneMap(color3.rgb);
+		#endif
+
+		#if TONE_MAP == 2
+			color3.rgb = toneMapNeutral(color3.rgb);
+		#endif
+
+		#ifdef SRGB
+			color3.rgb = linearTosRGB(color3.rgb);
+		#endif
 	#endif
+
 
 	//Blend
 	#if ALPHA_MODE == 2

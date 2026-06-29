@@ -1,4 +1,5 @@
 ﻿using XrEngine;
+using XrEngine.Transcoder;
 
 
 [assembly: Module(typeof(XrEngine.Module))]
@@ -25,6 +26,7 @@ namespace XrEngine
             assetLoader.Register(PkmReader.Instance);
             assetLoader.Register(PvrTranscoder.Instance);
             assetLoader.Register(ObjReader.Instance);
+            assetLoader.Register(JpgReader.Instance);
             assetLoader.Register(new QuixelMaterialReader());
 
             var typeState = TypeStateManager.Instance;

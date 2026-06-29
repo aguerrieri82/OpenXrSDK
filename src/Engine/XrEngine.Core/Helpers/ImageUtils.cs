@@ -360,6 +360,8 @@ namespace XrEngine
 
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
+            throw new NotImplementedException("Fix with srgb, does shit");
+
             //do always for  SKAlphaType.Unpremul
             /*
             if (src.ColorType == dest)

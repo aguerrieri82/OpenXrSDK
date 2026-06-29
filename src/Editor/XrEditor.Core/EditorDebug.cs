@@ -19,7 +19,7 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
-        public static readonly bool DisableDualRender = false;
+        public static readonly bool DisableDualRender = true;
         
 
         public static readonly string[] AssetsPath = [
@@ -30,7 +30,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -51,11 +51,13 @@ namespace XrEditor
 
                   opt.ContactShadow.Use = false;
                   opt.ContactShadow.IsMultiView = false;
+                  opt.UseSRGB = true;
+                  opt.ToneMap = ToneMapMode.Neutral;
 
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
-              .CreateRoomManager()  
+              .CreateHelmet()  
                //.CreateDepthSnapeshot()
               .Build();
     }

@@ -125,7 +125,7 @@ namespace XrEngine.OpenGL
         {
             _frameBuffer ??= GlTempAllocator.FrameBuffer(gl);
             _frameBuffer.Configure(color, depth, 1);
-            _frameBuffer.Bind();
+            _frameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
             return _frameBuffer;
         }
 
@@ -133,7 +133,7 @@ namespace XrEngine.OpenGL
         {
             _frameBuffer ??= GlTempAllocator.FrameBuffer(gl);
             _frameBuffer.Configure(color, colorIndex, null, 0, 1);
-            _frameBuffer.Bind();
+            _frameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
             return _frameBuffer;
         }
 
@@ -146,40 +146,22 @@ namespace XrEngine.OpenGL
             gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
-        /*
-        public static void DrawGeometry(GL gl, Geometry3D geo, Texture2D srcImge, GlTexture dstImage, string fragName)
+        public static GlTexture GetDepth(GL gl, IGlFrameBuffer src)
         {
-            EngineNativeLib.RdcStartFrameCapture();
+            var depth = GlTempAllocator.StaticTexture(gl, src.Depth!.Width, src.Depth.Height, 1, src.Depth.InternalFormat.GetTextureFormat());
 
-            PrepareFrameBuffer(gl, dstImage);
+            var fb = PrepareFrameBuffer(gl, null, (IGlRenderAttachment)depth);
+            
+            fb.BindDraw(DrawBufferMode.None);
 
-            var prog = LoadProgram(gl, fragName, "image_proc.vert");
+            src.BindRead(ReadBufferMode.None);
 
-            prog.Use();
-            prog.LoadTexture(srcImge, 0);
+            gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
+                                0, 0, (int)depth.Width, (int)depth.Height,
+                                ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
 
-            var mesh = new TriangleMesh(geo);
-
-            using var vs = new GlVertexSourceHandler<VertexData, uint>(gl, mesh);
-            vs.Update();
-
-            GlState.Current!.SetView(new Rect2I
-            {
-                Width = dstImage.Width,
-                Height = dstImage.Height
-            });
-
-            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
-            GlState.Current.SetWriteDepth(false);
-            GlState.Current.SetUseDepth(false);
-            GlState.Current.SetWriteColor(true);
-
-            vs.Bind();
-            vs.Draw();
-
-            EngineNativeLib.RdcEndFrameCapture(false);
+            return depth;
         }
-        */
 
         public static void DrawQuad(GL gl)
         {
@@ -189,7 +171,7 @@ namespace XrEngine.OpenGL
         public static void CopyDepth(IGlFrameBuffer src, GlTexture dst)
         {
             CopyDepth((GlTexture)src.Depth!, dst);
-            src.Bind();
+            src.BindDraw();
         }
 
         public static void CopyDepth(GlTexture src, GlTexture dst)

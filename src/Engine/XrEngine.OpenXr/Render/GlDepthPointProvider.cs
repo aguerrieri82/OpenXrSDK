@@ -88,7 +88,7 @@ namespace XrEngine.OpenXr
 
             using var data = buffer.MemoryLock();
 
-            fb.SetReadBuffer(ReadBufferMode.ColorAttachment0);
+            fb.BindRead(ReadBufferMode.ColorAttachment0);
 
             _gl.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.Rgb, PixelType.Float, data.Data);
 

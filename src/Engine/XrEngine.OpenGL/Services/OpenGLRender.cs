@@ -85,6 +85,7 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
+
             _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass && !options.ContactShadow.Use, options.SampleCount);
             _target = _defaultTarget;
 
@@ -136,8 +137,9 @@ namespace XrEngine.OpenGL
                 Context.Implement<IViewHitTest>(hitTest);
             }
 
-            _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
+            _renderPasses.Add(new GlResolvePass(this));
 
+            _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
             var exts = GetExtensions();
             foreach (var ex in exts)
@@ -194,7 +196,9 @@ namespace XrEngine.OpenGL
         protected void ConfigureCaps()
         {
             _gl.FrontFace(FrontFaceDirection.Ccw);
+            
             _glState.SetCullFace(TriangleFace.Back);
+
             _glState.EnableFeature(EnableCap.FramebufferSrgb, _options.UseSRGB);
             _glState.EnableFeature(EnableCap.Dither, true);
             _glState.EnableFeature(EnableCap.Multisample, true);
@@ -205,9 +209,6 @@ namespace XrEngine.OpenGL
             _gl.Disable(EnableCap.SampleAlphaToCoverage);
             _gl.Disable(EnableCap.SampleAlphaToOne);
             _gl.Disable(EnableCap.SampleCoverage);
-
-            PbrV2Material.SHADER.ToneMap = !_options.UseSRGB;
-
         }
 
         public void ConfigureCaps(ShaderMaterial material)
@@ -424,6 +425,16 @@ namespace XrEngine.OpenGL
             _updateCtx.Time = (float)ctx.Time;
             _updateCtx.ContextVersion++;
 
+            if (!GlState.Current!.Features.TryGetValue(EnableCap.FramebufferSrgb, out _updateCtx.IsSrgb))
+                _updateCtx.IsSrgb = false;
+
+            if (_updateCtx.IsSrgb && RenderTarget is IGlFrameBufferProvider prov)
+            {
+                var color = prov.FrameBuffer.Color;
+                if (color != null && !color.InternalFormat.IsSrgb())
+                    _updateCtx.IsSrgb = false;
+            }
+
             foreach (var pass in _renderPasses)
                 pass.Configure(ctx);
 
@@ -468,6 +479,11 @@ namespace XrEngine.OpenGL
         public void SetRenderTarget(IGlRenderTarget? target)
         {
             _target = target ?? _defaultTarget;
+        }
+
+        public void SetRenderTargetDefault()
+        {
+            _target = _defaultTarget;
         }
 
 
@@ -564,60 +580,6 @@ namespace XrEngine.OpenGL
         #endregion
 
         #region IIBLPanoramaProcessor
-
-        /*
-        public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
-        {
-            Log.Info(this, "Processing IBL Panorama");
-
-            using var processor = new GlIBLProcessor(_gl);
-
-            processor.Resolution = options.Resolution;
-            processor.SampleCount = options.SampleCount;
-            processor.LodBias = options.LodBias;
-            processor.MipLevelCount = options.MipLevelCount;
-
-            processor.Initialize(data, options.ShaderResolver!);
-
-            processor.PanoramaToCubeMap();
-
-            var result = new PbrMaterial.IBLTextures
-            {
-                MipCount = processor.MipLevelCount
-            };
-
-            uint envId, lutId;
-
-            result.Env = (TextureCube)_gl.TexIdToEngineTexture(processor.OutCubeMapId);
-
-            if ((options.Mode & IBLProcessMode.Lambertian) == IBLProcessMode.Lambertian)
-            {
-                processor.ApplyFilter(GlIBLProcessor.Distribution.Lambertian, out envId, out lutId);
-
-                result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
-
-            }
-            if ((options.Mode & IBLProcessMode.Charlie) == IBLProcessMode.Charlie)
-            {
-                processor.ApplyFilter(GlIBLProcessor.Distribution.Charlie, out envId, out lutId);
-
-                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
-                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId);
-
-            }
-            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
-            {
-                processor.ApplyFilter(GlIBLProcessor.Distribution.GGX, out envId, out lutId);
-
-                result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
-                result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId);
-            }
-
-            Log.Debug(this, "Processing IBL Panorama OK");
-
-            return result;
-        }
-        */
 
         public IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {

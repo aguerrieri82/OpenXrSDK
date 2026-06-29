@@ -40,11 +40,11 @@ namespace XrEngine.OpenGL
             float depth = 1;
             var txY = _lastSize.Height - y;
 
-            _passTarget.FrameBuffer!.Bind();
+            _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment0);
 
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.RGInteger, PixelType.UnsignedInt, ids);
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment1);
+
+            _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment1);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgb, PixelType.Float, &normal);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.DepthComponent, PixelType.Float, &depth);
 

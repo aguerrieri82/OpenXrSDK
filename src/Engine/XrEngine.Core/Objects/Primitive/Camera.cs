@@ -25,6 +25,7 @@ namespace XrEngine
         protected Matrix4x4 _viewProjInverse;
         protected Vector3 _target;
         protected bool _viewProjDirty = true;
+        protected Size2I _viewSize;
         protected bool _projDirty = true;
         protected bool _projInverseDirty = true;
         protected float _near;
@@ -226,7 +227,24 @@ namespace XrEngine
             {
                 if (_far == value)
                     return;
+                
                 _far = value;
+                
+                _projDirty = true;
+                _viewProjDirty = true;
+            }
+        }
+
+        public Size2I ViewSize
+        {
+            get => _viewSize;
+            set
+            {
+                if (_viewSize.Width == value.Width && _viewSize.Height == value.Height)
+                    return;
+                
+                _viewSize = value;
+
                 _projDirty = true;
                 _viewProjDirty = true;
             }
@@ -239,7 +257,7 @@ namespace XrEngine
 
         public int ActiveEye { get; set; }
 
-        public Size2I ViewSize { get; set; }
+
 
         public bool IsStereo { get; set; }
 

@@ -11,6 +11,6 @@ namespace XrEngine
         public const int Material = 2;
         public const int Model = 3;
         public const int Ibl = 4;
-        public const int MultiView = 5;
+        public const int MultiView = 10;
     }
 }

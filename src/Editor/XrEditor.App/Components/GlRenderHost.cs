@@ -1,14 +1,13 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.OpenGL;
 using Silk.NET.Core.Contexts;
+using Silk.NET.WGL;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using XrEngine;
 using XrEngine.OpenGL;
-using Silk.NET.WGL;
-using Tensorflow.Keras.Layers;
-
+using OpenTK.Graphics.Wgl;
 
 
 #if GLES
@@ -16,7 +15,6 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
-
 
 namespace XrEditor
 {
@@ -29,61 +27,135 @@ namespace XrEditor
         protected nint _glCtx;
         protected nint _hdc;
         protected bool _useEs;
-        protected static wglCreateContextAttribsARBPtr? CreateContextAttribsARB;
-        protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
 
-        #region NATIVE
+        protected static wglCreateContextAttribsARBPtr? CreateContextAttribsARB;
+        protected static wglChoosePixelFormatARBPtr? ChoosePixelFormatARB;
+        protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
+        protected static wglGetPixelFormatAttribivARBPtr? GetPixelFormatAttribivARB;
+
+        #region Native
 
         protected delegate bool wglSwapIntervalEXTPtr(int interval);
 
-        protected unsafe delegate nint wglCreateContextAttribsARBPtr(nint hDC, nint hshareContext, int* attribList);
+        protected delegate nint wglCreateContextAttribsARBPtr(
+            nint hDC,
+            nint hshareContext,
+            int[] attribList);
 
-        [DllImport("User32.dll")]
-        static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+        protected delegate bool wglChoosePixelFormatARBPtr(
+            nint hdc,
+            int[] piAttribIList,
+            float[]? pfAttribFList,
+            uint nMaxFormats,
+            out int piFormats,
+            out uint nNumFormats);
 
-        [DllImport("User32.dll")]
-        static extern IntPtr GetDC(IntPtr hWnd);
+        protected delegate bool wglGetPixelFormatAttribivARBPtr(
+            nint hdc,
+            int iPixelFormat,
+            int iLayerPlane,
+            uint nAttributes,
+            int[] piAttributes,
+            int[] piValues);
+
+
+
+        private delegate nint WndProc2(nint hWnd, uint msg, nint wParam, nint lParam);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct WNDCLASS
+        {
+            public uint style;
+            public WndProc2 lpfnWndProc;
+            public int cbClsExtra;
+            public int cbWndExtra;
+            public nint hInstance;
+            public nint hIcon;
+            public nint hCursor;
+            public nint hbrBackground;
+            public string? lpszMenuName;
+            public string lpszClassName;
+        }
+
+        private const int ERROR_CLASS_ALREADY_EXISTS = 1410;
+
+        private const int CS_OWNDC = 0x0020;
+        private const int CW_USEDEFAULT = unchecked((int)0x80000000);
+        private const int WS_OVERLAPPEDWINDOW = 0x00CF0000;
+
+        private const byte PFD_TYPE_RGBA = 0;
+        private const byte PFD_MAIN_PLANE = 0;
+
+        private const uint PFD_DOUBLEBUFFER = 0x00000001;
+        private const uint PFD_DRAW_TO_WINDOW = 0x00000004;
+        private const uint PFD_SUPPORT_OPENGL = 0x00000020;
+        private const uint PFD_DIRECT3D_ACCELERATED = 0x00004000;
+        private const uint PFD_SUPPORT_COMPOSITION = 0x00008000;
+
+        private const int WGL_DRAW_TO_WINDOW_ARB = 0x2001;
+        private const int WGL_SUPPORT_OPENGL_ARB = 0x2010;
+        private const int WGL_DOUBLE_BUFFER_ARB = 0x2011;
+        private const int WGL_PIXEL_TYPE_ARB = 0x2013;
+        private const int WGL_TYPE_RGBA_ARB = 0x202B;
+
+        private const int WGL_COLOR_BITS_ARB = 0x2014;
+        private const int WGL_ALPHA_BITS_ARB = 0x201B;
+        private const int WGL_DEPTH_BITS_ARB = 0x2022;
+        private const int WGL_STENCIL_BITS_ARB = 0x2023;
+        private const int WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB = 0x20A9;
+
+        private const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
+        private const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
+        private const int WGL_CONTEXT_PROFILE_MASK_ARB = 0x9126;
+        private const int WGL_CONTEXT_CORE_PROFILE_BIT_ARB = 0x00000001;
+        private const int WGL_CONTEXT_ES_PROFILE_BIT_EXT = 0x00000004;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern nint GetModuleHandle(string? lpModuleName);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern ushort RegisterClassW(ref WNDCLASS lpWndClass);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern nint CreateWindowExW(
+            int dwExStyle,
+            string lpClassName,
+            string lpWindowName,
+            int dwStyle,
+            int x,
+            int y,
+            int nWidth,
+            int nHeight,
+            nint hWndParent,
+            nint hMenu,
+            nint hInstance,
+            nint lpParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool DestroyWindow(nint hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern nint DefWindowProcW(nint hWnd, uint msg, nint wParam, nint lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern nint GetDC(nint hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int ReleaseDC(nint hWnd, nint hDC);
 
         [DllImport("gdi32.dll")]
-        static extern int SwapBuffers(IntPtr hDC);
-
-        const byte PFD_TYPE_RGBA = 0;
-        const byte PFD_TYPE_COLORINDEX = 1;
-
-        const uint PFD_DOUBLEBUFFER = 1;
-        const uint PFD_STEREO = 2;
-        const uint PFD_DRAW_TO_WINDOW = 4;
-        const uint PFD_DRAW_TO_BITMAP = 8;
-        const uint PFD_SUPPORT_GDI = 16;
-        const uint PFD_SUPPORT_OPENGL = 32;
-        const uint PFD_GENERIC_FORMAT = 64;
-        const uint PFD_NEED_PALETTE = 128;
-        const uint PFD_NEED_SYSTEM_PALETTE = 256;
-        const uint PFD_SWAP_EXCHANGE = 512;
-        const uint PFD_SWAP_COPY = 1024;
-        const uint PFD_SWAP_LAYER_BUFFERS = 2048;
-        const uint PFD_GENERIC_ACCELERATED = 4096;
-        const uint PFD_SUPPORT_DIRECTDRAW = 8192;
-        const uint PFD_DIRECT3D_ACCELERATED = 0x00004000;
-        const uint PFD_SUPPORT_COMPOSITION = 0x00008000;
-
-        const sbyte PFD_MAIN_PLANE = 0;
-        const sbyte PFD_OVERLAY_PLANE = 1;
-        const sbyte PFD_UNDERLAY_PLANE = -1;
-
-        const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
-        const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
-        const int WGL_CONTEXT_PROFILE_MASK_ARB = 0x9126;
-        const int WGL_CONTEXT_CORE_PROFILE_BIT_ARB = 0x00000001;
-        const int WGL_CONTEXT_ES_PROFILE_BIT_EXT = 0x00000004;
-        const int WGL_SAMPLE_BUFFERS_ARB = 0x2041;
-        const int WGL_SAMPLES_ARB = 0x2042;
+        private static extern int SwapBuffers(nint hDC);
 
         #endregion
 
+        private static readonly WndProc2 DummyWndProc = DefWindowProcW;
+
         public GlRenderHost(bool createContext = true, bool useEs = false)
         {
-            _wgl = WGL.GetApi();
+            DefaultNativeContext.TryCreate("Opengl32.dll", out var opengl);
+            DefaultNativeContext.TryCreate("Gdi32.dll", out var gdi);
+
+            _wgl = new WGL(new MultiNativeContext(gdi, opengl));
 
             _createContext = createContext;
             _useEs = useEs;
@@ -91,79 +163,190 @@ namespace XrEditor
 
         protected unsafe virtual void CreateContext(HandleRef handle)
         {
-            var pfd = new PixelFormatDescriptor
+            CreateDummyWglContext( out var dummyWnd, out var dummyHdc, out var dummyCtx);
+
+            LoadWglExtensions();
+
+            DestroyDummyWglContext(dummyWnd, dummyHdc, dummyCtx);
+
+            _hdc = GetDC(handle.Handle);
+
+            if (_hdc == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            var pfd = CreatePixelFormatDescriptor();
+
+            int[] pfAttribs =
+            [
+                WGL_DRAW_TO_WINDOW_ARB, 1,
+                    WGL_SUPPORT_OPENGL_ARB, 1,
+                    WGL_DOUBLE_BUFFER_ARB, 1,
+                    WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+
+                    WGL_COLOR_BITS_ARB, 24,
+                    WGL_ALPHA_BITS_ARB, 8,
+                    WGL_DEPTH_BITS_ARB, 24,
+                    WGL_STENCIL_BITS_ARB, 8,
+
+                    WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, 1,
+
+                    0
+            ];
+
+            if (!ChoosePixelFormatARB!(_hdc, pfAttribs, null, 1, out var pixelFormat, out var numFormats) ||
+                numFormats == 0)
+            {
+                throw new NotSupportedException("No sRGB-capable WGL pixel format found.");
+            }
+
+            if (!_wgl.SetPixelFormat(_hdc, pixelFormat, ref pfd))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            int[] attr;
+
+            if (!_useEs)
+            {
+                attr = [
+                    WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+                    WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+                    WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                    0,
+                ];
+            }
+            else
+            {
+                attr = [
+                    WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+                    WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+                    WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_ES_PROFILE_BIT_EXT,
+                    0,
+                ];
+            }
+
+            _glCtx = CreateContextAttribsARB!(_hdc, 0, attr);
+
+            if (_glCtx == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            TakeContext();
+        }
+
+        private void LoadWglExtensions()
+        {
+            ChoosePixelFormatARB = Marshal.GetDelegateForFunctionPointer
+                <wglChoosePixelFormatARBPtr>(_wgl.GetProcAddress("wglChoosePixelFormatARB"));
+
+            CreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer
+                <wglCreateContextAttribsARBPtr>(_wgl.GetProcAddress("wglCreateContextAttribsARB"));
+
+            GetPixelFormatAttribivARB = Marshal.GetDelegateForFunctionPointer
+                <wglGetPixelFormatAttribivARBPtr>(
+                    _wgl.GetProcAddress("wglGetPixelFormatAttribivARB"));
+        }
+
+        private static PixelFormatDescriptor CreatePixelFormatDescriptor()
+        {
+            return new PixelFormatDescriptor
             {
                 NSize = (ushort)Marshal.SizeOf<PixelFormatDescriptor>(),
                 NVersion = 1,
                 IPixelType = PFD_TYPE_RGBA,
-                DwFlags = PFD_SUPPORT_OPENGL | PFD_SUPPORT_COMPOSITION | PFD_DIRECT3D_ACCELERATED | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-                ILayerType = (byte)PFD_MAIN_PLANE,
+                DwFlags =
+                    PFD_SUPPORT_OPENGL |
+                    PFD_SUPPORT_COMPOSITION |
+                    PFD_DIRECT3D_ACCELERATED |
+                    PFD_DRAW_TO_WINDOW |
+                    PFD_DOUBLEBUFFER,
+                ILayerType = PFD_MAIN_PLANE,
                 CColorBits = 24,
                 CAlphaBits = 8,
                 CDepthBits = 24,
                 CStencilBits = 8
             };
+        }
 
-            DefaultNativeContext.TryCreate("Opengl32.dll", out var opengl);
-            DefaultNativeContext.TryCreate("Gdi32.dll", out var gdi);
+        private void CreateDummyWglContext(
+            out nint dummyWnd,
+            out nint dummyHdc,
+            out nint dummyCtx)
+        {
+            var hInstance = GetModuleHandle(null);
+            var className = "XrEngineDummyWglWindow";
 
-            var wgl = new WGL(new MultiNativeContext(gdi,opengl));
-
-            _hdc = GetDC(handle.Handle);
-
-            var pfIndex = wgl.ChoosePixelFormat(_hdc, ref pfd);
-            if (pfIndex <= 0)
-                throw new Win32Exception();
-
-            if (!wgl.SetPixelFormat(_hdc, pfIndex, ref pfd))
-                throw new Win32Exception();
-
-            _glCtx = wgl.CreateContext(_hdc);
-
-            if (_glCtx == IntPtr.Zero)
-                throw new Win32Exception();
-
-            TakeContext();
-
-            // EnableVSync(false);
-
-            CreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer
-                <wglCreateContextAttribsARBPtr>(wgl.GetProcAddress("wglCreateContextAttribsARB"));
-
-            var attr = stackalloc int[11];
-
-            if (!_useEs)
+            var wc = new WNDCLASS
             {
-                attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-                attr[1] = 4;
+                style = CS_OWNDC,
+                lpfnWndProc = DummyWndProc,
+                hInstance = hInstance,
+                lpszClassName = className
+            };
 
-                attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-                attr[3] = 6;
+            var atom = RegisterClassW(ref wc);
 
-                attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-                attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-            }
-            else
+            if (atom == 0)
             {
-                attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-                attr[1] = 3;
+                var error = Marshal.GetLastWin32Error();
 
-                attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-                attr[3] = 2;
-
-                attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-                attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
+                if (error != ERROR_CLASS_ALREADY_EXISTS)
+                    throw new Win32Exception(error);
             }
 
-            attr[6] = 0;
-            /*
-            attr[6] = WGL_SAMPLE_BUFFERS_ARB;
-            attr[7] = 1;
-            
-            attr[8] = WGL_SAMPLES_ARB;
-            attr[9] = 4;
-            */
-            _glCtx = CreateContextAttribsARB(_hdc, _glCtx, attr);
+            dummyWnd = CreateWindowExW(
+                0,
+                className,
+                "Dummy WGL",
+                WS_OVERLAPPEDWINDOW,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                1,
+                1,
+                0,
+                0,
+                hInstance,
+                0);
+
+            if (dummyWnd == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            dummyHdc = GetDC(dummyWnd);
+
+            if (dummyHdc == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            var pfd = CreatePixelFormatDescriptor();
+
+            var pixelFormat = _wgl.ChoosePixelFormat(dummyHdc, ref pfd);
+
+            if (pixelFormat <= 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            if (!_wgl.SetPixelFormat(dummyHdc, pixelFormat, ref pfd))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            dummyCtx = _wgl.CreateContext(dummyHdc);
+
+            if (dummyCtx == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            if (!_wgl.MakeCurrent(dummyHdc, dummyCtx))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        private void DestroyDummyWglContext(
+            nint dummyWnd,
+            nint dummyHdc,
+            nint dummyCtx)
+        {
+            _wgl.MakeCurrent(0, 0);
+
+            if (dummyCtx != 0)
+                _wgl.DeleteContext(dummyCtx);
+
+            if (dummyHdc != 0 && dummyWnd != 0)
+                ReleaseDC(dummyWnd, dummyHdc);
+
+            if (dummyWnd != 0)
+                DestroyWindow(dummyWnd);
         }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -197,18 +380,17 @@ namespace XrEditor
             return render;
         }
 
-
         public override void EnableVSync(bool enable, int scale = 1)
         {
             SwapIntervalEXT ??= Marshal.GetDelegateForFunctionPointer
-                    <wglSwapIntervalEXTPtr>(_wgl.GetProcAddress("wglSwapIntervalEXT"));
+                <wglSwapIntervalEXTPtr>(_wgl.GetProcAddress("wglSwapIntervalEXT"));
 
-            var res = SwapIntervalEXT(enable ? scale : 0);
+            _ = SwapIntervalEXT(enable ? scale : 0);
         }
 
         public override void SwapBuffers()
         {
-           SwapBuffers(_hdc);
+            SwapBuffers(_hdc);
         }
 
         protected override void DestroyWindowCore(HandleRef hwnd)
@@ -225,13 +407,12 @@ namespace XrEditor
             base.DestroyWindowCore(hwnd);
         }
 
-
         public override void ReleaseContext()
         {
             if (_hdc == 0)
                 return;
 
-            if (!_wgl.MakeCurrent(_hdc, IntPtr.Zero))
+            if (!_wgl.MakeCurrent(_hdc, 0))
                 throw new Win32Exception();
         }
 
@@ -239,6 +420,7 @@ namespace XrEditor
         {
             if (!_wgl.MakeCurrent(_hdc, _glCtx))
                 throw new Win32Exception();
+
             return true;
         }
 
@@ -250,14 +432,16 @@ namespace XrEditor
         public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
         {
             addr = GetProcAddress(proc);
-            return addr != IntPtr.Zero;
+            return addr != 0;
         }
 
         public nint GetProcAddress(string proc, int? slot = null)
         {
-            var addr = _wgl.Context.GetProcAddress(proc);
-            if (addr == IntPtr.Zero)
+            _wgl.Context.TryGetProcAddress(proc, out var addr);
+
+            if (addr == 0)
                 addr = _wgl.GetProcAddress(proc);
+
             return addr;
         }
 

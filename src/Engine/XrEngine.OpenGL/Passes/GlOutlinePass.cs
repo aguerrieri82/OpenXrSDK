@@ -46,7 +46,8 @@ namespace XrEngine.OpenGL
                     BoundEye = boundEye,
                     DepthMode = TargetDepthMode.None,
                     IsMultiView = isMultiView,
-                    UseMultiViewTarget = true
+                    UseMultiViewTarget = true,
+                    Id = "temp"
                 };
             }
 
@@ -152,7 +153,7 @@ namespace XrEngine.OpenGL
                 _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
             }
 
-            _outlineMat.Texture = _passTarget.ColorTexture!.ToEngineTexture();
+            _outlineMat.Texture = _passTarget.Color!.ToEngineTexture();
 
             UseEffect(_outlineMat);
 
@@ -172,7 +173,7 @@ namespace XrEngine.OpenGL
                         (uint)(_bounds.Size.X * _downsampleFactor),
                         (uint)(_bounds.Size.Y * _downsampleFactor));
 
-                OverlayTexture(_tempTarget.ColorTexture!, _passTarget.IsMultiView);
+                OverlayTexture(_tempTarget.Color!, _passTarget.IsMultiView);
             }
 
             if (UseScissor)

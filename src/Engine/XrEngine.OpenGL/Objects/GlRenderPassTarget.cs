@@ -28,7 +28,7 @@ namespace XrEngine.OpenGL
             public bool IsMutable;
         }
 
-        private bool _mustDisposeColor;
+
         private IGlRenderTarget? _renderTarget;
         private GlTexture? _colorTexture;
         private IGlRenderAttachment? _depthBuffer;
@@ -36,6 +36,7 @@ namespace XrEngine.OpenGL
         private readonly List<ExtraTexture> _extras = [];
         private bool _isDirty;
         private GlTexture? _lastColorTexture;
+
 
         public GlRenderPassTarget(GL gL)
         {
@@ -101,68 +102,26 @@ namespace XrEngine.OpenGL
                 updateTarget = true;
             }
 
+            var texId = string.IsNullOrEmpty(Id) ? "static" : Id;
+
             if (_colorTexture == null || _colorTexture.Width != width || _colorTexture.Height != height)
             {
-                if (_mustDisposeColor)
-                    _colorTexture?.Dispose();
+                _colorTexture?.Dispose();
 
-                _colorTexture = new GlTexture(_gl)
-                {
-                    MinFilter = _colorTexture?.MinFilter ?? TextureMinFilter.Linear,
-                    MagFilter = _colorTexture?.MagFilter ?? TextureMagFilter.Linear,
-                    WrapS = _colorTexture?.WrapS ?? TextureWrapMode.ClampToEdge,
-                    WrapT = _colorTexture?.WrapT ?? TextureWrapMode.ClampToEdge,
-                    BorderColor = _colorTexture?.BorderColor ?? Color.White,
-                    MaxLevel = 0,
-                    EnableDebug = false,
-                    Target = arrayDepth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
-                };
-
-                _colorTexture.Update(new TextureData
-                {
-                    Depth = arrayDepth,
-                    Width = width,
-                    Height = height,
-                    Format = format
-                });
-
-                _mustDisposeColor = true;
+                _colorTexture = GlTempAllocator.StaticTexture(_gl, width, height, arrayDepth, format, texId);
+                _colorTexture.EnableDebug = false;
 
                 isColorChanged = true;
             }
 
             if (DepthMode == TargetDepthMode.Create && (_depthBuffer == null || isColorChanged))
             {
+                _depthBuffer?.Dispose();
+
                 if (IsMultiView)
-                {
-                    _depthBuffer?.Dispose();
-
-                    _depthBuffer = new GlTexture(_gl)
-                    {
-                        MinFilter = TextureMinFilter.Nearest,
-                        MagFilter = TextureMagFilter.Nearest,
-                        MaxLevel = 0,
-                        Target = TextureTarget.Texture2DArray
-                    };
-
-                    ((GlTexture)_depthBuffer).Update(new TextureData
-                    {
-                        Depth = 2,
-                        Width = width,
-                        Height = height,
-                        Format = DepthFormat
-                    });
-                }
+                    _depthBuffer = GlTempAllocator.StaticTexture(_gl, width, height, 2, DepthFormat, texId);
                 else
-                {
-                    _depthBuffer ??= new GlRenderBuffer(_gl);
-
-                    ((GlRenderBuffer)_depthBuffer!).Update(
-                         width,
-                         height,
-                         1,
-                         GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed));
-                }
+                    _depthBuffer = GlTempAllocator.StaticRenderBuffer(_gl, width, height, DepthFormat, texId);
             }
 
             if (DepthMode == TargetDepthMode.Existing)
@@ -189,13 +148,7 @@ namespace XrEngine.OpenGL
                         Target = arrayDepth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                     };
 
-                    extra.Texture.Update(new TextureData
-                    {
-                        Depth = arrayDepth,
-                        Width = width,
-                        Height = height,
-                        Format = extra.Format
-                    });
+                    extra.Texture.Allocate(width, height, arrayDepth, extra.Format);
 
                     if (extra.Attachment != null)
                         FrameBuffer!.BindAttachment(extra.Texture, extra.Attachment.Value, true);
@@ -225,12 +178,7 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            if (_mustDisposeColor)
-                _colorTexture?.Dispose();
-
-            if (DepthMode == TargetDepthMode.Create)
-                _depthBuffer?.Dispose();
-
+           
             foreach (var extra in _extras)
                 extra.Texture?.Dispose();
 
@@ -243,9 +191,9 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public GlTexture? ColorTexture => _colorTexture;
+        public GlTexture? Color => _colorTexture;
 
-        public IGlRenderAttachment? DepthBuffer => _depthBuffer;
+        public IGlRenderAttachment? Depth => _depthBuffer;
 
         public IGlFrameBuffer? FrameBuffer => ((IGlFrameBufferProvider?)_renderTarget)?.FrameBuffer;
 
@@ -260,5 +208,7 @@ namespace XrEngine.OpenGL
         public TargetDepthMode DepthMode { get; set; }
 
         public TextureFormat DepthFormat { get; set; }
+
+        public string? Id { get;  set; }
     }
 }

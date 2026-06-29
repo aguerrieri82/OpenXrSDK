@@ -22,16 +22,14 @@ namespace XrEngine.OpenGL
         {
             camera.ViewSize = _frameBuffer.Size;
             GlState.Current!.SetView(new Rect2I(camera.ViewSize));
-            _frameBuffer.Bind();
+            _frameBuffer.BindDraw();
         }
 
         public void End(bool discardDepth)
         {
             if (discardDepth && _frameBuffer.Depth != null)
-            {
-                _frameBuffer.Bind();
                 _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
-            }
+
             _frameBuffer.Unbind();
         }
 

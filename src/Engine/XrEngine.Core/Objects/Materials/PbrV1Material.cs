@@ -1045,12 +1045,6 @@ namespace XrEngine
             }
         }
 
-        bool IPbrMaterial.ToneMap
-        {
-            get => ToneMap != ToneMapType.TONEMAP_NONE;
-            set => ToneMap = value ? ToneMapType.TONEMAP_KHR_PBR_NEUTRAL : ToneMapType.TONEMAP_NONE;
-        }
-
         uint IPbrMaterial.ColorMapUVSet
         {
             get => (uint)(MetallicRoughness?.BaseColorUVSet ?? 0);

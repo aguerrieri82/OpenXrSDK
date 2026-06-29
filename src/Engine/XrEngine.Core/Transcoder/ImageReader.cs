@@ -9,7 +9,7 @@ namespace XrEngine
 {
     public class ImageReader : BaseTextureLoader
     {
-        static readonly string[] Extensions = [".png", ".jpg", ".bmp"];
+        static readonly string[] Extensions = [".bmp"];
 
         ImageReader()
         {
@@ -17,29 +17,11 @@ namespace XrEngine
 
         public override IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            if (options?.MimeType == "image/jpeg" && (options?.Format == null || options.Format == TextureFormat.Rgba32))
-            {
-                var buffer = new byte[stream.Length];
-                stream.ReadExactly(buffer);
-
-                var imgData = TurboJpegLib.Decompress(buffer);
-                Debug.Assert(imgData.Data != null);
-
-                return [new TextureData
-                {
-                    Width = (uint)imgData.Width,
-                    Height = (uint)imgData.Height,
-                    Format = TextureFormat.Rgba32,
-                    Data = MemoryBuffer.Create(imgData.Data),
-                }];
-            }
-
             var image = SKBitmap.Decode(stream);
 
             var outFormat = options?.Format;
             if (outFormat != null)
                 image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetSkFormat(outFormat.Value));
-
 
             var data = new TextureData
             {

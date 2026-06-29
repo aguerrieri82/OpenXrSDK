@@ -4,6 +4,7 @@ using CefSharp.OffScreen;
 using Silk.NET.OpenGL;
 using System.Globalization;
 using System.Numerics;
+using System.Reflection.Metadata;
 using System.Text.Json;
 using XrEngine.UI.Web;
 using XrMath;
@@ -22,7 +23,7 @@ namespace XrEngine.Browser.Win
         protected string? _startUrl;
         protected readonly GL? _gl;
         protected long _frame;
-
+        private GlRenderHandler? _handler;
 
         public ChromeWebBrowser(GL? gl = null)
         {
@@ -68,10 +69,12 @@ namespace XrEngine.Browser.Win
 
             if (_gl != null)
             {
-                _browser.RenderHandler = new GlRenderHandler(
+                _handler = new GlRenderHandler(
                     _gl,
                     (int)Size.Width,
                     (int)Size.Height);
+
+                _browser.RenderHandler = _handler;
             }
             else
             {
@@ -145,7 +148,7 @@ namespace XrEngine.Browser.Win
                 {
                     Width = Size.Width,
                     Height = Size.Height,
-                    Format = TextureFormat.Bgra32
+                    Format = tex.Format
                 });
             }
 
@@ -307,6 +310,6 @@ namespace XrEngine.Browser.Win
 
         public Vector2 StereoPixelsPerMeter { get; set; }
 
-        public long Frame => _frame;
+        public long Frame => _handler?.Frame ?? _frame;
     }
 }

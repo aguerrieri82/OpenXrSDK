@@ -4,10 +4,11 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public abstract class GlBaseFrameBuffer : GlObject
+    public abstract class GlBaseFrameBuffer : GlObject, IGlFrameBuffer
     {
         protected bool _isDirty = true;
         protected DrawBufferMode[] _lastDrawModes = [];
@@ -16,7 +17,7 @@ namespace XrEngine.OpenGL
         public GlBaseFrameBuffer(GL gl)
             : base(gl)
         {
-            Target = FramebufferTarget.Framebuffer;
+
         }
 
         public void Check(bool force = false)
@@ -24,7 +25,7 @@ namespace XrEngine.OpenGL
             if (!_isDirty && !force)
                 return;
 
-            var status = _gl.CheckFramebufferStatus(Target);
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -34,12 +35,36 @@ namespace XrEngine.OpenGL
             _isDirty = false;
         }
 
-        public void SetDrawBuffers(params DrawBufferMode[] modes)
+
+        public void BindRead(ReadBufferMode mode)
         {
-            if (Utils.ArrayEquals(modes, _lastDrawModes))
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
+
+            if (_lastReadMode == mode)
                 return;
 
+            _gl.ReadBuffer(mode);
+
+            _lastReadMode = mode;
+        }
+
+
+        public virtual void Bind()
+        {
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, _handle);
+        }
+
+        public virtual void BindDraw()
+        {
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
+        }
+
+        public virtual void BindDraw(params DrawBufferMode[] modes)
+        {
+            BindDraw();
+
+            if (Utils.ArrayEquals(modes, _lastDrawModes))
+                return;
 
             if (modes.Length == 0)
                 _gl.DrawBuffers(GlState.DRAW_NONE);
@@ -49,27 +74,26 @@ namespace XrEngine.OpenGL
             _lastDrawModes = modes;
         }
 
-        public void SetReadBuffer(ReadBufferMode mode)
-        {
-            if (_lastReadMode == mode)
-                return;
-
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
-
-            _gl.ReadBuffer(mode);
-
-            _lastReadMode = mode;
-        }
-
-        public virtual void Bind()
-        {
-            GlState.Current!.BindFrameBuffer(Target, _handle);
-        }
-
         public virtual void Unbind()
         {
-            GlState.Current!.BindFrameBuffer(Target, 0);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
         }
+
+        public void CopyTo(IGlFrameBuffer dst, ClearBufferMask mask = ClearBufferMask.ColorBufferBit)
+        {
+            if (mask != ClearBufferMask.ColorBufferBit)
+                throw new NotSupportedException();
+
+            BindRead(ReadBufferMode.ColorAttachment0);
+
+            dst.BindDraw(DrawBufferMode.ColorAttachment0);
+
+            var srcTex = mask == ClearBufferMask.ColorBufferBit ? Color : Depth;
+            var dstTex = mask == ClearBufferMask.ColorBufferBit ? dst.Color : dst.Depth;
+
+            _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
+        }
+
 
         public abstract GlTexture? QueryTexture(FramebufferAttachment attachment);
 
@@ -81,6 +105,16 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        public FramebufferTarget Target { get; set; }
+        public abstract void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw);
+
+        public abstract GlTexture GetOrCreateEffect(FramebufferAttachment slot);
+
+        public abstract GlTexture? Color { get; }
+
+        public abstract IGlRenderAttachment? Depth { get; }
+
+        public abstract Size2I Size { get; }
+        
+        public abstract uint SampleCount { get; }
     }
 }

@@ -1440,10 +1440,41 @@ namespace XrEngine
             return (T)self.Load(new Uri(fileUri, UriKind.Absolute), typeof(T), null, options);
         }
 
+        public static string? ImageMimeToExtension(string? mimeType)
+        {
+            if (string.IsNullOrWhiteSpace(mimeType))
+                return null;
+
+            return mimeType.Trim().ToLowerInvariant() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/jpg" => ".jpg",
+                "image/png" => ".png",
+                "image/gif" => ".gif",
+                "image/webp" => ".webp",
+                "image/bmp" => ".bmp",
+                "image/x-bmp" => ".bmp",
+                "image/tiff" => ".tiff",
+                "image/svg+xml" => ".svg",
+                "image/x-icon" => ".ico",
+                "image/vnd.microsoft.icon" => ".ico",
+                "image/avif" => ".avif",
+                "image/heic" => ".heic",
+                "image/heif" => ".heif",
+                _ => null
+            };
+        }
+
+        public static Uri GetMimeUri(this AssetLoader self, string mimeType)
+        {
+            return new Uri($"stream://mime/{mimeType}.{ImageMimeToExtension(mimeType)}");
+        }
+
+
 
         #endregion
 
-        #region TEXTURE2D
+            #region TEXTURE2D
 
         public static void Generate(this Texture2D texture)
         {

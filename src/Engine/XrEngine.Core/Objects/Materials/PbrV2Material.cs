@@ -221,8 +221,13 @@ namespace XrEngine
 
                 bld.AddFeature("PBR_V2");
 
-                if (ToneMap)
-                    bld.AddFeature("TONEMAP");
+                if (ToneMap != ToneMapMode.None)
+                {
+                    bld.AddFeature($"TONE_MAP {(int)ToneMap}");
+
+                    if (!bld.Context.IsSrgb)
+                        bld.AddFeature($"SRGB");
+                }
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {
@@ -450,7 +455,7 @@ namespace XrEngine
 
             public float DepthNoiseDistance { get; set; }
 
-            public bool ToneMap { get; set; }
+            public ToneMapMode ToneMap { get; set; }
         }
 
         #endregion
@@ -788,13 +793,6 @@ namespace XrEngine
         public Matrix3x3? UV0Transform { get; set; }
 
         public Matrix4x4? ColorMapProjection { get; set; }
-
-
-        bool IPbrMaterial.ToneMap
-        {
-            get => SHADER.ToneMap;
-            set => SHADER.ToneMap = value;
-        }
 
         public static bool ForceIblTransform { get; set; }
 

@@ -50,7 +50,7 @@ namespace XrEngine.OpenGL
         {
             camera.ViewSize = _renderFrameBuffer.Size;
             GlState.Current!.SetView(new Rect2I(camera.ViewSize));
-            _renderFrameBuffer.Bind();
+            _renderFrameBuffer.BindDraw();
         }
 
         public void End(bool discardDepth)
