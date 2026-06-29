@@ -196,6 +196,10 @@ namespace XrEngine.OpenXr
             self.Options.ResolutionScale = resolutionScale;
             self.Options.SampleCount = sampleCount;
             self.Options.UseIntermediate = useIntermediate;
+
+            if (self.Options.DriverOptions is GlRenderOptions glOpt)
+                glOpt.UseResolve = useIntermediate;
+
             return self;
         }
 

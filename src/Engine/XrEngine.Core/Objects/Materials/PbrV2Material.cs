@@ -221,15 +221,19 @@ namespace XrEngine
 
                 bld.AddFeature("PBR_V2");
 
-                /*
-                if (ToneMap != ToneMapMode.None)
+                bool globalToneMap = false;
+
+                if (Context.TryRequire<IToneMapper>(out var mapper))
+                    globalToneMap = mapper.IsGlobal;
+
+
+                if (ToneMap != ToneMapMode.None && !globalToneMap)
                 {
                     bld.AddFeature($"TONE_MAP {(int)ToneMap}");
 
                     if (!bld.Context.IsSrgb)
                         bld.AddFeature($"SRGB");
                 }
-                */
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {

@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
-    public class GlResolvePass : GlBaseRenderPass
+    public class GlResolvePass : GlBaseRenderPass, IToneMapper
     {
         readonly ResolveEffect _resolve;
         readonly GlRenderPassTarget _passTarget;
@@ -18,6 +18,8 @@ namespace XrEngine.OpenGL
         {
             _resolve = new();
             _passTarget = new GlRenderPassTarget(renderer.GL);
+
+            Context.Implement<IToneMapper>(this);
         }
 
         public override void Render(RenderContext ctx)
@@ -28,11 +30,8 @@ namespace XrEngine.OpenGL
             Debug.Assert(_renderer.RenderTarget != null);
 
             _resolve.IsSrgb = !_renderer.UpdateContext.IsSrgb;
-            _resolve.IsSrgb = false;
-            _resolve.ToneMap = ToneMapMode.Neutral;
+            _resolve.ToneMap = _renderer.Options.ToneMap;
             _resolve.ResolveAlpha = false;
-
-            //_resolve.ToneMap = _renderer.Options.ToneMap;
 
             if (_renderer.RenderTarget is GlDefaultRenderTarget def)
             {
@@ -95,5 +94,8 @@ namespace XrEngine.OpenGL
                 _passTarget.FrameBuffer!.CopyTo(srcTarget.FrameBuffer);
             }
         }
+
+
+        public bool IsGlobal => _renderer.Options.ToneMap != ToneMapMode.None;
     }
 }

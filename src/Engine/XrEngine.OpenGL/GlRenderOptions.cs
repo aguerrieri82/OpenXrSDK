@@ -96,6 +96,7 @@ namespace XrEngine.OpenGL
 
             UseSRGB = true;
             ToneMap = ToneMapMode.Neutral;
+            UseResolve = true;
         }
 
         public bool UseSRGB { get; set; }
@@ -139,6 +140,8 @@ namespace XrEngine.OpenGL
         public bool InvalidateDepth { get; set; }
 
         public ToneMapMode ToneMap { get; set; }
+
+        public bool UseResolve { get; set; }
 
         public static GlRenderOptions Default() => new();
 

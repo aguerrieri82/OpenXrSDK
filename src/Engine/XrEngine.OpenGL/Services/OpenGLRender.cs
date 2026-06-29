@@ -137,7 +137,8 @@ namespace XrEngine.OpenGL
                 Context.Implement<IViewHitTest>(hitTest);
             }
 
-            _renderPasses.Add(new GlResolvePass(this));
+            if (_options.UseResolve)
+                _renderPasses.Add(new GlResolvePass(this));
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
@@ -148,6 +149,8 @@ namespace XrEngine.OpenGL
             _textureFilter = new GlTextureFilter(this);
 
             ConfigureCaps();
+
+            PbrV2Material.SHADER.ToneMap = _options.ToneMap;
         }
 
         #endregion
@@ -427,13 +430,14 @@ namespace XrEngine.OpenGL
 
             if (!GlState.Current!.Features.TryGetValue(EnableCap.FramebufferSrgb, out _updateCtx.IsSrgb))
                 _updateCtx.IsSrgb = false;
-
+            /*
             if (_updateCtx.IsSrgb && RenderTarget is IGlFrameBufferProvider prov)
             {
                 var color = prov.FrameBuffer.Color;
                 if (color != null && !color.InternalFormat.IsSrgb())
                     _updateCtx.IsSrgb = false;
             }
+            */
 
             foreach (var pass in _renderPasses)
                 pass.Configure(ctx);

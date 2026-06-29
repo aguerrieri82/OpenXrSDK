@@ -115,6 +115,7 @@ namespace XrSamples.Android.Activities
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
                     opt.Compression.Use = _settings.TextureCompression;
+                    opt.UseSRGB = false;
                 });
             else
                 ImageLight.UseCache = false;
@@ -122,7 +123,7 @@ namespace XrSamples.Android.Activities
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(1f, (uint)_settings.Msaa);
+            builder.SetRenderQuality(1f, (uint)_settings.Msaa, true);
 
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
