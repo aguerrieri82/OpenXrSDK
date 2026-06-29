@@ -51,7 +51,8 @@ namespace XrEngine.OpenXr
         public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app)
         {
             if (app.Renderer is OpenGLRender || app.Renderer == null)
-                return xrApp.BindEngineAppGL(app);
+                return xrApp.BindEngineAppGLV2(app);
+
 
             if (app.Renderer is FilamentRender)
                 return xrApp.BindEngineAppFl(app);
@@ -192,7 +193,7 @@ namespace XrEngine.OpenXr
 
             return renderer;
         }
-
+        /*
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
         {
             var pool = new GlFrameBufferPool(OpenGLRender.Current!.GL,
@@ -207,6 +208,27 @@ namespace XrEngine.OpenXr
 
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
                 pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount));
+        }
+        */
+
+        public static OpenGLRender BindEngineAppGLV2(this XrApp xrApp, EngineApp app)
+        {
+            var swap = new GlSwapRenderTarget(OpenGLRender.Current!.GL,
+                xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView,
+                XrEngineApp.Current!.Options.SampleCount
+            );
+
+            xrApp.SessionChanged += (s, e) =>
+            {
+                if (xrApp.State == XrAppState.Stopped)
+                    swap.Clear();
+            };
+
+            return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
+            {
+                swap.Select(colorTex, depthTex);
+                return swap;
+            });
         }
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)

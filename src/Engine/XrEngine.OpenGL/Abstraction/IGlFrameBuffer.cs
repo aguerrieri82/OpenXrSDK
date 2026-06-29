@@ -32,6 +32,7 @@ namespace XrEngine.OpenGL
 
         void Check(bool force = false);
 
+
         Size2I Size { get; }
 
         uint SampleCount { get; }

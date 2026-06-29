@@ -51,13 +51,14 @@ namespace XrEditor
 
                   opt.ContactShadow.Use = false;
                   opt.ContactShadow.IsMultiView = false;
+
                   opt.UseSRGB = true;
-                  opt.ToneMap = ToneMapMode.Neutral;
+                  opt.ToneMap = ToneMapMode.Normal;
 
               })
               .UseSpaceWarp()
-              .SetRenderQuality(1f, 2)
-              .CreateSponza()  
+              .SetRenderQuality(1f, 4, true)
+              .CreateHelmet()  
                //.CreateDepthSnapeshot()
               .Build();
     }

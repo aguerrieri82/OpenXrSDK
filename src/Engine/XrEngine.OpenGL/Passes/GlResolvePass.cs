@@ -18,7 +18,6 @@ namespace XrEngine.OpenGL
         {
             _resolve = new();
             _passTarget = new GlRenderPassTarget(renderer.GL);
-            IsEnabled = false;
         }
 
         public override void Render(RenderContext ctx)
@@ -28,11 +27,12 @@ namespace XrEngine.OpenGL
 
             Debug.Assert(_renderer.RenderTarget != null);
 
-            if (!GlState.Current!.Features.TryGetValue(EnableCap.FramebufferSrgb, out var isSrgb))
-                isSrgb = false;
+            _resolve.IsSrgb = !_renderer.UpdateContext.IsSrgb;
+            _resolve.IsSrgb = false;
+            _resolve.ToneMap = ToneMapMode.Neutral;
+            _resolve.ResolveAlpha = false;
 
-            _resolve.IsSrgb = !isSrgb;
-            _resolve.ToneMap = _renderer.Options.ToneMap;
+            //_resolve.ToneMap = _renderer.Options.ToneMap;
 
             if (_renderer.RenderTarget is GlDefaultRenderTarget def)
             {
@@ -56,6 +56,20 @@ namespace XrEngine.OpenGL
 
                     return;
                 }
+            }
+            else if (_renderer.RenderTarget is GlSwapRenderTarget swap)
+            {
+                var color = swap.FrameBuffer.Color;
+
+                swap.DestFrameBuffer.Bind();
+
+                _resolve.Texture = color!.ToEngineTexture();
+                _resolve.IsMultiView = swap.IsMultiView;
+
+                UseEffect(_resolve);
+
+                DrawQuad();
+
             }
             else
             {

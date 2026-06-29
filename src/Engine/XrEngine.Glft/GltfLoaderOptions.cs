@@ -4,6 +4,7 @@
     {
         public GltfLoaderOptions()
         {
+            UseMips = true;
             ConvertColorTextureSRgb = true;
             DisableTangents = false;
             MaterialFactory = _ => new PbrV2Material();
@@ -23,8 +24,11 @@
 
         public bool UseCache { get; set; }
 
-        public bool UseInstances { get; internal set; }
+        public bool UseInstances { get; set; }
 
+        public bool UseMips { get;  set; }
+
+        
         public static readonly GltfLoaderOptions Default = new();
     }
 }

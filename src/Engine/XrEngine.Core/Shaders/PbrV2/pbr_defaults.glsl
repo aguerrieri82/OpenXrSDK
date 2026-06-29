@@ -7,7 +7,7 @@ layout(binding=0) uniform sampler2D albedoTexture;
 layout(binding=1) uniform sampler2D normalTexture;
 layout(binding=2) uniform sampler2D metalroughnessTexture;
 layout(binding=3) uniform sampler2D occlusionTexture;
-
+layout(binding=9) uniform sampler2D emissiveTexture;
 
 vec4 LoadBaseColor()
 {
@@ -140,6 +140,16 @@ float LoadOcclusion()
 	#endif
 }
 
+
+vec4 LoadEmissive()
+{
+	#ifdef USE_EMISSIVE_MAP
+		return texture(emissiveTexture, fUv);
+	#else
+		return vec4(0.0);
+	#endif
+}
+
 FragmentProperties LoadFragmentProperties()
 {
 	FragmentProperties frag;
@@ -155,13 +165,14 @@ FragmentProperties LoadFragmentProperties()
 
 	frag.baseColor = LoadBaseColor();
 
-	// Mask.
-	#if ALPHA_MODE == 1
+	#if ALPHA_MODE == 5
 		if (frag.baseColor.a < uMaterial.alphaCutoff)
 			discard;
 	#endif
 
 	frag.albedo = frag.baseColor.rgb;
+
+	frag.emissive = LoadEmissive();
 
 	LoadMetalRoughness(frag.metalness, frag.roughness);
 

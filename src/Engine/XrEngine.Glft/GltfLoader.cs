@@ -216,6 +216,7 @@ namespace XrEngine.Gltf
 
             var imageInfo = _model!.Images[texture.Source!.Value];
 
+ 
             return _textures.GetOrAdd(imageInfo, img =>
             {
                 Debug.Assert(result == null);
@@ -261,7 +262,7 @@ namespace XrEngine.Gltf
 
                     if (!hasMinFilter)
                     {
-                        texResult.MinFilter = ScaleFilter.LinearMipmapLinear;
+                        texResult.MinFilter = ScaleFilter.Linear;
                         texResult.MagFilter = ScaleFilter.Linear;
                     }
 
@@ -450,10 +451,16 @@ namespace XrEngine.Gltf
             if (gltMat.PbrMetallicRoughness != null)
             {
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
+                {
                     result.ColorMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
+                    ApplyMips(result.ColorMap);
+                }
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
+                {
                     result.MetallicRoughnessMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
+                    ApplyMips(result.MetallicRoughnessMap);
+                }
 
                 result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
                 result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
@@ -471,13 +478,37 @@ namespace XrEngine.Gltf
             {
                 result.OcclusionMap = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
+                ApplyMips(result.OcclusionMap);
             }
+
+            if (gltMat.EmissiveTexture != null)
+            {
+                result.EmissiveMap = DecodeTextureBaseTask(gltMat.EmissiveTexture, true).Result;
+                ApplyMips(result.EmissiveMap);
+            }
+
+
+            result.EmissiveColor = new Color(gltMat.EmissiveFactor);
 
             AssignAsset(result, "mat", matId);
 
             _mats[gltMat] = result;
 
             return result;
+        }
+
+        private void ApplyMips(Texture2D texture)
+        {
+            if (_options.UseMips)
+            {
+                texture.MipLevelCount = 10;
+                texture.MinFilter = ScaleFilter.LinearMipmapLinear;
+            }
+            else
+            {
+                texture.MipLevelCount = 0;
+                texture.MinFilter = ScaleFilter.Linear;
+            }
         }
 
         unsafe T[] ConvertBuffer<T>(byte[] buffer, BufferView view, Accessor acc) where T : unmanaged

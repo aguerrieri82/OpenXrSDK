@@ -372,7 +372,7 @@ namespace XrSamples
 
             if (IsEditor)
             {
-                usePt = false;
+                //usePt = false;
                 Log.Error(builder, "Passtrhout not ADDED in editor");
             }
 
@@ -1074,7 +1074,7 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 //.UseSceneModel(false, false)
-                .UseDefaultHDR()
+                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
                 .AddFloorShadow(4, true)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
@@ -1371,8 +1371,9 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .UseEnvironmentDepth()
+                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
                 //.UseEnvironmentShadow(new Color(0, 0, 0, 0.7f))
-                .UseDefaultHDR()
+                //.UseDefaultHDR()
                 .UseShadows()
                 .ConfigureSampleApp();
         }
@@ -2258,7 +2259,7 @@ namespace XrSamples
 
             var leftTex = new Texture2D
             {
-                Format = TextureFormat.SRgba32,
+                Format = TextureFormat.Rgba32,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -2268,7 +2269,7 @@ namespace XrSamples
 
             var rightTex = new Texture2D
             {
-                Format = TextureFormat.SRgba32,
+                Format = TextureFormat.Rgba32,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,

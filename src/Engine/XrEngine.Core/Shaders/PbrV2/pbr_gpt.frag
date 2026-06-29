@@ -83,6 +83,8 @@ struct FragmentProperties
 	float occlusion;
 
 	vec3 viewDir;
+
+	vec4 emissive;
 };
 
 // Compile-time injected material/fragment loader.
@@ -341,7 +343,7 @@ void main()
 	ambientLighting *= ao;
 #endif
 
-#if ALPHA_MODE == 0
+#if ALPHA_MODE == 1
 	float a = 1.0;
 #else
 	float a = frag.baseColor.a;
@@ -369,7 +371,13 @@ void main()
 #endif
 
 #ifdef USE_EMISSIVE
-	color3 += uMaterial.emissive.rgb * uMaterial.emissive.a * NoV;
+    vec3 emissive = uMaterial.emissive.rgb;
+
+    #ifdef USE_EMISSIVE_MAP
+        emissive *= frag.emissive.rgb * frag.emissive.a;
+    #endif
+
+    color3 += emissive;
 #endif
 
 
@@ -386,11 +394,6 @@ void main()
     #ifdef SRGB
         color3.rgb = linearTosRGB(color3.rgb);
     #endif
-#endif
-
-#if ALPHA_MODE == 5
-	if (a < uMaterial.alphaCutoff)
-		discard;
 #endif
 
 #ifdef USE_DEPTH_NOISE

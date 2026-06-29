@@ -221,6 +221,7 @@ namespace XrEngine
 
                 bld.AddFeature("PBR_V2");
 
+                /*
                 if (ToneMap != ToneMapMode.None)
                 {
                     bld.AddFeature($"TONE_MAP {(int)ToneMap}");
@@ -228,6 +229,7 @@ namespace XrEngine
                     if (!bld.Context.IsSrgb)
                         bld.AddFeature($"SRGB");
                 }
+                */
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {
@@ -563,8 +565,6 @@ namespace XrEngine
             if (EmissiveColor != Color.Transparent)
                 bld.AddFeature("USE_EMISSIVE");
 
-
-
             if (_hosts.Count == 1)
             {
                 planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
@@ -693,6 +693,12 @@ namespace XrEngine
                 bld.LoadTexture(ctx => OcclusionMap, TextureSlots.Occlusion);
             }
 
+            if (EmissiveMap != null)
+            {
+                bld.AddFeature("USE_EMISSIVE_MAP");
+                bld.LoadTexture(ctx => EmissiveMap, TextureSlots.Emissive);
+            }
+
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
 
@@ -753,6 +759,8 @@ namespace XrEngine
 
         public Texture2D? NormalMap { get; set; }
 
+        public Texture2D? EmissiveMap { get; set; }
+
         public NormalMapFormat NormalMapFormat { get; set; }
 
         public bool ReceiveShadows { get; set; }
@@ -771,7 +779,6 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }
 
-        //TODO: Implement AlphaCutoff   
         public float AlphaCutoff { get; set; }
 
         public float NormalScale { get; set; }

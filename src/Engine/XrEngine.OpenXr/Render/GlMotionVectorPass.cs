@@ -43,7 +43,6 @@ namespace XrEngine.OpenXr
             _glColorImage = GlTexture.Attach(_gl, colorTex, sampleCount);
             _glDepthImage = GlTexture.Attach(_gl, depthTex, sampleCount);
 
-
             var targetId = colorTex + depthTex << 16;
             if (!_targets.TryGetValue(targetId, out _renderTarget))
             {

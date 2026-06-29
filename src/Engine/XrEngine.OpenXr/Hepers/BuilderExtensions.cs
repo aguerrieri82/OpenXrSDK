@@ -191,10 +191,11 @@ namespace XrEngine.OpenXr
             return self.UsePlatform(new T());
         }
 
-        public static XrEngineAppBuilder SetRenderQuality(this XrEngineAppBuilder self, float resolutionScale, uint sampleCount)
+        public static XrEngineAppBuilder SetRenderQuality(this XrEngineAppBuilder self, float resolutionScale, uint sampleCount, bool useIntermediate)
         {
             self.Options.ResolutionScale = resolutionScale;
             self.Options.SampleCount = sampleCount;
+            self.Options.UseIntermediate = useIntermediate;
             return self;
         }
 

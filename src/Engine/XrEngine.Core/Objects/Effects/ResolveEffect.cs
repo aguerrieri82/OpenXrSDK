@@ -10,6 +10,8 @@ namespace XrEngine
 
     public partial class ResolveEffect : DynamicMaterial
     {
+        private Texture? _texture;
+
         public ResolveEffect()
             : base("fullscreen.vert", "resolve.frag")
         {
@@ -25,11 +27,16 @@ namespace XrEngine
                 bld.AddFeature("MULTI_VIEW");
             }
 
+            if (ResolveAlpha)
+                bld.AddFeature($"RESOLVE_ALPHA");
+
             if (IsSrgb)
                 bld.AddFeature($"SRGB");
 
             if (ToneMap != ToneMapMode.None)
                 bld.AddFeature($"TONE_MAP {(int)ToneMap}");
+
+            bld.AddFeature($"SAMPLE_COUNT {SampleCount}");
 
             bld.ExecuteAction((ctx, up) =>
             {
@@ -47,6 +54,21 @@ namespace XrEngine
         [Notify(ChangeType.Render)]
         public partial ToneMapMode ToneMap { get; set; }
 
-        public Texture? Texture { get; set; }  
+        public Texture? Texture
+        {
+            get => _texture;
+            set
+            {
+                _texture = value;
+                SampleCount = (_texture is Texture2D tex2 ? tex2.SampleCount : 1);
+            }
+        }
+
+        [Notify(ChangeType.Render)]
+        public partial bool ResolveAlpha { get; set; }
+
+
+        [Notify(ChangeType.Render)]
+        public partial uint SampleCount { get; set; }
     }
 }

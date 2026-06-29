@@ -30,7 +30,7 @@ namespace XrSamples
         {
             return new GameSettings
             { 
-                SampleName = "Snapeshot View",
+                //SampleName = "Helmet",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,

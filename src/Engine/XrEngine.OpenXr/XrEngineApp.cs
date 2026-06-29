@@ -20,6 +20,8 @@ namespace XrEngine.OpenXr
 
         public uint SampleCount { get; set; }
 
+        public bool UseIntermediate { get; set; }
+
         public object? DriverOptions { get; set; }
     }
 
@@ -45,7 +47,8 @@ namespace XrEngine.OpenXr
             _app.Renderer = renderEngine;
 
             _xrApp = _platform.CreateXrApp(xrDriver);
-            _xrApp.RenderOptions.SampleCount = _options.SampleCount;
+
+            _xrApp.RenderOptions.SampleCount = _options.UseIntermediate ? 1 : _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
             _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
         }
@@ -71,7 +74,10 @@ namespace XrEngine.OpenXr
 
         public IXrBasicInteractionProfile? Inputs { get; internal set; }
 
+        public XrEngineAppOptions Options => _options;
+
         public static XrEngineApp? Current { get; private set; }
+
     }
 
 

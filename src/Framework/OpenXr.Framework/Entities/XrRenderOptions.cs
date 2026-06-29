@@ -28,6 +28,7 @@ namespace OpenXr.Framework
 
         public EnvironmentBlendMode BlendMode { get; set; }
 
+
         public uint SampleCount { get; set; }
 
         public long ColorFormat { get; set; }

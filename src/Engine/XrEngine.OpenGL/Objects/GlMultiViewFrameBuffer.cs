@@ -2,8 +2,11 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+
+
 #endif
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -104,8 +107,10 @@ namespace XrEngine.OpenGL
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
 
-            if (_sampleCount > 1 && (attachment is GlTexture tex) && tex.Target == TextureTarget.Texture2DArray)
+            if (_sampleCount > 1 && (attachment is GlTexture tex))
             {
+                Debug.Assert(tex.Target == TextureTarget.Texture2DArray);
+
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
 

@@ -42,7 +42,7 @@ namespace XrEngine
 
         public Color Color { get; set; }
 
-        [Range(0, 10, 0.1f)]
+        [Range(0, 10, 0.01f)]
         public float Intensity { get; set; }
 
         public long ContentVersion => _contentVersion;
