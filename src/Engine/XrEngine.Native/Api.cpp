@@ -1,5 +1,5 @@
 #include "pch.h"
-#include <algorithm>
+
 
 void ImageFlipY(uint8_t* src, uint8_t* dst, uint32_t width, uint32_t height, uint32_t rowSize)
 {
@@ -360,4 +360,65 @@ int RdcEndFrameCapture(bool launchReplay) {
     }
 
     return -1;
+}
+
+
+
+MeshVoxelizer* APIENTRY MeshVoxelizerCreate()
+{
+    return new MeshVoxelizer();
+}
+
+void APIENTRY MeshVoxelizerDestroy(MeshVoxelizer* voxelizer)
+{
+    delete voxelizer;
+}
+
+MeshVoxelGrid* APIENTRY MeshVoxelizerVoxelize(
+    MeshVoxelizer* voxelizer,
+    const VertexData* vertices,
+    int32_t vertexCount,
+    const uint32_t* indices,
+    int32_t indexCount,
+    const Bounds3* bounds,
+    const VoxelGridDesc* grid,
+    const VoxelizeMeshParams* params)
+{
+    if (voxelizer == nullptr ||
+        vertices == nullptr ||
+        indices == nullptr ||
+        bounds == nullptr ||
+        grid == nullptr ||
+        params == nullptr)
+        return nullptr;
+
+    MeshVoxelGrid result = voxelizer->Voxelize(
+        vertices,
+        vertexCount,
+        indices,
+        indexCount,
+        *bounds,
+        *grid,
+        *params);
+
+    return new MeshVoxelGrid(std::move(result));
+}
+
+void APIENTRY MeshVoxelGridDestroy(MeshVoxelGrid* voxelGrid)
+{
+    delete voxelGrid;
+}
+
+MeshVoxelGridView APIENTRY MeshVoxelGridGetView(const MeshVoxelGrid* voxelGrid)
+{
+    MeshVoxelGridView view{};
+
+    if (voxelGrid == nullptr)
+        return view;
+
+    view.Info = voxelGrid->Info;
+    view.Voxels = voxelGrid->Voxels.data();
+    view.VoxelCount = static_cast<int32_t>(voxelGrid->Voxels.size());
+
+    return view;
 }

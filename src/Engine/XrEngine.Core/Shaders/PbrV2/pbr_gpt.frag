@@ -214,19 +214,116 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 		vec3 L;
 		float attenuation = 1.0;
 
-		if (uLights.lights[i].type == 0u)
+		uint type = uLights.lights[i].type;
+
+		// POINT 0
+		if (type == 0u)
 		{
+			float radius = uLights.lights[i].radius;
+
 			vec3 lightVector = uLights.lights[i].position - frag.position;
-			float distance = length(lightVector);
+			float distanceSq = dot(lightVector, lightVector);
+
+			if (distanceSq >= radius * radius)
+				continue;
+
+			float distance = sqrt(distanceSq);
 			L = lightVector / max(distance, Epsilon);
 
-			attenuation = pointLightAttenuation(distance, uLights.lights[i].radius);
+			attenuation = pointLightAttenuation(distance, radius);
 		}
+
+		// SPOT 2
+		else if (type == 2u)
+		{
+			float radius = uLights.lights[i].radius;
+
+			vec3 lightVector = uLights.lights[i].position - frag.position;
+			float distanceSq = dot(lightVector, lightVector);
+
+			if (distanceSq >= radius * radius)
+				continue;
+
+			float distance = sqrt(distanceSq);
+			L = lightVector / max(distance, Epsilon);
+
+			vec3 lightDir = safeNormalize(uLights.lights[i].direction);
+			float spotCos = dot(-L, lightDir);
+
+			if (spotCos <= uLights.lights[i].outCone)
+				continue;
+
+			float coneAtt = smoothstep(uLights.lights[i].outCone, uLights.lights[i].inCone, spotCos);
+
+			attenuation = pointLightAttenuation(distance, radius) * coneAtt;
+
+			shadowLightDir = L;
+		}
+
+		// AREA 3
+		else if (type == 3u)
+		{
+			vec3 position = uLights.lights[i].position;
+			vec3 direction = uLights.lights[i].direction;
+			float radius = uLights.lights[i].radius;
+
+			vec3 axisX = uLights.lights[i].axisX;
+			vec3 axisY = uLights.lights[i].axisY;
+
+			float halfWidth = uLights.lights[i].halfWidth;
+			float halfHeight = uLights.lights[i].halfHeight;
+
+			vec3 toFrag = frag.position - position;
+
+			// Coarse reject before closest-point work.
+			float extent = sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
+			float coarseRadius = radius + extent;
+
+			if (dot(toFrag, toFrag) >= coarseRadius * coarseRadius)
+				continue;
+
+			float localX = dot(toFrag, axisX);
+			float localY = dot(toFrag, axisY);
+
+			float clampedX = clamp(localX, -halfWidth, halfWidth);
+			float clampedY = clamp(localY, -halfHeight, halfHeight);
+
+			vec3 closest =
+				position +
+				axisX * clampedX +
+				axisY * clampedY;
+
+			vec3 lightVector = closest - frag.position;
+			float distanceSq = dot(lightVector, lightVector);
+
+			if (distanceSq >= radius * radius)
+				continue;
+
+			float distance = sqrt(distanceSq);
+			L = lightVector / max(distance, Epsilon);
+
+			float facing = dot(-L, safeNormalize(direction));
+
+			if (facing <= 0.0)
+				continue;
+
+			attenuation =
+				pointLightAttenuation(distance, radius) *
+				saturate(facing);
+		}
+
+		// DIRECTIONAL 1
 		else
 		{
 			L = safeNormalize(-uLights.lights[i].direction);
 			shadowLightDir = L;
 		}
+
+		if (attenuation <= Epsilon)
+			continue;
+
+		if (dot(frag.normal, L) <= 0.0)
+			continue;
 
 		vec3 radiance = uLights.lights[i].radiance * attenuation;
 

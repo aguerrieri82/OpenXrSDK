@@ -6,6 +6,12 @@ struct Light {
 	vec3 direction;
 	vec3 radiance;
 	float radius;
+	float outCone;
+	float inCone;
+    vec3 axisX;
+	float halfWidth;
+	vec3 axisY;
+	float halfHeight;
 };
 
 layout(std140, binding=1) uniform Lights

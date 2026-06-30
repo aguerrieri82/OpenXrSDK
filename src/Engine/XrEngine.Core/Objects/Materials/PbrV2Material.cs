@@ -129,7 +129,7 @@ namespace XrEngine
 
         #region LightUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 64)]
+        [StructLayout(LayoutKind.Explicit, Size = 112)]
         public struct LightUniforms
         {
             [FieldOffset(0)]
@@ -142,10 +142,28 @@ namespace XrEngine
             public Vector3 Direction;
 
             [FieldOffset(48)]
-            public Vector3 Color;
+            public Vector3 Color; // radiance
 
             [FieldOffset(60)]
-            public float Range;
+            public float Range; // radius
+
+            [FieldOffset(64)]
+            public float OutConeCos;
+
+            [FieldOffset(68)]
+            public float InConeCos;
+
+            [FieldOffset(80)]
+            public Vector3 AxisX;
+
+            [FieldOffset(92)]
+            public float HalfWidth;
+
+            [FieldOffset(96)]
+            public Vector3 AxisY;
+
+            [FieldOffset(108)]
+            public float HalfHeight;
         }
 
         #endregion
@@ -383,6 +401,19 @@ namespace XrEngine
                                 Type = 1,
                                 Color = ((Vector3)directional.Color) * directional.Intensity,
                                 Direction = Vector3.Normalize(directional.Direction)
+                            });
+                        }
+                        else if (light is SpotLight spot)
+                        {
+                            lights.Add(new LightUniforms
+                            {
+                                Type = 2,
+                                Range = spot.Range,
+                                Color = ((Vector3)spot.Color) * spot.Intensity,
+                                Direction = Vector3.Normalize(spot.Forward),
+                                InConeCos = MathF.Cos( spot.InnerConeAngle),
+                                OutConeCos = MathF.Cos(spot.OuterConeAngle),
+                                Position = spot.WorldPosition,
                             });
                         }
                     }

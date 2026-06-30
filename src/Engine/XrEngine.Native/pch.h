@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef _WINDOWS
+	#define NOMINMAX
 	#include <windows.h>
 	#include <mmsystem.h>
 #endif
@@ -15,8 +16,11 @@
 #include <cmath>
 #include <chrono>
 #include <thread>
+#include <algorithm>
+#include <cstdint>
+#include <vector>
 
 #include "Config.h"
 #include "renderdoc_app.h"
+#include "MeshVoxelizer.h"
 #include "Api.h"
-

@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 extern "C" {
 
 	EXPORT void APIENTRY ImageFlipY(uint8_t* src, uint8_t* dst, uint32_t width, uint32_t height, uint32_t rowSize);
@@ -33,4 +31,29 @@ extern "C" {
 
 	EXPORT int APIENTRY RdcStartFrameCapture();
 
+}
+
+
+extern "C" {
+
+    EXPORT MeshVoxelizer* APIENTRY MeshVoxelizerCreate();
+
+    EXPORT void APIENTRY MeshVoxelizerDestroy(
+        MeshVoxelizer* voxelizer);
+
+    EXPORT MeshVoxelGrid* APIENTRY MeshVoxelizerVoxelize(
+        MeshVoxelizer* voxelizer,
+        const VertexData* vertices,
+        int32_t vertexCount,
+        const uint32_t* indices,
+        int32_t indexCount,
+        const Bounds3* bounds,
+        const VoxelGridDesc* grid,
+        const VoxelizeMeshParams* params);
+
+    EXPORT void APIENTRY MeshVoxelGridDestroy(
+        MeshVoxelGrid* voxelGrid);
+
+	EXPORT MeshVoxelGridView APIENTRY MeshVoxelGridGetView(
+		const MeshVoxelGrid* voxelGrid);
 }

@@ -1257,6 +1257,13 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
+            var point = scene.Descendants<PointLight>().First();
+            point.IsVisible = true;
+            point.AddComponent<LightViewer>();
+
+            var spot = scene.AddChild(new SpotLight());
+            spot.AddComponent<LightViewer>();
+
             var tc = scene.AddComponent(new ToneControl());
 
             var mat1 = new TextureMaterial();
