@@ -39,6 +39,8 @@
         void Update(T value);
 
         void UpdateRange(ReadOnlySpan<T> value, int dstIndex);
+
+        void ReadArray(ref T[] result);
     }
 
 }

@@ -1,4 +1,4 @@
-﻿namespace XrEngine.Objects
+﻿namespace XrEngine
 {
     public static class TextureSlots
     {

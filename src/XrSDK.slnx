@@ -156,6 +156,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Lighting/XrEngine.Lighting.csproj" Id="e2f07925-0d06-4f5f-8ab9-9830f5a0011e">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Media.Abstraction/XrEngine.Media.Abstraction.csproj" Id="261436f6-f5af-4659-9cd3-7dddaa7398c7">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />

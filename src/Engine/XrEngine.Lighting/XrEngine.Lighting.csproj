@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\mesh_voxel.frag" />
+    <EmbeddedResource Include="Shaders\mesh_voxel.vert" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+  </ItemGroup>
+
+</Project>

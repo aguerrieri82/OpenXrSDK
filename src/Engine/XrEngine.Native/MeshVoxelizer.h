@@ -29,14 +29,14 @@ struct Bounds3
     Vec3 Min;
 };
 
-struct VertexData
-{
-    Vec3 Pos;
-    Vec3 Normal;
-    Vec2 UV;
-    Vec2 UV1;
-    Vec4 Tangent;
-};
+    struct VertexData
+    {
+        Vec3 Pos;
+        Vec3 Normal;
+        Vec2 UV;
+        Vec2 UV1;
+        Vec4 Tangent;
+    };
 
 struct Int3
 {
@@ -92,11 +92,12 @@ enum class VoxelScanAxis : int32_t
 
 struct VoxelFaceData
 {
-    int32_t TriangleId;          // -1 = no hit
     Vec2 UV;
     Vec2 HitPosition;           // local 0..1 coordinate on the voxel face
+    int32_t TriangleId;          // -1 = no hit
     VoxelTriangleSide Side;
 };
+
 
 struct VoxelData
 {
@@ -160,6 +161,19 @@ struct VoxelFaceBuildData
     int32_t HitCount = 0;
     VoxelFaceData LastHit{};
 };
+
+
+static_assert(sizeof(Vec2) == 8);
+static_assert(sizeof(Vec3) == 12);
+static_assert(sizeof(Vec4) == 16);
+
+static_assert(offsetof(VertexData, Pos) == 0);
+static_assert(offsetof(VertexData, Normal) == 12);
+static_assert(offsetof(VertexData, UV) == 24);
+static_assert(offsetof(VertexData, UV1) == 32);
+static_assert(offsetof(VertexData, Tangent) == 40);
+
+static_assert(sizeof(VertexData) == 56);
 
 class MeshVoxelizer
 {

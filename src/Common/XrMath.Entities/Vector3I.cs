@@ -44,6 +44,16 @@
             return !left.Equals(right);
         }
 
+        public static Vector3I operator -(Vector3I left, Vector3I right)
+        {
+            return new Vector3I
+            {
+                X = left.X - right.X,
+                Y = left.Y - right.Y,
+                Z = left.Z - right.Z
+            };
+        }
+
         public int X;
 
         public int Y;

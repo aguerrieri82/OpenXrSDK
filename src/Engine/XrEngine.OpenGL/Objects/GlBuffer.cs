@@ -189,10 +189,37 @@ namespace XrEngine.OpenGL
             return (T*)ptr;
         }
 
-        public unsafe void Read(MapBufferAccessMask access, ref T result)
+        public unsafe void Read(ref T result)
         {
             result = *Map(MapBufferAccessMask.ReadBit);
             Unmap();
+        }
+
+        public unsafe void ReadArray(ref T[] result)
+        {
+            if (result == null || result.Length != ArrayLength)
+                result = new T[ArrayLength];
+
+            if (ArrayLength == 0)
+                return;
+
+            var ptr = Map(MapBufferAccessMask.ReadBit);
+
+            try
+            {
+                fixed (T* pResult = result)
+                {
+                    System.Buffer.MemoryCopy(
+                        ptr,
+                        pResult,
+                        sizeof(T) * result.Length,
+                        sizeof(T) * ArrayLength);
+                }
+            }
+            finally
+            {
+                Unmap();
+            }
         }
 
         public void Unmap()

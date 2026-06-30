@@ -32,22 +32,11 @@ namespace XrEditor
             @"D:\Projects\"];
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static Vector3 Avg(Vector3 a, Vector3 b, Vector3 c)
-        {
-            return (a + b + c) / 2f;
-        }
-
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
-                  Vector3 a = new Vector3(0, 1, 1);
-                  Vector3 b = new Vector3(1, 1, 1);
-                  Vector3 c = new Vector3(0, 0, 1);
-                  Vector3 d =(a + b + c) / 2f;
-                  Console.WriteLine(d);
 
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
@@ -73,7 +62,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2, true)
-              .CreateToneControl()  
+              .CreateLighting()  
                //.CreateDepthSnapeshot()
               .Build();
     }

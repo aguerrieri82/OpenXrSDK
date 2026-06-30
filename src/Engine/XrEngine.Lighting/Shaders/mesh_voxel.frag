@@ -1,26 +1,29 @@
-#version 310 es
 
 precision highp float;
 precision highp int;
 
 in vec3 vWorldPos;
 in vec3 vFaceNormal;
-in vec2 vFaceUv;
+in vec2 vUv;
 
 flat in int vFace;
-flat in int vFaceSlot;
+flat in int vOutIndex;
+
+#ifdef VOXEL_REMAP
 flat in vec3 vTriNormal;
 flat in vec4 vTriTangent;
+#endif
 
 #ifdef VOXEL_REMAP
 struct VoxelResolvedFace
 {
     vec4 BaseColor;
-    vec4 NormalAndRoughness; // xyz = world normal, w = roughness
+    vec3 Normal;
+    float Roughness;
     float Metallic;
 };
 
-layout(std430, binding = 4) buffer VoxelResolvedFaceBuffer
+layout(std430, binding = 10) buffer VoxelResolvedFaceBuffer
 {
     VoxelResolvedFace uResolvedFaces[];
 };
@@ -32,23 +35,20 @@ uniform float uRoughnessFactor;
 uniform vec3 uCameraPosition;
 
 #ifdef HAS_BASE_COLOR_MAP
-uniform sampler2D uBaseColorMap;
-#endif
-
-#ifdef HAS_METALLIC_MAP
-uniform sampler2D uMetallicMap;
-#endif
-
-#ifdef HAS_ROUGHNESS_MAP
-uniform sampler2D uRoughnessMap;
+layout(binding = 0) uniform sampler2D uBaseColorMap;
 #endif
 
 #ifdef HAS_NORMAL_MAP
-uniform sampler2D uNormalMap;
+layout(binding = 1) uniform sampler2D uNormalMap;
+#endif
+
+#ifdef HAS_METALLIC_ROUGHNESS_MAP
+layout(binding = 2) uniform sampler2D uMetallicRoughnessMap;
 #endif
 
 layout(location = 0) out vec4 outColor;
 
+#ifdef VOXEL_REMAP
 vec3 ResolveWorldNormal(vec2 uv)
 {
     vec3 N = normalize(vTriNormal);
@@ -62,10 +62,11 @@ vec3 ResolveWorldNormal(vec2 uv)
     return N;
 #endif
 }
+#endif
 
 void main()
 {
-    vec2 uv = vFaceUv;
+    vec2 uv = vUv;
 
     vec4 baseColor = uBaseColorFactor;
     float metallic = uMetallicFactor;
@@ -75,32 +76,35 @@ void main()
     baseColor *= texture(uBaseColorMap, uv);
 #endif
 
-#ifdef HAS_METALLIC_MAP
-    metallic *= texture(uMetallicMap, uv).r;
-#endif
+#ifdef HAS_METALLIC_ROUGHNESS_MAP
+    vec4 mr = texture(uMetallicRoughnessMap, uv);
 
-#ifdef HAS_ROUGHNESS_MAP
-    roughness *= texture(uRoughnessMap, uv).r;
+    // glTF convention:
+    // G = roughness
+    // B = metallic
+    roughness *= mr.g;
+    metallic *= mr.b;
 #endif
-
-    vec3 worldNormal = ResolveWorldNormal(uv);
 
 #ifdef VOXEL_REMAP
+    vec3 worldNormal = ResolveWorldNormal(uv);
+
     VoxelResolvedFace resolved;
     resolved.BaseColor = baseColor;
-    resolved.NormalAndRoughness = vec4(worldNormal, roughness);
+    resolved.Normal = worldNormal;
+    resolved.Roughness = roughness;
     resolved.Metallic = metallic;
 
-    uResolvedFaces[vFaceSlot] = resolved;
+    uResolvedFaces[vOutIndex] = resolved;
 #endif
 
 #ifdef VOXEL_PREVIEW
-    vec3 faceColor = normalize(vFaceNormal) * 0.5 + 0.5;
     vec3 materialColor = baseColor.rgb;
 
 #ifdef PREVIEW_MATERIAL
     vec3 color = materialColor;
 #else
+    vec3 faceColor = normalize(vFaceNormal) * 0.5 + 0.5;
     vec3 color = mix(faceColor, materialColor, 0.35);
 #endif
 

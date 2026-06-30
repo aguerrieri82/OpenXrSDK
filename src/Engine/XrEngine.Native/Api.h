@@ -57,3 +57,74 @@ extern "C" {
 	EXPORT MeshVoxelGridView APIENTRY MeshVoxelGridGetView(
 		const MeshVoxelGrid* voxelGrid);
 }
+
+
+extern "C"
+{
+    EXPORT VoxelLightBaker* APIENTRY VoxelLightBakerCreate();
+
+    EXPORT void APIENTRY VoxelLightBakerDestroy(
+        VoxelLightBaker* baker);
+
+    EXPORT void APIENTRY VoxelLightBakerSetParams(
+        VoxelLightBaker* baker,
+        const VoxelLightBakeParams* params);
+
+    EXPORT void APIENTRY VoxelLightBakerSetGrid(
+        VoxelLightBaker* baker,
+        const VoxelGridDesc* grid);
+
+    EXPORT void APIENTRY VoxelLightBakerClearScene(
+        VoxelLightBaker* baker);
+
+    EXPORT void APIENTRY VoxelLightBakerAddMesh(
+        VoxelLightBaker* baker,
+        const Int3* origin,
+        const Int3* size,
+        const VoxelData* voxels,
+        const VoxelMeshResolvedFace* faces,
+        int32_t faceCount);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerBakePointLight(
+        VoxelLightBaker* baker,
+        const PointLight* light,
+        VoxelLightContributionView* contribution);
+
+    EXPORT void APIENTRY VoxelLightBakerClearLightField(
+        VoxelLightBaker* baker);
+
+    EXPORT void APIENTRY VoxelLightBakerAccumulateLight(
+        VoxelLightBaker* baker,
+        const VoxelLightContributionView* contribution);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerGetLightField(
+        VoxelLightBaker* baker,
+        VoxelLightFieldView* field);
+
+
+    EXPORT void APIENTRY FreeLightFieldView(VoxelLightFieldView* view);
+
+
+
+    EXPORT VoxelRayMarcher* APIENTRY VoxelRayMarcherCreate(
+        VoxelLightBaker* baker);
+
+    EXPORT void APIENTRY VoxelRayMarcherDestroy(
+        VoxelRayMarcher* marcher);
+
+    EXPORT bool APIENTRY VoxelRayMarcherCreateRay(
+        VoxelRayMarcher* marcher,
+        const VoxelLightRay* ray);
+
+    EXPORT bool APIENTRY VoxelRayMarcherStep(
+        VoxelRayMarcher* marcher);
+
+    EXPORT void APIENTRY VoxelRayMarcherGetState(
+        VoxelRayMarcher* marcher,
+        VoxelRayDebugState* state);
+
+    EXPORT int32_t APIENTRY VoxelRayMarcherGetContribution(
+        VoxelRayMarcher* marcher,
+        VoxelLightContributionView* contribution);
+
+}

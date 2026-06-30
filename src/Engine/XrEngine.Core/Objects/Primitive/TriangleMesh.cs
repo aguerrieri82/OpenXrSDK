@@ -16,6 +16,7 @@ namespace XrEngine
             _materials.CollectionChanged += OnMaterialsChanged;
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
+            InstanceCount = 1;
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -145,6 +146,8 @@ namespace XrEngine
         public UpdateMode BoundUpdateMode { get; set; }
 
         public MeshExportInfo<TriangleMesh> Export { get; set; }
+
+        public int InstanceCount { get; set; }
 
         #region IVertexSource
 

@@ -19,8 +19,11 @@
 #include <algorithm>
 #include <cstdint>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 #include "Config.h"
 #include "renderdoc_app.h"
 #include "MeshVoxelizer.h"
+#include "VoxelLightBaker.h"
 #include "Api.h"

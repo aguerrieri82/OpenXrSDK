@@ -41,6 +41,7 @@ using RoomDesigner.Game.Ikea;
 using XrEngine.Reconstruct;
 using XrEngine.OpenGL;
 using XrSamples.Components;
+using XrEngine.Lighting;
 
 
 
@@ -1079,6 +1080,42 @@ namespace XrSamples
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
         }
+
+
+        [Sample("Cucina")]
+        public static XrEngineAppBuilder CreateLighting(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+
+            var voxelSize = 0.05f;
+            var roomSize = new Vector3(5, 2, 5);
+
+            var grid = new VoxelGridDesc
+            {
+                Origin = new Vector3(-roomSize.X / 2, 0f, -roomSize.Z / 2),
+                VoxelSize = voxelSize,
+                Size = new Vector3I(
+                    (int)MathF.Round(roomSize.X / voxelSize),
+                    (int)MathF.Round(roomSize.Y / voxelSize),
+                    (int)MathF.Round(roomSize.Z / voxelSize))
+            };
+
+            var mesh = scene.AddChild((TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions));
+            mesh.Name = "Bed";
+            mesh.AddComponent(new MeshVoxelizerManager(grid));
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureApp(cfg =>
+                {
+                    foreach (var light in scene.Descendants<Light>())
+                        light.IsVisible = true;
+                })
+                .ConfigureSampleApp();
+        }
+
 
         [Sample("Cucina")]
         public static XrEngineAppBuilder CreateCucina(this XrEngineAppBuilder builder)
