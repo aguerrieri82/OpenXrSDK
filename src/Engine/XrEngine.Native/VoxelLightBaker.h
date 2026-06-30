@@ -126,6 +126,7 @@ struct VoxelRayDebugState
     int32_t BounceCount;
 
     VoxelData LastVoxel;
+    VoxelLightData LastLightData;
     VoxelResolvedFace LastResolvedFaces[VOXEL_LIGHT_FACE_COUNT];
 };
 
@@ -163,7 +164,7 @@ private:
         VoxelLightContribution Contribution;
 
         std::vector<int32_t> CellSlots;
-        std::vector<uint64_t> Occupancy;
+        std::vector<int32_t> TouchedVoxels;
     };
 
 public:
@@ -219,8 +220,9 @@ private:
 
     struct ContributionMergeState
     {
+        VoxelLightContribution Contribution;
         std::vector<int32_t> CellSlots;
-        std::vector<uint64_t> Occupancy;
+        std::vector<int32_t> TouchedVoxels;
     };
 
 public:
@@ -252,6 +254,11 @@ public:
 
     void GetLightField(
         VoxelLightField& field) const;
+
+
+    int32_t getVoxelCount() {
+        return _voxelCount;
+    }
 
 private:
     VoxelLightBakeParams _params;

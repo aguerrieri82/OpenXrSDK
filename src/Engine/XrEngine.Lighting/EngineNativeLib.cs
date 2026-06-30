@@ -75,33 +75,19 @@ namespace XrEngine.Lighting
         public VoxelTriangleSide Side;
     }
 
+    [InlineArray(VoxelLightConst.FaceCount)]
+    public struct VoxelFaceDataArray
+    {
+        private VoxelFaceData _element0;
+    }
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public unsafe struct VoxelData
     {
         public VoxelStatus Status;
         public float Occupancy;
 
-        public fixed byte Faces[VoxelLightConst.FaceCount * VoxelFaceDataSize];
-
-        public const int VoxelFaceDataSize =
-            sizeof(float) * 2 + // UV
-            sizeof(float) * 2 + // HitPosition
-            sizeof(int) +       // TriangleId
-            sizeof(int);        // Side
-
-        public VoxelFaceData GetFace(int index)
-        {
-            if ((uint)index >= VoxelLightConst.FaceCount)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            fixed (byte* pFaces = Faces)
-                return ((VoxelFaceData*)pFaces)[index];
-        }
-
-        public VoxelFaceData GetFace(VoxelFace face)
-        {
-            return GetFace((int)face);
-        }
+        public VoxelFaceDataArray Faces;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -236,6 +222,8 @@ namespace XrEngine.Lighting
         public int BounceCount;
 
         public VoxelData LastVoxel;
+        public VoxelLightData LastLightData;
+
         public VoxelResolvedFaceArray LastResolvedFaces;
     }
 

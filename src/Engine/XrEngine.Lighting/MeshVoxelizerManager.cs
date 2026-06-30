@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using XrMath;
 
 namespace XrEngine.Lighting
 {
@@ -10,8 +11,10 @@ namespace XrEngine.Lighting
         MeshVoxelizer _voxelizer;
         VoxelMeshView? _view;
         VoxelLightBaker _backer;
-        private MeshVoxelGrid _voxelGrid;
-        private VoxelRayMarcher _ray;
+
+        private MeshVoxelGrid? _voxelGrid;
+        private VoxelRayMarcher? _ray;
+        private TriangleMesh _curVoxel;
 
         public MeshVoxelizerManager(VoxelGridDesc gridDesc)
         {
@@ -25,6 +28,9 @@ namespace XrEngine.Lighting
                     ScanSubdiv = 2
                 }
             };
+
+            _curVoxel = new TriangleMesh(Cube3D.Default, new ColorMaterial(Color.White));
+            _curVoxel.Transform.SetScale(gridDesc.VoxelSize);
         }
 
 
@@ -73,7 +79,7 @@ namespace XrEngine.Lighting
 
             for (var i = 0; i < _view.FaceInstances!.Length; i++)
             {
-                var pos = _view.FaceInstances[i].Pos - _voxelGrid.Info.Origin;
+                var pos = _view.FaceInstances[i].Pos - _voxelGrid!.Info.Origin;
 
                 var voxelIndex =
                     pos.X +
@@ -89,26 +95,50 @@ namespace XrEngine.Lighting
                 };
             }
 
-            _backer.AddMesh(_voxelGrid.Info.Origin, _voxelGrid.Info.Size, _voxelGrid.Voxels.ToArray(), resInfo);
+            _backer.AddMesh(_voxelGrid!.Info.Origin, _voxelGrid.Info.Size, _voxelGrid.Voxels.ToArray(), resInfo);
 
             _ray = _backer.CreateRayMarcher();
 
             bool res = _ray.Create(new VoxelLightRay
             {
-                Position = new Vector3(0, 1.9f, 0),
+                Position = new Vector3(0.02f, 1.9f, 0.02f),
                 Direction = new Vector3(0, -1, 0),
                 Energy = new Vector3(1, 1, 1)
             });
+
+            var light = _backer.BakePointLight(new VoxPointLight
+            {
+                Color = new Vector3(1, 1, 1),
+                Intensity = 10000,
+                Position = new Vector3(0.02f, 1.9f, 0.02f),
+                FalloffDistance = 7
+            });
+
+            var map = _backer.GetLightField();
 
         }
 
         [Action]
         public void Step()
         {
+            if (_curVoxel.Parent == null)
+                _host.Scene!.AddChild(_curVoxel);
+
             _ray.Step();
 
             var state = _ray.GetState();
 
+            Log.Debug(this, "{0} / {1}: {2}", state.Cell, state.LastHitVoxel, state.LastVoxel.Status);
+
+            if (state.LastHitVoxel != -1)
+            {
+                Console.WriteLine();
+            }
+
+            _curVoxel.WorldPosition = new Vector3(
+                _voxelizer.GridDesc.Origin.X + (state.Cell.X + 0.5f) * _voxelizer.GridDesc.VoxelSize,
+                _voxelizer.GridDesc.Origin.Y + (state.Cell.Y + 0.5f) * _voxelizer.GridDesc.VoxelSize,
+                _voxelizer.GridDesc.Origin.Z + (state.Cell.Z + 0.5f) * _voxelizer.GridDesc.VoxelSize);
 
         }
 

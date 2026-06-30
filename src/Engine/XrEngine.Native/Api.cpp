@@ -684,7 +684,7 @@ EXPORT VoxelRayMarcher* APIENTRY VoxelRayMarcherCreate(
         baker,
         -1);
 
-    marcher->ClearContribution();
+    marcher->Prepare(baker->getVoxelCount());
 
     return marcher;
 }

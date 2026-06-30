@@ -70,7 +70,8 @@ namespace XrEngine.Lighting
             }
         }
 
-        public int ExtractFrontFaces(VoxelFaceInstance* dst)
+        public int ExtractFrontFaces(
+  VoxelFaceInstance* dst)
         {
             var count = 0;
 
@@ -80,33 +81,34 @@ namespace XrEngine.Lighting
             Log.Info(this, "Extract Front Faces");
 
             for (var z = 0; z < size.Z; z++)
+            {
                 for (var y = 0; y < size.Y; y++)
+                {
                     for (var x = 0; x < size.X; x++)
                     {
                         ref var voxel = ref this[x, y, z];
 
-                        fixed (byte* pFaces = voxel.Faces)
+                        for (var face = 0; face < VoxelLightConst.FaceCount; face++)
                         {
-                            var faces = (VoxelFaceData*)pFaces;
+                            ref var faceData = ref voxel.Faces[face];
 
-                            for (var face = 0; face < 6; face++)
+                            if (faceData.Side != VoxelTriangleSide.Front)
+                                continue;
+
+                            dst[count++] = new VoxelFaceInstance
                             {
-                                if (faces[face].Side != VoxelTriangleSide.Front)
-                                    continue;
+                                Pos = new Vector3I(
+                                    origin.X + x,
+                                    origin.Y + y,
+                                    origin.Z + z),
 
-                                dst[count++] = new VoxelFaceInstance
-                                {
-                                    Pos = new Vector3I(
-                                        origin.X + x,
-                                        origin.Y + y,
-                                        origin.Z + z),
-
-                                    Face = face,
-                                    Data = faces[face]
-                                };
-                            }
+                                Face = face,
+                                Data = faceData
+                            };
                         }
                     }
+                }
+            }
 
             return count;
         }

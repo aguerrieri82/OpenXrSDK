@@ -54,6 +54,11 @@
             };
         }
 
+        public override string ToString()
+        {
+            return $"<{X},{Y},{Z}>";
+        }
+
         public int X;
 
         public int Y;
