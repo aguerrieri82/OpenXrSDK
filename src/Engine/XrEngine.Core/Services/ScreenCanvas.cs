@@ -567,6 +567,48 @@ namespace XrEngine
             _canvas!.DrawLine(p0, p1, GetStroke(strokeColor, stroke));
         }
 
+        public void DrawCube(Vector3 center, Vector3 size, Color strokeColor, UnitValue strokeSize)
+        {
+            var half = size * 0.5f;
+
+            var x0 = center.X - half.X;
+            var x1 = center.X + half.X;
+            var y0 = center.Y - half.Y;
+            var y1 = center.Y + half.Y;
+            var z0 = center.Z - half.Z;
+            var z1 = center.Z + half.Z;
+
+            var p000 = new Vector3(x0, y0, z0);
+            var p100 = new Vector3(x1, y0, z0);
+            var p110 = new Vector3(x1, y1, z0);
+            var p010 = new Vector3(x0, y1, z0);
+
+            var p001 = new Vector3(x0, y0, z1);
+            var p101 = new Vector3(x1, y0, z1);
+            var p111 = new Vector3(x1, y1, z1);
+            var p011 = new Vector3(x0, y1, z1);
+
+            DrawLine(p000, p100, strokeColor, strokeSize);
+            DrawLine(p100, p110, strokeColor, strokeSize);
+            DrawLine(p110, p010, strokeColor, strokeSize);
+            DrawLine(p010, p000, strokeColor, strokeSize);
+
+            DrawLine(p001, p101, strokeColor, strokeSize);
+            DrawLine(p101, p111, strokeColor, strokeSize);
+            DrawLine(p111, p011, strokeColor, strokeSize);
+            DrawLine(p011, p001, strokeColor, strokeSize);
+
+            DrawLine(p000, p001, strokeColor, strokeSize);
+            DrawLine(p100, p101, strokeColor, strokeSize);
+            DrawLine(p110, p111, strokeColor, strokeSize);
+            DrawLine(p010, p011, strokeColor, strokeSize);
+        }
+
+        public void DrawLine(Vector3 from, Vector3 to, Color strokeColor, UnitValue strokeSize)
+        {
+            DrawLine(new Line3(from, to), strokeColor, strokeSize);
+        }
+
         public void DrawLine(Line3 line, Color strokeColor, UnitValue strokeSize)
         {
             if (!TryToScreen(line.From, out var p0))

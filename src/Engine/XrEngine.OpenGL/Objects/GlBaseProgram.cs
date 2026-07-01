@@ -263,11 +263,20 @@ namespace XrEngine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0)
+        public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0,  BufferUsage usage = BufferUsage.Default)
         {
             var glBuffer = (IGlBuffer)buffer;
 
-            GlState.Current!.SetActiveBuffer(glBuffer, slot);
+            var curTarget = glBuffer.Target;
+
+            if (usage == BufferUsage.SSbo)
+                curTarget = BufferTargetARB.ShaderStorageBuffer;
+            
+            else if (usage == BufferUsage.Uniforms)
+                curTarget = BufferTargetARB.UniformBuffer;
+
+            GlState.Current!.SetActiveBuffer(glBuffer, slot, curTarget);
+
         }
 
         public void SetUniform(string name, Texture value, int slot = 0, bool optional = false)

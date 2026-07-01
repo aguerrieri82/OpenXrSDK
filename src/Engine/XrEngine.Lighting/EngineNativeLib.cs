@@ -30,6 +30,13 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct SceneVoxel
+    {
+        public VoxelData Voxel;
+        public VoxelResolvedFaceArray ResolvedFaces;
+    };
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelGridDesc
     {
         public Vector3 Origin;
@@ -105,13 +112,19 @@ namespace XrEngine.Lighting
         public int VoxelCount;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Explicit, Size = 48)]
     public struct VoxelResolvedFace
     {
+        [FieldOffset(0)]
         public Vector4 BaseColor;
+
+        [FieldOffset(16)]
         public Vector3 Normal;
 
+        [FieldOffset(28)]
         public float Roughness;
+
+        [FieldOffset(32)]
         public float Metallic;
     }
 
@@ -352,6 +365,9 @@ namespace XrEngine.Lighting
             ref VoxelLightFieldView field);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
+        public static extern unsafe SceneVoxel* VoxelLightBakerGetScene(VoxelLightBaker baker, out int count);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern VoxelRayMarcher VoxelRayMarcherCreate(
             VoxelLightBaker baker);
 
@@ -383,5 +399,7 @@ namespace XrEngine.Lighting
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern void FreeLightFieldView(ref VoxelLightFieldView view);
+
+
     }
 }

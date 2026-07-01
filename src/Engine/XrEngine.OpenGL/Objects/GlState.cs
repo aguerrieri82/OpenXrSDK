@@ -465,14 +465,19 @@ namespace XrEngine.OpenGL
 
         public void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
         {
-            var slots = GetBufferSlots(buffer.Target);
+            SetActiveBuffer(buffer, slot, buffer.Target, force);
+        }
+
+        public void SetActiveBuffer(IGlBuffer buffer, int slot, BufferTargetARB target, bool force = false)
+        {
+            var slots = GetBufferSlots(target);
 
             var curSlotValue = slots[slot];
 
             if (curSlotValue == buffer.Handle && !force)
                 return;
 
-            _gl.BindBufferBase(buffer.Target, (uint)slot, buffer.Handle);
+            _gl.BindBufferBase(target, (uint)slot, buffer.Handle);
             buffer.Slot = slot;
 
             slots[slot] = buffer.Handle;

@@ -164,13 +164,13 @@ namespace XrEngine
             });
         }
 
-        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, bool isUniform) where T : struct
+        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
         {
             IBuffer<T>? buffer = null;
 
             _result.BufferUpdates!.Add((ctx) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, isUniform);
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
                 ctx.CurrentBuffer = buffer;
 
@@ -183,7 +183,7 @@ namespace XrEngine
 
             _result.Actions!.Add((ctx, up) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, isUniform);
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
                 up.LoadBuffer(buffer, slot);
             });

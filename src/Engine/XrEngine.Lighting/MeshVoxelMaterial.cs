@@ -73,7 +73,7 @@ namespace XrEngine.Lighting
                     up.SetUniform("uRoughnessFactor", mat.Roughness);
                     up.SetUniform("uCameraPosition", ctx.PassCamera!.WorldPosition);
 
-                    _resolveBuffer ??= ctx.BufferProvider!.GetBuffer<VoxelResolvedFace>(10, BufferStore.Material, false);
+                    _resolveBuffer ??= ctx.BufferProvider!.GetBuffer<VoxelResolvedFace>(10, BufferStore.Material, BufferUsage.SSbo);
 
                     var size = (uint)(Marshal.SizeOf<VoxelResolvedFace>() * FaceInstances!.Length);
 
@@ -81,6 +81,13 @@ namespace XrEngine.Lighting
                         _resolveBuffer.Allocate(size);
 
                     up.LoadBuffer(_resolveBuffer, 10);
+
+                    if (TargetVBuf != null)
+                        up.LoadBuffer(TargetVBuf, 12, BufferUsage.SSbo);
+
+                    if (TargetIBuf != null)
+                        up.LoadBuffer(TargetIBuf, 13, BufferUsage.SSbo);
+
 
                 });
             }
@@ -96,10 +103,29 @@ namespace XrEngine.Lighting
                 
                 return FaceInstances;
 
-            },11, BufferStore.Material, false);
+            },11, BufferStore.Material, BufferUsage.SSbo);
 
             base.UpdateShaderMaterial(bld);
         }
+
+
+        public VoxelResolvedFace[]? ReadResolvedFaces()
+        {
+            if (ResolvedFace == null || ResolvedFace.SizeBytes == 0)
+                return null;
+
+            var size = new VoxelResolvedFace[ResolvedFace.SizeBytes / Marshal.SizeOf<VoxelResolvedFace>()];
+
+            var result = Array.Empty<VoxelResolvedFace>();
+            
+            ResolvedFace.ReadArray(ref result);
+
+            return result;
+        }
+
+        public IBuffer<VertexData>? TargetVBuf { get; set; }
+
+        public IBuffer<uint>? TargetIBuf { get; set; }
 
         public IBuffer<VoxelResolvedFace>? ResolvedFace => _resolveBuffer;
 

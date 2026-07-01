@@ -3,6 +3,13 @@ using XrMath;
 
 namespace XrEngine
 {
+    public enum BufferUsage
+    {
+        Default,
+        Uniforms,
+        SSbo
+    }
+
     public interface IUniformProvider
     {
         void LoadTexture(Texture value, int slot = 0, bool forceBinding = false);
@@ -39,7 +46,7 @@ namespace XrEngine
 
         void SetUniform(string name, Vector3[] value, bool optional = false);
 
-        void LoadBuffer<T>(IBuffer<T> value, int slot = 0);
+        void LoadBuffer<T>(IBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default);
 
         void SetLineSize(float size);
 

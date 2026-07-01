@@ -53,7 +53,7 @@ namespace XrEngine.Objects.Materials
 
                 return mesh.Splats;
 
-            }, 18, BufferStore.Model, false);
+            }, 18, BufferStore.Model, BufferUsage.SSbo);
 
 
             base.UpdateShaderModel(bld);

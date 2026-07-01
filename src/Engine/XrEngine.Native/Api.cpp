@@ -614,6 +614,13 @@ EXPORT void APIENTRY VoxelLightBakerAddMesh(
         faceCount);
 }
 
+
+EXPORT VoxelLightBaker::SceneVoxel* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count) {
+    auto scene = baker->GetScene();
+	*count = scene->size();
+	return scene->data();
+}
+
 EXPORT int32_t APIENTRY VoxelLightBakerBakePointLight(
     VoxelLightBaker* baker,
     const PointLight* light,
@@ -684,7 +691,7 @@ EXPORT VoxelRayMarcher* APIENTRY VoxelRayMarcherCreate(
         baker,
         -1);
 
-    marcher->Prepare(baker->getVoxelCount());
+    marcher->Prepare(baker->GetVoxelCount());
 
     return marcher;
 }

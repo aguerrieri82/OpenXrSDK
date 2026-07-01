@@ -190,7 +190,10 @@ namespace XrEngine.OpenGL
 
         public GlVertexLayout Layout => _layout;
 
-        public bool EnableDebug;
+        public GlBuffer<TVertexType> VBuf => _vBuf;
+
+        public GlBuffer<TIndexType>? IBuf => _iBuf;
+
 
         #region IGlVertexArray
 

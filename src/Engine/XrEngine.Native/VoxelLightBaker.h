@@ -22,14 +22,16 @@ struct VoxelLightFieldView
 
 
 
-struct VoxelResolvedFace
+struct alignas(16) VoxelResolvedFace
 {
     Vec4 BaseColor;
     Vec3 Normal;
-
     float Roughness;
     float Metallic;
 };
+
+static_assert(alignof(VoxelResolvedFace) == 16);
+static_assert(sizeof(VoxelResolvedFace) == 48);
 
 struct VoxelLightBakeParams
 {
@@ -157,6 +159,7 @@ private:
         int32_t LastAffectedFace;
 
         int32_t BounceCount;
+        int32_t EnterFace;
     };
 
     struct WorkerContribution
@@ -212,11 +215,6 @@ class VoxelLightBaker
     friend class VoxelRayMarcher;
 
 private:
-    struct SceneVoxel
-    {
-        VoxelData Voxel;
-        VoxelResolvedFace ResolvedFaces[VOXEL_LIGHT_FACE_COUNT];
-    };
 
     struct ContributionMergeState
     {
@@ -225,6 +223,12 @@ private:
         std::vector<int32_t> TouchedVoxels;
     };
 
+public:
+    struct SceneVoxel
+    {
+        VoxelData Voxel;
+        VoxelResolvedFace ResolvedFaces[VOXEL_LIGHT_FACE_COUNT];
+    };
 public:
     VoxelLightBaker();
 
@@ -256,8 +260,12 @@ public:
         VoxelLightField& field) const;
 
 
-    int32_t getVoxelCount() {
+    int32_t GetVoxelCount() {
         return _voxelCount;
+    }
+
+    std::vector<SceneVoxel>* GetScene() {
+        return &_scene;
     }
 
 private:
@@ -298,4 +306,5 @@ private:
 
     void BuildLightField(
         VoxelLightField& field) const;
+
 };

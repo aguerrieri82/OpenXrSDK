@@ -65,6 +65,8 @@ namespace XrEngine.OpenGL
 
             _primitive = GlPrimitive(_source.Primitive);
 
+            _source.NotifyBuffers(_vertices.VBuf, _vertices.IBuf);
+
             _gl = gl;
 
             Version = -1;

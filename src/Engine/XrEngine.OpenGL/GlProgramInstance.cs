@@ -182,10 +182,10 @@ namespace XrEngine.OpenGL
             return changed;
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, bool isUniform)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage)
         {
             if (store == BufferStore.Shader)
-                return Global.GetBuffer<T>(bufferId, store, isUniform);
+                return Global.GetBuffer<T>(bufferId, store, usage);
 
             var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
 
@@ -195,7 +195,8 @@ namespace XrEngine.OpenGL
             var buffer = (IBuffer<T>?)storeBuffers[bufferId];
             if (buffer == null)
             {
-                buffer = new GlBuffer<T>(_gl, isUniform ? BufferTargetARB.UniformBuffer : BufferTargetARB.ShaderStorageBuffer);
+                var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
+                buffer = new GlBuffer<T>(_gl, target);
                 storeBuffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;

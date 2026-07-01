@@ -70,8 +70,7 @@ namespace XrEngine.Lighting
             }
         }
 
-        public int ExtractFrontFaces(
-  VoxelFaceInstance* dst)
+        public int ExtractFrontFaces(VoxelFaceInstance* dst)
         {
             var count = 0;
 
@@ -117,14 +116,14 @@ namespace XrEngine.Lighting
 
         public int VoxelCount => _voxelCount;
 
-        public ReadOnlySpan<VoxelData> Voxels
+        public Span<VoxelData> Voxels
         {
             get
             {
                 if (_voxelGrid.Handle == 0)
                     throw new ObjectDisposedException(nameof(MeshVoxelGrid));
 
-                return new ReadOnlySpan<VoxelData>(_voxels, _voxelCount);
+                return new Span<VoxelData>(_voxels, _voxelCount);
             }
         }
     }

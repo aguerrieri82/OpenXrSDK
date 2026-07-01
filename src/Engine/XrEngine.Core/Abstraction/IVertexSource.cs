@@ -36,5 +36,10 @@ namespace XrEngine
         TIndices[] Indices { get; }
 
         TVertices[] Vertices { get; }
+
+        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices)
+        {
+
+        }
     }
 }

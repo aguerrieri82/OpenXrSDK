@@ -54,10 +54,23 @@
             };
         }
 
+        public static Vector3I operator +(Vector3I left, Vector3I right)
+        {
+            return new Vector3I
+            {
+                X = left.X + right.X,
+                Y = left.Y + right.Y,
+                Z = left.Z + right.Z
+            };
+        }
+
         public override string ToString()
         {
             return $"<{X},{Y},{Z}>";
         }
+
+        public static readonly Vector3I Zero = new();
+
 
         public int X;
 

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine.Lighting
@@ -8,10 +9,48 @@ namespace XrEngine.Lighting
         private EngineNativeLib.VoxelLightBaker _handle;
 
         private VoxelLightFieldView _view;
+        private VoxelGridDesc _gridDesc;
 
         public VoxelLightBaker()
         {
             _handle = EngineNativeLib.VoxelLightBakerCreate();
+        }
+
+        public ref T GetCell<T>(
+            Span<T> cells,
+            Vector3I index)
+        {
+            return ref GetCell(cells, index.X, index.Y, index.Z);
+        }
+
+        public ref T GetCell<T>(
+            Span<T> cells,
+            int x,
+            int y,
+            int z)
+        {
+            var size = _gridDesc.Size;
+
+            Debug.Assert((uint)x < (uint)size.X);
+            Debug.Assert((uint)y < (uint)size.Y);
+            Debug.Assert((uint)z < (uint)size.Z);
+
+            var index =
+                x +
+                y * size.X +
+                z * size.X * size.Y;
+
+            return ref cells[index];
+        }
+
+        public  ReadOnlySpan<SceneVoxel> GetScene()
+        {
+            var sceneRef = EngineNativeLib.VoxelLightBakerGetScene(_handle, out var count);
+
+            if (count == 0)
+                return [];
+
+            return new ReadOnlySpan<SceneVoxel>(sceneRef, count);
         }
 
         public void SetParams(in VoxelLightBakeParams parameters)
@@ -30,6 +69,8 @@ namespace XrEngine.Lighting
             EngineNativeLib.VoxelLightBakerSetGrid(
                 _handle,
                 ref value);
+
+            _gridDesc = grid;
         }
 
         public void ClearScene()
@@ -139,7 +180,7 @@ namespace XrEngine.Lighting
             _handle = default;
         }
 
-
+        public VoxelGridDesc GridDesc => _gridDesc;
         internal EngineNativeLib.VoxelLightBaker Handle => _handle;
     }
 }

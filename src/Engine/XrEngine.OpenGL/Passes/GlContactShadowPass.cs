@@ -141,7 +141,7 @@ namespace XrEngine.OpenGL
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            GlState.Current!.SetActiveBuffer(_uniforms, CONTACT_SHADOW_BUF);
+            GlState.Current!.SetActiveBuffer(_uniforms, CONTACT_SHADOW_BUF, _uniforms.Target);
 
             _contactProgram.Use();
 

@@ -137,6 +137,16 @@ namespace XrEngine
             Export.Export();
         }
 
+        public void NotifyBuffers(IBuffer<VertexData> vertices, IBuffer<uint>? indices)
+        {
+            VBuf = vertices;
+            IBuf = indices;
+        }
+
+        public IBuffer<VertexData>? VBuf { get; internal set; }
+
+        public IBuffer<uint>? IBuf { get; internal set; }
+
         public int RenderPriority { get; set; }
 
         public IList<Material> Materials => _materials;
