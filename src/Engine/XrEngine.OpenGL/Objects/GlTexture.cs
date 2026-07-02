@@ -34,6 +34,7 @@ namespace XrEngine.OpenGL
         {
             WrapS = TextureWrapMode.ClampToEdge;
             WrapT = TextureWrapMode.ClampToEdge;
+            WrapR = TextureWrapMode.ClampToEdge;
             MinFilter = TextureMinFilter.LinearMipmapLinear;
             MagFilter = TextureMagFilter.Linear;
             BaseLevel = 0;
@@ -78,6 +79,15 @@ namespace XrEngine.OpenGL
 
         public void Attach(uint handle, TextureTarget target = 0)
         {
+            if (_handle == handle)
+                return;
+
+            if (_handle != 0)
+            {
+                Log.Warn(this, "Attached an existing texture {0}- {1}", _handle, handle);
+                Destroy();
+            }
+     
             _attached[handle] = this;
 
             _handle = handle;
@@ -117,6 +127,9 @@ namespace XrEngine.OpenGL
 
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapT, out int wt);
                 WrapT = (TextureWrapMode)wt;
+
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapRExt, out int wr);
+                WrapR = (TextureWrapMode)wr;
 
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureMinFilter, out int min);
                 MinFilter = (TextureMinFilter)min;
@@ -404,6 +417,7 @@ namespace XrEngine.OpenGL
             {
                 _gl.TexParameter(Target, TextureParameterName.TextureWrapS, (int)WrapS);
                 _gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)WrapT);
+                _gl.TexParameter(Target, TextureParameterName.TextureWrapR, (int)WrapR);
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureBorderColor, BorderColor.ToArray());
@@ -844,6 +858,8 @@ namespace XrEngine.OpenGL
         public TextureWrapMode WrapS { get; set; }
 
         public TextureWrapMode WrapT { get; set; }
+
+        public TextureWrapMode WrapR { get; set; }
 
         public TextureMinFilter MinFilter { get; set; }
 

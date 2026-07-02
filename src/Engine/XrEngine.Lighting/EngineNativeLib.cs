@@ -12,28 +12,25 @@ namespace XrEngine.Lighting
     }
 
     [InlineArray(VoxelLightConst.FaceCount)]
-    public struct VoxelLightFaceArray
+    public unsafe struct FaceArray<T>
     {
-        private VoxelLightFace _element0;
+        private T _element0;
     }
 
     [InlineArray(VoxelLightConst.FaceCount)]
-    public struct VoxelResolvedFaceArray
+    public unsafe struct FaceArrayPtr<T>
     {
-        private VoxelResolvedFace _element0;
+        private T* _element0;
     }
 
-    [InlineArray(VoxelLightConst.FaceCount)]
-    public struct NativePtrArray6
-    {
-        private nint _element0;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Explicit, Size = 448)]
     public struct SceneVoxel
     {
+        [FieldOffset(0)]
         public VoxelData Voxel;
-        public VoxelResolvedFaceArray ResolvedFaces;
+
+        [FieldOffset(160)]
+        public FaceArray<VoxelResolvedFace> ResolvedFaces;
     };
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -60,7 +57,8 @@ namespace XrEngine.Lighting
     {
         None = 0,
         Front = 1,
-        Back = 2
+        Back = 2,
+        All= Front | Back
     }
 
     public enum VoxelFace : int
@@ -82,19 +80,14 @@ namespace XrEngine.Lighting
         public VoxelTriangleSide Side;
     }
 
-    [InlineArray(VoxelLightConst.FaceCount)]
-    public struct VoxelFaceDataArray
-    {
-        private VoxelFaceData _element0;
-    }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public unsafe struct VoxelData
+    public struct VoxelData
     {
         public VoxelStatus Status;
         public float Occupancy;
 
-        public VoxelFaceDataArray Faces;
+        public FaceArray<VoxelFaceData> Faces;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -179,7 +172,7 @@ namespace XrEngine.Lighting
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelLightData
     {
-        public VoxelLightFaceArray Faces;
+        public FaceArray<VoxelLightFace> Faces;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -196,15 +189,14 @@ namespace XrEngine.Lighting
         public int CellCount;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightFieldView
     {
-        public int SizeX;
-        public int SizeY;
-        public int SizeZ;
+        public Vector3I Size;
 
-        public NativePtrArray6 Color;
-        public NativePtrArray6 Direction;
+        public FaceArray<nint> Color;
+
+        public FaceArray<nint> Direction;
 
         public int CellCount;
 
@@ -237,7 +229,7 @@ namespace XrEngine.Lighting
         public VoxelData LastVoxel;
         public VoxelLightData LastLightData;
 
-        public VoxelResolvedFaceArray LastResolvedFaces;
+        public FaceArray<VoxelResolvedFace> LastResolvedFaces;
     }
 
     public static class EngineNativeLib

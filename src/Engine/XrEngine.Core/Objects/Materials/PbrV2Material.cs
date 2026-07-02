@@ -1,7 +1,6 @@
 ﻿using Common.Interop;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using XrEngine.Objects;
 using XrMath;
 using XrMath.Entities;
 
@@ -174,6 +173,8 @@ namespace XrEngine
         public class PbrV2Shader : Shader, IShaderHandler, IInstanceShader
         {
             long _iblVersion = -1;
+            ILightFieldProvider? _lightFieldProvider;
+
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
 
             public PbrV2Shader()
@@ -411,7 +412,7 @@ namespace XrEngine
                                 Range = spot.Range,
                                 Color = ((Vector3)spot.Color) * spot.Intensity,
                                 Direction = Vector3.Normalize(spot.Forward),
-                                InConeCos = MathF.Cos( spot.InnerConeAngle),
+                                InConeCos = MathF.Cos(spot.InnerConeAngle),
                                 OutConeCos = MathF.Cos(spot.OuterConeAngle),
                                 Position = spot.WorldPosition,
                             });
@@ -464,6 +465,41 @@ namespace XrEngine
                             up.LoadTexture(imgLight.Textures.GGXLUT, TextureSlots.IblGgxLut);
                     });
                 }
+
+                if (UseLightField)
+                {
+                    _lightFieldProvider ??= Context.Require<ILightFieldProvider>();
+
+                    if (_lightFieldProvider != null)
+                    {
+                        if (_lightFieldProvider.GetLightField().UseAllFaces)
+                           bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
+
+                        bld.ExecuteAction((ctx, up) =>
+                        {
+                            var lightField = _lightFieldProvider.GetLightField();
+
+                            if (lightField.Textures == null || lightField.Textures.Count == 0)
+                                return;
+
+                            int i = 0;
+
+                            foreach (var tex in lightField.Textures)
+                            {
+                                up.LoadTexture(tex, i + 10);
+                                up.SetUniform($"uLightField[{i}]", i + 10);
+                                i++;
+                            }
+
+                            up.SetUniform("uLightFieldOrigin", lightField.Origin);
+                            up.SetUniform("uLightFieldSize", lightField.Size);
+                            up.SetUniform("uVoxelSize", lightField.VoxelSize);
+                            up.SetUniform("uLightFieldStrength", lightField.Strength);
+                        });
+                    }
+
+                }
+
             }
 
             public bool NeedUpdate(Object3D model, long curVersion)
@@ -493,6 +529,8 @@ namespace XrEngine
             public float DepthNoiseDistance { get; set; }
 
             public ToneMapMode ToneMap { get; set; }
+
+            public bool UseLightField { get; set; }
         }
 
         #endregion
@@ -525,6 +563,7 @@ namespace XrEngine
             NormalScale = 1;
             UseInstanceDraw = true;
             ForceIblTransform = false;
+            LightFieldOfs = 1.5f;
             Resolver = str =>
             {
                 if (str.Contains("fragment_defaults.glsl"))
@@ -734,6 +773,12 @@ namespace XrEngine
                 bld.LoadTexture(ctx => EmissiveMap, TextureSlots.Emissive);
             }
 
+            if (UseLightField && ((PbrV2Shader)_shader!).UseLightField)
+            {
+                bld.AddFeature("USE_LIGHT_FIELD");
+                bld.SetUniform("uLightFieldOfs", ctx => LightFieldOfs);
+            }
+
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
 
@@ -825,6 +870,10 @@ namespace XrEngine
         public bool Simplified { get; set; }
 
         public PbrV2Debug Debug { get; set; }
+
+        public float LightFieldOfs { get; set; }
+
+        public bool UseLightField { get; set; }
 
         public bool UseInstanceDraw { get; set; }
 

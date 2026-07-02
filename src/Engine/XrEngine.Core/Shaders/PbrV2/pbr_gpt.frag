@@ -4,6 +4,7 @@
 #include "../Shared/tonemap.glsl"
 #include "../Shared/planar_reflection.glsl"
 
+
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
 
@@ -106,13 +107,6 @@ float square(float v)
 	return v * v;
 }
 
-vec3 safeNormalize(vec3 v)
-{
-	float lenSq = dot(v, v);
-	if (lenSq <= Epsilon)
-		return vec3(0.0, 0.0, 1.0);
-	return v * inversesqrt(lenSq);
-}
 
 // GGX / Trowbridge-Reitz normal distribution.
 // Input roughness is perceptual roughness. Internally converted to alpha = roughness^2.
@@ -178,7 +172,7 @@ vec3 evaluateDirectLight(
 #ifdef SIMPLIFIED
 	return albedo * radiance * NoL;
 #else
-	vec3 H = safeNormalize(L + V);
+	vec3 H = normalize(L + V);
 
 	float NoH = saturate(dot(N, H));
 	float VoH = saturate(dot(V, H));
@@ -203,10 +197,22 @@ vec3 evaluateDirectLight(
 #endif
 }
 
+#include "../Shared/light_field.glsl"
+
 vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 {
 	vec3 directLighting = vec3(0.0);
 	shadowLightDir = vec3(0.0, 1.0, 0.0);
+
+#ifdef USE_LIGHT_FIELD
+	directLighting += evaluateLightField(
+		frag.position,
+		frag.albedo,
+		frag.metalness,
+		frag.roughness,
+		frag.normal,
+		frag.viewDir);
+#endif
 
 #ifdef USE_PUNCTUAL
 	for (uint i = 0u; i < uLights.count; ++i)
@@ -247,7 +253,7 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 			float distance = sqrt(distanceSq);
 			L = lightVector / max(distance, Epsilon);
 
-			vec3 lightDir = safeNormalize(uLights.lights[i].direction);
+			vec3 lightDir = uLights.lights[i].direction;
 			float spotCos = dot(-L, lightDir);
 
 			if (spotCos <= uLights.lights[i].outCone)
@@ -302,7 +308,7 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 			float distance = sqrt(distanceSq);
 			L = lightVector / max(distance, Epsilon);
 
-			float facing = dot(-L, safeNormalize(direction));
+			float facing = dot(-L, direction);
 
 			if (facing <= 0.0)
 				continue;
@@ -315,7 +321,7 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 		// DIRECTIONAL 1
 		else
 		{
-			L = safeNormalize(-uLights.lights[i].direction);
+			L = -uLights.lights[i].direction;
 			shadowLightDir = L;
 		}
 

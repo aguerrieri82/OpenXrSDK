@@ -96,22 +96,7 @@ namespace XrEngine.OpenGL
                 var renderer = OpenGLRender.Current!;
 
                 if (value is Texture2D texture2D)
-                {
-                    if (texture2D.Type == TextureType.Depth)
-                    {
-                        var glTex = renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment);
-
-                        if (glTex == null)
-                            throw new NotSupportedException();
-
-                        if (texture2D.Handle == 0)
-                            glTex.ToEngineTexture(texture2D);
-
-                        return glTex;
-                    }
-
                     return texture2D.CreateGlTexture(renderer.GL);
-                }
 
                 throw new NotSupportedException();
             });
@@ -223,7 +208,7 @@ namespace XrEngine.OpenGL
 
             if (texture2D.Type == TextureType.Depth)
             {
-                var depth = OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment);
+                var depth = OpenGLRender.Current?.RenderTarget?.QueryTexture(FramebufferAttachment.DepthAttachment);
 
                 if (depth == null)
                     throw new NotSupportedException();
@@ -294,10 +279,18 @@ namespace XrEngine.OpenGL
             glTexture.Source = texture2D;
 
             texture2D.Handle = glTexture.Handle;
+
+            if (texture2D is Texture3D tex3d)
+            {
+                glTexture.WrapR = (TextureWrapMode)tex3d.WrapR;
+            }
         }
 
         static TextureTarget GetTarget(Texture2D texture2D)
         {
+            if (texture2D is Texture3D)
+                return TextureTarget.Texture3D;
+
             if (texture2D is TextureCube)
                 return TextureTarget.TextureCubeMap;
 
@@ -374,6 +367,9 @@ namespace XrEngine.OpenGL
             result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat);
             result.MipLevelCount = glTexture.MaxLevel > 0 ? glTexture.MaxLevel + 1 : 0;
 
+            if (result is Texture3D tex3d)
+                tex3d.WrapR = (WrapMode)glTexture.WrapR;
+
             if (glTexture.IsMutable)
                 result.Flags |= EngineObjectFlags.Mutable;
 
@@ -404,6 +400,7 @@ namespace XrEngine.OpenGL
                 MagFilter = self.MagFilter,
                 WrapS = self.WrapS,
                 WrapT = self.WrapT,
+                WrapR = self.WrapR,
                 MaxAnisotropy = self.MaxAnisotropy,
                 BorderColor = self.BorderColor,
                 MaxLevel = self.MaxLevel,

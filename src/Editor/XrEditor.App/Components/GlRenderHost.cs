@@ -375,8 +375,9 @@ namespace XrEditor
 
             TakeContext();
 
+#if DEBUG
             render.EnableDebug(EditorDebug.DebugSync);
-
+#endif
             return render;
         }
 

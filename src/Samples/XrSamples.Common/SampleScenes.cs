@@ -1103,7 +1103,7 @@ namespace XrSamples
 
             var mesh = scene.AddChild((TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions));
             mesh.Name = "Bed";
-            mesh.AddComponent(new MeshVoxelizerManager(grid));
+            mesh.AddComponent(new LightFieldDebug(grid));
 
             return builder
                 .UseApp(app)

@@ -659,6 +659,16 @@ namespace XrMath
         #region VECTOR3
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3I ToRoundI(in this Vector3 self)
+        {
+            return new Vector3I(
+                (int)MathF.Round(self.X),
+                (int)MathF.Round(self.Y),
+                (int)MathF.Round(self.Z)
+            );
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsFinite(in this Vector3 self)
         {
             return float.IsFinite(self.X) && float.IsFinite(self.Y) && float.IsFinite(self.Z);
@@ -1430,6 +1440,11 @@ namespace XrMath
             return offset < 0;
         }
 
+
+        public static int Area(in this Vector3I self)
+        {
+            return self.Z * self.Y * self.X;
+        }
 
 
         #endregion

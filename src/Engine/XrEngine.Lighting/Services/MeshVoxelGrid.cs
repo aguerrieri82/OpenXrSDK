@@ -55,13 +55,13 @@ namespace XrEngine.Lighting
         }
 
 
-        public VoxelFaceInstance[] ExtractFrontFaces()
+        public VoxelFaceInstance[] ExtractFaces(VoxelTriangleSide side)
         {
             var result = new VoxelFaceInstance[_voxelCount * 6];
 
             fixed (VoxelFaceInstance* pResult = result)
             {
-                var count = ExtractFrontFaces(pResult);
+                var count = ExtractFaces(pResult, side);
 
                 if (count != result.Length)
                     Array.Resize(ref result, count);
@@ -70,7 +70,7 @@ namespace XrEngine.Lighting
             }
         }
 
-        public int ExtractFrontFaces(VoxelFaceInstance* dst)
+        public int ExtractFaces(VoxelFaceInstance* dst, VoxelTriangleSide side)
         {
             var count = 0;
 
@@ -91,7 +91,7 @@ namespace XrEngine.Lighting
                         {
                             ref var faceData = ref voxel.Faces[face];
 
-                            if (faceData.Side != VoxelTriangleSide.Front)
+                            if ((faceData.Side & side) == 0)
                                 continue;
 
                             dst[count++] = new VoxelFaceInstance

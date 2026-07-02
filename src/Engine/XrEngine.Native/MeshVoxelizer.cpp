@@ -542,6 +542,7 @@ void MeshVoxelizer::SurfacePass(VoxelScanAxis axis)
                         posHit.UV = uv;
                         posHit.HitPosition = hitPosition;
                         posHit.Side = OppositeSide(side);
+               
 
                         AddFaceHit(localX, localY, localZ, NegFace(axis), negHit);
                         AddFaceHit(localX, localY, localZ, PosFace(axis), posHit);

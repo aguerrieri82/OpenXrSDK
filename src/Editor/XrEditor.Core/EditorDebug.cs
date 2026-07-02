@@ -15,7 +15,7 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
-        public static readonly bool EnablePreview = true;
+        public static readonly bool EnablePreview = false;
 
         public static readonly bool UseEs = false;
 
@@ -56,6 +56,7 @@ namespace XrEditor
                   opt.ContactShadow.Use = false;
                   opt.ContactShadow.IsMultiView = false;
 
+                  opt.UseResolve = false;
                   opt.UseSRGB = true;
                   opt.ToneMap = ToneMapMode.Neutral;
 

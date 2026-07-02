@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Common.Interop;
+using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using XrMath;
 
@@ -16,18 +18,9 @@ namespace XrEngine.Lighting
             _handle = EngineNativeLib.VoxelLightBakerCreate();
         }
 
-        public ref T GetCell<T>(
-            Span<T> cells,
-            Vector3I index)
-        {
-            return ref GetCell(cells, index.X, index.Y, index.Z);
-        }
+        public int CellIndex(Vector3I v) => CellIndex(v.X, v.Y, v.Z);
 
-        public ref T GetCell<T>(
-            Span<T> cells,
-            int x,
-            int y,
-            int z)
+        public int CellIndex(int x, int y, int z)
         {
             var size = _gridDesc.Size;
 
@@ -35,22 +28,26 @@ namespace XrEngine.Lighting
             Debug.Assert((uint)y < (uint)size.Y);
             Debug.Assert((uint)z < (uint)size.Z);
 
-            var index =
+            return
                 x +
                 y * size.X +
                 z * size.X * size.Y;
-
-            return ref cells[index];
         }
 
-        public  ReadOnlySpan<SceneVoxel> GetScene()
+        public ref T GetCell<T>(Span<T> cells, Vector3I index) =>
+            ref cells[CellIndex(index)];
+
+        public ref T GetCell<T>(Span<T> cells, int x, int y, int z) 
+            => ref cells[CellIndex(x, y, z)];
+
+        public Span<SceneVoxel> GetScene()
         {
             var sceneRef = EngineNativeLib.VoxelLightBakerGetScene(_handle, out var count);
 
             if (count == 0)
                 return [];
 
-            return new ReadOnlySpan<SceneVoxel>(sceneRef, count);
+            return new Span<SceneVoxel>(sceneRef, count);
         }
 
         public void SetParams(in VoxelLightBakeParams parameters)
@@ -147,6 +144,50 @@ namespace XrEngine.Lighting
                     _handle,
                     ref view);
             }
+        }
+
+        public IList<Texture3D> CreateTextures()
+        {
+            var field = GetLightField();
+
+            var result = new List<Texture3D>();
+            
+            var size = (uint)(field.CellCapacity * sizeof(Vector3));
+
+            for (var i = 0; i < 6; i++)
+            {
+                var tex = new Texture3D();
+                tex.Format = TextureFormat.RgbFloat16;
+
+                var span = new Span<Vector3>((Vector*)field.Color[i], field.CellCapacity);
+
+                tex.LoadData(new TextureData
+                {
+                    Data = MemoryBuffer.Attach((byte*)field.Color[i],size),
+                    Width = (uint)field.Size.X,
+                    Height = (uint)field.Size.Y,
+                    Depth = (uint)field.Size.Z,
+                    Format = TextureFormat.RgbFloat32
+                });
+
+                result.Add(tex);
+
+                tex = new Texture3D();
+                tex.Format = TextureFormat.RgbFloat16;
+
+                tex.LoadData(new TextureData
+                {
+                    Data = MemoryBuffer.Attach((byte*)field.Direction[i], size),
+                    Width = (uint)field.Size.X,
+                    Height = (uint)field.Size.Y,
+                    Depth = (uint)field.Size.Z,
+                    Format = TextureFormat.RgbFloat32
+                });
+
+                result.Add(tex);
+            }
+
+            return result;
         }
 
         public VoxelLightFieldView GetLightField()

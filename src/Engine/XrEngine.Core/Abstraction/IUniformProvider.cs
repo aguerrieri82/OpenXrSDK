@@ -28,6 +28,8 @@ namespace XrEngine
 
         void SetUniform(string name, Vector2I value, bool optional = false);
 
+        void SetUniform(string name, Vector3I value, bool optional = false);
+
         void SetUniform(string name, Vector4 value, bool optional = false);
 
         void SetUniform(string name, Vector3 value, bool optional = false);

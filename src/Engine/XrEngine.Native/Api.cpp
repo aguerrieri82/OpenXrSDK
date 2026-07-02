@@ -616,6 +616,7 @@ EXPORT void APIENTRY VoxelLightBakerAddMesh(
 
 
 EXPORT VoxelLightBaker::SceneVoxel* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count) {
+    int size = sizeof(VoxelLightBaker::SceneVoxel);
     auto scene = baker->GetScene();
 	*count = scene->size();
 	return scene->data();
@@ -669,13 +670,9 @@ EXPORT int32_t APIENTRY VoxelLightBakerGetLightField(
     if (baker == nullptr || field == nullptr)
         return 0;
 
-    VoxelLightField result;
+    const auto& curField = baker->GetLightField();
 
-    baker->GetLightField(result);
-
-    return CopyLightFieldToView(
-        result,
-        field);
+    return CopyLightFieldToView(curField, field);
 }
 
 

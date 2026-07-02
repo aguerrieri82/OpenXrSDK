@@ -5,6 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Shaders\field_phong.frag" />
+    <EmbeddedResource Include="Shaders\light_field.vert" />
+    <EmbeddedResource Include="Shaders\light_field.frag" />
     <EmbeddedResource Include="Shaders\mesh_voxel.frag" />
     <EmbeddedResource Include="Shaders\mesh_voxel.vert" />
   </ItemGroup>

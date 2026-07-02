@@ -342,6 +342,13 @@ namespace XrEngine.OpenGL
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
+        public void SetUniform(string name, Vector3I value, bool optional = false)
+        {
+            if (!IsChanged(name, value))
+                return;
+            _gl.Uniform3(LocateUniform(name, optional), value.X, value.Y, value.Z);
+        }
+
         public void AddFeature(string name)
         {
             _features.Add(name);
@@ -449,6 +456,6 @@ namespace XrEngine.OpenGL
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
 
-
+   
     }
 }

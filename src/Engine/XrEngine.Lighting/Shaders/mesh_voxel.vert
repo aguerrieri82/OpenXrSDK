@@ -167,19 +167,19 @@ void main()
     uint i1 = uIndices[indexBase + 1];
     uint i2 = uIndices[indexBase + 2];
 
-#ifdef USE_GEOMETRIC_TRI_NORMAL
-    vec3 p0 = VertexPos(i0);
-    vec3 p1 = VertexPos(i1);
-    vec3 p2 = VertexPos(i2);
+    #ifdef USE_GEOMETRIC_TRI_NORMAL
+        vec3 p0 = VertexPos(i0);
+        vec3 p1 = VertexPos(i1);
+        vec3 p2 = VertexPos(i2);
 
-    vTriNormal = normalize(cross(p1 - p0, p2 - p0));
-#else
-    vec3 n0 = VertexNormal(i0);
-    vec3 n1 = VertexNormal(i1);
-    vec3 n2 = VertexNormal(i2);
+        vTriNormal = normalize(cross(p1 - p0, p2 - p0));
+    #else
+        vec3 n0 = VertexNormal(i0);
+        vec3 n1 = VertexNormal(i1);
+        vec3 n2 = VertexNormal(i2);
 
-    vTriNormal = normalize(n0 + n1 + n2);
-#endif
+        vTriNormal = normalize(n0 + n1 + n2);
+    #endif
 
     vec4 t0 = VertexTangent(i0);
     vec4 t1 = VertexTangent(i1);

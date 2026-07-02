@@ -160,6 +160,8 @@ private:
 
         int32_t BounceCount;
         int32_t EnterFace;
+
+		bool IsAlive;
     };
 
     struct WorkerContribution
@@ -192,7 +194,7 @@ public:
 
     void ClearContribution();
 
-    const VoxelLightContribution& Contribution() const;
+    const VoxelLightContribution& Contribution() const { return _local.Contribution; }
 
 private:
     VoxelLightBaker* _baker;
@@ -256,9 +258,11 @@ public:
     void AccumulateLight(
         const VoxelLightContribution& contribution);
 
-    void GetLightField(
-        VoxelLightField& field) const;
+    VoxelLightField& GetLightField();
 
+    int32_t GetVoxelSize() {
+        return _grid.VoxelSize;
+    }
 
     int32_t GetVoxelCount() {
         return _voxelCount;
@@ -274,8 +278,10 @@ private:
     VoxelGridDesc _grid;
     int32_t _voxelCount;
 
+    VoxelLightField _field;
+
     std::vector<SceneVoxel> _scene;
-    std::vector<VoxelLightData> _lightField;
+    std::vector<VoxelLightData> _lightData;
 
     PointLight _currentPointLight;
 
@@ -304,7 +310,6 @@ private:
     void ClearMergeState(
         ContributionMergeState& mergeState);
 
-    void BuildLightField(
-        VoxelLightField& field) const;
+    void BuildLightField();
 
 };
