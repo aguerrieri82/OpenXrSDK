@@ -55,10 +55,12 @@ namespace XrEngine.Lighting
             _fieldView = new TriangleMesh(new Cube3D(), _fieldMat);
             _fieldView.Flags |= EngineObjectFlags.NoFrustumCulling;
             _fieldView.Name = "Field View";
+            _fieldView.IsVisible = false;
 
             _meshView = new TriangleMesh(new Quad3D(), _meshMat);
             _meshView.Flags |= EngineObjectFlags.NoFrustumCulling;
             _meshView.Name = "Mesh View";
+            _meshView.IsVisible = false;
 
             _curVoxel = new TriangleMesh(Cube3D.Default, new ColorMaterial(Color.White));
             _curVoxel.Transform.SetScale(gridDesc.VoxelSize);
@@ -74,12 +76,18 @@ namespace XrEngine.Lighting
             LightRange = 7; 
 
             EnergyThreshold = 0.001f;
-            MaxBounceCount = 8;
-            ThreadCount = 0;
-            RaySubsample = 1;
-            SnapBounceDirection = true;
-            InitiateLightField = true;
+            MaxBounceCount = 5;
+            RaySubsample = 3;
+            SnapBounceDirection = false;
+            InitiateLightField = false;
+            ThreadCount = 10;
 
+            MergeMode = VoxelLightMergeMode.MaxSample;
+
+            BlurPasses = 1;
+            BlurStrength = 0.35f;
+
+            BucketSplitThreshold = 0.04f;
 
             CreateWalls();
 
@@ -248,7 +256,8 @@ namespace XrEngine.Lighting
 
             var wallMaterial = new PbrV2Material
             {
-                Color = Color.White
+                Color = Color.White,
+                UseLightField = true,
             };
 
             _walls = new TriangleMesh[]
@@ -409,7 +418,15 @@ namespace XrEngine.Lighting
                 ThreadCount = ThreadCount,
                 RaySubsample = RaySubsample,
                 SnapBounceDirection = SnapBounceDirection,
-                InitiateLightField = InitiateLightField
+                InitiateLightField = InitiateLightField,
+                BlurStrength = BlurStrength,
+                BlurPasses = BlurPasses,
+
+                FillEmptyDir = true,
+                MergeMode = MergeMode,
+                NormalizeDir = false,
+
+                BucketSplitThreshold = BucketSplitThreshold
             });
 
             if (_faces.Count > 0)
@@ -467,13 +484,7 @@ namespace XrEngine.Lighting
 
                     i++;
                 }
-
-                _meshView.IsVisible = false;
-
             }
-            else
-                _meshView.IsVisible = false;
-
 
             _ray?.Dispose();
             _ray = _backer.CreateRayMarcher();
@@ -509,7 +520,6 @@ namespace XrEngine.Lighting
             var lightField = _backer.GetLightField();
 
             _fieldView.InstanceCount = lightField.Size.Area();
-            _fieldView.IsVisible = false;
 
             _fieldMat.VoxelSize = _backer.GridDesc.VoxelSize;
             _fieldMat.Origin = _backer.GridDesc.Origin;
@@ -530,6 +540,9 @@ namespace XrEngine.Lighting
 
             ((PbrV2Material)_host!.Materials[0]).UseLightField = true;
             ((PbrV2Material)_host!.Materials[0]).NotifyChanged(ChangeType.Render);
+
+            foreach (var light in _host.Scene!.Descendants<Light>())
+                light.IsVisible = false;
 
             Log.Info(this, "Texture loaded");
         }
@@ -584,5 +597,13 @@ namespace XrEngine.Lighting
         public bool InitiateLightField { get; set; }
 
         public float LightRange { get; set; }
+        
+        public float BlurStrength { get; set; }
+
+        public int BlurPasses { get; set; }
+
+        public float BucketSplitThreshold { get; set; }
+
+        public VoxelLightMergeMode MergeMode { get; set; }
     }
 }

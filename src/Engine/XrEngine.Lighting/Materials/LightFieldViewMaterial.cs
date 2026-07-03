@@ -88,7 +88,7 @@ namespace XrEngine.Lighting
 
         public Vector3 SliceMin { get; set; }
 
-        [Range(0, 1, 0.05f)]
+        [Range(0, 1, 0.01f)]
         public float MaxIntensity { get; set; }
 
         [Notify(ChangeType.Render)]

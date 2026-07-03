@@ -9,6 +9,7 @@ namespace XrEngine.Lighting
     public static class VoxelLightConst
     {
         public const int FaceCount = 6;
+        public const int MaxBounceCount = 6;
     }
 
     public enum LightFalloffType : int
@@ -42,6 +43,17 @@ namespace XrEngine.Lighting
         private T _element0;
     }
 
+    [InlineArray(VoxelLightConst.MaxBounceCount)]
+    public struct VoxelLightEnergySlots
+    {
+        private VoxelLightEnergy _element0;
+    }
+
+
+    
+
+
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelGridDesc
     {
@@ -55,6 +67,12 @@ namespace XrEngine.Lighting
     {
         public int ScanSubdiv;
     }
+
+    public enum VoxelLightMergeMode : int
+    {
+        Add,
+        MaxSample
+    };
 
     public enum VoxelStatus : int
     {
@@ -147,6 +165,20 @@ namespace XrEngine.Lighting
 
         [MarshalAs(UnmanagedType.I1)]
         public bool InitiateLightField;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public  bool NormalizeDir;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public bool FillEmptyDir;
+
+        public VoxelLightMergeMode MergeMode;
+
+        public int BlurPasses;
+
+        public float BlurStrength;
+
+        public float BucketSplitThreshold;
     }
 
 
@@ -163,10 +195,11 @@ namespace XrEngine.Lighting
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelLightFace
     {
-        public VoxelLightEnergy Incoming;
-        public VoxelLightEnergy Outgoing;
+        public VoxelLightEnergySlots Incoming;
+        public VoxelLightEnergySlots Outgoing;
 
-        public short VisitCount;
+        public short InVisitCount;
+        public short OutVisitCount;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]

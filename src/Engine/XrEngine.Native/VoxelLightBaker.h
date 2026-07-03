@@ -38,7 +38,13 @@ struct VoxelLightBakeParams
     bool InitiateLightField;
     bool NormalizeDir;
     bool FillEmptyDir;
+
     VoxelLightMergeMode MergeMode;
+
+    int32_t BlurPasses;
+    float BlurStrength;
+
+    float BucketSplitThreshold;
 
     VoxelLightBakeParams();
 };
@@ -234,13 +240,11 @@ private:
     WorkerContribution _local;
 
 private:
+
     void TraceRay(const VoxelLightRay& ray);
 
     bool MoveToNextVoxel(int32_t& exitFace);
 
-    void AddContribution(
-        int32_t voxelIndex,
-        const VoxelLightData& data);
 };
 
 class VoxelLightBaker
@@ -325,6 +329,9 @@ private:
     std::mutex _mergeLock;
 
 private:
+
+    void BlurLightField();
+    
     void PrefillPointLightContribution();
 
     void GeneratePointLightRays();

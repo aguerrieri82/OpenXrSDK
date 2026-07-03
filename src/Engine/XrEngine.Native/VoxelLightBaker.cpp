@@ -262,15 +262,89 @@ namespace {
 			target = source;
 	}
 
+	void MergeEnergySlot(
+		VoxelLightEnergy* target,
+		int16_t slot,
+		const VoxelLightEnergy& source,
+		VoxelLightMergeMode mode)
+	{
+		slot = std::min<int32_t>(slot, MAX_BOUNCES - 1);
+
+		MergeEnergy(target[slot], source, mode);
+	}
+
 	void MergeFace(
 		VoxelLightFace& target,
 		const VoxelLightFace& source,
 		VoxelLightMergeMode mode = VoxelLightMergeMode::Add)
 	{
-		MergeEnergy(target.Incoming, source.Incoming, mode);
-		MergeEnergy(target.Outgoing, source.Outgoing, mode);
+		for (int32_t slot = 0; slot < MAX_BOUNCES; ++slot)
+		{
+			MergeEnergy(target.Incoming[slot], source.Incoming[slot], mode);
+			MergeEnergy(target.Outgoing[slot], source.Outgoing[slot], mode);
+		}
 
-		target.VisitCount += source.VisitCount;
+		target.InVisitCount = std::max(target.InVisitCount, source.InVisitCount);
+		target.OutVisitCount = std::max(target.OutVisitCount, source.OutVisitCount);
+	}
+
+	int32_t BucketFacesFromDirection(
+		const Vec3& dir,
+		float threshold,
+		int32_t* faces)
+	{
+		float amounts[VOXEL_LIGHT_FACE_COUNT];
+
+		float bestAmount = 0.0f;
+
+		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
+		{
+			float amount = std::max(0.0f, -Dot(dir, FaceNormal(face)));
+
+			amounts[face] = amount;
+			bestAmount = std::max(bestAmount, amount);
+		}
+
+		int32_t count = 0;
+
+		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
+		{
+			if (amounts[face] >= bestAmount - threshold)
+				faces[count++] = face;
+		}
+
+		return count;
+	}
+
+	void MergeBucketedEnergy(
+		VoxelLightData& data,
+		const Vec3& bucketDirection,
+		const Vec3& energy,
+		const Vec3& storedDirection,
+		int32_t generation,
+		bool outgoing,
+		float threshold,
+		VoxelLightMergeMode mode = VoxelLightMergeMode::Add)
+	{
+		int32_t faces[VOXEL_LIGHT_FACE_COUNT];
+		int32_t count = BucketFacesFromDirection(bucketDirection, threshold, faces);
+
+		if (count <= 0)
+			return;
+
+		float weight = 1.0f / float(count);
+		VoxelLightEnergy source = MakeEnergy(Mul(energy, weight), storedDirection);
+
+		for (int32_t i = 0; i < count; ++i)
+		{
+			VoxelLightFace& face = data.Faces[faces[i]];
+
+			VoxelLightEnergy* target = outgoing
+				? face.Outgoing
+				: face.Incoming;
+
+			MergeEnergySlot(target, generation, source, mode);
+		}
 	}
 
 	void MergeVoxelLightData(
@@ -620,7 +694,7 @@ namespace {
 
 	Vec3 SurfaceBounceDirection(
 		const Vec3& incomingDirection,
-	    Vec3 normal,
+		Vec3 normal,
 		int32_t fallbackFace)
 	{
 
@@ -639,8 +713,10 @@ namespace {
 		const VoxelLightEnergy& outgoing)
 	{
 		VoxelLightData data{};
-		data.Faces[face].Incoming = incoming;
-		data.Faces[face].Outgoing = outgoing;
+		data.Faces[face].Incoming[0] = incoming;
+		data.Faces[face].Outgoing[0] = outgoing;
+		data.Faces[face].InVisitCount = 1;
+		data.Faces[face].OutVisitCount = 1;
 		return data;
 	}
 
@@ -648,6 +724,7 @@ namespace {
 
 VoxelLightBakeParams::VoxelLightBakeParams() {
 
+	EnergyThreshold = 0.0001f;
 	MaxBounceCount = 4;
 	ThreadCount = 0;
 	RaySubsample = 1;
@@ -655,6 +732,9 @@ VoxelLightBakeParams::VoxelLightBakeParams() {
 	InitiateLightField = false;
 	NormalizeDir = false;
 	FillEmptyDir = true;
+	BlurPasses = 0;
+	BlurStrength = 0.35f;
+	BucketSplitThreshold = 0.04f; 
 	MergeMode = VoxelLightMergeMode::MaxSample;
 }
 
@@ -667,17 +747,17 @@ VoxelRayMarcher::VoxelRayMarcher() {
 
 }
 
-void VoxelRayMarcher::SetContext(VoxelLightBaker* baker, int32_t workerIndex) 
-{ 
-	_baker = baker; 
+void VoxelRayMarcher::SetContext(VoxelLightBaker* baker, int32_t workerIndex)
+{
+	_baker = baker;
 	_workerIndex = workerIndex;
 }
 
-void VoxelRayMarcher::Prepare(int32_t voxelCount) 
-{ 
-	_local.Contribution.Cells.clear(); 
-	_local.CellSlots.assign(voxelCount, -1); 
-	_local.TouchedVoxels.clear(); 
+void VoxelRayMarcher::Prepare(int32_t voxelCount)
+{
+	_local.Contribution.Cells.clear();
+	_local.CellSlots.assign(voxelCount, -1);
+	_local.TouchedVoxels.clear();
 	_ray.IsAlive = true;
 }
 
@@ -867,6 +947,23 @@ bool VoxelRayMarcher::Step()
 
 	int32_t index = VoxelIndex(_baker->_grid, _ray.X, _ray.Y, _ray.Z);
 
+	int32_t slot = _local.CellSlots[index];
+
+	if (slot < 0)
+	{
+		slot = int32_t(_local.Contribution.Cells.size());
+
+		_local.CellSlots[index] = slot;
+		_local.TouchedVoxels.push_back(index);
+
+		VoxelLightCell cell{};
+		cell.Index = index;
+
+		_local.Contribution.Cells.push_back(cell);
+	}
+
+	VoxelLightData& data = _local.Contribution.Cells[slot].Data;
+
 	const VoxelData& voxelData = _baker->_scene[index];
 
 	int32_t outgoingFace = IncomingBucketFaceFromDirection(Mul(_ray.Direction, -1.0f));
@@ -885,15 +982,19 @@ bool VoxelRayMarcher::Step()
 
 	const VoxelFaceData& faceData = voxelData.Faces[hitFace];
 
-	VoxelLightData data{};
-
-	//data.Faces[incomingFace].VisitCount++;
-
 	if (_ray.BounceCount > 0 || !_baker->_params.InitiateLightField)
 	{
-		MergeEnergy(
-			data.Faces[incomingFace].Incoming,
-			MakeEnergy(stepEnergy, Mul(_ray.Direction, -1.0f)));
+		MergeBucketedEnergy(
+			data,
+			Mul(_ray.Direction, -1.0f),
+			stepEnergy,
+			Mul(_ray.Direction, -1.0f),
+			_ray.BounceCount,
+			false,
+			_baker->_params.BucketSplitThreshold,
+			_baker->_params.MergeMode);
+
+		data.Faces[incomingFace].InVisitCount++;
 	}
 
 	if (hasHit)
@@ -946,12 +1047,6 @@ bool VoxelRayMarcher::Step()
 			Vec3 bounceEnergy = SurfaceBounceEnergy(_ray.Energy, faceData);
 			Vec3 bounceStepEnergy = Mul(bounceEnergy, falloff);
 
-			int32_t bounceOutgoingFace = IncomingBucketFaceFromDirection(Mul(bounceDir, -1.0f));
-
-			MergeEnergy(
-				data.Faces[bounceOutgoingFace].Outgoing,
-				MakeEnergy(bounceStepEnergy, bounceDir));
-
 			_ray.Origin = bounceOrigin;
 			_ray.Direction = bounceDir;
 			_ray.Energy = bounceEnergy;
@@ -987,11 +1082,17 @@ bool VoxelRayMarcher::Step()
 			{
 				int32_t exitOutgoingFace = IncomingBucketFaceFromDirection(Mul(_ray.Direction, -1.0f));
 
-				MergeEnergy(
-					data.Faces[exitOutgoingFace].Outgoing,
-					MakeEnergy(exitEnergy, _ray.Direction));
+				MergeBucketedEnergy(
+					data,
+					Mul(_ray.Direction, -1.0f),      // bucket direction
+					exitEnergy,
+					_ray.Direction,                 // stored outgoing direction
+					_ray.BounceCount,
+					true,                           // Outgoing
+					_baker->_params.BucketSplitThreshold,
+					_baker->_params.MergeMode);
 
-				data.Faces[exitOutgoingFace].VisitCount++;
+				data.Faces[exitOutgoingFace].OutVisitCount++;
 			}
 
 			currentEnergy = exitEnergy;
@@ -999,8 +1100,6 @@ bool VoxelRayMarcher::Step()
 	}
 
 	_ray.LastAffectedVoxel = index;
-
-	AddContribution(index, data);
 
 	if (_ray.IsAlive)
 	{
@@ -1021,46 +1120,26 @@ void VoxelRayMarcher::ClearContribution() {
 
 }
 
-void VoxelRayMarcher::AddContribution(int32_t voxelIndex, const VoxelLightData& data)
+VoxelLightBaker::VoxelLightBaker()
 {
-	int32_t slot = _local.CellSlots[voxelIndex];
-
-	if (slot < 0)
-	{
-		slot = int32_t(_local.Contribution.Cells.size());
-
-		_local.CellSlots[voxelIndex] = slot;
-		_local.TouchedVoxels.push_back(voxelIndex);
-
-		VoxelLightCell cell{};
-		cell.Index = voxelIndex;
-
-		_local.Contribution.Cells.push_back(cell);
-	}
-
-	MergeVoxelLightData(_local.Contribution.Cells[slot].Data, data, _baker->_params.MergeMode);
-}
-
-VoxelLightBaker::VoxelLightBaker() 
-{ 
-	_params = VoxelLightBakeParams(); 
-	_grid = {}; 
-	_voxelCount = 0; 
-	_currentLightCenter = {}; 
-	_currentLightVoxel = -1; 
-	_currentContribution = nullptr; 
+	_params = VoxelLightBakeParams();
+	_grid = {};
+	_voxelCount = 0;
+	_currentLightCenter = {};
+	_currentLightVoxel = -1;
+	_currentContribution = nullptr;
 	_currentLightEnergy = {};
 	_currentLightFalloff = {};
 }
 
-VoxelLightBaker::VoxelLightBaker(const VoxelLightBakeParams& params) 
-{ 
+VoxelLightBaker::VoxelLightBaker(const VoxelLightBakeParams& params)
+{
 	_params = params;
-	_grid = {}; 
-	_voxelCount = 0; 
-	_currentLightCenter = {}; 
-	_currentLightVoxel = -1; 
-	_currentContribution = nullptr; 
+	_grid = {};
+	_voxelCount = 0;
+	_currentLightCenter = {};
+	_currentLightVoxel = -1;
+	_currentContribution = nullptr;
 	_currentLightEnergy = {};
 	_currentLightFalloff = {};
 }
@@ -1122,12 +1201,12 @@ void VoxelLightBaker::AddMesh(const Int3& origin, const Int3& size, const VoxelD
 				int32_t dstIndex = VoxelIndex(_grid, dstX, dstY, dstZ);
 
 				const VoxelData& src = voxels[srcIndex];
-				
+
 				/*
 				if (src.Status != VoxelStatus::Occupied)
 					continue;
 				*/
-				
+
 				if (_scene[dstIndex].Status == VoxelStatus::Occupied)
 					continue;
 
@@ -1186,9 +1265,9 @@ void VoxelLightBaker::BakePointLight(const PointLight& light, VoxelLightContribu
 		PrefillPointLightContribution();
 
 	if (_params.MaxBounceCount > 0) {
-		
+
 		GeneratePointLightRays();
-		
+
 		TraceRays(contribution);
 
 		if (_params.InitiateLightField)
@@ -1199,9 +1278,9 @@ void VoxelLightBaker::BakePointLight(const PointLight& light, VoxelLightContribu
 	_currentContribution = nullptr;
 }
 
-void VoxelLightBaker::ClearLightField() 
-{ 
-	std::fill(_lightData.begin(), _lightData.end(), VoxelLightData{}); 
+void VoxelLightBaker::ClearLightField()
+{
+	std::fill(_lightData.begin(), _lightData.end(), VoxelLightData{});
 }
 
 void VoxelLightBaker::AccumulateLight(const VoxelLightContribution& contribution) {
@@ -1214,8 +1293,8 @@ void VoxelLightBaker::AccumulateLight(const VoxelLightContribution& contribution
 	}
 }
 
-VoxelLightField& VoxelLightBaker::GetLightField() 
-{ 
+VoxelLightField& VoxelLightBaker::GetLightField()
+{
 	BuildLightField();
 	return _field;
 }
@@ -1256,10 +1335,8 @@ void VoxelLightBaker::PrefillPointLightContribution()
 				cell.Index = index;
 
 				MergeEnergy(
-					cell.Data.Faces[outgoingFace].Outgoing,
+					cell.Data.Faces[outgoingFace].Outgoing[0],
 					MakeEnergy(energy, direction));
-
-				cell.Data.Faces[outgoingFace].VisitCount = 0;
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -1276,8 +1353,11 @@ void VoxelLightBaker::GeneratePointLightRays()
 	int32_t subSample = std::max(1, _params.RaySubsample);
 	float invSubSample = 1.0f / float(subSample);
 	float size = _grid.VoxelSize;
-	
-	Vec3 rayEnergy = Mul(_currentLightEnergy, 1.0f / float(subSample * subSample));
+
+	Vec3 rayEnergy = _currentLightEnergy;
+
+	if (_params.MergeMode == VoxelLightMergeMode::Add)
+		rayEnergy = Mul(rayEnergy, 1.0f / float(subSample * subSample));
 
 	auto addRay = [this, rayEnergy](const Vec3& origin)
 		{
@@ -1378,14 +1458,7 @@ void VoxelLightBaker::GeneratePointLightRays()
 
 void VoxelLightBaker::CleanupUnvisitedFaces(VoxelLightContribution& contribution)
 {
-	for (VoxelLightCell& cell : contribution.Cells)
-	{
-		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
-		{
-			if (cell.Data.Faces[face].VisitCount == 0)
-				cell.Data.Faces[face] = {};
-		}
-	}
+	(void)contribution;
 }
 
 void VoxelLightBaker::TraceRays(VoxelLightContribution& contribution) {
@@ -1430,9 +1503,9 @@ void VoxelLightBaker::TraceRays(VoxelLightContribution& contribution) {
 
 }
 
-void VoxelLightBaker::MergeWorkerContribution(const VoxelLightContribution& workerContribution) 
-{ 
-	MergeContribution(*_currentContribution, _currentMerge, workerContribution); 
+void VoxelLightBaker::MergeWorkerContribution(const VoxelLightContribution& workerContribution)
+{
+	MergeContribution(*_currentContribution, _currentMerge, workerContribution);
 }
 
 void VoxelLightBaker::MergeContribution(
@@ -1517,6 +1590,77 @@ void VoxelLightBaker::AdjustLightFieldDirections()
 	}
 }
 
+void VoxelLightBaker::BlurLightField()
+{
+	float strength = std::clamp(_params.BlurStrength, 0.0f, 1.0f);
+	int32_t passes = std::max(0, _params.BlurPasses);
+
+	if (strength <= 0.0f || passes <= 0)
+		return;
+
+	int32_t count = _field.SizeX * _field.SizeY * _field.SizeZ;
+
+	std::vector<Vec3> tempColor(count);
+	std::vector<Vec3> tempDirection(count);
+
+	for (int32_t pass = 0; pass < passes; ++pass)
+	{
+		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
+		{
+			std::vector<Vec3>& colors = _field.Color[face];
+			std::vector<Vec3>& directions = _field.Direction[face];
+
+			for (int32_t z = 0; z < _field.SizeZ; ++z)
+			{
+				for (int32_t y = 0; y < _field.SizeY; ++y)
+				{
+					for (int32_t x = 0; x < _field.SizeX; ++x)
+					{
+						int32_t index = FieldIndex(_field, x, y, z);
+
+						Vec3 colorSum = colors[index];
+						Vec3 dirSum = directions[index];
+						float weightSum = 1.0f;
+
+						auto addNeighbor = [&](int32_t nx, int32_t ny, int32_t nz)
+							{
+								if (nx < 0 || ny < 0 || nz < 0 ||
+									nx >= _field.SizeX ||
+									ny >= _field.SizeY ||
+									nz >= _field.SizeZ)
+								{
+									return;
+								}
+
+								int32_t ni = FieldIndex(_field, nx, ny, nz);
+
+								colorSum = Add(colorSum, colors[ni]);
+								dirSum = Add(dirSum, directions[ni]);
+								weightSum += 1.0f;
+							};
+
+						addNeighbor(x - 1, y, z);
+						addNeighbor(x + 1, y, z);
+						addNeighbor(x, y - 1, z);
+						addNeighbor(x, y + 1, z);
+						addNeighbor(x, y, z - 1);
+						addNeighbor(x, y, z + 1);
+
+						Vec3 avgColor = Mul(colorSum, 1.0f / weightSum);
+						Vec3 avgDir = Mul(dirSum, 1.0f / weightSum);
+
+						tempColor[index] = Lerp(colors[index], avgColor, strength);
+						tempDirection[index] = Lerp(directions[index], avgDir, strength);
+					}
+				}
+			}
+
+			colors.swap(tempColor);
+			directions.swap(tempDirection);
+		}
+	}
+}
+
 void VoxelLightBaker::BuildLightField() {
 
 	_field.SizeX = _grid.SizeX; _field.SizeY = _grid.SizeY; _field.SizeZ = _grid.SizeZ;
@@ -1534,18 +1678,27 @@ void VoxelLightBaker::BuildLightField() {
 
 		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
 		{
-			const VoxelLightEnergy& outgoing = src.Faces[face].Outgoing;
+			VoxelLightEnergy outgoing{};
+
+			for (int32_t slot = 0; slot < MAX_BOUNCES; ++slot)
+				MergeEnergy(
+					outgoing,
+					src.Faces[face].Outgoing[slot],
+					VoxelLightMergeMode::Add);
 
 			_field.Color[face][i] = outgoing.Energy;
 
 			auto outDir = Add(Add(outgoing.DirectionR, outgoing.DirectionG), outgoing.DirectionB);
-			
+
 			if (_params.NormalizeDir)
 				outDir = Normalize(outDir);
 
 			_field.Direction[face][i] = outDir;
 		}
 	}
+
+	if (_params.BlurPasses > 0)
+		BlurLightField();
 
 	if (_params.FillEmptyDir)
 		AdjustLightFieldDirections();
