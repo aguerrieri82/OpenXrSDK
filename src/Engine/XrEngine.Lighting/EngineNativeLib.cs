@@ -179,6 +179,19 @@ namespace XrEngine.Lighting
         public float BlurStrength;
 
         public float BucketSplitThreshold;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public bool EnableMultiBounceRays;
+        
+        public int BounceRayCount;
+        
+        public float BounceRayDecay;
+        
+        public float BounceCenterWeight;
+        
+        public float BounceNormalWeight;
+
+        public float BounceConeMaxAngle;
     }
 
 

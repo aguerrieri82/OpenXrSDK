@@ -77,17 +77,24 @@ namespace XrEngine.Lighting
 
             EnergyThreshold = 0.001f;
             MaxBounceCount = 5;
-            RaySubsample = 3;
+            RaySubsample = 6;
             SnapBounceDirection = false;
             InitiateLightField = false;
             ThreadCount = 10;
 
             MergeMode = VoxelLightMergeMode.MaxSample;
 
-            BlurPasses = 1;
-            BlurStrength = 0.35f;
+            BlurPasses = 3;
+            BlurStrength = 1f;
 
             BucketSplitThreshold = 0.04f;
+
+            EnableMultiBounceRays = false;
+            BounceRayCount = 3;
+            BounceRayDecay = 0.8f;
+            BounceCenterWeight = 0.5f;
+            BounceNormalWeight = 0.5f;
+            BounceConeMaxAngle = 70.0f;
 
             CreateWalls();
 
@@ -426,7 +433,14 @@ namespace XrEngine.Lighting
                 MergeMode = MergeMode,
                 NormalizeDir = false,
 
-                BucketSplitThreshold = BucketSplitThreshold
+                BucketSplitThreshold = BucketSplitThreshold,
+
+                EnableMultiBounceRays = EnableMultiBounceRays,
+                BounceRayCount = BounceRayCount,
+                BounceRayDecay = BounceRayDecay,
+                BounceCenterWeight = BounceCenterWeight,
+                BounceNormalWeight = BounceNormalWeight,
+                BounceConeMaxAngle = BounceConeMaxAngle,
             });
 
             if (_faces.Count > 0)
@@ -605,5 +619,13 @@ namespace XrEngine.Lighting
         public float BucketSplitThreshold { get; set; }
 
         public VoxelLightMergeMode MergeMode { get; set; }
+
+        public bool EnableMultiBounceRays { get; set; }
+
+        public int BounceRayCount { get; set; }
+        public float BounceRayDecay { get; set; }
+        public float BounceCenterWeight { get; set; }
+        public float BounceNormalWeight { get; set; }
+        public float BounceConeMaxAngle { get; set; }
     }
 }

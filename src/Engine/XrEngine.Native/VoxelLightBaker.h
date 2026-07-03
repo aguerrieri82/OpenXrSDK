@@ -46,6 +46,13 @@ struct VoxelLightBakeParams
 
     float BucketSplitThreshold;
 
+    bool EnableMultiBounceRays;
+    int32_t BounceRayCount;
+    float BounceRayDecay;
+    float BounceCenterWeight;
+    float BounceNormalWeight;
+    float BounceConeMaxAngle;
+
     VoxelLightBakeParams();
 };
 
@@ -95,8 +102,8 @@ struct VoxelLightEnergy
 
 struct VoxelLightFace
 {
-    VoxelLightEnergy Incoming[MAX_BOUNCES];
-    VoxelLightEnergy Outgoing[MAX_BOUNCES];
+    VoxelLightEnergy Incoming;
+    VoxelLightEnergy Outgoing;
 
     int16_t InVisitCount;
     int16_t OutVisitCount;
@@ -133,6 +140,8 @@ struct VoxelLightRay
     Vec3 Position;
     Vec3 Direction;
     Vec3 Energy;
+
+    float OriginTotalDistance;
 };
 
 struct VoxelRayDebugState
@@ -183,7 +192,7 @@ private:
         float OriginTotalDistance;
         float TotalDistance;
 
-		Vec3 Position;
+        Vec3 Position;
 
         int32_t X;
         int32_t Y;
@@ -197,7 +206,7 @@ private:
         int32_t EnterFace;
         int32_t OriginStep;
 
-		bool IsAlive;
+        bool IsAlive;
     };
 
     struct WorkerContribution
@@ -220,9 +229,12 @@ public:
 
     void TraceRange(
         int32_t startRay,
-        int32_t endRay);
+        int32_t endRay,
+        int32_t generation);
 
-    bool CreateRay(const VoxelLightRay& ray);
+    bool CreateRay(
+        const VoxelLightRay& ray,
+        int32_t generation);
 
     void GetDebugState(VoxelRayDebugState& state) const;
 
@@ -231,6 +243,7 @@ public:
     void ClearContribution();
 
     const VoxelLightContribution& Contribution() const { return _local.Contribution; }
+    const std::vector<VoxelLightRay>& NextRays() const { return _nextRays; }
 
 private:
     VoxelLightBaker* _baker;
@@ -238,10 +251,13 @@ private:
 
     RayState _ray;
     WorkerContribution _local;
+    std::vector<VoxelLightRay> _nextRays;
 
 private:
 
-    void TraceRay(const VoxelLightRay& ray);
+    void TraceRay(
+        const VoxelLightRay& ray,
+        int32_t generation);
 
     bool MoveToNextVoxel(int32_t& exitFace);
 
@@ -321,6 +337,7 @@ private:
     int32_t _currentLightVoxel;
 
     std::vector<VoxelLightRay> _rays;
+    std::vector<VoxelLightRay> _nextRays;
     std::vector<VoxelRayMarcher> _marchers;
 
     VoxelLightContribution* _currentContribution;
@@ -331,13 +348,15 @@ private:
 private:
 
     void BlurLightField();
-    
+
     void PrefillPointLightContribution();
 
     void GeneratePointLightRays();
 
     void TraceRays(
-        VoxelLightContribution& contribution);
+        VoxelLightContribution& contribution,
+        std::vector<VoxelLightRay>& nextRays,
+        int32_t generation);
 
     void CleanupUnvisitedFaces(
         VoxelLightContribution& contribution);
@@ -348,7 +367,8 @@ private:
     void MergeContribution(
         VoxelLightContribution& target,
         ContributionMergeState& mergeState,
-        const VoxelLightContribution& source);
+        const VoxelLightContribution& source,
+        VoxelLightMergeMode mode = VoxelLightMergeMode::MaxSample);
 
     void ClearMergeState(
         ContributionMergeState& mergeState);

@@ -710,7 +710,7 @@ EXPORT bool APIENTRY VoxelRayMarcherCreateRay(
 
     marcher->ClearContribution();
 
-    return marcher->CreateRay(*ray);
+    return marcher->CreateRay(*ray, 0);
 }
 
 EXPORT bool APIENTRY VoxelRayMarcherStep(
@@ -719,7 +719,10 @@ EXPORT bool APIENTRY VoxelRayMarcherStep(
     if (marcher == nullptr)
         return false;
 
-    return marcher->Step();
+    if (!marcher->Step()) {
+
+        return false;
+    }
 }
 
 EXPORT void APIENTRY VoxelRayMarcherGetState(
