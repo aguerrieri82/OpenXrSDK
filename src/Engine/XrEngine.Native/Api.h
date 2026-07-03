@@ -85,6 +85,16 @@ extern "C"
         const VoxelMeshResolvedFace* faces,
         int32_t faceCount);
 
+    EXPORT int32_t APIENTRY VoxelLightBakerBakeSpotLight(
+        VoxelLightBaker* baker,
+        const SpotLight* light,
+        VoxelLightContributionView* contribution);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerBakeDirectionalLight(
+        VoxelLightBaker* baker,
+        const DirectionalLight* light,
+        VoxelLightContributionView* contribution);
+
     EXPORT int32_t APIENTRY VoxelLightBakerBakePointLight(
         VoxelLightBaker* baker,
         const PointLight* light,
@@ -100,6 +110,11 @@ extern "C"
     EXPORT int32_t APIENTRY VoxelLightBakerGetLightField(
         VoxelLightBaker* baker,
         VoxelLightFieldView* field);
+
+    EXPORT void APIENTRY VoxelLightBakerAddGpuMeshFaces(
+        VoxelLightBaker* baker,
+        const GpuVoxelFaceData* faces,
+        int32_t faceCount);
 
 
     EXPORT void APIENTRY FreeLightFieldView(VoxelLightFieldView* view);

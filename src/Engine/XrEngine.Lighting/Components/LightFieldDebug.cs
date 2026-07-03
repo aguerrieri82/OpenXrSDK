@@ -32,6 +32,7 @@ namespace XrEngine.Lighting
 
         public LightFieldDebug(VoxelGridDesc gridDesc)
         {
+
             _backer = new VoxelLightBaker();
 
             _finalMat = new FieldPhongMaterial();

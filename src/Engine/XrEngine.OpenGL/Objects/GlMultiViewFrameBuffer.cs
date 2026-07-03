@@ -52,10 +52,13 @@ namespace XrEngine.OpenGL
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
         {
+            BaseViewIndex = 0;
+            NumViews = 2;
+
             _handle = _gl.GenFramebuffer();
             _target = TextureTarget.Texture2DArray;
+            
             _gl.CheckError();
-
 
             BindFunctions(gl);
         }
@@ -120,7 +123,7 @@ namespace XrEngine.OpenGL
                     glTex,
                     0,
                     _sampleCount,
-                    0, 2);
+                    BaseViewIndex, NumViews);
             }
             else
             {
@@ -131,7 +134,7 @@ namespace XrEngine.OpenGL
                     FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    0, 0, 2);
+                    0, BaseViewIndex, NumViews);
             }
 
             _isDirty = true;
@@ -152,7 +155,7 @@ namespace XrEngine.OpenGL
                     0,
                     0,
                     _sampleCount,
-                    0, 2);
+                    BaseViewIndex, NumViews);
 
                 _gl.CheckError();
 
@@ -166,7 +169,7 @@ namespace XrEngine.OpenGL
                     FramebufferTarget.Framebuffer,
                     attachment,
                     0,
-                    0, 0, 2);
+                    0, BaseViewIndex, NumViews);
 
                 _gl.CheckError();
             }
@@ -217,7 +220,11 @@ namespace XrEngine.OpenGL
 
         public override IGlRenderAttachment? Depth => _depth;
 
-        public override uint SampleCount => _sampleCount;    
+        public override uint SampleCount => _sampleCount;
+
+        public uint BaseViewIndex { get; set; } 
+
+        public uint NumViews { get; set; } 
 
     }
 }

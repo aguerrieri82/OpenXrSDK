@@ -616,6 +616,19 @@ EXPORT void APIENTRY VoxelLightBakerAddMesh(
         faceCount);
 }
 
+EXPORT void APIENTRY VoxelLightBakerAddGpuMeshFaces(
+    VoxelLightBaker* baker,
+    const GpuVoxelFaceData* faces,
+    int32_t faceCount)
+{
+    if (baker == nullptr)
+        return;
+
+    baker->AddGpuMeshFaces(
+        faces,
+        faceCount);
+}
+
 
 EXPORT VoxelData* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count) {
 
@@ -635,6 +648,44 @@ EXPORT int32_t APIENTRY VoxelLightBakerBakePointLight(
     VoxelLightContribution result;
 
     baker->BakePointLight(
+        *light,
+        result);
+
+    return CopyContributionToView(
+        result,
+        contribution);
+}
+
+EXPORT int32_t APIENTRY VoxelLightBakerBakeDirectionalLight(
+    VoxelLightBaker* baker,
+    const DirectionalLight* light,
+    VoxelLightContributionView* contribution)
+{
+    if (baker == nullptr || light == nullptr)
+        return 0;
+
+    VoxelLightContribution result;
+
+    baker->BakeDirectionalLight(
+        *light,
+        result);
+
+    return CopyContributionToView(
+        result,
+        contribution);
+}
+
+EXPORT int32_t APIENTRY VoxelLightBakerBakeSpotLight(
+    VoxelLightBaker* baker,
+    const SpotLight* light,
+    VoxelLightContributionView* contribution)
+{
+    if (baker == nullptr || light == nullptr)
+        return 0;
+
+    VoxelLightContribution result;
+
+    baker->BakeSpotLight(
         *light,
         result);
 

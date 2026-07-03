@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Silk.NET.Core.Native;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XrMath;
@@ -6,6 +7,35 @@ using XrMath;
 
 namespace XrEngine.Lighting
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct VoxDirectionalLight
+    {
+        public Vector3 Position;
+        public Vector3 Direction;
+        public Vector3 Color;
+
+        public float Intensity;
+        public float Width;
+        public float Height;
+
+        public LightFalloff Falloff;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct VoxSpotLight
+    {
+        public Vector3 Position;
+        public Vector3 Direction;
+        public Vector3 Color;
+
+        public float Intensity;
+
+        public LightFalloff Falloff;
+
+        public float InnerCos;
+        public float OuterCos;
+    }
+
     public static class VoxelLightConst
     {
         public const int FaceCount = 6;
@@ -50,7 +80,7 @@ namespace XrEngine.Lighting
     }
 
 
-    
+
 
 
 
@@ -85,7 +115,7 @@ namespace XrEngine.Lighting
         None = 0,
         Front = 1,
         Back = 2,
-        All= Front | Back
+        All = Front | Back
     }
 
     public enum VoxelFace : int
@@ -167,7 +197,7 @@ namespace XrEngine.Lighting
         public bool InitiateLightField;
 
         [MarshalAs(UnmanagedType.I1)]
-        public  bool NormalizeDir;
+        public bool NormalizeDir;
 
         [MarshalAs(UnmanagedType.I1)]
         public bool FillEmptyDir;
@@ -182,13 +212,13 @@ namespace XrEngine.Lighting
 
         [MarshalAs(UnmanagedType.I1)]
         public bool EnableMultiBounceRays;
-        
+
         public int BounceRayCount;
-        
+
         public float BounceRayDecay;
-        
+
         public float BounceCenterWeight;
-        
+
         public float BounceNormalWeight;
 
         public float BounceConeMaxAngle;
@@ -385,10 +415,29 @@ namespace XrEngine.Lighting
             VoxelMeshResolvedFace[] faces,
             int faceCount);
 
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VoxelLightBakerAddGpuMeshFaces(
+                VoxelLightBaker baker,
+                [In] GpuVoxelFaceData[] faces,
+                int faceCount);
+
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern int VoxelLightBakerBakePointLight(
             VoxelLightBaker baker,
             ref VoxPointLight light,
+            ref VoxelLightContributionView contribution);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VoxelLightBakerBakeDirectionalLight(
+            VoxelLightBaker baker,
+            in VoxDirectionalLight light,
+            ref VoxelLightContributionView contribution);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VoxelLightBakerBakeSpotLight(
+            VoxelLightBaker baker,
+            in VoxSpotLight light,
             ref VoxelLightContributionView contribution);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]

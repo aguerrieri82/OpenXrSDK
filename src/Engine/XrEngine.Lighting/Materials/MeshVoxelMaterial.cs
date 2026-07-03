@@ -85,6 +85,7 @@ namespace XrEngine.Lighting
                 {
                     bld.AddFeature("HAS_BASE_COLOR_MAP");
                     bld.LoadTexture(ctx => mat.ColorMap, TextureSlots.Albedo);
+                    
                 }
 
                 if (mat.NormalMap != null)
@@ -101,6 +102,7 @@ namespace XrEngine.Lighting
 
                 bld.ExecuteAction((ctx, up) =>
                 {
+                    
                     up.SetUniform("uBaseColorFactor", mat.Color);
                     up.SetUniform("uMetallicFactor", mat.Metalness);
                     up.SetUniform("uRoughnessFactor", mat.Roughness);

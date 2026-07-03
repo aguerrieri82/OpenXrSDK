@@ -75,6 +75,14 @@ namespace XrEngine.Lighting
             EngineNativeLib.VoxelLightBakerClearScene(_handle);
         }
 
+        public void AddMesh(GpuVoxelFaceData[] faces)
+        {
+            EngineNativeLib.VoxelLightBakerAddGpuMeshFaces(
+                _handle,
+                faces,
+                faces.Length);
+        }
+
         public void AddMesh(
             in Vector3I origin,
             in Vector3I size,

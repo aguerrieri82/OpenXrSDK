@@ -5,15 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\field_phong.frag" />
-    <EmbeddedResource Include="Shaders\light_field.vert" />
-    <EmbeddedResource Include="Shaders\light_field.frag" />
-    <EmbeddedResource Include="Shaders\mesh_voxel.frag" />
-    <EmbeddedResource Include="Shaders\mesh_voxel.vert" />
+    <EmbeddedResource Include="Shaders\*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
     <ProjectReference Include="..\XrEngine.UI\XrEngine.UI.csproj" />
   </ItemGroup>
 

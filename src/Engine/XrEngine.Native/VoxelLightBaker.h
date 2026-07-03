@@ -11,6 +11,16 @@ enum class VoxelLightMergeMode
     MaxSample
 };
 
+enum VoxelLightFaceIndex : int32_t
+{
+	VoxelLightFaceNegX = 0,
+	VoxelLightFacePosX = 1,
+	VoxelLightFaceNegY = 2,
+	VoxelLightFacePosY = 3,
+	VoxelLightFaceNegZ = 4,
+	VoxelLightFacePosZ = 5
+};
+
 
 struct VoxelLightFieldView
 {
@@ -79,6 +89,31 @@ struct PointLight
     LightFalloff Falloff;
 };
 
+struct DirectionalLight
+{
+    Vec3 Position;
+    Vec3 Direction;
+    Vec3 Color;
+
+    float Intensity;
+    float Width;
+    float Height;
+    LightFalloff Falloff;
+};
+
+struct SpotLight
+{
+    Vec3 Position;
+    Vec3 Direction;
+    Vec3 Color;
+
+    float Intensity;
+    LightFalloff Falloff;
+
+    float InnerCos;
+    float OuterCos;
+};
+
 struct VoxelMeshResolvedFace
 {
     int32_t VoxelIndex;
@@ -142,6 +177,22 @@ struct VoxelLightRay
     Vec3 Energy;
 
     float OriginTotalDistance;
+    LightFalloff Falloff;
+};
+
+struct GpuVoxelFaceData
+{
+    int32_t X;
+    int32_t Y;
+    int32_t Z;
+    int32_t Face;
+
+    int32_t Side;
+
+    Vec4 BaseColor;
+    Vec3 Normal;
+    float Roughness;
+    float Metallic;
 };
 
 struct VoxelRayDebugState
@@ -191,6 +242,7 @@ private:
         float Distance;
         float OriginTotalDistance;
         float TotalDistance;
+        LightFalloff Falloff;
 
         Vec3 Position;
 
@@ -295,8 +347,20 @@ public:
         const VoxelMeshResolvedFace* faces,
         int32_t faceCount);
 
+    void AddGpuMeshFaces(
+        const GpuVoxelFaceData* faces,
+        int32_t faceCount)
+
     void BakePointLight(
         const PointLight& light,
+        VoxelLightContribution& contribution);
+
+    void BakeDirectionalLight(
+        const DirectionalLight& light,
+        VoxelLightContribution& contribution);
+
+    void BakeSpotLight(
+        const SpotLight& light,
         VoxelLightContribution& contribution);
 
     void ClearLightField();
@@ -331,16 +395,10 @@ private:
     std::vector<VoxelData> _scene;
     std::vector<VoxelLightData> _lightData;
 
-    Vec3 _currentLightEnergy;
-    LightFalloff _currentLightFalloff;
-    Vec3 _currentLightCenter;
-    int32_t _currentLightVoxel;
-
     std::vector<VoxelLightRay> _rays;
     std::vector<VoxelLightRay> _nextRays;
     std::vector<VoxelRayMarcher> _marchers;
 
-    VoxelLightContribution* _currentContribution;
     ContributionMergeState _currentMerge;
 
     std::mutex _mergeLock;
@@ -349,9 +407,26 @@ private:
 
     void BlurLightField();
 
-    void PrefillPointLightContribution();
+    void PrefillPointLightContribution(
+        const PointLight& light,
+        VoxelLightContribution& contribution);
 
-    void GeneratePointLightRays();
+    void PrefillDirectionalLightContribution(
+        const DirectionalLight& light,
+        VoxelLightContribution& contribution);
+
+    void PrefillSpotLightContribution(
+        const SpotLight& light,
+        VoxelLightContribution& contribution);
+
+    void GeneratePointLightRays(
+        const PointLight& light);
+
+    void GenerateDirectionalLightRays(
+        const DirectionalLight& light);
+
+    void GenerateSpotLightRays(
+        const SpotLight& light);
 
     void TraceRays(
         VoxelLightContribution& contribution,
@@ -360,9 +435,6 @@ private:
 
     void CleanupUnvisitedFaces(
         VoxelLightContribution& contribution);
-
-    void MergeWorkerContribution(
-        const VoxelLightContribution& workerContribution);
 
     void MergeContribution(
         VoxelLightContribution& target,
@@ -374,5 +446,7 @@ private:
         ContributionMergeState& mergeState);
 
     void BuildLightField();
+
+    void BakeGeneratedRays(VoxelLightContribution& contribution);
 
 };
