@@ -1,9 +1,16 @@
 #pragma once
 
 
-#ifndef VOXEL_LIGHT_FACE_COUNT
+
+#define MAX_BOUNCES 4
 #define VOXEL_LIGHT_FACE_COUNT 6
-#endif
+
+enum class VoxelLightMergeMode
+{
+    Add,
+    MaxSample
+};
+
 
 struct VoxelLightFieldView
 {
@@ -29,6 +36,9 @@ struct VoxelLightBakeParams
 
     bool SnapBounceDirection;
     bool InitiateLightField;
+    bool NormalizeDir;
+    bool FillEmptyDir;
+    VoxelLightMergeMode MergeMode;
 
     VoxelLightBakeParams();
 };
@@ -79,10 +89,11 @@ struct VoxelLightEnergy
 
 struct VoxelLightFace
 {
-    VoxelLightEnergy Incoming;
-    VoxelLightEnergy Outgoing;
+    VoxelLightEnergy Incoming[MAX_BOUNCES];
+    VoxelLightEnergy Outgoing[MAX_BOUNCES];
 
-    int16_t VisitCount;
+    int16_t InVisitCount;
+    int16_t OutVisitCount;
 };
 
 struct VoxelLightData
