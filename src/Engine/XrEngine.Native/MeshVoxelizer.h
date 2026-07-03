@@ -96,6 +96,10 @@ struct VoxelFaceData
     Vec2 HitPosition;           // local 0..1 coordinate on the voxel face
     int32_t TriangleId;          // -1 = no hit
     VoxelTriangleSide Side;
+    Vec4 BaseColor;
+    Vec3 Normal;
+    float Roughness;
+    float Metallic;
 };
 
 
@@ -214,6 +218,8 @@ private:
     void ComputeSubGrid();
     void BuildTriangles();
     void BuildProjectedIndices();
+
+
 
     void BuildProjectedIndex(VoxelProjectedIndex& index, VoxelScanAxis axis);
 

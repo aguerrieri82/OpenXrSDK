@@ -411,6 +411,8 @@ void APIENTRY MeshVoxelGridDestroy(MeshVoxelGrid* voxelGrid)
 
 MeshVoxelGridView APIENTRY MeshVoxelGridGetView(const MeshVoxelGrid* voxelGrid)
 {
+    int size = sizeof(VoxelData);
+
     MeshVoxelGridView view{};
 
     if (voxelGrid == nullptr)
@@ -615,8 +617,8 @@ EXPORT void APIENTRY VoxelLightBakerAddMesh(
 }
 
 
-EXPORT VoxelLightBaker::SceneVoxel* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count) {
-    int size = sizeof(VoxelLightBaker::SceneVoxel);
+EXPORT VoxelData* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count) {
+
     auto scene = baker->GetScene();
 	*count = scene->size();
 	return scene->data();

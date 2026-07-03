@@ -16,6 +16,9 @@ namespace XrEngine
         Metalness = 5,
         Roughness = 6,
         Irradiance = 7,
+        FieldDir = 8,
+        FieldRad = 9
+
     }
 
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial

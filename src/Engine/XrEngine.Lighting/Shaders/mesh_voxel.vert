@@ -4,20 +4,14 @@ precision highp int;
 
 layout(location = 2) in vec2 a_texcoord_0;
 
-struct VoxelFaceData
-{
-    vec2 UV;
-    vec2 HitPosition;
-    int TriangleId;
-    int Side;
-};
+
 
 struct VoxelFaceInstance
 {
     ivec3 Pos;
     int Face;
-
-    VoxelFaceData Data;
+    vec2 UV;
+    int TriangleId;
 };
 
 layout(std430, binding = 11) readonly buffer VoxelFaceBuffer
@@ -154,13 +148,13 @@ void main()
 
     vWorldPos = worldPos;
     vFaceNormal = FaceNormal[face];
-    vUv = item.Data.UV;
+    vUv = item.UV;
 
     vFace = face;
     vOutIndex = gl_InstanceID;
 
 #ifdef VOXEL_REMAP
-    int tri = item.Data.TriangleId;
+    int tri = item.TriangleId;
     int indexBase = tri * 3;
 
     uint i0 = uIndices[indexBase + 0];

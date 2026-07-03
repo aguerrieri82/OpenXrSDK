@@ -11,27 +11,36 @@ namespace XrEngine.Lighting
         public const int FaceCount = 6;
     }
 
+    public enum LightFalloffType : int
+    {
+        None = 0,
+        Linear = 1,
+        Quadratic = 2
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct LightFalloff
+    {
+        public LightFalloffType Type;
+        public float Range;
+        public float Factor;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct VoxPointLight
+    {
+        public Vector3 Position;
+        public Vector3 Color;
+
+        public float Intensity;
+        public LightFalloff Falloff;
+    }
+
     [InlineArray(VoxelLightConst.FaceCount)]
-    public unsafe struct FaceArray<T>
+    public struct FaceArray<T>
     {
         private T _element0;
     }
-
-    [InlineArray(VoxelLightConst.FaceCount)]
-    public unsafe struct FaceArrayPtr<T>
-    {
-        private T* _element0;
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 448)]
-    public struct SceneVoxel
-    {
-        [FieldOffset(0)]
-        public VoxelData Voxel;
-
-        [FieldOffset(160)]
-        public FaceArray<VoxelResolvedFace> ResolvedFaces;
-    };
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelGridDesc
@@ -78,6 +87,11 @@ namespace XrEngine.Lighting
         public Vector2 HitPosition;
         public int TriangleId;
         public VoxelTriangleSide Side;
+
+        public Vector4 BaseColor;
+        public Vector3 Normal;
+        public float Roughness;
+        public float Metallic;
     }
 
 
@@ -105,52 +119,36 @@ namespace XrEngine.Lighting
         public int VoxelCount;
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 48)]
-    public struct VoxelResolvedFace
-    {
-        [FieldOffset(0)]
-        public Vector4 BaseColor;
-
-        [FieldOffset(16)]
-        public Vector3 Normal;
-
-        [FieldOffset(28)]
-        public float Roughness;
-
-        [FieldOffset(32)]
-        public float Metallic;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct VoxPointLight
-    {
-        public Vector3 Position;
-        public Vector3 Color;
-
-        public float Intensity;
-        public float FalloffDistance;
-    }
-
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelMeshResolvedFace
     {
         public int VoxelIndex;
         public int Face;
 
-        public VoxelFaceData Data;
-        public VoxelResolvedFace Resolved;
+        public Vector4 BaseColor;
+        public Vector3 Normal;
+        public float Roughness;
+        public float Metallic;
+
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelLightBakeParams
     {
-            public float RaySpacingFactor;
-            public float EmptyDissipation;
-            public float EnergyThreshold;
 
-            public int MaxBounceCount;
-            public int ThreadCount;
+        public float EnergyThreshold;
+
+        public int MaxBounceCount;
+        public int ThreadCount;
+        public int RaySubsample;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public bool SnapBounceDirection;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public bool InitiateLightField;
     }
+
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct VoxelLightEnergy
@@ -167,6 +165,8 @@ namespace XrEngine.Lighting
     {
         public VoxelLightEnergy Incoming;
         public VoxelLightEnergy Outgoing;
+
+        public short VisitCount;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -182,7 +182,7 @@ namespace XrEngine.Lighting
         public VoxelLightData Data;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct VoxelLightContributionView
     {
         public VoxelLightCell* Cells;
@@ -215,8 +215,13 @@ namespace XrEngine.Lighting
     public struct VoxelRayDebugState
     {
         public Vector3 Position;
+        public Vector3 Origin;
         public Vector3 Direction;
         public Vector3 Energy;
+
+        public float Distance;
+        public float OriginTotalDistance;
+        public float TotalDistance;
 
         public Vector3I Cell;
 
@@ -228,8 +233,6 @@ namespace XrEngine.Lighting
 
         public VoxelData LastVoxel;
         public VoxelLightData LastLightData;
-
-        public FaceArray<VoxelResolvedFace> LastResolvedFaces;
     }
 
     public static class EngineNativeLib
@@ -357,7 +360,7 @@ namespace XrEngine.Lighting
             ref VoxelLightFieldView field);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
-        public static extern unsafe SceneVoxel* VoxelLightBakerGetScene(VoxelLightBaker baker, out int count);
+        public static extern unsafe VoxelData* VoxelLightBakerGetScene(VoxelLightBaker baker, out int count);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern VoxelRayMarcher VoxelRayMarcherCreate(

@@ -5,8 +5,6 @@
 #define VOXEL_LIGHT_FACE_COUNT 6
 #endif
 
-
-
 struct VoxelLightFieldView
 {
     int32_t SizeX;
@@ -20,29 +18,33 @@ struct VoxelLightFieldView
     int32_t CellCapacity;
 };
 
-
-
-struct alignas(16) VoxelResolvedFace
-{
-    Vec4 BaseColor;
-    Vec3 Normal;
-    float Roughness;
-    float Metallic;
-};
-
-static_assert(alignof(VoxelResolvedFace) == 16);
-static_assert(sizeof(VoxelResolvedFace) == 48);
-
 struct VoxelLightBakeParams
 {
-    float RaySpacingFactor;
-    float EmptyDissipation;
+
     float EnergyThreshold;
 
     int32_t MaxBounceCount;
     int32_t ThreadCount;
+    int32_t RaySubsample;
+
+    bool SnapBounceDirection;
+    bool InitiateLightField;
 
     VoxelLightBakeParams();
+};
+
+enum LightFalloffType : int32_t
+{
+    LightFalloffNone = 0,
+    LightFalloffLinear = 1,
+    LightFalloffQuadratic = 2
+};
+
+struct LightFalloff
+{
+    int32_t Type;
+    float Range;
+    float Factor;
 };
 
 struct PointLight
@@ -51,7 +53,7 @@ struct PointLight
     Vec3 Color;
 
     float Intensity;
-    float FalloffDistance;
+    LightFalloff Falloff;
 };
 
 struct VoxelMeshResolvedFace
@@ -59,8 +61,11 @@ struct VoxelMeshResolvedFace
     int32_t VoxelIndex;
     int32_t Face;
 
-    VoxelFaceData Data;
-    VoxelResolvedFace Resolved;
+    Vec4 BaseColor;
+    Vec3 Normal;
+    float Roughness;
+    float Metallic;
+
 };
 
 struct VoxelLightEnergy
@@ -76,6 +81,8 @@ struct VoxelLightFace
 {
     VoxelLightEnergy Incoming;
     VoxelLightEnergy Outgoing;
+
+    int16_t VisitCount;
 };
 
 struct VoxelLightData
@@ -114,8 +121,13 @@ struct VoxelLightRay
 struct VoxelRayDebugState
 {
     Vec3 Position;
+    Vec3 Origin;
     Vec3 Direction;
     Vec3 Energy;
+
+    float Distance;
+    float OriginTotalDistance;
+    float TotalDistance;
 
     int32_t X;
     int32_t Y;
@@ -129,7 +141,7 @@ struct VoxelRayDebugState
 
     VoxelData LastVoxel;
     VoxelLightData LastLightData;
-    VoxelResolvedFace LastResolvedFaces[VOXEL_LIGHT_FACE_COUNT];
+
 };
 
 struct VoxelLightContributionView
@@ -146,9 +158,15 @@ class VoxelRayMarcher
 private:
     struct RayState
     {
-        Vec3 Position;
+        Vec3 Origin;
         Vec3 Direction;
         Vec3 Energy;
+
+        float Distance;
+        float OriginTotalDistance;
+        float TotalDistance;
+
+		Vec3 Position;
 
         int32_t X;
         int32_t Y;
@@ -160,6 +178,7 @@ private:
 
         int32_t BounceCount;
         int32_t EnterFace;
+        int32_t OriginStep;
 
 		bool IsAlive;
     };
@@ -206,6 +225,7 @@ private:
 private:
     void TraceRay(const VoxelLightRay& ray);
 
+    bool MoveToNextVoxel(int32_t& exitFace);
 
     void AddContribution(
         int32_t voxelIndex,
@@ -225,12 +245,7 @@ private:
         std::vector<int32_t> TouchedVoxels;
     };
 
-public:
-    struct SceneVoxel
-    {
-        VoxelData Voxel;
-        VoxelResolvedFace ResolvedFaces[VOXEL_LIGHT_FACE_COUNT];
-    };
+
 public:
     VoxelLightBaker();
 
@@ -255,6 +270,8 @@ public:
 
     void ClearLightField();
 
+    void AdjustLightFieldDirections();
+
     void AccumulateLight(
         const VoxelLightContribution& contribution);
 
@@ -268,7 +285,7 @@ public:
         return _voxelCount;
     }
 
-    std::vector<SceneVoxel>* GetScene() {
+    std::vector<VoxelData>* GetScene() {
         return &_scene;
     }
 
@@ -280,10 +297,13 @@ private:
 
     VoxelLightField _field;
 
-    std::vector<SceneVoxel> _scene;
+    std::vector<VoxelData> _scene;
     std::vector<VoxelLightData> _lightData;
 
-    PointLight _currentPointLight;
+    Vec3 _currentLightEnergy;
+    LightFalloff _currentLightFalloff;
+    Vec3 _currentLightCenter;
+    int32_t _currentLightVoxel;
 
     std::vector<VoxelLightRay> _rays;
     std::vector<VoxelRayMarcher> _marchers;
@@ -294,9 +314,14 @@ private:
     std::mutex _mergeLock;
 
 private:
+    void PrefillPointLightContribution();
+
     void GeneratePointLightRays();
 
     void TraceRays(
+        VoxelLightContribution& contribution);
+
+    void CleanupUnvisitedFaces(
         VoxelLightContribution& contribution);
 
     void MergeWorkerContribution(

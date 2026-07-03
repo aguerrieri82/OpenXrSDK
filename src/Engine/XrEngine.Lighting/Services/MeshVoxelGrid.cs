@@ -55,11 +55,11 @@ namespace XrEngine.Lighting
         }
 
 
-        public VoxelFaceInstance[] ExtractFaces(VoxelTriangleSide side)
+        public GpuVoxelFaceInstance[] ExtractFaces(VoxelTriangleSide side)
         {
-            var result = new VoxelFaceInstance[_voxelCount * 6];
+            var result = new GpuVoxelFaceInstance[_voxelCount * 6];
 
-            fixed (VoxelFaceInstance* pResult = result)
+            fixed (GpuVoxelFaceInstance* pResult = result)
             {
                 var count = ExtractFaces(pResult, side);
 
@@ -70,7 +70,7 @@ namespace XrEngine.Lighting
             }
         }
 
-        public int ExtractFaces(VoxelFaceInstance* dst, VoxelTriangleSide side)
+        public int ExtractFaces(GpuVoxelFaceInstance* dst, VoxelTriangleSide side)
         {
             var count = 0;
 
@@ -94,7 +94,7 @@ namespace XrEngine.Lighting
                             if ((faceData.Side & side) == 0)
                                 continue;
 
-                            dst[count++] = new VoxelFaceInstance
+                            dst[count++] = new GpuVoxelFaceInstance
                             {
                                 Pos = new Vector3I(
                                     origin.X + x,
@@ -102,7 +102,8 @@ namespace XrEngine.Lighting
                                     origin.Z + z),
 
                                 Face = face,
-                                Data = faceData
+                                UV = faceData.UV,
+                                TriangleId = faceData.TriangleId
                             };
                         }
                     }

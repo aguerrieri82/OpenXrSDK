@@ -44,10 +44,7 @@ void main()
 	vec3 dir = SampleDirection(face);
 
 	float intensity = Intensity(color);
-	float alpha = clamp(intensity / max(uMaxIntensity, 0.00001), 0.0, 1.0);
-
-	if (alpha <= 0.0)
-		discard;
+	float alpha = clamp(intensity, 0.0, 1.0);
 
 	if (MODE == MODE_DIRECTION)
 	{
@@ -55,5 +52,8 @@ void main()
 		return;
 	}
 
-	outColor = vec4(color, alpha);
+	if (alpha <= 0.0)
+		discard;
+
+	outColor = vec4(color, alpha) * uMaxIntensity;
 }

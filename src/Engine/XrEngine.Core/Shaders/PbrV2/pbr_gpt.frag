@@ -17,6 +17,8 @@ const vec3 Fdielectric = vec3(0.04);
 #define DEBUG_METALNESS  5
 #define DEBUG_ROUGHNESS  6
 #define DEBUG_IRRADIANCE 7
+#define DEBUG_FIELD_DIR  8
+#define DEBUG_FIELD_RAD  9
 
 // Lighting V2 switches.
 // Keep these as compile-time flags so you can A/B against the old shader without changing inputs.
@@ -519,5 +521,12 @@ void main()
 	color = vec4(vec3(frag.roughness), 1.0);
 #elif DEBUG == DEBUG_IRRADIANCE
 	color = vec4(texture(irradianceTexture, N).rgb * uIblIntensity * uIblColor, 1.0);
+#elif DEBUG == DEBUG_FIELD_DIR
+	color.rgb =	evaluateLightFieldDirection(frag.position, frag.normal);
+	color.a = 1.0;
+
+#elif DEBUG == DEBUG_FIELD_RAD
+	color.rgb =	evaluateLightFieldRadiance(frag.position, frag.normal) * uMaterial.roughness;
+	color.a = 1.0;
 #endif
 }

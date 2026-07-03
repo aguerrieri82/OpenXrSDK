@@ -3,15 +3,48 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using XrMath;
 
 namespace XrEngine.Lighting
 {
 
 
+    [StructLayout(LayoutKind.Explicit, Size = 48)]
+    public struct GpuVoxelResolvedFace
+    {
+        [FieldOffset(0)]
+        public Vector4 BaseColor;
+
+        [FieldOffset(16)]
+        public Vector3 Normal;
+
+        [FieldOffset(28)]
+        public float Roughness;
+
+        [FieldOffset(32)]
+        public float Metallic;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 32)]
+    public struct GpuVoxelFaceInstance
+    {
+        [FieldOffset(0)]
+        public Vector3I Pos;
+
+        [FieldOffset(12)]
+        public int Face;
+
+        [FieldOffset(16)]
+        public Vector2 UV;
+
+        [FieldOffset(24)]
+        public int TriangleId;
+    }
+
 
     public class MeshVoxelMaterial : DynamicMaterial
     {
-        private IBuffer<VoxelResolvedFace>? _resolveBuffer;
+        private IBuffer<GpuVoxelResolvedFace>? _resolveBuffer;
 
         public MeshVoxelMaterial():
             base("[XrEngine.Lighting]mesh_voxel.vert", "[XrEngine.Lighting]mesh_voxel.frag")
@@ -73,9 +106,9 @@ namespace XrEngine.Lighting
                     up.SetUniform("uRoughnessFactor", mat.Roughness);
                     up.SetUniform("uCameraPosition", ctx.PassCamera!.WorldPosition);
 
-                    _resolveBuffer ??= ctx.BufferProvider!.GetBuffer<VoxelResolvedFace>(10, BufferStore.Material, BufferUsage.SSbo);
+                    _resolveBuffer ??= ctx.BufferProvider!.GetBuffer<GpuVoxelResolvedFace>(10, BufferStore.Material, BufferUsage.SSbo);
 
-                    var size = (uint)(Marshal.SizeOf<VoxelResolvedFace>() * FaceInstances!.Length);
+                    var size = (uint)(Marshal.SizeOf<GpuVoxelResolvedFace>() * FaceInstances!.Length);
 
                     if (_resolveBuffer.SizeBytes != size)
                         _resolveBuffer.Allocate(size);
@@ -109,14 +142,14 @@ namespace XrEngine.Lighting
         }
 
 
-        public VoxelResolvedFace[]? ReadResolvedFaces()
+        public GpuVoxelResolvedFace[]? ReadResolvedFaces()
         {
             if (ResolvedFace == null || ResolvedFace.SizeBytes == 0)
                 return null;
 
-            var size = new VoxelResolvedFace[ResolvedFace.SizeBytes / Marshal.SizeOf<VoxelResolvedFace>()];
+            var size = new GpuVoxelResolvedFace[ResolvedFace.SizeBytes / Marshal.SizeOf<GpuVoxelResolvedFace>()];
 
-            var result = Array.Empty<VoxelResolvedFace>();
+            var result = Array.Empty<GpuVoxelResolvedFace>();
             
             ResolvedFace.ReadArray(ref result);
 
@@ -127,9 +160,9 @@ namespace XrEngine.Lighting
 
         public IBuffer<uint>? TargetIBuf { get; set; }
 
-        public IBuffer<VoxelResolvedFace>? ResolvedFace => _resolveBuffer;
+        public IBuffer<GpuVoxelResolvedFace>? ResolvedFace => _resolveBuffer;
 
-        public VoxelFaceInstance[]? FaceInstances { get; set; }
+        public GpuVoxelFaceInstance[]? FaceInstances { get; set; }
 
         public bool IsRemapMode { get; set; }
 

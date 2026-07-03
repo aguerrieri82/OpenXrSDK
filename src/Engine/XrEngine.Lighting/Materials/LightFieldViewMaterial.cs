@@ -74,7 +74,7 @@ namespace XrEngine.Lighting
                 up.SetUniform("uGridSize", Size);
                 up.SetUniform("uVoxelSize", VoxelSize);
 
-                up.SetUniform("uMaxIntensity", (int)MaxIntensity);
+                up.SetUniform("uMaxIntensity", MaxIntensity);
                 up.SetUniform("uModelViewProj", ctx.PassCamera!.ViewProjection);
             });
 
@@ -88,6 +88,7 @@ namespace XrEngine.Lighting
 
         public Vector3 SliceMin { get; set; }
 
+        [Range(0, 1, 0.05f)]
         public float MaxIntensity { get; set; }
 
         [Notify(ChangeType.Render)]

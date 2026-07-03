@@ -38,31 +38,12 @@ uniform vec3 uCameraPosition;
 layout(binding = 0) uniform sampler2D uBaseColorMap;
 #endif
 
-#ifdef HAS_NORMAL_MAP
-layout(binding = 1) uniform sampler2D uNormalMap;
-#endif
-
 #ifdef HAS_METALLIC_ROUGHNESS_MAP
 layout(binding = 2) uniform sampler2D uMetallicRoughnessMap;
 #endif
 
 layout(location = 0) out vec4 outColor;
 
-#ifdef VOXEL_REMAP
-vec3 ResolveWorldNormal(vec2 uv)
-{
-    vec3 N = normalize(vTriNormal);
-    vec3 T = normalize(vTriTangent.xyz);
-    vec3 B = normalize(cross(N, T)) * vTriTangent.w;
-
-#ifdef HAS_NORMAL_MAP
-    vec3 nTs = texture(uNormalMap, uv).xyz * 2.0 - 1.0;
-    return normalize(T * nTs.x + B * nTs.y + N * nTs.z);
-#else
-    return N;
-#endif
-}
-#endif
 
 void main()
 {
@@ -87,11 +68,10 @@ void main()
 #endif
 
 #ifdef VOXEL_REMAP
-    vec3 worldNormal = ResolveWorldNormal(uv);
 
     VoxelResolvedFace resolved;
     resolved.BaseColor = baseColor;
-    resolved.Normal = worldNormal;
+    resolved.Normal = vFaceNormal;
     resolved.Roughness = roughness;
     resolved.Metallic = metallic;
 

@@ -105,7 +105,7 @@ extern "C"
     EXPORT void APIENTRY FreeLightFieldView(VoxelLightFieldView* view);
 
 
-    EXPORT VoxelLightBaker::SceneVoxel* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count);
+    EXPORT VoxelData* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count);
 
 
     EXPORT VoxelRayMarcher* APIENTRY VoxelRayMarcherCreate(

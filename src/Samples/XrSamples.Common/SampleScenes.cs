@@ -1088,7 +1088,7 @@ namespace XrSamples
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
 
-            var voxelSize = 0.05f;
+            var voxelSize = 0.04f;
             var roomSize = new Vector3(5, 2, 5);
 
             var grid = new VoxelGridDesc

@@ -26,7 +26,7 @@ vec3 evaluateLightFieldFace(
 
 	// Stored direction is emitted/outgoing light direction.
 	// BRDF wants direction from shaded point toward the light.
-	vec3 L = -emittedDir;
+	vec3 L = normalize(-emittedDir);
 
 	if (dot(normal, L) <= 0.0)
 		return vec3(0.0);
@@ -86,4 +86,50 @@ vec3 evaluateLightField(
 #endif
 
 	return result;
+}
+
+
+vec3 evaluateLightFieldDirection(vec3 position, vec3 normal)
+{
+	vec3 fieldSize = vec3(uLightFieldSize) * uVoxelSize;
+	vec3 uvw = ((position + normal * (uVoxelSize * uLightFieldOfs)) - uLightFieldOrigin) / fieldSize;
+
+	if (any(lessThan(uvw, vec3(0.0))) || any(greaterThan(uvw, vec3(1.0))))
+		return vec3(0.0);
+
+	vec3 emittedMoment = vec3(0.0);
+
+	emittedMoment += texture(uLightField[0 * 2 + 1], uvw).rgb;
+	emittedMoment += texture(uLightField[1 * 2 + 1], uvw).rgb;
+	emittedMoment += texture(uLightField[2 * 2 + 1], uvw).rgb;
+	emittedMoment += texture(uLightField[3 * 2 + 1], uvw).rgb;
+	emittedMoment += texture(uLightField[4 * 2 + 1], uvw).rgb;
+	emittedMoment += texture(uLightField[5 * 2 + 1], uvw).rgb;
+
+	if (dot(emittedMoment, emittedMoment) <= LightEpsilon)
+		return vec3(0.0);
+
+	// Stored direction is emitted/outgoing.
+	// Returned direction points from shaded point toward light.
+	return normalize(-emittedMoment);
+}
+
+vec3 evaluateLightFieldRadiance(vec3 position, vec3 normal)
+{
+	vec3 fieldSize = vec3(uLightFieldSize) * uVoxelSize;
+	vec3 uvw = ((position + normal * (uVoxelSize * uLightFieldOfs)) - uLightFieldOrigin) / fieldSize;
+
+	if (any(lessThan(uvw, vec3(0.0))) || any(greaterThan(uvw, vec3(1.0))))
+		return vec3(0.0);
+
+	vec3 radiance = vec3(0.0);
+
+	radiance += texture(uLightField[0 * 2 + 0], uvw).rgb;
+	radiance += texture(uLightField[1 * 2 + 0], uvw).rgb;
+	radiance += texture(uLightField[2 * 2 + 0], uvw).rgb;
+	radiance += texture(uLightField[3 * 2 + 0], uvw).rgb;
+	radiance += texture(uLightField[4 * 2 + 0], uvw).rgb;
+	radiance += texture(uLightField[5 * 2 + 0], uvw).rgb;
+
+	return radiance * uLightFieldStrength;
 }

@@ -7,14 +7,6 @@ using XrMath;
 namespace XrEngine.Lighting
 {
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 48)]
-    public struct VoxelFaceInstance
-    {
-        public Vector3I Pos;
-        public int Face;
-
-        public VoxelFaceData Data;
-    }
 
     public sealed class MeshVoxelizer : IDisposable
     {

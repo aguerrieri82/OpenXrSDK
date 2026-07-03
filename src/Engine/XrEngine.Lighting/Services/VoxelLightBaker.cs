@@ -40,14 +40,14 @@ namespace XrEngine.Lighting
         public ref T GetCell<T>(Span<T> cells, int x, int y, int z) 
             => ref cells[CellIndex(x, y, z)];
 
-        public Span<SceneVoxel> GetScene()
+        public Span<VoxelData> GetScene()
         {
             var sceneRef = EngineNativeLib.VoxelLightBakerGetScene(_handle, out var count);
 
             if (count == 0)
                 return [];
 
-            return new Span<SceneVoxel>(sceneRef, count);
+            return new Span<VoxelData>(sceneRef, count);
         }
 
         public void SetParams(in VoxelLightBakeParams parameters)
