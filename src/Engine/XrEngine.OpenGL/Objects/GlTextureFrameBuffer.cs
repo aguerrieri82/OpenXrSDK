@@ -139,7 +139,7 @@ namespace XrEngine.OpenGL
         }
 
 
-        public override void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot, bool useDraw)
+        public override void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot, bool useDraw, int layer = 0)
         {
             if (obj is GlTexture tex)
             {
@@ -152,7 +152,7 @@ namespace XrEngine.OpenGL
                         FramebufferTarget.Framebuffer,
                         slot,
                         TextureTarget.Texture2D,
-                        tex, 0, _sampleCount);
+                        tex, layer, _sampleCount);
 
                     useMs = true;
 #endif
@@ -161,11 +161,23 @@ namespace XrEngine.OpenGL
 
                 if (!useMs)
                 {
-                    _gl.FramebufferTexture2D(
-                        FramebufferTarget.Framebuffer,
-                        slot,
-                        tex.Target,
-                        tex, 0);
+                    if (tex.Target == TextureTarget.Texture2D || tex.Target == TextureTarget.Texture2DMultisample)
+                    {
+                        _gl.FramebufferTexture2D(
+                            FramebufferTarget.Framebuffer,
+                            slot,
+                            tex.Target,
+                            tex, layer);
+                    }
+                    else
+                    {
+                        _gl.FramebufferTextureLayer(
+                           FramebufferTarget.Framebuffer,
+                           slot,
+                           tex,
+                           0, layer);
+                    }
+
 
                 }
             }

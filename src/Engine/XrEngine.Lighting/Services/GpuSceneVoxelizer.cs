@@ -1,8 +1,9 @@
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Diagnostics;
+
 #endif
 
 using System.Numerics;
@@ -20,7 +21,7 @@ namespace XrEngine.Lighting
 
         public VoxelTriangleSide Side;
 
-        public Vector4 BaseColor;
+        public Color BaseColor;
         public Vector3 Normal;
         public float Roughness;
         public float Metallic;
@@ -35,12 +36,44 @@ namespace XrEngine.Lighting
             Z
         }
 
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        private struct ScanPixel
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct Rgba32Pixel
         {
-            public Vector4 Color;
-            public Vector4 Normal;
-            public Vector4 Material;
+            public byte R;
+            public byte G;
+            public byte B;
+            public byte A;
+
+            public Color ToColor()
+            {
+                const float s = 1.0f / 255.0f;
+                return new Color(R * s, G * s, B * s, A * s);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct RgbHalfPixel
+        {
+            public Half R;
+            public Half G;
+            public Half B;
+
+            public Vector3 ToVector3()
+            {
+                return new Vector3((float)R, (float)G, (float)B);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct Rgb24Pixel
+        {
+            public byte R;
+            public byte G;
+            public byte B;
+
+            public float Roughness => R / 255.0f;
+            public float Metallic => G / 255.0f;
+            public bool IsFront => B > 127;
         }
 
         private sealed class AxisTarget : IDisposable
@@ -50,16 +83,9 @@ namespace XrEngine.Lighting
             public GlTexture Material = null!;
             public GlTexture Depth = null!;
 
-            public GlTexture ColorAtlas = null!;
-            public GlTexture NormalAtlas = null!;
-            public GlTexture MaterialAtlas = null!;
-
             public uint Width;
             public uint Height;
             public uint Layers;
-            public uint AtlasWidth;
-            public uint AtlasHeight;
-            public uint AtlasColumns;
 
             public void Dispose()
             {
@@ -67,9 +93,6 @@ namespace XrEngine.Lighting
                 Normal?.Dispose();
                 Material?.Dispose();
                 Depth?.Dispose();
-                ColorAtlas?.Dispose();
-                NormalAtlas?.Dispose();
-                MaterialAtlas?.Dispose();
             }
         }
 
@@ -82,47 +105,33 @@ namespace XrEngine.Lighting
 
         private readonly GL _gl;
         private readonly int _viewsPerBatch;
-        private readonly bool _usePackReadback;
 
         private readonly GlMultiViewFrameBuffer _scanFbo;
-        private readonly GlMultiViewFrameBuffer _packFbo;
+        private readonly GlTextureFrameBuffer _texFb;
 
-        private readonly GlSimpleProgram _scanProgram;
-        private readonly GlSimpleProgram _packProgram;
 
         private AxisTarget? _xTarget;
         private AxisTarget? _yTarget;
         private AxisTarget? _zTarget;
 
         private VoxelGridDesc _grid;
+        private GlSimpleProgram? _scanProgram;
 
-        public GpuSceneVoxelizer(GL gl, int viewsPerBatch = 1, bool usePackReadback = true)
+        public GpuSceneVoxelizer(GL gl, int viewsPerBatch = 1)
         {
             _gl = gl;
             _viewsPerBatch = Math.Max(1, viewsPerBatch);
-            _usePackReadback = usePackReadback;
 
             _scanFbo = new GlMultiViewFrameBuffer(gl);
-            _packFbo = new GlMultiViewFrameBuffer(gl);
+            _texFb = new GlTextureFrameBuffer(gl);
+        }
 
-            _scanProgram = new GlSimpleProgram(
-                gl,
-                "GpuSceneVoxelizer.Scan.vert",
-                "GpuSceneVoxelizer.Scan.frag",
-                a => Embedded.GetString<GpuSceneVoxelizer>(a));
-
-            if (_viewsPerBatch > 1)
-                _scanProgram.AddExtension("GL_OVR_multiview2");
-
-            _scanProgram.Build();
-
-            _packProgram = new GlSimpleProgram(
-                gl,
-                "GpuSceneVoxelizer.Pack.vert",
-                "GpuSceneVoxelizer.Pack.frag",
-                a => Embedded.GetString<GpuSceneVoxelizer>(a));
-
-            _packProgram.Build();
+        GlSimpleProgram LoadProgram(int viewCount)
+        {
+            return GlImageProc.LoadProgram(_gl,
+                "[XrEngine.Lighting]voxelizer_scan.frag",
+                "[XrEngine.Lighting]voxelizer_scan.vert",
+                [$"VOXELIZER_VIEW_COUNT {viewCount}"], ["GL_OVR_multiview2"])!;
         }
 
         public List<GpuVoxelFaceData> Voxelize(
@@ -139,6 +148,9 @@ namespace XrEngine.Lighting
 
             var result = new List<GpuVoxelFaceData>();
 
+            _texFb.Bind();
+            _texFb.BindRead(ReadBufferMode.ColorAttachment0);
+                
             ReadAxisVolume(ScanAxis.X, _xTarget!, result);
             ReadAxisVolume(ScanAxis.Y, _yTarget!, result);
             ReadAxisVolume(ScanAxis.Z, _zTarget!, result);
@@ -148,7 +160,7 @@ namespace XrEngine.Lighting
 
         private void EnsureTargets(VoxelGridDesc grid)
         {
-            EnsureAxisTarget(ref _xTarget, (uint)grid.Size.Y, (uint)grid.Size.Z, (uint)grid.Size.X);
+            EnsureAxisTarget(ref _xTarget, (uint)grid.Size.Z, (uint)grid.Size.Y, (uint)grid.Size.X);
             EnsureAxisTarget(ref _yTarget, (uint)grid.Size.X, (uint)grid.Size.Z, (uint)grid.Size.Y);
             EnsureAxisTarget(ref _zTarget, (uint)grid.Size.X, (uint)grid.Size.Y, (uint)grid.Size.Z);
         }
@@ -180,28 +192,13 @@ namespace XrEngine.Lighting
             target.Color.Allocate(width, height, layers, TextureFormat.Rgba32);
 
             target.Normal = new GlTexture(_gl);
-            target.Normal.Allocate(width, height, layers, TextureFormat.RgbaFloat16);
+            target.Normal.Allocate(width, height, layers, TextureFormat.RgbFloat16);
 
             target.Material = new GlTexture(_gl);
-            target.Material.Allocate(width, height, layers, TextureFormat.Rgba32);
+            target.Material.Allocate(width, height, layers, TextureFormat.Rgb24);
 
             target.Depth = new GlTexture(_gl);
             target.Depth.Allocate(width, height, layers, TextureFormat.Depth24);
-
-            target.AtlasColumns = (uint)Math.Ceiling(Math.Sqrt(layers));
-            uint atlasRows = (layers + target.AtlasColumns - 1) / target.AtlasColumns;
-
-            target.AtlasWidth = target.AtlasColumns * width;
-            target.AtlasHeight = atlasRows * height;
-
-            target.ColorAtlas = new GlTexture(_gl);
-            target.ColorAtlas.Allocate(target.AtlasWidth, target.AtlasHeight, 1, TextureFormat.Rgba32);
-
-            target.NormalAtlas = new GlTexture(_gl);
-            target.NormalAtlas.Allocate(target.AtlasWidth, target.AtlasHeight, 1, TextureFormat.RgbaFloat16);
-
-            target.MaterialAtlas = new GlTexture(_gl);
-            target.MaterialAtlas.Allocate(target.AtlasWidth, target.AtlasHeight, 1, TextureFormat.Rgba32);
         }
 
         private void ScanAxisVolume(
@@ -215,16 +212,22 @@ namespace XrEngine.Lighting
             GlState.Current.SetAlphaMode(AlphaMode.Opaque);
             GlState.Current.SetColorMask(true, true, true, true, true);
 
-            _scanProgram.Use();
-
-            _scanProgram.SetUniform("uGridOrigin", _grid.Origin);
-            _scanProgram.SetUniform("uVoxelSize", _grid.VoxelSize);
-            _scanProgram.SetUniform("uGridSize", _grid.Size);
-            _scanProgram.SetUniform("uAxis", (float)axis);
+            uint lastProgram = 0;
 
             for (int baseSlice = 0; baseSlice < target.Layers; baseSlice += _viewsPerBatch)
             {
                 int viewCount = Math.Min(_viewsPerBatch, (int)target.Layers - baseSlice);
+
+                _scanProgram = LoadProgram(viewCount);
+
+                if (_scanProgram.Handle != lastProgram)
+                {
+                    _scanProgram.SetUniform("uGridOrigin", _grid.Origin);
+                    _scanProgram.SetUniform("uVoxelSize", _grid.VoxelSize);
+                    _scanProgram.SetUniform("uGridSize", _grid.Size);
+                    _scanProgram.SetUniform("uAxis", (float)axis);
+                    lastProgram = _scanProgram.Handle;
+                }
 
                 BindScanTarget(target, baseSlice, viewCount);
 
@@ -233,24 +236,16 @@ namespace XrEngine.Lighting
                 _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 _scanProgram.SetUniform("uBaseSlice", baseSlice);
-                SetScanMatrices(axis, baseSlice, viewCount);
+
+                for (int i = 0; i < viewCount; ++i)
+                {
+                    int slice = baseSlice + i;
+                    var matrix = CreateSliceViewProjection(axis, slice);
+                    _scanProgram.SetUniform($"uViewProj[{i}]", matrix);
+                }
 
                 DrawMeshes(meshes);
             }
-        }
-
-        private void SetScanMatrices(ScanAxis axis, int baseSlice, int viewCount)
-        {
-            Span<float> data = stackalloc float[_viewsPerBatch * 16];
-
-            for (int i = 0; i < viewCount; ++i)
-            {
-                int slice = baseSlice + i;
-                Matrix4x4 matrix = CreateSliceViewProjection(axis, slice);
-                CopyMatrix(matrix, data.Slice(i * 16, 16));
-            }
-
-            _scanProgram.SetUniform("uViewProj", data.ToArray());
         }
 
         private Matrix4x4 CreateSliceViewProjection(ScanAxis axis, int slice)
@@ -263,67 +258,81 @@ namespace XrEngine.Lighting
             Vector3 min = _grid.Origin;
             Vector3 max = _grid.Origin + size;
 
-            float s0 = slice * _grid.VoxelSize;
-            float s1 = s0 + _grid.VoxelSize;
+            float d0;
+            float d1;
 
-            // OpenGL clip convention is intentionally hidden here: these matrices create
-            // a one-voxel slab in the scanned axis and map the other two axes to the viewport.
-            return axis switch
+            Matrix4x4 result = new Matrix4x4
             {
-                ScanAxis.X => Matrix4x4.CreateOrthographicOffCenter(
-                    min.Y,
-                    max.Y,
-                    min.Z,
-                    max.Z,
-                    s0,
-                    s1) * Matrix4x4.CreateLookAt(
-                        new Vector3(min.X + s0 - _grid.VoxelSize, 0.0f, 0.0f),
-                        new Vector3(min.X + s0, 0.0f, 0.0f),
-                        Vector3.UnitY),
-
-                ScanAxis.Y => Matrix4x4.CreateOrthographicOffCenter(
-                    min.X,
-                    max.X,
-                    min.Z,
-                    max.Z,
-                    s0,
-                    s1) * Matrix4x4.CreateLookAt(
-                        new Vector3(0.0f, min.Y + s0 - _grid.VoxelSize, 0.0f),
-                        new Vector3(0.0f, min.Y + s0, 0.0f),
-                        Vector3.UnitZ),
-
-                _ => Matrix4x4.CreateOrthographicOffCenter(
-                    min.X,
-                    max.X,
-                    min.Y,
-                    max.Y,
-                    s0,
-                    s1) * Matrix4x4.CreateLookAt(
-                        new Vector3(0.0f, 0.0f, min.Z + s0 - _grid.VoxelSize),
-                        new Vector3(0.0f, 0.0f, min.Z + s0),
-                        Vector3.UnitY),
+                M44 = 1.0f
             };
+
+            switch (axis)
+            {
+                case ScanAxis.X:
+                    d0 = min.X + slice * _grid.VoxelSize;
+                    d1 = d0 + _grid.VoxelSize;
+
+                    result.M31 = 2.0f / (max.Z - min.Z);
+                    result.M22 = 2.0f / (max.Y - min.Y);
+                    result.M13 = 2.0f / (d1 - d0);
+
+                    result.M41 = -(max.Z + min.Z) / (max.Z - min.Z);
+                    result.M42 = -(max.Y + min.Y) / (max.Y - min.Y);
+                    result.M43 = -(d1 + d0) / (d1 - d0);
+                    break;
+
+                case ScanAxis.Y:
+                    d0 = min.Y + slice * _grid.VoxelSize;
+                    d1 = d0 + _grid.VoxelSize;
+
+                    result.M11 = 2.0f / (max.X - min.X);
+                    result.M32 = 2.0f / (max.Z - min.Z);
+                    result.M23 = 2.0f / (d1 - d0);
+
+                    result.M41 = -(max.X + min.X) / (max.X - min.X);
+                    result.M42 = -(max.Z + min.Z) / (max.Z - min.Z);
+                    result.M43 = -(d1 + d0) / (d1 - d0);
+                    break;
+
+                default:
+                    d0 = min.Z + slice * _grid.VoxelSize;
+                    d1 = d0 + _grid.VoxelSize;
+
+                    result.M11 = 2.0f / (max.X - min.X);
+                    result.M22 = 2.0f / (max.Y - min.Y);
+                    result.M33 = 2.0f / (d1 - d0);
+
+                    result.M41 = -(max.X + min.X) / (max.X - min.X);
+                    result.M42 = -(max.Y + min.Y) / (max.Y - min.Y);
+                    result.M43 = -(d1 + d0) / (d1 - d0);
+                    break;
+            }
+
+            return result;
         }
 
         private void DrawMeshes(IReadOnlyList<TriangleMesh> meshes)
         {
             foreach (var mesh in meshes)
             {
-                if (mesh == null)
-                    continue;
-
                 SetMeshUniforms(mesh);
 
                 var handle = mesh.GetGlResource(a =>
                     GlVertexSourceHandle.Create(_gl, mesh));
 
+                if (handle.NeedUpdate)
+                    handle.Update();
+
                 handle.Bind();
                 handle.Draw();
+                handle.Unbind();
             }
         }
 
         private void SetMeshUniforms(TriangleMesh mesh)
         {
+            Debug.Assert(_scanProgram != null);
+
             _scanProgram.SetUniform("uWorld", mesh.WorldMatrix);
             _scanProgram.SetUniform("uNormalMatrix", mesh.NormalMatrix);
 
@@ -338,23 +347,21 @@ namespace XrEngine.Lighting
                 if (mat.ColorMap != null)
                 {
                     GlState.Current!.LoadTexture(mat.ColorMap.ToGlTexture(), 0);
-                    _scanProgram.SetUniform("uHasColorMap", 1.0f);
-                    _scanProgram.SetUniform("uColorMap", 0.0f);
+                    _scanProgram.SetUniform("uHasColorMap", true);
                 }
                 else
                 {
-                    _scanProgram.SetUniform("uHasColorMap", 0.0f);
+                    _scanProgram.SetUniform("uHasColorMap", false);
                 }
 
                 if (mat.MetallicRoughnessMap != null)
                 {
                     GlState.Current!.LoadTexture(mat.MetallicRoughnessMap.ToGlTexture(), 1);
-                    _scanProgram.SetUniform("uHasMetallicRoughnessMap", 1.0f);
-                    _scanProgram.SetUniform("uMetallicRoughnessMap", 1.0f);
+                    _scanProgram.SetUniform("uHasMetallicRoughnessMap", true);
                 }
                 else
                 {
-                    _scanProgram.SetUniform("uHasMetallicRoughnessMap", 0.0f);
+                    _scanProgram.SetUniform("uHasMetallicRoughnessMap", false);
                 }
             }
             else
@@ -362,8 +369,8 @@ namespace XrEngine.Lighting
                 _scanProgram.SetUniform("uBaseColorFactor", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
                 _scanProgram.SetUniform("uMetallicFactor", 0.0f);
                 _scanProgram.SetUniform("uRoughnessFactor", 0.8f);
-                _scanProgram.SetUniform("uHasColorMap", 0.0f);
-                _scanProgram.SetUniform("uHasMetallicRoughnessMap", 0.0f);
+                _scanProgram.SetUniform("uHasColorMap", false);
+                _scanProgram.SetUniform("uHasMetallicRoughnessMap", false);
             }
         }
 
@@ -372,154 +379,52 @@ namespace XrEngine.Lighting
             AxisTarget target,
             List<GpuVoxelFaceData> faces)
         {
-            if (_usePackReadback)
-                ReadAxisVolumePacked(axis, target, faces);
-            else
-                ReadAxisVolumeLayers(axis, target, faces);
-        }
+            var colors = Array.Empty<Rgba32Pixel>();
+            var normals = Array.Empty<RgbHalfPixel>();
+            var materials = Array.Empty<Rgb24Pixel>();
 
-        private void ReadAxisVolumePacked(
-            ScanAxis axis,
-            AxisTarget target,
-            List<GpuVoxelFaceData> faces)
-        {
-            PackAxisTexture(target, target.Color, target.ColorAtlas);
-            PackAxisTexture(target, target.Normal, target.NormalAtlas);
-            PackAxisTexture(target, target.Material, target.MaterialAtlas);
+            _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
 
-            Vector4[] colors = ReadAtlas(target.ColorAtlas, target.AtlasWidth, target.AtlasHeight);
-            Vector4[] normals = ReadAtlas(target.NormalAtlas, target.AtlasWidth, target.AtlasHeight);
-            Vector4[] materials = ReadAtlas(target.MaterialAtlas, target.AtlasWidth, target.AtlasHeight);
-
-            UnpackAxis(axis, target, colors, normals, materials, faces);
-        }
-
-        private void ReadAxisVolumeLayers(
-            ScanAxis axis,
-            AxisTarget target,
-            List<GpuVoxelFaceData> faces)
-        {
             for (int layer = 0; layer < target.Layers; ++layer)
             {
-                Vector4[] colors = ReadLayer(target.Color, target.Width, target.Height, layer);
-                Vector4[] normals = ReadLayer(target.Normal, target.Width, target.Height, layer);
-                Vector4[] materials = ReadLayer(target.Material, target.Width, target.Height, layer);
+                ReadLayer(target.Color, target.Width, target.Height, layer, ref colors);
+                ReadLayer(target.Normal, target.Width, target.Height, layer, ref normals);
+                ReadLayer(target.Material, target.Width, target.Height, layer, ref materials);
 
                 UnpackAxisLayer(axis, target, layer, colors, normals, materials, faces);
             }
         }
 
-        private void PackAxisTexture(AxisTarget target, GlTexture source, GlTexture atlas)
+        private void ReadLayer<T>(
+            GlTexture texture,
+            uint width,
+            uint height,
+            int layer,
+            ref T[] result) where T : struct
         {
-            _packFbo.BaseViewIndex = 0;
-            _packFbo.NumViews = 1;
 
-            _packFbo.BindAttachment(atlas, FramebufferAttachment.ColorAttachment0, true);
-            _packFbo.BindDraw(DrawBufferMode.ColorAttachment0);
+            _texFb.BindAttachment(texture, FramebufferAttachment.ColorAttachment0, false, layer);
+            _texFb.Check();
 
-            GlState.Current!.SetView(new Rect2I(0, 0, target.AtlasWidth, target.AtlasHeight));
+            int len = checked((int)(width * height));
 
-            _gl.Clear(ClearBufferMask.ColorBufferBit);
+            if (result.Length < len)
+                result = new T[len];
 
-            _packProgram.Use();
-
-            GlState.Current!.LoadTexture(source, 0);
-            _packProgram.SetUniform("uSource", 0.0f);
-            _packProgram.SetUniform("uTileSize", new Vector2(target.Width, target.Height));
-            _packProgram.SetUniform("uAtlasColumns", (float)target.AtlasColumns);
-            _packProgram.SetUniform("uLayerCount", (float)target.Layers);
-
-            DrawFullScreenTriangle();
-        }
-
-        private Vector4[] ReadAtlas(GlTexture atlas, uint width, uint height)
-        {
-            _packFbo.BaseViewIndex = 0;
-            _packFbo.NumViews = 1;
-            _packFbo.BindAttachment(atlas, FramebufferAttachment.ColorAttachment0, false);
-
-            var result = new Vector4[width * height];
+            GlUtils.GetPixelFormat(texture.InternalFormat.GetTextureFormat(), out var pf, out var pt);
 
             unsafe
             {
-                fixed (Vector4* ptr = result)
+                fixed (T* ptr = result)
                 {
                     _gl.ReadPixels(
                         0,
                         0,
                         width,
                         height,
-                        PixelFormat.Rgba,
-                        PixelType.Float,
+                        pf,
+                        pt,
                         ptr);
-                }
-            }
-
-            return result;
-        }
-
-        private Vector4[] ReadLayer(GlTexture texture, uint width, uint height, int layer)
-        {
-            _packFbo.BaseViewIndex = (uint)layer;
-            _packFbo.NumViews = 1;
-            _packFbo.BindAttachment(texture, FramebufferAttachment.ColorAttachment0, false);
-
-            var result = new Vector4[width * height];
-
-            unsafe
-            {
-                fixed (Vector4* ptr = result)
-                {
-                    _gl.ReadPixels(
-                        0,
-                        0,
-                        width,
-                        height,
-                        PixelFormat.Rgba,
-                        PixelType.Float,
-                        ptr);
-                }
-            }
-
-            return result;
-        }
-
-        private void UnpackAxis(
-            ScanAxis axis,
-            AxisTarget target,
-            Vector4[] colors,
-            Vector4[] normals,
-            Vector4[] materials,
-            List<GpuVoxelFaceData> faces)
-        {
-            for (int layer = 0; layer < target.Layers; ++layer)
-            {
-                int tileX = (int)(layer % target.AtlasColumns);
-                int tileY = (int)(layer / target.AtlasColumns);
-
-                for (int py = 0; py < target.Height; ++py)
-                {
-                    for (int px = 0; px < target.Width; ++px)
-                    {
-                        int atlasX = tileX * (int)target.Width + px;
-                        int atlasY = tileY * (int)target.Height + py;
-                        int srcIndex = atlasX + atlasY * (int)target.AtlasWidth;
-
-                        Vector4 material = materials[srcIndex];
-
-                        if (material.W <= 0.0f)
-                            continue;
-
-                        AddVoxelFace(
-                            axis,
-                            layer,
-                            px,
-                            py,
-                            colors[srcIndex],
-                            normals[srcIndex],
-                            material,
-                            faces);
-                    }
                 }
             }
         }
@@ -528,9 +433,9 @@ namespace XrEngine.Lighting
             ScanAxis axis,
             AxisTarget target,
             int layer,
-            Vector4[] colors,
-            Vector4[] normals,
-            Vector4[] materials,
+            Rgba32Pixel[] colors,
+            RgbHalfPixel[] normals,
+            Rgb24Pixel[] materials,
             List<GpuVoxelFaceData> faces)
         {
             for (int py = 0; py < target.Height; ++py)
@@ -539,9 +444,9 @@ namespace XrEngine.Lighting
                 {
                     int srcIndex = px + py * (int)target.Width;
 
-                    Vector4 material = materials[srcIndex];
+                    var color = colors[srcIndex].ToColor();
 
-                    if (material.W <= 0.0f)
+                    if (color.A <= 0.0f)
                         continue;
 
                     AddVoxelFace(
@@ -549,9 +454,9 @@ namespace XrEngine.Lighting
                         layer,
                         px,
                         py,
-                        colors[srcIndex],
-                        normals[srcIndex],
-                        material,
+                        color,
+                        normals[srcIndex].ToVector3(),
+                        materials[srcIndex],
                         faces);
                 }
             }
@@ -562,9 +467,9 @@ namespace XrEngine.Lighting
             int layer,
             int px,
             int py,
-            Vector4 color,
-            Vector4 normal,
-            Vector4 material,
+            Color color,
+            Vector3 normal,
+            Rgb24Pixel material,
             List<GpuVoxelFaceData> faces)
         {
             int x;
@@ -577,8 +482,8 @@ namespace XrEngine.Lighting
             {
                 case ScanAxis.X:
                     x = layer;
-                    y = px;
-                    z = py;
+                    y = py;
+                    z = px;
                     frontFace = NegX;
                     backFace = PosX;
                     break;
@@ -600,7 +505,7 @@ namespace XrEngine.Lighting
                     break;
             }
 
-            bool isFront = material.Z > 0.5f;
+            bool isFront = material.IsFront;
 
             faces.Add(new GpuVoxelFaceData
             {
@@ -609,22 +514,10 @@ namespace XrEngine.Lighting
                 Side = isFront ? VoxelTriangleSide.Front : VoxelTriangleSide.Back,
 
                 BaseColor = color,
-                Normal = DecodeNormal(normal),
-                Roughness = material.X,
-                Metallic = material.Y
+                Normal = normal,
+                Roughness = material.Roughness,
+                Metallic = material.Metallic
             });
-        }
-
-        private static Vector3 DecodeNormal(Vector4 encoded)
-        {
-            var normal = new Vector3(
-                encoded.X * 2.0f - 1.0f,
-                encoded.Y * 2.0f - 1.0f,
-                encoded.Z * 2.0f - 1.0f);
-
-            return normal.LengthSquared() > 1e-8f
-                ? Vector3.Normalize(normal)
-                : Vector3.UnitY;
         }
 
         private void BindScanTarget(AxisTarget target, int baseLayer, int viewCount)
@@ -641,45 +534,16 @@ namespace XrEngine.Lighting
             _scanFbo.BindAttachment(target.Normal, FramebufferAttachment.ColorAttachment1, true);
             _scanFbo.BindAttachment(target.Material, FramebufferAttachment.ColorAttachment2, true);
             _scanFbo.BindAttachment(target.Depth, FramebufferAttachment.DepthAttachment, false);
-
         }
-
-        private void DrawFullScreenTriangle()
-        {
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
-        }
-
-        private static void CopyMatrix(Matrix4x4 value, Span<float> data)
-        {
-            data[0] = value.M11;
-            data[1] = value.M12;
-            data[2] = value.M13;
-            data[3] = value.M14;
-            data[4] = value.M21;
-            data[5] = value.M22;
-            data[6] = value.M23;
-            data[7] = value.M24;
-            data[8] = value.M31;
-            data[9] = value.M32;
-            data[10] = value.M33;
-            data[11] = value.M34;
-            data[12] = value.M41;
-            data[13] = value.M42;
-            data[14] = value.M43;
-            data[15] = value.M44;
-        }
-
-
 
         public void Dispose()
         {
             _xTarget?.Dispose();
             _yTarget?.Dispose();
             _zTarget?.Dispose();
-            _scanProgram?.Dispose();
-            _packProgram?.Dispose();
             _scanFbo?.Dispose();
-            _packFbo?.Dispose();
+            _texFb.Dispose();
         }
+
     }
 }

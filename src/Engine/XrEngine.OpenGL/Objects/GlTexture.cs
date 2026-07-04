@@ -255,6 +255,9 @@ namespace XrEngine.OpenGL
 
             _internalFormat = GlUtils.GetInternalFormat(format, compression, blockSize);
 
+            if (depth > 1 && Target == TextureTarget.Texture2D)
+                Target = TextureTarget.Texture2DArray;
+
             ClampMaxLevel(width, height);
 
             Bind();
@@ -264,6 +267,8 @@ namespace XrEngine.OpenGL
             AllocateStorage(width, height, depth, format);
 
             Unbind();
+
+
         }
 
         public void UploadFull(IList<TextureData> data)

@@ -105,7 +105,7 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        public abstract void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw);
+        public abstract void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0);
 
         public abstract GlTexture GetOrCreateEffect(FramebufferAttachment slot);
 

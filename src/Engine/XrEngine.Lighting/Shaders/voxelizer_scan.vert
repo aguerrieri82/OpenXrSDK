@@ -1,11 +1,6 @@
-#version 310 es
 
-#ifndef VOXELIZER_VIEW_COUNT
-#define VOXELIZER_VIEW_COUNT 2
-#endif
 
 #if VOXELIZER_VIEW_COUNT > 1
-#extension GL_OVR_multiview2 : require
 layout(num_views = VOXELIZER_VIEW_COUNT) in;
 #endif
 

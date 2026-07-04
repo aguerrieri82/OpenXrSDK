@@ -105,7 +105,7 @@ namespace XrEngine.OpenGL
         }
 
 
-        public override void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw)
+        public override void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0)
         {
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
                     FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    0,
+                    (uint)layer,
                     _sampleCount,
                     BaseViewIndex, NumViews);
             }
@@ -134,7 +134,7 @@ namespace XrEngine.OpenGL
                     FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    0, BaseViewIndex, NumViews);
+                    (uint)layer, BaseViewIndex, NumViews);
             }
 
             _isDirty = true;

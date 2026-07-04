@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
 
         IGlRenderAttachment? Depth { get; }
 
-        void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw);
+        void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0);
 
         GlTexture GetOrCreateEffect(FramebufferAttachment slot);
 

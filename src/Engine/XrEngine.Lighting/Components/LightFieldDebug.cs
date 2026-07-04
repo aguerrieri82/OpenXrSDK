@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
+using XrEngine.OpenGL;
 using XrEngine.UI;
 using XrMath;
 
@@ -12,6 +13,7 @@ namespace XrEngine.Lighting
     public class LightFieldDebug : BaseComponent<TriangleMesh>, ILightFieldProvider
     {
         MeshVoxelizer _voxelizer;
+        GpuSceneVoxelizer _gpuVoxelizer;
         VoxelLightBaker _backer;
 
         TriangleMesh _meshView;
@@ -25,13 +27,14 @@ namespace XrEngine.Lighting
         MeshVoxelGrid? _meshGrid;
         VoxelRayMarcher? _ray;
 
-        List<GpuVoxelFaceInstance> _faces = [];
         LightFieldData? _data;
         TriangleMesh[]? _walls;
-        MeshVoxelGrid[] _wallGrid = new MeshVoxelGrid[6];
+        VoxelGridDesc _gridDesc;
+        private List<GpuVoxelFaceData> _faces;
 
         public LightFieldDebug(VoxelGridDesc gridDesc)
         {
+            _gridDesc = gridDesc;   
 
             _backer = new VoxelLightBaker();
 
@@ -48,7 +51,7 @@ namespace XrEngine.Lighting
 
             _meshMat = new MeshVoxelMaterial()
             {
-                IsRemapMode = true
+                IsRemapMode = false
             };
 
             _fieldMat = new LightFieldViewMaterial();
@@ -268,8 +271,8 @@ namespace XrEngine.Lighting
                 UseLightField = true,
             };
 
-            _walls = new TriangleMesh[]
-            {
+            _walls =
+            [
                 // Front, normal +Z
                 new TriangleMesh(new Quad3D(), wallMaterial)
                 {
@@ -322,7 +325,7 @@ namespace XrEngine.Lighting
                         Matrix4x4.CreateRotationX(MathF.PI * 0.5f) *
                         Matrix4x4.CreateTranslation(cx, yMax, cz)
                 }
-            };
+            ];
         }
 
         public void Init()
@@ -343,14 +346,13 @@ namespace XrEngine.Lighting
 
             if (_host.Materials.Count == 1)
                 _host.Materials.Add(_finalMat);
-        }
 
-        protected void ApplyWalls()
-        {
-
-
-            _meshMat.FaceInstances = _faces.ToArray();
-            _meshMat.NotifyChanged(ChangeType.Render);
+            foreach (var wall in _walls!)
+            {
+                if (wall.Parent == null)
+                    _host.Scene.AddChild(wall);
+            }
+     
         }
 
 
@@ -362,34 +364,28 @@ namespace XrEngine.Lighting
 
             Log.Info(this, "Begin");
 
-            _meshGrid = _voxelizer.Voxelize(_host!.Geometry!, _host.WorldMatrix);
 
-            _faces.Clear();
 
-            _faces.AddRange(_meshGrid.ExtractFaces(VoxelTriangleSide.All));
+            _gpuVoxelizer = new GpuSceneVoxelizer(OpenGLRender.Current!.GL, 32);
 
-            int i = 0;
-            foreach (var wall in _walls!)
-            {
-                if (wall.Parent == null)
-                    _host!.Scene!.AddChild(wall);
+            XrEngine.EngineNativeLib.RdcStartFrameCapture();
+            
+            Log.Info(this, "Begin voxelize");
 
-                _wallGrid[i] = _voxelizer.Voxelize(wall.Geometry!, wall.WorldMatrix);
+            _faces = _gpuVoxelizer.Voxelize([_host!, .._walls!], _gridDesc);
 
-                var wallFaces = _wallGrid[i].ExtractFaces(VoxelTriangleSide.All);
+            Log.Info(this, "End voxelize");
 
-                _faces.AddRange(wallFaces);
-
-                i++;
-            }
-
+            XrEngine.EngineNativeLib.RdcEndFrameCapture(true);
 
             _meshMat.Target = _host;
             _meshMat.GridDesc = _voxelizer.GridDesc;
-            _meshMat.FaceInstances = _faces.ToArray();
-
-            _meshMat.TargetIBuf = _host.IBuf;
-            _meshMat.TargetVBuf = _host.VBuf;
+            _meshMat.FaceInstances = _faces.Select(a => new GpuVoxelFaceInstance
+            {
+                Face = a.Face,
+                Pos = a.Cell,
+                TriangleId = 1,
+            }).ToArray();
 
             _meshView.InstanceCount = _meshMat.FaceInstances.Length;
 
@@ -430,7 +426,7 @@ namespace XrEngine.Lighting
                 BlurStrength = BlurStrength,
                 BlurPasses = BlurPasses,
 
-                FillEmptyDir = true,
+                FillEmptyDir = false,
                 MergeMode = MergeMode,
                 NormalizeDir = false,
 
@@ -445,61 +441,7 @@ namespace XrEngine.Lighting
             });
 
             if (_faces.Count > 0)
-            {
-                var resolved = _meshMat.ReadResolvedFaces();
-
-                if (resolved == null)
-                    return;
-
-                var resInfo = new VoxelMeshResolvedFace[resolved!.Length];
-
-                for (var j = 0; j < _faces.Count; j++)
-                {
-                    resInfo[j] = new VoxelMeshResolvedFace
-                    {
-                        BaseColor = resolved[j].BaseColor,
-                        Normal = resolved[j].Normal,
-                        Metallic = resolved[j].Metallic,
-                        Roughness = resolved[j].Roughness,
-                        Face = _faces[j].Face,
-                        VoxelIndex = _backer.CellIndex(_faces[j].Pos)
-                    };
-                }
-
-                var ofs = new Vector3I(0, 0, 0);
-
-                _backer.AddMesh(_meshGrid!.Info.Origin, _meshGrid.Info.Size, _meshGrid.Voxels.ToArray(), resInfo);
-
-                int i = 0;
-
-                foreach (var wall in _walls!)
-                {
-                    var wallFaces = _wallGrid[i].ExtractFaces(VoxelTriangleSide.All);
-
-                    var wallResolved = new VoxelMeshResolvedFace[wallFaces.Length];
-
-                    for (var j = 0; j < wallFaces.Length; j++)
-                    {
-                        wallResolved[j] = new VoxelMeshResolvedFace
-                        {
-                            BaseColor = new Vector4(1, 1, 1, 1),
-                            Normal = Vector3.TransformNormal( wall.Geometry!.Vertices[0].Normal, wall.WorldMatrix).Normalize(),
-                            Roughness = 0.2f,
-                            Metallic = 0.0f,
-                            Face = wallFaces[j].Face,
-                            VoxelIndex = _backer.CellIndex(wallFaces[j].Pos)
-                        };
-                    }
-
-                    _backer.AddMesh(
-                        _wallGrid[i].Info.Origin,
-                        _wallGrid[i].Info.Size,
-                        _wallGrid[i].Voxels.ToArray(),
-                        wallResolved);
-
-                    i++;
-                }
-            }
+                _backer.AddMesh(_faces.ToArray());
 
             _ray?.Dispose();
             _ray = _backer.CreateRayMarcher();
@@ -520,7 +462,7 @@ namespace XrEngine.Lighting
                 Position = RayOrigin,
                 Falloff = new LightFalloff
                 {
-                    Type = LightFalloffType.Linear,
+                    Type = LightFalloffType.Quadratic,
                     Factor = 1f,
                     Range = LightRange
                 }

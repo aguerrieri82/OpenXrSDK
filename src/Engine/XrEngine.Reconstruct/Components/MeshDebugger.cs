@@ -234,8 +234,7 @@ namespace XrEngine.Reconstruct
         public async Task PickPoint()
         {
             var pick = Context.Require<IObjectPicker>();
-            TriangleMesh x:
-                x.NormalMatrix
+
             var collision = await pick.PickAsync(c => c.Object == _host);
             if (collision != null)
             {

@@ -349,7 +349,7 @@ public:
 
     void AddGpuMeshFaces(
         const GpuVoxelFaceData* faces,
-        int32_t faceCount)
+        int32_t faceCount);
 
     void BakePointLight(
         const PointLight& light,

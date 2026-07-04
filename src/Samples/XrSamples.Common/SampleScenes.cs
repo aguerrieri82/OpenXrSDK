@@ -1100,7 +1100,7 @@ namespace XrSamples
                     (int)MathF.Round(roomSize.Y / voxelSize),
                     (int)MathF.Round(roomSize.Z / voxelSize))
             };
-            GlImageProc.Read()
+
             var mesh = scene.AddChild((TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions));
             mesh.Name = "Bed";
             mesh.AddComponent(new LightFieldDebug(grid));
