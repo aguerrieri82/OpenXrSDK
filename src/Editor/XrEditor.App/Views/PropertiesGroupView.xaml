@@ -51,13 +51,13 @@
                 <DockPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
                         <Style.Resources>
-                            <SolidColorBrush x:Key="Button.Disabled.Background" Color="{DynamicResource Button.Defaulted.Background}"/>
+                            <SolidColorBrush x:Key="Button.Disabled.Background" Color="Transparent"/>
 
                         </Style.Resources>
                         <Style.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.1"/>
-                                <Setter Property="Background" Value="#fff"/>
+                                <Setter Property="Opacity" Value="0.2"/>
+
                             </Trigger>
                         </Style.Triggers>
                     </Style>

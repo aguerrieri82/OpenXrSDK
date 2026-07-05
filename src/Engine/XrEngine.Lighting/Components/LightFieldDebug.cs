@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using Silk.NET.Core.Native;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -90,7 +91,9 @@ namespace XrEngine.Lighting
             InitiateLightField = false;
             ThreadCount = 10;
 
-            MergeMode = VoxelLightMergeMode.MaxSample;
+            RayMergeMode = VoxelLightMergeMode.MaxSample;
+            LightMergeMode = VoxelLightMergeMode.Add;
+            GenMergeMode = VoxelLightMergeMode.AddPreserveDir;
 
             BlurPasses = 3;
             BlurStrength = 1f;
@@ -100,6 +103,11 @@ namespace XrEngine.Lighting
             BounceCenterWeight = 0.5f;
             BounceNormalWeight = 0.5f;
             BounceConeMaxAngle = MathF.PI * (70f / 180f);
+
+            SmoothDirIterations = 32;
+            SmoothDirMaxSlope = 1f;
+            SmoothDirRelaxation = 0.75f;
+            SmoothDirSmoothness = 0.05f;
 
             CreateWalls();
 
@@ -434,9 +442,12 @@ namespace XrEngine.Lighting
                 BlurStrength = BlurStrength,
                 BlurPasses = BlurPasses,
 
-                FillEmptyDir = true,
-                MergeMode = MergeMode,
+                FillEmptyDir = FillEmptyDir,
+                RayMergeMode = RayMergeMode,
+                GenMergeMode = GenMergeMode,
+                LightMergeMode = LightMergeMode,
                 NormalizeDir = false,
+                DirCollapseMode = DirCollapseMode,
 
                 Bounce = new BounceParams
                 {
@@ -450,10 +461,10 @@ namespace XrEngine.Lighting
 
                 SmoothDir = new SmoothDirParams
                 {
-                    Iterations= 32,
-                    MaxSlope = 1f,
-                    Relaxation = 0.75f,
-                    Smoothness = 0.05f
+                    Iterations = SmoothDirIterations,
+                    MaxSlope = SmoothDirMaxSlope,
+                    Relaxation = SmoothDirRelaxation,
+                    Smoothness = SmoothDirSmoothness
                 }
             });
         }
@@ -658,7 +669,13 @@ namespace XrEngine.Lighting
         public float LightRange { get; set; }
 
         [Category("Trace")]
-        public VoxelLightMergeMode MergeMode { get; set; }
+        public VoxelLightMergeMode RayMergeMode { get; set; }
+
+        [Category("Trace")]
+        public VoxelLightMergeMode GenMergeMode { get; set; }
+
+        [Category("Trace")]
+        public VoxelLightMergeMode LightMergeMode { get; set; }
 
 
         [Category("Misc")]
@@ -696,5 +713,23 @@ namespace XrEngine.Lighting
         [Category("Bounce")]
         [ValueType(ValueType.Radiant)]
         public float BounceConeMaxAngle { get; set; }
+
+        [Category("Field Dir")]
+        public bool FillEmptyDir { get; set; }
+
+        [Category("Field Dir")]
+        public DirectionCollapseMode DirCollapseMode { get; set; }    
+
+        [Category("Field Dir")]
+        public int SmoothDirIterations { get; set; }
+
+        [Category("Field Dir")]
+        public float SmoothDirMaxSlope { get; set; }
+
+        [Category("Field Dir")]
+        public float SmoothDirRelaxation { get; set; }
+
+        [Category("Field Dir")]
+        public float SmoothDirSmoothness { get; set; }
     }
 }

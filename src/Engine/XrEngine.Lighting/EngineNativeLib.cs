@@ -98,7 +98,8 @@ namespace XrEngine.Lighting
     public enum VoxelLightMergeMode : int
     {
         Add,
-        MaxSample
+        MaxSample,
+        AddPreserveDir
     };
 
     public enum VoxelStatus : int
@@ -217,7 +218,9 @@ namespace XrEngine.Lighting
         [MarshalAs(UnmanagedType.I1)]
         public bool FillEmptyDir;
 
-        public VoxelLightMergeMode MergeMode;
+        public VoxelLightMergeMode RayMergeMode;
+        public VoxelLightMergeMode GenMergeMode;
+        public VoxelLightMergeMode LightMergeMode;
 
         public int BlurPasses;
         public float BlurStrength;

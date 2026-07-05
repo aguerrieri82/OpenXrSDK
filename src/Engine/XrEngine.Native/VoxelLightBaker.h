@@ -69,7 +69,9 @@ struct VoxelLightBakeParams
     bool NormalizeDir;
     bool FillEmptyDir;
 
-    VoxelLightMergeMode MergeMode;
+    VoxelLightMergeMode RayMergeMode;
+    VoxelLightMergeMode GenMergeMode;
+    VoxelLightMergeMode LightMergeMode;
 
     int32_t BlurPasses;
     float BlurStrength;
@@ -426,7 +428,7 @@ private:
 
 private:
 
-    void BlurLightField();
+    void BlurLightField(const bool colorOnly);
 
     void PrefillPointLightContribution(
         const PointLight& light,

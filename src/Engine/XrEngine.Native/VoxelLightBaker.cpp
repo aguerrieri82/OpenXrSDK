@@ -416,7 +416,7 @@ namespace {
 	void MergeEnergy(
 		VoxelLightEnergy& target,
 		const VoxelLightEnergy& source,
-		VoxelLightMergeMode mode = VoxelLightMergeMode::Add)
+		VoxelLightMergeMode mode)
 	{
 		if (mode == VoxelLightMergeMode::Add) {
 
@@ -452,7 +452,7 @@ namespace {
 	void MergeFace(
 		VoxelLightFace& target,
 		const VoxelLightFace& source,
-		VoxelLightMergeMode mode = VoxelLightMergeMode::Add)
+		VoxelLightMergeMode mode)
 	{
 		MergeEnergy(target.Incoming, source.Incoming, mode);
 		MergeEnergy(target.Outgoing, source.Outgoing, mode);
@@ -540,7 +540,7 @@ namespace {
 	void MergeVoxelLightData(
 		VoxelLightData& target,
 		const VoxelLightData& source,
-		VoxelLightMergeMode mode = VoxelLightMergeMode::Add)
+		VoxelLightMergeMode mode)
 	{
 		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
 			MergeFace(target.Faces[face], source.Faces[face], mode);
@@ -1055,7 +1055,9 @@ VoxelLightBakeParams::VoxelLightBakeParams() {
 
 	DirCollapseMode = DirectionCollapseMode::Add;
 
-	MergeMode = VoxelLightMergeMode::MaxSample;
+	RayMergeMode = VoxelLightMergeMode::MaxSample;
+	GenMergeMode = VoxelLightMergeMode::AddPreserveDir;
+	LightMergeMode = VoxelLightMergeMode::Add;
 }
 
 VoxelRayMarcher::VoxelRayMarcher() {
@@ -1452,7 +1454,7 @@ bool VoxelRayMarcher::Step()
 		MergeEnergy(
 			data.Faces[outgoingFace].Outgoing,
 			MakeEnergy(stepEnergy, _ray.Direction),
-			_baker->_params.MergeMode);
+			_baker->_params.RayMergeMode);
 
 		MoveToNextVoxel();
 	}
@@ -1630,7 +1632,7 @@ void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 			contribution,
 			_currentMerge,
 			generationContribution,
-			VoxelLightMergeMode::AddPreserveDir);
+			_params.GenMergeMode);
 
 		_rays.swap(_nextRays);
 		_nextRays.clear();
@@ -1738,7 +1740,8 @@ void VoxelLightBaker::AccumulateLight(const VoxelLightContribution& contribution
 
 		if (cell.Index < 0 || cell.Index >= _voxelCount)
 			continue;
-		MergeVoxelLightData(_lightData[cell.Index], cell.Data);
+
+		MergeVoxelLightData(_lightData[cell.Index], cell.Data, _params.LightMergeMode);
 	}
 }
 
@@ -1789,7 +1792,7 @@ void VoxelLightBaker::PrefillPointLightContribution(
 
 				MergeEnergy(
 					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(energy, direction));
+					MakeEnergy(energy, direction), _params.LightMergeMode);
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -1863,7 +1866,7 @@ void VoxelLightBaker::PrefillDirectionalLightContribution(
 
 				MergeEnergy(
 					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(energy, direction));
+					MakeEnergy(energy, direction), _params.LightMergeMode);
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -1924,7 +1927,7 @@ void VoxelLightBaker::PrefillSpotLightContribution(
 
 				MergeEnergy(
 					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(energy, direction));
+					MakeEnergy(energy, direction), _params.LightMergeMode);
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -1944,7 +1947,7 @@ void VoxelLightBaker::GeneratePointLightRays(const PointLight& light)
 
 	Vec3 rayEnergy = Mul(light.Color, light.Intensity);
 
-	if (_params.MergeMode == VoxelLightMergeMode::Add)
+	if (_params.RayMergeMode == VoxelLightMergeMode::Add)
 		rayEnergy = Mul(rayEnergy, 1.0f / float(subSample * subSample));
 
 	auto addRay = [this, &light, rayEnergy](const Vec3& origin)
@@ -2078,7 +2081,7 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 	Vec3 rayEnergy = lightEnergy;
 
-	if (_params.MergeMode == VoxelLightMergeMode::Add)
+	if (_params.RayMergeMode == VoxelLightMergeMode::Add)
 		rayEnergy = Mul(rayEnergy, 1.0f / float(subSample * subSample));
 
 	auto tryAddRay = [&](int32_t face, const Vec3& entry)
@@ -2240,7 +2243,7 @@ void VoxelLightBaker::GenerateSpotLightRays(const SpotLight& light)
 
 			Vec3 rayEnergy = Mul(lightEnergy, cone);
 
-			if (_params.MergeMode == VoxelLightMergeMode::Add)
+			if (_params.RayMergeMode == VoxelLightMergeMode::Add)
 				rayEnergy = Mul(rayEnergy, 1.0f / float(subSample * subSample));
 
 			if (!HasEnergy(rayEnergy, _params.EnergyThreshold))
@@ -2370,7 +2373,7 @@ void VoxelLightBaker::TraceRays(
 			contribution,
 			mergeState,
 			_marchers[0].Contribution(),
-			_params.MergeMode);
+			_params.RayMergeMode);
 
 		const std::vector<VoxelLightRay>& workerNext = _marchers[0].NextRays();
 		nextRays.insert(nextRays.end(), workerNext.begin(), workerNext.end());
@@ -2399,7 +2402,7 @@ void VoxelLightBaker::TraceRays(
 					contribution,
 					mergeState,
 					_marchers[i].Contribution(),
-					_params.MergeMode);
+					_params.RayMergeMode);
 
 				const std::vector<VoxelLightRay>& workerNext = _marchers[i].NextRays();
 				nextRays.insert(nextRays.end(), workerNext.begin(), workerNext.end());
@@ -2535,7 +2538,7 @@ int32_t BuildGaussianKernel3x3x3(BlurSample* samples)
 	return count;
 }
 
-void VoxelLightBaker::BlurLightField()
+void VoxelLightBaker::BlurLightField(const bool colorOnly)
 {
 	float strength = std::clamp(_params.BlurStrength, 0.0f, 1.0f);
 	int32_t passes = std::max(0, _params.BlurPasses);
@@ -2589,29 +2592,39 @@ void VoxelLightBaker::BlurLightField()
 							int32_t ni = FieldIndex(_field, nx, ny, nz);
 
 							colorSum = Add(colorSum, Mul(colors[ni], sample.Weight));
-							dirSum = Add(dirSum, Mul(directions[ni], sample.Weight));
 							weightSum += sample.Weight;
+
+							if (!colorOnly)
+								dirSum = Add(dirSum, Mul(directions[ni], sample.Weight));
 						}
 
 						if (weightSum > Epsilon)
 						{
 							Vec3 blurColor = Mul(colorSum, 1.0f / weightSum);
-							Vec3 blurDir = Mul(dirSum, 1.0f / weightSum);
-
 							tempColor[index] = Lerp(colors[index], blurColor, strength);
-							tempDirection[index] = Lerp(directions[index], blurDir, strength);
+							
+							if (!colorOnly) 
+							{
+								Vec3 blurDir = Mul(dirSum, 1.0f / weightSum);
+								tempDirection[index] = Lerp(directions[index], blurDir, strength);
+							}
+			
 						}
 						else
 						{
 							tempColor[index] = colors[index];
-							tempDirection[index] = directions[index];
+
+							if (!colorOnly)
+								tempDirection[index] = directions[index];
 						}
 					}
 				}
 			}
 
 			colors.swap(tempColor);
-			directions.swap(tempDirection);
+			
+			if (!colorOnly)
+				directions.swap(tempDirection);
 		}
 	}
 }
@@ -2935,7 +2948,7 @@ void VoxelLightBaker::BuildLightField() {
 	};
 
 	if (_params.BlurPasses > 0)
-		BlurLightField();
+		BlurLightField(_params.SmoothDir.Iterations == 0);
 
 	if (_params.FillEmptyDir)
 		AdjustLightFieldDirections();

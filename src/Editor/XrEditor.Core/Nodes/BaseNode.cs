@@ -20,7 +20,7 @@ namespace XrEditor.Nodes
         {
             var compName = _value.GetType().FullName!.Replace(".", "_");
 
-            var path = Path.Combine("Presets", compName);
+            var path = Path.Combine(EditorDebug.StoragePath, "Presets", compName);
 
             return path;
         }

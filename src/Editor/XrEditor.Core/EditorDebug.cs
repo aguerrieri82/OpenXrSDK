@@ -22,7 +22,9 @@ namespace XrEditor
         public static readonly bool DebugSync = true;
 
         public static readonly bool DisableDualRender = true;
-        
+
+        public static readonly string StoragePath = "D:\\Projects\\XrEditor\\Storage";
+
 
         public static readonly string[] AssetsPath = [
             @"Assets\",
