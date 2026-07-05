@@ -155,7 +155,7 @@ vec3 evaluateLightFieldDirection(vec3 position, vec3 normal)
 
 	// Stored direction is emitted/outgoing.
 	// Returned direction points from shaded point toward light.
-	return normalize(-emittedMoment);
+	return (normalize(-emittedMoment) + 1.0 / 2.0);
 }
 
 vec3 evaluateLightFieldRadiance(vec3 position, vec3 normal)

@@ -48,7 +48,12 @@ void main()
 
 	if (MODE == MODE_DIRECTION)
 	{
-		outColor = vec4(DirectionToColor(dir), alpha);
+		outColor.rgb = DirectionToColor(dir);
+		outColor.a = 1.0;
+
+		if (dot(outColor.rgb, outColor.rgb) < 0.0001)
+			discard;
+		
 		return;
 	}
 

@@ -266,11 +266,13 @@ namespace XrEngine.Lighting
                 M44 = 1.0f
             };
 
+            float eps = MathF.Max(_grid.VoxelSize * 0.001f, 1e-6f);
+
             switch (axis)
             {
                 case ScanAxis.X:
-                    d0 = min.X + slice * _grid.VoxelSize;
-                    d1 = d0 + _grid.VoxelSize;
+                    d0 = min.X + slice * _grid.VoxelSize- eps;
+                    d1 = d0 + _grid.VoxelSize+ eps;
 
                     result.M31 = 2.0f / (max.Z - min.Z);
                     result.M22 = 2.0f / (max.Y - min.Y);
@@ -282,8 +284,8 @@ namespace XrEngine.Lighting
                     break;
 
                 case ScanAxis.Y:
-                    d0 = min.Y + slice * _grid.VoxelSize;
-                    d1 = d0 + _grid.VoxelSize;
+                    d0 = min.Y + slice * _grid.VoxelSize- eps;
+                    d1 = d0 + _grid.VoxelSize+ eps;
 
                     result.M11 = 2.0f / (max.X - min.X);
                     result.M32 = 2.0f / (max.Z - min.Z);
@@ -295,8 +297,8 @@ namespace XrEngine.Lighting
                     break;
 
                 default:
-                    d0 = min.Z + slice * _grid.VoxelSize;
-                    d1 = d0 + _grid.VoxelSize;
+                    d0 = min.Z + slice * _grid.VoxelSize- eps;
+                    d1 = d0 + _grid.VoxelSize+ eps;
 
                     result.M11 = 2.0f / (max.X - min.X);
                     result.M22 = 2.0f / (max.Y - min.Y);

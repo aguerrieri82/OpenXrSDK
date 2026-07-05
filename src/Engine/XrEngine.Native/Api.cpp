@@ -772,6 +772,17 @@ EXPORT bool APIENTRY VoxelRayMarcherStep(
 
     if (!marcher->Step()) {
 
+        auto& nextRays = marcher->NextRays();
+        
+        if (nextRays.size() > 0) 
+        {
+            nextRays.clear();
+
+            marcher->ClearContribution();
+            marcher->CreateRay(nextRays[0], marcher->Ray().BounceCount + 1);
+            return true;
+        }
+
         return false;
     }
 }

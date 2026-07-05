@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine.Lighting
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxDirectionalLight
     {
         public Vector3 Position;
@@ -21,7 +21,7 @@ namespace XrEngine.Lighting
         public LightFalloff Falloff;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxSpotLight
     {
         public Vector3 Position;
@@ -49,7 +49,7 @@ namespace XrEngine.Lighting
         Quadratic = 2
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct LightFalloff
     {
         public LightFalloffType Type;
@@ -57,7 +57,7 @@ namespace XrEngine.Lighting
         public float Factor;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxPointLight
     {
         public Vector3 Position;
@@ -73,18 +73,9 @@ namespace XrEngine.Lighting
         private T _element0;
     }
 
-    [InlineArray(VoxelLightConst.MaxBounceCount)]
-    public struct VoxelLightEnergySlots
-    {
-        private VoxelLightEnergy _element0;
-    }
 
 
-
-
-
-
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelGridDesc
     {
         public Vector3 Origin;
@@ -92,7 +83,7 @@ namespace XrEngine.Lighting
         public Vector3I Size;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelizeMeshParams
     {
         public int ScanSubdiv;
@@ -128,7 +119,7 @@ namespace XrEngine.Lighting
         PosZ = 5
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelFaceData
     {
         public Vector2 UV;
@@ -143,7 +134,7 @@ namespace XrEngine.Lighting
     }
 
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelData
     {
         public VoxelStatus Status;
@@ -152,14 +143,14 @@ namespace XrEngine.Lighting
         public FaceArray<VoxelFaceData> Faces;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct MeshVoxelGridInfo
     {
         public Vector3I Origin;
         public Vector3I Size;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct MeshVoxelGridView
     {
         public MeshVoxelGridInfo Info;
@@ -167,7 +158,7 @@ namespace XrEngine.Lighting
         public int VoxelCount;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelMeshResolvedFace
     {
         public int VoxelIndex;
@@ -180,7 +171,7 @@ namespace XrEngine.Lighting
 
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightBakeParams
     {
 
@@ -225,7 +216,7 @@ namespace XrEngine.Lighting
     }
 
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightEnergy
     {
         public Vector3 Energy;
@@ -235,23 +226,23 @@ namespace XrEngine.Lighting
         public Vector3 DirectionB;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightFace
     {
-        public VoxelLightEnergySlots Incoming;
-        public VoxelLightEnergySlots Outgoing;
+        public VoxelLightEnergy Incoming;
+        public VoxelLightEnergy Outgoing;
 
         public short InVisitCount;
         public short OutVisitCount;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightData
     {
         public FaceArray<VoxelLightFace> Faces;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightCell
     {
         public int Index;
@@ -279,15 +270,18 @@ namespace XrEngine.Lighting
         public int CellCapacity;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightRay
     {
         public Vector3 Position;
         public Vector3 Direction;
         public Vector3 Energy;
+
+        public float OriginTotalDistance;
+        public LightFalloff Falloff;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelRayDebugState
     {
         public Vector3 Position;

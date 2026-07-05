@@ -1,14 +1,14 @@
 #pragma once
 
-
-
 #define MAX_BOUNCES 4
 #define VOXEL_LIGHT_FACE_COUNT 6
+
 
 enum class VoxelLightMergeMode
 {
     Add,
-    MaxSample
+    MaxSample,
+    AddPreserveDir
 };
 
 enum VoxelLightFaceIndex : int32_t
@@ -255,7 +255,6 @@ private:
         int32_t LastAffectedFace;
 
         int32_t BounceCount;
-        int32_t EnterFace;
         int32_t OriginStep;
 
         bool IsAlive;
@@ -295,7 +294,9 @@ public:
     void ClearContribution();
 
     const VoxelLightContribution& Contribution() const { return _local.Contribution; }
-    const std::vector<VoxelLightRay>& NextRays() const { return _nextRays; }
+    const RayState& Ray() const { return _ray; }
+
+    std::vector<VoxelLightRay>& NextRays() { return _nextRays; }
 
 private:
     VoxelLightBaker* _baker;
@@ -311,7 +312,7 @@ private:
         const VoxelLightRay& ray,
         int32_t generation);
 
-    bool MoveToNextVoxel(int32_t& exitFace);
+    bool MoveToNextVoxel();
 
 };
 

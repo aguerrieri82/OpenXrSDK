@@ -362,17 +362,25 @@ namespace {
 		const VoxelLightEnergy& source,
 		VoxelLightMergeMode mode = VoxelLightMergeMode::Add)
 	{
-		if (mode == VoxelLightMergeMode::Add)
-		{
+		if (mode == VoxelLightMergeMode::Add) {
+
 			target.Energy = Add(target.Energy, source.Energy);
+			
 			target.DirectionR = Add(target.DirectionR, source.DirectionR);
 			target.DirectionG = Add(target.DirectionG, source.DirectionG);
 			target.DirectionB = Add(target.DirectionB, source.DirectionB);
-			return;
+		}
+		else if (mode == VoxelLightMergeMode::AddPreserveDir)
+		{
+			target.Energy = Add(target.Energy, source.Energy);
+		}
+		else 
+		{
+			if (EnergyScore(source.Energy) > EnergyScore(target.Energy))
+				target = source;
 		}
 
-		if (EnergyScore(source.Energy) > EnergyScore(target.Energy))
-			target = source;
+
 	}
 
 	void MergeFace(
@@ -387,6 +395,7 @@ namespace {
 		target.OutVisitCount = std::max(target.OutVisitCount, source.OutVisitCount);
 	}
 
+	/*
 	int32_t BucketFacesFromDirection(
 		const Vec3& dir,
 		float threshold,
@@ -460,7 +469,8 @@ namespace {
 				data.Faces[dominantFace].InVisitCount++;
 		}
 	}
-
+	*/
+	
 	void MergeVoxelLightData(
 		VoxelLightData& target,
 		const VoxelLightData& source,
@@ -519,13 +529,15 @@ namespace {
 
 			Vec3 normal = faceData.Normal;
 
+			/*
 			if (faceData.Side == VoxelTriangleSide::Back)
 				normal = Mul(normal, -1.0f);
-
+		
 			normal = Normalize(normal);
 
 			if (Dot(normal, normal) <= Epsilon)
 				normal = FaceNormal(face);
+			*/
 
 			float score = Dot(Mul(rayDirection, -1.0f), normal);
 
@@ -946,7 +958,6 @@ bool VoxelRayMarcher::CreateRay(const VoxelLightRay& ray, int32_t generation)
 	_ray.LastHitVoxel = -1;
 	_ray.LastAffectedVoxel = -1;
 	_ray.LastAffectedFace = -1;
-	_ray.EnterFace = -1;
 
 	_ray.BounceCount = generation;
 
@@ -969,21 +980,24 @@ bool VoxelRayMarcher::CreateRay(const VoxelLightRay& ray, int32_t generation)
 }
 
 void VoxelRayMarcher::TraceRay(const VoxelLightRay& ray, int32_t generation) {
-	if (!CreateRay(ray, generation))return;
 
-	while (Step())
-	{
-	}
+	if (!CreateRay(ray, generation))
+		return;
 
+	while (Step()) { }
 }
 
 void VoxelRayMarcher::GetDebugState(
 	VoxelRayDebugState& state) const
 {
+	float falloff = LightFalloffAtDistance(
+		_ray.Falloff,
+		_ray.TotalDistance);
+
 	state.Origin = _ray.Origin;
 	state.Position = Add(_ray.Origin, Mul(_ray.Direction, _ray.Distance));
 	state.Direction = _ray.Direction;
-	state.Energy = _ray.Energy;
+	state.Energy = Mul(_ray.Energy, falloff);
 	state.Distance = _ray.Distance;
 	state.OriginTotalDistance = _ray.OriginTotalDistance;
 	state.TotalDistance = _ray.TotalDistance;
@@ -1019,9 +1033,8 @@ void VoxelRayMarcher::GetDebugState(
 }
 
 
-bool VoxelRayMarcher::MoveToNextVoxel(int32_t& exitFace)
+bool VoxelRayMarcher::MoveToNextVoxel()
 {
-	exitFace = -1;
 
 	int32_t oldX = _ray.X;
 	int32_t oldY = _ray.Y;
@@ -1029,22 +1042,6 @@ bool VoxelRayMarcher::MoveToNextVoxel(int32_t& exitFace)
 	int32_t oldIndex = VoxelIndex(_baker->_grid, oldX, oldY, oldZ);
 
 	Vec3 rayPosition = Add(_ray.Origin, Mul(_ray.Direction, _ray.Distance));
-
-	float exitT;
-
-	if (!NextVoxelBoundary(
-		_baker->_grid,
-		rayPosition,
-		_ray.Direction,
-		oldX,
-		oldY,
-		oldZ,
-		exitT,
-		exitFace))
-	{
-		_ray.IsAlive = false;
-		return false;
-	}
 
 	float voxelStep = _baker->_grid.VoxelSize * 0.5f + Epsilon;
 
@@ -1062,7 +1059,7 @@ bool VoxelRayMarcher::MoveToNextVoxel(int32_t& exitFace)
 			_ray.Distance = nextDistance;
 			_ray.TotalDistance = _ray.OriginTotalDistance + _ray.Distance;
 			_ray.IsAlive = false;
-			return true;
+			return false;
 		}
 
 		int32_t nextIndex = VoxelIndex(_baker->_grid, nextX, nextY, nextZ);
@@ -1079,11 +1076,11 @@ bool VoxelRayMarcher::MoveToNextVoxel(int32_t& exitFace)
 		_ray.Position = center;
 		_ray.Distance = Length(Sub(center, _ray.Origin));
 		_ray.TotalDistance = _ray.OriginTotalDistance + _ray.Distance;
+		_ray.OriginStep++;
 
 		_ray.X = nextX;
 		_ray.Y = nextY;
 		_ray.Z = nextZ;
-		_ray.EnterFace = exitFace ^ 1;
 
 		return true;
 	}
@@ -1102,6 +1099,14 @@ bool VoxelRayMarcher::Step()
 		_ray.TotalDistance);
 
 	Vec3 stepEnergy = Mul(_ray.Energy, falloff);
+
+	if (!HasEnergy(stepEnergy, _baker->_params.EnergyThreshold))
+		_ray.IsAlive = false;
+	else
+		_ray.IsAlive = IsInsideGrid(_baker->_grid, _ray.X, _ray.Y, _ray.Z);
+
+	if (!_ray.IsAlive)
+		return false;
 
 	int32_t index = VoxelIndex(_baker->_grid, _ray.X, _ray.Y, _ray.Z);
 
@@ -1124,8 +1129,8 @@ bool VoxelRayMarcher::Step()
 
 	const VoxelData& voxelData = _baker->_scene[index];
 
-	int32_t outgoingFace = IncomingBucketFaceFromDirection(Mul(_ray.Direction, -1.0f));
-	int32_t incomingFace = outgoingFace ^ 1;
+	int32_t incomingFace = IncomingBucketFaceFromDirection(_ray.Direction);
+    int32_t outgoingFace = incomingFace ^ 1;
 
 	int32_t hitFace;
 
@@ -1140,17 +1145,17 @@ bool VoxelRayMarcher::Step()
 
 	const VoxelFaceData& faceData = voxelData.Faces[hitFace];
 
+#ifdef _DEBUG
+
 	if (_ray.BounceCount > 0 || !_baker->_params.InitiateLightField)
 	{
-		MergeBucketedEnergy(
-			data,
-			Mul(_ray.Direction, -1.0f),
-			stepEnergy,
-			Mul(_ray.Direction, -1.0f),
-			false,
-			_baker->_params.BucketSplitThreshold,
+		MergeEnergy(
+			data.Faces[incomingFace].Incoming,
+			MakeEnergy(stepEnergy, _ray.Direction),
 			_baker->_params.MergeMode);
+
 	}
+#endif
 
 	if (hasHit)
 	{
@@ -1163,16 +1168,18 @@ bool VoxelRayMarcher::Step()
 		{
 			Vec3 normal = faceData.Normal;
 
+			/*
 			if (faceData.Side == VoxelTriangleSide::Back)
 				normal = Mul(normal, -1.0f);
-
+		
 			if (Dot(normal, normal) <= Epsilon)
 				normal = FaceNormal(hitFace);
-
+		
 			if (Dot(_ray.Direction, normal) > 0.0f)
 				normal = Mul(normal, -1.0f);
 
 			normal = Normalize(normal);
+			*/
 
 			Vec3 reflectDir = Normalize(Reflect(_ray.Direction, normal));
 
@@ -1201,7 +1208,7 @@ bool VoxelRayMarcher::Step()
 				bounceOrigin = _ray.Position;
 			}
 			else
-			{
+			{/*
 				bounceOrigin = VoxelFaceRayIntersection(
 					_baker->_grid,
 					_ray.X,
@@ -1210,6 +1217,8 @@ bool VoxelRayMarcher::Step()
 					hitFace,
 					_ray.Origin,
 					_ray.Direction);
+					*/
+				bounceOrigin = _ray.Position;
 
 				_ray.Position = bounceOrigin;
 			}
@@ -1282,56 +1291,16 @@ bool VoxelRayMarcher::Step()
 				}
 			}
 		}
-
 		_ray.IsAlive = false;
 	}
+	else {
 
-	Vec3 currentEnergy = stepEnergy;
+		MergeEnergy(
+			data.Faces[outgoingFace].Outgoing,
+			MakeEnergy(stepEnergy, _ray.Direction),
+			_baker->_params.MergeMode);
 
-	if (_ray.IsAlive)
-	{
-		int32_t exitFace;
-
-		if (!MoveToNextVoxel(exitFace))
-		{
-			_ray.IsAlive = false;
-		}
-		else
-		{
-			_ray.OriginStep++;
-
-			float exitFalloff = LightFalloffAtDistance(
-				_ray.Falloff,
-				_ray.TotalDistance);
-
-			Vec3 exitEnergy = Mul(_ray.Energy, exitFalloff);
-
-			_ray.LastAffectedFace = exitFace;
-
-			if (_ray.BounceCount > 0 || !_baker->_params.InitiateLightField)
-			{
-				MergeBucketedEnergy(
-					data,
-					Mul(_ray.Direction, -1.0f),
-					exitEnergy,
-					_ray.Direction,
-					true,
-					_baker->_params.BucketSplitThreshold,
-					_baker->_params.MergeMode);
-			}
-
-			currentEnergy = exitEnergy;
-		}
-	}
-
-	_ray.LastAffectedVoxel = index;
-
-	if (_ray.IsAlive)
-	{
-		if (!HasEnergy(currentEnergy, _baker->_params.EnergyThreshold))
-			_ray.IsAlive = false;
-		else
-			_ray.IsAlive = IsInsideGrid(_baker->_grid, _ray.X, _ray.Y, _ray.Z);
+		MoveToNextVoxel();
 	}
 
 	return _ray.IsAlive;
@@ -1504,7 +1473,7 @@ void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 			contribution,
 			_currentMerge,
 			generationContribution,
-			VoxelLightMergeMode::Add);
+			VoxelLightMergeMode::AddPreserveDir);
 
 		_rays.swap(_nextRays);
 		_nextRays.clear();

@@ -426,7 +426,7 @@ namespace XrEngine.Lighting
                 BlurStrength = BlurStrength,
                 BlurPasses = BlurPasses,
 
-                FillEmptyDir = false,
+                FillEmptyDir = true,
                 MergeMode = MergeMode,
                 NormalizeDir = false,
 
@@ -450,7 +450,14 @@ namespace XrEngine.Lighting
             {
                 Position = RayOrigin,
                 Direction = RayDir.Normalize(),
-                Energy = Vector3.One * RayEnergy
+                Energy = Vector3.One * RayEnergy,
+                OriginTotalDistance = 0,
+                Falloff = new LightFalloff
+                {
+                    Type = LightFalloffType.Linear,
+                    Factor = 1f,
+                    Range = LightRange
+                }
             });
 
             Log.Info(this, "Backing point light");
@@ -462,7 +469,7 @@ namespace XrEngine.Lighting
                 Position = RayOrigin,
                 Falloff = new LightFalloff
                 {
-                    Type = LightFalloffType.Quadratic,
+                    Type = LightFalloffType.Linear,
                     Factor = 1f,
                     Range = LightRange
                 }
@@ -514,7 +521,7 @@ namespace XrEngine.Lighting
 
             var state = _ray.GetState();
 
-            Log.Debug(this, "{0} / {1}: {2}", state.Cell, state.LastAffectedVoxel, state.LastVoxel.Status);
+            Log.Debug(this, "{0} / {1}  E: {2}", state.Cell, state.LastAffectedVoxel,  state.Energy.Length());
 
             _curVoxel.WorldPosition = new Vector3(
                 _voxelizer.GridDesc.Origin.X + (state.Cell.X + 0.5f) * _voxelizer.GridDesc.VoxelSize,
