@@ -33,6 +33,40 @@ namespace XrEditor
             Binding = binding;
         }
 
+        public override void SetAttributes(IEnumerable<Attribute> attributes)
+        {
+            var range = attributes.OfType<RangeAttribute>().FirstOrDefault();
+
+            var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
+
+            var result = new FloatEditor();
+            if (valueType == ValueType.Radiant)
+                Scale = RadDegreeScale.Instance;
+            else
+            {
+                if (range == null)
+                {
+                    Scale = new ValueScale
+                    {
+                        ScaleMin = 0,
+                        ScaleMax = 1,
+                        ScaleStep = 0.1f,
+                        ScaleSmallStep = 0.1f,
+                    };
+                }
+                else
+                {
+                    Scale = new ValueScale()
+                    {
+                        ScaleMin = range.Min,
+                        ScaleMax = range.Max,
+                        ScaleStep = range.Step,
+                        ScaleSmallStep = range.Step
+                    };
+                }
+
+            }
+        }
         public float ScaleValue
         {
             get => _scale.ValueToScale(_editValue);
@@ -78,48 +112,4 @@ namespace XrEditor
         public Func<float, string?> ScaleFormat => _scale.Format;
     }
 
-    public class FloatEditorFactory : IPropertyEditorFactory
-    {
-        public bool CanHandle(Type type)
-        {
-            return type == typeof(float);
-        }
-
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
-        {
-            var range = attributes.OfType<RangeAttribute>().FirstOrDefault();
-
-            var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
-
-            var result = new FloatEditor();
-            if (valueType == ValueType.Radiant)
-                result.Scale = RadDegreeScale.Instance;
-            else
-            {
-                if (range == null)
-                {
-                    result.Scale = new ValueScale
-                    {
-                        ScaleMin = 0,
-                        ScaleMax = 1,
-                        ScaleStep = 0.1f,
-                        ScaleSmallStep = 0.1f,
-                    };
-                }
-                else
-                {
-                    result.Scale = new ValueScale()
-                    {
-                        ScaleMin = range.Min,
-                        ScaleMax = range.Max,
-                        ScaleStep = range.Step,
-                        ScaleSmallStep = range.Step
-                    };
-                }
-       
-            }
-
-            return result;
-        }
-    }
 }

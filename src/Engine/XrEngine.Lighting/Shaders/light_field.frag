@@ -8,6 +8,7 @@ uniform highp sampler3D uLightField[12];
 
 uniform float uMaxIntensity;
 
+
 const int MODE_COLOR = 0;
 const int MODE_DIRECTION = 1;
 
@@ -26,8 +27,7 @@ vec3 DirectionToColor(vec3 dir)
 	float len = length(dir);
 
 	if (len <= 0.00001)
-		return vec3(0.5);
-
+		return vec3(0.0);
 	return normalize(dir) * 0.5 + 0.5;
 }
 
@@ -48,6 +48,7 @@ void main()
 
 	if (MODE == MODE_DIRECTION)
 	{
+
 		outColor.rgb = DirectionToColor(dir);
 		outColor.a = 1.0;
 

@@ -156,7 +156,7 @@ namespace XrEngine.Lighting
 
         public IList<Texture3D> CreateTextures()
         {
-            var field = GetLightField();
+            var field = GetLightField(false);
 
             var result = new List<Texture3D>();
             
@@ -198,11 +198,14 @@ namespace XrEngine.Lighting
             return result;
         }
 
-        public VoxelLightFieldView GetLightField()
+        public VoxelLightFieldView GetLightField(bool update)
         {
-            var cellCount = EngineNativeLib.VoxelLightBakerGetLightField(
+            if (_view.CellCount == 0 || update)
+            {
+                EngineNativeLib.VoxelLightBakerGetLightField(
                 _handle,
                 ref _view);
+            }
 
             return _view;
         }

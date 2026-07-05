@@ -84,8 +84,10 @@ namespace XrEngine.Lighting
         [Notify(ChangeType.Render)]
         public partial bool UseSlice { get; set; }
 
+        [Range(0, 100, 1)]
         public Vector3 SliceMax { get; set; }
 
+        [Range(0, 100, 1)]
         public Vector3 SliceMin { get; set; }
 
         [Range(0, 1, 0.01f)]

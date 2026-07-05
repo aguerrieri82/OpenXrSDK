@@ -1,9 +1,10 @@
-﻿using UI.Binding;
+﻿using Silk.NET.OpenGL;
+using UI.Binding;
 using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties where T : EngineObject
+    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager where T : EngineObject
     {
         protected bool _autoGenProps;
         protected bool _keepChangeListener;
@@ -47,6 +48,7 @@ namespace XrEditor.Nodes
         {
 
         }
+
 
         bool IEditorProperties.AutoGenerate
         {

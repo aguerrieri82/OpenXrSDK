@@ -526,7 +526,7 @@ void main()
 	color.a = 1.0;
 
 #elif DEBUG == DEBUG_FIELD_RAD
-	color.rgb =	evaluateLightFieldRadiance(frag.position, frag.normal) * uMaterial.roughness;
+	color.rgb =	evaluateLightFieldRadiance(frag.position, frag.normal) * uMaterial.occlusionStrength;
 	color.a = 1.0;
 #endif
 }

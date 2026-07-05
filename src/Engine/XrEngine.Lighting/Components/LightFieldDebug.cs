@@ -1,6 +1,8 @@
 ﻿using CanvasUI;
+using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
@@ -10,6 +12,7 @@ using XrMath;
 
 namespace XrEngine.Lighting
 {
+    [StateManager(StateManagerMode.Auto)]
     public class LightFieldDebug : BaseComponent<TriangleMesh>, ILightFieldProvider
     {
         MeshVoxelizer _voxelizer;
@@ -31,6 +34,7 @@ namespace XrEngine.Lighting
         TriangleMesh[]? _walls;
         VoxelGridDesc _gridDesc;
         private List<GpuVoxelFaceData> _faces;
+        private VoxelLightFieldView _field;
 
         public LightFieldDebug(VoxelGridDesc gridDesc)
         {
@@ -91,18 +95,29 @@ namespace XrEngine.Lighting
             BlurPasses = 3;
             BlurStrength = 1f;
 
-            BucketSplitThreshold = 0.04f;
-
-            EnableMultiBounceRays = false;
             BounceRayCount = 3;
             BounceRayDecay = 0.8f;
             BounceCenterWeight = 0.5f;
             BounceNormalWeight = 0.5f;
-            BounceConeMaxAngle = 70.0f;
+            BounceConeMaxAngle = MathF.PI * (70f / 180f);
 
             CreateWalls();
 
             Context.Implement<ILightFieldProvider>(this);
+        }
+
+
+        public override void GetState(IStateContainer container)
+        {
+            container.WriteObject(this, GetType());
+            base.GetState(container);
+        }
+
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            container.ReadObject(this, GetType());
+            base.SetStateWork(container);
         }
 
         private void CompareSceneWithMesh(VoxelData[] scene)
@@ -269,6 +284,8 @@ namespace XrEngine.Lighting
             {
                 Color = Color.White,
                 UseLightField = true,
+                Metalness= 0,
+                Roughness = 0.8f
             };
 
             _walls =
@@ -364,8 +381,6 @@ namespace XrEngine.Lighting
 
             Log.Info(this, "Begin");
 
-
-
             _gpuVoxelizer = new GpuSceneVoxelizer(OpenGLRender.Current!.GL, 32);
 
             XrEngine.EngineNativeLib.RdcStartFrameCapture();
@@ -406,19 +421,12 @@ namespace XrEngine.Lighting
               "#ff0000", 3);
         }
 
-        [Action]
-        public void Backe()
+        protected void UpdateParams()
         {
-            Init();
-
-            _backer.ClearLightField();
-            _backer.ClearScene();
-            _backer.SetGrid(_voxelizer.GridDesc);
 
             _backer.SetParams(new VoxelLightBakeParams
             {
                 EnergyThreshold = EnergyThreshold,
-                MaxBounceCount = MaxBounceCount,
                 ThreadCount = ThreadCount,
                 RaySubsample = RaySubsample,
                 SnapBounceDirection = SnapBounceDirection,
@@ -430,15 +438,39 @@ namespace XrEngine.Lighting
                 MergeMode = MergeMode,
                 NormalizeDir = false,
 
-                BucketSplitThreshold = BucketSplitThreshold,
+                Bounce = new BounceParams
+                {
+                    MaxCount = MaxBounceCount,
+                    RayCount = BounceRayCount,
+                    RayDecay = BounceRayDecay,
+                    CenterWeight = BounceCenterWeight,
+                    NormalWeight = BounceNormalWeight,
+                    ConeMaxAngle = BounceConeMaxAngle
+                },
 
-                EnableMultiBounceRays = EnableMultiBounceRays,
-                BounceRayCount = BounceRayCount,
-                BounceRayDecay = BounceRayDecay,
-                BounceCenterWeight = BounceCenterWeight,
-                BounceNormalWeight = BounceNormalWeight,
-                BounceConeMaxAngle = BounceConeMaxAngle,
+                SmoothDir = new SmoothDirParams
+                {
+                    Iterations= 32,
+                    MaxSlope = 1f,
+                    Relaxation = 0.75f,
+                    Smoothness = 0.05f
+                }
             });
+        }
+
+        [Action]
+        public void Backe()
+        {
+            if (_faces == null)
+                return;
+
+            Init();
+
+            _backer.ClearLightField();
+            _backer.ClearScene();
+            _backer.SetGrid(_voxelizer.GridDesc);
+
+            UpdateParams();
 
             if (_faces.Count > 0)
                 _backer.AddMesh(_faces.ToArray());
@@ -479,24 +511,88 @@ namespace XrEngine.Lighting
 
             _backer.AccumulateLight(lightMap);
 
-            Log.Info(this, "Extarct light field");
+            Log.Debug(this, "Accumulate end");
 
-            var lightField = _backer.GetLightField();
 
-            _fieldView.InstanceCount = lightField.Size.Area();
+            Extract();
+        }
+
+        unsafe void AdjustField()
+        {
+
+            var count2 = 0;
+            var count3 = 0;
+            for (var i = 0; i < _field.CellCount; i++)
+            {
+                var count = 0;
+                var sum = Vector3.Zero;
+                for (var j = 0; j < 6; j++)
+                {
+                    var span = new Span<Vector3>((Vector*)_field.Color[j], _field.CellCount);
+                    var color = span[i];
+                    if (color.Length() > 0)
+                        count++;
+                    sum += color;
+                }
+
+                if (count == 2)
+                    count2++;
+                
+                if (count == 3)
+                    count3++;
+
+                if (count > 1)
+                {
+                    var energy = sum / (float)(count * count);
+
+                    for (var j = 0; j < 6; j++)
+                    {
+                        var span = new Span<Vector3>((Vector*)_field.Color[j], _field.CellCount);
+                        var color = span[i];
+
+                        if (color.Length() > 0)
+                            span[i] = energy;
+                    }
+                }
+            }
+
+            Log.Warn(this, "2: {0} - 3:{1} - T: {2}", count2, count3, _field.CellCount);
+        }
+
+
+
+        [Action]
+        public void Extract()
+        {
+            Log.Info(this, "Extract light field");
+
+            UpdateParams();
+
+            _field = _backer.GetLightField(true);
+
+            //AdjustField();
+
+            _fieldView.InstanceCount = _field.Size.Area();
+
+            if (_fieldMat.Textures != null)
+            {
+                foreach (var tex in _fieldMat.Textures)
+                    tex.Dispose();
+            }
+
+            var textures = _backer.CreateTextures();
 
             _fieldMat.VoxelSize = _backer.GridDesc.VoxelSize;
             _fieldMat.Origin = _backer.GridDesc.Origin;
             _fieldMat.Size = _backer.GridDesc.Size;
-            _fieldMat.Textures = _backer.CreateTextures();
+            _fieldMat.Textures = textures;
             _fieldMat.Invalidate();
-
 
             _finalMat.IsEnabled = false;
             _finalMat.VoxelSize = _backer.GridDesc.VoxelSize;
             _finalMat.Origin = _backer.GridDesc.Origin;
             _finalMat.Size = _backer.GridDesc.Size;
-            _finalMat.Textures = _backer.CreateTextures();
+            _finalMat.Textures = textures;
             _finalMat.Invalidate();
 
             PbrV2Material.SHADER.UseLightField = true;
@@ -542,40 +638,63 @@ namespace XrEngine.Lighting
             return _data;
         }
 
+
+        [Category("Trace")]
         public Vector3 RayOrigin { get; set; }
 
+        [Category("Trace")]
         public Vector3 RayDir { get; set; }
 
+        [Category("Trace")]
         public float RayEnergy { get; set; }
 
+        [Category("Trace")]
         public float EnergyThreshold { get; set; }
 
-        public int MaxBounceCount { get; set; }
-
-        public int ThreadCount { get; set; }
-
+        [Category("Trace")]
         public int RaySubsample { get; set; }
 
-        public bool SnapBounceDirection { get; set; }
-
-        public bool InitiateLightField { get; set; }
-
+        [Category("Trace")]
         public float LightRange { get; set; }
-        
-        public float BlurStrength { get; set; }
 
-        public int BlurPasses { get; set; }
-
-        public float BucketSplitThreshold { get; set; }
-
+        [Category("Trace")]
         public VoxelLightMergeMode MergeMode { get; set; }
 
-        public bool EnableMultiBounceRays { get; set; }
 
+        [Category("Misc")]
+        public int ThreadCount { get; set; }
+
+        [Category("Misc")]
+        public bool SnapBounceDirection { get; set; }
+
+        [Category("Misc")]
+        public bool InitiateLightField { get; set; }
+
+      
+        [Category("Blur")]
+        public float BlurStrength { get; set; }
+
+        [Category("Blur")]
+        public int BlurPasses { get; set; }
+
+
+        [Category("Bounce")]
+        public int MaxBounceCount { get; set; }
+
+        [Category("Bounce")]
         public int BounceRayCount { get; set; }
+
+        [Category("Bounce")]
         public float BounceRayDecay { get; set; }
+
+        [Category("Bounce")]
         public float BounceCenterWeight { get; set; }
+
+        [Category("Bounce")]
         public float BounceNormalWeight { get; set; }
+
+        [Category("Bounce")]
+        [ValueType(ValueType.Radiant)]
         public float BounceConeMaxAngle { get; set; }
     }
 }

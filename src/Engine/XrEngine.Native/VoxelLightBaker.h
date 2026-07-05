@@ -3,6 +3,11 @@
 #define MAX_BOUNCES 4
 #define VOXEL_LIGHT_FACE_COUNT 6
 
+enum class DirectionCollapseMode 
+{
+    Add,
+    Luminance
+};
 
 enum class VoxelLightMergeMode
 {
@@ -35,12 +40,27 @@ struct VoxelLightFieldView
     int32_t CellCapacity;
 };
 
+struct SmoothDirParams {
+    int32_t Iterations;
+    float Smoothness;
+    float Relaxation;
+    float MaxSlope;
+};
+
+struct BounceParams {
+
+    int32_t MaxCount;
+    int32_t RayCount;
+    float RayDecay;
+    float CenterWeight;
+    float NormalWeight;
+    float ConeMaxAngle;
+};
+
 struct VoxelLightBakeParams
 {
-
     float EnergyThreshold;
 
-    int32_t MaxBounceCount;
     int32_t ThreadCount;
     int32_t RaySubsample;
 
@@ -54,14 +74,11 @@ struct VoxelLightBakeParams
     int32_t BlurPasses;
     float BlurStrength;
 
-    float BucketSplitThreshold;
+    DirectionCollapseMode DirCollapseMode;
 
-    bool EnableMultiBounceRays;
-    int32_t BounceRayCount;
-    float BounceRayDecay;
-    float BounceCenterWeight;
-    float BounceNormalWeight;
-    float BounceConeMaxAngle;
+    BounceParams Bounce;
+
+    SmoothDirParams SmoothDir;
 
     VoxelLightBakeParams();
 };
@@ -370,6 +387,9 @@ public:
 
     void AccumulateLight(
         const VoxelLightContribution& contribution);
+
+    void ReconstructDirectionSurfaceForFace(
+        int32_t face);
 
     VoxelLightField& GetLightField();
 

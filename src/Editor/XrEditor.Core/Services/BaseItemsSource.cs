@@ -1,4 +1,4 @@
-﻿namespace XrEditor
+﻿namespace XrEditor.Services
 {
     public abstract class BaseItemsSource<TItem, TValue> : IItemsSource
     {

@@ -10,6 +10,8 @@ namespace XrEditor
 
         IProperty? Binding { get; set; }
 
+        void SetAttributes(IEnumerable<Attribute> attributes);
+
         void NotifyEditValueChanged();
 
         void NotifyBindValueChanged();

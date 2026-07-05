@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Numerics;
 using UI.Binding;
 
 namespace XrEditor
@@ -64,6 +65,12 @@ namespace XrEditor
             };
         }
 
+        public override void SetAttributes(IEnumerable<Attribute> attributes)
+        {
+            X.SetAttributes(attributes);
+            Y.SetAttributes(attributes);
+            Z.SetAttributes(attributes);
+        }
 
         protected override void OnEditValueChanged(Vector3 newValue)
         {

@@ -66,6 +66,8 @@ namespace XrEditor
                 Node = node
             };
 
+            result.RefreshPresets();
+
             if (node is IItemView view)
             {
                 if (node.Value is IComponent comp)

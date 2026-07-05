@@ -182,6 +182,7 @@ namespace {
 		return std::clamp((c - outerCos) / (innerCos - outerCos), 0.0f, 1.0f);
 	}
 
+
 	Vec3 DirectionalLightEnergy(const DirectionalLight& light)
 	{
 		return Mul(light.Color, light.Intensity);
@@ -357,6 +358,61 @@ namespace {
 		return energy.X + energy.Y + energy.Z;
 	}
 
+
+	void AdjustCompatibleFaceEnergy(VoxelLightContribution& contribution)
+	{
+		for (VoxelLightCell& cell : contribution.Cells)
+		{
+			int32_t count = 0;
+
+			Vec3 sumEnergy = Zero3();
+			Vec3 sumDirectionR = Zero3();
+			Vec3 sumDirectionG = Zero3();
+			Vec3 sumDirectionB = Zero3();
+
+			bool lit[VOXEL_LIGHT_FACE_COUNT]{};
+
+			for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
+			{
+				VoxelLightEnergy& energy = cell.Data.Faces[face].Outgoing;
+
+				if (EnergyScore(energy.Energy) <= Epsilon)
+					continue;
+
+				lit[face] = true;
+				++count;
+
+				sumEnergy = Add(sumEnergy, energy.Energy);
+				sumDirectionR = Add(sumDirectionR, energy.DirectionR);
+				sumDirectionG = Add(sumDirectionG, energy.DirectionG);
+				sumDirectionB = Add(sumDirectionB, energy.DirectionB);
+			}
+
+			if (count <= 1)
+				continue;
+
+			float scale = 1.0f / float(count * count);
+
+			Vec3 outEnergy = Mul(sumEnergy, scale);
+			Vec3 outDirectionR = Mul(sumDirectionR, scale);
+			Vec3 outDirectionG = Mul(sumDirectionG, scale);
+			Vec3 outDirectionB = Mul(sumDirectionB, scale);
+
+			for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
+			{
+				if (!lit[face])
+					continue;
+
+				VoxelLightEnergy& energy = cell.Data.Faces[face].Outgoing;
+
+				energy.Energy = outEnergy;
+				energy.DirectionR = outDirectionR;
+				energy.DirectionG = outDirectionG;
+				energy.DirectionB = outDirectionB;
+			}
+		}
+	}
+
 	void MergeEnergy(
 		VoxelLightEnergy& target,
 		const VoxelLightEnergy& source,
@@ -373,6 +429,16 @@ namespace {
 		else if (mode == VoxelLightMergeMode::AddPreserveDir)
 		{
 			target.Energy = Add(target.Energy, source.Energy);
+			
+			if (Dot(target.DirectionR, target.DirectionR) < Epsilon)
+				target.DirectionR = source.DirectionR;
+			
+			if (Dot(target.DirectionG, target.DirectionG) < Epsilon)
+				target.DirectionG = source.DirectionG;
+
+			if (Dot(target.DirectionB, target.DirectionB) < Epsilon)
+				target.DirectionB = source.DirectionB;
+
 		}
 		else 
 		{
@@ -481,7 +547,7 @@ namespace {
 	}
 
 
-
+	/*
 	Vec3 VoxelFaceRayIntersection(
 		const VoxelGridDesc& grid,
 		int32_t x,
@@ -506,6 +572,7 @@ namespace {
 
 		return Add(origin, Mul(direction, t));
 	}
+	*/
 
 	bool SelectVoxelHitFace(
 		const VoxelData& voxelData,
@@ -688,6 +755,84 @@ namespace {
 		return snapped;
 	}
 
+	bool RayVoxelIntersectionPoint(
+		const Vec3& voxelCenter,
+		float voxelSize,
+		const Vec3& origin,
+		const Vec3& direction,
+		Vec3& point)
+	{
+		float half = voxelSize * 0.5f;
+
+		float minAxis[3] =
+		{
+			voxelCenter.X - half,
+			voxelCenter.Y - half,
+			voxelCenter.Z - half
+		};
+
+		float maxAxis[3] =
+		{
+			voxelCenter.X + half,
+			voxelCenter.Y + half,
+			voxelCenter.Z + half
+		};
+
+		float originAxis[3] =
+		{
+			origin.X,
+			origin.Y,
+			origin.Z
+		};
+
+		float dirAxis[3] =
+		{
+			direction.X,
+			direction.Y,
+			direction.Z
+		};
+
+		float tEnter = -FLT_MAX;
+		float tExit = FLT_MAX;
+
+		for (int32_t axis = 0; axis < 3; ++axis)
+		{
+			float o = originAxis[axis];
+			float d = dirAxis[axis];
+
+			if (std::fabs(d) <= Epsilon)
+			{
+				if (o < minAxis[axis] || o > maxAxis[axis])
+					return false;
+
+				continue;
+			}
+
+			float inv = 1.0f / d;
+
+			float t0 = (minAxis[axis] - o) * inv;
+			float t1 = (maxAxis[axis] - o) * inv;
+
+			if (t0 > t1)
+				std::swap(t0, t1);
+
+			tEnter = std::max(tEnter, t0);
+			tExit = std::min(tExit, t1);
+
+			if (tEnter > tExit)
+				return false;
+		}
+
+		float t = tEnter >= 0.0f ? tEnter : tExit;
+
+		if (t < 0.0f)
+			return false;
+
+		point = Add(origin, Mul(direction, t));
+		return true;
+	}
+
+	/*
 	bool NextVoxelBoundary(
 		const VoxelGridDesc& grid,
 		const Vec3& p,
@@ -776,6 +921,7 @@ namespace {
 
 		return face >= 0;
 	}
+	*/
 
 	void StepVoxelByFace(int32_t face, int32_t& x, int32_t& y, int32_t& z)
 	{
@@ -826,11 +972,11 @@ namespace {
 		int32_t generation,
 		const VoxelLightBakeParams& params)
 	{
-		if (!params.EnableMultiBounceRays)
+		if (params.Bounce.RayCount <= 1)
 			return 1;
 
-		int32_t baseCount = std::max(1, params.BounceRayCount);
-		float decay = std::clamp(params.BounceRayDecay, 0.0f, 1.0f);
+		int32_t baseCount = std::max(1, params.Bounce.RayCount);
+		float decay = std::clamp(params.Bounce.RayDecay, 0.0f, 1.0f);
 		float scaled = float(baseCount) * std::pow(decay, float(generation));
 
 		return std::max(1, int32_t(std::round(scaled)));
@@ -885,7 +1031,7 @@ namespace {
 VoxelLightBakeParams::VoxelLightBakeParams() {
 
 	EnergyThreshold = 0.0001f;
-	MaxBounceCount = 4;
+
 	ThreadCount = 0;
 	RaySubsample = 1;
 	SnapBounceDirection = false;
@@ -894,14 +1040,20 @@ VoxelLightBakeParams::VoxelLightBakeParams() {
 	FillEmptyDir = true;
 	BlurPasses = 0;
 	BlurStrength = 0.35f;
-	BucketSplitThreshold = 0.04f;
 
-	EnableMultiBounceRays = false;
-	BounceRayCount = 4;
-	BounceRayDecay = 0.5f;
-	BounceCenterWeight = 0.7f;
-	BounceNormalWeight = 0.75f;
-	BounceConeMaxAngle = 70.0f;
+	Bounce.MaxCount = 4;
+	Bounce.RayCount = 4;
+	Bounce.RayDecay = 0.5f;
+	Bounce.CenterWeight = 0.7f;
+	Bounce.NormalWeight = 0.75f;
+	Bounce.ConeMaxAngle = 70.0f;
+
+	SmoothDir.Iterations = 32;
+	SmoothDir.Smoothness = 0.05f;
+	SmoothDir.Relaxation = 0.75f;
+	SmoothDir.MaxSlope = 1.0f;
+
+	DirCollapseMode = DirectionCollapseMode::Add;
 
 	MergeMode = VoxelLightMergeMode::MaxSample;
 }
@@ -927,15 +1079,6 @@ void VoxelRayMarcher::Prepare(int32_t voxelCount)
 	_local.CellSlots.assign(voxelCount, -1);
 	_local.TouchedVoxels.clear();
 	_ray.IsAlive = true;
-}
-
-void VoxelRayMarcher::TraceRange(int32_t startRay, int32_t endRay, int32_t generation) {
-
-	ClearContribution();
-	_nextRays.clear();
-
-	for (int32_t i = startRay; i < endRay; ++i)
-		TraceRay(_baker->_rays[i], generation);
 }
 
 
@@ -986,6 +1129,17 @@ void VoxelRayMarcher::TraceRay(const VoxelLightRay& ray, int32_t generation) {
 
 	while (Step()) { }
 }
+
+void VoxelRayMarcher::TraceRange(int32_t startRay, int32_t endRay, int32_t generation) {
+
+	ClearContribution();
+	_nextRays.clear();
+
+	for (int32_t i = startRay; i < endRay; ++i)
+		TraceRay(_baker->_rays[i], generation);
+}
+
+
 
 void VoxelRayMarcher::GetDebugState(
 	VoxelRayDebugState& state) const
@@ -1164,7 +1318,7 @@ bool VoxelRayMarcher::Step()
 
 		int32_t nextGeneration = _ray.BounceCount + 1;
 
-		if (nextGeneration < _baker->_params.MaxBounceCount)
+		if (nextGeneration < _baker->_params.Bounce.MaxCount)
 		{
 			Vec3 normal = faceData.Normal;
 
@@ -1187,7 +1341,7 @@ bool VoxelRayMarcher::Step()
 			float metallic = std::clamp(faceData.Metallic, 0.0f, 1.0f);
 
 			float normalWeight = std::clamp(
-				_baker->_params.BounceNormalWeight * (1.0f - metallic),
+				_baker->_params.Bounce.NormalWeight * (1.0f - metallic),
 				0.0f,
 				1.0f);
 
@@ -1218,7 +1372,9 @@ bool VoxelRayMarcher::Step()
 					_ray.Origin,
 					_ray.Direction);
 					*/
-				bounceOrigin = _ray.Position;
+
+				if (!RayVoxelIntersectionPoint(_ray.Position, _baker->_grid.VoxelSize, _ray.Origin, _ray.Direction, bounceOrigin))
+					bounceOrigin = _ray.Position;
 
 				_ray.Position = bounceOrigin;
 			}
@@ -1232,12 +1388,10 @@ bool VoxelRayMarcher::Step()
 			rayCount = std::max(1, rayCount);
 
 			float centerWeight = rayCount > 1
-				? std::clamp(_baker->_params.BounceCenterWeight, 0.0f, 1.0f)
+				? std::clamp(_baker->_params.Bounce.CenterWeight, 0.0f, 1.0f)
 				: 1.0f;
 
-			float coneAngle = _baker->_params.BounceConeMaxAngle *
-				(Pi / 180.0f) *
-				roughness;
+			float coneAngle = _baker->_params.Bounce.ConeMaxAngle * roughness;
 
 			auto pushBounceRay = [&](const Vec3& direction, const Vec3& energy)
 				{
@@ -1457,7 +1611,7 @@ void VoxelLightBaker::AddGpuMeshFaces(
 
 void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 {
-	for (int32_t generation = 0; generation < _params.MaxBounceCount; ++generation)
+	for (int32_t generation = 0; generation < _params.Bounce.MaxCount; ++generation)
 	{
 		if (_rays.empty())
 			break;
@@ -1468,6 +1622,9 @@ void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 			generationContribution,
 			_nextRays,
 			generation);
+
+		if (generation == 0)
+			AdjustCompatibleFaceEnergy(generationContribution);
 
 		MergeContribution(
 			contribution,
@@ -1501,7 +1658,7 @@ void VoxelLightBaker::BakePointLight(
 	if (_params.InitiateLightField)
 		PrefillPointLightContribution(light, contribution);
 
-	if (_params.MaxBounceCount > 0)
+	if (_params.Bounce.MaxCount > 0)
 	{
 		GeneratePointLightRays(light);
 		BakeGeneratedRays(contribution);
@@ -1530,7 +1687,7 @@ void VoxelLightBaker::BakeDirectionalLight(
 	if (_params.InitiateLightField)
 		PrefillDirectionalLightContribution(light, contribution);
 
-	if (_params.MaxBounceCount > 0)
+	if (_params.Bounce.MaxCount > 0)
 	{
 		GenerateDirectionalLightRays(light);
 		BakeGeneratedRays(contribution);
@@ -1561,7 +1718,7 @@ void VoxelLightBaker::BakeSpotLight(
 	if (_params.InitiateLightField)
 		PrefillSpotLightContribution(light, contribution);
 
-	if (_params.MaxBounceCount > 0)
+	if (_params.Bounce.MaxCount > 0)
 	{
 		GenerateSpotLightRays(light);
 		BakeGeneratedRays(contribution);
@@ -2459,6 +2616,276 @@ void VoxelLightBaker::BlurLightField()
 	}
 }
 
+
+void VoxelLightBaker::ReconstructDirectionSurfaceForFace(
+	int32_t face)
+{
+	if (face < 0 || face >= VOXEL_LIGHT_FACE_COUNT)
+		return;
+
+	auto iterations = std::max(1, _params.SmoothDir.Iterations);
+	auto smoothness = std::max(0.0f, _params.SmoothDir.Smoothness);
+	auto relaxation = std::clamp(_params.SmoothDir.Relaxation, 0.0f, 1.0f);
+	auto maxSlope = std::max(0.001f, _params.SmoothDir.MaxSlope);
+
+	std::vector<Vec3>& colors = _field.Color[face];
+	std::vector<Vec3>& directions = _field.Direction[face];
+
+	Vec3 n;
+	Vec3 t;
+	Vec3 b;
+
+	int32_t width;
+	int32_t height;
+	int32_t layers;
+
+	auto indexOf = [&](int32_t u, int32_t v, int32_t layer) -> int32_t
+		{
+			switch (face)
+			{
+			case 0:
+			case 1:
+				return FieldIndex(_field, layer, v, u); // x = layer, y = v, z = u
+
+			case 2:
+			case 3:
+				return FieldIndex(_field, u, layer, v); // x = u, y = layer, z = v
+
+			default:
+				return FieldIndex(_field, u, v, layer); // x = u, y = v, z = layer
+			}
+		};
+
+	switch (face)
+	{
+	case 0:
+		n = Vec3{ -1.0f, 0.0f, 0.0f };
+		t = Vec3{ 0.0f, 0.0f, 1.0f };
+		b = Vec3{ 0.0f, 1.0f, 0.0f };
+		width = _field.SizeZ;
+		height = _field.SizeY;
+		layers = _field.SizeX;
+		break;
+
+	case 1:
+		n = Vec3{ 1.0f, 0.0f, 0.0f };
+		t = Vec3{ 0.0f, 0.0f, 1.0f };
+		b = Vec3{ 0.0f, 1.0f, 0.0f };
+		width = _field.SizeZ;
+		height = _field.SizeY;
+		layers = _field.SizeX;
+		break;
+
+	case 2:
+		n = Vec3{ 0.0f, -1.0f, 0.0f };
+		t = Vec3{ 1.0f, 0.0f, 0.0f };
+		b = Vec3{ 0.0f, 0.0f, 1.0f };
+		width = _field.SizeX;
+		height = _field.SizeZ;
+		layers = _field.SizeY;
+		break;
+
+	case 3:
+		n = Vec3{ 0.0f, 1.0f, 0.0f };
+		t = Vec3{ 1.0f, 0.0f, 0.0f };
+		b = Vec3{ 0.0f, 0.0f, 1.0f };
+		width = _field.SizeX;
+		height = _field.SizeZ;
+		layers = _field.SizeY;
+		break;
+
+	case 4:
+		n = Vec3{ 0.0f, 0.0f, -1.0f };
+		t = Vec3{ 1.0f, 0.0f, 0.0f };
+		b = Vec3{ 0.0f, 1.0f, 0.0f };
+		width = _field.SizeX;
+		height = _field.SizeY;
+		layers = _field.SizeZ;
+		break;
+
+	default:
+		n = Vec3{ 0.0f, 0.0f, 1.0f };
+		t = Vec3{ 1.0f, 0.0f, 0.0f };
+		b = Vec3{ 0.0f, 1.0f, 0.0f };
+		width = _field.SizeX;
+		height = _field.SizeY;
+		layers = _field.SizeZ;
+		break;
+	}
+
+	int32_t sliceCount = width * height;
+
+	std::vector<float> slopeU(sliceCount);
+	std::vector<float> slopeV(sliceCount);
+	std::vector<float> weight(sliceCount);
+	std::vector<float> heightField(sliceCount);
+
+	auto sliceIndex = [&](int32_t u, int32_t v) -> int32_t
+		{
+			return v * width + u;
+		};
+
+	for (int32_t layer = 0; layer < layers; ++layer)
+	{
+		std::fill(slopeU.begin(), slopeU.end(), 0.0f);
+		std::fill(slopeV.begin(), slopeV.end(), 0.0f);
+		std::fill(weight.begin(), weight.end(), 0.0f);
+		std::fill(heightField.begin(), heightField.end(), 0.0f);
+
+		for (int32_t v = 0; v < height; ++v)
+		{
+			for (int32_t u = 0; u < width; ++u)
+			{
+				int32_t si = sliceIndex(u, v);
+				int32_t fi = indexOf(u, v, layer);
+
+				Vec3 color = colors[fi];
+				Vec3 dir = directions[fi];
+
+				float energy = EnergyScore(color);
+				float dirLenSq = Dot(dir, dir);
+
+				if (energy <= Epsilon || dirLenSq <= Epsilon)
+					continue;
+
+				float dn = Dot(dir, n);
+
+				if (std::fabs(dn) <= Epsilon)
+					continue;
+
+				float su = Dot(dir, t) / dn;
+				float sv = Dot(dir, b) / dn;
+
+				slopeU[si] = std::clamp(su, -maxSlope, maxSlope);
+				slopeV[si] = std::clamp(sv, -maxSlope, maxSlope);
+				weight[si] = energy;
+			}
+		}
+
+		for (int32_t it = 0; it < iterations; ++it)
+		{
+			for (int32_t v = 0; v < height; ++v)
+			{
+				for (int32_t u = 0; u < width; ++u)
+				{
+					int32_t si = sliceIndex(u, v);
+
+					float sum = 0.0f;
+					float sumWeight = 0.0f;
+
+					auto addCandidate = [&](int32_t ni, float candidate, float edgeWeight)
+						{
+							float w = smoothness + edgeWeight;
+
+							if (w <= 0.0f)
+								return;
+
+							sum += candidate * w;
+							sumWeight += w;
+						};
+
+					if (u + 1 < width)
+					{
+						int32_t ni = sliceIndex(u + 1, v);
+						float edgeWeight = 0.5f * (weight[si] + weight[ni]);
+						float edgeSlope = 0.5f * (slopeU[si] + slopeU[ni]);
+
+						addCandidate(ni, heightField[ni] - edgeSlope, edgeWeight);
+					}
+
+					if (u > 0)
+					{
+						int32_t ni = sliceIndex(u - 1, v);
+						float edgeWeight = 0.5f * (weight[si] + weight[ni]);
+						float edgeSlope = 0.5f * (slopeU[si] + slopeU[ni]);
+
+						addCandidate(ni, heightField[ni] + edgeSlope, edgeWeight);
+					}
+
+					if (v + 1 < height)
+					{
+						int32_t ni = sliceIndex(u, v + 1);
+						float edgeWeight = 0.5f * (weight[si] + weight[ni]);
+						float edgeSlope = 0.5f * (slopeV[si] + slopeV[ni]);
+
+						addCandidate(ni, heightField[ni] - edgeSlope, edgeWeight);
+					}
+
+					if (v > 0)
+					{
+						int32_t ni = sliceIndex(u, v - 1);
+						float edgeWeight = 0.5f * (weight[si] + weight[ni]);
+						float edgeSlope = 0.5f * (slopeV[si] + slopeV[ni]);
+
+						addCandidate(ni, heightField[ni] + edgeSlope, edgeWeight);
+					}
+
+					if (sumWeight > Epsilon)
+					{
+						float solved = sum / sumWeight;
+						heightField[si] = heightField[si] + (solved - heightField[si]) * relaxation;
+					}
+				}
+			}
+
+			float mean = 0.0f;
+
+			for (float h : heightField)
+				mean += h;
+
+			mean /= float(sliceCount);
+
+			for (float& h : heightField)
+				h -= mean;
+		}
+
+		for (int32_t v = 0; v < height; ++v)
+		{
+			for (int32_t u = 0; u < width; ++u)
+			{
+				int32_t si = sliceIndex(u, v);
+				int32_t fi = indexOf(u, v, layer);
+
+				float du;
+
+				if (u > 0 && u + 1 < width)
+					du = (heightField[sliceIndex(u + 1, v)] - heightField[sliceIndex(u - 1, v)]) * 0.5f;
+				else if (u + 1 < width)
+					du = heightField[sliceIndex(u + 1, v)] - heightField[si];
+				else if (u > 0)
+					du = heightField[si] - heightField[sliceIndex(u - 1, v)];
+				else
+					du = 0.0f;
+
+				float dv;
+
+				if (v > 0 && v + 1 < height)
+					dv = (heightField[sliceIndex(u, v + 1)] - heightField[sliceIndex(u, v - 1)]) * 0.5f;
+				else if (v + 1 < height)
+					dv = heightField[sliceIndex(u, v + 1)] - heightField[si];
+				else if (v > 0)
+					dv = heightField[si] - heightField[sliceIndex(u, v - 1)];
+				else
+					dv = 0.0f;
+
+				du = std::clamp(du, -maxSlope, maxSlope);
+				dv = std::clamp(dv, -maxSlope, maxSlope);
+
+				Vec3 solvedDir = Normalize(Add(n, Add(Mul(t, du), Mul(b, dv))));
+
+				float oldLen = std::sqrt(Dot(directions[fi], directions[fi]));
+				float energy = EnergyScore(colors[fi]);
+				float outLen = oldLen > Epsilon ? oldLen : energy;
+
+				if (outLen > Epsilon)
+					directions[fi] = Mul(solvedDir, outLen);
+				else
+					directions[fi] = Zero3();
+			}
+		}
+	}
+}
+
 void VoxelLightBaker::BuildLightField() {
 
 	_field.SizeX = _grid.SizeX; _field.SizeY = _grid.SizeY; _field.SizeZ = _grid.SizeZ;
@@ -2470,6 +2897,9 @@ void VoxelLightBaker::BuildLightField() {
 		_field.Direction[face].resize(_voxelCount);
 	}
 
+	const auto colMode = _params.DirCollapseMode;
+	const auto normDir = _params.NormalizeDir;
+
 	for (int32_t i = 0; i < _voxelCount; ++i)
 	{
 		const VoxelLightData& src = _lightData[i];
@@ -2480,14 +2910,29 @@ void VoxelLightBaker::BuildLightField() {
 
 			_field.Color[face][i] = outgoing.Energy;
 
-			auto outDir = Add(Add(outgoing.DirectionR, outgoing.DirectionG), outgoing.DirectionB);
+			Vec3 outDir;
 
-			if (_params.NormalizeDir)
+			if (colMode == DirectionCollapseMode::Add)
+				outDir = Add(Add(outgoing.DirectionR, outgoing.DirectionG), outgoing.DirectionB);
+			else
+				outDir = Add(
+					Add(
+						Mul(outgoing.DirectionR, 0.2126f),
+						Mul(outgoing.DirectionG, 0.7152f)),
+					Mul(outgoing.DirectionB, 0.0722f));
+
+			if (normDir)
 				outDir = Normalize(outDir);
 
 			_field.Direction[face][i] = outDir;
 		}
 	}
+
+	if (_params.SmoothDir.Iterations > 0)
+	{
+		for (int i = 0; i < 6; i++)
+			ReconstructDirectionSurfaceForFace(i);
+	};
 
 	if (_params.BlurPasses > 0)
 		BlurLightField();

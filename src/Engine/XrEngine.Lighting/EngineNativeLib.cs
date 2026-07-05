@@ -49,6 +49,12 @@ namespace XrEngine.Lighting
         Quadratic = 2
     }
 
+    public enum  DirectionCollapseMode : int
+    {
+        Add = 0,
+        Luminance = 1
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct LightFalloff
     {
@@ -172,12 +178,30 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct SmoothDirParams
+    {
+        public int Iterations;
+        public float Smoothness;
+        public float Relaxation;
+        public float MaxSlope;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct BounceParams
+    {
+        public int MaxCount;
+        public int RayCount;
+        public float RayDecay;
+        public float CenterWeight;
+        public float NormalWeight;
+        public float ConeMaxAngle;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightBakeParams
     {
-
         public float EnergyThreshold;
 
-        public int MaxBounceCount;
         public int ThreadCount;
         public int RaySubsample;
 
@@ -196,23 +220,13 @@ namespace XrEngine.Lighting
         public VoxelLightMergeMode MergeMode;
 
         public int BlurPasses;
-
         public float BlurStrength;
 
-        public float BucketSplitThreshold;
+        public DirectionCollapseMode DirCollapseMode;
 
-        [MarshalAs(UnmanagedType.I1)]
-        public bool EnableMultiBounceRays;
+        public BounceParams Bounce;
 
-        public int BounceRayCount;
-
-        public float BounceRayDecay;
-
-        public float BounceCenterWeight;
-
-        public float BounceNormalWeight;
-
-        public float BounceConeMaxAngle;
+        public SmoothDirParams SmoothDir;
     }
 
 

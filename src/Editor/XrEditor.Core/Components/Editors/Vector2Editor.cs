@@ -53,6 +53,11 @@ namespace XrEditor
             };
         }
 
+        public override void SetAttributes(IEnumerable<Attribute> attributes)
+        {
+            X.SetAttributes(attributes);
+            Y.SetAttributes(attributes);
+        }
 
         protected override void OnEditValueChanged(Vector2 newValue)
         {

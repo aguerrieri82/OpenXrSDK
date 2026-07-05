@@ -1,7 +1,9 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
+using INotifyPropertyChanged = UI.Binding.INotifyPropertyChanged;
 
 namespace XrEditor
 {
@@ -61,10 +63,21 @@ namespace XrEditor
                 if (propertyChanged != null)
                     editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
+                var curCategory = category;
+
+                if (string.IsNullOrWhiteSpace(curCategory))
+                {
+                    var catAttr = field.GetCustomAttribute<CategoryAttribute>();
+                    if (catAttr != null)
+                        curCategory = catAttr.Category;
+                    else
+                        curCategory = host != null ? obj.GetType().Name : null;
+                }
+
                 var propView = new PropertyView
                 {
                     Label = field.Name,
-                    Category = host != null ? obj.GetType().Name : null,
+                    Category = curCategory,
                     Editor = editor,
                 };
 
@@ -98,10 +111,21 @@ namespace XrEditor
                 if (propertyChanged != null)
                     editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
+                var curCategory = category;
+
+                if (string.IsNullOrWhiteSpace(curCategory))
+                {
+                    var catAttr = prop.GetCustomAttribute<CategoryAttribute>();
+                    if (catAttr != null)
+                        curCategory = catAttr.Category;
+                    else
+                        curCategory = host != null ? obj.GetType().Name : null;
+                }
+
                 var propView = new PropertyView
                 {
                     Label = prop.Name,
-                    Category = !string.IsNullOrWhiteSpace(category) ? category : (host != null ? obj.GetType().Name : null),
+                    Category = curCategory,
                     Editor = editor,
                 }; 
 

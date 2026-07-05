@@ -7,6 +7,7 @@ using XrEditor.Services;
 using XrEngine;
 using XrEngine.Media;
 using XrEngine.Media.FFmpeg;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 
 namespace XrEditor
@@ -46,6 +47,7 @@ namespace XrEditor
 
             _main = new MainView(EditorDebug.Driver);
 
+            //GlDebug.Logger = (s, m, a) => Log.Debug(s, m, a);
 
             MainWindow = new Window
             {

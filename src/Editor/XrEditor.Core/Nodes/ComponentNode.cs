@@ -4,7 +4,7 @@ using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 
 namespace XrEditor.Nodes
 {
-    public class ComponentNode<T> : BaseNode<T>, IEditorProperties, IItemView, IDisposable, INodeChanged where T : IComponent
+    public class ComponentNode<T> : BaseNode<T>, IEditorProperties, IItemView, IDisposable, INodeChanged, IPresetManager where T : IComponent
     {
         protected bool _autoGenProps;
 

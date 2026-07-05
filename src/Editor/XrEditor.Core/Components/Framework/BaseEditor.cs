@@ -17,6 +17,11 @@ namespace XrEditor
 
         }
 
+        public virtual void SetAttributes(IEnumerable<Attribute> attributes)
+        {
+
+        }
+
         public void NotifyBindValueChanged()
         {
             if (_binding != null)

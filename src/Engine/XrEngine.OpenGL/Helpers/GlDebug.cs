@@ -1,13 +1,16 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
     public static class GlDebug
     {
-        [Conditional("LOGGL")]
+        [Conditional("DEBUG")]
         public static void Log(object sender, string message, params object?[] args)
         {
-            Console.WriteLine(message, args);
+            Logger?.Invoke(sender, message, args);
         }
+
+        public static Action<object, string, object?[]>? Logger;
     }
 }

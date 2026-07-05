@@ -9,7 +9,9 @@
 
         public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
-            return new TEditor();
+            var result = new TEditor();
+            result.SetAttributes(attributes);
+            return result;
         }
     }
 }
