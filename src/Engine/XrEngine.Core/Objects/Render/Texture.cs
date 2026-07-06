@@ -28,6 +28,7 @@ namespace XrEngine
 
         RgbFloat16,
         RgbaFloat16,
+        Rgb9e5Float,
 
         RgFloat32,
         RgFloat16,
@@ -112,7 +113,10 @@ namespace XrEngine
 
             Data = data;
             Width = data.Max(a => a.Width);
-            Format = data[0].Format;
+
+            if (Format == TextureFormat.Unknown)
+                Format = data[0].Format;
+            
             Compression = data[0].Compression;
 
             if (initSampler)

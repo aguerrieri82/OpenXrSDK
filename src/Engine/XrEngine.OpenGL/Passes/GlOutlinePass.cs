@@ -108,6 +108,9 @@ namespace XrEngine.OpenGL
         {
             _programInstance!.Material.DoubleSided = drawMaterial.DoubleSided;
 
+            if (drawMaterial is ShaderMaterial mat)
+                _programInstance!.Material.HasSkin = mat.HasSkin;
+
             return base.UpdateProgram(updateContext, drawMaterial);
         }
 

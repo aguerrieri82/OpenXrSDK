@@ -4,7 +4,7 @@ flat in int vFace;
 
 out vec4 outColor;
 
-uniform highp sampler3D uLightField[12];
+uniform sampler3D uLightField[12];
 
 uniform float uMaxIntensity;
 

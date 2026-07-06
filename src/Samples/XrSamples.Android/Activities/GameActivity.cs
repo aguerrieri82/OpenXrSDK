@@ -117,7 +117,9 @@ namespace XrSamples.Android.Activities
                     opt.Compression.Use = _settings.TextureCompression;
                     opt.UseSRGB = false;
                     opt.ToneMap = ToneMapMode.Neutral;
-                   
+                    opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                    opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
+                    opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                 });
             else
                 ImageLight.UseCache = false;

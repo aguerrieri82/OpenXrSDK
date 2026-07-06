@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
     {
         private readonly GL _gl;
         private readonly bool _multiView;
-        private readonly Dictionary<uint, IGlRenderTarget> _targets = [];
+        private readonly Dictionary<int, IGlRenderTarget> _targets = [];
 
 
         public GlFrameBufferPool(GL gl, bool multiView)
@@ -63,12 +63,12 @@ namespace XrEngine.OpenGL
 
             colorTex.Allocate(width, height, arraySize, format);
 
-            return GetRenderTarget(colorTex.Handle, 0, sampleCount);
+            return GetRenderTarget(colorTex.Handle, 0, sampleCount, -1);
         }
 
-        public IGlRenderTarget GetRenderTarget(uint colorTex, uint depthTex, uint sampleCount, bool createDepth = true)
+        public IGlRenderTarget GetRenderTarget(uint colorTex, uint depthTex, uint sampleCount, int eyeIndex = -1, bool createDepth = true)
         {
-            var targetId = colorTex * 10000 + depthTex;
+            var targetId = (int)colorTex * 10000 + (int)depthTex + 20000 + eyeIndex;
 
             if (!_targets.TryGetValue(targetId, out var target))
             {
@@ -101,27 +101,28 @@ namespace XrEngine.OpenGL
                     //TODO: change
                     useRenderTarget = false;
 
-                    if (useRenderTarget)
-                    {
-                        IGlRenderAttachment? depthAttachment = glDepth;
+                    IGlRenderAttachment? depthAttachment = glDepth;
 
-                        if (depthAttachment == null && createDepth)
+                    if (depthAttachment == null && createDepth)
+                    {
+                        if (useRenderTarget)
                         {
                             var renderBuf = new GlRenderBuffer(_gl);
                             var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
                             renderBuf.Update(glColor.Width, glColor.Height, texSampleCount, intFormat);
                             depthAttachment = renderBuf;
                         }
-
-                        singleView.FrameBuffer.Configure(glColor, depthAttachment, sampleCount);
-                    }
-                    else
-                    {
-                        if (createDepth)
+                        else
+                        {
                             glDepth ??= CreateDepth(glColor, 1, texSampleCount);
-
-                        singleView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
+                            depthAttachment = glDepth;
+                        }
                     }
+
+                    if (eyeIndex != -1)
+                        singleView.FrameBuffer.Configure(glColor, (uint)eyeIndex, depthAttachment, (uint)eyeIndex, sampleCount);
+                    else
+                        singleView.FrameBuffer.Configure(glColor, depthAttachment, sampleCount);
 
                     target = singleView;
                 }

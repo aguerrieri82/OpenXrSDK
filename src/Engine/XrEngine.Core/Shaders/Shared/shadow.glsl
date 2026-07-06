@@ -22,7 +22,7 @@ const vec2 PCF_OFFSETS[8] = vec2[8](
 #ifdef USE_SHADOW_MAP 
 
     #ifdef USE_SHADOW_SAMPLER
-        layout(binding=14) uniform highp sampler2DShadow uShadowMap;
+        layout(binding=14) uniform sampler2DShadow uShadowMap;
     #else
         layout(binding=14) uniform sampler2D uShadowMap;
     #endif

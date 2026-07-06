@@ -47,7 +47,7 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(ctx.Stage == UpdateShaderStage.Model);
 
-            var bufferMap = ctx.Model!.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(10));
+            var bufferMap = ctx.Model!.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(20));
 
             _modelBuffers = bufferMap.Buffers;
 

@@ -35,11 +35,10 @@ namespace XrEditor
 
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+              //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
-
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;

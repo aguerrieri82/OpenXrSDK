@@ -6,7 +6,7 @@ out vec4 outColor;
 
 uniform vec3 uCameraPosition;
 
-uniform highp sampler3D uLightField[12];
+uniform sampler3D uLightField[12];
 
 uniform vec3 uLightFieldOrigin;
 uniform float uVoxelSize;

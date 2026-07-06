@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using Common.Interop;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenGL;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using XrEngine.OpenGL;
 using XrEngine.UI;
@@ -456,6 +458,41 @@ namespace XrEngine.Lighting
             }
         }
 
+        public unsafe static IMemoryBuffer<byte> ExtractFaceDirection2Texture(
+            IMemoryBuffer<byte> sourceData,
+            int width,
+            int height,
+            int depth,
+            int face,
+            int sourceChannels)
+        {
+            var target = MemoryBuffer.Create<byte>((uint)(width * height * depth * 2 * sizeof(float)));
+
+            using var srcLock = sourceData.MemoryLock();
+
+            using var dstLock = target.MemoryLock();
+
+            var source = (float*)srcLock.Data;
+            var dest = (float*)dstLock.Data;
+
+            var axis = face < 2 ? 0 : face < 4 ? 1 : 2;
+            var a = face < 2 ? 1 : 0;
+            var b = face < 4 ? 2 : 1;
+
+            for (var i = 0; i < width * height * depth; i++)
+            {
+                var s = i * sourceChannels;
+                var t = i * 2;
+
+                var inv = 1f / MathF.Abs(source[s + axis]);
+
+                dest[t] = source[s + a] * inv;
+                dest[t + 1] = source[s + b] * inv;
+            }
+
+            return target;
+        }
+
         [Action]
         public void Import()
         {
@@ -475,18 +512,48 @@ namespace XrEngine.Lighting
                 .OrderBy(a => int.Parse(Path.GetFileNameWithoutExtension(a).Split('_')[1]))
                 .ToArray();
 
+            bool packDir = false;
+
             foreach (var file in files)
             {
                 using var fs = File.OpenRead(file);
                 var data = reader.LoadTexture(fs);
+
+                TextureFormat format;
+
+                if ((textures.Count % 2) == 0)
+                    format = TextureFormat.Rgb9e5Float;
+                else
+                {
+                    if (packDir)
+                    {
+                        var face = textures.Count / 2;
+
+                        format = TextureFormat.RgFloat16;
+
+                        data[0].Data = ExtractFaceDirection2Texture(data[0].Data!,
+                            (int)data[0].Width,
+                            (int)data[0].Height,
+                            (int)data[0].Depth,
+                            face, 3);
+
+                        data[0].Format = TextureFormat.RgFloat32;
+                    }
+                    else
+                        format = TextureFormat.RgbFloat16;
+                }
+
+
                 var tex = new Texture3D()
                 {
-                    Format = TextureFormat.RgbFloat16,
-                    MipLevelCount = 10,
-                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    Format = format,
+                    MipLevelCount = 0,
+                    MinFilter = ScaleFilter.Nearest,
                     MagFilter = ScaleFilter.Linear
                 };
+
                 tex.LoadData(data);
+                
                 textures.Add(tex);
             }
 
@@ -587,6 +654,7 @@ namespace XrEngine.Lighting
             _data.Size = _gridDesc.Size;
             _data.VoxelSize = _gridDesc.VoxelSize;
             _data.UseAllFaces = true;
+            _data.DirPacked = _textures![1].Format == TextureFormat.RgFloat16;
 
             return _data;
         }

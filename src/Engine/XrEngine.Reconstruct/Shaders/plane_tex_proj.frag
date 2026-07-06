@@ -1,6 +1,4 @@
-﻿#version 310 es
-precision highp float;
-
+﻿
 layout(location = 0) out vec4 outAccum;
 
 in vec2 vUv; // 0..1 atlas uv

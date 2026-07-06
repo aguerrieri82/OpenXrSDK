@@ -3,7 +3,7 @@
 #include "[XrEngine.Core]Shared/uniforms.glsl"
 #include "[XrEngine.Core]Shared/position.glsl"
 
-layout(binding = 8) uniform highp sampler2DArray uEnvDepth;
+layout(binding = 8) uniform sampler2DArray uEnvDepth;
 
 #ifndef MULTI_VIEW
     uniform int uViewIndex;

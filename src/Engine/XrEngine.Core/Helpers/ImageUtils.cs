@@ -59,6 +59,7 @@ namespace XrEngine
                 TextureFormat.RgFloat16 => 16 * 2,
                 TextureFormat.GrayFloat32 => 32,
                 TextureFormat.GrayFloat16 => 16,
+                TextureFormat.Rgb9e5Float => 32,
                 _ => throw new NotSupportedException()
             };
 
@@ -67,7 +68,7 @@ namespace XrEngine
 
         public static bool IsFloat(this TextureFormat format)
         {
-            return format.IsFloat16() || format.IsFloat32();
+            return format.IsFloat16() || format.IsFloat32() || format == TextureFormat.Rgb9e5Float;
         }
 
         public static bool IsSrgb(this TextureFormat format)

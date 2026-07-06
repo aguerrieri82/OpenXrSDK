@@ -1,5 +1,5 @@
 ﻿#ifdef MULTI_VIEW
-    layout(binding = 0) uniform highp sampler2DArray srcImage;
+    layout(binding = 0) uniform sampler2DArray srcImage;
 #else
     layout(binding = 0) uniform sampler2D srcImage;
 #endif

@@ -73,6 +73,10 @@ namespace XrEngine.OpenGL
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
 
+            if (drawMaterial is ShaderMaterial mat)
+                effect.HasSkin = mat.HasSkin;
+
+
             _renderer.ConfigureCaps(effect);
 
             return base.UpdateProgram(updateContext, drawMaterial);

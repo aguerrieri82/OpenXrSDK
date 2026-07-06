@@ -2,10 +2,10 @@
 in vec3 vWorldPos;
 in vec3 vWorldNormal;
 
-layout(binding = 0) uniform highp sampler2DArray uCaptureColor;
+layout(binding = 0) uniform sampler2DArray uCaptureColor;
 
 #ifdef USE_DEPTH
-    layout(binding = 1) uniform highp sampler2D uCaptureDepth;
+    layout(binding = 1) uniform sampler2D uCaptureDepth;
     uniform float uDepthBias;
 #endif
 

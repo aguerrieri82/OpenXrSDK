@@ -474,12 +474,17 @@ namespace XrEngine
 
                     if (_lightFieldProvider != null)
                     {
-                        if (_lightFieldProvider.GetLightField().UseAllFaces)
+                        var lightField = _lightFieldProvider.GetLightField();
+
+                        if (lightField.UseAllFaces)
                            bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
+
+                        if (lightField.DirPacked)
+                            bld.AddFeature("LIGHT_FIELD_PACKED_DIR");
 
                         bld.ExecuteAction((ctx, up) =>
                         {
-                            var lightField = _lightFieldProvider.GetLightField();
+                            lightField = _lightFieldProvider.GetLightField();
 
                             if (lightField.Textures == null || lightField.Textures.Count == 0)
                                 return;

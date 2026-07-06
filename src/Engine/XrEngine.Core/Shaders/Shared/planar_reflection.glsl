@@ -3,7 +3,7 @@
 #ifdef PLANAR_REFLECTION
 
 	#ifdef PLANAR_REFLECTION_MV
-		layout(binding=7) uniform mediump sampler2DArray reflectionTexture;
+		layout(binding=7) uniform sampler2DArray reflectionTexture;
 		uniform mat4 uReflectMatrix[2];
 	#else
 		layout(binding=7) uniform sampler2D reflectionTexture;

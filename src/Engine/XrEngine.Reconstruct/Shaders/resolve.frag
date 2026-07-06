@@ -1,4 +1,4 @@
-﻿layout(binding = 0) uniform highp sampler2D uAccumTexture;
+﻿layout(binding = 0) uniform sampler2D uAccumTexture;
 
 uniform float uMinWeight;
 

@@ -7,7 +7,7 @@ layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec3 a_normal;
 layout(location = 2) in vec2 a_texcoord;
 
-layout(binding = 8) uniform highp sampler2DArray uEnvDepth;
+layout(binding = 8) uniform sampler2DArray uEnvDepth;
 
 #ifndef MULTI_VIEW
     uniform int uViewIndex;

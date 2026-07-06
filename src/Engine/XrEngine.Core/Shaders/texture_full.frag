@@ -3,7 +3,7 @@
 layout(location=0) out vec4 FragColor;
 
 #ifdef MULTI_VIEW
-    layout(binding=0) uniform highp sampler2DArray uTextures;
+    layout(binding=0) uniform sampler2DArray uTextures;
 
     void main()
     {

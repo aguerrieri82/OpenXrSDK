@@ -1,7 +1,4 @@
 
-precision highp float;
-precision highp int;
-
 in vec3 vWorldPos;
 in vec3 vFaceNormal;
 in vec2 vUv;

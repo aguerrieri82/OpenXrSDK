@@ -38,7 +38,7 @@ namespace XrEngine.OpenGL
 
         public void Select(uint colorTex, uint depthTex)
         {
-            _destRt = _pool.GetRenderTarget(colorTex, depthTex, 1, false);
+            _destRt = _pool.GetRenderTarget(colorTex, depthTex, 1, -1, false);
 
             if (_destRt is IGlFrameBufferProvider fb)
                 _destFb = fb.FrameBuffer;

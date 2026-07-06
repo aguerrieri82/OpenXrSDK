@@ -1,10 +1,10 @@
 ﻿in vec2 fUv;
 
 #ifdef ARRAY
-    layout(binding=1) uniform highp sampler2DArray uTexture;
+    layout(binding=1) uniform sampler2DArray uTexture;
     uniform int uIndex;
 #else
-    layout(binding=1) uniform highp sampler2D uTexture;
+    layout(binding=1) uniform sampler2D uTexture;
 #endif
 
 

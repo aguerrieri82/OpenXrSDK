@@ -314,7 +314,7 @@ namespace XrEngine.OpenGL
             UpdateSampler();
 
             if (compression == TextureCompressionFormat.Uncompressed)
-                UploadUncompressedFull(width, height, depth, format, data);
+                UploadUncompressedFull(width, height, depth, data[0].Format, data);
             else
                 UploadCompressedFull(width, height, depth, data);
 

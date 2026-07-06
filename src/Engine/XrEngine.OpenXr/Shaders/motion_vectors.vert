@@ -1,4 +1,7 @@
 ﻿
+#include "[XrEngine.Core]Shared/skin.glsl"
+
+uniform bool uHasSkin;
 uniform uint uActiveEye;
 
 #ifdef MULTI_VIEW
@@ -32,7 +35,12 @@ out vec4 prevClipPos;
 
 void main()
 {
-	clipPos = uMatrices.current.viewProj[EYE] * ( uMatrices.current.model * vec4( a_position, 1.0 ) );
-	prevClipPos = uMatrices.prev.viewProj[EYE] * ( uMatrices.prev.model * vec4( a_position, 1.0 ) );
+	vec3 position = a_position;
+
+	if (uHasSkin)
+		skinTransformPos(position);
+
+	clipPos = uMatrices.current.viewProj[EYE] * ( uMatrices.current.model * vec4(position, 1.0 ) );
+	prevClipPos = uMatrices.prev.viewProj[EYE] * ( uMatrices.prev.model * vec4(position, 1.0 ) );
 	gl_Position = clipPos;
 }

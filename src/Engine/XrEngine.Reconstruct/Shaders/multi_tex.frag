@@ -9,7 +9,7 @@ uniform float uExposure[IMG_COUNT];
 
 #endif
 
-layout(binding=0) uniform highp sampler2DArray uTextureArray;
+layout(binding=0) uniform sampler2DArray uTextureArray;
 
 layout(location = 0) out vec4 color;
 

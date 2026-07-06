@@ -1,4 +1,4 @@
-﻿uniform highp sampler3D uLightField[12];
+﻿uniform sampler3D uLightField[12];
 
 uniform vec3 uLightFieldOrigin;
 uniform float uVoxelSize;
@@ -28,7 +28,29 @@ vec3 evaluateLightFieldFace(
 	vec3 viewDir)
 {
 
-	vec3 emittedDir = texture(uLightField[face * 2 + 1], uvw).rgb;
+	#ifdef LIGHT_FIELD_PACKED_DIR
+
+		vec2 packedDir = texture(uLightField[face * 2 + 1], uvw).rg;
+		vec3 emittedDir;
+
+		if (face < 2)
+		{
+			emittedDir = vec3(face == 0 ? 1.0 : -1.0, packedDir.x, packedDir.y);
+		}
+		else if (face < 4)
+		{
+			emittedDir = vec3(packedDir.x, face == 2 ? 1.0 : -1.0, packedDir.y);
+		}
+		else
+		{
+			emittedDir = vec3(packedDir.x, packedDir.y, face == 4 ? 1.0 : -1.0);
+		}
+
+		emittedDir = normalize(emittedDir);
+
+	#else
+		vec3 emittedDir = texture(uLightField[face * 2 + 1], uvw).rgb;
+	#endif
 
 	// Stored direction is emitted/outgoing light direction.
 	// BRDF wants direction from shaded point toward the light.

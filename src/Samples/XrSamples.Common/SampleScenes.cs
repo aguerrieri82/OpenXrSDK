@@ -44,11 +44,6 @@ using XrSamples.Components;
 using XrEngine.Lighting;
 
 
-
-
-
-
-
 namespace XrSamples
 {
     public static class SampleScenes
@@ -1113,6 +1108,8 @@ namespace XrSamples
                 StorePath = Path.Combine(XrPlatform.Current!.SharedPath)
             });
 
+
+
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
@@ -1126,6 +1123,17 @@ namespace XrSamples
 
                     if (XrPlatform.IsAndroid)
                         lightField.Import();
+
+                    scene.AddBehavior((_, _) =>
+                    {
+                        var click = cfg.Inputs!.Right!.Button!.AClick!;
+
+                        if (click.IsChanged && click.Value)
+                        { 
+                            var provider = Context.Require<IMotionVectorProvider>();
+                            provider.IsActive = !provider.IsActive;
+                        }
+                    });
                 })
                 .ConfigureSampleApp(false);
         }

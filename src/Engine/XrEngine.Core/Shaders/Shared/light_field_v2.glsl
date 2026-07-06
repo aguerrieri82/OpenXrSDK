@@ -1,4 +1,4 @@
-﻿uniform highp sampler3D uLightField[12];
+﻿uniform sampler3D uLightField[12];
 
 uniform vec3 uLightFieldOrigin;
 uniform float uVoxelSize;

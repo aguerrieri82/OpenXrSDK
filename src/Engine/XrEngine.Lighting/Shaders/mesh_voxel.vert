@@ -1,10 +1,5 @@
 
-precision highp float;
-precision highp int;
-
 layout(location = 2) in vec2 a_texcoord_0;
-
-
 
 struct VoxelFaceInstance
 {

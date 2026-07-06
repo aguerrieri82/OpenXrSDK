@@ -5,7 +5,7 @@
 #include "[XrEngine.Core]Shared/depth_sampler.glsl"
 #include "[XrEngine.Core]Shared/shadow.glsl"
     
-layout(binding = 8) uniform highp sampler2DArray uEnvDepth;
+layout(binding = 8) uniform sampler2DArray uEnvDepth;
 
 #ifndef MULTI_VIEW
     uniform int uViewIndex;

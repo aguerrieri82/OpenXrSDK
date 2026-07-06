@@ -22,7 +22,7 @@
 
     #if defined(MULTI_VIEW) || defined(TEXTURE_ARRAY)
 
-        layout(binding = 10) uniform highp sampler2DMSArray uDepth;
+        layout(binding = 10) uniform sampler2DMSArray uDepth;
 
         float getDepth(vec2 uv) 
         {
@@ -39,7 +39,7 @@
 
     #else
 
-        layout(binding = 10) uniform highp sampler2DMS uDepth;
+        layout(binding = 10) uniform sampler2DMS uDepth;
 
         float getDepth(vec2 uv) 
         {
@@ -61,9 +61,7 @@
 
     #if defined(MULTI_VIEW) || defined(TEXTURE_ARRAY)
 
-        precision mediump sampler2DArray;
-
-        layout(binding = 10) uniform highp sampler2DArray uDepth;
+        layout(binding = 10) uniform sampler2DArray uDepth;
 
         float getDepth(vec2 pos) 
         {
@@ -72,7 +70,7 @@
 
     #else
 
-        layout(binding = 10) uniform highp sampler2D uDepth;
+        layout(binding = 10) uniform sampler2D uDepth;
 
         float getDepth(vec2 pos) 
         {

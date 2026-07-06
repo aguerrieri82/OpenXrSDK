@@ -1,5 +1,5 @@
 ﻿
-layout(binding = 0) uniform highp sampler2D uSource;
+layout(binding = 0) uniform sampler2D uSource;
 
 layout(location = 0) out vec4 outColor;
 

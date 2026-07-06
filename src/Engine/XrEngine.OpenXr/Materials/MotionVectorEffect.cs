@@ -10,7 +10,7 @@ namespace XrEngine.OpenXr
 
         public class MotionVectorShader : Shader, IShaderHandler
         {
-            readonly Matrix4x4[] _prevViewProj = new Matrix4x4[2];
+          
 
             public MotionVectorShader()
             {
@@ -26,8 +26,9 @@ namespace XrEngine.OpenXr
             {
                 var stage = bld.Context.Stage;
 
-                if (stage == UpdateShaderStage.Model)
+                if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
                     return;
+
 
                 bld.ExecuteAction((ctx, up) =>
                 {
@@ -37,22 +38,16 @@ namespace XrEngine.OpenXr
 
                     up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
 
-                    up.SetUniform($"uMatrices.prev.viewProj[0]", _prevViewProj[0]);
-                    up.SetUniform($"uMatrices.prev.viewProj[1]", _prevViewProj[1]);
+                    up.SetUniform($"uMatrices.prev.viewProj[0]", PrevViewProj[0]);
+                    up.SetUniform($"uMatrices.prev.viewProj[1]", PrevViewProj[1]);
 
                     up.SetUniform($"uMatrices.current.viewProj[0]", camera.Eyes[0].ViewProj);
                     up.SetUniform($"uMatrices.current.viewProj[1]", camera.Eyes[1].ViewProj);
-
-                    if (camera.ActiveEye == -1)
-                    {
-                        _prevViewProj[0] = camera.Eyes[0].ViewProj;
-                        _prevViewProj[1] = camera.Eyes[1].ViewProj;
-                    }
-                    else
-                        _prevViewProj[camera.ActiveEye] = camera.Eyes[camera.ActiveEye].ViewProj;
                 });
-
+ 
             }
+
+            public Matrix4x4[] PrevViewProj = new Matrix4x4[2];
         }
 
         MotionVectorEffect()
@@ -62,12 +57,24 @@ namespace XrEngine.OpenXr
             {
                 FragmentSourceName = "motion_vectors.frag",
                 VertexSourceName = "motion_vectors.vert",
-                Resolver = str => Embedded.GetString<XrEngine.OpenXr.Module>(str)
+                Resolver = str => Embedded.GetString<Module>(str)
             };
+        }
+
+        public void EndPass(Camera camera)
+        {
+            Debug.Assert(camera.Eyes != null);
+
+            var shader = (MotionVectorShader)_shader!;
+
+            shader.PrevViewProj[0] = camera.Eyes[0].ViewProj;
+            shader.PrevViewProj[1] = camera.Eyes[1].ViewProj;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
+            SkinVertexShader.UpdateShaderModel(bld, true);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ctx.PassCamera;

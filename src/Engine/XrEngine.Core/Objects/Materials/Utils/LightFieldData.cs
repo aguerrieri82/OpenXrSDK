@@ -25,5 +25,7 @@ namespace XrEngine
         public float Strength;
 
         public bool UseAllFaces;
+
+        public bool DirPacked;
     }
 }

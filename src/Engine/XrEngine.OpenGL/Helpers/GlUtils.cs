@@ -69,6 +69,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Rgb24 or
                 TextureFormat.RgbFloat16 or
                 TextureFormat.RgbFloat32 or
+                TextureFormat.Rgb9e5Float or
                 TextureFormat.SRgb24 => PixelFormat.Rgb,
 
                 _ => throw new NotSupportedException(),
@@ -82,6 +83,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgFloat32 or
                 TextureFormat.RgFloat16 or
                 TextureFormat.GrayFloat32 or
+                TextureFormat.Rgb9e5Float or
                 TextureFormat.GrayFloat16 => PixelType.Float,
 
                 TextureFormat.Depth24 or
@@ -164,6 +166,8 @@ namespace XrEngine.OpenGL
                     TextureFormat.SRgb24 => InternalFormat.Srgb8,
 
                     TextureFormat.Rg88 => InternalFormat.RG8,
+
+                    TextureFormat.Rgb9e5Float => InternalFormat.Rgb9E5,
 
                     _ => throw new NotSupportedException(),
                 };
@@ -249,6 +253,8 @@ namespace XrEngine.OpenGL
         {
             return internalFormat switch
             {
+
+                InternalFormat.Rgb9E5 => TextureFormat.Rgb9e5Float,
                 InternalFormat.Rgb32f => TextureFormat.RgbFloat32,
                 InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,
                 InternalFormat.Rgba => TextureFormat.Rgba32,

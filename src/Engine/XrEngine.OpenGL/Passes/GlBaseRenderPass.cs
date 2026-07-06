@@ -102,9 +102,11 @@ namespace XrEngine.OpenGL
             var updateContext = _renderer.UpdateContext;
 
             updateContext.Shader = instance.Material.Shader;
-            updateContext.Stage = UpdateShaderStage.Material;
+            updateContext.Stage = UpdateShaderStage.Shader;
 
             instance.Global!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
+
+            updateContext.Stage = UpdateShaderStage.Material;
 
             instance.UpdateProgram(updateContext);
 

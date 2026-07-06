@@ -4,7 +4,7 @@ namespace OpenXr.Framework.Oculus
 {
     public interface IMotionVectorProvider
     {
-        unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImg, SwapchainImageBaseHeader*[] depthImg, XrRenderMode mode);
+        unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode);
 
         public float Near { get; }
 

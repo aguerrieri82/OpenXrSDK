@@ -1,5 +1,5 @@
 #ifdef HAS_MORPH_TARGETS
-uniform highp sampler2DArray uMorphTargetsSampler;
+uniform sampler2DArray uMorphTargetsSampler;
 #endif
 
 #ifdef USE_MORPHING

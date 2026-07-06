@@ -43,6 +43,7 @@ namespace XrEngine.OpenGL
         {
             FloatPrecision = ShaderPrecision.High;
             IntPrecision = ShaderPrecision.High;
+            SamplerPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = false;
@@ -106,6 +107,8 @@ namespace XrEngine.OpenGL
         public ContactShadowOptions ContactShadow { get; set; }
 
         public GlCompressionOptions Compression { get; set; }
+
+        public ShaderPrecision SamplerPrecision { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
 

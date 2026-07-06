@@ -1,9 +1,9 @@
 ﻿#include "Shared/tonemap.glsl"
 
 #ifdef MULTI_VIEW
-    layout(binding = 0) uniform highp sampler2DArray uImage;
+    layout(binding = 0) uniform sampler2DArray uImage;
 #elif defined(SAMPLE_COUNT) && SAMPLE_COUNT > 1
-    layout(binding = 0) uniform highp sampler2DMS uImage;
+    layout(binding = 0) uniform sampler2DMS uImage;
 #else
     layout(binding = 0) uniform sampler2D uImage;
 #endif

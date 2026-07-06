@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using XrEngine.OpenGL;
 
 namespace XrEngine.OpenXr
@@ -10,45 +11,27 @@ namespace XrEngine.OpenXr
     {
         readonly OpenGLRender _renderer;
         readonly EngineApp _app;
-        private readonly GlMotionVectorPass[] _passes;
+        private readonly GlMotionVectorPass _pass;
 
         public GlMotionVectorProvider(EngineApp app, OpenGLRender renderer)
         {
             _renderer = renderer;
             _app = app;
-            _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
+            _pass = _renderer.Pass<GlMotionVectorPass>() ?? throw new NotSupportedException();
 
-            if (XrPlatform.Current?.Name == "Editor")
-                MotionVectorFormat = (long)InternalFormat.Rgb16f;
-            else
-                MotionVectorFormat = (long)InternalFormat.RG16f;
+            MotionVectorFormat = (long)InternalFormat.Rgba16f;
+            DepthFormat = (long)InternalFormat.DepthComponent16;
+
         }
 
-        public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImgs, SwapchainImageBaseHeader*[] depthImgs, XrRenderMode mode)
+        public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
-            //TODO: In case not using array, we must set all tragets toghter,
-            //since the pass is single and the right image is determined by the active eye of the camera.
-
-            for (var i = 0; i < _passes.Length; i++)
-            {
-                int ix;
-                if (_passes.Length == 1)
-                {
-                    if (colorImgs.Length == 1)
-                        ix = 0;
-                    else
-                        ix = _renderer.UpdateContext.MainCamera!.ActiveEye;
-                }
-                else
-                    ix = i;
-
-                _passes[i].SetTargets(colorImgs[ix], depthImgs[ix]);
-            }
+            _pass.SetTargets(colorImg, depthImg);
         }
 
         public long MotionVectorFormat { get; }
 
-        public long DepthFormat => (long)InternalFormat.DepthComponent16; //If we use DepthComponent24, doesn't work in Quest 3.
+        public long DepthFormat { get; }
 
         public float Near => _app.ActiveScene?.ActiveCamera?.Near ?? 0.1f;
 

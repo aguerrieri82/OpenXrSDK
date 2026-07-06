@@ -288,7 +288,7 @@ namespace XrEngine.OpenXr
                 if (openGl.Passes<GlMotionVectorPass>().Any())
                     return;
 
-                openGl.AddPass(new GlMotionVectorPass(openGl, e.XrApp, -1, e.XrApp.RenderOptions.RenderMode == XrRenderMode.MultiView), 0);
+                openGl.AddPass(new GlMotionVectorPass(openGl, e.XrApp, e.XrApp.RenderOptions.RenderMode == XrRenderMode.MultiView), 0);
             });
 
             return self;
