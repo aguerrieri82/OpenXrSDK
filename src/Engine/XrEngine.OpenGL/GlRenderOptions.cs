@@ -96,7 +96,7 @@ namespace XrEngine.OpenGL
 
             UseSRGB = true;
             ToneMap = ToneMapMode.Neutral;
-            UseResolve = true;
+            UseResolve = false;
         }
 
         public bool UseSRGB { get; set; }

@@ -170,7 +170,6 @@ namespace XrEngine
 
         #endregion
 
-
         #region PbrV2Shader
 
         public class PbrV2Shader : Shader, IShaderHandler, IInstanceShader
@@ -567,6 +566,7 @@ namespace XrEngine
             UseInstanceDraw = true;
             ForceIblTransform = false;
             LightFieldOfs = 1.5f;
+            UseLightField = true;
             Resolver = str =>
             {
                 if (str.Contains("fragment_defaults.glsl"))

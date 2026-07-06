@@ -1110,7 +1110,7 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureApp(cfg =>
                 {
-                OpenGLRender.Current.GL.GetInteger((GLEnum)0x9631, out int value);
+                    OpenGLRender.Current!.GL.GetInteger((GLEnum)0x9631, out int value);
 
                     foreach (var light in scene.Descendants<Light>())
                         light.IsVisible = true;

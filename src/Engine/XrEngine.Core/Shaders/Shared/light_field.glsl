@@ -41,9 +41,9 @@ vec3 evaluateLightFieldFace(
 	if (dot(normal, L) <= 0.0)
 		return vec3(0.0);
 
-	vec3 diffuseRadiance = desaturatePreserveEnergy(radiance, 0.95);
-	//vec3 specularRadiance = radiance;
-	vec3 specularRadiance = diffuseRadiance;
+	vec3 diffuseRadiance = desaturatePreserveEnergy(radiance, 0.95 * roughness);
+	vec3 specularRadiance = desaturatePreserveEnergy(radiance, 0.95 * (1.0 - metalness));
+
 
 	float NoL = saturate(dot(normal, L));
 	float NoV = saturate(dot(normal, viewDir));

@@ -11,4 +11,5 @@ void main()
    Ids.y = uint(gl_PrimitiveID);
 
    Normal = normalize(fNormal);
+
 }

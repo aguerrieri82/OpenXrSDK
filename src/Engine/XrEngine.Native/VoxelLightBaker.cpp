@@ -608,8 +608,11 @@ namespace {
 
 			float score = Dot(Mul(rayDirection, -1.0f), normal);
 
+			//We need unfortunately hit even with unrelated faces
+			/*
 			if (score <= 0.0f)
 				continue;
+			*/
 
 			if (hitFace < 0 || score > bestScore)
 			{
@@ -1268,6 +1271,8 @@ bool VoxelRayMarcher::Step()
 
 	int32_t slot = _local.CellSlots[index];
 
+	_ray.LastAffectedVoxel = index;
+
 	if (slot < 0)
 	{
 		slot = int32_t(_local.Contribution.Cells.size());
@@ -1308,7 +1313,7 @@ bool VoxelRayMarcher::Step()
 		MergeEnergy(
 			data.Faces[incomingFace].Incoming,
 			MakeEnergy(stepEnergy, _ray.Direction),
-			_baker->_params.MergeMode);
+			_baker->_params.RayMergeMode);
 
 	}
 #endif
@@ -1449,7 +1454,9 @@ bool VoxelRayMarcher::Step()
 		}
 		_ray.IsAlive = false;
 	}
-	else {
+	else 
+	{
+		_ray.LastAffectedFace = outgoingFace;
 
 		MergeEnergy(
 			data.Faces[outgoingFace].Outgoing,
@@ -1608,6 +1615,7 @@ void VoxelLightBaker::AddGpuMeshFaces(
 		face.Normal = src.Normal;
 		face.Roughness = src.Roughness;
 		face.Metallic = src.Metallic;
+		face.TriangleId = 1;
 	}
 }
 

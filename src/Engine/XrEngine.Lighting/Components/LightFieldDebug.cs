@@ -14,7 +14,7 @@ using XrMath;
 namespace XrEngine.Lighting
 {
     [StateManager(StateManagerMode.Auto)]
-    public class LightFieldDebug : BaseComponent<TriangleMesh>, ILightFieldProvider
+    public class LightFieldDebug : BaseComponent<TriangleMesh>, ILightFieldProvider, IDrawGizmos
     {
         MeshVoxelizer _voxelizer;
         GpuSceneVoxelizer _gpuVoxelizer;
@@ -108,6 +108,10 @@ namespace XrEngine.Lighting
             SmoothDirMaxSlope = 1f;
             SmoothDirRelaxation = 0.75f;
             SmoothDirSmoothness = 0.05f;
+
+            LightFallOff = LightFalloffType.Quadratic;
+
+            Strength = 1;
 
             CreateWalls();
 
@@ -420,13 +424,21 @@ namespace XrEngine.Lighting
             Log.Info(this, "Done");
         }
 
+        public void DrawGizmos(Canvas3D canvas)
+        {
+
+            canvas.State.Color = "#ff0000";
+
+            canvas.DrawLine(RayOrigin, RayOrigin + RayDir.Normalize() * 3f);
+        }
+
         private void OnDraw(ScreenCanvas obj)
         {
             obj.DrawCube(_curVoxel.WorldPosition, new Vector3(_voxelizer.GridDesc.VoxelSize),
                          "#ff0000", 3);
-
+            /*
             obj.DrawLine(RayOrigin, RayOrigin + RayDir.Normalize() * 3f,
-              "#ff0000", 3);
+              "#ff0000", 3);*/
         }
 
         protected void UpdateParams()
@@ -497,7 +509,7 @@ namespace XrEngine.Lighting
                 OriginTotalDistance = 0,
                 Falloff = new LightFalloff
                 {
-                    Type = LightFalloffType.Linear,
+                    Type = LightFallOff,
                     Factor = 1f,
                     Range = LightRange
                 }
@@ -512,7 +524,7 @@ namespace XrEngine.Lighting
                 Position = RayOrigin,
                 Falloff = new LightFalloff
                 {
-                    Type = LightFalloffType.Linear,
+                    Type = LightFallOff,
                     Factor = 1f,
                     Range = LightRange
                 }
@@ -624,11 +636,19 @@ namespace XrEngine.Lighting
             if (_ray == null)
                 return;
 
-            _ray.Step();
+            var res = _ray.Step();
 
             var state = _ray.GetState();
 
-            Log.Debug(this, "{0} / {1}  E: {2}", state.Cell, state.LastAffectedVoxel,  state.Energy.Length());
+            int fillFaces = 0;
+
+            foreach (var face in state.LastVoxel.Faces)
+            {
+                if (face.TriangleId > 0)
+                    fillFaces++;
+            }
+
+            Log.Debug(this, "{4}{0} / {1}  E: {2} - F: {3}", state.Cell, state.LastAffectedVoxel,  state.Energy.Length(), fillFaces, !res ? "[DEAD] " : "");
 
             _curVoxel.WorldPosition = new Vector3(
                 _voxelizer.GridDesc.Origin.X + (state.Cell.X + 0.5f) * _voxelizer.GridDesc.VoxelSize,
@@ -641,13 +661,14 @@ namespace XrEngine.Lighting
             _data ??= new LightFieldData();
 
             _data.Textures = _fieldMat.Textures;
-            _data.Strength = 1;
+            _data.Strength = Strength;
             _data.Origin = _backer.GridDesc.Origin;
             _data.Size = _backer.GridDesc.Size;
             _data.VoxelSize = _backer.GridDesc.VoxelSize;
 
             return _data;
         }
+
 
 
         [Category("Trace")]
@@ -669,6 +690,9 @@ namespace XrEngine.Lighting
         public float LightRange { get; set; }
 
         [Category("Trace")]
+        public LightFalloffType LightFallOff { get; set; }
+
+        [Category("Trace")]
         public VoxelLightMergeMode RayMergeMode { get; set; }
 
         [Category("Trace")]
@@ -687,7 +711,11 @@ namespace XrEngine.Lighting
         [Category("Misc")]
         public bool InitiateLightField { get; set; }
 
-      
+        [Category("Misc")]
+        [Range(0,1, 0.01f)]
+        public float Strength { get; set; }
+
+
         [Category("Blur")]
         public float BlurStrength { get; set; }
 

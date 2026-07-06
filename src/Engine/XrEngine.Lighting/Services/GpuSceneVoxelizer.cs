@@ -27,6 +27,19 @@ namespace XrEngine.Lighting
         public float Metallic;
     }
 
+    public class GpuSceneVoxelizerParams
+    {
+        public GpuSceneVoxelizerParams()
+        {
+            Passes = 2;
+            Eps = 0.1f;
+        }
+
+        public int Passes { get; set; }
+
+        public float Eps { get; set; }
+    }
+
     public sealed class GpuSceneVoxelizer : IDisposable
     {
         private enum ScanAxis
@@ -116,6 +129,9 @@ namespace XrEngine.Lighting
 
         private VoxelGridDesc _grid;
         private GlSimpleProgram? _scanProgram;
+        private GpuSceneVoxelizerParams _params;
+
+        public bool IsEnabled => throw new NotImplementedException();
 
         public GpuSceneVoxelizer(GL gl, int viewsPerBatch = 1)
         {
@@ -124,6 +140,12 @@ namespace XrEngine.Lighting
 
             _scanFbo = new GlMultiViewFrameBuffer(gl);
             _texFb = new GlTextureFrameBuffer(gl);
+            _params = new GpuSceneVoxelizerParams();
+        }
+
+        public void SetParams(GpuSceneVoxelizerParams param)
+        {
+            _params = param;
         }
 
         GlSimpleProgram LoadProgram(int viewCount)
@@ -150,7 +172,7 @@ namespace XrEngine.Lighting
 
             _texFb.Bind();
             _texFb.BindRead(ReadBufferMode.ColorAttachment0);
-                
+
             ReadAxisVolume(ScanAxis.X, _xTarget!, result);
             ReadAxisVolume(ScanAxis.Y, _yTarget!, result);
             ReadAxisVolume(ScanAxis.Z, _zTarget!, result);
@@ -237,18 +259,23 @@ namespace XrEngine.Lighting
 
                 _scanProgram.SetUniform("uBaseSlice", baseSlice);
 
-                for (int i = 0; i < viewCount; ++i)
+                for (int j = 0; j < _params.Passes; j++)
                 {
-                    int slice = baseSlice + i;
-                    var matrix = CreateSliceViewProjection(axis, slice);
-                    _scanProgram.SetUniform($"uViewProj[{i}]", matrix);
+                    for (int i = 0; i < viewCount; ++i)
+                    {
+                        int slice = baseSlice + i;
+                        var eps = j * _params.Eps * _grid.VoxelSize;
+                        var matrix = CreateSliceViewProjection(axis, slice, eps);
+                        _scanProgram.SetUniform($"uViewProj[{i}]", matrix);
+                    }
+
+                    DrawMeshes(meshes);
                 }
 
-                DrawMeshes(meshes);
             }
         }
 
-        private Matrix4x4 CreateSliceViewProjection(ScanAxis axis, int slice)
+        private Matrix4x4 CreateSliceViewProjection(ScanAxis axis, int slice, float axisEps)
         {
             Vector3 size = new Vector3(
                 _grid.Size.X * _grid.VoxelSize,
@@ -271,8 +298,8 @@ namespace XrEngine.Lighting
             switch (axis)
             {
                 case ScanAxis.X:
-                    d0 = min.X + slice * _grid.VoxelSize- eps;
-                    d1 = d0 + _grid.VoxelSize+ eps;
+                    d0 = min.X + slice * _grid.VoxelSize - eps + axisEps;
+                    d1 = d0 + _grid.VoxelSize + eps + axisEps;
 
                     result.M31 = 2.0f / (max.Z - min.Z);
                     result.M22 = 2.0f / (max.Y - min.Y);
@@ -284,8 +311,8 @@ namespace XrEngine.Lighting
                     break;
 
                 case ScanAxis.Y:
-                    d0 = min.Y + slice * _grid.VoxelSize- eps;
-                    d1 = d0 + _grid.VoxelSize+ eps;
+                    d0 = min.Y + slice * _grid.VoxelSize - eps + axisEps;
+                    d1 = d0 + _grid.VoxelSize + eps + axisEps;
 
                     result.M11 = 2.0f / (max.X - min.X);
                     result.M32 = 2.0f / (max.Z - min.Z);
@@ -297,8 +324,8 @@ namespace XrEngine.Lighting
                     break;
 
                 default:
-                    d0 = min.Z + slice * _grid.VoxelSize- eps;
-                    d1 = d0 + _grid.VoxelSize+ eps;
+                    d0 = min.Z + slice * _grid.VoxelSize - eps + axisEps;
+                    d1 = d0 + _grid.VoxelSize + eps + axisEps;
 
                     result.M11 = 2.0f / (max.X - min.X);
                     result.M22 = 2.0f / (max.Y - min.Y);
@@ -315,7 +342,7 @@ namespace XrEngine.Lighting
 
         private void DrawMeshes(IReadOnlyList<TriangleMesh> meshes)
         {
-            foreach (var mesh in meshes)
+            foreach (var mesh in meshes.Where(a=> a.IsVisible))
             {
                 SetMeshUniforms(mesh);
 
@@ -520,6 +547,19 @@ namespace XrEngine.Lighting
                 Roughness = material.Roughness,
                 Metallic = material.Metallic
             });
+        
+            faces.Add(new GpuVoxelFaceData
+            {
+                Cell = new Vector3I(x, y, z),
+                Face = !isFront ? frontFace : backFace,
+                Side = !isFront ? VoxelTriangleSide.Front : VoxelTriangleSide.Back,
+
+                BaseColor = color,
+                Normal = -normal,
+                Roughness = material.Roughness,
+                Metallic = material.Metallic
+            });
+   
         }
 
         private void BindScanTarget(AxisTarget target, int baseLayer, int viewCount)
