@@ -89,7 +89,7 @@ namespace XrEngine
                 Height = images[0].Height,
                 NumSurfaces = 1,
                 NumFaces = images.Count == 1 ? 1 : images.Max(a => a.Layer) + 1,
-                Depth = 1,
+                Depth = images[0].Depth,
                 MIPMapCount = images.Count == 1 ? 1 : images.Max(a => a.MipLevel) + 1
             };
 
@@ -189,8 +189,7 @@ namespace XrEngine
 
             var test = (ulong)header.PixelFormat >> 32;
 
-            if (header.NumSurfaces != 1 ||
-                header.Depth != 1)
+            if (header.NumSurfaces != 1)
             {
                 throw new NotSupportedException();
             }
@@ -251,7 +250,7 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
 
-            return ReadData(seekStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format, blockSize);
+            return ReadData(seekStream, header.Width, header.Height, header.Depth, header.MIPMapCount, header.NumFaces, comp, format, blockSize);
 
         }
 

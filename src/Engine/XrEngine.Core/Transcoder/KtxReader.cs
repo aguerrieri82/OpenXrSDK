@@ -78,7 +78,7 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
 
-            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
+            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, 1, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
         }
 
         protected override bool CanHandleExtension(string extension)

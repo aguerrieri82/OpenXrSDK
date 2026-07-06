@@ -286,7 +286,7 @@ namespace XrEngine
                 }
             }
 
-            return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, 1, comp, format);
+            return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, 1, (uint)file.header.dwMipMapCount, 1, comp, format);
         }
 
         protected override bool CanHandleExtension(string extension)

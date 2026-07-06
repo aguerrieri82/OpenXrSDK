@@ -55,6 +55,25 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder UseFloorTeleport(this XrEngineAppBuilder self, Scene3D scene)
+        {
+            var player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
+            {
+                IsVisible = false,
+                Name = "Player"
+            };
+
+            player.Transform.SetScale(0.3f, 1.7f, 0.3f);
+            player.AddComponent(new XrPlayer
+            {
+                Height = 0f
+            });
+
+            scene.AddChild(player);
+
+            return self.UseTeleport(ControllerHand.Right, player, new FloorTeleportTarget());
+        }
+
         public static XrEngineAppBuilder UseTeleport(this XrEngineAppBuilder self, ControllerHand hand, Object3D dest, ITeleportTarget? target = null)
         {
             self.UseInputs<XrOculusTouchController>(bld =>
@@ -265,6 +284,9 @@ namespace XrEngine.OpenXr
             {
                 if (e.App.Renderer is not OpenGLRender openGl)
                     throw new NotSupportedException("Space warp is only supported on OpenGL");
+
+                if (openGl.Passes<GlMotionVectorPass>().Any())
+                    return;
 
                 openGl.AddPass(new GlMotionVectorPass(openGl, e.XrApp, -1, e.XrApp.RenderOptions.RenderMode == XrRenderMode.MultiView), 0);
             });

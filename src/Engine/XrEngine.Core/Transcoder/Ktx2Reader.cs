@@ -89,7 +89,7 @@ namespace XrEngine
             else
                 seekStream.Position = header.sgdByteOffset;
 
-            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.levelCount, header.faceCount, comp, format);
+            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, 1, header.levelCount, header.faceCount, comp, format);
         }
 
         protected override bool CanHandleExtension(string extension)

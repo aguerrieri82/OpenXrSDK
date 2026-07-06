@@ -1,8 +1,9 @@
 ﻿using Common.Interop;
 using System.Diagnostics;
-using System.Drawing;
+
 using System.Numerics;
 using XrMath;
+
 
 namespace XrEngine.Lighting
 {
@@ -164,8 +165,11 @@ namespace XrEngine.Lighting
 
             for (var i = 0; i < 6; i++)
             {
-                var tex = new Texture3D();
-                tex.Format = TextureFormat.RgbFloat16;
+                var tex = new Texture3D()
+                {
+                    Format = TextureFormat.RgbFloat16,
+                    MipLevelCount = 0
+                };
 
                 var span = new Span<Vector3>((Vector*)field.Color[i], field.CellCapacity);
 
@@ -180,8 +184,11 @@ namespace XrEngine.Lighting
 
                 result.Add(tex);
 
-                tex = new Texture3D();
-                tex.Format = TextureFormat.RgbFloat16;
+                tex = new Texture3D()
+                {
+                    Format = TextureFormat.RgbFloat16,
+                    MipLevelCount = 0
+                };
 
                 tex.LoadData(new TextureData
                 {

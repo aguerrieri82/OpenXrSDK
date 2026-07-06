@@ -65,7 +65,7 @@ namespace XrEditor
               })
               .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateLighting()  
+              .CreateLightField()  
                //.CreateDepthSnapeshot()
               .Build();
     }

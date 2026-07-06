@@ -93,15 +93,15 @@
                 </Border>
                 <ItemsControl ItemsSource="{Binding Groups}"/>
 
-                <ItemsControl ItemsSource="{Binding Actions}">
+                <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding Actions}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Margin="10,0,10,10" Orientation="Horizontal"/>
+                            <WrapPanel  Orientation="Horizontal" Margin="10,0,10,10" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button MinWidth="70" Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,5,0">
+                            <Button MinWidth="70" Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,5,5">
                                 <TextBlock Text="{Binding DisplayName}"/>
                             </Button>
                         </DataTemplate>

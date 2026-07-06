@@ -81,6 +81,8 @@ namespace XrEditor
 
         public string CachePath => @"D:\Projects\XrEditor\Cache";
 
+        public string SharedPath => @"D:\Projects\XrEditor\Storage";
+
         public string Name => "Editor";
 
         public DeviceInfo Device => _info;

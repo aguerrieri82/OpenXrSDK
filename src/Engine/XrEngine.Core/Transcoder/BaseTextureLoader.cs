@@ -82,7 +82,7 @@ namespace XrEngine
             return result;
         }
 
-        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format, uint blockSize = 0)
+        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint depth, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format, uint blockSize = 0)
         {
             var padding = GetFormatAlign(comp, format);
 
@@ -101,7 +101,7 @@ namespace XrEngine
                     {
                         Width = (uint)MathF.Max(1, width >> mipLevel),
                         Height = (uint)MathF.Max(1, height >> mipLevel),
-                        Depth = faceCount,
+                        Depth = faceCount == 1 ? depth : faceCount,
                         MipLevel = (uint)mipLevel,
                         Format = format,
                         Layer = (uint)face,
@@ -118,7 +118,7 @@ namespace XrEngine
                         size = blocksX * blocksY * 16;
                     }
                     else
-                        size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
+                        size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * depth * padding.BitPerPixel) / 8;
 
                     item.Data = MemoryBuffer.Create<byte>(size);
 

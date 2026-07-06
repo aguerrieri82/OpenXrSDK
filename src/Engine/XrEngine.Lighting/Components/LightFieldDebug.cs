@@ -16,43 +16,39 @@ namespace XrEngine.Lighting
     [StateManager(StateManagerMode.Auto)]
     public class LightFieldDebug : BaseComponent<TriangleMesh>, ILightFieldProvider, IDrawGizmos
     {
-        MeshVoxelizer _voxelizer;
-        GpuSceneVoxelizer _gpuVoxelizer;
-        VoxelLightBaker _backer;
 
-        TriangleMesh _meshView;
-        TriangleMesh _fieldView;
-        CanvasView2D _canvas;
-        MeshVoxelMaterial _meshMat;
-        LightFieldViewMaterial _fieldMat;
-        TriangleMesh _curVoxel;
-        FieldPhongMaterial _finalMat;
+        readonly TriangleMesh _meshView;
+        readonly TriangleMesh _fieldView;
+        readonly CanvasView2D _canvas;
+        readonly MeshVoxelMaterial _meshMat;
+        readonly LightFieldViewMaterial _fieldMat;
+        readonly TriangleMesh _curVoxel;
+        readonly FieldPhongMaterial _finalMat;
+        readonly VoxelLightBaker _backer;
+        readonly bool _isReadMode;
 
-        MeshVoxelGrid? _meshGrid;
         VoxelRayMarcher? _ray;
 
         LightFieldData? _data;
         TriangleMesh[]? _walls;
-        VoxelGridDesc _gridDesc;
-        private List<GpuVoxelFaceData> _faces;
-        private VoxelLightFieldView _field;
 
-        public LightFieldDebug(VoxelGridDesc gridDesc)
+        VoxelGridDesc _gridDesc;
+        GpuSceneVoxelizer? _gpuVoxelizer;
+
+        List<GpuVoxelFaceData>? _faces;
+        VoxelLightFieldView _field;
+        IList<Texture3D>? _textures;
+        TextureData[]? _texData;
+
+        public LightFieldDebug(VoxelGridDesc gridDesc, bool isReadMode)
         {
+            _isReadMode = isReadMode;
+
             _gridDesc = gridDesc;   
 
             _backer = new VoxelLightBaker();
 
             _finalMat = new FieldPhongMaterial();
-
-            _voxelizer = new MeshVoxelizer
-            {
-                GridDesc = gridDesc,
-                GridParams = new()
-                {
-                    ScanSubdiv = 2
-                }
-            };
 
             _meshMat = new MeshVoxelMaterial()
             {
@@ -132,149 +128,12 @@ namespace XrEngine.Lighting
             base.SetStateWork(container);
         }
 
-        private void CompareSceneWithMesh(VoxelData[] scene)
-        {
-            if (_meshGrid == null)
-                return;
-
-            var meshOrigin = _meshGrid.Info.Origin;
-            var meshSize = _meshGrid.Info.Size;
-            var grid = _voxelizer.GridDesc;
-
-            var meshVoxels = _meshGrid.Voxels.ToArray();
-
-            var checkedCount = 0;
-            var mismatchCount = 0;
-
-            for (var z = 0; z < meshSize.Z; z++)
-            {
-                var gz = meshOrigin.Z + z;
-
-                for (var y = 0; y < meshSize.Y; y++)
-                {
-                    var gy = meshOrigin.Y + y;
-
-                    for (var x = 0; x < meshSize.X; x++)
-                    {
-                        var gx = meshOrigin.X + x;
-
-                        var meshIndex =
-                            x +
-                            y * meshSize.X +
-                            z * meshSize.X * meshSize.Y;
-
-                        var sceneIndex =
-                            gx +
-                            gy * grid.Size.X +
-                            gz * grid.Size.X * grid.Size.Y;
-
-                        if ((uint)sceneIndex >= (uint)scene.Length)
-                        {
-                            Log.Warn(this, "Scene index out of range mesh=({0},{1},{2}) global=({3},{4},{5}) sceneIndex={6} sceneCount={7}",
-                                x, y, z,
-                                gx, gy, gz,
-                                sceneIndex,
-                                scene.Length);
-
-                            mismatchCount++;
-                            continue;
-                        }
-
-                        var meshVoxel = meshVoxels[meshIndex];
-                        var sceneVoxel = scene[sceneIndex];
-
-                        checkedCount++;
-
-                        if (!VoxelEquals(meshVoxel, sceneVoxel, out var reason))
-                        {
-                            Log.Warn(this, "Scene voxel mismatch mesh=({0},{1},{2}) global=({3},{4},{5}) meshIndex={6} sceneIndex={7}: {8}",
-                                x, y, z,
-                                gx, gy, gz,
-                                meshIndex,
-                                sceneIndex,
-                                reason);
-
-                            mismatchCount++;
-
-                            if (mismatchCount >= 200)
-                            {
-                                Log.Warn(this, "Stopping comparison after {0} mismatches", mismatchCount);
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-
-            Log.Info(this, "Scene/Mesh voxel compare done. Checked={0}, mismatches={1}", checkedCount, mismatchCount);
-        }
-
-        private static bool VoxelEquals(VoxelData a, VoxelData b, out string reason)
-        {
-            if (a.Status != b.Status)
-            {
-                reason = $"Status mesh={a.Status} scene={b.Status}";
-                return false;
-            }
-
-            if (a.Occupancy != b.Occupancy)
-            {
-                reason = $"Occupancy mesh={a.Occupancy} scene={b.Occupancy}";
-                return false;
-            }
-
-            for (var face = 0; face < VoxelLightConst.FaceCount; face++)
-            {
-                var fa = a.Faces[face];
-                var fb = b.Faces[face];
-
-                if (!FaceEquals(fa, fb, out var faceReason))
-                {
-                    reason = $"Face {face}: {faceReason}";
-                    return false;
-                }
-            }
-
-            reason = "";
-            return true;
-        }
-
-        private static bool FaceEquals(VoxelFaceData a, VoxelFaceData b, out string reason)
-        {
-            if (a.Side != b.Side)
-            {
-                reason = $"Side mesh={a.Side} scene={b.Side}";
-                return false;
-            }
-
-            if (a.TriangleId != b.TriangleId && a.TriangleId != -1 && b.TriangleId != 0)
-            {
-                reason = $"TriangleId mesh={a.TriangleId} scene={b.TriangleId}";
-                return false;
-            }
-
-            if (a.UV != b.UV)
-            {
-                reason = $"UV mesh={a.UV} scene={b.UV}";
-                return false;
-            }
-
-            if (a.HitPosition != b.HitPosition)
-            {
-                reason = $"HitPosition mesh={a.HitPosition} scene={b.HitPosition}";
-                return false;
-            }
-
-            reason = "";
-            return true;
-        }
-
         protected void CreateWalls()
         {
-            var grid = _voxelizer.GridDesc;
-            var cell = grid.VoxelSize;
-            var size = grid.Size;
-            var origin = grid.Origin;
+
+            var cell = _gridDesc.VoxelSize;
+            var size = _gridDesc.Size;
+            var origin = _gridDesc.Origin;
             var padding = 1;
 
             var xMin = origin.X + cell;
@@ -364,7 +223,7 @@ namespace XrEngine.Lighting
             if (_curVoxel.Parent == null)
                 _host.Scene.AddChild(_curVoxel);
 
-            if (_canvas.Parent == null)
+            if (_canvas.Parent == null && !_isReadMode)
                 _host.Scene.AddChild(_canvas);
 
             if (_meshView.Parent == null)
@@ -393,7 +252,7 @@ namespace XrEngine.Lighting
 
             Log.Info(this, "Begin");
 
-            _gpuVoxelizer = new GpuSceneVoxelizer(OpenGLRender.Current!.GL, 32);
+            _gpuVoxelizer ??= new GpuSceneVoxelizer(OpenGLRender.Current!.GL, 32);
 
             XrEngine.EngineNativeLib.RdcStartFrameCapture();
             
@@ -406,7 +265,7 @@ namespace XrEngine.Lighting
             XrEngine.EngineNativeLib.RdcEndFrameCapture(true);
 
             _meshMat.Target = _host;
-            _meshMat.GridDesc = _voxelizer.GridDesc;
+            _meshMat.GridDesc = _gridDesc;
             _meshMat.FaceInstances = _faces.Select(a => new GpuVoxelFaceInstance
             {
                 Face = a.Face,
@@ -434,11 +293,8 @@ namespace XrEngine.Lighting
 
         private void OnDraw(ScreenCanvas obj)
         {
-            obj.DrawCube(_curVoxel.WorldPosition, new Vector3(_voxelizer.GridDesc.VoxelSize),
+            obj.DrawCube(_curVoxel.WorldPosition, new Vector3(_gridDesc.VoxelSize),
                          "#ff0000", 3);
-            /*
-            obj.DrawLine(RayOrigin, RayOrigin + RayDir.Normalize() * 3f,
-              "#ff0000", 3);*/
         }
 
         protected void UpdateParams()
@@ -491,7 +347,7 @@ namespace XrEngine.Lighting
 
             _backer.ClearLightField();
             _backer.ClearScene();
-            _backer.SetGrid(_voxelizer.GridDesc);
+            _backer.SetGrid(_gridDesc);
 
             UpdateParams();
 
@@ -535,7 +391,6 @@ namespace XrEngine.Lighting
             _backer.AccumulateLight(lightMap);
 
             Log.Debug(this, "Accumulate end");
-
 
             Extract();
         }
@@ -582,6 +437,65 @@ namespace XrEngine.Lighting
             Log.Warn(this, "2: {0} - 3:{1} - T: {2}", count2, count3, _field.CellCount);
         }
 
+        [Action]
+        public void Export()
+        {
+            if (_texData == null || StorePath == null)
+                return;
+
+            var path = Path.Combine(StorePath, "LightField");
+            Directory.CreateDirectory(path);
+
+            var writer = PvrTranscoder.Instance;
+
+            for (var i = 0; i < _texData.Length; i++)
+            {
+                using var fs = File.OpenWrite(Path.Combine(path, $"Tex_{i}.pvr"));
+
+                writer.SaveTexture(fs, [_texData[i]]);
+            }
+        }
+
+        [Action]
+        public void Import()
+        {
+            if (StorePath == null)
+                return;
+
+            var path = Path.Combine(StorePath, "LightField");
+
+            if (!Directory.Exists(path))
+                return;
+            
+            var reader = PvrTranscoder.Instance;
+
+            var textures = new List<Texture3D>();
+
+            var files = Directory.GetFiles(path, "*.pvr")
+                .OrderBy(a => int.Parse(Path.GetFileNameWithoutExtension(a).Split('_')[1]))
+                .ToArray();
+
+            foreach (var file in files)
+            {
+                using var fs = File.OpenRead(file);
+                var data = reader.LoadTexture(fs);
+                var tex = new Texture3D()
+                {
+                    Format = TextureFormat.RgbFloat16,
+                    MipLevelCount = 10,
+                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    MagFilter = ScaleFilter.Linear
+                };
+                tex.LoadData(data);
+                textures.Add(tex);
+            }
+
+            _textures = textures.ToArray();
+            _texData = null;
+
+            Init();
+            LoadTextures();
+        }
 
 
         [Action]
@@ -593,8 +507,6 @@ namespace XrEngine.Lighting
 
             _field = _backer.GetLightField(true);
 
-            //AdjustField();
-
             _fieldView.InstanceCount = _field.Size.Area();
 
             if (_fieldMat.Textures != null)
@@ -603,32 +515,14 @@ namespace XrEngine.Lighting
                     tex.Dispose();
             }
 
-            var textures = _backer.CreateTextures();
+            _textures = _backer.CreateTextures();
 
-            _fieldMat.VoxelSize = _backer.GridDesc.VoxelSize;
-            _fieldMat.Origin = _backer.GridDesc.Origin;
-            _fieldMat.Size = _backer.GridDesc.Size;
-            _fieldMat.Textures = textures;
-            _fieldMat.Invalidate();
+            _texData = _textures.Select(a => a.Data![0]).ToArray();
 
-            _finalMat.IsEnabled = false;
-            _finalMat.VoxelSize = _backer.GridDesc.VoxelSize;
-            _finalMat.Origin = _backer.GridDesc.Origin;
-            _finalMat.Size = _backer.GridDesc.Size;
-            _finalMat.Textures = textures;
-            _finalMat.Invalidate();
-
-            PbrV2Material.SHADER.UseLightField = true;
-            PbrV2Material.SHADER.NotifyChanged(ChangeType.Render);
-
-            ((PbrV2Material)_host!.Materials[0]).UseLightField = true;
-            ((PbrV2Material)_host!.Materials[0]).NotifyChanged(ChangeType.Render);
-
-            foreach (var light in _host.Scene!.Descendants<Light>())
-                light.IsVisible = false;
-
-            Log.Info(this, "Texture loaded");
+            LoadTextures();
         }
+
+
 
         [Action]
         public void Step()
@@ -651,24 +545,51 @@ namespace XrEngine.Lighting
             Log.Debug(this, "{4}{0} / {1}  E: {2} - F: {3}", state.Cell, state.LastAffectedVoxel,  state.Energy.Length(), fillFaces, !res ? "[DEAD] " : "");
 
             _curVoxel.WorldPosition = new Vector3(
-                _voxelizer.GridDesc.Origin.X + (state.Cell.X + 0.5f) * _voxelizer.GridDesc.VoxelSize,
-                _voxelizer.GridDesc.Origin.Y + (state.Cell.Y + 0.5f) * _voxelizer.GridDesc.VoxelSize,
-                _voxelizer.GridDesc.Origin.Z + (state.Cell.Z + 0.5f) * _voxelizer.GridDesc.VoxelSize);
+                _gridDesc.Origin.X + (state.Cell.X + 0.5f) * _gridDesc.VoxelSize,
+                _gridDesc.Origin.Y + (state.Cell.Y + 0.5f) * _gridDesc.VoxelSize,
+                _gridDesc.Origin.Z + (state.Cell.Z + 0.5f) * _gridDesc.VoxelSize);
+        }
+
+        protected void LoadTextures()
+        {
+            _fieldMat.VoxelSize = _backer.GridDesc.VoxelSize;
+            _fieldMat.Origin = _backer.GridDesc.Origin;
+            _fieldMat.Size = _backer.GridDesc.Size;
+            _fieldMat.Textures = _textures;
+            _fieldMat.Invalidate();
+
+            _finalMat.IsEnabled = false;
+            _finalMat.VoxelSize = _backer.GridDesc.VoxelSize;
+            _finalMat.Origin = _backer.GridDesc.Origin;
+            _finalMat.Size = _backer.GridDesc.Size;
+            _finalMat.Textures = _textures;
+            _finalMat.Invalidate();
+
+            PbrV2Material.SHADER.UseLightField = true;
+            PbrV2Material.SHADER.NotifyChanged(ChangeType.Render);
+
+            ((PbrV2Material)_host!.Materials[0]).UseLightField = true;
+            ((PbrV2Material)_host!.Materials[0]).NotifyChanged(ChangeType.Render);
+
+            foreach (var light in _host.Scene!.Descendants<Light>())
+                light.IsVisible = false;
+
+            Log.Info(this, "Texture loaded");
         }
 
         public LightFieldData GetLightField()
         {
             _data ??= new LightFieldData();
 
-            _data.Textures = _fieldMat.Textures;
+            _data.Textures = _textures;
             _data.Strength = Strength;
-            _data.Origin = _backer.GridDesc.Origin;
-            _data.Size = _backer.GridDesc.Size;
-            _data.VoxelSize = _backer.GridDesc.VoxelSize;
+            _data.Origin = _gridDesc.Origin;
+            _data.Size = _gridDesc.Size;
+            _data.VoxelSize = _gridDesc.VoxelSize;
+            _data.UseAllFaces = true;
 
             return _data;
         }
-
 
 
         [Category("Trace")]
@@ -715,6 +636,7 @@ namespace XrEngine.Lighting
         [Range(0,1, 0.01f)]
         public float Strength { get; set; }
 
+        public string? StorePath { get; set; }
 
         [Category("Blur")]
         public float BlurStrength { get; set; }

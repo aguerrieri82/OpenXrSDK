@@ -1082,8 +1082,8 @@ namespace XrSamples
         }
 
 
-        [Sample("Cucina")]
-        public static XrEngineAppBuilder CreateLighting(this XrEngineAppBuilder builder)
+        [Sample("Light Field")]
+        public static XrEngineAppBuilder CreateLightField(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
@@ -1103,19 +1103,31 @@ namespace XrSamples
 
             var mesh = scene.AddChild((TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions));
             mesh.Name = "Bed";
-            mesh.AddComponent(new LightFieldDebug(grid));
+
+            XrEngine.MeshOptimizer.Optimize(mesh.Geometry!);
+
+            //(mesh.Materials[0] as PbrV2Material).Simplified = true;
+
+            var lightField = mesh.AddComponent(new LightFieldDebug(grid, XrPlatform.IsAndroid)
+            {
+                StorePath = Path.Combine(XrPlatform.Current!.SharedPath)
+            });
 
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
+                .UseFloorTeleport(scene)
                 .ConfigureApp(cfg =>
                 {
                     OpenGLRender.Current!.GL.GetInteger((GLEnum)0x9631, out int value);
 
                     foreach (var light in scene.Descendants<Light>())
                         light.IsVisible = true;
+
+                    if (XrPlatform.IsAndroid)
+                        lightField.Import();
                 })
-                .ConfigureSampleApp();
+                .ConfigureSampleApp(false);
         }
 
 
@@ -1448,34 +1460,19 @@ namespace XrSamples
                 UseMeshCache = true
             });
 
-            TriangleMesh player = null;
 
-            if (mode== DepthSnapeshotMode.Read)
+            if (mode == DepthSnapeshotMode.Read)
             {
                 var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
                 //var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_080632_705");
                 snapeshot.Load(path);
-
-                player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
-                {
-                    IsVisible = false,
-                    Name = "Player"
-                };
-
-                player.Transform.SetScale(0.3f, 1.7f, 0.3f);
-                player.AddComponent(new XrPlayer
-                {
-                    Height = 0f
-                });
-
-                scene.AddChild(player);
             }
 
             return builder
                 .UseApp(app)
                 .UseEnvironmentDepth()
                 .UseDefaultHDR()
-                .UseTeleport(ControllerHand.Right, player!, new FloorTeleportTarget())
+                .UseFloorTeleport(scene)
                 .ConfigureSampleApp(false)
                 .ConfigureApp(a =>
                 {
@@ -1524,24 +1521,10 @@ namespace XrSamples
 
             scene.AddChild(mesh);
 
-            var player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"))
-            {
-                IsVisible = false,
-                Name = "Player"
-            };
-
-            player.Transform.SetScale(0.3f, 1.7f, 0.3f);
-            player.AddComponent(new XrPlayer
-            {
-                Height = 0f
-            });
-
-            scene.AddChild(player);
-
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
-                .UseTeleport(ControllerHand.Right, player!, new FloorTeleportTarget())
+                .UseFloorTeleport(scene)
                 .ConfigureSampleApp(false)
                 .ConfigureApp(a =>
                 {

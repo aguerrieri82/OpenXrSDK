@@ -25,17 +25,20 @@ namespace XrSamples
 
         public bool TextureCompression { get; set; }
 
+        public float Scale { get; set; }
+
 
         public static GameSettings Graffiti()
         {
             return new GameSettings
-            { 
-               // SampleName = "DnD",
+            {
+                SampleName = "Light Field",
                 Msaa = 2,
+                Scale = 1f,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
-                UseSpaceWarp = false,
+                UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = true,
                 TextureCompression = false
@@ -47,6 +50,7 @@ namespace XrSamples
             return new GameSettings()
             {
                 Msaa = 1,
+                Scale = 1f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = true,

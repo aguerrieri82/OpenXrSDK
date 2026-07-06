@@ -27,10 +27,6 @@ vec3 evaluateLightFieldFace(
 	vec3 normal,
 	vec3 viewDir)
 {
-	vec3 radiance = texture(uLightField[face * 2 + 0], uvw).rgb * uLightFieldStrength;
-
-	if (dot(radiance, radiance) <= LightEpsilon)
-		return vec3(0.0);
 
 	vec3 emittedDir = texture(uLightField[face * 2 + 1], uvw).rgb;
 
@@ -41,9 +37,16 @@ vec3 evaluateLightFieldFace(
 	if (dot(normal, L) <= 0.0)
 		return vec3(0.0);
 
-	vec3 diffuseRadiance = desaturatePreserveEnergy(radiance, 0.95 * roughness);
-	vec3 specularRadiance = desaturatePreserveEnergy(radiance, 0.95 * (1.0 - metalness));
+	vec3 radiance = texture(uLightField[face * 2 + 0], uvw).rgb * uLightFieldStrength;
 
+	if (dot(radiance, radiance) <= LightEpsilon)
+		return vec3(0.0);
+
+	//vec3 diffuseRadiance = desaturatePreserveEnergy(radiance, 0.95 * roughness);
+	//vec3 specularRadiance = desaturatePreserveEnergy(radiance, 0.95 * (1.0 - metalness));
+
+	vec3 diffuseRadiance = radiance;
+	vec3 specularRadiance = radiance;
 
 	float NoL = saturate(dot(normal, L));
 	float NoV = saturate(dot(normal, viewDir));
@@ -70,11 +73,11 @@ vec3 evaluateLightFieldFace(
 
 	vec3 kd = (vec3(1.0) - F) * (1.0 - metalness);
 
-#if PBR_USE_PHYSICAL_DIRECT_DIFFUSE
-	vec3 diffuseBRDF = kd * albedo * (1.0 / PI);
-#else
-	vec3 diffuseBRDF = kd * albedo;
-#endif
+	#if PBR_USE_PHYSICAL_DIRECT_DIFFUSE
+		vec3 diffuseBRDF = kd * albedo * (1.0 / PI);
+	#else
+		vec3 diffuseBRDF = kd * albedo;
+	#endif
 
 	vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * NoL * NoV);
 
