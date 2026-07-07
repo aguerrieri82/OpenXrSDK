@@ -23,8 +23,6 @@ namespace XrEngine.OpenXr.Android
 
         public AndroidPlatform(Context2 context)
         {
-            PbrV1Material.LinearOutput = false;
-
             Context.Implement<IAssetStore>(new MergedAssetStore(
                 new AndroidAssetStore(context, ""),
                 new LocalAssetStore(Path.Combine(SharedPath, "Assets"))));

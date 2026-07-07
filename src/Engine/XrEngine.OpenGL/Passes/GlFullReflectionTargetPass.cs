@@ -170,7 +170,10 @@ namespace XrEngine.OpenGL
             if (_reflection!.BlurLevel > 0)
             {
                 _swap!.Active.GenerateMipmap();
+                _swap.Blur(2, _reflection!.BlurLevel);
             }
+
+            _reflection.Texture = (Texture2D)_swap!.Active.ToEngineTexture();
 
         }
 

@@ -662,7 +662,7 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(Texture2D texture)
         {
-            texture.ToGlTexture();
+           texture.ToGlTexture();
         }
 
         #endregion

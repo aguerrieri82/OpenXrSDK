@@ -34,7 +34,7 @@ namespace XrEngine.OpenGL
 
         }
 
-        public void Kernel3x3(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels)
+        public void Kernel3x3(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, int mipLevel)
         {
             var isInit = false;
 
@@ -42,12 +42,13 @@ namespace XrEngine.OpenGL
             {
                 program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
 
-                if (src.Format == TextureFormat.Rgba32  || src.Format == TextureFormat.SRgba32)
+                if (src.Format == TextureFormat.Rgba32 || src.Format == TextureFormat.SRgba32)
                     program.AddFeature("FORMAT rgba8");
 
                 if (src.Depth > 1 || dst.Depth > 1)
                     program.AddFeature("USE_ARRAY");
 
+                program.AddFeature($"MIP_LEVEL {mipLevel}");
                 program.AddFeature("CHANNELS " + activeChannels);
 
                 program.Build();
@@ -57,10 +58,13 @@ namespace XrEngine.OpenGL
                 isInit = true;
             }
 
+            var mipWidth = Math.Max(1, dst.Width >> mipLevel);
+            var mipHeight = Math.Max(1, dst.Height >> mipLevel);
+
             var curProgram = _glState.ActiveProgram;
 
             program.Use();
-            program.SetUniform("texelSize", new Vector2(1f / dst.Width, 1f / dst.Height));
+            program.SetUniform("texelSize", new Vector2(1f / mipWidth, 1f / mipHeight));
 
             if (isInit)
                 program.SetUniform("weights", data);
@@ -74,18 +78,18 @@ namespace XrEngine.OpenGL
             if (format == InternalFormat.Srgb8Alpha8)
                 throw new NotSupportedException();
 
-            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, dst.Depth > 1, 0, BufferAccessARB.WriteOnly, format);
+            _gl.BindImageTexture(0, dstGl, mipLevel, dst.Depth > 1, 0, BufferAccessARB.WriteOnly, format);
 
             var z = src.Depth == 0 ? 1 : src.Depth;
 
-            _gl.DispatchCompute((dst.Width + 15) / 16, (dst.Height + 15) / 16, z);
+            _gl.DispatchCompute((uint)((mipWidth + 15) / 16), (uint)((mipHeight + 15) / 16), (uint)z);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
             _glState.SetActiveProgram(curProgram ?? 0);
         }
 
-        void KernelXOrY(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, string progName)
+        void KernelXOrY(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, string progName, int mipLevel)
         {
             var isInit = false;
 
@@ -93,6 +97,15 @@ namespace XrEngine.OpenGL
             {
                 program = new GlComputeProgram(_gl, progName, str => Embedded.GetString<Material>(str));
                 program.Build();
+
+                if (src.Format == TextureFormat.Rgba32 || src.Format == TextureFormat.SRgba32)
+                    program.AddFeature("FORMAT rgba8");
+
+                if (src.Depth > 1 || dst.Depth > 1)
+                    program.AddFeature("USE_ARRAY");
+
+                program.AddFeature($"MIP_LEVEL {mipLevel}");
+                program.AddFeature("CHANNELS " + activeChannels);
 
                 _computePrograms[key] = program;
 
@@ -123,14 +136,14 @@ namespace XrEngine.OpenGL
             _glState.SetActiveProgram(curProgram ?? 0);
         }
 
-        public void KernelX(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels)
+        public void KernelX(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, int mipLevel = 0)
         {
-            KernelXOrY(src, dst, data, key, activeChannels, "Image/kernelX.comp");
+            KernelXOrY(src, dst, data, key, activeChannels, "Image/kernelX.comp", mipLevel);
         }
 
-        public void KernelY(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels)
+        public void KernelY(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, int mipLevel = 0)
         {
-            KernelXOrY(src, dst, data, key, activeChannels, "Image/kernelY.comp");
+            KernelXOrY(src, dst, data, key, activeChannels, "Image/kernelY.comp", mipLevel);
         }
 
 

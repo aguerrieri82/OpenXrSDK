@@ -105,6 +105,11 @@ namespace XrEngine
             OnChanged(ChangeType.Render);
         }
 
+        public void NotifyChanged()
+        {
+            NotifyChanged(ChangeType.Render);
+        }
+
         public IReadOnlySet<EngineObject> Hosts => _hosts;
 
         public bool UseClipDistance { get; set; }

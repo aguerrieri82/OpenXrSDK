@@ -174,8 +174,7 @@ namespace XrEngine.OpenGL
             return res;
         }
 
-
-        protected unsafe uint CreateLutTexture()
+        protected uint CreateLutTexture()
         {
             var targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.Texture2D, targetTexture);
@@ -197,7 +196,7 @@ namespace XrEngine.OpenGL
             return targetTexture;
         }
 
-        protected unsafe uint CreateCubeMap(bool withMipmaps)
+        protected uint CreateCubeMap(bool withMipmaps)
         {
             var targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, targetTexture);

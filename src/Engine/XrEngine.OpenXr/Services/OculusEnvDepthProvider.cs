@@ -114,7 +114,7 @@ namespace XrEngine.OpenXr
                                 WrapS = WrapMode.ClampToEdge,
                                 WrapT = WrapMode.ClampToEdge,
                             };
-                            filter.Blur(texture, _outTexture, "Outline_Blur", 1);
+                            filter.Blur(texture, _outTexture, "Outline_Blur", 1, 0);
                             _lastTexture = _outTexture;
                         }
                     }

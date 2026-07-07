@@ -4,6 +4,12 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z=1) in;
     #define FORMAT rgba16f
 #endif
 
+#ifndef MIP_LEVEL
+    #define MIP_LEVEL 0
+#endif
+
+
+
 #ifdef USE_ARRAY
     layout (binding = 10) uniform highp sampler2DArray sourceTexture;
     layout (binding = 0, FORMAT) restrict writeonly uniform highp image2DArray destTexture;
@@ -19,6 +25,9 @@ void main() {
 
     vec2 uv = (vec2(gl_GlobalInvocationID.xy) + 0.5) * texelSize;
     
+    if (uv.x > 1.0 || uv.y > 1.0)
+        return;
+
     #if CHANNELS == 2
        vec2 color = vec2(0.0);
     #elif CHANNELS == 3
@@ -46,19 +55,19 @@ void main() {
         #ifdef USE_ARRAY
 
             #if CHANNELS == 2
-                color += texture(sourceTexture, vec3(uv + offsets[i], gl_GlobalInvocationID.z)).rg * weights[i];
+                color += textureLod(sourceTexture, vec3(uv + offsets[i], float(gl_GlobalInvocationID.z)), float(MIP_LEVEL)).rg * weights[i];
             #elif CHANNELS == 3
-                color += texture(sourceTexture, vec3(uv + offsets[i], gl_GlobalInvocationID.z)).rgb * weights[i];
+                color += textureLod(sourceTexture, vec3(uv + offsets[i], float(gl_GlobalInvocationID.z)), float(MIP_LEVEL)).rgb * weights[i];
             #else
-                color += texture(sourceTexture, vec3(uv + offsets[i], gl_GlobalInvocationID.z)).r * weights[i];
+                color += textureLod(sourceTexture, vec3(uv + offsets[i], float(gl_GlobalInvocationID.z)), float(MIP_LEVEL)).r * weights[i];
             #endif
         #else
             #if CHANNELS == 2
-                color += texture(sourceTexture, uv + offsets[i]).rg * weights[i];
+                color += textureLod(sourceTexture, uv + offsets[i], float(MIP_LEVEL)).rg * weights[i];
             #elif CHANNELS == 3
-                color += texture(sourceTexture, uv + offsets[i]).rgb * weights[i];
+                color += textureLod(sourceTexture, uv + offsets[i], float(MIP_LEVEL)).rgb * weights[i];
             #else
-                color += texture(sourceTexture, uv + offsets[i]).r * weights[i];
+                color += textureLod(sourceTexture, uv + offsets[i], float(MIP_LEVEL)).r * weights[i];
             #endif
         #endif
     }
@@ -66,7 +75,14 @@ void main() {
 
     // Write the final blurred color to the destination texture
     #ifdef USE_ARRAY
-        imageStore(destTexture, ivec3(gl_GlobalInvocationID), vec4(color,  1.0));
+	    #if CHANNELS == 3
+			imageStore(destTexture, ivec3(gl_GlobalInvocationID), vec4(color,  1.0));
+        #elif CHANNELS == 2
+            imageStore(destTexture, ivec3(gl_GlobalInvocationID), vec4(color, 1.0, 1.0));
+        #else
+            imageStore(destTexture, ivec3(gl_GlobalInvocationID), vec4(color));
+        #endif
+
     #else
         #if CHANNELS == 3
             imageStore(destTexture, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0));

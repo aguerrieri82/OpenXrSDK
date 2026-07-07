@@ -386,6 +386,7 @@ namespace XrEngine.OpenGL
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DArray;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2D;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler3D;\n");
+            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" samplerCube;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.FloatPrecision)).Append(" float;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.IntPrecision)).Append(" int;\n");
 

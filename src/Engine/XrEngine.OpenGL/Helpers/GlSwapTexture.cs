@@ -37,6 +37,9 @@ namespace XrEngine.OpenGL
 
             _temp.Allocate(_main.Width, _main.Height, _main.Depth, _main.InternalFormat.GetTextureFormat());
 
+            if (_main.MaxLevel > 0)
+                _temp.GenerateMipmap();
+
             _activeTex = _main;
             _backTex = _temp;
         }
@@ -59,13 +62,13 @@ namespace XrEngine.OpenGL
             Update(width, height, _main.Depth, _main.InternalFormat.GetTextureFormat());
         }
 
-        public void Blur(int passes = 1)
+        public void Blur(int passes = 1, int mipLevel = 0)
         {
             for (var i = 0; i < passes; i++)
             {
                 GlTextureFilter.Instance!.Blur(
                     (Texture2D)_activeTex.ToEngineTexture(), 
-                    (Texture2D)_backTex.ToEngineTexture(), "Swap_3", 3);
+                    (Texture2D)_backTex.ToEngineTexture(), "Swap_3", 3, mipLevel);
 
                 Swap();
             }

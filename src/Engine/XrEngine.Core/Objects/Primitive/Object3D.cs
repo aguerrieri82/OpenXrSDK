@@ -264,9 +264,9 @@ namespace XrEngine
             get => (-Vector3.UnitZ).Transform(WorldOrientation);
             set
             {
-                //WorldOrientation = value.ToOrientation();
-                var delta = Forward.RotationTowards(value);
-                WorldOrientation = Quaternion.Normalize(delta * WorldOrientation);
+                WorldOrientation = value.ToOrientation();
+                //var delta = Forward.RotationTowards(value);
+                //WorldOrientation = Quaternion.Normalize(delta * WorldOrientation);
             }
         }
 

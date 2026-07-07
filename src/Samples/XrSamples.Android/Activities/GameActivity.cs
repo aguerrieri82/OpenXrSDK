@@ -135,10 +135,7 @@ namespace XrSamples.Android.Activities
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp();
 
-            if (_settings.UsePbrV2)
-                MaterialFactory.DefaultPbr = typeof(PbrMaterial);
-            else
-                MaterialFactory.DefaultPbr = typeof(PbrV1Material);
+            MaterialFactory.DefaultPbr = typeof(PbrMaterial);
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 

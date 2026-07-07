@@ -49,26 +49,25 @@ namespace XrEngine
                 bld.AddFeature("COLOR_CORRECT");
                 bld.AddFeature("MIP_FACTOR");
 
-
                 bld.ExecuteAction((ctx, up) =>
                 {
                     var light = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
                     var textures = light?.Textures;
 
-                    if (light != null && textures?.Env != null && ctx.PassCamera != null)
+                    if (light != null && textures?.GGXEnv != null && ctx.PassCamera != null)
                     {
-                        up.LoadTexture(textures.Env, 0);
+                        up.LoadTexture(textures.GGXEnv, 0);
 
                         up.SetUniform("uMipCount", (int)textures.MipCount);
                         up.SetUniform("uMipFactor", Blur);
                         up.SetUniform("uIntensity", light.Intensity * ctx.PassCamera.Exposure);
                         up.SetUniform("uCubeRotation", Matrix3x3.CreateRotationY(light.RotationY));
-
                     }
                 });
             }
 
             public float Blur { get; set; }
+
         }
 
         public EnvironmentView()
@@ -76,5 +75,7 @@ namespace XrEngine
             Geometry = CubeGeometry;
             Materials.Add(new EnvViewMaterial() { });
         }
+
+        public EnvViewMaterial Material => (EnvViewMaterial)Materials[0];
     }
 }

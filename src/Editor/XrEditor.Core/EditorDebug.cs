@@ -38,7 +38,7 @@ namespace XrEditor
 
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -65,7 +65,7 @@ namespace XrEditor
                   opt.ToneMap = ToneMapMode.Neutral;
 
               })
-              .UseSpaceWarp()
+            // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
               .CreateRoomManager()  
                //.CreateDepthSnapeshot()

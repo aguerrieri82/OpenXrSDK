@@ -7,6 +7,7 @@ namespace XrEngine
     public class ImageLight : Light
     {
         private string? _cacheBasePath;
+        private bool _isInit;
 
         private static readonly TextureLoadOptions _loaderOptions = new()
         {
@@ -84,6 +85,7 @@ namespace XrEngine
                     Textures.MipCount = Textures.GGXEnv!.MipLevelCount;
                     Panorama = new Texture2D();
                     Panorama.AddComponent(new AssetSource(new TextureAsset(loader, uri, _loaderOptions)));
+
                     return;
                 }
             }
@@ -92,6 +94,17 @@ namespace XrEngine
             Panorama.NotifyChanged(ChangeType.Render);
 
             NotifyChanged(ChangeType.Render);
+        }
+
+        public override void Update(RenderContext ctx)
+        {
+            if (!_isInit && _scene != null)
+            {
+                FixAdrenoSpecualarBug();
+                _isInit = true;
+            }
+
+            base.Update(ctx);
         }
 
         public void NotifyIBLCreated()
@@ -128,6 +141,12 @@ namespace XrEngine
             Panorama?.Dispose();
             Panorama = null;
             base.Dispose();
+        }
+
+        void FixAdrenoSpecualarBug()
+        {
+            var view = _scene!.AddChild(new EnvironmentView());
+            view.Material.Blur = 0;
         }
 
         public IBLTextures Textures { get; set; }
