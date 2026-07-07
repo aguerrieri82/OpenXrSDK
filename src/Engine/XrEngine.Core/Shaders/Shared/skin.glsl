@@ -35,19 +35,3 @@ void skinTransform(inout vec3 pos, inout vec3 normal)
     normal = normalize(mat3(skin) * normal);
 }
 
-void skinTransformPos(inout vec3 pos)
-{
-    SkinVertex skinVertex = uSkinVertices[gl_VertexID];
-
-    uvec4 joints = skinVertex.jointIndices;
-    vec4 weights = skinVertex.jointWeights;
-
-    mat4 skin =
-        weights.x * uSkinMatrices[joints.x] +
-        weights.y * uSkinMatrices[joints.y] +
-        weights.z * uSkinMatrices[joints.z] +
-        weights.w * uSkinMatrices[joints.w];
-
-    pos = (skin * vec4(pos, 1.0)).xyz;
-}
-

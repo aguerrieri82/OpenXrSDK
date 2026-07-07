@@ -17,10 +17,12 @@ namespace XrEngine.OpenXr
         protected readonly XrApp _xrApp;
         protected IGlRenderTarget? _renderTarget;
         protected GlFrameBufferPool _pool;
+        protected readonly bool _isEditor;
         protected bool _multiView;
-        private uint _colorTex;
-        private uint _depthTex;
-        private Camera? _oldCamera;
+        protected uint _colorTex;
+        protected uint _depthTex;
+        protected Camera? _oldCamera;
+        protected readonly GlTexture? _debugColor;
 
         public GlMotionVectorPass(OpenGLRender renderer, XrApp xrApp, bool multiView = false)
             : base(renderer)
@@ -29,6 +31,12 @@ namespace XrEngine.OpenXr
 
             _multiView = multiView;
             _pool = new GlFrameBufferPool(renderer.GL, multiView);
+            _isEditor = XrPlatform.IsEditor;
+            if (_isEditor)
+            {
+                _debugColor = new GlTexture(renderer.GL);
+                _debugColor.Allocate(1024, 1024, 2, TextureFormat.RgbaFloat16);
+            }
         }
 
         public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
@@ -48,6 +56,13 @@ namespace XrEngine.OpenXr
             //return draw.Object is not ISkinnedMesh;
         }
 
+        protected override bool CanDraw(Material drawMaterial)
+        {
+            if (drawMaterial.Is(EngineObjectFlags.Secondary) || !drawMaterial.WriteColor)
+                return false;
+            return true;
+        }
+
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
             var effect = MotionVectorEffect.Instance;
@@ -55,7 +70,6 @@ namespace XrEngine.OpenXr
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
-            effect.WriteColor = drawMaterial.WriteColor;
 
             if (drawMaterial is ShaderMaterial mat)
                 effect.HasSkin = mat.HasSkin;
@@ -68,7 +82,10 @@ namespace XrEngine.OpenXr
             if (camera.Eyes == null || _colorTex == 0)
                 return false;
 
-            _renderTarget = _pool.GetRenderTarget(_colorTex, _depthTex, 1, camera.ActiveEye);
+            if (_isEditor)
+                _renderTarget = _pool.GetRenderTarget(_debugColor!, 0, 1, camera.ActiveEye);
+            else
+                _renderTarget = _pool.GetRenderTarget(_colorTex, _depthTex, 1, camera.ActiveEye);
 
             _renderer.UpdateContext.PassCamera = camera.Clone();
 

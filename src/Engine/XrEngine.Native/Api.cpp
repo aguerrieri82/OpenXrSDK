@@ -324,6 +324,7 @@ static RENDERDOC_API_1_6_0* GetRenderDoc()
 int RdcTriggerCapture() {
 
     auto rdoc = GetRenderDoc();
+
     if (rdoc) {
         rdoc->TriggerCapture();
         return 0;

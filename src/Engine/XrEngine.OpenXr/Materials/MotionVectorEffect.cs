@@ -7,7 +7,7 @@ namespace XrEngine.OpenXr
     public class MotionVectorEffect : ShaderMaterial
     {
         readonly Dictionary<Object3D, Matrix4x4> _models = [];
-
+        readonly Dictionary<Object3D, Matrix4x4[]> _skins = [];
         public class MotionVectorShader : Shader, IShaderHandler
         {
           
@@ -75,24 +75,54 @@ namespace XrEngine.OpenXr
         {
             SkinVertexShader.UpdateShaderModel(bld, true);
 
+            bld.LoadBufferArray(ctx =>
+            {
+                if (bld.Context.Model is not ISkinnedMesh mesh)
+                    return null;
+
+                if (!_skins.TryGetValue(bld.Context.Model, out var matrices))
+                    return null;
+
+                return matrices;
+
+            }, 17, BufferStore.Model, BufferUsage.SSbo);
+
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ctx.PassCamera;
+                var model = ctx.Model;
 
-                if (ctx.Model == null || camera == null)
+                if (model == null || camera == null)
                     return;
 
-                var word = ctx.Model.WorldMatrix;
-                if (!word.IsValid())
-                    word = Matrix4x4.Identity;
+                var world = model.WorldMatrix;
 
-                if (_models.TryGetValue(ctx.Model, out var prevModel))
+                if (!world.IsValid())
+                    world = Matrix4x4.Identity;
+
+                if (_models.TryGetValue(model, out var prevModel))
                     up.SetUniform("uMatrices.prev.model", prevModel);
 
-                up.SetUniform("uMatrices.current.model", word);
+                up.SetUniform("uMatrices.current.model", world);
 
                 if (camera.ActiveEye == 1 || camera.ActiveEye == -1)
-                    _models[ctx.Model] = word;
+                {
+                    _models[model] = world;
+
+                    if (ctx.Model is ISkinnedMesh skinned)
+                    {
+                        if (!_skins.TryGetValue(model, out var matrices))
+                        {
+                            matrices = new Matrix4x4[skinned.SkinMatrices.Length];
+
+                            _skins[model] = matrices;
+                        }
+
+                        Array.Copy(skinned.SkinMatrices, matrices, matrices.Length);
+                    }
+  
+                }
             });
         }
 

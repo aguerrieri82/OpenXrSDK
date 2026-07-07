@@ -72,8 +72,6 @@ namespace XrEngine.OpenGL
 
                 _programInstance.Program!.Use();
 
-                _renderer.ConfigureCaps(_programInstance.Material);
-
                 var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
                 _programInstance.Program!.SetUniform("uClipPlane", newPlane);
 
@@ -91,8 +89,6 @@ namespace XrEngine.OpenGL
                 var upRes = base.UpdateProgram(updateContext, drawMaterial);
 
                 _programInstance.Program!.Use();
-
-                _renderer.ConfigureCaps(_programInstance.Material);
 
                 return UpdateProgramResult.Changed;
             }

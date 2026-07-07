@@ -54,7 +54,7 @@ namespace XrEngine
             }
         }
 
-        protected override void CopyFrom(Camera camera)
+        public override void CopyFrom(Camera camera)
         {
             if (camera is PerspectiveCamera persp)
             {

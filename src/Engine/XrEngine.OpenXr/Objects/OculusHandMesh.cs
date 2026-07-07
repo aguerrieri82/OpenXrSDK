@@ -57,7 +57,8 @@ namespace XrEngine.OpenXr
                 NormalScale = 0.003f,
                 FadeStart = -0.051f,
                 FadeEnd = 0.015f,
-                FadeSide = _mesh.Type == HandEXT.RightExt ? 1 : -1
+                FadeSide = _mesh.Type == HandEXT.RightExt ? 1 : -1,
+                Flags = EngineObjectFlags.Secondary
             });
 
             _skinMatrices = new Matrix4x4[_mesh.Joints!.Length];
@@ -112,15 +113,6 @@ namespace XrEngine.OpenXr
             }
 
             Geometry = geometry;
-        }
-
-        [Action]
-        public void Export()
-        {
-            var writer = new ObjWriter();
-            writer.Add(this);
-            File.WriteAllText("d:\\test.obj", writer.Text());
-
         }
 
         public Matrix4x4[] SkinMatrices => _skinMatrices;

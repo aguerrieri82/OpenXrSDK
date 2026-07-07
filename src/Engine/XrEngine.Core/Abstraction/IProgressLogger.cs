@@ -15,8 +15,8 @@
 
         void EndTask();
 
-        void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false);
+        void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = true);
 
-        void LogProgress(object source, double current, double total, string? message = null, bool retain = false);
+        void LogProgress(object source, double current, double total, string? message = null, bool retain = true);
     }
 }

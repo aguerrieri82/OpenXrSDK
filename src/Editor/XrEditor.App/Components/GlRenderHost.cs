@@ -436,6 +436,17 @@ namespace XrEditor
             return addr != 0;
         }
 
+        public override void BeginFrame(long frameNum)
+        {
+            OpenGLRender.Current!.PushGroup($"Begin frame {frameNum}");
+        }
+
+        public override void EndFrame()
+        {
+            OpenGLRender.Current!.PopGroup();
+            base.EndFrame();
+        }
+
         public nint GetProcAddress(string proc, int? slot = null)
         {
             _wgl.Context.TryGetProcAddress(proc, out var addr);

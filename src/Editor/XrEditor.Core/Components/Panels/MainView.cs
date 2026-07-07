@@ -135,9 +135,13 @@ namespace XrEditor
         {
             if (!File.Exists("layout.json"))
                 return;
+
             var json = File.ReadAllText("layout.json");
             var container = new JsonStateContainer(json);
             SetState(container);
+
+            if (Host!.State == WindowState.Minimized)
+                Host.State = WindowState.Normal;
         }
 
         public MainToolbarView Toolbar { get; }

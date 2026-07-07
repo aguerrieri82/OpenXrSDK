@@ -27,7 +27,7 @@
 
                 return mesh.Skin;
 
-            }, 18, BufferStore.Model, BufferUsage.SSbo);
+            }, BufferSlots.Skin, BufferStore.Model, BufferUsage.SSbo);
 
 
             bld.LoadBufferArray(ctx =>
@@ -42,7 +42,7 @@
 
                 return mesh.SkinMatrices;
 
-            }, 19, BufferStore.Model, BufferUsage.SSbo);
+            }, BufferSlots.SkinMatrices, BufferStore.Model, BufferUsage.SSbo);
         }
     }
 }

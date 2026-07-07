@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
     {
         private readonly GL _gl;
         private readonly bool _multiView;
-        private readonly Dictionary<int, IGlRenderTarget> _targets = [];
+        private readonly Dictionary<ulong, IGlRenderTarget> _targets = [];
 
 
         public GlFrameBufferPool(GL gl, bool multiView)
@@ -68,7 +68,10 @@ namespace XrEngine.OpenGL
 
         public IGlRenderTarget GetRenderTarget(uint colorTex, uint depthTex, uint sampleCount, int eyeIndex = -1, bool createDepth = true)
         {
-            var targetId = (int)colorTex * 10000 + (int)depthTex + 20000 + eyeIndex;
+            var targetId =
+                 ((ulong)colorTex << 33) |
+                 ((ulong)depthTex << 2) |
+                  (uint)(eyeIndex + 1);
 
             if (!_targets.TryGetValue(targetId, out var target))
             {

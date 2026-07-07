@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using XrEditor.Audio;
@@ -16,6 +17,7 @@ namespace XrEditor
     {
         private readonly MainView _main;
         private readonly WpfViewManager _viewManager;
+        private readonly MainDispatcher _mainDispatcher;
 
         public App()
         {
@@ -23,6 +25,7 @@ namespace XrEditor
             Gpu.EnableNvAPi();
 
             _viewManager = new WpfViewManager();
+            _mainDispatcher = new MainDispatcher();
 
             XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor", EditorDebug.UseEs);
 
@@ -31,7 +34,7 @@ namespace XrEditor
             Context.Implement<SelectionManager>();
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IViewManager>(_viewManager);
-            Context.Implement<IMainDispatcher>(new MainDispatcher());
+            Context.Implement<IMainDispatcher>(_mainDispatcher);
             Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(EditorDebug.AssetsPath));
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
@@ -78,13 +81,15 @@ namespace XrEditor
 
         protected override void OnExit(ExitEventArgs e)
         {
-            _main.SaveState();
+            _mainDispatcher.IsActive = false;
 
             _ = Context.Require<PanelManager>().CloseAllAsync();
 
             ModuleManager.Instance.Shutdown();
 
+            Process.GetCurrentProcess().Kill();
+
             base.OnExit(e);
         }
-    }
+    } 
 }

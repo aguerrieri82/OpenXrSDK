@@ -55,8 +55,18 @@ namespace XrEngine.OpenGL
             ctx.Stage = curStage;
         }
 
+        protected virtual bool CanDraw(Material drawMaterial)
+        {
+            if (!drawMaterial.WriteDepth)
+                return false;
+            return true;
+        }
+
         protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
+            if (!CanDraw(drawMaterial))
+                return UpdateProgramResult.Skip;
+
             if (_programInstance!.UpdateProgram(updateContext))
                 return UpdateProgramResult.Changed;
 
@@ -88,7 +98,7 @@ namespace XrEngine.OpenGL
                 {
                     var matContent = material.Value;
 
-                    if (matContent.IsHidden || !material.Value.Material!.WriteDepth)
+                    if (matContent.IsHidden )
                         continue;
 
                     updateContext.Stage = UpdateShaderStage.Material;
@@ -99,6 +109,8 @@ namespace XrEngine.OpenGL
 
                     if (upRes == UpdateProgramResult.Skip)
                         continue;
+
+                    _renderer.ConfigureCaps(_programInstance.Material);
 
                     if (firstUpdate || upRes == UpdateProgramResult.Changed)
                     {

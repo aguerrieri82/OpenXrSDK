@@ -12,6 +12,7 @@ namespace XrEditor
         protected Guid _panelId;
         protected IPanelContainer? _container;
         protected bool _isActive;
+        protected bool _isClosing;
 
         public BasePanel()
         {

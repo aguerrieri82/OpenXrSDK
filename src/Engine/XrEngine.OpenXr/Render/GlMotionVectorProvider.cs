@@ -19,8 +19,17 @@ namespace XrEngine.OpenXr
             _app = app;
             _pass = _renderer.Pass<GlMotionVectorPass>() ?? throw new NotSupportedException();
 
-            MotionVectorFormat = (long)InternalFormat.Rgba16f;
-            DepthFormat = (long)InternalFormat.DepthComponent16;
+            if (XrPlatform.IsEditor)
+            {
+                MotionVectorFormat = (long)InternalFormat.Rgb16f;
+                DepthFormat = (long)InternalFormat.DepthComponent16;
+            }
+            else
+            {
+                MotionVectorFormat = (long)InternalFormat.Rgba16f;
+                DepthFormat = (long)InternalFormat.DepthComponent16;
+            }
+
 
         }
 

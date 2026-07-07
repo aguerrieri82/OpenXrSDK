@@ -44,6 +44,9 @@ namespace XrEditor.Services
             if (_updating)
                 return;
 
+            if (!_mainDispatcher.IsActive)
+                return;
+
             _updating = true;
 
             var progressMgs = _progressMessage;
@@ -82,7 +85,7 @@ namespace XrEditor.Services
             LogMessage(this, "Done", LogLevel.Info);
         }
 
-        public virtual void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
+        public virtual void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = true)
         {
             if (string.IsNullOrWhiteSpace(text) || !IsActive)
                 return;

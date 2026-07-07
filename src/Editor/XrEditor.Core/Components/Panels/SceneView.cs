@@ -71,6 +71,7 @@ namespace XrEditor
         protected XrEngineApp? _engine;
         protected MemoryStateContainer? _sceneState;
         protected SingleSelector _cameraList;
+        protected Camera? _oldXrCamera;
         protected readonly QueueDispatcher _sceneDispatcher;
         protected readonly ActionView _playButton;
         protected readonly ActionView _pauseButton;
@@ -91,9 +92,9 @@ namespace XrEditor
             _xrButton = ToolBar.AddToggle("icon_visibility", false, value =>
             {
                 if (value)
-                    _ = StartXr();
+                    _ = StartXrAsync();
                 else
-                    _ = StopXr();
+                    _ = StopXrAsync();
             });
 
             _sceneCamera = new PerspectiveCamera
@@ -112,9 +113,9 @@ namespace XrEditor
 
             _fpsLabel = ToolBar.AddText(string.Empty);
             ToolBar.AddDivider();
-            _playButton = ToolBar.AddButton("icon_play_arrow", StartApp);
+            _playButton = ToolBar.AddButton("icon_play_arrow", StartAppAsync);
             _pauseButton = ToolBar.AddButton("icon_pause", PauseApp);
-            _stopButton = ToolBar.AddButton("icon_stop", () => StopApp());
+            _stopButton = ToolBar.AddButton("icon_stop", () => StopAppAsync());
             ToolBar.AddDivider();
             _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
             _cameraList.ValueType = typeof(Camera);
@@ -159,7 +160,7 @@ namespace XrEditor
             UpdateControls();
 
             if (EditorDebug.AutoStartApp)
-                await StartApp();
+                await StartAppAsync();
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -184,12 +185,14 @@ namespace XrEditor
             _pauseButton.IsActive = _engine.App.PlayState == PlayState.Pause;
         }
 
-        public async Task StartXr() 
+        public async Task StartXrAsync() 
         {
             await _sceneDispatcher.Switch;
 
             try
             {
+                _oldXrCamera = _scene?.ActiveCamera?.Clone();
+
                 _renderSurface.EnableVSync(false);
 
                 _engine!.EnterXr();
@@ -203,25 +206,43 @@ namespace XrEditor
             {
                 _xrButton.IsActive = false;
                 _ui.NotifyMessage(ex.Message, MessageType.Error);
+
+                if (EditorDebug.EnableVSync)
+                    _renderSurface.EnableVSync(true, EditorDebug.VSyncScale);
             }
             finally
             {
             }
         }
 
-        public async Task StopXr()
+        public async Task StopXrAsync()
         {
             await _sceneDispatcher.Switch;
 
             try
             {
-                if (!_engine!.XrApp.IsStarted)
+                if (_engine == null || !_engine.XrApp.IsStarted)
                     return;
 
-                _renderSurface.EnableVSync(true);
+                if (EditorDebug.EnableVSync)
+                    _renderSurface.EnableVSync(true, EditorDebug.VSyncScale);
+
                 _engine!.ExitXr();
                 _xrState = SceneXrState.StopRequested;
+
+                if (_isClosing)
+                    return;
+
                 _ui.NotifyMessage("XR Session stopped", MessageType.Info);
+
+                if (_oldXrCamera != null && _scene?.ActiveCamera != null)
+                {
+                    _scene.ActiveCamera.CopyFrom(_oldXrCamera);
+
+                    _oldXrCamera = null;
+                }
+
+                _render!.SetRenderTarget(null);
             }
             catch (Exception ex)
             {
@@ -241,7 +262,7 @@ namespace XrEditor
 
             _render = _engine!.App.Renderer;
 
-            _renderSurface.EnableVSync(EditorDebug.EnableVSync, 4);
+            _renderSurface.EnableVSync(EditorDebug.EnableVSync, EditorDebug.VSyncScale);
 
             Context.Implement(_tools.OfType<IOutlineSource>().First());
 
@@ -253,10 +274,13 @@ namespace XrEditor
                     Thread.Sleep(50);
                 else
                 {
+                    _renderSurface.BeginFrame(_engine.App.Stats.Frame);
+
                     if (_engine.XrApp.IsStarted)
                     {
                         try
                         {
+
                             _engine.XrApp.RenderFrame(_engine.XrApp.ReferenceSpace);
                         }
                         catch
@@ -272,6 +296,8 @@ namespace XrEditor
                     }
                     else
                         _scene.App.RenderFrame(_camera);
+
+                    _renderSurface.EndFrame();
 
                     _renderSurface.SwapBuffers();
 
@@ -317,7 +343,7 @@ namespace XrEditor
             }
         }
 
-        public async Task StartApp() 
+        public async Task StartAppAsync() 
         {
             Debug.Assert(_engine?.App != null);
             Debug.Assert(_scene != null);
@@ -351,7 +377,7 @@ namespace XrEditor
             UpdateControls();
         }
 
-        public async Task StopApp(bool restore = true)
+        public async Task StopAppAsync(bool restore = true)
         {
             Debug.Assert(_engine?.App != null);
 
@@ -397,15 +423,13 @@ namespace XrEditor
             _renderThread = null;
         }
 
-        public override Task CloseAsync()
+        public override async Task CloseAsync()
         {
-            _ = StopApp(false);
+            _isClosing = true;
 
-            _ = StopXr();
+            _ = StopXrAsync();
 
             Stop();
-
-            return base.CloseAsync();
         }
 
         public Scene3D? Scene

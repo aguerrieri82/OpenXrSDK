@@ -167,6 +167,16 @@ namespace XrEditor
 
         public abstract IRenderEngine CreateRenderEngine(object? driverOptions);
 
+        public virtual void BeginFrame(long frameNum)
+        {
+
+        }
+
+        public virtual void EndFrame()
+        {
+
+        }
+
         public Vector2 Size
         {
             get

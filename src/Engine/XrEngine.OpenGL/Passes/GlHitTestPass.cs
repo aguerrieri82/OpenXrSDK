@@ -76,9 +76,6 @@ namespace XrEngine.OpenGL
             if (drawMaterial is ShaderMaterial mat)
                 effect.HasSkin = mat.HasSkin;
 
-
-            _renderer.ConfigureCaps(effect);
-
             return base.UpdateProgram(updateContext, drawMaterial);
         }
 

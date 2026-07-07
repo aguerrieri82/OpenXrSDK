@@ -4,10 +4,17 @@ namespace XrEditor
 {
     public class MainDispatcher : IMainDispatcher
     {
+        public MainDispatcher()
+        {
+            IsActive = true;
+        }
 
         public async Task ExecuteAsync(Action action)
         {
             if (Application.Current == null)
+                return;
+
+            if (!IsActive)
                 return;
 
             if (Thread == Thread.CurrentThread)
@@ -63,5 +70,7 @@ namespace XrEditor
         }
 
         public Thread Thread => Application.Current.Dispatcher.Thread;
+
+        public bool IsActive { get; set; }
     }
 }

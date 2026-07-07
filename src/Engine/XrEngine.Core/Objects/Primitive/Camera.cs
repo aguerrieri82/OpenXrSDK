@@ -83,20 +83,25 @@ namespace XrEngine
             return camera;
         }
 
-        protected virtual void CopyFrom(Camera camera)
+        public virtual void CopyFrom(Camera camera)
         {
+            _viewProjDirty = true;
+            _projInverseDirty = true;
+            
             _near = camera.Near;
             _far = camera.Far;
             _proj = camera.Projection;
             _target = camera.Target;
-            _viewProjDirty = true;
-            _projInverseDirty = true;
+            _viewSize = camera._viewSize;
 
             BackgroundColor = camera.BackgroundColor;
             Exposure = camera.Exposure;
             WorldMatrix = camera.WorldMatrix;
             Eyes = camera.Eyes;
             ActiveEye = camera.ActiveEye;
+            IsStereo = camera.IsStereo;
+            IsMultiView = camera.IsMultiView;
+            ViewSize = camera.ViewSize;
         }
 
 
@@ -200,10 +205,6 @@ namespace XrEngine
             }
         }
 
-        public Matrix4x4 ViewInverse => WorldMatrix;
-
-        public Color BackgroundColor { get; set; }
-
 
         [Range(0.01f, 1f, 0.01f)]
         public float Near
@@ -250,6 +251,9 @@ namespace XrEngine
             }
         }
 
+        public Matrix4x4 ViewInverse => WorldMatrix;
+
+
         [Range(0, 10, 0.1f)]
         public float Exposure { get; set; }
 
@@ -257,10 +261,11 @@ namespace XrEngine
 
         public int ActiveEye { get; set; }
 
-
-
         public bool IsStereo { get; set; }
 
         public bool IsMultiView { get; set; }
+
+        public Color BackgroundColor { get; set; }
+
     }
 }

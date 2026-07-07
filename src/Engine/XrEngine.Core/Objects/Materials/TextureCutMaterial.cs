@@ -56,7 +56,7 @@ namespace XrEngine
                 ctx.CurrentBuffer!.Version = _contentVersion;
 
                 return Styles;
-            }, 10, BufferStore.Model, BufferUsage.SSbo);
+            }, BufferSlots.TexCutStyles, BufferStore.Model, BufferUsage.SSbo);
 
             bld.ExecuteAction((ctx, up) =>
             {
