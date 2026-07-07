@@ -150,7 +150,7 @@ namespace XrEngine.OpenGL
 
             ConfigureCaps();
 
-            PbrV2Material.SHADER.ToneMap = _options.ToneMap;
+            PbrMaterial.SHADER.ToneMap = _options.ToneMap;
         }
 
         #endregion
@@ -304,7 +304,7 @@ namespace XrEngine.OpenGL
 
         public IGlLayer AddLayer(Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
-            var layer = new GlLayerV2(this, scene, type, sceneLayer);
+            var layer = new GlLayer(this, scene, type, sceneLayer);
             _activeLayers.Add(layer);
             return layer;
         }
@@ -591,7 +591,7 @@ namespace XrEngine.OpenGL
 
             Log.Info(this, "Processing IBL Panorama");
 
-            using var processor = new GlIBLProcessorV2(_gl);
+            using var processor = new GlIblProcessor(_gl);
 
             processor.Resolution = options.Resolution;
             processor.MipLevelCount = options.MipLevelCount;
@@ -610,15 +610,15 @@ namespace XrEngine.OpenGL
 
             if ((options.Mode & IblProcessMode.Lambertian) == IblProcessMode.Lambertian)
             {
-                var texId = processor.ApplyFilter(GlIBLProcessorV2.Distribution.Irradiance);
+                var texId = processor.ApplyFilter(GlIblProcessor.Distribution.Irradiance);
 
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
 
             if ((options.Mode & IblProcessMode.GGX) == IblProcessMode.GGX)
             {
-                var ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
-                var ggxLut = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGXLut);
+                var ggx = processor.ApplyFilter(GlIblProcessor.Distribution.GGX);
+                var ggxLut = processor.ApplyFilter(GlIblProcessor.Distribution.GGXLut);
 
                 result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(ggx);
                 result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(ggxLut);

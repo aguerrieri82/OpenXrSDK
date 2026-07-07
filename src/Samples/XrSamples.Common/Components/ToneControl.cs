@@ -20,9 +20,9 @@ namespace XrSamples.Components
         {
             GlState.Current!.EnableFeature(EnableCap.FramebufferSrgb, FbRgb);
             
-            PbrV2Material.SHADER.ToneMap = _toneMap;
+            PbrMaterial.SHADER.ToneMap = _toneMap;
             
-            PbrV2Material.SHADER.NotifyChanged(ChangeType.Render);
+            PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
 
             Changed?.Invoke();
         }

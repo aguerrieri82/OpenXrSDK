@@ -46,7 +46,7 @@ namespace XrSamples.Dnd
         {
             var materials = Map!.Descendants<TriangleMesh>()
                                .SelectMany(a => a.Materials)
-                               .OfType<PbrV2Material>()
+                               .OfType<PbrMaterial>()
                                .Distinct();
 
             foreach (var material in materials)

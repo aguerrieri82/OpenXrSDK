@@ -621,7 +621,7 @@ namespace XrEngine.Reconstruct
         private GlTexture? _tempDepthTex;
         private Texture2D? _atlasTex;
         private WireframeMaterial? _wireMat;
-        private PbrV2Material? _colorMat;
+        private PbrMaterial? _colorMat;
         private Material? _texMat;
         private readonly DepthSnapeshotMode _mode;
         private readonly string _sessionPath;
@@ -1151,7 +1151,7 @@ namespace XrEngine.Reconstruct
 
 
             _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
-            _colorMat ??= new PbrV2Material() { Color = Color.White, Metalness = 0, IsEnabled = false };
+            _colorMat ??= new PbrMaterial() { Color = Color.White, Metalness = 0, IsEnabled = false };
 
 
             if (UnwrapUv)

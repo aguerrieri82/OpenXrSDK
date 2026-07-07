@@ -7,10 +7,10 @@
             UseMips = true;
             ConvertColorTextureSRgb = true;
             DisableTangents = false;
-            MaterialFactory = _ => new PbrV2Material();
+            MaterialFactory = _ => new PbrMaterial();
         }
 
-        public Func<int, PbrV2Material> MaterialFactory { get; set; }
+        public Func<int, PbrMaterial> MaterialFactory { get; set; }
 
         public bool ConvertColorTextureSRgb { get; set; }
 

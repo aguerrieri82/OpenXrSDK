@@ -1,29 +1,5 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public class ShaderContent
-    {
-        public GlProgramGlobal? ProgramGlobal;
-
-        public readonly Dictionary<EngineObject, VertexContent> Contents = [];
-
-        public IList<VertexContent> ContentsSorted = [];
-    }
-
-    public class VertexContent
-    {
-        public readonly List<DrawContent> Contents = [];
-
-        public GlVertexSourceHandle? VertexHandler;
-
-        public VertexComponent ActiveComponents;
-
-        public int RenderPriority;
-
-        public float AvgDistance;
-
-        public bool IsHidden;
-    }
-
     public class DrawContent
     {
         public int Id;
@@ -52,12 +28,71 @@
     }
 
 
+    public struct ShaderMaterialKey
+    {
+
+        public Guid MateriaId;
+
+        public VertexComponent ActiveComponent;
+
+        public readonly override int GetHashCode()
+        {
+            return MateriaId.GetHashCode() ^ ActiveComponent.GetHashCode();
+        }
+
+    }
+
+    public class ShaderContent
+    {
+        public GlProgramGlobal? ProgramGlobal;
+
+        public readonly Dictionary<ShaderMaterialKey, MaterialContent> Contents = [];
+
+        public KeyValuePair<ShaderMaterialKey, MaterialContent>[]? SortedContent = [];
+
+        public bool IsDirty;
+
+        public int MaxPriority;
+    }
+
+    public class MaterialContent
+    {
+        public readonly Dictionary<EngineObject, VertexContent> Contents = [];
+
+        public Material? Material;
+
+        public GlProgramInstance? ProgramInstance;
+
+        public bool IsHidden;
+
+        public bool UseInstanceDraw;
+
+        public VertexComponent ActiveComponents;
+    }
+
+    public class VertexContent
+    {
+        public IBuffer? InstanceBuffer;
+
+        public readonly List<DrawContent> Contents = [];
+
+        public GlVertexSourceHandle? VertexHandler;
+
+        public VertexComponent ActiveComponents;
+
+        public bool IsHidden;
+
+        public long ContentVersion;
+
+        public Action? Draw;
+    }
+
     public class RenderContent
     {
         public long LayerVersion;
 
-        public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
+        public readonly Dictionary<Shader, ShaderContent> Contents = [];
 
-        public IList<KeyValuePair<Shader, ShaderContent>> ShaderContentsSorted = [];
+        public KeyValuePair<Shader, ShaderContent>[]? SortedContent = [];
     }
 }

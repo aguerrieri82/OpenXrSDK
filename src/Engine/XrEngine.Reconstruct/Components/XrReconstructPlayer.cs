@@ -50,7 +50,7 @@ namespace XrEngine.Reconstruct
             _projection.Name = "Projection";
             _projection.Transform.Scale = new Vector3(1f, 1f, 0.01f);
 
-            var sceneMat = (PbrV2Material)MaterialFactory.CreatePbr(Color.Parse("#ffffff"));
+            var sceneMat = (PbrMaterial)MaterialFactory.CreatePbr(Color.Parse("#ffffff"));
             sceneMat.ColorMap = _leftFrame;
             sceneMat.ColorMapProjection = Matrix4x4.Identity;
 
@@ -144,7 +144,7 @@ namespace XrEngine.Reconstruct
             if (AttachCamera)
                 _host!.ActiveCamera!.SetWorldPose(combinedPose);
 
-            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
+            ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
 
         }
 
@@ -227,8 +227,8 @@ namespace XrEngine.Reconstruct
             if (AttachCamera)
                 _host!.ActiveCamera!.SetWorldPose(pose);
 
-            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
-            ((PbrV2Material)_reader.SceneModel!.Materials[0]).ColorMapProjection = Matrix4x4.Identity;
+            ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
+            ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = Matrix4x4.Identity;
         }
 
         public void SetPlayState(PlayerState state)

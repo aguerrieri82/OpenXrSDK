@@ -1,11 +1,13 @@
-﻿#if GLES
-using Silk.NET.OpenGLES;
-using System.Numerics;
+﻿using System.Runtime.InteropServices;
+using System.Diagnostics;
 
+
+#if GLES
+using Silk.NET.OpenGLES;
+using RealGL = Silk.NET.OpenGLES.GL;
 #else
 using Silk.NET.OpenGL;
-using System.Numerics;
-
+using RealGL = Silk.NET.OpenGL.GL;
 #endif
 
 using XrMath;
@@ -13,7 +15,14 @@ using XrMath;
 namespace XrEngine.OpenGL
 {
 
-    [Obsolete]
+    public enum InstanceBufferMode
+    {
+        Auto,
+        UpdateAlways,
+        UpdateIncremental,
+        UpdateAllWhenChanged
+    }
+
     public class GlLayer : IDisposable, IGlLayer
     {
         protected readonly OpenGLRender _render;
@@ -26,6 +35,7 @@ namespace XrEngine.OpenGL
         protected Camera? _lastCamera;
         protected int _lastDrawId;
         protected bool _isContentDirty;
+        protected List<Action<RealGL>> _renderActions = [];
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -37,48 +47,25 @@ namespace XrEngine.OpenGL
             _type = type;
             if (sceneLayer != null)
                 sceneLayer.Changed += OnSceneLayerChanged;
+            Rebuild();
         }
 
-        private void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
+        private async void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
         {
-            if (change.Type == Layer3DChangeType.Added)
-                AddContent((Object3D)change.Item);
+            await _render.Dispatcher.Switch;
 
-            else if (change.Type == Layer3DChangeType.Removed)
-                RemoveContent((Object3D)change.Item);
+           if (change.Type == Layer3DChangeType.Removed || change.Type == Layer3DChangeType.Updated)
+                RemoveContent((Object3D)change.Item, true);
 
-            _lastUpdateVersion = layer.Version;
+            if (change.Type == Layer3DChangeType.Added || change.Type == Layer3DChangeType.Updated)
+                AddContent((Object3D)change.Item, true);
+
+            _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
         }
 
         protected virtual ShaderMaterial ReplaceMaterial(ShaderMaterial material)
         {
             return material;
-            /*
-            if (material is IPbrMaterial pbr)
-            {
-                return new BasicMaterial
-                {
-                    Alpha = material.Alpha,
-                    CastShadows = material.CastShadows,
-                    IsEnabled = material.IsEnabled,
-                    Color = pbr.Color,
-                    DoubleSided = material.DoubleSided,
-                    UseClipDistance = material.UseClipDistance,
-                    UseDepth = material.UseDepth,
-                    WriteStencil = material.WriteStencil,
-                    WriteDepth = material.WriteDepth,
-                    WriteColor = material.WriteColor,
-                    StencilFunction = material.StencilFunction,
-                    CompareStencilMask = material.CompareStencilMask,
-                    DiffuseTexture = pbr.ColorMap,
-                    Shininess = Math.Max(1, (1 - pbr.Roughness) * 20),
-                    Specular = pbr.Color,
-                    Ambient = Color.White
-                };
-            }
-
-            return material;
-            */
         }
 
         public void Update()
@@ -89,9 +76,11 @@ namespace XrEngine.OpenGL
 
         public void Rebuild()
         {
+            GlUtils.EnsureRenderThread();
+
             Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _sceneLayer?.Name ?? "Main");
 
-            _content.ShaderContents.Clear();
+            _content.Contents.Clear();
             _content.LayerVersion = Version;
 
             _lastDrawId = 0;
@@ -101,92 +90,172 @@ namespace XrEngine.OpenGL
                 _scene.Descendants();
 
             foreach (var obj3D in objects)
-                AddContent(obj3D);
+                AddContent(obj3D, false);
+
+
+            foreach (var shader in _content.Contents.Values)
+            {
+                foreach (var materialContent in shader.Contents.Values)
+                    Update(materialContent);
+            }
 
             _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
 
             GlDebug.Log(this, "Content Build");
         }
 
-        protected void RemoveContent(Object3D obj3d)
+        protected void RemoveContent(Object3D obj3d, bool incremental)
         {
+            GlUtils.EnsureRenderThread();
+
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
 
-            var clean = new List<Action>();
-
-            foreach (var shader in _content.ShaderContents)
+            foreach (var shaderEntry in _content.Contents.ToArray())
             {
-                foreach (var vertex in shader.Value.Contents)
-                {
-                    for (var i = vertex.Value.Contents.Count - 1; i >= 0; i--)
-                    {
-                        var draw = vertex.Value.Contents[i];
+                var shaderContent = shaderEntry.Value;
 
-                        if (draw.Object == obj3d)
-                            vertex.Value.Contents.RemoveAt(i);
+                foreach (var materialEntry in shaderContent.Contents.ToArray())
+                {
+                    var materialContent = materialEntry.Value;
+                    var materialChanged = false;
+
+                    foreach (var vertexEntry in materialContent.Contents.ToArray())
+                    {
+                        var vertexContent = vertexEntry.Value;
+                        var removed = false;
+
+                        for (var i = vertexContent.Contents.Count - 1; i >= 0; i--)
+                        {
+                            var draw = vertexContent.Contents[i];
+
+                            if (draw.Object == obj3d)
+                            {
+                                vertexContent.Contents.RemoveAt(i);
+                                removed = true;
+                            }
+                        }
+
+                        if (!removed)
+                            continue;
+
+                        vertexContent.ContentVersion++;
+                        materialChanged = true;
+
+                        if (vertexContent.Contents.Count == 0)
+                            materialContent.Contents.Remove(vertexEntry.Key);
                     }
 
-                    if (vertex.Value.Contents.Count == 0)
-                        clean.Add(() => shader.Value.Contents.Remove(vertex.Key));
+                    if (!materialChanged)
+                        continue;
+
+                    Invalidate(shaderContent);
+
+                    if (materialContent.Contents.Count == 0)
+                    {
+                        shaderContent.Contents.Remove(materialEntry.Key);
+                    }
+                    else if (incremental)
+                    {
+                        Update(materialContent);
+                    }
                 }
 
-                if (shader.Value.Contents.Count == 0)
-                    clean.Add(() => _content.ShaderContents.Remove(shader.Key));
+                if (shaderContent.Contents.Count == 0)
+                    _content.Contents.Remove(shaderEntry.Key);
             }
-
-            foreach (var action in clean)
-                action();
-
-            _isContentDirty = true;
         }
 
-        protected void AddContent(Object3D obj3d)
+        protected void AddContent(Object3D obj3d, bool incremental)
         {
+            GlUtils.EnsureRenderThread();
+
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
 
             foreach (var realMaterial in vrtSrc.Materials.OfType<ShaderMaterial>())
             {
+
+#warning IMPROVE THIS!! 
+
+                var isColor = realMaterial.Alpha == AlphaMode.Opaque || 
+                              realMaterial.Alpha == AlphaMode.BlendMain || 
+                              realMaterial.Alpha == AlphaMode.Mask;
+
+                if (Type == GlLayerType.Color && !isColor)
+                    continue;
+
+                if (Type == GlLayerType.Blend && isColor)
+                    continue;
+//
+
                 var material = ReplaceMaterial(realMaterial);
 
                 if (material.Shader == null)
                     continue;
 
-                if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
+                if (!_content.Contents.TryGetValue(material.Shader, out var shaderContent))
                 {
                     shaderContent = new ShaderContent
                     {
                         ProgramGlobal = material.Shader.GetGlResource(gl => new GlProgramGlobal(_render.GL, material.Shader!))
                     };
 
-                    _content.ShaderContents[material.Shader] = shaderContent;
+                    _content.Contents[material.Shader] = shaderContent;
                 }
 
-                if (!shaderContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
+                material.EnsureId();
+
+                var materialKey = new ShaderMaterialKey
+                {
+                    ActiveComponent = vrtSrc.ActiveComponents,
+                    MateriaId = material.Id
+                };
+
+                if (!shaderContent.Contents.TryGetValue(materialKey, out var materialContent))
+                {
+                    var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3d);
+
+                    ConfigureProgramInstance(instance);
+
+                    materialContent = new MaterialContent
+                    {
+                        ProgramInstance = instance,
+                        Material = material,
+                        ActiveComponents = materialKey.ActiveComponent
+                    };
+
+                    shaderContent.Contents[materialKey] = materialContent;
+                    Invalidate(shaderContent);
+                }
+
+                var vertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc));
+
+                if (!materialContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
                 {
                     vertexContent = new VertexContent
                     {
-                        VertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
+                        VertexHandler = vertexHandler,
                         ActiveComponents = VertexComponent.None,
-                        RenderPriority = vrtSrc.RenderPriority
                     };
 
-                    foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
+                    foreach (var attr in vertexHandler.Layout!.Attributes!)
                         vertexContent.ActiveComponents |= attr.Component;
 
-                    shaderContent.Contents[vrtSrc.Object] = vertexContent;
+                    materialContent.Contents[vrtSrc.Object] = vertexContent;
+
+                    if (incremental)
+                        Update(materialContent);
                 }
 
-                var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3d);
-
-                ConfigureProgramInstance(instance);
+                vertexContent.ContentVersion++;
 
                 Action draw;
 
                 if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
+                    //TODO: disable instance draw
                     draw = () =>
                     {
                         _render.GL.PatchParameter(PatchParameterName.Vertices, size);
@@ -201,16 +270,34 @@ namespace XrEngine.OpenGL
                     draw = () => vertexContent!.VertexHandler!.Draw(primitive);
                 }
 
+
                 vertexContent.Contents.Add(new DrawContent
                 {
                     Draw = draw,
-                    ProgramInstance = instance,
                     DrawId = _lastDrawId++,
-                    Object = obj3d
+                    Object = obj3d,
+                    ProgramInstance = materialContent.ProgramInstance
                 });
             }
 
             _isContentDirty = true;
+
+            //Rebuild();
+        }
+
+        private void Update(MaterialContent materialContent)
+        {
+            var verContentList = materialContent.Contents.Values;
+
+            materialContent.ActiveComponents = verContentList.FirstOrDefault()?.ActiveComponents ?? VertexComponent.None;
+
+            if (materialContent.Material is not ShaderMaterial shaderMat)
+                return;
+
+            var instanceShader = shaderMat.Shader as IInstanceShader;
+
+            materialContent.UseInstanceDraw = _render.Options.UseInstanceDraw && instanceShader != null &&
+                                              verContentList.Any(a => a.Contents.Count > 1);
         }
 
         protected virtual void ConfigureProgramInstance(GlProgramInstance instance)
@@ -225,47 +312,182 @@ namespace XrEngine.OpenGL
             if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
                 return;
 
+            if (_isContentDirty)
+                SortMaterials();
+
             if (_render.Options.FrustumCulling)
             {
                 _render.UpdateContext.FrustumPlanes = curCamera.FrustumPlanes(_render.UpdateContext.FrustumPlanes, out var count);
                 _render.UpdateContext.FrustumPlanesCount = count;
             }
 
-            ComputeVisibility();
 
-            if (_render.Options.SortByCameraDistance)
-                ComputeDistance(curCamera);
+            ComputeVisibility();
 
             UpdateVertexHandlers();
 
-            SortContent();
-
             _lastFrame = ctx.Frame;
             _lastCamera = curCamera;
-        }
-
-
-        protected void SortContent()
-        {
-            if (!_isContentDirty)
-                return;
-
-            _content.ShaderContentsSorted = _content.ShaderContents.OrderBy(a => a.Key.Priority).ToArray();
-
-            foreach (var shader in _content.ShaderContents.Values)
-                shader.ContentsSorted = shader.Contents.Values.OrderBy(a => a.RenderPriority).ToArray();
 
             _isContentDirty = false;
         }
 
+        protected void SortMaterials()
+        {
+            foreach (var shaderContent in _content.Contents.Values)
+            {
+                if (!shaderContent.IsDirty)
+                    continue;
+
+                shaderContent.SortedContent = shaderContent.Contents
+                    .OrderBy(a => a.Value.Material?.Priority)
+                    .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0)
+                    .ToArray();
+
+                shaderContent.IsDirty = false;
+
+                shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ? 0 : shaderContent.Contents.Max(a => a.Value.Material!.Priority);
+            }
+
+            _content.SortedContent = _content.Contents
+                .OrderBy(a => a.Value.MaxPriority)
+                .ToArray();
+
+        }
+
         protected void UpdateVertexHandlers()
         {
-            foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
+            foreach (var shaderEntry in _content.Contents)
             {
-                var vHandler = content.VertexHandler!;
+                var shader = shaderEntry.Key;
 
-                if (!content.IsHidden && vHandler.NeedUpdate)
-                    vHandler.Update();
+                var instanceShader = shader as IInstanceShader;
+
+                foreach (var matEntry in shaderEntry.Value.Contents)
+                {
+                    foreach (var verContent in matEntry.Value.Contents.Values)
+                    {
+                        var vHandler = verContent.VertexHandler!;
+
+                        if (vHandler.NeedUpdate)
+                            vHandler.Update();
+
+                        if (matEntry.Value.UseInstanceDraw)
+                            UpdateInstanceDraws(instanceShader!, verContent, matEntry.Value.Material!);
+                        else
+                            verContent.Draw = null;
+                    }
+
+                }
+            }
+        }
+
+
+        protected unsafe void UpdateInstanceDraws(IInstanceShader instanceShader, VertexContent verContent, Material material)
+        {
+            var vHandler = verContent.VertexHandler!;
+
+            var mode = InstanceBufferMode.Auto;
+
+            var changedCount = 0;
+
+            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
+
+            if (verContent.InstanceBuffer == null || verContent.InstanceBuffer.Version != verContent.ContentVersion)
+            {
+                //TODO: store in somewhere safe, is unique for material+geometry
+                verContent.InstanceBuffer ??= GlBuffer.Create(_render.GL, BufferTargetARB.ShaderStorageBuffer, instanceShader.InstanceBufferType);
+
+                verContent.InstanceBuffer.Allocate((uint)(elSize * verContent.Contents.Count));
+                verContent.InstanceBuffer.Version = verContent.ContentVersion;
+
+                mode = InstanceBufferMode.UpdateAlways;
+            }
+
+            if (mode != InstanceBufferMode.UpdateAlways)
+            {
+                for (var i = 0; i < verContent.Contents.Count; i++)
+                {
+                    var draw = verContent.Contents[i]!;
+                    if (instanceShader.NeedUpdate(draw.Object!, draw.InstanceVersion))
+                    {
+                        draw.InstanceChanged = true;
+                        changedCount++;
+                        if (mode == InstanceBufferMode.UpdateAllWhenChanged)
+                            break;
+                    }
+                }
+                if (changedCount == 0)
+                    return;
+            }
+
+            if (mode == InstanceBufferMode.Auto)
+            {
+                var ratio = (float)changedCount / verContent.Contents.Count;
+                if (ratio < 0.3 && changedCount < 5)
+                    mode = InstanceBufferMode.UpdateIncremental;
+                else
+                    mode = InstanceBufferMode.UpdateAlways;
+            }
+
+            if (mode == InstanceBufferMode.UpdateAlways || mode == InstanceBufferMode.UpdateAllWhenChanged)
+            {
+                var data = verContent.InstanceBuffer!.Lock(BufferAccessMode.Replace);
+
+                for (var i = 0; i < verContent.Contents.Count; i++)
+                {
+                    var draw = verContent.Contents[i];
+                    draw.InstanceVersion = instanceShader.Update(data, draw.Object!, draw.Id);
+                    data += elSize;
+                }
+
+                verContent.InstanceBuffer.Unlock();
+            }
+            else
+            {
+
+                verContent.InstanceBuffer!.BeginUpdate();
+                var buffer = stackalloc byte[elSize];
+
+                for (var i = 0; i < verContent.Contents.Count; i++)
+                {
+                    var draw = verContent.Contents[i];
+
+                    if (!draw.InstanceChanged)
+                        continue;
+
+                    draw.InstanceVersion = instanceShader.Update(buffer, draw.Object!, draw.Id);
+                    verContent.InstanceBuffer!.UpdateRange(new ReadOnlySpan<byte>(buffer, elSize), i);
+                }
+
+                verContent.InstanceBuffer!.EndUpdate();
+            }
+
+            if (verContent.Draw == null)
+            {
+                if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
+                {
+                    var size = vHandler.Source.Primitive == DrawPrimitive.Quad ? 4 : 3;
+
+                    verContent.Draw = () =>
+                    {
+                        _render.GL.PatchParameter(PatchParameterName.Vertices, size);
+                        _render.State.SetWireframe(tes.DebugTessellation);
+                        _render.State.SetLineWidth(0.5f);
+
+                        _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+                        vHandler.DrawInstances(verContent.Contents.Count, DrawPrimitive.Patch);
+                    };
+                }
+                else
+                {
+                    verContent.Draw = () =>
+                    {
+                        _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+
+                        vHandler.DrawInstances(verContent.Contents.Count);
+                    };
+                }
             }
         }
 
@@ -276,68 +498,77 @@ namespace XrEngine.OpenGL
             var totHidden = 0;
             var totDraw = 0;
 
-            foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
+            foreach (var shader in _content.Contents.Values)
             {
-                var allHidden = true;
-
-                foreach (var draw in content.Contents)
+                foreach (var material in shader.Contents.Values)
                 {
-                    totDraw++;
+                    var allMatHidden = true;
 
-                    var progInst = draw.ProgramInstance!;
-
-                    draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
-
-                    if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh && (mesh.Flags & EngineObjectFlags.NoFrustumCulling) == 0)
+                    foreach (var vertex in material.Contents.Values)
                     {
-                        draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes
-                                                                          .AsSpan(0, updateContext.FrustumPlanesCount));
-                        if (draw.IsHidden)
-                            totHidden++;
+                        var allVertexHidden = true;
+
+                        foreach (var draw in vertex.Contents)
+                        {
+                            totDraw++;
+
+                            var progInst = material.ProgramInstance!;
+
+                            draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
+
+                            if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh && (mesh.Flags & EngineObjectFlags.NoFrustumCulling) == 0)
+                            {
+                                draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes
+                                                                                  .AsSpan(0, updateContext.FrustumPlanesCount));
+                                if (draw.IsHidden)
+                                    totHidden++;
+                            }
+
+                            if (!draw.IsHidden)
+                            {
+                                allVertexHidden = false;
+                                allMatHidden = false;
+                            }
+                        }
+                        vertex.IsHidden = allVertexHidden;
                     }
-
-                    if (!draw.IsHidden)
-                        allHidden = false;
+                    material.IsHidden = allMatHidden;
                 }
-
-                content.IsHidden = allHidden;
             }
+
+
 
             return totHidden;
-        }
-
-        protected void ComputeDistance(Camera camera)
-        {
-            var cameraPos = camera.WorldPosition;
-
-            foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
-            {
-                if (content.IsHidden)
-                    continue;
-
-                var count = 0;
-                var sum = 0f;
-
-                foreach (var draw in content.Contents)
-                {
-                    if (draw.IsHidden)
-                        continue;
-
-                    draw.Distance = draw.Object!.DistanceTo(cameraPos);
-                    count++;
-                    sum += draw.Distance;
-                }
-                content.AvgDistance = sum / count;
-            }
         }
 
         public void Dispose()
         {
             if (_sceneLayer != null)
                 _sceneLayer.Changed -= OnSceneLayerChanged;
-            _content?.ShaderContents.Clear();
+            _content?.Contents.Clear();
             GC.SuppressFinalize(this);
         }
+
+        public void InvalidateContent()
+        {
+            _isContentDirty = true;
+        }
+
+        internal void Invalidate(ShaderContent value)
+        {
+            value.IsDirty = true;
+            _isContentDirty = true;
+        }
+
+        public void Execute(RealGL gl)
+        {
+            foreach (var action in _renderActions)
+                action(gl);
+        }
+
+        public List<Action<RealGL>> RenderActions => _renderActions;
+
+        public bool IsStatic => (_type & GlLayerType.Static) != 0;
 
         public string? Name => _sceneLayer?.Name;
 
@@ -351,7 +582,7 @@ namespace XrEngine.OpenGL
 
         public Scene3D Scene => _scene;
 
-        public bool IsEmpty => _content.ShaderContents.Count == 0;
+        public bool IsEmpty => _content.Contents.Count == 0;
 
         public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }

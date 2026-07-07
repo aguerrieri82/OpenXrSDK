@@ -76,7 +76,7 @@ namespace XrEngine.Lighting
 
             });
 
-            var mat = Target!.Materials.OfType<PbrV2Material>().FirstOrDefault();
+            var mat = Target!.Materials.OfType<PbrMaterial>().FirstOrDefault();
 
 
             if ((IsRemapMode | IsPreviewMaterial) && mat != null)

@@ -66,7 +66,7 @@ namespace XrSamples.Graffiti
 
             if (_frame == null)
             {
-                _frame = new PaintFrame(new Vector2(width, height), new PbrV2Material { Color = new XrMath.Color(1, 0, 0) });
+                _frame = new PaintFrame(new Vector2(width, height), new PbrMaterial { Color = new XrMath.Color(1, 0, 0) });
                 _frame.Name = "DrawFrame";
                 _host!.Scene!.AddChild(_frame);
             }

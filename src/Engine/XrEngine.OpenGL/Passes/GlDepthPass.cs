@@ -164,11 +164,11 @@ namespace XrEngine.OpenGL
 
         protected unsafe void UpdateVisibility()
         {
-            var contVersion = SelectLayers().OfType<GlLayerV2>().Sum(a => a.Version);
+            var contVersion = SelectLayers().OfType<GlLayer>().Sum(a => a.Version);
 
             if (contVersion != _lastContentVersion)
             {
-                var draws = SelectLayers().OfType<GlLayerV2>()
+                var draws = SelectLayers().OfType<GlLayer>()
                    .SelectMany(a => a.Content.Contents.Values)
                    .SelectMany(a => a.Contents.Values)
                    .SelectMany(a => a.Contents.Values)

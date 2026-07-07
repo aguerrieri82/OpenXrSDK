@@ -114,7 +114,7 @@ namespace XrEngine.OpenGL
                 _renderer.State.SetWriteDepth(false);
         }
 
-        public override void RenderLayer(GlLayerV2 layer)
+        public override void RenderLayer(GlLayer layer)
         {
             GlUtils.EnsureRenderThread();
 

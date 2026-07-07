@@ -136,7 +136,7 @@ namespace XrSamples.Android.Activities
                 builder.UseSpaceWarp();
 
             if (_settings.UsePbrV2)
-                MaterialFactory.DefaultPbr = typeof(PbrV2Material);
+                MaterialFactory.DefaultPbr = typeof(PbrMaterial);
             else
                 MaterialFactory.DefaultPbr = typeof(PbrV1Material);
 

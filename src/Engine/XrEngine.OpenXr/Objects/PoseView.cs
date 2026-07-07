@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
             RayTicknesses = 0.002f;
             BoxSize = 0.02f;
 
-            _box = AddChild(new TriangleMesh(Cube3D.Default, new PbrV2Material
+            _box = AddChild(new TriangleMesh(Cube3D.Default, new PbrMaterial
             {
                 Color = color,
                 Simplified = true
@@ -26,7 +26,7 @@ namespace XrEngine.OpenXr
 
             TriangleMesh CreateRay(Vector3 axis)
             {
-                var res = AddChild(new TriangleMesh(Cube3D.Default, new PbrV2Material
+                var res = AddChild(new TriangleMesh(Cube3D.Default, new PbrMaterial
                 {
                     //Color = new Color(axis.X, axis.Y, axis.Z),
                     Color = color,

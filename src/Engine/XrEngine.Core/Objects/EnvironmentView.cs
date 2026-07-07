@@ -49,10 +49,6 @@ namespace XrEngine
                 bld.AddFeature("COLOR_CORRECT");
                 bld.AddFeature("MIP_FACTOR");
 
-                if (PbrV1Material.LinearOutput)
-                    bld.AddFeature("LINEAR_OUTPUT");
-
-                bld.AddFeature(PbrV1Material.ToneMap.ToString());
 
                 bld.ExecuteAction((ctx, up) =>
                 {

@@ -62,7 +62,7 @@ namespace XrEngine.OpenGL
             {
                 layer.Prepare(ctx);
 
-                if (layer is GlLayerV2 glLayer2)
+                if (layer is GlLayer glLayer2)
                 {
                     RenderLayer(glLayer2);
                 }
@@ -158,7 +158,7 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public virtual void RenderLayer(GlLayerV2 layer)
+        public virtual void RenderLayer(GlLayer layer)
         {
             throw new NotSupportedException();
         }

@@ -45,7 +45,7 @@ namespace XrSamples.Graffiti
                 var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb",
                     new GltfLoaderOptions
                     {
-                        MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrV2Material()
+                        MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrMaterial()
                     });
                 _canBody = mesh.FindByName<Object3D>("CanYellow")!;
                 _cap = mesh.FindByName<Object3D>("Cap")!;

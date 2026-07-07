@@ -365,7 +365,7 @@ namespace XrEngine.Lighting
             _scanProgram.SetUniform("uWorld", mesh.WorldMatrix);
             _scanProgram.SetUniform("uNormalMatrix", mesh.NormalMatrix);
 
-            var mat = mesh.Materials.OfType<PbrV2Material>().FirstOrDefault();
+            var mat = mesh.Materials.OfType<PbrMaterial>().FirstOrDefault();
 
             if (mat != null)
             {

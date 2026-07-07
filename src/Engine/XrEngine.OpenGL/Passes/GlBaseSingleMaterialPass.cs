@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
         }
 
 
-        public override void RenderLayer(GlLayerV2 layer)
+        public override void RenderLayer(GlLayer layer)
         {
             Debug.Assert(_programInstance != null);
 

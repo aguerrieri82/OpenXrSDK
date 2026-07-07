@@ -8,7 +8,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlIBLProcessorV2 : IDisposable
+    public class GlIblProcessor : IDisposable
     {
         public enum Distribution
         {
@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
         private GlComputeProgram? _panToCubeProg;
         private readonly Dictionary<Distribution, GlComputeProgram> _filterProg;
 
-        public GlIBLProcessorV2(GL gl)
+        public GlIblProcessor(GL gl)
         {
             _gl = gl;
             _filterProg = [];
@@ -49,7 +49,7 @@ namespace XrEngine.OpenGL
                 MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlComputeProgram(_gl,
-                "IblV2/equirect2cube_cs.comp",
+                "Ibl/equirect2cube_cs.comp",
                 shaderResolver);
 
             _panToCubeProg.Build();
@@ -62,9 +62,9 @@ namespace XrEngine.OpenGL
                 _filterProg[distribution] = prog;
             }
 
-            AddFilter("IblV2/irmap_cs.comp", Distribution.Irradiance);
-            AddFilter("IblV2/spbrdf_cs.comp", Distribution.GGXLut);
-            AddFilter("IblV2/spmap_cs.comp", Distribution.GGX);
+            AddFilter("Ibl/irmap_cs.comp", Distribution.Irradiance);
+            AddFilter("Ibl/spbrdf_cs.comp", Distribution.GGXLut);
+            AddFilter("Ibl/spmap_cs.comp", Distribution.GGX);
         }
 
         public void PanoramaToCubeMap()

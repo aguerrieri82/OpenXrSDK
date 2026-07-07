@@ -12,14 +12,14 @@ namespace XrSamples
         bool _suspendRender;
         GlDepthPass? _depthPass;
         OpenGLRender? _renderer;
-        GlLayerV2? _opaque;
+        GlLayer? _opaque;
 
         protected override void Start(RenderContext ctx)
         {
             ActiveObject = "#3396";
             _renderer = (OpenGLRender)ctx.Scene!.App!.Renderer;
             _depthPass = _renderer.Pass<GlDepthPass>()!;
-            _opaque = (GlLayerV2)_renderer.Layers.First(a => a.Type == GlLayerType.Opaque);
+            _opaque = (GlLayer)_renderer.Layers.First(a => a.Type == GlLayerType.Opaque);
 
             base.Start(ctx);
         }
@@ -46,7 +46,7 @@ namespace XrSamples
         [Action]
         public void PrintStatus()
         {
-            _opaque = (GlLayerV2)_renderer!.Layers.First(a => a.Type == GlLayerType.Opaque);
+            _opaque = (GlLayer)_renderer!.Layers.First(a => a.Type == GlLayerType.Opaque);
 
             var draws = _opaque!.Content.Contents.Values
                 .SelectMany(a => a.Contents.Values)

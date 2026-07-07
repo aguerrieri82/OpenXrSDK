@@ -26,7 +26,7 @@ namespace XrEditor.Nodes
                     else if(obj is SplatMesh)
                         nodeType = typeof(SplatMeshNode);
 
-                    else if (obj is PbrV2Material)
+                    else if (obj is PbrMaterial)
                         nodeType = typeof(PbrMaterialNode);
 
                     else if (obj is Geometry3D)

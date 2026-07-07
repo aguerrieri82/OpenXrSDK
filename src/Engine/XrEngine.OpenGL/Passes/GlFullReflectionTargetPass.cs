@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
-            PbrV2Material.ForceIblTransform = true;
+            PbrMaterial.ForceIblTransform = true;
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 IsMultiView = PlanarReflection.IsMultiView,

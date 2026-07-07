@@ -153,7 +153,7 @@ namespace XrEngine.Lighting
             var sy = (size.Y - padding * 2) * cell;
             var sz = (size.Z - padding * 2) * cell;
 
-            var wallMaterial = new PbrV2Material
+            var wallMaterial = new PbrMaterial
             {
                 Color = Color.White,
                 UseLightField = true,
@@ -632,11 +632,11 @@ namespace XrEngine.Lighting
             _finalMat.Textures = _textures;
             _finalMat.Invalidate();
 
-            PbrV2Material.SHADER.UseLightField = true;
-            PbrV2Material.SHADER.NotifyChanged(ChangeType.Render);
+            PbrMaterial.SHADER.UseLightField = true;
+            PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
 
-            ((PbrV2Material)_host!.Materials[0]).UseLightField = true;
-            ((PbrV2Material)_host!.Materials[0]).NotifyChanged(ChangeType.Render);
+            ((PbrMaterial)_host!.Materials[0]).UseLightField = true;
+            ((PbrMaterial)_host!.Materials[0]).NotifyChanged(ChangeType.Render);
 
             foreach (var light in _host.Scene!.Descendants<Light>())
                 light.IsVisible = false;

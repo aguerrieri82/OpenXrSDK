@@ -21,7 +21,7 @@ namespace XrEngine
 
     }
 
-    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
+    public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
     {
 
         #region MaterialUniforms
@@ -545,12 +545,12 @@ namespace XrEngine
 
         public static readonly PbrV2Shader SHADER;
 
-        static PbrV2Material()
+        static PbrMaterial()
         {
             SHADER = new PbrV2Shader
             {
-                FragmentSourceName = "PbrV2/pbr_gpt.frag",
-                VertexSourceName = "PbrV2/pbr.vert",
+                FragmentSourceName = "Pbr/pbr_gpt.frag",
+                VertexSourceName = "Pbr/pbr.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
                 GeometrySourceName = "Shared/height_map.geom",
@@ -560,7 +560,7 @@ namespace XrEngine
             };
         }
 
-        public PbrV2Material()
+        public PbrMaterial()
         {
             Shader = SHADER;
             Color = Color.White;
@@ -579,7 +579,7 @@ namespace XrEngine
                     if (!string.IsNullOrWhiteSpace(FragmentDefaultShader))
                         return FragmentDefaultShader;
 
-                    return Embedded.GetString("PbrV2/pbr_defaults.glsl");
+                    return Embedded.GetString("Pbr/pbr_defaults.glsl");
                 }
 
                 return null;

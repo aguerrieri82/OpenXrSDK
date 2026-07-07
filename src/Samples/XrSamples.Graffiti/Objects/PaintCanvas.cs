@@ -89,7 +89,7 @@ namespace XrSamples.Graffiti
                 IsEnabled = false
             });
 
-            _frame = new PaintFrame(_size, new PbrV2Material()
+            _frame = new PaintFrame(_size, new PbrMaterial()
             {
                 Color = new Color(0.0f, 0.0f, 0.7f),
             });

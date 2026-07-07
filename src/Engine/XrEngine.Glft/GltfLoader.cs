@@ -307,130 +307,13 @@ namespace XrEngine.Gltf
             return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
         }
 
-        public PbrV1Material ProcessMaterialV1(int matId, PbrV1Material? result = null)
+
+        public PbrMaterial ProcessMaterial(int matId, PbrMaterial? result = null)
         {
             var gltMat = _model!.Materials[matId];
 
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
-                return (PbrV1Material)mat;
-
-            result ??= MaterialFactory.CreatePbr<PbrV1Material>();
-
-            result.Name = gltMat.Name;
-            result.AlphaCutoff = gltMat.AlphaCutoff;
-            result.EmissiveFactor = MathUtils.ToVector3(gltMat.EmissiveFactor);
-            result.Alpha = gltMat.AlphaMode switch
-            {
-                glTFLoader.Schema.Material.AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
-                glTFLoader.Schema.Material.AlphaModeEnum.MASK => AlphaMode.Mask,
-                glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
-                _ => throw new NotSupportedException()
-            };
-            result.DoubleSided = gltMat.DoubleSided;
-
-            if (gltMat.PbrMetallicRoughness != null)
-            {
-                result.MetallicRoughness = new PbrV1Material.MetallicRoughnessData
-                {
-                    RoughnessFactor = gltMat.PbrMetallicRoughness.RoughnessFactor,
-                    MetallicFactor = gltMat.PbrMetallicRoughness.MetallicFactor,
-                    BaseColorFactor = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor)
-                };
-
-                if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
-                {
-                    result.MetallicRoughness.BaseColorTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
-                    result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
-                }
-
-                if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
-                {
-                    result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
-                    result.MetallicRoughness.MetallicRoughnessUVSet = gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord;
-                }
-
-                result.Type = PbrV1Material.MaterialType.Metallic;
-            }
-
-            if (gltMat.EmissiveTexture != null)
-                result.EmissiveTexture = DecodeTextureBaseTask(gltMat.EmissiveTexture).Result;
-
-            if (gltMat.NormalTexture != null)
-            {
-                result.NormalTexture = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
-                result.NormalTexture.Type = TextureType.NormalMap;
-                result.NormalScale = gltMat.NormalTexture.Scale;
-                result.NormalUVSet = gltMat.NormalTexture.TexCoord;
-            }
-
-            if (gltMat.OcclusionTexture != null)
-            {
-                result.OcclusionTexture = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
-                result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
-                result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
-            }
-
-            var specGloss = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
-            if (specGloss != null)
-            {
-                result.SpecularGlossiness = new PbrV1Material.SpecularGlossinessData
-                {
-                    DiffuseFactor = new Color(specGloss.Value.diffuseFactor!),
-                    SpecularFactor = new Color(specGloss.Value.specularFactor!),
-                    GlossinessFactor = specGloss.Value.glossinessFactor
-                };
-
-                if (specGloss.Value.diffuseTexture != null)
-                {
-                    result.SpecularGlossiness.DiffuseTexture = DecodeTextureBaseTask(specGloss.Value.diffuseTexture).Result;
-                    result.SpecularGlossiness.DiffuseUVSet = specGloss.Value.diffuseTexture.TexCoord;
-                }
-
-                if (specGloss.Value.specularGlossinessTexture != null)
-                {
-                    result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBaseTask(specGloss.Value.specularGlossinessTexture).Result;
-                    result.SpecularGlossiness.SpecularGlossinessUVSet = specGloss.Value.specularGlossinessTexture.TexCoord;
-                }
-
-                result.Type = PbrV1Material.MaterialType.Specular;
-            }
-
-            var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
-            if (sheen != null)
-            {
-                result.Sheen = new PbrV1Material.SheenData();
-
-                if (sheen.Value.sheenColorFactor != null)
-                    result.Sheen.ColorFactor = MathUtils.ToVector3(sheen.Value.sheenColorFactor);
-
-                result.Sheen.RoughnessFactor = sheen.Value.sheenRoughnessFactor;
-
-                if (sheen.Value.sheenColorTexture != null)
-                {
-                    result.Sheen.ColorTexture = DecodeTextureBaseTask(sheen.Value.sheenColorTexture).Result;
-                    result.Sheen.ColorTextureUVSet = sheen.Value.sheenColorTexture.TexCoord;
-                }
-                if (sheen.Value.sheenRoughnessTexture != null)
-                {
-                    result.Sheen.RoughnessTexture = DecodeTextureBaseTask(sheen.Value.sheenRoughnessTexture).Result;
-                    result.Sheen.RoughnessTextureUVSet = sheen.Value.sheenRoughnessTexture.TexCoord;
-                }
-            }
-
-            AssignAsset(result, "mat", matId);
-
-            _mats[gltMat] = result;
-
-            return result;
-        }
-
-
-        public PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
-        {
-            var gltMat = _model!.Materials[matId];
-
-            if (result == null && _mats.TryGetValue(gltMat, out var mat))
-                return (PbrV2Material)mat;
+                return (PbrMaterial)mat;
 
             result ??= _options.MaterialFactory(matId);
 
@@ -768,14 +651,7 @@ namespace XrEngine.Gltf
                 });
 
                 if (primitive.Material != null)
-                {
-                    var pbrType = _options.PbrType ?? MaterialFactory.DefaultPbr;
-
-                    if (pbrType == typeof(PbrV2Material))
-                        curMesh.Materials.Add(ProcessMaterialV2(primitive.Material.Value));
-                    else
-                        curMesh.Materials.Add(ProcessMaterialV1(primitive.Material.Value));
-                }
+                    curMesh.Materials.Add(ProcessMaterial(primitive.Material.Value));
 
                 if (group == null)
                 {

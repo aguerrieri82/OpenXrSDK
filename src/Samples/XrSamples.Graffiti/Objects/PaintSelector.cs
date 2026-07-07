@@ -7,7 +7,7 @@ namespace XrSamples.Graffiti
     public class PaintSelector : Group3D
     {
         readonly List<TriangleMesh> _buttons = [];
-        readonly List<PbrV2Material> _materials = [];
+        readonly List<PbrMaterial> _materials = [];
 
         protected Geometry3D? _buttonGeometry;
         protected readonly TriangleMesh _selectedMesh;
@@ -108,7 +108,7 @@ namespace XrSamples.Graffiti
 
             while (_buttons.Count < Colors.Count)
             {
-                var mat = new PbrV2Material
+                var mat = new PbrMaterial
                 {
                     Color = new Color(1, 1, 1, 1),
                     Metalness = 0,

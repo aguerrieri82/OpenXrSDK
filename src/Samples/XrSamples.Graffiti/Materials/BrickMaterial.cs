@@ -4,14 +4,14 @@ using XrSamples.Graffiti.Objects;
 
 namespace XrSamples.Graffiti
 {
-    public class BrickMaterial : PbrV2Material
+    public class BrickMaterial : PbrMaterial
     {
         public BrickMaterial()
         {
 
             FragmentDefaultLoader = $"LoadFragmentPropertiesBrick()";
 
-            FragmentDefaultShader = Embedded.GetString("PbrV2/pbr_defaults.glsl") +
+            FragmentDefaultShader = Embedded.GetString("Pbr/pbr_defaults.glsl") +
                                     Embedded.GetString<BrickMaterial>("brick_pbr.glsl");
 
         }

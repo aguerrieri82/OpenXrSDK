@@ -1049,13 +1049,6 @@ namespace XrSamples
             mesh.AddComponent<PyMeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"),
-                new GltfLoaderOptions { PbrType = typeof(PbrV1Material) });
-
-            mesh2.Name = "Bed 2";
-            mesh2.WorldPosition = new Vector3(3, 0, 0);
-            mesh2.AddComponent<PyMeshCollider>();
-            mesh2.AddComponent<BoundsGrabbable>();
 
             foreach (var material in mesh.Materials!)
             {
@@ -1064,8 +1057,6 @@ namespace XrSamples
             }
 
             scene.AddChild(mesh);
-            scene.AddChild(mesh2);
-
 
             return builder
                 .UseApp(app)
@@ -1326,7 +1317,7 @@ namespace XrSamples
             var tc = scene.AddComponent(new ToneControl());
 
             var mat1 = new TextureMaterial();
-            var mat2 = new PbrV2Material();
+            var mat2 = new PbrMaterial();
 
             var quod1 = scene.AddChild(new TriangleMesh(Quad3D.Default, mat1));
 
@@ -1561,7 +1552,7 @@ namespace XrSamples
             var mesh1 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Skin.obj"), typeof(TriangleMesh), null);
             var mesh2 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Bone.obj"), typeof(TriangleMesh), null);
 
-            var mat1 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+            var mat1 = (PbrMaterial)MaterialFactory.CreatePbr(Color.White);
 
             mat1.ClipVolume = new Bounds3()
             {
@@ -1571,7 +1562,7 @@ namespace XrSamples
 
             mesh1.Materials.Add(mat1);
 
-            var mat2 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+            var mat2 = (PbrMaterial)MaterialFactory.CreatePbr(Color.White);
 
             mat2.ClipVolume = new Bounds3()
             {

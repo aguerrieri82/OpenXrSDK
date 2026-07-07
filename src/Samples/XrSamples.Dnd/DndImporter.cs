@@ -205,7 +205,7 @@ namespace XrSamples.Dnd
 
                 _psNames.Add(impMat.ps.name);
 
-                var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+                var pbr = (PbrMaterial)MaterialFactory.CreatePbr(Color.White);
                 pbr.Simplified = SimpleMaterials;
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
@@ -645,7 +645,7 @@ namespace XrSamples.Dnd
 
         public float MapY { get; set; }
 
-        public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();
+        public IEnumerable<PbrMaterial> Materials => _materials.Values.OfType<PbrMaterial>();
 
         public bool FlipZ { get; set; } = true;
 
