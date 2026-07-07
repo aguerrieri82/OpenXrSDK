@@ -1,6 +1,7 @@
 ﻿using CefSharp;
 using CefSharp.Enums;
 using CefSharp.OffScreen;
+using Silk.NET.DXGI;
 using Silk.NET.OpenGL;
 using System.Globalization;
 using System.Numerics;
@@ -165,12 +166,11 @@ namespace XrEngine.Browser.Win
             if (tex.Width == Size.Width && tex.Height == Size.Height)
                 return;
 
-            tex.LoadData(new TextureData()
-            {
-                Width = Size.Width,
-                Height = Size.Height,
-                Format = TextureFormat.Bgra32
-            });
+            tex.Width = Size.Width;
+            tex.Height = Size.Height;
+            tex.Format = TextureFormat.Bgra32;
+
+            tex.NotifyChanged();
         }
 
         private void OnFrameLoad(object? sender, FrameLoadStartEventArgs e)

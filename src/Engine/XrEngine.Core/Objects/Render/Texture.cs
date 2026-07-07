@@ -103,6 +103,9 @@ namespace XrEngine
 
         public void LoadData(TextureData data, bool initSampler = true)
         {
+            if (data.Data == null)
+                Log.Warn(this, "Tetxure LoadData without data");
+
             LoadData([data], initSampler);
         }
 
@@ -122,7 +125,7 @@ namespace XrEngine
             if (initSampler)
                 InitSampler();
 
-            NotifyChanged(ChangeType.Render);
+            NotifyChanged();
         }
 
         public virtual void SetDescription(
@@ -139,7 +142,7 @@ namespace XrEngine
             if (initSampler)
                 InitSampler();
 
-            NotifyChanged(ChangeType.Render);
+            NotifyChanged();
         }
 
         protected virtual void InitSampler()
@@ -169,6 +172,11 @@ namespace XrEngine
         public override void GeneratePath(List<string> parts)
         {
             parts.Add($"Texture-{DateTime.UtcNow.Ticks}");
+        }
+
+        public void NotifyChanged()
+        {
+            NotifyChanged(ChangeType.Render);
         }
 
 

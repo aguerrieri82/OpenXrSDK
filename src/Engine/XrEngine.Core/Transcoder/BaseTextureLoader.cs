@@ -84,6 +84,8 @@ namespace XrEngine
 
         protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint depth, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format, uint blockSize = 0)
         {
+            depth = Math.Max(depth, 1);
+
             var padding = GetFormatAlign(comp, format);
 
             static uint Align(uint value, uint align)

@@ -76,8 +76,11 @@ namespace XrEditor.Services
                 _items.RemoveAt(i);
         }
 
-        public async void Set(params INode[] items) 
+        public async void Set(params INode[] items)
         {
+            if (items.SequenceEqual(_items))
+                return;
+
             BeginUpdate();
 
             Clear();

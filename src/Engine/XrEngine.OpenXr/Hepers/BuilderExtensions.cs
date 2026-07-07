@@ -294,6 +294,22 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder UseEnvironmentMesh(this XrEngineAppBuilder self, uint size = 300u, bool occlude = true, bool receiveShadow = true)
+        {
+            return self.UseEnvironmentDepth()
+                    .ConfigureApp(e =>
+                    {
+                        var mesh = new EnvDepthMesh(new Size2I(size, size));
+
+                        mesh.Material.UseDepth = occlude;
+                        mesh.Material.WriteDepth = occlude;
+                        mesh.Material.ReceiveShadows = receiveShadow;
+
+                        e.App.ActiveScene!.AddChild(mesh);
+                    });
+
+        }
+
         public static XrEngineAppBuilder UseEnvironmentShadow(this XrEngineAppBuilder self, Color shadowColor, float maxDistance = 4f)
         {
             self.ConfigureApp(e =>
@@ -340,6 +356,7 @@ namespace XrEngine.OpenXr
                     return;
 
                 var passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+
                 if (passTh == null)
                 {
                     passTh = new XrPassthroughLayer();
@@ -347,8 +364,11 @@ namespace XrEngine.OpenXr
                 }
 
                 var camera = e.App.ActiveScene?.ActiveCamera;
-                camera?.AddComponent(new OculusEnvDepthProvider(e.XrApp));
+
+                if (camera != null && !camera.TryComponent<OculusEnvDepthProvider>(out var _))
+                    camera.AddComponent(new OculusEnvDepthProvider(e.XrApp));
             });
+
             return self;
         }
 

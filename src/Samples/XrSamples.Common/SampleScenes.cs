@@ -1419,18 +1419,14 @@ namespace XrSamples
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
-            //mesh.UseEnvDepth(true);
             mesh.CastShadows(true);
 
             scene.AddChild(mesh);
-            scene.AddChild(new EnvDepthMesh(new Size2I(50u, 50u)));
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentDepth()
                 .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
-                //.UseEnvironmentShadow(new Color(0, 0, 0, 0.7f))
-                //.UseDefaultHDR()
+                .UseEnvironmentMesh(100)
                 .UseShadows()
                 .ConfigureSampleApp();
         }

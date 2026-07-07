@@ -30,13 +30,12 @@ namespace XrSamples
 
         public PanoramaMaker()
         {
-            _cubeTexture = new TextureCube();
-            _cubeTexture.LoadData(new TextureData
+            _cubeTexture = new TextureCube()
             {
                 Width = 1024,
                 Height = 1024,
                 Format = TextureFormat.RgbaFloat16
-            });
+            };
 
             _cameraTexture = new Texture2D
             {

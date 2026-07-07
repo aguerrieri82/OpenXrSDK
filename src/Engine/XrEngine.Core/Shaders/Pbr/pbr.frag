@@ -305,7 +305,7 @@ void main()
 
 	
 	#ifdef PLANAR_REFLECTION
-		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo, uMaterial.planarFactor);
+		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo, uMaterial.planarFactor, uMaterial.planarLevel);
 	#endif
 
 

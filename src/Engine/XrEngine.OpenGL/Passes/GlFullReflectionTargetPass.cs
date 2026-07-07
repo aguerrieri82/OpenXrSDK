@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
         private Camera? _oldCamera;
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
-
+        private GlSwapTexture? _swap;
 
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
@@ -86,13 +86,16 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            if (camera.Scene == null || _reflection == null)
+
+            if (camera.Scene == null || _reflection == null )
                 return false;
 
             if (!_reflection.Host!.IsVisible)
                 return false;
 
             _reflection.Update(camera, _passTarget.BoundEye);
+
+            _swap ??= new GlSwapTexture(_reflection.Texture!);
 
             var clipSize = _reflection.ClipBounds.Size.ToVector2() *
                            _reflection.ReflectionCamera.ViewSize.ToVector2() / 2;
@@ -108,7 +111,8 @@ namespace XrEngine.OpenGL
             _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
             _renderer.UpdateContext.ContextVersion++;
 
-            _passTarget.Configure(_reflection.Texture!);
+            _passTarget.Configure(_swap.Active);
+
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
@@ -162,6 +166,12 @@ namespace XrEngine.OpenGL
                 _imageLight.LightTransform = _oldImageLightTransform;
                 _imageLight.Invalidate();
             }
+
+            if (_reflection!.BlurLevel > 0)
+            {
+                _swap!.Active.GenerateMipmap();
+            }
+
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -172,6 +182,7 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             _passTarget.Dispose();
+            _swap?.Dispose();
             base.Dispose();
         }
 
@@ -179,6 +190,8 @@ namespace XrEngine.OpenGL
         {
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
+
+
         }
     }
 }

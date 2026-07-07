@@ -244,7 +244,7 @@ namespace XrEngine
         public void EnsureId()
         {
             if (_id.Value == Guid.Empty)
-                _id = Utils.HashGuid(GeneratePath());
+                _id = Guid.NewGuid();
 
         }
 

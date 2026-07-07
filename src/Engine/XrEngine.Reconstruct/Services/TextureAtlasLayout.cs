@@ -341,15 +341,13 @@ namespace XrEngine.Reconstruct
             var texture = new Texture2D()
             {
                 MinFilter = ScaleFilter.Linear,
-                MagFilter = ScaleFilter.Linear
-            };
-
-            texture.LoadData(new TextureData
-            {
+                MagFilter = ScaleFilter.Linear,
                 Format = TextureFormat.Rgb24,
                 Width = (uint)layout.AtlasWidth,
                 Height = (uint)layout.AtlasHeight,
-            }, false);
+            };
+
+            texture.NotifyChanged();
 
             await EngineApp.RenderThread;
 

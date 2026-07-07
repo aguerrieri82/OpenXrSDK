@@ -59,6 +59,9 @@ namespace XrEngine
 
             [FieldOffset(144)]
             public float PlanarReflectionStrength;
+
+            [FieldOffset(148)]
+            public float PlanarReflectionLevel;
         }
 
         #endregion
@@ -639,6 +642,7 @@ namespace XrEngine
                     EmissiveColor = EmissiveColor,
                     TexTransform = ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity,
                     PlanarReflectionStrength = planar?.Strength ?? 0,
+                    PlanarReflectionLevel = planar?.BlurLevel ?? 0
                 };
 
             }, UniformsSlots.Material, BufferStore.Material);

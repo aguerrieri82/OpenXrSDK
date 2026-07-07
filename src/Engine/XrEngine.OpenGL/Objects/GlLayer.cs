@@ -52,7 +52,7 @@ namespace XrEngine.OpenGL
 
         private async void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
         {
-            await _render.Dispatcher.Switch;
+           await _render.Dispatcher.Switch;
 
            if (change.Type == Layer3DChangeType.Removed || change.Type == Layer3DChangeType.Updated)
                 RemoveContent((Object3D)change.Item, true);
@@ -60,7 +60,7 @@ namespace XrEngine.OpenGL
             if (change.Type == Layer3DChangeType.Added || change.Type == Layer3DChangeType.Updated)
                 AddContent((Object3D)change.Item, true);
 
-            _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
+            _lastUpdateVersion = Version;
         }
 
         protected virtual ShaderMaterial ReplaceMaterial(ShaderMaterial material)
@@ -110,6 +110,8 @@ namespace XrEngine.OpenGL
 
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
+
+            obj3d.EnsureId();
 
             foreach (var shaderEntry in _content.Contents.ToArray())
             {
@@ -166,12 +168,42 @@ namespace XrEngine.OpenGL
             }
         }
 
+        protected List<Material> ListObjects(Object3D obj3d)
+        {
+            var result = new List<Material>();
+
+            foreach (var shaderEntry in _content.Contents.ToArray())
+            {
+                var shaderContent = shaderEntry.Value;
+
+                foreach (var materialEntry in shaderContent.Contents.ToArray())
+                {
+                    var materialContent = materialEntry.Value;
+
+                    foreach (var vertexEntry in materialContent.Contents.ToArray())
+                    {
+                        var vertexContent = vertexEntry.Value;
+
+                        foreach (var draw in vertexContent.Contents)
+                        {
+                            if (draw.Object == obj3d)
+                                result.Add(materialContent.Material);
+
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         protected void AddContent(Object3D obj3d, bool incremental)
         {
             GlUtils.EnsureRenderThread();
 
             if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
                 return;
+
+            obj3d.EnsureId();
 
             foreach (var realMaterial in vrtSrc.Materials.OfType<ShaderMaterial>())
             {
@@ -228,6 +260,8 @@ namespace XrEngine.OpenGL
                     shaderContent.Contents[materialKey] = materialContent;
                     Invalidate(shaderContent);
                 }
+
+                Debug.Assert(materialContent.Material == material);
 
                 var vertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc));
 
@@ -311,6 +345,8 @@ namespace XrEngine.OpenGL
 
             if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
                 return;
+
+            //Update();
 
             if (_isContentDirty)
                 SortMaterials();

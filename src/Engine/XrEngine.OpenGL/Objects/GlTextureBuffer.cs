@@ -74,7 +74,6 @@ namespace XrEngine.OpenGL
             //Unsafe.CopyBlockUnaligned(pDst, pSrc, _buffer.Length);
 
             //System.Buffer.MemoryCopy(pSrc, pDst, _buffer.Length, data.Data.Size); 
-
             _buffer.Unmap();
 
             Bind();

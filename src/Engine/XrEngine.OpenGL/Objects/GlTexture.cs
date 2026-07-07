@@ -217,24 +217,6 @@ namespace XrEngine.OpenGL
                 data[0].BlockSize);
         }
 
-        [Obsolete("Use Allocate, UploadFull, or UploadRegion. This method mixes storage description and upload policy.")]
-        public void Update(
-            uint width,
-            uint height,
-            uint depth,
-            TextureFormat format,
-            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
-            IList<TextureData>? data = null,
-            uint blockSize = 0)
-        {
-            if (data != null)
-            {
-                UploadFull(width, height, depth, format, compression, data, blockSize);
-                return;
-            }
-
-            Allocate(width, height, depth, format, compression, blockSize);
-        }
 
         public void Allocate(
             uint width,
@@ -267,8 +249,6 @@ namespace XrEngine.OpenGL
             AllocateStorage(width, height, depth, format);
 
             Unbind();
-
-
         }
 
         public void UploadFull(IList<TextureData> data)
@@ -518,6 +498,9 @@ namespace XrEngine.OpenGL
             {
                 if (entry.Data == null)
                     continue;
+
+                if (entry.Data.Size == 0)
+                    throw new InvalidOperationException();
 
                 var realTarget = GetLayerTarget(entry.Layer);
                 var uploadDepth = Math.Max(entry.Depth, 1);

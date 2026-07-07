@@ -52,6 +52,7 @@ namespace XrEngine
             Offset = 0.01f;
             FovDegree = 45;
             Strength = 1f;
+            BlurLevel = 0;
         }
 
         public virtual bool PrepareMaterial(Material material)
@@ -174,21 +175,16 @@ namespace XrEngine
                 Texture = new Texture2D
                 {
                     MagFilter = ScaleFilter.Linear,
-                    MinFilter = ScaleFilter.Linear,
+                    MinFilter = ScaleFilter.LinearMipmapLinear,
                     WrapS = Wrap,
                     WrapT = Wrap,
                     BorderColor = Color.White,
                     Depth = IsMultiView ? 2u : 1u,
-                    MipLevelCount = 1
-                };
-
-                Texture.LoadData(new TextureData
-                {
+                    MipLevelCount = 10,
                     Width = (uint)curSize.Width,
                     Height = (uint)curSize.Height,
-                    Depth = IsMultiView ? 2u : 1u,
-                    Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
-                }, false);
+                    Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                };
             }
 
             _refCamera.SetFov(FovDegree, Texture.Width, Texture.Height);
@@ -339,5 +335,7 @@ namespace XrEngine
 
         [Range(0, 1, 0.01f)]
         public float Strength { get; set; }
+
+        public int BlurLevel { get; set; }
     }
 }

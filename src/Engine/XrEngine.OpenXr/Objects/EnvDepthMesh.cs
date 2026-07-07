@@ -51,5 +51,7 @@ namespace XrEngine.OpenXr
 
             return new TriangleMesh(geoEye);
         }
+
+        public EnvDepthMaterial Material => (EnvDepthMaterial)Materials[0];
     }
 }

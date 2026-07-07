@@ -52,9 +52,6 @@ namespace XrEditor.Nodes
 
                     else if (obj is Object3D)
                         nodeType = typeof(Object3DNode<>).MakeGenericType(obj.GetType());
-
-
-
                     else
                         nodeType = typeof(EngineObjectNode<>).MakeGenericType(obj.GetType());
 
@@ -62,13 +59,13 @@ namespace XrEditor.Nodes
 
                     if (obj is Object3D obj3d && obj3d.Parent != null)
                         ((IEditableNode)node).SetParent(CreateNode(obj3d.Parent));
+
+                    if (node != null)
+                        obj.SetProp("Node", node);
                 }
 
                 if (node != null)
-                {
-                    obj.SetProp("Node", node);
                     return node;
-                }
             }
             if (value is IComponent comp)
             {

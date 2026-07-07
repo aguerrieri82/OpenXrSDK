@@ -20,6 +20,8 @@ namespace XrEngine.OpenGL
         {
             _gl = render.GL;
             _glState = render.State;
+            Context.Implement<ITextureFilterProvider>(this);
+            Instance = this;
         }
 
         public void Dispose()
@@ -40,7 +42,10 @@ namespace XrEngine.OpenGL
             {
                 program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
 
-                if (src.Depth > 0 || dst.Depth > 0)
+                if (src.Format == TextureFormat.Rgba32  || src.Format == TextureFormat.SRgba32)
+                    program.AddFeature("FORMAT rgba8");
+
+                if (src.Depth > 1 || dst.Depth > 1)
                     program.AddFeature("USE_ARRAY");
 
                 program.AddFeature("CHANNELS " + activeChannels);
@@ -64,7 +69,12 @@ namespace XrEngine.OpenGL
 
             program.LoadTexture(src, 10);
 
-            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, dstGl.InternalFormat);
+            var format = dstGl.InternalFormat;
+
+            if (format == InternalFormat.Srgb8Alpha8)
+                throw new NotSupportedException();
+
+            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, dst.Depth > 1, 0, BufferAccessARB.WriteOnly, format);
 
             var z = src.Depth == 0 ? 1 : src.Depth;
 
@@ -124,5 +134,6 @@ namespace XrEngine.OpenGL
         }
 
 
+        public static GlTextureFilter? Instance { get; private set; }
     }
 }

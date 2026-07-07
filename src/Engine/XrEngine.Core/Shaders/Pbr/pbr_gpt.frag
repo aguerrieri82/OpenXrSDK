@@ -472,7 +472,7 @@ void main()
 #endif
 
 #ifdef PLANAR_REFLECTION
-	color3 = planarReflection(color3, frag.position, R, frag.roughness, NoV, uMaterial.planarFactor);
+	color3 = planarReflection(color3, frag.position, R, frag.roughness, NoV, uMaterial.planarFactor, uMaterial.planarLevel);
 #endif
 
 #ifdef USE_EMISSIVE

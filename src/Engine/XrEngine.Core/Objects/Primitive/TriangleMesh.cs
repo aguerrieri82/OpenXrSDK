@@ -72,7 +72,9 @@ namespace XrEngine
 
         private void OnMaterialsChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
+            if (e.Action == NotifyCollectionChangedAction.Remove ||
+                e.Action == NotifyCollectionChangedAction.Replace ||
+                e.Action == NotifyCollectionChangedAction.Reset)
             {
                 if (e.OldItems != null)
                 {
@@ -90,6 +92,23 @@ namespace XrEngine
 
                 NotifyChanged(new ObjectChange(ChangeType.MateriaAdd, e.NewItems));
             }
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.Type == ChangeType.SceneRemove)
+            {
+                foreach (var material in _materials)
+                    material.Detach(this);
+            }
+
+            if (change.Type == ChangeType.SceneAdd)
+            {
+                foreach (var material in _materials)
+                    material.Attach(this);
+            }
+            
+            base.OnChanged(change);
         }
 
         public void NotifyLoaded()

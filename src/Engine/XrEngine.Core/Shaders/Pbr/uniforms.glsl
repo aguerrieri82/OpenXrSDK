@@ -32,6 +32,7 @@ layout(std140, binding=2) uniform Material
 	float alphaCutoff;
 	vec4 emissive;
 	float planarFactor;
+	float planarLevel;
 } uMaterial;
 
 

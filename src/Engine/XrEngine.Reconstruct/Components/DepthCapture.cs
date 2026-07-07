@@ -14,7 +14,6 @@ using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
 using TurboJpeg;
-using XrEngine.UI;
 
 
 namespace XrEngine.Reconstruct
@@ -947,13 +946,10 @@ namespace XrEngine.Reconstruct
                     depthTex.MinFilter = ScaleFilter.Nearest;
                     depthTex.MagFilter = ScaleFilter.Nearest;
                     depthTex.MipLevelCount = 0;
-
-                    depthTex.LoadData(new TextureData
-                    {
-                        Width = (uint)DepthMapSize,
-                        Height = (uint)DepthMapSize,
-                        Format = TextureFormat.Depth16
-                    });
+                    depthTex.Width = (uint)DepthMapSize;
+                    depthTex.Height = (uint)DepthMapSize;
+                    depthTex.Format = TextureFormat.Depth16;
+                    depthTex.NotifyChanged();
                 }
 
                 glDepthTex = depthTex.ToGlTexture();
