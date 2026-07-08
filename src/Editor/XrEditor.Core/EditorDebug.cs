@@ -4,6 +4,7 @@ using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
 using XrSamples.Dnd;
+using XrSamples.Graffiti;
 
 namespace XrEditor
 {
@@ -67,7 +68,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateRoomManager()  
+              .CreateGraffiti()  
                //.CreateDepthSnapeshot()
               .Build();
     }

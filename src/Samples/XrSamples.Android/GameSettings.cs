@@ -32,7 +32,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Bed",
+                SampleName = "Graffiti",
                 Msaa = 2,
                 Scale = 1f,
                 UsePbrV2 = true,

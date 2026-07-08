@@ -59,6 +59,7 @@ namespace XrSamples.Graffiti
             _normalTexture = CreateTexture();
             _roughnessTexture = CreateTexture();
 
+             /*
             _geo = new BrickGeometry()
             {
                 WallSize = _size,
@@ -71,18 +72,19 @@ namespace XrSamples.Graffiti
                 MetallicRoughnessMap = _roughnessTexture,
                 Alpha = AlphaMode.Blend
             });
+            */
 
-            /*
+
             _geo = new Quad3D(_size);
 
-            _canvas = new TriangleMesh(_geo, new PbrV2Material()
+            _canvas = new TriangleMesh(_geo, new PbrMaterial()
             {
                 ColorMap = _colorTexture,
                 NormalMap = _normalTexture,
                 MetallicRoughnessMap = _roughnessTexture,
                 Alpha = AlphaMode.Blend
             });
-            */
+ 
 
             _canvas.Materials.Add(new DebugMaterial()
             {
