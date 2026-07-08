@@ -71,7 +71,7 @@ namespace XrEngine
             uint srcRowAlignment);
 
         [DllImport(LibName)]
-        public static unsafe extern void RgbToBgr(uint width, uint height, byte* srcData, byte* dstData, uint pixelSizeByte);
+        public static unsafe extern void ConvertRgbToBgr(uint width, uint height, byte* srcData, byte* dstData, uint pixelSizeByte);
 
 
         [DllImport(LibName)]

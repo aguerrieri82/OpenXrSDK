@@ -59,12 +59,11 @@ namespace XrEngine.Compression
 
         public static unsafe TextureData Encode(TextureData data)
         {
-
             using var pData = data.Data!.MemoryLock();
 
             if (!data.Format.IsBgr())
             {
-                EngineNativeLib.RgbToBgr(data.Width, data.Height, pData, pData, data.Format.GetPixelSizeBit() / 8);
+                EngineNativeLib.ConvertRgbToBgr(data.Width, data.Height, pData, pData, data.Format.GetPixelSizeBit() / 8);
 
                 if (data.Format == TextureFormat.Rgba32)
                     data.Format = TextureFormat.Bgra32;
