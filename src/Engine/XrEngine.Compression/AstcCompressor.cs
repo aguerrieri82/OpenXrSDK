@@ -191,6 +191,9 @@ namespace XrEngine.Compression
             astcenc_profile profile;
             astcenc_type type;
 
+            if (data.Format.GetChannels() != 4)
+                throw new NotSupportedException();
+
             if (data.Format.IsInt8())
             {
                 if (data.Format.IsSrgb())
@@ -214,17 +217,8 @@ namespace XrEngine.Compression
 
             astcenc_swizzle swizzle;
 
-            if (data.Format == TextureFormat.Rgb24 ||
-                data.Format == TextureFormat.SRgb24 ||
-                data.Format == TextureFormat.RgbFloat16 ||
-                data.Format == TextureFormat.RgbFloat32)
-            {
-                swizzle.r = astcenc_swz.ASTCENC_SWZ_R;
-                swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
-                swizzle.b = astcenc_swz.ASTCENC_SWZ_B;
-                swizzle.a = astcenc_swz.ASTCENC_SWZ_0;
-            }
-            else if (data.Format == TextureFormat.Bgra32 || data.Format == TextureFormat.SBgra32)
+            
+            if (data.Format.IsBgr())
             {
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_B;
                 swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
@@ -232,18 +226,14 @@ namespace XrEngine.Compression
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
 
-            else if (data.Format == TextureFormat.Rgba32 ||
-                data.Format == TextureFormat.SRgba32 ||
-                data.Format == TextureFormat.RgbaFloat32 ||
-                data.Format == TextureFormat.RgbaFloat16)
-            {
+            else
+            { 
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_R;
                 swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
                 swizzle.b = astcenc_swz.ASTCENC_SWZ_B;
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
-            else
-                throw new NotSupportedException();
+
 
             var pars = new astcenc_params
             {

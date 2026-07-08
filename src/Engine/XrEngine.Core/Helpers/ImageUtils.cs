@@ -33,7 +33,39 @@ namespace XrEngine
 
         public static bool IsBgr(this TextureFormat format)
         {
-            return format == TextureFormat.Bgra32 || format == TextureFormat.SBgra32;
+            return format == TextureFormat.Bgra32 || 
+                   format == TextureFormat.SBgra32;
+        }
+
+        public static uint GetChannels(this TextureFormat format)
+        {
+            return format switch
+            {
+                TextureFormat.RgFloat16 or
+                TextureFormat.Rg88 => 2,
+
+                TextureFormat.SRgbaInt16 or
+                TextureFormat.RgbaInt16 or
+                TextureFormat.Rgba32 or
+                TextureFormat.SRgba32 or
+                TextureFormat.Bgra32 or
+                TextureFormat.SBgra32 or
+                TextureFormat.RgbaFloat32 or
+                TextureFormat.RgbaFloat16 or
+                TextureFormat.SBgra32 => 4,
+
+                TextureFormat.Rgb24 or
+                TextureFormat.RgbFloat32 or
+                TextureFormat.SRgb24 => 3,
+
+                TextureFormat.GrayFloat16 or
+                TextureFormat.GrayFloat32 or
+                TextureFormat.GrayInt8 or
+                TextureFormat.GrayInt16 or
+                TextureFormat.GrayInt16 => 1,
+
+                _ => throw new NotSupportedException()
+            };
         }
 
         public static uint GetPixelSizeBit(this TextureFormat format)
@@ -60,11 +92,11 @@ namespace XrEngine
                 TextureFormat.GrayFloat32 => 32,
                 TextureFormat.GrayFloat16 => 16,
                 TextureFormat.Rgb9e5Float => 32,
+                TextureFormat.RgbaInt16 => 64,
+                TextureFormat.SRgbaInt16 => 64,
                 _ => throw new NotSupportedException()
             };
-
         }
-
 
         public static bool IsFloat(this TextureFormat format)
         {
@@ -76,6 +108,12 @@ namespace XrEngine
             return format == TextureFormat.SRgb24 ||
                    format == TextureFormat.SRgba32 ||
                    format == TextureFormat.SBgra32;
+        }
+
+        public static bool IsInt16(this TextureFormat format)
+        {
+            return format == TextureFormat.RgbaInt16 ||
+                    format == TextureFormat.SRgbaInt16;
         }
 
         public static bool IsInt8(this TextureFormat format)
@@ -106,6 +144,7 @@ namespace XrEngine
                    format == TextureFormat.GrayFloat32;
         }
 
+        [Obsolete]
         public static SKBitmap ApplyGaussianBlur(SKBitmap bitmap, float radius)
         {
             using var surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
@@ -134,7 +173,9 @@ namespace XrEngine
             using var pMetal = metal.Data!.MemoryLock();
             using var pRough = roughness.Data!.MemoryLock();
             using var pDst = mrImage.MemoryLock();
+
             EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width * GetPixelSizeByte(metal.Format), metal.Width * 4, 0, 2, 1);
+            
             EngineNativeLib.ImageCopyChannel(pRough, pDst, roughness.Width, roughness.Height, roughness.Width * GetPixelSizeByte(roughness.Format), metal.Width * 4, 0, 1, 1);
 
             var tex = new Texture2D
@@ -150,6 +191,7 @@ namespace XrEngine
                 Height = metal.Height,
                 Format = TextureFormat.Rgba32
             });
+
             return tex;
         }
 
@@ -169,7 +211,6 @@ namespace XrEngine
 
             return MergeMetalRaugh(texData, roughness.Data![0]);
         }
-
 
         public static uint GetPixelSizeByte(SKColorType type)
         {
@@ -259,21 +300,7 @@ namespace XrEngine
             };
         }
 
-        public static TextureData Resize(TextureData data, int width, int height, ref SKBitmap? image)
-        {
-            if (width == data.Width && height == data.Height)
-                return data;
-
-            image ??= ToBitmap(data, false)!;
-
-            var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
-
-            using var newImage = image.Resize(new SKSizeI(width, height), so);
-
-            return newImage.ToTextureData();
-        }
-
-        public static unsafe TextureData ResizeV2(TextureData data, int width, int height)
+        public static unsafe TextureData Resize(TextureData data, int width, int height)
         {
             if (width == data.Width && height == data.Height)
                 return data;
@@ -315,11 +342,39 @@ namespace XrEngine
 
             using var pDst = newData.MemoryLock();
 
-            EngineNativeLib.ImageResizeBilinearU8(data.Width, data.Height, pSrc, (uint)pWidth, (uint)pHeight, pDst, pixelSize);
+            EngineNativeLib.ImagePack(data.Width, data.Height, pSrc, (uint)pWidth, (uint)pHeight, pDst, pixelSize);
 
             result.Data = newData;
             result.Width = (uint)pWidth;
             result.Height = (uint)pHeight;
+
+            return result;
+
+        }
+
+        public static unsafe TextureData PackToRgba8(TextureData data, int align)
+        {
+            if (!data.Format.IsInt8())
+                throw new NotSupportedException();
+
+            var pWidth = (int)MathF.Ceiling(data.Width / (float)align) * align;
+  
+            if (pWidth == data.Width && data.Format.GetChannels() == 4)
+                return data;
+
+            var result = data.Clone();
+
+            var newData = MemoryBuffer.Create<byte>((uint)(pWidth * data.Height * 4));
+
+            using var pSrc = result.Data!.MemoryLock();
+
+            using var pDst = newData.MemoryLock();
+
+            EngineNativeLib.ImagePackToRgba8(pSrc, pDst, data.Width, data.Height, data.Format.GetChannels(), (uint)align);
+
+            result.Data = newData;
+            result.Width = (uint)pWidth;
+            result.Format = data.Format.IsBgr() ? TextureFormat.Bgra32 : TextureFormat.Rgba32;
 
             return result;
 
@@ -347,7 +402,7 @@ namespace XrEngine
 
                     var intVector = Avx2.ConvertToVector256Int32(shortVector);
 
-                    var floatVector = Avx2.ConvertToVector256Single(intVector);
+                    var floatVector = Avx.ConvertToVector256Single(intVector);
 
                     floatVector.Store(dstFloat + i);
                 }

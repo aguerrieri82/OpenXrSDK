@@ -107,6 +107,115 @@ void RgbToBgr(uint32_t width, uint32_t height,
     }
 }
 
+static inline size_t AlignUp(size_t value, size_t alignment)
+{
+    return alignment <= 1 ? value : (value + alignment - 1) & ~(alignment - 1);
+}
+
+bool ImagePackToRgba8(
+    const uint8_t* src,
+    uint8_t* dst,
+    unsigned int width,
+    unsigned int height,
+    unsigned int srcChannels,
+    unsigned int srcRowAlignment)
+{
+    if (!src || !dst || width == 0 || height == 0)
+        return false;
+
+    if (srcChannels < 1 || srcChannels > 4)
+        return false;
+
+    size_t srcPixelBytes = srcChannels;
+    size_t srcTightRowBytes = (size_t)width * srcPixelBytes;
+    size_t srcRowBytes = AlignUp(srcTightRowBytes, srcRowAlignment);
+    size_t dstRowBytes = (size_t)width * 4;
+
+    if (srcChannels == 4)
+    {
+        if (srcRowBytes == dstRowBytes)
+        {
+            memcpy(dst, src, dstRowBytes * height);
+            return true;
+        }
+
+        for (unsigned int y = 0; y < height; y++)
+        {
+            memcpy(
+                dst + (size_t)y * dstRowBytes,
+                src + (size_t)y * srcRowBytes,
+                dstRowBytes);
+        }
+
+        return true;
+    }
+
+    if (srcChannels == 3)
+    {
+        for (unsigned int y = 0; y < height; y++)
+        {
+            const uint8_t* s = src + (size_t)y * srcRowBytes;
+            uint8_t* d = dst + (size_t)y * dstRowBytes;
+
+            for (unsigned int x = 0; x < width; x++)
+            {
+                d[0] = s[0];
+                d[1] = s[1];
+                d[2] = s[2];
+                d[3] = 255;
+
+                s += 3;
+                d += 4;
+            }
+        }
+
+        return true;
+    }
+
+    if (srcChannels == 2)
+    {
+        for (unsigned int y = 0; y < height; y++)
+        {
+            const uint8_t* s = src + (size_t)y * srcRowBytes;
+            uint8_t* d = dst + (size_t)y * dstRowBytes;
+
+            for (unsigned int x = 0; x < width; x++)
+            {
+                d[0] = s[0];
+                d[1] = s[1];
+                d[2] = 0;
+                d[3] = 255;
+
+                s += 2;
+                d += 4;
+            }
+        }
+
+        return true;
+    }
+
+    // srcChannels == 1
+    for (unsigned int y = 0; y < height; y++)
+    {
+        const uint8_t* s = src + (size_t)y * srcRowBytes;
+        uint8_t* d = dst + (size_t)y * dstRowBytes;
+
+        for (unsigned int x = 0; x < width; x++)
+        {
+            uint8_t v = *s++;
+
+            d[0] = v;
+            d[1] = v;
+            d[2] = v;
+            d[3] = 255;
+
+            d += 4;
+        }
+    }
+
+    return true;
+}
+
  void ImageResizeBilinearU8(
     uint32_t srcW, uint32_t srcH, const uint8_t* src,
     uint32_t dstW, uint32_t dstH, uint8_t* dst,

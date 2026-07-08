@@ -43,6 +43,8 @@ namespace XrEngine.OpenGL
                 TextureFormat.SRgba32 or
                 TextureFormat.RgbaFloat32 or
                 TextureFormat.RgbaFloat16 or
+                TextureFormat.RgbaInt16 or
+                TextureFormat.SRgbaInt16 or
                 TextureFormat.Rgba32 => PixelFormat.Rgba,
 
                 TextureFormat.SBgra32 or
@@ -91,20 +93,19 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayUint32 => PixelType.UnsignedInt,
 
 
-                TextureFormat.RgbFloat16 => PixelType.HalfFloat,
+                TextureFormat.RgbFloat16 or
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
-
-
-                TextureFormat.Depth16 => PixelType.UnsignedShort,
 
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
                 TextureFormat.Depth32Stencil8 => PixelType.Float32UnsignedInt248Rev,
 
-                TextureFormat.GrayInt16 => PixelType.UnsignedShort,
+                TextureFormat.Depth16 or
+                TextureFormat.GrayInt16 or
+                TextureFormat.RgbaInt16 or
+                TextureFormat.SRgbaInt16 => PixelType.UnsignedShort,
 
                 TextureFormat.GrayRawSInt16 => PixelType.Short,
-
 
                 TextureFormat.Rgba32 or
                 TextureFormat.Bgra32 or
@@ -161,6 +162,7 @@ namespace XrEngine.OpenGL
                     TextureFormat.GrayFloat32 => InternalFormat.R32f,
                     TextureFormat.GrayFloat16 => InternalFormat.R16f,
 
+                    TextureFormat.RgbaInt16 => InternalFormat.Rgba16,
 
                     TextureFormat.Rgb24 => InternalFormat.Rgb8,
                     TextureFormat.SRgb24 => InternalFormat.Srgb8,
@@ -253,7 +255,7 @@ namespace XrEngine.OpenGL
         {
             return internalFormat switch
             {
-
+                InternalFormat.Rgba16 => TextureFormat.RgbaInt16,
                 InternalFormat.Rgb9E5 => TextureFormat.Rgb9e5Float,
                 InternalFormat.Rgb32f => TextureFormat.RgbFloat32,
                 InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,

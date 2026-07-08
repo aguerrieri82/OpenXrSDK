@@ -37,8 +37,21 @@ namespace XrEngine
 
 
         [DllImport(LibName)]
-        public static unsafe extern void ImagePack(uint srcWidth, uint srcHeight, byte* srcData, uint dstWidth, uint dstHeight, byte* dstData, uint pixelSize);
+        public static unsafe extern void ImagePack(
+            uint srcWidth, uint srcHeight, byte* srcData, 
+            uint dstWidth, uint dstHeight, byte* dstData, 
+            uint pixelSize);
 
+
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static unsafe extern bool ImagePackToRgba8(
+            byte* src,
+            byte* dst,
+            uint width,
+            uint height,
+            uint srcChannels,
+            uint srcRowAlignment);
 
         [DllImport(LibName)]
         public static unsafe extern void RgbToBgr(uint width, uint height, byte* srcData, byte* dstData, uint pixelSizeByte);

@@ -39,11 +39,21 @@ namespace XrEngine.Transcoder
                 var isSrgb = options?.IsSrgb ?? false;
 
                 if (outImg.ColorType == PngLib.ColorTypeRgba)
-                    format = isSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32;
-                
+                {
+                    if (outImg.BitDepth == 8)
+                        format = isSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32;
+                    else if (outImg.BitDepth == 16)
+                        format = isSrgb ? TextureFormat.SRgbaInt16 : TextureFormat.RgbaInt16;
+                    else
+                        throw new NotSupportedException();
+                }
                 else  if (outImg.ColorType == PngLib.ColorTypeRgb)
-                    format = isSrgb ? TextureFormat.SRgb24 : TextureFormat.Rgb24;
-
+                {
+                    if (outImg.BitDepth == 8)
+                        format = isSrgb ? TextureFormat.SRgb24 : TextureFormat.Rgb24;
+                    else
+                        throw new NotSupportedException();
+                }
                 else if (outImg.ColorType == PngLib.ColorTypeGray && !isSrgb)
                 {
                     if (outImg.BitDepth == 16)

@@ -9,6 +9,7 @@ namespace XrEngine.Compression
         public int Align;
         public TextureCompressionFormat Format;
         public uint BlockSize;
+        public bool RequireRgba;
     }
 
     public class TextureCompressor
@@ -26,6 +27,7 @@ namespace XrEngine.Compression
                 Format = TextureCompressionFormat.Astc,
                 Align = 1,
                 BlockSize = blockSize,
+                RequireRgba = true,
                 Encode = data => AstcCompressor.Encode(data, isNormalMap, quality, blockSize)
             };
         }
@@ -104,7 +106,11 @@ namespace XrEngine.Compression
         {
             if (_cacheCleared)
                 return;
-            foreach (var file in Directory.GetFiles(CachePath!))
+            
+            if (!Directory.Exists(CachePath))
+                return;
+
+            foreach (var file in Directory.GetFiles(CachePath))
                 File.Delete(file);
             _cacheCleared = true;
         }
@@ -121,7 +127,7 @@ namespace XrEngine.Compression
 
             if (CachePath != null)
             {
-                ClearCache();
+              //  ClearCache();
 
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
 
@@ -149,11 +155,16 @@ namespace XrEngine.Compression
                     var width = (int)MathF.Max(1, data.Width >> level);
                     var height = (int)MathF.Max(1, data.Height >> level);
 
-                    var resizeData = ImageUtils.ResizeV2(lastData, width, height);
+                    var resizeData = ImageUtils.Resize(lastData, width, height);
 
                     Log.Info(this, "Compressing mip {0} mipsLevels width {1} height {2}", level, width, height);
 
-                    var packData = ImageUtils.Pack(resizeData, compressor.Align);
+                    TextureData packData;
+
+                    if (compressor.RequireRgba)
+                        packData = ImageUtils.PackToRgba8(resizeData, compressor.Align);
+                    else
+                        packData = ImageUtils.Pack(resizeData, compressor.Align);
 
                     var newData = compressor.Encode(packData);
 

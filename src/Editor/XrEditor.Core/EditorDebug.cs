@@ -22,6 +22,8 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
+        public static readonly bool DebugEnabled = false;
+
         public static readonly bool DisableDualRender = true;
 
         public static readonly int VSyncScale = 4;
@@ -51,8 +53,8 @@ namespace XrEditor
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 
-                  opt.Compression.Use = false;
-                  opt.Compression.Format = TextureCompressionFormat.Etc2;
+                  opt.Compression.Use = true;
+                  opt.Compression.Format = TextureCompressionFormat.Astc;
 
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
@@ -68,7 +70,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateGraffiti()  
+              .CreateDrums()  
                //.CreateDepthSnapeshot()
               .Build();
     }
