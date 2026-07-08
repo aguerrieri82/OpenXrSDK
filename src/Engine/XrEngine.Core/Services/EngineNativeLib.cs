@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using XrMath;
 
 
@@ -43,7 +44,14 @@ namespace XrEngine
             uint width,
             uint height,
             uint srcRowBytes);
-        
+
+
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public unsafe static extern bool ConvertRgb32FToRgba16F(
+            float* src,
+            Half* dst,
+            uint srcFloatCount);
 
         [DllImport(LibName)]
         public static unsafe extern void ImagePack(

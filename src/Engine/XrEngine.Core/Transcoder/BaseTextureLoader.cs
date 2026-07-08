@@ -117,7 +117,8 @@ namespace XrEngine
                     {
                         var blocksX = (item.Width + blockSize - 1) / blockSize;
                         var blocksY = (item.Height + blockSize - 1) / blockSize;
-                        size = blocksX * blocksY * 16;
+                        var blocksZ = (item.Depth + blockSize - 1) / blockSize;
+                        size = blocksX * blocksY * blocksZ * 16;
                     }
                     else
                         size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * depth * padding.BitPerPixel) / 8;

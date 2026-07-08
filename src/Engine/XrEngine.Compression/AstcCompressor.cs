@@ -177,7 +177,7 @@ namespace XrEngine.Compression
 
 
         [DllImport("astcencoder-native")]
-        static extern int Encode(nint data, int width, int height, astcenc_type dataType, ref astcenc_params parameters, nint dst, ref int dstSize);
+        static extern int Encode(nint data, int width, int height, int depth, astcenc_type dataType, ref astcenc_params parameters, nint dst, ref int dstSize);
 
         #endregion
 
@@ -187,6 +187,8 @@ namespace XrEngine.Compression
             uint flags = 0;
             if (isNormalMap)
                 flags |= ASTCENC_FLG_MAP_NORMAL;
+
+
 
             astcenc_profile profile;
             astcenc_type type;
@@ -204,10 +206,13 @@ namespace XrEngine.Compression
             }
             else if (data.Format.IsFloat16())
             {
+                /*
                 if (isNormalMap)
                     profile = astcenc_profile.ASTCENC_PRF_LDR;
                 else
                     profile = astcenc_profile.ASTCENC_PRF_HDR;
+                */
+                profile = astcenc_profile.ASTCENC_PRF_HDR;
                 type = astcenc_type.ASTCENC_TYPE_F16;
             }
             else if (data.Format.IsFloat32())
@@ -245,7 +250,7 @@ namespace XrEngine.Compression
             {
                 block_x = blockSize,
                 block_y = blockSize,
-                block_z = 1,
+                block_z = data.Depth <= 1 ? 1 : blockSize,
                 flags = flags,
                 profile = profile,
                 quality = quality,
@@ -258,7 +263,7 @@ namespace XrEngine.Compression
 
             var dstSize = 0;
 
-            var result = Encode(srcPtr, (int)data.Width, (int)data.Height, type, ref pars, IntPtr.Zero, ref dstSize);
+            var result = Encode(srcPtr, (int)data.Width, (int)data.Height, (int)data.Depth, type, ref pars, IntPtr.Zero, ref dstSize);
             if (result != 0)
                 throw new InvalidOperationException();
 
@@ -269,7 +274,7 @@ namespace XrEngine.Compression
 
             using var dstPtr = newData.Data!.MemoryLock();
 
-            result = Encode(srcPtr, (int)data.Width, (int)data.Height, type, ref pars, dstPtr, ref dstSize);
+            result = Encode(srcPtr, (int)data.Width, (int)data.Height, (int)data.Depth, type, ref pars, dstPtr, ref dstSize);
             if (result != 0)
                 throw new InvalidOperationException();
 

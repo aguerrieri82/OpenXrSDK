@@ -47,6 +47,116 @@ void ImagePack(uint32_t srcWidth, uint32_t srcHeight, char* srcData, uint32_t ds
     }
 }
 
+bool ConvertRgb32FToRgba16F(
+    const float* src,
+    uint16_t* dst,
+    uint32_t srcFloatCount)
+{
+    if (!src || !dst)
+        return false;
+
+    if ((srcFloatCount % 3) != 0)
+        return false;
+
+    uint32_t pixelCount = srcFloatCount / 3;
+
+#if HAS_F16C
+    for (uint32_t i = 0; i < pixelCount; i++)
+    {
+        const float* s = src + (size_t)i * 3;
+        uint16_t* d = dst + (size_t)i * 4;
+
+        __m128 v = _mm_set_ps(1.0f, s[2], s[1], s[0]);
+        __m128i h = _mm_cvtps_ph(v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+
+        uint64_t packed = (uint64_t)_mm_cvtsi128_si64(h);
+        memcpy(d, &packed, sizeof(uint64_t));
+    }
+
+    return true;
+
+#elif HAS_NEON_FP16
+    const float32x4_t alpha = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    for (uint32_t i = 0; i < pixelCount; i++)
+    {
+        const float* s = src + (size_t)i * 3;
+        uint16_t* d = dst + (size_t)i * 4;
+
+        float32x4_t v = alpha;
+        v = vsetq_lane_f32(s[0], v, 0);
+        v = vsetq_lane_f32(s[1], v, 1);
+        v = vsetq_lane_f32(s[2], v, 2);
+
+        float16x4_t h = vcvt_f16_f32(v);
+        vst1_u16(d, vreinterpret_u16_f16(h));
+    }
+
+    return true;
+
+#else
+    for (uint32_t i = 0; i < pixelCount; i++)
+    {
+        const float* s = src + (size_t)i * 3;
+        uint16_t* d = dst + (size_t)i * 4;
+
+        for (int c = 0; c < 4; c++)
+        {
+            float f = c == 3 ? 1.0f : s[c];
+
+            uint32_t x;
+            memcpy(&x, &f, sizeof(uint32_t));
+
+            uint32_t sign = (x >> 16) & 0x8000;
+            uint32_t mantissa = x & 0x007FFFFF;
+            int exp = (int)((x >> 23) & 0xFF) - 127 + 15;
+
+            if (exp <= 0)
+            {
+                if (exp < -10)
+                {
+                    d[c] = (uint16_t)sign;
+                    continue;
+                }
+
+                mantissa |= 0x00800000;
+
+                uint32_t shift = (uint32_t)(14 - exp);
+                uint32_t round = (1u << (shift - 1)) - 1u;
+                uint32_t sticky = (mantissa >> shift) & 1u;
+
+                d[c] = (uint16_t)(sign | ((mantissa + round + sticky) >> shift));
+                continue;
+            }
+
+            if (exp >= 31)
+            {
+                d[c] = (uint16_t)(sign | 0x7C00 | (mantissa ? 0x0200 : 0));
+                continue;
+            }
+
+            mantissa = mantissa + 0x00000FFF + ((mantissa >> 13) & 1u);
+
+            if (mantissa & 0x00800000)
+            {
+                mantissa = 0;
+                exp++;
+
+                if (exp >= 31)
+                {
+                    d[c] = (uint16_t)(sign | 0x7C00);
+                    continue;
+                }
+            }
+
+            d[c] = (uint16_t)(sign | ((uint32_t)exp << 10) | (mantissa >> 13));
+        }
+    }
+
+    return true;
+#endif
+}
+
 void RgbToBgr(uint32_t width, uint32_t height,
     const char* srcData, char* dstData,
     uint32_t pixelSizeByte)

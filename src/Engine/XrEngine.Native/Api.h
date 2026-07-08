@@ -24,6 +24,11 @@ extern "C" {
         const uint16_t* src, float* dst,
         uint32_t width, uint32_t height, uint32_t srcRowBytes);
 
+    EXPORT bool APIENTRY ConvertRgb32FToRgba16F(
+        const float* src,
+        uint16_t* dst,
+        uint32_t srcFloatCount);
+
 	EXPORT void APIENTRY ImagePack(
         uint32_t srcWidth, uint32_t srcHeight, char* srcData, 
         uint32_t dstWidth, uint32_t dstHeight, char* dstData,  uint32_t pixelSize);

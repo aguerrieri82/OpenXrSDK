@@ -547,6 +547,7 @@ namespace XrEngine.OpenGL
             IList<TextureData> data)
         {
             if (Target == TextureTarget.Texture2DArray ||
+                Target == TextureTarget.Texture3D ||
                 Target == TextureTarget.Texture2DMultisampleArray)
             {
                 AllocateCompressedArrayStorage(width, height, depth);
@@ -566,7 +567,7 @@ namespace XrEngine.OpenGL
                         (int)entry.Layer,
                         entry.Width,
                         entry.Height,
-                        1,
+                        entry.Depth,
                         _internalFormat,
                         entry.Data.Size,
                         pData);

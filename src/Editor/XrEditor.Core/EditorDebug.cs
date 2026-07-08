@@ -55,7 +55,9 @@ namespace XrEditor
 
                   opt.Compression.Use = true;
                   opt.Compression.Format = TextureCompressionFormat.Astc;
-
+                  opt.Compression.BlockSize = 3;
+                  opt.Compression.Quality = 80;
+                  
                   opt.ShadowMap.Mode = ShadowMapMode.Hard;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
                   opt.ShadowMap.UseShadowSampler = false;
@@ -70,7 +72,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateDrums()  
+              .CreateLightField()  
                //.CreateDepthSnapeshot()
               .Build();
     }

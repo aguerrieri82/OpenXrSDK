@@ -520,11 +520,13 @@ namespace XrEngine.Lighting
                 var data = reader.LoadTexture(fs);
 
                 TextureFormat format;
+                TextureType type = TextureType.Unspecified;
 
                 if ((textures.Count % 2) == 0)
                     format = TextureFormat.Rgb9e5Float;
                 else
                 {
+                    type = TextureType.NormalMap;
                     if (packDir)
                     {
                         var face = textures.Count / 2;
@@ -549,7 +551,8 @@ namespace XrEngine.Lighting
                     Format = format,
                     MipLevelCount = 0,
                     MinFilter = ScaleFilter.Nearest,
-                    MagFilter = ScaleFilter.Linear
+                    MagFilter = ScaleFilter.Linear,
+                    Type = type
                 };
 
                 tex.LoadData(data);

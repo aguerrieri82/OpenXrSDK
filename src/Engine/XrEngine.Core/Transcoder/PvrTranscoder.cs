@@ -30,6 +30,16 @@ namespace XrEngine
             ASTC_10x10 = 38,
             ASTC_12x10 = 39,
             ASTC_12x12 = 40,
+            ASTC_3x3x3 = 41,
+            ASTC_4x3x3 = 42,
+            ASTC_4x4x3 = 43,
+            ASTC_4x4x4 = 44,
+            ASTC_5x4x4 = 45,
+            ASTC_5x5x4 = 46,
+            ASTC_5x5x5 = 47,
+            ASTC_6x5x5 = 48,
+            ASTC_6x6x5 = 49,
+            ASTC_6x6x6 = 50,
             RGBA8 = 0x0808080861626772,
             RGB8 = 0x0008080800626772,
             RGBFloat32 = 0x0020202000626772,
@@ -95,13 +105,26 @@ namespace XrEngine
 
             if (images[0].Compression == TextureCompressionFormat.Astc)
             {
-                header.PixelFormat = images[0].BlockSize switch
+                if (images[0].Depth > 1)
                 {
-                    4 => PixelFormat.ASTC_4x4,
-                    6 => PixelFormat.ASTC_6x6,
-                    8 => PixelFormat.ASTC_8x8,
-                    _ => throw new NotSupportedException()
-                };
+                    header.PixelFormat = images[0].BlockSize switch
+                    {
+                        3 => PixelFormat.ASTC_3x3x3,
+                        4 => PixelFormat.ASTC_4x4x4,
+                        _ => throw new NotSupportedException()
+                    };
+                }
+                else
+                {
+                    header.PixelFormat = images[0].BlockSize switch
+                    {
+                        4 => PixelFormat.ASTC_4x4,
+                        6 => PixelFormat.ASTC_6x6,
+                        8 => PixelFormat.ASTC_8x8,
+                        _ => throw new NotSupportedException()
+                    };
+                }
+
                 if (images[0].Format.IsSrgb())
                     header.ColorSpace = ColorSpace.sRGB;
                 else
@@ -233,13 +256,27 @@ namespace XrEngine
                 case PixelFormat.ASTC_4x4:
                 case PixelFormat.ASTC_6x6:
                 case PixelFormat.ASTC_8x8:
-                    if (header.ColorSpace == ColorSpace.sRGB)
-                        format = TextureFormat.SRgba32;
+                case PixelFormat.ASTC_3x3x3:
+                    
+                    if (header.ChannelType == ChannelType.Float)
+                    {
+                        if (header.ColorSpace == ColorSpace.sRGB)
+                            throw new NotSupportedException();
+                        format = TextureFormat.RgbaFloat16;
+                    }
                     else
-                        format = TextureFormat.Rgba32;
+                    {
+                        if (header.ColorSpace == ColorSpace.sRGB)
+                            format = TextureFormat.SRgba32;
+                        else
+                            format = TextureFormat.Rgba32;
+                    }
+                    
                     comp = TextureCompressionFormat.Astc;
+
                     blockSize = header.PixelFormat switch
                     {
+                        PixelFormat.ASTC_3x3x3 => 3,
                         PixelFormat.ASTC_4x4 => 4,
                         PixelFormat.ASTC_6x6 => 6,
                         PixelFormat.ASTC_8x8 => 8,

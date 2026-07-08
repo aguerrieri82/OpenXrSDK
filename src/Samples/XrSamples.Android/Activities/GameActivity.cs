@@ -113,10 +113,15 @@ namespace XrSamples.Android.Activities
                     opt.UseOcclusionQuery = false;
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
+                    
                     opt.Compression.Use = _settings.TextureCompression;
+                    opt.Compression.BlockSize = 4;
+                    opt.Compression.Quality = 60;
+
                     opt.UseSRGB = false;
                     opt.ToneMap = ToneMapMode.Neutral;
-                    opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+
+                    opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
                     opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
                     opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                 });

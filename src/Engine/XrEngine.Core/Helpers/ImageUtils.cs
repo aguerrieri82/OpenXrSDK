@@ -402,6 +402,30 @@ namespace XrEngine
 
         }
 
+        public static unsafe TextureData ConvertRgb32FToRgba16F(TextureData data)
+        {
+            if (data.Format != TextureFormat.RgbFloat32)
+                throw new NotSupportedException();
+
+            var result = data.Clone();
+
+            var size = data.Width * data.Height * Math.Max(1, data.Depth);
+
+            var newData = MemoryBuffer.Create<byte>(size * 2 * 4);
+
+            using var pSrc = result.Data!.MemoryLock();
+
+            using var pDst = newData.MemoryLock();
+
+            EngineNativeLib.ConvertRgb32FToRgba16F((float*)pSrc.Data, (Half*)pDst.Data, size * 3);
+
+            result.Data = newData;
+            result.Format = TextureFormat.RgbaFloat16;
+
+            return result;
+
+        }
+
         public static unsafe IMemoryBuffer<byte> ConvertShortToFloat(IMemoryBuffer<byte> data)
         {
             var i = 0;

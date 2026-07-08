@@ -127,7 +127,7 @@ namespace XrEngine.Compression
 
             if (CachePath != null)
             {
-              //  ClearCache();
+                //ClearCache();
 
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
 
@@ -167,6 +167,11 @@ namespace XrEngine.Compression
                         {
                             Debug.Assert(compressor.Align == 1);
                             packData = ImageUtils.ConvertRgba16ToRgba32F(resizeData);
+                        }
+                        else if (resizeData.Format == TextureFormat.RgbFloat32)
+                        {
+                            Debug.Assert(compressor.Align == 1);
+                            packData = ImageUtils.ConvertRgb32FToRgba16F(resizeData);
                         }
                         else
                             packData = ImageUtils.PackToRgba8(resizeData, compressor.Align);

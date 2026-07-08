@@ -32,10 +32,9 @@ namespace XrSamples
         {
             return new GameSettings
             {
-               // SampleName = "Graffiti",
+                SampleName = "Light Field",
                 Msaa = 2,
                 Scale = 1f,
-                UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = true,

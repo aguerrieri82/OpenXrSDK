@@ -205,6 +205,7 @@ namespace XrEngine.OpenGL
                 {
                     return blockSize switch
                     {
+                        3 => InternalFormat.CompressedRgbaAstc3x3x3Oes,
                         4 => InternalFormat.CompressedRgbaAstc4x4,
                         6 => InternalFormat.CompressedRgbaAstc6x6,
                         8 => InternalFormat.CompressedRgbaAstc8x8,

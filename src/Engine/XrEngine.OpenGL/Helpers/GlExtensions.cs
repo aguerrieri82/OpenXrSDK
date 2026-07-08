@@ -136,6 +136,9 @@ namespace XrEngine.OpenGL
 
             var curSize = texture2D.Width * texture2D.Height;
 
+            if (texture2D is Texture3D tex3d)
+                curSize *= tex3d.Depth;
+
             if (curSize < options.MinSize)
                 return null;
 
@@ -152,7 +155,12 @@ namespace XrEngine.OpenGL
 
             if (options.Format == TextureCompressionFormat.Astc)
             {
-                return TextureCompressor.EncodeAstc(texture2D.Type == TextureType.NormalMap, options.Quality, options.BlockSize);
+                var blockSize = options.BlockSize;
+                
+                if (texture2D.Depth <= 1 && blockSize == 3)
+                    blockSize = 4;
+
+                return TextureCompressor.EncodeAstc(texture2D.Type == TextureType.NormalMap, options.Quality, blockSize);
             }
     
             if (options.Format == TextureCompressionFormat.Etc2)
@@ -174,7 +182,7 @@ namespace XrEngine.OpenGL
 
             var compressor = TextureCompressor.Instance;
 
-            compressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().CachePath, "Textures");
+            compressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Textures");
 
             await Task.Run(async () =>
             {
