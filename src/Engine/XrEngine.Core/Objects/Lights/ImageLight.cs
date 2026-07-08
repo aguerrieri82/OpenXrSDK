@@ -96,16 +96,6 @@ namespace XrEngine
             NotifyChanged(ChangeType.Render);
         }
 
-        public override void Update(RenderContext ctx)
-        {
-            if (!_isInit && _scene != null)
-            {
-                FixAdrenoSpecualarBug();
-                _isInit = true;
-            }
-
-            base.Update(ctx);
-        }
 
         public void NotifyIBLCreated()
         {
@@ -143,11 +133,7 @@ namespace XrEngine
             base.Dispose();
         }
 
-        void FixAdrenoSpecualarBug()
-        {
-            var view = _scene!.AddChild(new EnvironmentView());
-            view.Material.Blur = 0;
-        }
+
 
         public IBLTextures Textures { get; set; }
 

@@ -32,7 +32,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Ping Pong",
+                SampleName = "Light Field",
                 Msaa = 2,
                 Scale = 1f,
                 UsePbrV2 = true,

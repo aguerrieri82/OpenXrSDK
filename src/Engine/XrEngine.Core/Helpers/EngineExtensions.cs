@@ -1479,7 +1479,7 @@ namespace XrEngine
         public static void Generate(this Texture2D texture, bool warmUp = false)
         {
             var render = EngineApp.Current.Renderer;
-            render.LoadTexture(texture, warmUp);
+            render.LoadTexture(texture);
         }
 
 

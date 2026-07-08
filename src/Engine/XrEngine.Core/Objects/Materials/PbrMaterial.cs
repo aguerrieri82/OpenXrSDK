@@ -497,7 +497,7 @@ namespace XrEngine
                             foreach (var tex in lightField.Textures)
                             {
                                 up.LoadTexture(tex, i + 10);
-                                up.SetUniform($"uLightField[{i}]", i + 10);
+                                //up.SetUniform($"uLightField[{i}]", i + 10);
                                 i++;
                             }
 

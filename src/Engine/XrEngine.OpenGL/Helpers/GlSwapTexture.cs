@@ -68,7 +68,7 @@ namespace XrEngine.OpenGL
             {
                 GlTextureFilter.Instance!.Blur(
                     (Texture2D)_activeTex.ToEngineTexture(), 
-                    (Texture2D)_backTex.ToEngineTexture(), "Swap_3", 3, mipLevel);
+                    (Texture2D)_backTex.ToEngineTexture(), $"Blur_Swap_{_main.InternalFormat}_{mipLevel}", 3, mipLevel);
 
                 Swap();
             }
@@ -76,7 +76,7 @@ namespace XrEngine.OpenGL
 
         public void CopyAndSwap()
         {
-            _activeTex.CopyTo(_temp);
+            _activeTex.CopyTo(_backTex);
             Swap();
         }
 

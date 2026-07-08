@@ -174,7 +174,7 @@ namespace XrEngine.OpenGL
                 if (isUpdate)
                     glTextBuf.Update(tex2d.Data![0]);
 
-                GlState.Current!.LoadTexture(glTextBuf.Texture, slot);
+                GlState.Current!.LoadTexture(glTextBuf.Texture, slot, forceBinding);
 
                 glTextBuf.Version = tex2d.Version;
             }

@@ -5,6 +5,7 @@
 #include "../Shared/planar_reflection.glsl"
 
 
+
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
 
@@ -199,7 +200,9 @@ vec3 evaluateDirectLight(
 #endif
 }
 
-#include "../Shared/light_field.glsl"
+#ifdef USE_LIGHT_FIELD
+	#include "../Shared/light_field.glsl"
+#endif
 
 vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 {

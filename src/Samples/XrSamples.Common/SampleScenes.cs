@@ -1255,7 +1255,7 @@ namespace XrSamples
 
                 Task.Run(async () =>
                 {
-
+                    return;
                     var service = new IkeaKitchenService();
                     service.CachePath = "d:\\Projects\\Ikea";
                     service.Authorize("eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNjA0MjlUMDkyNTE5WiIsImV4cCI6IjIwMjYwNDMwVDA5MjUxOVoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.504f6e6434506b6354634838345365496a4d5276576c6b663272444c384c52366556394c4175796850346b3d");

@@ -1,4 +1,4 @@
-﻿uniform sampler3D uLightField[12];
+﻿layout(binding = 10) uniform sampler3D uLightField[12];
 
 uniform vec3 uLightFieldOrigin;
 uniform float uVoxelSize;

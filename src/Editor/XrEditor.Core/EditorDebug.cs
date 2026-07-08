@@ -38,7 +38,7 @@ namespace XrEditor
 
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+            //  .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
