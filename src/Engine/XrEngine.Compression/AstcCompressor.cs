@@ -204,12 +204,18 @@ namespace XrEngine.Compression
             }
             else if (data.Format.IsFloat16())
             {
-                profile = astcenc_profile.ASTCENC_PRF_HDR;
+                if (isNormalMap)
+                    profile = astcenc_profile.ASTCENC_PRF_LDR;
+                else
+                    profile = astcenc_profile.ASTCENC_PRF_HDR;
                 type = astcenc_type.ASTCENC_TYPE_F16;
             }
             else if (data.Format.IsFloat32())
             {
-                profile = astcenc_profile.ASTCENC_PRF_HDR;
+                if (isNormalMap)
+                    profile = astcenc_profile.ASTCENC_PRF_LDR;
+                else
+                    profile = astcenc_profile.ASTCENC_PRF_HDR;
                 type = astcenc_type.ASTCENC_TYPE_F32;
             }
             else
@@ -217,7 +223,6 @@ namespace XrEngine.Compression
 
             astcenc_swizzle swizzle;
 
-            
             if (data.Format.IsBgr())
             {
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_B;
@@ -225,7 +230,6 @@ namespace XrEngine.Compression
                 swizzle.b = astcenc_swz.ASTCENC_SWZ_R;
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
-
             else
             { 
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_R;
@@ -234,6 +238,8 @@ namespace XrEngine.Compression
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
 
+            if (isNormalMap)
+                swizzle.a = astcenc_swz.ASTCENC_SWZ_1;
 
             var pars = new astcenc_params
             {

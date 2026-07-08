@@ -35,6 +35,15 @@ namespace XrEngine
         [DllImport(LibName)]
         public static extern void SleepFor(ulong time);
 
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public unsafe static extern bool ConvertRgba16ToRgba32F(
+            ushort* src,
+            float* dst,
+            uint width,
+            uint height,
+            uint srcRowBytes);
+        
 
         [DllImport(LibName)]
         public static unsafe extern void ImagePack(

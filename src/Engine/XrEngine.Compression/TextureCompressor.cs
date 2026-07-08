@@ -162,7 +162,15 @@ namespace XrEngine.Compression
                     TextureData packData;
 
                     if (compressor.RequireRgba)
-                        packData = ImageUtils.PackToRgba8(resizeData, compressor.Align);
+                    {
+                        if (resizeData.Format == TextureFormat.RgbaInt16)
+                        {
+                            Debug.Assert(compressor.Align == 1);
+                            packData = ImageUtils.ConvertRgba16ToRgba32F(resizeData);
+                        }
+                        else
+                            packData = ImageUtils.PackToRgba8(resizeData, compressor.Align);
+                    }
                     else
                         packData = ImageUtils.Pack(resizeData, compressor.Align);
 

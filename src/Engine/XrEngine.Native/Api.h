@@ -20,6 +20,10 @@ extern "C" {
         unsigned int width, unsigned int height,
         unsigned int srcChannels, unsigned int srcRowAlignment);
 
+    EXPORT bool APIENTRY ConvertRgba16ToRgba32F(
+        const uint16_t* src, float* dst,
+        uint32_t width, uint32_t height, uint32_t srcRowBytes);
+
 	EXPORT void APIENTRY ImagePack(
         uint32_t srcWidth, uint32_t srcHeight, char* srcData, 
         uint32_t dstWidth, uint32_t dstHeight, char* dstData,  uint32_t pixelSize);

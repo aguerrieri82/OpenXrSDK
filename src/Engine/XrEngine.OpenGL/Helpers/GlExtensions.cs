@@ -152,8 +152,6 @@ namespace XrEngine.OpenGL
 
             if (options.Format == TextureCompressionFormat.Astc)
             {
-                if (texture2D.Format.IsInt16())
-                    return null;
                 return TextureCompressor.EncodeAstc(texture2D.Type == TextureType.NormalMap, options.Quality, options.BlockSize);
             }
     

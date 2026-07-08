@@ -313,6 +313,72 @@ void ImageCopyChannel(uint8_t* src, uint8_t* dst, const uint32_t width, uint32_t
     }
 }
 
+bool ConvertRgba16ToRgba32F(
+    const uint16_t* src,
+    float* dst,
+    uint32_t width,
+    uint32_t height,
+    uint32_t srcRowBytes)
+{
+    if (!src || !dst || width == 0 || height == 0)
+        return false;
+
+    const size_t valuesPerRow = (size_t)width * 4;
+    const float scale = 1.0f / 65535.0f;
+
+    if (srcRowBytes == 0)
+        srcRowBytes = (uint32_t)(valuesPerRow * sizeof(uint16_t));
+
+    for (uint32_t y = 0; y < height; y++)
+    {
+        const uint16_t* s = (const uint16_t*)((const uint8_t*)src + (size_t)y * srcRowBytes);
+        float* d = dst + (size_t)y * valuesPerRow;
+
+        size_t i = 0;
+
+#if HAS_NEON
+        const float32x4_t vscale = vdupq_n_f32(scale);
+
+        for (; i + 8 <= valuesPerRow; i += 8)
+        {
+            uint16x8_t v = vld1q_u16(s + i);
+
+            uint32x4_t lo = vmovl_u16(vget_low_u16(v));
+            uint32x4_t hi = vmovl_u16(vget_high_u16(v));
+
+            float32x4_t flo = vmulq_f32(vcvtq_f32_u32(lo), vscale);
+            float32x4_t fhi = vmulq_f32(vcvtq_f32_u32(hi), vscale);
+
+            vst1q_f32(d + i + 0, flo);
+            vst1q_f32(d + i + 4, fhi);
+        }
+
+#elif HAS_SSE2
+        const __m128 vscale = _mm_set1_ps(scale);
+        const __m128i zero = _mm_setzero_si128();
+
+        for (; i + 8 <= valuesPerRow; i += 8)
+        {
+            __m128i v = _mm_loadu_si128((const __m128i*)(s + i));
+
+            __m128i lo = _mm_unpacklo_epi16(v, zero);
+            __m128i hi = _mm_unpackhi_epi16(v, zero);
+
+            __m128 flo = _mm_mul_ps(_mm_cvtepi32_ps(lo), vscale);
+            __m128 fhi = _mm_mul_ps(_mm_cvtepi32_ps(hi), vscale);
+
+            _mm_storeu_ps(d + i + 0, flo);
+            _mm_storeu_ps(d + i + 4, fhi);
+        }
+#endif
+
+        for (; i < valuesPerRow; i++)
+            d[i] = (float)s[i] * scale;
+    }
+
+    return true;
+}
+
 void SleepUntil(uint64_t time)
 {
 	auto duration= std::chrono::nanoseconds(time);
