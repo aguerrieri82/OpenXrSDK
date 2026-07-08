@@ -1470,7 +1470,7 @@ namespace XrSamples
                 .ConfigureSampleApp(false)
                 .ConfigureApp(a =>
                 {
-                    OpenGLRender.Current!.EnableDebug(true);
+
                     snapeshot.ConfigureInput(a.Inputs!);
 
                     if (mode != DepthSnapeshotMode.Read)

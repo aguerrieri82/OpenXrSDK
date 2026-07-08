@@ -101,7 +101,6 @@ namespace XrSamples.Android.Activities
 
         protected override void BuildApp(XrEngineAppBuilder builder)
         {
-
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
@@ -134,6 +133,8 @@ namespace XrSamples.Android.Activities
 
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp();
+
+            builder.EnableDebugNotRelease();
 
             MaterialFactory.DefaultPbr = typeof(PbrMaterial);
 

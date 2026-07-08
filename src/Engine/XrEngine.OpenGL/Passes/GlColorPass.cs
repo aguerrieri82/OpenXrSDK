@@ -222,6 +222,9 @@ namespace XrEngine.OpenGL
 
                         if (vertexContent.Draw != null)
                         {
+#if GL_VALIDATE_PROG
+                            progInst.Program.Validate();
+#endif
                             vertexContent.Draw();
                         }
                         else
@@ -236,6 +239,10 @@ namespace XrEngine.OpenGL
                                 progInst.UpdateModel(updateContext);
 
                                 //SetBounds(updateContext.PassCamera!, draw.Object!);
+
+#if GL_VALIDATE_PROG
+                                progInst.Program.Validate();
+#endif
 
                                 Draw(draw);
                             }

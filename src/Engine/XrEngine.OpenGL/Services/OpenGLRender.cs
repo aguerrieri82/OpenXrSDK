@@ -16,7 +16,6 @@ using Common.Interop;
 namespace XrEngine.OpenGL
 {
 
-
     public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
     {
         protected class LayersCache
@@ -169,19 +168,14 @@ namespace XrEngine.OpenGL
            {
                if (SuspendErrors > 0)
                    return;
-
                try
                {
                    var span = new Span<byte>((void*)msg, len);
                    var text = Encoding.UTF8.GetString(span);
 
-                   if (sev == GLEnum.DebugSeverityNotification)
-                       return;
-
                    Debug.WriteLine($"\n\n\n");
                    Debug.WriteLine($"------ OPENGL: {text}");
                    Debug.WriteLine($"\n\n\n");
-
                }
                catch
                {
@@ -190,8 +184,11 @@ namespace XrEngine.OpenGL
            }, null);
 
             _gl.Enable(EnableCap.DebugOutput);
+
             if (sync)
                 _gl.Enable(EnableCap.DebugOutputSynchronous);
+
+            _gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DebugSeverityNotification, 0, null, false);
 
             _isDebug = true;
         }

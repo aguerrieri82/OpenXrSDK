@@ -15,15 +15,21 @@ namespace XrEngine.OpenGL
         const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
 
 
-        public static void CheckError(this GL gl, bool log = true)
+        public static bool CheckError(this GL gl, bool log = true)
         {
             GLEnum err;
+
+            bool hasError = false;
 
             while ((err = gl.GetError()) != GLEnum.NoError)
             {
                 if (log)
                     Log.Warn("CheckError", err.ToString());
+
+                hasError = true;    
             }
+
+            return hasError;
         }
 
         public static TextureTarget GetTextureTarget(this GL gL, uint texId)

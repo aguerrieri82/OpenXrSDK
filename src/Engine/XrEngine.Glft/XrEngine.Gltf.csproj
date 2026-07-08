@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+		<NativeFolder>Release</NativeFolder>
 	</PropertyGroup>
 
 	<ItemGroup>

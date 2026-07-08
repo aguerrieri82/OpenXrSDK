@@ -7,6 +7,13 @@ namespace OpenXr.Framework.Android
 {
     public class AndroidXrOpenGLESGraphicDriver : XrBasePlugin, IXrGraphicDriver, IApiProvider
     {
+
+#if DEBUG
+        const bool DEBUG_MODE = true;
+#else
+        const bool DEBUG_MODE = false;
+#endif
+
         protected OpenGLESContext _context;
         protected XrDynamicType _swapChainType;
         protected KhrOpenglEsEnable? _openGlEs;
@@ -17,7 +24,7 @@ namespace OpenXr.Framework.Android
         ];
 
         public AndroidXrOpenGLESGraphicDriver()
-            : this(OpenGLESContext.Create(false))
+            : this(OpenGLESContext.Create(DEBUG_MODE))
         {
         }
 

@@ -222,6 +222,17 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder EnableDebugNotRelease(this XrEngineAppBuilder self, bool sync = false)
+        {
+            return self.ConfigureApp(e =>
+            {
+#if DEBUG
+                if (e.App.Renderer is OpenGLRender openGl)
+                    openGl.EnableDebug(sync);
+#endif
+            });
+        }
+
         public static XrEngineAppBuilder UseOpenGL(this XrEngineAppBuilder self)
         {
             self.Options.Driver = GraphicDriver.OpenGL;

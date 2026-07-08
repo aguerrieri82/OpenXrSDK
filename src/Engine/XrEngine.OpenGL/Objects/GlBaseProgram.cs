@@ -361,7 +361,6 @@ namespace XrEngine.OpenGL
 
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
-
             var builder = new StringBuilder();
 
             builder.Append("#version ")
@@ -379,7 +378,6 @@ namespace XrEngine.OpenGL
                 _ => throw new NotSupportedException()
             };
 
-            
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DShadow;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DMSArray;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DMS;\n");
@@ -446,6 +444,22 @@ namespace XrEngine.OpenGL
             builder.Append("\n\n").Append(ReplaceIncludes(sourceName));
 
             return builder.ToString();
+        }
+
+        public bool Validate()
+        {
+            _gl.ValidateProgram(_handle);
+
+            _gl.GetProgram(_handle, ProgramPropertyARB.ValidateStatus, out var ok);
+
+            if (ok == 0)
+            {
+                var log = _gl.GetProgramInfoLog(_handle);
+                Log.Warn(this, log);
+                return false;
+            }
+
+            return true;       
         }
 
         protected virtual void PatchShader(ShaderType shaderType, StringBuilder builder)
