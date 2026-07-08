@@ -1478,7 +1478,7 @@ namespace XrSamples
                     {
                         await EngineApp.RenderThread;
 
-                        await snapeshot.GenerateMeshAsync();
+                        //await snapeshot.GenerateMeshAsync();
                     });
 
 

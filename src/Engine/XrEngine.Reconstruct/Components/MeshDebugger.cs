@@ -79,7 +79,7 @@ namespace XrEngine.Reconstruct
             var hY = ctx.Camera!.ViewSize.Height / 2;
 
             ctx.Transform3 = Matrix4x4.Identity;
-
+            /*
             float padding = 0;
 
             ctx.Distance = 5f;
@@ -94,7 +94,7 @@ namespace XrEngine.Reconstruct
 
             ctx.DrawText("Hjello", UnitPoint.Uv(0.5f,0.5f), UnitValue.Uv(0.2f), Color.White);
 
-
+            */
             if (_newTriangles == null || _triangles == null || !IsEnabled)
                 return;
 

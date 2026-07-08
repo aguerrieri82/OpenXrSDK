@@ -377,7 +377,10 @@ namespace XrEngine.OpenGL
             }
         }
 
-
+        public uint GetActiveFrameBuffer(FramebufferTarget target)
+        {
+            return FrameBufferTargets[target];
+        }
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {

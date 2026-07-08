@@ -16,7 +16,7 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
-        public static readonly bool EnablePreview = false;
+        public static readonly bool EnablePreview = true;
 
         public static readonly bool UseEs = false;
 
@@ -53,7 +53,7 @@ namespace XrEditor
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 
-                  opt.Compression.Use = true;
+                  opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Astc;
                   opt.Compression.BlockSize = 3;
                   opt.Compression.Quality = 80;
@@ -72,7 +72,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateLightField()  
+              .CreateDepthSnapeshot()  
                //.CreateDepthSnapeshot()
               .Build();
     }

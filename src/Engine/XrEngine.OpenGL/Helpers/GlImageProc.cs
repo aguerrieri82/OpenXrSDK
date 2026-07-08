@@ -148,6 +148,8 @@ namespace XrEngine.OpenGL
 
         public static GlTexture GetDepth(GL gl, IGlFrameBuffer src)
         {
+            var activeFb = GlState.Current!.GetActiveFrameBuffer(FramebufferTarget.DrawFramebuffer);
+
             var depth = GlTempAllocator.StaticTexture(gl, src.Depth!.Width, src.Depth.Height, 1, src.Depth.InternalFormat.GetTextureFormat());
 
             var fb = PrepareFrameBuffer(gl, null, (IGlRenderAttachment)depth);
@@ -159,6 +161,8 @@ namespace XrEngine.OpenGL
             gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
                                 0, 0, (int)depth.Width, (int)depth.Height,
                                 ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
+
+            GlState.Current.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, activeFb);
 
             return depth;
         }
