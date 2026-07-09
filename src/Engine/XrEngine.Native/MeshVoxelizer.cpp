@@ -264,13 +264,13 @@ void MeshVoxelizer::ComputeSubGrid()
     int32_t maxY = static_cast<int32_t>(std::floor((_bounds.Max.Y - _grid.Origin.Y) * invVoxelSize)) + 1;
     int32_t maxZ = static_cast<int32_t>(std::floor((_bounds.Max.Z - _grid.Origin.Z) * invVoxelSize)) + 1;
 
-    minX = ClampInt(minX, 0, _grid.SizeX);
-    minY = ClampInt(minY, 0, _grid.SizeY);
-    minZ = ClampInt(minZ, 0, _grid.SizeZ);
+    minX = ClampInt(minX, 0, _grid.Size.X);
+    minY = ClampInt(minY, 0, _grid.Size.Y);
+    minZ = ClampInt(minZ, 0, _grid.Size.Z);
 
-    maxX = ClampInt(maxX, 0, _grid.SizeX);
-    maxY = ClampInt(maxY, 0, _grid.SizeY);
-    maxZ = ClampInt(maxZ, 0, _grid.SizeZ);
+    maxX = ClampInt(maxX, 0, _grid.Size.X);
+    maxY = ClampInt(maxY, 0, _grid.Size.Y);
+    maxZ = ClampInt(maxZ, 0, _grid.Size.Z);
 
     _result.Info.Origin =
     {

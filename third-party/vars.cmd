@@ -7,7 +7,7 @@ SET ANDROID_ABI=arm64-v8a
 SET ANDROID_PLATFORM=30
 SET ANDROID_STL=c++_static
 SET ANDROID_C_FLAGS=-ffunction-sections -fdata-sections -fvisibility=hidden
-SET ANDROID_CPP_FLAGS=-fexceptions -frtti -D__ARM_NEON -fvisibility=hidden -fvisibility-inlines-hidden
+SET ANDROID_CPP_FLAGS=-fexceptions -frtti -D__ARM_NEON -fvisibility=hidden -fvisibility-inlines-hidden -ffast-math -O3
 SET ANDROID_LD_FLAGS=-Wl,-z,max-page-size=16384 -Wl,--gc-sections -Wl,--exclude-libs,ALL
 SET LLVM_STRIP="%NDK_HOME%toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-strip
 

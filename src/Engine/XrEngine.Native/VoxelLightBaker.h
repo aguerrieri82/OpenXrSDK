@@ -9,11 +9,31 @@ enum class DirectionCollapseMode
     Luminance
 };
 
+enum class LightTrackMode
+{
+    Full,
+    Occlusions,
+    OcclusionsOnly
+};
+
+enum class VoxelLightState : int8_t {
+    Empty,
+    Light,
+    Occlusion
+};
+
 enum class VoxelLightMergeMode
 {
     Add,
     MaxSample,
     AddPreserveDir
+};
+
+enum class LightCurveType : int32_t
+{
+    None = 0,
+    Linear = 1,
+    Quadratic = 2
 };
 
 enum VoxelLightFaceIndex : int32_t
@@ -27,11 +47,10 @@ enum VoxelLightFaceIndex : int32_t
 };
 
 
+
 struct VoxelLightFieldView
 {
-    int32_t SizeX;
-    int32_t SizeY;
-    int32_t SizeZ;
+    Vec3I Size;
 
     Vec3* Color[VOXEL_LIGHT_FACE_COUNT];
     Vec3* Direction[VOXEL_LIGHT_FACE_COUNT];
@@ -57,8 +76,35 @@ struct BounceParams {
     float ConeMaxAngle;
 };
 
+struct BlurSample
+{
+    int32_t Dx;
+    int32_t Dy;
+    int32_t Dz;
+    float Weight;
+};
+
+
+struct LightCurve
+{
+    LightCurveType Type;
+    float Range;
+    float Factor;
+};
+
+struct BlurParams
+{
+    int32_t Passes;
+    float Strength;
+    bool ColorOnly;
+};
+
+
+
 struct VoxelLightBakeParams
 {
+    LightTrackMode Mode;
+
     float EnergyThreshold;
 
     int32_t ThreadCount;
@@ -73,31 +119,19 @@ struct VoxelLightBakeParams
     VoxelLightMergeMode GenMergeMode;
     VoxelLightMergeMode LightMergeMode;
 
-    int32_t BlurPasses;
-    float BlurStrength;
-
     DirectionCollapseMode DirCollapseMode;
+
+    BlurParams Blur;
 
     BounceParams Bounce;
 
     SmoothDirParams SmoothDir;
 
+    LightCurve Recovery;
+
     VoxelLightBakeParams();
 };
 
-enum LightFalloffType : int32_t
-{
-    LightFalloffNone = 0,
-    LightFalloffLinear = 1,
-    LightFalloffQuadratic = 2
-};
-
-struct LightFalloff
-{
-    int32_t Type;
-    float Range;
-    float Factor;
-};
 
 struct PointLight
 {
@@ -105,7 +139,7 @@ struct PointLight
     Vec3 Color;
 
     float Intensity;
-    LightFalloff Falloff;
+    LightCurve Falloff;
 };
 
 struct DirectionalLight
@@ -117,7 +151,7 @@ struct DirectionalLight
     float Intensity;
     float Width;
     float Height;
-    LightFalloff Falloff;
+    LightCurve Falloff;
 };
 
 struct SpotLight
@@ -127,7 +161,7 @@ struct SpotLight
     Vec3 Color;
 
     float Intensity;
-    LightFalloff Falloff;
+    LightCurve Falloff;
 
     float InnerCos;
     float OuterCos;
@@ -152,15 +186,15 @@ struct VoxelLightEnergy
     Vec3 DirectionR;
     Vec3 DirectionG;
     Vec3 DirectionB;
+
+    int16_t VisitCount;
 };
 
 struct VoxelLightFace
 {
     VoxelLightEnergy Incoming;
     VoxelLightEnergy Outgoing;
-
-    int16_t InVisitCount;
-    int16_t OutVisitCount;
+    VoxelLightState State;
 };
 
 struct VoxelLightData
@@ -181,9 +215,7 @@ struct VoxelLightContribution
 
 struct VoxelLightField
 {
-    int32_t SizeX;
-    int32_t SizeY;
-    int32_t SizeZ;
+    Vec3I Size;
 
     std::vector<Vec3> Color[VOXEL_LIGHT_FACE_COUNT];
     std::vector<Vec3> Direction[VOXEL_LIGHT_FACE_COUNT];
@@ -195,15 +227,15 @@ struct VoxelLightRay
     Vec3 Direction;
     Vec3 Energy;
 
-    float OriginTotalDistance;
-    LightFalloff Falloff;
+    float OriginDistance;
+    LightCurve Falloff;
+    LightCurve Recovery;
 };
 
 struct GpuVoxelFaceData
 {
-    int32_t X;
-    int32_t Y;
-    int32_t Z;
+    Vec3I Cell;
+
     int32_t Face;
 
     int32_t Side;
@@ -222,12 +254,10 @@ struct VoxelRayDebugState
     Vec3 Energy;
 
     float Distance;
-    float OriginTotalDistance;
+    float OriginDistance;
     float TotalDistance;
 
-    int32_t X;
-    int32_t Y;
-    int32_t Z;
+    Vec3I Cell;
 
     int32_t LastHitVoxel;
     int32_t LastAffectedVoxel;
@@ -257,17 +287,21 @@ private:
         Vec3 Origin;
         Vec3 Direction;
         Vec3 Energy;
+        Vec3 MaxEnergy;
+
+        Vec3 OcclusionOrigin;
+        Vec3 OcclusionEnergy;
 
         float Distance;
-        float OriginTotalDistance;
+        float OriginDistance;
         float TotalDistance;
-        LightFalloff Falloff;
+
+        LightCurve Falloff;
+        LightCurve Recovery;
 
         Vec3 Position;
 
-        int32_t X;
-        int32_t Y;
-        int32_t Z;
+        Vec3I Cell;
 
         int32_t LastHitVoxel;
         int32_t LastAffectedVoxel;
@@ -275,6 +309,8 @@ private:
 
         int32_t BounceCount;
         int32_t OriginStep;
+
+        VoxelLightState LightState;
 
         bool IsAlive;
     };
@@ -361,8 +397,8 @@ public:
     void ClearScene();
 
     void AddMesh(
-        const Int3& origin,
-        const Int3& size,
+        const Vec3I& origin,
+        const Vec3I& size,
         const VoxelData* voxels,
         const VoxelMeshResolvedFace* faces,
         int32_t faceCount);
@@ -428,7 +464,7 @@ private:
 
 private:
 
-    void BlurLightField(const bool colorOnly);
+    void BlurLightField();
 
     void PrefillPointLightContribution(
         const PointLight& light,
@@ -443,7 +479,7 @@ private:
         VoxelLightContribution& contribution);
 
     void GeneratePointLightRays(
-        const PointLight& light);
+        const PointLight& light, bool fillMode);
 
     void GenerateDirectionalLightRays(
         const DirectionalLight& light);

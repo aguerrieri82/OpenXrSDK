@@ -162,9 +162,8 @@ static int32_t CopyLightFieldToView(
         }
     }
 
-    view->SizeX = source.SizeX;
-    view->SizeY = source.SizeY;
-    view->SizeZ = source.SizeZ;
+    view->Size = source.Size;
+
     view->CellCount = count;
 
     for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
@@ -235,8 +234,8 @@ EXPORT void APIENTRY VoxelLightBakerClearScene(
 
 EXPORT void APIENTRY VoxelLightBakerAddMesh(
     VoxelLightBaker* baker,
-    const Int3* origin,
-    const Int3* size,
+    const Vec3I* origin,
+    const Vec3I* size,
     const VoxelData* voxels,
     const VoxelMeshResolvedFace* faces,
     int32_t faceCount)
@@ -460,9 +459,7 @@ EXPORT void APIENTRY FreeLightFieldView(
         view->Direction[face] = nullptr;
     }
 
-    view->SizeX = 0;
-    view->SizeY = 0;
-    view->SizeZ = 0;
+    view->Size = { 0 };
     view->CellCount = 0;
     view->CellCapacity = 0;
 }

@@ -18,7 +18,7 @@ namespace XrEngine.Lighting
         public float Width;
         public float Height;
 
-        public LightFalloff Falloff;
+        public LightCurve Falloff;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -30,7 +30,7 @@ namespace XrEngine.Lighting
 
         public float Intensity;
 
-        public LightFalloff Falloff;
+        public LightCurve Falloff;
 
         public float InnerCos;
         public float OuterCos;
@@ -42,7 +42,21 @@ namespace XrEngine.Lighting
         public const int MaxBounceCount = 6;
     }
 
-    public enum LightFalloffType : int
+    public enum VoxelLightState : byte
+    {
+        Empty,
+        Light,
+        Occlusion
+    };
+
+    public enum LightTrackMode : int
+    {
+        Full,
+        Occlusions,
+        OcclusionsOnly
+    };
+
+    public enum LightCurveType : int
     {
         None = 0,
         Linear = 1,
@@ -56,9 +70,20 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct LightFalloff
+    public struct BlurParams
     {
-        public LightFalloffType Type;
+        public int Passes;
+        public float Strength;
+        [MarshalAs(UnmanagedType.I1)]
+        public bool ColorOnly;
+    };
+
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LightCurve
+    {
+        public LightCurveType Type;
         public float Range;
         public float Factor;
     }
@@ -70,7 +95,7 @@ namespace XrEngine.Lighting
         public Vector3 Color;
 
         public float Intensity;
-        public LightFalloff Falloff;
+        public LightCurve Falloff;
     }
 
     [InlineArray(VoxelLightConst.FaceCount)]
@@ -201,6 +226,8 @@ namespace XrEngine.Lighting
     [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightBakeParams
     {
+        public LightTrackMode Mode;
+
         public float EnergyThreshold;
 
         public int ThreadCount;
@@ -222,14 +249,15 @@ namespace XrEngine.Lighting
         public VoxelLightMergeMode GenMergeMode;
         public VoxelLightMergeMode LightMergeMode;
 
-        public int BlurPasses;
-        public float BlurStrength;
-
         public DirectionCollapseMode DirCollapseMode;
+
+        public BlurParams Blur;
 
         public BounceParams Bounce;
 
         public SmoothDirParams SmoothDir;
+
+        public LightCurve Recovery;
     }
 
 
@@ -241,6 +269,8 @@ namespace XrEngine.Lighting
         public Vector3 DirectionR;
         public Vector3 DirectionG;
         public Vector3 DirectionB;
+
+        public short VisitCount;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -248,9 +278,7 @@ namespace XrEngine.Lighting
     {
         public VoxelLightEnergy Incoming;
         public VoxelLightEnergy Outgoing;
-
-        public short InVisitCount;
-        public short OutVisitCount;
+        public VoxelLightState Status;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -295,7 +323,8 @@ namespace XrEngine.Lighting
         public Vector3 Energy;
 
         public float OriginTotalDistance;
-        public LightFalloff Falloff;
+        public LightCurve Falloff;
+        public LightCurve Recovery;
     }
 
     [StructLayout(LayoutKind.Sequential)]

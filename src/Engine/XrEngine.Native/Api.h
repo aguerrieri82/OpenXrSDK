@@ -106,8 +106,8 @@ extern "C"
 
     EXPORT void APIENTRY VoxelLightBakerAddMesh(
         VoxelLightBaker* baker,
-        const Int3* origin,
-        const Int3* size,
+        const Vec3I* origin,
+        const Vec3I* size,
         const VoxelData* voxels,
         const VoxelMeshResolvedFace* faces,
         int32_t faceCount);

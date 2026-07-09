@@ -160,13 +160,22 @@ namespace XrEngine.Lighting
             IReadOnlyList<TriangleMesh> meshes,
             VoxelGridDesc grid)
         {
+            var realMesehs = meshes.Where(a =>
+            {
+                if (!a.IsVisible)
+                    return false;
+                if (a.TryComponent<LightFieldReceiver>(out var rec))
+                    return rec.IsOccluder;
+                return true;
+            }).ToArray();
+
             _grid = grid;
 
             EnsureTargets(grid);
 
-            ScanAxisVolume(meshes, ScanAxis.X, _xTarget!);
-            ScanAxisVolume(meshes, ScanAxis.Y, _yTarget!);
-            ScanAxisVolume(meshes, ScanAxis.Z, _zTarget!);
+            ScanAxisVolume(realMesehs, ScanAxis.X, _xTarget!);
+            ScanAxisVolume(realMesehs, ScanAxis.Y, _yTarget!);
+            ScanAxisVolume(realMesehs, ScanAxis.Z, _zTarget!);
 
             var result = new List<GpuVoxelFaceData>();
 
@@ -342,7 +351,7 @@ namespace XrEngine.Lighting
 
         private void DrawMeshes(IReadOnlyList<TriangleMesh> meshes)
         {
-            foreach (var mesh in meshes.Where(a=> a.IsVisible))
+            foreach (var mesh in meshes)
             {
                 SetMeshUniforms(mesh);
 

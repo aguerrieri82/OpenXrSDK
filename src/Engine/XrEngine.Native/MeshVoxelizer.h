@@ -2,6 +2,14 @@
 
 #pragma pack(push, 4)
 
+
+struct Vec3I
+{
+    int32_t X;
+    int32_t Y;
+    int32_t Z;
+};
+
 struct Vec2
 {
     float X;
@@ -38,21 +46,12 @@ struct Bounds3
         Vec4 Tangent;
     };
 
-struct Int3
-{
-    int32_t X;
-    int32_t Y;
-    int32_t Z;
-};
 
 struct VoxelGridDesc
 {
     Vec3 Origin;
     float VoxelSize;
-
-    int32_t SizeX;
-    int32_t SizeY;
-    int32_t SizeZ;
+    Vec3I Size;
 };
 
 struct VoxelizeMeshParams
@@ -112,8 +111,8 @@ struct VoxelData
 
 struct MeshVoxelGridInfo
 {
-    Int3 Origin;                 // global voxel coordinate
-    Int3 Size;
+    Vec3I Origin;                 // global voxel coordinate
+    Vec3I Size;
 };
 
 struct MeshVoxelGrid
