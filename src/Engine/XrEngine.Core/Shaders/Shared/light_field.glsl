@@ -3,7 +3,8 @@
 uniform vec3 uLightFieldOrigin;
 uniform float uVoxelSize;
 uniform ivec3 uLightFieldSize;
-uniform float uLightFieldStrength;
+uniform float uLightFieldDifStrength;
+uniform float uLightFieldSpecStrength;
 uniform float uLightFieldOfs;
 
 const float LightEpsilon = 0.00001;
@@ -28,38 +29,15 @@ vec3 evaluateLightFieldFace(
 	vec3 viewDir)
 {
 
-	#ifdef LIGHT_FIELD_PACKED_DIR
+	vec3 emittedDir = texture(uLightField[face * 2 + 1], uvw).rgb;
 
-		vec2 packedDir = texture(uLightField[face * 2 + 1], uvw).rg;
-		vec3 emittedDir;
 
-		if (face < 2)
-		{
-			emittedDir = vec3(face == 0 ? 1.0 : -1.0, packedDir.x, packedDir.y);
-		}
-		else if (face < 4)
-		{
-			emittedDir = vec3(packedDir.x, face == 2 ? 1.0 : -1.0, packedDir.y);
-		}
-		else
-		{
-			emittedDir = vec3(packedDir.x, packedDir.y, face == 4 ? 1.0 : -1.0);
-		}
-
-		emittedDir = normalize(emittedDir);
-
-	#else
-		vec3 emittedDir = texture(uLightField[face * 2 + 1], uvw).rgb;
-	#endif
-
-	// Stored direction is emitted/outgoing light direction.
-	// BRDF wants direction from shaded point toward the light.
 	vec3 L = normalize(-emittedDir);
 
 	if (dot(normal, L) <= 0.0)
 		return vec3(0.0);
 
-	vec3 radiance = texture(uLightField[face * 2 + 0], uvw).rgb * uLightFieldStrength;
+	vec3 radiance = texture(uLightField[face * 2 + 0], uvw).rgb;
 
 	if (dot(radiance, radiance) <= LightEpsilon)
 		return vec3(0.0);
@@ -67,8 +45,8 @@ vec3 evaluateLightFieldFace(
 	//vec3 diffuseRadiance = desaturatePreserveEnergy(radiance, 0.95 * roughness);
 	//vec3 specularRadiance = desaturatePreserveEnergy(radiance, 0.95 * (1.0 - metalness));
 
-	vec3 diffuseRadiance = radiance;
-	vec3 specularRadiance = radiance;
+	vec3 diffuseRadiance = radiance * uLightFieldDifStrength;
+	vec3 specularRadiance = radiance * uLightFieldSpecStrength;
 
 	float NoL = saturate(dot(normal, L));
 	float NoV = saturate(dot(normal, viewDir));
@@ -126,33 +104,12 @@ vec3 evaluateLightField(
 
 	vec3 result = vec3(0.0);
 
-#ifdef USE_LIGHT_FIELD_ALL_FACES
-
 	result += evaluateLightFieldFace(0, uvw, albedo, metalness, roughness, normal, viewDir);
 	result += evaluateLightFieldFace(1, uvw, albedo, metalness, roughness, normal, viewDir);
 	result += evaluateLightFieldFace(2, uvw, albedo, metalness, roughness, normal, viewDir);
 	result += evaluateLightFieldFace(3, uvw, albedo, metalness, roughness, normal, viewDir);
 	result += evaluateLightFieldFace(4, uvw, albedo, metalness, roughness, normal, viewDir);
 	result += evaluateLightFieldFace(5, uvw, albedo, metalness, roughness, normal, viewDir);
-
-#else
-
-	if (normal.x > 0.0)
-		result += evaluateLightFieldFace(0, uvw, albedo, metalness, roughness, normal, viewDir);
-	else
-		result += evaluateLightFieldFace(1, uvw, albedo, metalness, roughness, normal, viewDir);
-
-	if (normal.y > 0.0)
-		result += evaluateLightFieldFace(2, uvw, albedo, metalness, roughness, normal, viewDir);
-	else
-		result += evaluateLightFieldFace(3, uvw, albedo, metalness, roughness, normal, viewDir);
-
-	if (normal.z > 0.0)
-		result += evaluateLightFieldFace(4, uvw, albedo, metalness, roughness, normal, viewDir);
-	else
-		result += evaluateLightFieldFace(5, uvw, albedo, metalness, roughness, normal, viewDir);
-
-#endif
 
 	return result;
 }
@@ -200,5 +157,89 @@ vec3 evaluateLightFieldRadiance(vec3 position, vec3 normal)
 	radiance += texture(uLightField[4 * 2 + 0], uvw).rgb;
 	radiance += texture(uLightField[5 * 2 + 0], uvw).rgb;
 
-	return radiance * uLightFieldStrength;
+	return radiance * uLightFieldDifStrength;
+}
+
+
+vec3 evaluateLightFieldSelfFaceSpecular(
+	int face,
+	vec3 uvw,
+	vec3 radiance,
+	float metalness,
+	float roughness,
+	vec3 normal,
+	vec3 viewDir)
+{
+
+	vec3 emittedDir = texture(uLightField[face * 2 + 1], uvw).rgb;
+
+	if (dot(emittedDir, emittedDir) <= LightEpsilon)
+		return vec3(0.0);
+
+	vec3 L = normalize(-emittedDir);
+
+	float NoL = saturate(dot(normal, L));
+	float NoV = saturate(dot(normal, viewDir));
+
+	if (NoL <= 0.0 || NoV <= 0.0)
+		return vec3(0.0);
+
+#ifdef SIMPLIFIED
+	return radiance * metalness * NoL;
+#else
+	vec3 H = normalize(L + viewDir);
+
+	float NoH = saturate(dot(normal, H));
+	float VoH = saturate(dot(viewDir, H));
+
+	vec3 F0 = mix(Fdielectric, vec3(1.0), metalness);
+	vec3 F = fresnelSchlick(F0, VoH);
+
+	float D = distributionGGX(NoH, roughness);
+	float G = geometrySmith(NoL, NoV, roughness);
+
+	vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * NoL * NoV);
+
+	return specularBRDF * radiance * NoL;
+#endif
+}
+
+vec3 evaluateLightFieldSelf(
+	vec3 position,
+	vec3 albedo,
+	float metalness,
+	float roughness,
+	vec3 normal,
+	vec3 viewDir)
+{
+	vec3 fieldSize = vec3(uLightFieldSize) * uVoxelSize;
+	vec3 uvw = ((position + normal * (uVoxelSize * uLightFieldOfs)) - uLightFieldOrigin) / fieldSize;
+
+	if (any(lessThan(uvw, vec3(0.0))) || any(greaterThan(uvw, vec3(1.0))))
+		return vec3(0.0);
+
+	vec3 r0 = texture(uLightField[0 * 2 + 0], uvw).rgb;
+	vec3 r1 = texture(uLightField[1 * 2 + 0], uvw).rgb;
+	vec3 r2 = texture(uLightField[2 * 2 + 0], uvw).rgb;
+	vec3 r3 = texture(uLightField[3 * 2 + 0], uvw).rgb;
+	vec3 r4 = texture(uLightField[4 * 2 + 0], uvw).rgb;
+	vec3 r5 = texture(uLightField[5 * 2 + 0], uvw).rgb;
+
+	vec3 irradiance = (r0 + r1 + r2 + r3 + r4 + r5) * uLightFieldDifStrength;
+
+	if (dot(irradiance, irradiance) <= LightEpsilon)
+		return vec3(0.0);
+
+	vec3 diffuse = albedo * irradiance * (1.0 - metalness);
+
+	vec3 specular = vec3(0.0);
+
+	specular += evaluateLightFieldSelfFaceSpecular(0, uvw, r0 * uLightFieldSpecStrength, metalness, roughness, normal, viewDir);
+	specular += evaluateLightFieldSelfFaceSpecular(1, uvw, r1 * uLightFieldSpecStrength, metalness, roughness, normal, viewDir);
+	specular += evaluateLightFieldSelfFaceSpecular(2, uvw, r2 * uLightFieldSpecStrength, metalness, roughness, normal, viewDir);
+	specular += evaluateLightFieldSelfFaceSpecular(3, uvw, r3 * uLightFieldSpecStrength, metalness, roughness, normal, viewDir);
+	specular += evaluateLightFieldSelfFaceSpecular(4, uvw, r4 * uLightFieldSpecStrength, metalness, roughness, normal, viewDir);
+	specular += evaluateLightFieldSelfFaceSpecular(5, uvw, r5 * uLightFieldSpecStrength, metalness, roughness, normal, viewDir);
+
+	return diffuse + specular;
 }

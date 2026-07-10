@@ -113,7 +113,7 @@ namespace XrEngine.Lighting
 
             RecoveryRange = 2;
 
-            Strength = 1;
+            DiffuseStrength = 1;
 
             CreateWalls();
 
@@ -159,7 +159,7 @@ namespace XrEngine.Lighting
             var wallMaterial = new PbrMaterial
             {
                 Color = Color.White,
-                UseLightField = true,
+                UseLightField = UseLightFieldMode.Self,
                 Metalness= 0,
                 Roughness = 0.8f
             };
@@ -267,8 +267,6 @@ namespace XrEngine.Lighting
 
         protected void UpdateParams()
         {
-
-            
             _backer.SetParams(new VoxelLightBakeParams
             {
                 Mode = TrackMode,
@@ -282,8 +280,12 @@ namespace XrEngine.Lighting
                 RayMergeMode = RayMergeMode,
                 GenMergeMode = GenMergeMode,
                 LightMergeMode = LightMergeMode,
-                NormalizeDir = false,
+
                 DirCollapseMode = DirCollapseMode,
+                IntersectMode = IntersectionMode,
+
+                CleanupMultisample = false,
+                NormalizeDir = false,
 
                 Blur = new BlurParams
                 {
@@ -417,7 +419,7 @@ namespace XrEngine.Lighting
             PbrMaterial.SHADER.UseLightField = true;
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
 
-            ((PbrMaterial)_host!.Materials[0]).UseLightField = true;
+            ((PbrMaterial)_host!.Materials[0]).UseLightField = UseLightFieldMode.Self;
             ((PbrMaterial)_host!.Materials[0]).NotifyChanged(ChangeType.Render);
 
             foreach (var light in _host.Scene!.Descendants<Light>())
@@ -695,12 +697,26 @@ namespace XrEngine.Lighting
             LoadTextures();
         }
 
+        public void LoadSettings(string name)
+        {
+            var path = Path.Combine(StorePath!, "LightField", name + ".json");
+            if (File.Exists(path))
+            {
+                var json = File.ReadAllText(path);
+                var state = new JsonStateContainer(json);
+                SetState(state);
+            }
+            else
+                Log.Warn(this, "Settings '{0}' not found", name);
+        }
+
         public LightFieldData GetLightField()
         {
             _data ??= new LightFieldData();
 
             _data.Textures = _textures;
-            _data.Strength = Strength;
+            _data.DiffuseStrength = DiffuseStrength;
+            _data.SpecularStrength = SpecularStrength;
             _data.Origin = _gridDesc.Origin;
             _data.Size = _gridDesc.Size;
             _data.VoxelSize = _gridDesc.VoxelSize;
@@ -746,6 +762,9 @@ namespace XrEngine.Lighting
 
         [Category("Trace")]
         public float RecoveryRange { get; set; }
+        
+        [Category("Trace")]
+        public RayIntersectionMode IntersectionMode { get; set; }
 
 
         [Category("Misc")]
@@ -759,7 +778,11 @@ namespace XrEngine.Lighting
 
         [Category("Misc")]
         [Range(0,1, 0.01f)]
-        public float Strength { get; set; }
+        public float DiffuseStrength { get; set; }
+
+        [Category("Misc")]
+        [Range(0, 1, 0.01f)]
+        public float SpecularStrength { get; set; }
 
         public string? StorePath { get; set; }
 

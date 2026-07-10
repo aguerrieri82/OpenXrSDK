@@ -10,7 +10,8 @@ namespace XrEngine
     {
         public LightFieldData()
         {
-            Strength = 2;
+            DiffuseStrength = 1;
+            SpecularStrength = 1;
             UseAllFaces = true;
         }
 
@@ -22,7 +23,9 @@ namespace XrEngine
 
         public float VoxelSize;
 
-        public float Strength;
+        public float DiffuseStrength;
+
+        public float SpecularStrength;
 
         public bool UseAllFaces;
 

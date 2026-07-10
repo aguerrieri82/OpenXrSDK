@@ -36,6 +36,13 @@ enum class LightCurveType : int32_t
     Quadratic = 2
 };
 
+enum class RayIntersectionMode : int32_t
+{
+    Direction = 0,
+    Geometry = 1
+};
+
+
 enum VoxelLightFaceIndex : int32_t
 {
 	VoxelLightFaceNegX = 0,
@@ -46,6 +53,11 @@ enum VoxelLightFaceIndex : int32_t
 	VoxelLightFacePosZ = 5
 };
 
+struct VoxelFaceWeight
+{
+    int32_t Face;
+    float Weight;
+};
 
 
 struct VoxelLightFieldView
@@ -105,6 +117,8 @@ struct VoxelLightBakeParams
 {
     LightTrackMode Mode;
 
+    RayIntersectionMode IntersectMode;
+
     float EnergyThreshold;
 
     int32_t ThreadCount;
@@ -114,6 +128,7 @@ struct VoxelLightBakeParams
     bool InitiateLightField;
     bool NormalizeDir;
     bool FillEmptyDir;
+    bool CleanupMultisample;
 
     VoxelLightMergeMode RayMergeMode;
     VoxelLightMergeMode GenMergeMode;

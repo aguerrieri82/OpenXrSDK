@@ -1106,13 +1106,17 @@ namespace XrSamples
                 .UseFloorTeleport(scene)
                 .ConfigureApp(cfg =>
                 {
-                    OpenGLRender.Current!.GL.GetInteger((GLEnum)0x9631, out int value);
-
                     foreach (var light in scene.Descendants<Light>())
                         light.IsVisible = true;
 
                     if (XrPlatform.IsAndroid)
+                    {
+                        //lightField.LoadSettings("Occlusions");
+                        //lightField.Apply();
+                        //lightField.Backe();
                         lightField.Import();
+                    }
+
 
                     scene.AddBehavior((_, _) =>
                     {

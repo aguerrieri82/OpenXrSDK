@@ -9,5 +9,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/..
 LOCAL_SRC_FILES	:= 	$(wildcard $(LOCAL_PATH)/../*.cpp) 
 
 LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)
+
+LOCAL_CPPFLAGS += $(ANDROID_CPP_FLAGS) -ffast-math
 					
 include $(BUILD_SHARED_LIBRARY)

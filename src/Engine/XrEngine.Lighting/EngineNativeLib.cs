@@ -151,6 +151,12 @@ namespace XrEngine.Lighting
         PosZ = 5
     }
 
+    public enum RayIntersectionMode 
+    {
+        Direction = 0,
+        Geometry = 1
+    };
+
     [StructLayout(LayoutKind.Sequential)]
     public struct VoxelFaceData
     {
@@ -228,6 +234,8 @@ namespace XrEngine.Lighting
     {
         public LightTrackMode Mode;
 
+        public RayIntersectionMode IntersectMode;
+
         public float EnergyThreshold;
 
         public int ThreadCount;
@@ -244,6 +252,9 @@ namespace XrEngine.Lighting
 
         [MarshalAs(UnmanagedType.I1)]
         public bool FillEmptyDir;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public bool CleanupMultisample;
 
         public VoxelLightMergeMode RayMergeMode;
         public VoxelLightMergeMode GenMergeMode;

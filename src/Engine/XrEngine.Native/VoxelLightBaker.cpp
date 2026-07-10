@@ -513,11 +513,13 @@ namespace {
 		VoxelLightMergeMode mode)
 	{
 		MergeEnergy(target.Outgoing, source.Outgoing, target.State, source.State, mode);
+		target.Outgoing.VisitCount = std::max(target.Outgoing.VisitCount, source.Outgoing.VisitCount);
+
 #ifdef _DEBUG
 		MergeEnergy(target.Incoming, source.Incoming, target.State, source.State, mode);
-#endif
 		target.Incoming.VisitCount = std::max(target.Incoming.VisitCount, source.Incoming.VisitCount);
-		target.Outgoing.VisitCount = std::max(target.Outgoing.VisitCount, source.Outgoing.VisitCount);
+#endif
+
 	}
 
 	/*
@@ -607,7 +609,7 @@ namespace {
 
 
 
-	bool SelectVoxelHitFace(
+	FORCE_INLINE bool SelectVoxelHitFace(
 		const VoxelData& voxelData,
 		const Vec3& rayDirection,
 		int32_t originStep,
@@ -798,6 +800,111 @@ namespace {
 			return direction;
 
 		return snapped;
+	}
+
+	int32_t RayVoxelExitFaces(
+		const Vec3& voxelCenter,
+		float voxelSize,
+		const Vec3& rayPosition,
+		const Vec3& direction,
+		VoxelFaceWeight outFaces[3])
+	{
+		const float half = voxelSize * 0.5f;
+		const float invHalf = 1.0f / half;
+
+		const float px[3] = { rayPosition.X, rayPosition.Y, rayPosition.Z };
+		const float dc[3] = { direction.X, direction.Y, direction.Z };
+		const float cc[3] = { voxelCenter.X, voxelCenter.Y, voxelCenter.Z };
+
+		float bestT = FLT_MAX;
+		int32_t mainAxis = -1;
+		bool mainPositive = false;
+
+		for (int32_t axis = 0; axis < 3; ++axis)
+		{
+			const float d = dc[axis];
+
+			if (std::fabs(d) <= Epsilon)
+				continue;
+
+			const bool positive = d > 0.0f;
+			const float boundary = cc[axis] + (positive ? half : -half);
+			const float t = (boundary - px[axis]) / d;
+
+			if (t >= 0.0f && t < bestT)
+			{
+				bestT = t;
+				mainAxis = axis;
+				mainPositive = positive;
+			}
+		}
+
+		if (mainAxis < 0)
+			return 0;
+
+		const Vec3 p = Add(rayPosition, Mul(direction, bestT));
+
+		const float lx = std::clamp((p.X - voxelCenter.X) * invHalf, -1.0f, 1.0f);
+		const float ly = std::clamp((p.Y - voxelCenter.Y) * invHalf, -1.0f, 1.0f);
+		const float lz = std::clamp((p.Z - voxelCenter.Z) * invHalf, -1.0f, 1.0f);
+
+		float u;
+		float v;
+		int32_t uAxis;
+		int32_t vAxis;
+
+		if (mainAxis == 0)
+		{
+			u = ly;
+			v = lz;
+			uAxis = 1;
+			vAxis = 2;
+		}
+		else if (mainAxis == 1)
+		{
+			u = lx;
+			v = lz;
+			uAxis = 0;
+			vAxis = 2;
+		}
+		else
+		{
+			u = lx;
+			v = ly;
+			uAxis = 0;
+			vAxis = 1;
+		}
+
+		const float au = std::fabs(u);
+		const float av = std::fabs(v);
+
+		const float mainWeight = 1.0f;
+		const float uWeight = au * au;
+		const float vWeight = av * av;
+
+		const float invSum = 1.0f / (mainWeight + uWeight + vWeight);
+
+		int32_t count = 0;
+
+		outFaces[count].Face = mainAxis * 2 + int32_t(mainPositive);
+		outFaces[count].Weight = mainWeight * invSum;
+		++count;
+
+		if (uWeight > 0.000001f)
+		{
+			outFaces[count].Face = uAxis * 2 + int32_t(u >= 0.0f);
+			outFaces[count].Weight = uWeight * invSum;
+			++count;
+		}
+
+		if (vWeight > 0.000001f)
+		{
+			outFaces[count].Face = vAxis * 2 + int32_t(v >= 0.0f);
+			outFaces[count].Weight = vWeight * invSum;
+			++count;
+		}
+
+		return count;
 	}
 
 	bool RayVoxelIntersectionPoint(
@@ -1254,7 +1361,7 @@ void VoxelRayMarcher::GetDebugState(
 }
 
 
-bool VoxelRayMarcher::MoveToNextVoxel()
+FORCE_INLINE bool VoxelRayMarcher::MoveToNextVoxel()
 {
 	Vec3I old = _ray.Cell;
 	int32_t oldIndex = VoxelIndex(_baker->_grid, old);
@@ -1301,31 +1408,44 @@ bool VoxelRayMarcher::Step()
 	if (!_ray.IsAlive)
 		return false;
 
+	const VoxelGridDesc& grid = _baker->_grid;
+
+	const LightTrackMode mode = _baker->_params.Mode;
+	const float energyThreshold = _baker->_params.EnergyThreshold;
+	const VoxelLightMergeMode rayMergeMode = _baker->_params.RayMergeMode;
+	const bool initiateLightField = _baker->_params.InitiateLightField;
+	const bool snapBounceDirection = _baker->_params.SnapBounceDirection;
+
+	const int32_t maxBounceCount = _baker->_params.Bounce.MaxCount;
+	const float bounceNormalWeightParam = _baker->_params.Bounce.NormalWeight;
+	const float bounceCenterWeightParam = _baker->_params.Bounce.CenterWeight;
+	const float bounceConeMaxAngle = _baker->_params.Bounce.ConeMaxAngle;
+	const auto intersectMode = _baker->_params.IntersectMode;
+
 	_ray.LastAffectedVoxel = -1;
 	_ray.LastAffectedFace = -1;
 
-	float falloff = LightFalloffAtDistance(
+	const float falloff = LightFalloffAtDistance(
 		_ray.Falloff,
 		_ray.TotalDistance);
 
 	Vec3 stepEnergy = Mul(_ray.Energy, falloff);
 
-	if (!HasEnergy(stepEnergy, _baker->_params.EnergyThreshold))
+	if (!HasEnergy(stepEnergy, energyThreshold))
 		_ray.IsAlive = false;
 	else
-		_ray.IsAlive = IsInsideGrid(_baker->_grid, _ray.Cell);
+		_ray.IsAlive = IsInsideGrid(grid, _ray.Cell);
 
 	if (!_ray.IsAlive)
 		return false;
 
-	int32_t index = VoxelIndex(_baker->_grid, _ray.Cell);
-
-	int32_t incomingFace = IncomingBucketFaceFromDirection(_ray.Direction);
-	int32_t outgoingFace = incomingFace ^ 1;
+	const int32_t index = VoxelIndex(grid, _ray.Cell);
+	const int32_t incomingFace = IncomingBucketFaceFromDirection(_ray.Direction);
+	const int32_t outgoingFace = incomingFace ^ 1;
 
 	int32_t slot = -1;
 
-	if (_baker->_params.Mode != LightTrackMode::OcclusionsOnly || _ray.LightState == VoxelLightState::Occlusion) 
+	if (mode != LightTrackMode::OcclusionsOnly || _ray.LightState == VoxelLightState::Occlusion)
 	{
 		slot = _local.CellSlots[index];
 
@@ -1338,25 +1458,23 @@ bool VoxelRayMarcher::Step()
 			_local.CellSlots[index] = slot;
 			_local.TouchedVoxels.push_back(index);
 
-			VoxelLightCell cell{ };
+			VoxelLightCell cell{};
 			cell.Index = index;
 
 			_local.Contribution.Cells.push_back(cell);
 		}
 
+#ifdef _DEBUG
 		VoxelLightData& data = _local.Contribution.Cells[slot].Data;
 
-#ifdef _DEBUG
-
-		if (_ray.BounceCount > 0 || !_baker->_params.InitiateLightField)
+		if (_ray.BounceCount > 0 || !initiateLightField)
 		{
 			MergeEnergy(
 				data.Faces[incomingFace].Incoming,
 				MakeEnergy(stepEnergy, _ray.Direction),
 				data.Faces[incomingFace].State,
 				_ray.LightState,
-				_baker->_params.RayMergeMode);
-
+				rayMergeMode);
 		}
 #endif
 	}
@@ -1365,7 +1483,7 @@ bool VoxelRayMarcher::Step()
 
 	int32_t hitFace;
 
-	bool hasHit = SelectVoxelHitFace(
+	const bool hasHit = SelectVoxelHitFace(
 		voxelData,
 		_ray.Direction,
 		_ray.OriginStep,
@@ -1376,43 +1494,40 @@ bool VoxelRayMarcher::Step()
 		_ray.LastHitVoxel = index;
 		_ray.LastAffectedFace = hitFace;
 
-		if (_baker->_params.Mode != LightTrackMode::Full) 
+		if (mode != LightTrackMode::Full)
 		{
-			Vec3 exitPoint = GridExitPoint(_baker->_grid, _ray.Origin, _ray.Direction);
+			const Vec3 exitPoint = GridExitPoint(grid, _ray.Origin, _ray.Direction);
+			const float exitDistance = Length(Sub(exitPoint, _ray.Origin));
 
-			float exitDistance = Length(Sub(exitPoint, _ray.Origin));
-
-			float exitFallOff = LightFalloffAtDistance(
+			const float exitFalloff = LightFalloffAtDistance(
 				_ray.Falloff,
 				exitDistance);
 
-			Vec3 exitEnergy = Mul(_ray.Energy, exitFallOff);
+			const Vec3 exitEnergy = Mul(_ray.Energy, exitFalloff);
 
 			_ray.LightState = VoxelLightState::Occlusion;
 			_ray.MaxEnergy = Min(_ray.OcclusionEnergy, exitEnergy);
 
 			_ray.OriginDistance = _ray.TotalDistance;
-			_ray.Distance = 0;
+			_ray.Distance = 0.0f;
 			_ray.OcclusionOrigin = _ray.Position;
 			_ray.OcclusionEnergy = stepEnergy;
 		}
-		else 
+		else
 		{
 			const VoxelFaceData& faceData = voxelData.Faces[hitFace];
+			const int32_t nextGeneration = _ray.BounceCount + 1;
 
-			int32_t nextGeneration = _ray.BounceCount + 1;
-
-			if (nextGeneration < _baker->_params.Bounce.MaxCount)
+			if (nextGeneration < maxBounceCount)
 			{
-				Vec3 normal = faceData.Normal;
+				const Vec3 normal = faceData.Normal;
+				const Vec3 reflectDir = Normalize(Reflect(_ray.Direction, normal));
 
-				Vec3 reflectDir = Normalize(Reflect(_ray.Direction, normal));
+				const float roughness = std::clamp(faceData.Roughness, 0.0f, 1.0f);
+				const float metallic = std::clamp(faceData.Metallic, 0.0f, 1.0f);
 
-				float roughness = std::clamp(faceData.Roughness, 0.0f, 1.0f);
-				float metallic = std::clamp(faceData.Metallic, 0.0f, 1.0f);
-
-				float normalWeight = std::clamp(
-					_baker->_params.Bounce.NormalWeight * (1.0f - metallic),
+				const float normalWeight = std::clamp(
+					bounceNormalWeightParam * (1.0f - metallic),
 					0.0f,
 					1.0f);
 
@@ -1423,10 +1538,10 @@ bool VoxelRayMarcher::Step()
 
 				Vec3 bounceOrigin;
 
-				if (_baker->_params.SnapBounceDirection)
+				if (snapBounceDirection)
 				{
 					bounceDir = SnapDirectionToGridBoundary(
-						_baker->_grid,
+						grid,
 						_ray.Position,
 						bounceDir);
 
@@ -1434,37 +1549,37 @@ bool VoxelRayMarcher::Step()
 				}
 				else
 				{
-					if (!RayVoxelIntersectionPoint(_ray.Position, _baker->_grid.VoxelSize, _ray.Origin, _ray.Direction, bounceOrigin))
+					if (!RayVoxelIntersectionPoint(_ray.Position, grid.VoxelSize, _ray.Origin, _ray.Direction, bounceOrigin))
 						bounceOrigin = _ray.Position;
 
 					_ray.Position = bounceOrigin;
 				}
 
-				Vec3 bounceEnergy = SurfaceBounceEnergy(_ray.Energy, faceData);
+				const Vec3 bounceEnergy = SurfaceBounceEnergy(_ray.Energy, faceData);
 
-				int32_t rayCount = BounceRayCountForGeneration(
-					_ray.BounceCount,
-					_baker->_params);
+				const VoxelLightBakeParams localParams = _baker->_params;
 
-				rayCount = std::max(1, rayCount);
+				const int32_t rayCount = std::max(
+					1,
+					BounceRayCountForGeneration(_ray.BounceCount, localParams));
 
-				float centerWeight = rayCount > 1
-					? std::clamp(_baker->_params.Bounce.CenterWeight, 0.0f, 1.0f)
+				const float centerWeight = rayCount > 1
+					? std::clamp(bounceCenterWeightParam, 0.0f, 1.0f)
 					: 1.0f;
 
-				float coneAngle = _baker->_params.Bounce.ConeMaxAngle * roughness;
+				const float coneAngle = bounceConeMaxAngle * roughness;
 
 				auto pushBounceRay = [&](const Vec3& direction, const Vec3& energy)
 					{
-						if (!HasEnergy(energy, _baker->_params.EnergyThreshold))
+						if (!HasEnergy(energy, energyThreshold))
 							return;
 
 						Vec3 dir = direction;
 
-						if (_baker->_params.SnapBounceDirection)
+						if (snapBounceDirection)
 						{
 							dir = SnapDirectionToGridBoundary(
-								_baker->_grid,
+								grid,
 								bounceOrigin,
 								dir);
 						}
@@ -1476,7 +1591,7 @@ bool VoxelRayMarcher::Step()
 						ray.Position = bounceOrigin;
 						ray.Direction = dir;
 						ray.Energy = energy;
-						ray.OriginDistance = _ray.TotalDistance;
+						ray.OriginDistance = 0;
 						ray.Falloff = _ray.Falloff;
 
 						_nextRays.push_back(ray);
@@ -1486,17 +1601,17 @@ bool VoxelRayMarcher::Step()
 					bounceDir,
 					Mul(bounceEnergy, centerWeight));
 
-				int32_t sideCount = rayCount - 1;
+				const int32_t sideCount = rayCount - 1;
 
 				if (sideCount > 0)
 				{
-					Vec3 sideEnergy = Mul(
+					const Vec3 sideEnergy = Mul(
 						bounceEnergy,
 						(1.0f - centerWeight) / float(sideCount));
 
 					for (int32_t i = 0; i < sideCount; ++i)
 					{
-						Vec3 sideDir = ConeDirection(
+						const Vec3 sideDir = ConeDirection(
 							bounceDir,
 							coneAngle,
 							i,
@@ -1506,38 +1621,74 @@ bool VoxelRayMarcher::Step()
 					}
 				}
 			}
+
 			_ray.IsAlive = false;
 		}
 	}
-	else 
+	else
 	{
 		_ray.LastAffectedFace = outgoingFace;
 
 		bool writeEnergy = true;
 
-		if (_baker->_params.Mode != LightTrackMode::Full)
+		if (mode != LightTrackMode::Full)
 		{
 			if (_ray.LightState == VoxelLightState::Occlusion)
 			{
-				float recovery = LightRecoveryAtDistance(_ray.Recovery, _ray.Distance);
+				const float recovery = LightRecoveryAtDistance(_ray.Recovery, _ray.Distance);
 				stepEnergy = Mul(_ray.MaxEnergy, recovery);
 			}
 			else
-				writeEnergy = _baker->_params.Mode == LightTrackMode::Occlusions;
+			{
+				writeEnergy = mode == LightTrackMode::Occlusions;
+			}
 		}
 
 		if (writeEnergy)
 		{
 			VoxelLightData& data = _local.Contribution.Cells[slot].Data;
 
-			MergeEnergy(
-				data.Faces[outgoingFace].Outgoing,
-				MakeEnergy(stepEnergy, _ray.Direction),
-				data.Faces[outgoingFace].State,
-				_ray.LightState,
-				_baker->_params.RayMergeMode);
+			if (intersectMode == RayIntersectionMode::Direction)
+			{
+				MergeEnergy(
+					data.Faces[outgoingFace].Outgoing,
+					MakeEnergy(stepEnergy, _ray.Direction),
+					data.Faces[outgoingFace].State,
+					_ray.LightState,
+					rayMergeMode);
 
-			data.Faces[outgoingFace].State = _ray.LightState;
+				data.Faces[outgoingFace].State = _ray.LightState;
+			}
+			else 
+			{
+				VoxelFaceWeight faces[3] = { 0 };
+				
+			    int intCount = RayVoxelExitFaces(VoxelCenter(grid, _ray.Cell), 
+						_baker->GetVoxelSize(), _ray.Position, _ray.Direction, faces);
+				
+				if (intCount == 0) 
+				{
+					faces[0].Face = outgoingFace;
+					faces[0].Weight = 1;
+					intCount = 1;
+				}
+			
+				for (int i = 0; i < intCount; i++)
+				{
+					int face = faces[i].Face;
+					Vec3 faceEnergy = Mul(stepEnergy, faces[i].Weight);
+
+					MergeEnergy(
+						data.Faces[face].Outgoing,
+						MakeEnergy(faceEnergy, _ray.Direction),
+						data.Faces[face].State,
+						_ray.LightState,
+						rayMergeMode);
+
+					data.Faces[face].State = _ray.LightState;
+				}
+			}
+
 		}
 	}
 
@@ -1724,7 +1875,7 @@ void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 			_nextRays,
 			generation);
 
-		if (generation == 0)
+		if (generation == 0 && _params.CleanupMultisample)
 			AdjustCompatibleFaceEnergy(generationContribution);
 
 		MergeContribution(

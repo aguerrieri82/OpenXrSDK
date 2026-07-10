@@ -2,10 +2,9 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Diagnostics;
-
 #endif
 
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine.OpenGL;
@@ -131,13 +130,14 @@ namespace XrEngine.Lighting
         private GlSimpleProgram? _scanProgram;
         private GpuSceneVoxelizerParams _params;
 
-        public bool IsEnabled => throw new NotImplementedException();
 
         public GpuSceneVoxelizer(GL gl, int viewsPerBatch = 1)
         {
             _gl = gl;
-            _viewsPerBatch = Math.Max(1, viewsPerBatch);
 
+            _gl.GetInteger((GLEnum)0x9631, out int maxViews);
+
+            _viewsPerBatch = Math.Min(maxViews, viewsPerBatch);
             _scanFbo = new GlMultiViewFrameBuffer(gl);
             _texFb = new GlTextureFrameBuffer(gl);
             _params = new GpuSceneVoxelizerParams();
@@ -237,6 +237,9 @@ namespace XrEngine.Lighting
             ScanAxis axis,
             AxisTarget target)
         {
+
+            Log.Info(this, "Scan azix {0}", axis);
+
             GlState.Current!.SetUseDepth(true);
             GlState.Current.SetWriteDepth(true);
             GlState.Current.EnableFeature(EnableCap.CullFace, false);
@@ -417,6 +420,8 @@ namespace XrEngine.Lighting
             AxisTarget target,
             List<GpuVoxelFaceData> faces)
         {
+            Log.Info(this, "Read axis {0}", axis);
+
             var colors = Array.Empty<Rgba32Pixel>();
             var normals = Array.Empty<RgbHalfPixel>();
             var materials = Array.Empty<Rgb24Pixel>();
@@ -596,5 +601,8 @@ namespace XrEngine.Lighting
             _texFb.Dispose();
         }
 
+
+
+        public static int MaxMultiView { get; set; }
     }
 }
