@@ -200,7 +200,7 @@ vec3 evaluateDirectLight(
 #endif
 }
 
-#if defined(USE_LIGHT_FIELD) || defined(USE_LIGHT_FIELD_SELF)
+#ifdef USE_LIGHT_FIELD
 	#include "../Shared/light_field.glsl"
 #endif
 
@@ -210,23 +210,25 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 	shadowLightDir = vec3(0.0, 1.0, 0.0);
 
 #ifdef USE_LIGHT_FIELD
-	directLighting += evaluateLightField(
-		frag.position,
-		frag.albedo,
-		frag.metalness,
-		frag.roughness,
-		frag.normal,
-		frag.viewDir);
-#endif
 
-#ifdef USE_LIGHT_FIELD_SELF
-	directLighting += evaluateLightFieldSelf(
-		frag.position,
-		frag.albedo,
-		frag.metalness,
-		frag.roughness,
-		frag.normal,
-		frag.viewDir);
+	#ifdef LIGHT_FIELD_FULL
+		directLighting += evaluateLightField(
+			frag.position,
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir);
+	#else
+		directLighting += evaluateLightFieldSelf(
+			frag.position,
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir);
+	#endif
+
 #endif
 
 #ifdef USE_PUNCTUAL

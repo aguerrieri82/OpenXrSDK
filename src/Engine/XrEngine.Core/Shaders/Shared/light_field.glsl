@@ -148,14 +148,23 @@ vec3 evaluateLightFieldRadiance(vec3 position, vec3 normal)
 	if (any(lessThan(uvw, vec3(0.0))) || any(greaterThan(uvw, vec3(1.0))))
 		return vec3(0.0);
 
-	vec3 radiance = vec3(0.0);
+	vec3 r0 = texture(uLightField[0 * 2 + 0], uvw).rgb;
+	vec3 r1 = texture(uLightField[1 * 2 + 0], uvw).rgb;
+	vec3 r2 = texture(uLightField[2 * 2 + 0], uvw).rgb;
+	vec3 r3 = texture(uLightField[3 * 2 + 0], uvw).rgb;
+	vec3 r4 = texture(uLightField[4 * 2 + 0], uvw).rgb;
+	vec3 r5 = texture(uLightField[5 * 2 + 0], uvw).rgb;
 
-	radiance += texture(uLightField[0 * 2 + 0], uvw).rgb;
-	radiance += texture(uLightField[1 * 2 + 0], uvw).rgb;
-	radiance += texture(uLightField[2 * 2 + 0], uvw).rgb;
-	radiance += texture(uLightField[3 * 2 + 0], uvw).rgb;
-	radiance += texture(uLightField[4 * 2 + 0], uvw).rgb;
-	radiance += texture(uLightField[5 * 2 + 0], uvw).rgb;
+	#ifdef LIGHT_FIELD_SELF_OMNI
+		vec3 radiance = (r0 + r1 + r2 + r3 + r4 + r5);
+	#else
+		vec3 radiance = vec3(0.0);
+
+		radiance += (normal.x >= 0.0 ? r0 : r1) * abs(normal.x);
+		radiance += (normal.y >= 0.0 ? r2 : r3) * abs(normal.y);
+		radiance += (normal.z >= 0.0 ? r4 : r5) * abs(normal.z);
+
+	#endif
 
 	return radiance * uLightFieldDifStrength;
 }
@@ -224,13 +233,22 @@ vec3 evaluateLightFieldSelf(
 	vec3 r3 = texture(uLightField[3 * 2 + 0], uvw).rgb;
 	vec3 r4 = texture(uLightField[4 * 2 + 0], uvw).rgb;
 	vec3 r5 = texture(uLightField[5 * 2 + 0], uvw).rgb;
+	
+	#ifdef LIGHT_FIELD_SELF_OMNI
+		vec3 radiance = (r0 + r1 + r2 + r3 + r4 + r5);
+	#else
+		vec3 radiance = vec3(0.0);
+		radiance += (normal.x >= 0.0 ? r0 : r1) * abs(normal.x);
+		radiance += (normal.y >= 0.0 ? r2 : r3) * abs(normal.y);
+		radiance += (normal.z >= 0.0 ? r4 : r5) * abs(normal.z);
+	#endif
 
-	vec3 irradiance = (r0 + r1 + r2 + r3 + r4 + r5) * uLightFieldDifStrength;
+	radiance *= uLightFieldDifStrength;
 
-	if (dot(irradiance, irradiance) <= LightEpsilon)
+	if (dot(radiance, radiance) <= LightEpsilon)
 		return vec3(0.0);
 
-	vec3 diffuse = albedo * irradiance * (1.0 - metalness);
+	vec3 diffuse = albedo * radiance * (1.0 - metalness);
 
 	vec3 specular = vec3(0.0);
 

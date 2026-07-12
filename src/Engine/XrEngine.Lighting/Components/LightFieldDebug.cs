@@ -275,8 +275,7 @@ namespace XrEngine.Lighting
                 RaySubsample = RaySubsample,
                 SnapBounceDirection = SnapBounceDirection,
                 InitiateLightField = InitiateLightField,
- 
-                FillEmptyDir = FillEmptyDir,
+
                 RayMergeMode = RayMergeMode,
                 GenMergeMode = GenMergeMode,
                 LightMergeMode = LightMergeMode,
@@ -284,7 +283,6 @@ namespace XrEngine.Lighting
                 DirCollapseMode = DirCollapseMode,
                 IntersectMode = IntersectionMode,
 
-                CleanupMultisample = false,
                 NormalizeDir = false,
 
                 Blur = new BlurParams
@@ -561,7 +559,6 @@ namespace XrEngine.Lighting
                 Position = RayOrigin,
                 Direction = RayDir.Normalize(),
                 Energy = Vector3.One * RayEnergy,
-                OriginTotalDistance = 0,
                 Falloff = new LightCurve
                 {
                     Type = LightFallOff,
@@ -815,8 +812,6 @@ namespace XrEngine.Lighting
         [ValueType(ValueType.Radiant)]
         public float BounceConeMaxAngle { get; set; }
 
-        [Category("Field Dir")]
-        public bool FillEmptyDir { get; set; }
 
         [Category("Field Dir")]
         public DirectionCollapseMode DirCollapseMode { get; set; }    

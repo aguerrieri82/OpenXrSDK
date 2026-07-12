@@ -66,7 +66,8 @@ namespace XrEngine.Lighting
     public enum  DirectionCollapseMode : int
     {
         Add = 0,
-        Luminance = 1
+        Luminance = 1,
+        Normal = 2
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -250,12 +251,6 @@ namespace XrEngine.Lighting
         [MarshalAs(UnmanagedType.I1)]
         public bool NormalizeDir;
 
-        [MarshalAs(UnmanagedType.I1)]
-        public bool FillEmptyDir;
-
-        [MarshalAs(UnmanagedType.I1)]
-        public bool CleanupMultisample;
-
         public VoxelLightMergeMode RayMergeMode;
         public VoxelLightMergeMode GenMergeMode;
         public VoxelLightMergeMode LightMergeMode;
@@ -280,6 +275,8 @@ namespace XrEngine.Lighting
         public Vector3 DirectionR;
         public Vector3 DirectionG;
         public Vector3 DirectionB;
+
+        public Vector3 DirectionN;
 
         public short VisitCount;
     }
@@ -333,7 +330,6 @@ namespace XrEngine.Lighting
         public Vector3 Direction;
         public Vector3 Energy;
 
-        public float OriginTotalDistance;
         public LightCurve Falloff;
         public LightCurve Recovery;
     }
@@ -347,8 +343,6 @@ namespace XrEngine.Lighting
         public Vector3 Energy;
 
         public float Distance;
-        public float OriginTotalDistance;
-        public float TotalDistance;
 
         public Vector3I Cell;
 

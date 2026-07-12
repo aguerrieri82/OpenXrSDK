@@ -25,6 +25,7 @@ namespace XrEngine
     {
         None,
         Self,
+        SelfOmni,
         Full
     }
 
@@ -795,7 +796,15 @@ namespace XrEngine
 
             if (UseLightField != UseLightFieldMode.None && ((PbrV2Shader)_shader!).UseLightField)
             {
-                bld.AddFeature(UseLightField == UseLightFieldMode.Full ? "USE_LIGHT_FIELD" : "USE_LIGHT_FIELD_SELF");
+                bld.AddFeature("USE_LIGHT_FIELD");
+
+                bld.AddFeature(UseLightField switch {
+                    UseLightFieldMode.Full => "LIGHT_FIELD_FULL",
+                    UseLightFieldMode.Self => "LIGHT_FIELD_SELF",
+                    UseLightFieldMode.SelfOmni => "LIGHT_FIELD_SELF_OMNI",
+                    _ => throw new NotSupportedException()
+                });
+
                 bld.SetUniform("uLightFieldOfs", ctx => LightFieldOfs);
             }
 

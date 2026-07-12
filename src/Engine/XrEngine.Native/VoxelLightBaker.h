@@ -6,7 +6,8 @@
 enum class DirectionCollapseMode 
 {
     Add,
-    Luminance
+    Luminance,
+    Normal
 };
 
 enum class LightTrackMode
@@ -127,8 +128,6 @@ struct VoxelLightBakeParams
     bool SnapBounceDirection;
     bool InitiateLightField;
     bool NormalizeDir;
-    bool FillEmptyDir;
-    bool CleanupMultisample;
 
     VoxelLightMergeMode RayMergeMode;
     VoxelLightMergeMode GenMergeMode;
@@ -202,6 +201,8 @@ struct VoxelLightEnergy
     Vec3 DirectionG;
     Vec3 DirectionB;
 
+    Vec3 DirectionN;
+
     int16_t VisitCount;
 };
 
@@ -240,9 +241,9 @@ struct VoxelLightRay
 {
     Vec3 Position;
     Vec3 Direction;
+    Vec3 DirectionNormal;
     Vec3 Energy;
 
-    float OriginDistance;
     LightCurve Falloff;
     LightCurve Recovery;
 };
@@ -269,8 +270,6 @@ struct VoxelRayDebugState
     Vec3 Energy;
 
     float Distance;
-    float OriginDistance;
-    float TotalDistance;
 
     Vec3I Cell;
 
@@ -291,6 +290,13 @@ struct VoxelLightContributionView
     int32_t CellCount;
 };
 
+struct ContributionMergeState
+{
+    VoxelLightContribution Contribution;
+    std::vector<int32_t> CellSlots;
+    std::vector<int32_t> TouchedVoxels;
+};
+
 
 class VoxelLightBaker;
 
@@ -301,6 +307,7 @@ private:
     {
         Vec3 Origin;
         Vec3 Direction;
+        Vec3 DirectionNormal;
         Vec3 Energy;
         Vec3 MaxEnergy;
 
@@ -308,8 +315,6 @@ private:
         Vec3 OcclusionEnergy;
 
         float Distance;
-        float OriginDistance;
-        float TotalDistance;
 
         LightCurve Falloff;
         LightCurve Recovery;
@@ -330,13 +335,6 @@ private:
         bool IsAlive;
     };
 
-    struct WorkerContribution
-    {
-        VoxelLightContribution Contribution;
-
-        std::vector<int32_t> CellSlots;
-        std::vector<int32_t> TouchedVoxels;
-    };
 
 public:
     VoxelRayMarcher();
@@ -373,7 +371,7 @@ private:
     int32_t _workerIndex;
 
     RayState _ray;
-    WorkerContribution _local;
+    ContributionMergeState _local;
     std::vector<VoxelLightRay> _nextRays;
 
 private:
@@ -392,12 +390,6 @@ class VoxelLightBaker
 
 private:
 
-    struct ContributionMergeState
-    {
-        VoxelLightContribution Contribution;
-        std::vector<int32_t> CellSlots;
-        std::vector<int32_t> TouchedVoxels;
-    };
 
 
 public:
@@ -435,8 +427,6 @@ public:
         VoxelLightContribution& contribution);
 
     void ClearLightField();
-
-    void AdjustLightFieldDirections();
 
     void AccumulateLight(
         const VoxelLightContribution& contribution);
