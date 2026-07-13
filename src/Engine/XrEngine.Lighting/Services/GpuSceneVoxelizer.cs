@@ -32,11 +32,14 @@ namespace XrEngine.Lighting
         {
             Passes = 2;
             Eps = 0.1f;
+            Padding = 2;
         }
 
         public int Passes { get; set; }
 
         public float Eps { get; set; }
+
+        public int Padding { get; set; }
     }
 
     public sealed class GpuSceneVoxelizer : IDisposable
@@ -56,7 +59,7 @@ namespace XrEngine.Lighting
             public byte B;
             public byte A;
 
-            public Color ToColor()
+            public readonly Color ToColor()
             {
                 const float s = 1.0f / 255.0f;
                 return new Color(R * s, G * s, B * s, A * s);
@@ -70,7 +73,7 @@ namespace XrEngine.Lighting
             public Half G;
             public Half B;
 
-            public Vector3 ToVector3()
+            public readonly Vector3 ToVector3()
             {
                 return new Vector3((float)R, (float)G, (float)B);
             }
@@ -83,9 +86,9 @@ namespace XrEngine.Lighting
             public byte G;
             public byte B;
 
-            public float Roughness => R / 255.0f;
-            public float Metallic => G / 255.0f;
-            public bool IsFront => B > 127;
+            public readonly float Roughness => R / 255.0f;
+            public readonly float Metallic => G / 255.0f;
+            public readonly bool IsFront => B > 127;
         }
 
         private sealed class AxisTarget : IDisposable
@@ -127,6 +130,8 @@ namespace XrEngine.Lighting
         private AxisTarget? _zTarget;
 
         private VoxelGridDesc _grid;
+        private Vector3I _voxelMin;
+        private Vector3I _voxelMax;
         private GlSimpleProgram? _scanProgram;
         private GpuSceneVoxelizerParams _params;
 
@@ -160,7 +165,7 @@ namespace XrEngine.Lighting
             IReadOnlyList<TriangleMesh> meshes,
             VoxelGridDesc grid)
         {
-            var realMesehs = meshes.Where(a =>
+            var realMeshes = meshes.Where(a =>
             {
                 if (!a.IsVisible)
                     return false;
@@ -169,13 +174,76 @@ namespace XrEngine.Lighting
                 return true;
             }).ToArray();
 
+            if (realMeshes.Length == 0)
+                return [];
+
             _grid = grid;
+
+            var boundsBuilder = new Bounds3Builder();
+
+            foreach (var mesh in realMeshes)
+                boundsBuilder.Add(mesh.WorldBounds);
+
+            var bounds = boundsBuilder.Result;
+
+            var gridSize = new Vector3(
+                grid.Size.X * grid.VoxelSize,
+                grid.Size.Y * grid.VoxelSize,
+                grid.Size.Z * grid.VoxelSize);
+
+            var gridMax = grid.Origin + gridSize;
+            var boundsMin = Vector3.Max(bounds.Min, grid.Origin);
+            var boundsMax = Vector3.Min(bounds.Max, gridMax);
+
+            if (boundsMin.X > boundsMax.X ||
+                boundsMin.Y > boundsMax.Y ||
+                boundsMin.Z > boundsMax.Z)
+            {
+                return new List<GpuVoxelFaceData>();
+            }
+
+            int padding = Math.Max(0, _params.Padding);
+            float invVoxelSize = 1.0f / grid.VoxelSize;
+
+            int minX = (int)MathF.Floor((boundsMin.X - grid.Origin.X) * invVoxelSize) - padding;
+            int minY = (int)MathF.Floor((boundsMin.Y - grid.Origin.Y) * invVoxelSize) - padding;
+            int minZ = (int)MathF.Floor((boundsMin.Z - grid.Origin.Z) * invVoxelSize) - padding;
+
+            int maxX = (int)MathF.Ceiling((boundsMax.X - grid.Origin.X) * invVoxelSize) + padding;
+            int maxY = (int)MathF.Ceiling((boundsMax.Y - grid.Origin.Y) * invVoxelSize) + padding;
+            int maxZ = (int)MathF.Ceiling((boundsMax.Z - grid.Origin.Z) * invVoxelSize) + padding;
+
+            if (maxX <= minX)
+                maxX = minX + 1;
+
+            if (maxY <= minY)
+                maxY = minY + 1;
+
+            if (maxZ <= minZ)
+                maxZ = minZ + 1;
+
+            _voxelMin = new Vector3I(
+                Math.Clamp(minX, 0, grid.Size.X),
+                Math.Clamp(minY, 0, grid.Size.Y),
+                Math.Clamp(minZ, 0, grid.Size.Z));
+
+            _voxelMax = new Vector3I(
+                Math.Clamp(maxX, 0, grid.Size.X),
+                Math.Clamp(maxY, 0, grid.Size.Y),
+                Math.Clamp(maxZ, 0, grid.Size.Z));
+
+            if (_voxelMin.X >= _voxelMax.X ||
+                _voxelMin.Y >= _voxelMax.Y ||
+                _voxelMin.Z >= _voxelMax.Z)
+            {
+                return [];
+            }
 
             EnsureTargets(grid);
 
-            ScanAxisVolume(realMesehs, ScanAxis.X, _xTarget!);
-            ScanAxisVolume(realMesehs, ScanAxis.Y, _yTarget!);
-            ScanAxisVolume(realMesehs, ScanAxis.Z, _zTarget!);
+            ScanAxisVolume(realMeshes, ScanAxis.X, _xTarget!);
+            ScanAxisVolume(realMeshes, ScanAxis.Y, _yTarget!);
+            ScanAxisVolume(realMeshes, ScanAxis.Z, _zTarget!);
 
             var result = new List<GpuVoxelFaceData>();
 
@@ -248,9 +316,30 @@ namespace XrEngine.Lighting
 
             uint lastProgram = 0;
 
-            for (int baseSlice = 0; baseSlice < target.Layers; baseSlice += _viewsPerBatch)
+            int firstSlice;
+            int lastSlice;
+
+            switch (axis)
             {
-                int viewCount = Math.Min(_viewsPerBatch, (int)target.Layers - baseSlice);
+                case ScanAxis.X:
+                    firstSlice = _voxelMin.X;
+                    lastSlice = _voxelMax.X;
+                    break;
+
+                case ScanAxis.Y:
+                    firstSlice = _voxelMin.Y;
+                    lastSlice = _voxelMax.Y;
+                    break;
+
+                default:
+                    firstSlice = _voxelMin.Z;
+                    lastSlice = _voxelMax.Z;
+                    break;
+            }
+
+            for (int baseSlice = firstSlice; baseSlice < lastSlice; baseSlice += _viewsPerBatch)
+            {
+                int viewCount = Math.Min(_viewsPerBatch, lastSlice - baseSlice);
 
                 _scanProgram = LoadProgram(viewCount);
 
@@ -428,20 +517,63 @@ namespace XrEngine.Lighting
 
             _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
 
-            for (int layer = 0; layer < target.Layers; ++layer)
-            {
-                ReadLayer(target.Color, target.Width, target.Height, layer, ref colors);
-                ReadLayer(target.Normal, target.Width, target.Height, layer, ref normals);
-                ReadLayer(target.Material, target.Width, target.Height, layer, ref materials);
+            int firstLayer;
+            int lastLayer;
+            Rect2I readRect;
 
-                UnpackAxisLayer(axis, target, layer, colors, normals, materials, faces);
+            switch (axis)
+            {
+                case ScanAxis.X:
+                    firstLayer = _voxelMin.X;
+                    lastLayer = _voxelMax.X;
+                    readRect = new Rect2I(
+                        _voxelMin.Z,
+                        _voxelMin.Y,
+                        (uint)(_voxelMax.Z - _voxelMin.Z),
+                        (uint)(_voxelMax.Y - _voxelMin.Y));
+                    break;
+
+                case ScanAxis.Y:
+                    firstLayer = _voxelMin.Y;
+                    lastLayer = _voxelMax.Y;
+                    readRect = new Rect2I(
+                        _voxelMin.X,
+                        _voxelMin.Z,
+                        (uint)(_voxelMax.X - _voxelMin.X),
+                        (uint)(_voxelMax.Z - _voxelMin.Z));
+                    break;
+
+                default:
+                    firstLayer = _voxelMin.Z;
+                    lastLayer = _voxelMax.Z;
+                    readRect = new Rect2I(
+                        _voxelMin.X,
+                        _voxelMin.Y,
+                        (uint)(_voxelMax.X - _voxelMin.X),
+                        (uint)(_voxelMax.Y - _voxelMin.Y));
+                    break;
+            }
+
+            for (int layer = firstLayer; layer < lastLayer; ++layer)
+            {
+                ReadLayer(target.Color, readRect, layer, ref colors);
+                ReadLayer(target.Normal, readRect, layer, ref normals);
+                ReadLayer(target.Material, readRect, layer, ref materials);
+
+                UnpackAxisLayer(
+                    axis,
+                    layer,
+                    readRect,
+                    colors,
+                    normals,
+                    materials,
+                    faces);
             }
         }
 
         private void ReadLayer<T>(
             GlTexture texture,
-            uint width,
-            uint height,
+            Rect2I rect,
             int layer,
             ref T[] result) where T : struct
         {
@@ -449,7 +581,7 @@ namespace XrEngine.Lighting
             _texFb.BindAttachment(texture, FramebufferAttachment.ColorAttachment0, false, layer);
             _texFb.Check();
 
-            int len = checked((int)(width * height));
+            int len = checked((int)(rect.Width * rect.Height));
 
             if (result.Length < len)
                 result = new T[len];
@@ -461,10 +593,10 @@ namespace XrEngine.Lighting
                 fixed (T* ptr = result)
                 {
                     _gl.ReadPixels(
-                        0,
-                        0,
-                        width,
-                        height,
+                        rect.X,
+                        rect.Y,
+                        rect.Width,
+                        rect.Height,
                         pf,
                         pt,
                         ptr);
@@ -474,18 +606,21 @@ namespace XrEngine.Lighting
 
         private void UnpackAxisLayer(
             ScanAxis axis,
-            AxisTarget target,
             int layer,
+            Rect2I rect,
             Rgba32Pixel[] colors,
             RgbHalfPixel[] normals,
             Rgb24Pixel[] materials,
             List<GpuVoxelFaceData> faces)
         {
-            for (int py = 0; py < target.Height; ++py)
+            int width = (int)rect.Width;
+            int height = (int)rect.Height;
+
+            for (int py = 0; py < height; ++py)
             {
-                for (int px = 0; px < target.Width; ++px)
+                for (int px = 0; px < width; ++px)
                 {
-                    int srcIndex = px + py * (int)target.Width;
+                    int srcIndex = px + py * width;
 
                     var color = colors[srcIndex].ToColor();
 
@@ -495,8 +630,8 @@ namespace XrEngine.Lighting
                     AddVoxelFace(
                         axis,
                         layer,
-                        px,
-                        py,
+                        rect.X + px,
+                        rect.Y + py,
                         color,
                         normals[srcIndex].ToVector3(),
                         materials[srcIndex],
@@ -561,7 +696,7 @@ namespace XrEngine.Lighting
                 Roughness = material.Roughness,
                 Metallic = material.Metallic
             });
-        
+
             faces.Add(new GpuVoxelFaceData
             {
                 Cell = new Vector3I(x, y, z),
@@ -573,7 +708,7 @@ namespace XrEngine.Lighting
                 Roughness = material.Roughness,
                 Metallic = material.Metallic
             });
-   
+
         }
 
         private void BindScanTarget(AxisTarget target, int baseLayer, int viewCount)
