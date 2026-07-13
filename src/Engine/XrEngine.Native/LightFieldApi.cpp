@@ -268,7 +268,7 @@ EXPORT void APIENTRY VoxelLightBakerAddGpuMeshFaces(
 EXPORT VoxelData* APIENTRY VoxelLightBakerGetScene(VoxelLightBaker* baker, int32_t* count) {
 
     auto scene = baker->GetScene();
-    *count = scene->size();
+    *count = int32_t(scene->size());
     return scene->data();
 }
 
@@ -420,6 +420,8 @@ EXPORT bool APIENTRY VoxelRayMarcherStep(
 
         return false;
     }
+
+    return true;
 }
 
 EXPORT void APIENTRY VoxelRayMarcherGetState(

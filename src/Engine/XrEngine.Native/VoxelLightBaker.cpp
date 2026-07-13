@@ -1,9 +1,9 @@
 #include "pch.h"
 
 namespace {
-	constexpr float Pi = 3.14159265358979323846f; constexpr float Epsilon = 1e-5f;
-
-
+	
+	constexpr float Pi = 3.14159265358979323846f; 
+	constexpr float Epsilon = 1e-5f;
 
 	static constexpr Vec3 FaceNormals[VOXEL_LIGHT_FACE_COUNT] =
 	{
@@ -65,14 +65,6 @@ namespace {
 		return cell;
 	}
 
-
-	Vec3 VoxelFaceCenter(const VoxelGridDesc& grid, Vec3I cell, int32_t face)
-	{
-		Vec3 center = VoxelCenter(grid, cell);
-		float halfSize = grid.VoxelSize * 0.5f;
-
-		return center + FaceNormal(face) * halfSize;
-	}
 
 
 	FORCE_INLINE int32_t FieldIndex(const VoxelLightField& field, Vec3I cell)
@@ -207,24 +199,6 @@ namespace {
 	FORCE_INLINE Vec3 DirectionalLightEnergy(const DirectionalLight& light)
 	{
 		return light.Color * light.Intensity;
-	}
-
-	Vec3 SpotLightEnergyAtDistance(
-		const SpotLight& light,
-		float distance,
-		const Vec3& rayDirection)
-	{
-		float cone = SpotConeAttenuation(
-			light.Direction,
-			light.InnerCos,
-			light.OuterCos,
-			rayDirection);
-
-		if (cone <= 0.0f)
-			return Vec3{};
-
-		return light.Color *
-			(light.Intensity * cone * LightFalloffAtDistance(light.Falloff, distance));
 	}
 
 	void DirectionBasis(
@@ -510,52 +484,35 @@ namespace {
 		return origin + direction * exitT;
 	}
 
-	Vec3 SnapRayDirectionToGrid(
-		const VoxelGridDesc& grid,
-		const Vec3& origin,
-		const Vec3& direction)
-	{
-		Vec3 exitPoint = RayGridExitPoint(grid, origin, direction);
 
-		Vec3I cell;
-
-		cell.X = std::clamp(
-			int32_t(std::floor((exitPoint.X - grid.Origin.X) / grid.VoxelSize)),
-			0,
-			grid.Size.X - 1);
-
-		cell.Y = std::clamp(
-			int32_t(std::floor((exitPoint.Y - grid.Origin.Y) / grid.VoxelSize)),
-			0,
-			grid.Size.Y - 1);
-
-		cell.Z = std::clamp(
-			int32_t(std::floor((exitPoint.Z - grid.Origin.Z) / grid.VoxelSize)),
-			0,
-			grid.Size.Z - 1);
-
-		Vec3 target = VoxelCenter(grid, cell);
-		Vec3 snapped = (target - origin).Normalized();
-
-		if (Dot(snapped, snapped) <= Epsilon)
-			return direction;
-
-		return snapped;
-	}
 
 	int32_t RayVoxelExitFaceWeights(
 		const Vec3& voxelCenter,
 		float voxelSize,
 		const Vec3& rayPosition,
 		const Vec3& direction,
-		VoxelFaceWeight outFaces[3])
+		VoxelFaceWeight outFaces[3],
+		bool centerPlaneMode)
 	{
 		const float half = voxelSize * 0.5f;
-		const float invHalf = 1.0f / half;
 
-		const float px[3] = { rayPosition.X, rayPosition.Y, rayPosition.Z };
-		const float dc[3] = { direction.X, direction.Y, direction.Z };
-		const float cc[3] = { voxelCenter.X, voxelCenter.Y, voxelCenter.Z };
+		const float px[3] = {
+			rayPosition.X,
+			rayPosition.Y,
+			rayPosition.Z
+		};
+
+		const float dc[3] = {
+			direction.X,
+			direction.Y,
+			direction.Z
+		};
+
+		const float cc[3] = {
+			voxelCenter.X,
+			voxelCenter.Y,
+			voxelCenter.Z
+		};
 
 		float bestT = FLT_MAX;
 		int32_t mainAxis = -1;
@@ -569,7 +526,11 @@ namespace {
 				continue;
 
 			const bool positive = d > 0.0f;
-			const float boundary = cc[axis] + (positive ? half : -half);
+
+			const float boundary = centerPlaneMode
+				? cc[axis]
+				: cc[axis] + (positive ? half : -half);
+
 			const float t = (boundary - px[axis]) / d;
 
 			if (t >= 0.0f && t < bestT)
@@ -585,10 +546,6 @@ namespace {
 
 		const Vec3 p = rayPosition + direction * bestT;
 
-		const float lx = std::clamp((p.X - voxelCenter.X) * invHalf, -1.0f, 1.0f);
-		const float ly = std::clamp((p.Y - voxelCenter.Y) * invHalf, -1.0f, 1.0f);
-		const float lz = std::clamp((p.Z - voxelCenter.Z) * invHalf, -1.0f, 1.0f);
-
 		float u;
 		float v;
 		int32_t uAxis;
@@ -596,52 +553,78 @@ namespace {
 
 		if (mainAxis == 0)
 		{
-			u = ly;
-			v = lz;
+			u = p.Y - voxelCenter.Y;
+			v = p.Z - voxelCenter.Z;
 			uAxis = 1;
 			vAxis = 2;
 		}
 		else if (mainAxis == 1)
 		{
-			u = lx;
-			v = lz;
+			u = p.X - voxelCenter.X;
+			v = p.Z - voxelCenter.Z;
 			uAxis = 0;
 			vAxis = 2;
 		}
 		else
 		{
-			u = lx;
-			v = ly;
+			u = p.X - voxelCenter.X;
+			v = p.Y - voxelCenter.Y;
 			uAxis = 0;
 			vAxis = 1;
 		}
 
-		const float au = std::fabs(u);
-		const float av = std::fabs(v);
+		if (centerPlaneMode)
+		{
+			constexpr float weight = 1.0f / 3.0f;
 
-		const float mainWeight = 1.0f;
-		const float uWeight = au * au;
-		const float vWeight = av * av;
+			outFaces[0].Face =
+				mainAxis * 2 + int32_t(mainPositive);
+			outFaces[0].Weight = weight;
 
-		const float invSum = 1.0f / (mainWeight + uWeight + vWeight);
+			// Deliberately use > rather than >=:
+			// exact zero reproduced NaN >= 0 == false in the original path.
+			outFaces[1].Face =
+				uAxis * 2 + int32_t(u > 0.0f);
+			outFaces[1].Weight = weight;
+
+			outFaces[2].Face =
+				vAxis * 2 + int32_t(v > 0.0f);
+			outFaces[2].Weight = weight;
+
+			return 3;
+		}
+
+		const float invHalf = 1.0f / half;
+
+		u = std::clamp(u * invHalf, -1.0f, 1.0f);
+		v = std::clamp(v * invHalf, -1.0f, 1.0f);
+
+		const float uWeight = u * u;
+		const float vWeight = v * v;
+		const float invSum = 1.0f / (1.0f + uWeight + vWeight);
 
 		int32_t count = 0;
 
-		outFaces[count].Face = mainAxis * 2 + int32_t(mainPositive);
-		outFaces[count].Weight = mainWeight * invSum;
+		outFaces[count].Face =
+			mainAxis * 2 + int32_t(mainPositive);
+		outFaces[count].Weight = invSum;
 		++count;
 
 		if (uWeight > 0.000001f)
 		{
-			outFaces[count].Face = uAxis * 2 + int32_t(u >= 0.0f);
-			outFaces[count].Weight = uWeight * invSum;
+			outFaces[count].Face =
+				uAxis * 2 + int32_t(u >= 0.0f);
+			outFaces[count].Weight =
+				uWeight * invSum;
 			++count;
 		}
 
 		if (vWeight > 0.000001f)
 		{
-			outFaces[count].Face = vAxis * 2 + int32_t(v >= 0.0f);
-			outFaces[count].Weight = vWeight * invSum;
+			outFaces[count].Face =
+				vAxis * 2 + int32_t(v >= 0.0f);
+			outFaces[count].Weight =
+				vWeight * invSum;
 			++count;
 		}
 
@@ -749,19 +732,6 @@ namespace {
 			radial * std::sin(angleRad)).Normalized();
 	}
 
-
-	VoxelLightData SingleFaceData(
-		int32_t face,
-		const VoxelLightEnergy& incoming,
-		const VoxelLightEnergy& outgoing)
-	{
-		VoxelLightData data{};
-		data.Faces[face].Incoming = incoming;
-		data.Faces[face].Outgoing = outgoing;
-		data.Faces[face].Incoming.VisitCount = 1;
-		data.Faces[face].Outgoing.VisitCount = 1;
-		return data;
-	}
 
 
 	MergeEnergyFn SelectMergeEnergy(
@@ -975,7 +945,7 @@ void VoxelRayMarcher::TraceRange(int32_t startRay, int32_t endRay, int32_t gener
 
 	ClearContribution();
 
-	const int32_t rayPrealloc = (_baker->_voxelCount * 0.005);
+	const int32_t rayPrealloc = int32_t(_baker->_voxelCount * 0.005);
 
 	_local.Contribution.Cells.reserve(std::min(_baker->_voxelCount, endRay - startRay));
 	_local.TouchedVoxels.reserve(rayPrealloc);
@@ -1171,7 +1141,6 @@ bool VoxelRayMarcher::Step()
 	const VoxelLightBakeParams& params = _baker->_params;
 
 	const float energyThreshold = params.EnergyThreshold;
-	const bool initiateLightField = params.InitiateLightField;
 
 	const int32_t maxBounceCount = params.Bounce.MaxCount;
 	const float bounceNormalWeightParam = params.Bounce.NormalWeight;
@@ -1213,7 +1182,7 @@ bool VoxelRayMarcher::Step()
 #ifdef _DEBUG
 		VoxelLightData& data = _local.Contribution.Cells[slot].Data;
 
-		if (_ray.BounceCount > 0 || !initiateLightField)
+		if (_ray.BounceCount > 0 || !params.InitiateLightField)
 		{
 			MergeEnergy<RayMergeMode, NormalMode>(
 				data.Faces[incomingFace].Incoming,
@@ -1378,7 +1347,7 @@ bool VoxelRayMarcher::Step()
 		_ray.LastAffectedFace = outgoingFace;
 
 		bool writeEnergy = true;
-
+		 
 		if (Mode != LightTrackMode::Full)
 		{
 			if (_ray.LightState == VoxelLightState::Occlusion)
@@ -1421,22 +1390,23 @@ bool VoxelRayMarcher::Step()
 			}
 			else
 			{
-				VoxelFaceWeight faces[3] = { 0 };
+				VoxelFaceWeight faces[3] = { };
 
 				int32_t intCount = RayVoxelExitFaceWeights(
 					VoxelCenter(grid, _ray.Cell),
 					_baker->GetVoxelSize(),
 					_ray.Position,
 					activeDir,
-					faces);
-
+					faces,
+					RayMergeMode == VoxelLightMergeMode::MaxSample);
+			
 				if (intCount == 0)
 				{
 					faces[0].Face = outgoingFace;
 					faces[0].Weight = 1.0f;
 					intCount = 1;
 				}
-
+				
 				for (int32_t i = 0; i < intCount; ++i)
 				{
 					const int32_t face = faces[i].Face;

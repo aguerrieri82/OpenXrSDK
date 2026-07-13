@@ -6,8 +6,6 @@
 
 	#define EXPORT __declspec(dllexport)
 
-	#define APIENTRY __cdecl
-
 	#define FORCE_INLINE __forceinline
 
 #else

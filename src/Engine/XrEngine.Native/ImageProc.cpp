@@ -54,7 +54,7 @@ void ImagePack(uint32_t srcWidth, uint32_t srcHeight, char* srcData, uint32_t ds
     auto dstSize = dstRowSize * dstHeight;
     memset(dstData, 0, dstSize);
 
-    int curY = 0;
+    uint32_t curY = 0;
     char* srcRow = srcData;
     char* dstRow = dstData;
 

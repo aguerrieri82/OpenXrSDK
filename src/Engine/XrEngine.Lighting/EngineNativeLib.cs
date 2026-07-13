@@ -1,4 +1,5 @@
 ﻿
+using SharpEXR.ColorSpace;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -325,6 +326,7 @@ namespace XrEngine.Lighting
     {
         public Vector3 Position;
         public Vector3 Direction;
+        public Vector3 DirectionNormal;
         public Vector3 Energy;
 
         public LightCurve Falloff;

@@ -33,7 +33,7 @@
     <ClInclude Include="VoxelLightBaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Math.h">
+    <ClInclude Include="XrMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

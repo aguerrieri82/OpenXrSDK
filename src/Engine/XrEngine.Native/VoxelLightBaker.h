@@ -3,6 +3,8 @@
 #define MAX_BOUNCES 4
 #define VOXEL_LIGHT_FACE_COUNT 6
 
+
+
 enum class DirectionCollapseMode 
 {
     Add,
@@ -470,7 +472,7 @@ public:
 
     VoxelLightField& GetLightField();
 
-    int32_t GetVoxelSize() {
+    float GetVoxelSize() {
         return _grid.VoxelSize;
     }
 

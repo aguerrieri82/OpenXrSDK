@@ -1,7 +1,5 @@
 #include "pch.h"
 
-
-
 namespace
 {
     constexpr float Epsilon = 1e-7f;

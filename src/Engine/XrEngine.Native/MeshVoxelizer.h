@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma pack(push, 4)
-
 struct VertexData
 {
 	Vec3 Pos;
@@ -93,7 +91,7 @@ struct MeshVoxelGridView
 	int32_t VoxelCount;
 };
 
-#pragma pack(pop)
+
 
 struct VoxelTriangle
 {

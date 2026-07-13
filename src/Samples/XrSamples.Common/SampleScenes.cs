@@ -1111,10 +1111,10 @@ namespace XrSamples
 
                     if (XrPlatform.IsAndroid)
                     {
-                        //lightField.LoadSettings("Occlusions");
-                        //lightField.Apply();
-                        //lightField.Backe();
-                        lightField.Import();
+                        lightField.LoadSettings("Occlusions");
+                        lightField.Apply();
+                        lightField.Backe();
+                        //lightField.Import();
                     }
 
 
