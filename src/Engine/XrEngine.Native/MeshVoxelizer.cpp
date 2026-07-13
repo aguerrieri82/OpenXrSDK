@@ -5,44 +5,6 @@
 namespace
 {
     constexpr float Epsilon = 1e-7f;
-
-    inline Vec3 Sub(const Vec3& a, const Vec3& b)
-    {
-        return { a.X - b.X, a.Y - b.Y, a.Z - b.Z };
-    }
-
-    inline Vec3 Cross(const Vec3& a, const Vec3& b)
-    {
-        return
-        {
-            a.Y * b.Z - a.Z * b.Y,
-            a.Z * b.X - a.X * b.Z,
-            a.X * b.Y - a.Y * b.X
-        };
-    }
-
-    inline float Dot(const Vec3& a, const Vec3& b)
-    {
-        return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
-    }
-
-    inline Vec3 Normalize(const Vec3& v)
-    {
-        float lenSq = Dot(v, v);
-
-        if (lenSq <= Epsilon)
-            return { 0.0f, 0.0f, 0.0f };
-
-        float invLen = 1.0f / std::sqrt(lenSq);
-
-        return
-        {
-            v.X * invLen,
-            v.Y * invLen,
-            v.Z * invLen
-        };
-    }
-
     inline float AxisCoord(const Vec3& p, VoxelScanAxis axis)
     {
         switch (axis)
@@ -159,11 +121,7 @@ namespace
 
     inline Vec2 Lerp3(const Vec2& a, const Vec2& b, const Vec2& c, float wa, float wb, float wc)
     {
-        return
-        {
-            a.X * wa + b.X * wb + c.X * wc,
-            a.Y * wa + b.Y * wb + c.Y * wc
-        };
+        return a * wa + b * wb + c * wc;
     }
 
     inline int32_t ClampInt(int32_t v, int32_t min, int32_t max)
@@ -179,7 +137,8 @@ namespace
 }
 
 MeshVoxelizer::MeshVoxelizer()
-{}
+{
+}
 
 MeshVoxelGrid MeshVoxelizer::Voxelize(
     const VertexData* vertices,
@@ -308,10 +267,10 @@ void MeshVoxelizer::BuildTriangles()
         const VertexData& v1 = _vertices[i1];
         const VertexData& v2 = _vertices[i2];
 
-        Vec3 e0 = Sub(v1.Pos, v0.Pos);
-        Vec3 e1 = Sub(v2.Pos, v0.Pos);
+        Vec3 e0 = v1.Pos - v0.Pos;
+        Vec3 e1 = v2.Pos - v0.Pos;
 
-        Vec3 n = Normalize(Cross(e0, e1));
+        Vec3 n = Cross(e0, e1).Normalized();
 
         if (Dot(n, n) <= Epsilon)
             continue;
@@ -542,7 +501,7 @@ void MeshVoxelizer::SurfacePass(VoxelScanAxis axis)
                         posHit.UV = uv;
                         posHit.HitPosition = hitPosition;
                         posHit.Side = OppositeSide(side);
-               
+
 
                         AddFaceHit(localX, localY, localZ, NegFace(axis), negHit);
                         AddFaceHit(localX, localY, localZ, PosFace(axis), posHit);

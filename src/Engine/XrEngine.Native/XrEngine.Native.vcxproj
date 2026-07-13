@@ -313,6 +313,7 @@
   <ItemGroup>
     <ClInclude Include="Api.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="MeshVoxelizer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="VoxelLightBaker.h" />

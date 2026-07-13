@@ -405,7 +405,7 @@ EXPORT bool APIENTRY VoxelRayMarcherStep(
     if (marcher == nullptr)
         return false;
 
-    if (!marcher->Step()) {
+    if (!marcher->StepImpl()) {
 
         auto& nextRays = marcher->NextRays();
 

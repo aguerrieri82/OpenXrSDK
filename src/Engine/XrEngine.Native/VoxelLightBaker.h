@@ -125,7 +125,6 @@ struct VoxelLightBakeParams
     int32_t ThreadCount;
     int32_t RaySubsample;
 
-    bool SnapBounceDirection;
     bool InitiateLightField;
     bool NormalizeDir;
 
@@ -299,6 +298,23 @@ struct ContributionMergeState
 
 
 class VoxelLightBaker;
+class VoxelRayMarcher;
+
+
+using MergeEnergyFn = void (*)(
+    VoxelLightEnergy& target,
+    const VoxelLightEnergy& source,
+    VoxelLightState targetState,
+    VoxelLightState sourceState);
+
+using MergeVoxelLightDataFn = void (*)(
+    VoxelLightData& target,
+    const VoxelLightData& source);
+
+using MakeEnergyFn = VoxelLightEnergy(*)(
+    const Vec3& energy,
+    const Vec3& direction);
+
 
 class VoxelRayMarcher
 {
@@ -357,6 +373,11 @@ public:
 
     void GetDebugState(VoxelRayDebugState& state) const;
 
+    template<
+        LightTrackMode Mode,
+        RayIntersectionMode IntersectMode,
+        bool NormalMode,
+        VoxelLightMergeMode RayMergeMode>
     bool Step();
 
     void ClearContribution();
@@ -367,8 +388,11 @@ public:
     std::vector<VoxelLightRay>& NextRays() { return _nextRays; }
 
 private:
+    using StepFn = bool (VoxelRayMarcher::*)();
+
     VoxelLightBaker* _baker;
     int32_t _workerIndex;
+    StepFn _step;
 
     RayState _ray;
     ContributionMergeState _local;
@@ -376,12 +400,22 @@ private:
 
 private:
 
+    StepFn SelectStep(
+        LightTrackMode mode,
+        RayIntersectionMode intersectMode,
+        bool normalMode,
+        VoxelLightMergeMode rayMergeMode);
+
+
     void TraceRay(
         const VoxelLightRay& ray,
         int32_t generation);
 
     bool MoveToNextVoxel();
 
+public:
+
+    bool StepImpl() { return (this->*_step)(); }
 };
 
 class VoxelLightBaker
@@ -451,6 +485,12 @@ public:
 private:
     VoxelLightBakeParams _params;
 
+    MergeEnergyFn _mergeEnergyLight;
+
+    MergeVoxelLightDataFn _mergeVoxelLightDataLight;
+    MergeVoxelLightDataFn _mergeVoxelLightDataGen;
+    MergeVoxelLightDataFn _mergeVoxelLightDataRay;
+
     VoxelGridDesc _grid;
     int32_t _voxelCount;
 
@@ -504,7 +544,7 @@ private:
         VoxelLightContribution& target,
         ContributionMergeState& mergeState,
         const VoxelLightContribution& source,
-        VoxelLightMergeMode mode = VoxelLightMergeMode::MaxSample);
+        MergeVoxelLightDataFn mergeVoxelLightData);
 
     void ClearMergeState(
         ContributionMergeState& mergeState);

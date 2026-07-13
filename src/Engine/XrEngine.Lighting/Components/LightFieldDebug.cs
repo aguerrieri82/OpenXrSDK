@@ -87,7 +87,6 @@ namespace XrEngine.Lighting
             EnergyThreshold = 0.001f;
             MaxBounceCount = 5;
             RaySubsample = 6;
-            SnapBounceDirection = false;
             InitiateLightField = false;
             ThreadCount = 10;
 
@@ -273,7 +272,6 @@ namespace XrEngine.Lighting
                 EnergyThreshold = EnergyThreshold,
                 ThreadCount = ThreadCount,
                 RaySubsample = RaySubsample,
-                SnapBounceDirection = SnapBounceDirection,
                 InitiateLightField = InitiateLightField,
 
                 RayMergeMode = RayMergeMode,
@@ -766,9 +764,6 @@ namespace XrEngine.Lighting
 
         [Category("Misc")]
         public int ThreadCount { get; set; }
-
-        [Category("Misc")]
-        public bool SnapBounceDirection { get; set; }
 
         [Category("Misc")]
         public bool InitiateLightField { get; set; }

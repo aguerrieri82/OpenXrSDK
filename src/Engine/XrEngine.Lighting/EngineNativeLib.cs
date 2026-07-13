@@ -243,9 +243,6 @@ namespace XrEngine.Lighting
         public int RaySubsample;
 
         [MarshalAs(UnmanagedType.I1)]
-        public bool SnapBounceDirection;
-
-        [MarshalAs(UnmanagedType.I1)]
         public bool InitiateLightField;
 
         [MarshalAs(UnmanagedType.I1)]
