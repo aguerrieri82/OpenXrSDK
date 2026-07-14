@@ -70,23 +70,22 @@ static int32_t CopyContributionToView(
 
     int32_t count = static_cast<int32_t>(source.Cells.size());
 
-    if (view->Cells == nullptr || view->CellCount <= 0)
+    if (view->Cells == nullptr || view->CellCapacity < count)
     {
-        view->CellCount = count;
-        return count;
+        view->CellCapacity = count;
+        
+        if (view->Cells != nullptr)
+            std::free(view->Cells);
+
+        view->Cells = (VoxelLightCell*)std::malloc(count * sizeof(VoxelLightCell));
     }
 
-    int32_t copyCount = std::min(view->CellCount, count);
+    std::memcpy(
+        view->Cells,
+        source.Cells.data(),
+        sizeof(VoxelLightCell) * count);
 
-    if (copyCount > 0)
-    {
-        std::memcpy(
-            view->Cells,
-            source.Cells.data(),
-            sizeof(VoxelLightCell) * copyCount);
-    }
-
-    view->CellCount = copyCount;
+    view->CellCount = count;
 
     return count;
 }
@@ -460,8 +459,25 @@ EXPORT void APIENTRY FreeLightFieldView(
         view->Color[face] = nullptr;
         view->Direction[face] = nullptr;
     }
+    auto x = new int[3];
 
     view->Size = { 0 };
     view->CellCount = 0;
     view->CellCapacity = 0;
+}
+
+EXPORT void APIENTRY FreeContributionView(
+    VoxelLightContributionView* view)
+{
+    if (view == nullptr)
+        return;
+
+    if (view->Cells != nullptr) 
+    {
+        std::free(view->Cells);
+        view->CellCapacity = 0;
+        view->Cells = nullptr;
+    }
+
+    view->CellCount = 0;
 }

@@ -2,12 +2,12 @@
 
 namespace XrEngine.Lighting
 {
+    [Obsolete]
     public sealed unsafe class MeshVoxelGrid : IDisposable
     {
         private EngineNativeLib.VoxelGrid _voxelGrid;
         private readonly VoxelData* _voxels;
         private readonly int _voxelCount;
-
 
         internal MeshVoxelGrid(EngineNativeLib.VoxelGrid voxelGrid)
         {

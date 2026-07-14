@@ -301,10 +301,11 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct VoxelLightContributionView
+    public unsafe struct VoxelLightContributionView 
     {
         public VoxelLightCell* Cells;
         public int CellCount;
+        public int CellCapacity;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -473,15 +474,15 @@ namespace XrEngine.Lighting
             ref VoxelLightContributionView contribution);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void VoxelLightBakerBakeDirectionalLight(
+        public static extern int VoxelLightBakerBakeDirectionalLight(
             VoxelLightBaker baker,
-            in VoxDirectionalLight light,
+            ref VoxDirectionalLight light,
             ref VoxelLightContributionView contribution);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void VoxelLightBakerBakeSpotLight(
+        public static extern int VoxelLightBakerBakeSpotLight(
             VoxelLightBaker baker,
-            in VoxSpotLight light,
+            ref VoxSpotLight light,
             ref VoxelLightContributionView contribution);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
@@ -533,6 +534,10 @@ namespace XrEngine.Lighting
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern void FreeLightFieldView(ref VoxelLightFieldView view);
+
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
+        public static extern void FreeContributionView(ref VoxelLightContributionView view);
 
 
     }

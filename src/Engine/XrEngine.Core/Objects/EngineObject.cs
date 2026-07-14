@@ -57,6 +57,8 @@ namespace XrEngine
         public int Id;
     }
 
+
+    [StateManager(StateManagerMode.Manual)]
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
     {
         //protected Dictionary<int, object?>? _props;

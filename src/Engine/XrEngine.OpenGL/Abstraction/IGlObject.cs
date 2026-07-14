@@ -10,6 +10,8 @@ namespace XrEngine.OpenGL
     {
         public uint Handle { get; }
 
+        IGlContext Owner { get; }
+
         public GL GL { get; }
 
     }

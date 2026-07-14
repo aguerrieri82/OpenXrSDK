@@ -7,12 +7,13 @@ using XrMath;
 
 namespace XrEngine.Lighting
 {
+
     public sealed unsafe class VoxelLightBaker : IDisposable
     {
         private EngineNativeLib.VoxelLightBaker _handle;
-
         private VoxelLightFieldView _view;
         private VoxelGridDesc _gridDesc;
+        private VoxelLightBakeParams _params;
 
         public VoxelLightBaker()
         {
@@ -58,6 +59,8 @@ namespace XrEngine.Lighting
             EngineNativeLib.VoxelLightBakerSetParams(
                 _handle,
                 ref value);
+
+            _params = parameters;
         }
 
         public void SetGrid(in VoxelGridDesc grid)
@@ -102,33 +105,48 @@ namespace XrEngine.Lighting
                 faces.Length);
         }
 
-        public VoxelLightCell[] BakePointLight(in VoxPointLight light)
+        public void FreeContributionView(ref VoxelLightContributionView view)
+        {
+            EngineNativeLib.FreeContributionView(ref view);
+        }
+
+        public LightContribution BakeLight(in VoxPointLight light)
         {
             var lightValue = light;
-            var view = new VoxelLightContributionView();
+            var result = new LightContribution();
 
             var count = EngineNativeLib.VoxelLightBakerBakePointLight(
                 _handle,
                 ref lightValue,
-                ref view);
+                ref result.View);
 
-            if (count <= 0)
-                return [];
+            return result;
+        }
 
-            var cells = new VoxelLightCell[count];
+        public LightContribution BakeLight(in VoxDirectionalLight light)
+        {
+            var lightValue = light;
+            var result = new LightContribution();
 
-            fixed (VoxelLightCell* pCells = cells)
-            {
-                view.Cells = pCells;
-                view.CellCount = cells.Length;
+            var count = EngineNativeLib.VoxelLightBakerBakeDirectionalLight(
+                _handle,
+                ref lightValue,
+                ref result.View);
 
-                EngineNativeLib.VoxelLightBakerBakePointLight(
-                    _handle,
-                    ref lightValue,
-                    ref view);
-            }
+            return result;
+        }
 
-            return cells;
+        public LightContribution BakeLight(in VoxSpotLight light)
+        {
+            var lightValue = light;
+            var result = new LightContribution();
+
+            var count = EngineNativeLib.VoxelLightBakerBakeSpotLight(
+                _handle,
+                ref lightValue,
+                ref result.View);
+
+            return result;
         }
 
         public void ClearLightField()
@@ -136,23 +154,11 @@ namespace XrEngine.Lighting
             EngineNativeLib.VoxelLightBakerClearLightField(_handle);
         }
 
-        public void AccumulateLight(VoxelLightCell[] cells)
+        public void AccumulateLight(LightContribution contrib)
         {
-            if (cells.Length == 0)
-                return;
-
-            fixed (VoxelLightCell* pCells = cells)
-            {
-                var view = new VoxelLightContributionView
-                {
-                    Cells = pCells,
-                    CellCount = cells.Length
-                };
-
-                EngineNativeLib.VoxelLightBakerAccumulateLight(
-                    _handle,
-                    ref view);
-            }
+            EngineNativeLib.VoxelLightBakerAccumulateLight(
+                _handle,
+                ref contrib.View);
         }
 
         public IList<Texture3D> CreateTextures()
@@ -217,7 +223,6 @@ namespace XrEngine.Lighting
             return _view;
         }
 
-
         public VoxelRayMarcher CreateRayMarcher()
         {
             return new VoxelRayMarcher(this);
@@ -239,7 +244,10 @@ namespace XrEngine.Lighting
             _handle = default;
         }
 
+        public VoxelLightBakeParams Params => _params;
+
         public VoxelGridDesc GridDesc => _gridDesc;
+        
         internal EngineNativeLib.VoxelLightBaker Handle => _handle;
     }
 }

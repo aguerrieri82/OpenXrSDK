@@ -289,6 +289,7 @@ struct VoxelLightContributionView
 {
     VoxelLightCell* Cells;
     int32_t CellCount;
+    int32_t CellCapacity;
 };
 
 struct ContributionMergeState

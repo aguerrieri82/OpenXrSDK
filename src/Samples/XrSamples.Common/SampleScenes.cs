@@ -1074,6 +1074,16 @@ namespace XrSamples
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
 
+            scene.AddChild(new SpotLight()
+            {
+                WorldPosition = new Vector3(0, 0.63f, 1.84f),
+                Direction = new Vector3(0, -0.2f, -1),
+                Range = 4,
+                Intensity= 5,
+                InnerConeAngle = (14f).ToRadians(),
+                OuterConeAngle = (20f).ToRadians(),
+            });
+
             var voxelSize = 0.05f;
             var roomSize = new Vector3(5, 2, 5);
 
@@ -1107,7 +1117,11 @@ namespace XrSamples
                 .ConfigureApp(cfg =>
                 {
                     foreach (var light in scene.Descendants<Light>())
+                    {
                         light.IsVisible = true;
+                        light.AddComponent<LightFieldEmitter>();
+                    }
+        
 
                     if (XrPlatform.IsAndroid)
                     {
@@ -1116,7 +1130,6 @@ namespace XrSamples
                         lightField.Backe();
                         //lightField.Import();
                     }
-
 
                     scene.AddBehavior((_, _) =>
                     {

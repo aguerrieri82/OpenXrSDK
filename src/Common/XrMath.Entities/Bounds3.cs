@@ -24,6 +24,32 @@ namespace XrMath
 
         }
 
+        public readonly bool Equals(Bounds3 other)
+        {
+            return Min == other.Min &&
+                   Max == other.Max;
+        }
+
+        public override readonly bool Equals(object? obj)
+        {
+            return obj is Bounds3 other && Equals(other);
+        }
+
+        public override readonly int GetHashCode()
+        {
+            return HashCode.Combine(Min, Max);
+        }
+
+        public static bool operator ==(Bounds3 left, Bounds3 right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Bounds3 left, Bounds3 right)
+        {
+            return !left.Equals(right);
+        }
+
         public readonly Vector3 Size => Max - Min;
 
         public readonly Vector3 Center => (Max + Min) / 2;

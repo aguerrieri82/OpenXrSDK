@@ -12,10 +12,12 @@ namespace XrEngine.OpenGL
         protected uint _handle;
         protected GL _gl;
         protected string? _label;
+        protected readonly IGlContext _owner;
 
         protected GlObject(GL gl)
         {
             _gl = gl;
+            _owner = Context.Require<IGlContextProvider>().Current!;
             EnableDebug = true;
         }
 
@@ -59,5 +61,7 @@ namespace XrEngine.OpenGL
         public bool EnableDebug { get; set; }
 
         public object? Source { get; set; }
+
+        public IGlContext Owner => _owner;
     }
 }

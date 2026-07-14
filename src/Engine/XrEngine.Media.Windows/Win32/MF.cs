@@ -33,8 +33,8 @@ namespace XrEngine.Media.Windows
 
         [DllImport("mfplat.dll", ExactSpelling = true)]
         public static extern int MFCreateMemoryBuffer(
-    int cbMaxLength,
-    out IMFMediaBuffer ppBuffer);
+            int cbMaxLength,
+            out IMFMediaBuffer ppBuffer);
 
         public static void MFCreateSourceReaderFromURL(string path, IMFAttributes attr, out object reader)
         {

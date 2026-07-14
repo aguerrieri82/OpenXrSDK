@@ -49,6 +49,9 @@ namespace XrEditor.Services
                 {
                     foreach (var handler in item.Components<ISelectionHandler>())
                         handler.OnSelected(item, isSel);
+
+                    if (item is ISelectionHandler handler1)
+                        handler1.OnSelected(item, isSel);
                 }
             }
         }

@@ -3,6 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
+    [StateManager(StateManagerMode.Manual)]
     public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName
     {
         internal Bounds3 _worldBounds;

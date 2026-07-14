@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine.OpenGL;
 using XrMath;
+using static MeshOptimizer.MeshOptimizerLib;
 
 namespace XrEngine.Lighting
 {
@@ -26,24 +27,29 @@ namespace XrEngine.Lighting
         public float Metallic;
     }
 
-    public class GpuSceneVoxelizerParams
+    public class GpuMeshVoxelizerParams
     {
-        public GpuSceneVoxelizerParams()
+        public GpuMeshVoxelizerParams()
         {
             Passes = 2;
-            Eps = 0.1f;
-            Padding = 2;
+            AxisEps = 0.1f;
+            BoundsPadding = 2;
+            AddBackFaces = true;
         }
 
         public int Passes { get; set; }
 
-        public float Eps { get; set; }
+        public float AxisEps { get; set; }
 
-        public int Padding { get; set; }
+        public int BoundsPadding { get; set; }
+
+        public bool AddBackFaces { get; set; }
     }
 
-    public sealed class GpuSceneVoxelizer : IDisposable
+    public sealed class GpuMeshVoxelizer : IDisposable, IMeshVoxelizer
     {
+        #region STRUCTS 
+
         private enum ScanAxis
         {
             X,
@@ -111,6 +117,7 @@ namespace XrEngine.Lighting
             }
         }
 
+
         private const int NegX = 0;
         private const int PosX = 1;
         private const int NegY = 2;
@@ -118,12 +125,13 @@ namespace XrEngine.Lighting
         private const int NegZ = 4;
         private const int PosZ = 5;
 
+
+        #endregion
+
         private readonly GL _gl;
         private readonly int _viewsPerBatch;
-
         private readonly GlMultiViewFrameBuffer _scanFbo;
         private readonly GlTextureFrameBuffer _texFb;
-
 
         private AxisTarget? _xTarget;
         private AxisTarget? _yTarget;
@@ -133,22 +141,23 @@ namespace XrEngine.Lighting
         private Vector3I _voxelMin;
         private Vector3I _voxelMax;
         private GlSimpleProgram? _scanProgram;
-        private GpuSceneVoxelizerParams _params;
+        private GpuMeshVoxelizerParams _params;
+        private Dictionary<Geometry3D, GlVertexSourceHandle> _vertexHandles = [];
 
 
-        public GpuSceneVoxelizer(GL gl, int viewsPerBatch = 1)
+        public GpuMeshVoxelizer(GL gl)
         {
             _gl = gl;
 
             _gl.GetInteger((GLEnum)0x9631, out int maxViews);
 
-            _viewsPerBatch = Math.Min(maxViews, viewsPerBatch);
+            _viewsPerBatch = maxViews;
             _scanFbo = new GlMultiViewFrameBuffer(gl);
             _texFb = new GlTextureFrameBuffer(gl);
-            _params = new GpuSceneVoxelizerParams();
+            _params = new GpuMeshVoxelizerParams();
         }
 
-        public void SetParams(GpuSceneVoxelizerParams param)
+        public void SetParams(GpuMeshVoxelizerParams param)
         {
             _params = param;
         }
@@ -161,9 +170,71 @@ namespace XrEngine.Lighting
                 [$"VOXELIZER_VIEW_COUNT {viewCount}"], ["GL_OVR_multiview2"])!;
         }
 
-        public List<GpuVoxelFaceData> Voxelize(
-            IReadOnlyList<TriangleMesh> meshes,
-            VoxelGridDesc grid)
+        bool TryComputeVoxelBounds(Bounds3 bounds)
+        {
+            var gridSize = new Vector3(
+                _grid.Size.X * _grid.VoxelSize,
+                _grid.Size.Y * _grid.VoxelSize,
+                _grid.Size.Z * _grid.VoxelSize);
+
+            var gridMax = _grid.Origin + gridSize;
+            var boundsMin = Vector3.Max(bounds.Min, _grid.Origin);
+            var boundsMax = Vector3.Min(bounds.Max, gridMax);
+
+            if (boundsMin.X > boundsMax.X ||
+                boundsMin.Y > boundsMax.Y ||
+                boundsMin.Z > boundsMax.Z)
+            {
+                return false;
+            }
+
+            int padding = Math.Max(0, _params.BoundsPadding);
+
+            float invVoxelSize = 1.0f / _grid.VoxelSize;
+
+            int minX = (int)MathF.Floor((boundsMin.X - _grid.Origin.X) * invVoxelSize) - padding;
+            int minY = (int)MathF.Floor((boundsMin.Y - _grid.Origin.Y) * invVoxelSize) - padding;
+            int minZ = (int)MathF.Floor((boundsMin.Z - _grid.Origin.Z) * invVoxelSize) - padding;
+
+            int maxX = (int)MathF.Ceiling((boundsMax.X - _grid.Origin.X) * invVoxelSize) + padding;
+            int maxY = (int)MathF.Ceiling((boundsMax.Y - _grid.Origin.Y) * invVoxelSize) + padding;
+            int maxZ = (int)MathF.Ceiling((boundsMax.Z - _grid.Origin.Z) * invVoxelSize) + padding;
+
+            if (maxX <= minX)
+                maxX = minX + 1;
+
+            if (maxY <= minY)
+                maxY = minY + 1;
+
+            if (maxZ <= minZ)
+                maxZ = minZ + 1;
+
+            _voxelMin = new Vector3I(
+                Math.Clamp(minX, 0, _grid.Size.X),
+                Math.Clamp(minY, 0, _grid.Size.Y),
+                Math.Clamp(minZ, 0, _grid.Size.Z));
+
+            _voxelMax = new Vector3I(
+                Math.Clamp(maxX, 0, _grid.Size.X),
+                Math.Clamp(maxY, 0, _grid.Size.Y),
+                Math.Clamp(maxZ, 0, _grid.Size.Z));
+
+            if (_voxelMin.X >= _voxelMax.X ||
+                _voxelMin.Y >= _voxelMax.Y ||
+                _voxelMin.Z >= _voxelMax.Z)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetGrid(VoxelGridDesc grid)
+        {
+            _grid = grid;   
+        }
+
+        public IList<GpuVoxelFaceData> Voxelize(IReadOnlyList<TriangleMesh> meshes)
         {
             var realMeshes = meshes.Where(a =>
             {
@@ -177,7 +248,6 @@ namespace XrEngine.Lighting
             if (realMeshes.Length == 0)
                 return [];
 
-            _grid = grid;
 
             var boundsBuilder = new Bounds3Builder();
 
@@ -186,60 +256,10 @@ namespace XrEngine.Lighting
 
             var bounds = boundsBuilder.Result;
 
-            var gridSize = new Vector3(
-                grid.Size.X * grid.VoxelSize,
-                grid.Size.Y * grid.VoxelSize,
-                grid.Size.Z * grid.VoxelSize);
-
-            var gridMax = grid.Origin + gridSize;
-            var boundsMin = Vector3.Max(bounds.Min, grid.Origin);
-            var boundsMax = Vector3.Min(bounds.Max, gridMax);
-
-            if (boundsMin.X > boundsMax.X ||
-                boundsMin.Y > boundsMax.Y ||
-                boundsMin.Z > boundsMax.Z)
-            {
-                return new List<GpuVoxelFaceData>();
-            }
-
-            int padding = Math.Max(0, _params.Padding);
-            float invVoxelSize = 1.0f / grid.VoxelSize;
-
-            int minX = (int)MathF.Floor((boundsMin.X - grid.Origin.X) * invVoxelSize) - padding;
-            int minY = (int)MathF.Floor((boundsMin.Y - grid.Origin.Y) * invVoxelSize) - padding;
-            int minZ = (int)MathF.Floor((boundsMin.Z - grid.Origin.Z) * invVoxelSize) - padding;
-
-            int maxX = (int)MathF.Ceiling((boundsMax.X - grid.Origin.X) * invVoxelSize) + padding;
-            int maxY = (int)MathF.Ceiling((boundsMax.Y - grid.Origin.Y) * invVoxelSize) + padding;
-            int maxZ = (int)MathF.Ceiling((boundsMax.Z - grid.Origin.Z) * invVoxelSize) + padding;
-
-            if (maxX <= minX)
-                maxX = minX + 1;
-
-            if (maxY <= minY)
-                maxY = minY + 1;
-
-            if (maxZ <= minZ)
-                maxZ = minZ + 1;
-
-            _voxelMin = new Vector3I(
-                Math.Clamp(minX, 0, grid.Size.X),
-                Math.Clamp(minY, 0, grid.Size.Y),
-                Math.Clamp(minZ, 0, grid.Size.Z));
-
-            _voxelMax = new Vector3I(
-                Math.Clamp(maxX, 0, grid.Size.X),
-                Math.Clamp(maxY, 0, grid.Size.Y),
-                Math.Clamp(maxZ, 0, grid.Size.Z));
-
-            if (_voxelMin.X >= _voxelMax.X ||
-                _voxelMin.Y >= _voxelMax.Y ||
-                _voxelMin.Z >= _voxelMax.Z)
-            {
+            if (!TryComputeVoxelBounds(bounds))
                 return [];
-            }
 
-            EnsureTargets(grid);
+            EnsureTargets();
 
             ScanAxisVolume(realMeshes, ScanAxis.X, _xTarget!);
             ScanAxisVolume(realMeshes, ScanAxis.Y, _yTarget!);
@@ -250,6 +270,8 @@ namespace XrEngine.Lighting
             _texFb.Bind();
             _texFb.BindRead(ReadBufferMode.ColorAttachment0);
 
+            _gl.Flush();
+
             ReadAxisVolume(ScanAxis.X, _xTarget!, result);
             ReadAxisVolume(ScanAxis.Y, _yTarget!, result);
             ReadAxisVolume(ScanAxis.Z, _zTarget!, result);
@@ -257,11 +279,11 @@ namespace XrEngine.Lighting
             return result;
         }
 
-        private void EnsureTargets(VoxelGridDesc grid)
+        private void EnsureTargets()
         {
-            EnsureAxisTarget(ref _xTarget, (uint)grid.Size.Z, (uint)grid.Size.Y, (uint)grid.Size.X);
-            EnsureAxisTarget(ref _yTarget, (uint)grid.Size.X, (uint)grid.Size.Z, (uint)grid.Size.Y);
-            EnsureAxisTarget(ref _zTarget, (uint)grid.Size.X, (uint)grid.Size.Y, (uint)grid.Size.Z);
+            EnsureAxisTarget(ref _xTarget, (uint)_grid.Size.Z, (uint)_grid.Size.Y, (uint)_grid.Size.X);
+            EnsureAxisTarget(ref _yTarget, (uint)_grid.Size.X, (uint)_grid.Size.Z, (uint)_grid.Size.Y);
+            EnsureAxisTarget(ref _zTarget, (uint)_grid.Size.X, (uint)_grid.Size.Y, (uint)_grid.Size.Z);
         }
 
         private void EnsureAxisTarget(
@@ -365,7 +387,7 @@ namespace XrEngine.Lighting
                     for (int i = 0; i < viewCount; ++i)
                     {
                         int slice = baseSlice + i;
-                        var eps = j * _params.Eps * _grid.VoxelSize;
+                        var eps = j * _params.AxisEps * _grid.VoxelSize;
                         var matrix = CreateSliceViewProjection(axis, slice, eps);
                         _scanProgram.SetUniform($"uViewProj[{i}]", matrix);
                     }
@@ -447,8 +469,21 @@ namespace XrEngine.Lighting
             {
                 SetMeshUniforms(mesh);
 
-                var handle = mesh.GetGlResource(a =>
-                    GlVertexSourceHandle.Create(_gl, mesh));
+                var geo = mesh.Geometry!;
+
+                if (!_vertexHandles.TryGetValue(geo, out var handle))
+                {
+                    handle = geo.GetGlResource(a =>
+                        GlVertexSourceHandle.Create(_gl, mesh));
+
+                    var ctx = Context.Require<IGlContextProvider>().Current;
+
+                    if (handle.VertexArray.Owner != ctx)
+                    {
+                        handle = handle.Clone();
+                        _vertexHandles[geo] = handle;
+                    }
+                }
 
                 if (handle.NeedUpdate)
                     handle.Update();
@@ -640,7 +675,7 @@ namespace XrEngine.Lighting
             }
         }
 
-        private static void AddVoxelFace(
+        private void AddVoxelFace(
             ScanAxis axis,
             int layer,
             int px,
@@ -697,17 +732,21 @@ namespace XrEngine.Lighting
                 Metallic = material.Metallic
             });
 
-            faces.Add(new GpuVoxelFaceData
+            if (_params.AddBackFaces)
             {
-                Cell = new Vector3I(x, y, z),
-                Face = !isFront ? frontFace : backFace,
-                Side = !isFront ? VoxelTriangleSide.Front : VoxelTriangleSide.Back,
+                faces.Add(new GpuVoxelFaceData
+                {
+                    Cell = new Vector3I(x, y, z),
+                    Face = !isFront ? frontFace : backFace,
+                    Side = !isFront ? VoxelTriangleSide.Front : VoxelTriangleSide.Back,
 
-                BaseColor = color,
-                Normal = -normal,
-                Roughness = material.Roughness,
-                Metallic = material.Metallic
-            });
+                    BaseColor = color,
+                    Normal = -normal,
+                    Roughness = material.Roughness,
+                    Metallic = material.Metallic
+                });
+            }
+      
 
         }
 

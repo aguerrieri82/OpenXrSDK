@@ -411,6 +411,7 @@ namespace XrEditor
                 Name = "XrEngine Render Thread"
             };
 
+            _renderThread.SetApartmentState(ApartmentState.STA);
             _renderThread.Start();
         }
 

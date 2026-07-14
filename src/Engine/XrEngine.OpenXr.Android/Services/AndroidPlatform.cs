@@ -15,8 +15,11 @@ using Context2 = global::Android.Content.Context;
 
 namespace XrEngine.OpenXr.Android
 {
-    public class AndroidPlatform : IXrEnginePlatform
+    public class AndroidPlatform : IXrEnginePlatform, IGlContextProvider
     {
+        [ThreadStatic]
+        internal static AndroidGlContext? _currentGlContext;
+
         readonly Context2 _context;
         private readonly DeviceInfo _info;
         VulkanDevice? _vkDevice;
@@ -30,6 +33,7 @@ namespace XrEngine.OpenXr.Android
             Context.Implement<ILogger>(new AndroidLogger("XrApp"));
             Context.Implement<IProgressLogger>(new AndroidProgressLogger());
             Context.Implement<ITimeLogger>(NullTimeLogger.Instance);
+            Context.Implement<IGlContextProvider>(this);
 
             _context = context;
 
@@ -103,15 +107,27 @@ namespace XrEngine.OpenXr.Android
 
                 var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 
+                var gl = glDriver.GetApi<GL>();
+
 #if GL_WRAPPER
 
-                renderEngine = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(glDriver.GetApi<GL>()), glOptions);
+                renderEngine = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl), glOptions);
 #else
-                renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);
+                renderEngine = new OpenGLRender(gl, glOptions);
 #endif
 
                 xrDriver = glDriver;
+
+                _currentGlContext = new AndroidGlContext(glDriver.Context, gl);
             }
+        }
+
+        public IGlContext CreateShared()
+        {
+            if (_currentGlContext == null)
+                throw new InvalidOperationException();
+            
+            return _currentGlContext.CreateShared(AndroidXrOpenGLESGraphicDriver.DEBUG_MODE);
         }
 
         public string Name => "Android";
@@ -123,5 +139,7 @@ namespace XrEngine.OpenXr.Android
         public string SharedPath => global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
 
         public DeviceInfo Device => _info;
+
+        IGlContext? IGlContextProvider.Current => _currentGlContext;
     }
 }

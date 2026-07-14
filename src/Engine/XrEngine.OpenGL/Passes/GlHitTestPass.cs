@@ -23,9 +23,9 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             _passTarget = new GlRenderPassTarget(renderer.GL);
-            _passTarget.DepthFormat = TextureFormat.Depth32Float;
+            _passTarget.DepthFormat = TextureFormat.Depth24;
 
-            _passTarget.AddExtra(TextureFormat.RgbFloat32, FramebufferAttachment.ColorAttachment1, true);
+            _passTarget.AddExtra(TextureFormat.RgbFloat16, FramebufferAttachment.ColorAttachment1, true);
         }
 
         public unsafe HitTestResult HitTest(uint x, uint y)

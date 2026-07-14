@@ -8,6 +8,7 @@ namespace XrEngine.Lighting
 {
 
 
+    [Obsolete]
     public sealed class MeshVoxelizer : IDisposable
     {
         private EngineNativeLib.MeshVoxelizer _voxelizer;

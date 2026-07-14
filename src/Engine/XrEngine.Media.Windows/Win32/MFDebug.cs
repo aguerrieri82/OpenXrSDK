@@ -44,7 +44,6 @@ namespace XrEngine.Media.Windows
                 Debug.WriteLine($"BlockAlign: {align}");
         }
 
-        // ---------- Helpers ----------
 
         private static bool TryGetUINT32(IMFMediaType mt, Guid key, out uint value)
         {

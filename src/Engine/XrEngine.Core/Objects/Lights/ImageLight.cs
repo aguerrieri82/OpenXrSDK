@@ -1,17 +1,20 @@
 ﻿
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using XrMath;
 
 namespace XrEngine
 {
+
+    [StateManager(StateManagerMode.Explicit)]
     public class ImageLight : Light
     {
         private string? _cacheBasePath;
-        private bool _isInit;
+
 
         private static readonly TextureLoadOptions _loaderOptions = new()
         {
-            Format = TextureFormat.RgbaFloat32
+            Format = TextureFormat.RgbaFloat16
         };
 
         public ImageLight()
@@ -109,21 +112,7 @@ namespace XrEngine
             Textures.GGXLUT!.NeverCompress = true;
         }
 
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.Write(nameof(RotationY), RotationY);
-            container.Write("Panorama", Panorama);
-        }
 
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            RotationY = container.Read<float>(nameof(RotationY));
-            Panorama = container.Read("Panorama", Panorama);
-            if (Panorama != null)
-                Panorama.NotifyChanged(ChangeType.Render);
-        }
 
         public override void Dispose()
         {
@@ -133,15 +122,15 @@ namespace XrEngine
             base.Dispose();
         }
 
-
-
         public IBLTextures Textures { get; set; }
 
         public Texture2D? Panorama { get; set; }
 
-        [ValueType(ValueType.Radiant)]
+
+        [ValueType(ValueType.Radiant), SaveState]
         public float RotationY { get; set; }
 
+        [SaveState]
         public float ShadowStrength { get; set; }
 
         public Matrix3x3 LightTransform { get; set; }

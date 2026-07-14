@@ -33,6 +33,9 @@ namespace XrEngine.OpenGL
 
         public long Version { get; protected set; }
 
+        public abstract IGlVertexArray VertexArray { get; }
+
+        public abstract GlVertexSourceHandle Clone();
 
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
@@ -43,6 +46,8 @@ namespace XrEngine.OpenGL
 
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
+
+
     }
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
@@ -54,6 +59,19 @@ namespace XrEngine.OpenGL
         EngineObject? _sourceObject;
         VertexComponent _lastComponents;
 
+
+        public GlVertexSourceHandler(GlVertexSourceHandler<TVert, TInd> source)
+        {
+            _source = source._source;
+
+            _vertices = new GlVertexArray<TVert, TInd>(source._gl, source._vertices.VBuf, source._vertices.IBuf, source._vertices.Layout);
+
+            _primitive = source._primitive;
+
+            _gl = source._gl;
+
+            Version = source.Version;
+        }
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
         {
@@ -72,6 +90,11 @@ namespace XrEngine.OpenGL
             Version = -1;
         }
 
+
+        public override GlVertexSourceHandle Clone()
+        {
+            return (GlVertexSourceHandle)Activator.CreateInstance(GetType(), this)!;
+        }
 
         protected bool UpdateLayout(out GlVertexLayout? layout)
         {
@@ -158,6 +181,8 @@ namespace XrEngine.OpenGL
 
             GC.SuppressFinalize(this);
         }
+
+        public override IGlVertexArray VertexArray => _vertices;
 
         public override IVertexSource Source => _source;
 

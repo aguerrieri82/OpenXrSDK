@@ -1,4 +1,5 @@
 ﻿using XrEngine;
+using XrEngine.OpenGL;
 
 [assembly: Module(typeof(XrEngine.Lighting.Module))]
 

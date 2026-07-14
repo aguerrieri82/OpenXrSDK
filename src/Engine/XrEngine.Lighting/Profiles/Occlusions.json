@@ -1,0 +1,37 @@
+﻿{
+  "Mode": "Occlusions",
+  "IntersectMode": "Geometry",
+  "EnergyThreshold": 0.001,
+  "ThreadCount": 10,
+  "RaySubsample": 2,
+  "InitiateLightField": false,
+  "NormalizeDir": false,
+  "RayMergeMode": "MaxSample",
+  "GenMergeMode": "MaxSample",
+  "LightMergeMode": "Add",
+  "DirCollapseMode": "Normal",
+  "Blur": {
+    "Passes": 1,
+    "Strength": 1,
+    "ColorOnly": false
+  },
+  "Bounce": {
+    "MaxCount": 1,
+    "RayCount": 0,
+    "RayDecay": 0.8,
+    "CenterWeight": 0.5,
+    "NormalWeight": 0.5,
+    "ConeMaxAngle": 1.2217306
+  },
+  "SmoothDir": {
+    "Iterations": 0,
+    "Smoothness": 0.05,
+    "Relaxation": 0.75,
+    "MaxSlope": 1
+  },
+  "Recovery": {
+    "Type": "Quadratic",
+    "Range": 1.3,
+    "Factor": 1
+  }
+}

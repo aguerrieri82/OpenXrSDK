@@ -1,9 +1,10 @@
 ﻿using Android.Opengl;
 using Android.Util;
+using Silk.NET.Core.Contexts;
 
 namespace OpenXr.Framework.Android
 {
-    public class OpenGLESContext
+    public class OpenGLESContext 
     {
         public static OpenGLESContext Create(bool debugMode)
         {
@@ -126,10 +127,81 @@ namespace OpenXr.Framework.Android
 
         }
 
-        public void MakeCurrent()
+        public OpenGLESContext CreateShared(bool debugMode)
         {
-            EGL14.EglMakeCurrent(Display, Surface, Surface, Context);
+            var context = EGL14.EglCreateContext(
+                Display,
+                Config,
+                Context,
+                [
+                    EGL14.EglContextClientVersion, 3,
+                    EGL15.EglContextOpenglDebug,
+                    debugMode ? EGL14.EglTrue : EGL14.EglFalse,
+                    EGL14.EglNone
+                ],
+                0);
+
+            if (context == EGL14.EglNoContext)
+                throw new Exception($"EglCreateContext: {EGL14.EglGetError()}");
+
+            var surface = EGL14.EglCreatePbufferSurface(
+                Display,
+                Config,
+                [
+                    EGL14.EglWidth, 16,
+                    EGL14.EglHeight, 16,
+                    EGL15.EglGlColorspace, EGL15.EglGlColorspaceSrgb,
+                    EGL14.EglNone
+                ],
+                0);
+
+            if (surface == EGL14.EglNoSurface)
+            {
+                EGL14.EglDestroyContext(Display, context);
+                throw new Exception($"EglCreatePbufferSurface: {EGL14.EglGetError()}");
+            }
+
+
+            return new OpenGLESContext
+            {
+                Display = Display,
+                Config = Config,
+                Surface = surface,
+                Context = context
+            };
         }
+
+        public void Release()
+        {
+            EGL14.EglMakeCurrent(
+                Display,
+                EGL14.EglNoSurface,
+                EGL14.EglNoSurface,
+                EGL14.EglNoContext);
+        }
+
+        public bool Take()
+        {
+            return EGL14.EglMakeCurrent(Display, Surface, Surface, Context);
+        }
+
+        public void Destroy()
+        {
+            Release();
+
+            if (Surface != EGL14.EglNoSurface)
+            {
+                EGL14.EglDestroySurface(Display, Surface);
+                Surface = EGL14.EglNoSurface;
+            }
+
+            if (Context != EGL14.EglNoContext)
+            {
+                EGL14.EglDestroyContext(Display, Context);
+                Context = EGL14.EglNoContext;
+            }
+        }
+
 
         public EGLConfig? Config;
 

@@ -9,9 +9,9 @@ namespace OpenXr.Framework.Android
     {
 
 #if DEBUG
-        const bool DEBUG_MODE = true;
+        public const bool DEBUG_MODE = true;
 #else
-        const bool DEBUG_MODE = false;
+        public const bool DEBUG_MODE = false;
 #endif
 
         protected OpenGLESContext _context;

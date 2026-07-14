@@ -8,6 +8,8 @@ using System.Windows.Interop;
 using XrEngine;
 using XrEngine.OpenGL;
 using OpenTK.Graphics.Wgl;
+using System.Diagnostics;
+
 
 
 #if GLES
@@ -18,7 +20,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEditor
 {
-    public class GlRenderHost : RenderHost, IOpenGLDevice, IXrGraphicProvider, INativeContext
+    public class GlRenderHost : RenderHost, IOpenGLDevice, IXrGraphicProvider, INativeContext, IGlContextProvider
     {
         protected HwndSource? _hwndSource;
         protected GL? _gl;
@@ -27,11 +29,14 @@ namespace XrEditor
         protected nint _glCtx;
         protected nint _hdc;
         protected bool _useEs;
+        protected WinGlContext? _mainCtx;
 
         protected static wglCreateContextAttribsARBPtr? CreateContextAttribsARB;
         protected static wglChoosePixelFormatARBPtr? ChoosePixelFormatARB;
         protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
         protected static wglGetPixelFormatAttribivARBPtr? GetPixelFormatAttribivARB;
+
+
 
         #region Native
 
@@ -152,6 +157,8 @@ namespace XrEditor
 
         public GlRenderHost(bool createContext = true, bool useEs = false)
         {
+            Context.Implement<IGlContextProvider>(this);
+
             DefaultNativeContext.TryCreate("Opengl32.dll", out var opengl);
             DefaultNativeContext.TryCreate("Gdi32.dll", out var gdi);
 
@@ -161,15 +168,15 @@ namespace XrEditor
             _useEs = useEs;
         }
 
-        protected unsafe virtual void CreateContext(HandleRef handle)
+        protected virtual void CreateContext(nint hWnd)
         {
-            CreateDummyWglContext( out var dummyWnd, out var dummyHdc, out var dummyCtx);
+            CreateDummyWglContext(out var dummyWnd, out var dummyHdc, out var dummyCtx);
 
             LoadWglExtensions();
 
             DestroyDummyWglContext(dummyWnd, dummyHdc, dummyCtx);
 
-            _hdc = GetDC(handle.Handle);
+            _hdc = GetDC(hWnd);
 
             if (_hdc == 0)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -202,6 +209,12 @@ namespace XrEditor
             if (!_wgl.SetPixelFormat(_hdc, pixelFormat, ref pfd))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
+            _glCtx = CreateContextWork();
+
+        }
+
+        protected nint CreateContextWork()
+        {
             int[] attr;
 
             if (!_useEs)
@@ -223,12 +236,12 @@ namespace XrEditor
                 ];
             }
 
-            _glCtx = CreateContextAttribsARB!(_hdc, 0, attr);
+            var result = CreateContextAttribsARB!(_hdc, 0, attr);
 
-            if (_glCtx == 0)
+            if (result == 0)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            TakeContext();
+            return result;
         }
 
         private void LoadWglExtensions()
@@ -354,13 +367,18 @@ namespace XrEditor
             var handle = base.BuildWindowCore(hwndParent);
 
             if (_createContext)
-                CreateContext(handle);
+                CreateContext(handle.Handle);
 
 #if GL_WRAPPER
             _gl = new OpenGLWrapper.GlSwitchWrapper(Silk.NET.OpenGL.GL.GetApi(this));
 #else
             _gl = GL.GetApi(this);
 #endif
+
+            _mainCtx = WinGlContext.Attach(_hdc, _glCtx, _gl, _wgl);
+
+            _mainCtx.Take();
+
             return handle;
         }
 
@@ -411,18 +429,12 @@ namespace XrEditor
 
         public override void ReleaseContext()
         {
-            if (_hdc == 0)
-                return;
-
-            if (!_wgl.MakeCurrent(_hdc, 0))
-                throw new Win32Exception();
+            _mainCtx?.Release();
         }
 
         public override bool TakeContext()
         {
-            if (!_wgl.MakeCurrent(_hdc, _glCtx))
-                throw new Win32Exception();
-
+            _mainCtx?.Take();
             return true;
         }
 
@@ -457,6 +469,20 @@ namespace XrEditor
 
             return addr;
         }
+
+        public IGlContext CreateShared()
+        {
+            Debug.Assert(_gl != null);
+
+            var newCtx = CreateContextWork();
+
+            if (!_wgl.ShareLists(_glCtx, newCtx))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            return WinGlContext.Attach(_hdc, newCtx, _gl, _wgl);
+        }
+
+        IGlContext? IGlContextProvider.Current => WinGlContext.Current;
 
         public GL Gl => _gl ?? throw new NullReferenceException();
 

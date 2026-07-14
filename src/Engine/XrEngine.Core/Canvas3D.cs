@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using SkiaSharp;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -154,6 +155,69 @@ namespace XrEngine
         {
             _lineMesh.Vertices = _data.ToArray(); ;
             _lineMesh.NotifyChanged(ChangeType.Geometry);
+        }
+
+        public void DrawSphere(Vector3 center, float radius, Vector3 cameraPos, int segments = 30)
+        {
+            // Horizontal equator: XZ plane, normal +Y.
+            DrawCircle(
+                new Pose3
+                {
+                    Position = center,
+                    Orientation = Quaternion.CreateFromAxisAngle(
+                        Vector3.UnitX,
+                        -MathF.PI * 0.5f)
+                },
+                radius, segments);
+
+            // Perpendicular meridian: YZ plane, normal +X.
+            DrawCircle(
+                new Pose3
+                {
+                    Position = center,
+                    Orientation = Quaternion.CreateFromAxisAngle(
+                        Vector3.UnitY,
+                        MathF.PI * 0.5f)
+                },
+                radius, segments);
+
+            // Apparent sphere border: plane perpendicular to the camera direction.
+            Vector3 toCamera = cameraPos - center;
+
+            if (toCamera.LengthSquared() > 0.000001f)
+            {
+                Vector3 normal = Vector3.Normalize(toCamera);
+
+                // Rotation from local +Z, the DrawCircle plane normal, to the camera direction.
+                float dot = Vector3.Dot(Vector3.UnitZ, normal);
+                Quaternion orientation;
+
+                if (dot < -0.999999f)
+                {
+                    orientation = Quaternion.CreateFromAxisAngle(
+                        Vector3.UnitY,
+                        MathF.PI);
+                }
+                else
+                {
+                    Vector3 axis = Vector3.Cross(Vector3.UnitZ, normal);
+
+                    orientation = Quaternion.Normalize(
+                        new Quaternion(
+                            axis.X,
+                            axis.Y,
+                            axis.Z,
+                            1.0f + dot));
+                }
+
+                DrawCircle(
+                    new Pose3
+                    {
+                        Position = center,
+                        Orientation = orientation
+                    },
+                    radius, segments);
+            }
         }
 
         public void DrawCircle(Pose3 pose, float radius, int segments = 30)

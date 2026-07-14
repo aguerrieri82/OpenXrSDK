@@ -2,9 +2,10 @@
 
 namespace XrEngine
 {
-    public abstract class Light : Object3D
+    public abstract class Light : Object3D, IDrawGizmos, ISelectionHandler
     {
         protected int _contentVersion;
+        protected bool _isSelected;
 
         public Light()
         {
@@ -29,16 +30,28 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.WriteObject<Light>(this);
+            container.WriteObject(this, TypeMode.SubclassesOrSelf);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            container.ReadObject(this);
+            container.ReadObject(this, TypeMode.SubclassesOrSelf);
+        }
+
+        public virtual void DrawGizmos(Canvas3D canvas)
+        {
+
+        }
+
+        public void OnSelected(Object3D obj, bool isSelected)
+        {
+            _isSelected = isSelected;
         }
 
         public bool CastShadows { get; set; }
+
+        public Color Specular { get; set; }
 
         public Color Color { get; set; }
 
@@ -46,5 +59,7 @@ namespace XrEngine
         public float Intensity { get; set; }
 
         public long ContentVersion => _contentVersion;
+
+        bool IDrawGizmos.IsEnabled => _isSelected;
     }
 }

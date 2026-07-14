@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using XrEngine.OpenGL;
 using XrEngine.UI;
 using XrMath;
@@ -29,18 +31,22 @@ namespace XrEngine.Lighting
         readonly VoxelLightBaker _backer;
         readonly bool _isReadMode;
 
+        IGlContext? _workerCtx;
+
         VoxelRayMarcher? _ray;
 
         LightFieldData? _data;
         TriangleMesh[]? _walls;
 
         VoxelGridDesc _gridDesc;
-        GpuSceneVoxelizer? _gpuVoxelizer;
+        GpuMeshVoxelizer? _gpuVoxelizer;
 
-        List<GpuVoxelFaceData>? _faces;
+        IList<GpuVoxelFaceData>? _faces;
         VoxelLightFieldView _field;
         IList<Texture3D>? _textures;
         TextureData[]? _texData;
+
+        bool _useWorker;
 
         public LightFieldDebug(VoxelGridDesc gridDesc, bool isReadMode)
         {
@@ -431,37 +437,82 @@ namespace XrEngine.Lighting
 
             Log.Info(this, "Begin");
 
-            _gpuVoxelizer ??= new GpuSceneVoxelizer(OpenGLRender.Current!.GL, 32);
+            _gpuVoxelizer ??= new GpuMeshVoxelizer(OpenGLRender.Current!.GL);
 
-            XrEngine.EngineNativeLib.RdcStartFrameCapture();
-
-            Log.Info(this, "Begin voxelize");
-
+   
             foreach (var wall in _walls!)
                 wall.Component<LightFieldReceiver>().IsOccluder = TrackMode == LightTrackMode.Full;
 
-            _faces = _gpuVoxelizer.Voxelize([_host!, .. _walls], _gridDesc);
+            _gpuVoxelizer.SetGrid(_gridDesc);
 
-            Log.Info(this, "End voxelize");
-
-            XrEngine.EngineNativeLib.RdcEndFrameCapture(true);
-
-            _meshMat.Target = _host;
-            _meshMat.GridDesc = _gridDesc;
-            _meshMat.FaceInstances = _faces!.Select(a => new GpuVoxelFaceInstance
+            if (_useWorker)
             {
-                Face = a.Face,
-                Pos = a.Cell,
-                TriangleId = 1,
-            }).ToArray();
+                _workerCtx ??= Context.Require<IGlContextProvider>().CreateShared();
 
-            _meshView.InstanceCount = _meshMat.FaceInstances.Length;
+                _ = Task.Run(async () =>
+                {
+                    _workerCtx.Take();
 
-            _meshMat.Invalidate();
+                    OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl);
+
+                    Log.Info(this, "Begin voxelize");
+
+                    XrEngine.EngineNativeLib.RdcStartFrameCapture();
+
+                    _faces = _gpuVoxelizer.Voxelize([_host!, .. _walls]);
+
+                    Log.Info(this, "End voxelize");
+
+                    XrEngine.EngineNativeLib.RdcEndFrameCapture(true);
+
+                    _workerCtx.Release();
+
+                    _meshMat.Target = _host;
+                    _meshMat.GridDesc = _gridDesc;
+                    _meshMat.FaceInstances = _faces!.Select(a => new GpuVoxelFaceInstance
+                    {
+                        Face = a.Face,
+                        Pos = a.Cell,
+                        TriangleId = 1,
+                    }).ToArray();
+
+                    _meshView.InstanceCount = _meshMat.FaceInstances.Length;
+
+                    await EngineApp.MainThread;
+
+                    _meshMat.Invalidate();
+
+                });
+
+            }
+            else
+            {
+                Log.Info(this, "Begin voxelize");
+
+                XrEngine.EngineNativeLib.RdcStartFrameCapture();
+
+                _faces = _gpuVoxelizer.Voxelize([_host!, .. _walls]);
+
+                Log.Info(this, "End voxelize");
+
+                XrEngine.EngineNativeLib.RdcEndFrameCapture(true);
+
+                _meshMat.Target = _host;
+                _meshMat.GridDesc = _gridDesc;
+                _meshMat.FaceInstances = _faces!.Select(a => new GpuVoxelFaceInstance
+                {
+                    Face = a.Face,
+                    Pos = a.Cell,
+                    TriangleId = 1,
+                }).ToArray();
+
+                _meshView.InstanceCount = _meshMat.FaceInstances.Length;
+
+                _meshMat.Invalidate();
+            }
 
             if (_meshView.Parent == null)
                 _host!.Scene!.AddChild(_meshView);
-
 
             Log.Info(this, "Done");
         }
@@ -485,7 +536,7 @@ namespace XrEngine.Lighting
 
             Log.Info(this, "Backing point light");
 
-            var lightMap = _backer.BakePointLight(new VoxPointLight
+            using var lightMap = _backer.BakeLight(new VoxPointLight
             {
                 Color = new Vector3(1, 1, 1),
                 Intensity = RayEnergy,
@@ -692,6 +743,28 @@ namespace XrEngine.Lighting
             LoadTextures();
         }
 
+
+        [Action]
+        public void CopyPreset()
+        {
+            UpdateParams();
+
+            var clip = Context.Require<IClipboard>();
+
+            var json = JsonSerializer.Serialize(_backer.Params, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                IncludeFields = true,
+                Converters =
+                {
+                    new JsonStringEnumConverter()
+                }
+            });
+
+            clip.Copy(json, "application/json");
+
+        }
+
         public void LoadSettings(string name)
         {
             var path = Path.Combine(StorePath!, "LightField", name + ".json");
@@ -716,7 +789,6 @@ namespace XrEngine.Lighting
             _data.Size = _gridDesc.Size;
             _data.VoxelSize = _gridDesc.VoxelSize;
             _data.UseAllFaces = true;
-            _data.DirPacked = _textures![1].Format == TextureFormat.RgFloat16;
 
             return _data;
         }

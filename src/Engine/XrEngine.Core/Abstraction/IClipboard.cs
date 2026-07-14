@@ -1,4 +1,4 @@
-﻿namespace XrEditor
+﻿namespace XrEngine
 {
     public interface IClipboard
     {

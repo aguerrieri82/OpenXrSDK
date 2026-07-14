@@ -79,16 +79,21 @@ namespace XrEngine
         [StructLayout(LayoutKind.Explicit)]
         public struct LightListUniforms : IDynamicBuffer
         {
-            public static int Max = 3;
+            public static int Max = 10;
+
             static DynamicBuffer _buffer;
 
             [FieldOffset(0)]
             public uint Count;
+
             [FieldOffset(16)]
             public LightUniforms[] Lights;
 
             public unsafe DynamicBuffer GetBuffer()
             {
+                if (Lights.Length > Max)
+                    throw new InvalidOperationException("Too many point lights");
+
                 var newSize = (sizeof(LightUniforms) * Max) + 16;
 
                 if (_buffer.Size != newSize)
@@ -490,8 +495,6 @@ namespace XrEngine
                         if (lightField.UseAllFaces)
                            bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
 
-                        if (lightField.DirPacked)
-                            bld.AddFeature("LIGHT_FIELD_PACKED_DIR");
 
                         bld.ExecuteAction((ctx, up) =>
                         {

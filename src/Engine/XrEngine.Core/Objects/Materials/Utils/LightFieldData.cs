@@ -29,6 +29,5 @@ namespace XrEngine
 
         public bool UseAllFaces;
 
-        public bool DirPacked;
     }
 }

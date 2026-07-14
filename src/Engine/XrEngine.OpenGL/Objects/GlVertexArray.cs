@@ -41,6 +41,14 @@ namespace XrEngine.OpenGL
             else
                 throw new NotSupportedException();
 
+            Build();
+        }
+
+        public void Build()
+        {
+            if (_handle != 0)
+                throw new InvalidOperationException();
+
             Create();
 
             Bind();

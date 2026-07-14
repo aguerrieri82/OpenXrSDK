@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Shaders\*" />
+	  <EmbeddedResource Include="Profiles\*" />
   </ItemGroup>
 
   <ItemGroup>
