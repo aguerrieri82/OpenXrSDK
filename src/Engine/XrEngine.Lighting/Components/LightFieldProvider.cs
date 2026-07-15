@@ -21,12 +21,15 @@ namespace XrEngine.Lighting
         float _voxelSize;
         double _lastBuildTime;
         int _paddding;
-
+        int _profileVersion;
+        int _lastProfileVersion;
         readonly VoxelLightBaker _backer;
         readonly GpuMeshVoxelizer _gpuVoxelizer;
         readonly IGlContext _workerCtx;
         readonly LightFieldData _fieldData;
         readonly IGlContextProvider _ctxProvider;
+        readonly HashSet<LightFieldEmitter> _activeEmitters = [];
+        readonly HashSet<LightFieldReceiver> _activeOccluders = [];
 
         public LightFieldProvider()
         {
@@ -41,7 +44,7 @@ namespace XrEngine.Lighting
             _workerCtx = _ctxProvider.CreateShared();
             _gpuVoxelizer = new GpuMeshVoxelizer(_workerCtx.Gl);
 
-            MaxUpdateInterval = TimeSpan.FromSeconds(0);
+            MaxUpdateInterval = 0;
 
             Context.Implement<ILightFieldProvider>(this);
         }
@@ -53,7 +56,7 @@ namespace XrEngine.Lighting
 
         protected override async Task UpdateAsync(RenderContext ctx)
         {
-            if (MaxUpdateInterval.Ticks > 0 && (ctx.Time - _lastBuildTime) >= MaxUpdateInterval.TotalSeconds)
+            if (MaxUpdateInterval > 0 && (ctx.Time - _lastBuildTime) >= MaxUpdateInterval)
             {
                 await Task.Run(RebuildAsync);
 
@@ -71,19 +74,30 @@ namespace XrEngine.Lighting
                 OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl);
             }
 
+
+            bool profileDirty = _lastProfileVersion != _profileVersion;
             bool gridDirty = false;
             bool meshDirty = false;
 
             try
             {
-
-
                 var bounds = new Bounds3Builder();
 
                 foreach (var mesh in _host!.Descendants<TriangleMesh>())
                 {
                     if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
                         continue;
+
+                    if (!rec.IsEnabled || !rec.IsOccluder)
+                    {
+                        if (_activeOccluders.Remove(rec))
+                            meshDirty = true;
+                    }
+                    else
+                    {
+                        if (_activeOccluders.Add(rec))
+                            meshDirty = true;
+                    }
 
                     if (!rec.IsEnabled)
                         continue;
@@ -149,21 +163,27 @@ namespace XrEngine.Lighting
                     _workerCtx.Release();
             }
 
-            bool lightDirty = meshDirty || gridDirty;
+            bool lightDirty = meshDirty || gridDirty || profileDirty;
 
-            if (!lightDirty)
+            foreach (var light in _host!.Descendants<Light>())
             {
-                foreach (var light in _host!.Descendants<Light>())
+                if (!light.TryComponent<LightFieldEmitter>(out var emit))
+                    continue;
+
+                if (!emit.IsEnabled)
                 {
-                    if (!light.TryComponent<LightFieldEmitter>(out var emit))
-                        continue;
-
-                    if (!emit.IsEnabled)
-                        continue;
-
-                    if (meshDirty || emit.NeedUpdate)
+                    if (_activeEmitters.Remove(emit))
+                        lightDirty = true;
+                    continue;
+                }
+                else
+                {
+                    if (_activeEmitters.Add(emit))
                         lightDirty = true;
                 }
+
+                if (emit.NeedUpdate)
+                    lightDirty = true;
             }
 
             if (lightDirty)
@@ -178,7 +198,7 @@ namespace XrEngine.Lighting
                     if (!emit.IsEnabled)
                         continue;
 
-                    if (meshDirty || gridDirty || emit.NeedUpdate)
+                    if (meshDirty || gridDirty || emit.NeedUpdate || profileDirty)
                         emit.UpdateLight(this);
 
                     if (emit.Contributions != null)
@@ -186,13 +206,14 @@ namespace XrEngine.Lighting
                         Log.Info(this, "Accumulate {0}", light.Name ?? light.GetType().Name);
                         _backer.AccumulateLight(emit.Contributions);
                     }
-
                 }
 
                 await EngineApp.MainThread;
              
                 Extract();
             }
+
+            _lastProfileVersion = _profileVersion;
         }
 
         public void Extract()
@@ -214,8 +235,12 @@ namespace XrEngine.Lighting
 
         public void LoadProfile(VoxelLightBakeParams profile)
         {
+            if (profile.Equals(_backer.Params))
+                return;
+
             _backer.SetParams(profile);
             _profile = "";
+            _profileVersion++;
         }
 
         public void LoadProfile(string profile)
@@ -234,6 +259,7 @@ namespace XrEngine.Lighting
             _backer.SetParams(param);
 
             _profile = profile;
+            _profileVersion++;
         }
 
         [Action]
@@ -302,7 +328,7 @@ namespace XrEngine.Lighting
 
         public VoxelLightBaker Baker => _backer;
 
-        public TimeSpan MaxUpdateInterval { get; set; } 
+        public float MaxUpdateInterval { get; set; } 
 
         public string? Profile => _profile;
 
@@ -312,12 +338,14 @@ namespace XrEngine.Lighting
             set => _voxelSize = value;
         }
 
+        [Range(0, 1, 0.01f)]
         public float SpecularStrength
         {
             get => _fieldData.SpecularStrength;
             set => _fieldData.SpecularStrength = value;
         }
 
+        [Range(0, 1, 0.01f)]
         public float DiffuseStrength
         {
             get => _fieldData.DiffuseStrength;

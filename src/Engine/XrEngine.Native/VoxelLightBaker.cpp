@@ -873,7 +873,7 @@ void VoxelRayMarcher::Prepare(int32_t voxelCount)
 	_local.Contribution.Cells.clear();
 	_local.CellSlots.assign(voxelCount, -1);
 	_local.TouchedVoxels.clear();
-
+	_local.Contribution.Cells.reserve(voxelCount);
 	_ray.IsAlive = true;
 }
 
@@ -1504,12 +1504,8 @@ void VoxelLightBaker::SetGrid(const VoxelGridDesc& grid)
 
 	_marchers.resize(threadCount);
 
-	for (int32_t i = 0; i < threadCount; ++i)
-	{
-		_marchers[i].SetContext(this, i);
-		_marchers[i].Prepare(_voxelCount);
-	}
 }
+
 
 void VoxelLightBaker::ClearScene()
 {
@@ -1615,7 +1611,11 @@ void VoxelLightBaker::AddGpuMeshFaces(
 
 void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 {
-	contribution.Cells.reserve(_voxelCount);
+	for (int32_t i = 0; i < _params.ThreadCount; ++i)
+	{
+		_marchers[i].SetContext(this, i);
+		_marchers[i].Prepare(_voxelCount);
+	}
 
 	for (int32_t generation = 0; generation < _params.Bounce.MaxCount; ++generation)
 	{
@@ -1835,15 +1835,6 @@ void VoxelLightBaker::PrefillDirectionalLightContribution(
 	Vec3 up;
 	DirectionBasis(direction, right, up);
 
-	float width = std::max(0.0f, light.Width);
-	float height = std::max(0.0f, light.Height);
-
-	if (width <= Epsilon || height <= Epsilon)
-	{
-		width = float(std::max(_grid.Size.X, std::max(_grid.Size.Y, _grid.Size.Z))) * _grid.VoxelSize;
-		height = width;
-	}
-
 	const bool normalMode = _params.DirCollapseMode == DirectionCollapseMode::Normal;
 
 	for (int32_t z = 0; z < _grid.Size.Z; ++z)
@@ -1862,12 +1853,6 @@ void VoxelLightBaker::PrefillDirectionalLightContribution(
 
 				if (distance < -Epsilon)
 					continue;
-
-				if (std::fabs(Dot(local, right)) > width * 0.5f ||
-					std::fabs(Dot(local, up)) > height * 0.5f)
-				{
-					continue;
-				}
 
 				float falloff = LightFalloffAtDistance(light.Falloff, std::max(0.0f, distance));
 				Vec3 energy = lightEnergy * falloff;
@@ -2111,47 +2096,115 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 	Vec3 up;
 	DirectionBasis(direction, right, up);
 
-	float width = std::max(0.0f, light.Width);
-	float height = std::max(0.0f, light.Height);
-
-	if (width <= Epsilon || height <= Epsilon)
-	{
-		width = float(std::max(_grid.Size.X, std::max(_grid.Size.Y, _grid.Size.Z))) * _grid.VoxelSize;
-		height = width;
-	}
 
 	int32_t subSample = std::max(1, _params.RaySubsample);
 	float invSubSample = 1.0f / float(subSample);
 	float size = _grid.VoxelSize;
+
+	Vec3 gridMin = _grid.Origin;
+	Vec3 gridMax =
+	{
+		gridMin.X + float(_grid.Size.X) * size,
+		gridMin.Y + float(_grid.Size.Y) * size,
+		gridMin.Z + float(_grid.Size.Z) * size
+	};
 
 	Vec3 rayEnergy = lightEnergy;
 
 	if (_params.RayMergeMode == VoxelLightMergeMode::Add)
 		rayEnergy = rayEnergy / float(subSample * subSample);
 
-	auto tryAddRay = [&](int32_t face, const Vec3& entry)
+	auto tryAddRay = [&](const Vec3& destination)
 		{
-			Vec3 faceNormal = FaceNormal(face);
+			// Intersect the backward line from the uniformly sampled
+			// grid destination with the emission plane.
+			float distanceToPlane =
+				Dot(destination - light.Position, direction);
 
-			if (Dot(direction, faceNormal) >= -Epsilon)
+			if (distanceToPlane < -Epsilon)
 				return;
 
-			float backDistance = Dot(entry - light.Position, direction);
+			Vec3 emissionPoint =
+				destination - direction * distanceToPlane;
 
-			if (backDistance < -Epsilon)
+			// Find the first usable point of the segment
+			// emissionPoint -> destination inside the voxel grid.
+			// If emissionPoint is already inside, entryDistance remains zero.
+			float entryDistance = 0.0f;
+			float exitDistance = distanceToPlane;
+
+			if (std::fabs(direction.X) <= Epsilon)
+			{
+				if (emissionPoint.X < gridMin.X ||
+					emissionPoint.X > gridMax.X)
+					return;
+			}
+			else
+			{
+				float t0 =
+					(gridMin.X - emissionPoint.X) / direction.X;
+				float t1 =
+					(gridMax.X - emissionPoint.X) / direction.X;
+
+				if (t0 > t1)
+					std::swap(t0, t1);
+
+				entryDistance = std::max(entryDistance, t0);
+				exitDistance = std::min(exitDistance, t1);
+			}
+
+			if (std::fabs(direction.Y) <= Epsilon)
+			{
+				if (emissionPoint.Y < gridMin.Y ||
+					emissionPoint.Y > gridMax.Y)
+					return;
+			}
+			else
+			{
+				float t0 =
+					(gridMin.Y - emissionPoint.Y) / direction.Y;
+				float t1 =
+					(gridMax.Y - emissionPoint.Y) / direction.Y;
+
+				if (t0 > t1)
+					std::swap(t0, t1);
+
+				entryDistance = std::max(entryDistance, t0);
+				exitDistance = std::min(exitDistance, t1);
+			}
+
+			if (std::fabs(direction.Z) <= Epsilon)
+			{
+				if (emissionPoint.Z < gridMin.Z ||
+					emissionPoint.Z > gridMax.Z)
+					return;
+			}
+			else
+			{
+				float t0 =
+					(gridMin.Z - emissionPoint.Z) / direction.Z;
+				float t1 =
+					(gridMax.Z - emissionPoint.Z) / direction.Z;
+
+				if (t0 > t1)
+					std::swap(t0, t1);
+
+				entryDistance = std::max(entryDistance, t0);
+				exitDistance = std::min(exitDistance, t1);
+			}
+
+			if (entryDistance > exitDistance + Epsilon)
 				return;
 
-			Vec3 planePoint = entry - direction * backDistance;
-			Vec3 local = planePoint - light.Position;
-
-			if (std::fabs(Dot(local, right)) > width * 0.5f)
+			if (entryDistance > distanceToPlane + Epsilon)
 				return;
 
-			if (std::fabs(Dot(local, up)) > height * 0.5f)
-				return;
+			Vec3 entry =
+				emissionPoint + direction * entryDistance;
 
-			float falloff = LightFalloffAtDistance(light.Falloff, backDistance);
-			Vec3 energy = rayEnergy * falloff;
+			Vec3 energy =
+				rayEnergy *
+				LightFalloffAtDistance(light.Falloff, entryDistance);
 
 			if (!HasEnergy(energy, _params.EnergyThreshold))
 				return;
@@ -2167,94 +2220,102 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 			_rays.push_back(ray);
 		};
 
-	for (int32_t z = 0; z < _grid.Size.Z; ++z)
+	// Sample only the three possible destination faces.
+
+	if (std::fabs(direction.X) > Epsilon)
 	{
+		float destinationX =
+			direction.X > 0.0f ? gridMax.X : gridMin.X;
+
+		for (int32_t z = 0; z < _grid.Size.Z; ++z)
+		{
+			for (int32_t y = 0; y < _grid.Size.Y; ++y)
+			{
+				for (int32_t sz = 0; sz < subSample; ++sz)
+				{
+					for (int32_t sy = 0; sy < subSample; ++sy)
+					{
+						float fy =
+							float(y) +
+							(float(sy) + 0.5f) * invSubSample;
+
+						float fz =
+							float(z) +
+							(float(sz) + 0.5f) * invSubSample;
+
+						tryAddRay(
+							{
+								destinationX,
+								gridMin.Y + fy * size,
+								gridMin.Z + fz * size
+							});
+					}
+				}
+			}
+		}
+	}
+
+	if (std::fabs(direction.Y) > Epsilon)
+	{
+		float destinationY =
+			direction.Y > 0.0f ? gridMax.Y : gridMin.Y;
+
+		for (int32_t z = 0; z < _grid.Size.Z; ++z)
+		{
+			for (int32_t x = 0; x < _grid.Size.X; ++x)
+			{
+				for (int32_t sz = 0; sz < subSample; ++sz)
+				{
+					for (int32_t sx = 0; sx < subSample; ++sx)
+					{
+						float fx =
+							float(x) +
+							(float(sx) + 0.5f) * invSubSample;
+
+						float fz =
+							float(z) +
+							(float(sz) + 0.5f) * invSubSample;
+
+						tryAddRay(
+							{
+								gridMin.X + fx * size,
+								destinationY,
+								gridMin.Z + fz * size
+							});
+					}
+				}
+			}
+		}
+	}
+
+	if (std::fabs(direction.Z) > Epsilon)
+	{
+		float destinationZ =
+			direction.Z > 0.0f ? gridMax.Z : gridMin.Z;
+
 		for (int32_t y = 0; y < _grid.Size.Y; ++y)
 		{
-			for (int32_t sz = 0; sz < subSample; ++sz)
+			for (int32_t x = 0; x < _grid.Size.X; ++x)
 			{
 				for (int32_t sy = 0; sy < subSample; ++sy)
 				{
-					float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
-					float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
+					for (int32_t sx = 0; sx < subSample; ++sx)
+					{
+						float fx =
+							float(x) +
+							(float(sx) + 0.5f) * invSubSample;
 
-					tryAddRay(
-						0,
-						{
-							_grid.Origin.X,
-							_grid.Origin.Y + fy * size,
-							_grid.Origin.Z + fz * size
-						});
+						float fy =
+							float(y) +
+							(float(sy) + 0.5f) * invSubSample;
 
-					tryAddRay(
-						1,
-						{
-							_grid.Origin.X + float(_grid.Size.X) * size,
-							_grid.Origin.Y + fy * size,
-							_grid.Origin.Z + fz * size
-						});
-				}
-			}
-		}
-	}
-
-	for (int32_t z = 0; z < _grid.Size.Z; ++z)
-	{
-		for (int32_t x = 0; x < _grid.Size.X; ++x)
-		{
-			for (int32_t sz = 0; sz < subSample; ++sz)
-			{
-				for (int32_t sx = 0; sx < subSample; ++sx)
-				{
-					float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
-					float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
-
-					tryAddRay(
-						2,
-						{
-							_grid.Origin.X + fx * size,
-							_grid.Origin.Y,
-							_grid.Origin.Z + fz * size
-						});
-
-					tryAddRay(
-						3,
-						{
-							_grid.Origin.X + fx * size,
-							_grid.Origin.Y + float(_grid.Size.Y) * size,
-							_grid.Origin.Z + fz * size
-						});
-				}
-			}
-		}
-	}
-
-	for (int32_t y = 0; y < _grid.Size.Y; ++y)
-	{
-		for (int32_t x = 0; x < _grid.Size.X; ++x)
-		{
-			for (int32_t sy = 0; sy < subSample; ++sy)
-			{
-				for (int32_t sx = 0; sx < subSample; ++sx)
-				{
-					float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
-					float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
-
-					tryAddRay(
-						4,
-						{
-							_grid.Origin.X + fx * size,
-							_grid.Origin.Y + fy * size,
-							_grid.Origin.Z
-						});
-
-					tryAddRay(
-						5,
-						{
-							_grid.Origin.X + fx * size,
-							_grid.Origin.Y + fy * size,
-							_grid.Origin.Z + float(_grid.Size.Z) * size
-						});
+						tryAddRay(
+							{
+								gridMin.X + fx * size,
+								gridMin.Y + fy * size,
+								destinationZ
+							});
+					}
 				}
 			}
 		}

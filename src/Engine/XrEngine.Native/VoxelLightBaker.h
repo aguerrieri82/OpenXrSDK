@@ -164,8 +164,6 @@ struct DirectionalLight
     Vec3 Color;
 
     float Intensity;
-    float Width;
-    float Height;
     LightCurve Falloff;
 };
 

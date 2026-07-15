@@ -98,8 +98,6 @@ namespace XrEngine.Lighting
 
             RecoveryRange = 2;
 
-            DiffuseStrength = 1;
-
             CreateWalls();
         }
 
@@ -351,6 +349,8 @@ namespace XrEngine.Lighting
             _fieldMat.Textures = tex;
             _fieldMat.Invalidate();
 
+            _fieldView.InstanceCount = _field.Size.Area();
+
             PbrMaterial.SHADER.UseLightField = true;
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
 
@@ -579,14 +579,6 @@ namespace XrEngine.Lighting
 
         [Category("Misc")]
         public bool InitiateLightField { get; set; }
-
-        [Category("Misc")]
-        [Range(0,1, 0.01f)]
-        public float DiffuseStrength { get; set; }
-
-        [Category("Misc")]
-        [Range(0, 1, 0.01f)]
-        public float SpecularStrength { get; set; }
 
         public string? StorePath { get; set; }
 

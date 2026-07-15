@@ -16,8 +16,6 @@ namespace XrEngine.Lighting
         public Vector3 Color;
 
         public float Intensity;
-        public float Width;
-        public float Height;
 
         public LightCurve Falloff;
     }
