@@ -486,7 +486,8 @@ namespace XrEngine
 
                 if (UseLightField)
                 {
-                    _lightFieldProvider ??= Context.Require<ILightFieldProvider>();
+                    if (_lightFieldProvider == null)
+                        Context.TryRequire(out _lightFieldProvider);
 
                     if (_lightFieldProvider != null)
                     {

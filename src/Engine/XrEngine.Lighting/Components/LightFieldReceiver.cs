@@ -19,11 +19,15 @@ namespace XrEngine.Lighting
 
         public void UpdateVoxels(IMeshVoxelizer voxelizer)
         {
+            Log.Info(this, "Voxelize {0}", _host!.Name ?? _host.GetType().Name);
+
             Debug.Assert(_host != null);
 
             _voxels = voxelizer.Voxelize([_host]).ToArray();
 
             _voxelsVersion = _host.Version;
+
+            Log.Debug(this, "Voxelize done");
         }
 
         public bool NeedUpdate => IsOccluder && _voxelsVersion != _host?.Version;

@@ -9,14 +9,32 @@ namespace XrEngine.Lighting
     {
         private LightContribution? _contrib;
         private long _lightVersion;
+        private LightFieldProvider? _provider;
 
         public LightFieldEmitter()
         {
             _lightVersion = -1;
         }
 
+        [Action]
+        public void ForceUpdate()
+        {
+            _host!.Invalidate();
+            
+            _ = _provider?.RebuildAsync();
+        }
+
+        public void UpdateLight(LightFieldProvider provider)
+        {
+            _provider = provider;
+
+            UpdateLight(provider.Baker);
+        }
+
         public void UpdateLight(VoxelLightBaker backer)
         {
+            Log.Info(this, "Updating light {0}", _host!.Name ?? _host.GetType().Name);
+
             if (_host is PointLight point)
             {
                 _contrib = backer.BakeLight(new VoxPointLight
@@ -61,17 +79,17 @@ namespace XrEngine.Lighting
                         Range = spot.Range,
                         Type = LightCurveType.Quadratic
                     },
-                    InnerCos = MathF.Acos(spot.InnerConeAngle),
-                    OuterCos = MathF.Acos(spot.OuterConeAngle),
+                    InnerCos = MathF.Cos(spot.InnerConeAngle),
+                    OuterCos = MathF.Cos(spot.OuterConeAngle),
                     Intensity = spot.Intensity, 
                     Direction = spot.Direction,
                     Position = spot.WorldPosition,
                 });
             }
-            else
-                throw new NotSupportedException();
 
-            _lightVersion = _host.ContentVersion + _host.Version;
+            _lightVersion = _host!.ContentVersion + _host.Version;
+
+            Log.Debug(this, "Light updated");
         }
 
 

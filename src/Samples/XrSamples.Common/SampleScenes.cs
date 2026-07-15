@@ -1098,16 +1098,10 @@ namespace XrSamples
             };
 
             var mesh = scene.AddChild((TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions));
+            mesh.AddComponent<LightFieldReceiver>();
             mesh.Name = "Bed";
 
             XrEngine.MeshOptimizer.Optimize(mesh.Geometry!);
-
-            //(mesh.Materials[0] as PbrV2Material).Simplified = true;
-
-            var lightField = mesh.AddComponent(new LightFieldDebug(grid, XrPlatform.IsAndroid)
-            {
-                StorePath = Path.Combine(XrPlatform.Current!.SharedPath)
-            });
 
 
             return builder
@@ -1121,14 +1115,17 @@ namespace XrSamples
                         light.IsVisible = true;
                         light.AddComponent<LightFieldEmitter>();
                     }
-        
+
+                    scene.AddComponent<LightFieldProvider>();
+
+                    var lightField = scene.AddComponent(new LightFieldDebug(grid, XrPlatform.IsAndroid)
+                    {
+                        StorePath = Path.Combine(XrPlatform.Current!.SharedPath)
+                    });
 
                     if (XrPlatform.IsAndroid)
                     {
-                        lightField.LoadSettings("Occlusions");
-                        lightField.Apply();
-                        lightField.Backe();
-                        //lightField.Import();
+                       lightField.Import();
                     }
 
                     scene.AddBehavior((_, _) =>

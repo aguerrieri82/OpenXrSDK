@@ -328,7 +328,7 @@ namespace XrEngine.Lighting
             AxisTarget target)
         {
 
-            Log.Info(this, "Scan azix {0}", axis);
+            Log.Debug(this, "Scan axis {0}", axis);
 
             GlState.Current!.SetUseDepth(true);
             GlState.Current.SetWriteDepth(true);
@@ -473,16 +473,16 @@ namespace XrEngine.Lighting
 
                 if (!_vertexHandles.TryGetValue(geo, out var handle))
                 {
-                    handle = geo.GetGlResource(a =>
-                        GlVertexSourceHandle.Create(_gl, mesh));
+                    handle = geo.GetProp<GlVertexSourceHandle>(OpenGLRender.Props.GlResId);
+
+                    handle ??= GlVertexSourceHandle.Create(_gl, mesh);
 
                     var ctx = Context.Require<IGlContextProvider>().Current;
 
                     if (handle.VertexArray.Owner != ctx)
-                    {
                         handle = handle.Clone();
-                        _vertexHandles[geo] = handle;
-                    }
+
+                    _vertexHandles[geo] = handle;
                 }
 
                 if (handle.NeedUpdate)
@@ -544,7 +544,7 @@ namespace XrEngine.Lighting
             AxisTarget target,
             List<GpuVoxelFaceData> faces)
         {
-            Log.Info(this, "Read axis {0}", axis);
+            Log.Debug(this, "Read axis {0}", axis);
 
             var colors = Array.Empty<Rgba32Pixel>();
             var normals = Array.Empty<RgbHalfPixel>();

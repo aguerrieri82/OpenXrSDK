@@ -555,8 +555,16 @@ namespace XrEngine.OpenGL
                 {
                     return _gl.Context.GetProcAddress(name);
                 });
+
 #endif
+
+                if (grInterface == null)
+                    throw new InvalidOperationException();
+
                 _grContext = GRContext.CreateGl(grInterface);
+
+                if (_grContext == null)
+                    throw new InvalidOperationException();
             }
 
             var format = glTexture.InternalFormat;

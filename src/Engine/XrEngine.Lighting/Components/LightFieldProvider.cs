@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,23 +11,39 @@ using XrMath;
 
 namespace XrEngine.Lighting
 {
-    public class LightFieldProvider : Behavior<Group3D>, ILightFieldProvider
+    public class LightFieldProvider : AsyncBehavior<Group3D>, ILightFieldProvider
     {
         string? _profile;
         VoxelGridDesc _grid;
-        GpuMeshVoxelizer? _gpuVoxelizer;
-        VoxelLightBaker _backer;
+
         Bounds3 _lastBounds;
         VoxelLightFieldView? _lightField;
-        readonly LightFieldData _fieldData;
         float _voxelSize;
         double _lastBuildTime;
+        int _paddding;
+
+        readonly VoxelLightBaker _backer;
+        readonly GpuMeshVoxelizer _gpuVoxelizer;
+        readonly IGlContext _workerCtx;
+        readonly LightFieldData _fieldData;
+        readonly IGlContextProvider _ctxProvider;
 
         public LightFieldProvider()
         {
+            _paddding = 1;
+
+            _voxelSize = 0.05f;
+
             _backer = new VoxelLightBaker();
             _fieldData = new LightFieldData();
-            MaxUpdateInterval = TimeSpan.FromSeconds(5);
+
+            _ctxProvider = Context.Require<IGlContextProvider>();
+            _workerCtx = _ctxProvider.CreateShared();
+            _gpuVoxelizer = new GpuMeshVoxelizer(_workerCtx.Gl);
+
+            MaxUpdateInterval = TimeSpan.FromSeconds(0);
+
+            Context.Implement<ILightFieldProvider>(this);
         }
 
         public LightFieldData GetLightField()
@@ -34,83 +51,102 @@ namespace XrEngine.Lighting
             return _fieldData;
         }
 
-        protected override void Update(RenderContext ctx)
+        protected override async Task UpdateAsync(RenderContext ctx)
         {
-            if ((ctx.Time - _lastBuildTime) >= MaxUpdateInterval.TotalSeconds)
+            if (MaxUpdateInterval.Ticks > 0 && (ctx.Time - _lastBuildTime) >= MaxUpdateInterval.TotalSeconds)
             {
-                Rebuild();
+                await Task.Run(RebuildAsync);
+
                 _lastBuildTime = ctx.Time;
             }
-
-            base.Update(ctx);
         }
 
-        public void Rebuild()
+
+        [Action]
+        public async Task RebuildAsync()
         {
-            _gpuVoxelizer ??= new GpuMeshVoxelizer(OpenGLRender.Current!.GL);
-
-            bool meshDirty = false;
-
-            var bounds = new Bounds3Builder();
-
-            foreach (var mesh in _host!.Descendants<TriangleMesh>())
+            if (_ctxProvider.Current == null)
             {
-                bounds.Add(mesh.WorldBounds);
-
-                if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
-                    continue;
-
-                if (rec.NeedUpdate)
-                    meshDirty = true;
+                _workerCtx.Take();
+                OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl);
             }
 
             bool gridDirty = false;
+            bool meshDirty = false;
 
-            var curBounds = bounds.Result;
-
-            if (curBounds != _lastBounds || _fieldData.VoxelSize != _voxelSize)
+            try
             {
-                _grid = new VoxelGridDesc
-                {
-                    Origin = curBounds.Min,
-                    VoxelSize = _voxelSize,
-                    Size = new Vector3I(
-                        (int)Math.Ceiling(curBounds.Size.X / _voxelSize),
-                        (int)Math.Ceiling(curBounds.Size.Y / _voxelSize),
-                        (int)Math.Ceiling(curBounds.Size.Z / _voxelSize))
-                };
 
-                _backer.SetGrid(_grid);
-                _gpuVoxelizer.SetGrid(_grid);   
 
-                _lastBounds = curBounds;
-
-                _fieldData.Origin = _grid.Origin;
-                _fieldData.Size = _grid.Size;
-                _fieldData.VoxelSize = VoxelSize;
-
-                gridDirty = true;
-            }
-
-            if (meshDirty || gridDirty)
-            {
-                _backer.ClearScene();
+                var bounds = new Bounds3Builder();
 
                 foreach (var mesh in _host!.Descendants<TriangleMesh>())
                 {
                     if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
                         continue;
 
-                    if (!rec.IsOccluder)
+                    if (!rec.IsEnabled)
                         continue;
 
-                    if (rec.NeedUpdate || gridDirty)
-                        rec.UpdateVoxels(_gpuVoxelizer);
+                    bounds.Add(mesh.WorldBounds);
 
-                    Debug.Assert(rec.Voxels != null);
-
-                    _backer.AddMesh(rec.Voxels);
+                    if (rec.NeedUpdate)
+                        meshDirty = true;
                 }
+
+                var curBounds = bounds.Result;
+
+                if (curBounds != _lastBounds || _fieldData.VoxelSize != _voxelSize)
+                {
+                    var padSize = curBounds.Size + new Vector3(_paddding * _voxelSize * 2);
+
+                    _grid = new VoxelGridDesc
+                    {
+                        Origin = curBounds.Min - new Vector3(_paddding * _voxelSize),
+                        VoxelSize = _voxelSize,
+                        Size = new Vector3I(
+                            (int)Math.Ceiling(padSize.X / _voxelSize),
+                            (int)Math.Ceiling(padSize.Y / _voxelSize),
+                            (int)Math.Ceiling(padSize.Z / _voxelSize))
+                    };
+
+                    _backer.SetGrid(_grid);
+                    _gpuVoxelizer.SetGrid(_grid);
+
+                    _lastBounds = curBounds;
+
+                    _fieldData.Origin = _grid.Origin;
+                    _fieldData.Size = _grid.Size;
+                    _fieldData.VoxelSize = VoxelSize;
+
+                    gridDirty = true;
+                }
+
+                if (meshDirty || gridDirty)
+                {
+                    _backer.ClearScene();
+
+                    foreach (var mesh in _host!.Descendants<TriangleMesh>())
+                    {
+                        if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
+                            continue;
+
+                        if (!rec.IsOccluder || !rec.IsEnabled)
+                            continue;
+
+                        if (rec.NeedUpdate || gridDirty)
+                            rec.UpdateVoxels(_gpuVoxelizer);
+
+                        Debug.Assert(rec.Voxels != null);
+
+                        _backer.AddMesh(rec.Voxels);
+                    }
+                }
+            }
+            finally
+            {
+                if (_ctxProvider.Current == _workerCtx)
+                    _workerCtx.Release();
             }
 
             bool lightDirty = meshDirty || gridDirty;
@@ -120,6 +156,9 @@ namespace XrEngine.Lighting
                 foreach (var light in _host!.Descendants<Light>())
                 {
                     if (!light.TryComponent<LightFieldEmitter>(out var emit))
+                        continue;
+
+                    if (!emit.IsEnabled)
                         continue;
 
                     if (meshDirty || emit.NeedUpdate)
@@ -136,26 +175,48 @@ namespace XrEngine.Lighting
                     if (!light.TryComponent<LightFieldEmitter>(out var emit))
                         continue;
 
+                    if (!emit.IsEnabled)
+                        continue;
+
                     if (meshDirty || gridDirty || emit.NeedUpdate)
-                        emit.UpdateLight(_backer);
+                        emit.UpdateLight(this);
 
-                    Debug.Assert(emit.Contributions != null);
+                    if (emit.Contributions != null)
+                    {
+                        Log.Info(this, "Accumulate {0}", light.Name ?? light.GetType().Name);
+                        _backer.AccumulateLight(emit.Contributions);
+                    }
 
-                    _backer.AccumulateLight(emit.Contributions);
                 }
 
-                if (_fieldData.Textures != null)
-                {
-                    foreach (var tex in _fieldData.Textures)
-                        tex.Dispose();
-                }
-
-                _lightField = _backer.GetLightField(true);
-
-                _fieldData.Textures = _backer.CreateTextures();
+                await EngineApp.MainThread;
+             
+                Extract();
             }
         }
 
+        public void Extract()
+        {
+            Log.Info(this, "Extracting light field");
+
+            if (_fieldData.Textures != null)
+            {
+                foreach (var tex in _fieldData.Textures)
+                    tex.Dispose();
+            }
+
+            _lightField = _backer.GetLightField(true);
+
+            _fieldData.Textures = _backer.CreateTextures();
+
+            Log.Debug(this, "Light field loaded");
+        }
+
+        public void LoadProfile(VoxelLightBakeParams profile)
+        {
+            _backer.SetParams(profile);
+            _profile = "";
+        }
 
         public void LoadProfile(string profile)
         {
@@ -175,6 +236,71 @@ namespace XrEngine.Lighting
             _profile = profile;
         }
 
+        [Action]
+        public void Export(string path)
+        {
+            var textures = _backer.CreateTextures();
+
+            Directory.CreateDirectory(path);
+
+            var writer = PvrTranscoder.Instance;
+
+            for (var i = 0; i < textures.Count; i++)
+            {
+                using var fs = File.OpenWrite(Path.Combine(path, $"Tex_{i}.pvr"));
+
+                writer.SaveTexture(fs, textures[i].Data!);
+            }
+        }
+
+        public void Import(string path)
+        {
+            if (!Directory.Exists(path))
+                return;
+
+            var reader = PvrTranscoder.Instance;
+
+            var textures = new List<Texture3D>();
+
+            var files = Directory.GetFiles(path, "*.pvr")
+                .OrderBy(a => int.Parse(Path.GetFileNameWithoutExtension(a).Split('_')[1]))
+                .ToArray();
+
+
+            foreach (var file in files)
+            {
+                using var fs = File.OpenRead(file);
+                var data = reader.LoadTexture(fs);
+
+                TextureFormat format;
+                TextureType type = TextureType.Unspecified;
+
+                if ((textures.Count % 2) == 0)
+                    format = TextureFormat.Rgb9e5Float;
+                else
+                {
+                    type = TextureType.NormalMap;
+                    format = TextureFormat.RgbFloat16;
+                }
+
+                var tex = new Texture3D()
+                {
+                    Format = format,
+                    MipLevelCount = 0,
+                    MinFilter = ScaleFilter.Nearest,
+                    MagFilter = ScaleFilter.Linear,
+                    Type = type
+                };
+
+                tex.LoadData(data);
+
+                textures.Add(tex);
+            }
+
+            _fieldData.Textures = textures.ToArray();
+        }
+
+        public VoxelLightBaker Baker => _backer;
 
         public TimeSpan MaxUpdateInterval { get; set; } 
 
