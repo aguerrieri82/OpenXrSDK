@@ -31,7 +31,6 @@ namespace XrEngine.Lighting
         VoxelRayMarcher? _ray;
         TriangleMesh[]? _walls;
         VoxelGridDesc _grid;
-        VoxelLightFieldView _field;
         LightFieldProvider? _provider;
 
         public LightFieldDebug(VoxelGridDesc grid, bool isReadMode)
@@ -349,7 +348,7 @@ namespace XrEngine.Lighting
             _fieldMat.Textures = tex;
             _fieldMat.Invalidate();
 
-            _fieldView.InstanceCount = _field.Size.Area();
+            _fieldView.InstanceCount = _grid.Size.Area();
 
             PbrMaterial.SHADER.UseLightField = true;
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);

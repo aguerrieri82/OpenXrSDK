@@ -21,6 +21,25 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct VoxAreaLight
+    {
+        public Vector3 Position;
+
+        public Vector3 Normal;
+        public Vector3 Up;
+        public Vector3 Direction;
+
+        public Vector3 Color;
+        public float Intensity;
+
+        public float Width;
+        public float Height;
+
+        public LightCurve Falloff;
+    }
+
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct VoxSpotLight
     {
         public Vector3 Position;
@@ -482,6 +501,13 @@ namespace XrEngine.Lighting
             VoxelLightBaker baker,
             ref VoxSpotLight light,
             ref VoxelLightContributionView contribution);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int VoxelLightBakerBakeAreaLight(
+            VoxelLightBaker baker,
+            ref VoxAreaLight light,
+            ref VoxelLightContributionView contribution);
+
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern void VoxelLightBakerClearLightField(

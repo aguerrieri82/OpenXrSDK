@@ -167,6 +167,22 @@ struct DirectionalLight
     LightCurve Falloff;
 };
 
+struct AreaLight
+{
+    Vec3 Position;
+    Vec3 Normal;
+    Vec3 Up;
+    Vec3 Direction;
+
+    Vec3 Color;
+    float Intensity;
+
+    float Width;
+    float Height;
+
+    LightCurve Falloff;
+};
+
 struct SpotLight
 {
     Vec3 Position;
@@ -461,6 +477,10 @@ public:
         const SpotLight& light,
         VoxelLightContribution& contribution);
 
+    void BakeAreaLight(
+        const AreaLight& light,
+        VoxelLightContribution& contribution);
+
     void ClearLightField();
 
     void AccumulateLight(
@@ -511,6 +531,12 @@ private:
 private:
 
     void BlurLightField();
+
+    void PrefillAreaLightContribution(
+        const AreaLight& light,
+        VoxelLightContribution& contribution);
+
+    void GenerateAreaLightRays(const AreaLight& light);
 
     void PrefillPointLightContribution(
         const PointLight& light,

@@ -290,6 +290,25 @@ EXPORT int32_t APIENTRY VoxelLightBakerBakePointLight(
         contribution);
 }
 
+EXPORT int32_t APIENTRY VoxelLightBakerBakeAreaLight(
+    VoxelLightBaker* baker,
+    const AreaLight* light,
+    VoxelLightContributionView* contribution)
+{
+    if (baker == nullptr || light == nullptr)
+        return 0;
+
+    VoxelLightContribution result;
+
+    baker->BakeAreaLight(
+        *light,
+        result);
+
+    return CopyContributionToView(
+        result,
+        contribution);
+}
+
 EXPORT int32_t APIENTRY VoxelLightBakerBakeDirectionalLight(
     VoxelLightBaker* baker,
     const DirectionalLight* light,

@@ -15,7 +15,6 @@ namespace XrEngine.Lighting
     {
         string? _profile;
         VoxelGridDesc _grid;
-
         Bounds3 _lastBounds;
         VoxelLightFieldView? _lightField;
         float _voxelSize;
@@ -45,6 +44,8 @@ namespace XrEngine.Lighting
             _gpuVoxelizer = new GpuMeshVoxelizer(_workerCtx.Gl);
 
             MaxUpdateInterval = 0;
+
+            LoadProfile("Occlusions");
 
             Context.Implement<ILightFieldProvider>(this);
         }
@@ -245,7 +246,7 @@ namespace XrEngine.Lighting
 
         public void LoadProfile(string profile)
         {
-            var json = Embedded.GetString(profile + ".json");
+            var json = Embedded.GetString<LightFieldProvider>(profile + ".json");
             
             var param = JsonSerializer.Deserialize<VoxelLightBakeParams>(json, new JsonSerializerOptions
             {

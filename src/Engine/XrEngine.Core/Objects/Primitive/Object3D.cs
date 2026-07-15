@@ -260,6 +260,7 @@ namespace XrEngine
             }
         }
 
+        [ValueType(ValueType.Direction)]
         public Vector3 Forward
         {
             get => (-Vector3.UnitZ).Transform(WorldOrientation);
@@ -271,11 +272,15 @@ namespace XrEngine
             }
         }
 
+
+        [ValueType(ValueType.Direction)]
         public Vector3 Up
         {
             get => Vector3.UnitY.Transform(WorldOrientation);
         }
 
+
+        [ValueType(ValueType.Direction)]
         public Vector3 Right
         {
             get => Vector3.UnitX.Transform(WorldOrientation);

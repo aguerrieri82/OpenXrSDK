@@ -149,6 +149,19 @@ namespace XrEngine.Lighting
             return result;
         }
 
+        public LightContribution BakeLight(in VoxAreaLight light)
+        {
+            var lightValue = light;
+            var result = new LightContribution();
+
+            var count = EngineNativeLib.VoxelLightBakerBakeAreaLight(
+                _handle,
+                ref lightValue,
+                ref result.View);
+
+            return result;
+        }
+
         public void ClearLightField()
         {
             EngineNativeLib.VoxelLightBakerClearLightField(_handle);

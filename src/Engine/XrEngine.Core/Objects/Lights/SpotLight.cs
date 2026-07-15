@@ -93,18 +93,18 @@ namespace XrEngine
             canvas.DrawLine(origin, baseCenter - radial1 * innerRadius);
         }
 
+        [ValueType(ValueType.Direction)]
         public Vector3 Direction { get; set; }
 
+
+        [Range(0, 100, 0.05f)]
         public float Range { get; set; }
 
 
         [ValueType(ValueType.Radiant)]
         public float InnerConeAngle { get; set; }
 
-
         [ValueType(ValueType.Radiant)]
         public float OuterConeAngle { get; set; }
-
-
     }
 }

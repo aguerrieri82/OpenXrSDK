@@ -1,0 +1,57 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:app="clr-namespace:XrEditor"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:DirectionEditor}">
+        <Border BorderThickness="1" BorderBrush="#444" Padding="10" CornerRadius="4">
+
+            <StackPanel Orientation="Vertical">
+                <StackPanel.Resources>
+                    <app:BoolToVisibility x:Key="BoolToVisibility"/>
+                </StackPanel.Resources>
+
+                <DockPanel>
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Width="60">Azimuth</Label>
+                    <ContentControl VerticalAlignment="Center" Content="{Binding Azimuth}"/>
+                </DockPanel>
+                <DockPanel Margin="0,5,0,0">
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Width="60">Altitude</Label>
+                    <ContentControl VerticalAlignment="Center" Content="{Binding Altitude}"/>
+                </DockPanel>
+
+                <WrapPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Label>X:</Label>
+                        <TextBox IsReadOnly="True" VerticalAlignment="Center" Padding="2" Width="60" Text="{Binding X.EditValue, StringFormat={}{0:0.0000}}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label>Y:</Label>
+                        <TextBox IsReadOnly="True"  VerticalAlignment="Center" Padding="2"  Width="60" Text="{Binding Y.EditValue, StringFormat={}{0:0.0000}}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label>Z:</Label>
+                        <TextBox IsReadOnly="True" VerticalAlignment="Center" Padding="2"  Width="60" Text="{Binding Z.EditValue, StringFormat={}{0:0.0000}}" />
+                    </StackPanel>
+                </WrapPanel>
+
+                <ItemsControl ItemsSource="{Binding Presets}" Margin="0,10,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button HorizontalAlignment="Center" Width="40" Margin="0,5,5,0" Content="{Binding Name}" Command="{Binding ExecuteCommand}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+
+    </DataTemplate>
+
+</ResourceDictionary>

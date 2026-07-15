@@ -112,6 +112,12 @@ extern "C"
         const VoxelMeshResolvedFace* faces,
         int32_t faceCount);
 
+
+    EXPORT int32_t APIENTRY VoxelLightBakerBakeAreaLight(
+        VoxelLightBaker* baker,
+        const AreaLight* light,
+        VoxelLightContributionView* contribution);
+
     EXPORT int32_t APIENTRY VoxelLightBakerBakeSpotLight(
         VoxelLightBaker* baker,
         const SpotLight* light,

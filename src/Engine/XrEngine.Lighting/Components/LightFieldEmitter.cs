@@ -50,7 +50,26 @@ namespace XrEngine.Lighting
                     Position = point.WorldPosition
                 });
             }
-
+            else if (_host is AreaLight area)
+            {
+                _contrib = backer.BakeLight(new VoxAreaLight
+                {
+                    Color = area.Color.ToVector3(),
+                    Falloff = new LightCurve
+                    {
+                        Factor = 1,
+                        Range = area.Range,
+                        Type = LightCurveType.Quadratic
+                    },
+                    Intensity = area.Intensity,
+                    Direction = area.Direction,
+                    Position = area.WorldPosition,
+                    Height = area.PlaneSize.Y,
+                    Width = area.PlaneSize.X,
+                    Normal = area.PlaneNormal,
+                    Up = area.PlaneUp,
+                });
+            }
             else if (_host is DirectionalLight dir)
             {
                 _contrib = backer.BakeLight(new VoxDirectionalLight
@@ -86,7 +105,7 @@ namespace XrEngine.Lighting
                     Position = spot.WorldPosition,
                 });
             }
-
+        
             _lightVersion = _host!.ContentVersion + _host.Version;
 
             Log.Debug(this, "Light updated");

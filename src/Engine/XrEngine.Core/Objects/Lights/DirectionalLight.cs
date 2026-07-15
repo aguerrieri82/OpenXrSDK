@@ -122,8 +122,8 @@ namespace XrEngine
             canvas.Restore();
         }
 
+        [ValueType(ValueType.Direction)]
         public Vector3 Direction { get; set; }
 
-     
     }
 }

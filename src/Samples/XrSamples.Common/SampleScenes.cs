@@ -1084,6 +1084,17 @@ namespace XrSamples
                 OuterConeAngle = (20f).ToRadians(),
             });
 
+            scene.AddChild(new AreaLight()
+            {
+                WorldPosition = new(0f, 1.31f, 1.6700001f),
+                PlaneSize = new(1f, 0.8f),
+                PlaneNormal = new(0.0348995f, 0f, -0.99939084f),
+                Range = 4f,
+                Direction = new(0f, -0.5344989f, -0.8451692f),
+                Specular = "#00000000",
+                Intensity = 5f
+            });
+
             var voxelSize = 0.05f;
             var roomSize = new Vector3(5, 2, 5);
 
@@ -1113,7 +1124,7 @@ namespace XrSamples
                     foreach (var light in scene.Descendants<Light>())
                     {
                         light.IsVisible = true;
-                        light.AddComponent<LightFieldEmitter>();
+                        light.AddComponent(new LightFieldEmitter() { IsEnabled = false });
                     }
 
                     scene.AddComponent<LightFieldProvider>();
