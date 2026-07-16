@@ -41,7 +41,7 @@ namespace XrEngine.Lighting
 
             _ctxProvider = Context.Require<IGlContextProvider>();
             _workerCtx = _ctxProvider.CreateShared();
-            _gpuVoxelizer = new GpuMeshVoxelizer(_workerCtx.Gl);
+            _gpuVoxelizer = new GpuMeshVoxelizer(OpenGLRender.Current!.GL);
 
             MaxUpdateInterval = 0;
 
@@ -111,7 +111,7 @@ namespace XrEngine.Lighting
 
                 var curBounds = bounds.Result;
 
-                if (curBounds != _lastBounds || _fieldData.VoxelSize != _voxelSize)
+                if (!curBounds.IsSimilar(_lastBounds) || _fieldData.VoxelSize != _voxelSize)
                 {
                     var padSize = curBounds.Size + new Vector3(_paddding * _voxelSize * 2);
 
@@ -209,17 +209,22 @@ namespace XrEngine.Lighting
                     }
                 }
 
-                await EngineApp.MainThread;
-             
-                Extract();
+                await ExtractAsync();
             }
 
             _lastProfileVersion = _profileVersion;
         }
 
-        public void Extract()
+        public async Task ExtractAsync()
         {
             Log.Info(this, "Extracting light field");
+
+
+            _lightField = _backer.GetLightField(true);
+
+            var newTextures = _backer.CreateTextures();
+
+            await EngineApp.MainThread;
 
             if (_fieldData.Textures != null)
             {
@@ -227,9 +232,7 @@ namespace XrEngine.Lighting
                     tex.Dispose();
             }
 
-            _lightField = _backer.GetLightField(true);
-
-            _fieldData.Textures = _backer.CreateTextures();
+            _fieldData.Textures = newTextures;
 
             Log.Debug(this, "Light field loaded");
         }

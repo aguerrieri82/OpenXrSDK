@@ -6,6 +6,12 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
+    public enum GlRenderTargetFlags
+    {
+        None = 0,
+        Main = 1
+    }
+
     public interface IGlRenderTarget : IDisposable
     {
         void Begin(Camera camera);
@@ -17,5 +23,9 @@ namespace XrEngine.OpenGL
         void CommitDepth();
 
         IShaderHandler? ShaderHandler => null;
+
+
+        GlRenderTargetFlags Flags { get; }
+
     }
 }

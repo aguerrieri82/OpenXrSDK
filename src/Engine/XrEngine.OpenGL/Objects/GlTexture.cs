@@ -368,6 +368,12 @@ namespace XrEngine.OpenGL
 #endif
         }
 
+        public void OverrideSize(uint width, uint height)
+        {
+            _width = width;
+            _height = height;
+        }
+
         public void Update()
         {
             Bind();

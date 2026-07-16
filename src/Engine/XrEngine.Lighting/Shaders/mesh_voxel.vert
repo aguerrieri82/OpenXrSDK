@@ -1,182 +1,93 @@
+layout(location = 0) in vec2 aPosition;
 
-layout(location = 2) in vec2 a_texcoord_0;
-
-struct VoxelFaceInstance
+struct GpuVoxelFaceInstance
 {
     ivec3 Pos;
     int Face;
-    vec2 UV;
-    int TriangleId;
+
+    vec4 BaseColor;
+
+    vec3 Normal;
+    float Roughness;
+
+    float Metallic;
 };
 
-layout(std430, binding = 11) readonly buffer VoxelFaceBuffer
+layout(std430, binding = 11) readonly buffer VoxelFaceInstanceBuffer
 {
-    VoxelFaceInstance uFaces[];
+    GpuVoxelFaceInstance uInstances[];
 };
 
-// Existing packed VertexData buffer reused as float storage.
-// VertexData = 56 bytes = 14 floats
-// Pos      0..2
-// Normal   3..5
-// UV       6..7
-// UV1      8..9
-// Tangent 10..13
-layout(std430, binding = 12) readonly buffer VertexBuffer
-{
-    float uVertexData[];
-};
-
-layout(std430, binding = 13) readonly buffer IndexBuffer
-{
-    uint uIndices[];
-};
-
-uniform mat4 uViewProj;
+uniform mat4 uViewProjection;
 uniform vec3 uGridOrigin;
 uniform float uVoxelSize;
 
-out vec3 vWorldPos;
-out vec3 vFaceNormal;
-out vec2 vUv;
+uniform int uInstanceStart;
+uniform int uInstanceStep;
 
-flat out int vFace;
-flat out int vOutIndex;
-
-#ifdef VOXEL_REMAP
-flat out vec3 vTriNormal;
-flat out vec4 vTriTangent;
-#endif
-
-const int VertexStrideFloats = 14;
-
-const vec3 FaceAnchor[6] = vec3[6](
-    vec3(0.0, 0.0, 0.0), // NegX
-    vec3(1.0, 0.0, 0.0), // PosX
-
-    vec3(0.0, 0.0, 0.0), // NegY
-    vec3(0.0, 1.0, 0.0), // PosY
-
-    vec3(0.0, 0.0, 0.0), // NegZ
-    vec3(0.0, 0.0, 1.0)  // PosZ
-);
-
-const vec3 FaceU[6] = vec3[6](
-    vec3(0.0, 0.0, 1.0), // NegX
-    vec3(0.0, 1.0, 0.0), // PosX
-
-    vec3(1.0, 0.0, 0.0), // NegY
-    vec3(0.0, 0.0, 1.0), // PosY
-
-    vec3(0.0, 1.0, 0.0), // NegZ
-    vec3(1.0, 0.0, 0.0)  // PosZ
-);
-
-const vec3 FaceV[6] = vec3[6](
-    vec3(0.0, 1.0, 0.0), // NegX
-    vec3(0.0, 0.0, 1.0), // PosX
-
-    vec3(0.0, 0.0, 1.0), // NegY
-    vec3(1.0, 0.0, 0.0), // PosY
-
-    vec3(1.0, 0.0, 0.0), // NegZ
-    vec3(0.0, 1.0, 0.0)  // PosZ
-);
-
-const vec3 FaceNormal[6] = vec3[6](
-    vec3(-1.0,  0.0,  0.0),
-    vec3( 1.0,  0.0,  0.0),
-
-    vec3( 0.0, -1.0,  0.0),
-    vec3( 0.0,  1.0,  0.0),
-
-    vec3( 0.0,  0.0, -1.0),
-    vec3( 0.0,  0.0,  1.0)
-);
-
-int VertexBase(uint vertexIndex)
-{
-    return int(vertexIndex) * VertexStrideFloats;
-}
-
-vec3 VertexPos(uint vertexIndex)
-{
-    int b = VertexBase(vertexIndex);
-    return vec3(
-        uVertexData[b + 0],
-        uVertexData[b + 1],
-        uVertexData[b + 2]);
-}
-
-vec3 VertexNormal(uint vertexIndex)
-{
-    int b = VertexBase(vertexIndex);
-    return vec3(
-        uVertexData[b + 3],
-        uVertexData[b + 4],
-        uVertexData[b + 5]);
-}
-
-vec4 VertexTangent(uint vertexIndex)
-{
-    int b = VertexBase(vertexIndex);
-    return vec4(
-        uVertexData[b + 10],
-        uVertexData[b + 11],
-        uVertexData[b + 12],
-        uVertexData[b + 13]);
-}
+out vec4 vBaseColor;
+out vec3 vNormal;
+out float vRoughness;
+out float vMetallic;
 
 void main()
 {
-    VoxelFaceInstance item = uFaces[gl_InstanceID];
+    int physicalIndex =
+        uInstanceStart +
+        gl_InstanceID * uInstanceStep;
 
-    int face = item.Face;
-    vec2 quadUv = a_texcoord_0;
+    GpuVoxelFaceInstance instance = uInstances[physicalIndex];
 
-    vec3 local =
-        vec3(item.Pos) +
-        FaceAnchor[face] +
-        FaceU[face] * quadUv.x +
-        FaceV[face] * quadUv.y;
+    vec3 localPosition;
 
-    vec3 worldPos = uGridOrigin + local * uVoxelSize;
+    // 0 = -X
+    // 1 = +X
+    // 2 = -Y
+    // 3 = +Y
+    // 4 = -Z
+    // 5 = +Z
 
-    vWorldPos = worldPos;
-    vFaceNormal = FaceNormal[face];
-    vUv = item.UV;
+    switch (instance.Face)
+    {
+        case 0:
+            localPosition = vec3(-0.5, aPosition.y, -aPosition.x);
+            break;
 
-    vFace = face;
-    vOutIndex = gl_InstanceID;
+        case 1:
+            localPosition = vec3(0.5, aPosition.y, aPosition.x);
+            break;
 
-#ifdef VOXEL_REMAP
-    int tri = item.TriangleId;
-    int indexBase = tri * 3;
+        case 2:
+            localPosition = vec3(aPosition.x, -0.5, -aPosition.y);
+            break;
 
-    uint i0 = uIndices[indexBase + 0];
-    uint i1 = uIndices[indexBase + 1];
-    uint i2 = uIndices[indexBase + 2];
+        case 3:
+            localPosition = vec3(aPosition.x, 0.5, aPosition.y);
+            break;
 
-    #ifdef USE_GEOMETRIC_TRI_NORMAL
-        vec3 p0 = VertexPos(i0);
-        vec3 p1 = VertexPos(i1);
-        vec3 p2 = VertexPos(i2);
+        case 4:
+            localPosition = vec3(-aPosition.x, aPosition.y, -0.5);
+            break;
 
-        vTriNormal = normalize(cross(p1 - p0, p2 - p0));
-    #else
-        vec3 n0 = VertexNormal(i0);
-        vec3 n1 = VertexNormal(i1);
-        vec3 n2 = VertexNormal(i2);
+        default:
+            localPosition = vec3(aPosition.x, aPosition.y, 0.5);
+            break;
+    }
 
-        vTriNormal = normalize(n0 + n1 + n2);
-    #endif
+    vec3 voxelCenter =
+        uGridOrigin +
+        (vec3(instance.Pos) + vec3(0.5)) * uVoxelSize;
 
-    vec4 t0 = VertexTangent(i0);
-    vec4 t1 = VertexTangent(i1);
-    vec4 t2 = VertexTangent(i2);
+    vec3 worldPosition =
+        voxelCenter +
+        localPosition * uVoxelSize;
 
-    vec3 triTangent = normalize(t0.xyz + t1.xyz + t2.xyz);
-    vTriTangent = vec4(triTangent, t0.w);
-#endif
+    vBaseColor = instance.BaseColor;
+    vNormal = instance.Normal;
+    vRoughness = instance.Roughness;
+    vMetallic = instance.Metallic;
 
-    gl_Position = uViewProj * vec4(worldPos, 1.0);
+    gl_Position =
+        uViewProjection *
+        vec4(worldPosition, 1.0);
 }

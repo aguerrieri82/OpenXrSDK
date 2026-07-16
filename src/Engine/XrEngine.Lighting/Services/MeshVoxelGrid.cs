@@ -102,8 +102,8 @@ namespace XrEngine.Lighting
                                     origin.Z + z),
 
                                 Face = face,
-                                UV = faceData.UV,
-                                TriangleId = faceData.TriangleId
+                                //UV = faceData.UV,
+                                //TriangleId = faceData.TriangleId
                             };
                         }
                     }

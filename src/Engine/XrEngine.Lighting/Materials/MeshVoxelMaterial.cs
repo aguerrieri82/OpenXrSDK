@@ -1,31 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
 using XrMath;
 
 namespace XrEngine.Lighting
 {
-
-
-    [StructLayout(LayoutKind.Explicit, Size = 48)]
-    public struct GpuVoxelResolvedFace
-    {
-        [FieldOffset(0)]
-        public Vector4 BaseColor;
-
-        [FieldOffset(16)]
-        public Vector3 Normal;
-
-        [FieldOffset(28)]
-        public float Roughness;
-
-        [FieldOffset(32)]
-        public float Metallic;
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 32)]
+    [StructLayout(LayoutKind.Explicit, Size = 64)]
     public struct GpuVoxelFaceInstance
     {
         [FieldOffset(0)]
@@ -35,79 +15,180 @@ namespace XrEngine.Lighting
         public int Face;
 
         [FieldOffset(16)]
-        public Vector2 UV;
+        public Color BaseColor;
 
-        [FieldOffset(24)]
-        public int TriangleId;
+        [FieldOffset(32)]
+        public Vector3 Normal;
+
+        [FieldOffset(44)]
+        public float Roughness;
+
+        [FieldOffset(48)]
+        public float Metallic;
     }
-
 
     public class MeshVoxelMaterial : DynamicMaterial
     {
-        private IBuffer<GpuVoxelResolvedFace>? _resolveBuffer;
+        protected GpuVoxelFaceInstance[] _faces = [];
 
-        public MeshVoxelMaterial():
-            base("[XrEngine.Lighting]mesh_voxel.vert", "[XrEngine.Lighting]mesh_voxel.frag")
+        private int _faceCount;
+
+        public MeshVoxelMaterial()
+            : base(
+                "[XrEngine.Lighting]mesh_voxel.vert",
+                "[XrEngine.Lighting]mesh_voxel.frag")
         {
-            IsVoxelPreview = true;
             DoubleSided = true;
+            WriteDepth = false;
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            if (UseGeoTriNormal)
-                bld.AddFeature("USE_GEOMETRIC_TRI_NORMAL");
-
-            if (IsVoxelPreview)
-                bld.AddFeature("VOXEL_PREVIEW");
-
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uViewProj", ctx.PassCamera!.ViewProjection);
+                Vector3 cameraForward = ctx.PassCamera!.Forward;
+
+                float absX = MathF.Abs(cameraForward.X);
+                float absY = MathF.Abs(cameraForward.Y);
+                float absZ = MathF.Abs(cameraForward.Z);
+
+                int axis;
+                float direction;
+
+                if (absX >= absY && absX >= absZ)
+                {
+                    axis = 0;
+                    direction = cameraForward.X;
+                }
+                else if (absY >= absZ)
+                {
+                    axis = 1;
+                    direction = cameraForward.Y;
+                }
+                else
+                {
+                    axis = 2;
+                    direction = cameraForward.Z;
+                }
+
+                int axisStart = axis * _faceCount;
+
+                int instanceStart;
+                int instanceStep;
+
+                if (direction <= 0.0f)
+                {
+                    instanceStart = axisStart;
+                    instanceStep = 1;
+                }
+                else
+                {
+                    instanceStart = axisStart + _faceCount - 1;
+                    instanceStep = -1;
+                }
+
+                up.SetUniform("uViewProjection", ctx.PassCamera.ViewProjection);
                 up.SetUniform("uGridOrigin", GridDesc.Origin);
                 up.SetUniform("uVoxelSize", GridDesc.VoxelSize);
-                up.SetUniform("uCameraPosition", ctx.PassCamera!.WorldPosition);
-
+                up.SetUniform("uInstanceStart", instanceStart);
+                up.SetUniform("uInstanceStep", instanceStep);
             });
 
-            bld.LoadBufferArray(ctx =>
-            {
-                var verision = ContentVersion + Version;
+            bld.LoadBufferArray(
+                ctx =>
+                {
+                    var version = ContentVersion + Version;
 
-                if (ctx.CurrentBuffer!.Version == verision)
-                    return null;
-                
-                ctx.CurrentBuffer.Version = verision;
-                
-                return FaceInstances;
+                    if (ctx.CurrentBuffer!.Version == version)
+                        return null;
 
-            },11, BufferStore.Material, BufferUsage.SSbo);
+                    ctx.CurrentBuffer.Version = version;
+                    return _faces;
+                },
+                11,
+                BufferStore.Material,
+                BufferUsage.SSbo);
 
             base.UpdateShaderMaterial(bld);
         }
 
-
-        public GpuVoxelResolvedFace[]? ReadResolvedFaces()
+        public void LoadFaces(GpuVoxelFaceInstance[] faces)
         {
-            if (ResolvedFace == null || ResolvedFace.SizeBytes == 0)
-                return null;
+            _faceCount = faces.Length;
+            _faces = new GpuVoxelFaceInstance[_faceCount * 3];
 
-            var size = new GpuVoxelResolvedFace[ResolvedFace.SizeBytes / Marshal.SizeOf<GpuVoxelResolvedFace>()];
+            faces.CopyTo(_faces, 0);
+            faces.CopyTo(_faces, _faceCount);
+            faces.CopyTo(_faces, _faceCount * 2);
 
-            var result = Array.Empty<GpuVoxelResolvedFace>();
-            
-            ResolvedFace.ReadArray(ref result);
+            Array.Sort(
+                _faces,
+                0,
+                _faceCount,
+                Comparer<GpuVoxelFaceInstance>.Create(
+                    static (a, b) =>
+                    {
+                        int aKey = a.Pos.X * 2 +
+                            (a.Face == 0 ? -1 :
+                             a.Face == 1 ? 1 : 0);
 
-            return result;
+                        int bKey = b.Pos.X * 2 +
+                            (b.Face == 0 ? -1 :
+                             b.Face == 1 ? 1 : 0);
+
+                        int cmp = aKey.CompareTo(bKey);
+                        if (cmp != 0)
+                            return cmp;
+
+                        return a.Face.CompareTo(b.Face);
+                    }));
+
+            Array.Sort(
+                _faces,
+                _faceCount,
+                _faceCount,
+                Comparer<GpuVoxelFaceInstance>.Create(
+                    static (a, b) =>
+                    {
+                        int aKey = a.Pos.Y * 2 +
+                            (a.Face == 2 ? -1 :
+                             a.Face == 3 ? 1 : 0);
+
+                        int bKey = b.Pos.Y * 2 +
+                            (b.Face == 2 ? -1 :
+                             b.Face == 3 ? 1 : 0);
+
+                        int cmp = aKey.CompareTo(bKey);
+                        if (cmp != 0)
+                            return cmp;
+
+                        return a.Face.CompareTo(b.Face);
+                    }));
+
+            Array.Sort(
+                _faces,
+                _faceCount * 2,
+                _faceCount,
+                Comparer<GpuVoxelFaceInstance>.Create(
+                    static (a, b) =>
+                    {
+                        int aKey = a.Pos.Z * 2 +
+                            (a.Face == 4 ? -1 :
+                             a.Face == 5 ? 1 : 0);
+
+                        int bKey = b.Pos.Z * 2 +
+                            (b.Face == 4 ? -1 :
+                             b.Face == 5 ? 1 : 0);
+
+                        int cmp = aKey.CompareTo(bKey);
+                        if (cmp != 0)
+                            return cmp;
+
+                        return a.Face.CompareTo(b.Face);
+                    }));
+
+            Invalidate();
         }
-
-        public IBuffer<GpuVoxelResolvedFace>? ResolvedFace => _resolveBuffer;
-
-        public GpuVoxelFaceInstance[]? FaceInstances { get; set; }
-
-        public bool IsVoxelPreview { get; set; }
-
-        public bool UseGeoTriNormal { get; set; }
 
         public VoxelGridDesc GridDesc { get; set; }
     }

@@ -166,5 +166,7 @@ namespace XrEngine.OpenGL
 
         public GlTexture? Color => _color;
 
+        public GlRenderTargetFlags Flags => GlRenderTargetFlags.Main;
+
     }
 }

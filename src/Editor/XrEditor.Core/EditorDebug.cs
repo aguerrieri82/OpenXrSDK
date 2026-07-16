@@ -22,11 +22,11 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
-        public static readonly bool DebugEnabled = false;
+        public static readonly bool DebugEnabled = true;
 
         public static readonly bool DisableDualRender = true;
 
-        public static readonly int VSyncScale = 4;
+        public static readonly int VSyncScale = 3; 
 
 
         public static readonly string StoragePath = "D:\\Projects\\XrEditor\\Storage";
@@ -66,7 +66,7 @@ namespace XrEditor
                   opt.ContactShadow.IsMultiView = false;
 
                   opt.UseResolve = false;
-                  opt.UseSRGB = true;
+                  opt.UseSRGB = false;
                   opt.ToneMap = ToneMapMode.Neutral;
 
               })

@@ -269,6 +269,13 @@ namespace XrMath
 
         #region BOUNDS3
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsSimilar(in this Bounds3 self, in Bounds3 other, float epsilon = 1e-5f)
+        {
+            return self.Min.IsSimilar(other.Min) &&
+                   self.Max.IsSimilar(other.Max);
+        }
+
         public static CubeFaces Faces(in this Bounds3 self)
         {
             var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);

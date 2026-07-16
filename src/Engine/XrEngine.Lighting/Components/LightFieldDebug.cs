@@ -372,14 +372,17 @@ namespace XrEngine.Lighting
                     {
                         Face = a.Face,
                         Pos = a.Cell,
-                        TriangleId = 1,
+                        BaseColor = a.BaseColor,
+                        Metallic = a.Metallic,
+                        Normal = a.Normal,
+                        Roughness = a.Roughness,    
                     }));
                 }
             }
 
             _meshMat.GridDesc = _grid;
-            _meshMat.FaceInstances = faces.ToArray();
-            _meshView.InstanceCount = _meshMat.FaceInstances.Length;
+            _meshMat.LoadFaces(faces.ToArray());
+            _meshView.InstanceCount = faces.Count;
 
             _meshMat.Invalidate();
 
@@ -399,17 +402,16 @@ namespace XrEngine.Lighting
             UpdateMeshView();
 
             UpdateMaterials();
-
         }
 
         [Action]
-        public void Extract()
+        public async Task Extract()
         {
             Log.Info(this, "Extract light field");
 
             UpdateParams();
 
-            _provider!.Extract();
+            await _provider!.ExtractAsync();
 
             UpdateMaterials();
         }

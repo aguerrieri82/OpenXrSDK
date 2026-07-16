@@ -9,18 +9,16 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine.OpenGL;
 using XrMath;
-using static MeshOptimizer.MeshOptimizerLib;
+
 
 namespace XrEngine.Lighting
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+
     public struct GpuVoxelFaceData
     {
         public Vector3I Cell;
         public int Face;
-
         public VoxelTriangleSide Side;
-
         public Color BaseColor;
         public Vector3 Normal;
         public float Roughness;
@@ -471,13 +469,13 @@ namespace XrEngine.Lighting
 
                 var geo = mesh.Geometry!;
 
-                if (!_vertexHandles.TryGetValue(geo, out var handle))
+                var ctx = Context.Require<IGlContextProvider>().Current;
+
+                if (!_vertexHandles.TryGetValue(geo, out var handle) || handle.VertexArray.Owner != ctx)
                 {
                     handle = geo.GetProp<GlVertexSourceHandle>(OpenGLRender.Props.GlResId);
 
                     handle ??= GlVertexSourceHandle.Create(_gl, mesh);
-
-                    var ctx = Context.Require<IGlContextProvider>().Current;
 
                     if (handle.VertexArray.Owner != ctx)
                         handle = handle.Clone();

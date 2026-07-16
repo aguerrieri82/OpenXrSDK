@@ -76,5 +76,7 @@ namespace XrEngine.OpenGL
         {
             return _renderFrameBuffer.QueryTexture(attachment);
         }
+
+        public GlRenderTargetFlags Flags { get; set; }
     }
 }

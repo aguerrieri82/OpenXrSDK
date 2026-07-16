@@ -55,12 +55,13 @@ namespace XrEngine
                 try
                 {
                     await UpdateAsync(ctx);
-                    await EngineApp.MainThread;
                 }
                 catch (Exception ex)
                 {
                     Log.Error(this, ex, "Update error: {0}");
                 }
+
+                await EngineApp.MainThread;
 
                 _lastUpdateTime = ctx.Time;
             }

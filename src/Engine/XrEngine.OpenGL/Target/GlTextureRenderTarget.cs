@@ -54,5 +54,7 @@ namespace XrEngine.OpenGL
 
         IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
 
+        public GlRenderTargetFlags Flags { get; set; }
+
     }
 }

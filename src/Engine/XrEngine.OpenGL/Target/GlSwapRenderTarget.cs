@@ -111,5 +111,7 @@ namespace XrEngine.OpenGL
         public bool IsMultiView => _isMultiView;
 
         public IShaderHandler? ShaderHandler => _mainRt?.ShaderHandler;
+
+        public GlRenderTargetFlags Flags { get; set; }
     }
 }

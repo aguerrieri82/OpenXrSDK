@@ -131,5 +131,7 @@ namespace XrEngine.OpenGL
         IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
 
         public IShaderHandler? ShaderHandler => GlMultiViewShaderHandler.Instance;
+
+        public GlRenderTargetFlags Flags { get; set; }
     }
 }

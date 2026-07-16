@@ -21,8 +21,9 @@ namespace XrEditor
 
         public App()
         {
-
             Gpu.EnableNvAPi();
+
+            NvidiaProfiles.DisableOpenGlThreadedOptimization();
 
             _viewManager = new WpfViewManager();
             _mainDispatcher = new MainDispatcher();

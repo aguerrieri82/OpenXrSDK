@@ -482,12 +482,6 @@ namespace XrEngine.OpenGL
             _target = target ?? _defaultTarget;
         }
 
-        public void SetRenderTargetDefault()
-        {
-            _target = _defaultTarget;
-        }
-
-
         #endregion
 
         #region ISurfaceProvider

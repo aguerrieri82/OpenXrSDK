@@ -111,7 +111,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            if (_renderer.RenderTarget is not GlDefaultRenderTarget)
+            if (_renderer.RenderTarget!.Flags != GlRenderTargetFlags.Main)
                 return false;
 
             _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.RgUint32);
