@@ -20,11 +20,13 @@ namespace XrEngine.OpenGL
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
-        protected readonly BufferUsageARB _usage;
+        protected BufferUsageARB _usage;
 
         protected uint _capacityBytes;
         protected uint _sizeBytes;
-        protected int _updateCount;
+        protected int _beginUpdateCount;
+
+        protected long _updateCount;
 
 #if GLES
         private Silk.NET.OpenGLES.Extensions.EXT.ExtBufferStorage? _storageExt;
@@ -34,25 +36,24 @@ namespace XrEngine.OpenGL
             : base(gl)
         {
             _target = target;
-
-            _usage = target switch
-            {
-                BufferTargetARB.UniformBuffer => BufferUsageARB.DynamicDraw,
-                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.DynamicDraw,
-                _ => BufferUsageARB.StaticDraw
-            };
+            _usage = BufferUsageARB.StaticDraw;
 
             Version = -1;
             ActiveSlot = 0;
             IsMutable = true;
-
-            _handle = _gl.GenBuffer();
+            Create();
         }
 
         public GlBuffer(GL gl, ReadOnlySpan<T> data, BufferTargetARB target)
             : this(gl, target)
         {
             UpdateRange(data);
+        }
+
+        protected void Create()
+        {
+            _handle = _gl.GenBuffer();
+            CreateVersion++;
         }
 
         public void Update(Func<(T, bool)> getValue)
@@ -79,12 +80,28 @@ namespace XrEngine.OpenGL
 
             try
             {
-                EnsureCapacity(sizeBytes, preserve: false);
+                bool promote =
+                    _updateCount > 50 &&
+                    _usage == BufferUsageARB.StaticDraw &&
+                    IsMutable;
+
+                if (promote)
+                {
+                    _usage = BufferUsageARB.DynamicDraw;
+
+                    _capacityBytes = Math.Max(_capacityBytes, sizeBytes);
+
+                    _gl.BufferData(_target, _capacityBytes, null, _usage);
+                }
+                else
+                    EnsureCapacity(sizeBytes, preserve: false);
 
                 if (sizeBytes > 0)
                     _gl.BufferSubData(_target, 0, sizeBytes, data);
 
                 _sizeBytes = sizeBytes;
+
+                _updateCount++;
             }
             finally
             {
@@ -97,20 +114,39 @@ namespace XrEngine.OpenGL
             Debug.Assert(offsetBytes >= 0);
 
             if (sizeBytes == 0)
-                return; 
+                return;
 
-            uint writeEndBytes = checked((uint)offsetBytes + sizeBytes);
+            var writeEndBytes = (uint)offsetBytes + sizeBytes;
 
             BeginUpdate();
 
             try
             {
-                EnsureCapacity(writeEndBytes, preserve);
+                var destructiveResize = !preserve && writeEndBytes > _capacityBytes;
+
+                var promote =
+                    _updateCount > 50 &&
+                    _usage == BufferUsageARB.StaticDraw &&
+                    !preserve &&
+                    IsMutable;
+
+                if (promote)
+                {
+                    _usage = BufferUsageARB.DynamicDraw;
+                    _capacityBytes = Math.Max(_capacityBytes, writeEndBytes);
+                    _gl.BufferData(_target, _capacityBytes, null, _usage);
+                }
+                else
+                    EnsureCapacity(writeEndBytes, preserve);
 
                 _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
 
-                if (writeEndBytes > _sizeBytes)
+                if (promote || destructiveResize)
                     _sizeBytes = writeEndBytes;
+                else
+                    _sizeBytes = Math.Max(_sizeBytes, writeEndBytes);
+
+                _updateCount++;
             }
             finally
             {
@@ -118,21 +154,22 @@ namespace XrEngine.OpenGL
             }
         }
 
+
         public void BeginUpdate()
         {
-            if (_updateCount == 0)
+            if (_beginUpdateCount == 0)
                 Bind();
 
-            _updateCount++;
+            _beginUpdateCount++;
         }
 
         public void EndUpdate()
         {
-            Debug.Assert(_updateCount > 0);
+            Debug.Assert(_beginUpdateCount > 0);
 
-            _updateCount--;
+            _beginUpdateCount--;
 
-            if (_updateCount == 0)
+            if (_beginUpdateCount == 0)
                 Unbind();
         }
 
@@ -198,6 +235,16 @@ namespace XrEngine.OpenGL
             }
         }
 
+
+        private void Recreate()
+        {
+            _gl.DeleteBuffer(_handle);
+            _handle = _gl.GenBuffer();
+            _sizeBytes = 0;
+            _capacityBytes = 0;
+            CreateVersion++;
+        }
+
         private void EnsureCapacity(uint requiredBytes, bool preserve)
         {
             if (requiredBytes <= _capacityBytes)
@@ -218,15 +265,14 @@ namespace XrEngine.OpenGL
 
             if (!preserve || copySizeBytes == 0)
             {
-                _gl.BufferData(_target, newCapacityBytes, null, _usage);
-
-                _capacityBytes = newCapacityBytes;
-                _sizeBytes = copySizeBytes;
+                Allocate(newCapacityBytes);
                 return;
             }
 
             uint oldHandle = _handle;
             uint newHandle = _gl.GenBuffer();
+
+            CreateVersion++;
 
             GlState.Current!.BindBuffer(BufferTargetARB.CopyWriteBuffer, newHandle);
             _gl.BufferData(
@@ -407,13 +453,7 @@ namespace XrEngine.OpenGL
                 return;
             }
 
-            if (_capacityBytes == 0)
-            {
-                // Preserve the existing behavior: a normal typed first update
-                // produces fixed-capacity immutable storage.
-                IsMutable = false;
-                Allocate((uint)sizeof(T));
-            }
+            IsMutable = false;
 
             Update(&value, (uint)sizeof(T));
         }
@@ -502,6 +542,8 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
+
+        public long CreateVersion { get; set; }
 
         public bool IsMutable { get; set; }
 

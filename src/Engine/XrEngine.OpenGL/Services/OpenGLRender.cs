@@ -174,7 +174,7 @@ namespace XrEngine.OpenGL
                    var text = Encoding.UTF8.GetString(span);
 
                    Debug.WriteLine($"\n\n\n");
-                   Debug.WriteLine($"------ OPENGL: {text}");
+                   Debug.WriteLine($"------ OPENGL[{id}]: {text}");
                    Debug.WriteLine($"\n\n\n");
                }
                catch
@@ -188,7 +188,10 @@ namespace XrEngine.OpenGL
             if (sync)
                 _gl.Enable(EnableCap.DebugOutputSynchronous);
 
+            var ignoreIds = new uint[] { 131186 };
+
             _gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DebugSeverityNotification, 0, null, false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, (uint)ignoreIds.Length, ignoreIds, false);
 
             _isDebug = true;
         }

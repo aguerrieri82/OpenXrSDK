@@ -63,7 +63,13 @@
 		Name="RunAndroidBuildScript"
 		BeforeTargets="Build"
 		Condition="Exists('$(ProjectDir)android-build.cmd')"
-		Inputs="@(ClCompile);@(ClInclude);$(ProjectDir)android-build.cmd"
+		Inputs="
+			@(ClCompile);
+			@(ClInclude);
+			$(ProjectDir)android-build.cmd;
+			$(ProjectDir)Android.mk;
+			$(ProjectDir)Application.mk;
+			$(SolutionDir)..\third-party\vars.cmd" 
 		Outputs="@(AndroidBuildOutput)">
 
 		<Exec

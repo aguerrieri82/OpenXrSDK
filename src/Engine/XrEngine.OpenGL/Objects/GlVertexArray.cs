@@ -14,6 +14,8 @@ namespace XrEngine.OpenGL
         protected GlVertexLayout _layout;
         protected readonly GlBuffer<TVertexType> _vBuf;
         protected GlBuffer<TIndexType>? _iBuf;
+        protected long _vBufVersion;
+        protected long _iBufVersion;
         protected readonly DrawElementsType _drawType;
 
         public GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[]? index, GlVertexLayout layout)
@@ -41,21 +43,30 @@ namespace XrEngine.OpenGL
             else
                 throw new NotSupportedException();
 
+            Create();
             Build();
         }
 
         public void Build()
         {
-            if (_handle != 0)
+            if (_handle == 0)
                 throw new InvalidOperationException();
-
-            Create();
 
             Bind();
 
             _vBuf.Bind();
+            _vBufVersion = _vBuf.CreateVersion;
 
-            _iBuf?.Bind();
+            if (_iBuf != null)
+            {
+                _iBuf.Bind();
+                _iBufVersion = _iBuf.CreateVersion;
+            }
+            else
+            {
+                GlState.Current!.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+                _iBufVersion = 0;
+            }
 
             Configure();
 
@@ -129,6 +140,8 @@ namespace XrEngine.OpenGL
 
             var hasIndices = indices != null && indices.Length > 0;
 
+            var rebuild = false;
+
             if (hasIndices)
             {
                 if (_iBuf == null)
@@ -137,34 +150,30 @@ namespace XrEngine.OpenGL
                         _gl,
                         indices!,
                         BufferTargetARB.ElementArrayBuffer);
+                    
+                    rebuild = true;
 
-                    Bind();
-
-                    _iBuf.Bind();
-
-                    Unbind();
-
-                    _iBuf.Unbind();
                 }
                 else
                     _iBuf.UpdateRange(indices!, 0, false);
 
                 _iBuf.ArrayLength = (uint)indices!.Length;
-
-                return;
+            }
+            else
+            {
+                if (_iBuf != null)
+                {
+                    _iBuf.Dispose();
+                    _iBuf = null;
+                    rebuild = true;
+                }
             }
 
-            if (_iBuf == null)
-                return;
+            if (!rebuild && (_vBufVersion != _vBuf.CreateVersion || (_iBuf != null && _iBuf.CreateVersion != _iBufVersion)))
+                rebuild = true;
 
-            Bind();
-
-            GlState.Current!.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-
-            Unbind();
-
-            _iBuf.Dispose();
-            _iBuf = null;
+            if (rebuild)
+                Build();
         }
 
         public void Bind()

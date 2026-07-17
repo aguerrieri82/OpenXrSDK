@@ -22,7 +22,7 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
-        public static readonly bool DebugEnabled = false;
+        public static readonly bool DebugEnabled = true;
 
         public static readonly bool DisableDualRender = true;
 
@@ -41,7 +41,7 @@ namespace XrEditor
 
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+              //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -71,7 +71,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateRoomManager()  
+              .CreateLightField()  
               .Build();
     }
 }

@@ -9,27 +9,34 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlObject : IDisposable
     {
+        static HashSet<GlObject> _catalog = [];
+        static IGlContextProvider? _contextProvider;
+
         protected uint _handle;
         protected GL _gl;
         protected string? _label;
         protected readonly IGlContext _owner;
 
-        static HashSet<GlObject> _catalog = [];
-
 
         protected GlObject(GL gl)
         {
             _gl = gl;
-            _owner = Context.Require<IGlContextProvider>().Current!;
-            EnableDebug = true;
 
+            _contextProvider ??= Context.Require<IGlContextProvider>();
+            _owner = _contextProvider.Current!;
+
+            EnableDebug = true;
+#if DEBUG
             _catalog.Add(this);
+#endif
         }
 
         public virtual void Dispose()
-        {
-            _catalog.Remove(this);
 
+        {
+#if DEBUG
+            _catalog.Remove(this);
+#endif
             if (_handle != 0)
             {
                 ObjectBinder.Unbind(this);
@@ -51,6 +58,12 @@ namespace XrEngine.OpenGL
             }
 
             _label = label;
+        }
+
+
+        public static GlObject? FindObject(uint handle)
+        {
+            return _catalog.FirstOrDefault(a => a.Handle == handle);
         }
 
 

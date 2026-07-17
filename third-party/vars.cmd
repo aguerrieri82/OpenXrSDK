@@ -10,9 +10,9 @@ SET ANDROID_C_FLAGS=-ffunction-sections -fdata-sections -fvisibility=hidden -O3
 SET ANDROID_CPP_FLAGS=-fexceptions -frtti -D__ARM_NEON -fvisibility=hidden -fvisibility-inlines-hidden -O3
 SET ANDROID_LD_FLAGS=-Wl,-z,max-page-size=16384 -Wl,--gc-sections -Wl,--exclude-libs,ALL
 SET LLVM_STRIP="%NDK_HOME%toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-strip"
-
+ 
 SET BUILD_TYPE=release
-SET INSTALL_PEFIX=install
+SET INSTALL_PEFIX=install 
 
 SET ASM_NASM=C:/msys64/usr/bin/nasm.exe
 

@@ -69,18 +69,32 @@ namespace XrEngine.Browser.Win
             if (!WGL.GetApi().TryGetExtension(out _dxInterop))
                 throw new NotSupportedException();
 
-            SilkMarshal.ThrowHResult(
-                _d3d11.CreateDevice(
-                    default(ComPtr<IDXGIAdapter>),
-                    D3DDriverType.Hardware,
-                    Software: default,
-                    (uint)(CreateDeviceFlag.BgraSupport),
-                    null,
-                    0,
-                    D3D11.SdkVersion,
-                    ref _device,
-                    null,
-                    ref _context));
+            int attempted = 0;
+            while (true)
+            {
+                SilkMarshal.ThrowHResult(
+                    _d3d11.CreateDevice(
+                        default(ComPtr<IDXGIAdapter>),
+                        D3DDriverType.Hardware,
+                        Software: default,
+                        (uint)(CreateDeviceFlag.BgraSupport),
+                        null,
+                        0,
+                        D3D11.SdkVersion,
+                        ref _device,
+                        null,
+                        ref _context));
+
+                if (_device.Handle != null)
+                    break;
+
+                attempted++;
+                
+                if (attempted > 5)
+                    throw new InvalidOperationException("Error creating D3D11 device");
+
+                Thread.Sleep(10);
+            }
 
             _device1 = _device.QueryInterface<ID3D11Device1>();
 
