@@ -10,7 +10,7 @@ namespace XrEngine
             ShowBounds = false;
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 
@@ -28,13 +28,11 @@ namespace XrEngine
 
                     canvas.State.Transform = obj.Object.WorldMatrix;
                     canvas.DrawBounds(local);
-
-
                 }
             }
 
             foreach (var debugger in Debuggers)
-                debugger.DrawGizmos(canvas);
+                debugger.DrawGizmos(canvas, ctx);
 
             canvas.Restore();
         }

@@ -232,8 +232,7 @@ namespace XrEngine.Lighting
             }
         }
 
-
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.State.Color = "#ff0000";
 

@@ -24,12 +24,12 @@ namespace XrEngine
             }
         }
 
-        public override void DrawGizmos(Canvas3D canvas)
+        public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.State.Color = "#500000";
-            canvas.DrawSphere(WorldPosition, Range, _scene!.ActiveCamera!.WorldPosition, 60);
+            canvas.DrawSphere(WorldPosition, Range, ctx.Camera!.WorldPosition, 60);
             canvas.State.Color = "#ff4000";
-            canvas.DrawSphere(WorldPosition, Range * 0.7f, _scene!.ActiveCamera!.WorldPosition, 60);
+            canvas.DrawSphere(WorldPosition, Range * 0.7f, ctx.Camera!.WorldPosition, 60);
             canvas.State.Color = "#404000";
 
             canvas.DrawLine(WorldPosition - Vector3.UnitX * Range, WorldPosition + Vector3.UnitX * Range);

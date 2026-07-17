@@ -226,7 +226,7 @@ namespace XrSamples.Earth
             base.Update(ctx);
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 

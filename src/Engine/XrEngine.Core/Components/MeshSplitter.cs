@@ -115,7 +115,7 @@ namespace XrEngine.Components
             }
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!ShowGizmos)
                 return;

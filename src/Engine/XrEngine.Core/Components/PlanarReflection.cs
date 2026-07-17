@@ -257,7 +257,7 @@ namespace XrEngine
                 _lightIntensity = _host.Scene.Descendants<Light>().Visible().Select(a => a.Intensity).Sum();
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             /*
             var bounds = _host!.WorldBounds;

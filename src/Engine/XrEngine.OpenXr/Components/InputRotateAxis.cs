@@ -106,7 +106,7 @@ namespace XrEngine.OpenXr
             return status.StartAngle - curDir.SignedAngleWith(status.StartDir, plane.Normal);
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 

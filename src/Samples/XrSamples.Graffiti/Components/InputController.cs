@@ -102,7 +102,7 @@ namespace XrSamples.Graffiti
             base.Update(ctx);
         }
 
-        void IDrawGizmos.DrawGizmos(Canvas3D canvas)
+        void IDrawGizmos.DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (_inputs!.Right!.GripPose!.IsActive)
             {

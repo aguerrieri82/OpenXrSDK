@@ -161,7 +161,7 @@ namespace XrEngine.Bullet
             }
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (Solver?.Root == null || !EnableGizmos)
                 return;

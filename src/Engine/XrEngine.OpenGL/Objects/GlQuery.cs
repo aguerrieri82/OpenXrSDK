@@ -12,7 +12,7 @@ namespace XrEngine.OpenGL
         private bool _resultFetch;
         private uint _lastResult;
 
-        public unsafe GlQuery(GL gl)
+        public GlQuery(GL gl)
             : base(gl)
         {
             Create();

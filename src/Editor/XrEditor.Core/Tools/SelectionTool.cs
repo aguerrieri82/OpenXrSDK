@@ -115,7 +115,7 @@ namespace XrEditor
             base.OnPointerUp(ev);
         }
 
-        public override void DrawGizmos(Canvas3D canvas)
+        public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 
@@ -164,8 +164,6 @@ namespace XrEditor
             }
 
             canvas.Restore();
-
-            base.DrawGizmos(canvas);
         }
 
     }

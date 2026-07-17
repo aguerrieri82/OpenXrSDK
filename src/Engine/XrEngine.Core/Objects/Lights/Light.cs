@@ -39,7 +39,7 @@ namespace XrEngine
             container.ReadObject(this, TypeMode.SubclassesOrSelf);
         }
 
-        public virtual void DrawGizmos(Canvas3D canvas)
+        public virtual void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
 
         }

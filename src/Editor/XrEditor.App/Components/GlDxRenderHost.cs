@@ -217,6 +217,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
         _image = new D3DImage();
         Source = _image;
+        VisualBitmapScalingMode = System.Windows.Media.BitmapScalingMode.NearestNeighbor;
 
         CreateD3DDevice();
 

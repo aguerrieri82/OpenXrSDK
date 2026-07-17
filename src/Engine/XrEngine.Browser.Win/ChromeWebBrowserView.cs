@@ -32,7 +32,8 @@ namespace XrEngine.Browser.Win
         {
             _cpuMode = gl == null;
             _browser = new ChromeWebBrowser(gl);
-            _format = TextureFormat.Bgra32;
+#warning ATTIVATE SRGB IS IS ACTIVE ON GL
+            _format = TextureFormat.Bgra32;  
             Size = new Size2I(1600, 1200);
             EnableElevation = true;
         }

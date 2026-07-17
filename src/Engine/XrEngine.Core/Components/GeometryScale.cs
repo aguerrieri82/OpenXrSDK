@@ -32,7 +32,7 @@ namespace XrEngine
             base.OnAttach();
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!UseGizmos)
                 return;

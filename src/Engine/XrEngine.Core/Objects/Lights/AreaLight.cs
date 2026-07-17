@@ -14,7 +14,7 @@ namespace XrEngine
             Range = 5f;
         }
 
-        public override void DrawGizmos(Canvas3D canvas)
+        public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             const float ArrowLength = 70.0f;
             const float ArrowTipLength = 12.0f;
@@ -59,7 +59,7 @@ namespace XrEngine
             if (direction.LengthSquared() < 0.000001f)
                 return;
 
-            var camera = _scene!.ActiveCamera!;
+            var camera = ctx.Camera!;
             Vector2 viewSize = camera.ViewSize.ToVector2();
             Matrix4x4 viewProjection = camera.ViewProjection;
 

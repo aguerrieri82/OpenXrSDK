@@ -446,9 +446,7 @@ namespace XrEngine.OpenGL
             {
                 using var dynamicBuffer = dynamicBufferSource.GetBuffer();
 
-                Update(
-                    (void*)dynamicBuffer.Data,
-                    dynamicBuffer.Size);
+                Update((void*)dynamicBuffer.Data, dynamicBuffer.Size);
 
                 return;
             }

@@ -156,7 +156,7 @@ namespace XrEditor
             }
         }
 
-        public virtual void DrawGizmos(Canvas3D canvas)
+        public virtual void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
 
         }

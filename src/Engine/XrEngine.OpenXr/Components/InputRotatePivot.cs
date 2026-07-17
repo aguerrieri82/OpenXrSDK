@@ -110,7 +110,7 @@ namespace XrEngine.OpenXr
             return true;
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 

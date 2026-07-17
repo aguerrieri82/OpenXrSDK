@@ -115,7 +115,7 @@ namespace XrEngine
                 _activeScene.Update(_context);
             }
 
-            _activeScene.DrawGizmos();
+            _activeScene.DrawGizmos(_context);
 
             _stats.BeginFrame();
 

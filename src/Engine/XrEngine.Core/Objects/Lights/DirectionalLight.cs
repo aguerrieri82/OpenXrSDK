@@ -14,13 +14,13 @@ namespace XrEngine
             Direction = direction;
         }
 
-        public override void DrawGizmos(Canvas3D canvas)
+        public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             const float ArrowLength = 70.0f;
             const float ArrowSpacing = 14.0f;
             const float ArrowTipLength = 12.0f;
 
-            var camera = _scene!.ActiveCamera!;
+            var camera = ctx.Camera!;
             Vector2 viewSize = camera.ViewSize.ToVector2();
             Matrix4x4 viewProjection = camera.ViewProjection;
 

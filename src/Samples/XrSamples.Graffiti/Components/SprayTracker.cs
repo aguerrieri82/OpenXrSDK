@@ -132,7 +132,7 @@ namespace XrSamples.Graffiti
             _brush.IsVisible = true;
         }
 
-        void IDrawGizmos.DrawGizmos(Canvas3D canvas)
+        void IDrawGizmos.DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (_rays == null || _intersets == null)
                 return;

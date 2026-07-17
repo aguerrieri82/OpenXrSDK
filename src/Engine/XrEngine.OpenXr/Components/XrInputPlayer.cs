@@ -155,7 +155,7 @@ namespace XrEngine.OpenXr
             }
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (_session?.Frames == null || !ShowTrail)
                 return;

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using SkiaSharp;
+using System.Diagnostics;
 
 namespace XrEngine
 {
@@ -31,7 +32,7 @@ namespace XrEngine
             }).Add(_gizmos.Content);
         }
 
-        public void DrawGizmos()
+        public void DrawGizmos(RenderContext ctx)
         {
             if (_drawGizmos == null || _drawGizmos.Count == 0)
                 return;
@@ -43,7 +44,7 @@ namespace XrEngine
                 foreach (var draw in _drawGizmos)
                 {
                     if (draw.IsEnabled)
-                        draw.DrawGizmos(_gizmos);
+                        draw.DrawGizmos(_gizmos, ctx);
                 }
             }
 

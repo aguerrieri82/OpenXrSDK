@@ -116,7 +116,7 @@ namespace XrEngine.Physics
 
 
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!_isDragging)
                 return;

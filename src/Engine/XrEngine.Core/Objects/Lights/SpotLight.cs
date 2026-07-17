@@ -15,7 +15,7 @@ namespace XrEngine
         }
 
 
-        public override void DrawGizmos(Canvas3D canvas)
+        public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             Vector3 origin = WorldPosition;
             Vector3 direction = Vector3.Normalize(Direction);
@@ -24,7 +24,7 @@ namespace XrEngine
             float outerRadius = MathF.Tan(OuterConeAngle) * Range;
             float innerRadius = MathF.Tan(InnerConeAngle) * Range;
 
-            Vector3 cameraVector = _scene!.ActiveCamera!.WorldPosition - origin;
+            Vector3 cameraVector = ctx.Camera!.WorldPosition - origin;
 
             // Direction around the cone facing the camera.
             Vector3 radial0 =

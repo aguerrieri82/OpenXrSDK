@@ -709,7 +709,7 @@ namespace XrEngine.Reconstruct
             {
                 Width = (uint)width,
                 Height = (uint)height,
-                Format = TextureFormat.SRgba32,
+                Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
                 Data = MemoryBuffer.Create(File.ReadAllBytes(path))
             });
 
@@ -1678,6 +1678,8 @@ namespace XrEngine.Reconstruct
 
         public bool FillHoles { get; private set; }
 
+        public bool UseSrgb { get; set; }
+
         public MeshCollapseParams CollapseParams { get; set; }
 
         public UvAtlasProjectionParams UvProjParams { get; set; }
@@ -1695,6 +1697,8 @@ namespace XrEngine.Reconstruct
         public MeshHoleFillerParams HoleParams { get; set; }
 
         public string? DebugTriangles { get; set; }
+
+
 
     }
 }
