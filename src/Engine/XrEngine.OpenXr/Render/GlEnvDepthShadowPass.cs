@@ -33,12 +33,12 @@ namespace XrEngine.OpenXr
             _program.AddFeature("USE_SHADOW_MAP");
         }
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
 
-            var shadowProvider = _renderer.UpdateContext.ShadowMapProvider;
+            var shadowProvider = ctx.ShadowMapProvider;
 
             if (shadowProvider == null || shadowProvider.Options.Mode == ShadowMapMode.None) 
                 return;
@@ -48,7 +48,7 @@ namespace XrEngine.OpenXr
 
             bool isMultiView = _renderer.RenderTarget is GlMultiViewRenderTarget;
 
-            var camera = _renderer.UpdateContext.MainCamera!;
+            var camera = ctx.MainCamera!;
 
             var envDepth = camera.Feature<IEnvDepthProvider>();
 

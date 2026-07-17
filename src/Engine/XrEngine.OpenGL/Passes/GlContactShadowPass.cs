@@ -100,7 +100,7 @@ namespace XrEngine.OpenGL
             _uniforms = new GlBuffer<ContactShadowUniforms>(_gl, BufferTargetARB.UniformBuffer);
         }
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
             var options = _renderer.Options.ContactShadow;
 
@@ -110,9 +110,9 @@ namespace XrEngine.OpenGL
             if (_renderer.RenderTarget is not GlMultiViewRenderTarget && _isMultiView)
                 return;
 
-            var camera = _renderer.UpdateContext.PassCamera!;
+            var camera = ctx.PassCamera!;
 
-            var light = _renderer.UpdateContext.Lights?
+            var light = ctx.Lights?
                 .OfType<DirectionalLight>()
                 .FirstOrDefault();
 
@@ -129,7 +129,21 @@ namespace XrEngine.OpenGL
                 camera.ViewSize.Height,
                 TextureFormat.GrayFloat16);
 
-            UpdateUniforms(light, options);
+            var lightDir = Vector3.Normalize(-light.Direction);
+
+            var data = new ContactShadowUniforms
+            {
+                LightDirWorld = new Vector4(lightDir, 0.0f),
+                MaxDistance = options.MaxDistance,
+                Thickness = options.Thickness,
+                Strength = options.Strength,
+                StepCount = options.StepCount,
+                DepthBias = options.DepthBias,
+                FadeDistance = options.FadeDistance,
+                ViewSize = _renderer.UpdateContext.PassCamera!.ViewSize.ToVector2()
+            };
+
+            _uniforms.Update(data);
 
             _passTarget.RenderTarget!.Begin(camera);
 
@@ -166,25 +180,7 @@ namespace XrEngine.OpenGL
             DrawQuad();
         }
 
-        protected void UpdateUniforms(DirectionalLight light, ContactShadowOptions options)
-        {
-            var lightDir = Vector3.Normalize(-light.Direction);
-
-            var data = new ContactShadowUniforms
-            {
-                LightDirWorld = new Vector4(lightDir, 0.0f),
-                MaxDistance = options.MaxDistance,
-                Thickness = options.Thickness,
-                Strength = options.Strength,
-                StepCount = options.StepCount,
-                DepthBias = options.DepthBias,
-                FadeDistance = options.FadeDistance,
-                ViewSize = _renderer.UpdateContext.PassCamera!.ViewSize.ToVector2()
-            };
-
-            _uniforms.Update(data);
-        }
-
+ 
         public override void Dispose()
         {
             _contactProgram.Dispose();

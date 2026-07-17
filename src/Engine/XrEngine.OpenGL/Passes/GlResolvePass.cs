@@ -22,14 +22,14 @@ namespace XrEngine.OpenGL
             Context.Implement<IToneMapper>(this);
         }
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
 
             Debug.Assert(_renderer.RenderTarget != null);
 
-            _resolve.IsSrgb = !_renderer.UpdateContext.IsSrgb;
+            _resolve.IsSrgb = !ctx.IsSrgb;
             _resolve.ToneMap = _renderer.Options.ToneMap;
             _resolve.ResolveAlpha = false;
 
@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
 
                     def.Resolve(false, def.FrameBuffer, (GlTextureFrameBuffer)_passTarget.FrameBuffer!);
 
-                    _passTarget.RenderTarget!.Begin(ctx.Camera!);
+                    _passTarget.RenderTarget!.Begin(ctx.PassCamera!);
 
                     _resolve.Texture = _passTarget.Color!.ToEngineTexture();
 
@@ -81,7 +81,7 @@ namespace XrEngine.OpenGL
 
                 srcTarget.FrameBuffer.CopyTo(_passTarget.FrameBuffer!);
 
-                _passTarget.RenderTarget!.Begin(ctx.Camera!);
+                _passTarget.RenderTarget!.Begin(ctx.PassCamera!);
 
                 _resolve.Texture = _passTarget.Color!.ToEngineTexture();
 

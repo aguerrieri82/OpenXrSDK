@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
         private readonly Texture2D? _vcmTempTex;
         private string _allLightsHash = "";
         private DirectionalLight? _light;
-        private Camera? _oldCamera;
+
         private long _recLayerVersion = -1;
         private long _castLayerVersion = -1;
         private long _updateFrame;
@@ -35,6 +35,8 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             _mode = renderer.Options.ShadowMap.Mode;
+
+            _flags = GlRenderPassFlags.CustomCamera;
 
             _useShadowSampler = renderer.Options.ShadowMap.UseShadowSampler && _mode != ShadowMapMode.VSM;
 
@@ -85,7 +87,7 @@ namespace XrEngine.OpenGL
                     Width = _renderer.Options.ShadowMap.Size,
                     Height = _renderer.Options.ShadowMap.Size,
                     Format = TextureFormat.RgbaFloat16,
-                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
                     MaxAnisotropy = 16.0f,
                     MipLevelCount = 1
@@ -135,13 +137,13 @@ namespace XrEngine.OpenGL
             return _renderer.Layers.Where(a => a.Type == GlLayerType.CastShadow);
         }
 
-        protected bool UpdateLight()
+        protected bool UpdateLight(GlUpdateContext ctx)
         {
-            if (_allLightsHash != _renderer.UpdateContext.LightsHash)
+            if (_allLightsHash != ctx.LightsHash)
             {
-                _allLightsHash = _renderer.UpdateContext.LightsHash!;
+                _allLightsHash = ctx.LightsHash!;
 
-                _light = _renderer.UpdateContext.Lights?
+                _light = ctx.Lights?
                     .OfType<DirectionalLight>()
                     .FirstOrDefault(a => a.CastShadows);
 
@@ -151,9 +153,9 @@ namespace XrEngine.OpenGL
             return IsEnabled;
         }
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
-            UpdateLight();
+            UpdateLight(ctx);
 
             base.Render(ctx);
         }
@@ -165,14 +167,16 @@ namespace XrEngine.OpenGL
             _lightCamera.CreateViewFromDirection(_light.Direction, Vector3.UnitY);
 
             var options = _renderer.Options.ShadowMap;
-     
+
+            var camera = _renderer.UpdateContext.PassCamera!;
+
             var castBoundsLight = castLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
 
             Bounds3 receiverBoundsLight;
 
             if (options.UseVirtualReceiver)
             {
-                var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints(options.FrustumMaxDistance);
+                var frustumPoints = camera.FrustumPoints(options.FrustumMaxDistance);
                 receiverBoundsLight = frustumPoints.ComputeBounds(_lightCamera.View);
             }
             else
@@ -181,7 +185,7 @@ namespace XrEngine.OpenGL
 
                 if (options.UseFrustumIntersect)
                 {
-                    var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints(options.FrustumMaxDistance);
+                    var frustumPoints = camera.FrustumPoints(options.FrustumMaxDistance);
                     var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
 
                     if (!frustumLightBounds.Intersects(receiveBoundsLight, out receiverBoundsLight))
@@ -223,7 +227,7 @@ namespace XrEngine.OpenGL
             return true;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
             var curMode = _renderer.Options.ShadowMap.Mode;
             if (curMode != _mode)
@@ -246,7 +250,8 @@ namespace XrEngine.OpenGL
                 return false;
 
             var updateInterval = _renderer.Options.ShadowMap.UpdateInterval;
-            if (updateInterval > 0 && (_renderer.UpdateContext.Time - _lastUpdateTime) < updateInterval)
+
+            if (updateInterval > 0 && (ctx.Time - _lastUpdateTime) < updateInterval)
                 return false;
       
             var curLightVers = _light.ContentVersion + _light.Version;
@@ -287,28 +292,26 @@ namespace XrEngine.OpenGL
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            _oldCamera = _renderer.UpdateContext.PassCamera;
-            _renderer.UpdateContext.PassCamera = _lightCamera;
-            _renderer.UpdateContext.ContextVersion++;
+            ctx.PassCamera = _lightCamera;
+            ctx.ContextVersion++;
 
             _recLayerVersion = recLayer.ContentVersion;
             _castLayerVersion = castLayer.ContentVersion;
             _lightVersion = curLightVers;
 
+            _lastUpdateTime = ctx.Time;
 
-            _lastUpdateTime = _renderer.UpdateContext.Time;
-
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
      
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            _renderer.UpdateContext.PassCamera = _oldCamera;
             _renderer.State.SetCullFace(TriangleFace.Back);
 
             if (_mode == ShadowMapMode.VSM)
             {
                 _frameBuffer!.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
+
                 var radius = _renderer.Options.ShadowMap.BlurRadius;
 
                 if (radius > 0)
@@ -327,7 +330,7 @@ namespace XrEngine.OpenGL
 
             _frameBuffer!.Unbind();
 
-            base.EndRender();
+            base.EndRender(ctx);
         }
 
         public DirectionalLight? Light => _light;

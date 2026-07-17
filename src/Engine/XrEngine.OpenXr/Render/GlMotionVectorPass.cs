@@ -8,7 +8,7 @@ using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
-using static XrEngine.Filament.FilamentLib;
+
 
 namespace XrEngine.OpenXr
 {
@@ -21,7 +21,6 @@ namespace XrEngine.OpenXr
         protected bool _multiView;
         protected uint _colorTex;
         protected uint _depthTex;
-        protected Camera? _oldCamera;
         protected readonly GlTexture? _debugColor;
 
         public GlMotionVectorPass(OpenGLRender renderer, XrApp xrApp, bool multiView = false)
@@ -32,6 +31,9 @@ namespace XrEngine.OpenXr
             _multiView = multiView;
             _pool = new GlFrameBufferPool(renderer.GL, multiView);
             _isEditor = XrPlatform.IsEditor;
+
+            _flags = GlRenderPassFlags.CustomCamera;
+
             if (_isEditor)
             {
                 _debugColor = new GlTexture(renderer.GL);
@@ -77,8 +79,10 @@ namespace XrEngine.OpenXr
             return base.UpdateProgram(updateContext, drawMaterial);
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
+            var camera = ctx.PassCamera!;
+
             if (camera.Eyes == null || _colorTex == 0)
                 return false;
 
@@ -87,15 +91,7 @@ namespace XrEngine.OpenXr
             else
                 _renderTarget = _pool.GetRenderTarget(_colorTex, _depthTex, 1, camera.ActiveEye);
 
-            _renderer.UpdateContext.PassCamera = camera.Clone();
-
-            _oldCamera = camera;
-
-            var newCamera = camera.Clone();
-
-            _renderer.UpdateContext.PassCamera = newCamera;
-
-            _renderTarget.Begin(newCamera);
+            _renderTarget.Begin(camera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
@@ -105,24 +101,24 @@ namespace XrEngine.OpenXr
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            MotionVectorEffect.Instance.EndPass(_renderer.UpdateContext.PassCamera!);
+            var camera = ctx.PassCamera!;
+
+            MotionVectorEffect.Instance.EndPass(camera);
 
             _renderTarget?.End(false);
 
-            _renderer.UpdateContext.PassCamera = _oldCamera;
-
-            if (_oldCamera!.ActiveEye == -1 || _oldCamera.ActiveEye == 1)
+            if (camera.ActiveEye == -1 || camera.ActiveEye == 1)
             {
                 _colorTex = 0;
                 _depthTex = 0;
             }
 
-            base.EndRender();
+            base.EndRender(ctx);
         }
 
         protected override ShaderMaterial CreateMaterial()

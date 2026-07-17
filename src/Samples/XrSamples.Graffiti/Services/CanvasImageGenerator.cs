@@ -118,10 +118,11 @@ namespace XrSamples.Graffiti
         {
             var scene = EngineApp.Current!.ActiveScene!;
 
-            var ctx = new RenderContext
+            var ctx = new GlUpdateContext
             {
                 Scene = scene,
-                Camera = scene.ActiveCamera,
+                MainCamera = scene.ActiveCamera,
+                PassCamera = scene.ActiveCamera,    
             };
 
             var canvas = ctx.Scene!.Descendants<PaintCanvas>().First();

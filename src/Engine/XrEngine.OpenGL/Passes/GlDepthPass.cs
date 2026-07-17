@@ -42,20 +42,20 @@ namespace XrEngine.OpenGL
             _lastContentVersion = -1;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            _renderer.RenderTarget!.Begin(camera);
+            _renderer.RenderTarget!.Begin(ctx.PassCamera!);
             _renderer.State.SetWriteDepth(true);
 
             _gl.Clear(ClearBufferMask.DepthBufferBit);
             _gl.DepthFunc(DepthFunction.Less);
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            if (UseDepthCull && _renderer.UpdateContext.PassCamera!.ActiveEye == 0)
+            if (UseDepthCull && ctx.PassCamera!.ActiveEye == 0)
             {
                 UpdateDepthPyramid();
                 UpdateVisibility();
@@ -211,7 +211,6 @@ namespace XrEngine.OpenGL
 
             var camera = _renderer.UpdateContext.PassCamera!;
             var planes = camera.FrustumPlanes(new Plane[6], out var _);
-
 
             _renderer.State.LoadTexture(_depthTexture!, 0);
 

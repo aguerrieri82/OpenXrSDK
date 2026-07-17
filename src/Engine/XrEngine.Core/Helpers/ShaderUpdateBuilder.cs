@@ -90,6 +90,8 @@ namespace XrEngine
 
         public float Time;
 
+        public float DeltaTime;
+
         public bool IsSrgb;
     }
 

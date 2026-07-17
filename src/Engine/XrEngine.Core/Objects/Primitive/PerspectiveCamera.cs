@@ -9,6 +9,12 @@ namespace XrEngine
         protected float _fovDeg;
 
         public PerspectiveCamera()
+            : this(true)
+        {
+        }
+
+        public PerspectiveCamera(bool isInit)
+            : base(isInit)
         {
         }
 
@@ -95,6 +101,7 @@ namespace XrEngine
                 if (_fovDeg == value)
                     return;
                 _fovDeg = value;
+
                 _projDirty = true;
                 _viewProjDirty = true;
             }

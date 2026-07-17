@@ -32,11 +32,11 @@ namespace XrEngine.OpenGL
             draw.Draw!();
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
             Debug.Assert(_programInstance != null);
 
-            _renderer.UpdateContext.Stage = UpdateShaderStage.Shader;
+            ctx.Stage = UpdateShaderStage.Shader;
 
             UseProgram(_programInstance, false);
 
@@ -170,10 +170,10 @@ namespace XrEngine.OpenGL
             return !draw.IsHidden;
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
             _renderer.State.SetActiveProgram(0);
-            _renderer.UpdateContext.ProgramInstanceId = 0;
+            ctx.ProgramInstanceId = 0;
         }
 
         public override void Dispose()

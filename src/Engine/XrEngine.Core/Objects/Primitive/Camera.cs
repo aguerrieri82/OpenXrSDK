@@ -24,19 +24,27 @@ namespace XrEngine
         protected Matrix4x4 _viewProj;
         protected Matrix4x4 _viewProjInverse;
         protected Vector3 _target;
-        protected bool _viewProjDirty = true;
+        protected bool _viewProjDirty;
         protected Size2I _viewSize;
-        protected bool _projDirty = true;
-        protected bool _projInverseDirty = true;
+        protected bool _projDirty;
+        protected bool _projInverseDirty;
         protected float _near;
         protected float _far;
 
         public Camera()
+            : this(true)
         {
-            Near = 0.001f;
-            Far = 10;
-            Exposure = 1;
-            Flags |= EngineObjectFlags.DisableNotifyChangedScene;
+        }
+
+        public Camera(bool isInit)
+        {
+            if (isInit)
+            {
+                Near = 0.001f;
+                Far = 10;
+                Exposure = 1;
+                Flags |= EngineObjectFlags.DisableNotifyChangedScene;
+            }
         }
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)
@@ -78,7 +86,7 @@ namespace XrEngine
 
         public Camera Clone()
         {
-            var camera = (Camera)Activator.CreateInstance(GetType())!;
+            var camera = (Camera)Activator.CreateInstance(GetType(), [false])!;
             camera.CopyFrom(this);
             return camera;
         }
@@ -165,6 +173,7 @@ namespace XrEngine
                     return;
 
                 _proj = value;
+                _projDirty = false;
                 _projInverseDirty = true;
                 _viewProjDirty = true;
                 ExtractProjectionInternals();

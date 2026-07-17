@@ -17,6 +17,7 @@ namespace XrEngine.OpenGL
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
         protected GL _gl;
+        protected GlRenderPassFlags _flags;
 
         public GlBaseRenderPass(OpenGLRender renderer)
         {
@@ -31,7 +32,7 @@ namespace XrEngine.OpenGL
             UseProgram(GetProgramInstance(material), true);
         }
         
-        public virtual void Configure(RenderContext ctx)
+        public virtual void Configure(GlUpdateContext ctx)
         {
         }
 
@@ -44,7 +45,7 @@ namespace XrEngine.OpenGL
             return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);
         }
 
-        public virtual void Render(RenderContext ctx)
+        public virtual void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
@@ -55,28 +56,28 @@ namespace XrEngine.OpenGL
                 _isInit = true;
             }
 
-            if (!BeginRender(ctx.Camera!))
+            if (!BeginRender(ctx))
                 return;
 
             foreach (var layer in SelectLayers())
             {
                 layer.Prepare(ctx);
 
-                if (layer is GlLayer glLayer2)
+                if (layer is GlLayer glLayer)
                 {
-                    RenderLayer(glLayer2);
+                    RenderLayer(glLayer);
                 }
             }
 
-            EndRender();
+            EndRender(ctx);
         }
 
-        protected virtual bool BeginRender(Camera camera)
+        protected virtual bool BeginRender(GlUpdateContext ctx)
         {
             return true;
         }
 
-        protected virtual void EndRender()
+        protected virtual void EndRender(GlUpdateContext ctx)
         {
 
         }
@@ -166,5 +167,7 @@ namespace XrEngine.OpenGL
         public GL Gl => _gl;
 
         public bool IsEnabled { get; set; }
+
+        public GlRenderPassFlags Flags => _flags;
     }
 }

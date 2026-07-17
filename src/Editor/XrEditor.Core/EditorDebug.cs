@@ -41,7 +41,7 @@ namespace XrEditor
 
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+              //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -71,7 +71,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateLightField()  
+              .CreateRoomManager()  
               .Build();
     }
 }

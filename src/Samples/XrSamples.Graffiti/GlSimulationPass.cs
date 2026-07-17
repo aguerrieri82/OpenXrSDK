@@ -262,7 +262,7 @@ namespace XrSamples.Graffiti
         }
 
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
             if (!_isInit)
                 Intialize(ctx);
@@ -308,7 +308,7 @@ namespace XrSamples.Graffiti
         }
 
 
-        protected void Intialize(RenderContext ctx)
+        protected void Intialize(GlUpdateContext ctx)
         {
             _canvas = ctx.Scene!.Descendants<PaintCanvas>().First();
             _brush = ctx.Scene!.Descendants<SprayBrush>().First();
@@ -413,7 +413,7 @@ namespace XrSamples.Graffiti
             _tempDryTex.Clear(Color.Transparent);
         }
 
-        protected void RenderAccumulate(RenderContext ctx)
+        protected void RenderAccumulate(GlUpdateContext ctx)
         {
             _canvas!.Update(ctx, ref _paintUniforms);
 
@@ -439,7 +439,7 @@ namespace XrSamples.Graffiti
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 
-        protected void RenderDry(RenderContext ctx)
+        protected void RenderDry(GlUpdateContext ctx)
         {
             _dryProgram.Use();
 
@@ -451,7 +451,7 @@ namespace XrSamples.Graffiti
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 
-        protected void RenderDrip(RenderContext ctx)
+        protected void RenderDrip(GlUpdateContext ctx)
         {
             _dripProgram.Use();
 
@@ -470,7 +470,7 @@ namespace XrSamples.Graffiti
         }
 
 
-        protected void RenderResolve(RenderContext ctx)
+        protected void RenderResolve(GlUpdateContext ctx)
         {
             _resolveProgram.Use();
 
@@ -518,7 +518,7 @@ namespace XrSamples.Graffiti
             _hasUndo = true;
         }
 
-        protected void RenderSpray(RenderContext ctx)
+        protected void RenderSpray(GlUpdateContext ctx)
         {
             var ray = new Ray3
             {

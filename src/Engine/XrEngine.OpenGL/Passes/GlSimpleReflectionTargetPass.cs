@@ -13,13 +13,14 @@ namespace XrEngine.OpenGL
     public class GlSimpleReflectionTargetPass : GlBaseSingleMaterialPass, IGlDynamicRenderPass<ReflectionTarget>
     {
         private readonly GlRenderPassTarget _passTarget;
-
         private PlanarReflection? _reflection;
-        private Camera? _oldCamera;
 
         public GlSimpleReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
+
+            _flags = GlRenderPassFlags.CustomCamera;
+
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 IsMultiView = PlanarReflection.IsMultiView,
@@ -113,24 +114,22 @@ namespace XrEngine.OpenGL
             return _passTarget.RenderTarget;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            if (camera.Scene == null || _reflection == null)
+            if (ctx.Scene == null || _reflection == null)
                 return false;
 
             if (!_reflection.Host!.IsVisible ||
-                !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes
-                 .AsSpan(0, _renderer.UpdateContext.FrustumPlanesCount)))
+                !_reflection.Host.WorldBounds.IntersectFrustum(ctx.FrustumPlanes
+                 .AsSpan(0, ctx.FrustumPlanesCount)))
             {
                 return false;
             }
 
-            _oldCamera = _renderer.UpdateContext.PassCamera!;
+            _reflection.Update(ctx.MainCamera!, _passTarget.BoundEye);
 
-            _reflection.Update(_oldCamera, _passTarget.BoundEye);
-
-            _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
-            _renderer.UpdateContext.ContextVersion++;
+            ctx.PassCamera = _reflection.ReflectionCamera;
+            ctx.ContextVersion++;
 
             _passTarget.Configure(_reflection.Texture!);
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
@@ -142,16 +141,14 @@ namespace XrEngine.OpenGL
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
             _passTarget.RenderTarget!.End(true);
 
-            _renderer.UpdateContext.PassCamera = _oldCamera;
-
-            base.EndRender();
+            base.EndRender(ctx);
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()

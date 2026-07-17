@@ -419,10 +419,13 @@ namespace XrEngine.OpenGL
 
             UpdateLights(ctx.Scene);
 
-            _updateCtx.PassCamera = ctx.Camera;
             _updateCtx.MainCamera = ctx.Camera;
+            _updateCtx.PassCamera = ctx.Camera;
             _updateCtx.Frame = ctx.Frame;
             _updateCtx.Time = (float)ctx.Time;
+            _updateCtx.Scene = ctx.Scene;
+            _updateCtx.DeltaTime = (float)ctx.DeltaTime;    
+
             _updateCtx.ContextVersion++;
 
             if (!GlState.Current!.Features.TryGetValue(EnableCap.FramebufferSrgb, out _updateCtx.IsSrgb))
@@ -436,15 +439,18 @@ namespace XrEngine.OpenGL
             }
     
             foreach (var pass in _renderPasses)
-                pass.Configure(ctx);
+                pass.Configure(_updateCtx);
 
             foreach (var pass in _renderPasses)
             {
                 _updateCtx.Pass = pass;
 
+                if ((pass.Flags & GlRenderPassFlags.CustomCamera) != 0)
+                    _updateCtx.PassCamera = _updateCtx.MainCamera.Clone();
+      
                 PushGroup($"Pass {pass.GetType().Name}");
 
-                pass.Render(ctx);
+                pass.Render(_updateCtx);
 
                 PopGroup();
             }

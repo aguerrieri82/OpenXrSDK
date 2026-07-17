@@ -8,6 +8,7 @@
     public abstract class GlBaseRenderPassGroup<TPass, TOptions> : IGlRenderPass where TPass : IGlDynamicRenderPass<TOptions>
     {
         protected readonly OpenGLRender _renderer;
+        protected GlRenderPassFlags _flags;
 
         public GlBaseRenderPassGroup(OpenGLRender renderer)
         {
@@ -15,11 +16,11 @@
             IsEnabled = true;
         }
 
-        protected abstract IEnumerable<TOptions> GetPasses(RenderContext ctx);
+        protected abstract IEnumerable<TOptions> GetPasses(GlUpdateContext ctx);
 
         protected abstract TPass ConfigurePass(TOptions options);
 
-        public void Configure(RenderContext ctx)
+        public void Configure(GlUpdateContext ctx)
         {
         }
 
@@ -27,7 +28,7 @@
         {
         }
 
-        public void Render(RenderContext ctx)
+        public void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
@@ -42,6 +43,8 @@
         }
 
         public bool IsEnabled { get; set; }
+
+        public GlRenderPassFlags Flags => _flags;
 
     }
 }

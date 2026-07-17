@@ -2,6 +2,8 @@
 {
     public class GlUpdateContext : UpdateShaderContext
     {
+        public Scene3D? Scene;
+
         public uint ProgramInstanceId;
 
         public long ImageLightVersion;

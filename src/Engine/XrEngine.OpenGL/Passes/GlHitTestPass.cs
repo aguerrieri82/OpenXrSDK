@@ -112,10 +112,12 @@ namespace XrEngine.OpenGL
             );
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
             if (_renderer.RenderTarget!.Flags != GlRenderTargetFlags.Main)
                 return false;
+
+            var camera = ctx.PassCamera!;
 
             _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.RgUint32);
 
@@ -124,7 +126,6 @@ namespace XrEngine.OpenGL
 
             _lastSize = camera.ViewSize;
 
-       
             _passTarget.RenderTarget.Begin(camera);
             _passTarget.FrameBuffer!.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
 
@@ -140,10 +141,10 @@ namespace XrEngine.OpenGL
 
             _lastViewProjInv = camera.ViewProjectionInverse;
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
             _passTarget.RenderTarget!.End(false);
         }

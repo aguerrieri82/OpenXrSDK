@@ -158,21 +158,6 @@ namespace XrEngine.Browser.Win
             handler.UpdateTexture((uint)tex.Handle);
         }
 
-        private void EnsureTexture(Texture2D tex)
-        {
-            if (tex.Handle == 0)
-                return;
-
-            if (tex.Width == Size.Width && tex.Height == Size.Height)
-                return;
-
-            tex.Width = Size.Width;
-            tex.Height = Size.Height;
-            tex.Format = TextureFormat.Bgra32;
-
-            tex.NotifyChanged();
-        }
-
         private void OnFrameLoad(object? sender, FrameLoadStartEventArgs e)
         {
             if (e.Frame.IsMain)

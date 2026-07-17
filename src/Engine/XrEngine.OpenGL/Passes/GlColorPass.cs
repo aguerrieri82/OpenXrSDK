@@ -25,9 +25,9 @@ namespace XrEngine.OpenGL
 #endif
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            GetRenderTarget()!.Begin(camera);
+            GetRenderTarget()!.Begin(ctx.PassCamera!);
 
             if (_renderer.Options.UseDepthPass)
             {
@@ -36,7 +36,7 @@ namespace XrEngine.OpenGL
                 _gl.DepthFunc(DepthFunction.Lequal);
             }
             else
-                _renderer.Clear(_renderer.UpdateContext.PassCamera!.BackgroundColor);
+                _renderer.Clear(ctx.PassCamera!.BackgroundColor);
 
             _frame++;
 
@@ -50,12 +50,10 @@ namespace XrEngine.OpenGL
                                                (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline));
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-
-
-            // _renderer.State.SetActiveProgram(0);
-            // _renderer.RenderTarget!.End(false);
+            _renderer.State.SetActiveProgram(0);
+            //_renderer.RenderTarget!.End(false);
         }
 
         protected virtual bool CanDraw(DrawContent draw)

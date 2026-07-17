@@ -17,10 +17,10 @@ namespace XrEngine.OpenGL
         protected readonly GlRenderPassTarget? _tempTarget;
         protected readonly OutlineEffect _outlineMat;
         protected Bounds2 _bounds;
-        protected Size2I _lastCameraSize;
         protected Size2I _frameSize;
         protected readonly float _downsampleFactor;
         protected readonly bool _isDownsample;
+
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)
@@ -30,6 +30,8 @@ namespace XrEngine.OpenGL
             _downsampleFactor = _renderer.Options.Outline.DownsampleFactor;
 
             _isDownsample = _downsampleFactor > 1f;
+
+            _flags = GlRenderPassFlags.CustomCamera;
 
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
@@ -64,7 +66,7 @@ namespace XrEngine.OpenGL
             return _passTarget.RenderTarget;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
 
             if (Source == null)
@@ -80,7 +82,7 @@ namespace XrEngine.OpenGL
             if (!Source.HasOutlines())
                 return false;
 
-            _lastCameraSize = camera.ViewSize;
+            var camera = ctx.PassCamera!;
 
             _frameSize = new Size2I((uint)(camera.ViewSize.Width / _downsampleFactor), (uint)(camera.ViewSize.Height / _downsampleFactor));
 
@@ -101,7 +103,7 @@ namespace XrEngine.OpenGL
                 Max = new Vector2(float.NegativeInfinity, float.NegativeInfinity)
             };
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
@@ -125,9 +127,9 @@ namespace XrEngine.OpenGL
             return UpdateProgramResult.Unchanged;
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            var camera = _renderer.UpdateContext.PassCamera!;
+            var camera = ctx.PassCamera!;
 
             _passTarget.RenderTarget!.End(false);
 
@@ -166,8 +168,6 @@ namespace XrEngine.OpenGL
             {
                 _tempTarget!.RenderTarget!.End(false);
 
-                camera.ViewSize = _lastCameraSize;
-
                 _renderer.RenderTarget!.Begin(camera);
 
                 if (UseScissor)
@@ -181,6 +181,7 @@ namespace XrEngine.OpenGL
 
             if (UseScissor)
                 _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
+
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()

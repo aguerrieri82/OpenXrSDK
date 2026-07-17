@@ -26,6 +26,9 @@ namespace XrEngine.OpenGL
 
         public GlSwapTexture(GlTexture main)
         {
+            if (main.InternalFormat == 0)
+                throw new InvalidOperationException();
+
             _main = main;
 
             _temp = new GlTexture(_main.GL)
@@ -93,5 +96,7 @@ namespace XrEngine.OpenGL
         }
 
         public GlTexture Active => _activeTex;
+
+        public GlTexture Main => _main;
     }
 }

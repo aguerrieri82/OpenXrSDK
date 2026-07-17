@@ -339,11 +339,11 @@ namespace XrEngine.OpenGL
 
         }
 
-        public void Prepare(RenderContext ctx)
+        public void Prepare(GlUpdateContext ctx)
         {
-            var curCamera = _render.UpdateContext.PassCamera!;
+            var camera = ctx.PassCamera!;
 
-            if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
+            if (ctx.Frame == _lastFrame && camera == _lastCamera)
                 return;
 
             //Update();
@@ -353,8 +353,8 @@ namespace XrEngine.OpenGL
 
             if (_render.Options.FrustumCulling)
             {
-                _render.UpdateContext.FrustumPlanes = curCamera.FrustumPlanes(_render.UpdateContext.FrustumPlanes, out var count);
-                _render.UpdateContext.FrustumPlanesCount = count;
+                ctx.FrustumPlanes = camera.FrustumPlanes(ctx.FrustumPlanes, out var count);
+                ctx.FrustumPlanesCount = count;
             }
 
 
@@ -363,7 +363,7 @@ namespace XrEngine.OpenGL
             UpdateVertexHandlers();
 
             _lastFrame = ctx.Frame;
-            _lastCamera = curCamera;
+            _lastCamera = camera;
 
             _isContentDirty = false;
         }

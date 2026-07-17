@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
             _quod = quod;
         }
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
             if (!_quod.EnableDepthCull || _quod.ActiveTexture == null || _quod.DrawTexture == null)
                 return;
 
-            var camera = _renderer.UpdateContext.PassCamera!;
+            var camera = ctx.PassCamera!;
 
             if (XrApp.Current == null)
                 return;

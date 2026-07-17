@@ -27,9 +27,9 @@ namespace XrEngine.OpenXr
 
             renderer.PushGroup("GlQuodCullPass");
 
-            pass.Render(new RenderContext
+            pass.Render(new GlUpdateContext
             {
-                Camera = ((Object3D)texture).Scene!.ActiveCamera
+                MainCamera = ((Object3D)texture).Scene!.ActiveCamera
             });
 
             renderer.PopGroup();

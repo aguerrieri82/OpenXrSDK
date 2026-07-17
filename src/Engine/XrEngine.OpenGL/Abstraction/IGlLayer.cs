@@ -19,7 +19,7 @@
     {
         void Rebuild();
 
-        void Prepare(RenderContext ctx);
+        void Prepare(GlUpdateContext ctx);
 
         string? Name { get; }
 

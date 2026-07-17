@@ -155,7 +155,7 @@ namespace XrSamples.Graffiti
             UndoRequest = true;
         }
 
-        public void Update(RenderContext ctx, ref PaintSimUniforms block)
+        public void Update(GlUpdateContext ctx, ref PaintSimUniforms block)
         {
             _can ??= _scene!.Descendants<Can>().First()!;
 

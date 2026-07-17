@@ -22,6 +22,7 @@
             : base(renderer)
         {
             UseMultiviewTarget = true;
+            _flags = GlRenderPassFlags.CustomCamera;
         }
 
         protected override IGlDynamicRenderPass<ReflectionTarget> ConfigurePass(ReflectionTarget options)
@@ -38,7 +39,7 @@
             return _simple;
         }
 
-        protected override IEnumerable<ReflectionTarget> GetPasses(RenderContext ctx)
+        protected override IEnumerable<ReflectionTarget> GetPasses(GlUpdateContext ctx)
         {
             var layer = ctx.Scene!.EnsureLayer<HasReflectionLayer>();
 

@@ -15,17 +15,19 @@ namespace XrEngine.OpenGL
         static readonly Bounds3 _clipSpace = new Bounds3() { Min = -Vector3.One, Max = Vector3.One };
 
         private readonly GlRenderPassTarget _passTarget;
-
         private PlanarReflection? _reflection;
-        private Camera? _oldCamera;
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
         private GlSwapTexture? _swap;
+
 
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
             PbrMaterial.ForceIblTransform = true;
+
+            _flags = GlRenderPassFlags.CustomCamera;
+
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 IsMultiView = PlanarReflection.IsMultiView,
@@ -84,16 +86,21 @@ namespace XrEngine.OpenGL
             _renderer.State.EnableFeature(EnableCap.ClipDistance0, true);
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-
-            if (camera.Scene == null || _reflection == null )
+            if (ctx.Scene == null || _reflection == null )
                 return false;
 
             if (!_reflection.Host!.IsVisible)
                 return false;
 
-            _reflection.Update(camera, _passTarget.BoundEye);
+            _reflection.Update(ctx.PassCamera!, _passTarget.BoundEye);
+
+            if (_swap != null && _swap.Main.Handle == 0)
+            {
+                _swap.Dispose();
+                _swap = null;
+            }
 
             _swap ??= new GlSwapTexture(_reflection.Texture!);
 
@@ -106,10 +113,8 @@ namespace XrEngine.OpenGL
             if (!_reflection.ClipBounds.Intersects(_clipSpace))
                 return false;
 
-            _oldCamera = camera;
-
-            _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
-            _renderer.UpdateContext.ContextVersion++;
+            ctx.PassCamera = _reflection.ReflectionCamera;
+            ctx.ContextVersion++;
 
             _passTarget.Configure(_swap.Active);
 
@@ -122,16 +127,16 @@ namespace XrEngine.OpenGL
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            ProcessImageLight();
+            ProcessImageLight(ctx);
 
             return true;
         }
 
-        protected void ProcessImageLight()
+        protected void ProcessImageLight(GlUpdateContext ctx)
         {
             if (_reflection!.AdjustIbl)
             {
-                _imageLight = _renderer.UpdateContext.Lights?.OfType<ImageLight>().FirstOrDefault();
+                _imageLight = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
 
                 if (_imageLight != null)
                 {
@@ -155,11 +160,10 @@ namespace XrEngine.OpenGL
                 _imageLight = null;
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
             _passTarget.RenderTarget!.End(true);
 
-            _renderer.UpdateContext.PassCamera = _oldCamera;
 
             if (_imageLight != null)
             {
