@@ -24,7 +24,7 @@ namespace XrEditor
 
         public static readonly bool DebugEnabled = false;
 
-        public static readonly bool DisableDualRender = false;
+        public static readonly bool DisableDualRender = true;
 
         public static readonly int VSyncScale = 3; 
 
@@ -41,7 +41,7 @@ namespace XrEditor
 
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {

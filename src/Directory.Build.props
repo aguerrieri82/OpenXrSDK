@@ -23,6 +23,7 @@
 		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
 		<FilamentLink>PreBuilt</FilamentLink>
 		<_DefineConstants>$(DefineConstants);GL_WRAPPER</_DefineConstants>
+		<AndroidNativeOutDir>$(ProjectDir)libs\arm64-v8a\</AndroidNativeOutDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -54,4 +55,19 @@
 						  ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<AndroidBuildOutput Include="$(AndroidNativeOutDir)*.so" />
+	</ItemGroup>
+
+	<Target
+		Name="RunAndroidBuildScript"
+		BeforeTargets="Build"
+		Condition="Exists('$(ProjectDir)android-build.cmd')"
+		Inputs="@(ClCompile);@(ClInclude);$(ProjectDir)android-build.cmd"
+		Outputs="@(AndroidBuildOutput)">
+
+		<Exec
+			Command="call &quot;$(ProjectDir)android-build.cmd&quot;"
+			WorkingDirectory="$(ProjectDir)" />
+	</Target>
 </Project>

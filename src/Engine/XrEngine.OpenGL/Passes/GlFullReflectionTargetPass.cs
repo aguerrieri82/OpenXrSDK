@@ -94,7 +94,7 @@ namespace XrEngine.OpenGL
             if (!_reflection.Host!.IsVisible)
                 return false;
 
-            _reflection.Update(ctx.PassCamera!, _passTarget.BoundEye);
+            _reflection.Update(ctx.MainCamera!, _passTarget.BoundEye);
 
             if (_swap != null && _swap.Main.Handle == 0)
             {

@@ -447,7 +447,10 @@ namespace XrEngine.OpenGL
 
                 if ((pass.Flags & GlRenderPassFlags.CustomCamera) != 0)
                     _updateCtx.PassCamera = _updateCtx.MainCamera.Clone();
-      
+                else
+                    _updateCtx.PassCamera = _updateCtx.MainCamera;
+
+
                 PushGroup($"Pass {pass.GetType().Name}");
 
                 pass.Render(_updateCtx);

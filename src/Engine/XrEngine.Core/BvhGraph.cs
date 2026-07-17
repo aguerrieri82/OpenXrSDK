@@ -11,7 +11,7 @@ namespace XrEngine
             Bounds = value.WorldBounds;
             Value = value;
         }
-
+         
         public BvhNode(BvhNode<T> left, BvhNode<T> right)
         {
             Left = left;
