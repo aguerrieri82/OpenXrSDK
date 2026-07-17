@@ -40,7 +40,10 @@ namespace XrEngine.Lighting
             _fieldData = new LightFieldData();
 
             _ctxProvider = Context.Require<IGlContextProvider>();
-            _workerCtx = _ctxProvider.CreateShared();
+
+            if (!XrEngine.EngineNativeLib.RdcIsAttached())
+                _workerCtx = _ctxProvider.CreateShared();
+
             _gpuVoxelizer = new GpuMeshVoxelizer(OpenGLRender.Current!.GL);
 
             MaxUpdateInterval = 0;
@@ -71,10 +74,14 @@ namespace XrEngine.Lighting
         {
             if (_ctxProvider.Current == null)
             {
-                _workerCtx.Take();
-                OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl);
+                if (_workerCtx == null)
+                    await EngineApp.MainThread;
+                else
+                {
+                    _workerCtx.Take();
+                    OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl);
+                }
             }
-
 
             bool profileDirty = _lastProfileVersion != _profileVersion;
             bool gridDirty = false;
@@ -161,7 +168,7 @@ namespace XrEngine.Lighting
             finally
             {
                 if (_ctxProvider.Current == _workerCtx)
-                    _workerCtx.Release();
+                    _workerCtx?.Release();
             }
 
             bool lightDirty = meshDirty || gridDirty || profileDirty;

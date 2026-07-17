@@ -481,7 +481,7 @@ namespace XrEngine.OpenGL
                 return;
 
             _gl.BindBufferBase(target, (uint)slot, buffer.Handle);
-            buffer.Slot = slot;
+            buffer.ActiveSlot = slot;
 
             slots[slot] = buffer.Handle;
         }

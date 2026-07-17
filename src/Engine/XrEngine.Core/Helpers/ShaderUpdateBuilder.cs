@@ -129,13 +129,14 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, BufferStore store) where T : struct
+        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, 
+            BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
         {
             IBuffer<T>? buffer = null;
 
             _result.BufferUpdates!.Add((ctx) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
 #if GL_WRAPPER
                 buffer.Update(() =>
@@ -158,7 +159,7 @@ namespace XrEngine
 
             _result.Actions!.Add((ctx, up) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
                 up.LoadBuffer(buffer, slot);
             });

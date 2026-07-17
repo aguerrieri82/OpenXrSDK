@@ -274,32 +274,36 @@ namespace XrEditor
                     Thread.Sleep(50);
                 else
                 {
-                    _renderSurface.BeginFrame(_engine.App.Stats.Frame);
+                    bool skipSurface = false;
 
                     if (_engine.XrApp.IsStarted)
                     {
                         try
                         {
-
                             _engine.XrApp.RenderFrame(_engine.XrApp.ReferenceSpace);
                         }
                         catch
                         {
                         }
 
-                        if (_renderSurface.SupportsDualRender && !EditorDebug.DisableDualRender)
-                        {
-                            _camera.IsStereo = false;
-                            _render.SetRenderTarget(null);
-                            _scene.App.RenderScene(_camera);
-                        }
+                        skipSurface = !_renderSurface.SupportsDualRender || EditorDebug.DisableDualRender;
                     }
-                    else
-                        _scene.App.RenderFrame(_camera);
 
-                    _renderSurface.EndFrame();
+                    if (!skipSurface)
+                    {
+                        _camera.IsStereo = false;
 
-                    _renderSurface.SwapBuffers();
+                        _renderSurface.BeginFrame(_engine.App.Stats.Frame);
+
+                        if (_engine.XrApp.IsStarted)
+                            _scene.App.RenderScene(_camera);
+                        else
+                            _scene.App.RenderFrame(_camera);
+
+                        _renderSurface.EndFrame();
+
+                        _renderSurface.SwapBuffers();
+                    }
 
                     OnPropertyChanged(nameof(Stats));
                 }

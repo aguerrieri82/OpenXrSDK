@@ -124,7 +124,7 @@ namespace XrEngine.OpenGL
             if (EnableDebug)
                 GlDebug.Log(this, "Update VA {0}", _handle);
 
-            _vBuf.UpdateRange(vertices);
+            _vBuf.UpdateRange(vertices, 0, false);
             _vBuf.ArrayLength = (uint)vertices.Length;
 
             var hasIndices = indices != null && indices.Length > 0;
@@ -147,7 +147,7 @@ namespace XrEngine.OpenGL
                     _iBuf.Unbind();
                 }
                 else
-                    _iBuf.UpdateRange(indices!);
+                    _iBuf.UpdateRange(indices!, 0, false);
 
                 _iBuf.ArrayLength = (uint)indices!.Length;
 

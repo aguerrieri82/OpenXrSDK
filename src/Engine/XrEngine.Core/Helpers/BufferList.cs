@@ -25,7 +25,7 @@
         }
 
 
-        public unsafe bool Remove(int index)
+        public bool Remove(int index)
         {
             if (index < 0 || index >= _capacity)
                 return false;

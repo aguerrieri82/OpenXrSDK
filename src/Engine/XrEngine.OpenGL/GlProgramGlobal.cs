@@ -61,7 +61,7 @@ namespace XrEngine.OpenGL
             UpdateBuffers(ctx);
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage) 
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");

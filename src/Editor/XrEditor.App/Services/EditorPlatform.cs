@@ -48,7 +48,12 @@ namespace XrEditor
         public IRenderSurface CreateRenderSurface(GraphicDriver driver)
         {
             if (driver == GraphicDriver.OpenGL)
-                _renderSurface = new GlDxRenderHost(true, _useEs);
+            {
+                if (EngineNativeLib.RdcIsAttached())
+                    _renderSurface = new GlRenderHost(true, _useEs);
+                else
+                    _renderSurface = new GlDxRenderHost(true, _useEs);
+            }
             else if (driver == GraphicDriver.FilamentOpenGL)
                 _renderSurface = new FlGlRenderHost();
             else

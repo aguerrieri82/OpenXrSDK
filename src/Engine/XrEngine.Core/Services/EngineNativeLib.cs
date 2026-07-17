@@ -89,6 +89,9 @@ namespace XrEngine
         [DllImport(LibName)]
         public static extern int RdcEndFrameCapture(bool launchReplay);
 
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool RdcIsAttached();
 
     }
 }

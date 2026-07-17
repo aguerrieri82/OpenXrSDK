@@ -14,15 +14,22 @@ namespace XrEngine.OpenGL
         protected string? _label;
         protected readonly IGlContext _owner;
 
+        static HashSet<GlObject> _catalog = [];
+
+
         protected GlObject(GL gl)
         {
             _gl = gl;
             _owner = Context.Require<IGlContextProvider>().Current!;
             EnableDebug = true;
+
+            _catalog.Add(this);
         }
 
         public virtual void Dispose()
         {
+            _catalog.Remove(this);
+
             if (_handle != 0)
             {
                 ObjectBinder.Unbind(this);

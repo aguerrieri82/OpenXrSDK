@@ -1,5 +1,6 @@
-﻿using Common.Interop;
+﻿
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XrMath;
 using XrMath.Entities;
@@ -76,48 +77,23 @@ namespace XrEngine
 
         #region LightListUniforms
 
-        [StructLayout(LayoutKind.Explicit)]
-        public struct LightListUniforms : IDynamicBuffer
+        [InlineArray(LightListUniforms.Max)]
+        public struct LightUniformsArray
         {
-            public static int Max = 10;
+            private LightUniforms _element0;
+        }
 
-            static DynamicBuffer _buffer;
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct LightListUniforms
+        {
+            public const int Max = 10;
 
             [FieldOffset(0)]
             public uint Count;
 
             [FieldOffset(16)]
-            public LightUniforms[] Lights;
-
-            public unsafe DynamicBuffer GetBuffer()
-            {
-                if (Lights.Length > Max)
-                    throw new InvalidOperationException("Too many point lights");
-
-                var newSize = (sizeof(LightUniforms) * Max) + 16;
-
-                if (_buffer.Size != newSize)
-                {
-                    if (_buffer.Data != 0)
-                        MemoryManager.Free(_buffer.Data);
-
-                    _buffer.Size = (uint)newSize;
-                    _buffer.Data = MemoryManager.Allocate((int)_buffer.Size, this);
-                }
-
-                ((int*)_buffer.Data)[0] = Lights.Length;
-
-                fixed (LightUniforms* pArray = Lights)
-                {
-                    var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
-                    var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
-                    srcSpan.CopyTo(dstSpan);
-                }
-
-                //Log.Debug(this, "Update light buffer");
-
-                return _buffer;
-            }
+            public LightUniformsArray Lights;
         }
 
         #endregion
@@ -186,16 +162,16 @@ namespace XrEngine
 
         #endregion
 
-        #region PbrV2Shader
+        #region PbrShader
 
-        public class PbrV2Shader : Shader, IShaderHandler, IInstanceShader
+        public class PbrShader : Shader, IShaderHandler, IInstanceShader
         {
             long _iblVersion = -1;
             ILightFieldProvider? _lightFieldProvider;
 
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
 
-            public PbrV2Shader()
+            public PbrShader()
             {
                 UseDepthCulling = true;
             }
@@ -399,32 +375,38 @@ namespace XrEngine
 
                     ctx.CurrentBuffer!.Version = curVer;
 
-                    var lights = new List<LightUniforms>();
+                    var result = new LightListUniforms();
+
+                    int count = 0;
 
                     foreach (var light in bld.Context.Lights!)
                     {
                         if (light is PointLight point)
                         {
-                            lights.Add(new LightUniforms
+                            result.Lights[count] = new LightUniforms
                             {
                                 Type = 0,
                                 Color = ((Vector3)point.Color) * point.Intensity,
                                 Position = point.WorldPosition,
                                 Range = point.Range
-                            });
+                            };
+
+                            count++;
                         }
                         else if (light is DirectionalLight directional)
                         {
-                            lights.Add(new LightUniforms
+                            result.Lights[count] = new LightUniforms
                             {
                                 Type = 1,
                                 Color = ((Vector3)directional.Color) * directional.Intensity,
                                 Direction = Vector3.Normalize(directional.Direction)
-                            });
+                            };
+
+                            count++;
                         }
                         else if (light is SpotLight spot)
                         {
-                            lights.Add(new LightUniforms
+                            result.Lights[count] = new LightUniforms
                             {
                                 Type = 2,
                                 Range = spot.Range,
@@ -433,15 +415,18 @@ namespace XrEngine
                                 InConeCos = MathF.Cos(spot.InnerConeAngle),
                                 OutConeCos = MathF.Cos(spot.OuterConeAngle),
                                 Position = spot.WorldPosition,
-                            });
+                            };
+                            count++;
                         }
+
+                        if (count >= LightListUniforms.Max)
+                            throw new InvalidOperationException("Max lights reached");
                     }
 
-                    return (LightListUniforms?)new LightListUniforms
-                    {
-                        Count = (uint)lights.Count,
-                        Lights = lights.ToArray()
-                    };
+                    result.Count = (uint)count;
+
+                    return (LightListUniforms?)result;
+
                 }, UniformsSlots.Lights, BufferStore.Shader);
 
 
@@ -559,11 +544,11 @@ namespace XrEngine
         #endregion
 
 
-        public static readonly PbrV2Shader SHADER;
+        public static readonly PbrShader SHADER;
 
         static PbrMaterial()
         {
-            SHADER = new PbrV2Shader
+            SHADER = new PbrShader
             {
                 FragmentSourceName = "Pbr/pbr_gpt.frag",
                 VertexSourceName = "Pbr/pbr.vert",
@@ -798,7 +783,7 @@ namespace XrEngine
                 bld.LoadTexture(ctx => EmissiveMap, TextureSlots.Emissive);
             }
 
-            if (UseLightField != UseLightFieldMode.None && ((PbrV2Shader)_shader!).UseLightField)
+            if (UseLightField != UseLightFieldMode.None && ((PbrShader)_shader!).UseLightField)
             {
                 bld.AddFeature("USE_LIGHT_FIELD");
 

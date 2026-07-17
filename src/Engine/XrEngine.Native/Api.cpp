@@ -155,7 +155,8 @@ int RdcEndFrameCapture(bool launchReplay) {
 
     auto rdoc = GetRenderDoc();
 
-    if (rdoc) {
+    if (rdoc) 
+    {
         rdoc->EndFrameCapture(nullptr, nullptr);
 
         if (launchReplay) {
@@ -171,3 +172,7 @@ int RdcEndFrameCapture(bool launchReplay) {
     return -1;
 }
 
+bool RdcIsAttached()
+{
+    return GetRenderDoc() != nullptr;
+}

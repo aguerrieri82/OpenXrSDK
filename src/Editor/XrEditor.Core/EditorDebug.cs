@@ -22,9 +22,9 @@ namespace XrEditor
 
         public static readonly bool DebugSync = true;
 
-        public static readonly bool DebugEnabled = true;
+        public static readonly bool DebugEnabled = false;
 
-        public static readonly bool DisableDualRender = true;
+        public static readonly bool DisableDualRender = false;
 
         public static readonly int VSyncScale = 3; 
 
@@ -66,7 +66,6 @@ namespace XrEditor
                   opt.ContactShadow.IsMultiView = false;
 
                   opt.UseResolve = false;
-                  opt.UseSRGB = false;
                   opt.ToneMap = ToneMapMode.Neutral;
 
               })

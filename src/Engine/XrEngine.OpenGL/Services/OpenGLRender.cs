@@ -427,15 +427,14 @@ namespace XrEngine.OpenGL
 
             if (!GlState.Current!.Features.TryGetValue(EnableCap.FramebufferSrgb, out _updateCtx.IsSrgb))
                 _updateCtx.IsSrgb = false;
-            /*
+
             if (_updateCtx.IsSrgb && RenderTarget is IGlFrameBufferProvider prov)
             {
                 var color = prov.FrameBuffer.Color;
                 if (color != null && !color.InternalFormat.IsSrgb())
                     _updateCtx.IsSrgb = false;
             }
-            */
-
+    
             foreach (var pass in _renderPasses)
                 pass.Configure(ctx);
 
@@ -458,8 +457,6 @@ namespace XrEngine.OpenGL
                 _gl.Flush();
 
             PopGroup();
-
-            //new GlBenchmark(_gl).Bench();   
         }
 
         public void SetRenderTarget(Texture2D? texture)

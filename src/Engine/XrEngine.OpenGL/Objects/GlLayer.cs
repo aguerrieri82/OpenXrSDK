@@ -493,7 +493,7 @@ namespace XrEngine.OpenGL
                         continue;
 
                     draw.InstanceVersion = instanceShader.Update(buffer, draw.Object!, draw.Id);
-                    verContent.InstanceBuffer!.UpdateRange(new ReadOnlySpan<byte>(buffer, elSize), i);
+                    verContent.InstanceBuffer!.UpdateRange(new ReadOnlySpan<byte>(buffer, elSize), i, true);
                 }
 
                 verContent.InstanceBuffer!.EndUpdate();

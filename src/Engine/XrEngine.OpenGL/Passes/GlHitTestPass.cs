@@ -35,10 +35,13 @@ namespace XrEngine.OpenGL
             if (x >= _lastSize.Width || y >= _lastSize.Height)
                 return result;
 
+            float depth = 1f;
+
             var ids = new uint[2];
             var normal = Vector3.Zero;
-            float depth = 1;
             var txY = _lastSize.Height - y;
+
+            GlState.Current!.BindBuffer(BufferTargetARB.PixelPackBuffer, 0, true);
 
             _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment0);
 

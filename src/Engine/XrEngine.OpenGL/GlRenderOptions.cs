@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
                 DownsampleFactor = 1.5f
             };
 
-            UseSRGB = true;
+            UseSRGB = false;
             ToneMap = ToneMapMode.Neutral;
             UseResolve = false;
         }

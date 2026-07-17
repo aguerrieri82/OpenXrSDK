@@ -15,15 +15,23 @@ namespace XrEditor
 {
     public partial class App : Application
     {
-        private readonly MainView _main;
+        private MainView? _main;
         private readonly WpfViewManager _viewManager;
         private readonly MainDispatcher _mainDispatcher;
 
         public App()
         {
+            DispatcherUnhandledException += (sender, e) =>
+            {
+                Log.Warn(sender, e.Exception.Message);
+                MessageBox.Show(e.Exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                e.Handled = true; 
+            };
+
             Gpu.EnableNvAPi();
 
-            NvidiaProfiles.DisableOpenGlThreadedOptimization();
+            if (!EngineNativeLib.RdcIsAttached())
+                NvidiaProfiles.DisableOpenGlThreadedOptimization();
 
             _viewManager = new WpfViewManager();
             _mainDispatcher = new MainDispatcher();
@@ -49,27 +57,19 @@ namespace XrEditor
             ModuleManager.Ref<PlotPanel>();
             ModuleManager.Ref<LoopEditorPanel>();
 
-            _main = new MainView(EditorDebug.Driver);
-
-            //GlDebug.Logger = (s, m, a) => Log.Debug(s, m, a);
-
             MainWindow = new Window
             {
                 Title = "Xr Editor",
-                Content = _main
             };
-
-            _main.Host = new WpfWindow(MainWindow);
-            _main.LoadState();
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            DispatcherUnhandledException += (sender, e) =>
-            {
-                Log.Warn(sender, e.Exception.Message);
-                e.Handled = true; // Prevent crash
-            };
+            _main = new MainView(EditorDebug.Driver);
+            _main.Host = new WpfWindow(MainWindow);
+            _main.LoadState();
+
+            MainWindow.Content = _main;
 
             foreach (var res in _viewManager.Resources)
                 Resources.MergedDictionaries.Add(res);
@@ -77,6 +77,7 @@ namespace XrEditor
             MainWindow.Style = Resources["CustomWindowStyle"] as Style;
             MainWindow.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/XrEditor.ico", UriKind.RelativeOrAbsolute));
             MainWindow.Show();
+
             base.OnStartup(e);
         }
 

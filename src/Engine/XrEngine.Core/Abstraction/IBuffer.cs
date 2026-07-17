@@ -19,7 +19,7 @@
 
         void Update(Func<object?> value);
 
-        void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0);
+        void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0, bool preserve = true);
 
         void Allocate(uint sizeInByte);
 
@@ -38,7 +38,7 @@
 
         void Update(T value);
 
-        void UpdateRange(ReadOnlySpan<T> value, int dstIndex);
+        void UpdateRange(ReadOnlySpan<T> value, int dstIndex = 0, bool preserve = true);
 
         void ReadArray(ref T[] result);
     }

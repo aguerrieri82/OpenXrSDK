@@ -11,13 +11,20 @@ extern "C" {
 	EXPORT void APIENTRY SleepFor(uint64_t timeNs);
 
 	EXPORT uint64_t APIENTRY Now();
-
-	EXPORT int APIENTRY RdcTriggerCapture();
-
-	EXPORT int APIENTRY RdcEndFrameCapture(bool launchReplay);
-
-	EXPORT int APIENTRY RdcStartFrameCapture();
 }
+
+
+extern "C" {
+
+    EXPORT int APIENTRY RdcTriggerCapture();
+
+    EXPORT int APIENTRY RdcEndFrameCapture(bool launchReplay);
+
+    EXPORT int APIENTRY RdcStartFrameCapture();
+
+    EXPORT bool APIENTRY RdcIsAttached();
+}
+
 
 
 extern "C" {

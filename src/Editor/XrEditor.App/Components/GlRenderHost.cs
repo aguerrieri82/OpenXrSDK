@@ -451,6 +451,8 @@ namespace XrEditor
 
         public override void BeginFrame(long frameNum)
         {
+            OpenGLRender.Current!.SetRenderTarget((IGlRenderTarget?)null);
+
             OpenGLRender.Current!.PushGroup($"Begin frame {frameNum}");
         }
 
