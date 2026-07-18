@@ -36,7 +36,7 @@ namespace XrEditor
             _viewManager = new WpfViewManager();
             _mainDispatcher = new MainDispatcher();
 
-            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor", EditorDebug.UseEs);
+            XrPlatform.Current = new EditorPlatform(EditorDebug.PersistentPath, EditorDebug.UseEs);
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeManager>();
@@ -65,8 +65,10 @@ namespace XrEditor
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            _main = new MainView(EditorDebug.Driver);
-            _main.Host = new WpfWindow(MainWindow);
+            _main = new MainView(EditorDebug.Driver)
+            {
+                Host = new WpfWindow(MainWindow)
+            };
             _main.LoadState();
 
             MainWindow.Content = _main;
@@ -81,11 +83,20 @@ namespace XrEditor
             base.OnStartup(e);
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        protected override async void OnExit(ExitEventArgs e)
         {
             _mainDispatcher.IsActive = false;
 
-            _ = Context.Require<PanelManager>().CloseAllAsync();
+            _main!.SaveState();
+
+            try
+            {
+                await Context.Require<PanelManager>().CloseAllAsync()
+                    .WaitAsync(TimeSpan.FromSeconds(1));
+            }
+            catch
+            {
+            }
 
             ModuleManager.Instance.Shutdown();
 

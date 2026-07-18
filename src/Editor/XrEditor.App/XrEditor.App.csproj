@@ -21,15 +21,13 @@
 	  <PackageReference Include="Fluent.Ribbon" Version="11.0.2" />
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
 	  <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
-	  <PackageReference Include="Silk.NET.Direct3D9" Version="2.23.0" />
-	  <PackageReference Include="Silk.NET.DXGI" Version="2.23.0" />
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Engine\XrEngine.Filament.Wpf\XrEngine.Filament.Wpf.csproj" />
 	  <ProjectReference Include="..\..\Engine\XrEngine.Media.FFmpeg\XrEngine.Media.FFmpeg.csproj" />
-	  <ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
-	  <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
+	  <ProjectReference Include="..\..\Engine\XrEngine.OpenGL.Wpf\XrEngine.OpenGL.Wpf.csproj" />
 	  <ProjectReference Include="..\..\UI\UI.Canvas.Wpf\UI.Canvas.Wpf.csproj" />
 	  <ProjectReference Include="..\XrEditor.Audio\XrEditor.Audio.csproj" />
 	  <ProjectReference Include="..\XrEditor.Plot\XrEditor.Plot.csproj" />

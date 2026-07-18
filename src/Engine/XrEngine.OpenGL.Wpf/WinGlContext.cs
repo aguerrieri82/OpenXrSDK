@@ -3,9 +3,8 @@ using Silk.NET.OpenGL;
 using Silk.NET.WGL;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using XrEngine.OpenGL;
 
-namespace XrEditor
+namespace XrEngine.OpenGL.Wpf
 {
     public class WinGlContext : IGlContext
     {

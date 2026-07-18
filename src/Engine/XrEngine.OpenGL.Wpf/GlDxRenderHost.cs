@@ -10,10 +10,10 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using XrEngine;
-using XrEngine.OpenGL;
 using PresentParameters = Silk.NET.Direct3D9.PresentParameters;
-
+using System.Windows.Media;
+using XrEngine.Wpf;
+using XrEngine.OpenXr;
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -21,7 +21,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-namespace XrEditor;
+namespace XrEngine.OpenGL.Wpf;
 
 public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicProvider, INativeContext,
     IGlContextProvider, IDisposable
@@ -190,6 +190,8 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         _createContext = createContext;
         _useEs = useEs;
         _timer = new HighResolutionTimer();
+
+        VisualBitmapScalingMode = BitmapScalingMode.NearestNeighbor;
     }
 
     protected override void OnHostLoaded()
@@ -217,7 +219,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
         _image = new D3DImage();
         Source = _image;
-        VisualBitmapScalingMode = System.Windows.Media.BitmapScalingMode.NearestNeighbor;
+
 
         CreateD3DDevice();
 
@@ -641,8 +643,10 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         _render = new OpenGLRender(_gl!, glOptions);
 
 #if DEBUG
+        /*
         if (EditorDebug.DebugEnabled)
             _render.EnableDebug(EditorDebug.DebugSync);
+        */
 #endif
 
         return _render;

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
+	  <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Direct3D9" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.WGL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.WGL.Extensions.NV" Version="2.23.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+
+    <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
+
+    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+
+    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+  </ItemGroup>
+
+</Project>

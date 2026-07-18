@@ -187,7 +187,7 @@ namespace XrEngine.OpenGL
                         foreach (var draw in vertexContent.Contents)
                         {
                             if (draw.Object == obj3d)
-                                result.Add(materialContent.Material);
+                                result.Add(materialContent.Material!);
 
                         }
                     }

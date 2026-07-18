@@ -463,13 +463,14 @@ namespace XrEngine
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
             throw new NotImplementedException("Fix with srgb, does shit");
+   
 
             //do always for  SKAlphaType.Unpremul
             /*
             if (src.ColorType == dest)
                 return src;
             */
-
+                     /*
             var newInfo = new SKImageInfo(src.Info.Width, src.Info.Height, dest, SKAlphaType.Unpremul, src.Info.ColorSpace);
 
             var newBitmap = new SKBitmap(newInfo);
@@ -486,6 +487,7 @@ namespace XrEngine
             src.Dispose();
 
             return newBitmap;
+                     */
         }
 
     }

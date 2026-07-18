@@ -11,6 +11,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL.Wpf\XrEngine.OpenGL.Wpf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 
 namespace XrEngine
 {
@@ -154,18 +155,20 @@ namespace XrEngine
 
         public static void ReadObject<T>(this IStateContainer container, T obj, TypeMode mode = TypeMode.Self)
         {
+            Debug.Assert(obj != null);
+
             if ((mode & TypeMode.Self) != 0)
-                container.ReadObject(obj!, typeof(T));
+                container.ReadObject(obj, typeof(T));
 
             if ((mode & TypeMode.Subclasses) != 0)
             {
-                var curType = obj.GetType();
+                var curType = obj.GetType()!;
 
                 while (curType != typeof(T))
                 {
-                    container.ReadObject(obj!, curType!);
+                    container.ReadObject(obj, curType);
 
-                    curType = curType!.BaseType;
+                    curType = curType.BaseType!;
                 }
             }
 

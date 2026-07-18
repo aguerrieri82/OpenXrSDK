@@ -6,7 +6,7 @@
 #endif
 
 #if !__ANDROID__
-    using XrEngine.Browser.Win;
+    using XrEngine.Browser.Windows;
     using XrEngine.UI.Web;
     using XrEngine.Media;
 #else

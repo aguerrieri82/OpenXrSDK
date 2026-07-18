@@ -48,7 +48,7 @@ namespace XrEditor.Plot
         private Bounds3 _roomBounds;
         private TriangleMesh? _depthMesh;
         private int _meshCount;
-        private DepthGeometryGenerator _generator;
+        private DepthGeometryGenerator? _generator;
 
         public ReconstructPanel()
         {

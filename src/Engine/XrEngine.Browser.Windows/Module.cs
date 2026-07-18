@@ -1,9 +1,9 @@
 ﻿using XrEngine;
 using XrEngine.UI.Web;
 
-[assembly: Module(typeof(XrEngine.Browser.Win.Module))]
+[assembly: Module(typeof(XrEngine.Browser.Windows.Module))]
 
-namespace XrEngine.Browser.Win
+namespace XrEngine.Browser.Windows
 {
     public class Module : IModule
     {

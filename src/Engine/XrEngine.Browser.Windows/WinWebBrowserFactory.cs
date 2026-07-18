@@ -2,7 +2,7 @@
 using XrEngine.UI.Web;
 using XrMath;
 
-namespace XrEngine.Browser.Win
+namespace XrEngine.Browser.Windows
 {
     public class WinWebBrowserFactory : IWebBrowserFactory
     {

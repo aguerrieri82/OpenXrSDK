@@ -11,7 +11,7 @@ using Silk.NET.WGL;
 using Silk.NET.WGL.Extensions.NV;
 using System.Runtime.InteropServices;
 
-namespace XrEngine.Browser.Win
+namespace XrEngine.Browser.Windows
 {
 
     public sealed class GlRenderHandler : IRenderHandler, IDisposable

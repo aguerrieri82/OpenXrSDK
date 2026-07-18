@@ -120,7 +120,7 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
-    <Project Path="Engine/XrEngine.Browser.Win/XrEngine.Browser.Win.csproj">
+    <Project Path="Engine/XrEngine.Browser.Windows/XrEngine.Browser.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
@@ -143,6 +143,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
       <Deploy Solution="Release|*" />
+    </Project>
+    <Project Path="Engine/XrEngine.Filament.Wpf/XrEngine.Filament.Wpf.csproj" Id="7c27e589-40a6-4815-a417-70e5d93722fa">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Filament/XrEngine.Filament.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -179,6 +183,10 @@
     </Project>
     <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
+    </Project>
+    <Project Path="Engine/XrEngine.OpenGL.Wpf/XrEngine.OpenGL.Wpf.csproj">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.OpenGL/XrEngine.OpenGL.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />

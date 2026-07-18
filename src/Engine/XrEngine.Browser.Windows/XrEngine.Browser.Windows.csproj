@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-$(WinVersion);</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CefSharp.Common.NETCore" Version="149.0.60" />
+    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="149.0.60" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.WGL" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.WGL.Extensions.NV" Version="2.23.0" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
+  </ItemGroup>
+
+
+</Project>

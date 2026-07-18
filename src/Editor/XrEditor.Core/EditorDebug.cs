@@ -26,10 +26,12 @@ namespace XrEditor
 
         public static readonly bool DisableDualRender = true;
 
-        public static readonly int VSyncScale = 4; 
+        public static readonly int VSyncScale = 4;
 
 
-        public static readonly string StoragePath = "D:\\Projects\\XrEditor\\Storage";
+        public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
+
+        public static readonly string StoragePath = Path.Combine(PersistentPath, "Storage");
 
 
         public static readonly string[] AssetsPath = [
@@ -71,7 +73,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, false)
-              .CreateDepthSnapeshot()  
+              .CreateLightField()  
               .Build();
     }
 }
