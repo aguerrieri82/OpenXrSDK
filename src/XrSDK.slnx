@@ -341,7 +341,7 @@
       <Deploy />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Game.UI/RoomDesigner.Game.UI.esproj">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <BuildType Project="Release" />
       <Build />
       <Deploy />
     </Project>
