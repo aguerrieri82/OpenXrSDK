@@ -3,7 +3,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Windows.Media;
-using XrEngine.Wpf;
 using XrInteraction;
 
 

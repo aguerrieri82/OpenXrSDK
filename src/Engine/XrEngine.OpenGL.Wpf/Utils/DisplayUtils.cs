@@ -8,47 +8,8 @@ namespace XrEngine.Wpf;
 
 public static class DisplayUtils
 {
-    private const int EnumCurrentSettings = -1;
-    private const uint MonitorDefaultToNearest = 0x00000002;
+    #region INTEROP
 
-    public static uint GetRefreshRate(Window window)
-    {
-        var hwnd = new WindowInteropHelper(window).Handle;
-
-        if (hwnd == 0)
-            throw new InvalidOperationException("The WPF window has no native handle.");
-
-        return GetRefreshRate(hwnd);
-    }
-
-    public static uint GetRefreshRate(nint hwnd)
-    {
-        var monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
-
-        if (monitor == 0)
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-
-        var monitorInfo = new MonitorInfoEx
-        {
-            Size = (uint)Marshal.SizeOf<MonitorInfoEx>(),
-            DeviceName = string.Empty
-        };
-
-        if (!GetMonitorInfoW(monitor, ref monitorInfo))
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-
-        var mode = new DevMode
-        {
-            Size = (ushort)Marshal.SizeOf<DevMode>(),
-            DeviceName = string.Empty,
-            FormName = string.Empty
-        };
-
-        if (!EnumDisplaySettingsW(monitorInfo.DeviceName, EnumCurrentSettings, ref mode))
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-
-        return mode.DisplayFrequency;
-    }
 
     [DllImport("user32.dll")]
     private static extern nint MonitorFromWindow(nint hwnd, uint flags);
@@ -151,5 +112,49 @@ public static class DisplayUtils
     {
         public int X;
         public int Y;
+    }
+
+    #endregion
+    
+    private const int EnumCurrentSettings = -1;
+    private const uint MonitorDefaultToNearest = 0x00000002;
+
+    public static uint GetRefreshRate(Window window)
+    {
+        var hwnd = new WindowInteropHelper(window).Handle;
+
+        if (hwnd == 0)
+            throw new InvalidOperationException("The WPF window has no native handle.");
+
+        return GetRefreshRate(hwnd);
+    }
+
+    public static uint GetRefreshRate(nint hwnd)
+    {
+        var monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
+
+        if (monitor == 0)
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        var monitorInfo = new MonitorInfoEx
+        {
+            Size = (uint)Marshal.SizeOf<MonitorInfoEx>(),
+            DeviceName = string.Empty
+        };
+
+        if (!GetMonitorInfoW(monitor, ref monitorInfo))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        var mode = new DevMode
+        {
+            Size = (ushort)Marshal.SizeOf<DevMode>(),
+            DeviceName = string.Empty,
+            FormName = string.Empty
+        };
+
+        if (!EnumDisplaySettingsW(monitorInfo.DeviceName, EnumCurrentSettings, ref mode))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        return mode.DisplayFrequency;
     }
 }

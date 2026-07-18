@@ -3,6 +3,12 @@ using XrMath;
 
 namespace XrEngine
 {
+    public enum RenderEngineDebug
+    {
+        None = 0,
+        Sync = 1
+    }
+
     public interface IRenderEngine : IDisposable
     {
         void Render(RenderContext ctx, Rect2I view, bool flush);
@@ -26,6 +32,8 @@ namespace XrEngine
         Texture2D AttachTexture(uint texId);
 
         void LoadTexture(Texture2D texture);
+
+        void EnableDebug(RenderEngineDebug mode);
 
         IDispatcher Dispatcher { get; }
     }

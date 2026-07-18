@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using XrEngine.Wpf;
 using XrInteraction;
 
 namespace XrEngine.OpenGL.Wpf;

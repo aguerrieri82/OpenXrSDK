@@ -227,8 +227,7 @@ namespace XrEngine.OpenXr
             return self.ConfigureApp(e =>
             {
 #if DEBUG
-                if (e.App.Renderer is OpenGLRender openGl)
-                    openGl.EnableDebug(sync);
+                e.App.Renderer.EnableDebug(sync ? RenderEngineDebug.Sync : RenderEngineDebug.None);
 #endif
             });
         }

@@ -7,10 +7,36 @@ namespace XrEngine.Wpf;
 
 public sealed class HighResolutionTimer : IDisposable
 {
+    #region INTEROP
+
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern nint CreateWaitableTimerExW(
+        nint timerAttributes,
+        string? timerName,
+        uint flags,
+        uint desiredAccess);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetWaitableTimer(
+        nint timer,
+        ref long dueTime,
+        int period,
+        nint completionRoutine,
+        nint argument,
+        bool resume);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern uint WaitForSingleObject(nint handle, uint milliseconds);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(nint handle);
+
     private const uint CreateWaitableTimerHighResolution = 0x00000002;
     private const uint TimerAllAccess = 0x001F0003;
     private const uint Infinite = 0xFFFFFFFF;
     private const uint WaitObject0 = 0;
+
+    #endregion
 
     private nint _handle;
 
@@ -65,25 +91,4 @@ public sealed class HighResolutionTimer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern nint CreateWaitableTimerExW(
-        nint timerAttributes,
-        string? timerName,
-        uint flags,
-        uint desiredAccess);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetWaitableTimer(
-        nint timer,
-        ref long dueTime,
-        int period,
-        nint completionRoutine,
-        nint argument,
-        bool resume);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern uint WaitForSingleObject(nint handle, uint milliseconds);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool CloseHandle(nint handle);
 }

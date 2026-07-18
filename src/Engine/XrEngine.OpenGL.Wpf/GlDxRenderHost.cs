@@ -642,13 +642,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
         _render = new OpenGLRender(_gl!, glOptions);
 
-#if DEBUG
-        /*
-        if (EditorDebug.DebugEnabled)
-            _render.EnableDebug(EditorDebug.DebugSync);
-        */
-#endif
-
         return _render;
     }
 

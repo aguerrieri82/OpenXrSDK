@@ -5,10 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace XrEngine.OpenGL
 {
     public interface IGlContext : IDisposable

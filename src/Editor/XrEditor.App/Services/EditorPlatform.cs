@@ -69,6 +69,12 @@ namespace XrEditor
         {
             renderEngine = _renderSurface!.CreateRenderEngine(options.DriverOptions);
 
+#if DEBUG
+
+            if (EditorDebug.DebugEnabled)
+                renderEngine.EnableDebug(EditorDebug.DebugSync ? RenderEngineDebug.Sync : RenderEngineDebug.None);
+#endif
+
             xrDriver = ((IXrGraphicProvider)_renderSurface).CreateXrDriver();
 
             Context.Implement(new RenderPreviewCreator(renderEngine));

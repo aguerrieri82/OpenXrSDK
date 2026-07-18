@@ -950,6 +950,11 @@ namespace XrEngine.Filament
             throw new NotImplementedException();
         }
 
+        public void EnableDebug(RenderEngineDebug mode)
+        {
+
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;

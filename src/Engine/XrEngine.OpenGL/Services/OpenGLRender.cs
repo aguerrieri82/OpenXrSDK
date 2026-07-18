@@ -162,7 +162,7 @@ namespace XrEngine.OpenGL
             //_gl.DrawBuffers(GlState.DRAW_COLOR_0);
         }
 
-        public unsafe void EnableDebug(bool sync = false)
+        public unsafe void EnableDebug(RenderEngineDebug mode)
         {
             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
            {
@@ -185,7 +185,7 @@ namespace XrEngine.OpenGL
 
             _gl.Enable(EnableCap.DebugOutput);
 
-            if (sync)
+            if (mode == RenderEngineDebug.Sync)
                 _gl.Enable(EnableCap.DebugOutputSynchronous);
 
             var ignoreIds = new uint[] { 131186 };

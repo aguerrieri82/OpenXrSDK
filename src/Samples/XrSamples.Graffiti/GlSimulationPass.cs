@@ -117,7 +117,7 @@ namespace XrSamples.Graffiti
             _isFirstSizeUpdate = true;
 
 #if DEBUG
-            _renderer.EnableDebug(true);
+            _renderer.EnableDebug(RenderEngineDebug.Sync);
 #endif
         }
 
