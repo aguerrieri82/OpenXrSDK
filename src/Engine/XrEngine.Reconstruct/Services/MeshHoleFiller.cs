@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath;
 
 
@@ -60,19 +61,6 @@ namespace XrEngine.Reconstruct
 
             RejectCoveredArea = true;
             MaxCoveredAreaRatio = 0.80f;
-
-            //RejectInsideVertices = true;
-            //RejectCoveredCenter = true;
-            //RejectEdgeIntersections = true;
-
-            //BarycentricEpsilon = 1e-4f;
-            //EdgeInteriorEpsilon = 1e-4f;
-            //EdgeBoundaryEpsilon = 4e-4f;
-
-            //PlaneTolerance = 0.0f;
-            //PlaneToleranceFactor = 0.025f;
-
-            //QueryPadding = 0.01f;
         }
 
         public HoleFillCoord CoordMode { get; set; }
@@ -85,11 +73,7 @@ namespace XrEngine.Reconstruct
 
         public int MaxAddedTriangles { get; set; }
 
-        //public float MinCoordArea { get; set; }
-
         public float MinGeometryArea { get; set; }
-
-        //public float MaxCoordEdgeLength { get; set; }
 
         public float MaxGeometryEdgeLength { get; set; }
 
@@ -104,29 +88,6 @@ namespace XrEngine.Reconstruct
         public bool RejectCoveredArea { get; set; }
 
         public float MaxCoveredAreaRatio { get; set; }
-
-
-       // public float SpatialCellSize { get; set; }
-
-        //public float SpatialCellFactor { get; set; }
-
-        //public bool RejectInsideVertices { get; set; }
-
-        //public bool RejectCoveredCenter { get; set; }
-
-        //public bool RejectEdgeIntersections { get; set; }
-
-        //public float BarycentricEpsilon { get; set; }
-
-        //public float EdgeInteriorEpsilon { get; set; }
-
-        //public float EdgeBoundaryEpsilon { get; set; }
-
-        //public float PlaneTolerance { get; set; }
-
-        //public float PlaneToleranceFactor { get; set; }
-
-        //public float QueryPadding { get; set; }
     }
 
     public sealed class MeshHoleFiller
@@ -283,14 +244,6 @@ namespace XrEngine.Reconstruct
         private HoleFillCoord _coordMode;
         private HoleFillMode _edgeMode;
 
-        private bool _rejectInsideVertices = false;
-        private bool _rejectCoveredCenter = false;
-        private bool _rejectEdgeIntersections = false;
-
-        private const float _barycentricEpsilon = 1e-4f;
-        private const float _edgeInteriorEpsilon = 1e-4f;
-        private const float _edgeBoundaryEpsilon = 4e-4f;
-
         private const float _planeTolerance = 0.0f;
         private const float _planeToleranceFactor = 0.025f;
 
@@ -299,11 +252,7 @@ namespace XrEngine.Reconstruct
         private int _atlasSize;
         private int _maxPasses;
         private int _maxAddedTriangles;
-
-        private float _minCoordArea;
         private float _minGeometryArea;
-
-        private float _maxCoordEdgeLength;
         private float _maxGeometryEdgeLength;
 
         private float _maxEdgeFactor;
@@ -312,14 +261,8 @@ namespace XrEngine.Reconstruct
         private float _minNormalDot;
         private bool _fixWinding;
 
-        private float _spatialCellSize;
-        private float _spatialCellFactor;
-
         private bool _rejectCoveredArea;
         private float _maxCoveredAreaRatio;
-
-
-       // private float _minCoveredArea;
 
 
         private VertexData[] _vertices = Array.Empty<VertexData>();
@@ -390,24 +333,9 @@ namespace XrEngine.Reconstruct
             _minNormalDot = Math.Clamp(parameters.MinNormalDot, 0.0f, 1.0f);
             _fixWinding = parameters.FixWinding;
 
-            // Non-area rejection tuning is intentionally kept private/dormant for later reactivation.
-            // _rejectInsideVertices = parameters.RejectInsideVertices;
-            // _rejectCoveredCenter = parameters.RejectCoveredCenter;
-            // _rejectEdgeIntersections = parameters.RejectEdgeIntersections;
-
-            // _barycentricEpsilon = Math.Max(0.0f, parameters.BarycentricEpsilon);
-            // _edgeInteriorEpsilon = Math.Max(0.0f, parameters.EdgeInteriorEpsilon);
-            // _edgeBoundaryEpsilon = Math.Max(0.0f, parameters.EdgeBoundaryEpsilon);
-
-            // _planeTolerance = Math.Max(0.0f, parameters.PlaneTolerance);
-            // _planeToleranceFactor = Math.Max(0.0f, parameters.PlaneToleranceFactor);
-
-            // _queryPadding = Math.Max(0.0f, parameters.QueryPadding);
-
 
             _rejectCoveredArea = parameters.RejectCoveredArea;
             _maxCoveredAreaRatio = Math.Clamp(parameters.MaxCoveredAreaRatio, 0.0f, 1.0f);
-           // _minCoveredArea = Math.Max(0.0f, parameters.MinCoveredArea);
         }
 
         public List<AddedTriangle> FindMissingTriangles(Geometry3D geometry)
@@ -472,10 +400,7 @@ namespace XrEngine.Reconstruct
                 return _result;
 
             _avgCoordEdge = ComputeAverageEdgeLength();
-            var cellSize = _spatialCellSize > 0.0f ? _spatialCellSize : _avgCoordEdge * _spatialCellFactor;
-
-            if (cellSize <= 1e-10f)
-                cellSize = 1.0f;
+            var cellSize = _avgCoordEdge;
 
             _invCellSize = 1.0f / cellSize;
 
@@ -542,7 +467,7 @@ namespace XrEngine.Reconstruct
             EnsureCapacity(ref _gridTriangles, Math.Max(64, triCapacity * 6));
             EnsureCapacity(ref _gridNext, Math.Max(64, triCapacity * 6));
 
-            _minCoordCrossSq = _minCoordArea > 0.0f ? _minCoordArea * _minCoordArea * 4.0f : 0.0f;
+            _minCoordCrossSq = 0.0f;
             _minGeometryCrossSq = _minGeometryArea > 0.0f ? _minGeometryArea * _minGeometryArea * 4.0f : 0.0f;
             _maxGeometryEdgeSq = _maxGeometryEdgeLength > 0.0f ? _maxGeometryEdgeLength * _maxGeometryEdgeLength : float.MaxValue;
 
@@ -684,15 +609,8 @@ namespace XrEngine.Reconstruct
         private int RunMode(bool twoEdges)
         {
             var addedThisRun = 0;
-            var maxCoordEdge = _maxCoordEdgeLength;
-
-            if (maxCoordEdge <= 0.0f)
-            {
-                var factor = twoEdges ? _twoEdgeMaxEdgeFactor : _maxEdgeFactor;
-
-                if (factor > 0.0f)
-                    maxCoordEdge = _avgCoordEdge * factor;
-            }
+            var factor = twoEdges ? _twoEdgeMaxEdgeFactor : _maxEdgeFactor;
+            var maxCoordEdge = factor > 0.0f ? _avgCoordEdge * factor : 0.0f;
 
             _currentMaxCoordEdgeSq = maxCoordEdge > 0.0f ? maxCoordEdge * maxCoordEdge : float.MaxValue;
 
@@ -957,91 +875,6 @@ namespace XrEngine.Reconstruct
             return false;
         }
 
-        private bool RejectByExistingSamples(Candidate candidate, Triangle existing, Vector3 candidateNormal, float planeTolerance, Vector3 qMin, Vector3 qMax)
-        {
-            Span<Vector3> samples = stackalloc Vector3[7];
-            Span<int> sampleIndices = stackalloc int[7];
-
-            samples[0] = existing.P0;
-            samples[1] = existing.P1;
-            samples[2] = existing.P2;
-            samples[3] = (existing.P0 + existing.P1) * 0.5f;
-            samples[4] = (existing.P1 + existing.P2) * 0.5f;
-            samples[5] = (existing.P2 + existing.P0) * 0.5f;
-            samples[6] = existing.Center;
-
-            sampleIndices[0] = existing.A;
-            sampleIndices[1] = existing.B;
-            sampleIndices[2] = existing.C;
-            sampleIndices[3] = -1;
-            sampleIndices[4] = -1;
-            sampleIndices[5] = -1;
-            sampleIndices[6] = -1;
-
-            for (var i = 0; i < samples.Length; i++)
-            {
-                var index = sampleIndices[i];
-
-                if (index == candidate.A || index == candidate.B || index == candidate.C)
-                    continue;
-
-                var p = samples[i];
-
-                if (p.X < qMin.X || p.Y < qMin.Y || p.Z < qMin.Z ||
-                    p.X > qMax.X || p.Y > qMax.Y || p.Z > qMax.Z)
-                    continue;
-
-                var signedDistance = Vector3.Dot(p - candidate.Coord0, candidateNormal);
-
-                if (MathF.Abs(signedDistance) > planeTolerance)
-                    continue;
-
-                var projected = p - candidateNormal * signedDistance;
-
-                if (TryGetBarycentric(projected, candidate.Coord0, candidate.Coord1, candidate.Coord2, out var u, out var v, out var w) &&
-                    u > _barycentricEpsilon &&
-                    v > _barycentricEpsilon &&
-                    w > _barycentricEpsilon)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool RejectByExistingEdges(Candidate candidate, Triangle existing, Vector3 candidateNormal, float planeTolerance)
-        {
-            for (var i = 0; i < 3; i++)
-            {
-                var edge = existing.GetEdge(i);
-
-                var d0 = Vector3.Dot(edge.P0 - candidate.Coord0, candidateNormal);
-                var d1 = Vector3.Dot(edge.P1 - candidate.Coord0, candidateNormal);
-
-                if (MathF.Abs(d0) > planeTolerance || MathF.Abs(d1) > planeTolerance)
-                    continue;
-
-                var p0 = edge.P0 - candidateNormal * d0;
-                var p1 = edge.P1 - candidateNormal * d1;
-
-                if (!TryGetBarycentric(p0, candidate.Coord0, candidate.Coord1, candidate.Coord2, out var u0, out var v0, out var w0))
-                    continue;
-
-                if (!TryGetBarycentric(p1, candidate.Coord0, candidate.Coord1, candidate.Coord2, out var u1, out var v1, out var w1))
-                    continue;
-
-                if (IsOnCandidateBoundary(u0, v0, w0, u1, v1, w1))
-                    continue;
-
-                if (HasInteriorSegment(u0, v0, w0, u1, v1, w1, out var tMin, out var tMax))
-                {
-                    LogDiag("edge-inside existing=({0},{1}) t=({2},{3}) b0=({4},{5},{6}) b1=({7},{8},{9})", edge.A, edge.B, tMin, tMax, u0, v0, w0, u1, v1, w1);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private float GetProjectedOverlapArea(Candidate candidate, Triangle existing, Vector3 candidateNormal, float planeTolerance)
         {
             var normalLenSq = candidateNormal.LengthSquared();
@@ -1087,7 +920,7 @@ namespace XrEngine.Reconstruct
             var c1 = new Vector2(Vector3.Dot(dc1, axisX), Vector3.Dot(dc1, axisY));
             var c2 = new Vector2(Vector3.Dot(dc2, axisX), Vector3.Dot(dc2, axisY));
 
-            var clipArea = Cross2(c1 - c0, c2 - c0);
+            var clipArea = Vector2.Cross(c1 - c0, c2 - c0);
 
             if (MathF.Abs(clipArea) <= 1e-20f)
                 return 0.0f;
@@ -1146,13 +979,13 @@ namespace XrEngine.Reconstruct
             var edge = edgeB - edgeA;
 
             var prev = poly[count - 1];
-            var prevSide = Cross2(edge, prev - edgeA);
+            var prevSide = Vector2.Cross(edge, prev - edgeA);
             var prevInside = prevSide >= -eps;
 
             for (var i = 0; i < count; i++)
             {
                 var cur = poly[i];
-                var curSide = Cross2(edge, cur - edgeA);
+                var curSide = Vector2.Cross(edge, cur - edgeA);
                 var curInside = curSide >= -eps;
 
                 if (curInside != prevInside)
@@ -1178,79 +1011,6 @@ namespace XrEngine.Reconstruct
                 poly[i] = tmp[i];
 
             return outCount;
-        }
-
-
-        private static float Cross2(Vector2 a, Vector2 b)
-        {
-            return a.X * b.Y - a.Y * b.X;
-        }
-
-        private bool RejectByCoveredCenter(Candidate candidate, Triangle existing, float planeTolerance)
-        {
-            var normal = Vector3.Cross(existing.P1 - existing.P0, existing.P2 - existing.P0);
-            var normalSq = normal.LengthSquared();
-
-            if (normalSq <= 1e-20f)
-                return false;
-
-            normal /= MathF.Sqrt(normalSq);
-
-            var center = candidate.CoordCenter;
-            var signedDistance = Vector3.Dot(center - existing.P0, normal);
-
-            if (MathF.Abs(signedDistance) > planeTolerance)
-                return false;
-
-            var projected = center - normal * signedDistance;
-
-            return TryGetBarycentric(projected, existing.P0, existing.P1, existing.P2, out var u, out var v, out var w) &&
-                   u > _barycentricEpsilon &&
-                   v > _barycentricEpsilon &&
-                   w > _barycentricEpsilon;
-        }
-
-        private bool IsOnCandidateBoundary(float u0, float v0, float w0, float u1, float v1, float w1)
-        {
-            var eps = _edgeBoundaryEpsilon;
-
-            return (MathF.Abs(u0) <= eps && MathF.Abs(u1) <= eps) ||
-                   (MathF.Abs(v0) <= eps && MathF.Abs(v1) <= eps) ||
-                   (MathF.Abs(w0) <= eps && MathF.Abs(w1) <= eps);
-        }
-
-        private bool HasInteriorSegment(float u0, float v0, float w0, float u1, float v1, float w1, out float tMin, out float tMax)
-        {
-            tMin = 0.0f;
-            tMax = 1.0f;
-
-            var eps = _edgeInteriorEpsilon;
-
-            if (!ClipLinearGreaterThan(u0, u1 - u0, eps, ref tMin, ref tMax))
-                return false;
-
-            if (!ClipLinearGreaterThan(v0, v1 - v0, eps, ref tMin, ref tMax))
-                return false;
-
-            if (!ClipLinearGreaterThan(w0, w1 - w0, eps, ref tMin, ref tMax))
-                return false;
-
-            return tMax - tMin > eps;
-        }
-
-        private static bool ClipLinearGreaterThan(float start, float delta, float value, ref float tMin, ref float tMax)
-        {
-            if (MathF.Abs(delta) <= 1e-20f)
-                return start > value;
-
-            var t = (value - start) / delta;
-
-            if (delta > 0.0f)
-                tMin = MathF.Max(tMin, t);
-            else
-                tMax = MathF.Min(tMax, t);
-
-            return tMin < tMax;
         }
 
         private void InsertTriangleToGrid(int triId, Triangle triangle)
@@ -1287,6 +1047,7 @@ namespace XrEngine.Reconstruct
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int CellCoord(float value, float invCellSize)
         {
             return (int)MathF.Floor(value * invCellSize);
@@ -1339,8 +1100,7 @@ namespace XrEngine.Reconstruct
         [Conditional("MESH_HOLE_FILL_DIAGNOSTICS")]
         private void LogDiag(string format, params object[] args)
         {
-            return;
-            Log.Debug(this, string.Format(format, args));
+            //Log.Debug(this, string.Format(format, args));
         }
 
         [Conditional("MESH_HOLE_FILL_DIAGNOSTICS")]

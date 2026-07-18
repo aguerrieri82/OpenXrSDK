@@ -20,7 +20,7 @@ namespace XrSamples.Earth
     {
         DateTime _dateTime;
         bool _posDirty;
-        private readonly bool _sunAtOrigin;
+        private readonly bool _sunAtOrigin = false;
 
         public CameraControl()
         {

@@ -13,8 +13,6 @@ namespace XrEngine.Bullet
             var Y = Vector3.UnitY;
             var Z = Vector3.UnitZ;
 
-            var zero = 0.001f;
-
             var pelvisPos = new Vector3(0.0f, 0.9f, 0.0f);
             var spine1Pos = pelvisPos + new Vector3(0, 0.20f, 0);
             var spine2Pos = spine1Pos + new Vector3(0, 0.05f, 0); ;

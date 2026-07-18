@@ -18,6 +18,10 @@
     <Project Path="../build/XrBuild/XrBuild.csproj">
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Generator/XrEngine.Generator.csproj" Id="16d4ad08-8bbd-46b6-9118-b23d2431ea39">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
   </Folder>
   <Folder Name="/#Filament/">
     <File Path="../third-party/filament/filament/backend/include/backend/platforms/PlatformWGL.h" />
@@ -152,10 +156,6 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
-    <Project Path="Engine/XrEngine.Generator/XrEngine.Generator.csproj" Id="16d4ad08-8bbd-46b6-9118-b23d2431ea39">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
-    </Project>
     <Project Path="Engine/XrEngine.Glft/XrEngine.Gltf.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
@@ -182,7 +182,7 @@
       <Platform Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <BuildType Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.OpenGL.Wpf/XrEngine.OpenGL.Wpf.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />

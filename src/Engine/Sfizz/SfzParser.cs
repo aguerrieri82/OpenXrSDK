@@ -9,7 +9,7 @@ namespace Sfizz
         readonly Dictionary<string, Token[]> _includes = [];
         readonly Dictionary<string, string> _defines = [];
         readonly HashSet<string> _samples = [];
-        private string _rootFile;
+        private string? _rootFile;
         string? _basePath;
         private readonly List<Section> _sections = [];
         private Section? _curSection;

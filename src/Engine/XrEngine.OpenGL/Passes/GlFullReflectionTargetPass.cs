@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
         private GlSwapTexture? _swap;
-
+        private bool _wasSrgb;
 
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
@@ -59,6 +59,7 @@ namespace XrEngine.OpenGL
 
         protected override bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
         {
+
             if (!_reflection!.UseClipPlane)
                 return base.UpdateProgram(updateContext, progInst);
 
@@ -129,6 +130,13 @@ namespace XrEngine.OpenGL
 
             ProcessImageLight(ctx);
 
+            _wasSrgb = ctx.IsSrgb;
+
+            ctx.IsSrgb = !_reflection.UseSrgb;
+
+            if (_wasSrgb != ctx.IsSrgb)
+                PbrMaterial.SHADER.Invalidate();
+
             return true;
         }
 
@@ -179,6 +187,11 @@ namespace XrEngine.OpenGL
 
             _reflection.Texture = (Texture2D)_swap!.Active.ToEngineTexture();
 
+            if (_wasSrgb != ctx.IsSrgb)
+            {
+                ctx.IsSrgb = _wasSrgb;
+                PbrMaterial.SHADER.Invalidate();
+            }
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()

@@ -77,6 +77,8 @@ namespace XrEngine.Browser.Windows
 
             bulder.AddQuad(new Rect2(-0.5f, -0.5f, 1, 1), 0, false);
 
+            await EngineApp.MainThread;
+
             bulder.ToGeometry(_host.Geometry, false);
 
             _host.UpdateBounds();
@@ -184,7 +186,7 @@ namespace XrEngine.Browser.Windows
             if (!_isInit || _input == null)
                 return;
 
-            if (_input!.IsPointerValid)
+            if (_input.IsPointerValid)
             {
                 if (_input.MainButton.IsChanged)
                 {

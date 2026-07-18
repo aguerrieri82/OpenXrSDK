@@ -1398,7 +1398,7 @@ namespace XrMath
 
         #endregion
 
-            #region MISC
+        #region MISC
 
         public static float ToRadians(this float value)
         {

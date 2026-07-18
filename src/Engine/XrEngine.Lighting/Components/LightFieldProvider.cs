@@ -24,7 +24,7 @@ namespace XrEngine.Lighting
         int _lastProfileVersion;
         readonly VoxelLightBaker _backer;
         readonly GpuMeshVoxelizer _gpuVoxelizer;
-        readonly IGlContext _workerCtx;
+        readonly IGlContext? _workerCtx;
         readonly LightFieldData _fieldData;
         readonly IGlContextProvider _ctxProvider;
         readonly HashSet<LightFieldEmitter> _activeEmitters = [];

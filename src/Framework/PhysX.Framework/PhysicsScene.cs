@@ -42,6 +42,12 @@ namespace PhysX.Framework
             return _handle->GetVisualizationParameter(parameter);
         }
 
+        public PhysicsWriteLock LockWrite()
+        {
+            return new PhysicsWriteLock(_handle);
+        }
+
+
         public override void Dispose()
         {
             if (_handle != null)

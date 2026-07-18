@@ -580,13 +580,5 @@ namespace XrEngine.Reconstruct
 
             return a + ab * v2 + ac * w2;
         }
-
-        public float VoxelSize => _voxelSize;
-
-        public float TruncationDistance => _truncationDistance;
-
-        public int MinObservations => _minObservations;
-
-        public float MaxTriangleEdge => _maxTriangleEdge;
     }
 }

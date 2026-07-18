@@ -445,15 +445,13 @@ namespace PhysX.Framework
             if (_options.EnablePCM)
                 sceneDesc.flags |= PxSceneFlags.EnablePcm;
 
-            sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism;
+            sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism | PxSceneFlags.RequireRwLock;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
-
 
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
 
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLocalFrames, 1f);
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f);
-
 
             if (_pvd != null)
             {
@@ -466,11 +464,12 @@ namespace PhysX.Framework
                     pvdClient->SetScenePvdFlagMut(PxPvdSceneFlag.TransmitScenequeries, true);
                 }
             }
+
         }
 
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static unsafe PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
+        static PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
         {
             var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
             var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];

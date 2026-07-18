@@ -81,7 +81,7 @@ namespace XrSamples
 #else
                 render = new OpenGLRender(gl);
 #endif
-                render.EnableDebug();
+                render.EnableDebug(RenderEngineDebug.Sync);
                 render.AddPass(new GlSimulationPass(render, true), 0);
 
                 app.Renderer = render;

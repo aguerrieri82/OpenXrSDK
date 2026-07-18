@@ -7,16 +7,9 @@ namespace XrEngine.Media.Windows
         public static void DumpMediaType(IMFMediaType mt)
         {
             mt.GetCount(out var count);
-            for (uint i = 0; i < count; i++)
-            {
-                var value = new PropVariant();
-                //mt.GetItemByIndex(i, out var key, ref value);
-                //Debug.WriteLine(key);
-            }
 
             if (mt == null)
             {
-
                 Debug.WriteLine("MediaType = null");
                 return;
             }

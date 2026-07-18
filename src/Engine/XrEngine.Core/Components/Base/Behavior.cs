@@ -53,7 +53,7 @@
                 try
                 {
 #if DEBUG
-                    EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+                    EngineApp.Current.Stats.Update(this, () => Update(ctx));
 #else
                     Update(ctx);
 #endif

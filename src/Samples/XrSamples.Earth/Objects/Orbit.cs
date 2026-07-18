@@ -79,7 +79,6 @@ namespace XrSamples.Earth
 
             var xw = xOrb * cosw - yOrb * sinw;
             var yw = xOrb * sinw + yOrb * cosw;
-            var zw = 0.0;
 
             // b) Inclination i around X
             var cosi = Math.Cos(Inclination);

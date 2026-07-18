@@ -37,7 +37,7 @@ namespace XrEngine.OpenXr.Windows
             var engineApp = builder.Build();
 
             if (engineApp.App.Renderer is OpenGLRender openGL)
-                openGL.EnableDebug();
+                openGL.EnableDebug(RenderEngineDebug.None);
 
             engineApp.App.Start();
 

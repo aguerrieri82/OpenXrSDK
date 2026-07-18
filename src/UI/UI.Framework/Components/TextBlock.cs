@@ -43,7 +43,7 @@ namespace CanvasUI
             var paint = SKResources.FillColor(color!.Value);
 
             foreach (var line in _lastLayout.Lines)
-                canvas.DrawText(line.Text, _contentRect.X + line.Position.X, _contentRect.Y + line.Position.Y - _lastLayout.Font.Metrics.Descent, _lastLayout.Font, paint);
+                canvas.DrawText(line.Text, _contentRect.X + line.Position.X, _contentRect.Y + line.Position.Y - _lastLayout.Font.Metrics.Descent, SKTextAlign.Left, _lastLayout.Font, paint);
         }
 
         [UiProperty("", UiPropertyFlags.Layout)]

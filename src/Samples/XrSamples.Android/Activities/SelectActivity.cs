@@ -4,6 +4,8 @@ using Android.Content.PM;
 using System.Text.Json;
 using XrEngine.OpenXr;
 
+#pragma warning disable CA1416
+
 namespace XrSamples.Android.Activities
 {
 
@@ -44,6 +46,7 @@ namespace XrSamples.Android.Activities
             _samples = manager.List();
 
             var listView = FindViewById<ListView>(ResourceConstant.Id.listView)!;
+
 
             listView.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleListItemSingleChoice,

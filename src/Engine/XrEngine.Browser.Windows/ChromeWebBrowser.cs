@@ -106,7 +106,8 @@ namespace XrEngine.Browser.Windows
         private void OnMessage(object? sender, JavascriptMessageReceivedEventArgs e)
         {
             var str = e.Message.ToString();
-            MessageReceived?.Invoke(this, new MessageReceivedArgs(str));
+
+            MessageReceived?.Invoke(this, new MessageReceivedArgs(str!));
         }
 
         public void UpdatePointer(int id, Vector2 pos, TouchEventType eventType, CefEventFlags flags = CefEventFlags.None)
@@ -114,11 +115,6 @@ namespace XrEngine.Browser.Windows
             pos.Y = 1 - pos.Y;
 
             var viewPos = pos * new Vector2(Size.Width, Size.Height);
-
-            if (eventType == TouchEventType.Moved)
-            {
-                _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);
-            }
 
             _host!.SendTouchEvent(new CefSharp.Structs.TouchEvent
             {
@@ -129,6 +125,15 @@ namespace XrEngine.Browser.Windows
                 X = viewPos.X,
                 Y = viewPos.Y,
             });
+
+
+            if (eventType == TouchEventType.Moved)
+            {
+                _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);
+            }
+            else
+                Log.Debug(this, "{0} - {1}", pos, eventType);
+
         }
 
 

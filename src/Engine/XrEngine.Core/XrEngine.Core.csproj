@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 		<RootNamespace>XrEngine</RootNamespace>
-		<NativeFolder>$(Configuration)</NativeFolder>
+		<_NativeFolder>$(Configuration)</_NativeFolder>
+		<NativeFolder>Release</NativeFolder>
 	</PropertyGroup>
 
 
@@ -19,7 +20,7 @@
 
 	<ItemGroup>
 		<NativeLibrary Runtime="win-$(NativePlatform)" Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" />
-		<NativeLibrary Runtime="android-arm64" Include=".$(NativeLibsDir)xrengine-native\android-arm64\*" />
+		<NativeLibrary Runtime="android-arm64" Include="$(NativeLibsDir)xrengine-native\android-arm64\*" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">

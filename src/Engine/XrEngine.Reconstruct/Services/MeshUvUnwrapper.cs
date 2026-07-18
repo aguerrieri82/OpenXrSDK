@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace XrEngine
 {
@@ -942,7 +943,7 @@ namespace XrEngine
 
         private static void SplitFreeRects(
             List<PackRect> freeRects,
-            PackRect used)
+            in PackRect used)
         {
             for (var i = freeRects.Count - 1; i >= 0; i--)
             {
@@ -991,7 +992,7 @@ namespace XrEngine
             }
         }
 
-        private static bool Intersects(PackRect a, PackRect b)
+        private static bool Intersects(in PackRect a, in PackRect b)
         {
             return a.X < b.Right &&
                    a.Right > b.X &&
@@ -999,7 +1000,7 @@ namespace XrEngine
                    a.Bottom > b.Y;
         }
 
-        private static bool Contains(PackRect outer, PackRect inner)
+        private static bool Contains(in PackRect outer, in PackRect inner)
         {
             return inner.X >= outer.X &&
                    inner.Y >= outer.Y &&
@@ -1099,14 +1100,18 @@ namespace XrEngine
             return newIndex;
         }
 
-        private static Vector2 ProjectToChart(Vector3 pos, Chart chart)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2 ProjectToChart(in Vector3 pos, Chart chart)
         {
             return new Vector2(
                 Vector3.Dot(pos, chart.AxisX),
                 Vector3.Dot(pos, chart.AxisY));
         }
 
-        private static Vector3 NormalizeSafe(Vector3 value, Vector3 fallback)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector3 NormalizeSafe(in Vector3 value, Vector3 fallback)
         {
             var lenSq = value.LengthSquared();
 

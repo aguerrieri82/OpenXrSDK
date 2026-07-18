@@ -38,16 +38,21 @@ namespace XrEditor
             return result;
         }
 
-        protected void UpdateRay(Pointer2Event ev)
+        protected void UpdateRay(Pointer2Event ev, bool clearButtons)
         {
             _lastRay.Ray = ToRay(ev);
-            _lastRay.Buttons = ev.Buttons;
+
+            if (clearButtons)
+                _lastRay.Buttons = Pointer2Button.None;
+            else
+                _lastRay.Buttons = ev.Buttons;
+
             _lastRay.IsActive = true;
         }
 
         protected override async void OnPointerDown(Pointer2Event ev)
         {
-            UpdateRay(ev);
+            UpdateRay(ev, false);
 
             if (_pickTask != null && _lastCollision != null)
             {
@@ -62,7 +67,7 @@ namespace XrEditor
 
         protected override void OnPointerUp(Pointer2Event ev)
         {
-            UpdateRay(ev);
+            UpdateRay(ev, true);
         }
 
         protected override async void OnPointerMove(Pointer2Event ev)
@@ -70,7 +75,7 @@ namespace XrEditor
             if (_sceneView?.Scene == null)
                 return;
 
-            UpdateRay(ev);
+            UpdateRay(ev, false);
 
             if (_isPicking)
                 return;

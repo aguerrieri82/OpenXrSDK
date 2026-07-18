@@ -1,6 +1,7 @@
 ﻿using Common.Interop;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -208,6 +209,7 @@ namespace XrEngine.Reconstruct
             SetParams(new FrameExposureSolverParams());
         }
 
+        [MemberNotNull(nameof(_params))]
         public void SetParams(FrameExposureSolverParams parameters)
         {
             _params = parameters;

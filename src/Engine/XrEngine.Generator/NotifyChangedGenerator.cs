@@ -13,6 +13,11 @@ namespace XrEngine.Generator
         private const string AttributeMetadataName = "XrEngine.NotifyAttribute";
         private const string DefaultChangeType = "global::XrEngine.ChangeType.Material";
 
+        private static readonly SymbolDisplayFormat TypeDisplayFormat =
+            SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(
+                SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             var properties = context.SyntaxProvider
@@ -159,15 +164,22 @@ namespace XrEngine.Generator
         {
             var propName = prop.Name;
             var fieldName = MakeFieldName(propName);
-            var typeName = prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var typeName = prop.Type.ToDisplayString(TypeDisplayFormat);
+            var requiresNullForgivingInitializer =
+                prop.Type.IsReferenceType &&
+                prop.NullableAnnotation == NullableAnnotation.NotAnnotated;
             var accessibility = GetAccessibility(prop.DeclaredAccessibility);
             var changeType = GetChangeType(prop);
 
             sb.Append("    private ")
               .Append(typeName)
               .Append(' ')
-              .Append(fieldName)
-              .AppendLine(";");
+              .Append(fieldName);
+
+            if (requiresNullForgivingInitializer)
+                sb.Append(" = default!");
+
+            sb.AppendLine(";");
 
             sb.AppendLine();
 

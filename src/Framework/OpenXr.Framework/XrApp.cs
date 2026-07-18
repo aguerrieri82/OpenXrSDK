@@ -1308,8 +1308,8 @@ namespace OpenXr.Framework
 
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
         {
-            AssertSessionCreated();
 
+            AssertSessionCreated();
 
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {
@@ -1328,7 +1328,8 @@ namespace OpenXr.Framework
                 }
                 catch
                 {
-                    DumpLayersJson(ref layers, count);
+                    if (layers != null)
+                        DumpLayersJson(ref layers, count);
                     throw;
                 }
 

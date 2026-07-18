@@ -448,11 +448,14 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
             Debug.Assert(_actor != null);
+            Debug.Assert(_system?.Scene != null);
 
             var curPose = GetHostPose();
 
             if (!curPose.IsFinite())
                 return;
+
+            using var writeLock = _system.Scene.LockWrite();
 
             if (Type == PhysicsActorType.Dynamic)
             {
@@ -465,7 +468,7 @@ namespace XrEngine.Physics
                 {
                     if (_lastTool != null && ToolMode == RigidBodyToolMode.KinematicTarget && UpdatePoseOnToolRelease)
                     {
-                        _actor.GlobalPose = DynamicActor.KinematicTarget;
+                        _actor.GlobalPose = curPose;
                     }
                     else
                     {
@@ -540,7 +543,7 @@ namespace XrEngine.Physics
             Type = container.Read<PhysicsActorType>(nameof(Type));
         }
 
-        public unsafe void Dispose()
+        public void Dispose()
         {
             Destroy();
             GC.SuppressFinalize(this);

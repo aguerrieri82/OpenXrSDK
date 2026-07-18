@@ -756,7 +756,7 @@ namespace CanvasUI.Components
                         var legendColor = SKResources.FillColor(serie.Color);
 
                         var label = GetLegendLabel(serie);
-                        canvas.DrawText(label, new SKPoint(_legendArea.X, curLabelY), font, legendColor);
+                        canvas.DrawText(label, _legendArea.X, curLabelY, SKTextAlign.Left, font, legendColor);
 
                         curLabelY += font.Size + 4;
                     }
@@ -804,7 +804,8 @@ namespace CanvasUI.Components
                             if (labelStartPx > lastLabelPx)
                             {
                                 canvas.DrawText(label,
-                                    new SKPoint(px - labelSize / 2f, _xAxisArea.Y + font.Size),
+                                    px - labelSize / 2f, _xAxisArea.Y + font.Size,
+                                    SKTextAlign.Left,
                                     font,
                                     labelPaint);
 
@@ -876,8 +877,11 @@ namespace CanvasUI.Components
 
                             if (labelStartPy > lastLabelPy || true)
                             {
-                                canvas.DrawText(label,
-                                    new SKPoint(_yAxisArea.Right - 6 - labelSize, py),
+                                canvas.DrawText(
+                                    label,
+                                    _yAxisArea.Right - 6 - labelSize,
+                                    py,
+                                    SKTextAlign.Left,
                                     font,
                                     labelPaint);
 
@@ -956,8 +960,11 @@ namespace CanvasUI.Components
                         var nameSize = font.MeasureText(cp.Name);
                         canvas.DrawRect(pixelX + 4, curOfs - font.Size, nameSize + 8, font.Size + 8, labelFill);
 
-                        canvas.DrawText(cp.Name,
-                            new SKPoint(pixelX + 8, curOfs + 2),
+                        canvas.DrawText(
+                            cp.Name,
+                            pixelX + 8,
+                            curOfs + 2,
+                            SKTextAlign.Left,
                             font,
                             SKResources.FillColor(cp.Color));
 

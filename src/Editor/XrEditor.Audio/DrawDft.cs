@@ -151,7 +151,7 @@ namespace XrEditor.Audio
 
             //var sampOp = new SKSamplingOptions(SKFilterMode.Linear);
 
-            canvas.DrawBitmap(_image, new SKRect(0, 0, _image.Width, _image.Height));
+            canvas.DrawBitmap(_image, new SKRect(0, 0, _image.Width, _image.Height), new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
         }
 
 

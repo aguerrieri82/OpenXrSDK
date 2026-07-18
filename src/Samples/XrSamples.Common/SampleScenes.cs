@@ -42,6 +42,7 @@ using XrEngine.Reconstruct;
 using XrEngine.OpenGL;
 using XrSamples.Components;
 using XrEngine.Lighting;
+using System.Diagnostics;
 
 
 namespace XrSamples
@@ -1260,7 +1261,7 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .UseRayCollider("Mouse")
-                .AddFloorShadow(4, true)
+                .AddFloorShadow(4, false)
                 .AddPassthrough()
 
             .ConfigureApp(e =>
@@ -2130,75 +2131,6 @@ namespace XrSamples
                 };
             }
 
-            static Vector3 ViewportPointToLocalRay(
-                CameraParams cam,
-                float u,
-                float v)
-            {
-                var fx = cam.Fx;
-                var fy = cam.Fy;
-                var cx = cam.Cx;
-                var cy = cam.Cy;
-
-                var sensorW = cam.SensorSize!.Value.Width;
-                var sensorH = cam.SensorSize.Value.Height;
-
-                // If current == sensor, this becomes full sensor rect.
-                var currentW = cam.CurrentSize.Width;
-                var currentH = cam.CurrentSize.Height;
-
-                var crop = CalcSensorCropRegion(
-                    sensorW,
-                    sensorH,
-                    currentW,
-                    currentH);
-
-                var x = (crop.X + crop.Width * u - cx) / fx;
-                var y = (crop.Y + crop.Height * v - cy) / fy;
-
-                // Unity uses +Z forward in camera local.
-                // We return the same logical ray direction here.
-                return Vector3.Normalize(new Vector3(x, y, 1.0f));
-            }
-
-            static Matrix4x4 ComputeQuadMatrixV3(
-                Matrix4x4 headMatrix,
-                CameraParams cam,
-                float distanceMeters)
-            {
-                if (cam.Intrinsic == null ||
-                    cam.SensorSize == null ||
-                    !cam.Position.HasValue ||
-                    !cam.Rotation.HasValue)
-                {
-                    return Matrix4x4.Identity;
-                }
-
-                var leftRay = ViewportPointToLocalRay(cam, 0.0f, 0.5f);
-                var rightRay = ViewportPointToLocalRay(cam, 1.0f, 0.5f);
-
-                var dot = Vector3.Dot(leftRay, rightRay);
-                dot = Math.Clamp(dot, -1.0f, 1.0f);
-
-                var horizontalFov = MathF.Acos(dot);
-
-                var canvasWidth = 2.0f * distanceMeters * MathF.Tan(horizontalFov * 0.5f);
-
-                var w = cam.SensorSize.Value.Width;
-                var h = cam.SensorSize.Value.Height;
-
-                var aspect = h / w;
-                var canvasHeight = canvasWidth * aspect;
-
-                var quadToSensor =
-                    Matrix4x4.CreateScale(canvasWidth, canvasHeight, 1.0f) *
-                    Matrix4x4.CreateTranslation(0f, 0f, -distanceMeters);
-
-                var sensorToHead = cam.GetLensPose().ToMatrix();
-
-                return quadToSensor * sensorToHead * headMatrix;
-            }
-
             static Matrix4x4 ComputeQuadMatrixV2(
                 Matrix4x4 headMatrix,
                 CameraParams cam,
@@ -2243,32 +2175,6 @@ namespace XrSamples
                 return quadToSensor * sensorToHead * headMatrix;
             }
 
-            static Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
-            {
-                if (cam.Intrinsic == null || cam.SensorSize == null ||
-                    !cam.Position.HasValue || !cam.Rotation.HasValue)
-                {
-                    return Matrix4x4.Identity;
-                }
-
-                var fx = cam.Intrinsic[0];
-                var fy = cam.Intrinsic[1];
-                var w = cam.SensorSize.Value.Width;
-                var h = cam.SensorSize.Value.Height;
-
-                var scaleX = distanceMeters * (w / fx);
-                var scaleY = distanceMeters * (h / fy);
-
-                var matScale = Matrix4x4.CreateScale(scaleX, scaleY, 1.0f);
-
-                var matTransLocal = Matrix4x4.CreateTranslation(0f, 0f, -distanceMeters);
-
-                var quadToSensor = matScale * matTransLocal;
-
-                var sensorToHead = cam.GetLensPose().ToMatrix();
-
-                return quadToSensor * sensorToHead * headMatrix;
-            }
 
             static Matrix4x4 ComputeQuadMatrixScaledFrom1m(
                 Matrix4x4 headMatrix,
@@ -2416,6 +2322,8 @@ namespace XrSamples
                     if (mustTrack)
                     {
                         var thumb = XrEngineApp.Current?.Inputs?.Right?.Thumbstick!.Value;
+
+                        Debug.Assert(scene.ActiveCamera?.Eyes != null);
 
                         mainLeft.WorldMatrix = ComputeQuadMatrixScaledFrom1m(headLeftTime.ToMatrix(), scene.ActiveCamera.Eyes[0].World, leftParams, 2f + (thumb!.Value.Y * 2f));
                         right.WorldMatrix = ComputeQuadMatrixScaledFrom1m(headRightTime.ToMatrix(), scene.ActiveCamera.Eyes[1].World, rightParams, 2f + (thumb!.Value.Y * 2f));

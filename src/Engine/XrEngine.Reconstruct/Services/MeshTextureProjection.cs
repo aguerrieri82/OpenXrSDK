@@ -79,7 +79,7 @@ namespace XrEngine.Reconstruct
         ///
         /// The comparison is:
         ///
-        ///     projectedDepth <= depthMapValue + DepthBias
+        ///     projectedDepth &lt;= depthMapValue + DepthBias
         ///
         /// so the sample is accepted if the projected mesh point is in front of the stored depth, or only
         /// slightly behind it within this tolerance.

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrEngine.OpenGL;
 using XrMath;
 
@@ -1049,7 +1050,7 @@ namespace XrEngine.Reconstruct
 
             foreach (var point in sorted)
             {
-                while (hull.Count >= 2 && Cross(hull[hull.Count - 1] - hull[hull.Count - 2], point - hull[hull.Count - 1]) <= 0.0f)
+                while (hull.Count >= 2 && Vector2.Cross(hull[hull.Count - 1] - hull[hull.Count - 2], point - hull[hull.Count - 1]) <= 0.0f)
                     hull.RemoveAt(hull.Count - 1);
 
                 hull.Add(point);
@@ -1061,7 +1062,7 @@ namespace XrEngine.Reconstruct
             {
                 var point = sorted[i];
 
-                while (hull.Count > lowerCount && Cross(hull[hull.Count - 1] - hull[hull.Count - 2], point - hull[hull.Count - 1]) <= 0.0f)
+                while (hull.Count > lowerCount && Vector2.Cross(hull[hull.Count - 1] - hull[hull.Count - 2], point - hull[hull.Count - 1]) <= 0.0f)
                     hull.RemoveAt(hull.Count - 1);
 
                 hull.Add(point);
@@ -1073,6 +1074,8 @@ namespace XrEngine.Reconstruct
             return hull;
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2 ToPixel(Vector2 uv)
         {
             return new Vector2(
@@ -1084,18 +1087,20 @@ namespace XrEngine.Reconstruct
         {
             if (!result.TryGetValue(imageIndex, out var points))
             {
-                points = new List<Vector2>();
+                points = [];
                 result[imageIndex] = points;
             }
 
             points.Add(point);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetImageIndex(VertexData vertex)
         {
             return (int)MathF.Round(vertex.Tangent.X);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsUvDefined(Vector2 uv)
         {
             return uv.X >= 0.0f && uv.X <= 1.0f &&
@@ -1111,11 +1116,6 @@ namespace XrEngine.Reconstruct
 
             min = center - 0.5f;
             max = center + 0.5f;
-        }
-
-        private static float Cross(Vector2 a, Vector2 b)
-        {
-            return a.X * b.Y - a.Y * b.X;
         }
 
         private void LogLayout(TextureAtlasLayout layout)

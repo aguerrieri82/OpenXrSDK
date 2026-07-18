@@ -413,7 +413,7 @@ namespace XrEngine
                 {
                     foreach (var collider in obj.Components<ICollider3D>())
                     {
-                        if (collider != null && collider.IsEnabled)
+                        if (collider != null && collider.IsEnabled && ((Object3D)collider.Host!).IsVisible)
                             yield return collider;
                     }
                 }

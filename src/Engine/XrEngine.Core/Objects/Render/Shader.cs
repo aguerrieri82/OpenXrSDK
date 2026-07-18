@@ -2,6 +2,11 @@
 {
     public class Shader : EngineObject
     {
+        public void Invalidate()
+        {
+            Version++;
+        }
+
         public string? VertexSourceName { get; set; }
 
         public string? FragmentSourceName { get; set; }

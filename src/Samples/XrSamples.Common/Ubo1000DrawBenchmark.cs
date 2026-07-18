@@ -50,7 +50,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
     private int _uboOffsetAlignment;
     private int _ssboOffsetAlignment;
     private int _maxUniformBlockSize;
-    private readonly int _maxShaderStorageBlockSize;
+
 
     public UboSsbo1000DrawBenchmark(GL gl, bool gles)
     {
@@ -76,7 +76,6 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
         Console.WriteLine($"  GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT  : {_ssboOffsetAlignment}");
         Console.WriteLine($"  SSBO BindBufferRange stride                : {_ssboRangeStride}");
         Console.WriteLine($"  GL_MAX_UNIFORM_BLOCK_SIZE                  : {_maxUniformBlockSize}");
-        Console.WriteLine($"  GL_MAX_SHADER_STORAGE_BLOCK_SIZE           : {_maxShaderStorageBlockSize}");
         Console.WriteLine($"  Indexed SSBO total size                    : {_modelSize * DrawCount}");
         Console.WriteLine($"  Ranged SSBO total size                     : {_ssboRangeStride * DrawCount}");
         Console.WriteLine();
