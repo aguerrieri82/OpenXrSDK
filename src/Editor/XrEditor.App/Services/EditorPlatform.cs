@@ -52,7 +52,7 @@ namespace XrEditor
         {
             if (driver == GraphicDriver.OpenGL)
             {
-                if (EngineNativeLib.RdcIsAttached())
+                if (EngineNativeLib.RdcIsAttached() || !EditorDebug.UseDxHost)
                     _renderSurface = new GlRenderHost(true, _useEs);
                 else
                     _renderSurface = new GlDxRenderHost(true, _useEs);

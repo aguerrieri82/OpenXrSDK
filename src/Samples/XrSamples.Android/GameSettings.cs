@@ -27,12 +27,13 @@ namespace XrSamples
 
         public float Scale { get; set; }
 
+        public bool UseResolve { get; set; }
 
         public static GameSettings Graffiti()
         {
             return new GameSettings
             {
-                SampleName = "Light Field",
+                SampleName = "DnD",
                 Msaa = 2,
                 Scale = 1f,
                 Driver = GraphicDriver.OpenGL,
@@ -40,7 +41,8 @@ namespace XrSamples
                 UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = false
+                TextureCompression = false,
+                UseResolve = true
             };
         }
 

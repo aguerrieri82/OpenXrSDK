@@ -611,7 +611,7 @@ namespace XrEngine.Lighting
             ref T[] result) where T : struct
         {
 
-            _texFb.BindAttachment(texture, FramebufferAttachment.ColorAttachment0, false, layer);
+            _texFb.Attach(texture, FramebufferAttachment.ColorAttachment0, false, layer);
             _texFb.Check();
 
             int len = checked((int)(rect.Width * rect.Height));
@@ -758,10 +758,10 @@ namespace XrEngine.Lighting
                 DrawBufferMode.ColorAttachment1,
                 DrawBufferMode.ColorAttachment2);
 
-            _scanFbo.BindAttachment(target.Color, FramebufferAttachment.ColorAttachment0, true);
-            _scanFbo.BindAttachment(target.Normal, FramebufferAttachment.ColorAttachment1, true);
-            _scanFbo.BindAttachment(target.Material, FramebufferAttachment.ColorAttachment2, true);
-            _scanFbo.BindAttachment(target.Depth, FramebufferAttachment.DepthAttachment, false);
+            _scanFbo.Attach(target.Color, FramebufferAttachment.ColorAttachment0, true);
+            _scanFbo.Attach(target.Normal, FramebufferAttachment.ColorAttachment1, true);
+            _scanFbo.Attach(target.Material, FramebufferAttachment.ColorAttachment2, true);
+            _scanFbo.Attach(target.Depth, FramebufferAttachment.DepthAttachment, false);
         }
 
         public void Dispose()

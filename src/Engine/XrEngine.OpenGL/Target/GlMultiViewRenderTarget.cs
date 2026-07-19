@@ -79,11 +79,9 @@ namespace XrEngine.OpenGL
 
     public class GlMultiViewRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
     {
-        static readonly InvalidateFramebufferAttachment[] DepthStencilAttachment = [InvalidateFramebufferAttachment.DepthStencilAttachment];
-
         protected GlMultiViewFrameBuffer _frameBuffer;
 
-        readonly GL _gl;
+        protected readonly GL _gl;
 
         public GlMultiViewRenderTarget(GL gl)
         {
@@ -104,7 +102,7 @@ namespace XrEngine.OpenGL
         public void End(bool discardDepth)
         {
             if (discardDepth)
-                _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, DepthStencilAttachment);
+                _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthStencilAttachment);
 
             _frameBuffer.Unbind();
         }
@@ -120,11 +118,6 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-
-        public void CommitDepth()
-        {
-            _gl.Flush();
-        }
 
         public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;
 

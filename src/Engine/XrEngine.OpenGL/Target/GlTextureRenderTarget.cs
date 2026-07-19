@@ -45,10 +45,6 @@ namespace XrEngine.OpenGL
             return _frameBuffer.QueryTexture(attachment);
         }
 
-        public void CommitDepth()
-        {
-            _gl.Flush();
-        }
 
         public GlTextureFrameBuffer FrameBuffer => _frameBuffer;
 

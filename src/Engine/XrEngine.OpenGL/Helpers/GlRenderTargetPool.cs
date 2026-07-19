@@ -7,23 +7,25 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlFrameBufferPool : IDisposable
+    public class GlRenderTargetPool : IDisposable
     {
         private readonly GL _gl;
         private readonly bool _multiView;
         private readonly Dictionary<ulong, IGlRenderTarget> _targets = [];
 
+        private GlTexture? _intermediateColor;
 
-        public GlFrameBufferPool(GL gl, bool multiView)
+
+        public GlRenderTargetPool(GL gl, bool multiView)
         {
             _gl = gl;
             _multiView = multiView;
             DepthFormat = TextureFormat.Depth24Stencil8;
+            IntermediateFormat = TextureFormat.RgbaFloat16;
         }
 
-        protected TextureTarget GetTarget(uint arraySize, uint sampleCount)
+        protected static TextureTarget GetTarget(uint arraySize, uint sampleCount)
         {
-
             if (arraySize == 1)
                 return sampleCount <= 1 ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
 
@@ -40,10 +42,26 @@ namespace XrEngine.OpenGL
                 MaxLevel = 0,
                 Target = GetTarget(arraySize, sampleCount)
             };
-  
+
             depthTex.Allocate(color.Width, color.Height, arraySize, DepthFormat);
 
             return depthTex;
+        }
+
+        protected GlTexture CreateIntermediateColor(GlTexture color, uint sampleCount)
+        {
+            var colorTex = new GlTexture(_gl)
+            {
+                MinFilter = TextureMinFilter.Nearest,
+                MagFilter = TextureMagFilter.Nearest,
+                SampleCount = sampleCount,
+                MaxLevel = 0,
+                Target = GetTarget(color.Depth, sampleCount)
+            };
+
+            colorTex.Allocate(color.Width, color.Height, color.Depth, IntermediateFormat);
+
+            return colorTex;
         }
 
         public IGlRenderTarget CreateRenderTarget(uint width, uint height, TextureFormat format, uint sampleCount)
@@ -80,6 +98,13 @@ namespace XrEngine.OpenGL
                 var texSampleCount = _multiView ? 1 : sampleCount;
 
                 var glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
+                var renderColor = glColor;
+
+                if (UseIntermediateColor)
+                {
+                    _intermediateColor ??= CreateIntermediateColor(glColor, texSampleCount);
+                    renderColor = _intermediateColor;
+                }
 
                 if (depthTex != 0)
                     glDepth = GlTexture.Attach(_gl, depthTex, texSampleCount);
@@ -89,9 +114,17 @@ namespace XrEngine.OpenGL
                     var multiView = new GlMultiViewRenderTarget(_gl);
 
                     if (createDepth)
-                        glDepth ??= CreateDepth(glColor, 2, texSampleCount);
+                        glDepth ??= CreateDepth(renderColor, 2, texSampleCount);
 
-                    multiView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
+                    multiView.FrameBuffer.Configure(renderColor, glDepth, sampleCount);
+
+                    if (UseIntermediateColor)
+                    {
+                        multiView.FrameBuffer.Attach(glColor, FramebufferAttachment.ColorAttachment1, false);
+                        multiView.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
+                        multiView.FrameBuffer.Check();
+                    }
+
                     target = multiView;
                 }
                 else
@@ -101,7 +134,8 @@ namespace XrEngine.OpenGL
                     var useRenderTarget = !OpenGLRender.Current!.Options.UseDepthPass &&
                                           !OpenGLRender.Current!.Options.ContactShadow.Use;
 
-                    //TODO: change
+
+#warning TEMPORARY DISABLED
                     useRenderTarget = false;
 
                     IGlRenderAttachment? depthAttachment = glDepth;
@@ -112,20 +146,27 @@ namespace XrEngine.OpenGL
                         {
                             var renderBuf = new GlRenderBuffer(_gl);
                             var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
-                            renderBuf.Update(glColor.Width, glColor.Height, texSampleCount, intFormat);
+                            renderBuf.Update(renderColor.Width, renderColor.Height, texSampleCount, intFormat);
                             depthAttachment = renderBuf;
                         }
                         else
                         {
-                            glDepth ??= CreateDepth(glColor, 1, texSampleCount);
+                            glDepth ??= CreateDepth(renderColor, 1, texSampleCount);
                             depthAttachment = glDepth;
                         }
                     }
 
                     if (eyeIndex != -1)
-                        singleView.FrameBuffer.Configure(glColor, (uint)eyeIndex, depthAttachment, (uint)eyeIndex, sampleCount);
+                        singleView.FrameBuffer.Configure(renderColor, (uint)eyeIndex, depthAttachment, (uint)eyeIndex, sampleCount);
                     else
-                        singleView.FrameBuffer.Configure(glColor, depthAttachment, sampleCount);
+                        singleView.FrameBuffer.Configure(renderColor, depthAttachment, sampleCount);
+
+                    if (UseIntermediateColor)
+                    {
+                        singleView.FrameBuffer.Attach(glColor, FramebufferAttachment.ColorAttachment1, false);
+                        singleView.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
+                        singleView.FrameBuffer.Check();
+                    }
 
                     target = singleView;
                 }
@@ -140,7 +181,11 @@ namespace XrEngine.OpenGL
         {
             foreach (var item in _targets)
                 item.Value.Dispose();
+
             _targets.Clear();
+
+            _intermediateColor?.Dispose();
+            _intermediateColor = null;
         }
 
         public void Dispose()
@@ -150,5 +195,11 @@ namespace XrEngine.OpenGL
         }
 
         public TextureFormat DepthFormat { get; set; }
+
+        public bool UseIntermediateColor { get; set; }
+
+        public TextureFormat IntermediateFormat { get; set; }
+
+        public GlTexture? IntermediateColor => _intermediateColor;
     }
 }

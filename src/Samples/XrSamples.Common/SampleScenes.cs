@@ -72,6 +72,8 @@ namespace XrSamples
 
             scene.AddComponent<ShadowController>();
 
+            scene.AddComponent<ResolveController>();
+
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light",
@@ -1270,7 +1272,7 @@ namespace XrSamples
 
                 scene.AddChild<EnvironmentView>();
                 scene.AddComponent<ShadowController>();
-
+                scene.AddComponent<ResolveController>();
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
@@ -1312,6 +1314,9 @@ namespace XrSamples
                     ZoomLevel = 0,
                     RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
                 };
+
+                if (((OpenGLRender)e.App.Renderer).Options.UseResolve)
+                    webView.TextureFormat = TextureFormat.SBgra32;
 
                 ui.AddComponent<SurfaceController>();
                 ui.AddComponent(webView);

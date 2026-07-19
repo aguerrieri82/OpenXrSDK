@@ -178,6 +178,13 @@ namespace XrEngine
                 throw new InvalidOperationException("Scene changes are locked");
         }
 
+
+        [Action]
+        public void Capture()
+        {
+            _app.CaptureFrames(1);
+        }
+
         public long ContentVersion { get; protected set; }
 
         public Canvas3D Gizmos => _gizmos;

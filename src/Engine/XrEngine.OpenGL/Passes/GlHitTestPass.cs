@@ -114,7 +114,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(GlUpdateContext ctx)
         {
-            if (_renderer.RenderTarget!.Flags != GlRenderTargetFlags.Main)
+            if ((_renderer.RenderTarget!.Flags & GlRenderTargetFlags.Main) == 0)
                 return false;
 
             var camera = ctx.PassCamera!;

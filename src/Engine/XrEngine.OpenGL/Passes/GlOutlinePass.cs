@@ -168,7 +168,7 @@ namespace XrEngine.OpenGL
             {
                 _tempTarget!.RenderTarget!.End(false);
 
-                _renderer.RenderTarget!.Begin(camera);
+                _renderer.RenderTarget!.Begin(ctx.MainCamera!);
 
                 if (UseScissor)
                     _gl.Scissor((int)(_bounds.Min.X * _downsampleFactor),

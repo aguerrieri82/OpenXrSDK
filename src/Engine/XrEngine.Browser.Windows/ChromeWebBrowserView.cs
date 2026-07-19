@@ -26,14 +26,14 @@ namespace XrEngine.Browser.Windows
         protected long _lastElevFrame;
         protected bool _injected;
         protected readonly bool _cpuMode;
-        TextureFormat _format;
+
 
         public ChromeWebBrowserView(GL? gl = null)
         {
             _cpuMode = gl == null;
             _browser = new ChromeWebBrowser(gl);
-#warning FORMAT MUST BE SRGB IF IS ACTIVE ON GL
-            _format = TextureFormat.Bgra32;  
+
+            TextureFormat = TextureFormat.Bgra32;  
             Size = new Size2I(1600, 1200);
             EnableElevation = true;
         }
@@ -129,7 +129,7 @@ namespace XrEngine.Browser.Windows
             _texture ??= new Texture2D()
             {
                 Name = "Browser",
-                Format = _format,
+                Format = TextureFormat,
             };
 
             if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
@@ -220,7 +220,7 @@ namespace XrEngine.Browser.Windows
                         Data = MemoryBuffer.Create(_browser.FrameBuffer),
                         Width = _browser.Size.Width,
                         Height = _browser.Size.Height,
-                        Format = _format
+                        Format = TextureFormat
                     });
 
                     _lastTexUpdateTime = time;
@@ -258,6 +258,8 @@ namespace XrEngine.Browser.Windows
         public IWebRequestHandler? RequestHandler { get; set; }
 
         public bool EnableElevation { get; set; }
+
+        public TextureFormat TextureFormat { get; set; }
 
 
         [Range(-10, 10, 0.1f)]

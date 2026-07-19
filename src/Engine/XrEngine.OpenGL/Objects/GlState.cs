@@ -223,6 +223,13 @@ namespace XrEngine.OpenGL
             glTex.Slot = slot;
         }
 
+        public bool IsFeatureEnabled(EnableCap cap, bool defValue = false)
+        {
+            if (Features.TryGetValue(cap, out var value))
+                return value;
+            return defValue;
+        }
+
         public void EnableFeature(EnableCap cap, bool value, bool force = false)
         {
             if (Features.TryGetValue(cap, out var enabled) && enabled == value && !force)

@@ -22,6 +22,7 @@ namespace XrEngine
         protected readonly EngineAppStats _stats;
         protected PlayState _playState;
         protected IRenderEngine? _renderer;
+        protected int _captureCount;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
@@ -98,6 +99,9 @@ namespace XrEngine
             if (_activeScene == null || _activeScene.ActiveCamera == null || _renderer == null) 
                 return false;
 
+            if (_captureCount > 0)
+                EngineNativeLib.RdcStartFrameCapture();
+
             _context.Frame++;
             _context.Scene = _activeScene;
 
@@ -140,6 +144,12 @@ namespace XrEngine
 
         public void EndFrame()
         {
+            if (_captureCount > 0)
+            {
+                EngineNativeLib.RdcEndFrameCapture(true);
+                _captureCount--;
+            }
+
             _stats.EndFrame();
         }
 
@@ -166,6 +176,11 @@ namespace XrEngine
         {
             GC.SuppressFinalize(this);
             return ValueTask.CompletedTask;
+        }
+
+        public void CaptureFrames(int count)
+        {
+            _captureCount = count;
         }
 
         public RenderContext RenderContext => _context;

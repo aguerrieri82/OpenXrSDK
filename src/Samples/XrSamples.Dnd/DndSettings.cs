@@ -44,7 +44,7 @@ namespace XrSamples.Dnd
 
             //image.IsVisible = ImageInt > 0;
             image.Intensity = ImageInt;
-
+            image.Invalidate();
         }
 
 

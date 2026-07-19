@@ -45,9 +45,7 @@ namespace XrEngine.OpenGL
         protected uint _sampleCount;
         protected GlTexture? _color;
         protected GlTexture? _depth;
-        protected Size2I _size;
         protected readonly TextureTarget _target;
-        protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
@@ -82,13 +80,13 @@ namespace XrEngine.OpenGL
 
         public void Configure(GlTexture colorTex, GlTexture? depthTex, uint sampleCount)
         {
+            BeginUpdate();
+
             _color = colorTex;
             _depth = depthTex;
             _sampleCount = sampleCount;
 
-            Bind();
-
-            BindAttachment(_color, FramebufferAttachment.ColorAttachment0, true);
+            Attach(_color, FramebufferAttachment.ColorAttachment0, true);
 
             if (_depth != null)
             {
@@ -96,17 +94,17 @@ namespace XrEngine.OpenGL
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
-                BindAttachment(_depth, depthAtt, false);
+                Attach(_depth, depthAtt, false);
             }
 
-            Check();
-
-            _size = new Size2I(_color.Width, _color.Height);
+            EndUpdate();
         }
 
 
-        public override void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0)
+        public override void Attach(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0)
         {
+            Bind();
+
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
 
@@ -140,9 +138,9 @@ namespace XrEngine.OpenGL
             _isDirty = true;
         }
 
-        public void Detach(FramebufferAttachment attachment)
+        public override void Detach(FramebufferAttachment attachment)
         {
-            BindDraw();
+            Bind();
 
             if (_sampleCount > 1)
             {
@@ -174,34 +172,9 @@ namespace XrEngine.OpenGL
                 _gl.CheckError();
             }
 
-            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-
-            if (status != GLEnum.FramebufferComplete)
-            {
-                throw new Exception($"Frame buffer state invalid: {status}");
-            }
+            Check();
         }
 
-        public override GlTexture GetOrCreateEffect(FramebufferAttachment slot)
-        {
-            if (Color == null)
-                throw new NotSupportedException();
-
-            if (!_attachments.TryGetValue(slot, out var obj))
-            {
-                var glTex = Color.Clone(false);
-
-                BindDraw(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
-
-                BindAttachment(glTex, slot, true);
-
-                Check();
-
-                obj = glTex;
-            }
-
-            return (GlTexture)obj;
-        }
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
@@ -213,8 +186,6 @@ namespace XrEngine.OpenGL
 
             throw new NotSupportedException();
         }
-
-        public override Size2I Size => _size;
 
         public override GlTexture? Color => _color;
 

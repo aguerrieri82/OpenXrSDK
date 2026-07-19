@@ -130,11 +130,11 @@ namespace XrEngine.OpenGL
 
             ProcessImageLight(ctx);
 
-            _wasSrgb = ctx.IsSrgb;
+            _wasSrgb = ctx.IsSrgbTarget;
 
-            ctx.IsSrgb = !_reflection.UseSrgb;
+            ctx.IsSrgbTarget = _reflection.UseSrgb;
 
-            if (_wasSrgb != ctx.IsSrgb)
+            if (_wasSrgb != ctx.IsSrgbTarget)
                 PbrMaterial.SHADER.Invalidate();
 
             return true;
@@ -187,9 +187,9 @@ namespace XrEngine.OpenGL
 
             _reflection.Texture = (Texture2D)_swap!.Active.ToEngineTexture();
 
-            if (_wasSrgb != ctx.IsSrgb)
+            if (_wasSrgb != ctx.IsSrgbTarget)
             {
-                ctx.IsSrgb = _wasSrgb;
+                ctx.IsSrgbTarget = _wasSrgb;
                 PbrMaterial.SHADER.Invalidate();
             }
         }

@@ -1,22 +1,35 @@
 ﻿#include "Shared/tonemap.glsl"
 
-#ifdef MULTI_VIEW
-    layout(binding = 0) uniform sampler2DArray uImage;
-#elif defined(SAMPLE_COUNT) && SAMPLE_COUNT > 1
-    layout(binding = 0) uniform sampler2DMS uImage;
-#else
-    layout(binding = 0) uniform sampler2D uImage;
+#ifndef FB_MODE
+
+    #ifdef MULTI_VIEW
+        layout(binding = 0) uniform mediump sampler2DArray uImage;
+    #elif defined(SAMPLE_COUNT) && SAMPLE_COUNT > 1
+        layout(binding = 0) uniform mediump sampler2DMS uImage;
+    #else
+        layout(binding = 0) uniform mediump sampler2D uImage;
+    #endif
+
+    in vec2 fUv;
+
 #endif
 
-in vec2 fUv;
-
-layout(location=0) out vec4 FragColor;
+#ifdef FB_MODE
+    layout(location = 0) inout mediump vec4 FbColor;
+    layout(location = 1) out vec4 FragColor;
+#else
+    layout(location = 0) out vec4 FragColor;
+#endif
 
 void main()
 {
     vec4 color;
 
-#ifdef MULTI_VIEW
+#ifdef FB_MODE
+
+    color = FbColor;
+
+#elif defined(MULTI_VIEW)
 
     color = texture(uImage, vec3(fUv, gl_ViewID_OVR));
 

@@ -200,7 +200,7 @@ namespace XrEngine.OpenXr
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
         {
-            var pool = new GlFrameBufferPool(OpenGLRender.Current!.GL,
+            var pool = new GlRenderTargetPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
 
 
@@ -216,7 +216,7 @@ namespace XrEngine.OpenXr
 
         public static OpenGLRender BindEngineAppGLResolve(this XrApp xrApp, EngineApp app)
         {
-            var swap = new GlSwapRenderTarget(OpenGLRender.Current!.GL,
+            var swap = new GlResolveRenderTarget(OpenGLRender.Current!.GL,
                 xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView,
                 XrEngineApp.Current!.Options.SampleCount
             );

@@ -22,7 +22,7 @@ void SleepUntil(uint64_t time)
 }
 
 
-#ifdef _WINDOWS
+#if defined(_WINDOWS)
 
     void SleepFor(uint64_t time) {
 
@@ -59,15 +59,28 @@ void SleepUntil(uint64_t time)
         CloseHandle(evt);
     }
 
-#else
+#elif defined(__ANDROID__)
+
+    void SleepFor(uint64_t nanoseconds)
+    {
+        timespec duration
+        {
+            .tv_sec = static_cast<time_t>(nanoseconds / 1'000'000'000ull),
+            .tv_nsec = static_cast<long>(nanoseconds % 1'000'000'000ull)
+        };
+
+        while (nanosleep(&duration, &duration) == -1 && errno == EINTR)
+        {
+        }
+    }
+
+#else 
 
     void SleepFor(uint64_t time)
     {
-
 	    auto duration = std::chrono::nanoseconds(time);
 
 	    std::this_thread::sleep_for(duration);
-
     }
 
 #endif

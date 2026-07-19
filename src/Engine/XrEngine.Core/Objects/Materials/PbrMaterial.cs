@@ -239,12 +239,11 @@ namespace XrEngine
                 if (Context.TryRequire<IToneMapper>(out var mapper))
                     globalToneMap = mapper.IsGlobal;
 
-
                 if (ToneMap != ToneMapMode.None && !globalToneMap)
                 {
                     bld.AddFeature($"TONE_MAP {(int)ToneMap}");
 
-                    if (!bld.Context.IsSrgb)
+                    if (bld.Context.NeedSrgbEncode)
                         bld.AddFeature($"SRGB");
                 }
 

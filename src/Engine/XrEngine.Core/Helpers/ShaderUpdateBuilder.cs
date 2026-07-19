@@ -92,7 +92,11 @@ namespace XrEngine
 
         public float DeltaTime;
 
-        public bool IsSrgb;
+        public bool IsSrgbTarget;
+
+        public bool IsSrgbAutoEncode;
+
+        public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

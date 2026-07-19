@@ -431,16 +431,24 @@ namespace XrEngine.OpenGL
 
             _updateCtx.ContextVersion++;
 
-            if (!GlState.Current!.Features.TryGetValue(EnableCap.FramebufferSrgb, out _updateCtx.IsSrgb))
-                _updateCtx.IsSrgb = false;
-
-            if (_updateCtx.IsSrgb && RenderTarget is IGlFrameBufferProvider prov)
+            if ((RenderTarget!.Flags & GlRenderTargetFlags.ForceSrgbEncode) != 0)
             {
-                var color = prov.FrameBuffer.Color;
-                if (color != null && !color.InternalFormat.IsSrgb())
-                    _updateCtx.IsSrgb = false;
+                _updateCtx.IsSrgbTarget = true;
+                _updateCtx.IsSrgbAutoEncode = false;
             }
-    
+            else
+            {
+                _updateCtx.IsSrgbAutoEncode = GlState.Current!.IsFeatureEnabled(EnableCap.FramebufferSrgb);
+
+                if (RenderTarget is IGlFrameBufferProvider prov)
+                {
+                    var color = prov.FrameBuffer.Color;
+                    _updateCtx.IsSrgbTarget = color != null && !color.InternalFormat.IsSrgb();
+                }
+                else
+                    _updateCtx.IsSrgbTarget = false;
+            }
+
             foreach (var pass in _renderPasses)
                 pass.Configure(_updateCtx);
 

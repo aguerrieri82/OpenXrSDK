@@ -192,6 +192,8 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         _timer = new HighResolutionTimer();
 
         VisualBitmapScalingMode = BitmapScalingMode.NearestNeighbor;
+
+        ColorFormat = TextureFormat.Rgba32;
     }
 
     protected override void OnHostLoaded()
@@ -455,7 +457,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
         _renderTarget = new GlTextureRenderTarget(_gl)
         {
-            Flags = GlRenderTargetFlags.Main
+            Flags = GlRenderTargetFlags.Main | GlRenderTargetFlags.ForceSrgbEncode
         };
 
         _interopFrameBuffer = new GlTextureFrameBuffer(_gl);
@@ -487,7 +489,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         _interopTex.OverrideSize((uint)width, (uint)height);
 
         _colorTex.Recreate();
-        _colorTex.Allocate((uint)width, (uint)height, 1, TextureFormat.Rgba32);
+        _colorTex.Allocate((uint)width, (uint)height, 1, ColorFormat);
 
         _depthBuffer.Update((uint)width, (uint)height, _colorTex.SampleCount, InternalFormat.Depth24Stencil8);
 
@@ -641,6 +643,9 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         glOptions.Outline.Use = true;
 
         _render = new OpenGLRender(_gl!, glOptions);
+
+        if (glOptions.UseResolve)
+            ColorFormat = TextureFormat.RgbaFloat16;
 
         return _render;
     }
@@ -884,4 +889,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
     public override nint HWnd => _hiddenWnd;
 
     public override bool SupportsDualRender => true;
+
+    public TextureFormat ColorFormat { get; set; }
 }

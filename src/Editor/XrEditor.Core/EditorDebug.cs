@@ -28,6 +28,8 @@ namespace XrEditor
 
         public static readonly int VSyncScale = 4;
 
+        public static readonly bool UseDxHost = true;
+
 
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
 
@@ -72,7 +74,7 @@ namespace XrEditor
 
               })
             // .UseSpaceWarp()
-              .SetRenderQuality(1f, 2, false)
+              .SetRenderQuality(1f, 2, useIntermediate: true)
               .CreateRoomManager()  
               .Build();
     }

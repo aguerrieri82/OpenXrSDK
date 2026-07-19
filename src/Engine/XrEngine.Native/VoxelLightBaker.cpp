@@ -2873,20 +2873,20 @@ int32_t BuildGaussianKernel3x3x3(BlurSample* samples)
 
 void VoxelLightBaker::BlurLightField()
 {
-	bool colorOnly = _params.Blur.ColorOnly;
-	float strength = std::clamp(_params.Blur.Strength, 0.0f, 1.0f);
-	int32_t passes = std::max(0, _params.Blur.Passes);
+	const bool colorOnly = _params.Blur.ColorOnly;
+	const float strength = std::clamp(_params.Blur.Strength, 0.0f, 1.0f);
+	const int32_t passes = std::max(0, _params.Blur.Passes);
 
 	if (strength <= 0.0f || passes <= 0)
 		return;
 
-	int32_t count = _field.Size.X * _field.Size.Y * _field.Size.Z;
+	const int32_t count = _field.Size.X * _field.Size.Y * _field.Size.Z;
 
 	std::vector<Vec3> tempColor(count);
 	std::vector<Vec3> tempDirection(count);
 
-	BlurSample samples[27];
-	int32_t sampleCount = BuildGaussianKernel3x3x3(samples);
+    BlurSample samples[27];
+	const int32_t sampleCount = BuildGaussianKernel3x3x3(samples);
 
 	for (int32_t pass = 0; pass < passes; ++pass)
 	{
@@ -2911,9 +2911,9 @@ void VoxelLightBaker::BlurLightField()
 						{
 							const BlurSample& sample = samples[i];
 
-							int32_t nx = x + sample.Dx;
-							int32_t ny = y + sample.Dy;
-							int32_t nz = z + sample.Dz;
+							const int32_t nx = x + sample.Dx;
+							const int32_t ny = y + sample.Dy;
+							const int32_t nz = z + sample.Dz;
 
 							if (nx < 0 || ny < 0 || nz < 0 ||
 								nx >= _field.Size.X ||
@@ -2923,7 +2923,7 @@ void VoxelLightBaker::BlurLightField()
 								continue;
 							}
 
-							int32_t ni = FieldIndex(_field, { nx, ny, nz });
+							const int32_t ni = FieldIndex(_field, { nx, ny, nz });
 
 							colorSum += colors[ni] * sample.Weight;
 							weightSum += sample.Weight;

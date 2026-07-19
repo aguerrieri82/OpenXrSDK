@@ -31,16 +31,6 @@ namespace XrEngine.OpenGL
             ColorFormat = TextureFormat.RgbaFloat16;
 
             SetSize(new Size2I(16, 16));
-
-            /*
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
-
-            _gl.GetFramebufferAttachmentParameter(
-                FramebufferTarget.Framebuffer,
-                (GLEnum)0x402,
-                FramebufferAttachmentParameterName.ColorEncoding,
-                out int encoding);
-            */
         }
 
         protected void SetSize(Size2I size)
@@ -117,9 +107,7 @@ namespace XrEngine.OpenGL
                 _gl.DrawBuffers(GlState.DRAW_BACK);
             }
             else
-            {
                 dst.BindDraw();
-            }
 
             var w = src.Color!.Width;
             var h = src.Color.Height;
@@ -138,11 +126,6 @@ namespace XrEngine.OpenGL
         {
             if (!_isResolved)
                 Resolve(discardDepth, _frameBuffer, null);
-        }
-
-        public void CommitDepth()
-        {
-
         }
 
         public GlTexture? QueryTexture(FramebufferAttachment attachment)

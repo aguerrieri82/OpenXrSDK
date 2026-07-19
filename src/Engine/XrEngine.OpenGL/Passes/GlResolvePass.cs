@@ -18,21 +18,19 @@ namespace XrEngine.OpenGL
         {
             _resolve = new();
             _passTarget = new GlRenderPassTarget(renderer.GL);
+            _resolve.ToneMap = _renderer.Options.ToneMap;
 
             Context.Implement<IToneMapper>(this);
         }
+
 
         public override void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
 
-            Debug.Assert(_renderer.RenderTarget != null);
-
-            _resolve.IsSrgb = !ctx.IsSrgb;
-            _resolve.ToneMap = _renderer.Options.ToneMap;
-            _resolve.ResolveAlpha = false;
-
+            _resolve.EncodeSrgb = ctx.NeedSrgbEncode;
+         
             if (_renderer.RenderTarget is GlDefaultRenderTarget def)
             {
                 var color = def.Color!;
@@ -56,19 +54,23 @@ namespace XrEngine.OpenGL
                     return;
                 }
             }
-            else if (_renderer.RenderTarget is GlSwapRenderTarget swap)
+            else if (_renderer.RenderTarget is GlResolveRenderTarget res)
             {
-                var color = swap.FrameBuffer.Color;
+                res.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
 
-                swap.DestFrameBuffer.Bind();
+                _resolve.IsMultiView = res.IsMultiView;
 
-                _resolve.Texture = color!.ToEngineTexture();
-                _resolve.IsMultiView = swap.IsMultiView;
+                if (_resolve.Texture != null)
+                {
+                    _resolve.Texture = null;
+                    _resolve.NotifyChanged();
+                }
 
                 UseEffect(_resolve);
 
                 DrawQuad();
 
+                res.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
             }
             else
             {
@@ -87,6 +89,7 @@ namespace XrEngine.OpenGL
 
                 _resolve.IsMultiView = _renderer.RenderTarget is GlMultiViewRenderTarget;
 
+
                 UseEffect(_resolve);
 
                 DrawQuad();
@@ -97,5 +100,23 @@ namespace XrEngine.OpenGL
 
 
         public bool IsGlobal => _renderer.Options.ToneMap != ToneMapMode.None;
+
+        public ToneMapMode ToneMap
+        {
+            get => _resolve.ToneMap;
+            set => _resolve.ToneMap = value;
+        }
+
+        public bool ResolveAlpha
+        {
+            get => _resolve.ResolveAlpha;
+            set => _resolve.ResolveAlpha = value;
+        }
+
+        public bool EncodeSrgb
+        {
+            get => _resolve.EncodeSrgb;
+            set => _resolve.EncodeSrgb = value;
+        }
     }
 }

@@ -151,7 +151,7 @@ namespace XrEngine.OpenGL
                     extra.Texture.Allocate(width, height, arrayDepth, extra.Format);
 
                     if (extra.Attachment != null)
-                        FrameBuffer!.BindAttachment(extra.Texture, extra.Attachment.Value, true);
+                        FrameBuffer!.Attach(extra.Texture, extra.Attachment.Value, true);
                 }
 
                 _isDirty = false;

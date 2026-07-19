@@ -25,8 +25,9 @@ namespace XrEngine.Physics
         {
             Options = new PhysicsOptions();
             StepSizeSecs = fps == 0 ? 0 : 1f / fps;
-            IsMultiThread = false;
             UpdatePriority = -1;
+            UseQueue = true;
+            IsMultiThread = true;
         }
 
         protected override void Start(RenderContext ctx)
@@ -45,8 +46,11 @@ namespace XrEngine.Physics
 
             if (IsMultiThread)
             {
-                _simulateThread = new Thread(SimulateLoopV2);
-                _simulateThread.Name = "XrEngine PhysicsSimulate";
+                _simulateThread = new Thread(SimulateLoop)
+                {
+                    Name = "XrEngine PhysicsSimulate"
+                };
+
                 _simulateThread.Start();
             }
         }
@@ -72,7 +76,7 @@ namespace XrEngine.Physics
             if (!_isEnabled)
                 return;
 
-            if (IsMultiThread)
+            if (IsMultiThread && UseQueue)
                 _queue.Enqueue(action);
             else
                 action();
@@ -90,54 +94,46 @@ namespace XrEngine.Physics
             }
         }
 
+
         void SimulateLoop()
         {
-            var lastStepTime = _lastUpdateTime;
+            var realStart = Stopwatch.GetTimestamp();
 
-            while (IsStarted)
+            double nextUpdateTime = StepSizeSecs;
+
+            using var sync = new AutoResetEvent(false);
+
+            while (IsStarted && _system != null)
             {
-                var curTime = _lastUpdateTime;
-
-                var delta = curTime - lastStepTime;
-
-                if (delta > 0)
+                if (!_queue.IsEmpty)
                 {
-                    while (_queue.TryDequeue(out var action))
-                        action();
+                    EngineApp.Current.Dispatcher.Post(() =>
+                    {
+                        while (_queue.TryDequeue(out var action))
+                            action();
 
-                    _system?.Simulate((float)delta, StepSizeSecs);
+                        sync.Set();
+                    });
 
-                    lastStepTime = curTime;
+                    sync.WaitOne();
                 }
-                else
-                    Thread.Sleep(1);
-            }
-        }
 
-        void SimulateLoopV2()
-        {
-            while (IsStarted)
-            {
-                var startTime = Stopwatch.GetTimestamp();
+                var realTime = Stopwatch.GetElapsedTime(realStart).TotalSeconds;
+                var deltaSecs = realTime - _system.Time;
 
-                while (_queue.TryDequeue(out var action))
-                    action();
+                if (deltaSecs > 0)
+                    _system.Simulate((float)deltaSecs, (float)StepSizeSecs);
 
-                _system?.Simulate((float)StepSizeSecs, StepSizeSecs);
+                realTime = Stopwatch.GetElapsedTime(realStart).TotalSeconds;
+                var waitSecs = nextUpdateTime - realTime;
 
-                var ellapsed = Stopwatch.GetElapsedTime(startTime).TotalSeconds;
+                if (waitSecs > 0)
+                    EngineNativeLib.SleepFor((ulong)(waitSecs * 1e9));
 
-                var wait = StepSizeSecs - ellapsed;
+                nextUpdateTime += StepSizeSecs;
 
-                if (wait > 0)
-                {
-                    EngineNativeLib.SleepFor((ulong)(wait * 1e9));
-                    //Thread.Sleep(TimeSpan.FromSeconds(wait));
-                    //ellapsed = Stopwatch.GetElapsedTime(startTime).TotalSeconds;
-                    //Debug.Assert(Math.Abs(ellapsed - StepSizeSecs) < 0.003f);
-                }
-                else
-                    Thread.Yield();
+                if (nextUpdateTime < realTime)
+                    nextUpdateTime = realTime + StepSizeSecs;
             }
         }
 
@@ -147,6 +143,8 @@ namespace XrEngine.Physics
 
             if (_jointToCreate.Count > 0)
             {
+                var lockWrite = _system?.Scene.LockWrite();
+
                 foreach (var joint in _jointToCreate)
                     joint.Create(ctx);
 
@@ -217,6 +215,7 @@ namespace XrEngine.Physics
             Options = container.Read<PhysicsOptions>(nameof(Options));
         }
 
+        public bool UseQueue { get; set; }
 
         public PhysicsDebugGizmos DebugGizmos { get; set; }
 

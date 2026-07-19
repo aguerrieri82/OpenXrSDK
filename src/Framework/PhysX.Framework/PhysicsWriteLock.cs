@@ -7,6 +7,7 @@ namespace PhysX.Framework
     public unsafe struct PhysicsWriteLock : IDisposable
     {
         PxScene* _scene;
+        bool _isDisposed;
 
         public PhysicsWriteLock(PxScene* scene)
         {
@@ -16,7 +17,10 @@ namespace PhysX.Framework
 
         public void Dispose()
         {
-            _scene->UnlockWriteMut();
+            if (_isDisposed)
+                return;
+             _scene->UnlockWriteMut();
+            _isDisposed = true;
         }
     }
 }

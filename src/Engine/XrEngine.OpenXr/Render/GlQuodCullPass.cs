@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
             if (!_quod.EnableDepthCull || _quod.ActiveTexture == null || _quod.DrawTexture == null)
                 return;
 
-            var camera = ctx.PassCamera!;
+            var camera = ctx.MainCamera!;
 
             if (XrApp.Current == null)
                 return;

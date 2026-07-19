@@ -72,11 +72,16 @@ namespace XrEngine.Physics
 
         public void Teleport(Vector3 worldPos)
         {
+            Debug.Assert(_manager != null);
+
             _host!.WorldPosition = worldPos;
             _lastPose = GetHostPose();
 
-            DynamicActor.Stop();
-            DynamicActor.GlobalPose = _lastPose;
+            _manager.Execute(() =>
+            {
+                DynamicActor.Stop();
+                DynamicActor.GlobalPose = _lastPose;
+            });
         }
 
         protected void SetHostPose(Pose3 pose)
@@ -100,12 +105,14 @@ namespace XrEngine.Physics
 
         protected override void OnEnabled()
         {
-            _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, false);
+            _manager?.Execute(() =>
+                _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, false));
         }
 
         protected override void OnDisabled()
         {
-            _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
+            _manager?.Execute(() =>
+                _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true));
         }
 
         protected PhysicsGeometry? CreateGeometry(ICollider3D? collider, ref Pose3 pose, Vector3 scale)
@@ -283,6 +290,8 @@ namespace XrEngine.Physics
             if (_system == null)
                 return;
 
+            using var writeLock = _system.Scene.LockWrite();
+
             if (_actor != null)
             {
                 _actor.Dispose();
@@ -311,6 +320,8 @@ namespace XrEngine.Physics
 
             if (!scale.IsSameValue(10e-5f))
                 throw new NotSupportedException("Not uniform scale is not supported");
+
+            using var writeLock = _system.Scene.LockWrite();
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {
@@ -371,6 +382,8 @@ namespace XrEngine.Physics
         {
             if (_actor == null || _system == null || _host == null)
                 return;
+
+            using var writeLock = _system.Scene.LockWrite();
 
             //Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
             //_actor.SetScale(scale.X);

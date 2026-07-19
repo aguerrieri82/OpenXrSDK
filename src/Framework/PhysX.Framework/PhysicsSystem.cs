@@ -571,8 +571,6 @@ namespace PhysX.Framework
             uint error;
             float curTime = 0;
 
-            //var test = _pvd->IsConnectedMut(false);
-
             while (curTime < deltaSecs)
             {
                 if (curTime + stepSizeSecs > deltaSecs)
@@ -585,9 +583,11 @@ namespace PhysX.Framework
                 else
                     _lastDeltaTime = stepSizeSecs;
 
-                _scene!.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
-
-                _scene.Scene.FetchResultsMut(true, &error);
+                using (var writeLock = _scene!.LockWrite())
+                {
+                    _scene.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
+                    _scene.Scene.FetchResultsMut(true, &error);
+                }
 
                 _time += _lastDeltaTime;
 

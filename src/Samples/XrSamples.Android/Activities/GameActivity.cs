@@ -121,8 +121,8 @@ namespace XrSamples.Android.Activities
                     opt.UseSRGB = false;
                     opt.ToneMap = ToneMapMode.Neutral;
 
-                    opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
-                    opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
+                    opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                    opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                     opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                 });
             else
@@ -131,7 +131,7 @@ namespace XrSamples.Android.Activities
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, false);
+            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve);
 
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));

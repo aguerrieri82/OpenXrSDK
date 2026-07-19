@@ -30,11 +30,17 @@ namespace XrEngine
             if (ResolveAlpha)
                 bld.AddFeature($"RESOLVE_ALPHA");
 
-            if (IsSrgb)
+            if (EncodeSrgb)
                 bld.AddFeature($"SRGB");
 
             if (ToneMap != ToneMapMode.None)
                 bld.AddFeature($"TONE_MAP {(int)ToneMap}");
+
+            if (Texture == null)
+            {
+                bld.AddFeature($"FB_MODE");
+                bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
+            }
 
             bld.AddFeature($"SAMPLE_COUNT {SampleCount}");
 
@@ -46,7 +52,7 @@ namespace XrEngine
         }
 
         [Notify(ChangeType.Render)]
-        public partial bool IsSrgb { get; set; }
+        public partial bool EncodeSrgb { get; set; }
 
         [Notify(ChangeType.Render)]
         public partial bool IsMultiView { get; set; }

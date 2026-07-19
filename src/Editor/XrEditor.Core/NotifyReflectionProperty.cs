@@ -29,6 +29,11 @@ namespace XrEditor
                     Properties = [Name!]
                 });
             }
+
+            if (_host is INotifyPropertyChangedReceiver recv)
+            {
+                recv.OnPropertyChanged(Name!, Value);
+            }
         }
     }
 }

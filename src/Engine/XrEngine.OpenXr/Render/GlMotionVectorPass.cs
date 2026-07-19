@@ -16,7 +16,7 @@ namespace XrEngine.OpenXr
     {
         protected readonly XrApp _xrApp;
         protected IGlRenderTarget? _renderTarget;
-        protected GlFrameBufferPool _pool;
+        protected GlRenderTargetPool _pool;
         protected readonly bool _isEditor;
         protected bool _multiView;
         protected uint _colorTex;
@@ -29,7 +29,7 @@ namespace XrEngine.OpenXr
             _xrApp = xrApp;
 
             _multiView = multiView;
-            _pool = new GlFrameBufferPool(renderer.GL, multiView);
+            _pool = new GlRenderTargetPool(renderer.GL, multiView);
             _isEditor = XrPlatform.IsEditor;
 
             _flags = GlRenderPassFlags.CustomCamera;
