@@ -89,21 +89,27 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(GlUpdateContext ctx)
         {
-            if (ctx.Scene == null || _reflection == null )
+            var mainCamera = ctx.MainCamera!;
+
+            if (ctx.Scene == null || _reflection == null || mainCamera.ViewSize.Width == 0 | mainCamera.ViewSize.Height == 0)
                 return false;
 
             if (!_reflection.Host!.IsVisible)
                 return false;
 
-            _reflection.Update(ctx.MainCamera!, _passTarget.BoundEye);
+            _reflection.Update(mainCamera, _passTarget.BoundEye);
 
-            if (_swap != null && _swap.Main.Handle == 0)
+            if (_swap != null && _swap.Main?.Handle == 0)
             {
                 _swap.Dispose();
                 _swap = null;
             }
 
-            _swap ??= new GlSwapTexture(_reflection.Texture!);
+            Debug.Assert(_reflection.Texture != null);
+
+            _swap ??= new GlSwapTexture();
+
+            _swap.Configure(_reflection.Texture.ToGlTexture());
 
             var clipSize = _reflection.ClipBounds.Size.ToVector2() *
                            _reflection.ReflectionCamera.ViewSize.ToVector2() / 2;
@@ -117,7 +123,7 @@ namespace XrEngine.OpenGL
             ctx.PassCamera = _reflection.ReflectionCamera;
             ctx.ContextVersion++;
 
-            _passTarget.Configure(_swap.Active);
+            _passTarget.Configure(_swap.Active!);
 
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
 
@@ -172,18 +178,16 @@ namespace XrEngine.OpenGL
         {
             _passTarget.RenderTarget!.End(true);
 
-
             if (_imageLight != null)
             {
                 _imageLight.LightTransform = _oldImageLightTransform;
                 _imageLight.Invalidate();
             }
 
+            _swap!.Active.GenerateMipmap();
+
             if (_reflection!.BlurLevel > 0)
-            {
-                _swap!.Active.GenerateMipmap();
                 _swap.Blur(2, _reflection!.BlurLevel);
-            }
 
             _reflection.Texture = (Texture2D)_swap!.Active.ToEngineTexture();
 

@@ -33,7 +33,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "DnD",
+                SampleName = "Car",
                 Msaa = 2,
                 Scale = 1f,
                 Driver = GraphicDriver.OpenGL,
@@ -41,8 +41,8 @@ namespace XrSamples
                 UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = false,
-                UseResolve = true
+                TextureCompression = true,
+                UseResolve = false
             };
         }
 
@@ -56,7 +56,6 @@ namespace XrSamples
                 IsMultiView = true,
                 UseSpaceWarp = true,
                 EnableDepthPass = false,
-                UsePbrV2 = true,
                 FrustumCulling = true
             };
         }

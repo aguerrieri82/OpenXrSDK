@@ -584,7 +584,10 @@ namespace XrEngine
                 vertex.Add(self.Vertices[index]);
 
             self.Vertices = vertex.ToArray();
+            self.Indices = [];
+
             self.ComputeIndices();
+
             self.NotifyChanged(ChangeType.Geometry);
         }
 

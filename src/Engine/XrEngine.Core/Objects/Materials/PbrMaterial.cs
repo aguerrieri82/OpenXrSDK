@@ -433,6 +433,7 @@ namespace XrEngine
                 {
                     var hasTransform = ForceIblTransform || imgLight.RotationY != 0 || imgLight.LightTransform != Matrix3x3.Identity;
 
+
                     if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
 
@@ -445,13 +446,15 @@ namespace XrEngine
 
                         ctx.CurrentBuffer!.Version = version;
 
+                        var transform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3();
+
                         return (IblUniforms?)new IblUniforms
                         {
                             SpecularTextureLevels = imgLight.Textures.MipCount,
                             Intensity = imgLight.Intensity,
                             Color = imgLight.Color.ToVector3(),
                             ShadowStrength = imgLight.ShadowStrength,
-                            Transform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3()
+                            Transform = transform
                         };
                     }, UniformsSlots.Ibl, BufferStore.Shader);
 

@@ -374,7 +374,9 @@ namespace XrEngine
 
             result.Data = newData;
             result.Width = (uint)pWidth;
-            result.Format = data.Format.IsBgr() ? TextureFormat.Bgra32 : TextureFormat.Rgba32;
+            result.Format = data.Format.IsBgr() ?
+               (data.Format.IsSrgb() ? TextureFormat.SBgra32 : TextureFormat.Bgra32) :
+               (data.Format.IsSrgb() ? TextureFormat.SRgba32 : TextureFormat.Rgba32);
 
             return result;
 

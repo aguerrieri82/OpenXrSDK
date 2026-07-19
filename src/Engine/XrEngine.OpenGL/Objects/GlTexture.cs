@@ -297,7 +297,11 @@ namespace XrEngine.OpenGL
                 UploadCompressedFull(width, height, depth, data);
 
             if (data.Count == 1 && MaxLevel > 0 && !_isCompressed)
+            {
                 _gl.GenerateMipmap(Target);
+            }
+
+
 
             Unbind();
         }
@@ -494,7 +498,9 @@ namespace XrEngine.OpenGL
             TextureFormat format,
             IList<TextureData> data)
         {
-            AllocateStorage(width, height, depth, format);
+            var allocateFormat = _internalFormat == 0 ? format : _internalFormat.GetTextureFormat();
+
+            AllocateStorage(width, height, depth, allocateFormat);
 
             GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
 

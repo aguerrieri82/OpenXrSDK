@@ -27,7 +27,7 @@ namespace XrEngine.Physics
             StepSizeSecs = fps == 0 ? 0 : 1f / fps;
             UpdatePriority = -1;
             UseQueue = true;
-            IsMultiThread = true;
+            IsMultiThread = false;
         }
 
         protected override void Start(RenderContext ctx)

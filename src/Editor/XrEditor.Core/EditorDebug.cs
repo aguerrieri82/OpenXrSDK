@@ -75,7 +75,7 @@ namespace XrEditor
               })
             // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: true)
-              .CreateRoomManager()  
+              .CreateCar()  
               .Build();
     }
 }

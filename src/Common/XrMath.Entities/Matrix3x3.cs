@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath.Entities;
 
 namespace XrMath
@@ -7,8 +8,8 @@ namespace XrMath
     {
         public Matrix3x3()
         {
-
         }
+
         public Matrix3x3(params float[] values)
         {
             M11 = values[0];
@@ -25,13 +26,14 @@ namespace XrMath
 
         }
 
+        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public readonly Vector4x3 ToVector4x3()
         {
             var result = default(Vector4x3);
 
-            result[0] = new Vector4(M11, M21, M31, 0.0f);
-            result[1] = new Vector4(M12, M22, M32, 0.0f);
-            result[2] = new Vector4(M13, M23, M33, 0.0f);
+            result.X = new Vector4(M11, M21, M31, 0.0f);
+            result.Y = new Vector4(M12, M22, M32, 0.0f);
+            result.Z = new Vector4(M13, M23, M33, 0.0f);
 
             return result;
         }
@@ -220,7 +222,10 @@ namespace XrMath
             M33 = 1
         };
 
-
+        public override string ToString()
+        {
+            return $"[{M11}, {M12}, {M13}; {M21}, {M22}, {M23}; {M31}, {M32}, {M33}]";
+        }
 
         public float M11, M12, M13;
         public float M21, M22, M23;

@@ -7,7 +7,7 @@ namespace XrEngine.Helpers
     {
         public static Texture2D CreateChecker()
         {
-            return CreateChecker(16, 16, Color.White, Color.Black);
+            return CreateChecker(128, 128, Color.White, Color.Black);
         }
 
         public unsafe static Texture2D CreateChecker(uint sizeX, uint sizeY, Color color1, Color color2)
@@ -38,8 +38,8 @@ namespace XrEngine.Helpers
             texture.LoadData(textureData);
             texture.WrapS = WrapMode.Repeat;
             texture.WrapT = WrapMode.Repeat;
-            texture.MagFilter = ScaleFilter.Nearest;
-            texture.MinFilter = ScaleFilter.Nearest;
+            texture.MagFilter = ScaleFilter.Linear;
+            texture.MinFilter = ScaleFilter.Linear;
 
             return texture;
         }

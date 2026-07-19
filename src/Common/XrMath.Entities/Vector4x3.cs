@@ -3,9 +3,12 @@ using System.Runtime.CompilerServices;
 
 namespace XrMath.Entities
 {
-    [InlineArray(3)]
+
     public struct Vector4x3
     {
-        private Vector4 _element0;
+        public Vector4 X;
+        public Vector4 Y;
+        public Vector4 Z;
+
     }
 }
