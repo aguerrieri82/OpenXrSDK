@@ -12,6 +12,7 @@ using SkiaSharp;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Common.Interop;
+using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
 {
@@ -269,9 +270,12 @@ namespace XrEngine.OpenGL
                 return;
 
             _updateCtx.Lights = [];
-            _updateCtx.LightsHash = "";
 
-            foreach (var light in scene.Descendants<Light>().Visible())
+            var builder = HashBuilder.Instance;
+            
+            builder.Reset();
+
+            foreach (var light in lights.Content.Visible())
             {
                 _updateCtx.Lights.Add(light);
 
@@ -295,8 +299,12 @@ namespace XrEngine.OpenGL
                     }
                 }
 
-                _updateCtx.LightsHash += light.GetType().Name + "|";
+                light.EnsureId();
+
+                builder.Add(light.Id);
             }
+
+            _updateCtx.LightsHash = builder.Value();
 
             _lastLightLayerVersion = lights.Version;
         }

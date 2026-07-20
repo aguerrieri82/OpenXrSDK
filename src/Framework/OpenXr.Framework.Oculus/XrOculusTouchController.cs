@@ -1,31 +1,42 @@
-﻿namespace OpenXr.Framework.Oculus
+﻿
+using System.Diagnostics.CodeAnalysis;
+
+namespace OpenXr.Framework.Oculus
 {
 
     public class XrOculusTouchControllerHand<THand> : XrInteractionProfileHand<THand>
     {
         [XrPath("/input/thumbrest/force")]
-        public XrInput<float>? ThumbrestForce;
+        [AllowNull]
+        public XrInput<float> ThumbrestForce;
 
         [XrPath("/input/stylus_fb/force")]
-        public XrInput<float>? StylusForce;
+        [AllowNull]
+        public XrInput<float> StylusForce;
 
         [XrPath("/input/trigger/curl_fb")]
-        public XrInput<float>? TriggerCurl;
+        [AllowNull]
+        public XrInput<float> TriggerCurl;
 
         [XrPath("/input/trigger/slide")]
-        public XrInput<float>? TriggerSlide;
+        [AllowNull]
+        public XrInput<float> TriggerSlide;
 
         [XrPath("/input/trigger/proximity_fb")]
-        public XrInput<bool>? TriggerProximity;
+        [AllowNull]
+        public XrInput<bool> TriggerProximity;
 
         [XrPath("/input/thumb_fb/proximity_fb")]
-        public XrInput<bool>? ThumbProximity;
+        [AllowNull]
+        public XrInput<bool> ThumbProximity;
 
         [XrPath("/output/trigger_haptic_fb")]
-        public XrHaptic? TriggerHaptic;
+        [AllowNull]
+        public XrHaptic TriggerHaptic;
 
         [XrPath("/output/thumb_haptic_fb")]
-        public XrHaptic? ThumbHaptic;
+        [AllowNull]
+        public XrHaptic ThumbHaptic;
     }
 
     //XR_EXT_hand_interaction 
@@ -40,13 +51,15 @@
     public class XrOculusTouchController : IXrBasicInteractionProfile
     {
         [XrPath("/user/hand/left")]
-        public XrOculusTouchControllerHand<XrInteractionProfileHandLeft>? Left;
+        [AllowNull]
+        public XrOculusTouchControllerHand<XrInteractionProfileHandLeft> Left;
 
         [XrPath("/user/hand/right")]
-        public XrOculusTouchControllerHand<XrInteractionProfileHandRight>? Right;
+        [AllowNull]
+        public XrOculusTouchControllerHand<XrInteractionProfileHandRight> Right;
 
-        XrInteractionProfileHand<XrInteractionProfileHandLeft>? IXrBasicInteractionProfile.Left => Left;
+        XrInteractionProfileHand<XrInteractionProfileHandLeft> IXrBasicInteractionProfile.Left => Left;
 
-        XrInteractionProfileHand<XrInteractionProfileHandRight>? IXrBasicInteractionProfile.Right => Right;
+        XrInteractionProfileHand<XrInteractionProfileHandRight> IXrBasicInteractionProfile.Right => Right;
     }
 }

@@ -1,5 +1,3 @@
-using OpenXr.Framework;
-using OpenXr.Framework.OpenGL;
 using Silk.NET.Core.Contexts;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D9;
@@ -13,7 +11,7 @@ using System.Windows.Interop;
 using PresentParameters = Silk.NET.Direct3D9.PresentParameters;
 using System.Windows.Media;
 using XrEngine.Wpf;
-using XrEngine.OpenXr;
+
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -23,7 +21,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL.Wpf;
 
-public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicProvider, INativeContext,
+public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
     IGlContextProvider, IDisposable
 {
     protected GL? _gl;
@@ -712,10 +710,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         return true;
     }
 
-    public IXrGraphicDriver CreateXrDriver()
-    {
-        return new XrOpenGLGraphicDriver(this);
-    }
 
     public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
     {

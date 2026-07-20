@@ -42,7 +42,7 @@ namespace XrEngine.OpenXr
 
                 options.DestMesh = scene!.AddChild(
                     new UIWebPanel(
-                        e.Inputs!.Right!.Button!.AClick!,
+                        e.Inputs!.Right.Button.AClick,
                         (PerspectiveCamera)scene.ActiveCamera!));
             }
 

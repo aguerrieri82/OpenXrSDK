@@ -40,7 +40,7 @@ namespace XrSamples
                 {
                     Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
                 })
-                .CreateGraffiti(true)
+                .CreateBed()
                 .Build()
                 .App;
 
@@ -58,7 +58,7 @@ namespace XrSamples
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
             }
 
-            UboSsbo1000DrawBenchmark? bench = null;
+            //UboSsbo1000DrawBenchmark? bench = null;
             OpenGLRender? render = null;
 
             view.Load += () =>
@@ -71,8 +71,9 @@ namespace XrSamples
                 var gl = view.CreateOpenGL();
 #endif
 
-                //bench = new UboSsbo1000DrawBenchmark(gl, gles: false);
-                //bench.Init();
+                var bench = new UboSsbo1000DrawBenchmark(gl, gles: false);
+                bench.Init();
+                bench.RunAll();
 
 #if GL_WRAPPER
                 render = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl));

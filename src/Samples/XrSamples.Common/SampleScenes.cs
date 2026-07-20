@@ -217,7 +217,7 @@ namespace XrSamples
 
                 obj.AddBehavior((_, _) =>
                 {
-                    var click = inputs.Right!.Button!.AClick!;
+                    var click = inputs.Right.Button.AClick; 
                     if (click.IsChanged && click.Value)
                     {
                         var scene = obj.Scene!;

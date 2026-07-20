@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Common.Interop;
+
 
 
 #if GLES
@@ -427,7 +429,7 @@ namespace XrEngine.OpenGL
 
             var changedCount = 0;
 
-            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
+            var elSize = MarshalCache.SizeOf(instanceShader.InstanceBufferType);
 
             if (verContent.InstanceBuffer == null || verContent.InstanceBuffer.Version != verContent.ContentVersion)
             {

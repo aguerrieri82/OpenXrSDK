@@ -2,11 +2,10 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Vulkan;
 using XrEngine.OpenGL.Wpf;
-using XrEngine.OpenXr;
 
 namespace XrEngine.Filament.Wpf
 {
-    public class FlVulkanRenderHost : RenderHost, IXrGraphicProvider
+    public class FlVulkanRenderHost : RenderHost
     {
         FilamentRender? _render;
         VulkanDevice? _device;

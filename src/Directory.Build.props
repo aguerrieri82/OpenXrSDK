@@ -27,9 +27,8 @@
 		<UseMonoRuntime>false</UseMonoRuntime>
 	</PropertyGroup>
 
-
 	<PropertyGroup Condition="'$(DiagnosticOn)' == 'True'">
-		<DiagnosticPort>9000</DiagnosticPort>
+		<DiagnosticPort>9100</DiagnosticPort>
 		<DiagnosticAddress>127.0.0.1</DiagnosticAddress>
 		<DiagnosticSuspend>false</DiagnosticSuspend>
 		<DiagnosticListenMode>connect</DiagnosticListenMode>

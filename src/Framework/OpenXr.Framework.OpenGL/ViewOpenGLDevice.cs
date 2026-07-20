@@ -6,14 +6,18 @@ using Silk.NET.OpenGL;
 
 using Silk.NET.OpenXR;
 using Silk.NET.Windowing;
+using System.Diagnostics.CodeAnalysis;
 
-#pragma warning disable CA1422
+
+
 
 namespace OpenXr.Framework.OpenGL
 {
     public class ViewOpenGLDevice : IOpenGLDevice
     {
         readonly IView _view;
+
+        [AllowNull]
         readonly GL _gl;
         readonly nint _hdc;
         readonly nint _glctx;
@@ -32,60 +36,11 @@ namespace OpenXr.Framework.OpenGL
                 throw new NotSupportedException();
 
 #if !GLES
-#if GL_WRAPPER
-                    _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
-
-<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
-
-<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
-
-<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
-
-<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
+    #if GL_WRAPPER
+                _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
     #else
-                    _gl = _view.CreateOpenGL();
+                _gl = _view.CreateOpenGL();
     #endif
-=======
-=======
-#else
-                    _gl = _view.CreateOpenGL();
-#endif
-=======
->>>>>>> After
-#else
-            _gl = _view.CreateOpenGL();
-#endif
-=======
-=======
-#else
-            _gl = _view.CreateOpenGL();
-#endif
-=======
->>>>>>> After
-#else
-            _gl = _view.CreateOpenGL();
-#endif
-=======
-=======
-#else
-            _gl = _view.CreateOpenGL();
-#endif
-=======
->>>>>>> After
-#else
-            _gl = _view.CreateOpenGL();
-#endif
-=======
-#else
-            _gl = _view.CreateOpenGL();
-#endif
->>>>>>> After
-#else
-            _gl = _view.CreateOpenGL();
-#endif
-
-#else
-            _gl = _view.CreateOpenGLES();
 #endif
         }
 
@@ -94,6 +49,5 @@ namespace OpenXr.Framework.OpenGL
         public nint GlCtx => _glctx;
 
         public GL Gl => _gl;
-
     }
 }

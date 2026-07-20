@@ -18,7 +18,7 @@ namespace XrEngine.OpenGL
         private readonly Texture2D _depthTexture;
         private readonly Texture2D? _vcmMomentsTex;
         private readonly Texture2D? _vcmTempTex;
-        private string _allLightsHash = "";
+        private ulong _allLightsHash;
         private DirectionalLight? _light;
 
         private long _recLayerVersion = -1;

@@ -11,7 +11,7 @@ namespace XrEngine
 
         class BasicShader : StandardVertexShader
         {
-            string? _lightHash;
+            ulong _lightHash;
 
             protected override void UpdateShaderGlobal(ShaderUpdateBuilder bld)
             {
@@ -33,7 +33,7 @@ namespace XrEngine
                         }
                     }
 
-                    _lightHash = ctx.LightsHash!;
+                    _lightHash = ctx.LightsHash;
                 });
 
             }

@@ -13,11 +13,7 @@
 
   <ItemGroup>
 
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
-
     <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
-
-    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
   </ItemGroup>
 
 </Project>

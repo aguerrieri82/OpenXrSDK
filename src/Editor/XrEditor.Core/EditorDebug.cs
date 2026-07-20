@@ -24,7 +24,7 @@ namespace XrEditor
 
         public static readonly int VSyncScale = 4;
 
-        public static readonly bool UseDxHost = false;
+        public static readonly bool UseDxHost = true;
 
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
 

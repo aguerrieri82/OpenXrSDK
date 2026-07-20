@@ -3,7 +3,7 @@
 namespace OpenXr.Framework
 {
 
-    public unsafe interface IXrGraphicDriver : IXrPlugin
+    public interface IXrGraphicDriver : IXrPlugin
     {
         GraphicsBinding CreateBinding();
 

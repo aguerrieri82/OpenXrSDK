@@ -4,11 +4,16 @@ namespace XrEngine.OpenXr.Windows
 {
     internal class AnsiParser
     {
+        internal const string DefaultForegroundColor = "\x1B[39m\x1B[22m"; // reset to default foreground color
+        internal const string DefaultBackgroundColor = "\x1B[49m"; // reset to the background color
+
         private readonly Action<string, int, int, ConsoleColor?, ConsoleColor?> _onParseWrite;
+
         public AnsiParser(Action<string, int, int, ConsoleColor?, ConsoleColor?> onParseWrite)
         {
             _onParseWrite = onParseWrite;
         }
+
         public void Parse(string message)
         {
             var startIndex = -1;
@@ -92,10 +97,7 @@ namespace XrEngine.OpenXr.Windows
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsDigit(char c) => (uint)(c - '0') <= ('9' - '0');
-
-        internal const string DefaultForegroundColor = "\x1B[39m\x1B[22m"; // reset to default foreground color
-        internal const string DefaultBackgroundColor = "\x1B[49m"; // reset to the background color
+        static bool IsDigit(char c) => (uint)(c - '0') <= ('9' - '0');
 
         internal static string GetForegroundColorEscapeCode(ConsoleColor color)
         {
@@ -136,7 +138,7 @@ namespace XrEngine.OpenXr.Windows
             };
         }
 
-        private static bool TryGetForegroundColor(int number, bool isBright, out ConsoleColor? color)
+        static bool TryGetForegroundColor(int number, bool isBright, out ConsoleColor? color)
         {
             color = number switch
             {
@@ -153,7 +155,7 @@ namespace XrEngine.OpenXr.Windows
             return color != null || number == 39;
         }
 
-        private static bool TryGetBackgroundColor(int number, out ConsoleColor? color)
+        static bool TryGetBackgroundColor(int number, out ConsoleColor? color)
         {
             color = number switch
             {

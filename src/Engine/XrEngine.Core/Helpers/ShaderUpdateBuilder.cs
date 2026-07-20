@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using XrEngine.Helpers;
 using XrMath;
 
 namespace XrEngine
@@ -23,9 +24,9 @@ namespace XrEngine
 
         public long ShaderVersion;
 
-        public string? LightsHash;
+        public ulong LightsHash;
 
-        public string? FeaturesHash;
+        public ulong FeaturesHash;
 
         public IShaderHandler?[]? ShaderHandlers;
     }
@@ -65,7 +66,7 @@ namespace XrEngine
 
         public IBuffer? CurrentBuffer;
 
-        public string? LightsHash;
+        public ulong LightsHash;
 
         public Plane[] FrustumPlanes;
 
@@ -321,9 +322,7 @@ namespace XrEngine
 
         public readonly void ComputeHash(string shaderId)
         {
-            _result.FeaturesHash = _result.Features!.Count == 0 ?
-                shaderId :
-                string.Concat(shaderId, ":", Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(string.Join(',', _result.Features)))));
+            _result.FeaturesHash = HashBuilder.Instance.Compute(shaderId, _result.Features);
         }
 
         readonly void Log(string name, object value)

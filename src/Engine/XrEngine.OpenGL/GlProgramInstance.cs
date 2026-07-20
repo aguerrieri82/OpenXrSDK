@@ -10,7 +10,7 @@ namespace XrEngine.OpenGL
 {
     public partial class GlProgramInstance : IBufferProvider, IDisposable
     {
-        static internal readonly Dictionary<string, GlBaseProgram> _programs = [];
+        static internal readonly Dictionary<ulong, GlBaseProgram> _programs = [];
 
         protected ShaderUpdate? _materialUpdate;
         protected ShaderUpdate? _modelUpdate;
@@ -106,7 +106,7 @@ namespace XrEngine.OpenGL
 
             _materialUpdate = localBuilder.Result;
 
-            if (!_programs.TryGetValue(_materialUpdate.FeaturesHash!, out var program))
+            if (!_programs.TryGetValue(_materialUpdate.FeaturesHash, out var program))
             {
                 Func<string, string?> resolver = name =>
                 {

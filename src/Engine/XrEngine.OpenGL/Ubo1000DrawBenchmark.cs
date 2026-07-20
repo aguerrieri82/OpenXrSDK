@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -92,13 +97,13 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
             MakeVertexSsboRangeSource(),
             MakeFragmentSource());
 
-        BindShaderStorageBlock(_programSsboRange, "ModelBlock", SsboBinding);
+        //BindShaderStorageBlock(_programSsboRange, "ModelBlock", SsboBinding);
 
         _programSsboIndexed = CreateProgram(
             MakeVertexSsboIndexedSource(),
             MakeFragmentSource());
 
-        BindShaderStorageBlock(_programSsboIndexed, "ModelsBlock", SsboBinding);
+        // BindShaderStorageBlock(_programSsboIndexed, "ModelsBlock", SsboBinding);
 
         _uDrawIndexLocation = _gl.GetUniformLocation(_programSsboIndexed, "uDrawIndex");
 
@@ -608,7 +613,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
         _gl.UniformBlockBinding(program, blockIndex, bindingPoint);
     }
-
+    /*
     private void BindShaderStorageBlock(uint program, string blockName, uint bindingPoint)
     {
         var blockIndex = _gl.GetProgramResourceIndex(
@@ -621,7 +626,7 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
 
         _gl.ShaderStorageBlockBinding(program, blockIndex, bindingPoint);
     }
-
+    */
     private string MakeVertexUboSource()
     {
         if (_gles)
@@ -686,7 +691,7 @@ struct ModelUniforms
     int DrawId;
 };
 
-layout(std430) readonly buffer ModelBlock
+layout(std430, binding = 0) readonly buffer ModelBlock
 {
     ModelUniforms Model;
 };
@@ -743,7 +748,7 @@ struct ModelUniforms
     int DrawId;
 };
 
-layout(std430) readonly buffer ModelsBlock
+layout(std430, binding = 0) readonly buffer ModelsBlock
 {
     ModelUniforms Models[];
 };
@@ -773,7 +778,7 @@ struct ModelUniforms
     int DrawId;
 };
 
-layout(std430) readonly buffer ModelsBlock
+layout(std430, binding = 0) readonly buffer ModelsBlock
 {
     ModelUniforms Models[];
 };

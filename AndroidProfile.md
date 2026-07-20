@@ -2,22 +2,24 @@
 ## Configure
 
 <PropertyGroup Condition="'$(DiagnosticAnd)' == 'True'">
-	<DiagnosticPort>9001</DiagnosticPort>
+	<DiagnosticPort>9100</DiagnosticPort>
 	<DiagnosticAddress>127.0.0.1</DiagnosticAddress>
 	<DiagnosticSuspend>false</DiagnosticSuspend>
 	<DiagnosticListenMode>connect</DiagnosticListenMode>
 	<EnableDiagnostics>true</EnableDiagnostics>
 </PropertyGroup>
 
+## Simple Call
+
+dotnet-trace collect --dsrouter android --format speedscope
+
 ## Call
 
+adb reverse tcp:9100 tcp:9101
 
-adb reverse tcp:9001 tcp:9000
+dotnet-dsrouter server-server -ipcs profile-router -tcps 0.0.0.0:9101
 
-dotnet-dsrouter server-server -ipcs test -tcps 0.0.0.0:9000
-
-dotnet-trace collect --diagnostic-port test,connect
-
+dotnet-trace collect --diagnostic-port profile-router,connect --profile dotnet-sampled-thread-time,dotnet-common --format speedscope
 
 
 ## Doesn't work

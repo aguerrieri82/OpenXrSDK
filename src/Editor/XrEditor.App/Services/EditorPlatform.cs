@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using OpenXr.Framework.OpenGL;
+using Silk.NET.OpenGL;
 using System.IO;
 using System.Net.NetworkInformation;
 using XrEditor.Services;
@@ -14,6 +16,42 @@ namespace XrEditor
 {
     public class EditorPlatform : IXrEnginePlatform, IRenderSurfaceProvider
     {
+        #region STRUCTS
+
+        readonly struct GlHostDevice : IOpenGLDevice
+        {
+            readonly GlRenderHost _host;
+
+            public GlHostDevice(GlRenderHost host)
+            {
+                _host = host;
+            }
+
+            public readonly nint HDc => _host.HDc;
+
+            public readonly nint GlCtx => _host.GlCtx;
+
+            public readonly GL Gl => _host.Gl;
+        }
+
+        readonly struct GlDxHostDevice : IOpenGLDevice
+        {
+            readonly GlDxRenderHost _host;
+
+            public GlDxHostDevice(GlDxRenderHost host)
+            {
+                _host = host;
+            }
+
+            public readonly nint HDc => _host.HDc;
+
+            public readonly nint GlCtx => _host.GlCtx;
+
+            public readonly GL Gl => _host.Gl;
+        }
+
+        #endregion
+
         IRenderSurface? _renderSurface;
         private readonly bool _useEs;
         private readonly DeviceInfo _info;
@@ -68,12 +106,21 @@ namespace XrEditor
             renderEngine = _renderSurface!.CreateRenderEngine(options.DriverOptions);
 
 #if DEBUG
-
             if (EditorDebug.DebugEnabled)
                 renderEngine.EnableDebug(EditorDebug.DebugSync ? RenderEngineDebug.Sync : RenderEngineDebug.None);
 #endif
 
-            xrDriver = ((IXrGraphicProvider)_renderSurface).CreateXrDriver();
+            if (_renderSurface is GlRenderHost glHost)
+                xrDriver = new XrOpenGLGraphicDriver(new GlHostDevice(glHost));
+
+            else if (_renderSurface is GlDxRenderHost glDxHost)
+                xrDriver = new XrOpenGLGraphicDriver(new GlDxHostDevice(glDxHost));
+
+            else if (_renderSurface is FlVulkanRenderHost flVulkan)
+                xrDriver = flVulkan.CreateXrDriver();
+
+            else
+                throw new NotSupportedException();
 
             Context.Implement(new RenderPreviewCreator(renderEngine));
         }
@@ -81,7 +128,7 @@ namespace XrEditor
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
         {
             var opt = OculusXrPluginOptions.Default;
-            //opt.Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.None;
+
             return new XrApp(NullLogger.Instance,
                      xrDriver,
                      new OculusXrPlugin(opt));

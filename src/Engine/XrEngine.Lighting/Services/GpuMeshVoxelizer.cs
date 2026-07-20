@@ -766,7 +766,5 @@ namespace XrEngine.Lighting
             _scanFbo?.Dispose();
             _texFb.Dispose();
         }
-
-        public static int MaxMultiView { get; set; }
     }
 }
