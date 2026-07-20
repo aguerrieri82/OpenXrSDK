@@ -22,7 +22,6 @@ namespace XrSamples
         public float ContactReportThreshold { get; set; }
     }
 
-
     public class BallGenerator : Behavior<Scene3D>
     {
         readonly List<TriangleMesh> _balls = [];
@@ -75,7 +74,6 @@ namespace XrSamples
 
             var lastSpeed = Vector3.Zero;
 
-
             Object3D? lastContact = null;
             Object3D? audioReceiver = null;
             ball.AddBehavior((me, ctx) =>
@@ -88,7 +86,6 @@ namespace XrSamples
                 if (deltaSpeed.Length() > 50)
                 {
                     Log.Info(this, "SPEED: {0}", Math.Round(deltaSpeed.Length(), 2));
-
 
                     if (lastContact?.Name == "Racket")
                     {
@@ -132,7 +129,6 @@ namespace XrSamples
                 lastContact = other;
             };
 
-
             return ball;
         }
 
@@ -162,7 +158,6 @@ namespace XrSamples
                 _host!.Scene!.AddChild(ball);
             }
 
-
             NewBallCreated?.Invoke(ball);
 
             return ball;
@@ -183,7 +178,6 @@ namespace XrSamples
         }
 
         public PhysicSettings? PhysicSettings { get; set; }
-
 
         public event Action<TriangleMesh>? NewBallCreated;
 

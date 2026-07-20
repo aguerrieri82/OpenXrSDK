@@ -40,7 +40,6 @@ namespace XrSamples.Graffiti.Shaders
         [FieldOffset(248)]
         public float RadialFalloff;
 
-
         [FieldOffset(256)]
         public Vector3 PrevPosition;
 

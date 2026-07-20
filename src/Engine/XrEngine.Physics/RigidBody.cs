@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
-
 namespace XrEngine.Physics
 {
     public delegate void RigidBodyContactEventHandler(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs);
@@ -45,7 +44,6 @@ namespace XrEngine.Physics
         private Vector3 _lastLinearVelocity;
 
         private event RigidBodyContactEventHandler? _contactEvent;
-
 
         public RigidBody()
         {
@@ -581,7 +579,6 @@ namespace XrEngine.Physics
                 _contactEvent -= value;
             }
         }
-
 
         [Category("Advanced")]
         public float ContactReportThreshold { get; set; }

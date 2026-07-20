@@ -25,7 +25,6 @@ namespace XrEditor.Nodes
                 generated.Build();
         }
 
-
         public override IconView? Icon => new()
         {
             Color = "#aaaaaa",

@@ -1,16 +1,12 @@
 ﻿using Common.Interop;
-using SkiaSharp;
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using XrEngine.Compression;
 using XrEngine.Devices;
 using XrEngine.Media;
 using XrMath;
-
 
 namespace XrEngine.Reconstruct
 {
@@ -35,8 +31,6 @@ namespace XrEngine.Reconstruct
 
         public T CutUpper;
     }
-
-
 
     public class DepthFrame
     {
@@ -105,7 +99,6 @@ namespace XrEngine.Reconstruct
         {
             IncludeFields = true,
         };
-
 
         public XrReconstructReader()
         {
@@ -182,7 +175,6 @@ namespace XrEngine.Reconstruct
 
             _stats = JsonSerializer.Deserialize<RecordStats>(File.ReadAllText(statsPath), JSON_OPT)!;
 
-
             _sceneModel = AssetLoader.Instance.Load<TriangleMesh>(scenePath);
 
             /*
@@ -221,7 +213,6 @@ namespace XrEngine.Reconstruct
             pngBuf.Dispose();
             */
         }
-
 
         public void ReconstructDepth(DepthFrame frame, uint width, uint height, float zCutOff, uint maxW = 320)
         {
@@ -304,7 +295,6 @@ namespace XrEngine.Reconstruct
             frame.StatsZ = stats;
         }
 
-
         public void ComputeStatsProj(DepthFrame frame)
         {
             var stats = frame.StatsProj;
@@ -366,7 +356,6 @@ namespace XrEngine.Reconstruct
             var leftMeta = _meta[leftIndex].LeftColor!;
             var rightMeta = _meta[rightIndex].RightColor!;
 
-
             var result = new EyesFrame<ColorFrame>();
             var leftData = new TextureData();
             var rightData = new TextureData();
@@ -389,7 +378,6 @@ namespace XrEngine.Reconstruct
                 File.WriteAllBytes(cacheLeft, leftData.Data!.AsSpan());
             }
 
-
             result.Left.Proj = MathUtils.CreateMatrix(leftMeta.Proj!);
             result.Left.View = MathUtils.CreateMatrix(leftMeta.View!);
 
@@ -398,7 +386,6 @@ namespace XrEngine.Reconstruct
             result.Width = leftData.Width;
             result.Height = leftData.Height;
             result.Time = leftMeta.Time;
-
 
             if (File.Exists(cacheRight))
             {
@@ -416,16 +403,13 @@ namespace XrEngine.Reconstruct
                     File.WriteAllBytes(cacheRight, rightData.Data.AsSpan());
             }
 
-
             result.Right.Proj = MathUtils.CreateMatrix(rightMeta.Proj!);
             result.Right.View = MathUtils.CreateMatrix(rightMeta.View!);
             result.Right.Pose = rightMeta.Pose;
             result.Right.Data = rightData.Data;
 
-
             return result;
         }
-
 
         public ColorFrame ReadScreen(int frameIndex)
         {
@@ -454,7 +438,6 @@ namespace XrEngine.Reconstruct
                 _scrColorReader!.TryDecodeNextFrame(data);
                 File.WriteAllBytes(cache, data.Data!.AsSpan());
             }
-
 
             result.Time = meta.Time;
             result.Pose = meta.Pose;
@@ -567,14 +550,13 @@ namespace XrEngine.Reconstruct
 
             var size = result.Width * result.Height;
             var sizeBytes = size * 2;
-            var ofs = (frameIndex -1) * sizeBytes * 2;
+            var ofs = (frameIndex - 1) * sizeBytes * 2;
 
             _zStream!.Position = ofs;
 
             result.Left.Data = MemoryBuffer.CreateOrResize(result.Left.Data, size);
             result.Left.Proj = MathUtils.CreateMatrix(meta.LeftDepth!.Proj!);
             result.Left.View = MathUtils.CreateMatrix(meta.LeftDepth!.View!);
-
 
             result.Right.Data = MemoryBuffer.CreateOrResize(result.Right.Data, size);
             result.Right.Proj = MathUtils.CreateMatrix(meta.RightDepth!.Proj!);
@@ -630,7 +612,6 @@ namespace XrEngine.Reconstruct
             }
             return minFrame;
         }
-
 
         public unsafe byte[] AlignColorToDepth(
             Span<Vector3> depthPixels,
@@ -697,7 +678,6 @@ namespace XrEngine.Reconstruct
             return result;
         }
 
-
         public static Matrix4x4 GetView(EyeData eye)
         {
             return MathUtils.CreateMatrix(eye.View!);
@@ -710,7 +690,6 @@ namespace XrEngine.Reconstruct
             return viewInv;
         }
 
-
         public IList<RecordFrameData>? Meta => _meta;
 
         public RecordStats? Stats => _stats;
@@ -720,7 +699,6 @@ namespace XrEngine.Reconstruct
         public CameraParams? RightCamera { get; protected set; }
 
         public TriangleMesh? SceneModel => _sceneModel;
-
 
         public static readonly XrReconstructReader Current = new XrReconstructReader();
     }

@@ -34,7 +34,6 @@ namespace XrEditor.Nodes
             }
         }
 
-
         public event ChildNodeDelegate? ChildAdded;
 
         public event ChildNodeDelegate? ChildRemoved;

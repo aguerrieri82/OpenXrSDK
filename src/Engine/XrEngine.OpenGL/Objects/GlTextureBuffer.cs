@@ -6,7 +6,6 @@ using Common.Interop;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public class GlTextureBuffer : GlObject
@@ -37,8 +36,6 @@ namespace XrEngine.OpenGL
 
             _handle = _texture.Handle;
         }
-
-
 
         public unsafe void Update(TextureData data)
         {

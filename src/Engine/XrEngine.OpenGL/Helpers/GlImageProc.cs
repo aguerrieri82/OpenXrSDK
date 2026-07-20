@@ -9,7 +9,6 @@ using XrMath;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-
 namespace XrEngine.OpenGL
 {
     public static class GlImageProc
@@ -83,7 +82,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-
         static readonly Dictionary<string, GlSimpleProgram> _programs = [];
         static uint _emptyVertexArray;
         static GlTextureFrameBuffer? _frameBuffer;
@@ -153,7 +151,7 @@ namespace XrEngine.OpenGL
             var depth = GlTempAllocator.StaticTexture(gl, src.Depth!.Width, src.Depth.Height, 1, src.Depth.InternalFormat.GetTextureFormat());
 
             var fb = PrepareFrameBuffer(gl, null, (IGlRenderAttachment)depth);
-            
+
             fb.BindDraw(DrawBufferMode.None);
 
             src.BindRead(ReadBufferMode.None);

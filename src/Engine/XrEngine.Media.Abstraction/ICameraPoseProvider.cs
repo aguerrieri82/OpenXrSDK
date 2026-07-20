@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.Media
 {

@@ -15,7 +15,6 @@ namespace XrSamples.Earth
         Sun
     }
 
-
     public class CameraControl : Behavior<EarthScene>, INotifyPropertyChanged
     {
         DateTime _dateTime;
@@ -79,12 +78,10 @@ namespace XrSamples.Earth
 
             var radius = (_host!.Earth.SphereRadius + Unit(altitude));
 
-
             // Compute Cartesian coordinates
             var x = radius * MathF.Cos(latRad) * MathF.Cos(lonRad);
             var y = radius * MathF.Sin(latRad);
             var z = radius * MathF.Cos(latRad) * MathF.Sin(lonRad);
-
 
             return new Vector3(x, y, -z).Transform(_host.Earth.WorldMatrix);
         }
@@ -207,8 +204,6 @@ namespace XrSamples.Earth
             }
         }
 
-
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public bool LockCamera { get; set; }
@@ -236,7 +231,6 @@ namespace XrSamples.Earth
         public AnchorPoint Target { get; set; }
 
         public AnchorPoint Origin { get; set; }
-
 
         [Range(1, 100, 1)]
         public float Zoom { get; set; }

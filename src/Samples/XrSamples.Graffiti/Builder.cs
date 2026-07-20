@@ -27,7 +27,6 @@ namespace XrSamples.Graffiti
             var x = 1.0f + distance * coneDensityK;
             var ratio2 = 1.0f / (x * x);
 
-
             Embedded.Register(typeof(Builder).Assembly);
 
             var app = new EngineApp();

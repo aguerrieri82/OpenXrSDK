@@ -9,7 +9,6 @@ namespace CanvasUI
         Perc
     }
 
-
     public struct UnitValue
     {
         public UnitValue() { }
@@ -109,7 +108,6 @@ namespace CanvasUI
         {
             return new UnitValue(value);
         }
-
 
         public static implicit operator UnitValue(string value)
         {

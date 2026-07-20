@@ -23,7 +23,6 @@ namespace XrSamples.Graffiti.Objects
             Build();
         }
 
-
         private bool IsValid()
         {
             if (WallSize.X <= 0.0f || WallSize.Y <= 0.0f)
@@ -73,7 +72,6 @@ namespace XrSamples.Graffiti.Objects
 
             var byteSize = width * height * sizeof(float);
             var buffer = MemoryBuffer.Create<byte>(byteSize);
-
 
             var mortarDensity = -Depth / densityToHeightScale;
 

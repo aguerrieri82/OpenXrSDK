@@ -47,7 +47,6 @@ namespace XrSamples.Dnd
             image.Invalidate();
         }
 
-
         public float Zoom { get; set; }
 
         public bool DisableMove { get; set; }
@@ -59,7 +58,6 @@ namespace XrSamples.Dnd
         public float PointRange { get; set; }
 
         public float ImageInt { get; set; }
-
 
         public Matrix4x4 MapTransform { get; set; }
     }

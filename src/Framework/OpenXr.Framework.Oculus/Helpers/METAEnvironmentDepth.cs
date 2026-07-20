@@ -40,7 +40,6 @@ namespace OpenXr.Framework.Oculus
         public GetEnvironmentDepthSwapchainStateMETADelegate GetEnvironmentDepthSwapchainStateMETA;
         public SetEnvironmentDepthHandRemovalMETADelegate SetEnvironmentDepthHandRemovalMETA;
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate Result CreateEnvironmentDepthProviderMETADelegate(
             Session session,
@@ -65,18 +64,15 @@ namespace OpenXr.Framework.Oculus
             ref EnvironmentDepthImageAcquireInfoMETA acquireInfo,
             out EnvironmentDepthImageMETA environmentDepthImage);
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate Result CreateEnvironmentDepthSwapchainMETADelegate(
             EnvironmentDepthProviderMETA environmentDepthProvider,
             ref EnvironmentDepthSwapchainCreateInfoMETA createInfo,
             out EnvironmentDepthSwapchainMETA swapchain);
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate Result DestroyEnvironmentDepthSwapchainMETADelegate(
             EnvironmentDepthSwapchainMETA swapchain);
-
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public unsafe delegate Result EnumerateEnvironmentDepthSwapchainImagesMETADelegate(
@@ -85,18 +81,15 @@ namespace OpenXr.Framework.Oculus
             out uint imageCountOutput,
             SwapchainImageBaseHeader* images);
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public unsafe delegate Result GetEnvironmentDepthSwapchainStateMETADelegate(
                 EnvironmentDepthSwapchainMETA swapchain,
                 out EnvironmentDepthSwapchainStateMETA state);
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public unsafe delegate Result SetEnvironmentDepthHandRemovalMETADelegate(
             EnvironmentDepthProviderMETA environmentDepthProvider,
             ref EnvironmentDepthHandRemovalSetInfoMETA setInfo);
-
 
         public const string ExtensionName = "XR_META_environment_depth";
     }

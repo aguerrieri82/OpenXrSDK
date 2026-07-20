@@ -4,7 +4,6 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using XrMath;
 
-
 namespace XrEngine.OpenXr
 {
     public class OculusEnvDepthProvider : BaseComponent<Camera>, IEnvDepthProvider
@@ -51,7 +50,6 @@ namespace XrEngine.OpenXr
                 depthCamera.View = _lastCamera.View;
                 return _lastTexture;
             }
-
 
             depthCamera.Eyes ??= new CameraEye[2];
 

@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class HitTestEffect : ShaderMaterial
     {
@@ -15,13 +13,11 @@ namespace XrEngine
             };
         }
 
-
         public HitTestEffect()
             : base()
         {
             _shader = SHADER;
         }
-
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
@@ -30,7 +26,6 @@ namespace XrEngine
                 up.SetUniform("uDrawId", DrawId);
             });
         }
-
 
         public uint DrawId { get; set; }
     }

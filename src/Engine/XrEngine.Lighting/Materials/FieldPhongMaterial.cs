@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine.Lighting
@@ -19,7 +15,7 @@ namespace XrEngine.Lighting
             };
         }
 
-        public FieldPhongMaterial() 
+        public FieldPhongMaterial()
         {
             Shader = SHADER;
         }
@@ -31,7 +27,7 @@ namespace XrEngine.Lighting
                 if (Textures == null)
                     return;
 
-                int i = 0;
+                var i = 0;
 
                 foreach (var tex in Textures)
                 {

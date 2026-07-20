@@ -22,7 +22,6 @@ namespace XrEngine
 
         public uint BlockSize { get; set; }
 
-
         public TextureData Clone()
         {
             var result = (TextureData)MemberwiseClone();

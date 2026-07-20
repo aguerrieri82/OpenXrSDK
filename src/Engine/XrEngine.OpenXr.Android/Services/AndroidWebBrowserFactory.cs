@@ -37,6 +37,9 @@ namespace XrEngine.OpenXr.Android
 
             var browser = new AndroidWebViewBrowser(webViewLayer);
 
+            if (options.UseLocalUI)
+                browser.RequestHandler = new AssetWebRequestHandler(mainActivity.Context, "main", "UI");
+
             return browser;
         }
     }

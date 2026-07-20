@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using XrEngine.Objects;
 using XrEngine.OpenGL;
 using XrMath;
 
@@ -15,7 +14,6 @@ namespace XrEngine.OpenXr
         protected Camera _depthCamera;
 
         protected readonly GlSimpleProgram _program;
-
 
         public GlEnvDepthShadowPass(OpenGLRender renderer) : base(renderer)
         {
@@ -40,13 +38,13 @@ namespace XrEngine.OpenXr
 
             var shadowProvider = ctx.ShadowMapProvider;
 
-            if (shadowProvider == null || shadowProvider.Options.Mode == ShadowMapMode.None) 
+            if (shadowProvider == null || shadowProvider.Options.Mode == ShadowMapMode.None)
                 return;
 
             if (shadowProvider.ShadowMap == null)
                 return;
 
-            bool isMultiView = _renderer.RenderTarget is GlMultiViewRenderTarget;
+            var isMultiView = _renderer.RenderTarget is GlMultiViewRenderTarget;
 
             var camera = ctx.MainCamera!;
 
@@ -59,7 +57,7 @@ namespace XrEngine.OpenXr
 
             if (envDepthTex == null)
                 return;
-           
+
             var projDepthTex = _renderer.RenderTarget?.QueryTexture(FramebufferAttachment.DepthAttachment);
 
             if (projDepthTex == null)
@@ -76,7 +74,7 @@ namespace XrEngine.OpenXr
                 }
                 else
                     _program.AddFeature("CAMERA_UNIFORMS");
-   
+
                 if (projDepthTex.SampleCount > 1)
                 {
                     _program.AddFeature("MULTISAMPLE");
@@ -101,7 +99,7 @@ namespace XrEngine.OpenXr
             _program.Use();
 
             _renderer.State.LoadTexture(projDepthTex, TextureSlots.ProjDepth);
-            _renderer.State.LoadTexture(envDepthTex.ToGlTexture(), TextureSlots.EnvDepth);;
+            _renderer.State.LoadTexture(envDepthTex.ToGlTexture(), TextureSlots.EnvDepth); ;
             _renderer.State.LoadTexture(shadowProvider.ShadowMap!.ToGlTexture(), TextureSlots.ShadowMap, false);
 
             if (shOptions.BiasMode == ShadowMapBiasMode.Value)
@@ -141,6 +139,6 @@ namespace XrEngine.OpenXr
 
         public Color ShadowColor { get; set; }
 
-        public float DepthBias { get; set; }    
+        public float DepthBias { get; set; }
     }
 }

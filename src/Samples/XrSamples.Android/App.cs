@@ -1,7 +1,5 @@
 ﻿using Android.Runtime;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using XrEngine.Devices;
 using XrEngine.Media;
 using XrEngine.Media.Android;
 

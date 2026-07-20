@@ -184,7 +184,6 @@ namespace XrEngine.Tiff
             ComplexFloatingPoint = 6
         }
 
-
         struct GeoDirectoryHeader
         {
             public ushort Version;
@@ -311,7 +310,6 @@ namespace XrEngine.Tiff
             var bps = GetIntField(tiff, TiffTag.BitsPerSample);
             var sf = (SampleFormat)GetIntField(tiff, TiffTag.SampleFormat);
             var pm = (TiffPhotometric)GetIntField(tiff, TiffTag.Photometric);
-
 
             var result = new TextureData
             {
@@ -443,7 +441,6 @@ namespace XrEngine.Tiff
                 for (var y = 0; y < h; y++)
                     TIFFReadScanline(tiff, data.Data + (y * lineSize), y, 0);
             }
-
 
             return result;
         }

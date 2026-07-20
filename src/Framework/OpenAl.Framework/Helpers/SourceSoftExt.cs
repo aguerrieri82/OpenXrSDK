@@ -9,7 +9,6 @@ namespace OpenAl.Framework.Helpers
         public const int AL_SEC_OFFSET_LATENCY_SOFT = 0x1201;
         public const int ALC_DEVICE_CLOCK_LATENCY_SOFT = 0x1602;
 
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public unsafe delegate void alGetSourcei64vSOFTDelegate(uint source, int param, long* values);
 

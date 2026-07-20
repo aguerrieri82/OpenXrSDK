@@ -9,7 +9,6 @@ namespace XrEngine.OpenXr
         FilamentVulkan
     }
 
-
     public class XrEngineAppOptions
     {
         public GraphicDriver Driver { get; set; }
@@ -79,6 +78,5 @@ namespace XrEngine.OpenXr
         public static XrEngineApp? Current { get; private set; }
 
     }
-
 
 }

@@ -65,7 +65,7 @@ namespace XrEngine.OpenXr
 
             if (_app.IsStarted && _host.Mode == CanvasViewMode.Texture)
                 _host.Mode = CanvasViewMode.RenderTarget;
-            
+
             if (!_app.IsStarted && _host.Mode == CanvasViewMode.RenderTarget)
                 _host.Mode = CanvasViewMode.Texture;
 
@@ -86,7 +86,6 @@ namespace XrEngine.OpenXr
 
             return true;
         }
-
 
         public XrTextureQuadLayer[]? Layers => _layers;
 

@@ -293,7 +293,7 @@ namespace XrEngine.OpenGL
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
                         _gl.BlendFunc(BlendingFactor.One, BlendingFactor.One);
                     }
-                    else if(value == AlphaMode.Min)
+                    else if (value == AlphaMode.Min)
                     {
                         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
                         _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Min);
@@ -328,7 +328,7 @@ namespace XrEngine.OpenGL
                     }
 
                 }
-          
+
             }
         }
 
@@ -356,7 +356,6 @@ namespace XrEngine.OpenGL
                 LineWidth = value;
             }
         }
-
 
         public void SetCullFace(TriangleFace value, bool force = false)
         {
@@ -412,7 +411,6 @@ namespace XrEngine.OpenGL
                 }
                 else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue != value)
                     FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
-
 
                 _gl.BindFramebuffer(target, value);
             }

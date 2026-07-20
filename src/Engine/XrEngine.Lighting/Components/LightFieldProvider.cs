@@ -1,9 +1,5 @@
-﻿using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using XrEngine.OpenGL;
@@ -19,7 +15,7 @@ namespace XrEngine.Lighting
         VoxelLightFieldView? _lightField;
         float _voxelSize;
         double _lastBuildTime;
-        int _paddding;
+        readonly int _paddding;
         int _profileVersion;
         int _lastProfileVersion;
         readonly VoxelLightBaker _backer;
@@ -68,7 +64,6 @@ namespace XrEngine.Lighting
             }
         }
 
-
         [Action]
         public async Task RebuildAsync()
         {
@@ -83,9 +78,9 @@ namespace XrEngine.Lighting
                 }
             }
 
-            bool profileDirty = _lastProfileVersion != _profileVersion;
-            bool gridDirty = false;
-            bool meshDirty = false;
+            var profileDirty = _lastProfileVersion != _profileVersion;
+            var gridDirty = false;
+            var meshDirty = false;
 
             try
             {
@@ -171,7 +166,7 @@ namespace XrEngine.Lighting
                     _workerCtx?.Release();
             }
 
-            bool lightDirty = meshDirty || gridDirty || profileDirty;
+            var lightDirty = meshDirty || gridDirty || profileDirty;
 
             foreach (var light in _host!.Descendants<Light>())
             {
@@ -226,7 +221,6 @@ namespace XrEngine.Lighting
         {
             Log.Info(this, "Extracting light field");
 
-
             _lightField = _backer.GetLightField(true);
 
             var newTextures = _backer.CreateTextures();
@@ -257,7 +251,7 @@ namespace XrEngine.Lighting
         public void LoadProfile(string profile)
         {
             var json = Embedded.GetString<LightFieldProvider>(profile + ".json");
-            
+
             var param = JsonSerializer.Deserialize<VoxelLightBakeParams>(json, new JsonSerializerOptions
             {
                 IncludeFields = true,
@@ -303,14 +297,13 @@ namespace XrEngine.Lighting
                 .OrderBy(a => int.Parse(Path.GetFileNameWithoutExtension(a).Split('_')[1]))
                 .ToArray();
 
-
             foreach (var file in files)
             {
                 using var fs = File.OpenRead(file);
                 var data = reader.LoadTexture(fs);
 
                 TextureFormat format;
-                TextureType type = TextureType.Unspecified;
+                var type = TextureType.Unspecified;
 
                 if ((textures.Count % 2) == 0)
                     format = TextureFormat.Rgb9e5Float;
@@ -339,7 +332,7 @@ namespace XrEngine.Lighting
 
         public VoxelLightBaker Baker => _backer;
 
-        public float MaxUpdateInterval { get; set; } 
+        public float MaxUpdateInterval { get; set; }
 
         public string? Profile => _profile;
 

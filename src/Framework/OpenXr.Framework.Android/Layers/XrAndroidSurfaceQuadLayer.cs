@@ -3,7 +3,7 @@ using Android.Views;
 using Common.Interop;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
-  
+
 namespace OpenXr.Framework.Android
 {
     public class XrAndroidSurfaceQuadLayer : XrBaseQuadLayer
@@ -55,7 +55,6 @@ namespace OpenXr.Framework.Android
         {
             _surfaceLock.Wait();
         }
-
 
         public override void OnEndFrame()
         {

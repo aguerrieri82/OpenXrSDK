@@ -6,13 +6,11 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace XrEngine.OpenGL
 {
     public partial class GlComputeProgram : GlBaseProgram
     {
         readonly string _cSource;
-
 
         public GlComputeProgram(GL gl, string cSource, Func<string, string> resolver)
             : base(gl, resolver)

@@ -14,7 +14,6 @@ using XrEngine.OpenXr.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using XrSamples.Graffiti;
 
-
 namespace XrSamples
 {
     public class WindowSceneApp
@@ -72,7 +71,6 @@ namespace XrSamples
                 var gl = view.CreateOpenGL();
 #endif
 
-
                 //bench = new UboSsbo1000DrawBenchmark(gl, gles: false);
                 //bench.Init();
 
@@ -124,7 +122,6 @@ namespace XrSamples
 
             return Task.CompletedTask;
         }
-
 
     }
 }

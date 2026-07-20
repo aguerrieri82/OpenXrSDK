@@ -9,14 +9,13 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlObject : IDisposable
     {
-        static HashSet<GlObject> _catalog = [];
+        static readonly HashSet<GlObject> _catalog = [];
         static IGlContextProvider? _contextProvider;
 
         protected uint _handle;
         protected GL _gl;
         protected string? _label;
         protected readonly IGlContext _owner;
-
 
         protected GlObject(GL gl)
         {
@@ -60,12 +59,10 @@ namespace XrEngine.OpenGL
             _label = label;
         }
 
-
         public static GlObject? FindObject(uint handle)
         {
             return _catalog.FirstOrDefault(a => a.Handle == handle);
         }
-
 
         public static implicit operator uint(GlObject obj)
         {

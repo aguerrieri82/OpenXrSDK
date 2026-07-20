@@ -156,7 +156,6 @@ namespace XrEditor
             }
         }
 
-
         public Command CloseCommand { get; }
 
         public MenuView Menu { get; }

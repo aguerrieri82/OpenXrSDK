@@ -27,13 +27,12 @@ namespace XrEngine.Browser.Windows
         protected bool _injected;
         protected readonly bool _cpuMode;
 
-
         public ChromeWebBrowserView(GL? gl = null)
         {
             _cpuMode = gl == null;
             _browser = new ChromeWebBrowser(gl);
 
-            TextureFormat = TextureFormat.Bgra32;  
+            TextureFormat = TextureFormat.Bgra32;
             Size = new Size2I(1600, 1200);
             EnableElevation = true;
         }
@@ -94,7 +93,7 @@ namespace XrEngine.Browser.Windows
                 mat.Styles = styles;
                 mat.Invalidate();
             }
-  
+
         }
 
         protected override async Task StartAsync(RenderContext ctx)
@@ -138,35 +137,34 @@ namespace XrEngine.Browser.Windows
 
                 if (EnableElevation)
                 {
-                    _host.Materials.Add(new TextureCutMaterial() 
-                    { 
-                        Alpha = AlphaMode.Blend, 
-                        Texture = _texture, 
+                    _host.Materials.Add(new TextureCutMaterial()
+                    {
+                        Alpha = AlphaMode.Blend,
+                        Texture = _texture,
                         Mode = TextureCutMode.Layers,
-                        Priority = 0 
+                        Priority = 0
                     });
 
-                    _host.Materials.Add(new TextureCutMaterial() 
-                    { 
-                        Alpha = AlphaMode.Blend, 
-                        Texture = _texture, 
-                        Mode = TextureCutMode.Main, 
-                        Priority = 1 
+                    _host.Materials.Add(new TextureCutMaterial()
+                    {
+                        Alpha = AlphaMode.Blend,
+                        Texture = _texture,
+                        Mode = TextureCutMode.Main,
+                        Priority = 1
                     });
-               }
+                }
                 else
                     _host.Materials.Add(new TextureMaterial(_texture));
             }
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
 
-
         }
 
         private async void OnLoadingStateChanged(object? sender, LoadingStateChangedEventArgs e)
         {
             if (!e.IsLoading)
-               await InjectScripts();
+                await InjectScripts();
         }
 
         protected async Task InjectScripts()
@@ -232,14 +230,12 @@ namespace XrEngine.Browser.Windows
                     await _browser.UpdateTextureAsync(_texture);
             }
 
-
             if (EnableElevation && _browser.Frame != _lastElevFrame)
             {
                 await UpdateEleveationAsync();
                 _lastElevFrame = _browser.Frame;
             }
         }
-
 
         [Action]
         public void ShowDevTools()
@@ -260,7 +256,6 @@ namespace XrEngine.Browser.Windows
         public bool EnableElevation { get; set; }
 
         public TextureFormat TextureFormat { get; set; }
-
 
         [Range(-10, 10, 0.1f)]
         public float ZoomLevel

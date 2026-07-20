@@ -71,7 +71,6 @@
 
         public static readonly Vector3I Zero = new();
 
-
         public int X;
 
         public int Y;

@@ -38,7 +38,6 @@ namespace OpenXr.Framework
             return result;
         }
 
-
         unsafe static Matrix4x4 CreateProjectionFov(float tanAngleLeft,
                                                      float tanAngleRight,
                                                      float tanAngleUp,

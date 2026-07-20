@@ -55,7 +55,6 @@ namespace OpenAl.Framework
         UnsignedByte3 = 0x1409
     }
 
-
     public class AlBuffer : AlObject, IDisposable
     {
 
@@ -112,7 +111,6 @@ namespace OpenAl.Framework
             SetData(data.Buffer!, data.Format!);
         }
 
-
         protected BufferFormat GetBufferFormat(AlAudioFormat format)
         {
             BufferFormat bf;
@@ -167,7 +165,6 @@ namespace OpenAl.Framework
 
             GC.SuppressFinalize(this);
         }
-
 
         public static AlBuffer Attach(AL al, uint handle)
         {

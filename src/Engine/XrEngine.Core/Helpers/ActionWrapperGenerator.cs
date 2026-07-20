@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
 
-
 namespace XrEngine
 {
     public class ActionWrapperGenerator
@@ -9,7 +8,6 @@ namespace XrEngine
         public static string Generate<T>()
         {
             var writer = new StringBuilder();
-
 
             void WriteTypeName(Type type)
             {

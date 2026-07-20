@@ -31,7 +31,6 @@ namespace XrEngine.Filament.Wpf
             return _render;
         }
 
-
         public override bool TakeContext()
         {
             try
@@ -48,7 +47,6 @@ namespace XrEngine.Filament.Wpf
         {
 
         }
-
 
         public override void SwapBuffers()
         {

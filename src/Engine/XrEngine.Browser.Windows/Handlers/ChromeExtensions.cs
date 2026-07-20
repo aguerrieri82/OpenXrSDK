@@ -1,7 +1,6 @@
 ﻿using CefSharp;
 using XrEngine.UI.Web;
 
-
 namespace XrEngine.Browser.Windows
 {
     internal static class ChromeExtensions

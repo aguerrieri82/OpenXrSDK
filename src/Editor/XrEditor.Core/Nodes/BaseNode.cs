@@ -1,6 +1,4 @@
-﻿
-using System.Xml.Linq;
-using XrEngine;
+﻿using XrEngine;
 
 namespace XrEditor.Nodes
 {
@@ -14,7 +12,6 @@ namespace XrEditor.Nodes
         {
             _value = value;
         }
-
 
         protected string GetPresetStorePath()
         {
@@ -70,7 +67,7 @@ namespace XrEditor.Nodes
         public virtual void DeletePreset(ComponentPreset preset)
         {
             var path = GetPresetStorePath();
-            
+
             var fileName = Path.Combine(path, preset.Name + ".json");
 
             if (File.Exists(fileName))

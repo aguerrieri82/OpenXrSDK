@@ -1,5 +1,4 @@
 ﻿using CanvasUI.Components;
-using System.Diagnostics.CodeAnalysis;
 using XrEngine;
 using XrMath;
 
@@ -26,14 +25,11 @@ namespace XrSamples
               "#F44336"  // Red
         ];
 
-
-
         readonly Plotter _plotter;
 
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
         private readonly Timer _notifyTimer;
-
 
         public PlotterTimeLogger(Plotter plotter)
         {
@@ -61,7 +57,7 @@ namespace XrSamples
             if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs)
             {
                 _lastNotifyTime = DateTime.UtcNow;
-                
+
                 await EngineApp.MainThread;
 
                 _plotter.NotifyChanged(null);
@@ -75,7 +71,6 @@ namespace XrSamples
                 hash = ((hash << 5) + hash) + c;
             return hash;
         }
-
 
         public async void Checkpoint(string name, Color color)
         {
@@ -100,7 +95,6 @@ namespace XrSamples
             if (value is float fValue)
                 LogValue(name, fValue);
         }
-
 
         public async void LogValue(string name, float value)
         {

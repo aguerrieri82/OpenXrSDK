@@ -13,13 +13,11 @@ namespace XrSamples
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
-
             var xrOculus = new OculusXrPlugin();
 
             var app = new XrApp(services!.GetRequiredService<ILogger<XrApp>>(),
                       new XrOpenGLGraphicDriver(viewManager.View),
                 xrOculus);
-
 
             while (true)
             {

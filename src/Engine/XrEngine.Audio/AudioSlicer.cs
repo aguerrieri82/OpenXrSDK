@@ -48,7 +48,6 @@ namespace XrEngine.Audio
                 var startSample = (int)(Data.Format!.SampleRate * time);
                 var endSample = (int)(Data.Format!.SampleRate * (time + length));
 
-
                 var bestOfs = -1;
                 var bestValue = float.NegativeInfinity;
 

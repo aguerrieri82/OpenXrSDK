@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using XrEngine;
 
-
 namespace XrEditor
 {
     public class BulkObservableCollection<T> : ObservableCollection<T>

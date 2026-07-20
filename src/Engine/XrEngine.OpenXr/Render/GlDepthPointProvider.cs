@@ -8,7 +8,6 @@ using Common.Interop;
 using System.Numerics;
 using XrEngine.OpenGL;
 
-
 namespace XrEngine.OpenXr
 {
     internal class GlDepthPointProvider : IDisposable, IDepthPointProvider

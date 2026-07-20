@@ -32,14 +32,60 @@ namespace OpenXr.Framework.OpenGL
                 throw new NotSupportedException();
 
 #if !GLES
-    #if GL_WRAPPER
+#if GL_WRAPPER
                     _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
+
+<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
+
+<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
+
+<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
+
+<<<<<<< TODO: Unmerged change from project 'OpenXr.Framework.OpenGL (net11.0-android)', Before:
     #else
                     _gl = _view.CreateOpenGL();
     #endif
+=======
+=======
+#else
+                    _gl = _view.CreateOpenGL();
+#endif
+=======
+>>>>>>> After
+#else
+            _gl = _view.CreateOpenGL();
+#endif
+=======
+=======
+#else
+            _gl = _view.CreateOpenGL();
+#endif
+=======
+>>>>>>> After
+#else
+            _gl = _view.CreateOpenGL();
+#endif
+=======
+=======
+#else
+            _gl = _view.CreateOpenGL();
+#endif
+=======
+>>>>>>> After
+#else
+            _gl = _view.CreateOpenGL();
+#endif
+=======
+#else
+            _gl = _view.CreateOpenGL();
+#endif
+>>>>>>> After
+#else
+            _gl = _view.CreateOpenGL();
+#endif
 
 #else
-                _gl = _view.CreateOpenGLES();
+            _gl = _view.CreateOpenGLES();
 #endif
         }
 

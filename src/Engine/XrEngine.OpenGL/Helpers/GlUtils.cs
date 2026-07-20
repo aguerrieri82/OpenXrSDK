@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 
 #endif
 using System.Diagnostics;
-using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
@@ -60,7 +59,7 @@ namespace XrEngine.OpenGL
 
                 TextureFormat.RgFloat32 or
                 TextureFormat.RgFloat16 or
-     
+
                 TextureFormat.Rg88 => PixelFormat.RG,
 
                 TextureFormat.RgUint32 => PixelFormat.RGInteger,
@@ -91,7 +90,6 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth24 or
                 TextureFormat.RgUint32 or
                 TextureFormat.GrayUint32 => PixelType.UnsignedInt,
-
 
                 TextureFormat.RgbFloat16 or
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
@@ -221,7 +219,6 @@ namespace XrEngine.OpenGL
                 return InternalFormat.Etc1Rgb8Oes;
             }
 
-
             if (compression == TextureCompressionFormat.Bc3)
             {
                 return format switch
@@ -284,7 +281,6 @@ namespace XrEngine.OpenGL
             };
         }
 
-
         public static bool IsDepthStencil(InternalFormat format)
         {
             return format == InternalFormat.Depth24Stencil8 ||
@@ -323,7 +319,6 @@ namespace XrEngine.OpenGL
                    format == InternalFormat.DepthComponent32Oes ||
                    format == InternalFormat.DepthComponent32Sgix;
         }
-
 
         public static void EnsureRenderThread()
         {

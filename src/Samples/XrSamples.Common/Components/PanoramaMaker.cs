@@ -6,8 +6,6 @@ using XrEngine.OpenGL;
 using XrMath;
 using System.Diagnostics;
 
-
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -140,7 +138,6 @@ namespace XrSamples
 
             base.Update(ctx);
         }
-
 
         public TextureCube CubeTexture => _cubeTexture;
 

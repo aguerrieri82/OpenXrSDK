@@ -119,7 +119,6 @@ namespace XrEditor.Services
                 _isDirty = true;
         }
 
-
         public async ValueTask DisposeAsync()
         {
             _isDisposed = true;

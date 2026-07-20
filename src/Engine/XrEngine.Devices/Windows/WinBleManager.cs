@@ -1,6 +1,5 @@
 ﻿#if WINDOWS
 
-
 using Windows.Devices.Bluetooth.Advertisement;
 
 namespace XrEngine.Devices.Windows
@@ -26,7 +25,6 @@ namespace XrEngine.Devices.Windows
 
                 if (!string.IsNullOrWhiteSpace(filter.Name) && e.Advertisement.LocalName != filter.Name)
                     return;
-
 
                 var curDev = result.FirstOrDefault(a => a.Address.Value == e.BluetoothAddress);
 

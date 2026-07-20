@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Lighting
+﻿namespace XrEngine.Lighting
 {
     public class VoxelRayMarcher : IDisposable
     {
@@ -35,7 +31,7 @@ namespace XrEngine.Lighting
         {
             if (_handle.Handle == 0)
                 return;
-            
+
             EngineNativeLib.VoxelRayMarcherDestroy(_handle);
 
             _handle = default;

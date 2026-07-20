@@ -1,10 +1,9 @@
 ﻿using UI.Binding;
-using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class ShaderNode<T> : EngineObjectNode<T> where T: Shader
+    public class ShaderNode<T> : EngineObjectNode<T> where T : Shader
     {
         public ShaderNode(T value)
             : base(value)
@@ -24,7 +23,6 @@ namespace XrEditor.Nodes
             Color = "#aaaaaa",
             Name = "icon_fluorescent"
         };
-
 
     }
 }

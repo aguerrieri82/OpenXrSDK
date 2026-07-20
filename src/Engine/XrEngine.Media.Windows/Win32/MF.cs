@@ -8,8 +8,6 @@ namespace XrEngine.Media.Windows
 
         public const int MF_SOURCE_READER_ALL_STREAMS = unchecked((int)0xFFFFFFFE);
 
-
-
         [DllImport("mfplat.dll", ExactSpelling = true)]
         public static extern int MFStartup(uint version, uint flags = 0);
 
@@ -17,7 +15,6 @@ namespace XrEngine.Media.Windows
         public static extern int MFShutdown();
 
         public const uint MF_VERSION = 0x20070; // Media Foundation version
-
 
         [DllImport("mfplat.dll", ExactSpelling = true)]
         public static extern int MFCreateAttributes(out IMFAttributes attributes, int initialSize);

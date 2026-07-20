@@ -1,11 +1,8 @@
 ﻿using CefSharp;
 using CefSharp.Enums;
 using CefSharp.OffScreen;
-using Silk.NET.DXGI;
 using Silk.NET.OpenGL;
-using System.Globalization;
 using System.Numerics;
-using System.Reflection.Metadata;
 using System.Text.Json;
 using XrEngine.UI.Web;
 using XrMath;
@@ -126,7 +123,6 @@ namespace XrEngine.Browser.Windows
                 Y = viewPos.Y,
             });
 
-
             if (eventType == TouchEventType.Moved)
             {
                 _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);
@@ -135,7 +131,6 @@ namespace XrEngine.Browser.Windows
                 Log.Debug(this, "{0} - {1}", pos, eventType);
 
         }
-
 
         public async Task UpdateTextureAsync(Texture2D tex, bool force = false)
         {

@@ -11,7 +11,6 @@ using XrEngine.Media;
 using XrEngine.OpenGL;
 using XrMath;
 
-
 namespace XrEngine.Reconstruct
 {
 
@@ -124,7 +123,6 @@ namespace XrEngine.Reconstruct
             _leftSurface = _leftRecorder.StartRecording(outPath1, recOptions);
             _rightSurface = _rightRecorder.StartRecording(outPath2, recOptions);
 
-
             _screenSurface = _screenRecorder.StartRecording(outPath3, new VideoRecordOptions
             {
                 Format = VideoRecordFormat.Mp4,
@@ -143,7 +141,6 @@ namespace XrEngine.Reconstruct
             await _cameraLeft.StartCaptureAsync(curFormat, _leftTex, _leftSurface);
             await _cameraRight.StartCaptureAsync(curFormat, _rightTex, _rightSurface);
 
-
             _capture = Context.RequireNew<IScreenCapture>();
 
             await _capture.StartCaptureAsync(new ScreenCaptureOptions
@@ -152,7 +149,6 @@ namespace XrEngine.Reconstruct
                 Height = 1280,
                 OutSurface = _screenSurface,
             });
-
 
             _isRecording = true;
         }
@@ -220,7 +216,6 @@ namespace XrEngine.Reconstruct
                 _stats.ScreenFrames++;
             }
 
-
             while (true)
             {
                 var hasFrame = _leftRecorder!.ProcessEncodedFrames(out var tsLeft);
@@ -248,7 +243,6 @@ namespace XrEngine.Reconstruct
 
                     //Console.WriteLine(leftOfs.ToString());
                 }
-
 
                 var frameData = new RecordFrameData
                 {

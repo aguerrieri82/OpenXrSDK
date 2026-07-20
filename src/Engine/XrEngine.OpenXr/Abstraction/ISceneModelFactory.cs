@@ -32,7 +32,6 @@ namespace XrEngine.OpenXr
         Mesh
     }
 
-
     public interface ISceneModelFactory
     {
         Object3D? CreateModel(SceneModelInfo model);

@@ -108,6 +108,5 @@ namespace XrWebLink.Client
             await _connection!.InvokeAsync("TrackObject", type, anchorId, enabled);
         }
 
-
     }
 }

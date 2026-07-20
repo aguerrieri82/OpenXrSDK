@@ -28,7 +28,6 @@ namespace XrEngine
             base.OnEnabledChanged();
         }
 
-
         protected virtual bool AffectChange(ObjectChange change)
         {
             return true;
@@ -47,10 +46,8 @@ namespace XrEngine
                         Add(tObj);
                 }
 
-
             }
-  
-  
+
         }
 
         protected bool Contains(T obj)

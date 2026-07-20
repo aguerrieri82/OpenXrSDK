@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace XrEngine.Devices
 {
@@ -28,7 +27,6 @@ namespace XrEngine.Devices
 
             public bool IsNull => Handle == 0;
         }
-
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         public struct DeviceInfo
@@ -82,7 +80,6 @@ namespace XrEngine.Devices
             public IntPtr Data;
             public int DataBytes;
         }
-
 
         [DllImport(Dll)]
         public static extern CameraHandle Create();

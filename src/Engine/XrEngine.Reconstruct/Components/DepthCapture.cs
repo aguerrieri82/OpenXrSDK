@@ -15,7 +15,6 @@ using XrEngine.OpenXr;
 using XrMath;
 using TurboJpeg;
 
-
 namespace XrEngine.Reconstruct
 {
     public enum DepthSnapeshotMode
@@ -779,7 +778,6 @@ namespace XrEngine.Reconstruct
             };
         }
 
-
         private async Task ProjColorAsync(ColorProjectionFrame frame)
         {
             Debug.Assert(_colorArrayTex != null);
@@ -840,7 +838,6 @@ namespace XrEngine.Reconstruct
             vertexHandler.Bind();
             vertexHandler.Draw();
         }
-
 
         private async Task ResolveColorAsync()
         {
@@ -910,8 +907,6 @@ namespace XrEngine.Reconstruct
             //atlasGlTex.MagFilter = TextureMagFilter.Linear;
             //atlasGlTex.Update();
         }
-
-
 
         private async Task<IMemoryBuffer<byte>> GenerateDepthAsync(Matrix4x4 cameraViewProj, Texture2D? depthTex)
         {
@@ -1092,7 +1087,6 @@ namespace XrEngine.Reconstruct
 
             Log.Warn(this, "Mesh extracted {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
 
-
             if (Optimize)
             {
                 Log.Warn(this, "Collapse vertices");
@@ -1104,7 +1098,6 @@ namespace XrEngine.Reconstruct
                 Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
             }
 
-
             if (FillHoles)
             {
                 Log.Info(this, "Filling holes");
@@ -1112,7 +1105,6 @@ namespace XrEngine.Reconstruct
                 var fillRes = filler.FindMissingTriangles(_recMesh!.Geometry);
                 Log.Warn(this, "{0} triangles found", fillRes.Count);
             }
-
 
             if (UseDepthOcclusion)
             {
@@ -1145,10 +1137,8 @@ namespace XrEngine.Reconstruct
 
             float[] exposures = [];
 
-
             _wireMat ??= new WireframeMaterial() { Color = Color.White, IsEnabled = false };
             _colorMat ??= new PbrMaterial() { Color = Color.White, Metalness = 0, IsEnabled = false };
-
 
             if (UnwrapUv)
             {
@@ -1218,7 +1208,6 @@ namespace XrEngine.Reconstruct
                 }
             }
 
-
             if (!UnwrapUv)
             {
                 if (BuildAtlas)
@@ -1234,7 +1223,6 @@ namespace XrEngine.Reconstruct
 
                     _atlasTex?.Dispose();
                     _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
-
 
                     if (_texMat is not TextureMaterial)
                         _texMat = new TextureMaterial();
@@ -1616,7 +1604,6 @@ namespace XrEngine.Reconstruct
             _deleteBtn = input.Right!.Button!.BClick!;
         }
 
-
         [Action]
         public async Task Export()
         {
@@ -1697,8 +1684,6 @@ namespace XrEngine.Reconstruct
         public MeshHoleFillerParams HoleParams { get; set; }
 
         public string? DebugTriangles { get; set; }
-
-
 
     }
 }

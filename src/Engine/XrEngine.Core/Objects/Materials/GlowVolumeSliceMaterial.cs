@@ -17,7 +17,6 @@ namespace XrEngine
             };
         }
 
-
         public GlowVolumeSliceMaterial()
             : base()
         {

@@ -45,7 +45,6 @@ namespace XrEngine.OpenGL
             return _frameBuffer.QueryTexture(attachment);
         }
 
-
         public GlTextureFrameBuffer FrameBuffer => _frameBuffer;
 
         IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;

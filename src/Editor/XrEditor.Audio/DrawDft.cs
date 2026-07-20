@@ -29,7 +29,6 @@ namespace XrEditor.Audio
             using var aOut = new FftwBuffer<Complex>((int)dftSize / 2 + 1);
             using var plan = FftwLib.DftPlan(aIn, aOut);
 
-
             fixed (float* pData = data)
             {
                 for (var j = 0; j < data.Length; j++)
@@ -153,7 +152,6 @@ namespace XrEditor.Audio
 
             canvas.DrawBitmap(_image, new SKRect(0, 0, _image.Width, _image.Height), new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
         }
-
 
         public float MinFreq = 0;
 

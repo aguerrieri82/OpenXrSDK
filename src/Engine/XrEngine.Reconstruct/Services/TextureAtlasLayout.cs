@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrEngine.OpenGL;
@@ -1073,7 +1072,6 @@ namespace XrEngine.Reconstruct
 
             return hull;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2 ToPixel(Vector2 uv)

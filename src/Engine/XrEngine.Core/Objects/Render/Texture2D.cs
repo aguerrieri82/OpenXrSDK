@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEngine
 {
-  
+
     public class Texture2D : Texture
     {
         public static Texture2D FromImage(string fileName)
@@ -46,7 +46,6 @@ namespace XrEngine
             return new Texture2D(data);
         }
 
-
         public Texture2D()
         {
         }
@@ -55,7 +54,6 @@ namespace XrEngine
             : base(data)
         {
         }
-
 
         public override void LoadData(IList<TextureData> data, bool initSampler = true)
         {
@@ -114,7 +112,6 @@ namespace XrEngine
             base.InitSampler();
         }
 
-
         public uint Height { get; set; }
 
         public float MaxAnisotropy { get; set; }
@@ -132,7 +129,6 @@ namespace XrEngine
         public Color BorderColor { get; set; }
 
         public uint Depth { get; set; }
-
 
         public static readonly Texture2D DepthBuffer = new() { Type = TextureType.Depth };
     }

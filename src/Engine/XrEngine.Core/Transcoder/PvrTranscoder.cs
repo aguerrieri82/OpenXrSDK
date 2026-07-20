@@ -193,7 +193,6 @@ namespace XrEngine
             stream.Dispose();
         }
 
-
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             using var seekStream = stream.EnsureSeek();
@@ -257,7 +256,7 @@ namespace XrEngine
                 case PixelFormat.ASTC_6x6:
                 case PixelFormat.ASTC_8x8:
                 case PixelFormat.ASTC_3x3x3:
-                    
+
                     if (header.ChannelType == ChannelType.Float)
                     {
                         if (header.ColorSpace == ColorSpace.sRGB)
@@ -271,7 +270,7 @@ namespace XrEngine
                         else
                             format = TextureFormat.Rgba32;
                     }
-                    
+
                     comp = TextureCompressionFormat.Astc;
 
                     blockSize = header.PixelFormat switch

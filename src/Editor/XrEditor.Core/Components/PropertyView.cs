@@ -84,7 +84,6 @@ namespace XrEditor
                 result.Add(propView);
             }
 
-
             foreach (var prop in objType.GetProperties(binding))
             {
                 if (!prop.CanWrite || !prop.CanRead)
@@ -127,7 +126,7 @@ namespace XrEditor
                     Label = prop.Name,
                     Category = curCategory,
                     Editor = editor,
-                }; 
+                };
 
                 result.Add(propView);
             }
@@ -140,7 +139,6 @@ namespace XrEditor
         public bool ReadOnly { get; set; }
 
         public IPropertyEditor? Editor { get; set; }
-
 
     }
 }

@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using XrEngine.OpenGL;
 using XrMath;
 
-
 namespace XrEngine.Lighting
 {
 
@@ -115,14 +114,12 @@ namespace XrEngine.Lighting
             }
         }
 
-
         private const int NegX = 0;
         private const int PosX = 1;
         private const int NegY = 2;
         private const int PosY = 3;
         private const int NegZ = 4;
         private const int PosZ = 5;
-
 
         #endregion
 
@@ -140,14 +137,13 @@ namespace XrEngine.Lighting
         private Vector3I _voxelMax;
         private GlSimpleProgram? _scanProgram;
         private GpuMeshVoxelizerParams _params;
-        private Dictionary<Geometry3D, GlVertexSourceHandle> _vertexHandles = [];
-
+        private readonly Dictionary<Geometry3D, GlVertexSourceHandle> _vertexHandles = [];
 
         public GpuMeshVoxelizer(GL gl)
         {
             _gl = gl;
 
-            _gl.GetInteger((GLEnum)0x9631, out int maxViews);
+            _gl.GetInteger((GLEnum)0x9631, out var maxViews);
 
             _viewsPerBatch = maxViews;
             _scanFbo = new GlMultiViewFrameBuffer(gl);
@@ -186,17 +182,17 @@ namespace XrEngine.Lighting
                 return false;
             }
 
-            int padding = Math.Max(0, _params.BoundsPadding);
+            var padding = Math.Max(0, _params.BoundsPadding);
 
-            float invVoxelSize = 1.0f / _grid.VoxelSize;
+            var invVoxelSize = 1.0f / _grid.VoxelSize;
 
-            int minX = (int)MathF.Floor((boundsMin.X - _grid.Origin.X) * invVoxelSize) - padding;
-            int minY = (int)MathF.Floor((boundsMin.Y - _grid.Origin.Y) * invVoxelSize) - padding;
-            int minZ = (int)MathF.Floor((boundsMin.Z - _grid.Origin.Z) * invVoxelSize) - padding;
+            var minX = (int)MathF.Floor((boundsMin.X - _grid.Origin.X) * invVoxelSize) - padding;
+            var minY = (int)MathF.Floor((boundsMin.Y - _grid.Origin.Y) * invVoxelSize) - padding;
+            var minZ = (int)MathF.Floor((boundsMin.Z - _grid.Origin.Z) * invVoxelSize) - padding;
 
-            int maxX = (int)MathF.Ceiling((boundsMax.X - _grid.Origin.X) * invVoxelSize) + padding;
-            int maxY = (int)MathF.Ceiling((boundsMax.Y - _grid.Origin.Y) * invVoxelSize) + padding;
-            int maxZ = (int)MathF.Ceiling((boundsMax.Z - _grid.Origin.Z) * invVoxelSize) + padding;
+            var maxX = (int)MathF.Ceiling((boundsMax.X - _grid.Origin.X) * invVoxelSize) + padding;
+            var maxY = (int)MathF.Ceiling((boundsMax.Y - _grid.Origin.Y) * invVoxelSize) + padding;
+            var maxZ = (int)MathF.Ceiling((boundsMax.Z - _grid.Origin.Z) * invVoxelSize) + padding;
 
             if (maxX <= minX)
                 maxX = minX + 1;
@@ -229,7 +225,7 @@ namespace XrEngine.Lighting
 
         public void SetGrid(VoxelGridDesc grid)
         {
-            _grid = grid;   
+            _grid = grid;
         }
 
         public IList<GpuVoxelFaceData> Voxelize(IReadOnlyList<TriangleMesh> meshes)
@@ -245,7 +241,6 @@ namespace XrEngine.Lighting
 
             if (realMeshes.Length == 0)
                 return [];
-
 
             var boundsBuilder = new Bounds3Builder();
 
@@ -357,9 +352,9 @@ namespace XrEngine.Lighting
                     break;
             }
 
-            for (int baseSlice = firstSlice; baseSlice < lastSlice; baseSlice += _viewsPerBatch)
+            for (var baseSlice = firstSlice; baseSlice < lastSlice; baseSlice += _viewsPerBatch)
             {
-                int viewCount = Math.Min(_viewsPerBatch, lastSlice - baseSlice);
+                var viewCount = Math.Min(_viewsPerBatch, lastSlice - baseSlice);
 
                 _scanProgram = LoadProgram(viewCount);
 
@@ -380,11 +375,11 @@ namespace XrEngine.Lighting
 
                 _scanProgram.SetUniform("uBaseSlice", baseSlice);
 
-                for (int j = 0; j < _params.Passes; j++)
+                for (var j = 0; j < _params.Passes; j++)
                 {
-                    for (int i = 0; i < viewCount; ++i)
+                    for (var i = 0; i < viewCount; ++i)
                     {
-                        int slice = baseSlice + i;
+                        var slice = baseSlice + i;
                         var eps = j * _params.AxisEps * _grid.VoxelSize;
                         var matrix = CreateSliceViewProjection(axis, slice, eps);
                         _scanProgram.SetUniform($"uViewProj[{i}]", matrix);
@@ -398,23 +393,23 @@ namespace XrEngine.Lighting
 
         private Matrix4x4 CreateSliceViewProjection(ScanAxis axis, int slice, float axisEps)
         {
-            Vector3 size = new Vector3(
+            var size = new Vector3(
                 _grid.Size.X * _grid.VoxelSize,
                 _grid.Size.Y * _grid.VoxelSize,
                 _grid.Size.Z * _grid.VoxelSize);
 
-            Vector3 min = _grid.Origin;
-            Vector3 max = _grid.Origin + size;
+            var min = _grid.Origin;
+            var max = _grid.Origin + size;
 
             float d0;
             float d1;
 
-            Matrix4x4 result = new Matrix4x4
+            var result = new Matrix4x4
             {
                 M44 = 1.0f
             };
 
-            float eps = MathF.Max(_grid.VoxelSize * 0.001f, 1e-6f);
+            var eps = MathF.Max(_grid.VoxelSize * 0.001f, 1e-6f);
 
             switch (axis)
             {
@@ -587,7 +582,7 @@ namespace XrEngine.Lighting
                     break;
             }
 
-            for (int layer = firstLayer; layer < lastLayer; ++layer)
+            for (var layer = firstLayer; layer < lastLayer; ++layer)
             {
                 ReadLayer(target.Color, readRect, layer, ref colors);
                 ReadLayer(target.Normal, readRect, layer, ref normals);
@@ -614,7 +609,7 @@ namespace XrEngine.Lighting
             _texFb.Attach(texture, FramebufferAttachment.ColorAttachment0, false, layer);
             _texFb.Check();
 
-            int len = checked((int)(rect.Width * rect.Height));
+            var len = checked((int)(rect.Width * rect.Height));
 
             if (result.Length < len)
                 result = new T[len];
@@ -646,14 +641,14 @@ namespace XrEngine.Lighting
             Rgb24Pixel[] materials,
             List<GpuVoxelFaceData> faces)
         {
-            int width = (int)rect.Width;
-            int height = (int)rect.Height;
+            var width = (int)rect.Width;
+            var height = (int)rect.Height;
 
-            for (int py = 0; py < height; ++py)
+            for (var py = 0; py < height; ++py)
             {
-                for (int px = 0; px < width; ++px)
+                for (var px = 0; px < width; ++px)
                 {
-                    int srcIndex = px + py * width;
+                    var srcIndex = px + py * width;
 
                     var color = colors[srcIndex].ToColor();
 
@@ -716,7 +711,7 @@ namespace XrEngine.Lighting
                     break;
             }
 
-            bool isFront = material.IsFront;
+            var isFront = material.IsFront;
 
             faces.Add(new GpuVoxelFaceData
             {
@@ -744,7 +739,6 @@ namespace XrEngine.Lighting
                     Metallic = material.Metallic
                 });
             }
-      
 
         }
 
@@ -772,8 +766,6 @@ namespace XrEngine.Lighting
             _scanFbo?.Dispose();
             _texFb.Dispose();
         }
-
-
 
         public static int MaxMultiView { get; set; }
     }

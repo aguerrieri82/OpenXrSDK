@@ -5,7 +5,6 @@ using System.Diagnostics;
 namespace XrEngine.Media.Android
 {
 
-
     public class AndroidVideoRecorder : IVideoRecorder
     {
 
@@ -38,7 +37,6 @@ namespace XrEngine.Media.Android
 
             }
         }
-
 
         private MediaCodec? _codec;
         private MediaMuxer? _muxer;
@@ -102,7 +100,7 @@ namespace XrEngine.Media.Android
             if (encoderStatus >= 0)
             {
                 var encodedData = _codec.GetOutputBuffer(encoderStatus)!;
-                
+
                 var result = false;
 
                 if ((bufferInfo.Flags & MediaCodecBufferFlags.CodecConfig) != 0)

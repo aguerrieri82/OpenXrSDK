@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
-
 namespace XrEngine.Lighting
 {
 
@@ -39,7 +38,7 @@ namespace XrEngine.Lighting
         public ref T GetCell<T>(Span<T> cells, Vector3I index) =>
             ref cells[CellIndex(index)];
 
-        public ref T GetCell<T>(Span<T> cells, int x, int y, int z) 
+        public ref T GetCell<T>(Span<T> cells, int x, int y, int z)
             => ref cells[CellIndex(x, y, z)];
 
         public Span<VoxelData> GetScene()
@@ -179,7 +178,7 @@ namespace XrEngine.Lighting
             var field = GetLightField(false);
 
             var result = new List<Texture3D>();
-            
+
             var size = (uint)(field.CellCapacity * sizeof(Vector3));
 
             for (var i = 0; i < 6; i++)
@@ -194,7 +193,7 @@ namespace XrEngine.Lighting
 
                 tex.LoadData(new TextureData
                 {
-                    Data = MemoryBuffer.Attach((byte*)field.Color[i],size),
+                    Data = MemoryBuffer.Attach((byte*)field.Color[i], size),
                     Width = (uint)field.Size.X,
                     Height = (uint)field.Size.Y,
                     Depth = (uint)field.Size.Z,
@@ -241,7 +240,6 @@ namespace XrEngine.Lighting
             return new VoxelRayMarcher(this);
         }
 
-
         public void Dispose()
         {
             if (_handle.Handle == 0)
@@ -260,7 +258,7 @@ namespace XrEngine.Lighting
         public VoxelLightBakeParams Params => _params;
 
         public VoxelGridDesc GridDesc => _gridDesc;
-        
+
         internal EngineNativeLib.VoxelLightBaker Handle => _handle;
     }
 }

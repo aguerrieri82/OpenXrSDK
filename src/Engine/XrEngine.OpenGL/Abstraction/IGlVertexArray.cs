@@ -20,7 +20,5 @@ namespace XrEngine.OpenGL
 
         Type IndexType { get; }
 
-
-
     }
 }

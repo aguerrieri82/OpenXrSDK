@@ -15,7 +15,6 @@ namespace Common.Interop
             public WeakReference Owner;
         }
 
-
 #if DEBUG
         static readonly ConcurrentDictionary<nint, MemoryBlock> _blocks = new();
 #endif
@@ -41,7 +40,6 @@ namespace Common.Interop
         {
             if (data == 0)
                 return;
-
 
             NativeMemory.Free((void*)data);
 

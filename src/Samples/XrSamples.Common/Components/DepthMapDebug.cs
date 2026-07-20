@@ -42,7 +42,6 @@ namespace XrSamples
             base.Update(ctx);
         }
 
-
         [Action]
         public void PrintStatus()
         {
@@ -83,7 +82,6 @@ namespace XrSamples
                 var clipped = draws.Where(a => a.DepthData.IsCulled).Count();
                 var hidden = draws.Where(a => !a.DepthData.IsVisible).Count();
 
-
                 var data = JsonSerializer.Serialize(draw.DepthData, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
                 Log.Info(this, "Draw Id: {0}\n{1}", draw.Id, data);
 
@@ -92,7 +90,6 @@ namespace XrSamples
                 Log.Info(this, "hidden: {0}, clipped: {1}", hidden, clipped);
             }
         }
-
 
         [Action]
         public void RequestFrame()

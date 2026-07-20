@@ -140,7 +140,6 @@ namespace XrMath
             return new Color(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), A);
         }
 
-
         public static Color operator *(Color a, float v)
         {
             return new Color(a.R * v, a.G * v, a.B * v, a.A * v);
@@ -159,7 +158,6 @@ namespace XrMath
         public static Color White => new(1f, 1f, 1f);
 
         public static Color Transparent => new(0f, 0f, 0f, 0f);
-
 
     }
 }

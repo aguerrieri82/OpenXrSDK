@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -18,7 +17,6 @@ namespace XrEngine.OpenGL
         protected IGlRenderTarget? _activeRt;
         protected IGlFrameBuffer? _activeFb;
 
-
         public GlResolveRenderTarget(GL gl, bool isMultiView, uint sampleCount)
         {
             _pool = new GlRenderTargetPool(gl, isMultiView)
@@ -30,7 +28,6 @@ namespace XrEngine.OpenGL
             _sampleCount = sampleCount;
             _isMultiView = isMultiView;
         }
-
 
         public void Select(uint colorTex, uint depthTex)
         {
@@ -46,7 +43,6 @@ namespace XrEngine.OpenGL
             _activeFb = null;
             _pool.Clear();
         }
-
 
         public void Begin(Camera camera)
         {

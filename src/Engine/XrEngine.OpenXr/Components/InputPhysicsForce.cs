@@ -114,8 +114,6 @@ namespace XrEngine.Physics
             base.Update(ctx);
         }
 
-
-
         public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!_isDragging)

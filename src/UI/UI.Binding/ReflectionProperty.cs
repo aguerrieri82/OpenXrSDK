@@ -59,7 +59,6 @@ namespace UI.Binding
         public event EventHandler? Changed;
     }
 
-
     public class ReflectionProperty<T> : ReflectionProperty, IProperty<T>
     {
         public ReflectionProperty(PropertyInfo property, object obj) : base(property, obj)

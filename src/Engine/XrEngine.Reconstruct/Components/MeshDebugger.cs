@@ -1,12 +1,7 @@
-﻿
-using SkiaSharp;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using XrEngine.UI;
-using XrEngine.OpenXr;
 using XrMath;
-using OpenXr.Framework;
-
 
 namespace XrEngine.Reconstruct
 {
@@ -19,8 +14,7 @@ namespace XrEngine.Reconstruct
         List<Triangle3>? _triangles;
         List<Triangle3>? _newTriangles;
 
-
-        static string[] palette = new[]
+        static readonly string[] palette = new[]
         {
             "#E63946",
             "#F4A261",
@@ -104,8 +98,8 @@ namespace XrEngine.Reconstruct
 
             if (ShowTriangles)
             {
-                int i = 0;
-      
+                var i = 0;
+
                 foreach (var tri in _triangles)
                 {
                     if (hideList.Contains(tri.Id))
@@ -113,16 +107,16 @@ namespace XrEngine.Reconstruct
                         i++;
                         continue;
                     }
-           
+
                     var value = new Triangle3(tri.V0, tri.V1, tri.V2);
 
                     Color color = !value.IsCCW() ? "#0000ff80" : "#ff000080";
 
-                    color = palette[(i*3) % palette.Length] + "A0";
+                    color = palette[(i * 3) % palette.Length] + "A0";
                     ctx.DrawTriangle(value, color, Color.Black, 2f);
                     i++;
                 }
-  
+
                 foreach (var tri in _newTriangles)
                 {
                     var value = new Triangle3(tri.V0, tri.V1, tri.V2);
@@ -142,7 +136,7 @@ namespace XrEngine.Reconstruct
                     var value = new Triangle3(tri.V0, tri.V1, tri.V2);
 
                     var c = value.Center();
-                    Vector3 textPos = c;
+                    var textPos = c;
 
                     if (TextDistance > 0)
                     {
@@ -164,21 +158,22 @@ namespace XrEngine.Reconstruct
             if (_slice == null)
             {
                 _slice = new TriangleMesh(new Geometry3D());
-                _slice.Materials.Add(new WireframeMaterial() 
-                { 
-                    Color = new Color(1,0,0), 
-                    Priority = 2, 
-                    UseDepth = false 
+                _slice.Materials.Add(new WireframeMaterial()
+                {
+                    Color = new Color(1, 0, 0),
+                    Priority = 2,
+                    UseDepth = false
                 });
-                _slice.Materials.Add(new ColorMaterial() 
-                { 
-                    Color = new Color(0, 1, 0, 0.8f), 
-                    Alpha = AlphaMode.Add, 
-                    Priority = 1, 
-                    UseDepth = false });
+                _slice.Materials.Add(new ColorMaterial()
+                {
+                    Color = new Color(0, 1, 0, 0.8f),
+                    Alpha = AlphaMode.Add,
+                    Priority = 1,
+                    UseDepth = false
+                });
 
                 _slice.Name = "Mesh-Slice";
-            
+
             }
 
             if (_slice.Parent == null)
@@ -227,7 +222,7 @@ namespace XrEngine.Reconstruct
             _slice.UpdateBounds();
             _slice.IsVisible = ShowSubMesh;
 
-            _triangles = result.Select(a=> a.Triangle).ToList();
+            _triangles = result.Select(a => a.Triangle).ToList();
         }
 
         [Action]
@@ -252,7 +247,7 @@ namespace XrEngine.Reconstruct
             {
                 CoordMode = HoleFillCoord.Position
             });
-            
+
             Log.Debug(this, "Analyzing {0}...", _triangles.Count);
 
             var indices = _triangles!.SelectMany(a => new uint[] { a.I0, a.I1, a.I2 }).ToArray();
@@ -263,7 +258,6 @@ namespace XrEngine.Reconstruct
 
             Log.Warn(this, "Found {0}", result.Count);
         }
-
 
         private Triangle3 BuildTriangle(uint a, uint b, uint c)
         {
@@ -276,7 +270,7 @@ namespace XrEngine.Reconstruct
                 I2 = c,
 
             };
-            
+
             var vert = _host!.Geometry!.Vertices;
 
             res.V0 = vert[res.I0].Pos;
@@ -290,8 +284,8 @@ namespace XrEngine.Reconstruct
         {
             _slice?.Dispose();
             _canvas?.Dispose();
-            _canvas= null;
-            _slice = null;  
+            _canvas = null;
+            _slice = null;
             GC.SuppressFinalize(this);
         }
 

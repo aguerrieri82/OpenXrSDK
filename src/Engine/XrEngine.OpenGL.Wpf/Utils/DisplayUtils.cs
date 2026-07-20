@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -9,7 +8,6 @@ namespace XrEngine.Wpf;
 public static class DisplayUtils
 {
     #region INTEROP
-
 
     [DllImport("user32.dll")]
     private static extern nint MonitorFromWindow(nint hwnd, uint flags);
@@ -115,7 +113,7 @@ public static class DisplayUtils
     }
 
     #endregion
-    
+
     private const int EnumCurrentSettings = -1;
     private const uint MonitorDefaultToNearest = 0x00000002;
 

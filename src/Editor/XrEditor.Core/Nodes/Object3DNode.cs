@@ -29,7 +29,6 @@ namespace XrEditor.Nodes
             base.Actions(result);
         }
 
-
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);

@@ -19,7 +19,6 @@
             _types.Add(value);
         }
 
-
         public static readonly TypeStateManager Instance = new();
     }
 }

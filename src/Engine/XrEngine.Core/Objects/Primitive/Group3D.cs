@@ -5,6 +5,7 @@ namespace XrEngine
     public class Group3D : Object3D, ILocalBounds
     {
         protected List<Object3D> _children = [];
+
         private Bounds3 _localBounds;
 
         public Group3D()
@@ -185,8 +186,6 @@ namespace XrEngine
         public UpdateMode BoundUpdateMode { get; set; }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
-
-
 
     }
 }

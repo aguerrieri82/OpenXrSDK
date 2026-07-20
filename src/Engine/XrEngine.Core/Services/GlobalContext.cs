@@ -13,7 +13,6 @@ namespace XrEngine
             public Func<object>? Factory;
         }
 
-
         readonly List<ServiceInfo> _services = [];
         readonly ConcurrentDictionary<Type, object?> _cache = [];
 

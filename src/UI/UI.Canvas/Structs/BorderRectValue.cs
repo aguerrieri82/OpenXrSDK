@@ -66,7 +66,6 @@ namespace CanvasUI
             };
         }
 
-
         public BorderValue Top;
 
         public BorderValue Left;

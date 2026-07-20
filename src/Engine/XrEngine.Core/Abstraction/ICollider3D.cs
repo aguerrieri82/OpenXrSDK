@@ -22,7 +22,6 @@ namespace XrEngine
         public uint TriangleId;
     }
 
-
     public interface ICollider3D : IComponent
     {
         Collision? CollideWith(Ray3 ray);

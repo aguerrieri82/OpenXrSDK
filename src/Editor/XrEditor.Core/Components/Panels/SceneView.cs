@@ -9,9 +9,6 @@ using XrEngine;
 using XrEngine.OpenXr;
 using XrInteraction;
 using XrMath;
-using XrEngine.Wpf;
-
-
 
 namespace XrEditor
 {
@@ -53,13 +50,11 @@ namespace XrEditor
         public bool IsCaptured => _pointer.IsCaptured;
     }
 
-
     [Panel("e0c28154-c76f-4765-83dc-0fe9ceb6f655")]
     [DisplayName("Scene")]
     public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
-
 
         protected Camera _camera;
         protected Scene3D? _scene;
@@ -140,7 +135,6 @@ namespace XrEditor
                     });
             }
 
-
             return result;
         }
 
@@ -186,7 +180,7 @@ namespace XrEditor
             _pauseButton.IsActive = _engine.App.PlayState == PlayState.Pause;
         }
 
-        public async Task StartXrAsync() 
+        public async Task StartXrAsync()
         {
             await _sceneDispatcher.Switch;
 
@@ -275,7 +269,7 @@ namespace XrEditor
                     Thread.Sleep(50);
                 else
                 {
-                    bool skipSurface = false;
+                    var skipSurface = false;
 
                     if (_engine.XrApp.IsStarted)
                     {
@@ -327,14 +321,14 @@ namespace XrEditor
                 tool.NotifySceneChanged();
 
             SceneChanged?.Invoke(_scene);
-         }
+        }
 
         protected void UpdateSize()
         {
             var width = (uint)(_renderSurface!.Size.X);
             var height = (uint)(_renderSurface.Size.Y);
 
-           // Log.Info(this, "New render size: {0}x{1}", width, height);
+            // Log.Info(this, "New render size: {0}x{1}", width, height);
 
             width = (uint)Math.Ceiling(width / 2.0f) * 2;
             height = (uint)Math.Ceiling(height / 2.0f) * 2;
@@ -348,7 +342,7 @@ namespace XrEditor
             }
         }
 
-        public async Task StartAppAsync() 
+        public async Task StartAppAsync()
         {
             Debug.Assert(_engine?.App != null);
             Debug.Assert(_scene != null);
@@ -371,7 +365,7 @@ namespace XrEditor
             UpdateControls();
         }
 
-        public async Task PauseApp() 
+        public async Task PauseApp()
         {
             Debug.Assert(_engine?.App != null);
 
@@ -483,7 +477,6 @@ namespace XrEditor
             return tool;
         }
 
-
         public IReadOnlyList<IEditorTool> Tools => _tools;
 
         public EngineAppStats? Stats => _scene?.App?.Stats;
@@ -491,7 +484,6 @@ namespace XrEditor
         public IRenderSurface RenderSurface => _renderSurface;
 
         public IEditorTool? ActiveTool { get; set; }
-
 
         public event Action<Scene3D?>? SceneChanged;
 

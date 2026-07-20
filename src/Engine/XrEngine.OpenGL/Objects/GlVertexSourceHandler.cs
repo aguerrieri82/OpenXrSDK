@@ -6,7 +6,6 @@ using SkiaSharp;
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public abstract class GlVertexSourceHandle : IDisposable
@@ -47,7 +46,6 @@ namespace XrEngine.OpenGL
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
 
-
     }
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
@@ -58,7 +56,6 @@ namespace XrEngine.OpenGL
         readonly GL _gl;
         EngineObject? _sourceObject;
         VertexComponent _lastComponents;
-
 
         public GlVertexSourceHandler(GlVertexSourceHandler<TVert, TInd> source)
         {
@@ -89,7 +86,6 @@ namespace XrEngine.OpenGL
 
             Version = -1;
         }
-
 
         public override GlVertexSourceHandle Clone()
         {
@@ -152,7 +148,7 @@ namespace XrEngine.OpenGL
         {
             if (_source.InstanceCount > 1)
             {
-                DrawInstances(_source.InstanceCount , forcePrimitive);
+                DrawInstances(_source.InstanceCount, forcePrimitive);
             }
             else
                 _vertices.Draw(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive);

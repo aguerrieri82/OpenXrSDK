@@ -45,7 +45,6 @@
         [XrPath("/output/haptic")]
         public XrHaptic? Haptic;
 
-
     }
 
     public class XrInteractionProfileHand<THand> : XrInteractionProfileHand

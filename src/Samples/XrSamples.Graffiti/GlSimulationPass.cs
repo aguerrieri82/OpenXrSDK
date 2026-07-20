@@ -261,7 +261,6 @@ namespace XrSamples.Graffiti
                 (1.0f - v) * textureSize.Height);
         }
 
-
         public override void Render(GlUpdateContext ctx)
         {
             if (!_isInit)
@@ -306,7 +305,6 @@ namespace XrSamples.Graffiti
 
             _lastFrame = ctx.Frame;
         }
-
 
         protected void Intialize(GlUpdateContext ctx)
         {
@@ -468,7 +466,6 @@ namespace XrSamples.Graffiti
             (_tempWetTex, _wetTex) = (_wetTex, _tempWetTex);
             (_tempDryTex, _dryTex) = (_dryTex, _tempDryTex);
         }
-
 
         protected void RenderResolve(GlUpdateContext ctx)
         {

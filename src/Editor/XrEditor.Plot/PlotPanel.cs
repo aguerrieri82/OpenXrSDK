@@ -29,7 +29,6 @@ namespace XrEditor.Plot
               "#F44336"  // Red
             ];
 
-
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
         private readonly SingleSelector _autoScaleX;
@@ -72,7 +71,6 @@ namespace XrEditor.Plot
             Plotter.ReferencesX.Clear();
         }
 
-
         static uint HashString(string str)
         {
             uint hash = 5381;
@@ -81,7 +79,7 @@ namespace XrEditor.Plot
             return hash;
         }
 
-        protected  async void  OnNotify(bool force)
+        protected async void OnNotify(bool force)
         {
             await UiThread;
 

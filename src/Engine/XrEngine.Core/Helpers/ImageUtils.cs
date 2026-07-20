@@ -20,7 +20,6 @@ namespace XrEngine
             { TextureFormat.RgbaFloat32, SKColorType.RgbaF32 },
         };
 
-
         static readonly Dictionary<SKColorType, TextureFormat[]> SKIA_TO_FORMATS = new()
         {
             { SKColorType.Bgra8888,  new[] { TextureFormat.Bgra32, TextureFormat.SBgra32 } },
@@ -33,7 +32,7 @@ namespace XrEngine
 
         public static bool IsBgr(this TextureFormat format)
         {
-            return format == TextureFormat.Bgra32 || 
+            return format == TextureFormat.Bgra32 ||
                    format == TextureFormat.SBgra32;
         }
 
@@ -160,7 +159,6 @@ namespace XrEngine
             return SKBitmap.FromImage(surface.Snapshot().ToRasterImage());
         }
 
-
         public static Texture2D MergeMetalRaugh(Texture2D metal, Texture2D roughness)
         {
             return MergeMetalRaugh(metal.Data![0], roughness.Data![0]);
@@ -175,7 +173,7 @@ namespace XrEngine
             using var pDst = mrImage.MemoryLock();
 
             EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width * GetPixelSizeByte(metal.Format), metal.Width * 4, 0, 2, 1);
-            
+
             EngineNativeLib.ImageCopyChannel(pRough, pDst, roughness.Width, roughness.Height, roughness.Width * GetPixelSizeByte(roughness.Format), metal.Width * 4, 0, 1, 1);
 
             var tex = new Texture2D
@@ -207,7 +205,6 @@ namespace XrEngine
                 Height = roughness.Height,
                 Format = TextureFormat.GrayInt8
             };
-
 
             return MergeMetalRaugh(texData, roughness.Data![0]);
         }
@@ -323,7 +320,6 @@ namespace XrEngine
             return result;
         }
 
-
         public static unsafe TextureData Pack(TextureData data, int align)
         {
             var pWidth = (int)MathF.Ceiling(data.Width / (float)align) * align;
@@ -358,7 +354,7 @@ namespace XrEngine
                 throw new NotSupportedException();
 
             var pWidth = (int)MathF.Ceiling(data.Width / (float)align) * align;
-  
+
             if (pWidth == data.Width && data.Format.GetChannels() == 4)
                 return data;
 
@@ -465,31 +461,30 @@ namespace XrEngine
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
             throw new NotImplementedException("Fix with srgb, does shit");
-   
 
             //do always for  SKAlphaType.Unpremul
             /*
             if (src.ColorType == dest)
                 return src;
             */
-                     /*
-            var newInfo = new SKImageInfo(src.Info.Width, src.Info.Height, dest, SKAlphaType.Unpremul, src.Info.ColorSpace);
+            /*
+   var newInfo = new SKImageInfo(src.Info.Width, src.Info.Height, dest, SKAlphaType.Unpremul, src.Info.ColorSpace);
 
-            var newBitmap = new SKBitmap(newInfo);
+   var newBitmap = new SKBitmap(newInfo);
 
-            using var canvas = new SKCanvas(newBitmap);
+   using var canvas = new SKCanvas(newBitmap);
 
-            canvas.Clear(new SKColor(1, 1, 1, 1));
+   canvas.Clear(new SKColor(1, 1, 1, 1));
 
-            using var paint = new SKPaint();
-            paint.BlendMode = SKBlendMode.DstOver;
+   using var paint = new SKPaint();
+   paint.BlendMode = SKBlendMode.DstOver;
 
-            canvas.DrawBitmap(src, 0, 0, paint);
+   canvas.DrawBitmap(src, 0, 0, paint);
 
-            src.Dispose();
+   src.Dispose();
 
-            return newBitmap;
-                     */
+   return newBitmap;
+            */
         }
 
     }

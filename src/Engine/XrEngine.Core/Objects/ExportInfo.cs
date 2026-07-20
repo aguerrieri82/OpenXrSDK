@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Objects
+﻿namespace XrEngine.Objects
 {
     public enum MeshExportFormat
     {
@@ -46,7 +42,7 @@ namespace XrEngine.Objects
 
         public string? FileName { get; set; }
 
-        public string? Path { get; set; }    
+        public string? Path { get; set; }
 
         public MeshExportFormat Format { get; set; }
     }

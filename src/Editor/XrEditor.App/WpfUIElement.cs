@@ -25,8 +25,6 @@ namespace XrEditor
         }
     }
 
-
-
     public class WpfUIElementContainer : WpfUIElement, IEditorUIContainer
     {
         int _updateCount;

@@ -11,7 +11,6 @@
             _srcProp = srcProp;
         }
 
-
         public TDst Value
         {
             get => _converter.ConvertTo(_srcProp.Value);

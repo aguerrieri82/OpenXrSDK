@@ -2,7 +2,6 @@
 
 using UI.Binding;
 using XrEngine;
-using XrEngine.OpenXr;
 
 namespace XrEditor
 {
@@ -91,7 +90,7 @@ namespace XrEditor
             if (_binding != null)
             {
                 await EngineApp.MainThread;
-                
+
                 _binding.Value = EditValueToBind(newValue);
 
                 await UiThread;
@@ -99,7 +98,6 @@ namespace XrEditor
 
             ValueChanged?.Invoke(this);
         }
-
 
         protected virtual void OnBindValueChanged(TValue newValue)
         {
@@ -143,7 +141,6 @@ namespace XrEditor
             get => Binding;
             set => Binding = (IProperty<TValue>?)value;
         }
-
 
         public event Action<IPropertyEditor>? ValueChanged;
     }

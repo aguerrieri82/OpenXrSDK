@@ -16,7 +16,6 @@ namespace OpenXr.Framework
         public Vector3? AngularVelocity;
     }
 
-
     public interface IXrInput : IXrAction
     {
         void Update(Space refSpace, long predictTime);

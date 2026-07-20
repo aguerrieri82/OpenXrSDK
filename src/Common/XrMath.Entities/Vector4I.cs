@@ -35,7 +35,6 @@ namespace XrMath
             return !(left == right);
         }
 
-
         public int X;
 
         public int Y;

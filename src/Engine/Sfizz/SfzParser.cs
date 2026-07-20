@@ -45,7 +45,6 @@ namespace Sfizz
             public string? FileName;
         }
 
-
         public class Section
         {
             public string? Name;
@@ -98,7 +97,6 @@ namespace Sfizz
                     i++;
                     continue;
                 }
-
 
                 switch (state)
                 {
@@ -290,7 +288,6 @@ namespace Sfizz
                         break;
                 }
 
-
                 if (c == '\n')
                 {
                     line++;
@@ -348,7 +345,6 @@ namespace Sfizz
             }
         }
 
-
         public void Parse(string fileName)
         {
             var fullPath = Path.GetFullPath(fileName);
@@ -358,7 +354,6 @@ namespace Sfizz
                 _rootFile = fileName;
                 _basePath = Path.GetDirectoryName(fileName);
             }
-
 
             if (!_includes.TryGetValue(fullPath, out var tokens))
             {
@@ -384,7 +379,6 @@ namespace Sfizz
 
                 return tokens[i++];
             }
-
 
             string ReadValueUntil(Func<Token, bool> cond)
             {

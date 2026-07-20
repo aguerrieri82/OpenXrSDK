@@ -24,8 +24,6 @@ namespace XrEngine
             return radius + tolerance <= Radius;
         }
 
-
-
         public float Distance(Vector3 worldPoint)
         {
             var localPoint = _host!.ToLocal(worldPoint);
@@ -55,7 +53,6 @@ namespace XrEngine
         {
             //TODO: Implement
         }
-
 
         public float Radius { get; set; }
 

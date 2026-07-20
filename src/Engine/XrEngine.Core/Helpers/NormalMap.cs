@@ -37,7 +37,6 @@ namespace XrEngine
             {
                 var dstData = res.Lock();
 
-
                 for (var y = 1; y < height - 1; y++)
                 {
                     for (var x = 1; x < width - 1; x++)

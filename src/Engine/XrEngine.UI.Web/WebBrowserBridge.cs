@@ -33,9 +33,6 @@ namespace XrEngine.UI.Web
             public object?[]? Args { get; set; }
         }
 
-
-
-
         readonly IWebBrowser _webBrowser;
         readonly Dictionary<string, MappedMethod> _methods;
         readonly Dictionary<string, CallRequest> _callRequests = [];
@@ -123,6 +120,8 @@ namespace XrEngine.UI.Web
                         }
                     }
 
+                    await EngineApp.MainThread;
+
                     var result = mapped.Info!.Invoke(mapped.Instance, [.. parsedArgs]);
 
                     if (result is Task task)
@@ -137,7 +136,6 @@ namespace XrEngine.UI.Web
                         else
                             result = await (dynamic)result;
                     }
-
 
                     msg.Result = result;
                     msg.Type = "response";
@@ -194,6 +192,9 @@ namespace XrEngine.UI.Web
                     Instance = obj
                 };
             }
+
+            if (obj is IWebBrowserBridgeHost host)
+                host.Attach(this);
         }
     }
 }

@@ -1,12 +1,8 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace XrEngine.UI
 {
-
 
     public class CanvasView2D : CanvasView3D
     {
@@ -15,7 +11,7 @@ namespace XrEngine.UI
         public CanvasView2D()
         {
             Flags |= EngineObjectFlags.NoFrustumCulling;
-            IsStereo = true;    
+            IsStereo = true;
         }
 
         protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
@@ -32,7 +28,7 @@ namespace XrEngine.UI
             screenCanvas.Configure(canvas, ctx.Camera, activeEye, _pixelSize);
 
             canvas.Clear();
-   
+
             DrawCanvas?.Invoke(screenCanvas);
 
             canvas.Restore();

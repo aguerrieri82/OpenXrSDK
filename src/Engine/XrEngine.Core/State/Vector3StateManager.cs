@@ -17,7 +17,6 @@ namespace XrEngine
             container.Write(key, new float[] { obj.X, obj.Y, obj.Z });
         }
 
-
         public static readonly Vector3StateManager Instance = new();
     }
 }

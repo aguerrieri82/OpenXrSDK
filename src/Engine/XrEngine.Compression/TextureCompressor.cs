@@ -43,7 +43,6 @@ namespace XrEngine.Compression
             };
         }
 
-
         public async Task<IList<TextureData>> EncodeAsync(TextureData data, int mipsLevels, TextureCompressionInfo compressor)
         {
             var hash = TextureHash(data, compressor, mipsLevels);
@@ -94,7 +93,6 @@ namespace XrEngine.Compression
             }
         }
 
-
         public static string TextureHash(TextureData data, TextureCompressionInfo compressor, int mipsLevels)
         {
             var dataHash = Convert.ToHexString(MD5.HashData(data.Data!.AsSpan()));
@@ -106,7 +104,7 @@ namespace XrEngine.Compression
         {
             if (_cacheCleared)
                 return;
-            
+
             if (!Directory.Exists(CachePath))
                 return;
 
@@ -219,9 +217,7 @@ namespace XrEngine.Compression
             return result;
         }
 
-
         public string? CachePath { get; set; }
-
 
         public static readonly TextureCompressor Instance = new();
 

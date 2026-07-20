@@ -25,7 +25,6 @@ namespace XrEngine.Compression
         /** @brief The exhaustive, highest quality, search preset. */
         const float ASTCENC_PRE_EXHAUSTIVE = 100.0f;
 
-
         /**
          * @brief Enable normal map compression.
          *
@@ -107,7 +106,6 @@ namespace XrEngine.Compression
          */
         const uint ASTCENC_FLG_MAP_RGBM = 1 << 6;
 
-
         enum astcenc_profile
         {
             /** @brief The LDR sRGB color profile. */
@@ -138,7 +136,6 @@ namespace XrEngine.Compression
             ASTCENC_SWZ_Z = 6
         };
 
-
         struct astcenc_swizzle
         {
             /** @brief The red component selector. */
@@ -150,7 +147,6 @@ namespace XrEngine.Compression
             /** @brief The alpha component selector. */
             public astcenc_swz a;
         };
-
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct astcenc_params
@@ -175,20 +171,16 @@ namespace XrEngine.Compression
             ASTCENC_TYPE_F32 = 2
         };
 
-
         [DllImport("astcencoder-native")]
         static extern int Encode(nint data, int width, int height, int depth, astcenc_type dataType, ref astcenc_params parameters, nint dst, ref int dstSize);
 
         #endregion
-
 
         public static TextureData Encode(TextureData data, bool isNormalMap, float quality, uint blockSize)
         {
             uint flags = 0;
             if (isNormalMap)
                 flags |= ASTCENC_FLG_MAP_NORMAL;
-
-
 
             astcenc_profile profile;
             astcenc_type type;
@@ -236,7 +228,7 @@ namespace XrEngine.Compression
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
             else
-            { 
+            {
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_R;
                 swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
                 swizzle.b = astcenc_swz.ASTCENC_SWZ_B;
@@ -257,7 +249,6 @@ namespace XrEngine.Compression
                 swizzle = swizzle,
                 thread_count = 8
             };
-
 
             using var srcPtr = data.Data!.MemoryLock();
 

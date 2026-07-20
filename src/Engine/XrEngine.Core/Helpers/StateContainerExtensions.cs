@@ -70,7 +70,6 @@ namespace XrEngine
             }
         }
 
-
         public static void WriteTypeName(this IStateContainer container, object? obj)
         {
             if (obj != null)
@@ -130,7 +129,7 @@ namespace XrEngine
         public static void WriteObject(this IStateContainer container, object obj, Type objType)
         {
             var sm = objType.GetCustomAttribute<StateManagerAttribute>();
-            
+
             var isNone = sm != null && sm.Mode == StateManagerMode.None;
 
             if (isNone)
@@ -141,13 +140,13 @@ namespace XrEngine
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
-                
+
                 if (isExplicit && saveState == null)
                     continue;
 
                 if (saveState != null && !saveState.IsSave)
                     continue;
-                
+
                 if (prop.CanWrite && prop.CanRead)
                     container.Write(prop.Name, prop.GetValue(obj));
             }
@@ -176,8 +175,6 @@ namespace XrEngine
                 throw new NotImplementedException();
         }
 
-
-
         public static void ReadObject(this IStateContainer container, object obj, Type objType)
         {
             var sm = objType.GetCustomAttribute<StateManagerAttribute>();
@@ -197,7 +194,7 @@ namespace XrEngine
 
                 if (saveState != null && !saveState.IsSave)
                     continue;
-                
+
                 if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
                 {
                     var value = container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType);

@@ -10,7 +10,6 @@ namespace XrEngine.Browser.Windows
         WebResponse? _response;
         MemoryStream? _bodyStream;
 
-
         public ChromeWebResourceHandler(IWebRequestHandler webRequestHandler)
         {
             _handler = webRequestHandler;

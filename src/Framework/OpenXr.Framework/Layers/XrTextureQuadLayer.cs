@@ -1,7 +1,6 @@
 ﻿using Common.Interop;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
-using System.Xml.Linq;
 using XrMath;
 
 namespace OpenXr.Framework

@@ -6,7 +6,6 @@ namespace XrEngine.Bullet
     {
         readonly Dictionary<IkNode, Object3D> _targets = [];
 
-
         public IkUpdater()
         {
             Method = IkUpdateMethod.IK_DLS;
@@ -41,7 +40,6 @@ namespace XrEngine.Bullet
         {
             _targets[effector] = obj;
         }
-
 
         [Action]
         public void Reset()

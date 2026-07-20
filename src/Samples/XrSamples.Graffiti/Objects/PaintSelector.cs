@@ -74,7 +74,6 @@ namespace XrSamples.Graffiti
         {
             EnsureButtons();
 
-
             if (MathF.Abs(_visualIndex - _activeIndex) > 0.01f && IsVisible)
             {
                 var dt = (float)ctx.DeltaTime;
@@ -84,7 +83,6 @@ namespace XrSamples.Graffiti
 
                 LayoutButtons();
             }
-
 
             base.Update(ctx);
         }
@@ -194,7 +192,6 @@ namespace XrSamples.Graffiti
         {
             return a + (b - a) * t;
         }
-
 
         public uint ActiveIndex
         {

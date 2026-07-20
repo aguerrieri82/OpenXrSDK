@@ -40,7 +40,6 @@
 
         bool IsEnabled { get; set; }
 
-
         event Action<ILayer3D, Layer3DChange>? Changed;
     }
 }

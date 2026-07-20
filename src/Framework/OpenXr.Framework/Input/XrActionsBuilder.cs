@@ -15,7 +15,6 @@ namespace OpenXr.Framework
         public object Result { get; }
     }
 
-
     public class XrActionsBuilder<TProfile> : IXrActionBuilder where TProfile : IXrBasicInteractionProfile, new()
     {
         readonly List<IXrInput> _inputs = [];
@@ -40,7 +39,6 @@ namespace OpenXr.Framework
 
             public string? Name;
         }
-
 
         public XrActionsBuilder(XrApp app)
         {
@@ -124,7 +122,6 @@ namespace OpenXr.Framework
 
             return result;
         }
-
 
         protected XrHaptic CreateHaptic(Type type, string path, string name)
         {

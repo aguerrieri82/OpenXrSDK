@@ -2,7 +2,7 @@
 
 namespace CanvasUI
 {
-    public struct UiStyleBuilder
+    public readonly struct UiStyleBuilder
     {
         public UiStyleBuilder(UiStyle style)
         {
@@ -167,7 +167,6 @@ namespace CanvasUI
             Style.LineSize = UnitValue.Get(value, unit);
             return this;
         }
-
 
         public readonly UiStyle Style;
     }

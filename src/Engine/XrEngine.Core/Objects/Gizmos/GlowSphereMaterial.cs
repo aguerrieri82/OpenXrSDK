@@ -21,7 +21,6 @@ namespace XrEngine
             };
         }
 
-
         public GlowSphereMaterial()
             : base()
         {
@@ -56,10 +55,8 @@ namespace XrEngine
                 up.SetUniform("uRadius", Radius);
             });
         }
-        
 
         public GlowAttType Attenuation { get; set; }
-
 
         public Color Color { get; set; }
 

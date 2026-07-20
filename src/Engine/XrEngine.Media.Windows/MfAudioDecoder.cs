@@ -48,7 +48,6 @@ namespace XrEngine.Media.Windows
             pcm.SetUINT32(ref MFAttributesGuid.AudioBitsPerSample, 16);
             pcm.SetUINT32(ref MFAttributesGuid.AudioBlockAlignment, 2 * (16 / 8));
 
-
             try
             {
                 _reader.SetCurrentMediaType(0, IntPtr.Zero, pcm);

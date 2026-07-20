@@ -2,7 +2,6 @@
 using XrEngine;
 using XrEngine.OpenXr;
 
-
 namespace XrSamples.Dnd
 {
     public static class Builder

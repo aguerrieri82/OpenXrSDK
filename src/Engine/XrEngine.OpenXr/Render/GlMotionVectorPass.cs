@@ -9,7 +9,6 @@ using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
 
-
 namespace XrEngine.OpenXr
 {
     public class GlMotionVectorPass : GlBaseSingleMaterialPass
@@ -99,7 +98,6 @@ namespace XrEngine.OpenXr
             _renderer.State.SetClearColor(new Color(0, 0, 0, 0));
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
-
 
             return base.BeginRender(ctx);
         }

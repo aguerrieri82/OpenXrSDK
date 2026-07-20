@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using XrInteraction;
 
-
 namespace XrEngine
 {
     public interface IRenderSurface : IPointer2EventSource

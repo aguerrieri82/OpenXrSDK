@@ -7,13 +7,11 @@ namespace XrEngine
     {
         private float _length;
 
-
         public Poly2D()
         {
             Points = [];
             Invalidate();
         }
-
 
         public Poly2D(Poly2 poly)
         {
@@ -66,7 +64,6 @@ namespace XrEngine
                     };
 
                 }
-
 
             }
         }

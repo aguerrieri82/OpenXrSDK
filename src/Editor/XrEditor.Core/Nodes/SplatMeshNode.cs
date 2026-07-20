@@ -1,5 +1,4 @@
-﻿using glTFLoader.Schema;
-using XrEditor.Services;
+﻿using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor.Nodes

@@ -25,7 +25,6 @@ namespace Common.Interop
             _value = ref value;
         }
 
-
         public TOut To<TOut>() where TOut : unmanaged
         {
             if (sizeof(TIn) < sizeof(TOut))
@@ -33,7 +32,6 @@ namespace Common.Interop
 
             return Unsafe.As<TIn, TOut>(ref _value);
         }
-
 
         public ref TOut AsRef<TOut>() where TOut : unmanaged
         {

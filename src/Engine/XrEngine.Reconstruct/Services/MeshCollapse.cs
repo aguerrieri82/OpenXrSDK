@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XrMath;
-
 
 namespace XrEngine
 {
@@ -67,7 +64,6 @@ namespace XrEngine
     public unsafe sealed class MeshCollapse
     {
         #region Private Structs
-
 
         private struct EdgeInfo
         {
@@ -668,8 +664,6 @@ namespace XrEngine
                 repair.NonManifoldEdges,
                 repair.Iterations);
         }
-
-
 
         private int FixWindingStage(string stage, ref uint[] indices)
         {
@@ -2264,7 +2258,6 @@ namespace XrEngine
             return root;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float GetTriangleAreaSq(
             VertexData* vertices,
@@ -2279,7 +2272,6 @@ namespace XrEngine
             return Vector3.Cross(p1 - p0, p2 - p0).LengthSquared();
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector3 GetTriangleNormal(
             VertexData* vertices,
@@ -2293,7 +2285,6 @@ namespace XrEngine
 
             return Vector3.Cross(p1 - p0, p2 - p0);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AddEdge(
@@ -2314,7 +2305,6 @@ namespace XrEngine
 
             edges[key] = new EdgeInfo(a, b, normal);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AddWindingEdge(
@@ -2439,7 +2429,6 @@ namespace XrEngine
 
             return item.NormalSum;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsSameWinding(

@@ -18,7 +18,6 @@
             CheckedChange?.Invoke(this, EventArgs.Empty);
         }
 
-
         [UiProperty(false)]
         public bool IsChecked
         {

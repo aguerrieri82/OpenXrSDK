@@ -59,21 +59,20 @@ namespace XrSamples.Graffiti
             _normalTexture = CreateTexture();
             _roughnessTexture = CreateTexture();
 
-             /*
-            _geo = new BrickGeometry()
-            {
-                WallSize = _size,
-            };
+            /*
+           _geo = new BrickGeometry()
+           {
+               WallSize = _size,
+           };
 
-            _canvas = new TriangleMesh(_geo, new BrickMaterial()
-            {
-                ColorMap = _colorTexture,
-                NormalMap = _normalTexture,
-                MetallicRoughnessMap = _roughnessTexture,
-                Alpha = AlphaMode.Blend
-            });
-            */
-
+           _canvas = new TriangleMesh(_geo, new BrickMaterial()
+           {
+               ColorMap = _colorTexture,
+               NormalMap = _normalTexture,
+               MetallicRoughnessMap = _roughnessTexture,
+               Alpha = AlphaMode.Blend
+           });
+           */
 
             _geo = new Quad3D(_size);
 
@@ -84,7 +83,6 @@ namespace XrSamples.Graffiti
                 MetallicRoughnessMap = _roughnessTexture,
                 Alpha = AlphaMode.Blend
             });
- 
 
             _canvas.Materials.Add(new DebugMaterial()
             {
@@ -148,7 +146,6 @@ namespace XrSamples.Graffiti
             ClearRequest = true;
         }
 
-
         [Action]
         public void Undo()
         {
@@ -176,7 +173,6 @@ namespace XrSamples.Graffiti
             block.PaintOpacityScale = PaintOpacityScale;
         }
 
-
         protected void UpdateDebug()
         {
             var debugMat = (DebugMaterial)_canvas.Materials[1];
@@ -202,7 +198,6 @@ namespace XrSamples.Graffiti
 
             debugMat.NotifyChanged(ChangeType.Material);
         }
-
 
         [Action]
         public void SaveImage()
@@ -267,7 +262,6 @@ namespace XrSamples.Graffiti
                 UpdateDebug();
             }
         }
-
 
     }
 }

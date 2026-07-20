@@ -1,16 +1,16 @@
 ﻿#if GLES
-    using XrEngine.Media;
-    using Silk.NET.OpenGLES;
+using XrEngine.Media;
+using Silk.NET.OpenGLES;
 #else
-    using Silk.NET.OpenGL;
+using Silk.NET.OpenGL;
 #endif
 
 #if !__ANDROID__
-    using XrEngine.Browser.Windows;
-    using XrEngine.UI.Web;
-    using XrEngine.Media;
+using XrEngine.Browser.Windows;
+using XrEngine.UI.Web;
+using XrEngine.Media;
 #else
-    using XrEngine.Devices.Android;
+using XrEngine.Devices.Android;
 #endif
 
 using CanvasUI;
@@ -34,16 +34,11 @@ using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
-using XrEngine.Video;
 using XrMath;
-using RoomDesigner.Ikea;
-using RoomDesigner.Game.Ikea;
 using XrEngine.Reconstruct;
-using XrEngine.OpenGL;
 using XrSamples.Components;
 using XrEngine.Lighting;
 using System.Diagnostics;
-
 
 namespace XrSamples
 {
@@ -58,7 +53,6 @@ namespace XrSamples
         {
             return Context.Require<IAssetStore>().GetPath(name);
         }
-
 
         static EngineApp CreateBaseScene()
         {
@@ -159,8 +153,8 @@ namespace XrSamples
                     if (sun == null)
                         return;
 
-                    float azimuth = 0.0f;
-                    float tilt = 0.0f;
+                    var azimuth = 0.0f;
+                    var tilt = 0.0f;
 
                     const float azimuthSpeed = 0.055f;
                     const float tiltSpeed = 0.035f;
@@ -179,7 +173,6 @@ namespace XrSamples
                     scene.AddBehavior((_, ctx) =>
                     {
                         var thumb = e.Inputs!.Right!.Thumbstick;
-
 
                         if (thumb!.IsActive && thumb.IsChanged)
                         {
@@ -253,13 +246,12 @@ namespace XrSamples
                 WorldPosition = new Vector3(0, 1, 0),
             };
 
-
             return builder
                 .UseClickMoveFront(panel, 0.5f)
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
-              
+
                     if (XrPlatform.IsAndroid || forceOverlay)
                         panel.CreateOverlay(e.XrApp);
                 });
@@ -331,7 +323,6 @@ namespace XrSamples
                 });
             }
 
-
             builder.ConfigureApp(e =>
             {
                 e.App.ActiveScene!.AddChild(floor);
@@ -348,7 +339,6 @@ namespace XrSamples
 
             return builder;
         }
-
 
         public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
         {
@@ -414,7 +404,6 @@ namespace XrSamples
 
         }
 
-
         [Sample("Throw")]
         public static XrEngineAppBuilder CreateThrow(this XrEngineAppBuilder builder)
         {
@@ -431,7 +420,6 @@ namespace XrSamples
                 LastFrame = 710,
                 Loop = true
             });
-
 
             var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
             cube.Transform.SetScale(0.1f);
@@ -479,7 +467,6 @@ namespace XrSamples
               .ConfigureApp(app => settings.Apply(cube));
         }
 
-
         [Sample("Display")]
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
@@ -503,7 +490,6 @@ namespace XrSamples
                           .UseClickMoveFront(display, 0.5f)
                           .ConfigureSampleApp();
         }
-
 
         [Sample("Ping Pong")]
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
@@ -532,7 +518,6 @@ namespace XrSamples
             racket.Transform.Reset();
             racket.Transform.Position = new Vector3(0, 1, 0);
 
-
             //Audio
             var audio = scene.Component<AudioSystem>();
             var sound = new DynamicSound();
@@ -550,7 +535,6 @@ namespace XrSamples
             rigidBody.Type = PhysicsActorType.Kinematic;
             rigidBody.MaterialInfo = new PhysicsMaterialInfo();
 
-
             //Ball generator
             var bg = scene!.AddComponent(new BallGenerator(sound, 0f));
             bg.PhysicSettings = settings.Ball;
@@ -563,7 +547,6 @@ namespace XrSamples
             {
                 ballRigid.DynamicActor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
             };
-
 
             //Add racket
             scene!.AddChild(racket);
@@ -799,7 +782,6 @@ namespace XrSamples
             s2u.X = 0.408f;
             s2u.Y = 0.804f;
 
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -937,8 +919,6 @@ namespace XrSamples
                 });
         }
 
-
-
         public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
         {
 
@@ -1022,7 +1002,6 @@ namespace XrSamples
                 }
             }
 
-
             var door = GltfLoader.LoadFile(GetAssetPath("Door.glb"), GltfOptions);
             door.Name = "Door";
             door.AddComponent(new GeometryScale
@@ -1039,7 +1018,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
         [Sample("Bed")]
         public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
         {
@@ -1051,7 +1029,6 @@ namespace XrSamples
             mesh.Name = "Bed 1";
             mesh.AddComponent<PyMeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
-
 
             foreach (var material in mesh.Materials!)
             {
@@ -1070,7 +1047,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
         [Sample("Light Field")]
         public static XrEngineAppBuilder CreateLightField(this XrEngineAppBuilder builder)
         {
@@ -1082,7 +1058,7 @@ namespace XrSamples
                 WorldPosition = new Vector3(0, 0.63f, 1.84f),
                 Direction = new Vector3(0, -0.2f, -1),
                 Range = 4,
-                Intensity= 5,
+                Intensity = 5,
                 InnerConeAngle = (14f).ToRadians(),
                 OuterConeAngle = (20f).ToRadians(),
             });
@@ -1117,7 +1093,6 @@ namespace XrSamples
 
             XrEngine.MeshOptimizer.Optimize(mesh.Geometry!);
 
-
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
@@ -1139,7 +1114,7 @@ namespace XrSamples
 
                     if (XrPlatform.IsAndroid)
                     {
-                       lightField.Import();
+                        lightField.Import();
                     }
 
                     scene.AddBehavior((_, _) =>
@@ -1147,7 +1122,7 @@ namespace XrSamples
                         var click = cfg.Inputs!.Right!.Button!.AClick!;
 
                         if (click.IsChanged && click.Value)
-                        { 
+                        {
                             var provider = Context.Require<IMotionVectorProvider>();
                             provider.IsActive = !provider.IsActive;
                         }
@@ -1155,7 +1130,6 @@ namespace XrSamples
                 })
                 .ConfigureSampleApp(false);
         }
-
 
         [Sample("Cucina")]
         public static XrEngineAppBuilder CreateCucina(this XrEngineAppBuilder builder)
@@ -1179,7 +1153,6 @@ namespace XrSamples
 
                 if (item.Name != "Obj_PolyFaceMesh_51")
                     item.IsVisible = true;
-
 
                 for (var i = 0; i < item.Materials.Count; i++)
                 {
@@ -1280,49 +1253,6 @@ namespace XrSamples
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-                Task.Run(async () =>
-                {
-                    var service = new IkeaKitchenService();
-                    service.CachePath = "d:\\Projects\\Ikea";
-                    service.Authorize("eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNjA0MjlUMDkyNTE5WiIsImV4cCI6IjIwMjYwNDMwVDA5MjUxOVoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.504f6e6434506b6354634838345365496a4d5276576c6b663272444c384c52366556394c4175796850346b3d");
-
-                    var catalog = new IkeaKitchenCatalog(service);
-                    var solver = new BmaLoader(catalog);
-
-                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), true);
-
-                    await catalog.InitAsync(proj);
-
-                    var kitchen = solver.Load(proj);
-
-                    var prod = solver.LoadProduct("ASL-42460167-IT")!;
-                    prod.Transform.SetScale(0.001f);
-                    prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
-
-                    scene.AddChild(kitchen);
-
-                }).Wait();
-
-                var ui = scene.UiPanel!;
-
-#if !__ANDROID__
-                var gl = ((OpenGLRender)e.App.Renderer).GL;
-
-                var webView = new ChromeWebBrowserView(gl)
-                {
-                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
-                    ZoomLevel = 0,
-                    RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
-                };
-
-                if (((OpenGLRender)e.App.Renderer).Options.UseResolve)
-                    webView.TextureFormat = TextureFormat.SBgra32;
-
-                ui.AddComponent<SurfaceController>();
-                ui.AddComponent(webView);
-
-                Context.Require<RoomDesignerApp>().SetUIBrowser(webView.Browser);
-#endif
             });
 
             return builder;
@@ -1350,7 +1280,6 @@ namespace XrSamples
             var quod1 = scene.AddChild(new TriangleMesh(Quad3D.Default, mat1));
 
             quod1.Materials.Add(mat2);
-
 
             void LoadTexture(bool isSrgb)
             {
@@ -1383,18 +1312,9 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
-
         [Sample("Drums")]
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
-#if WINDOWS
-            //Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
-            Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
-            Context.Implement<IAudioDecoder>(() => new XrEngine.Media.Windows.MfAudioDecoder());
-#else
-            Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());
-#endif
             builder.Configure(DrumsVRApp.Build)
                 .UseRayCollider("Mouse")
                 .AddPassthrough()
@@ -1409,29 +1329,10 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent(new XrInputPlayer(new AIPosePredictor("d:\\pose_prediction_model")));
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-
-
-                var ui = scene.UiPanel!;
-
-#if !__ANDROID__
-                var webView = new ChromeWebBrowserView
-                {
-                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
-                    ZoomLevel = 0,
-                    RequestHandler = new FsWebRequestHandler("main", drumApp.Settings.UiBaseUri)
-                };
-
-                ui.AddComponent<SurfaceController>();
-                ui.AddComponent(webView);
-
-                drumApp.SetUIBrowser(webView.Browser);
-#endif
             });
-
 
             return builder;
         }
-
 
         [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
@@ -1459,7 +1360,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
         [Sample("Depth Snapeshot")]
         public static XrEngineAppBuilder CreateDepthSnapeshot(this XrEngineAppBuilder builder)
         {
@@ -1482,7 +1382,6 @@ namespace XrSamples
                 ComputeIndices = true,
                 UseMeshCache = true
             });
-
 
             if (mode == DepthSnapeshotMode.Read)
             {
@@ -1512,7 +1411,6 @@ namespace XrSamples
                         //await snapeshot.GenerateMeshAsync();
                     });
 
-
                     group.AddBehavior((_, ctx) =>
                     {
                         var thumb = a.Inputs!.Right!.Thumbstick;
@@ -1527,7 +1425,6 @@ namespace XrSamples
                     });
                 });
         }
-
 
         [Sample("Snapeshot View")]
         public static XrEngineAppBuilder CreateDepthSnapeshotView(this XrEngineAppBuilder builder)
@@ -1563,7 +1460,6 @@ namespace XrSamples
                     });
                 });
         }
-
 
         [Sample("Tac")]
         public static XrEngineAppBuilder CreateTac(this XrEngineAppBuilder builder)
@@ -1657,7 +1553,6 @@ namespace XrSamples
                     panel.Text.Text = b.Frame.ToString();
             });
 
-
             var points = new PointMesh();
             var depth = points.AddComponent(new DepthPointScanner
             {
@@ -1683,7 +1578,6 @@ namespace XrSamples
                   depth.HideInput = a.Inputs!.Right.Button!.AClick;
               });
         }
-
 
         public static XrEngineAppBuilder CreateHeightMap(this XrEngineAppBuilder builder)
         {
@@ -1726,7 +1620,6 @@ namespace XrSamples
 
             var plane = new TriangleMesh(quod, (Material)mat);
 
-
             scene.AddChild(plane);
 
             return builder
@@ -1765,7 +1658,6 @@ namespace XrSamples
                 Height = 0f
             });
             player.Name = "Player";
-
 
             scene.AddChild(floor);
             scene.AddChild(player);
@@ -1807,7 +1699,6 @@ namespace XrSamples
                 Name = "left"
             };
 
-
             var sphere3 = new TriangleMesh(Sphere3D.Default,
                 (Material)MaterialFactory.CreatePbr(new Color(1f, 1, 0, 1)))
             {
@@ -1836,7 +1727,6 @@ namespace XrSamples
             {
                 Name = "Preview"
             };
-
 
             sphere1.Transform.SetScale(0.05f);
             sphere2.Transform.SetScale(0.05f);
@@ -1944,7 +1834,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
         public static XrEngineAppBuilder CreatePoseTest(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
@@ -1993,7 +1882,6 @@ namespace XrSamples
 
             scene.AddChild(headeset);
 
-
             var headeset2 = new Group3D() { Name = "Headset2" };
 
             headeset2.AddChild(new PoseView(GetLensPose(left), "Left", "#ff00ff"));
@@ -2002,7 +1890,6 @@ namespace XrSamples
 
             scene.AddChild(headeset2);
 
-
             scene.AddChild(headeset);
 
             return builder
@@ -2010,7 +1897,6 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
-
 
         [Sample("Usb Camera")]
         public static XrEngineAppBuilder CreateUsbCamera(this XrEngineAppBuilder builder)
@@ -2106,8 +1992,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
-
         [Sample("Capture")]
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
@@ -2180,7 +2064,6 @@ namespace XrSamples
                 return quadToSensor * sensorToHead * headMatrix;
             }
 
-
             static Matrix4x4 ComputeQuadMatrixScaledFrom1m(
                 Matrix4x4 headMatrix,
                 Matrix4x4 eyeMatrix,
@@ -2233,7 +2116,6 @@ namespace XrSamples
                 MinFilter = ScaleFilter.Linear,
                 Type = TextureType.External
             };
-
 
             var mainLeft = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
             {
@@ -2341,8 +2223,6 @@ namespace XrSamples
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
-
-
 
         [Sample("Reconstruct Capture")]
         public static XrEngineAppBuilder CreateReconstructCapture(this XrEngineAppBuilder builder)
@@ -2456,14 +2336,12 @@ namespace XrSamples
                     Log.Info(typeof(SampleScenes), $"MIDI Message: {msg}");
             };
 
-
             return builder
                 .UseApp(app)
                 //.UseEnvironmentDepth()
                 //.UseDefaultHDR()
                 .ConfigureSampleApp();
         }
-
 
         [Sample("Car")]
         public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
@@ -2500,7 +2378,6 @@ namespace XrSamples
             leather.Color = "#FF6400FF";
             leather.DoubleSided = true;
             leather.Color *= 2f;
-
 
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
@@ -2636,7 +2513,6 @@ namespace XrSamples
             splitter.Attach(mirror);
             splitter.ExecuteSplit();
 
-
             model.AddMirror(car.GroupByName(scale, "reflect_mirror_int.003", "plasticInt_mirror_int_body-mirror"),
                 new Ray3(new Vector3(-50, 640, -172), new Vector3(0, 0, 1)));
             model.AddMirror(car.GroupByName(scale, "reflect_mirrors.003", "glassClear_mirrors.003", "plastic_mirrors.003", "mirror_left"),
@@ -2722,7 +2598,6 @@ namespace XrSamples
                 });
         }
 
-
         [Sample("Cube")]
         public static XrEngineAppBuilder CreateCube(this XrEngineAppBuilder builder)
         {
@@ -2777,7 +2652,6 @@ namespace XrSamples
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
-
 
         [Sample("Animated Cubes")]
 

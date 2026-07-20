@@ -11,7 +11,7 @@
             {
                 if (bld.Context.Model is not ISkinnedMesh mesh)
                     return;
-                
+
                 bld.AddFeature("HAS_SKIN");
             }
 
@@ -28,7 +28,6 @@
                 return mesh.Skin;
 
             }, BufferSlots.Skin, BufferStore.Model, BufferUsage.SSbo);
-
 
             bld.LoadBufferArray(ctx =>
             {

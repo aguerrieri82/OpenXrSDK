@@ -87,7 +87,6 @@ namespace CanvasUI
             set => SetValue(nameof(MaxHeight), value);
         }
 
-
         [UiProperty(0f, UiPropertyFlags.Layout)]
         public StyleValue<UnitValue> Top
         {
@@ -253,7 +252,6 @@ namespace CanvasUI
 
         public UiElement Owner => _owner;
     }
-
 
     public class UIActualStyle : UiStyle
     {

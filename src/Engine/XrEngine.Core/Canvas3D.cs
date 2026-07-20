@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -182,14 +181,14 @@ namespace XrEngine
                 radius, segments);
 
             // Apparent sphere border: plane perpendicular to the camera direction.
-            Vector3 toCamera = cameraPos - center;
+            var toCamera = cameraPos - center;
 
             if (toCamera.LengthSquared() > 0.000001f)
             {
-                Vector3 normal = Vector3.Normalize(toCamera);
+                var normal = Vector3.Normalize(toCamera);
 
                 // Rotation from local +Z, the DrawCircle plane normal, to the camera direction.
-                float dot = Vector3.Dot(Vector3.UnitZ, normal);
+                var dot = Vector3.Dot(Vector3.UnitZ, normal);
                 Quaternion orientation;
 
                 if (dot < -0.999999f)
@@ -200,7 +199,7 @@ namespace XrEngine
                 }
                 else
                 {
-                    Vector3 axis = Vector3.Cross(Vector3.UnitZ, normal);
+                    var axis = Vector3.Cross(Vector3.UnitZ, normal);
 
                     orientation = Quaternion.Normalize(
                         new Quaternion(

@@ -1,10 +1,7 @@
-﻿
-using SharpEXR.ColorSpace;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XrMath;
-
 
 namespace XrEngine.Lighting
 {
@@ -37,7 +34,6 @@ namespace XrEngine.Lighting
 
         public LightCurve Falloff;
     }
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct VoxSpotLight
@@ -81,7 +77,7 @@ namespace XrEngine.Lighting
         Quadratic = 2
     }
 
-    public enum  DirectionCollapseMode : int
+    public enum DirectionCollapseMode : int
     {
         Add = 0,
         Luminance = 1,
@@ -96,8 +92,6 @@ namespace XrEngine.Lighting
         [MarshalAs(UnmanagedType.I1)]
         public bool ColorOnly;
     };
-
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct LightCurve
@@ -122,8 +116,6 @@ namespace XrEngine.Lighting
     {
         private T _element0;
     }
-
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct VoxelGridDesc
@@ -170,7 +162,7 @@ namespace XrEngine.Lighting
         PosZ = 5
     }
 
-    public enum RayIntersectionMode 
+    public enum RayIntersectionMode
     {
         Direction = 0,
         Geometry = 1
@@ -189,7 +181,6 @@ namespace XrEngine.Lighting
         public float Roughness;
         public float Metallic;
     }
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct VoxelData
@@ -281,7 +272,6 @@ namespace XrEngine.Lighting
         public LightCurve Recovery;
     }
 
-
     [StructLayout(LayoutKind.Sequential)]
     public struct VoxelLightEnergy
     {
@@ -318,7 +308,7 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct VoxelLightContributionView 
+    public unsafe struct VoxelLightContributionView
     {
         public VoxelLightCell* Cells;
         public int CellCount;
@@ -477,7 +467,6 @@ namespace XrEngine.Lighting
             VoxelMeshResolvedFace[] faces,
             int faceCount);
 
-
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void VoxelLightBakerAddGpuMeshFaces(
                 VoxelLightBaker baker,
@@ -507,7 +496,6 @@ namespace XrEngine.Lighting
             VoxelLightBaker baker,
             ref VoxAreaLight light,
             ref VoxelLightContributionView contribution);
-
 
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern void VoxelLightBakerClearLightField(
@@ -555,14 +543,11 @@ namespace XrEngine.Lighting
             VoxelRayMarcher marcher,
             ref VoxelLightContributionView contribution);
 
-
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern void FreeLightFieldView(ref VoxelLightFieldView view);
 
-
         [DllImport(LibName, CallingConvention = CallingConvention.Winapi)]
         public static extern void FreeContributionView(ref VoxelLightContributionView view);
-
 
     }
 }

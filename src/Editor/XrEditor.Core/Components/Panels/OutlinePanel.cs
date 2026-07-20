@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using XrEditor.Services;
 using XrEngine;
 
@@ -11,7 +10,7 @@ namespace XrEditor
     public class OutlinePanel : BasePanel
     {
         static protected Dictionary<INode, ListTreeNodeView> _listNodeMap = [];
-            
+
         protected SceneView? _sceneView;
         protected readonly ListTreeView _treeView;
         protected readonly NodeManager _nodeFactory;
@@ -124,10 +123,8 @@ namespace XrEditor
                     listNode.Unload();
             }
 
-
             return listNode;
         }
-
 
         protected override async Task LoadAsync()
         {

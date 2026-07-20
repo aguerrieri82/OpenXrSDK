@@ -144,14 +144,12 @@ namespace XrEngine
                 Debug.Assert(stream.Position <= stream.Length);
             }
 
-
             var dst = new float[width * height * 3];
             var dstSpan = new Span<float>(dst);
 
             int i1 = 0, i2 = 0;
 
             float s;
-
 
             while (i2 < dst.Length)
             {

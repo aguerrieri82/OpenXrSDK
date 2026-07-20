@@ -33,7 +33,6 @@ namespace XrEngine.OpenGL
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
 
-
         protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
         protected readonly GL _gl;
@@ -199,7 +198,7 @@ namespace XrEngine.OpenGL
         protected void ConfigureCaps()
         {
             _gl.FrontFace(FrontFaceDirection.Ccw);
-            
+
             _glState.SetCullFace(TriangleFace.Back);
 
             _glState.EnableFeature(EnableCap.FramebufferSrgb, _options.UseSRGB);
@@ -359,7 +358,6 @@ namespace XrEngine.OpenGL
                     AddLayer(scene, GlLayerType.Volume, volume);
                 }
 
-
                 _lastScene = scene;
                 cache.Version = scene.Layers.Version;
             }
@@ -427,7 +425,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Frame = ctx.Frame;
             _updateCtx.Time = (float)ctx.Time;
             _updateCtx.Scene = ctx.Scene;
-            _updateCtx.DeltaTime = (float)ctx.DeltaTime;    
+            _updateCtx.DeltaTime = (float)ctx.DeltaTime;
 
             _updateCtx.ContextVersion++;
 
@@ -460,7 +458,6 @@ namespace XrEngine.OpenGL
                     _updateCtx.PassCamera = _updateCtx.MainCamera.Clone();
                 else
                     _updateCtx.PassCamera = _updateCtx.MainCamera;
-
 
                 PushGroup($"Pass {pass.GetType().Name}");
 
@@ -585,13 +582,12 @@ namespace XrEngine.OpenGL
 
             var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format);
 
-
             var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, glTexture.MaxLevel > 0, gerTextInfo);
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
 
             var surface = SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
-            
+
             _glState.Reset();
 
             return surface ?? throw new Exception("Surface creation failed");
@@ -645,7 +641,6 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-
         #endregion
 
         #region TEXTURE
@@ -678,7 +673,7 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(Texture2D texture)
         {
-           texture.ToGlTexture();
+            texture.ToGlTexture();
         }
 
         #endregion
@@ -735,6 +730,9 @@ namespace XrEngine.OpenGL
             if (this is T result)
                 return result;
 
+            if (typeof(T) == typeof(GL))
+                return _gl as T;
+
             if (typeof(T) == typeof(IShadowMapProvider))
                 return _shadowPass as T;
 
@@ -743,7 +741,6 @@ namespace XrEngine.OpenGL
 
             return (T?)_renderPasses.FirstOrDefault(a => a is T);
         }
-
 
         public unsafe string[] GetExtensions()
         {
@@ -786,7 +783,6 @@ namespace XrEngine.OpenGL
         {
         }
 
-
         #endregion
 
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
@@ -806,7 +802,6 @@ namespace XrEngine.OpenGL
         public bool IsDebug => _isDebug;
 
         public static int SuspendErrors { get; set; }
-
 
         [ThreadStatic]
         public static OpenGLRender? Current;

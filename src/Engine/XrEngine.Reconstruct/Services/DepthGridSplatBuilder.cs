@@ -1,6 +1,5 @@
 ﻿using Common.Interop;
 using System.Numerics;
-using XrEngine;
 
 namespace XrEngine.Reconstruct
 {
@@ -75,7 +74,6 @@ namespace XrEngine.Reconstruct
                 if (!float.IsFinite(axisX.X) || !float.IsFinite(axisX.Y) || !float.IsFinite(axisX.Z) ||
                     !float.IsFinite(axisY.X) || !float.IsFinite(axisY.Y) || !float.IsFinite(axisY.Z))
                     continue;
-
 
                 result.Add(new SplatData
                 {

@@ -21,14 +21,14 @@ namespace XrEngine
             const float ArrowTipLength = 12.0f;
 
             var camera = ctx.Camera!;
-            Vector2 viewSize = camera.ViewSize.ToVector2();
-            Matrix4x4 viewProjection = camera.ViewProjection;
+            var viewSize = camera.ViewSize.ToVector2();
+            var viewProjection = camera.ViewProjection;
 
-            Vector3 direction = Vector3.Normalize(Direction);
-            Vector3 toCamera = camera.WorldPosition - WorldPosition;
+            var direction = Vector3.Normalize(Direction);
+            var toCamera = camera.WorldPosition - WorldPosition;
 
             // Plane containing the arrows, oriented for maximum camera visibility.
-            Vector3 planeNormal =
+            var planeNormal =
                 toCamera - direction * Vector3.Dot(toCamera, direction);
 
             if (planeNormal.LengthSquared() < 0.000001f)
@@ -36,12 +36,12 @@ namespace XrEngine
 
             planeNormal = Vector3.Normalize(planeNormal);
 
-            Vector3 side = Vector3.Normalize(
+            var side = Vector3.Normalize(
                 Vector3.Cross(planeNormal, direction));
 
             // Uniform world-units-per-pixel scale on the camera plane
             // passing through the gizmo position.
-            Vector4 clip = Vector4.Transform(
+            var clip = Vector4.Transform(
                 new Vector4(WorldPosition, 1.0f),
                 viewProjection);
 
@@ -52,9 +52,9 @@ namespace XrEngine
 
             Matrix4x4.Invert(
                 viewProjection,
-                out Matrix4x4 inverseViewProjection);
+                out var inverseViewProjection);
 
-            Vector4 pixelWorld4 = Vector4.Transform(
+            var pixelWorld4 = Vector4.Transform(
                 new Vector4(
                     ndc.X + 2.0f / viewSize.X,
                     ndc.Y,
@@ -67,7 +67,7 @@ namespace XrEngine
                 pixelWorld4.Y / pixelWorld4.W,
                 pixelWorld4.Z / pixelWorld4.W);
 
-            float scale = Vector3.Distance(
+            var scale = Vector3.Distance(
                 WorldPosition,
                 pixelWorld);
 
@@ -96,9 +96,9 @@ namespace XrEngine
                 WorldPosition.Z,
                 1.0f);
 
-            for (int i = -1; i <= 1; i++)
+            for (var i = -1; i <= 1; i++)
             {
-                float y = i * ArrowSpacing;
+                var y = i * ArrowSpacing;
 
                 canvas.DrawLine(
                     new Vector3(0.0f, y, 0.0f),

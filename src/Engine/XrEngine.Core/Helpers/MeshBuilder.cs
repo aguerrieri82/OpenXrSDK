@@ -41,7 +41,6 @@ namespace XrEngine
             if (!normal.IsFinite())
                 return this;
 
-
             AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA, },
                         new VertexData { Pos = b, Normal = normal, UV = uvB },
                         new VertexData { Pos = c, Normal = normal, UV = uvC });
@@ -54,8 +53,6 @@ namespace XrEngine
             Vertices.AddRange(vertices);
             return this;
         }
-
-
 
         public MeshBuilder AddQuad(Rect2 rect, float z = 0, bool uvFromRect = false)
         {
@@ -125,7 +122,6 @@ namespace XrEngine
 
                 Vector2 uv0, uv1, uv2;
 
-
                 if (uvMode == UVMode.Size)
                 {
                     uv0 = new Vector2(0, 0);
@@ -173,7 +169,6 @@ namespace XrEngine
                 var v3 = new Vector3(v1.X, v1.Y, v1.Z + height);
                 var v4 = new Vector3(v2.X, v2.Y, v2.Z + height);
 
-
                 if (uvMode == UVMode.Normalized)
                 {
                     u1 = a1 / (MathF.PI * 2);
@@ -191,7 +186,6 @@ namespace XrEngine
                     new Vector2(u2, vv2),
                     new Vector2(u1, vv2));
             }
-
 
             Colliders.Add(new CapsuleCollider
             {
@@ -225,7 +219,6 @@ namespace XrEngine
         public MeshBuilder AddRevolve(ICurve2D curve, float subs, UVMode uvMode, bool reverse = false, float startAngle = 0f, float endAngle = MathF.PI * 2)
         {
             var step = (endAngle - startAngle) / subs;
-
 
             var samples = curve
                 .Sample(0.001f, 1000)
@@ -279,7 +272,6 @@ namespace XrEngine
                         uv2 = new Vector2(u1, r1 * a2);
                         uv3 = new Vector2(u2, r2 * a2);
                     }
-
 
                     if (vr0.IsSimilar(vr2))
                     {
@@ -443,7 +435,6 @@ namespace XrEngine
         {
             return ExtrudePoly(points, length, Vector3.UnitZ, uvMode, addCaps);
         }
-
 
         public MeshBuilder ExtrudePoly(Vector2[] points, float length, Vector3 axis, UVMode uvMode, bool addCaps)
         {
@@ -659,21 +650,19 @@ namespace XrEngine
             return this;
         }
 
-
         public Geometry3D ToGeometry(Geometry3D? result = null, bool computeIndices = true)
         {
             result ??= new Geometry3D();
             result.Vertices = Vertices.ToArray();
             result.Indices = [];
             result.ActiveComponents |= VertexComponent.UV0;
-            
+
             if (computeIndices)
                 result.ComputeIndices();
 
             result.ComputeNormals();
             return result;
         }
-
 
         public void AddColliders(Object3D obj)
         {

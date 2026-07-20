@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class DynamicMaterial : ShaderMaterial
     {

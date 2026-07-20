@@ -10,8 +10,6 @@ using XrEngine.Filament.Wpf;
 using XrEngine.OpenGL.Wpf;
 using XrEngine.OpenXr;
 
-
-
 namespace XrEditor
 {
     public class EditorPlatform : IXrEnginePlatform, IRenderSurfaceProvider

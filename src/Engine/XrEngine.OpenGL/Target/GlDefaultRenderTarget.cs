@@ -19,7 +19,6 @@ namespace XrEngine.OpenGL
         private readonly uint _sampleCount;
         private readonly bool _useRenderBuffer;
 
-
         public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount)
         {
             _gl = gl;

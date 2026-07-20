@@ -30,7 +30,6 @@ namespace OpenXr.Framework
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
 
-
         XrProjectionLayer()
         {
             _depthInfo = new NativeArray<CompositionLayerDepthInfoKHR>(2, typeof(CompositionLayerDepthInfoKHR));
@@ -79,7 +78,6 @@ namespace OpenXr.Framework
 
             _header.ValueRef.Space.Handle = 0;
         }
-
 
         public override void Create()
         {
@@ -246,7 +244,6 @@ namespace OpenXr.Framework
 
             return true;
         }
-
 
         public IEnumerable<Swapchain> ColorSwapChains => _swapchains?.Select(a => a.ColorSwapchain) ?? [];
 

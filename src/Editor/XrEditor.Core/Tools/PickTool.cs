@@ -115,7 +115,6 @@ namespace XrEditor
                                             .FirstOrDefault();
             }
 
-
             await UiThread;
 
             newPick = _lastCollision?.Object;

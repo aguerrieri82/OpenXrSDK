@@ -22,7 +22,6 @@ namespace OpenXr.Framework.OpenGL
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 
-
         public XrOpenGLGraphicDriver(IView view)
             : this(new ViewOpenGLDevice(view))
         {
@@ -38,7 +37,6 @@ namespace OpenXr.Framework.OpenGL
                 Type = typeof(SwapchainImageOpenGLKHR)
             };
         }
-
 
         public override void Initialize(XrApp app, IList<string> extensions)
         {

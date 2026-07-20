@@ -56,7 +56,6 @@ namespace XrEngine
         }
     }
 
-
     public static class PolyTriangulate
     {
 
@@ -143,7 +142,6 @@ namespace XrEngine
 
             return (u >= 0) && (v >= 0) && (u + v < 1);
         }
-
 
         private static float Area(Vector2 a, Vector2 b, Vector2 c)
         {

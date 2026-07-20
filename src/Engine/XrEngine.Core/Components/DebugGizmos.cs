@@ -37,7 +37,6 @@ namespace XrEngine
             canvas.Restore();
         }
 
-
         public HashSet<IDrawGizmos> Debuggers { get; }
 
         public bool ShowBounds { get; set; }

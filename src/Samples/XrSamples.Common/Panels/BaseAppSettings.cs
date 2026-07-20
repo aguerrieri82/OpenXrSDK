@@ -25,7 +25,6 @@ namespace XrSamples
             File.WriteAllText(filePath, json);
         }
 
-
         public void Load(string filePath)
         {
             _filePath = filePath;

@@ -7,7 +7,6 @@ namespace XrEditor.Services
     {
         readonly IList<IPropertyEditorFactory> _factories = [];
 
-
         public PropertyEditorManager()
         {
             Register(new Vector3EditorFactory());

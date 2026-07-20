@@ -5,7 +5,6 @@ using XrEngine;
 using XrEngine.UI;
 using XrMath;
 
-
 namespace XrSamples.Dnd
 {
     public partial class Token
@@ -53,7 +52,7 @@ namespace XrSamples.Dnd
                     if (!_loadTask.IsCompleted)
                         return;
                 }
-           
+
                 var height = (int)(PixelSize.Height * 0.1);
                 var barHeight = (int)(PixelSize.Height * 0.05);
 

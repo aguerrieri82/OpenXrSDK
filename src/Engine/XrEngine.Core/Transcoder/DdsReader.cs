@@ -150,7 +150,6 @@ namespace XrEngine
             D3D10_RESOURCE_DIMENSION_TEXTURE3D = 4,
         }
 
-
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct DDS_FILE
         {

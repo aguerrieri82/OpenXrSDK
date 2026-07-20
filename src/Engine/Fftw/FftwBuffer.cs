@@ -11,7 +11,6 @@
             _length = length;
         }
 
-
         public void Dispose()
         {
             if (Pointer != null)
@@ -52,7 +51,6 @@
         }
 
         public int Length => _length;
-
 
         public T* Pointer;
 

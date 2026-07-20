@@ -4,7 +4,6 @@ namespace XrEngine
 {
     public abstract class Light : Object3D, IDrawGizmos, ISelectionHandler
     {
-        protected int _contentVersion;
         protected bool _isSelected;
 
         public Light()
@@ -14,9 +13,9 @@ namespace XrEngine
             CastShadows = true;
         }
 
-        public void Invalidate()
+        public override void Invalidate(InvalidateMode mode = InvalidateMode.Content)
         {
-            _contentVersion++;
+            base.Invalidate(mode);
         }
 
         protected override void OnChanged(ObjectChange change)
@@ -57,8 +56,6 @@ namespace XrEngine
 
         [Range(0, 10, 0.01f)]
         public float Intensity { get; set; }
-
-        public long ContentVersion => _contentVersion;
 
         bool IDrawGizmos.IsEnabled => _isSelected;
     }

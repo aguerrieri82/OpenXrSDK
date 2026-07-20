@@ -8,13 +8,11 @@ namespace OpenXr.Framework
 
     public delegate Quad3 GetQuadDelegate();
 
-
     public abstract class XrBaseQuadLayer : XrBaseLayer<CompositionLayerQuad>
     {
 
         protected GetQuadDelegate _getQuad;
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
-
 
         public XrBaseQuadLayer(GetQuadDelegate getQuad)
         {
@@ -49,8 +47,6 @@ namespace OpenXr.Framework
 
             return true;
         }
-
-
 
     }
 }

@@ -19,7 +19,6 @@ namespace CanvasUI
             _obj.PropertyChanged += OnPropertyChanged;
         }
 
-
         public void Dispose()
         {
             _obj.PropertyChanged -= OnPropertyChanged;

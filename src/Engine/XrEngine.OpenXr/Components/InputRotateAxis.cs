@@ -36,7 +36,6 @@ namespace XrEngine.OpenXr
                 return;
             }
 
-
             var a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
             var a2 = Process(Right, RightClick, RightHaptic, ref _right);
 

@@ -11,7 +11,6 @@ namespace XrEditor.Nodes
             _autoGenProps = false;
         }
 
-
         protected override void EditorProperties(Binder<RigidBody> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);
@@ -95,15 +94,12 @@ namespace XrEditor.Nodes
                 Editor = new BoolEditor(binder.Prop(a => a.EnableCCD))
             });
 
-
-
             curProps.Add(new PropertyView
             {
                 Label = "Length Tolerance Scale",
                 Category = "Advanced",
                 Editor = new FloatEditor(binder.Prop(a => a.LengthToleranceScale), 0, 1000)
             });
-
 
         }
 

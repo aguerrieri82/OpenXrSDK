@@ -52,9 +52,9 @@ namespace XrEngine.OpenGL
 
         private async void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
         {
-           await _render.Dispatcher.Switch;
+            await _render.Dispatcher.Switch;
 
-           if (change.Type == Layer3DChangeType.Removed || change.Type == Layer3DChangeType.Updated)
+            if (change.Type == Layer3DChangeType.Removed || change.Type == Layer3DChangeType.Updated)
                 RemoveContent((Object3D)change.Item, true);
 
             if (change.Type == Layer3DChangeType.Added || change.Type == Layer3DChangeType.Updated)
@@ -210,8 +210,8 @@ namespace XrEngine.OpenGL
 
 #warning IMPROVE THIS!! 
 
-                var isColor = realMaterial.Alpha == AlphaMode.Opaque || 
-                              realMaterial.Alpha == AlphaMode.BlendMain || 
+                var isColor = realMaterial.Alpha == AlphaMode.Opaque ||
+                              realMaterial.Alpha == AlphaMode.BlendMain ||
                               realMaterial.Alpha == AlphaMode.Mask;
 
                 if (Type == GlLayerType.Color && !isColor)
@@ -219,7 +219,7 @@ namespace XrEngine.OpenGL
 
                 if (Type == GlLayerType.Blend && isColor)
                     continue;
-//
+                //
 
                 var material = ReplaceMaterial(realMaterial);
 

@@ -1,17 +1,14 @@
 ﻿using Common.Interop;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenXr.Framework
 {
     public class XrSwapchain : IDisposable
     {
-        XrApp _xrApp;
+        readonly XrApp _xrApp;
         Swapchain _swapchain;
         long _lastPredictedTime;
-        int _usageCount = 0;
+        readonly int _usageCount = 0;
         int _curUsageCount = 0;
         uint _lastImage;
 
@@ -45,7 +42,7 @@ namespace OpenXr.Framework
                 _lastImage = _xrApp.AcquireSwapchainImage(_swapchain);
                 _lastPredictedTime = _xrApp.FramePredictedDisplayTime;
             }
-            
+
             _curUsageCount++;
 
             return _lastImage;
@@ -72,7 +69,7 @@ namespace OpenXr.Framework
             }
         }
 
-        public static implicit operator Swapchain (XrSwapchain self)
+        public static implicit operator Swapchain(XrSwapchain self)
         {
             return self._swapchain;
         }

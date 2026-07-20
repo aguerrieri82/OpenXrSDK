@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL.Wpf
         {
             if (!_wgl!.MakeCurrent(_hdc, 0))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
-            
+
             _owner = null;
 
             if (_current == this)

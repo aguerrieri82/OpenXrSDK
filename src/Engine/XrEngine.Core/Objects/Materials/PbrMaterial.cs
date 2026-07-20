@@ -83,7 +83,6 @@ namespace XrEngine
             private LightUniforms _element0;
         }
 
-
         [StructLayout(LayoutKind.Explicit)]
         public struct LightListUniforms
         {
@@ -184,7 +183,6 @@ namespace XrEngine
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
-
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
                 var stage = bld.Context.Stage;
@@ -234,7 +232,7 @@ namespace XrEngine
 
                 bld.AddFeature("PBR_V2");
 
-                bool globalToneMap = false;
+                var globalToneMap = false;
 
                 if (Context.TryRequire<IToneMapper>(out var mapper))
                     globalToneMap = mapper.IsGlobal;
@@ -258,7 +256,6 @@ namespace XrEngine
                 }
 
                 bld.AddFeature("USE_CAMERA_POS");
-
 
                 if (hasPunctual)
                     bld.AddFeature("USE_PUNCTUAL");
@@ -305,7 +302,6 @@ namespace XrEngine
 
                 if (bld.Context.BloomProvider != null)
                     bld.AddFeature("USE_BLOOM");
-
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
@@ -362,7 +358,6 @@ namespace XrEngine
 
                 }, UniformsSlots.Camera, BufferStore.Shader);
 
-
                 bld.LoadBuffer((ctx) =>
                 {
                     var curVer = (bld.Context.Lights?
@@ -376,7 +371,7 @@ namespace XrEngine
 
                     var result = new LightListUniforms();
 
-                    int count = 0;
+                    var count = 0;
 
                     foreach (var light in bld.Context.Lights!)
                     {
@@ -428,11 +423,9 @@ namespace XrEngine
 
                 }, UniformsSlots.Lights, BufferStore.Shader);
 
-
                 if (imgLight != null)
                 {
                     var hasTransform = ForceIblTransform || imgLight.RotationY != 0 || imgLight.LightTransform != Matrix3x3.Identity;
-
 
                     if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
@@ -481,8 +474,7 @@ namespace XrEngine
                         var lightField = _lightFieldProvider.GetLightField();
 
                         if (lightField.UseAllFaces)
-                           bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
-
+                            bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
 
                         bld.ExecuteAction((ctx, up) =>
                         {
@@ -491,7 +483,7 @@ namespace XrEngine
                             if (lightField.Textures == null || lightField.Textures.Count == 0)
                                 return;
 
-                            int i = 0;
+                            var i = 0;
 
                             foreach (var tex in lightField.Textures)
                             {
@@ -545,7 +537,6 @@ namespace XrEngine
 
         #endregion
 
-
         public static readonly PbrShader SHADER;
 
         static PbrMaterial()
@@ -588,7 +579,6 @@ namespace XrEngine
                 return null;
             };
         }
-
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
@@ -646,7 +636,6 @@ namespace XrEngine
                 };
 
             }, UniformsSlots.Material, BufferStore.Material);
-
 
             if (EmissiveColor != Color.Transparent)
                 bld.AddFeature("USE_EMISSIVE");
@@ -724,7 +713,6 @@ namespace XrEngine
                     });
                 }
 
-
                 bld.ExecuteAction((ctx, up) =>
                 {
                     if (HeightMap != null)
@@ -789,7 +777,8 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_LIGHT_FIELD");
 
-                bld.AddFeature(UseLightField switch {
+                bld.AddFeature(UseLightField switch
+                {
                     UseLightFieldMode.Full => "LIGHT_FIELD_FULL",
                     UseLightFieldMode.Self => "LIGHT_FIELD_SELF",
                     UseLightFieldMode.SelfOmni => "LIGHT_FIELD_SELF_OMNI",
@@ -874,7 +863,6 @@ namespace XrEngine
 
         [Range(0, 1, 0.01f)]
         public float Roughness { get; set; }
-
 
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }

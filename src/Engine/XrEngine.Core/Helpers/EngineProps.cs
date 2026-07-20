@@ -4,6 +4,5 @@
     {
         public static readonly DynamicProp ActiveTool = new(nameof(ActiveTool));
 
-
     }
 }

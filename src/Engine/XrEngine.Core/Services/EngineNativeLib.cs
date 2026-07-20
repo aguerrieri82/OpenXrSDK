@@ -1,16 +1,10 @@
-﻿using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using XrMath;
-
+﻿using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
 
-
     public static class EngineNativeLib
     {
-
 
         const string LibName = "xrengine-native";
 
@@ -29,7 +23,6 @@ namespace XrEngine
         [DllImport(LibName)]
         public static extern ulong Now();
 
-
         [DllImport(LibName)]
         public static extern void SleepUntil(ulong time);
 
@@ -45,7 +38,6 @@ namespace XrEngine
             uint height,
             uint srcRowBytes);
 
-
         [DllImport(LibName)]
         [return: MarshalAs(UnmanagedType.I1)]
         public unsafe static extern bool ConvertRgb32FToRgba16F(
@@ -55,10 +47,9 @@ namespace XrEngine
 
         [DllImport(LibName)]
         public static unsafe extern void ImagePack(
-            uint srcWidth, uint srcHeight, byte* srcData, 
-            uint dstWidth, uint dstHeight, byte* dstData, 
+            uint srcWidth, uint srcHeight, byte* srcData,
+            uint dstWidth, uint dstHeight, byte* dstData,
             uint pixelSize);
-
 
         [DllImport(LibName)]
         [return: MarshalAs(UnmanagedType.I1)]
@@ -72,7 +63,6 @@ namespace XrEngine
 
         [DllImport(LibName)]
         public static unsafe extern void ConvertRgbToBgr(uint width, uint height, byte* srcData, byte* dstData, uint pixelSizeByte);
-
 
         [DllImport(LibName)]
         public static unsafe extern void ImageResizeBilinearU8(

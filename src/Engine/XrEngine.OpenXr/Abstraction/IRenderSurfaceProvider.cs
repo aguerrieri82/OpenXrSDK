@@ -1,5 +1,4 @@
 ﻿
-
 namespace XrEngine.OpenXr
 {
     public interface IRenderSurfaceProvider

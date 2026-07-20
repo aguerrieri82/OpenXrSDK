@@ -53,7 +53,6 @@ namespace XrSamples.Earth
             ActiveCamera = _camera;
         }
 
-
         public Earth Earth => _earth;
 
         public Moon Moon => _moon;

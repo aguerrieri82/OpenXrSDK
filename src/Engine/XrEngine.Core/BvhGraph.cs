@@ -11,7 +11,7 @@ namespace XrEngine
             Bounds = value.WorldBounds;
             Value = value;
         }
-         
+
         public BvhNode(BvhNode<T> left, BvhNode<T> right)
         {
             Left = left;
@@ -36,8 +36,6 @@ namespace XrEngine
         [MemberNotNullWhen(false, nameof(Left), nameof(Right))]
         public bool IsLeaf => Left == null && Right == null;
     }
-
-
 
     public class BvhGraph<T> where T : Object3D
     {

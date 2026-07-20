@@ -58,7 +58,6 @@ namespace XrEngine.Media.Android
                 //.SetSmallIcon(Android.Resource.Drawable.IcMenuCamera)
                 .Build();
 
-
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
             {
                 StartForeground(NotifId, notif, ForegroundService.TypeMediaProjection);
@@ -74,7 +73,6 @@ namespace XrEngine.Media.Android
             if (outer == null)
                 return null;
 
-
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
                 return (Intent?)outer.GetParcelableExtra(key, Java.Lang.Class.FromType(typeof(Intent)));
             else
@@ -87,7 +85,6 @@ namespace XrEngine.Media.Android
             _projection = null;
             base.OnDestroy();
         }
-
 
         internal static Action<MediaProjection?, Exception?>? _mpSource;
     }

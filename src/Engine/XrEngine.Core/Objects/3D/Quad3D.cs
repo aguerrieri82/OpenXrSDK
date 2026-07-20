@@ -40,8 +40,6 @@ namespace XrEngine
             this.ComputeTangents();
         }
 
-   
-
         public Vector2 Size { get; set; }
 
         public static readonly Quad3D Default = new(Vector2.One);

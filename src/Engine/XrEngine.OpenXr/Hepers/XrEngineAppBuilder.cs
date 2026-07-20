@@ -27,13 +27,11 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-
         public XrEngineAppBuilder ConfigureApp(Action<XrEngineApp> configure)
         {
             _configurations.Add(configure);
             return this;
         }
-
 
         public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile : IXrBasicInteractionProfile, new()
         {

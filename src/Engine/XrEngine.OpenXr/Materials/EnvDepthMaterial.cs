@@ -1,5 +1,4 @@
-﻿using XrEngine.Objects;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -7,7 +6,7 @@ namespace XrEngine.OpenXr
     {
         public static readonly Shader SHADER;
         private Texture2D? _lastTexture;
-        private PerspectiveCamera _depthCamera;
+        private readonly PerspectiveCamera _depthCamera;
         private long _lastFrameTime;
 
         static EnvDepthMaterial()
@@ -16,7 +15,7 @@ namespace XrEngine.OpenXr
             {
                 VertexSourceName = "[XrEngine.OpenXr]env_depth_mesh.vert",
                 FragmentSourceName = "shadow_only.frag",
-         
+
                 IsLit = false
             };
         }
@@ -25,7 +24,7 @@ namespace XrEngine.OpenXr
             : base()
         {
             _shader = SHADER;
-            
+
             UseDepth = false;
             WriteDepth = false;
             DoubleSided = false;
@@ -37,11 +36,9 @@ namespace XrEngine.OpenXr
             _depthCamera = new PerspectiveCamera();
         }
 
-
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             var options = bld.Context.ShadowMapProvider!.Options;
-
 
             bld.ExecuteAction((ctx, up) =>
             {
@@ -50,7 +47,7 @@ namespace XrEngine.OpenXr
                 if (envDepth == null)
                     return;
 
-               // envDepth.Blur = false;
+                // envDepth.Blur = false;
 
                 _lastTexture = envDepth.Acquire(_depthCamera, out _lastFrameTime);
 

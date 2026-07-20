@@ -28,7 +28,6 @@ namespace XrEditor.Services
                     edit.SetParent(parent);
                 return result;
             }
-            
 
             throw new NotSupportedException();
         }

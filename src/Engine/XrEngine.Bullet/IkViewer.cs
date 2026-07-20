@@ -13,7 +13,6 @@ namespace XrEngine.Bullet
             EnableGizmos = true;
         }
 
-
         protected override void Update(RenderContext ctx)
         {
             if (Solver?.Root == null)
@@ -31,7 +30,6 @@ namespace XrEngine.Bullet
 
             UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform(), Matrix4x4.Identity);
         }
-
 
         void CreateMesh()
         {
@@ -170,7 +168,6 @@ namespace XrEngine.Bullet
 
             DrawWork(canvas, Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
         }
-
 
         public IkSolver? Solver { get; set; }
 

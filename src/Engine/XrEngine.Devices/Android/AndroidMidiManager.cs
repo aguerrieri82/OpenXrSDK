@@ -21,7 +21,6 @@ namespace XrEngine.Devices.Android
             _manager = (MidiManager)Application.Context.GetSystemService(ContextA.MidiService)!;
         }
 
-
         public IList<MidiDeviceInfo> FindDevices()
         {
             var devices = _manager.GetDevices();

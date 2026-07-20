@@ -50,7 +50,6 @@ namespace XrEditor
                 NodePreview = null;
         }
 
-
         public bool NodePreviewVisible => NodePreview != null;
 
         protected PropertiesGroupView? CreateProps(INode node)
@@ -323,7 +322,6 @@ namespace XrEditor
         public PropertiesEditorMode Mode { get; }
 
         public override string? Title { get; }
-
 
         public static readonly Guid PROPERTIES = new("3fc8a4fb-806b-49cd-b770-ec127c8e5f79");
 

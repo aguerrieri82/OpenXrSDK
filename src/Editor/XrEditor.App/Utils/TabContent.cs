@@ -31,7 +31,6 @@ namespace XrEditor
         public static readonly DependencyProperty IsCachedProperty =
             DependencyProperty.RegisterAttached("IsCached", typeof(bool), typeof(TabContent), new UIPropertyMetadata(false, OnIsCachedChanged));
 
-
         public static DataTemplate GetTemplate(DependencyObject obj)
         {
             return (DataTemplate)obj.GetValue(TemplateProperty);
@@ -47,7 +46,6 @@ namespace XrEditor
         /// </summary>
         public static readonly DependencyProperty TemplateProperty =
             DependencyProperty.RegisterAttached("Template", typeof(DataTemplate), typeof(TabContent), new UIPropertyMetadata(null));
-
 
         public static DataTemplateSelector GetTemplateSelector(DependencyObject obj)
         {
@@ -81,7 +79,6 @@ namespace XrEditor
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static readonly DependencyProperty InternalTabControlProperty =
             DependencyProperty.RegisterAttached("InternalTabControl", typeof(TabControl), typeof(TabContent), new UIPropertyMetadata(null, OnInternalTabControlChanged));
-
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static ContentControl GetInternalCachedContent(DependencyObject obj)

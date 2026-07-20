@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 
 namespace XrEngine.Lighting
 {
@@ -15,7 +12,6 @@ namespace XrEngine.Lighting
             IsOccluder = true;
             _voxelsVersion = -1;
         }
-
 
         public void UpdateVoxels(IMeshVoxelizer voxelizer)
         {
@@ -34,6 +30,6 @@ namespace XrEngine.Lighting
 
         public GpuVoxelFaceData[]? Voxels => _voxels;
 
-        public bool IsOccluder { get; set; }    
+        public bool IsOccluder { get; set; }
     }
 }

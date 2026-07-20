@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
@@ -61,7 +60,7 @@ namespace XrEngine.OpenGL
             UpdateBuffers(ctx);
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage) 
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage)
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
@@ -77,7 +76,6 @@ namespace XrEngine.OpenGL
             }
             return buffer;
         }
-
 
         public void UpdateBuffers(UpdateShaderContext ctx)
         {

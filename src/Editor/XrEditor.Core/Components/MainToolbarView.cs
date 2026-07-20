@@ -21,7 +21,7 @@ namespace XrEditor
             var scene = EngineApp.Current!.ActiveScene!;
 
             await EngineApp.MainThread;
-            
+
             scene.GetState(container);
 
             var json = container.AsJson();

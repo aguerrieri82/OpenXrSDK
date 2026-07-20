@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public static class BufferSlots
     {
@@ -10,6 +6,6 @@ namespace XrEngine
         public const int Skin = 18;
         public const int SkinMatrices = 19;
         public const int Splats = 18;
-        
+
     }
 }

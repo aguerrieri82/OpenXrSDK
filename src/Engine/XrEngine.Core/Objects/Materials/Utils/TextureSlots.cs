@@ -7,7 +7,7 @@
         public const int MetallicRoughness = 2;
         public const int Specular = 2;
         public const int Occlusion = 3;
-        public const int Emissive = 9; 
+        public const int Emissive = 9;
 
         public const int IblGgxEnv = 4;
         public const int IblLambertianEnv = 5;

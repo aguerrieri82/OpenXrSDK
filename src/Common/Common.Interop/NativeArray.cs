@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 
-
 namespace Common.Interop
 {
     public class NativeArray<TBase> : IDisposable where TBase : unmanaged

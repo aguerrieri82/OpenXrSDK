@@ -21,7 +21,6 @@ namespace XrEngine.OpenXr
             public bool IsCreated;
         }
 
-
         protected Pose3 _lastPose;
         protected OculusXrPlugin? _oculus;
         protected readonly List<SpatialAnchor> _anchors = [];
@@ -35,7 +34,6 @@ namespace XrEngine.OpenXr
             UpdateIntervalSec = 0.1f;
             DistanceTollerance = 0.01f;
         }
-
 
         public SpatialAnchor? GetClosestAnchor(Vector3 worldPos, out float distance)
         {
@@ -82,7 +80,6 @@ namespace XrEngine.OpenXr
             _anchors.Clear();
         }
 
-
         protected async Task LoadAnchorsAsync()
         {
             await ClearAsync(false);
@@ -121,7 +118,6 @@ namespace XrEngine.OpenXr
 
             XrApp.Current!.SpacesTracker.Add(space, TimeSpan.FromSeconds(UpdateIntervalSec));
         }
-
 
         protected override async Task UpdateAsync(RenderContext ctx)
         {
@@ -190,7 +186,6 @@ namespace XrEngine.OpenXr
 
             _lastPose = head.Pose;
         }
-
 
         public float CheckThreshold { get; set; }
 

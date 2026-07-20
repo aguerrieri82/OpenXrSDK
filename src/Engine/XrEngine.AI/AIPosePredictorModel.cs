@@ -23,7 +23,6 @@ namespace XrEngine.AI
         private readonly string _modelPath;
         private readonly int _sequenceLength;
 
-
         public AIPosePredictorModel(int sequenceLength, string path)
         {
             _sequenceLength = sequenceLength;

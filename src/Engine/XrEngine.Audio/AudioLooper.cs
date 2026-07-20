@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using XrEngine.Media;
 
-
 namespace XrEngine.Audio
 {
     public class AudioLooper : IAudioStream

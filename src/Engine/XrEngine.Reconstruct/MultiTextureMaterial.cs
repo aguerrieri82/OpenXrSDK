@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-
-namespace XrEngine.Reconstruct
+﻿namespace XrEngine.Reconstruct
 {
     public partial class MultiTextureMaterial : ShaderMaterial
     {
@@ -49,8 +44,7 @@ namespace XrEngine.Reconstruct
             base.UpdateShaderMaterial(bld);
         }
 
-
-        [Range(0,1, 0.01f)]
+        [Range(0, 1, 0.01f)]
         [Notify(ChangeType.Render)]
         public partial float[] Exposure { get; set; }
 
@@ -69,7 +63,7 @@ namespace XrEngine.Reconstruct
             }
         }
 
-        [Range(-1,1, 0.01f)]
+        [Range(-1, 1, 0.01f)]
         public float ActiveEsposureValue
         {
             get => Exposure[ActiveEsposure];

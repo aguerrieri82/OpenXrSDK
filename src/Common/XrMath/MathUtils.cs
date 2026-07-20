@@ -69,7 +69,6 @@ namespace XrMath
             return result;
         }
 
-
         public static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent, float epsilon = MathExtensions.EPSILON)
         {
             // Normalize the normal vector

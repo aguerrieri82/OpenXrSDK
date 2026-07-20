@@ -113,7 +113,6 @@ namespace XrSamples.Graffiti
             return newCommands;
         }
 
-
         public SKBitmap Generate(CanvasRecording recording, float texelSize, int fps = 72)
         {
             var scene = EngineApp.Current!.ActiveScene!;
@@ -122,7 +121,7 @@ namespace XrSamples.Graffiti
             {
                 Scene = scene,
                 MainCamera = scene.ActiveCamera,
-                PassCamera = scene.ActiveCamera,    
+                PassCamera = scene.ActiveCamera,
             };
 
             var canvas = ctx.Scene!.Descendants<PaintCanvas>().First();

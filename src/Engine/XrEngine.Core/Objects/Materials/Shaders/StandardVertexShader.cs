@@ -11,7 +11,6 @@ namespace XrEngine
             Resolver = str => Embedded.GetString(str);
         }
 
-
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
             var stage = bld.Context.Stage;
@@ -22,7 +21,6 @@ namespace XrEngine
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader)
                 UpdateShaderGlobal(bld);
         }
-
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
@@ -108,7 +106,6 @@ namespace XrEngine
 
             }, UniformsSlots.Camera, BufferStore.Shader);
         }
-
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {

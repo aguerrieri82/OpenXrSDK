@@ -60,7 +60,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
     private GlTextureRenderTarget? _renderTarget;
     private GlTextureFrameBuffer? _interopFrameBuffer;
     private OpenGLRender? _render;
-    private HighResolutionTimer _timer;
+    private readonly HighResolutionTimer _timer;
 
     #region WGL interop
 
@@ -178,7 +178,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
     #endregion
 
-
     public GlDxRenderHost(bool createContext = true, bool useEs = false)
     {
         Context.Implement<IGlContextProvider>(this);
@@ -221,7 +220,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
         _image = new D3DImage();
         Source = _image;
-
 
         CreateD3DDevice();
 
@@ -299,7 +297,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
             0
         ];
 
-        nint result = CreateContextAttribsARB!(_hdc, 0, attributes);
+        var result = CreateContextAttribsARB!(_hdc, 0, attributes);
 
         if (result == 0)
             throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -429,7 +427,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         else
             _image.Dispatcher.Invoke(action);
     }
-
 
     private void CreateGlObjects()
     {
@@ -656,16 +653,16 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
 
         _vsyncEnabled = enable;
         _vsyncScale = scale;
-        _refreshRate = DisplayUtils.GetRefreshRate(_hiddenWnd);   
+        _refreshRate = DisplayUtils.GetRefreshRate(_hiddenWnd);
     }
 
     protected void WaitNextFrame()
     {
         var frameTime = (long)(Stopwatch.Frequency / (_refreshRate / (float)_vsyncScale));
 
-        long curTime = Stopwatch.GetTimestamp();
+        var curTime = Stopwatch.GetTimestamp();
 
-        long remaining = frameTime - (curTime - _lasftFrameTime);
+        var remaining = frameTime - (curTime - _lasftFrameTime);
 
         if (remaining > 0)
             _timer.Sleep(TimeSpan.FromTicks(remaining));
@@ -688,7 +685,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
         QueueInvalidate();
 
         if (_vsyncEnabled)
-            WaitNextFrame(); 
+            WaitNextFrame();
     }
 
     public override void BeginFrame(long frameNum)
@@ -858,7 +855,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, IOpenGLDevice, IXrGraphicP
                 throw new Win32Exception(error);
         }
 
-        nint window = CreateWindowExW(
+        var window = CreateWindowExW(
             0,
             className,
             "Hidden WGL",

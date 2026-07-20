@@ -8,7 +8,6 @@ using XrEditor.Services;
 using XrEngine;
 using XrEngine.Media;
 using XrEngine.Media.FFmpeg;
-using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 
 namespace XrEditor
@@ -25,7 +24,7 @@ namespace XrEditor
             {
                 Log.Warn(sender, e.Exception.Message);
                 MessageBox.Show(e.Exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                e.Handled = true; 
+                e.Handled = true;
             };
 
             Gpu.EnableNvAPi();
@@ -104,5 +103,5 @@ namespace XrEditor
 
             base.OnExit(e);
         }
-    } 
+    }
 }

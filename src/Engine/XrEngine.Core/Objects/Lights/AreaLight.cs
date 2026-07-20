@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -20,8 +17,8 @@ namespace XrEngine
             const float ArrowTipLength = 12.0f;
             const float ArrowTipWidth = 6.0f;
 
-            Vector3 normal = Vector3.Normalize(PlaneNormal);
-            Vector3 up = Vector3.Normalize(
+            var normal = Vector3.Normalize(PlaneNormal);
+            var up = Vector3.Normalize(
                 PlaneUp - normal * Vector3.Dot(PlaneUp, normal));
 
             if (normal.LengthSquared() < 0.000001f ||
@@ -30,16 +27,16 @@ namespace XrEngine
                 return;
             }
 
-            Vector3 right = Vector3.Normalize(
+            var right = Vector3.Normalize(
                 Vector3.Cross(up, normal));
 
-            float halfWidth = PlaneSize.X * 0.5f;
-            float halfHeight = PlaneSize.Y * 0.5f;
+            var halfWidth = PlaneSize.X * 0.5f;
+            var halfHeight = PlaneSize.Y * 0.5f;
 
-            Vector3 p0 = WorldPosition - right * halfWidth - up * halfHeight;
-            Vector3 p1 = WorldPosition + right * halfWidth - up * halfHeight;
-            Vector3 p2 = WorldPosition + right * halfWidth + up * halfHeight;
-            Vector3 p3 = WorldPosition - right * halfWidth + up * halfHeight;
+            var p0 = WorldPosition - right * halfWidth - up * halfHeight;
+            var p1 = WorldPosition + right * halfWidth - up * halfHeight;
+            var p2 = WorldPosition + right * halfWidth + up * halfHeight;
+            var p3 = WorldPosition - right * halfWidth + up * halfHeight;
 
             canvas.Save();
             canvas.State.Color = "#ffff00";
@@ -54,16 +51,16 @@ namespace XrEngine
 
             canvas.Restore();
 
-            Vector3 direction = Vector3.Normalize(Direction);
+            var direction = Vector3.Normalize(Direction);
 
             if (direction.LengthSquared() < 0.000001f)
                 return;
 
             var camera = ctx.Camera!;
-            Vector2 viewSize = camera.ViewSize.ToVector2();
-            Matrix4x4 viewProjection = camera.ViewProjection;
+            var viewSize = camera.ViewSize.ToVector2();
+            var viewProjection = camera.ViewProjection;
 
-            Vector4 clip = Vector4.Transform(
+            var clip = Vector4.Transform(
                 new Vector4(WorldPosition, 1.0f),
                 viewProjection);
 
@@ -74,9 +71,9 @@ namespace XrEngine
 
             Matrix4x4.Invert(
                 viewProjection,
-                out Matrix4x4 inverseViewProjection);
+                out var inverseViewProjection);
 
-            Vector4 pixelWorld4 = Vector4.Transform(
+            var pixelWorld4 = Vector4.Transform(
                 new Vector4(
                     ndc.X + 2.0f / viewSize.X,
                     ndc.Y,
@@ -89,13 +86,13 @@ namespace XrEngine
                 pixelWorld4.Y / pixelWorld4.W,
                 pixelWorld4.Z / pixelWorld4.W);
 
-            float scale = Vector3.Distance(
+            var scale = Vector3.Distance(
                 WorldPosition,
                 pixelWorld);
 
-            Vector3 toCamera = camera.WorldPosition - WorldPosition;
+            var toCamera = camera.WorldPosition - WorldPosition;
 
-            Vector3 arrowPlaneNormal =
+            var arrowPlaneNormal =
                 toCamera - direction * Vector3.Dot(toCamera, direction);
 
             if (arrowPlaneNormal.LengthSquared() < 0.000001f)
@@ -103,7 +100,7 @@ namespace XrEngine
 
             arrowPlaneNormal = Vector3.Normalize(arrowPlaneNormal);
 
-            Vector3 arrowSide = Vector3.Normalize(
+            var arrowSide = Vector3.Normalize(
                 Vector3.Cross(arrowPlaneNormal, direction));
 
             canvas.Save();

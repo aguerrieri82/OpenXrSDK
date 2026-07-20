@@ -29,7 +29,6 @@ namespace XrSamples.Android.Activities
             ConfigureWebView();
         }
 
-
         void ConfigureWebView()
         {
             WebView.SetWebContentsDebuggingEnabled(true);
@@ -45,7 +44,6 @@ namespace XrSamples.Android.Activities
 
             _webView!.LoadUrl("https://roomdesigner.eusoft.net/");
         }
-
 
         private void StartApp()
         {

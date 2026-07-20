@@ -7,7 +7,6 @@ namespace XrEngine.Browser.Windows
     {
         readonly IWebRequestHandler _handler;
 
-
         public ChromeSchemeHandlerFactory(IWebRequestHandler webRequestHandler)
         {
             _handler = webRequestHandler;

@@ -130,7 +130,6 @@ namespace XrMath
             return roots;
         }
 
-
         public List<Path2Point> SampleAdaptive(float tolerance = 0.01f)
         {
             return SampleAdaptive(new List<Path2Point>(), tolerance);
@@ -269,7 +268,6 @@ namespace XrMath
             return _length.Value;
         }
 
-
         public static float GoldenSectionSearch(Func<float, float> f, float a, float b, float tol = 1e-5f)
         {
             var gr = 1.618033988749895f; // Golden ratio
@@ -322,7 +320,6 @@ namespace XrMath
                 yield return P2;
             }
         }
-
 
         public Vector2 P1;
         public Vector2 P2;
@@ -698,7 +695,6 @@ namespace XrMath
                             QuadraticTo(p2, c);
                         }
                         break;
-
 
                     case 'C': // Cubic Bézier
                         for (var j = 0; j < args.Count; j += 6)

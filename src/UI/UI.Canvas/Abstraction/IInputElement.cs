@@ -22,7 +22,6 @@
 
         new T Value { get; set; }
 
-
         event InputValueChangedHandler<T> ValueChanged;
     }
 }

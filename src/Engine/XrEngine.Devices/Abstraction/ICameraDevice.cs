@@ -162,7 +162,6 @@ namespace XrEngine.Devices
 
         void UpdateTexture();
 
-
         event Action<CaptureImage>? NewImage;
 
         CameraDeviceCaps Caps { get; }

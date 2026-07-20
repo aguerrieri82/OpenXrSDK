@@ -4,7 +4,6 @@ using XrMath;
 
 namespace XrSamples.Graffiti.Shaders;
 
-
 [StructLayout(LayoutKind.Explicit, Size = 96)]
 public struct PaintSimUniforms
 {

@@ -28,7 +28,6 @@ namespace XrEditor.Audio
             public Vector2[]? Frequencies { get; set; }
         }
 
-
         public class Settings : BaseView, IItemView
         {
             readonly LoopEditorPanel _host;
@@ -106,7 +105,6 @@ namespace XrEditor.Audio
                 set => SetProperty(ref _pitchFactor, value);
             }
 
-
             public bool ShowMain
             {
                 get => _showMain;
@@ -136,8 +134,6 @@ namespace XrEditor.Audio
             IconView? IItemView.Icon => null;
         }
 
-
-
         protected Settings _settings;
         protected DiscretePlotterSerie _mainAudio;
         protected DiscretePlotterSerie _loopAudio;
@@ -153,7 +149,6 @@ namespace XrEditor.Audio
         protected AudioClip? _loopClip;
         protected AudioClip? _pitchClip;
         protected float[]? _loopClipData;
-
 
         public LoopEditorPanel()
         {
@@ -327,7 +322,6 @@ namespace XrEditor.Audio
 
                         buffers[i] = buffer;
                     }
-
 
                     lastVersion = _version;
                 }
@@ -595,7 +589,6 @@ namespace XrEditor.Audio
 
             ComputeCorrelation();
         }
-
 
         protected unsafe void UpdateDftPlot()
         {

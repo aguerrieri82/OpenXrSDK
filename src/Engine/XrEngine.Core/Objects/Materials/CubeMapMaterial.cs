@@ -46,7 +46,6 @@ namespace XrEngine.Materials
             });
         }
 
-
         public TextureCube? Texture { get; set; }
 
         public float Rotation { get; set; }

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class BlendLayer : BaseAutoLayer<Object3D>
     {

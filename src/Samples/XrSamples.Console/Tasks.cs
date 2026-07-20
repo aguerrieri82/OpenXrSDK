@@ -21,7 +21,6 @@ using XrMath;
 using XrSamples.Earth;
 using File = System.IO.File;
 
-
 namespace XrSamples
 {
     public class Tasks
@@ -35,7 +34,6 @@ namespace XrSamples
             tile.LoadGeoTiff(@"C:\Users\aguer\Downloads\w47575_s10.tif");
 
         }
-
 
         public static void ParseSfz()
         {
@@ -54,7 +52,6 @@ namespace XrSamples
 
             var manager = new WinBleManager();
 
-
             Log.Info(typeof(Tasks), "Find device...");
 
             var devices = await manager.FindDevicesAsync(new BleDeviceFilter
@@ -69,7 +66,6 @@ namespace XrSamples
                 Log.Warn(typeof(Tasks), "No devices found");
                 return;
             }
-
 
             var pedal = new BlePedal(manager);
 
@@ -88,7 +84,6 @@ namespace XrSamples
             set.RampDown = 1200;
             set.SampleRate = 100;
             set.Mode = (byte)'H';
-
 
             Log.Info(typeof(Tasks), "Update Settings");
 
@@ -113,7 +108,6 @@ namespace XrSamples
             Console.ReadKey();
         }
 
-
         public static void TrainPosePredictor()
         {
             var options = new JsonSerializerOptions
@@ -124,7 +118,6 @@ namespace XrSamples
             var json = File.ReadAllText(Path.Join("D:\\Projects\\XrEditor", "inputs.json"));
 
             var session = JsonSerializer.Deserialize<XrInputRecorder.RecordSession>(json, options);
-
 
             var data = new List<PoseTrainData>();
 
@@ -155,8 +148,6 @@ namespace XrSamples
                 Console.WriteLine(test.Pose.Position - control.Pose.Position);
             }
 
-
-
         }
 
         public static void ReadRtsp()
@@ -181,14 +172,12 @@ namespace XrSamples
             if (videoStream == null)
                 throw new InvalidOperationException();
 
-
             Log.Debug("", "Rtsp: Setup");
 
             var session = client.Setup(videoStream, 1100);
 
             if (session == null)
                 throw new InvalidOperationException();
-
 
             var h264Stream = new RtpH264Client(session.ClientPort);
             h264Stream.Open();
@@ -363,7 +352,6 @@ namespace XrSamples
 
         }
 
-
         public static void LoadModel(string path)
         {
             GltfLoader.LoadFile(path);
@@ -384,7 +372,6 @@ namespace XrSamples
             using var stream = File.OpenRead(@"d:\TestScreen.pvr");
             reader.LoadTexture(stream);
         }
-
 
     }
 }

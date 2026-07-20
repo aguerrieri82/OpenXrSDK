@@ -256,7 +256,6 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-
         public XrEnvironmentDepth EnvironmentDepth => _envDepth;
 
         public EnvironmentDepthImageMETA? DepthImage => _depthImage;

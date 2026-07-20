@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class ResolveController : Behavior<Scene3D>, INotifyPropertyChangedReceiver
     {
@@ -30,7 +26,6 @@ namespace XrEngine
         public bool ResolveAlpha { get; set; }
 
         public bool EncodeSrgb { get; set; }
-
 
     }
 }

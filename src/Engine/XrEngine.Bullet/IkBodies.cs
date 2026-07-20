@@ -264,7 +264,6 @@ namespace XrEngine.Bullet
             return pelvis;
         }
 
-
         static IkNode Joint(Vector3 attach, Vector3 axis, float size, float min, float max, float rest, string name)
         {
             return new IkNode

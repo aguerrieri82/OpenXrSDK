@@ -1,9 +1,5 @@
 ﻿using Common.Interop;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.PortableExecutable;
-using System.Text;
 using TurboJpeg;
 
 namespace XrEngine.Transcoder
@@ -37,7 +33,6 @@ namespace XrEngine.Transcoder
         {
             return extension == ".jpg";
         }
-
 
         public static readonly JpgReader Instance = new();
     }

@@ -4,14 +4,13 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public static class GlTempAllocator
     {
-        static Dictionary<string, GlTextureFrameBuffer> _frameBuffers = [];
-        static Dictionary<string, GlTexture> _textures = [];
-        static Dictionary<string, GlRenderBuffer> _renderBuffers = [];
+        static readonly Dictionary<string, GlTextureFrameBuffer> _frameBuffers = [];
+        static readonly Dictionary<string, GlTexture> _textures = [];
+        static readonly Dictionary<string, GlRenderBuffer> _renderBuffers = [];
 
         public static GlTextureFrameBuffer FrameBuffer(GL gl, string name = SHARED)
         {
@@ -66,7 +65,6 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-
         public static void Dispose()
         {
             foreach (var item in _frameBuffers)
@@ -79,7 +77,6 @@ namespace XrEngine.OpenGL
 
             _textures.Clear();
         }
-
 
         public const string SHARED = "Shared";
     }

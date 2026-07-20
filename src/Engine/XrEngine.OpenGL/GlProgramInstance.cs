@@ -6,7 +6,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public partial class GlProgramInstance : IBufferProvider, IDisposable
@@ -23,7 +22,6 @@ namespace XrEngine.OpenGL
 
         protected IGlBuffer?[] _materialBuffers;
         protected IGlBuffer?[] _modelBuffers;
-
 
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
@@ -218,7 +216,6 @@ namespace XrEngine.OpenGL
             foreach (var action in update.BufferUpdates!)
                 action(ctx);
         }
-
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {

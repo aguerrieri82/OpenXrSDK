@@ -21,6 +21,5 @@ namespace XrEditor.Nodes
 
         public override bool IsLeaf => true;
 
-
     }
 }

@@ -20,7 +20,7 @@ namespace XrEngine
             if (!_lastWorldPos.IsSimilar(WorldPosition, 0.001f))
             {
                 _lastWorldPos = WorldPosition;
-                Version++;
+                _version++;
             }
         }
 
@@ -35,7 +35,6 @@ namespace XrEngine
             canvas.DrawLine(WorldPosition - Vector3.UnitX * Range, WorldPosition + Vector3.UnitX * Range);
             canvas.DrawLine(WorldPosition - Vector3.UnitZ * Range, WorldPosition + Vector3.UnitZ * Range);
         }
-
 
         [Range(0, 100, 0.05f)]
         public float Range { get; set; }

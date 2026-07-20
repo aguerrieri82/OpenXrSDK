@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Runtime.InteropServices;
 
 namespace XrEngine.Compression
 {
@@ -45,13 +42,11 @@ namespace XrEngine.Compression
             public int RowBytes;
         }
 
-
         [DllImport(LibName)]
         public static extern int DecodePng(
             ref MemoryBuffer input,
             bool swap16,
             ref ImageData output);
-
 
         [DllImport(LibName)]
         public static extern int EncodePng(

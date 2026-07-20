@@ -152,7 +152,6 @@ namespace XrEngine
 
         public bool IsParallel { get; set; }
 
-
         public bool IsUpdating => _isUpdating;
     }
 

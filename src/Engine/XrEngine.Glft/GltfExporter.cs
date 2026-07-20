@@ -91,7 +91,6 @@ public class GltfExporter
         foreach (var geometry in geometries)
             ExportGeometry(geometry!);
 
-
         return new GltfContent
         {
             Root = _root,

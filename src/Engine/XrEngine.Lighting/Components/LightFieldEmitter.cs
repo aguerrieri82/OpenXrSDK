@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.Lighting
 {
@@ -20,7 +17,7 @@ namespace XrEngine.Lighting
         public void ForceUpdate()
         {
             _host!.Invalidate();
-            
+
             _ = _provider?.RebuildAsync();
         }
 
@@ -100,17 +97,16 @@ namespace XrEngine.Lighting
                     },
                     InnerCos = MathF.Cos(spot.InnerConeAngle),
                     OuterCos = MathF.Cos(spot.OuterConeAngle),
-                    Intensity = spot.Intensity, 
+                    Intensity = spot.Intensity,
                     Direction = spot.Direction,
                     Position = spot.WorldPosition,
                 });
             }
-        
+
             _lightVersion = _host!.ContentVersion + _host.Version;
 
             Log.Debug(this, "Light updated");
         }
-
 
         public LightContribution? Contributions => _contrib;
 

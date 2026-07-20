@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OpenXr.Framework.Layers
+﻿namespace OpenXr.Framework.Layers
 {
     public static class XrLayerPriority
     {
-        public const int Passthrough = 0;   
+        public const int Passthrough = 0;
 
         public const int BaseQuods = 2;
 

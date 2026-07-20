@@ -209,7 +209,6 @@ namespace XrEngine.Filament
             ReleaseContext(_app, ReleaseContextMode.ReleaseOnExecute);
         }
 
-
         protected Guid GetOrCreate<T>(T obj, Action<Guid> factory) where T : EngineObject
         {
             obj.EnsureId();
@@ -283,8 +282,6 @@ namespace XrEngine.Filament
                         throw new NotSupportedException();
                 }
 
-
-
                 if (texture.Data != null)
                 {
                     var mainData = texture.Data[0];
@@ -334,7 +331,6 @@ namespace XrEngine.Filament
                         };
 
                     }
-
 
                     result.Data.DataSize = mainData.Data!.Size;
                     result.Data.Data = Allocate(result.Data.DataSize);
@@ -432,7 +428,6 @@ namespace XrEngine.Filament
             };
         }
 
-
         protected unsafe void Create(Guid geoId, Guid meshId, Geometry3D geo)
         {
             void Create(bool updateMode)
@@ -446,7 +441,6 @@ namespace XrEngine.Filament
                         Size = 12,
                         Type = VertexAttributeType.Position
                     });
-
 
                 if ((geo.ActiveComponents & VertexComponent.Normal) != 0)
                     attributes.Add(new VertexAttribute
@@ -463,7 +457,6 @@ namespace XrEngine.Filament
                         Size = 8,
                         Type = VertexAttributeType.UV0
                     });
-
 
                 if ((geo.ActiveComponents & VertexComponent.Tangent) != 0)
                     attributes.Add(new VertexAttribute

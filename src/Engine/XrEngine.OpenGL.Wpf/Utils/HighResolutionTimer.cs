@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -69,12 +68,12 @@ public sealed class HighResolutionTimer : IDisposable
         if (duration <= TimeSpan.Zero)
             return;
 
-        long dueTime = -duration.Ticks;
+        var dueTime = -duration.Ticks;
 
         if (!SetWaitableTimer(_handle, ref dueTime, 0, 0, 0, false))
             throw new Win32Exception(Marshal.GetLastWin32Error());
 
-        uint result = WaitForSingleObject(_handle, Infinite);
+        var result = WaitForSingleObject(_handle, Infinite);
 
         if (result != WaitObject0)
             throw new Win32Exception(Marshal.GetLastWin32Error());

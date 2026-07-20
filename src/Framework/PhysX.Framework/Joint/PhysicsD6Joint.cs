@@ -66,7 +66,6 @@ namespace PhysX.Framework
             set => D6Joint.SetDistanceLimitMut(&value);
         }
 
-
         public float ProjectionAngularTolerance
         {
             get => D6Joint.GetProjectionAngularTolerance();
@@ -102,8 +101,6 @@ namespace PhysX.Framework
                 D6Joint.SetDriveVelocityMut((PxVec3*)&value.Linear, (PxVec3*)&value.Angular, true);
             }
         }
-
-
 
         public PxD6JointDrive DriveX
         {

@@ -264,7 +264,6 @@ namespace XrEngine
                 return true;
             }
 
-
             while (i < tokens.Length)
             {
                 var t = tokens[i];

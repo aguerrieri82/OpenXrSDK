@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Text;
-using XrEngine.Objects;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public partial class OverlayTextureEffect : ShaderMaterial
     {
@@ -21,7 +15,6 @@ namespace XrEngine
                 Priority = -1
             };
         }
-
 
         public OverlayTextureEffect()
         {

@@ -1,5 +1,4 @@
-﻿using Silk.NET.Vulkan;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 using ValueType = XrEngine.ValueType;
 
@@ -107,7 +106,6 @@ namespace XrEditor
             OnPropertyChanged(nameof(ScaleValue));
             base.OnEditValueChanged(newValue);
         }
-
 
         public Func<float, string?> ScaleFormat => _scale.Format;
     }

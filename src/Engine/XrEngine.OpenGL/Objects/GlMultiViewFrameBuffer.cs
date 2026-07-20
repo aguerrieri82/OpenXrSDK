@@ -3,12 +3,10 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 
-
 #endif
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -55,7 +53,7 @@ namespace XrEngine.OpenGL
 
             _handle = _gl.GenFramebuffer();
             _target = TextureTarget.Texture2DArray;
-            
+
             _gl.CheckError();
 
             BindFunctions(gl);
@@ -76,7 +74,6 @@ namespace XrEngine.OpenGL
                       GlTexture.Attach(_gl, depthTex, 1, _target),
                       sampleCount);
         }
-
 
         public void Configure(GlTexture colorTex, GlTexture? depthTex, uint sampleCount)
         {
@@ -99,7 +96,6 @@ namespace XrEngine.OpenGL
 
             EndUpdate();
         }
-
 
         public override void Attach(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0)
         {
@@ -175,7 +171,6 @@ namespace XrEngine.OpenGL
             Check();
         }
 
-
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.ColorAttachment0)
@@ -193,9 +188,9 @@ namespace XrEngine.OpenGL
 
         public override uint SampleCount => _sampleCount;
 
-        public uint BaseViewIndex { get; set; } 
+        public uint BaseViewIndex { get; set; }
 
-        public uint NumViews { get; set; } 
+        public uint NumViews { get; set; }
 
     }
 }

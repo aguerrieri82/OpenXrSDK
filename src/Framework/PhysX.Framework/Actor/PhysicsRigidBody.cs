@@ -12,7 +12,6 @@ namespace PhysX.Framework
         {
         }
 
-
         public void ClearForce(PxForceMode mode)
         {
             RigidBody.ClearForceMut(mode);
@@ -47,7 +46,6 @@ namespace PhysX.Framework
         {
             return RigidBody.ExtUpdateMassAndInertia1(density, (PxVec3*)&centerOfMassLocal, false);
         }
-
 
         public float Mass
         {
@@ -109,7 +107,6 @@ namespace PhysX.Framework
             set => RigidBody.SetRigidBodyFlagMut(PxRigidBodyFlag.RetainAccelerations, value);
         }
 
-
         public float MaxContactImpulse
         {
             get => RigidBody.GetMaxContactImpulse();
@@ -128,7 +125,6 @@ namespace PhysX.Framework
                 RigidBody.SetCMassLocalPoseMut(&newValue);
             }
         }
-
 
         public float AngularDamping
         {

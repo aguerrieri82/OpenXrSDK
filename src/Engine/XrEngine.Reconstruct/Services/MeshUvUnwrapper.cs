@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrEngine
@@ -1100,7 +1097,6 @@ namespace XrEngine
             return newIndex;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector2 ProjectToChart(in Vector3 pos, Chart chart)
         {
@@ -1108,7 +1104,6 @@ namespace XrEngine
                 Vector3.Dot(pos, chart.AxisX),
                 Vector3.Dot(pos, chart.AxisY));
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector3 NormalizeSafe(in Vector3 value, Vector3 fallback)
@@ -1120,7 +1115,6 @@ namespace XrEngine
 
             return value / MathF.Sqrt(lenSq);
         }
-
 
     }
 }

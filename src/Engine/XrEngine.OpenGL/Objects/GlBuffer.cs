@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
 
             try
             {
-                bool promote =
+                var promote =
                     _updateCount > 50 &&
                     _usage == BufferUsageARB.StaticDraw &&
                     IsMutable;
@@ -153,7 +153,6 @@ namespace XrEngine.OpenGL
                 EndUpdate();
             }
         }
-
 
         public void BeginUpdate()
         {
@@ -235,7 +234,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-
         private void Recreate()
         {
             _gl.DeleteBuffer(_handle);
@@ -261,7 +259,7 @@ namespace XrEngine.OpenGL
 
         private unsafe void ResizeStorage(uint newCapacityBytes, bool preserve)
         {
-            uint copySizeBytes = Math.Min(_sizeBytes, newCapacityBytes);
+            var copySizeBytes = Math.Min(_sizeBytes, newCapacityBytes);
 
             if (!preserve || copySizeBytes == 0)
             {
@@ -269,8 +267,8 @@ namespace XrEngine.OpenGL
                 return;
             }
 
-            uint oldHandle = _handle;
-            uint newHandle = _gl.GenBuffer();
+            var oldHandle = _handle;
+            var newHandle = _gl.GenBuffer();
 
             CreateVersion++;
 
@@ -411,7 +409,7 @@ namespace XrEngine.OpenGL
 
         public unsafe void ReadArray(ref T[] result)
         {
-            uint arrayLength = ArrayLength;
+            var arrayLength = ArrayLength;
 
             if (result == null || result.Length != arrayLength)
                 result = new T[arrayLength];
@@ -425,7 +423,7 @@ namespace XrEngine.OpenGL
             {
                 fixed (T* pResult = result)
                 {
-                    uint sizeBytes = checked((uint)(sizeof(T) * result.Length));
+                    var sizeBytes = checked((uint)(sizeof(T) * result.Length));
 
                     System.Buffer.MemoryCopy(
                         ptr,
@@ -466,8 +464,8 @@ namespace XrEngine.OpenGL
             if (value.Length == 0)
                 return;
 
-            uint sizeBytes = checked((uint)(value.Length * sizeof(T)));
-            int offsetBytes = checked(dstIndex * sizeof(T));
+            var sizeBytes = checked((uint)(value.Length * sizeof(T)));
+            var offsetBytes = checked(dstIndex * sizeof(T));
 
             fixed (T* pData = value)
                 UpdateRange(pData, sizeBytes, offsetBytes, preserve);
@@ -507,7 +505,7 @@ namespace XrEngine.OpenGL
             if (value.Length == 0)
                 return;
 
-            int offsetBytes = checked(dstIndex * sizeof(T));
+            var offsetBytes = checked(dstIndex * sizeof(T));
 
             fixed (byte* pData = value)
                 UpdateRange(pData, (uint)value.Length, offsetBytes, preserve);

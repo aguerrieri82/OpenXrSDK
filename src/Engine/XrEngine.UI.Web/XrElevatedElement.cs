@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.UI.Web
 {

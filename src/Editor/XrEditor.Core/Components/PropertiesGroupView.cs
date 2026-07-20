@@ -1,7 +1,4 @@
-﻿using NAudio.SoundFont;
-using System.Data;
-using System.Windows.Input;
-using static HDF.PInvoke.H5T;
+﻿using System.Windows.Input;
 
 namespace XrEditor
 {
@@ -117,7 +114,6 @@ namespace XrEditor
             }
         }
 
-
         public bool IsCollapsed
         {
             get => _isCollapsed;
@@ -137,7 +133,7 @@ namespace XrEditor
             {
                 if (_selectedPreset == value)
                     return;
-                
+
                 _selectedPreset = value;
 
                 OnPropertyChanged(nameof(SelectedPreset));
@@ -218,7 +214,7 @@ namespace XrEditor
         }
 
         public Command SavePresetCommand { get; }
-        
+
         public Command ApplyPresetCommand { get; }
 
         public Command DeletePresetCommand { get; }

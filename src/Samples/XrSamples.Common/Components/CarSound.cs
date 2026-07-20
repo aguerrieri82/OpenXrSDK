@@ -16,7 +16,6 @@ namespace XrSamples
 
     }
 
-
     public class CarSoundV1 : ICarSound
     {
         protected float _lastRpm;
@@ -126,7 +125,6 @@ namespace XrSamples
         public bool IsStreaming => _isStreaming;
     }
 
-
     public class CarSoundV2 : AudioLooper, ICarSound
     {
         readonly AudioSlicer _slicer;
@@ -214,7 +212,6 @@ namespace XrSamples
             base.Reset(onlySelf);
         }
 
-
         [Range(0, 1, 0.001f)]
         public float Pitch
         {
@@ -237,7 +234,6 @@ namespace XrSamples
             set => _engine.SliceLen = value;
         }
         */
-
 
         [Range(0, 1, 0.01f)]
         public float SmoothFactor

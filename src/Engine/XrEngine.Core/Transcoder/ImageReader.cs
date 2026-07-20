@@ -2,8 +2,6 @@
 
 using Common.Interop;
 using SkiaSharp;
-using System.Diagnostics;
-using TurboJpeg;
 
 namespace XrEngine
 {

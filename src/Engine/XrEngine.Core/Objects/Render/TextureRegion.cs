@@ -1,7 +1,5 @@
 ﻿using Common.Interop;
 
-
-
 namespace XrEngine
 {
     public class TextureRegion
@@ -31,6 +29,5 @@ namespace XrEngine
 
         public IMemoryBuffer<byte>? Data { get; set; }
     }
-
 
 }

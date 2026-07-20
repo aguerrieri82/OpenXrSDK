@@ -41,7 +41,6 @@ namespace XrEngine.Physics
             ps0.Position -= -Joint.Object0!.Transform.LocalPivot;
             ps1.Position -= -Joint.Object1!.Transform.LocalPivot;
 
-
             var start = ps0.Position;
             var end = start + Vector3.UnitX.Transform(ps0.Orientation) * 0.5f;
             canvas.State.Transform = Joint.Object0!.WorldMatrix;

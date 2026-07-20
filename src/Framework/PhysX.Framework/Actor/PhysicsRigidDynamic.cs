@@ -27,7 +27,6 @@ namespace PhysX.Framework
             ClearTorque(PxForceMode.Impulse);
         }
 
-
         public float WakeCounter
         {
             get => RigidDynamic.GetWakeCounter();
@@ -41,7 +40,6 @@ namespace PhysX.Framework
 
             set => RigidDynamic.SetRigidDynamicLockFlagsMut(value);
         }
-
 
         public float ContactReportThreshold
         {

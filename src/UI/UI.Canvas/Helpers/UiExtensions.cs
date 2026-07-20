@@ -41,7 +41,6 @@ namespace CanvasUI
             comp.SetSize(rect.Width, rect.Height);
         }
 
-
         public static IEnumerable<UiElement> VisualAncestorsAndSelf(this UiElement? self)
         {
             var curElement = self;

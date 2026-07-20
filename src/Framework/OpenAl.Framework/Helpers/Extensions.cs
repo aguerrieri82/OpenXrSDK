@@ -12,12 +12,10 @@ namespace OpenAl.Framework
                 throw new InvalidOperationException($"{err} - {msg}");
         }
 
-
         public static int SampleSizeBytes(this AlAudioFormat self)
         {
             return (self.BitsPerSample / 8) * self.Channels;
         }
-
 
         public static float SampleToTimeByte(this AlAudioFormat self, int sample)
         {

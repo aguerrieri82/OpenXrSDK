@@ -1,7 +1,4 @@
-﻿using SkiaSharp;
-using System.Diagnostics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class Scene3D : Group3D, IObjectChangeListener
     {
@@ -112,7 +109,7 @@ namespace XrEngine
                 !change.Targets<object>().All(a => a is Material) &&
                 (change.Target is not Light || !change.IsAny(ChangeType.Render)))
             {
-                Version++;
+                _version++;
 
                 UpdateDrawGizmos();
             }
@@ -122,7 +119,7 @@ namespace XrEngine
                              ChangeType.MateriaRemove,
                              ChangeType.Components))
             {
-                ContentVersion++;
+                _contentVersion++;
             }
 
             foreach (var listener in _changeListener)
@@ -178,14 +175,11 @@ namespace XrEngine
                 throw new InvalidOperationException("Scene changes are locked");
         }
 
-
         [Action]
         public void Capture()
         {
-            _app.CaptureFrames(1);
+            _app?.CaptureFrames(1);
         }
-
-        public long ContentVersion { get; protected set; }
 
         public Canvas3D Gizmos => _gizmos;
 

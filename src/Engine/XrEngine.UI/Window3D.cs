@@ -76,7 +76,6 @@ namespace XrEngine.UI
             }
         }
 
-
         private void DispatchPointerEvent(Vector2 surfacePos, Pointer2Button buttons, UiEventType type, IRayPointer pointer)
         {
             if (Content == null)

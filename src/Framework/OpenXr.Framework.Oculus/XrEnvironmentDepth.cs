@@ -99,7 +99,6 @@ namespace OpenXr.Framework.Oculus
             return depthProvider;
         }
 
-
         protected unsafe NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(EnvironmentDepthSwapchainMETA swapchain)
         {
             EnsureInit();

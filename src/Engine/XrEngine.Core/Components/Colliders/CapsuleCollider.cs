@@ -12,7 +12,6 @@ namespace XrEngine
         All = Top | Center | Bottom,
     }
 
-
     public class CapsuleCollider : Behavior<Object3D>, ICollider3D
     {
         public CapsuleCollider()

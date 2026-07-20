@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace PhysX.Framework
+﻿namespace PhysX.Framework
 {
     public unsafe struct PhysicsWriteLock : IDisposable
     {
-        PxScene* _scene;
+        readonly PxScene* _scene;
         bool _isDisposed;
 
         public PhysicsWriteLock(PxScene* scene)
@@ -19,7 +15,7 @@ namespace PhysX.Framework
         {
             if (_isDisposed)
                 return;
-             _scene->UnlockWriteMut();
+            _scene->UnlockWriteMut();
             _isDisposed = true;
         }
     }

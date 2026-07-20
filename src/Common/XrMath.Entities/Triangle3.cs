@@ -16,7 +16,6 @@ namespace XrMath
             V2 = v2;
         }
 
-
         public Vector3 this[int index]
         {
             get => index switch
@@ -47,7 +46,6 @@ namespace XrMath
                 yield return I2;
             }
         }
-
 
         public readonly Vector3 Min => Vector3.Min(Vector3.Min(V0, V1), V2);
 

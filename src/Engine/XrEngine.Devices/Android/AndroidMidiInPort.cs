@@ -35,7 +35,6 @@ namespace XrEngine.Devices.Android
 
         }
 
-
         protected void OnReceive(byte[] data, int offset, int count, long timestamp)
         {
             DataReceived?.Invoke(this, new MidiData
@@ -47,14 +46,12 @@ namespace XrEngine.Devices.Android
             });
         }
 
-
         public void Close()
         {
             _port.Close();
         }
 
         public ulong RefTimeMs => (ulong)JavaSystem.NanoTime() / 1000000;
-
 
         public event EventHandler<MidiData>? DataReceived;
     }

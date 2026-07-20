@@ -1,10 +1,9 @@
 ﻿using Android.Opengl;
 using Android.Util;
-using Silk.NET.Core.Contexts;
 
 namespace OpenXr.Framework.Android
 {
-    public class OpenGLESContext 
+    public class OpenGLESContext
     {
         public static OpenGLESContext Create(bool debugMode)
         {
@@ -12,7 +11,6 @@ namespace OpenXr.Framework.Android
             var value = new int[1];
             var maj = new int[1];
             var min = new int[1];
-
 
             var display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
 
@@ -69,7 +67,6 @@ namespace OpenXr.Framework.Android
 
             if (!isConfigValid)
                 throw new Exception("config not found");
-
 
             var context = EGL14.EglCreateContext(
                 display,
@@ -161,7 +158,6 @@ namespace OpenXr.Framework.Android
                 throw new Exception($"EglCreatePbufferSurface: {EGL14.EglGetError()}");
             }
 
-
             return new OpenGLESContext
             {
                 Display = Display,
@@ -201,7 +197,6 @@ namespace OpenXr.Framework.Android
                 Context = EGL14.EglNoContext;
             }
         }
-
 
         public EGLConfig? Config;
 

@@ -34,7 +34,6 @@ namespace XrEditor
             }
         }
 
-
         async void ShowPicker()
         {
             if (_popup != null)
@@ -80,7 +79,6 @@ namespace XrEditor
 
             _popup = null;
         }
-
 
         public Command ShowPickerCommand { get; }
 

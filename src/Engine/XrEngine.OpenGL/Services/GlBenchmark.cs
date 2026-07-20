@@ -31,7 +31,6 @@ namespace XrEngine.OpenGL
                 () => CompareF(a, b));
         }
 
-
         public void Bench(int iterations, params Action[] actions)
         {
             var task = 0;

@@ -38,7 +38,6 @@ namespace XrEngine.Media.Android
         {
             var dm = (DisplayManager)Application.Context.GetSystemService(ContextA.DisplayService)!;
 
-
             var display = dm.GetDisplay(Display.DefaultDisplay)!;
 
             var metrics = new DisplayMetrics();

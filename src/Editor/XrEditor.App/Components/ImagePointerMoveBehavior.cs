@@ -10,7 +10,6 @@ namespace XrEditor
         public static readonly DependencyProperty CommandProperty =
             DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(ImagePointerMoveBehavior));
 
-
         protected override void OnAttached()
         {
             base.OnAttached();

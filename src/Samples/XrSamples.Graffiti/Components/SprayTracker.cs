@@ -160,7 +160,6 @@ namespace XrSamples.Graffiti
 
         bool IDrawGizmos.IsEnabled => _isEnabled;
 
-
         [ValueType(XrEngine.ValueType.Radiant)]
         public float SpreadAngle { get; set; }
 

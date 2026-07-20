@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -9,7 +6,6 @@ namespace XrEngine
     public sealed class TriangleMeshSpatialIndex
     {
         #region Public Structs
-
 
         public readonly struct TriangleSearchHit
         {

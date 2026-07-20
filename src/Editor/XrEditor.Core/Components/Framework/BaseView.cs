@@ -1,7 +1,6 @@
 ﻿
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Xml.Schema;
 using XrEngine;
 
 namespace XrEditor

@@ -45,7 +45,6 @@ namespace XrEditor
             return result;
         }
 
-
         public void Execute(Action action, bool force)
         {
 

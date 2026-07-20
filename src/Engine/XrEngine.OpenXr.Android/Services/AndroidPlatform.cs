@@ -126,7 +126,7 @@ namespace XrEngine.OpenXr.Android
         {
             if (_currentGlContext == null)
                 throw new InvalidOperationException();
-            
+
             return _currentGlContext.CreateShared(AndroidXrOpenGLESGraphicDriver.DEBUG_MODE);
         }
 

@@ -59,7 +59,6 @@ namespace XrEngine.OpenXr
                         xrApp.LastFrameTime);
                     */
 
-
                     _ptLayer.UpdateMesh(
                         ptMesh, new Posef
                         {

@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -38,7 +37,7 @@ public static unsafe class NvidiaProfiles
             throw new PlatformNotSupportedException(
                 "NVAPI is available only on Windows.");
 
-        string libraryName = Environment.Is64BitProcess
+        var libraryName = Environment.Is64BitProcess
             ? "nvapi64.dll"
             : "nvapi.dll";
 
@@ -48,7 +47,7 @@ public static unsafe class NvidiaProfiles
                 $"{libraryName} was not found. An NVIDIA driver must be installed.");
         }
 
-        nint queryAddress = NativeLibrary.GetExport(
+        var queryAddress = NativeLibrary.GetExport(
             Library,
             "nvapi_QueryInterface");
 
@@ -186,7 +185,7 @@ public static unsafe class NvidiaProfiles
     private static T GetFunction<T>(uint id)
         where T : Delegate
     {
-        nint address = QueryInterface(id);
+        var address = QueryInterface(id);
 
         if (address == 0)
         {

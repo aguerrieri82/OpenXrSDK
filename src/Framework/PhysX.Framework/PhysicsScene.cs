@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-
 namespace PhysX.Framework
 {
 
@@ -46,7 +45,6 @@ namespace PhysX.Framework
         {
             return new PhysicsWriteLock(_handle);
         }
-
 
         public override void Dispose()
         {

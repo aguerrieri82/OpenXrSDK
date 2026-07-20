@@ -1,6 +1,5 @@
 ﻿using XrEngine;
 
-
 [assembly: Module(typeof(XrEngine.Reconstruct.Module))]
 
 namespace XrEngine.Reconstruct

@@ -1,12 +1,12 @@
 ﻿#if __ANDROID__
 
+using Android;
 using Android.Content;
+using Android.Content.PM;
 using Android.Hardware.Usb;
 using Android.OS;
-using ContextA = global::Android.Content.Context;
 using ActivityA = global::Android.App.Activity;
-using Android;
-using Android.Content.PM;
+using ContextA = global::Android.Content.Context;
 
 #pragma warning disable CA1416
 #pragma warning disable CA1422
@@ -76,7 +76,7 @@ namespace XrEngine.Devices.Android
             var tcs = _pendingCameraPermission;
             _pendingCameraPermission = null;
 
-            bool granted =
+            var granted =
                 grantResults.Length > 0 &&
                 grantResults[0] == Permission.Granted;
 
@@ -84,7 +84,6 @@ namespace XrEngine.Devices.Android
 
             return true;
         }
-
 
         public void Start()
         {
@@ -133,7 +132,7 @@ namespace XrEngine.Devices.Android
 
             if (!_usbManager.HasPermission(device))
             {
-                bool granted = await RequestPermissionAsync(device).ConfigureAwait(false);
+                var granted = await RequestPermissionAsync(device).ConfigureAwait(false);
 
                 if (!granted)
                     throw new UnauthorizedAccessException($"USB permission denied: {id}");
@@ -146,7 +145,7 @@ namespace XrEngine.Devices.Android
 
             try
             {
-                int fd = connection.FileDescriptor;
+                var fd = connection.FileDescriptor;
 
                 var camera = new UsbCamera(
                     fd,
@@ -197,7 +196,7 @@ namespace XrEngine.Devices.Android
 
         private Task<bool> RequestPermissionAsync(UsbDevice device)
         {
-            string key = device.DeviceName;
+            var key = device.DeviceName;
 
             if (_permissionRequests.TryGetValue(key, out var existing))
                 return existing.Task;
@@ -231,7 +230,7 @@ namespace XrEngine.Devices.Android
             if (device == null)
                 return;
 
-            string key = device.DeviceName;
+            var key = device.DeviceName;
 
             if (_permissionRequests.Remove(key, out var tcs))
                 tcs.TrySetResult(granted);
@@ -276,7 +275,7 @@ namespace XrEngine.Devices.Android
             if (device.DeviceClass == UsbClass.Video)
                 return true;
 
-            for (int i = 0; i < device.InterfaceCount; i++)
+            for (var i = 0; i < device.InterfaceCount; i++)
             {
                 var intf = device.GetInterface(i);
 
@@ -325,7 +324,7 @@ namespace XrEngine.Devices.Android
                     return;
 
                 var device = (UsbDevice?)intent.GetParcelableExtra(UsbManager.ExtraDevice);
-                bool granted = intent.GetBooleanExtra(UsbManager.ExtraPermissionGranted, false);
+                var granted = intent.GetBooleanExtra(UsbManager.ExtraPermissionGranted, false);
 
                 _owner.CompletePermission(device, granted);
             }

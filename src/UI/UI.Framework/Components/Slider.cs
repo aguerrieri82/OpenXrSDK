@@ -2,7 +2,6 @@
 using System.Numerics;
 using XrMath;
 
-
 namespace CanvasUI
 {
     public struct SliderStyle
@@ -100,7 +99,6 @@ namespace CanvasUI
             base.OnPointerDown(ev);
         }
 
-
         protected override void OnPointerMove(UiPointerEvent ev)
         {
             if (_isMoving)
@@ -119,15 +117,12 @@ namespace CanvasUI
             base.OnPointerUp(ev);
         }
 
-
-
         [UiProperty(1f)]
         public float Max
         {
             get => GetValue<float>(nameof(Max))!;
             set => SetValue(nameof(Max), value);
         }
-
 
         [UiProperty(0f)]
         public float Min

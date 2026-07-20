@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 
 using System.Numerics;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlTextureFilter : ITextureFilterProvider
@@ -75,7 +74,7 @@ namespace XrEngine.OpenGL
 
             var format = dstGl.InternalFormat;
 
-            if (format == InternalFormat.Srgb8Alpha8)
+            if (format == InternalFormat.Srgb8Alpha8 || dstGl.IsMutable)
                 throw new NotSupportedException();
 
             _gl.BindImageTexture(0, dstGl, mipLevel, dst.Depth > 1, 0, BufferAccessARB.WriteOnly, format);
@@ -145,7 +144,6 @@ namespace XrEngine.OpenGL
         {
             KernelXOrY(src, dst, data, key, activeChannels, "Image/kernelY.comp", mipLevel);
         }
-
 
         public static GlTextureFilter? Instance { get; private set; }
     }

@@ -139,7 +139,6 @@ namespace XrEngine
             });
         }
 
-
         public override void Dispose()
         {
             LeftMainTexture?.Dispose();
@@ -159,7 +158,6 @@ namespace XrEngine
 
         public bool DebugMode { get; set; }
 
-
         [Range(0, 10, 0.1f)]
         public float SphereRadius { get; set; }
 
@@ -177,13 +175,11 @@ namespace XrEngine
 
         public Vector2[] TextureRadius { get; set; }
 
-
         public Vector2 TextureCenterLeft
         {
             get => TextureCenter[0];
             set => TextureCenter[0] = value;
         }
-
 
         public Vector2 TextureCenterRight
         {
@@ -191,13 +187,11 @@ namespace XrEngine
             set => TextureCenter[1] = value;
         }
 
-
         public Vector2 TextureRadiusLeft
         {
             get => TextureRadius[0];
             set => TextureRadius[0] = value;
         }
-
 
         public Vector2 TextureRadiusRight
         {

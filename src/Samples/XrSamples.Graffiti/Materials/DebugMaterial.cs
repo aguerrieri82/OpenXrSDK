@@ -24,7 +24,6 @@ namespace XrSamples.Graffiti
             _shader = SHADER;
         }
 
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (Texture?.Depth > 1)

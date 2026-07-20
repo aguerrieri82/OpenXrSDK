@@ -1,7 +1,6 @@
 ﻿
 #if __ANDROID__
 
-
 using Android.Content;
 
 namespace XrInteraction

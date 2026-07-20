@@ -53,7 +53,6 @@ namespace XrSamples.Dnd
             AddChild(_player);
         }
 
-
         public async Task LoadAsync(string campaignId)
         {
             await _client.ConnectAsync(campaignId);

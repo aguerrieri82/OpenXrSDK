@@ -16,7 +16,6 @@ namespace PhysX.Framework
             _name = "";
         }
 
-
         public void SetActors(PhysicsRigidActor actor0, PhysicsRigidActor actor1)
         {
             _handle->SetActorsMut((PxRigidActor*)actor0.Handle, (PxRigidActor*)actor1.Handle);
@@ -51,7 +50,6 @@ namespace PhysX.Framework
             set => _handle->SetConstraintFlagsMut(value);
             get => _handle->GetConstraintFlags();
         }
-
 
         public float InvInertiaScale0
         {

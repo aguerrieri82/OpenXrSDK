@@ -23,7 +23,6 @@ namespace XrEngine
             return (T)Current.RequireNew(typeof(T));
         }
 
-
         public static void Implement<T>() where T : class, new()
         {
             Current.Implement(typeof(T), () => new T());
@@ -38,7 +37,6 @@ namespace XrEngine
         {
             Current.Implement(typeof(T), factory);
         }
-
 
         public static GlobalContext Current { get; set; } = new();
     }

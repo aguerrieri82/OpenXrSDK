@@ -42,13 +42,11 @@ namespace CanvasUI
                 if (!TypeConverter.TryConvert(propDesc.DefaultValue, typeProp.PropertyType, out prop.DefaultValue))
                     throw new InvalidCastException();
 
-
                 var onChanged = compType.GetMethod($"On{typeProp.Name}Changed", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, [typeProp.PropertyType, typeProp.PropertyType]);
                 if (onChanged != null)
                     prop.OnChangedMethod = onChanged;
 
                 props[typeProp.Name] = prop;
-
 
             }
 
@@ -151,7 +149,6 @@ namespace CanvasUI
 
             GC.SuppressFinalize(this);
         }
-
 
         public event UiPropertyChangedHandler? PropertyChanged;
     }

@@ -4,7 +4,6 @@
     {
         protected Shader? _shader;
         protected long _lastLightVersion = -1;
-        protected long _contentVersion;
 
         public ShaderMaterial()
         {
@@ -54,7 +53,6 @@
                 UpdateShaderMaterial(bld);
         }
 
-
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
 
@@ -67,14 +65,7 @@
 
         }
 
-        public void Invalidate()
-        {
-            _contentVersion++;
-        }
-
         public bool HasSkin { get; set; }
-
-        public long ContentVersion => _contentVersion;
 
         public Func<string, string?>? Resolver { get; set; }
     }

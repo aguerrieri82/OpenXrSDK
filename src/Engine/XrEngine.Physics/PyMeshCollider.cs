@@ -150,7 +150,6 @@ namespace XrEngine.Physics
             UseConvexMesh = container.Read<bool>(nameof(UseConvexMesh));
         }
 
-
         public Func<IEnumerable<Object3D>> MeshObjects { get; set; }
 
         public bool UseConvexMesh { get; set; }

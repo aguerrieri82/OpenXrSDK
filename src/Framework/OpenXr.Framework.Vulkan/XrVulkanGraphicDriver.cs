@@ -17,7 +17,6 @@ namespace OpenXr.Framework.Vulkan
             Format.R8G8B8A8Srgb,
             Format.R8G8B8A8Unorm];
 
-
         public XrVulkanGraphicDriver(IVulkanDevice device)
         {
             _device = device;

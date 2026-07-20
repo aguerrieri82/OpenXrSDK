@@ -5,7 +5,6 @@ using System.Text.Json;
 using XrEngine;
 using XrMath;
 
-
 #pragma warning disable 8618
 
 namespace XrSamples.Dnd
@@ -38,7 +37,6 @@ namespace XrSamples.Dnd
             public Half X;
             public Half Y;
             public Half Z;
-
 
             public Vector3 ToVecto3()
             {
@@ -97,7 +95,6 @@ namespace XrSamples.Dnd
             public string name { get; set; }
         }
 
-
         public class ImpDraw
         {
             public int id { get; set; }
@@ -106,7 +103,6 @@ namespace XrSamples.Dnd
             public string psId { get; set; }
             public float[] world { get; set; }
         }
-
 
         public class ImpMesh
         {
@@ -137,7 +133,6 @@ namespace XrSamples.Dnd
         }
 
         #endregion
-
 
         void AddTask(Action action)
         {
@@ -222,8 +217,6 @@ namespace XrSamples.Dnd
                     pbr.OcclusionStrength = impMat.cbs[0].values[18][3];
                 }
 
-
-
                 if (impMat.ps.name == "Custom Image Shader")
                 {
                     AddTask(() => pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1])!);
@@ -250,11 +243,9 @@ namespace XrSamples.Dnd
                                name.EndsWith("-nml") ||
                                name.EndsWith("_n");
 
-
                             var isSpec = name.EndsWith("smt") ||
                                           name.EndsWith("smooth") ||
                                           name.Contains("specular");
-
 
                             var isAO = name.EndsWith("ao") ||
                                        name.Contains("occlusion");
@@ -265,7 +256,6 @@ namespace XrSamples.Dnd
 
                             var isMetal = name.EndsWith("_mtl") ||
                               name.EndsWith("-m");
-
 
                             if (isDif)
                                 pbr.ColorMap = (Texture2D)tex;
@@ -324,7 +314,6 @@ namespace XrSamples.Dnd
                     }
                 }
 
-
                 if (impMat.ps.name == "Dungeon Alchemist/likeCharlie/TreeLeaves")
                 {
                     pbr.AlphaCutoff = 0.5f;
@@ -345,7 +334,6 @@ namespace XrSamples.Dnd
                         Debug.WriteLine($"####### Alpha {alphaCut} {pbr.ColorMap?.Name}");
                     }
                 }
-
 
                 mat = pbr;
                 mat.SetProp("ps_name", impMat.ps.name);
@@ -385,7 +373,6 @@ namespace XrSamples.Dnd
 
             var mesh = new TriangleMesh();
 
-
             if (!_geos.TryGetValue(meshId, out var geo))
             {
                 var impMesh = Read<ImpMesh>($"mesh_{meshId}.json");
@@ -395,8 +382,6 @@ namespace XrSamples.Dnd
                 var buffer = ReadBuffer(impMesh.ixResId);
 
                 geo = new Geometry3D();
-
-
 
                 geo.Indices = new uint[impMesh.ixCount];
 
@@ -417,9 +402,7 @@ namespace XrSamples.Dnd
                     else
                         throw new NotSupportedException();
 
-
                 }
-
 
                 var maxIdx = geo.Indices.Max();
 
@@ -484,7 +467,6 @@ namespace XrSamples.Dnd
                         geo.Vertices[i].Normal.Z *= -1;
                     */
 
-
                     //Flip indices
                     for (var i = 0; i < geo.Indices.Length; i += 3)
                     {
@@ -493,7 +475,6 @@ namespace XrSamples.Dnd
                         geo.Indices[i + 2] = tmp;
                     }
                 }
-
 
             }
 

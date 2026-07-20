@@ -13,7 +13,6 @@ namespace XrEngine.OpenXr
         protected XrApp _xrApp;
         private bool _isInit;
 
-
         public XrRoot()
         {
             _xrApp = XrApp.Current ?? throw new InvalidOperationException();
@@ -74,7 +73,6 @@ namespace XrEngine.OpenXr
             base.Update(ctx);
         }
 
-
         protected Group3D AddSceneRoot()
         {
             var group = new Group3D()
@@ -131,7 +129,6 @@ namespace XrEngine.OpenXr
 
             });
 
-
             var assets = Context.Require<IAssetStore>();
 
             var fullPath = assets.GetPath(modelFileName);
@@ -152,7 +149,6 @@ namespace XrEngine.OpenXr
 
                 model.Transform.Scale = model.Transform.Scale * 1.06f;
                 model.Name = "Controller";
-
 
                 group.AddChild(model);
             }

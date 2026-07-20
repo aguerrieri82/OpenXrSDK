@@ -30,7 +30,6 @@ namespace XrEngine.UI
         protected CanvasViewMode _mode;
         protected bool _isStereo;
 
-
         public CanvasView3D()
         {
             _dpi = 72;
@@ -54,13 +53,12 @@ namespace XrEngine.UI
 
                 if (!EnableDepthCull)
                     CreateSurface(texture);
-                
+
                 _targets[imageId] = texture;
             }
             _activeTexture = texture;
             _activeEye = activeEye;
         }
-
 
         public override void Update(RenderContext ctx)
         {
@@ -75,19 +73,19 @@ namespace XrEngine.UI
 
         public void Draw(RenderContext? ctx)
         {
-            var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ? 
+            var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ?
                 _defLeftTexture : _activeTexture;
 
             if ((NeedDraw || _lastDrawTexture == null) && (_activeEye <= 0 || IsStereo))
             {
                 Draw(drawTexture, ctx, Math.Max(_activeEye, 0));
-                
+
                 if (IsStereo && _mode == CanvasViewMode.Texture)
                 {
                     Debug.Assert(_activeEye <= 0);
                     Draw(_defRightTexture, ctx, 1);
                 }
-  
+
                 _lastDrawTexture = drawTexture;
             }
 
@@ -100,7 +98,6 @@ namespace XrEngine.UI
                     depthCull.Cull(this);
             }
         }
-
 
         protected void Draw(Texture2D? texture, RenderContext? ctx, int activeEye)
         {
@@ -147,7 +144,7 @@ namespace XrEngine.UI
                 throw new NotSupportedException();
 
             surface = surfaceProvider.CreateSurface(texture);
-      
+
             texture.SetProp(SurfaceProp, surface);
 
             return surface;
@@ -246,7 +243,6 @@ namespace XrEngine.UI
                     }
                 }
 
-      
                 Materials.Add(CreateMaterial(_defLeftTexture, _defRightTexture));
 
                 _activeTexture = _defLeftTexture;
@@ -254,7 +250,6 @@ namespace XrEngine.UI
             else
                 _activeTexture = null;
         }
-
 
         public CanvasViewMode Mode
         {
@@ -309,7 +304,6 @@ namespace XrEngine.UI
             }
         }
 
-
         public Texture2D? DrawTexture => _defLeftTexture;
 
         public int ActiveEye => _activeEye;
@@ -324,16 +318,15 @@ namespace XrEngine.UI
 
         public Size2I PixelSize
         {
-            get 
+            get
             {
                 if (_sizeDirty)
                     UpdateSize();
                 return _pixelSize;
             }
         }
- 
-        public Texture2D? ActiveTexture => _activeTexture;
 
+        public Texture2D? ActiveTexture => _activeTexture;
 
     }
 }

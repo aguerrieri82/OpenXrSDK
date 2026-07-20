@@ -38,7 +38,6 @@ namespace XrSamples.Dnd
 
             Map!.Transform.Set(newTrans);
 
-
         }
 
         [Action]

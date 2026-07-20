@@ -12,7 +12,6 @@ namespace XrEngine
             _path = path;
         }
 
-
         public Vector2 GetPointAtTime(float t)
         {
             throw new NotImplementedException();

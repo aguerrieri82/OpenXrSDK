@@ -33,7 +33,6 @@ namespace XrEngine.OpenXr
                 HasSkin = true
             });
 
-
             Materials.Add(new HandMaterial()
             {
                 Color = new Color(1, 1, 1, 0.15f),
@@ -122,7 +121,6 @@ namespace XrEngine.OpenXr
         public long SkinVersion => 1;
 
         public long SkinMatricesVersion => _skinVersion;
-
 
     }
 }

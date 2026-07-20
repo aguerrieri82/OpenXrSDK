@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
-using XrEngine.Objects;
+﻿using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine
@@ -48,7 +42,7 @@ namespace XrEngine
             if (!WriteColor)
                 bld.AddFeature("DEPTH_ONLY");
 
-            bld.LoadBufferArray(ctx=>
+            bld.LoadBufferArray(ctx =>
             {
                 if (_contentVersion == ctx.CurrentBuffer!.Version)
                     return null;

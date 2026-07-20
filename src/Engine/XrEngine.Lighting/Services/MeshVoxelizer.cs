@@ -1,12 +1,9 @@
 ﻿
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine.Lighting
 {
-
 
     [Obsolete]
     public sealed class MeshVoxelizer : IDisposable
@@ -74,7 +71,6 @@ namespace XrEngine.Lighting
         {
             if (_voxelizer.Handle == 0)
                 throw new ObjectDisposedException(nameof(MeshVoxelizer));
-
 
             Log.Info(this, "Voxelize");
 

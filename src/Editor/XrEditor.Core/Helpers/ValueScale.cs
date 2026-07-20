@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class ValueScale : IValueScale
     {

@@ -15,7 +15,6 @@ namespace XrEngine
     {
         public static readonly Shader SHADER;
 
-
         static GlowVolumeMaterial()
         {
             SHADER = new StandardVertexShader
@@ -24,7 +23,6 @@ namespace XrEngine
                 IsLit = false
             };
         }
-
 
         public GlowVolumeMaterial()
             : base()

@@ -73,7 +73,6 @@ namespace XrMath
                    M31 == other.M31 && M32 == other.M32 && M33 == other.M33;
         }
 
-
         public override int GetHashCode()
         {
             var hash = 17;

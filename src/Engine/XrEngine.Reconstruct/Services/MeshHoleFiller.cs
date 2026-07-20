@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrMath;
-
 
 namespace XrEngine.Reconstruct
 {
@@ -264,17 +261,16 @@ namespace XrEngine.Reconstruct
         private bool _rejectCoveredArea;
         private float _maxCoveredAreaRatio;
 
-
         private VertexData[] _vertices = Array.Empty<VertexData>();
         private Vector3[] _coords = Array.Empty<Vector3>();
         private Triangle[] _triangles = Array.Empty<Triangle>();
         private Vector3[] _normalSums = Array.Empty<Vector3>();
 
-        private HashSet<ulong> _edgeSet = new();
-        private HashSet<MeshTriangleKey> _triangleSet = new();
-        private HashSet<MeshTriangleKey> _candidateVisited = new();
+        private readonly HashSet<ulong> _edgeSet = new();
+        private readonly HashSet<MeshTriangleKey> _triangleSet = new();
+        private readonly HashSet<MeshTriangleKey> _candidateVisited = new();
 
-        private Dictionary<Vector3I, int> _gridHeads = new();
+        private readonly Dictionary<Vector3I, int> _gridHeads = new();
         private int[] _gridTriangles = Array.Empty<int>();
         private int[] _gridNext = Array.Empty<int>();
         private int _gridCount;
@@ -332,7 +328,6 @@ namespace XrEngine.Reconstruct
 
             _minNormalDot = Math.Clamp(parameters.MinNormalDot, 0.0f, 1.0f);
             _fixWinding = parameters.FixWinding;
-
 
             _rejectCoveredArea = parameters.RejectCoveredArea;
             _maxCoveredAreaRatio = Math.Clamp(parameters.MaxCoveredAreaRatio, 0.0f, 1.0f);

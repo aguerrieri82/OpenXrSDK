@@ -3,6 +3,10 @@
     public class WebBrowserOptions
     {
         public TriangleMesh? DestMesh { get; set; }
+
+        public bool UseLocalUI { get; set; }
+
+        public string? LocalAssetsPath { get; set; }
     }
 
     public interface IWebBrowserFactory

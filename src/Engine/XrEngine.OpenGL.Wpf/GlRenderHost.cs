@@ -8,7 +8,6 @@ using System.Windows.Interop;
 using System.Diagnostics;
 using XrEngine.OpenXr;
 
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -32,8 +31,6 @@ namespace XrEngine.OpenGL.Wpf
         protected static wglChoosePixelFormatARBPtr? ChoosePixelFormatARB;
         protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
         protected static wglGetPixelFormatAttribivARBPtr? GetPixelFormatAttribivARB;
-
-
 
         #region Native
 
@@ -59,8 +56,6 @@ namespace XrEngine.OpenGL.Wpf
             uint nAttributes,
             int[] piAttributes,
             int[] piValues);
-
-
 
         private delegate nint WndProc2(nint hWnd, uint msg, nint wParam, nint lParam);
 

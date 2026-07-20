@@ -1,5 +1,4 @@
 ﻿
-
 #if ANDROID28_0_OR_GREATER
 
 using Android.Graphics;
@@ -110,12 +109,11 @@ namespace XrEngine.Devices.Android
                 CaptureRequest request,
                 TotalCaptureResult result)
             {
-                
+
                 _host.LastFrame = result.FrameNumber;
 
             }
         }
-
 
         protected string _deviceId;
         protected CameraManager _manager;
@@ -190,14 +188,12 @@ namespace XrEngine.Devices.Android
             _backgroundThread.Start();
             _backgroundHandler = new Handler(_backgroundThread.Looper!);
 
-
             _openSource = new TaskCompletionSource<CameraDevice>();
             _manager.OpenCamera(_deviceId, new CameraDeviceState(this), _backgroundHandler);
             _device = await _openSource.Task;
 
             _chars = _manager.GetCameraCharacteristics(_deviceId);
         }
-
 
         public CameraParams GetParams()
         {
@@ -353,7 +349,6 @@ namespace XrEngine.Devices.Android
             _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), _backgroundHandler);
         }
 
-
         public void Configure(CameraConfiguration configuration)
         {
             _configuration = configuration;
@@ -496,7 +491,6 @@ namespace XrEngine.Devices.Android
                 _ => null
             };
         }
-
 
         public event Action<CaptureImage>? NewImage;
 

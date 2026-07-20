@@ -20,7 +20,6 @@ namespace XrEditor
             Formatter = formatter;
         }
 
-
         public TextEditor(IProperty<TValue> binding)
         {
             Binding = binding;

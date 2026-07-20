@@ -32,7 +32,6 @@ namespace CanvasUI
             base.OnPointerUp(ev);
         }
 
-
         public event EventHandler? Click;
     }
 }

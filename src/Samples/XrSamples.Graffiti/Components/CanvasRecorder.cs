@@ -142,7 +142,6 @@ namespace XrSamples.Graffiti
             Write("]");
         }
 
-
         void Write(Color data)
         {
             Write("[");

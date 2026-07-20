@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -17,7 +14,7 @@ namespace XrEngine
         protected override void CloneWork(Geometry3D result)
         {
             var geo = (Grid3D)result;
-            geo.Size  = Size;
+            geo.Size = Size;
         }
 
         public void Build()
@@ -74,7 +71,6 @@ namespace XrEngine
 
             NotifyChanged(ChangeType.Geometry);
         }
-
 
         public Size2I Size { get; set; }
     }

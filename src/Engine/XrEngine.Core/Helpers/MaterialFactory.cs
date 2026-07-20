@@ -38,7 +38,6 @@ namespace XrEngine
             return new T();
         }
 
-
         public static Type DefaultPbr { get; set; }
     }
 }

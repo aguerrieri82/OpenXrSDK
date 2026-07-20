@@ -128,7 +128,6 @@ namespace XrEngine.OpenXr
                 target.NotifyCollision(ctx, collision);
         }
 
-
         public IRayColliderHandler? Handler { get; set; }
 
         public IRayPointer? Pointer { get; set; }

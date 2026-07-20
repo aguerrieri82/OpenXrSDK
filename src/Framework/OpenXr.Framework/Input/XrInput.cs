@@ -45,7 +45,6 @@ namespace OpenXr.Framework
             GC.SuppressFinalize(this);
         }
 
-
         public virtual ActionSuggestedBinding Initialize()
         {
             var result = new ActionSuggestedBinding
@@ -113,7 +112,6 @@ namespace OpenXr.Framework
 
         object IXrInput.Value => _value!;
     }
-
 
     public class XrFloatInput : XrInput<float>
     {

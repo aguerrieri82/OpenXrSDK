@@ -1,10 +1,4 @@
 ﻿using Common.Interop;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Text;
-using TurboJpeg;
 using XrEngine.Compression;
 
 namespace XrEngine.Transcoder
@@ -47,7 +41,7 @@ namespace XrEngine.Transcoder
                     else
                         throw new NotSupportedException();
                 }
-                else  if (outImg.ColorType == PngLib.ColorTypeRgb)
+                else if (outImg.ColorType == PngLib.ColorTypeRgb)
                 {
                     if (outImg.BitDepth == 8)
                         format = isSrgb ? TextureFormat.SRgb24 : TextureFormat.Rgb24;

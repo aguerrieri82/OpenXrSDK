@@ -3,13 +3,11 @@ using System.Windows;
 using System.Windows.Controls;
 using XrEngine;
 
-
 namespace XrEditor.Components
 {
     public partial class LogPanelControl : UserControl
     {
         readonly UIProgressLogger _logger;
-
 
         public LogPanelControl()
         {

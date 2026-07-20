@@ -29,7 +29,6 @@
 
         public float ScaleSmallStep => 1f;
 
-
         public static readonly RadDegreeScale Instance = new();
 
     }

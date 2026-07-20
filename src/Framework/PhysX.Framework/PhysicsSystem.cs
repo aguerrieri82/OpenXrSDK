@@ -6,7 +6,6 @@ using System.Text;
 using XrMath;
 using static PhysX.NativeMethods;
 
-
 #pragma warning disable CS0649
 
 namespace PhysX.Framework
@@ -29,7 +28,6 @@ namespace PhysX.Framework
         public PxTransform globalPose1;
         public PxTransform globalPose2;
     }
-
 
     public class PhysicsOptions
     {
@@ -75,7 +73,6 @@ namespace PhysX.Framework
         protected PxDefaultCpuDispatcher* _dispatcher;
         protected PhysicsOptions _options;
         protected PhysicsScene? _scene;
-
 
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
@@ -209,7 +206,6 @@ namespace PhysX.Framework
             var curScale = _tolerancesScale;
 
             var param = curScale.CookingParamsNew();
-
 
             /*
             var isValid = param.PhysPxValidateConvexMesh(&desc);
@@ -346,7 +342,6 @@ namespace PhysX.Framework
                 shape.SimulationFilterData = data;
             }
 
-
             return result;
         }
 
@@ -439,7 +434,6 @@ namespace PhysX.Framework
             sceneDesc.kineKineFilteringMode = PxPairFilteringMode.Keep;
             sceneDesc.staticKineFilteringMode = PxPairFilteringMode.Keep;
 
-
             if (_options.EnableCCD)
                 sceneDesc.flags |= PxSceneFlags.EnableCcd;
             if (_options.EnablePCM)
@@ -466,7 +460,6 @@ namespace PhysX.Framework
             }
 
         }
-
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
@@ -529,8 +522,6 @@ namespace PhysX.Framework
                     Task.Run(() =>
                     {
                         _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
-
-
 
                     });
                 }

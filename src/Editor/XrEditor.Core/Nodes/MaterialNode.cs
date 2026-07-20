@@ -2,7 +2,6 @@
 using XrEditor.Services;
 using XrEngine;
 
-
 namespace XrEditor.Nodes
 {
     public class MaterialNode<T> : EngineObjectNode<T>, IItemPreview, IEditorActions where T : Material
@@ -17,7 +16,6 @@ namespace XrEditor.Nodes
             ActionView.CreateActions(_value, typeof(Material), null, result);
         }
 
-
         public override IEnumerable<INode> Children
         {
             get
@@ -28,7 +26,6 @@ namespace XrEditor.Nodes
                     yield return factory.CreateNode(shad.Shader!);
             }
         }
-
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {

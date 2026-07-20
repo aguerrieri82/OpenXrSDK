@@ -40,8 +40,6 @@ namespace XrEngine.Compression
             public int Test;
         };
 
-
-
         [DllImport("etcpack")]
         static unsafe extern byte* Encode(
         uint width,
@@ -50,12 +48,10 @@ namespace XrEngine.Compression
         ref EncodeOptions options,
         out uint outSize);
 
-
         [DllImport("etcpack")]
         static unsafe extern void Free(byte* data);
 
         #endregion
-
 
         public static unsafe TextureData Encode(TextureData data)
         {

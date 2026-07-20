@@ -8,7 +8,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
-
 namespace XrEngine.OpenGL
 {
 
@@ -73,7 +72,6 @@ namespace XrEngine.OpenGL
             _matrices.FarPlane = camera.Far;
         }
 
-
         public static readonly GlMultiViewShaderHandler Instance = new();
     }
 
@@ -117,7 +115,6 @@ namespace XrEngine.OpenGL
             _frameBuffer.Dispose();
             GC.SuppressFinalize(this);
         }
-
 
         public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;
 

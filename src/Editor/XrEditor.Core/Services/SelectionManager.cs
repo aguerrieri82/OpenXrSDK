@@ -2,7 +2,6 @@
 using System.Collections.Specialized;
 using XrEngine;
 
-
 namespace XrEditor.Services
 {
     public class SelectionManager
@@ -98,7 +97,6 @@ namespace XrEditor.Services
         {
             return _items.Contains(value);
         }
-
 
         public event Action<IReadOnlyCollection<INode>>? Changed;
 

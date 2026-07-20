@@ -54,7 +54,6 @@ namespace XrEngine.Lighting
             _voxelGrid = default;
         }
 
-
         public GpuVoxelFaceInstance[] ExtractFaces(VoxelTriangleSide side)
         {
             var result = new GpuVoxelFaceInstance[_voxelCount * 6];

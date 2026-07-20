@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {

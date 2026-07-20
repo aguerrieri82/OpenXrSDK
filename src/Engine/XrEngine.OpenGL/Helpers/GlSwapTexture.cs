@@ -4,10 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace XrEngine.OpenGL
 {
@@ -49,11 +46,13 @@ namespace XrEngine.OpenGL
                 MaxLevel = _main.MaxLevel,
                 MinFilter = _main.MinFilter,
                 MagFilter = _main.MagFilter,
-                IsMutable = true
             };
 
             if (_temp.Width != _main.Width || _temp.Height != _main.Height || _temp.InternalFormat != _main.InternalFormat)
             {
+                if (_temp.IsAllocated)
+                    _temp.Recreate();
+
                 _temp.Allocate(_main.Width, _main.Height, _main.Depth, _main.InternalFormat.GetTextureFormat());
 
                 if (_main.MaxLevel > 0)
@@ -71,6 +70,7 @@ namespace XrEngine.OpenGL
             return new GlSwapTexture(main);
         }
 
+        /*
         public void Update(uint width, uint height, uint depth, TextureFormat format)
         {
             Debug.Assert(_main != null && _temp != null);
@@ -85,6 +85,7 @@ namespace XrEngine.OpenGL
 
             Update(width, height, _main.Depth, _main.InternalFormat.GetTextureFormat());
         }
+        */
 
         public void Blur(int passes = 1, int mipLevel = 0)
         {
@@ -93,8 +94,8 @@ namespace XrEngine.OpenGL
             for (var i = 0; i < passes; i++)
             {
                 GlTextureFilter.Instance!.Blur(
-                    (Texture2D)_activeTex.ToEngineTexture(), 
-                    (Texture2D)_backTex.ToEngineTexture(), $"Blur_Swap_{_main.InternalFormat}_{mipLevel}", 3, mipLevel);
+                    (Texture2D)_activeTex.ToEngineTexture(),
+                    (Texture2D)_backTex.ToEngineTexture(), $"Blur_Swap_{_main!.InternalFormat}_{mipLevel}_{_main.Depth}", 3, mipLevel);
 
                 Swap();
             }
@@ -118,7 +119,7 @@ namespace XrEngine.OpenGL
         {
             _temp?.Dispose();
             _main?.Dispose();
-            
+
             _temp = null;
             _main = null;
 

@@ -107,7 +107,6 @@ namespace XrEngine
             });
         }
 
-
         public Texture2D? DiffuseTexture { get; set; }
 
         public Color Color { get; set; }
@@ -117,7 +116,6 @@ namespace XrEngine
         public Color Specular { get; set; }
 
         public float Shininess { get; set; }
-
 
     }
 }

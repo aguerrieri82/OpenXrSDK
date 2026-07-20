@@ -3,7 +3,6 @@ using OpenXr.Framework.Android;
 using Silk.NET.OpenXR;
 using XrInteraction;
 
-
 namespace OpenXr.Framework
 {
     public static class XrExtensions

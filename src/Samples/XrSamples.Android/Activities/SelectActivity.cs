@@ -9,7 +9,6 @@ using XrEngine.OpenXr;
 namespace XrSamples.Android.Activities
 {
 
-
     [Activity(
         Label = "@string/app_name",
         ScreenOrientation = ScreenOrientation.Portrait,
@@ -21,7 +20,6 @@ namespace XrSamples.Android.Activities
     {
         private readonly GameSettings _settings = GameSettings.Graffiti();
         private IList<AppSample>? _samples;
-
 
         public SelectActivity()
         {
@@ -47,7 +45,6 @@ namespace XrSamples.Android.Activities
 
             var listView = FindViewById<ListView>(ResourceConstant.Id.listView)!;
 
-
             listView.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleListItemSingleChoice,
                 _samples.Select(a => a.Name!).ToArray());
@@ -72,7 +69,6 @@ namespace XrSamples.Android.Activities
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 images.Select(a => a.Name!).ToArray());
-
 
             hdris.ItemSelected += (s, e) =>
             {

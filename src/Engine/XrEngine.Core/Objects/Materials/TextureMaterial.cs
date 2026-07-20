@@ -1,5 +1,4 @@
-﻿using XrEngine.Objects;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -39,7 +38,6 @@ namespace XrEngine
             base.SetStateWork(container);
             container.ReadObject<TextureMaterial>(this);
         }
-
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {

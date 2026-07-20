@@ -19,14 +19,14 @@ namespace OpenXr.Framework.Oculus
         readonly NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo;
         readonly IMotionVectorProvider _motionProvider;
         readonly Pose3[] _lastPose = new Pose3[2];
-    
+
         unsafe SwapchainImageBaseHeader* _spColorImage;
         unsafe SwapchainImageBaseHeader* _spDepthImage;
         SpaceWarpData _spaceWarpData;
         Extent2Di _motionImageSize;
         bool _lastSpaceWarpActive;
 
-        public  XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IMotionVectorProvider provider, bool useDepthSwapchain)
+        public XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IMotionVectorProvider provider, bool useDepthSwapchain)
             : base(renderView, useDepthSwapchain)
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));
@@ -77,7 +77,6 @@ namespace OpenXr.Framework.Oculus
             _spaceWarpData.DepthImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData.DepthSwapchain);
         }
 
-
         public override void Destroy()
         {
             base.Destroy();
@@ -127,7 +126,7 @@ namespace OpenXr.Framework.Oculus
 
                     var curPose = _xrApp.ReferenceFrame.Multiply(projViews[i].Pose.ToPose3());
                     var lastPose = _lastPose[i];
-                    
+
                     info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF();
 
                     _lastPose[i] = curPose;

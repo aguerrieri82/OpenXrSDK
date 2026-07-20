@@ -1,10 +1,7 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
-using System.Diagnostics;
-using System.Reflection;
 using XrEngine.Services;
 using XrInteraction;
-
 
 namespace XrEngine.OpenXr.Android
 {
@@ -20,7 +17,6 @@ namespace XrEngine.OpenXr.Android
                 if (arg.ExceptionObject is Exception ex)
                     Log.Error(sender, ex);
             };
-
 
             TaskScheduler.UnobservedTaskException += (sender, ex) =>
             {
@@ -69,12 +65,10 @@ namespace XrEngine.OpenXr.Android
         }
         */
 
-
         protected override void ConfigureMainLoop()
         {
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
         }
-
 
         protected override XrApp CreateApp()
         {

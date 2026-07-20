@@ -94,7 +94,6 @@ namespace XrEngine.Physics
             }
         }
 
-
         void SimulateLoop()
         {
             var realStart = Stopwatch.GetTimestamp();
@@ -232,7 +231,6 @@ namespace XrEngine.Physics
         public PhysicsSystem? System => _system;
 
         public IReadOnlyCollection<Joint> Joint => _joints;
-
 
     }
 }

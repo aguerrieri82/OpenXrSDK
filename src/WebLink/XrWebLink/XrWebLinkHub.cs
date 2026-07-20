@@ -47,7 +47,6 @@ namespace XrWebLink
             if (anchorId != null)
                 groupId += "/" + anchorId;
 
-
             if (enabled)
                 await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
             else

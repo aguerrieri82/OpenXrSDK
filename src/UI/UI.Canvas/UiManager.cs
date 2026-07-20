@@ -9,7 +9,6 @@ namespace CanvasUI
         private static readonly Dictionary<int, UiElement?> _pointerCaptures = [];
         private static readonly Dictionary<Type, Queue<UiEvent>> _eventPool = [];
 
-
         public static void SetPointerCapture(int pointerId, UiElement? element)
         {
             _pointerCaptures[pointerId] = element;
@@ -62,12 +61,10 @@ namespace CanvasUI
             _hoverElement = element;
         }
 
-
         public static void SetFocus(UiElement? element)
         {
             if (_activeFocus == element)
                 return;
-
 
             if (_activeFocus != null)
             {

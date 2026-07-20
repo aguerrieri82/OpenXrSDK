@@ -23,8 +23,6 @@ namespace XrEngine.OpenXr
             Build();
         }
 
-
-
         public void Update(IEnumerable<Vector3> points, bool isActive)
         {
             var oldCount = _material.Points.Length;

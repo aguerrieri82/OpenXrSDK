@@ -10,7 +10,6 @@ namespace XrEngine.OpenXr
         readonly Dictionary<Object3D, Matrix4x4[]> _skins = [];
         public class MotionVectorShader : Shader, IShaderHandler
         {
-          
 
             public MotionVectorShader()
             {
@@ -29,7 +28,6 @@ namespace XrEngine.OpenXr
                 if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
                     return;
 
-
                 bld.ExecuteAction((ctx, up) =>
                 {
                     var camera = ctx.PassCamera;
@@ -44,7 +42,7 @@ namespace XrEngine.OpenXr
                     up.SetUniform($"uMatrices.current.viewProj[0]", camera.Eyes[0].ViewProj);
                     up.SetUniform($"uMatrices.current.viewProj[1]", camera.Eyes[1].ViewProj);
                 });
- 
+
             }
 
             public Matrix4x4[] PrevViewProj = new Matrix4x4[2];
@@ -87,7 +85,6 @@ namespace XrEngine.OpenXr
 
             }, 17, BufferStore.Model, BufferUsage.SSbo);
 
-
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ctx.PassCamera;
@@ -121,7 +118,7 @@ namespace XrEngine.OpenXr
 
                         Array.Copy(skinned.SkinMatrices, matrices, matrices.Length);
                     }
-  
+
                 }
             });
         }

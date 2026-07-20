@@ -10,7 +10,6 @@ using System.Text;
 using XrMath;
 using System.Runtime.InteropServices;
 
-
 namespace XrEngine.OpenGL
 {
     public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
@@ -23,7 +22,6 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly int[] _boundBuffers = new int[32];
         protected readonly bool _cacheUniforms;
-
 
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
@@ -58,7 +56,7 @@ namespace XrEngine.OpenGL
         {
             GlState.Current!.SetActiveProgram(this);
 
-            GlDebug.Log(this,"UseProgram {0}", _handle);
+            GlDebug.Log(this, "UseProgram {0}", _handle);
         }
 
         public void Unbind()
@@ -217,14 +215,12 @@ namespace XrEngine.OpenGL
             _gl.UniformMatrix4(LocateUniform(name, optional), 1, false, (float*)&value);
         }
 
-
         public unsafe void SetUniform(string name, Matrix3x3 value, bool optional = false)
         {
             if (!IsChanged(name, value))
                 return;
             _gl.UniformMatrix3(LocateUniform(name, optional), 1, false, (float*)&value);
         }
-
 
         public void SetUniform(string name, float value, bool optional = false)
         {
@@ -239,7 +235,6 @@ namespace XrEngine.OpenGL
                 return;
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
-
 
         public unsafe void SetUniform(string name, Vector4 value, bool optional = false)
         {
@@ -263,7 +258,7 @@ namespace XrEngine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0,  BufferUsage usage = BufferUsage.Default)
+        public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0, BufferUsage usage = BufferUsage.Default)
         {
             var glBuffer = (IGlBuffer)buffer;
 
@@ -271,7 +266,7 @@ namespace XrEngine.OpenGL
 
             if (usage == BufferUsage.SSbo)
                 curTarget = BufferTargetARB.ShaderStorageBuffer;
-            
+
             else if (usage == BufferUsage.Uniforms)
                 curTarget = BufferTargetARB.UniformBuffer;
 
@@ -325,7 +320,6 @@ namespace XrEngine.OpenGL
             fixed (Plane* data = value)
                 _gl.Uniform4(LocateUniform(name, optional), (uint)value.Length, (float*)data);
         }
-
 
         public void SetUniform(string name, int[] value, bool optional = false)
         {
@@ -429,7 +423,6 @@ namespace XrEngine.OpenGL
                         replace = ReplaceIncludes(incPath);
                     }
 
-
                     source = string.Concat(
                         source.AsSpan(0, match.Index),
                         replace,
@@ -459,7 +452,7 @@ namespace XrEngine.OpenGL
                 return false;
             }
 
-            return true;       
+            return true;
         }
 
         protected virtual void PatchShader(ShaderType shaderType, StringBuilder builder)
@@ -477,6 +470,5 @@ namespace XrEngine.OpenGL
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
 
-   
     }
 }

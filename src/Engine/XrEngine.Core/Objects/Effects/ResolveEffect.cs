@@ -73,7 +73,6 @@ namespace XrEngine
         [Notify(ChangeType.Render)]
         public partial bool ResolveAlpha { get; set; }
 
-
         [Notify(ChangeType.Render)]
         public partial uint SampleCount { get; set; }
     }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class NotifyAttribute : Attribute

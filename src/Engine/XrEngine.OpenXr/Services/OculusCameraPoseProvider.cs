@@ -1,8 +1,4 @@
 ﻿using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
 using XrEngine.Media;
 using XrMath;
 

@@ -55,7 +55,6 @@ namespace XrEngine.Devices
             _getDataAction = GetLastFrameData;
         }
 
-
         public Task OpenAsync()
         {
             Log.Info(this, "Open Camera");
@@ -104,8 +103,8 @@ namespace XrEngine.Devices
 
             _outTexture = outTexture;
 
-            int nativeListIndex = _formatNativeIndexes[_selectedNativeFormatIndex];
-            bool decodeMjpg = _formatDecodeMjpg[_selectedNativeFormatIndex];
+            var nativeListIndex = _formatNativeIndexes[_selectedNativeFormatIndex];
+            var decodeMjpg = _formatDecodeMjpg[_selectedNativeFormatIndex];
 
             var nativeFormat = _nativeFormats[nativeListIndex];
 
@@ -144,7 +143,7 @@ namespace XrEngine.Devices
             if (cancel != null)
             {
                 cancel.Cancel();
- 
+
                 try
                 {
                     task?.Wait();
@@ -169,7 +168,7 @@ namespace XrEngine.Devices
         {
             if (_isClosing)
                 return;
-            
+
             _isClosing = true;
 
             Log.Info(this, "Close");
@@ -265,18 +264,18 @@ namespace XrEngine.Devices
 
             Check(_handle.RefreshFormats());
 
-            int count = _handle.GetFormatCount();
+            var count = _handle.GetFormatCount();
 
             _formats.Clear();
             _nativeFormats.Clear();
             _formatNativeIndexes.Clear();
             _formatDecodeMjpg.Clear();
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 Check(_handle.GetFormatInfo(i, out var info));
 
-                int nativeIndex = _nativeFormats.Count;
+                var nativeIndex = _nativeFormats.Count;
                 _nativeFormats.Add(info);
 
                 var nativeImageFormat = ToImageFormat(info.FrameFormat);
@@ -333,7 +332,7 @@ namespace XrEngine.Devices
 
         private int FindFormat(VideoFormat format)
         {
-            for (int i = 0; i < _formats.Count; i++)
+            for (var i = 0; i < _formats.Count; i++)
             {
                 var cur = _formats[i];
 
@@ -357,10 +356,10 @@ namespace XrEngine.Devices
 
         private unsafe void CaptureLoop(CancellationToken cancel)
         {
-            bool decodeMjpg = _selectedNativeFormatIndex >= 0 &&
+            var decodeMjpg = _selectedNativeFormatIndex >= 0 &&
                               _formatDecodeMjpg[_selectedNativeFormatIndex];
 
-            int poolFailCount = 0;
+            var poolFailCount = 0;
 
             Thread.Sleep(500);
 
@@ -369,7 +368,7 @@ namespace XrEngine.Devices
                 try
                 {
                     var frame = new FrameInfo();
-                    int res = _handle.PullFrame(1000, ref frame);
+                    var res = _handle.PullFrame(1000, ref frame);
 
                     if (res < 0)
                     {
@@ -377,9 +376,9 @@ namespace XrEngine.Devices
                             return;
 
                         Log.Warn(this, $"Pull Frame Failed: {0}", _handle.GetLastError());
-                        
+
                         poolFailCount++;
-                        
+
                         if (poolFailCount > 5)
                             throw new Exception("Unable to read");
 
@@ -400,7 +399,7 @@ namespace XrEngine.Devices
                         if (nativeFormat != ImageFormat.MJPG)
                             throw new NotSupportedException($"Expected MJPG frame, got {nativeFormat}.");
 
-                        int decodedSize = frame.Width * frame.Height * 4;
+                        var decodedSize = frame.Width * frame.Height * 4;
 
                         EnsureBuffers(decodedSize);
                         EnsureJpegBuffer(frame.DataBytes);
@@ -448,7 +447,7 @@ namespace XrEngine.Devices
 
         private void PublishFrame(int width, int height, ImageFormat format, int size)
         {
-            long timestamp = Stopwatch.GetTimestamp();
+            var timestamp = Stopwatch.GetTimestamp();
 
             lock (_frameLock)
             {
@@ -462,7 +461,7 @@ namespace XrEngine.Devices
                 _lastFormat = format;
                 _lastTimestamp = timestamp;
                 _lastFrame++;
-                
+
             }
 
             NewImage?.Invoke(new CaptureImage
@@ -502,15 +501,15 @@ namespace XrEngine.Devices
                     _jpegDecoder,
                     pJpeg,
                     (ulong)jpegSize,
-                    out int width,
-                    out int height,
+                    out var width,
+                    out var height,
                     out _);
 
                 Log.Debug(this, $"Bytes: {pJpeg[0]},{pJpeg[1]},{pJpeg[2]}");
 
                 if (width != expectedWidth || height != expectedHeight)
                     throw new InvalidOperationException($"MJPG decoded size changed: {res}: {width}x{height} - {expectedWidth}x{expectedHeight}.");
- 
+
                 res = TurboJpegLib.tjDecompress2(
                     _jpegDecoder,
                     pJpeg,

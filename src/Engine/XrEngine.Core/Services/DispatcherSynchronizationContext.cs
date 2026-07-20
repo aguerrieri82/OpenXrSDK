@@ -1,5 +1,4 @@
 ﻿
-
 namespace XrEngine.Services
 {
     public sealed class DispatcherSynchronizationContext : SynchronizationContext
@@ -13,7 +12,7 @@ namespace XrEngine.Services
 
         public override void Post(SendOrPostCallback d, object? state)
         {
-           _dispatcher.Post(() => d(state));
+            _dispatcher.Post(() => d(state));
         }
 
         public override void Send(SendOrPostCallback d, object? state)

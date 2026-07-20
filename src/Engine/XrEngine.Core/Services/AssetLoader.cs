@@ -9,7 +9,6 @@
         {
         }
 
-
         public IAssetLoader GetLoader(Uri uri)
         {
             var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out var resType));
@@ -21,7 +20,6 @@
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             var useCache = destObj == null && (options == null || options.UseCache);
-
 
             EngineObject obj;
 
@@ -47,7 +45,6 @@
         {
             _loaders.Add(assetLoader);
         }
-
 
         public static readonly AssetLoader Instance = new();
     }

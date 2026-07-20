@@ -22,7 +22,6 @@
         public bool IsMultiView { get; set; }
     }
 
-
     public interface IContactShadowProvider
     {
         ContactShadowOptions Options { get; }

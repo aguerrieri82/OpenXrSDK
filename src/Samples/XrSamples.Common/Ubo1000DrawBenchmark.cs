@@ -51,7 +51,6 @@ public sealed unsafe class UboSsbo1000DrawBenchmark : IDisposable
     private int _ssboOffsetAlignment;
     private int _maxUniformBlockSize;
 
-
     public UboSsbo1000DrawBenchmark(GL gl, bool gles)
     {
         _gl = gl;

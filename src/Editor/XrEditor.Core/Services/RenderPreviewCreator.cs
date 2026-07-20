@@ -32,7 +32,6 @@ namespace XrEditor.Services
                 MinFilter = ScaleFilter.Linear
             };
 
-
             _scene = new Scene3D();
             var camera = new PerspectiveCamera()
             {
@@ -106,7 +105,6 @@ namespace XrEditor.Services
                 _app.ActiveScene!.Clear();
                 _app.ActiveScene!.AddChild(_mesh);
 
-
                 return CreateImage();
             }
             finally
@@ -133,7 +131,6 @@ namespace XrEditor.Services
 
             return CreateImage();
         }
-
 
         protected NativeImage? CreateImage()
         {

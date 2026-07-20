@@ -51,7 +51,6 @@ namespace XrMath
 
         public static Size2 Zero => new(0, 0);
 
-
         public float Width;
 
         public float Height;

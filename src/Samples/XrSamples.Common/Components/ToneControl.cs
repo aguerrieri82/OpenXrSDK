@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 using XrEngine;
 using XrEngine.OpenGL;
 
-
 namespace XrSamples.Components
 {
     public class ToneControl : BaseComponent<Scene3D>
@@ -19,9 +18,9 @@ namespace XrSamples.Components
         void Update()
         {
             GlState.Current!.EnableFeature(EnableCap.FramebufferSrgb, FbRgb);
-            
+
             PbrMaterial.SHADER.ToneMap = _toneMap;
-            
+
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
 
             Changed?.Invoke();
@@ -68,7 +67,6 @@ namespace XrSamples.Components
         }
 
         public Action? Changed;
-
 
     }
 }

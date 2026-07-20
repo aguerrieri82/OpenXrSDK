@@ -2,7 +2,6 @@
 using System.Net.Sockets;
 using XrEngine.Media;
 
-
 namespace XrEngine.Video
 {
     public class RtpH264Client
@@ -103,7 +102,6 @@ namespace XrEngine.Video
             }
         }
 
-
         public byte[]? ReadNalUnit()
         {
             if (_client == null || _readStream == null)
@@ -171,7 +169,6 @@ namespace XrEngine.Video
                         Log.Warn(this, "Fragment without start");
                         continue;
                     }
-
 
                     if (start_bit != 0)
                     {

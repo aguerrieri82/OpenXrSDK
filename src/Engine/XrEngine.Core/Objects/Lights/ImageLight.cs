@@ -1,6 +1,5 @@
 ﻿
 using System.Diagnostics;
-using System.Runtime.Serialization;
 using XrMath;
 
 namespace XrEngine
@@ -10,7 +9,6 @@ namespace XrEngine
     public class ImageLight : Light
     {
         private string? _cacheBasePath;
-
 
         private static readonly TextureLoadOptions _loaderOptions = new()
         {
@@ -99,7 +97,6 @@ namespace XrEngine
             NotifyChanged(ChangeType.Render);
         }
 
-
         public void NotifyIBLCreated()
         {
             if (!string.IsNullOrWhiteSpace(_cacheBasePath))
@@ -112,8 +109,6 @@ namespace XrEngine
             Textures.GGXLUT!.NeverCompress = true;
         }
 
-
-
         public override void Dispose()
         {
             Textures.Dispose();
@@ -125,7 +120,6 @@ namespace XrEngine
         public IBLTextures Textures { get; set; }
 
         public Texture2D? Panorama { get; set; }
-
 
         [ValueType(ValueType.Radiant), SaveState]
         public float RotationY { get; set; }

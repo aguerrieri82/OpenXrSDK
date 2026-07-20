@@ -27,7 +27,6 @@
         public DepthObjectData DepthData;
     }
 
-
     public struct ShaderMaterialKey
     {
 

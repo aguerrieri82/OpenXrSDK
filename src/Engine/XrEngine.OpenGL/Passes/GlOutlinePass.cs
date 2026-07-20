@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 
 using XrMath;
 using System.Numerics;
-using XrEngine.Objects;
 
 namespace XrEngine.OpenGL
 {
@@ -20,7 +19,6 @@ namespace XrEngine.OpenGL
         protected Size2I _frameSize;
         protected readonly float _downsampleFactor;
         protected readonly bool _isDownsample;
-
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)

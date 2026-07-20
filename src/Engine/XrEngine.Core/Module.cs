@@ -1,7 +1,6 @@
 ﻿using XrEngine;
 using XrEngine.Transcoder;
 
-
 [assembly: Module(typeof(XrEngine.Module))]
 
 namespace XrEngine

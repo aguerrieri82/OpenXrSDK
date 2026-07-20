@@ -1,6 +1,5 @@
 ﻿#pragma warning disable CS0067
 
-
 namespace UI.Binding
 {
     public struct ConstProperty<T> : IProperty<T>

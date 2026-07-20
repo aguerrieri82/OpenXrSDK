@@ -183,12 +183,9 @@ namespace XrSamples.Earth
 
         public double SemiMajorAxis { get; set; }
 
-
         public double MeanAnomalyAtEpoch { get; set; }
 
-
         public double MeanMotion { get; set; }
-
 
         public double ArgumentOfPerihelion { get; set; }
 

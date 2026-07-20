@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 
-
 namespace XrMath
 {
     public struct Poly2
@@ -16,7 +15,6 @@ namespace XrMath
             Points = points;
             IsClosed = isClosed;
         }
-
 
         public static implicit operator Vector2[](Poly2 poly)
         {

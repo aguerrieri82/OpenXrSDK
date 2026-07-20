@@ -137,7 +137,6 @@ namespace XrEngine.Components
             canvas.Restore();
         }
 
-
         public bool ShowGizmos { get; set; }
 
         public string? SplittedName { get; set; }

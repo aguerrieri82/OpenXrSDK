@@ -26,7 +26,6 @@ namespace XrEngine.OpenGL
         protected uint _depth;
         protected bool _isAttached;
 
-
         public GlTexture(GL gl)
             : base(gl)
         {
@@ -47,7 +46,6 @@ namespace XrEngine.OpenGL
             SampleCount = sampleCount;
             Attach(handle, target);
         }
-
 
         public void Recreate()
         {
@@ -85,7 +83,7 @@ namespace XrEngine.OpenGL
                 Log.Warn(this, "Attached an existing texture {0}- {1}", _handle, handle);
                 Destroy();
             }
-     
+
             _attached[handle] = this;
 
             _handle = handle;
@@ -215,7 +213,6 @@ namespace XrEngine.OpenGL
                 data[0].BlockSize);
         }
 
-
         public void Allocate(
             uint width,
             uint height,
@@ -300,8 +297,6 @@ namespace XrEngine.OpenGL
             {
                 _gl.GenerateMipmap(Target);
             }
-
-
 
             Unbind();
         }
@@ -489,7 +484,6 @@ namespace XrEngine.OpenGL
 
             return texture;
         }
-
 
         protected unsafe void UploadUncompressedFull(
             uint width,
@@ -851,7 +845,6 @@ namespace XrEngine.OpenGL
             return Math.Max(depthFromLayers, Math.Max(depthFromData, 1));
         }
 
-
         public long Version { get; set; }
 
         public TextureWrapMode WrapS { get; set; }
@@ -891,6 +884,8 @@ namespace XrEngine.OpenGL
         public uint Depth => _depth;
 
         public bool IsAttached => _isAttached;
+
+        public bool IsAllocated => _isAllocated;
 
         public bool IsDepth => _internalFormat.IsDepth();
     }

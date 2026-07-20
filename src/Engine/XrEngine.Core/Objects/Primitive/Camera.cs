@@ -95,7 +95,7 @@ namespace XrEngine
         {
             _viewProjDirty = true;
             _projInverseDirty = true;
-            
+
             _near = camera.Near;
             _far = camera.Far;
             _proj = camera.Projection;
@@ -111,7 +111,6 @@ namespace XrEngine
             IsMultiView = camera.IsMultiView;
             ViewSize = camera.ViewSize;
         }
-
 
         protected virtual void ExtractProjectionInternals()
         {
@@ -137,7 +136,6 @@ namespace XrEngine
 
             base.OnChanged(change);
         }
-
 
         public Vector3 Target
         {
@@ -214,7 +212,6 @@ namespace XrEngine
             }
         }
 
-
         [Range(0.01f, 1f, 0.01f)]
         public float Near
         {
@@ -237,9 +234,9 @@ namespace XrEngine
             {
                 if (_far == value)
                     return;
-                
+
                 _far = value;
-                
+
                 _projDirty = true;
                 _viewProjDirty = true;
             }
@@ -252,7 +249,7 @@ namespace XrEngine
             {
                 if (_viewSize.Width == value.Width && _viewSize.Height == value.Height)
                     return;
-                
+
                 _viewSize = value;
 
                 _projDirty = true;
@@ -261,7 +258,6 @@ namespace XrEngine
         }
 
         public Matrix4x4 ViewInverse => WorldMatrix;
-
 
         [Range(0, 10, 0.1f)]
         public float Exposure { get; set; }

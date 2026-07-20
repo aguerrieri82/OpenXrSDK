@@ -23,7 +23,6 @@ namespace XrEngine.OpenXr
             WeightedExponential
         }
 
-
         InputGrabber? _lastTool;
         bool _lastKinematic;
         PhysicsManager? _manager;
@@ -144,7 +143,6 @@ namespace XrEngine.OpenXr
                 _isMoving = true;
             }
 
-
             _manager ??= _host.Scene!.Component<PhysicsManager>();
 
             _body ??= _host.Component<RigidBody>();
@@ -256,7 +254,6 @@ namespace XrEngine.OpenXr
                 _isMoving = false;
             }
         }
-
 
         public float MinDeltaTime { get; set; }
 

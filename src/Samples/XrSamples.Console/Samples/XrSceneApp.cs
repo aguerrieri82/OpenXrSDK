@@ -5,7 +5,6 @@ using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 
-
 namespace XrSamples
 {
 
@@ -14,14 +13,12 @@ namespace XrSamples
 
         private static XrEngineApp? _game;
 
-
         public static readonly string[] AssetsPath = [
             @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
-
 
         public static Task Run(IServiceProvider services)
         {
@@ -39,8 +36,6 @@ namespace XrSamples
                 })
                 .CreateHelmet()
                 .Build();
-
-
 
             _game.App.Start();
 

@@ -6,7 +6,6 @@
 
         private IContactShadowProvider? _contactProvider;
 
-
         [Action]
         public void Apply()
         {

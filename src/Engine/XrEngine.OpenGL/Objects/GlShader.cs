@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 using System.Security.Cryptography;
 using System.Text;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlShader : GlObject

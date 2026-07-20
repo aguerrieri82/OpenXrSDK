@@ -62,7 +62,6 @@
             }
         }
 
-
         public bool UseMultiviewTarget { get; set; }
     }
 }

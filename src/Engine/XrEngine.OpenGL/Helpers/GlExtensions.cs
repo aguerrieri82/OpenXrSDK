@@ -14,19 +14,18 @@ namespace XrEngine.OpenGL
         const TextureTarget GL_TEXTURE_EXTERNAL_OES = (TextureTarget)0x8D65;
         const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
 
-
         public static bool CheckError(this GL gl, bool log = true)
         {
             GLEnum err;
 
-            bool hasError = false;
+            var hasError = false;
 
             while ((err = gl.GetError()) != GLEnum.NoError)
             {
                 if (log)
                     Log.Warn("CheckError", err.ToString());
 
-                hasError = true;    
+                hasError = true;
             }
 
             return hasError;
@@ -156,13 +155,13 @@ namespace XrEngine.OpenGL
             if (options.Format == TextureCompressionFormat.Astc)
             {
                 var blockSize = options.BlockSize;
-                
+
                 if (texture2D.Depth <= 1 && blockSize == 3)
                     blockSize = 4;
 
                 return TextureCompressor.EncodeAstc(texture2D.Type == TextureType.NormalMap, options.Quality, blockSize);
             }
-    
+
             if (options.Format == TextureCompressionFormat.Etc2)
                 return TextureCompressor.EncodeEtc2();
 
@@ -223,9 +222,9 @@ namespace XrEngine.OpenGL
 #if GLES
             //Necessary for generate mips
 
-            if (texture2D.Format == TextureFormat.SRgb24 && 
-                texture2D.MipLevelCount > 1 && 
-                texture2D.Data != null && 
+            if (texture2D.Format == TextureFormat.SRgb24 &&
+                texture2D.MipLevelCount > 1 &&
+                texture2D.Data != null &&
                 texture2D.Data.Count == 1)
             {
                 texture2D.Format = TextureFormat.SRgba32;
@@ -487,7 +486,7 @@ namespace XrEngine.OpenGL
 
             void DumpFloatArray(GLEnum pname, string label, int count)
             {
-                float* values = stackalloc float[count];
+                var values = stackalloc float[count];
                 gl.GetTexParameter(target, pname, values);
 
                 var text = string.Join(", ", Enumerable.Range(0, count).Select(i => values[i].ToString("0.###")));
@@ -521,19 +520,19 @@ namespace XrEngine.OpenGL
 
             void DumpLevelInt(GLEnum pname, int level, string label)
             {
-                int value = 0;
+                var value = 0;
                 gl.GetTexLevelParameter(target, level, pname, &value);
                 Debug.WriteLine($"{label}: {value}");
             }
 
             void DumpLevelEnum(GLEnum pname, int level, string label)
             {
-                int value = 0;
+                var value = 0;
                 gl.GetTexLevelParameter(target, level, pname, &value);
                 Debug.WriteLine($"{label}: {(GLEnum)value} ({value})");
             }
 
-            int previous = 0;
+            var previous = 0;
             gl.GetInteger(GetTextureBindingEnum(target), &previous);
 
             gl.BindTexture(target, texture);
@@ -578,4 +577,4 @@ namespace XrEngine.OpenGL
             Debug.WriteLine("");
         }
     }
-}   
+}

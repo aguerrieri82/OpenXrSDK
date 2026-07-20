@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -42,7 +41,6 @@ namespace XrEngine
         {
             TimeLogger.Checkpoint(name, color);
         }
-
 
         public static IProgressLogger Logger => Context.Require<IProgressLogger>();
 

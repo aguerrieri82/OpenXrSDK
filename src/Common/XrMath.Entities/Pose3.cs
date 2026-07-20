@@ -31,12 +31,10 @@ namespace XrMath
 
         public static bool operator !=(Pose3 a, Pose3 b) => !a.Equals(b);
 
-
         public static readonly Pose3 Identity = new()
         {
             Orientation = Quaternion.Identity
         };
-
 
         public Vector3 Position;
 

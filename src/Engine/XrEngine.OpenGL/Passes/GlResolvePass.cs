@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-
 namespace XrEngine.OpenGL
 {
     public class GlResolvePass : GlBaseRenderPass, IToneMapper
@@ -23,14 +21,13 @@ namespace XrEngine.OpenGL
             Context.Implement<IToneMapper>(this);
         }
 
-
         public override void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
 
             _resolve.EncodeSrgb = ctx.NeedSrgbEncode;
-         
+
             if (_renderer.RenderTarget is GlDefaultRenderTarget def)
             {
                 var color = def.Color!;
@@ -53,6 +50,8 @@ namespace XrEngine.OpenGL
 
                     return;
                 }
+                else
+                    throw new NotSupportedException();
             }
             else if (_renderer.RenderTarget is GlResolveRenderTarget res)
             {
@@ -89,7 +88,6 @@ namespace XrEngine.OpenGL
 
                 _resolve.IsMultiView = _renderer.RenderTarget is GlMultiViewRenderTarget;
 
-
                 UseEffect(_resolve);
 
                 DrawQuad();
@@ -97,7 +95,6 @@ namespace XrEngine.OpenGL
                 _passTarget.FrameBuffer!.CopyTo(srcTarget.FrameBuffer);
             }
         }
-
 
         public bool IsGlobal => _renderer.Options.ToneMap != ToneMapMode.None;
 

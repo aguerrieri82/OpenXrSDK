@@ -1,6 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -148,7 +146,6 @@ namespace XrEngine
             FontFamily = OperatingSystem.IsAndroid() ? "Roboto" : "Segoe UI";
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SKPoint ToScreen(UnitPoint point)
         {
@@ -191,7 +188,6 @@ namespace XrEngine
             TryToUvNoPad(value, out var result);
             return result;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected bool TryToScreen(Vector3 point, out SKPoint result)
@@ -245,7 +241,6 @@ namespace XrEngine
             return TryToScreen(worldPoint, false, out result);
         }
 
-
         protected bool TryToScreen(Vector3 point, bool applyTransform, out SKPoint result)
         {
             Debug.Assert(_camera != null);
@@ -264,7 +259,6 @@ namespace XrEngine
                 result = new SKPoint(float.NaN, float.NaN);
                 return false;
             }
-
 
             var invW = 1.0f / clip.W;
 
@@ -682,7 +676,6 @@ namespace XrEngine
             UpdateView();
         }
 
-
         protected void UpdateView()
         {
             _hasUiPlane = false;
@@ -739,7 +732,6 @@ namespace XrEngine
                     _camera.WorldPosition);
             }
 
-
             _uiOrigin = center + right * minX + up * maxY;
             _uiAxisX = right * (maxX - minX);
             _uiAxisY = up * (minY - maxY);
@@ -761,9 +753,8 @@ namespace XrEngine
                     return;
                 _distance = value;
                 UpdateView();
-            }   
+            }
         }
-
 
         public SKCanvas? Canvas => _canvas;
 

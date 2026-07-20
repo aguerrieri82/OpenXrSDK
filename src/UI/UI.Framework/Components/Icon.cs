@@ -3270,7 +3270,6 @@ namespace CanvasUI
 
             var style = new SKFontStyle(SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
 
-
             var font = SKResources.Font(typeface,
                                        ActualStyle.FontSize.ToPixel(this, UiValueReference.ParentFontSize));
 

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Silk.NET.OpenGL;
+using System.Diagnostics;
 using XrEngine.UI.Web;
 using XrMath;
 
@@ -12,7 +13,9 @@ namespace XrEngine.Browser.Windows
 
             Debug.Assert(ui != null);
 
-            var webView = new ChromeWebBrowserView
+            var gl = EngineApp.Current.Renderer.Feature<GL>();
+
+            var webView = new ChromeWebBrowserView(gl)
             {
                 Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                 ZoomLevel = 0
@@ -20,6 +23,9 @@ namespace XrEngine.Browser.Windows
 
             ui.AddComponent<SurfaceController>();
             ui.AddComponent(webView);
+
+            if (options.UseLocalUI && !string.IsNullOrWhiteSpace(options.LocalAssetsPath))
+                webView.Browser.RequestHandler = new FsWebRequestHandler("main", options.LocalAssetsPath);
 
             return webView.Browser;
         }

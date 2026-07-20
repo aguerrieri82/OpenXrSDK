@@ -20,10 +20,7 @@ namespace XrEngine
     public static class EngineExtensions
     {
 
-
-
         #region EngineObject
-
 
         public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
         {
@@ -93,12 +90,10 @@ namespace XrEngine
 
         #region OBJECT3D
 
-
         public static void Remove(this Object3D self)
         {
             self.Parent?.RemoveChild(self);
         }
-
 
         public static void PropagateTransform(this Object3D self)
         {
@@ -182,7 +177,6 @@ namespace XrEngine
                 .OfType<T>();
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToLocal(this Object3D self, Vector3 worldPoint)
         {
@@ -210,7 +204,6 @@ namespace XrEngine
             else
                 self.WorldPosition = pose.Position;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 GetWorldPose(this Object3D self, bool fromOrigin = false)
@@ -318,7 +311,6 @@ namespace XrEngine
             return result != null;
         }
 
-
         public static T? FeatureDeep<T>(this Object3D self) where T : class
         {
             var result = self.Feature<T>();
@@ -350,7 +342,6 @@ namespace XrEngine
         {
             return self.Where(a => a.IsVisible);
         }
-
 
         #endregion
 
@@ -443,7 +434,6 @@ namespace XrEngine
             }
         }
 
-
         public static void ContainsPoint(this Scene3D self, Vector3 worldPoint, ConcurrentBag<Object3D> result, IEnumerable<ICollider3D>? colliders = null, float tollerance = 0)
         {
             IEnumerable<ICollider3D> GetColliders()
@@ -467,7 +457,6 @@ namespace XrEngine
 
             });
         }
-
 
         #endregion
 
@@ -502,7 +491,6 @@ namespace XrEngine
             return self.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
 
-
         public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D self) where T : class
         {
             foreach (var item in self.Descendants())
@@ -521,7 +509,6 @@ namespace XrEngine
         {
             return self.Descendants<Object3D>();
         }
-
 
         public static IEnumerable<T> Descendants<T>(this Group3D self) where T : Object3D
         {
@@ -658,7 +645,6 @@ namespace XrEngine
             }
         }
 
-
         public static void ComputeNormals(this Geometry3D self)
         {
 
@@ -789,7 +775,6 @@ namespace XrEngine
                     }
 
                     avg /= count;
-
 
                     foreach (var index in group)
                         self.Vertices[index].Normal = avg;
@@ -980,7 +965,6 @@ namespace XrEngine
 
             return Bounds3.Zero;
         }
-
 
         public static void EnsureCCW(this Geometry3D self)
         {
@@ -1284,7 +1268,6 @@ namespace XrEngine
             return planes;
         }
 
-
         #endregion
 
         #region TRANSFORM
@@ -1300,8 +1283,6 @@ namespace XrEngine
         {
             self.Scale = new Vector3(x, y, z);
         }
-
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetScale(this Transform3D self, float value)
@@ -1381,7 +1362,6 @@ namespace XrEngine
 
         #region MISC
 
-
         public static Poly2 ToPoly2(this ICurve2D curve, int numPoints, bool isClosed)
         {
             var points = new Vector2[numPoints];
@@ -1420,7 +1400,6 @@ namespace XrEngine
             for (var i = 0; i < count; i++)
                 self[i].Update(ctx);
         }
-
 
         public static void Update<T>(this IEnumerable<T> self, RenderContext ctx, bool safeMode) where T : IRenderUpdate
         {
@@ -1473,8 +1452,6 @@ namespace XrEngine
             return new Uri($"stream://mime/{mimeType}.{ImageMimeToExtension(mimeType)}");
         }
 
-
-
         #endregion
 
         #region TEXTURE2D
@@ -1484,7 +1461,6 @@ namespace XrEngine
             var render = EngineApp.Current.Renderer;
             render.LoadTexture(texture);
         }
-
 
         #endregion
     }

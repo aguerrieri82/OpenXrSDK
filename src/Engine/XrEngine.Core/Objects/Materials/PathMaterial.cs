@@ -18,7 +18,6 @@ namespace XrEngine
             };
         }
 
-
         public PathMaterial()
         {
             _shader = SHADER;

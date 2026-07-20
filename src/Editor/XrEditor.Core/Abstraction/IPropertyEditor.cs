@@ -16,7 +16,6 @@ namespace XrEditor
 
         void NotifyBindValueChanged();
 
-
         event Action<IPropertyEditor>? ValueChanged;
     }
 }

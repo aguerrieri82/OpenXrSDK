@@ -17,7 +17,6 @@ namespace XrEngine.OpenGL
         public uint Layer;
     }
 
-
     public abstract class GlBaseFrameBuffer : GlObject, IGlFrameBuffer
     {
         protected bool _isDirty = true;
@@ -45,7 +44,7 @@ namespace XrEngine.OpenGL
             if (status != GLEnum.FramebufferComplete)
             {
                 Log.Warn(this, "Frame buffer state invalid: {0}", status);
-               // throw new Exception($"Frame buffer state invalid: {status}");
+                // throw new Exception($"Frame buffer state invalid: {status}");
             }
 
             Complete();
@@ -76,7 +75,6 @@ namespace XrEngine.OpenGL
                 Unbind();
             }
         }
-
 
         public virtual void Bind()
         {
@@ -139,7 +137,6 @@ namespace XrEngine.OpenGL
             _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
         }
 
-
         public void Invalidate(params InvalidateFramebufferAttachment[] attachments)
         {
             if (attachments.Length == 1 &&
@@ -175,7 +172,6 @@ namespace XrEngine.OpenGL
             return (GlTexture)obj.Attachment;
         }
 
-
         public override void Dispose()
         {
             if (_handle != 0)
@@ -191,7 +187,6 @@ namespace XrEngine.OpenGL
             else if (Depth != null)
                 _size = new Size2I(Depth.Width, Depth.Height);
         }
-
 
         public abstract GlTexture? QueryTexture(FramebufferAttachment attachment);
 

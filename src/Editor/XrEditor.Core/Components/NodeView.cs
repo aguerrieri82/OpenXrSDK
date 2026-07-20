@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class NodeView : BaseView, IDisposable
     {
@@ -79,7 +77,6 @@ namespace XrEditor
                 result.Add(_panel.CreateNode(item, _host)!);
         }
 
-
         public void Dispose()
         {
             if (_node is IDynamicNode dynamicNode)
@@ -93,7 +90,6 @@ namespace XrEditor
 
             GC.SuppressFinalize(this);
         }
-
 
         public IconView? Icon
         {
@@ -116,7 +112,6 @@ namespace XrEditor
                 return _node.Value?.ToString() ?? "";
             }
         }
-
 
         public override string ToString()
         {

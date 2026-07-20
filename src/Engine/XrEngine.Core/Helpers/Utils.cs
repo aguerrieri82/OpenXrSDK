@@ -61,7 +61,6 @@ namespace XrEngine
             return true;
         }
 
-
         public static T CreateInstance<T>(Type actualType)
         {
             var ctor = actualType.GetConstructors()

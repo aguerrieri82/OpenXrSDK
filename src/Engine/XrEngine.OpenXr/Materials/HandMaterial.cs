@@ -16,7 +16,6 @@ namespace XrEngine.OpenXr
             };
         }
 
-
         public HandMaterial()
             : base()
         {
@@ -40,7 +39,6 @@ namespace XrEngine.OpenXr
             base.UpdateShaderMaterial(bld);
         }
 
-
         public Color Color { get; set; }
 
         [Range(0, 0.5f, 0.001f)]
@@ -50,7 +48,6 @@ namespace XrEngine.OpenXr
         public float FadeStart { get; set; }
 
         public float FadeSide { get; set; }
-
 
         [Range(0, 0.01f, 0.001f)]
         public float NormalScale { get; set; }

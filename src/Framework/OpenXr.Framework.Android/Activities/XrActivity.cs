@@ -6,7 +6,6 @@ using Android.Util;
 using Microsoft.Extensions.Logging;
 using XrInteraction;
 
-
 namespace OpenXr.Framework.Android
 {
     public abstract class XrActivity : Activity, IMainActivity
@@ -52,7 +51,6 @@ namespace OpenXr.Framework.Android
         }
 
         protected abstract XrApp CreateApp();
-
 
         protected virtual void OnXrAppStarted(XrApp app)
         {
@@ -199,7 +197,6 @@ namespace OpenXr.Framework.Android
 
             base.OnActivityResult(requestCode, resultCode, data);
         }
-
 
         Context IMainActivity.Context => this;
     }

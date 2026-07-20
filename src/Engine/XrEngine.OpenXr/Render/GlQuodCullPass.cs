@@ -6,8 +6,6 @@ using Silk.NET.OpenGL;
 
 using XrMath;
 using OpenXr.Framework;
-using XrEngine.Objects;
-
 
 namespace XrEngine.OpenGL
 {
@@ -18,7 +16,6 @@ namespace XrEngine.OpenGL
         protected readonly GlSimpleProgram _program;
         protected readonly uint _sampleCount;
         protected readonly IQuodTexture _quod;
-
 
         public GlQuodCullPass(OpenGLRender renderer, IQuodTexture quod, bool isMultiView, uint sampleCount)
             : base(renderer)
@@ -41,7 +38,7 @@ namespace XrEngine.OpenGL
             var options = XrApp.Current!.RenderOptions;
 
             _program.AddFeature("CAMERA_UNIFORMS");
-        
+
             if (isMultiView)
                 _program.AddFeature("TEXTURE_ARRAY");
 
@@ -113,7 +110,6 @@ namespace XrEngine.OpenGL
             _passTarget.RenderTarget!.End(false);
         }
 
-
         public override void Dispose()
         {
             _program.Dispose();
@@ -121,7 +117,6 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
-
 
     }
 }

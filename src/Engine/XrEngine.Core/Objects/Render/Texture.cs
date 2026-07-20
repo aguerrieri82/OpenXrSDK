@@ -1,11 +1,5 @@
-﻿using Common.Interop;
-using XrEngine;
-
-
-
-namespace XrEngine
+﻿namespace XrEngine
 {
-
 
     public enum TextureFormat
     {
@@ -51,7 +45,6 @@ namespace XrEngine
         RgUint32
     }
 
-
     public enum TextureCompressionFormat
     {
         Uncompressed = 0,
@@ -63,7 +56,6 @@ namespace XrEngine
         Astc = 0x43545341
     }
 
-
     public enum WrapMode
     {
         ClampToEdge = 33071,
@@ -71,7 +63,6 @@ namespace XrEngine
         ClampToBorder = 33069,
         MirrorRepeat = 33648,
     }
-
 
     public enum ScaleFilter
     {
@@ -81,7 +72,6 @@ namespace XrEngine
         TriLinear = LinearMipmapLinear
     }
 
-
     public enum TextureType
     {
         Unspecified,
@@ -90,7 +80,6 @@ namespace XrEngine
         Buffer,
         NormalMap
     }
-
 
     public abstract class Texture : EngineObject, IDisposable, IGpuObject
     {
@@ -102,7 +91,6 @@ namespace XrEngine
         {
             LoadData(data);
         }
-
 
         public void LoadData(TextureData data, bool initSampler = true)
         {
@@ -122,7 +110,7 @@ namespace XrEngine
 
             if (Format == TextureFormat.Unknown)
                 Format = data[0].Format;
-            
+
             Compression = data[0].Compression;
 
             if (initSampler)
@@ -182,7 +170,6 @@ namespace XrEngine
             NotifyChanged(ChangeType.Render);
         }
 
-
         public IList<TextureData>? Data { get; set; }
 
         public uint Width { get; set; }
@@ -205,6 +192,5 @@ namespace XrEngine
 
         public string? Hash { get; set; }
     }
-
 
 }

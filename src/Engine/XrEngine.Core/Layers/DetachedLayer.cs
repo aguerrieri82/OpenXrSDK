@@ -45,7 +45,6 @@ namespace XrEngine
             _version++;
         }
 
-
         public void Add(Object3D item)
         {
             item._scene = _manager?.Scene;

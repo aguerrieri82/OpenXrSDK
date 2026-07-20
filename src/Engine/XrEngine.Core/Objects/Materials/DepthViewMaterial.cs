@@ -20,7 +20,6 @@
             _shader = SHADER;
         }
 
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (Texture != null)
@@ -39,7 +38,6 @@
                 bld.SetUniform("uFarPlane", ctx => Camera.Far);
             }
         }
-
 
         public Texture2D? Texture { get; set; }
 

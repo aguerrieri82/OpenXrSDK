@@ -11,7 +11,6 @@ using XrEngine.Devices.Android;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
-
 namespace XrSamples.Android.Activities
 {
 
@@ -113,7 +112,7 @@ namespace XrSamples.Android.Activities
                     opt.UseOcclusionQuery = false;
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
-                    
+
                     opt.Compression.Use = _settings.TextureCompression;
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
@@ -133,8 +132,10 @@ namespace XrSamples.Android.Activities
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve);
 
+            /*
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+            */
 
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp();

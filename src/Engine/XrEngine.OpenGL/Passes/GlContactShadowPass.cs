@@ -53,7 +53,6 @@ namespace XrEngine.OpenGL
         protected readonly bool _isMultiView;
         protected readonly int _boundEye;
 
-
         public GlContactShadowPass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)
         {
@@ -74,7 +73,6 @@ namespace XrEngine.OpenGL
                 "contact_shadow.frag",
                 str => Embedded.GetString<Material>(str));
 
-
             _applyProgram = new GlSimpleProgram(
                 renderer.GL,
                 "fullscreen.vert",
@@ -94,7 +92,6 @@ namespace XrEngine.OpenGL
 
             _contactProgram.Build();
             _applyProgram.Build();
-
 
             _contactProgram.Build();
             _uniforms = new GlBuffer<ContactShadowUniforms>(_gl, BufferTargetARB.UniformBuffer);
@@ -152,7 +149,6 @@ namespace XrEngine.OpenGL
             _renderer.State.SetAlphaMode(AlphaMode.Opaque);
             _renderer.State.SetClearColor(Color.Transparent);
 
-
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             GlState.Current!.SetActiveBuffer(_uniforms, CONTACT_SHADOW_BUF, _uniforms.Target);
@@ -180,7 +176,6 @@ namespace XrEngine.OpenGL
             DrawQuad();
         }
 
- 
         public override void Dispose()
         {
             _contactProgram.Dispose();
@@ -190,7 +185,6 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
-
 
         public GlRenderPassTarget PassTarget => _passTarget;
 

@@ -15,7 +15,6 @@
             return items.OrderBy(GetText);
         }
 
-
         protected abstract IEnumerable<TItem> GetItems();
 
         public virtual string? GetText(TItem item)
@@ -27,7 +26,6 @@
         {
             return (TValue?)(object?)item;
         }
-
 
         string? IItemsSource.GetText(object? item)
         {

@@ -52,7 +52,6 @@ namespace XrSamples.Graffiti
                 _cap.Transform.Orientation = new Quaternion(-6.181724E-08f, 0.70710677f, 0f, 0.70710677f);
             }
 
-
             AddChild(_canBody!);
             AddChild(_cap!);
 
@@ -77,7 +76,6 @@ namespace XrSamples.Graffiti
 
                 FadeSize = 0.1f
             };
-
 
             _emitter = this.AddComponent<AudioEmitter>();
             _tracker = this.AddComponent<SprayTracker>();

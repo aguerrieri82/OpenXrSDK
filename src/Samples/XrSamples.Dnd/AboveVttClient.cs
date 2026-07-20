@@ -1,12 +1,9 @@
 ﻿using SkiaSharp;
-using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
-
-
 
 namespace XrSamples.Dnd
 {
@@ -145,7 +142,6 @@ namespace XrSamples.Dnd
         public string? RequestTimeEpoch { get; set; }
     }
 
-
     public class VttCurrentSceneResponse
     {
         public Guid DmScene { get; set; }
@@ -196,7 +192,6 @@ namespace XrSamples.Dnd
 
         }
 
-
         public async Task<SKBitmap> DownloadImageAsync(string uri)
         {
             var response = await _httpClient.GetAsync(uri);
@@ -225,7 +220,6 @@ namespace XrSamples.Dnd
             return result!;
         }
 
-
         public async Task UpdateTokenAsync(Guid sceneId, VttToken token)
         {
             var action = new VttAction();
@@ -244,7 +238,6 @@ namespace XrSamples.Dnd
 
             await _socketClient.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
-
 
         protected async void ReceiveLoop()
         {

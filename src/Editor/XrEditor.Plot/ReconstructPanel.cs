@@ -179,7 +179,7 @@ namespace XrEditor.Plot
         {
             var scene = EngineApp.Current.ActiveScene;
 
-            if (scene == null) 
+            if (scene == null)
                 return;
 
             if (_curDepth?.Left?.Data == null)
@@ -265,7 +265,6 @@ namespace XrEditor.Plot
                  (int)_curColor.Height,
                  _reader.LeftCamera!.GetViewProj(_curScreen.Pose!.Value),
                  true);
-
 
                 ColorImage.Image = Context.Require<IImageFactory>().CreateImage(
                     _curScreen.Data.AsSpan(),
@@ -369,7 +368,6 @@ namespace XrEditor.Plot
                 OnPropertyChanged(nameof(OpacityOverlay));
             }
         }
-
 
         public float DepthCutOff
         {

@@ -4,7 +4,6 @@ using Android.Opengl;
 using Android.Views;
 using XrEngine.OpenGL;
 
-
 namespace XrEngine.Media.Android
 {
 

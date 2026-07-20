@@ -8,7 +8,6 @@ namespace XrSamples.Earth
     {
         public static readonly new Shader SHADER;
 
-
         static AtmosphereMaterial()
         {
             SHADER = new StandardVertexShader
@@ -24,7 +23,6 @@ namespace XrSamples.Earth
                 }
             };
         }
-
 
         public AtmosphereMaterial()
             : base()
@@ -52,13 +50,10 @@ namespace XrSamples.Earth
             base.UpdateShaderMaterial(bld);
         }
 
-
         [Range(1, 10, 0.1f)]
         public float SunIntensity { get; set; }
 
         public Vector3 SunPosition { get; set; }
-
-
 
         public Color SunColor { get; set; }
     }

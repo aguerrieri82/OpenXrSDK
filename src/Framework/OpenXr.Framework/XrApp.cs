@@ -17,7 +17,6 @@ using System.Text.Json;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
-
 namespace OpenXr.Framework
 {
     public enum XrAppStartMode
@@ -60,7 +59,6 @@ namespace OpenXr.Framework
         protected Space _local;
         protected Space _stage;
 
-
         protected ulong _systemId;
         protected XrViewInfo? _viewInfo;
         protected SessionState _lastSessionState;
@@ -89,7 +87,6 @@ namespace OpenXr.Framework
 
         protected XrAppState _state;
         protected bool _isValid; //TODO rethink on _state
-
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -226,7 +223,6 @@ namespace OpenXr.Framework
                 VertexCapacityInput = 0
             };
 
-
             CheckResult(_visibilityMask.GetVisibilityMask(_session, _viewInfo!.Type, viewIndex, type, ref result), "GetVisibilityMask");
 
             var ixBuffer = new uint[result.IndexCountOutput];
@@ -251,7 +247,7 @@ namespace OpenXr.Framework
 
             return mesh;
         }
-     
+
         uint DebugCallback(
             DebugUtilsMessageSeverityFlagsEXT messageSeverity,
             DebugUtilsMessageTypeFlagsEXT messageTypes,
@@ -265,7 +261,6 @@ namespace OpenXr.Framework
                 Marshal.PtrToStringUTF8((nint)pCallbackData->Message) : "";
 
             _logger.LogWarning($"{funcName}: {msg}");
-
 
             return 0;
         }
@@ -435,7 +430,7 @@ namespace OpenXr.Framework
             _logger.LogInformation("Stopped");
         }
 
-#endregion
+        #endregion
 
         #region INSTANCE & SYSTEM
 
@@ -462,7 +457,7 @@ namespace OpenXr.Framework
         protected IList<string> GetSupportedApiLayers()
         {
             uint propCount = 0;
-            
+
             CheckResult(_xr!.EnumerateApiLayerProperties(0, &propCount, null), "EnumerateApiLayerProperties");
 
             var props = CreateStructArray<ApiLayerProperties>((int)propCount, StructureType.ApiLayerProperties);
@@ -478,7 +473,6 @@ namespace OpenXr.Framework
 
             return result;
         }
-
 
         protected InstanceProperties GetInstanceProperties()
         {
@@ -701,7 +695,6 @@ namespace OpenXr.Framework
             fixed (View* pViews = views)
                 CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
 
-
             return state;
         }
 
@@ -784,7 +777,6 @@ namespace OpenXr.Framework
         #endregion
 
         #region SESSION
-
 
         [MemberNotNull(nameof(_renderOptions))]
         [MemberNotNull(nameof(_xr))]
@@ -971,7 +963,7 @@ namespace OpenXr.Framework
 
             if (isDepth)
                 usage |= SwapchainUsageFlags.SampledBit;
-      
+
             var sampleCount = _renderOptions.RenderMode == XrRenderMode.MultiView ? 1 : _renderOptions.SampleCount;
 
             return CreateSwapChain(size, format, arraySize, usage, sampleCount, true);
@@ -1072,7 +1064,6 @@ namespace OpenXr.Framework
 
                     var viewsState = LocateViews(space, frameTime);
 
-
                     var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
@@ -1123,8 +1114,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-
-        public  unsafe void DumpLayersJson(ref CompositionLayerBaseHeader*[] layers, uint count)
+        public unsafe void DumpLayersJson(ref CompositionLayerBaseHeader*[] layers, uint count)
         {
             var options = new JsonSerializerOptions
             {
@@ -1358,7 +1348,6 @@ namespace OpenXr.Framework
             return instance;
         }
 
-
         #endregion
 
         #region ACTIONS
@@ -1400,7 +1389,6 @@ namespace OpenXr.Framework
             return builder.Result;
         }
 
-
         public XrInput<T> AddInput<T>(string path, string name)
         {
             var input = XrInput<T>.Create(this, path, name);
@@ -1426,7 +1414,6 @@ namespace OpenXr.Framework
             _haptics[haptic.Name] = haptic;
         }
 
-
         protected void CreateActions()
         {
             var suggBindings = new List<ActionSuggestedBinding>();
@@ -1443,7 +1430,6 @@ namespace OpenXr.Framework
                     _logger.LogError("Failed to create input '{input}': {ex}", input.Name, ex);
                 }
             }
-
 
             if (suggBindings.Count > 0)
             {
@@ -1589,7 +1575,6 @@ namespace OpenXr.Framework
             return result;
         }
 
-
         protected internal ActionStateFloat GetActionStateFloat(Action action, ulong subActionPath = 0)
         {
             var info = new ActionStateGetInfo
@@ -1647,7 +1632,6 @@ namespace OpenXr.Framework
                 SubactionPath = subActionPath,
             };
 
-
             var state = new ActionStatePose(StructureType.ActionStatePose);
 
             CheckResult(_xr!.GetActionStatePose(_session, in info, ref state), "ActionStatePose");
@@ -1690,7 +1674,6 @@ namespace OpenXr.Framework
             CheckResult(_xr!.StopHapticFeedback(_session, in info), "StopHapticFeedback");
         }
 
-
         #endregion
 
         #region EVENTS
@@ -1708,7 +1691,6 @@ namespace OpenXr.Framework
                     var result = _xr.PollEvent(_instance, ref buffer);
                     if (result != Result.Success)
                         return false;
-
 
                     _logger.LogDebug("New event {ev}", buffer.Type);
 
@@ -1877,8 +1859,6 @@ namespace OpenXr.Framework
             }
             return grp;
         }
-
-
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;
 

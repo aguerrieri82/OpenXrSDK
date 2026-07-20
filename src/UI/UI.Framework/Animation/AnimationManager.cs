@@ -96,9 +96,7 @@
             }
         }
 
-
         public int FrameRate { get; set; }
-
 
         public static readonly AnimationManager Instance = new AnimationManager();
     }

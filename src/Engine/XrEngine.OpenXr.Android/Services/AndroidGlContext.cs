@@ -1,9 +1,5 @@
 ﻿using OpenXr.Framework.Android;
-using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGLES;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using XrEngine.OpenGL;
 
 namespace XrEngine.OpenXr.Android
@@ -20,7 +16,6 @@ namespace XrEngine.OpenXr.Android
             _gl = gl;
         }
 
-
         public void Dispose()
         {
             _ctx.Destroy();
@@ -33,7 +28,7 @@ namespace XrEngine.OpenXr.Android
             _ownerThread = null;
 
             if (AndroidPlatform._currentGlContext == this)
-                AndroidPlatform._currentGlContext = null;   
+                AndroidPlatform._currentGlContext = null;
         }
 
         public void Take()

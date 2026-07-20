@@ -31,7 +31,7 @@ namespace XrEngine
             _stats = new EngineAppStats();
             _context = new RenderContext();
             _dispatcher = new QueueDispatcher();
-            
+
             //TODO set current by hand (more app in editor)
             if (_current == null)
             {
@@ -96,7 +96,7 @@ namespace XrEngine
         {
             _dispatcher.ProcessQueue();
 
-            if (_activeScene == null || _activeScene.ActiveCamera == null || _renderer == null) 
+            if (_activeScene == null || _activeScene.ActiveCamera == null || _renderer == null)
                 return false;
 
             if (_captureCount > 0)

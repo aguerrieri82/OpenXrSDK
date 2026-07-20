@@ -21,7 +21,6 @@ namespace XrEngine
             Build();
         }
 
-
         public void Build()
         {
             var vertexCount = (SubsH + 1) * (SubsV + 1);
@@ -51,7 +50,6 @@ namespace XrEngine
                         new Vector3(verts[index].Pos.X, verts[index].Pos.Y, 0).Normalize();
                 }
             }
-
 
             index = triangleIndexOffset;
             for (var y = 0; y < SubsV; y++)
@@ -109,7 +107,6 @@ namespace XrEngine
 
             vertexIndexOffset += vertexCount;
             triangleIndexOffset += indexCount;
-
 
             for (var y = 0; y <= SubsV; y++)
             {

@@ -52,7 +52,6 @@ namespace XrEngine
             return base.Feature<T>();
         }
 
-
         public override void UpdateBounds(bool force = false)
         {
             if (Geometry != null)
@@ -107,7 +106,7 @@ namespace XrEngine
                 foreach (var material in _materials)
                     material.Attach(this);
             }
-            
+
             base.OnChanged(change);
         }
 
@@ -148,7 +147,6 @@ namespace XrEngine
 
             base.Dispose();
         }
-
 
         [Action]
         public void DoExport()
@@ -191,7 +189,6 @@ namespace XrEngine
         VertexData[] IVertexSource<VertexData, uint>.Vertices => _geometry?.Vertices ?? [];
 
         IReadOnlyList<Material> IVertexSource.Materials => _materials;
-
 
         #endregion
     }

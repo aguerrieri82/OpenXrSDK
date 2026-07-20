@@ -73,12 +73,10 @@ namespace XrEngine.OpenGL
             return UpdateProgramResult.Unchanged;
         }
 
-
         protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
         {
             return UpdateProgramResult.Unchanged;
         }
-
 
         public override void RenderLayer(GlLayer layer)
         {
@@ -98,7 +96,7 @@ namespace XrEngine.OpenGL
                 {
                     var matContent = material.Value;
 
-                    if (matContent.IsHidden )
+                    if (matContent.IsHidden)
                         continue;
 
                     updateContext.Stage = UpdateShaderStage.Material;
@@ -158,12 +156,10 @@ namespace XrEngine.OpenGL
                         vHandler.Unbind();
                     }
 
-
                 }
             }
             _renderer.State.BindVertexArray(0);
         }
-
 
         protected virtual bool CanDraw(DrawContent draw)
         {

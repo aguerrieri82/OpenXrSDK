@@ -2,7 +2,6 @@
 using OpenXr.Framework;
 using System.Numerics;
 using System.Text.Json;
-using XrEngine;
 using XrMath;
 
 namespace XrEngine.Reconstruct

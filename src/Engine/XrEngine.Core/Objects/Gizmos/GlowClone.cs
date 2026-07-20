@@ -1,7 +1,5 @@
 ﻿
 using System.Numerics;
-using System.Text;
-
 
 namespace XrEngine
 {
@@ -43,6 +41,6 @@ namespace XrEngine
             base.Update(ctx);
         }
 
-        public Vector3 Direction { get; set; } 
+        public Vector3 Direction { get; set; }
     }
 }

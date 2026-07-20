@@ -51,7 +51,6 @@ namespace XrSamples.Graffiti
             Profile = profile;
         }
 
-
         [Action]
         public void Build()
         {

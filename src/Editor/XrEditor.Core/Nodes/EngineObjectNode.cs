@@ -1,5 +1,4 @@
-﻿using Silk.NET.OpenGL;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 
 namespace XrEditor.Nodes
@@ -48,7 +47,6 @@ namespace XrEditor.Nodes
         {
 
         }
-
 
         bool IEditorProperties.AutoGenerate
         {

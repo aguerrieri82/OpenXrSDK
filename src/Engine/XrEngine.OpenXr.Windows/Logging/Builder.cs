@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging.Console;
 using XrEngine.OpenXr.Windows;
 
-
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class Builder

@@ -2,14 +2,12 @@
 
 using System.Numerics;
 
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 
 #endif
-
 
 namespace XrEngine.OpenGL
 {
@@ -96,7 +94,6 @@ namespace XrEngine.OpenGL
             else
                 draw.Draw!();
         }
-
 
         protected bool UpdateDepthPyramid()
         {
@@ -204,7 +201,6 @@ namespace XrEngine.OpenGL
                 _lastContentVersion = contVersion;
             }
 
-
             _depthCull.Use();
 
             _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, _depthData);
@@ -245,7 +241,6 @@ namespace XrEngine.OpenGL
 
             _renderer.State.SetActiveProgram(0);
         }
-
 
         bool IDepthCullProvider.IsActive => UseDepthCull;
 

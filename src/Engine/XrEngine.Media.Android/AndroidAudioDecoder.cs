@@ -90,7 +90,6 @@ namespace XrEngine.Media.Android
                     }
                 }
 
-
                 var outputIndex = codec.DequeueOutputBuffer(info, 10_000);
                 if (outputIndex >= 0)
                 {

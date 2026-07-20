@@ -1,7 +1,6 @@
 ﻿namespace XrEngine
 {
 
-
     public interface IShaderHandler
     {
         void UpdateShader(ShaderUpdateBuilder bld);

@@ -1,10 +1,6 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
-using XrSamples.Dnd;
-using XrSamples.Graffiti;
 
 namespace XrEditor
 {
@@ -28,12 +24,11 @@ namespace XrEditor
 
         public static readonly int VSyncScale = 4;
 
-        public static readonly bool UseDxHost = true;
+        public static readonly bool UseDxHost = false;
 
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
 
         public static readonly string StoragePath = Path.Combine(PersistentPath, "Storage");
-
 
         public static readonly string[] AssetsPath = [
             @"Assets\",
@@ -41,7 +36,6 @@ namespace XrEditor
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
-
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
@@ -60,7 +54,7 @@ namespace XrEditor
                   opt.Compression.Format = TextureCompressionFormat.Astc;
                   opt.Compression.BlockSize = 3;
                   opt.Compression.Quality = 80;
-                  
+
                   opt.ShadowMap.Mode = ShadowMapMode.VSM;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
                   opt.ShadowMap.UseShadowSampler = false;
@@ -72,9 +66,9 @@ namespace XrEditor
                   opt.ToneMap = ToneMapMode.Neutral;
 
               })
-            // .UseSpaceWarp()
+              // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: false)
-              .CreateRoomManager()  
+              .CreateRoomManager()
               .Build();
     }
 }

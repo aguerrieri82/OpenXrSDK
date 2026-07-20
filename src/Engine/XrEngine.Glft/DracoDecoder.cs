@@ -37,7 +37,6 @@ namespace XrEngine.Gltf
         [DllImport("draco-native")]
         public static unsafe extern void DisposeMesh(IntPtr mesh);
 
-
         public unsafe static uint[] ReadIndices(MeshData data)
         {
             var buffer = new uint[data.IndicesSize];

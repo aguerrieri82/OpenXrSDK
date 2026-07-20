@@ -1,6 +1,4 @@
-﻿using System.Windows.Input;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
 
     public class PropertiesPresetView : BaseView
@@ -25,7 +23,6 @@ namespace XrEditor
                 OnPropertyChanged(nameof(Name));
             }
         }
-
 
         public ComponentPreset Value => _value;
     }

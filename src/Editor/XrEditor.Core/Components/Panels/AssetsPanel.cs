@@ -6,7 +6,6 @@ using XrEngine;
 namespace XrEditor
 {
 
-
     [Panel("40f708c2-5c26-4b81-bc06-38b890cc9e5a")]
     [DisplayName("Assets")]
     public class AssetsPanel : BasePanel
@@ -57,7 +56,6 @@ namespace XrEditor
                 Color = color;
                 FullPath = path;
             }
-
 
             public string? Color { get; set; }
 
@@ -118,7 +116,6 @@ namespace XrEditor
                 return;
             OpenPath(_selectedItem.FullPath);
         }
-
 
         [MemberNotNull(nameof(_curPath))]
         public void OpenPath(string path)

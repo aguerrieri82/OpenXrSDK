@@ -10,13 +10,11 @@ namespace PhysX.Framework
         {
         }
 
-
         public PxSphericalJointFlags SphericalFlags
         {
             get => SphericalJoint.GetSphericalJointFlags();
             set => SphericalJoint.SetSphericalJointFlagsMut(value);
         }
-
 
         public PxJointLimitCone LimitCone
         {

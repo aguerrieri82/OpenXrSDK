@@ -29,7 +29,6 @@ namespace XrEngine.Devices.Windows
             if (_opened)
                 return;
 
-
             _proc = new Win32.MidiInProc(MidiInCallback);
 
             _gch = GCHandle.Alloc(_proc, GCHandleType.Normal);

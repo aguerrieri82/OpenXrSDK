@@ -4,7 +4,6 @@
     {
         static readonly Shader SHADER;
 
-
         static LineMaterial()
         {
             SHADER = new CameraOnlyVertexShader
@@ -22,7 +21,6 @@
             _shader = SHADER;
             LineWidth = 1;
         }
-
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {

@@ -31,7 +31,6 @@ namespace XrEngine
     {
         protected HashSet<EngineObject> _hosts = [];
 
-
         public Material()
         {
             Alpha = AlphaMode.Opaque;
@@ -109,6 +108,11 @@ namespace XrEngine
             NotifyChanged(ChangeType.Render);
         }
 
+        public override void Invalidate(InvalidateMode mode = InvalidateMode.Content)
+        {
+            base.Invalidate(mode);
+        }
+
         public IReadOnlySet<EngineObject> Hosts => _hosts;
 
         public bool UseClipDistance { get; set; }
@@ -138,7 +142,6 @@ namespace XrEngine
         public string? Name { get; set; }
 
         public int Priority { get; set; }
-
 
         [Notify(ChangeType.MaterialEnabled)]
         public partial bool IsEnabled { get; set; }

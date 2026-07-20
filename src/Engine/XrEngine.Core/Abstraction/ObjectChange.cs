@@ -108,7 +108,6 @@ namespace XrEngine
             return new ObjectChange(type);
         }
 
-
         public ChangeType Type;
 
         public object? Target;

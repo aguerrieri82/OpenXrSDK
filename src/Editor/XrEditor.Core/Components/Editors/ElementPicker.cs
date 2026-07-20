@@ -51,7 +51,6 @@ namespace XrEditor
             base.OnEditValueChanged(newValue);
         }
 
-
         public ImageView? Image
         {
             get => _image;
@@ -75,7 +74,6 @@ namespace XrEditor
                 OnPropertyChanged(nameof(Name));
             }
         }
-
 
         public static ElementPicker Create<T>(IProperty<T?> binding) where T : EngineObject
         {

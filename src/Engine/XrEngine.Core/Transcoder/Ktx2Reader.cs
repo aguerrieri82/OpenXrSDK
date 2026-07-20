@@ -65,7 +65,6 @@ namespace XrEngine
                 throw new NotSupportedException();
             }
 
-
             TextureCompressionFormat comp;
             TextureFormat format;
 
@@ -82,7 +81,6 @@ namespace XrEngine
                 default:
                     throw new NotSupportedException();
             }
-
 
             if (header.sgdByteOffset == 0)
                 seekStream.Position = header.kvdByteOffset + header.kvdByteLength;

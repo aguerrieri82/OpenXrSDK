@@ -14,7 +14,6 @@
             Check = check;
         }
 
-
         public readonly Func<PhysicsRigidActor, PhysicsRigidActor, bool> Check;
 
         public static CollideGroup Always = new((_, _) => true);

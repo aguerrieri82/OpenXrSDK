@@ -26,9 +26,8 @@
 
         public bool UseInstances { get; set; }
 
-        public bool UseMips { get;  set; }
+        public bool UseMips { get; set; }
 
-        
         public static readonly GltfLoaderOptions Default = new();
     }
 }

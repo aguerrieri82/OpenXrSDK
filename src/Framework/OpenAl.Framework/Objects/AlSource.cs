@@ -6,7 +6,6 @@ namespace OpenAl.Framework
     public class AlSource : AlObject, IDisposable
     {
 
-
         public AlSource(AL al)
             : base(al, al.GenSource())
         {
@@ -32,7 +31,6 @@ namespace OpenAl.Framework
             ConeInnerAngleDeg = 360f;
             ConeOuterAngleDeg = 360f;
         }
-
 
         public void Play()
         {
@@ -86,7 +84,6 @@ namespace OpenAl.Framework
                 return data.X;
             }
         }
-
 
         public int BuffersProcessed
         {
@@ -194,7 +191,6 @@ namespace OpenAl.Framework
             set => _al.SetSourceProperty(_handle, SourceFloat.Gain, value);
         }
 
-
         public float PlayPositionSecs
         {
             get
@@ -235,7 +231,6 @@ namespace OpenAl.Framework
             set => _al.SetSourceProperty(_handle, SourceFloat.MinGain, value);
         }
 
-
         public float ConeInnerAngleDeg
         {
             get
@@ -266,7 +261,6 @@ namespace OpenAl.Framework
             set => _al.SetSourceProperty(_handle, SourceBoolean.SourceRelative, value);
         }
 
-
         public float ReferenceDistance
         {
             get
@@ -276,7 +270,6 @@ namespace OpenAl.Framework
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.ReferenceDistance, value);
         }
-
 
         public float RolloffFactor
         {

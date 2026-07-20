@@ -34,12 +34,12 @@ namespace XrEngine
 
         public uint FragLocation { get; set; }
 
-        public bool IsMultiView { get; set; }   
+        public bool IsMultiView { get; set; }
 
         public float OutlineSize { get; set; }
 
         public Color Color { get; set; }
 
-        public Texture? Texture { get; set; }  
+        public Texture? Texture { get; set; }
     }
 }

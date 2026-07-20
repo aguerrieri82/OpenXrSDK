@@ -1,11 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
-using XrEngine.Wpf;
 using XrMath;
-
 
 namespace XrEditor
 {
@@ -33,7 +30,6 @@ namespace XrEditor
 
         public Command CloseCommand { get; }
     }
-
 
     public class MainView : BaseView, IUserInteraction, IStateManager
     {

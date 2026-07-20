@@ -94,7 +94,6 @@ namespace PhysX.Framework
 
         public PxGeometryType Type => NativeMethods.PxGeometryHolder_getType(_holder);
 
-
         public static implicit operator PxGeometry*(PhysicsGeometry self) => self._holder->AnyMut();
     }
 }

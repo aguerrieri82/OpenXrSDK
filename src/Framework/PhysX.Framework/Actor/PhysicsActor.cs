@@ -22,7 +22,6 @@ namespace PhysX.Framework
         public float Density;
     }
 
-
     public abstract unsafe class PhysicsActor : PhysicsObject<PxActor>
     {
         private string _name;
@@ -32,7 +31,6 @@ namespace PhysX.Framework
         {
             _name = string.Empty;
         }
-
 
         public override void Dispose()
         {
@@ -49,7 +47,6 @@ namespace PhysX.Framework
 
             GC.SuppressFinalize(this);
         }
-
 
         public PxActorFlags ActorFlags
         {
@@ -70,7 +67,6 @@ namespace PhysX.Framework
         }
 
         public uint Id { get; internal set; }
-
 
         public ref PxActor Actor => ref Unsafe.AsRef<PxActor>(_handle);
     }

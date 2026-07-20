@@ -2,7 +2,6 @@
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenXR;
-using System.Diagnostics;
 using XrEngine.OpenGL;
 
 namespace XrEngine.OpenXr
@@ -29,7 +28,6 @@ namespace XrEngine.OpenXr
                 MotionVectorFormat = (long)InternalFormat.Rgba16f;
                 DepthFormat = (long)InternalFormat.DepthComponent16;
             }
-
 
         }
 

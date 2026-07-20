@@ -29,7 +29,6 @@
             }
         }
 
-
         public float ScaleY
         {
             get => _scaleY;

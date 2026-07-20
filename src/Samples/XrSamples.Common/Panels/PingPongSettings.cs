@@ -61,7 +61,6 @@ namespace XrSamples
             LightIntensity = 1f;
         }
 
-
         public void Apply(Object3D obj, PhysicSettings settings)
         {
             var body = obj.Component<RigidBody>();
@@ -135,7 +134,6 @@ namespace XrSamples
                 light.NotifyChanged(ChangeType.Render);
             }
 
-
             if (_filePath != null)
             {
                 Save();
@@ -144,7 +142,6 @@ namespace XrSamples
         }
 
         public MaterialSettings BallMaterial { get; set; }
-
 
         public PhysicSettings Ball { get; set; }
 

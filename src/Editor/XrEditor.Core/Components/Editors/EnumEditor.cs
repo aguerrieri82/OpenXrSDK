@@ -18,7 +18,6 @@ namespace XrEditor
             Binding = binding;
         }
 
-
         public T[] Values => Enum.GetValues<T>();
     }
 

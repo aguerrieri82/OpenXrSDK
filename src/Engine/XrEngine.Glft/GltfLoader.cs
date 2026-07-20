@@ -11,7 +11,6 @@ using XrMath;
 
 #pragma warning disable CS0649
 
-
 namespace XrEngine.Gltf
 {
 
@@ -37,7 +36,6 @@ namespace XrEngine.Gltf
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
             "KHR_materials_pbrSpecularGlossiness" };
-
 
         struct EXT_texture_webp
         {
@@ -159,23 +157,22 @@ namespace XrEngine.Gltf
                     else
                         throw new NotSupportedException();
 
-
                     Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
                     Uri uri;
                     var mimeType = img.MimeType.ToString()?.Replace('_', '/');
                     if (string.IsNullOrEmpty(mimeType))
-                        uri = new Uri("file://" + img.Uri   );
+                        uri = new Uri("file://" + img.Uri);
                     else
                         uri = AssetLoader.Instance.GetMimeUri(mimeType);
 
                     var loader = (ITextureLoader)AssetLoader.Instance.GetLoader(uri);
-                    
+
                     using var stream = new MemoryStream(data);
 
                     var texData = loader.LoadTexture(stream, new TextureLoadOptions
                     {
-                        IsSrgb = useSrgb 
+                        IsSrgb = useSrgb
                     });
 
                     if (texData.Count == 0)
@@ -216,7 +213,6 @@ namespace XrEngine.Gltf
 
             var imageInfo = _model!.Images[texture.Source!.Value];
 
- 
             return _textures.GetOrAdd(imageInfo, img =>
             {
                 Debug.Assert(result == null);
@@ -307,7 +303,6 @@ namespace XrEngine.Gltf
             return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
         }
 
-
         public PbrMaterial ProcessMaterial(int matId, PbrMaterial? result = null)
         {
             var gltMat = _model!.Materials[matId];
@@ -329,7 +324,6 @@ namespace XrEngine.Gltf
             result.DoubleSided = gltMat.DoubleSided;
 
             result.AlphaCutoff = gltMat.AlphaCutoff;
-
 
             if (gltMat.PbrMetallicRoughness != null)
             {
@@ -369,7 +363,6 @@ namespace XrEngine.Gltf
                 result.EmissiveMap = DecodeTextureBaseTask(gltMat.EmissiveTexture, true).Result;
                 ApplyMips(result.EmissiveMap);
             }
-
 
             result.EmissiveColor = new Color(gltMat.EmissiveFactor);
 
@@ -565,7 +558,6 @@ namespace XrEngine.Gltf
                             throw new NotSupportedException();
                     }
                 }
-
 
             }
             else
@@ -791,7 +783,6 @@ namespace XrEngine.Gltf
             _model = glTFLoader.Interface.LoadModel(filePath);
         }
 
-
         public Object3D Load(string filePath, GltfLoaderOptions options)
         {
             LoadModel(filePath, options);
@@ -818,7 +809,6 @@ namespace XrEngine.Gltf
             }
 
             Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
-
 
             return curRoot;
         }
@@ -868,7 +858,6 @@ namespace XrEngine.Gltf
             var loader = new GltfLoader(resourceResolver);
             return loader.Load(filePath, options);
         }
-
 
         public glTFLoader.Schema.Gltf? Model => _model;
 

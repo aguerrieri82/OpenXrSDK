@@ -61,7 +61,6 @@ namespace XrEngine.Reconstruct
             AttachCamera = true;
         }
 
-
         Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
         {
             if (cam.Intrinsic == null || cam.SensorSize == null)
@@ -118,7 +117,6 @@ namespace XrEngine.Reconstruct
 
             var color = _reader.ReadColor(meta.LeftColor!.Frame).Left;
 
-
             _leftFrame.LoadData(new TextureData
             {
                 Width = 1280,
@@ -147,7 +145,6 @@ namespace XrEngine.Reconstruct
             ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
 
         }
-
 
         protected void LoadFrameScreen()
         {
@@ -184,7 +181,6 @@ namespace XrEngine.Reconstruct
                 Orientation = Quaternion.Identity,
                 Position = new Vector3(-0.028116345f, 0.008583844f, 0.012929559f)
             };
-
 
             Matrix4x4.Invert(screen.View, out var word);
             Matrix4x4.Decompose(word, out var scale, out var rot, out var trans);
@@ -242,7 +238,6 @@ namespace XrEngine.Reconstruct
             }
         }
 
-
         public int Frame
         {
             get => _frameNum;
@@ -262,7 +257,6 @@ namespace XrEngine.Reconstruct
                 OnPropertyChanged(nameof(Frame));
             }
         }
-
 
         protected void OnPropertyChanged(string name)
         {
@@ -286,8 +280,6 @@ namespace XrEngine.Reconstruct
         public int LastFrame { get; set; }
 
         public bool AttachCamera { get; set; }
-
-
 
         public bool AddShift
         {
@@ -322,7 +314,6 @@ namespace XrEngine.Reconstruct
                 LoadFrame();
             }
         }
-
 
         [Range(0.0f, 1280.0f, 1.0f)]
         public float Fx

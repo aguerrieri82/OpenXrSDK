@@ -1,17 +1,9 @@
-﻿using CanvasUI;
-using Common.Interop;
-using Silk.NET.Core.Native;
-using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
+﻿using Common.Interop;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using XrEngine.OpenGL;
 using XrEngine.UI;
 using XrMath;
 
@@ -36,7 +28,6 @@ namespace XrEngine.Lighting
         public LightFieldDebug(VoxelGridDesc grid, bool isReadMode)
         {
             _grid = grid;
-
 
             _isReadMode = isReadMode;
 
@@ -67,7 +58,7 @@ namespace XrEngine.Lighting
             RayDir = new Vector3(0, -1, 0);
             RayEnergy = 5;
 
-            LightRange = 7; 
+            LightRange = 7;
 
             EnergyThreshold = 0.001f;
             MaxBounceCount = 5;
@@ -100,7 +91,6 @@ namespace XrEngine.Lighting
             CreateWalls();
         }
 
-
         protected override void OnAttach()
         {
             _provider = _host!.Component<LightFieldProvider>();
@@ -111,7 +101,6 @@ namespace XrEngine.Lighting
             container.WriteObject(this, GetType());
             base.GetState(container);
         }
-
 
         protected override void SetStateWork(IStateContainer container)
         {
@@ -145,7 +134,7 @@ namespace XrEngine.Lighting
             {
                 Color = Color.White,
                 UseLightField = UseLightFieldMode.Self,
-                Metalness= 0,
+                Metalness = 0,
                 Roughness = 0.8f
             };
 
@@ -296,7 +285,6 @@ namespace XrEngine.Lighting
                 }
             });
 
-
         }
 
         public unsafe static IMemoryBuffer<byte> ExtractFaceDirection2Texture(
@@ -334,7 +322,6 @@ namespace XrEngine.Lighting
             return target;
         }
 
-
         protected void UpdateMaterials()
         {
             var tex = _provider!.GetLightField().Textures;
@@ -358,7 +345,6 @@ namespace XrEngine.Lighting
             Log.Info(this, "Texture loaded");
         }
 
-
         void UpdateMeshView()
         {
             var faces = new List<GpuVoxelFaceInstance>();
@@ -374,7 +360,7 @@ namespace XrEngine.Lighting
                         BaseColor = a.BaseColor,
                         Metallic = a.Metallic,
                         Normal = a.Normal,
-                        Roughness = a.Roughness,    
+                        Roughness = a.Roughness,
                     }));
                 }
             }
@@ -455,7 +441,7 @@ namespace XrEngine.Lighting
 
             var state = _ray.GetState();
 
-            int fillFaces = 0;
+            var fillFaces = 0;
 
             foreach (var face in state.LastVoxel.Faces)
             {
@@ -497,7 +483,6 @@ namespace XrEngine.Lighting
             UpdateMaterials();
         }
 
-
         [Action]
         public void CopyPreset()
         {
@@ -531,7 +516,6 @@ namespace XrEngine.Lighting
             else
                 Log.Warn(this, "Settings '{0}' not found", name);
         }
-
 
         [Category("Trace")]
         public LightTrackMode TrackMode { get; set; }
@@ -569,10 +553,9 @@ namespace XrEngine.Lighting
 
         [Category("Trace")]
         public float RecoveryRange { get; set; }
-        
+
         [Category("Trace")]
         public RayIntersectionMode IntersectionMode { get; set; }
-
 
         [Category("Misc")]
         public int ThreadCount { get; set; }
@@ -590,7 +573,6 @@ namespace XrEngine.Lighting
 
         [Category("Blur")]
         public bool BlurColorOnly { get; set; }
-
 
         [Category("Bounce")]
         public int MaxBounceCount { get; set; }
@@ -611,9 +593,8 @@ namespace XrEngine.Lighting
         [ValueType(ValueType.Radiant)]
         public float BounceConeMaxAngle { get; set; }
 
-
         [Category("Field Dir")]
-        public DirectionCollapseMode DirCollapseMode { get; set; }    
+        public DirectionCollapseMode DirCollapseMode { get; set; }
 
         [Category("Field Dir")]
         public int SmoothDirIterations { get; set; }

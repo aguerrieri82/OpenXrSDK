@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using XrEngine.Media;
 using XrMath;
 
@@ -37,7 +34,7 @@ namespace XrEngine.Devices
     {
         private ICameraManager? _manager;
         private ICameraPoseProvider? _poseProvider;
-        private readonly Dictionary<string, CameraStatus> _cameras  = [];
+        private readonly Dictionary<string, CameraStatus> _cameras = [];
 
         public CameraController()
         {
@@ -76,8 +73,8 @@ namespace XrEngine.Devices
         {
             Debug.Assert(_manager != null);
 
-            var status = GetStatus(cameraId);  
-            
+            var status = GetStatus(cameraId);
+
             if (status.Device == null)
             {
                 var cameras = _manager.GetCameras();
@@ -88,7 +85,7 @@ namespace XrEngine.Devices
                 status.Device = await _manager.OpenCameraAsync(cameraId);
             }
 
-            IEnumerable<VideoFormat> formats = status.Device.GetSupportedFormats()
+            var formats = status.Device.GetSupportedFormats()
                 .Where(a => a.ImageFormat != ImageFormat.MJPG);
 
             if (resolution != null)
@@ -144,7 +141,6 @@ namespace XrEngine.Devices
 
             return true;
         }
-      
 
         public void StopCamera(string cameraId)
         {
@@ -189,7 +185,7 @@ namespace XrEngine.Devices
                         if (pose != null)
                             camera.Pose = pose.Value.Multiply(camera.Params!.GetLensPose());
                         else
-                            camera.Pose = null; 
+                            camera.Pose = null;
                     }
 
                     if (camera.Proj == null)

@@ -37,14 +37,11 @@ namespace XrMath
             return true;
         }
 
-
         public static Matrix4x4 Invert(in this Matrix4x4 matrix)
         {
             Matrix4x4.Invert(matrix, out var result);
             return result;
         }
-
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 ToPose(in this Matrix4x4 self)
@@ -201,7 +198,6 @@ namespace XrMath
             vAxis = Vector3.Normalize(Vector3.Cross(self.Normal, uAxis));
         }
 
-
         public static Vector2 ProjectUV(in this Plane self, in Vector3 point)
         {
             self.OrthogonalAxis(out var uAxis, out var vAxis);
@@ -262,8 +258,6 @@ namespace XrMath
             point = line.From + t * direction;
             return true;
         }
-
-
 
         #endregion
 
@@ -335,7 +329,6 @@ namespace XrMath
             return true;
         }
 
-
         public static Bounds3 Transform(in this Bounds3 self, in Matrix4x4 matrix)
         {
             return self.Points.ComputeBounds(matrix);
@@ -401,7 +394,6 @@ namespace XrMath
             return true;
         }
 
-
         public static bool Intersects(in this Bounds3 self, in Line3 line, out float distance)
         {
             var dir = line.Direction();
@@ -431,7 +423,6 @@ namespace XrMath
             );
             return vec.Length();
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DistanceSquaredTo(in this Bounds3 self, in Vector3 point)
@@ -500,7 +491,6 @@ namespace XrMath
                    Matrix4x4.CreateTranslation(self.Position);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Inverse(in this Pose3 self)
         {
@@ -565,7 +555,6 @@ namespace XrMath
                 Position = self.Position + delta.Position
             };
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Difference(in this Pose3 self, in Pose3 other)
@@ -648,7 +637,6 @@ namespace XrMath
             return (self.V0 + self.V1 + self.V2) / 3.0f;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Triangle3 Transform(in this Triangle3 self, Matrix4x4 matrix)
         {
@@ -659,7 +647,6 @@ namespace XrMath
                 V2 = self.V2.Transform(matrix),
             };
         }
-
 
         #endregion
 
@@ -747,7 +734,6 @@ namespace XrMath
                    MathF.Abs(value.Y - value.Z) < epsilon;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsSimilar(in this Vector3 self, in Vector3 other, float epsilon = 1e-5f)
         {
@@ -768,7 +754,6 @@ namespace XrMath
             return Vector3.Transform(self, quat);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotNormal(in this Vector3 self, in Vector3 other)
         {
@@ -786,7 +771,6 @@ namespace XrMath
         {
             return Vector3.Cross(self, other);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Normalize(in this Vector3 self)
@@ -878,7 +862,6 @@ namespace XrMath
             return MathF.Acos(dot);
         }
 
-
         #endregion
 
         #region RAY 
@@ -892,7 +875,6 @@ namespace XrMath
                 To = self.PointAt(len)
             };
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 PointAt(in this Ray3 self, float distance)
@@ -927,7 +909,6 @@ namespace XrMath
 
             return distance >= 0 ? self.PointAt(distance) : null;
         }
-
 
         public static Vector3? Intersects(in this Ray3 self, in Triangle3 triangle, out float distance, float epsilon = EPSILON)
         {
@@ -1034,7 +1015,6 @@ namespace XrMath
         {
             return new Quaternion(-self.X, -self.Y, -self.Z, self.W);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion Subtract(this Quaternion self, Quaternion other)
@@ -1195,18 +1175,15 @@ namespace XrMath
             return $"#{ToHex(self.A)}{ToHex(self.R)}{ToHex(self.G)}{ToHex(self.B)}";
         }
 
-
         #endregion
 
         #region LINE2
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Direction(in this Line3 self)
         {
             return (self.To - self.From).Normalize();
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Length(in this Line3 self)
@@ -1226,7 +1203,6 @@ namespace XrMath
             return new Line3(self.To, self.From);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 Expand(in this Line3 self, float fromDelta, float toDelta)
         {
@@ -1239,20 +1215,17 @@ namespace XrMath
             return new Line3(self.From.Transform(matrix), self.To.Transform(matrix));
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 Transform(in this Line3 self, Quaternion quat)
         {
             return new Line3(Vector3.Transform(self.From, quat), Vector3.Transform(self.To, quat));
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 PointAt(in this Line3 self, float distance)
         {
             return self.From + self.Direction() * distance;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 PointAtOffset(in this Line3 self, float t)
@@ -1389,12 +1362,10 @@ namespace XrMath
             return new Rect2(self.X * x, self.Y * y, self.Width * x, self.Height * y);
         }
 
-
         public static Rect2 Translate(this in Rect2 self, float x, float y)
         {
             return new Rect2(self.X + x, self.Y + y, self.Width, self.Height);
         }
-
 
         #endregion
 
@@ -1447,12 +1418,10 @@ namespace XrMath
             return offset < 0;
         }
 
-
         public static int Area(in this Vector3I self)
         {
             return self.Z * self.Y * self.X;
         }
-
 
         #endregion
     }

@@ -67,21 +67,19 @@ namespace XrEditor
             if (_selectionLayer != null)
             {
                 await EngineApp.MainThread;
-                 
+
                 _selectionLayer.BeginUpdate();
                 _selectionLayer.Clear();
 
                 var outlineMeshes = _lastSelection
                     .Select(a => a.Value)
-                    .Union(_lastSelection.Select(a=> a.Parent?.Value).OfType<TriangleMesh>())
+                    .Union(_lastSelection.Select(a => a.Parent?.Value).OfType<TriangleMesh>())
                     .OfType<Object3D>()
                     .Where(a => a is not Scene3D)
                     .SelectMany(a => a.DescendantsOrSelf())
                     .OfType<TriangleMesh>();
 
-
                 _lastOutline = outlineMeshes.ToHashSet();
-
 
                 foreach (var item in _lastOutline)
                     _selectionLayer.Add(item);

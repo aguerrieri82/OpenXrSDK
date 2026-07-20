@@ -5,7 +5,6 @@ using Android.Views;
 using XrEngine.OpenGL;
 using XrMath;
 
-
 namespace XrEngine.Media.Android
 {
     public class AndroidVideoReader : IVideoReader

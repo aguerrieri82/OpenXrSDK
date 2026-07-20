@@ -11,7 +11,6 @@
             Right = 1
         }
 
-
         static EyeTextureMaterial()
         {
             SHADER = new StandardVertexShader
@@ -73,7 +72,6 @@
                     up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
             });
         }
-
 
         public override void Dispose()
         {

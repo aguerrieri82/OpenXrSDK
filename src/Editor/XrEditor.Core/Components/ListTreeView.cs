@@ -3,7 +3,6 @@ using System.Diagnostics;
 using XrEditor.Abstraction;
 using XrEngine;
 
-
 namespace XrEditor
 {
     public class ListTreeNodeView : BaseView, IEditorUIElementHost
@@ -20,7 +19,6 @@ namespace XrEditor
         protected bool _isSelected;
         protected bool _isLeaf;
         protected IEditorUIElement? _uiElement;
-
 
         public ListTreeNodeView(ListTreeView host, ListTreeNodeView? parent)
         {
@@ -71,7 +69,6 @@ namespace XrEditor
                 _host.EndUpdate();
             }
         }
-
 
         public void Clear()
         {
@@ -190,7 +187,6 @@ namespace XrEditor
             return Visit(this);
         }
 
-
         protected ListTreeNodeView? LastDescendant(bool includeSelf = false)
         {
             if (_children == null || _children.Count == 0)
@@ -256,7 +252,6 @@ namespace XrEditor
         {
             IsExpanded = !IsExpanded;
         }
-
 
         public bool IsSelected
         {
@@ -365,7 +360,6 @@ namespace XrEditor
 
         public double Margin => _level * 16;
     }
-
 
     public class ListTreeView : BaseView, IEditorUIElementHost
     {

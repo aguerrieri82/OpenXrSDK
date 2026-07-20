@@ -14,7 +14,6 @@ namespace XrSamples.Earth
             return new Vector3(Unit(value.X), Unit(value.Y), Unit(value.Z));
         }
 
-
         public static double DegreesToRadians(double degrees)
         {
             return degrees * Math.PI / 180.0;

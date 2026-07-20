@@ -1,9 +1,5 @@
 ﻿using Common.Interop;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection.Emit;
-using System.Text;
 using XrEngine.OpenGL;
 using XrMath;
 
@@ -22,7 +18,6 @@ namespace XrEngine.OpenXr
 
             Flags |= EngineObjectFlags.NoFrustumCulling;
         }
-
 
         public unsafe TriangleMesh? Freeze(Matrix4x4 colorViewProj, int eye = 0)
         {

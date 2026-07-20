@@ -13,7 +13,6 @@ namespace XrEngine.Gltf
             public DateTime LastEditTime { get; set; }
         }
 
-
         GltfAssetLoader() { }
 
         protected string GetFilePath(Uri uri)
@@ -144,7 +143,6 @@ namespace XrEngine.Gltf
         }
 
         public bool UseCache { get; set; }
-
 
         public static readonly GltfAssetLoader Instance = new GltfAssetLoader();
     }

@@ -56,7 +56,6 @@ namespace XrEngine
 
             Vertices = builder.Vertices.ToArray();
 
-
             ActiveComponents |= VertexComponent.Position | VertexComponent.Normal;
 
             this.ComputeIndices();

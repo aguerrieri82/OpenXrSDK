@@ -12,7 +12,6 @@ namespace XrEngine
     {
         private readonly Dictionary<string, IPbrMaterial> _materialCache = [];
 
-
         #region QuixelMaterialInfo
 
         protected class QuixelMaterialInfo
@@ -89,7 +88,6 @@ namespace XrEngine
             {
 
             }
-
 
             public class ReferencePreviewInfo
             {
@@ -269,14 +267,12 @@ namespace XrEngine
                         //tex2D.Format = TextureFormat.Gray8;
                     }
 
-
                     else if (texture.Type == TextureType.Normal)
                     {
                         result.NormalMap = tex2D;
                         result.NormalScale = 1;
                         //tex2D.Format = TextureFormat.Rgb24;
                     }
-
 
                     else if (texture.Type == TextureType.Roughness ||
                              texture.Type == TextureType.Metallic)

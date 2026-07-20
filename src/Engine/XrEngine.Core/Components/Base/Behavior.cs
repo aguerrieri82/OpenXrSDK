@@ -18,7 +18,6 @@
             _lastUpdateTime = 0;
         }
 
-
         protected virtual void Start(RenderContext ctx)
         {
 

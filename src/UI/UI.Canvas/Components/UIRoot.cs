@@ -49,7 +49,6 @@ namespace CanvasUI
             _isLayoutDirty = true;
         }
 
-
         public event EventHandler? NeedRedraw;
     }
 }

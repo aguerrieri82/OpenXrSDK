@@ -30,7 +30,6 @@ namespace XrEngine.OpenXr
             };
         }
 
-
         public GhostMaterial()
             : base()
         {
@@ -66,7 +65,6 @@ namespace XrEngine.OpenXr
                 };
             }, 16, BufferStore.Material);
         }
-
 
         public Color Color { get; set; }
 

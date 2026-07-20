@@ -41,9 +41,7 @@ namespace XrEditor.Nodes
 
         public IconView? Icon => null;
 
-
         public event EventHandler? NodeChanged;
-
 
         bool IEditorProperties.AutoGenerate
         {

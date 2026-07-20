@@ -2,7 +2,6 @@
 using XrEditor.Services;
 using XrEngine;
 
-
 [assembly: Module(typeof(XrEditor.Module))]
 
 namespace XrEditor
@@ -18,7 +17,6 @@ namespace XrEditor
             pm.Register<LogPanel>();
             pm.Register<AssetsPanel>();
         }
-
 
         public void Shutdown()
         {

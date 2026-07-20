@@ -78,7 +78,6 @@ namespace XrEngine.OpenGL
                     Name = "Moments"
                 };
 
-
                 _vcmTempTex = new Texture2D
                 {
                     BorderColor = Color.White,
@@ -253,7 +252,7 @@ namespace XrEngine.OpenGL
 
             if (updateInterval > 0 && (ctx.Time - _lastUpdateTime) < updateInterval)
                 return false;
-      
+
             var curLightVers = _light.ContentVersion + _light.Version;
 
             if (!_renderer.Options.ShadowMap.UseFrustumIntersect &&
@@ -303,7 +302,7 @@ namespace XrEngine.OpenGL
 
             return base.BeginRender(ctx);
         }
-     
+
         protected override void EndRender(GlUpdateContext ctx)
         {
             _renderer.State.SetCullFace(TriangleFace.Back);

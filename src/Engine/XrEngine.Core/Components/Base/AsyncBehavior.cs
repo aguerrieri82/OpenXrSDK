@@ -1,17 +1,14 @@
-﻿using Microsoft.Extensions.Hosting;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
 
-
-    public abstract class AsyncBehavior<T> : BaseComponent<T>, IBehavior  where T : EngineObject
+    public abstract class AsyncBehavior<T> : BaseComponent<T>, IBehavior where T : EngineObject
     {
 
         Task? _updateTask;
         protected double _startTime;
         protected double _lastUpdateTime;
         protected double _deltaTime;
-        
+
         public AsyncBehavior()
         {
             _startTime = -1;
@@ -41,11 +38,11 @@ namespace XrEngine
             if (_startTime == -1)
             {
                 await StartAsync(ctx);
-                
+
                 Log.Debug(this, "Started component {0}", GetType().Name);
 
                 _startTime = ctx.Time;
-                
+
                 Started?.Invoke(this, EventArgs.Empty);
             }
             else
@@ -67,12 +64,10 @@ namespace XrEngine
             }
         }
 
-
         protected virtual Task StartAsync(RenderContext ctx)
         {
             return Task.CompletedTask;
         }
-
 
         protected virtual void UpdateSync(RenderContext ctx)
         {
@@ -83,7 +78,6 @@ namespace XrEngine
         {
             return Task.CompletedTask;
         }
-
 
         void IRenderUpdate.Update(RenderContext ctx)
         {

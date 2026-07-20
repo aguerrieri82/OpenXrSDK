@@ -51,7 +51,7 @@ namespace XrEngine
             {
                 _proj = Matrix4x4.CreatePerspectiveFieldOfView(
                     _fovDeg.ToRadians(),
-                    (float)ViewSize.Width / ViewSize.Height, 
+                    (float)ViewSize.Width / ViewSize.Height,
                     _near, _far);
 
                 _projInverseDirty = true;
@@ -91,7 +91,7 @@ namespace XrEngine
             if (float.IsInfinity(far) || MathF.Abs(far - _far) > 0.1f)
                 _far = far;
         }
-        
+
         [Range(0, 180, 1)]
         public float FovDegree
         {

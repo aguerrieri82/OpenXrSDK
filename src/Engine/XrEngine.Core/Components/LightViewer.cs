@@ -28,6 +28,7 @@ namespace XrEngine
                 mat.Color = new Color(point.Color.R, point.Color.G, point.Color.B, 1f);
 
                 var version = point.Version + point.ContentVersion;
+
                 if (version != _lastUpdateVersion)
                     mat.Invalidate();
 
@@ -56,6 +57,7 @@ namespace XrEngine
                 mat.Color = new Color(spot.Color.R, spot.Color.G, spot.Color.B, 1f);
 
                 var version = spot.Version + spot.ContentVersion;
+
                 if (version != _lastUpdateVersion)
                     mat.Invalidate();
 

@@ -16,8 +16,6 @@ using System.Diagnostics;
 using OpenXr.Framework.Oculus;
 using Common.Interop;
 
-
-
 namespace XrEngine.OpenXr
 {
     public unsafe static class XrExtensions
@@ -27,7 +25,7 @@ namespace XrEngine.OpenXr
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
             canvas.AddComponent(new XrQuodAttached(app));
-           
+
         }
 
         public static GetQuadDelegate BindToQuad(this TriangleMesh mesh)
@@ -63,7 +61,6 @@ namespace XrEngine.OpenXr
 
             throw new NotSupportedException();
         }
-
 
         public static FilamentRender BindEngineAppFl(this XrApp xrApp, EngineApp app)
         {
@@ -172,7 +169,6 @@ namespace XrEngine.OpenXr
                     camera.WorldMatrix = (Matrix4x4.CreateFromQuaternion(headLoc.Pose.Orientation) *
                                           Matrix4x4.CreateTranslation(headLoc.Pose.Position));
 
-
                     for (var i = 0; i < info.ProjViews.Length; i++)
                     {
                         var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
@@ -202,7 +198,6 @@ namespace XrEngine.OpenXr
         {
             var pool = new GlRenderTargetPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
-
 
             xrApp.SessionChanged += (s, e) =>
             {
@@ -253,7 +248,6 @@ namespace XrEngine.OpenXr
             }
             else
                 renderer = (OpenGLRender)app.Renderer;
-
 
             void RenderView(ref RenderViewInfo info)
             {
@@ -327,7 +321,7 @@ namespace XrEngine.OpenXr
 
                     camera.Projection = eyes[0].Projection;
                     camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
-                    
+
                     camera.ViewSize = rect.Size;
                     camera.ActiveEye = -1;
 
@@ -361,7 +355,6 @@ namespace XrEngine.OpenXr
 
             return renderer;
         }
-
 
         public static IEnumerable<Quad3> GetWallsPlanes(this OculusSceneView self)
         {

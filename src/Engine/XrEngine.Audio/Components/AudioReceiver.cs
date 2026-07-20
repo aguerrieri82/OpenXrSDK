@@ -28,7 +28,6 @@ namespace XrEngine.Audio
             };
         }
 
-
         public float Gain
         {
             get => _listener?.Gain ?? 0;

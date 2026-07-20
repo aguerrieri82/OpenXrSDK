@@ -13,8 +13,6 @@ namespace XrEngine
             public uint BitPerPixel;
         }
 
-
-
         public abstract IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)

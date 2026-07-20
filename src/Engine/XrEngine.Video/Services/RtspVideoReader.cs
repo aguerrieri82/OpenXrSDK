@@ -21,7 +21,6 @@ namespace XrEngine.Video
         private FrameBuffer _dstBuffer;
         private DateTime _lastPingTime;
 
-
         public RtspVideoReader()
         {
             UdpPort = 1400;
@@ -47,7 +46,6 @@ namespace XrEngine.Video
 
             _streamName = uri.ToString();
 
-
             Log.Debug(this, "Rtsp: Describe");
 
             var streams = _client.Describe(_streamName);
@@ -56,7 +54,6 @@ namespace XrEngine.Video
 
             if (_videoStream == null)
                 throw new InvalidOperationException();
-
 
             Log.Debug(this, "Rtsp: Setup");
 
@@ -92,7 +89,6 @@ namespace XrEngine.Video
                     Height = (int)FrameSize.Height,
                     ImageFormat = ImageFormat.Rgb32
                 }, extraData.ToArray());
-
 
                 Log.Debug(this, "Rtsp: Open Client");
 

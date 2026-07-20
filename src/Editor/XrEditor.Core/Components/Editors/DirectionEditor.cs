@@ -1,15 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Numerics;
+﻿using System.Numerics;
 using UI.Binding;
 using XrMath;
 
 namespace XrEditor
 {
-    public class DirectionEditor: Vector3Editor
+    public class DirectionEditor : Vector3Editor
     {
         public class ValuePresetView
         {
-            DirectionEditor _editor;
+            readonly DirectionEditor _editor;
 
             public ValuePresetView(string name, Vector3 value, DirectionEditor editor)
             {
@@ -31,8 +30,6 @@ namespace XrEditor
             public string Name { get; }
         }
 
-
-    
         public DirectionEditor()
             : this(null)
         {
@@ -62,10 +59,10 @@ namespace XrEditor
             if (_suspendUpdate > 0 || Binding == null)
                 return;
 
-            float azimuth = Azimuth.EditValue;
-            float altitude = Altitude.EditValue;
+            var azimuth = Azimuth.EditValue;
+            var altitude = Altitude.EditValue;
 
-            float horizontal = MathF.Cos(altitude);
+            var horizontal = MathF.Cos(altitude);
 
             var value = new Vector3(
                 MathF.Sin(azimuth) * horizontal,
@@ -77,7 +74,7 @@ namespace XrEditor
 
         protected override void OnBindValueChanged(Vector3 newValue)
         {
-           var direction = Vector3.Normalize(newValue);
+            var direction = Vector3.Normalize(newValue);
 
             _suspendUpdate++;
 

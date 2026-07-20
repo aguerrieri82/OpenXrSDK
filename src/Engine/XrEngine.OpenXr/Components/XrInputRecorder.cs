@@ -97,7 +97,6 @@ namespace XrEngine.OpenXr
         [ValueType(ValueType.FileName)]
         public string? OutFile { get; set; }
 
-
         public RecordSession? Session => _session;
     }
 }

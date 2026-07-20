@@ -11,7 +11,6 @@
         public bool UseCache { get; set; } = true;
     }
 
-
     public interface ITextureLoader
     {
         IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null);

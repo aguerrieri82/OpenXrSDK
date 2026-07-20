@@ -14,20 +14,19 @@ namespace XrEngine
             Color = "#ffffff";
         }
 
-
         public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
-            Vector3 origin = WorldPosition;
-            Vector3 direction = Vector3.Normalize(Direction);
-            Vector3 baseCenter = origin + direction * Range;
+            var origin = WorldPosition;
+            var direction = Vector3.Normalize(Direction);
+            var baseCenter = origin + direction * Range;
 
-            float outerRadius = MathF.Tan(OuterConeAngle) * Range;
-            float innerRadius = MathF.Tan(InnerConeAngle) * Range;
+            var outerRadius = MathF.Tan(OuterConeAngle) * Range;
+            var innerRadius = MathF.Tan(InnerConeAngle) * Range;
 
-            Vector3 cameraVector = ctx.Camera!.WorldPosition - origin;
+            var cameraVector = ctx.Camera!.WorldPosition - origin;
 
             // Direction around the cone facing the camera.
-            Vector3 radial0 =
+            var radial0 =
                 cameraVector -
                 direction * Vector3.Dot(cameraVector, direction);
 
@@ -43,11 +42,11 @@ namespace XrEngine
             radial0 = Vector3.Normalize(radial0);
 
             // Second axial plane, rotated 90 degrees around the cone axis.
-            Vector3 radial1 =
+            var radial1 =
                 Vector3.Normalize(Vector3.Cross(direction, radial0));
 
             // DrawCircle local plane is XY, with normal +Z.
-            float zDot = Vector3.Dot(Vector3.UnitZ, direction);
+            var zDot = Vector3.Dot(Vector3.UnitZ, direction);
 
             Quaternion circleOrientation;
 
@@ -58,7 +57,7 @@ namespace XrEngine
             }
             else
             {
-                Vector3 axis = Vector3.Cross(Vector3.UnitZ, direction);
+                var axis = Vector3.Cross(Vector3.UnitZ, direction);
 
                 circleOrientation = Quaternion.Normalize(
                     new Quaternion(
@@ -96,10 +95,8 @@ namespace XrEngine
         [ValueType(ValueType.Direction)]
         public Vector3 Direction { get; set; }
 
-
         [Range(0, 100, 0.05f)]
         public float Range { get; set; }
-
 
         [ValueType(ValueType.Radiant)]
         public float InnerConeAngle { get; set; }

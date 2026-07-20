@@ -5,7 +5,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using XrInteraction;
 
-
 namespace XrEngine.OpenGL.Wpf
 {
     public abstract class RenderHost : HwndHost, IRenderSurface
@@ -19,7 +18,6 @@ namespace XrEngine.OpenGL.Wpf
 
         [DllImport("User32.dll")]
         static extern bool ReleaseCapture();
-
 
         const ushort WM_MOUSEMOVE = 0x0200;
 
@@ -35,8 +33,6 @@ namespace XrEngine.OpenGL.Wpf
         const ushort MK_LBUTTON = 0x0001;
         const ushort MK_MBUTTON = 0x0010;
         const ushort MK_RBUTTON = 0x0002;
-
-
 
         const uint WS_CHILD = 0x40000000;
 
@@ -183,7 +179,6 @@ namespace XrEngine.OpenGL.Wpf
                 );
             }
         }
-
 
         public new event EventHandler? SizeChanged;
 

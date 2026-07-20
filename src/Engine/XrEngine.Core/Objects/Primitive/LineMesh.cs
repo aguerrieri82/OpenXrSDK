@@ -18,7 +18,6 @@ namespace XrEngine
 
         }
 
-
         public PointData[] Vertices { get; set; }
 
         public LineMaterial Material { get; }
@@ -26,7 +25,6 @@ namespace XrEngine
         public VertexComponent ActiveComponents { get; set; }
 
         public int RenderPriority { get; set; }
-
 
         #region IVertexSource
 

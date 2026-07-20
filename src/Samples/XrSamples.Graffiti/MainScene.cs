@@ -137,7 +137,6 @@ namespace XrSamples.Graffiti
             */
         }
 
-
         [Action]
         public async Task Reproduce()
         {

@@ -33,7 +33,6 @@ namespace XrEngine.Audio
             public bool IsStopped { get; private set; }
         }
 
-
         #endregion
 
         public AudioEmitter()

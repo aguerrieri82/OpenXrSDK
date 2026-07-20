@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using XrMath;
 
-
 namespace XrEngine
 {
     public delegate void UpdateUniformAction(UpdateShaderContext ctx, IUniformProvider up);
@@ -135,7 +134,7 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, 
+        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot,
             BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
         {
             IBuffer<T>? buffer = null;
@@ -196,7 +195,6 @@ namespace XrEngine
             });
         }
 
-
         public readonly void ExecuteAction(UpdateUniformAction action)
         {
             _result.Actions!.Add(action);
@@ -248,7 +246,6 @@ namespace XrEngine
             Log(name, value);
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
-
 
         public readonly void SetUniformConstStruct(string name, object obj, bool optional = false)
         {

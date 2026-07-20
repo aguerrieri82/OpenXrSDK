@@ -64,7 +64,7 @@ namespace OpenXr.Framework.Android
 
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
-     
+
             if (_app!.RenderOptions.RenderMode == XrRenderMode.MultiView)
                 info.SampleCount = 1;
 

@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using XrMath;
-
 namespace XrEngine.OpenGL
 {
     public enum TargetDepthMode
@@ -28,7 +26,6 @@ namespace XrEngine.OpenGL
             public bool IsMutable;
         }
 
-
         private IGlRenderTarget? _renderTarget;
         private GlTexture? _colorTexture;
         private IGlRenderAttachment? _depthBuffer;
@@ -37,7 +34,6 @@ namespace XrEngine.OpenGL
         private bool _isDirty;
         private GlTexture? _lastColorTexture;
 
-
         public GlRenderPassTarget(GL gL)
         {
             _gl = gL;
@@ -45,7 +41,6 @@ namespace XrEngine.OpenGL
             BoundEye = -1;
             DepthFormat = TextureFormat.Depth24;
         }
-
 
         public GlTexture? GetExtra(int id)
         {
@@ -68,7 +63,6 @@ namespace XrEngine.OpenGL
             return _extras.Count - 1;
         }
 
-
         public void Configure(Texture colorTexture)
         {
             Configure(colorTexture.ToGlTexture());
@@ -79,7 +73,6 @@ namespace XrEngine.OpenGL
             _colorTexture = colorTexture;
             Configure(colorTexture.Width, colorTexture.Height, GlUtils.GetTextureFormat(colorTexture.InternalFormat));
         }
-
 
         public void Configure(uint width, uint height, TextureFormat format)
         {
@@ -178,7 +171,7 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-           
+
             foreach (var extra in _extras)
                 extra.Texture?.Dispose();
 
@@ -209,6 +202,6 @@ namespace XrEngine.OpenGL
 
         public TextureFormat DepthFormat { get; set; }
 
-        public string? Id { get;  set; }
+        public string? Id { get; set; }
     }
 }

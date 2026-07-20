@@ -24,6 +24,7 @@
 		<ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
 		<ProjectReference Include="..\XrEngine.Physics\XrEngine.Physics.csproj" />
+		<ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
 		<ProjectReference Include="..\XrEngine.UI\XrEngine.UI.csproj" />
 	</ItemGroup>
 

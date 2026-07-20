@@ -59,7 +59,6 @@
             }
         }
 
-
         public readonly void Dispose()
         {
             _semaphore.Dispose();

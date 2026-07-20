@@ -1,5 +1,4 @@
-﻿using System;
-using MeshOptimizerLib = global::MeshOptimizer.MeshOptimizerLib;
+﻿using MeshOptimizerLib = global::MeshOptimizer.MeshOptimizerLib;
 using SimplifyOptions = global::MeshOptimizer.MeshOptimizerLib.SimplifyOptions;
 
 namespace XrEngine

@@ -3,10 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
-using System.Runtime.InteropServices;
-using XrEngine.Devices;
 using XrSamples;
-
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((ctx, logging) =>
@@ -23,12 +20,9 @@ var host = Host.CreateDefaultBuilder(args)
 
 _ = host.RunAsync();
 
-
-
 Gpu.EnableNvAPi();
 
 Tasks.Services = host.Services;
-
 
 await WindowSceneApp.Run(host.Services);
 //await XrSceneApp.Run(host.Services);
@@ -36,5 +30,4 @@ await WindowSceneApp.Run(host.Services);
 //await Physics.Run(host.Services, logger);
 
 await host.StopAsync();
-
 

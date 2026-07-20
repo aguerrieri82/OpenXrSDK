@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 using System.Net.NetworkInformation;
 using XrEngine.OpenGL;
 
-
 namespace XrEngine.OpenXr.Windows
 {
     public class ConsolePlatform : IXrEnginePlatform

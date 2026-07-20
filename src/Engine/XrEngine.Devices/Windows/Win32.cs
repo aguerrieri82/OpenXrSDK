@@ -47,7 +47,6 @@ namespace XrEngine.Devices.Windows
         [DllImport("winmm.dll")]
         public static extern uint timeGetTime();
 
-
         // MIDIOUTCAPS (rough mapping based on Windows SDK)
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct MidiOutCaps

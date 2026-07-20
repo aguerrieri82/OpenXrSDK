@@ -27,7 +27,6 @@ namespace XrEditor.Nodes
                 Editor = new ColorEditor(binder.Prop(a => a.BackgroundColor))
             });
 
-
             curProps.Add(new PropertyView
             {
                 Label = "Exposure",

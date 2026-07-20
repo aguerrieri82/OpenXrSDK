@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
-
 namespace XrEngine.OpenGL
 {
     public class GlIblProcessor : IDisposable
@@ -16,7 +14,6 @@ namespace XrEngine.OpenGL
             GGX,
             GGXLut
         }
-
 
         private readonly GL _gl;
         private GlTexture? _inputTexture;
@@ -33,7 +30,6 @@ namespace XrEngine.OpenGL
             LutFormat = InternalFormat.Rgba16f;
             Resolution = 512;
         }
-
 
         public unsafe void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
         {
@@ -89,7 +85,6 @@ namespace XrEngine.OpenGL
             _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
         }
 
-
         public uint ApplyFilter(Distribution distribution)
         {
             var program = _filterProg![distribution];
@@ -109,7 +104,6 @@ namespace XrEngine.OpenGL
             program.SetUniform("inputTexture", 0);
 
             GlState.Current.LoadTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
-
 
             var res = Resolution;
             for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
@@ -201,7 +195,6 @@ namespace XrEngine.OpenGL
             var targetTexture = _gl.GenTexture();
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
 
-
             _gl.TexStorage2D(
                    TextureTarget.TextureCubeMap,
                    withMipmaps ? MipLevelCount : 1,
@@ -225,7 +218,6 @@ namespace XrEngine.OpenGL
 
             return targetTexture;
         }
-
 
         public void Dispose()
         {

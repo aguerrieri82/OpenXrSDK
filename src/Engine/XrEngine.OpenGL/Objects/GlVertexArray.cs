@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public class GlVertexArray<TVertexType, TIndexType> : GlObject, IGlVertexArray
@@ -150,7 +149,7 @@ namespace XrEngine.OpenGL
                         _gl,
                         indices!,
                         BufferTargetARB.ElementArrayBuffer);
-                    
+
                     rebuild = true;
 
                 }
@@ -210,7 +209,6 @@ namespace XrEngine.OpenGL
         public GlBuffer<TVertexType> VBuf => _vBuf;
 
         public GlBuffer<TIndexType>? IBuf => _iBuf;
-
 
         #region IGlVertexArray
 

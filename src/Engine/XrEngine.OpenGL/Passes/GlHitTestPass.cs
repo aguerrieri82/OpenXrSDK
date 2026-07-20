@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using XrMath;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlHitTestPass : GlBaseSingleMaterialPass, IViewHitTest
@@ -35,7 +34,7 @@ namespace XrEngine.OpenGL
             if (x >= _lastSize.Width || y >= _lastSize.Height)
                 return result;
 
-            float depth = 1f;
+            var depth = 1f;
 
             var ids = new uint[2];
             var normal = Vector3.Zero;
@@ -93,7 +92,7 @@ namespace XrEngine.OpenGL
         protected override bool CanDraw(DrawContent draw)
         {
             if (draw.Object is SplatMesh)
-                return false; 
+                return false;
             return base.CanDraw(draw);
         }
 

@@ -3,7 +3,6 @@ using Android.Runtime;
 using System.Diagnostics;
 using System.Text.Json;
 
-
 namespace XrEngine.Media.Android
 {
 
@@ -134,7 +133,6 @@ namespace XrEngine.Media.Android
             get => _duration;
         }
 
-
         static byte[] DecodeToPCMCache(string path, out AudioFormat format)
         {
             var cachePath = Context.Require<IPlatform>().CachePath;
@@ -164,8 +162,6 @@ namespace XrEngine.Media.Android
 
             return result;
         }
-
-
 
         public void OnAudioFocusChange([GeneratedEnum] AudioFocus focusChange)
         {

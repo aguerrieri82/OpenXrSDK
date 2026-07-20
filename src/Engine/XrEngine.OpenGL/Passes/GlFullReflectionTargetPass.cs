@@ -80,7 +80,6 @@ namespace XrEngine.OpenGL
             return upRes;
         }
 
-
         protected override void ConfigureCaps(ShaderMaterial material)
         {
             base.ConfigureCaps(material);
@@ -184,7 +183,7 @@ namespace XrEngine.OpenGL
                 _imageLight.Invalidate();
             }
 
-            _swap!.Active.GenerateMipmap();
+            _swap!.Active!.GenerateMipmap();
 
             if (_reflection!.BlurLevel > 0)
                 _swap.Blur(2, _reflection!.BlurLevel);
@@ -214,7 +213,6 @@ namespace XrEngine.OpenGL
         {
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
-
 
         }
     }

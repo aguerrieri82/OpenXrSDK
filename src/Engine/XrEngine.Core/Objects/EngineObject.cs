@@ -22,6 +22,14 @@ namespace XrEngine
         Secondary = 0x1000
     }
 
+    [Flags]
+    public enum InvalidateMode
+    {
+        Object = 1,
+        Content = 2,
+        All = Object | Content
+    }
+
     public static class DynamicPropRegistry
     {
         private static readonly ConcurrentDictionary<string, int> _stringToId = new();
@@ -51,12 +59,10 @@ namespace XrEngine
             return prop.Id;
         }
 
-
         public string Name;
 
         public int Id;
     }
-
 
     [StateManager(StateManagerMode.Manual)]
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
@@ -67,6 +73,11 @@ namespace XrEngine
         protected ObjectId _id;
         protected ObjectChangeSet _lastChanges;
         protected int _updateCount;
+
+        protected long _version;
+
+        protected long _contentVersion;
+
         private bool _isDisposed;
 
         public EngineObject()
@@ -178,7 +189,7 @@ namespace XrEngine
 
         protected virtual void OnChanged(ObjectChange change)
         {
-            Version++;
+            Invalidate();
             Changed?.Invoke(this, change);
         }
 
@@ -206,8 +217,6 @@ namespace XrEngine
                 return default;
             return (T)result;
         }
-
-
 
         public object? GetProp(int propId)
         {
@@ -271,7 +280,18 @@ namespace XrEngine
             }
         }
 
-        public long Version { get; protected set; }
+        public virtual void Invalidate(InvalidateMode mode = InvalidateMode.Object)
+        {
+            if ((mode & InvalidateMode.Object) == InvalidateMode.Object)
+                _version++;
+
+            if ((mode & InvalidateMode.Content) == InvalidateMode.Content)
+                _contentVersion++;
+        }
+
+        public long ContentVersion => _contentVersion;
+
+        public long Version => _version;
 
         public EngineObjectFlags Flags { get; set; }
 

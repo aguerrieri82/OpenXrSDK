@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public enum DrawPrimitive
     {
@@ -25,7 +23,6 @@ namespace XrEngine
         int RenderPriority { get; }
 
         int InstanceCount => 1;
-
 
     }
 

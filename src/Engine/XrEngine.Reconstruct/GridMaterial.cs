@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine.Reconstruct
@@ -125,7 +122,6 @@ namespace XrEngine.Reconstruct
 
         static float LogDepthBias(float t) => t <= 0 ? 0f : 0.00001f * MathF.Pow(0.005f / 0.00001f, t);
 
-
         public static bool CullInvalidUv { get; set; }
 
         public static bool CullLongEdge { get; set; }
@@ -152,7 +148,6 @@ namespace XrEngine.Reconstruct
 
         [Range(0, 1f, 0.01f)]
         public static float DepthBias { get; set; }
-
 
         [Range(0, 1, 0.01f)]
         public float Exposure { get; set; }

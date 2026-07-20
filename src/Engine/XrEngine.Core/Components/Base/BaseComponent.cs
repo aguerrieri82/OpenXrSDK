@@ -1,9 +1,13 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace XrEngine
 {
     public abstract class BaseComponent<T> : IComponent<T>, IStateManager where T : EngineObject
     {
         protected bool _isEnabled;
-        protected T? _host;
+
+        [AllowNull]
+        protected T _host;
         protected ObjectId _id;
         protected int _suspendCount;
 
@@ -88,7 +92,6 @@
                     OnEnabled();
             }
         }
-
 
         public T? Host => _host;
 

@@ -13,7 +13,6 @@ using System.Text;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
-
 namespace OpenXr.Framework.Oculus
 {
 
@@ -49,7 +48,6 @@ namespace OpenXr.Framework.Oculus
             public unsafe void* Next;
         };
 
-
         [StructLayout(LayoutKind.Sequential)]
         unsafe struct SpaceFilterUuidMETA
         {
@@ -66,7 +64,6 @@ namespace OpenXr.Framework.Oculus
             public void* Next;
             public SpaceComponentTypeFB ComponentType;
         }
-
 
         [StructLayout(LayoutKind.Sequential)]
         struct SpaceTriangleMeshMETA
@@ -126,9 +123,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntityStorage? _spatialStorage;
         protected FBColorSpace? _colorSpace;
 
-
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
-
 
         protected readonly OculusXrPluginOptions _options;
 
@@ -292,7 +287,6 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(await SubmitQuery<Result>($"SaveSpaceFB:{space.Handle}", Request), "SaveSpaceFBResult");
         }
 
-
         public async Task EraseSpaceAsync(Space space, bool isLocal)
         {
             ulong Request()
@@ -385,7 +379,6 @@ namespace OpenXr.Framework.Oculus
             return status.Enabled != 0;
         }
 
-
         protected Task<T> SubmitQuery<T>(string hash, Func<ulong> action)
         {
             lock (_queries)
@@ -450,7 +443,6 @@ namespace OpenXr.Framework.Oculus
 
             return result;
         }
-
 
         protected unsafe SpaceDiscoveryResultMETA[] GetSpaceDiscoveryResults(ulong reqId)
         {
@@ -555,8 +547,6 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-
-
         protected ulong GenerateReqId()
         {
             return (ulong)(new Random().NextDouble() * ulong.MaxValue);
@@ -635,7 +625,6 @@ namespace OpenXr.Framework.Oculus
                 query?.ScheduleCancel(TimeSpan.FromSeconds(5));
             }
 
-
             else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
@@ -644,7 +633,6 @@ namespace OpenXr.Framework.Oculus
 
                 query?.SetResult(data.Result);
             }
-
 
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
@@ -977,7 +965,6 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-
         public unsafe override IDisposable? Configure<T>(ref T data)
         {
             if (data is HandTrackerCreateInfoEXT)
@@ -1005,7 +992,6 @@ namespace OpenXr.Framework.Oculus
         }
 
         public OculusXrPluginOptions Options => _options;
-
 
     }
 }

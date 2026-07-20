@@ -23,7 +23,6 @@
 
         public int RenderPriority { get; set; }
 
-
         #region IVertexSource
 
         EngineObject IVertexSource.Object => this!;

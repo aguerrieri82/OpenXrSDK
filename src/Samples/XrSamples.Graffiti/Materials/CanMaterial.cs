@@ -21,7 +21,6 @@ namespace XrSamples.Graffiti
             base.UpdateShaderMaterial(bld);
         }
 
-
         public Color CanColor { get; set; }
     }
 }

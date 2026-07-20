@@ -53,7 +53,6 @@
             return data;
         }
 
-
         public static void Blur(this ITextureFilterProvider fp, Texture2D src, Texture2D dst, string key, int activeChannels, int mipLevel) =>
             fp.Kernel3x3(src, dst, BLUR_KERNEL_3x3, key, activeChannels, mipLevel);
 

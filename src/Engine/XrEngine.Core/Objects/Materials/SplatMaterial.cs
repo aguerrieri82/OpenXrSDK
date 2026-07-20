@@ -1,9 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-
+﻿using System.Numerics;
 
 namespace XrEngine.Objects.Materials
 {
@@ -55,7 +50,6 @@ namespace XrEngine.Objects.Materials
 
             }, BufferSlots.Splats, BufferStore.Model, BufferUsage.SSbo);
 
-
             base.UpdateShaderModel(bld);
         }
 
@@ -103,9 +97,7 @@ namespace XrEngine.Objects.Materials
 
         static float LogDepthBias(float t) => t <= 0 ? 0f : 0.00001f * MathF.Pow(0.005f / 0.00001f, t);
 
-
-
-        [Range(0,1, 0.01f)]
+        [Range(0, 1, 0.01f)]
         public float FadeStart { get; set; }
 
         [Range(0, 0.1f, 0.0005f)]

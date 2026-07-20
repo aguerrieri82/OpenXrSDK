@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using XrEngine.Objects;
 
 namespace XrEngine
 {
@@ -90,8 +89,6 @@ namespace XrEngine
 
             });
         }
-
-
 
         public uint TextureSize { get; set; }
 

@@ -5,6 +5,7 @@ using Silk.NET.OpenXR;
 using XrEngine.Objects;
 using XrEngine.OpenGL;
 using XrEngine.Physics;
+using XrEngine.UI.Web;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -15,8 +16,60 @@ namespace XrEngine.OpenXr
         Right
     }
 
+    public class WebUIOptions
+    {
+        public TriangleMesh? DestMesh { get; set; }
+
+        public string? DevServer { get; set; }
+
+        public object[]? Bridges { get; set; }
+
+        public string? AssetsPath { get; set; }
+    }
+
     public static class BuilderExtensions
     {
+
+        public static XrEngineAppBuilder AddWebUI(this XrEngineAppBuilder self,
+            WebUIOptions options,
+            Action<IWebBrowser>? configure = null) => self.ConfigureApp(e =>
+        {
+            var factory = Context.Require<IWebBrowserFactory>();
+
+            if (options.DestMesh == null)
+            {
+                var scene = e.App.ActiveScene;
+
+                options.DestMesh = scene!.AddChild(
+                    new UIWebPanel(
+                        e.Inputs!.Right!.Button!.AClick!,
+                        (PerspectiveCamera)scene.ActiveCamera!));
+            }
+
+            var browser = factory.CreateBrowser(new WebBrowserOptions
+            {
+                DestMesh = options.DestMesh,
+                UseLocalUI = true,
+                LocalAssetsPath = options.AssetsPath
+            });
+
+            if (options.Bridges != null)
+            {
+                var bridge = new WebBrowserBridge(browser);
+
+                foreach (var obj in options.Bridges)
+                    bridge.Register(obj);
+
+                Context.Implement(bridge);
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.DevServer) && XrPlatform.IsEditor)
+                browser.NavigateAsync(options.DevServer);
+            else
+                browser.NavigateAsync("ui://main/");
+
+            configure?.Invoke(browser);
+        });
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = true) => self.ConfigureApp(e =>
         {
@@ -127,7 +180,6 @@ namespace XrEngine.OpenXr
             });
         });
 
-
         public static XrEngineAppBuilder UseRayCollider(
             this XrEngineAppBuilder self,
             string pointerName = "RightController",
@@ -171,7 +223,6 @@ namespace XrEngine.OpenXr
                 hand.AddComponent(new HandGrabber());
         });
 
-
         public static XrEngineAppBuilder UseSceneMesh(this XrEngineAppBuilder self, bool arMode, bool addPhysics = true) => self.ConfigureApp(e =>
         {
             var sceneView = new OculusSceneView();
@@ -184,7 +235,6 @@ namespace XrEngine.OpenXr
 
             factory.AddMesh(material, addPhysics);
 
-
             e.App.ActiveScene!.AddChild(sceneView);
         });
 
@@ -192,7 +242,6 @@ namespace XrEngine.OpenXr
         {
             e.App.ActiveScene!.AddComponent(new PhysicsManager() { Options = options });
         });
-
 
         public static XrEngineAppBuilder UseInputs<TProfile>(this XrEngineAppBuilder self) where TProfile : IXrBasicInteractionProfile, new()
         {

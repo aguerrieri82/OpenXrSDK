@@ -2,7 +2,6 @@
 using XrEditor.Services;
 using XrEngine;
 
-
 namespace XrEditor.Nodes
 {
     public class PbrMaterialNode : MaterialNode<PbrMaterial>

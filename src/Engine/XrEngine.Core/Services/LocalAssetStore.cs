@@ -9,7 +9,6 @@
             _basePath = Path.GetFullPath(basePath);
         }
 
-
         public bool Contains(string name)
         {
             return File.Exists(GetPath(name));

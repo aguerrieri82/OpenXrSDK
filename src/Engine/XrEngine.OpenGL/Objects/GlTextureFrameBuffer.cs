@@ -6,8 +6,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using Common.Interop;
-using XrMath;
-
 
 namespace XrEngine.OpenGL
 {
@@ -18,7 +16,6 @@ namespace XrEngine.OpenGL
         protected readonly MutableArray<DrawBufferMode> _drawModes;
         protected GlTexture? _color;
         protected IGlRenderAttachment? _depth;
-
 
 #if GLES
         static ExtMultisampledRenderToTexture? _extMs;
@@ -41,13 +38,11 @@ namespace XrEngine.OpenGL
             Configure(colorTex, depthTex, sampleCount);
         }
 
-
         public GlTextureFrameBuffer(GL gl, GlTexture? color, IGlRenderAttachment? depth, uint sampleCount = 1)
             : this(gl)
         {
             Configure(color, depth, sampleCount);
         }
-
 
         public void Configure(GlTexture? color, uint colorIndex, IGlRenderAttachment? depth, uint depthIndex, uint sampleCount)
         {
@@ -90,7 +85,6 @@ namespace XrEngine.OpenGL
             SetDrawModes(_drawModes);
         }
 
-
         public override void Attach(IGlRenderAttachment obj, FramebufferAttachment slot, bool useDraw, int layer = 0)
         {
             Bind();
@@ -98,7 +92,7 @@ namespace XrEngine.OpenGL
             if (obj is GlTexture tex)
             {
                 var useMs = false;
-        
+
                 if (_sampleCount > 1 && tex.Target == TextureTarget.Texture2D)
                 {
 #if GLES
@@ -111,7 +105,6 @@ namespace XrEngine.OpenGL
                     useMs = true;
 #endif
                 }
-
 
                 if (!useMs)
                 {
@@ -143,7 +136,7 @@ namespace XrEngine.OpenGL
 
             _attachments[slot] = new GlAttachmentInfo
             {
-                Attachment = obj,   
+                Attachment = obj,
             };
 
             if (useDraw)
@@ -151,7 +144,6 @@ namespace XrEngine.OpenGL
 
             _isDirty = true;
         }
-
 
         public override void Detach(FramebufferAttachment attachment)
         {
@@ -172,7 +164,6 @@ namespace XrEngine.OpenGL
 
             Check();
         }
-
 
         public unsafe void ReadColor(TextureData data, ReadBufferMode mode = ReadBufferMode.ColorAttachment0)
         {

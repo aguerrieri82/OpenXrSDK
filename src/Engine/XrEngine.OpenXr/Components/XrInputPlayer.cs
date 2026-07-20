@@ -129,7 +129,6 @@ namespace XrEngine.OpenXr
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
-
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
@@ -263,10 +262,8 @@ namespace XrEngine.OpenXr
 
         public int Length => _session?.Frames?.Count ?? 0;
 
-
         [ValueType(ValueType.FileName)]
         public string? SourceFile { get; set; }
-
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }

@@ -24,7 +24,6 @@ namespace XrSamples.Graffiti
         float Time
     ) : CanvasRecordCommand(Time);
 
-
     public sealed record ChangeColorCommand(
         float Time,
         Color Color
@@ -65,7 +64,6 @@ namespace XrSamples.Graffiti
         {
             return Read(File.ReadAllText(filePath));
         }
-
 
         public static CanvasRecording Read(string json)
         {
@@ -176,7 +174,6 @@ namespace XrSamples.Graffiti
                 ReadPose(e[3])
             );
         }
-
 
         static SprayCloseCommand ReadSprayClose(JsonElement e, int index, float time)
         {

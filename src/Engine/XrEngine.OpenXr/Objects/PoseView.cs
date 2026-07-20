@@ -23,7 +23,6 @@ namespace XrEngine.OpenXr
                 Simplified = true
             }));
 
-
             TriangleMesh CreateRay(Vector3 axis)
             {
                 var res = AddChild(new TriangleMesh(Cube3D.Default, new PbrMaterial
@@ -67,7 +66,6 @@ namespace XrEngine.OpenXr
             foreach (var ray in _rays)
                 ray.Transform.SetScale(RayTicknesses, RayTicknesses, RayLength);
         }
-
 
         public float RayLength { get; set; }
 

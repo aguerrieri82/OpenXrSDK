@@ -49,7 +49,6 @@
             }
         }
 
-
         public static readonly ShaderMeshLayerBuilder Instance = new();
     }
 

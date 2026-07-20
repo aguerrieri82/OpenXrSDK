@@ -214,7 +214,6 @@ namespace XrEngine
                         Vector3.Reflect(up, normal)
                     );
 
-
                     _refCamera.Eyes[i].World = refView.Invert();
                     _refCamera.Eyes[i].Projection = _refCamera.Projection;
                     _refCamera.Eyes[i].View = refView;
@@ -289,13 +288,12 @@ namespace XrEngine
             NotifyMaterials();
         }
 
-
         [Action]
         public void Apply()
         {
             NotifyMaterials();
         }
-       
+
         [Range(-1, 1, 0.001f)]
         public float Offset { get; set; }
 
@@ -331,7 +329,6 @@ namespace XrEngine
         public bool DynamicFov { get; set; }
 
         public static bool IsMultiView { get; set; }
-
 
         [Range(0, 1, 0.01f)]
         public float Strength { get; set; }

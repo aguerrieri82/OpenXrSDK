@@ -24,7 +24,6 @@
             return index;
         }
 
-
         public bool Remove(int index)
         {
             if (index < 0 || index >= _capacity)

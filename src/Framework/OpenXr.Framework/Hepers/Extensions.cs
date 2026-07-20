@@ -72,8 +72,7 @@ namespace OpenXr.Framework
             manager.Add(eye1);
 
             return [eye0, eye1];
-        }   
-
+        }
 
         public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView, bool useDepthSwapchain)
         {

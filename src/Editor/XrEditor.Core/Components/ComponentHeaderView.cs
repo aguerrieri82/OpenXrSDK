@@ -12,12 +12,11 @@ namespace XrEditor
             RemoveCommand = new Command(RemoveAsync);
         }
 
-
         public async Task RemoveAsync()
         {
             await EngineApp.MainThread;
 
-            _component.Host?.RemoveComponent(_component); 
+            _component.Host?.RemoveComponent(_component);
 
             OnRemove?.Invoke();
         }

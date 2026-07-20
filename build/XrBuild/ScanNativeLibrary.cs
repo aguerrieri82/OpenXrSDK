@@ -13,7 +13,6 @@ public class ScanNativeLibrary : Task
     [Required]
     public ITaskItem[]? SourceFiles { get; set; }
 
-
     public override bool Execute()
     {
         var nativeAll = new List<ITaskItem>();
@@ -65,7 +64,5 @@ public class ScanNativeLibrary : Task
 
         return true;
     }
-
-
 
 }

@@ -53,7 +53,6 @@ namespace XrEditor.Components
             return _lastAction;
         }
 
-
         Size2 IWindow.Size
         {
             get => new Size2((float)Width, (float)Height);

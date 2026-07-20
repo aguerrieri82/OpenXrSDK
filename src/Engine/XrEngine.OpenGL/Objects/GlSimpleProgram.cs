@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace XrEngine.OpenGL
 {
     public partial class GlSimpleProgram : GlBaseProgram
@@ -33,7 +32,6 @@ namespace XrEngine.OpenGL
             _tcSourceName = tcSource;
             _teSourceName = teSource;
         }
-
 
         [MemberNotNull(nameof(Vertex))]
         [MemberNotNull(nameof(Fragment))]
@@ -69,7 +67,7 @@ namespace XrEngine.OpenGL
 
             GlDebug.Log(this, "Program built");
 
-            _isBuilt = true;    
+            _isBuilt = true;
         }
 
         public override void Dispose()

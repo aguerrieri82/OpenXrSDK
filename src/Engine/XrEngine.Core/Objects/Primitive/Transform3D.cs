@@ -44,7 +44,6 @@ namespace XrEngine
                 Matrix4x4.CreateFromQuaternion(_orientation) *
                 Matrix4x4.CreateTranslation(_position);
 
-
             _isDirty = false;
 
             return true;
@@ -199,7 +198,6 @@ namespace XrEngine
         public long Version { get; set; }
 
         public Object3D Host => _host!;
-
 
         public const float POS_TOLLERANCE = 0.0001f;
         public const float SCALE_TOLLERANCE = 0.00001f;

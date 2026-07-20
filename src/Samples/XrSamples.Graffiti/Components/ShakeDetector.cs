@@ -179,7 +179,6 @@ namespace XrSamples.Graffiti
             _shakeImpulseCount = 0;
         }
 
-
         public float LinearThreshold { get; set; }
         public float AngularThreshold { get; set; }
 

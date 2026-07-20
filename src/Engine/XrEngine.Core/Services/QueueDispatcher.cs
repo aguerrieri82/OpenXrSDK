@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 
 namespace XrEngine
 {
@@ -75,7 +74,6 @@ namespace XrEngine
 
             return (T)result!;
         }
-
 
         public void ProcessQueue()
         {

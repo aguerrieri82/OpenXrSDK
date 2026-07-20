@@ -36,7 +36,6 @@ namespace XrEngine.OpenGL
         public float Quality { get; set; }
     }
 
-
     public class GlRenderOptions
     {
         public GlRenderOptions()

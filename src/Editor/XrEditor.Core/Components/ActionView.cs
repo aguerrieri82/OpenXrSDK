@@ -118,7 +118,6 @@ namespace XrEditor
             }
         }
 
-
         public string? Name { get; set; }
     }
 }

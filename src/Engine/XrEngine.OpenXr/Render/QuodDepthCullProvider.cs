@@ -1,9 +1,5 @@
 ﻿using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using XrEngine.OpenGL;
-using static XrEngine.QuixelMaterialReader;
 
 namespace XrEngine.OpenXr
 {

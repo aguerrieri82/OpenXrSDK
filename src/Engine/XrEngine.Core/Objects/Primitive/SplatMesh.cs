@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine.Objects.Materials;
 using XrMath;
 
@@ -9,7 +6,7 @@ namespace XrEngine
 {
     public class SplatMesh : Object3D, IVertexSource<Vector2, uint>, ILocalBounds
     {
-        static Vector2[] _vertices =
+        static readonly Vector2[] _vertices =
         [
             new(-1, -1),
             new( 1, -1),
@@ -17,7 +14,7 @@ namespace XrEngine
             new(-1,  1),
         ];
 
-        static uint[] _indices =
+        static readonly uint[] _indices =
         [
             0, 1, 2,
             0, 2, 3,
@@ -28,32 +25,32 @@ namespace XrEngine
 
         public SplatMesh()
         {
-                _depthMaterial = new SplatMaterial()
+            _depthMaterial = new SplatMaterial()
+            {
+                Shader = new Shader
                 {
-                    Shader = new Shader
-                    {
-                        FragmentSourceName = "empty.frag",
-                        VertexSourceName = "splats.vert",
-                        Resolver = str => Embedded.GetString(str),
-                    },
-                    IsEnabled = true,
-                    Radius = 0.01f,
-                    UseCameraFacing = true,
-                    UseDistanceScale = false,
-                    WriteColor = false,
-                    WriteDepth = true,
-                    Priority = 0
-                };
+                    FragmentSourceName = "empty.frag",
+                    VertexSourceName = "splats.vert",
+                    Resolver = str => Embedded.GetString(str),
+                },
+                IsEnabled = true,
+                Radius = 0.01f,
+                UseCameraFacing = true,
+                UseDistanceScale = false,
+                WriteColor = false,
+                WriteDepth = true,
+                Priority = 0
+            };
 
-                _depthMaterial.Attach(this);
+            _depthMaterial.Attach(this);
 
-                Material = new SplatMaterial()
-                {
-                    Priority = 1,
-                    WriteDepth = false,
-                };
+            Material = new SplatMaterial()
+            {
+                Priority = 1,
+                WriteDepth = false,
+            };
 
-                Material.Attach(this);
+            Material.Attach(this);
 
             Splats = [];
             ActiveComponents = VertexComponent.Position;
@@ -88,11 +85,9 @@ namespace XrEngine
 
         public int RenderPriority { get; set; }
 
-
         public Bounds3 LocalBounds => _localBounds;
 
         public UpdateMode BoundUpdateMode { get; set; }
-
 
         #region IVertexSource
 
@@ -107,7 +102,6 @@ namespace XrEngine
         IReadOnlyList<Material> IVertexSource.Materials => [_depthMaterial, Material];
 
         int IVertexSource.InstanceCount => Splats.Length;
-
 
         #endregion
     }

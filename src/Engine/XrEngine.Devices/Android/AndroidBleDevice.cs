@@ -11,7 +11,6 @@ using System.Text;
 #pragma warning disable CA1422
 #pragma warning disable CA1416
 
-
 namespace XrEngine.Devices.Android
 {
     [SupportedOSPlatform("android21.0")]
@@ -90,8 +89,6 @@ namespace XrEngine.Devices.Android
                 base.OnCharacteristicWrite(gatt, characteristic, status);
             }
 
-
-
             public override void OnDescriptorRead(BluetoothGatt? gatt, BluetoothGattDescriptor? descriptor, [GeneratedEnum] GattStatus status)
             {
                 if (_readDesc == descriptor && _read != null)
@@ -144,7 +141,6 @@ namespace XrEngine.Devices.Android
         }
 
         #endregion
-
 
         private readonly BluetoothDevice _device;
         private BluetoothGatt? _gatt;

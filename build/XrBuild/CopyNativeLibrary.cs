@@ -12,7 +12,6 @@ public class CopyNativeLibrary : Task
     [Required]
     public string? RuntimeIdentifier { get; set; }
 
-
     public override bool Execute()
     {
         Log.LogMessage(MessageImportance.High, $"RuntimeIdentifier: {RuntimeIdentifier}");
@@ -31,7 +30,5 @@ public class CopyNativeLibrary : Task
 
         return true;
     }
-
-
 
 }

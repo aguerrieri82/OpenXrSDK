@@ -58,7 +58,6 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null)
                 return;
 
-
             if (!_isInit && _input != null && _input.IsActive)
             {
                 _input.LoadMesh();

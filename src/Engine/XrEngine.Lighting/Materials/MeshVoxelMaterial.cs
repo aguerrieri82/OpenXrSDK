@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -46,11 +45,11 @@ namespace XrEngine.Lighting
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                Vector3 cameraForward = ctx.PassCamera!.Forward;
+                var cameraForward = ctx.PassCamera!.Forward;
 
-                float absX = MathF.Abs(cameraForward.X);
-                float absY = MathF.Abs(cameraForward.Y);
-                float absZ = MathF.Abs(cameraForward.Z);
+                var absX = MathF.Abs(cameraForward.X);
+                var absY = MathF.Abs(cameraForward.Y);
+                var absZ = MathF.Abs(cameraForward.Z);
 
                 int axis;
                 float direction;
@@ -71,7 +70,7 @@ namespace XrEngine.Lighting
                     direction = cameraForward.Z;
                 }
 
-                int axisStart = axis * _faceCount;
+                var axisStart = axis * _faceCount;
 
                 int instanceStart;
                 int instanceStep;
@@ -128,15 +127,15 @@ namespace XrEngine.Lighting
                 Comparer<GpuVoxelFaceInstance>.Create(
                     static (a, b) =>
                     {
-                        int aKey = a.Pos.X * 2 +
+                        var aKey = a.Pos.X * 2 +
                             (a.Face == 0 ? -1 :
                              a.Face == 1 ? 1 : 0);
 
-                        int bKey = b.Pos.X * 2 +
+                        var bKey = b.Pos.X * 2 +
                             (b.Face == 0 ? -1 :
                              b.Face == 1 ? 1 : 0);
 
-                        int cmp = aKey.CompareTo(bKey);
+                        var cmp = aKey.CompareTo(bKey);
                         if (cmp != 0)
                             return cmp;
 
@@ -150,15 +149,15 @@ namespace XrEngine.Lighting
                 Comparer<GpuVoxelFaceInstance>.Create(
                     static (a, b) =>
                     {
-                        int aKey = a.Pos.Y * 2 +
+                        var aKey = a.Pos.Y * 2 +
                             (a.Face == 2 ? -1 :
                              a.Face == 3 ? 1 : 0);
 
-                        int bKey = b.Pos.Y * 2 +
+                        var bKey = b.Pos.Y * 2 +
                             (b.Face == 2 ? -1 :
                              b.Face == 3 ? 1 : 0);
 
-                        int cmp = aKey.CompareTo(bKey);
+                        var cmp = aKey.CompareTo(bKey);
                         if (cmp != 0)
                             return cmp;
 
@@ -172,15 +171,15 @@ namespace XrEngine.Lighting
                 Comparer<GpuVoxelFaceInstance>.Create(
                     static (a, b) =>
                     {
-                        int aKey = a.Pos.Z * 2 +
+                        var aKey = a.Pos.Z * 2 +
                             (a.Face == 4 ? -1 :
                              a.Face == 5 ? 1 : 0);
 
-                        int bKey = b.Pos.Z * 2 +
+                        var bKey = b.Pos.Z * 2 +
                             (b.Face == 4 ? -1 :
                              b.Face == 5 ? 1 : 0);
 
-                        int cmp = aKey.CompareTo(bKey);
+                        var cmp = aKey.CompareTo(bKey);
                         if (cmp != 0)
                             return cmp;
 

@@ -11,7 +11,6 @@ namespace XrEngine
         protected VertexData[] _vertices;
         protected uint[] _indices;
 
-
         public Geometry3D()
         {
             _boundsDirty = true;

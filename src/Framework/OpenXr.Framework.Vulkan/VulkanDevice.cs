@@ -8,7 +8,6 @@ using Silk.NET.Windowing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-
 namespace OpenXr.Framework.Vulkan
 {
     struct QueueFamilyIndices
@@ -28,7 +27,6 @@ namespace OpenXr.Framework.Vulkan
         public SurfaceFormatKHR[] Formats;
         public PresentModeKHR[] PresentModes;
     }
-
 
     public unsafe class VulkanDevice : IVulkanDevice, IDisposable
     {
@@ -67,7 +65,6 @@ namespace OpenXr.Framework.Vulkan
             //InitWindow();
             InitVulkan();
         }
-
 
         private void InitWindow()
         {
@@ -110,7 +107,6 @@ namespace OpenXr.Framework.Vulkan
             {
                 throw new Exception("validation layers requested, but not available!");
             }
-
 
             ApplicationInfo appInfo = new()
             {
@@ -460,7 +456,6 @@ namespace OpenXr.Framework.Vulkan
             _surface = _window!.VkSurface!.Create<AllocationCallbacks>(_instance.ToHandle(), null).ToSurface();
         }
 
-
         private QueueFamilyIndices FindQueueFamilies(PhysicalDevice device)
         {
             var indices = new QueueFamilyIndices();
@@ -473,7 +468,6 @@ namespace OpenXr.Framework.Vulkan
             {
                 _vk!.GetPhysicalDeviceQueueFamilyProperties(device, ref queueFamilyCount, queueFamiliesPtr);
             }
-
 
             uint i = 0;
             foreach (var queueFamily in queueFamilies)
@@ -546,7 +540,6 @@ namespace OpenXr.Framework.Vulkan
         {
             if (_vk == null)
                 return;
-
 
             if (_swapChainImages != null)
             {

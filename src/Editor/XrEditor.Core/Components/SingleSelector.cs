@@ -55,8 +55,6 @@
             }
         }
 
-
-
         public IList<SelectorItem> Items
         {
             get => _items;

@@ -1,5 +1,4 @@
 ﻿
-
 namespace CanvasUI
 {
     public enum UiLayoutType
@@ -69,6 +68,5 @@ namespace CanvasUI
         ParentFontSize,
         FontSize
     }
-
 
 }

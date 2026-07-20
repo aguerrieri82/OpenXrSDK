@@ -69,7 +69,7 @@ namespace XrEngine.Browser.Windows
             if (!WGL.GetApi().TryGetExtension(out _dxInterop))
                 throw new NotSupportedException();
 
-            int attempted = 0;
+            var attempted = 0;
             while (true)
             {
                 SilkMarshal.ThrowHResult(
@@ -89,7 +89,7 @@ namespace XrEngine.Browser.Windows
                     break;
 
                 attempted++;
-                
+
                 if (attempted > 5)
                     throw new InvalidOperationException("Error creating D3D11 device");
 
@@ -137,7 +137,6 @@ namespace XrEngine.Browser.Windows
                 1,
                 GetTextureParameter.TextureInternalFormat,
                 out int internalFormat);
-
 
             _gl.BindTexture(TextureTarget.Texture2D, 0);
 
@@ -270,7 +269,6 @@ namespace XrEngine.Browser.Windows
                 }
             }
         }
-
 
         public void OnPaint(
             PaintElementType type,

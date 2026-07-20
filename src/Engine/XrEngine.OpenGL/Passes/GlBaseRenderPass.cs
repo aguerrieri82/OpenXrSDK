@@ -5,14 +5,12 @@ using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ARB;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
         static OverlayTextureEffect _overlayEffect = new();
         static readonly Dictionary<ShaderMaterial, GlProgramInstance> _instances = [];
-
 
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
@@ -26,12 +24,11 @@ namespace XrEngine.OpenGL
             IsEnabled = true;
         }
 
-
         public void UseEffect(ShaderMaterial material)
         {
             UseProgram(GetProgramInstance(material), true);
         }
-        
+
         public virtual void Configure(GlUpdateContext ctx)
         {
         }
@@ -140,7 +137,7 @@ namespace XrEngine.OpenGL
             _overlayEffect.Texture = texture;
 
             UseEffect(_overlayEffect);
-            
+
             DrawQuad();
         }
 
