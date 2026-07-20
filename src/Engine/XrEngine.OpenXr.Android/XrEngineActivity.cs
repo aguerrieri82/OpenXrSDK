@@ -14,11 +14,13 @@ namespace XrEngine.OpenXr.Android
 
         public XrEngineActivity()
         {
+
             AppDomain.CurrentDomain.UnhandledException += (sender, arg) =>
             {
                 if (arg.ExceptionObject is Exception ex)
                     Log.Error(sender, ex);
             };
+
 
             TaskScheduler.UnobservedTaskException += (sender, ex) =>
             {
@@ -30,6 +32,7 @@ namespace XrEngine.OpenXr.Android
 
         protected abstract void BuildApp(XrEngineAppBuilder builder);
 
+        /*
         protected void Preload(Assembly entry)
         {
             var references = new HashSet<string>();
@@ -64,6 +67,8 @@ namespace XrEngine.OpenXr.Android
 
             global::Android.Util.Log.Debug(nameof(XrEngineActivity), $"End preload");
         }
+        */
+
 
         protected override void ConfigureMainLoop()
         {

@@ -283,7 +283,8 @@ namespace XrEngine.OpenGL
             {
                 Alpha = value;
 
-                EnableFeature(EnableCap.Blend, value != AlphaMode.Opaque);
+                EnableFeature(EnableCap.Blend, (value & AlphaMode.Opaque) == 0);
+                //EnableFeature(EnableCap.SampleAlphaToCoverage, value == AlphaMode.Mask);
 
                 if (value != AlphaMode.Opaque)
                 {
@@ -309,6 +310,14 @@ namespace XrEngine.OpenGL
 
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
                     }
+                    else if (value == AlphaMode.Over)
+                    {
+                        _gl.BlendFuncSeparate(BlendingFactor.One, BlendingFactor.Zero,
+                                              BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
+
+                        _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
+
+                    }
                     else
                     {
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
@@ -319,6 +328,7 @@ namespace XrEngine.OpenGL
                     }
 
                 }
+          
             }
         }
 

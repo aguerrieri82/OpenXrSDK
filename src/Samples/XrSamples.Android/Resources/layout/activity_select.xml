@@ -60,10 +60,10 @@
 				android:text="Depth Pass"/>
 
 			<CheckBox
-				android:id="@+id/pbr2"
+				android:id="@+id/compression"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:text="Use PBR V2"/>
+				android:text="Use Compression"/>
 			<CheckBox
 				android:id="@+id/space_warp"
 				android:layout_width="match_parent"

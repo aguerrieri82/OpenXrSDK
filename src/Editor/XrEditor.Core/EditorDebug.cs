@@ -30,7 +30,6 @@ namespace XrEditor
 
         public static readonly bool UseDxHost = true;
 
-
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
 
         public static readonly string StoragePath = Path.Combine(PersistentPath, "Storage");
@@ -62,7 +61,7 @@ namespace XrEditor
                   opt.Compression.BlockSize = 3;
                   opt.Compression.Quality = 80;
                   
-                  opt.ShadowMap.Mode = ShadowMapMode.Hard;
+                  opt.ShadowMap.Mode = ShadowMapMode.VSM;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
                   opt.ShadowMap.UseShadowSampler = false;
 
@@ -74,8 +73,8 @@ namespace XrEditor
 
               })
             // .UseSpaceWarp()
-              .SetRenderQuality(1f, 2, useIntermediate: true)
-              .CreateCar()  
+              .SetRenderQuality(1f, 2, useIntermediate: false)
+              .CreateRoomManager()  
               .Build();
     }
 }

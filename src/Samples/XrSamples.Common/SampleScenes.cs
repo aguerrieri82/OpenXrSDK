@@ -2570,7 +2570,7 @@ namespace XrSamples
                 },
                 SeatLocalPose = new Pose3
                 {
-                    Position = new Vector3(-0.4f, 1.2f, 0.2f),
+                    Position = new Vector3(-0.4f, 1.1f, 0.2f),
                     Orientation = Quaternion.Identity
                 },
                 SteeringLocalPose = new Pose3

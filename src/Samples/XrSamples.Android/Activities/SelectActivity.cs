@@ -109,15 +109,15 @@ namespace XrSamples.Android.Activities
                 _settings.EnableDepthPass = e.IsChecked;
             };
 
-            //Pbr
-            var pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
-            pbr.Checked = _settings.UsePbrV2;
-            pbr.CheckedChange += (s, e) =>
+            //Compression
+            var compression = FindViewById<CheckBox>(ResourceConstant.Id.compression)!;
+            compression.Checked = _settings.UsePbrV2;
+            compression.CheckedChange += (s, e) =>
             {
-                _settings.UsePbrV2 = e.IsChecked;
+                _settings.TextureCompression = e.IsChecked;
             };
 
-            //Pbr
+            //Space-Warp
             var sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
             sw.Checked = _settings.UseSpaceWarp;
             sw.CheckedChange += (s, e) =>

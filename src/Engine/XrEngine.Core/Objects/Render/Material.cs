@@ -5,15 +5,14 @@ namespace XrEngine
     public enum AlphaMode
     {
         Opaque = 0x1,
-        
         Blend = 0x2,
         Mask = 0x4 | Opaque,
         BlendMain = 0x8 | Blend | Opaque,
-
         Add = Blend | 0x10,
         Min = Blend | 0x20,
         Max = Blend | 0x40,
         Punch = Blend | 0x80,
+        Over = Blend | 0x100,
     }
 
     public enum StencilFunction

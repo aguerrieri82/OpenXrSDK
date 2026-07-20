@@ -443,7 +443,7 @@ namespace XrEngine.OpenGL
                 if (RenderTarget is IGlFrameBufferProvider prov)
                 {
                     var color = prov.FrameBuffer.Color;
-                    _updateCtx.IsSrgbTarget = color != null && !color.InternalFormat.IsSrgb();
+                    _updateCtx.IsSrgbTarget = color != null && color.InternalFormat.IsSrgb();
                 }
                 else
                     _updateCtx.IsSrgbTarget = false;

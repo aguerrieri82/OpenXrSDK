@@ -221,17 +221,15 @@ namespace XrEngine.OpenGL
         public static void Update(this GlTexture glTexture, Texture2D texture2D)
         {
 #if GLES
-            if (texture2D.Format == TextureFormat.SRgb24)
+            //Necessary for generate mips
+
+            if (texture2D.Format == TextureFormat.SRgb24 && 
+                texture2D.MipLevelCount > 1 && 
+                texture2D.Data != null && 
+                texture2D.Data.Count == 1)
             {
                 texture2D.Format = TextureFormat.SRgba32;
-
-                if (texture2D.Data != null && texture2D.Data.Count > 0)
-                {
-                    if (texture2D.Data.Count > 1)
-                        throw new NotSupportedException();
-
-                    texture2D.Data[0] = ImageUtils.PackToRgba8(texture2D.Data[0], 1);
-                }
+                texture2D.Data[0] = ImageUtils.PackToRgba8(texture2D.Data[0], 1);
             }
 
 #endif

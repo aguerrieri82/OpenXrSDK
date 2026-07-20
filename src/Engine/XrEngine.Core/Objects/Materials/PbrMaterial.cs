@@ -552,7 +552,7 @@ namespace XrEngine
         {
             SHADER = new PbrShader
             {
-                FragmentSourceName = "Pbr/pbr_gpt.frag",
+                FragmentSourceName = "Pbr/pbr.frag",
                 VertexSourceName = "Pbr/pbr.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
@@ -577,7 +577,7 @@ namespace XrEngine
             UseLightField = UseLightFieldMode.Full;
             Resolver = str =>
             {
-                if (str.Contains("fragment_defaults.glsl"))
+                if (str.Contains("[fragment_defaults.glsl]"))
                 {
                     if (!string.IsNullOrWhiteSpace(FragmentDefaultShader))
                         return FragmentDefaultShader;

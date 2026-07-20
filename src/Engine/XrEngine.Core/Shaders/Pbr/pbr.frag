@@ -3,6 +3,8 @@
 #include "../Shared/env_depth.glsl"
 #include "../Shared/tonemap.glsl"
 #include "../Shared/planar_reflection.glsl"
+#include "../Shared/consts.glsl"
+
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
@@ -16,14 +18,29 @@ const vec3 Fdielectric = vec3(0.04);
 #define DEBUG_METALNESS  5
 #define DEBUG_ROUGHNESS  6
 #define DEBUG_IRRADIANCE 7
+#define DEBUG_FIELD_DIR  8
+#define DEBUG_FIELD_RAD  9
 
+// Lighting V2 switches.
+// Keep these as compile-time flags so you can A/B against the old shader without changing inputs.
+#ifndef PBR_MIN_ROUGHNESS
+	#define PBR_MIN_ROUGHNESS 0.045
+#endif
+
+#ifndef PBR_USE_PHYSICAL_DIRECT_DIFFUSE
+	#define PBR_USE_PHYSICAL_DIRECT_DIFFUSE 1
+#endif
+
+#ifndef PBR_OCCLUSION_AFFECTS_DIRECT
+	#define PBR_OCCLUSION_AFFECTS_DIRECT 0
+#endif
 
 in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
-in vec3 fCameraPos;    
+in vec3 fCameraPos;
 
-#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
+#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
 	in mat3 fTangentBasis;
 #endif
 
@@ -36,11 +53,11 @@ in vec3 fCameraPos;
 #endif
 
 #ifdef USE_SHADOW_MAP
-    in vec4 fPosLightSpace;
+	in vec4 fPosLightSpace;
 #endif
 
 #ifdef HAS_COLORMAP_PROJ
-    in vec4 fProjCoord;
+	in vec4 fProjCoord;
 #endif
 
 layout(location=0) out vec4 color;
@@ -70,331 +87,459 @@ struct FragmentProperties
 	float occlusion;
 
 	vec3 viewDir;
+
+	vec4 emissive;
 };
 
-// This file is the compile-time injected material/fragment loader.
-// Swap this include with a generated variant for specialized materials.
-#include "fragment_defaults.glsl"
+// Compile-time injected material/fragment loader.
+// Replace this include with a generated variant when needed.
+#include "[fragment_defaults.glsl]"
 
-
-// GGX/Towbridge-Reitz normal distribution function.
-// Uses Disney's reparametrization of alpha = roughness^2.
-float ndfGGX(float cosLh, float roughness)
+float saturate(float v)
 {
-	float alpha   = roughness * roughness;
-	float alphaSq = alpha * alpha;
-
-	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
-	return alphaSq / (PI * denom * denom);
+	return clamp(v, 0.0, 1.0);
 }
 
-// Single term for separable Schlick-GGX below.
-float gaSchlickG1(float cosTheta, float k)
+vec3 saturate(vec3 v)
 {
-	return cosTheta / (cosTheta * (1.0 - k) + k);
+	return clamp(v, vec3(0.0), vec3(1.0));
 }
 
-// Schlick-GGX approximation of geometric attenuation function using Smith's method.
-float gaSchlickGGX(float cosLi, float cosLo, float roughness)
+float square(float v)
 {
-	float r = roughness + 1.0;
-	float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
-	return gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
+	return v * v;
 }
 
-// Shlick's approximation of the Fresnel factor.
+
+float distributionGGX(float NoH, float roughness)
+{
+	float r = max(roughness, PBR_MIN_ROUGHNESS);
+	float alpha = r * r;
+	float alpha2 = alpha * alpha;
+
+	float d = NoH * NoH * (alpha2 - 1.0) + 1.0;
+	return alpha2 / max(Epsilon, PI * d * d);
+}
+
+float geometrySchlickGGX(float NoX, float roughness)
+{
+	float r = max(roughness, PBR_MIN_ROUGHNESS) + 1.0;
+	float k = (r * r) * 0.125;
+	return NoX / max(Epsilon, NoX * (1.0 - k) + k);
+}
+
+float geometrySmith(float NoL, float NoV, float roughness)
+{
+	return geometrySchlickGGX(NoL, roughness) * geometrySchlickGGX(NoV, roughness);
+}
+
 vec3 fresnelSchlick(vec3 F0, float cosTheta)
 {
-	return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
+	float f = pow(1.0 - saturate(cosTheta), 5.0);
+	return F0 + (vec3(1.0) - F0) * f;
 }
 
 vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+	float f = pow(1.0 - saturate(cosTheta), 5.0);
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * f;
 }
 
-float rand(vec2 co) {
-    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+float pointLightAttenuation(float distance, float range)
+{
+	float safeRange = max(range, Epsilon);
+	float d = distance / safeRange;
+
+	// Smooth finite-range cutoff. This avoids the hard-looking linear edge.
+	float rangeFalloff = saturate(1.0 - d * d * d * d);
+	return (rangeFalloff * rangeFalloff) / max(distance * distance, 0.01);
 }
 
-vec3 addNoise(vec3 color)
+vec3 evaluateDirectLight(
+	vec3 albedo,
+	float metalness,
+	float roughness,
+	vec3 N,
+	vec3 V,
+	vec3 L,
+	vec3 radiance)
+{
+	float NoL = saturate(dot(N, L));
+	float NoV = saturate(dot(N, V));
+
+	if (NoL <= 0.0 || NoV <= 0.0)
+		return vec3(0.0);
+
+#ifdef SIMPLIFIED
+	return albedo * radiance * NoL;
+#else
+	vec3 H = normalize(L + V);
+
+	float NoH = saturate(dot(N, H));
+	float VoH = saturate(dot(V, H));
+
+	vec3 F0 = mix(Fdielectric, albedo, metalness);
+	vec3 F = fresnelSchlick(F0, VoH);
+
+	float D = distributionGGX(NoH, roughness);
+	float G = geometrySmith(NoL, NoV, roughness);
+
+	vec3 kd = (vec3(1.0) - F) * (1.0 - metalness);
+
+#if PBR_USE_PHYSICAL_DIRECT_DIFFUSE
+	vec3 diffuseBRDF = kd * albedo * (1.0 / PI);
+#else
+	vec3 diffuseBRDF = kd * albedo;
+#endif
+
+	vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * NoL * NoV);
+
+	return (diffuseBRDF + specularBRDF) * radiance * NoL;
+#endif
+}
+
+#ifdef USE_LIGHT_FIELD
+	#include "../Shared/light_field.glsl"
+#endif
+
+vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
+{
+	vec3 directLighting = vec3(0.0);
+	shadowLightDir = vec3(0.0, 1.0, 0.0);
+
+#ifdef USE_LIGHT_FIELD
+
+	#ifdef LIGHT_FIELD_FULL
+		directLighting += evaluateLightField(
+			frag.position,
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir);
+	#else
+		directLighting += evaluateLightFieldSelf(
+			frag.position,
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir);
+	#endif
+
+#endif
+
+#ifdef USE_PUNCTUAL
+	for (uint i = 0u; i < uLights.count; ++i)
+	{
+		vec3 L;
+		float attenuation = 1.0;
+
+		uint type = uLights.lights[i].type;
+
+		// POINT 0
+		if (type == 0u)
+		{
+			float radius = uLights.lights[i].radius;
+
+			vec3 lightVector = uLights.lights[i].position - frag.position;
+			float distanceSq = dot(lightVector, lightVector);
+
+			if (distanceSq >= radius * radius)
+				continue;
+
+			float distance = sqrt(distanceSq);
+			L = lightVector / max(distance, Epsilon);
+
+			attenuation = pointLightAttenuation(distance, radius);
+		}
+
+		// SPOT 2
+		else if (type == 2u)
+		{
+			float radius = uLights.lights[i].radius;
+
+			vec3 lightVector = uLights.lights[i].position - frag.position;
+			float distanceSq = dot(lightVector, lightVector);
+
+			if (distanceSq >= radius * radius)
+				continue;
+
+			float distance = sqrt(distanceSq);
+			L = lightVector / max(distance, Epsilon);
+
+			vec3 lightDir = uLights.lights[i].direction;
+			float spotCos = dot(-L, lightDir);
+
+			if (spotCos <= uLights.lights[i].outCone)
+				continue;
+
+			float coneAtt = smoothstep(uLights.lights[i].outCone, uLights.lights[i].inCone, spotCos);
+
+			attenuation = pointLightAttenuation(distance, radius) * coneAtt;
+
+			shadowLightDir = L;
+		}
+
+		// AREA 3
+		else if (type == 3u)
+		{
+			vec3 position = uLights.lights[i].position;
+			vec3 direction = uLights.lights[i].direction;
+			float radius = uLights.lights[i].radius;
+
+			vec3 axisX = uLights.lights[i].axisX;
+			vec3 axisY = uLights.lights[i].axisY;
+
+			float halfWidth = uLights.lights[i].halfWidth;
+			float halfHeight = uLights.lights[i].halfHeight;
+
+			vec3 toFrag = frag.position - position;
+
+			// Coarse reject before closest-point work.
+			float extent = sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
+			float coarseRadius = radius + extent;
+
+			if (dot(toFrag, toFrag) >= coarseRadius * coarseRadius)
+				continue;
+
+			float localX = dot(toFrag, axisX);
+			float localY = dot(toFrag, axisY);
+
+			float clampedX = clamp(localX, -halfWidth, halfWidth);
+			float clampedY = clamp(localY, -halfHeight, halfHeight);
+
+			vec3 closest =
+				position +
+				axisX * clampedX +
+				axisY * clampedY;
+
+			vec3 lightVector = closest - frag.position;
+			float distanceSq = dot(lightVector, lightVector);
+
+			if (distanceSq >= radius * radius)
+				continue;
+
+			float distance = sqrt(distanceSq);
+			L = lightVector / max(distance, Epsilon);
+
+			float facing = dot(-L, direction);
+
+			if (facing <= 0.0)
+				continue;
+
+			attenuation =
+				pointLightAttenuation(distance, radius) *
+				saturate(facing);
+		}
+
+		// DIRECTIONAL 1
+		else
+		{
+			L = -uLights.lights[i].direction;
+			shadowLightDir = L;
+		}
+
+		if (attenuation <= Epsilon)
+			continue;
+
+		if (dot(frag.normal, L) <= 0.0)
+			continue;
+
+		vec3 radiance = uLights.lights[i].radiance * attenuation;
+
+		directLighting += evaluateDirectLight(
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir,
+			L,
+			radiance);
+	}
+#endif
+
+	return directLighting;
+}
+
+vec3 iblDirection(vec3 v)
+{
+#ifdef USE_IBL_TRANSFORM
+	return v * uIblTransform;
+#else
+	return v;
+#endif
+}
+
+vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float NoV)
+{
+	vec3 ambientLighting = vec3(0.0);
+
+#ifdef USE_IBL
+	vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIblIntensity * uIblColor;
+
+#ifdef SIMPLIFIED
+	ambientLighting = frag.albedo * irradiance;
+#else
+	vec3 F0 = mix(Fdielectric, frag.albedo, frag.metalness);
+	vec3 F = fresnelSchlickRoughness(F0, NoV, frag.roughness);
+	vec3 kd = (vec3(1.0) - F) * (1.0 - frag.metalness);
+
+	vec3 diffuseIBL = kd * frag.albedo * irradiance;
+
+	vec3 specularVec = iblDirection(reflectionDir);
+	vec3 specularIrradiance = textureLod(
+		specularTexture,
+		specularVec,
+		frag.roughness * uSpecularTextureLevels).rgb * uIblIntensity;
+
+	vec2 specularBRDF = texture(specularBRDF_LUT, vec2(NoV, frag.roughness)).rg;
+	vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+
+	ambientLighting = diffuseIBL + specularIBL;
+#endif
+
+#endif
+
+	return ambientLighting;
+}
+
+float rand(vec2 co)
+{
+	return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec3 addNoise(vec3 color3)
 {
 	vec2 seed = vec2(fCameraPos.xy + fUv + vec2(gl_FragCoord));
-	
 	float noise = rand(seed);
-	
-	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) 
-					/ (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
-    
-	color += noise * uCamera.depthNoiseFactor * min(linearDepth / uCamera.depthNoiseDistance, 1.0);
+	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) /
+		(uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
 
-	return color;
+	color3 += noise * uCamera.depthNoiseFactor * min(linearDepth / uCamera.depthNoiseDistance, 1.0);
+
+	return color3;
 }
 
 bool pointInsideVolume(vec3 p, vec3 minV, vec3 maxV)
 {
-    return all(greaterThanEqual(p, minV)) &&
-           all(lessThanEqual(p, maxV));
+	return all(greaterThanEqual(p, minV)) &&
+		   all(lessThanEqual(p, maxV));
 }
 
 void main()
 {
-	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
-	    
-		if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
-		{
-			color = vec4(0.0);	
-			return;
-		}
+#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
+	if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
+	{
+		color = vec4(0.0);
+		return;
+	}
+#endif
 
-	#endif
-
-	#ifdef HAS_CLIP_VOLUME
-		if (!pointInsideVolume(fPos, uClipMin, uClipMax))
-			discard;
-	#endif
-
-	vec3 shadowLightDir;
+#ifdef HAS_CLIP_VOLUME
+	if (!pointInsideVolume(fPos, uClipMin, uClipMax))
+		discard;
+#endif
 
 	FragmentProperties frag = LOAD_FRAGMENT_PROPS;
 
-	vec4 baseColor = frag.baseColor;
-	vec3 albedo = frag.albedo;
 	vec3 N = frag.normal;
-	float metalness = frag.metalness;
-	float roughness = frag.roughness;
-	float occlusion = frag.occlusion;
+	vec3 V = frag.viewDir;
+	float NoV = saturate(dot(N, V));
+	vec3 R = reflect(-V, N);
 
-	// Outgoing light direction (vector from world-space fragment position to the "eye").
-	vec3 Lo = frag.viewDir;
+	vec3 shadowLightDir;
+	vec3 directLighting = evaluatePunctualLighting(frag, shadowLightDir);
+	vec3 ambientLighting = evaluateAmbientLighting(frag, R, NoV);
 
-	// Angle between surface normal and outgoing light direction.
-	float cosLo = clamp(dot(N, Lo), 0.0, 1.0);
-		
-	// Specular reflection vector.
-	vec3 Lr = reflect(-Lo, N);
-
-#ifndef SIMPLIFIED
-	// Fresnel reflectance at normal incidence (for metals use albedo color).
-	vec3 F0 = mix(Fdielectric, albedo, metalness);
+#ifdef USE_OCCLUSION_MAP
+	float ao = mix(1.0, frag.occlusion, uMaterial.occlusionStrength);
+#if PBR_OCCLUSION_AFFECTS_DIRECT
+	directLighting *= ao;
+#endif
+	ambientLighting *= ao;
 #endif
 
-	// Direct lighting calculation for analytical lights.
-	vec3 directLighting = vec3(0);
+#if ALPHA_MODE == ALPHA_OPAQUE
+	float a = 1.0;
+#else
+	float a = frag.baseColor.a;
+#endif
 
-	#ifdef USE_PUNCTUAL
+#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
+	float shadow = calculateShadow(fPosLightSpace, N, shadowLightDir);
 
-		for(uint i = 0u; i < uLights.count; ++i)
-		{
-			vec3 Li;
-			float attenuation = 1.0; // Default attenuation
-
-			if (uLights.lights[i].type == 0u)
-			{
-				// Point light.
-				vec3 lightDir = uLights.lights[i].position - fPos;
-				float distance = length(lightDir);
-				Li = normalize(lightDir);
-
-				float range = uLights.lights[i].radius;
-
-				float falloff = 1.0 / max(distance * distance, 0.01);
-				float rangeFalloff = clamp(1.0 - (distance / range), 0.0, 1.0);
-				attenuation = falloff * rangeFalloff * rangeFalloff;
-			}
-			else
-			{
-				// Directional light.
-				Li = -uLights.lights[i].direction;
-				shadowLightDir = Li;
-			}
-
-			vec3 Lradiance = uLights.lights[i].radiance * attenuation;
-
-			// Calculate angles between surface normal and various light vectors.
-			float cosLi = max(0.0, dot(N, Li));
-
-			#ifdef SIMPLIFIED
-				directLighting += albedo * Lradiance * cosLi;
-			#else
-
-				float r_micro = max(roughness, 0.045);      // microfacet eval roughness floor
-				float a       = r_micro * r_micro;          // Disney reparam (alpha)
-				float a2      = a * a;
-
-				// Half vector
-				vec3  Lh     = normalize(Li + Lo);
-				float cosLh  = max(0.0, dot(N, Lh));
-				float cosVh  = max(0.0, dot(Lo, Lh));
-
-				vec3 F = fresnelSchlickRoughness(F0, cosVh, roughness);
-
-				// GGX NDF with clamped alpha
-				float denom = (cosLh * cosLh) * (a2 - 1.0) + 1.0;
-				float D     = a2 / (PI * denom * denom);
-
-				// Smith with Epic k remap, using r_micro
-				float r = r_micro + 1.0;
-				float k = (r * r) * 0.125;
-				float G  = gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
-
-				vec3  kd        = mix(vec3(1.0) - F, vec3(0.0), metalness);
-				vec3  diffuseBRDF  = kd * albedo * (1.0 / PI);
-
-				// Cook-Torrance specular
-				vec3  specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
-
-				// Accumulate
-				directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
-			#endif
-		}
-	#endif	
-
-	// Ambient lighting (IBL).
-	vec3 ambientLighting = vec3(0.0);
-
-	#ifdef USE_IBL
-	{
-		// Sample diffuse irradiance at normal direction.
-
-		vec3 irradianceVec = N;
-		#ifdef USE_IBL_TRANSFORM
-			irradianceVec *= uIblTransform;
-		#endif
-
-		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity * uIblColor;
-
-		#ifdef SIMPLIFIED
-
-			vec3 diffuseIBL = albedo * irradiance;
-			ambientLighting = diffuseIBL;
-
-		#else
-
-			vec3 F = fresnelSchlickRoughness(F0, cosLo, roughness);
-
-			// Get diffuse contribution factor (as with direct lighting).
-			vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
-
-			// Irradiance map contains exitant radiance assuming Lambertian BRDF, no need to scale by 1/PI here either.
-			vec3 diffuseIBL = kd * albedo * irradiance;
-
-			// Sample pre-filtered specular reflection environment at correct mipmap level.
-			//int specularTextureLevels = textureQueryLevels(specularTexture);
-			vec3 specularVec = Lr;
-			#ifdef USE_IBL_TRANSFORM
-				specularVec *= uIblTransform;
-			#endif
-			vec3 specularIrradiance = textureLod(specularTexture, specularVec, roughness * uSpecularTextureLevels).rgb * uIblIntensity;
-
-			// Split-sum approximation factors for Cook-Torrance specular BRDF.
-			vec2 specularBRDF = texture(specularBRDF_LUT, vec2(cosLo, roughness)).rg;
-
-			// Total specular IBL contribution.
-			vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
-
-			// Total ambient lighting contribution.
-			ambientLighting = diffuseIBL + specularIBL;
-
-		#endif 
-	}
-
-	#endif
-
-	vec3 color3 = (directLighting + ambientLighting);
-
-	
-	#ifdef PLANAR_REFLECTION
-		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo, uMaterial.planarFactor, uMaterial.planarLevel);
-	#endif
-
-
-	//Opaque
-	#if ALPHA_MODE == 0
-		float a = 1.0;	
+	#ifdef TRANSPARENT
+		vec3 color3 = shadow * uMaterial.shadowColor.rgb;
+		a = shadow * uMaterial.shadowColor.a;
 	#else
-		float a = baseColor.a;	
+		vec3 shadowFactor = vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
+
+		vec3 color3 =
+			directLighting * shadowFactor +
+			ambientLighting * mix(vec3(1.0), shadowFactor, uIblShadowStrength);
 	#endif
+#else
+	vec3 color3 = directLighting + ambientLighting;
+#endif
+
+#ifdef PLANAR_REFLECTION
+	color3 = planarReflection(color3, frag.position, R, frag.roughness, NoV, uMaterial.planarFactor, uMaterial.planarLevel);
+#endif
+
+#ifdef USE_EMISSIVE
+    vec3 emissive = uMaterial.emissive.rgb;
+
+    #ifdef USE_EMISSIVE_MAP
+        emissive *= frag.emissive.rgb * frag.emissive.a;
+    #endif
+
+    color3 += emissive;
+#endif
 
 
-	#ifdef USE_OCCLUSION_MAP
-		color3 *= mix(1.0, occlusion, uMaterial.occlusionStrength);
-	#endif
+#ifdef TONE_MAP
 
-	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
+    #if TONE_MAP == 1
+        color3.rgb = toneMap(color3.rgb);
+    #endif
 
-		float shadow = calculateShadow(fPosLightSpace, N, shadowLightDir);
+    #if TONE_MAP == 2
+        color3.rgb = toneMapNeutral(color3.rgb);
+    #endif
 
-		#ifdef TRANSPARENT
-			color3 = shadow * uMaterial.shadowColor.rgb;
-			a = shadow * uMaterial.shadowColor.a;
-		#else
-			color3 *= vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
-		#endif
+    #ifdef SRGB
+        color3.rgb = linearTosRGB(color3.rgb);
+    #endif
+#endif
 
-	#endif
+#ifdef USE_DEPTH_NOISE
+	color3 = addNoise(color3);
+#endif
 
-	#ifdef USE_EMISSIVE
-		color3 += uMaterial.emissive.rgb * uMaterial.emissive.a * cosLo;
-	#endif
-	
-
-	#ifdef TONE_MAP
-
-		#if TONE_MAP == 1
-			color3.rgb = toneMap(color3.rgb);
-		#endif
-
-		#if TONE_MAP == 2
-			color3.rgb = toneMapNeutral(color3.rgb);
-		#endif
-
-		#ifdef SRGB
-			color3.rgb = linearTosRGB(color3.rgb);
-		#endif
-	#endif
-
-
-	//Blend
-	#if ALPHA_MODE == 5
-		if (a < uMaterial.alphaCutoff)
-			discard;
-	#endif
-
-	#ifdef USE_DEPTH_NOISE
-		color3 = addNoise(color3);	
-	#endif
-
-	// Final fragment color.
 	color = vec4(color3 * uCamera.exposure, a);
 
 #if DEBUG == DEBUG_UV
-
 	color = vec4(fUv.x, fUv.y, 0.0, 1.0);
-
 #elif DEBUG == DEBUG_NORMAL
-
 	color = vec4(N * 0.5 + 0.5, 1.0);
-
 #elif DEBUG == DEBUG_TANGENT
-
 	color = vec4(normalize(fTangentBasis[0]) * 0.5 + 0.5, 1.0);
-
 #elif DEBUG == DEBUG_BITANGENT
-
 	color = vec4(normalize(fTangentBasis[1]) * 0.5 + 0.5, 1.0);
-
 #elif DEBUG == DEBUG_METALNESS
-	
-	color = vec4(vec3(metalness), 1.0);
-
+	color = vec4(vec3(frag.metalness), 1.0);
 #elif DEBUG == DEBUG_ROUGHNESS
-	
-	color = vec4(vec3(roughness), 1.0);
-
+	color = vec4(vec3(frag.roughness), 1.0);
 #elif DEBUG == DEBUG_IRRADIANCE
-
 	color = vec4(texture(irradianceTexture, N).rgb * uIblIntensity * uIblColor, 1.0);
-#endif
+#elif DEBUG == DEBUG_FIELD_DIR
+	color.rgb =	evaluateLightFieldDirection(frag.position, frag.normal);
+	color.a = 1.0;
 
+#elif DEBUG == DEBUG_FIELD_RAD
+	color.rgb =	evaluateLightFieldRadiance(frag.position, frag.normal) * uMaterial.occlusionStrength;
+	color.a = 1.0;
+#endif
 }

@@ -1,13 +1,15 @@
-// pbr_fragment_properties_default.glsl
-// Default fragment-property loader.
-// This preserves the same material loading logic as the original shader.
-
 
 layout(binding=0) uniform sampler2D albedoTexture;
 layout(binding=1) uniform sampler2D normalTexture;
 layout(binding=2) uniform sampler2D metalroughnessTexture;
 layout(binding=3) uniform sampler2D occlusionTexture;
 layout(binding=9) uniform sampler2D emissiveTexture;
+
+
+#ifndef LOAD_FRAGMENT_PROPS
+	#define LOAD_FRAGMENT_PROPS LoadFragmentProperties()
+#endif
+
 
 vec4 LoadBaseColor()
 {
@@ -165,9 +167,10 @@ FragmentProperties LoadFragmentProperties()
 
 	frag.baseColor = LoadBaseColor();
 
-	#if ALPHA_MODE == 5
+	#if ALPHA_MODE == ALPHA_MASK 
 		if (frag.baseColor.a < uMaterial.alphaCutoff)
 			discard;
+		frag.baseColor.a = 1.0;
 	#endif
 
 	frag.albedo = frag.baseColor.rgb;

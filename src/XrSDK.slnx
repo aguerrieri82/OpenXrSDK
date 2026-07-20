@@ -3,6 +3,7 @@
     <BuildType Name="Debug" />
     <BuildType Name="Release" />
     <BuildType Name="ReleaseStore" />
+    <Platform Name="Any CPU" />
     <Platform Name="x64" />
   </Configurations>
   <Folder Name="/#Build/">
@@ -16,11 +17,13 @@
     <File Path="../third-party/build-turbo-jpeg.cmd" />
     <File Path="../third-party/vars.cmd" />
     <Project Path="../build/XrBuild/XrBuild.csproj">
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Generator/XrEngine.Generator.csproj" Id="16d4ad08-8bbd-46b6-9118-b23d2431ea39">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/#Filament/">
@@ -47,47 +50,57 @@
     </Project>
     <Project Path="../third-party/glTF-CSharp-Loader/glTFLoader/glTFLoader.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../third-party/MagicPhysX/src/MagicPhysX/PhysX.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/Common.Interop/Common.Interop.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Common/XrInteraction/XrInteraction.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Common/XrMath.Entities/XrMath.Entities.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Common/XrMath/XrMath.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Editor/">
     <Project Path="Editor/XrEditor.App/XrEditor.App.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Editor/XrEditor.Audio/XrEditor.Audio.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Editor/XrEditor.Core/XrEditor.Core.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Editor/XrEditor.Plot/XrEditor.Plot.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Engine/">
@@ -96,144 +109,175 @@
     </Project>
     <Project Path="Engine/Fftw/Fftw.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/Filament.Native/Filament.Native.vcxproj" Id="4ff56f83-7124-4975-b086-2f9c4fcc59e4">
       <BuildType Project="Release" />
     </Project>
     <Project Path="Engine/MeshOptimizer/MeshOptimizer.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/Sfizz/Sfizz.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/TurboJpeg/TurboJpeg.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/UsbCamera.Native/UsbCamera.Native.vcxproj" Id="2c76cc93-d850-4f2d-9f4f-283c15bec3b3">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.AI/XrEngine.AI.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Audio/XrEngine.Audio.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Browser.Windows/XrEngine.Browser.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Bullet.Native/XrEngine.Bullet.Native.vcxproj" Id="0208e53b-0e5c-4d0c-99c6-f3874e844e1d">
       <BuildType Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.Bullet/XrEngine.Bullet.csproj" Id="f7b59f46-9789-4a87-abed-4007380893ff">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Compression/XrEngine.Compression.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Core/XrEngine.Core.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Devices/XrEngine.Devices.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Engine/XrEngine.Filament.Wpf/XrEngine.Filament.Wpf.csproj" Id="7c27e589-40a6-4815-a417-70e5d93722fa">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Filament/XrEngine.Filament.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Glft/XrEngine.Gltf.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Lighting/XrEngine.Lighting.csproj" Id="e2f07925-0d06-4f5f-8ab9-9830f5a0011e">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Media.Abstraction/XrEngine.Media.Abstraction.csproj" Id="261436f6-f5af-4659-9cd3-7dddaa7398c7">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Media.Android/XrEngine.Media.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Engine/XrEngine.Media.FFmpeg/XrEngine.Media.FFmpeg.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Media.Windows/XrEngine.Media.Windows.csproj" Id="14e7bcb3-ee41-4b9b-8416-5ef9e40d5180">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
       <BuildType Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.OpenGL.Wpf/XrEngine.OpenGL.Wpf.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.OpenGL/XrEngine.OpenGL.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.OpenXr.Android/XrEngine.OpenXr.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Engine/XrEngine.OpenXr.Windows/XrEngine.OpenXr.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.OpenXr/XrEngine.OpenXr.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Physics/XrEngine.Physics.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Reconstruct/XrEngine.Reconstruct.csproj" Id="eb9a098c-07e0-4591-860e-234fa8f89697">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Tiff/XrEngine.Tiff.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.UI.Web/XrEngine.UI.Web.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.UI/XrEngine.UI.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Video/XrEngine.Video.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Framework/">
     <Project Path="Framework/OpenAl.Framework/OpenAl.Framework.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Framework/OpenGLWrapper/OpenGLWrapper.csproj" Id="c32b41c8-9fe5-4a78-a024-c2bfdcf86516">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -241,32 +285,39 @@
     </Project>
     <Project Path="Framework/OpenXr.Entities/OpenXr.Entities.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Framework/OpenXr.Framework.Android/OpenXr.Framework.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Framework/OpenXr.Framework.Oculus/OpenXr.Framework.Oculus.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Framework/OpenXr.Framework.OpenGL/OpenXr.Framework.OpenGL.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Framework/OpenXr.Framework.Vulkan/OpenXr.Framework.Vulkan.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Framework/OpenXr.Framework/OpenXr.Framework.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Framework/PhysX.Framework/PhysX.Framework.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Samples/">
@@ -278,43 +329,52 @@
     </Project>
     <Project Path="Samples/XrSamples.Android/XrSamples.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy />
     </Project>
     <Project Path="Samples/XrSamples.Common/XrSamples.Common.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Samples/XrSamples.Console/XrSamples.Console.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Samples/XrSamples.Dnd/XrSamples.Dnd.csproj" Id="a322bf9e-d39c-43a2-9374-4103545a5c08">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Samples/XrSamples.Earth/XrSamples.Earth.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Samples/XrSamples.Graffiti/XrSamples.Graffiti.csproj" Id="681b55b9-388a-41bb-8c6f-00dde9ac1156">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Samples/DrumsVR/">
     <File Path="../../DrumsVR/src/Directory.Build.props" />
     <Project Path="../../DrumsVR/src/DrumsVR.Encoder/DrumsVR.Encoder.csproj">
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Entities/DrumsVR.Entities.csproj">
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Game.Android/DrumsVR.Game.Android.csproj">
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy />
     </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Game.UI/DrumsVR.Game.UI.esproj">
@@ -325,11 +385,13 @@
     </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Game.Windows/DrumsVR.Game.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Game/DrumsVR.Game.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
   </Folder>
@@ -337,51 +399,62 @@
     <File Path="../../RoomDesigner/src/Directory.Build.props" />
     <Project Path="../../RoomDesigner/src/RoomDesigner.Game.Android/RoomDesigner.Game.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Game.UI/RoomDesigner.Game.UI.esproj">
       <BuildType Project="Release" />
+      <Platform Project="x64" />
       <Build />
       <Deploy />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Game.Windows/RoomDesigner.Game.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Game/RoomDesigner.Game.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Samples/RoomDesigner/Server/">
     <Project Path="../../RoomDesigner/src/Oculus.GraphApiClient/Oculus.GraphApiClient.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Abstraction/RoomDesigner.Abstraction.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Api/RoomDesigner.Api.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.ApiClient/RoomDesigner.ApiClient.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Entities/RoomDesigner.Entities.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Ikea/RoomDesigner.Ikea.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.Server/RoomDesigner.Server.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="../../RoomDesigner/src/RoomDesigner.WebApp/RoomDesigner.WebApp.esproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -393,19 +466,23 @@
   <Folder Name="/UI/">
     <Project Path="UI/UI.Binding/UI.Binding.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="UI/UI.Canvas.Wpf/UI.Canvas.Wpf.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="UI/UI.Canvas/UI.Canvas.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="UI/UI.Framework/UI.Framework.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="UI/UI.WebLib/UI.WebLib.esproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -417,24 +494,29 @@
   <Folder Name="/WebLink/">
     <Project Path="WebLink/XrWebLink.Android/XrWebLink.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
     <Project Path="WebLink/XrWebLink.Client/XrWebLink.Client.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="WebLink/XrWebLink.Entities/XrWebLink.Entities.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="WebLink/XrWebLink.Server/XrWebLink.Server.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="WebLink/XrWebLink/XrWebLink.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
-      <Platform Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
 </Solution>

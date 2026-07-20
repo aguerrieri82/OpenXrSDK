@@ -7,6 +7,7 @@ using XrEngine.Media.Android;
 
 namespace XrSamples
 {
+
     [Application(Debuggable = true, HardwareAccelerated = true)]
     public class App : Application
     {
@@ -14,8 +15,6 @@ namespace XrSamples
         {
 
         }
-
-       
 
         public override void OnCreate()
         {
@@ -34,4 +33,5 @@ namespace XrSamples
 
         }
     }
+
 }

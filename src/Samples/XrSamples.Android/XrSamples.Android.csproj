@@ -10,39 +10,29 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 		<UseOpenGL>true</UseOpenGL>
+		<_DisableCheckForUnsupportedMonoMobileRuntime>True</_DisableCheckForUnsupportedMonoMobileRuntime>
 	</PropertyGroup>
-
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
-		<UseMonoRuntime>true</UseMonoRuntime>
-		<DebugSymbols>true</DebugSymbols>
 		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
 	</PropertyGroup>
 
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>false</RunAOTCompilation>
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
-		<DebugSymbols>false</DebugSymbols>
-		<AndroidManagedSymbols>false</AndroidManagedSymbols>
-		<UseMonoRuntime>true</UseMonoRuntime>
 		<PublishReadyToRun>false</PublishReadyToRun>
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)'=='__Release'">
-		<RunAOTCompilation>false</RunAOTCompilation>
+	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-		<DebugSymbols>false</DebugSymbols>
-		<AndroidManagedSymbols>false</AndroidManagedSymbols>
-		<UseMonoRuntime>false</UseMonoRuntime>
 		<PublishReadyToRun>true</PublishReadyToRun>
 	</PropertyGroup>
 
