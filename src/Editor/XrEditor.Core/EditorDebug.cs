@@ -64,6 +64,7 @@ namespace XrEditor
                   opt.ContactShadow.IsMultiView = false;
 
                   opt.UseResolve = false;
+                  opt.UseSRGB = true;
                   opt.ToneMap = ToneMapMode.Neutral;
 
               })

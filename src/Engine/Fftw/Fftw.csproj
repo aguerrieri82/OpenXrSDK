@@ -5,7 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsAndroid)' == 'false'">
-	  <Content Include="$(NativeLibsDir)fftw3\win-x64\fftw3.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+	  <Content 
+		  Include="$(NativeLibsDir)fftw3\win-x64\fftw3.dll" 
+		  CopyToOutputDirectory="PreserveNewest" 
+		  UseLink="True"
+		  Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

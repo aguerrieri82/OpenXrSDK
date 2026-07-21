@@ -7,7 +7,7 @@
 		<WinVersion>windows10.0.26100.0</WinVersion>
 		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageVersion>0.2.1</PackageVersion>
+		<PackageVersion>0.3.0</PackageVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
@@ -25,19 +25,27 @@
 		<AndroidNativeOutDir>$(ProjectDir)libs\arm64-v8a\</AndroidNativeOutDir>
 		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 		<UseMonoRuntime>false</UseMonoRuntime>
-		
+		<MsExtVersion>$(BundledNETCoreAppPackageVersion)</MsExtVersion>
+
+	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
 	</PropertyGroup>
 
-
+	<Target Name="EnableHardLinksForCopyLocal"
+        BeforeTargets="_CopyFilesMarkedCopyLocal"
+        Condition="'$(BuildingInsideVisualStudio)' == 'true'">
+		<PropertyGroup>
+			<CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+		</PropertyGroup>
+	</Target>
+	
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-		<Optmize>false</Optmize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>full</DebugType>
-		<IsTrimmable>false</IsTrimmable>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == '$(CoreVersion)-android'">
@@ -63,6 +71,97 @@
 		<AndroidBuildOutput Include="$(AndroidNativeOutDir)*.so" />
 	</ItemGroup>
 
+
+	<Target Name="PropagateUseLink"
+		Condition="'$(CreateSymbolicLinksForCopyLocalIfPossible)' == 'true'"
+        AfterTargets="GetCopyToOutputDirectoryItems">
+
+		<ItemGroup>
+			<_LinkContent Include="@(Content)"
+						  Condition="'%(Content.UseLink)' == 'true'">
+				<SourcePath>%(Content.FullPath)</SourcePath>
+			</_LinkContent>
+
+			<_ReturnedLinkItems Include="@(AllItemsFullPathWithTargetPath)">
+				<SourcePath>%(AllItemsFullPathWithTargetPath.FullPath)</SourcePath>
+			</_ReturnedLinkItems>
+
+			<_ReturnedNonLinkItems Include="@(_ReturnedLinkItems)" />
+
+			<_ReturnedNonLinkItems
+				Remove="@(_LinkContent)"
+				MatchOnMetadata="SourcePath"
+				MatchOnMetadataOptions="PathLike" />
+
+			<_ReturnedLinkItems
+				Remove="@(_ReturnedNonLinkItems)"
+				MatchOnMetadata="SourcePath"
+				MatchOnMetadataOptions="PathLike" />
+
+			<AllItemsFullPathWithTargetPath
+				Update="@(_ReturnedLinkItems)"
+				MatchOnMetadata="FullPath"
+				MatchOnMetadataOptions="PathLike">
+				<UseLink>true</UseLink>
+			</AllItemsFullPathWithTargetPath>
+		</ItemGroup>
+
+	</Target>
+
+	<Target Name="PrepareNativeLibraryLinks"
+			Condition="'$(CreateSymbolicLinksForCopyLocalIfPossible)' == 'true'"
+			BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory">
+
+		<ItemGroup>
+			<!-- Final propagated items that are marked for linking -->
+			<_PropagatedLinkItems Include="@(AllItemsFullPathWithTargetPath)"
+								  Condition="'%(AllItemsFullPathWithTargetPath.UseLink)' == 'true'">
+				<SourcePath>%(AllItemsFullPathWithTargetPath.FullPath)</SourcePath>
+			</_PropagatedLinkItems>
+
+			<!-- Start from the actual final copy list -->
+			<_NativeLibrariesToLink Include="@(_SourceItemsToCopyToOutputDirectory)">
+				<SourcePath>%(_SourceItemsToCopyToOutputDirectory.FullPath)</SourcePath>
+			</_NativeLibrariesToLink>
+
+			<_NonLinkItems Include="@(_NativeLibrariesToLink)" />
+
+			<!-- Remove everything that matches a propagated link item -->
+			<_NonLinkItems
+				Remove="@(_PropagatedLinkItems)"
+				MatchOnMetadata="SourcePath"
+				MatchOnMetadataOptions="PathLike" />
+
+			<!-- Keep only the matching link items -->
+			<_NativeLibrariesToLink
+				Remove="@(_NonLinkItems)"
+				MatchOnMetadata="SourcePath"
+				MatchOnMetadataOptions="PathLike" />
+
+			<!-- Add SourcePath to the real source list so removal matches reliably -->
+			<_SourceItemsToCopyToOutputDirectory Update="@(_SourceItemsToCopyToOutputDirectory)">
+				<SourcePath>%(_SourceItemsToCopyToOutputDirectory.FullPath)</SourcePath>
+			</_SourceItemsToCopyToOutputDirectory>
+
+			<!-- Remove linked items from the normal copy pipeline -->
+			<_SourceItemsToCopyToOutputDirectory
+				Remove="@(_NativeLibrariesToLink)"
+				MatchOnMetadata="SourcePath"
+				MatchOnMetadataOptions="PathLike" />
+		</ItemGroup>
+
+		<Copy
+			SourceFiles="@(_NativeLibrariesToLink)"
+			DestinationFiles="@(_NativeLibrariesToLink->'$(OutDir)%(TargetPath)')"
+			SkipUnchangedFiles="true"
+			UseHardlinksIfPossible="true">
+
+			<Output TaskParameter="DestinationFiles"
+					ItemName="FileWrites" />
+		</Copy>
+
+	</Target>
+	
 	<Target
 		Name="RunAndroidBuildScript"
 		BeforeTargets="Build"
@@ -80,4 +179,7 @@
 			Command="call &quot;$(ProjectDir)android-build.cmd&quot;"
 			WorkingDirectory="$(ProjectDir)" />
 	</Target>
+
+
+
 </Project>

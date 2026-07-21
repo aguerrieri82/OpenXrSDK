@@ -2,8 +2,9 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-
 #endif
+
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -57,6 +58,7 @@ namespace XrEngine.OpenGL
 
         protected virtual bool CanDraw(DrawContent draw)
         {
+
             if (draw.IsHidden || draw.IsClipped)
                 return false;
 

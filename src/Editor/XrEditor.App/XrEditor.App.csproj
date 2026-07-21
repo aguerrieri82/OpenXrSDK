@@ -11,6 +11,7 @@
 		<UseOpenGL>true</UseOpenGL>
 		<ApplicationIcon>XrEditor.ico</ApplicationIcon>
 		<NoWarn>MC3066</NoWarn>
+
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -35,22 +36,12 @@
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Compile Update="Properties\Settings.Designer.cs">
-	    <DesignTimeSharedInput>True</DesignTimeSharedInput>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Settings.settings</DependentUpon>
-	  </Compile>
-	</ItemGroup>
 
 	<ItemGroup>
 	  <None Update="alsoft.ini">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Properties\Settings.settings">
-	    <Generator>SettingsSingleFileGenerator</Generator>
-	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-	  </None>
+
 	</ItemGroup>
 
 	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">

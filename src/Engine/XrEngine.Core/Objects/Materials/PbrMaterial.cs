@@ -173,7 +173,7 @@ namespace XrEngine
             public PbrShader()
             {
                 UseDepthCulling = true;
-                UseSharedSSBO = false;
+                UseSharedSSBO = true;
             }
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)

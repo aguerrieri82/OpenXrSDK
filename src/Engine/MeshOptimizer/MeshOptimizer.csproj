@@ -4,23 +4,13 @@
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<NativeLibrary Include="$(NativeLibsDir)meshoptimizer\**\*" />
-	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 
 		<Content Include="$(NativeLibsDir)meshoptimizer\win-x64\*.dll"
 				 CopyToOutputDirectory="PreserveNewest"
+				 UseLink="True"
 				 Link="%(Filename)%(Extension)"/>
-
-		<Content Include="$(NativeLibsDir)meshoptimizer\android-arm64\*.so"
-				 CopyToOutputDirectory="PreserveNewest"
-				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>
-
-		<Content Include="$(NativeLibsDir)meshoptimizer\win-x64\*.dll"
-				 CopyToOutputDirectory="PreserveNewest"
-				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
 
 	</ItemGroup>
 

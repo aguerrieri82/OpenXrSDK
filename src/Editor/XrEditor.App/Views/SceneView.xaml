@@ -5,7 +5,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:SceneView}">
-        <Border Background="#00ff00">
+        <Border Background="#000">
             <ContentPresenter Content="{Binding RenderSurface}"/>
         </Border>
     </DataTemplate>

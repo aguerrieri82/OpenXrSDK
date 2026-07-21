@@ -1,21 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
-	  <SingleProject>true</SingleProject>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
+		<SingleProject>true</SingleProject>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Common\Common.Interop\Common.Interop.csproj" />
-    <ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Common\Common.Interop\Common.Interop.csproj" />
+		<ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
+	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\UsbCamera.Native\Bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\UsbCamera.Native\Bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)\libuvc\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+
+		<Content Include="..\UsbCamera.Native\Bin\$(NativePlatform)\$(NativeFolder)\*"
+				 CopyToOutputDirectory="PreserveNewest"
+				 UseLink="True"
+				 Link="%(Filename)%(Extension)" />
+
+		<Content Include="$(NativeLibsDir)\libuvc\win-x64\*.dll"
+				 CopyToOutputDirectory="PreserveNewest"
+				 UseLink="True"
+				 Link="%(Filename)%(Extension)" />
 	</ItemGroup>
-	
+
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)usbcamera-native\android-arm64\*.so" />
 	</ItemGroup>

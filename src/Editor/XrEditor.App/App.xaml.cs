@@ -27,6 +27,8 @@ namespace XrEditor
                 e.Handled = true;
             };
 
+            MsBuildPatcher.PatchVisualStudioLinks();
+
             Gpu.EnableNvAPi();
 
             if (!EngineNativeLib.RdcIsAttached())

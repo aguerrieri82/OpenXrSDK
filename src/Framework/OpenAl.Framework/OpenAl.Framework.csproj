@@ -4,23 +4,17 @@
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-
 	<ItemGroup>
 		<PackageReference Include="Silk.NET.OpenAL" Version="2.23.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.23.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.23.0" />
-
 	</ItemGroup>
 
-
-	<ItemGroup>
-		<NativeLibrary Include="$(NativeLibsDir)openal\**\*" />
-	</ItemGroup>
-	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="$(NativeLibsDir)openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)openal\android-arm64\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)openal\win-x64\*.dll"
+				 CopyToOutputDirectory="PreserveNewest"
+				 UseLink="True"
+				 Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

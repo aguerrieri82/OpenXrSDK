@@ -5,14 +5,14 @@
 		<NativeFolder>Release</NativeFolder>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<NativeLibrary Runtime="win-$(NativePlatform)" Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" />
-		<NativeLibrary Runtime="android-arm64" Include="..\Draco.Native\libs\arm64-v8a\*.so" />
-	</ItemGroup>
+
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)draco-native\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		
+		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
+				 CopyToOutputDirectory="PreserveNewest" 
+				 UseLink="True"
+				 Link="%(Filename)%(Extension)" />
+	
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

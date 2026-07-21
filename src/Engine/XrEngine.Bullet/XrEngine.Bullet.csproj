@@ -6,9 +6,11 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(BulletLink)' != 'PreBuilt'">
-		<Content Include="..\XrEngine.Bullet.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\XrEngine.Bullet.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)bullet3-native\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		<Content 
+			Include="..\XrEngine.Bullet.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
+			CopyToOutputDirectory="PreserveNewest" 
+			UseLink="True"
+			Link="%(Filename)%(Extension)" />	
 	</ItemGroup>
 
 	<ItemGroup>

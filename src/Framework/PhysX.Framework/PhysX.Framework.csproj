@@ -7,16 +7,16 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\third-party\MagicPhysX\src\MagicPhysX\PhysX.csproj" />
 		<ProjectReference Include="..\..\Common\XrMath.Entities\XrMath.Entities.csproj" />
-	</ItemGroup>
+	</ItemGroup>	
 
-	<ItemGroup>
-		<NativeLibrary Include="$(NativeLibsDir)physxnative\**\*" />
-	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="$(NativeLibsDir)physxnative\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)physxnative\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)physxnative\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		
+		<Content Include="$(NativeLibsDir)physxnative\win-x64\*.dll" 
+				 CopyToOutputDirectory="PreserveNewest"
+				 UseLink="True"
+				 Link="%(Filename)%(Extension)" />
+		
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
