@@ -19,7 +19,7 @@ namespace XrEditor.Nodes
         {
             if (_value.Parent != null)
             {
-                result.Add(new ActionView(() => _value.Parent.RemoveChild(_value), EngineApp.Current.Dispatcher)
+                result.Add(new ActionView(() => _value.Dispose(), EngineApp.Current.Dispatcher)
                 {
                     Icon = new IconView { Name = "icon_delete" },
                     DisplayName = "Remove"

@@ -47,8 +47,8 @@ layout(location=2) in vec2 a_texcoord;
 	    uint drawId;    
     };
 
-    layout(std430, binding = 4) buffer InstanceData {
-        ModelInstance data[];
+    layout(std430, binding = 9) buffer InstanceData {
+        ModelInstance uInstances[];
     };
 
 #endif
@@ -102,8 +102,8 @@ void main()
 
         #endif
 
-        mat4 worldMatrix = data[gl_InstanceID].worldMatrix;
-        mat4 normalMatrix = data[gl_InstanceID].normalMatrix;
+        mat4 worldMatrix = uInstances[gl_InstanceID].worldMatrix;
+        mat4 normalMatrix = uInstances[gl_InstanceID].normalMatrix;
 
     #else
         mat4 worldMatrix = uModel.worldMatrix;

@@ -95,7 +95,6 @@ namespace XrEngine.OpenGL
             if (!_computePrograms.TryGetValue(key, out var program))
             {
                 program = new GlComputeProgram(_gl, progName, str => Embedded.GetString<Material>(str));
-                program.Build();
 
                 if (src.Format == TextureFormat.Rgba32 || src.Format == TextureFormat.SRgba32)
                     program.AddFeature("FORMAT rgba8");
@@ -105,6 +104,8 @@ namespace XrEngine.OpenGL
 
                 program.AddFeature($"MIP_LEVEL {mipLevel}");
                 program.AddFeature("CHANNELS " + activeChannels);
+
+                program.Build();
 
                 _computePrograms[key] = program;
 

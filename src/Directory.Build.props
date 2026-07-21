@@ -25,19 +25,10 @@
 		<AndroidNativeOutDir>$(ProjectDir)libs\arm64-v8a\</AndroidNativeOutDir>
 		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 		<UseMonoRuntime>false</UseMonoRuntime>
+		
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(DiagnosticOn)' == 'True'">
-		<DiagnosticPort>9100</DiagnosticPort>
-		<DiagnosticAddress>127.0.0.1</DiagnosticAddress>
-		<DiagnosticSuspend>false</DiagnosticSuspend>
-		<DiagnosticListenMode>connect</DiagnosticListenMode>
-		<EnableDiagnostics>true</EnableDiagnostics>
-		<AndroidManagedSymbols>true</AndroidManagedSymbols>
-		<StripSymbols>false</StripSymbols>
-		<EmbedAllSources>true</EmbedAllSources>
-		<EnableLLVM>false</EnableLLVM>
-	</PropertyGroup>
+
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<Optmize>false</Optmize>

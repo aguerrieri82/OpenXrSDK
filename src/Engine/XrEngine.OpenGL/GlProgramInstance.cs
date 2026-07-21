@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -23,31 +25,38 @@ namespace XrEngine.OpenGL
         protected IGlBuffer?[] _materialBuffers;
         protected IGlBuffer?[] _modelBuffers;
 
+        protected Object3D? _lastModel;
+
+
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
             Material = material;
             Global = global;
 
-            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(20));
+            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(20));
             _materialBuffers = bufferMap.Buffers;
 
             if (model != null)
-            {
-                bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(20));
-                _modelBuffers = bufferMap.Buffers;
-            }
+                LoadModelBuffers(model);
             else
                 _modelBuffers = [];
+        }
+
+        [MemberNotNull(nameof(_modelBuffers))]
+        protected void LoadModelBuffers(Object3D model)
+        {
+            var bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(20));
+            _modelBuffers = bufferMap.Buffers;
+
+            _lastModel = model;
         }
 
         public void UpdateModel(UpdateShaderContext ctx)
         {
             Debug.Assert(ctx.Stage == UpdateShaderStage.Model);
 
-            var bufferMap = ctx.Model!.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap(20));
-
-            _modelBuffers = bufferMap.Buffers;
+            LoadModelBuffers(ctx.Model!);
 
             if (_modelUpdate == null)
             {
@@ -66,7 +75,6 @@ namespace XrEngine.OpenGL
             UpdateUniforms(ctx, false);
         }
 
-        public bool NeedUpdate => Program == null || _materialVersion != Material!.Version || _globalVersion != Global.Version;
 
         public bool UpdateProgram(UpdateShaderContext ctx)
         {
@@ -180,24 +188,42 @@ namespace XrEngine.OpenGL
             return changed;
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage)
+        public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = "")
         {
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store, usage);
 
-            var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
-
-            if (storeBuffers.Length == 0)
-                throw new NotSupportedException("Buffer store not supported");
-
-            var buffer = (IBuffer<T>?)storeBuffers[bufferId];
-            if (buffer == null)
+            if (usage == BufferUsage.SharedSsbo)
             {
-                var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
-                buffer = new GlBuffer<T>(_gl, target);
-                storeBuffers[bufferId] = (IGlBuffer)buffer;
+                Debug.Assert(uniformName != null);
+
+                var range = Global.GetBufferRange<T>(bufferId, store, uniformName);
+
+                EngineObject engObj = store == BufferStore.Material ? Material : _lastModel!;
+
+                var buffer = range.Reserve(engObj);
+
+                return buffer;
             }
-            return buffer;
+            else
+            {
+                var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
+
+                if (storeBuffers.Length == 0)
+                    throw new NotSupportedException("Buffer store not supported");
+
+                var buffer = (GlBuffer<T>?)storeBuffers[bufferId];
+                if (buffer == null)
+                {
+                    var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
+                    buffer = new GlBuffer<T>(_gl, target);
+                    storeBuffers[bufferId] = buffer;
+                }
+
+                return buffer;
+            }
+
+
         }
 
         public void UpdateBuffers(UpdateShaderContext ctx, bool updateGlobals = false)
@@ -251,6 +277,8 @@ namespace XrEngine.OpenGL
             _materialVersion = -1;
             _globalVersion = -1;
         }
+
+        public bool NeedUpdate => Program == null || _materialVersion != Material!.Version || _globalVersion != Global.Version;
 
         public string[]? ExtraFeatures { get; set; }
 

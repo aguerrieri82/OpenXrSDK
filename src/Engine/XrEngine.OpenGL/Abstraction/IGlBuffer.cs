@@ -12,6 +12,8 @@ namespace XrEngine.OpenGL
 
         void Unbind();
 
+        void Load(int slot);
+
         BufferTargetARB Target { get; }
 
         uint Handle { get; }

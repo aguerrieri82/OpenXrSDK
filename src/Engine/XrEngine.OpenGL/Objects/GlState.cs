@@ -7,6 +7,8 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
 using XrMath;
+using System.Runtime.CompilerServices;
+using Silk.NET.Core.Native;
 
 namespace XrEngine.OpenGL
 {
@@ -470,7 +472,8 @@ namespace XrEngine.OpenGL
 #endif
         }
 
-        uint[] GetBufferSlots(BufferTargetARB target)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint[] GetBufferSlots(BufferTargetARB target)
         {
             if (!BufferSlots.TryGetValue(target, out var res))
             {
@@ -481,6 +484,48 @@ namespace XrEngine.OpenGL
             return res;
         }
 
+        public void DeleteTexture(uint handle)
+        {
+            foreach (var slots in TexturesSlots)
+            {
+                for (var i = 0; i < slots.Value.Length; i++)
+                {
+                    if (slots.Value[i] == handle)
+                        slots.Value[i] = 0;
+                }
+            }
+        }
+
+        public void DeleteBuffer(uint handle)
+        {
+            foreach (var slots in BufferSlots)
+            {
+                for (var i = 0; i < slots.Value.Length; i++)
+                {
+                    if (slots.Value[i] == handle)
+                    {
+                        slots.Value[i] = 0;
+                        _gl.BindBufferBase(slots.Key, (uint)i, 0);
+                    }
+
+                }
+            }
+
+            var targets = BufferTargets.Keys;
+
+            foreach (var key in targets)
+            {
+                if (BufferTargets[key] == handle)
+                {
+                    _gl.BindBuffer(key, 0);
+                    BufferTargets[key] = 0;
+                }
+     
+            }
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
         {
             SetActiveBuffer(buffer, slot, buffer.Target, force);
@@ -495,7 +540,9 @@ namespace XrEngine.OpenGL
             if (curSlotValue == buffer.Handle && !force)
                 return;
 
+
             _gl.BindBufferBase(target, (uint)slot, buffer.Handle);
+
             buffer.ActiveSlot = slot;
 
             slots[slot] = buffer.Handle;

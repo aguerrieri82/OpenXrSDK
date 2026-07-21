@@ -10,14 +10,27 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 		<UseOpenGL>true</UseOpenGL>
-		<_DisableCheckForUnsupportedMonoMobileRuntime>True</_DisableCheckForUnsupportedMonoMobileRuntime>
+		<DiagnosticOn>false</DiagnosticOn>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(DiagnosticOn)' == 'True'">
+		<DiagnosticPort>9100</DiagnosticPort>
+		<DiagnosticAddress>127.0.0.1</DiagnosticAddress>
+		<DiagnosticSuspend>false</DiagnosticSuspend>
+		<DiagnosticListenMode>connect</DiagnosticListenMode>
+		<EnableDiagnostics>true</EnableDiagnostics>
+		<AndroidManagedSymbols>true</AndroidManagedSymbols>
+		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
+		<StripSymbols>false</StripSymbols>
+		<EmbedAllSources>true</EmbedAllSources>
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
 		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
 	</PropertyGroup>
-
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<PublishTrimmed>false</PublishTrimmed>

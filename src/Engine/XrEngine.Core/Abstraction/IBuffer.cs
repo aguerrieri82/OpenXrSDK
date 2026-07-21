@@ -9,13 +9,23 @@
         ReadWrite = Read | Write
     }
 
-    public unsafe interface IBuffer
+    public interface ISimpleBuffer
+    {
+        void Update(object value);
+
+        long Version { get; set; }
+    }
+
+    public interface ISimpleBuffer<T> : ISimpleBuffer
+    {
+        void Update(T value);
+    }
+
+    public unsafe interface IBuffer : ISimpleBuffer
     {
         void BeginUpdate();
 
         void EndUpdate();
-
-        void Update(object value);
 
         void Update(Func<object?> value);
 
@@ -27,16 +37,12 @@
 
         void Unlock();
 
-        long Version { get; set; }
-
         uint SizeBytes { get; }
     }
 
-    public interface IBuffer<T> : IBuffer
+    public interface IBuffer<T> : IBuffer, ISimpleBuffer<T>
     {
         void Update(Func<(T, bool)> getValue);
-
-        void Update(T value);
 
         void UpdateRange(ReadOnlySpan<T> value, int dstIndex = 0, bool preserve = true);
 

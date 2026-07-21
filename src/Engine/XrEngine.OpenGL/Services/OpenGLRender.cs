@@ -59,6 +59,8 @@ namespace XrEngine.OpenGL
 
             public static readonly DynamicProp BufferMap = new(nameof(BufferMap));
 
+            public static readonly DynamicProp BufferRangeSlot = new(nameof(BufferRangeSlot));
+
             public static readonly DynamicProp[] RenderTarget = [new("RenderTargetEye0"), new("RenderTargetEye1")];
 
         }

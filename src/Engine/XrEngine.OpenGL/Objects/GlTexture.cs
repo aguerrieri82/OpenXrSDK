@@ -3,6 +3,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
+using System.Reflection.Metadata;
+
 #endif
 
 using XrMath;
@@ -445,7 +447,10 @@ namespace XrEngine.OpenGL
                 GlState.Current!.ResetTextures();
 
                 if (!_isAttached)
+                {
                     _gl.DeleteTexture(_handle);
+                    GlState.Current?.DeleteTexture(_handle);
+                }
 
                 _attached.Remove(_handle);
 

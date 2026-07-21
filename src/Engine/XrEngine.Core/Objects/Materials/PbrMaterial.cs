@@ -49,7 +49,7 @@ namespace XrEngine
             public float Roughness;
 
             [FieldOffset(32)]
-            public Matrix3x3Aligned TexTransform;
+            public Vector4x3 TexTransform;
 
             [FieldOffset(80)]
             public float OcclusionStrength;
@@ -173,6 +173,7 @@ namespace XrEngine
             public PbrShader()
             {
                 UseDepthCulling = true;
+                UseSharedSSBO = false;
             }
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
@@ -218,7 +219,12 @@ namespace XrEngine
                             NormalMatrix = ctx.Model.NormalMatrix,
                             WorldMatrix = modelWord
                         };
-                    }, UniformsSlots.Model, BufferStore.Model);
+                    }, 
+                    UniformsSlots.Model, 
+                    BufferStore.Model, 
+                    UseSharedSSBO ? BufferUsage.SharedSsbo : BufferUsage.Uniforms,
+                    "uModelIndex"
+                    );
                 }
 
                 SkinVertexShader.UpdateShaderModel(bld);
@@ -253,6 +259,12 @@ namespace XrEngine
                     {
                         up.LoadBuffer(ctx.DepthCullProvider!.DepthCullBuffer, 0);
                     });
+                }
+
+                if (UseSharedSSBO)
+                {
+                    bld.AddFeature("USE_MODEL_SSBO");
+                    bld.AddFeature("USE_MATERIAL_SSBO");
                 }
 
                 bld.AddFeature("USE_CAMERA_POS");
@@ -499,9 +511,7 @@ namespace XrEngine
                             up.SetUniform("uLightFieldSpecStrength", lightField.SpecularStrength);
                         });
                     }
-
                 }
-
             }
 
             public bool NeedUpdate(Object3D model, long curVersion)
@@ -533,6 +543,8 @@ namespace XrEngine
             public ToneMapMode ToneMap { get; set; }
 
             public bool UseLightField { get; set; }
+
+            public bool UseSharedSSBO { get; set; }
         }
 
         #endregion
@@ -630,12 +642,16 @@ namespace XrEngine
                     NormalScale = NormalScale,
                     AlphaCutoff = AlphaCutoff,
                     EmissiveColor = EmissiveColor,
-                    TexTransform = ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity,
+                    TexTransform = (ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity).ToVector4x3(),
                     PlanarReflectionStrength = planar?.Strength ?? 0,
                     PlanarReflectionLevel = planar?.BlurLevel ?? 0
                 };
 
-            }, UniformsSlots.Material, BufferStore.Material);
+            }, 
+            UniformsSlots.Material, 
+            BufferStore.Material, 
+            SHADER.UseSharedSSBO ? BufferUsage.SharedSsbo : BufferUsage.Uniforms,
+            "uMaterialIndex");
 
             if (EmissiveColor != Color.Transparent)
                 bld.AddFeature("USE_EMISSIVE");

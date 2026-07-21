@@ -503,6 +503,9 @@ namespace XrEngine.OpenGL
 
             if (verContent.Draw == null)
             {
+
+                var instBuffer = (IGlBuffer)verContent.InstanceBuffer;
+
                 if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
                 {
                     var size = vHandler.Source.Primitive == DrawPrimitive.Quad ? 4 : 3;
@@ -513,7 +516,8 @@ namespace XrEngine.OpenGL
                         _render.State.SetWireframe(tes.DebugTessellation);
                         _render.State.SetLineWidth(0.5f);
 
-                        _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+                        instBuffer.Load(BufferSlots.Instance);
+
                         vHandler.DrawInstances(verContent.Contents.Count, DrawPrimitive.Patch);
                     };
                 }
@@ -521,7 +525,7 @@ namespace XrEngine.OpenGL
                 {
                     verContent.Draw = () =>
                     {
-                        _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+                        instBuffer.Load(BufferSlots.Instance);
 
                         vHandler.DrawInstances(verContent.Contents.Count);
                     };

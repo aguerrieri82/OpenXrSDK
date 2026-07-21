@@ -9,6 +9,6 @@
 
     public interface IBufferProvider
     {
-        IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage = BufferUsage.Uniforms);
+        ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage = BufferUsage.Uniforms, string? uniformName = "");
     }
 }

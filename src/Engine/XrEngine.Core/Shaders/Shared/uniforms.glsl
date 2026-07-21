@@ -17,8 +17,29 @@ layout(std140, binding=0) uniform Camera
 	mat4 viewProjInv;
 } uCamera;
 
-layout(std140, binding = 3) uniform Model
+struct ModellData 
 {
 	mat4 worldMatrix;
 	mat4 normalMatrix;
-} uModel;
+	int drawId;
+};
+
+#ifdef USE_MODEL_SSBO
+
+	layout(std140, binding = 3) buffer Model
+	{
+        ModellData modelData[];
+	};
+
+	uniform int uModelIndex;
+
+	#define uModel modelData[uModelIndex]
+
+#else
+
+	layout(std140, binding = 3) uniform Model
+	{
+		ModellData uModel;
+	};
+
+#endif

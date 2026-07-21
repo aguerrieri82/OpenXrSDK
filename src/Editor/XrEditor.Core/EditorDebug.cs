@@ -1,6 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples;
+using XrSamples.Dnd;
 
 namespace XrEditor
 {
@@ -68,7 +69,7 @@ namespace XrEditor
               })
               // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: false)
-              .CreateRoomManager()
+              .CreateDnd()
               .Build();
     }
 }

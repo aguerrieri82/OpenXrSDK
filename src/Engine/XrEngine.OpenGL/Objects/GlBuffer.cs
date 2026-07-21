@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
+using Common.Interop;
 
 namespace XrEngine.OpenGL
 {
@@ -28,6 +29,8 @@ namespace XrEngine.OpenGL
 
         protected long _updateCount;
 
+        protected readonly uint _elementSize;
+
 #if GLES
         private Silk.NET.OpenGLES.Extensions.EXT.ExtBufferStorage? _storageExt;
 #endif
@@ -41,6 +44,8 @@ namespace XrEngine.OpenGL
             Version = -1;
             ActiveSlot = 0;
             IsMutable = true;
+            _elementSize = (uint)MarshalCache.SizeOf(typeof(T));
+
             Create();
         }
 
@@ -234,14 +239,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-        private void Recreate()
-        {
-            _gl.DeleteBuffer(_handle);
-            _handle = _gl.GenBuffer();
-            _sizeBytes = 0;
-            _capacityBytes = 0;
-            CreateVersion++;
-        }
 
         private void EnsureCapacity(uint requiredBytes, bool preserve)
         {
@@ -267,12 +264,30 @@ namespace XrEngine.OpenGL
                 return;
             }
 
+#if GLES
+
+#warning CopyBufferSubData DOES NOT work on Quest and does not report any error; fallback to CPU copy.
+
+            var data = new T[ArrayLength];
+
+            BeginUpdate();
+
+            ReadArray(ref data);
+
+            _gl.BufferData(_target, newCapacityBytes, null, _usage);
+
+            fixed (T* pData = data)
+                _gl.BufferSubData(_target, 0, copySizeBytes, pData);
+
+            EndUpdate();
+#else
             var oldHandle = _handle;
             var newHandle = _gl.GenBuffer();
 
-            CreateVersion++;
+            GlState.Current?.DeleteBuffer(newHandle);
 
             GlState.Current!.BindBuffer(BufferTargetARB.CopyWriteBuffer, newHandle);
+
             _gl.BufferData(
                 BufferTargetARB.CopyWriteBuffer,
                 newCapacityBytes,
@@ -294,10 +309,11 @@ namespace XrEngine.OpenGL
             _handle = newHandle;
             _gl.DeleteBuffer(oldHandle);
 
+            CreateVersion++;
+            
+#endif
             _capacityBytes = newCapacityBytes;
             _sizeBytes = copySizeBytes;
-
-            GlState.Current.BindBuffer(_target, _handle);
         }
 
         private unsafe void AllocateImmutableStorage(uint sizeBytes)
@@ -423,7 +439,7 @@ namespace XrEngine.OpenGL
             {
                 fixed (T* pResult = result)
                 {
-                    var sizeBytes = checked((uint)(sizeof(T) * result.Length));
+                    var sizeBytes = (uint)(_elementSize * result.Length);
 
                     System.Buffer.MemoryCopy(
                         ptr,
@@ -451,7 +467,7 @@ namespace XrEngine.OpenGL
 
             IsMutable = false;
 
-            Update(&value, (uint)sizeof(T));
+            Update(&value, _elementSize);
         }
 
         public unsafe void UpdateRange(
@@ -464,14 +480,15 @@ namespace XrEngine.OpenGL
             if (value.Length == 0)
                 return;
 
-            var sizeBytes = checked((uint)(value.Length * sizeof(T)));
-            var offsetBytes = checked(dstIndex * sizeof(T));
+            var sizeBytes = (uint)(value.Length * _elementSize);
+
+            var offsetBytes = (int)(dstIndex * _elementSize);
 
             fixed (T* pData = value)
                 UpdateRange(pData, sizeBytes, offsetBytes, preserve);
         }
 
-        void IBuffer.Update(object value)
+        void ISimpleBuffer.Update(object value)
         {
             if (value is not T typedValue)
                 throw new NotSupportedException();
@@ -505,7 +522,7 @@ namespace XrEngine.OpenGL
             if (value.Length == 0)
                 return;
 
-            var offsetBytes = checked(dstIndex * sizeof(T));
+            var offsetBytes = (int)(dstIndex * _elementSize);
 
             fixed (byte* pData = value)
                 UpdateRange(pData, (uint)value.Length, offsetBytes, preserve);
@@ -521,13 +538,20 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindBuffer(_target, 0);
         }
 
+        protected void Destroy()
+        {
+            Unbind();
+
+            _gl.DeleteBuffer(_handle);
+
+            GlState.Current?.DeleteBuffer(_handle);
+        }
+
         public override void Dispose()
         {
             if (_handle != 0)
             {
-                Unbind();
-
-                _gl.DeleteBuffer(_handle);
+                Destroy();
 
                 GlDebug.Log(
                     this,
@@ -537,6 +561,11 @@ namespace XrEngine.OpenGL
             }
 
             base.Dispose();
+        }
+
+        public void Load(int slot)
+        {
+            GlState.Current?.SetActiveBuffer(this, slot);
         }
 
         public long CreateVersion { get; set; }
@@ -549,10 +578,10 @@ namespace XrEngine.OpenGL
 
         public BufferTargetARB Target => _target;
 
-        public unsafe uint ArrayLength
+        public uint ArrayLength
         {
-            get => (uint)(_sizeBytes / sizeof(T));
-            set => SizeBytes = checked(value * (uint)sizeof(T));
+            get => (_sizeBytes / _elementSize);
+            set => SizeBytes = value * _elementSize;
         }
 
         public uint SizeBytes

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -64,7 +65,7 @@ namespace XrEngine
 
         public IBufferProvider? BufferProvider;
 
-        public IBuffer? CurrentBuffer;
+        public ISimpleBuffer? CurrentBuffer;
 
         public ulong LightsHash;
 
@@ -136,13 +137,17 @@ namespace XrEngine
         }
 
         public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot,
-            BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
+            BufferStore store, 
+            BufferUsage usage = BufferUsage.Uniforms,
+            string? uniformName = null) where T : struct
         {
-            IBuffer<T>? buffer = null;
+            ISimpleBuffer<T>? buffer = null;
 
-            _result.BufferUpdates!.Add((ctx) =>
+            _result.BufferUpdates?.Add((ctx) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
+                buffer = ctx.BufferProvider?.GetBuffer<T>(slot, store, usage, uniformName);
+
+                Debug.Assert(buffer != null);
 
 #if GL_WRAPPER
                 buffer.Update(() =>
@@ -163,17 +168,17 @@ namespace XrEngine
 #endif
             });
 
-            _result.Actions!.Add((ctx, up) =>
+            _result.Actions?.Add((ctx, up) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
-
+                if (buffer == null)
+                    return;
                 up.LoadBuffer(buffer, slot);
             });
         }
 
         public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
         {
-            IBuffer<T>? buffer = null;
+            ISimpleBuffer<T>? buffer = null;
 
             _result.BufferUpdates!.Add((ctx) =>
             {
@@ -182,8 +187,8 @@ namespace XrEngine
                 ctx.CurrentBuffer = buffer;
 
                 var curValue = value(ctx);
-                if (curValue != null)
-                    buffer.UpdateRange(curValue, 0);
+                if (curValue != null && buffer is IBuffer<T> fullBuff)
+                    fullBuff.UpdateRange(curValue, 0);
 
                 ctx.CurrentBuffer = null;
             });

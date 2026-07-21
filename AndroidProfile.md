@@ -17,7 +17,7 @@ dotnet-trace collect --dsrouter android --format speedscope
 
 adb reverse tcp:9100 tcp:9101
 
-dotnet-dsrouter server-server -ipcs profile-router -tcps 0.0.0.0:9101
+dotnet-dsrouter server-server -ipcs profile-router -tcps 127.0.0.1:9101
 
 dotnet-trace collect --diagnostic-port profile-router,connect --profile dotnet-sampled-thread-time,dotnet-common --format speedscope
 

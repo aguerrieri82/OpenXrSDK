@@ -7,7 +7,8 @@ namespace XrEngine
     {
         Default,
         Uniforms,
-        SSbo
+        SSbo,
+        SharedSsbo
     }
 
     public interface IUniformProvider
@@ -48,7 +49,7 @@ namespace XrEngine
 
         void SetUniform(string name, Vector3[] value, bool optional = false);
 
-        void LoadBuffer<T>(IBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default);
+        void LoadBuffer<T>(ISimpleBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default);
 
         void SetLineSize(float size);
 

@@ -20,7 +20,8 @@ layout(std140, binding=1) uniform Lights
 	Light lights[MAX_LIGHTS];
 } uLights;
 
-layout(std140, binding=2) uniform Material
+
+struct MaterialData
 {
 	vec4 color;
 	float metalness;
@@ -33,7 +34,27 @@ layout(std140, binding=2) uniform Material
 	vec4 emissive;
 	float planarFactor;
 	float planarLevel;
-} uMaterial;
+};
+
+#ifdef USE_MATERIAL_SSBO
+
+	layout(std140, binding = 2) buffer Material
+	{
+        MaterialData materialData[];
+	};
+
+	uniform int uMaterialIndex;
+
+	#define uMaterial materialData[uMaterialIndex]
+
+#else
+
+	layout(std140, binding = 2) uniform Material
+	{
+		MaterialData uMaterial;
+	};
+
+#endif
 
 
 layout(std140, binding = 4) uniform Ibl

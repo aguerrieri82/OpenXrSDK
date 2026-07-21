@@ -8,7 +8,10 @@ namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
     {
-        protected readonly GlBufferMap _bufferMap = new(32);
+        protected readonly GlBufferMap<IGlBufferRange> _modelBufferRanges = new(32);
+        protected readonly GlBufferMap<IGlBufferRange> _materialBufferRanges = new(32);
+
+        protected readonly GlBufferMap<IGlBuffer> _bufferMap = new(32);
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
         protected IShaderHandler?[] _lastGlobalHandler = [];
@@ -60,12 +63,29 @@ namespace XrEngine.OpenGL
             UpdateBuffers(ctx);
         }
 
-        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage)
+        public GlBufferRange<T> GetBufferRange<T>(int bufferId, BufferStore store, string uniformName)
+        {
+            var rangeBuffers = store == BufferStore.Material ? _materialBufferRanges : _modelBufferRanges;
+
+            var range = (GlBufferRange<T>?)rangeBuffers.Buffers[bufferId];
+
+            if (range == null)
+            {
+                range = new GlBufferRange<T>(_gl, uniformName, bufferId);
+
+                rangeBuffers.Buffers[bufferId] = range;
+            }
+
+            return range;
+        }
+
+        public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = null)
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
 
             var buffer = (IBuffer<T>?)_bufferMap.Buffers[bufferId];
+
             if (buffer == null)
             {
                 var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
@@ -88,7 +108,6 @@ namespace XrEngine.OpenGL
 
         public void UpdateUniforms(UpdateShaderContext ctx, IUniformProvider uniformProvider)
         {
-
             if (_shaderUpdate == null)
                 return;
 
@@ -98,6 +117,10 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            _bufferMap.Dispose();
+            _materialBufferRanges.Dispose();
+            _modelBufferRanges.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public ShaderUpdate? ShaderUpdate => _shaderUpdate;
