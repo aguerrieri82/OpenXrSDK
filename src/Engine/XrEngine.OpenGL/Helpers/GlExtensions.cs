@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 using System.Diagnostics;
 using XrEngine.Compression;
 
+
 namespace XrEngine.OpenGL
 {
     public static class GlExtensions
@@ -232,6 +233,42 @@ namespace XrEngine.OpenGL
                 Log.Error(TAG, ex);
             }
         }
+
+
+        public static GlSampler ToGlSampler(this TextureSampler value)
+        {
+            return value.GetGlResource(a =>
+            {
+                var renderer = OpenGLRender.Current!;
+
+                var result = new GlSampler(renderer.GL);
+                result.Update(value);
+                return result;
+            });
+        }
+
+        public static void Update(this GlSampler glSampler, TextureSampler sampler)
+        {
+            glSampler.Source = sampler;
+            glSampler.Version = sampler.Version;
+
+            glSampler.MinFilter = (TextureMinFilter)sampler.MinFilter;
+            glSampler.MagFilter = (TextureMagFilter)sampler.MagFilter;
+
+            glSampler.WrapS = (TextureWrapMode)sampler.WrapS;
+            glSampler.WrapT = (TextureWrapMode)sampler.WrapT;
+            glSampler.WrapR = (TextureWrapMode)sampler.WrapR;
+
+            glSampler.BorderColor = sampler.BorderColor;
+            glSampler.MinLod = sampler.MinLod;
+            glSampler.MaxLod = sampler.MaxLod;
+            glSampler.LodBias = sampler.LodBias;
+            glSampler.MaxAnisotropy = sampler.MaxAnisotropy;
+            glSampler.DecodeSrgb = sampler.DecodeSrgb;
+
+            glSampler.Update();
+        }
+
 
         public static void Update(this GlTexture glTexture, Texture2D texture2D)
         {

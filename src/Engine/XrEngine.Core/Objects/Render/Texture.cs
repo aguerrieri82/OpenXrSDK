@@ -184,6 +184,8 @@
 
         public TextureCompressionFormat Compression { get; set; }
 
+        public TextureSampler? Sampler { get; set; }
+
         public bool NeverCompress { get; set; }
 
         public long Handle { get; set; }

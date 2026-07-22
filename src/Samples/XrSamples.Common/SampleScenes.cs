@@ -1439,8 +1439,13 @@ namespace XrSamples
 
             var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(path, "reconstruct_final.jpg"), new TextureLoadOptions
             {
-                IsSrgb = !XrPlatform.IsEditor
+                IsSrgb = true
             });
+
+            tex.Sampler = new TextureSampler
+            {
+                DecodeSrgb = false,
+            };
 
             mesh.Materials.Add(new TextureMaterial(tex));
 

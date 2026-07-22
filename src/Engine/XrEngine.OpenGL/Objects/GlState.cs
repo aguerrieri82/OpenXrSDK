@@ -51,6 +51,10 @@ namespace XrEngine.OpenGL
             VertexArray = null;
             TexturesSlots.Clear();
             BufferSlots.Clear();
+
+            for (var i = 0; i < SamplerSlots.Length; i++)
+                SamplerSlots[i] = 0;
+
         }
 
         public void Restore()
@@ -114,6 +118,9 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
+
+            for (var i = 0; i < SamplerSlots.Length; i++)
+                BindSampler(SamplerSlots[i], i, true);
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -179,11 +186,12 @@ namespace XrEngine.OpenGL
         {
             if (!TexturesSlots.TryGetValue(target, out var res))
             {
-                res = new uint[32];
+                res = new uint[MAX_TEX_SLOTS];
                 TexturesSlots[target] = res;
             }
             return res;
         }
+
 
         public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
@@ -225,6 +233,12 @@ namespace XrEngine.OpenGL
         public void LoadTexture(GlTexture glTex, int slot, bool force = false)
         {
             LoadTexture(glTex.Handle, glTex.Target, slot, force);
+            
+            if (glTex.Sampler != null)
+                BindSampler(glTex.Sampler, slot);
+            else
+                BindSampler(0, slot);
+
             glTex.Slot = slot;
         }
 
@@ -431,6 +445,21 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void BindSampler(GlSampler sampler, int slot, bool force = false)
+        {
+            BindSampler(sampler.Handle, slot, force);
+            sampler.Slot = slot;
+        }
+
+        public void BindSampler(uint samplerId, int slot, bool force = false)
+        {
+            if (force || SamplerSlots[slot] != samplerId)
+            {
+                _gl.BindSampler((uint)slot, samplerId);
+                SamplerSlots[slot] = samplerId;
+            }
+        }
+
         public void UpdateStencil()
         {
             if (!_stencilDirty)
@@ -480,7 +509,7 @@ namespace XrEngine.OpenGL
         {
             if (!BufferSlots.TryGetValue(target, out var res))
             {
-                res = new uint[32];
+                res = new uint[MAX_BUFFER_SLOTS];
                 BufferSlots[target] = res;
             }
 
@@ -557,6 +586,8 @@ namespace XrEngine.OpenGL
             ActiveTexture = null;
         }
 
+
+
         public float? ClearDepth;
 
         public Color? ClearColor;
@@ -601,6 +632,7 @@ namespace XrEngine.OpenGL
 
         public readonly Dictionary<BufferTargetARB, uint> BufferTargets = [];
 
+        public readonly uint[] SamplerSlots = new uint[MAX_TEX_SLOTS];
 
         public static GlState Current => _current ?? throw new InvalidOperationException("No current state for this thread");
 
@@ -609,6 +641,10 @@ namespace XrEngine.OpenGL
         public static readonly DrawBufferMode[] DRAW_BACK = [DrawBufferMode.Back];
 
         public static readonly DrawBufferMode[] DRAW_NONE = [DrawBufferMode.None];
+
+        public const int MAX_TEX_SLOTS = 64;
+
+        public const int MAX_BUFFER_SLOTS = 64;
 
     }
 }

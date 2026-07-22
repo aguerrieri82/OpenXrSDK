@@ -9,10 +9,10 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 using System.Text;
 using XrMath;
 using SkiaSharp;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Common.Interop;
 using XrEngine.Helpers;
+
 
 namespace XrEngine.OpenGL
 {
@@ -48,6 +48,8 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
         protected GlTextureFilter _textureFilter;
+
+        protected HashSet<string> _extensions;
 
         private bool _isDebug;
 
@@ -143,9 +145,12 @@ namespace XrEngine.OpenGL
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
-            var exts = GetExtensions();
-            foreach (var ex in exts)
+            _extensions = GetExtensions();
+
+#if GLES
+            foreach (var ex in _extensions)
                 Debug.WriteLine(ex);
+#endif
 
             _textureFilter = new GlTextureFilter(this);
 
@@ -755,13 +760,16 @@ namespace XrEngine.OpenGL
             return (T?)_renderPasses.FirstOrDefault(a => a is T);
         }
 
-        public unsafe string[] GetExtensions()
+        public HashSet<string> GetExtensions()
         {
-            var data = _gl.GetString(StringName.Extensions);
-            var allExt = Marshal.PtrToStringAuto(new nint(data))!;
-            if (string.IsNullOrWhiteSpace(allExt))
-                return [];
-            return allExt.Split(' ');
+            _gl.GetInteger(GetPName.NumExtensions, out int count);
+
+            var result = new HashSet<string>(count);
+
+            for (uint i = 0; i < count; i++)
+                result.Add(_gl.GetStringS(StringName.Extensions, i));
+
+            return result;
         }
 
         public void Dispose()
@@ -813,6 +821,8 @@ namespace XrEngine.OpenGL
         public GlRenderOptions Options => _options;
 
         public bool IsDebug => _isDebug;
+
+        public IReadOnlySet<string> Extensions => _extensions;
 
         public static int SuspendErrors { get; set; }
 

@@ -2,7 +2,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Reflection.Emit;
 #endif
 
 namespace XrEngine.OpenGL
@@ -58,6 +57,27 @@ namespace XrEngine.OpenGL
 
             if (this is GlTexture)
                 idType = ObjectIdentifier.Texture;
+            
+            else if (this is GlSampler)
+                idType = ObjectIdentifier.Sampler;
+            
+            else if (this is GlBaseFrameBuffer)
+                idType = ObjectIdentifier.Framebuffer;
+            
+            else if (this is IGlBuffer)
+                idType = ObjectIdentifier.Buffer;
+            
+            else if (this is GlRenderBuffer)
+                idType = ObjectIdentifier.Renderbuffer;
+            
+            else if (this is GlQuery)
+                idType = ObjectIdentifier.Query;
+            
+            else if (this is GlBaseProgram)
+                idType = ObjectIdentifier.Program;
+
+            else if (this is IGlVertexArray)
+                idType = ObjectIdentifier.VertexArray;
             else
                 return;
 

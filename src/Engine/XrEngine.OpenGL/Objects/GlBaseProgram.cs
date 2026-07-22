@@ -181,14 +181,29 @@ namespace XrEngine.OpenGL
                 if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
                     glText = tex2d.ToGlTexture();
 
-                var isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+                if (tex2d.Sampler != null)
+                {
+                    if (glText.Sampler == null || glText.Sampler.Source != tex2d.Sampler)
+                        glText.Sampler = tex2d.Sampler.ToGlSampler();
+
+                    glText.Sampler.Slot = slot;
+
+                    var isSamplerUpdate = tex2d.Sampler.Version != glText.Sampler.Version;
+                    if (isSamplerUpdate)
+                        glText.Sampler.Update(tex2d.Sampler);
+                }
+                else
+                    glText.Sampler = null;
+
+                var isTexUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
                 GlState.Current.LoadTexture(glText, slot, forceBinding);
 
-                if (isUpdate)
+                if (isTexUpdate)
                     glText.Update(tex2d);
             }
         }
+
         public void SetUniform(string name, bool value, bool optional = false)
         {
             SetUniform(name, value ? 1 : 0, optional);

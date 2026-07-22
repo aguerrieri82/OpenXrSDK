@@ -483,6 +483,9 @@ namespace XrEngine.OpenGL
         public void Unbind()
         {
             GlState.Current.BindTexture(Target, 0);
+
+            if (Sampler != null && GlState.Current.SamplerSlots[Slot] == Sampler.Handle)
+                GlState.Current.BindSampler(0, Slot);
         }
 
         protected void Destroy()
@@ -885,6 +888,8 @@ namespace XrEngine.OpenGL
         }
 
         public long Version { get; set; }
+
+        public GlSampler? Sampler { get; set; }
 
         public TextureWrapMode WrapS { get; set; }
 

@@ -68,9 +68,6 @@ namespace XrEngine.OpenGL
 
             EngineNativeLib.CopyMemory(pSrc, (nint)pDst, data.Data.Size);
 
-            //Unsafe.CopyBlockUnaligned(pDst, pSrc, _buffer.Length);
-
-            //System.Buffer.MemoryCopy(pSrc, pDst, _buffer.Length, data.Data.Size); 
             _buffer.Unmap();
 
             Bind();
