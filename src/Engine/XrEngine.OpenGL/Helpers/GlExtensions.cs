@@ -31,7 +31,7 @@ namespace XrEngine.OpenGL
             return hasError;
         }
 
-        public static TextureTarget GetTextureTarget(this GL gL, uint texId)
+        public static TextureTarget FindTextureTarget(this GL gL, uint texId)
         {
             TextureTarget[] targets =
             [
@@ -123,7 +123,7 @@ namespace XrEngine.OpenGL
             return glTexture;
         }
 
-        public static TextureCompressionInfo? ShouldCompress(Texture2D texture2D)
+        public static TextureCompressionInfo? ShouldCompress(this Texture2D texture2D)
         {
             var options = OpenGLRender.Current!.Options.Compression;
 
@@ -168,53 +168,69 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public static async Task CompressAsync(GlTexture glTexture, Texture2D texture2D, TextureCompressionInfo info)
+        public static async Task CompressAsync(this GlTexture glTexture, Texture2D source, TextureCompressionInfo info)
         {
-            var render = OpenGLRender.Current!;
-            var sourceVersion = texture2D.Version;
-            var newData = new List<TextureData>();
-            var curData = texture2D.Data!;
+            const string TAG = nameof(CompressAsync);
 
-            glTexture.Version = sourceVersion;
+            Log.Debug(TAG, "Compressing {0}", glTexture.Handle);
 
-            texture2D.NotifyLoaded();
-
-            var compressor = TextureCompressor.Instance;
-
-            compressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Textures");
-
-            await Task.Run(async () =>
+            try
             {
-                var groups = curData.GroupBy(a => a.Layer);
+                var render = OpenGLRender.Current!;
+                var sourceVersion = source.Version;
+                var newData = new List<TextureData>();
+                var curData = source.Data!;
 
-                foreach (var dataGrp in groups)
+                glTexture.Version = sourceVersion;
+
+                source.NotifyLoaded();
+
+                var compressor = TextureCompressor.Instance;
+
+                compressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Textures");
+
+                await Task.Run(async () =>
                 {
-                    var mipLevels = 0;
+                    var groups = curData.GroupBy(a => a.Layer);
 
-                    if (glTexture.MaxLevel > 0 && dataGrp.Count() == 1)
-                        mipLevels = (int)glTexture.MaxLevel + 1;
-
-                    foreach (var item in dataGrp)
+                    foreach (var dataGrp in groups)
                     {
-                        var compData = await compressor.EncodeAsync(item, mipLevels, info);
-                        newData.AddRange(compData);
+                        var mipLevels = 0;
+
+                        if (glTexture.MaxLevel > 0 && dataGrp.Count() == 1)
+                            mipLevels = (int)glTexture.MaxLevel + 1;
+
+                        foreach (var item in dataGrp)
+                        {
+                            var compData = await compressor.EncodeAsync(item, mipLevels, info, glTexture.Handle);
+                            newData.AddRange(compData);
+                        }
                     }
+                });
+
+                await EngineApp.MainThread;
+             
+                if (glTexture.Source != source || glTexture.Version != sourceVersion)
+                {
+                    Log.Warn(TAG, "Texture changed while compressing {0}", glTexture.Handle);
+                    return;
                 }
-            });
 
-            await render.Dispatcher.Switch;
+                glTexture.UploadFull(
+                    source.Width,
+                    source.Height,
+                    source.Depth,
+                    newData[0].Format,
+                    newData[0].Compression,
+                    newData,
+                    newData[0].BlockSize);
 
-            if (glTexture.Source != texture2D || glTexture.Version != sourceVersion)
-                return;
-
-            glTexture.UploadFull(
-                texture2D.Width,
-                texture2D.Height,
-                texture2D.Depth,
-                newData[0].Format,
-                newData[0].Compression,
-                newData,
-                newData[0].BlockSize);
+                Log.Debug(TAG, "Upload done {0}", glTexture.Handle);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(TAG, ex);
+            }
         }
 
         public static void Update(this GlTexture glTexture, Texture2D texture2D)
@@ -247,19 +263,17 @@ namespace XrEngine.OpenGL
 
             if (texture2D.Type == TextureType.External)
             {
-                glTexture.Bind();
                 glTexture.UpdateSampler();
-                glTexture.Unbind();
                 return;
             }
 
             if (texture2D.Data != null)
             {
-                var compInfo = ShouldCompress(texture2D);
+                var compInfo = texture2D.ShouldCompress();
 
                 if (compInfo != null)
                 {
-                    _ = CompressAsync(glTexture, texture2D, compInfo.Value);
+                    Task.Run(() => CompressAsync(glTexture, texture2D, compInfo.Value));
                     return;
                 }
 
@@ -280,16 +294,14 @@ namespace XrEngine.OpenGL
                 texture2D.Width,
                 texture2D.Height,
                 texture2D.Depth,
-                texture2D.Format,
-                texture2D.Compression);
+                texture2D.Format);
         }
 
         static void ApplyDescription(this GlTexture glTexture, Texture2D texture2D)
         {
+            glTexture.SetTarget(texture2D.GetTarget());
+
             glTexture.EnableDebug = (texture2D.Flags & EngineObjectFlags.EnableDebug) != 0;
-
-            glTexture.SetTarget(GetTarget(texture2D));
-
             glTexture.MinFilter = (TextureMinFilter)texture2D.MinFilter;
             glTexture.MagFilter = (TextureMagFilter)texture2D.MagFilter;
             glTexture.WrapS = (TextureWrapMode)texture2D.WrapS;
@@ -314,7 +326,7 @@ namespace XrEngine.OpenGL
             }
         }
 
-        static TextureTarget GetTarget(Texture2D texture2D)
+        static TextureTarget GetTarget(this Texture2D texture2D)
         {
             if (texture2D is Texture3D)
                 return TextureTarget.Texture3D;
@@ -369,6 +381,8 @@ namespace XrEngine.OpenGL
 
             if (glTexture.Target == TextureTarget.TextureCubeMap)
                 result = new TextureCube();
+            else if (glTexture.Target == TextureTarget.Texture3D)
+                result = new Texture3D();
             else
                 result = new Texture2D();
 
@@ -392,7 +406,7 @@ namespace XrEngine.OpenGL
             result.SampleCount = glTexture.SampleCount;
             result.MaxAnisotropy = glTexture.MaxAnisotropy;
             result.Handle = glTexture.Handle;
-            result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat);
+            result.Format = glTexture.InternalFormat.ToTextureFormat();
             result.MipLevelCount = glTexture.MaxLevel > 0 ? glTexture.MaxLevel + 1 : 0;
 
             if (result is Texture3D tex3d)
@@ -437,7 +451,7 @@ namespace XrEngine.OpenGL
                 SampleCount = self.SampleCount
             };
 
-            var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
+            var texFormat = self.InternalFormat.ToTextureFormat();
 
             result.Allocate(
                 self.Width,

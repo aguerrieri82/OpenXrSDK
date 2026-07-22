@@ -148,7 +148,7 @@ namespace XrEngine.OpenGL
         {
             var activeFb = GlState.Current!.GetActiveFrameBuffer(FramebufferTarget.DrawFramebuffer);
 
-            var depth = GlTempAllocator.StaticTexture(gl, src.Depth!.Width, src.Depth.Height, 1, src.Depth.InternalFormat.GetTextureFormat());
+            var depth = GlTempAllocator.StaticTexture(gl, src.Depth!.Width, src.Depth.Height, 1, src.Depth.InternalFormat.ToTextureFormat());
 
             var fb = PrepareFrameBuffer(gl, null, (IGlRenderAttachment)depth);
 
@@ -180,18 +180,20 @@ namespace XrEngine.OpenGL
         {
             var prog = LoadProgram(src.GL, "copy_red.frag", src.Depth > 1 ? ["TEXTURE_ARRAY"] : [], []);
 
-            GlState.Current!.SetView(new Rect2I(0, 0, src.Width, src.Height));
+            var glState = GlState.Current;
 
-            GlState.Current.SetWriteDepth(false);
-            GlState.Current.SetUseDepth(false);
-            GlState.Current.SetColorMask(true, false, false, false);
-            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
-            GlState.Current.EnableFeature(EnableCap.CullFace, false);
-            GlState.Current.EnableFeature(EnableCap.ScissorTest, false);
-            GlState.Current.EnableFeature(EnableCap.StencilTest, false);
-            GlState.Current.SetWireframe(false);
+            glState.SetView(new Rect2I(0, 0, src.Width, src.Height));
 
-            GlState.Current!.LoadTexture(src, 0);
+            glState.SetWriteDepth(false);
+            glState.SetUseDepth(false);
+            glState.SetColorMask(true, false, false, false);
+            glState.SetAlphaMode(AlphaMode.Opaque);
+            glState.EnableFeature(EnableCap.CullFace, false);
+            glState.EnableFeature(EnableCap.ScissorTest, false);
+            glState.EnableFeature(EnableCap.StencilTest, false);
+            glState.SetWireframe(false);
+
+            glState.LoadTexture(src, 0);
 
             if (src.Depth > 1)
             {
@@ -220,12 +222,14 @@ namespace XrEngine.OpenGL
                 src.Target == GL_TEXTURE_EXTERNAL_OES ? ["GL_OES_EGL_image_external_essl3 "] : []
              );
 
-            GlState.Current!.SetView(new Rect2I(0, 0, src.Width, src.Height));
-            GlState.Current!.SetWriteDepth(false);
-            GlState.Current!.SetUseDepth(false);
-            GlState.Current!.SetWriteColor(true);
+            var glState = GlState.Current;
 
-            GlState.Current!.LoadTexture(src, 0);
+            glState.SetView(new Rect2I(0, 0, src.Width, src.Height));
+            glState.SetWriteDepth(false);
+            glState.SetUseDepth(false);
+            glState.SetWriteColor(true);
+
+            glState.LoadTexture(src, 0);
 
             PrepareFrameBuffer(src.GL, dst);
 
@@ -289,7 +293,7 @@ namespace XrEngine.OpenGL
                 var w = src.Width >> (int)mipLevel;
                 var h = src.Height >> (int)mipLevel;
 
-                GlState.Current!.SetView(new Rect2I(0, 0, w, h));
+                GlState.Current.SetView(new Rect2I(0, 0, w, h));
 
                 var pixelSize = format.GetPixelSizeBit();
 
@@ -313,7 +317,7 @@ namespace XrEngine.OpenGL
 
                 using var pData = buffer.MemoryLock();
 
-                GlState.Current!.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
+                GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
 
                 gl.CheckError();
 

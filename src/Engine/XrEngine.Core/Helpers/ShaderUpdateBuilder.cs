@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using XrEngine.Helpers;
 using XrMath;
@@ -15,7 +14,7 @@ namespace XrEngine
 
     public class ShaderUpdate
     {
-        public List<UpdateUniformAction>? Actions;
+        public readonly List<UpdateUniformAction> Actions = [];
 
         public List<UpdateBufferAction>? BufferUpdates;
 
@@ -110,10 +109,7 @@ namespace XrEngine
         {
             _result = new ShaderUpdate()
             {
-                Features = [],
-                Actions = [],
                 BufferUpdates = [],
-                Extensions = []
             };
 
             Context = context;
@@ -121,7 +117,7 @@ namespace XrEngine
 
         readonly void Update<TValue>(UpdateAction<TValue> action, Action<IUniformProvider, TValue> doUpdate)
         {
-            _result.Actions!.Add((ctx, up) => doUpdate(up, action(ctx)));
+            _result.Actions.Add((ctx, up) => doUpdate(up, action(ctx)));
         }
 
         public readonly void SetUniform(string name, UpdateAction<int> value, bool optional = false)
@@ -143,9 +139,19 @@ namespace XrEngine
         {
             ISimpleBuffer<T>? buffer = null;
 
-            _result.BufferUpdates?.Add((ctx) =>
+            _result.BufferUpdates ??= [];
+
+            _result.BufferUpdates.Add((ctx) =>
             {
-                buffer = ctx.BufferProvider?.GetBuffer<T>(slot, store, usage, uniformName);
+                if (store == BufferStore.Model || buffer == null)
+                {
+                    var curBuffer = ctx.BufferProvider?.GetBuffer<T>(slot, store, usage, uniformName);
+#if DEBUG
+                    if (buffer != null && curBuffer != buffer && store != BufferStore.Model)
+                        XrEngine.Log.Warn(typeof(ShaderUpdateBuilder), "Buffer changed");
+#endif
+                    buffer = curBuffer;
+                }
 
                 Debug.Assert(buffer != null);
 
@@ -168,8 +174,9 @@ namespace XrEngine
 #endif
             });
 
-            _result.Actions?.Add((ctx, up) =>
+            _result.Actions.Add((ctx, up) =>
             {
+#warning DANGER, THIS WORKS FOR MODEL STURE ONLY IF BufferUpdates IS RUNNING BEFORE THIS CALL
                 if (buffer == null)
                     return;
                 up.LoadBuffer(buffer, slot);
@@ -180,7 +187,9 @@ namespace XrEngine
         {
             ISimpleBuffer<T>? buffer = null;
 
-            _result.BufferUpdates!.Add((ctx) =>
+            _result.BufferUpdates ??= [];
+
+            _result.BufferUpdates.Add((ctx) =>
             {
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
@@ -193,7 +202,7 @@ namespace XrEngine
                 ctx.CurrentBuffer = null;
             });
 
-            _result.Actions!.Add((ctx, up) =>
+            _result.Actions.Add((ctx, up) =>
             {
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
@@ -203,7 +212,7 @@ namespace XrEngine
 
         public readonly void ExecuteAction(UpdateUniformAction action)
         {
-            _result.Actions!.Add(action);
+            _result.Actions.Add(action);
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)
@@ -317,12 +326,14 @@ namespace XrEngine
 
         public readonly void AddFeature(string name)
         {
-            _result.Features!.Add(name);
+            _result.Features ??= [];
+            _result.Features.Add(name);
         }
 
         public readonly void AddExtension(string name)
         {
-            _result.Extensions!.Add(name);
+            _result.Extensions ??= [];
+            _result.Extensions.Add(name);
         }
 
         public readonly void ComputeHash(string shaderId)

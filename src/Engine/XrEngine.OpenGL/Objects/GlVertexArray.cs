@@ -63,7 +63,7 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                GlState.Current!.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+                GlState.Current.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
                 _iBufVersion = 0;
             }
 
@@ -177,12 +177,12 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            GlState.Current!.BindVertexArray(_handle);
+            GlState.Current.BindVertexArray(_handle);
         }
 
         public void Unbind()
         {
-            GlState.Current!.BindVertexArray(0);
+            GlState.Current.BindVertexArray(0);
         }
 
         public override void Dispose()

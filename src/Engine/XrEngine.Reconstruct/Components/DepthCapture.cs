@@ -786,9 +786,9 @@ namespace XrEngine.Reconstruct
 
             await EngineApp.RenderThread;
 
-            var gl = OpenGLRender.Current?.GL;
-            if (gl == null)
-                throw new InvalidOperationException();
+            var gl = OpenGLRender.Current?.GL ?? throw new InvalidOperationException();
+
+            var glState = GlState.Current;
 
             var useDepth = UseDepthOcclusion && frame.DepthTexture != null;
 
@@ -822,16 +822,16 @@ namespace XrEngine.Reconstruct
             if (vertexHandler.NeedUpdate)
                 vertexHandler.Update();
 
-            GlState.Current!.SetWriteDepth(false);
-            GlState.Current.SetUseDepth(false);
-            GlState.Current.SetWriteColor(true);
-            GlState.Current.SetAlphaMode(AlphaMode.Add);
-            GlState.Current.SetDoubleSided(true);
-            GlState.Current.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
+            glState.SetWriteDepth(false);
+            glState.SetUseDepth(false);
+            glState.SetWriteColor(true);
+            glState.SetAlphaMode(AlphaMode.Add);
+            glState.SetDoubleSided(true);
+            glState.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
 
             if (frame.ImageIndex == 0)
             {
-                GlState.Current.SetClearColor(Color.Transparent);
+                glState.SetClearColor(Color.Transparent);
                 gl.Clear(ClearBufferMask.ColorBufferBit);
             }
 
@@ -845,9 +845,9 @@ namespace XrEngine.Reconstruct
 
             await EngineApp.RenderThread;
 
-            var gl = OpenGLRender.Current?.GL;
-            if (gl == null)
-                throw new InvalidOperationException();
+            var gl = OpenGLRender.Current?.GL ?? throw new InvalidOperationException();
+
+            var glState = GlState.Current;
 
             var atlasGlTex = _atlasTex.ToGlTexture();
 
@@ -858,12 +858,12 @@ namespace XrEngine.Reconstruct
                 1,
                 TextureFormat.RgbaFloat16);
 
-            GlState.Current!.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
-            GlState.Current.SetWriteDepth(false);
-            GlState.Current.SetUseDepth(false);
-            GlState.Current.SetWriteColor(true);
-            GlState.Current.SetDoubleSided(false);
-            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+            glState.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
+            glState.SetWriteDepth(false);
+            glState.SetUseDepth(false);
+            glState.SetWriteColor(true);
+            glState.SetDoubleSided(false);
+            glState.SetAlphaMode(AlphaMode.Opaque);
 
             var resolveProg = GlImageProc.LoadProgram(
                 gl,
@@ -910,13 +910,13 @@ namespace XrEngine.Reconstruct
 
         private async Task<IMemoryBuffer<byte>> GenerateDepthAsync(Matrix4x4 cameraViewProj, Texture2D? depthTex)
         {
+            Debug.Assert(_recMesh != null);
+
             await EngineApp.RenderThread;
 
-            var gl = OpenGLRender.Current?.GL;
-            if (gl == null)
-                throw new InvalidOperationException();
+            var gl = OpenGLRender.Current?.GL ?? throw new InvalidOperationException();
 
-            Debug.Assert(_recMesh != null);
+            var glState = GlState.Current;
 
             GlTexture glDepthTex;
 
@@ -954,10 +954,10 @@ namespace XrEngine.Reconstruct
             {
                 glDepthTex.MinFilter = TextureMinFilter.Nearest;
                 glDepthTex.MagFilter = TextureMagFilter.Nearest;
-                glDepthTex.Update();
+                glDepthTex.UpdateSampler();
             }
 
-            GlState.Current!.SetView(new Rect2I
+            glState.SetView(new Rect2I
             {
                 Width = glDepthTex.Width,
                 Height = glDepthTex.Height
@@ -973,11 +973,11 @@ namespace XrEngine.Reconstruct
                 prog.SetUniform("uViewProj", cameraViewProj);
                 prog.SetUniform("uWorldMatrix", _recMesh.WorldMatrix);
 
-                GlState.Current.SetWriteDepth(true);
-                GlState.Current.SetUseDepth(true);
-                GlState.Current.SetWriteColor(false);
-                GlState.Current.SetClearColor(Color.Transparent);
-                GlState.Current.SetAlphaMode(AlphaMode.Opaque);
+                glState.SetWriteDepth(true);
+                glState.SetUseDepth(true);
+                glState.SetWriteColor(false);
+                glState.SetClearColor(Color.Transparent);
+                glState.SetAlphaMode(AlphaMode.Opaque);
 
                 gl.Clear(ClearBufferMask.DepthBufferBit);
 
@@ -992,7 +992,7 @@ namespace XrEngine.Reconstruct
             finally
             {
                 fb.Unbind();
-                GlState.Current!.SetWriteColor(true);
+                glState.SetWriteColor(true);
             }
 
             var data = GlImageProc.Read(glDepthTex, TextureFormat.GrayInt16);

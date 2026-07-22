@@ -21,7 +21,9 @@ namespace XrEngine.OpenGL
         public void Begin(Camera camera)
         {
             camera.ViewSize = _frameBuffer.Size;
-            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
+            
+            GlState.Current.SetView(new Rect2I(camera.ViewSize));
+
             _frameBuffer.BindDraw();
         }
 

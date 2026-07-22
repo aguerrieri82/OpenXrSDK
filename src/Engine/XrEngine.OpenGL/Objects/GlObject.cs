@@ -15,6 +15,7 @@ namespace XrEngine.OpenGL
         protected uint _handle;
         protected GL _gl;
         protected string? _label;
+        protected bool _isDisposed;
         protected readonly IGlContext _owner;
 
         protected GlObject(GL gl)
@@ -22,6 +23,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
 
             _contextProvider ??= Context.Require<IGlContextProvider>();
+
             _owner = _contextProvider.Current!;
 
             EnableDebug = true;
@@ -42,6 +44,8 @@ namespace XrEngine.OpenGL
                 _handle = 0;
             }
 
+            _isDisposed = true;
+
             GC.SuppressFinalize(this);
         }
 
@@ -50,11 +54,15 @@ namespace XrEngine.OpenGL
             if (string.IsNullOrEmpty(label) || _handle == 0 || !OpenGLRender.Current!.IsDebug)
                 return;
 
-            if (_gl.IsTexture(_handle))
-            {
-                _gl.ObjectLabel(ObjectIdentifier.Texture, _handle, (uint)label.Length, label);
-                _gl.CheckError();
-            }
+            ObjectIdentifier idType;
+
+            if (this is GlTexture)
+                idType = ObjectIdentifier.Texture;
+            else
+                return;
+
+            _gl.ObjectLabel(idType, _handle, (uint)label.Length, label);
+            _gl.CheckError(false);
 
             _label = label;
         }

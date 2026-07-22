@@ -14,13 +14,16 @@ namespace XrEngine.OpenGL
 {
     public class GlState
     {
+        [ThreadStatic]
+        static GlState? _current;
+
         private readonly GL _gl;
         private bool _stencilDirty;
 
         public GlState(GL gl)
         {
             _gl = gl;
-            Current = this;
+            _current = this;
         }
 
         public void Reset()
@@ -209,12 +212,12 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
+            SetActiveTexture(slot, force);
+
             var curSlotValue = GetTextureSlots(target)[slot];
 
             if (curSlotValue == texId && !force)
                 return;
-
-            SetActiveTexture(slot, force);
 
             BindTexture(target, texId, force);
         }
@@ -484,7 +487,7 @@ namespace XrEngine.OpenGL
             return res;
         }
 
-        public void DeleteTexture(uint handle)
+        public void RemoveTextureRef(uint handle)
         {
             foreach (var slots in TexturesSlots)
             {
@@ -496,7 +499,7 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void DeleteBuffer(uint handle)
+        public void RemoveBufferRef(uint handle)
         {
             foreach (var slots in BufferSlots)
             {
@@ -598,8 +601,8 @@ namespace XrEngine.OpenGL
 
         public readonly Dictionary<BufferTargetARB, uint> BufferTargets = [];
 
-        [ThreadStatic]
-        public static GlState? Current;
+
+        public static GlState Current => _current ?? throw new InvalidOperationException("No current state for this thread");
 
         public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
 

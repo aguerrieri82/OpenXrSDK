@@ -71,7 +71,8 @@ namespace XrEngine.OpenGL
         public void Configure(GlTexture colorTexture)
         {
             _colorTexture = colorTexture;
-            Configure(colorTexture.Width, colorTexture.Height, GlUtils.GetTextureFormat(colorTexture.InternalFormat));
+
+            Configure(colorTexture.Width, colorTexture.Height, colorTexture.InternalFormat.ToTextureFormat());
         }
 
         public void Configure(uint width, uint height, TextureFormat format)

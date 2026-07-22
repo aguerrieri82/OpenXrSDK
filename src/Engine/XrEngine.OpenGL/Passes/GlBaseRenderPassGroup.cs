@@ -24,8 +24,9 @@
         {
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
 
         public void Render(GlUpdateContext ctx)

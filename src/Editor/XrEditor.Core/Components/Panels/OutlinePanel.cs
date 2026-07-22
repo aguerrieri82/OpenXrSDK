@@ -62,7 +62,7 @@ namespace XrEditor
 
             var curSelected = _selection.IsSelected(node);
 
-            Log.Debug(this, "[Sel-Node] OnSelectionChanged: {0} ({1})", obj.IsSelected, obj.Header);
+            //Log.Debug(this, "[Sel-Node] OnSelectionChanged: {0} ({1})", obj.IsSelected, obj.Header);
 
             if (!obj.IsSelected && curSelected)
                 _selection.Items.Remove(node);
@@ -75,7 +75,7 @@ namespace XrEditor
         {
             await UiThread;
 
-            Log.Debug(this, "[Sel-Man] OnSelectionChanged: {0}", newSelection.Count);
+            //Log.Debug(this, "[Sel-Man] OnSelectionChanged: {0}", newSelection.Count);
 
             foreach (var curSel in _treeView.SelectedItems.ToArray())
             {
@@ -86,7 +86,7 @@ namespace XrEditor
 
             foreach (var item in newSelection)
             {
-                Log.Debug(this, "[Sel-Man] new-selection: {0}", item.Value);
+                //Log.Debug(this, "[Sel-Man] new-selection: {0}", item.Value);
 
                 if (_listNodeMap.TryGetValue(item, out var listNode))
                     listNode.SetSelectedCore(true, false);

@@ -34,7 +34,7 @@ namespace XrEngine.OpenGL
 
                 if (color.SampleCount > 1)
                 {
-                    _passTarget.Configure(color.Width, color.Height, color.InternalFormat.GetTextureFormat());
+                    _passTarget.Configure(color.Width, color.Height, color.InternalFormat.ToTextureFormat());
 
                     def.Resolve(false, def.FrameBuffer, (GlTextureFrameBuffer)_passTarget.FrameBuffer!);
 
@@ -78,7 +78,7 @@ namespace XrEngine.OpenGL
 
                 var color = _renderer.RenderTarget.QueryTexture(FramebufferAttachment.ColorAttachment0);
 
-                _passTarget.Configure(color!.Width, color.Height, color.InternalFormat.GetTextureFormat());
+                _passTarget.Configure(color!.Width, color.Height, color.InternalFormat.ToTextureFormat());
 
                 srcTarget.FrameBuffer.CopyTo(_passTarget.FrameBuffer!);
 

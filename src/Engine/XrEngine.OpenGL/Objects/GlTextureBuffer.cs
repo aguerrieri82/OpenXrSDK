@@ -32,7 +32,7 @@ namespace XrEngine.OpenGL
                 Target = TextureTarget.Texture2D
             };
 
-            _texture.Update();
+            _texture.UpdateSampler();
 
             _handle = _texture.Handle;
         }
@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
 
                 _width = data.Width;
                 _height = data.Height;
-                _format = GlUtils.GetInternalFormat(data.Format, TextureCompressionFormat.Uncompressed);
+                _format = data.Format.ToInternalFormat();
 
                 _texture.Bind();
 

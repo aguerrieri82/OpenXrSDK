@@ -269,7 +269,7 @@ namespace XrEditor
 
             _isSelected = value;
 
-            Log.Debug(this, "[Sel] IsSelected: {0} ({1})", value, Header);
+            //Log.Debug(this, "[Sel] IsSelected: {0} ({1})", value, Header);
 
             Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
 

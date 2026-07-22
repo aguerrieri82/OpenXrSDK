@@ -14,6 +14,8 @@
         void Update(object value);
 
         long Version { get; set; }
+
+        uint Handle { get; }
     }
 
     public interface ISimpleBuffer<T> : ISimpleBuffer

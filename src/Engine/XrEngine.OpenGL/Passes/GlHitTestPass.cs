@@ -40,7 +40,7 @@ namespace XrEngine.OpenGL
             var normal = Vector3.Zero;
             var txY = _lastSize.Height - y;
 
-            GlState.Current!.BindBuffer(BufferTargetARB.PixelPackBuffer, 0, true);
+            _renderer.State.BindBuffer(BufferTargetARB.PixelPackBuffer, 0, true);
 
             _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment0);
 

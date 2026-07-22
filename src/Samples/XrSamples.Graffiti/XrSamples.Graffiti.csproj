@@ -14,7 +14,9 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="Assets/**/*" CopyToOutputDirectory="Never" />
+		<Content Include="Assets/**/*" 
+				 UseLink="True"
+				 CopyToOutputDirectory="Never" />
 	</ItemGroup>
 
 </Project>

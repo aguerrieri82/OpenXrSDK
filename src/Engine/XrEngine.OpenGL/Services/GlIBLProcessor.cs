@@ -70,7 +70,7 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg!.Use();
 
-            GlState.Current!.LoadTexture(_inputTexture!, 0);
+            GlState.Current.LoadTexture(_inputTexture!, 0);
 
             _panToCubeProg.SetUniform("inputTexture", 0);
 
@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
 
-            GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
+            GlState.Current.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
 
             _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
         }
@@ -89,7 +89,7 @@ namespace XrEngine.OpenGL
         {
             var program = _filterProg![distribution];
 
-            GlState.Current!.LoadTexture(_inputTexture!, 0);
+            GlState.Current.LoadTexture(_inputTexture!, 0);
 
             var mipCount = distribution == Distribution.GGX ? MipLevelCount : 1;
 
@@ -163,7 +163,7 @@ namespace XrEngine.OpenGL
             else
                 format = data.Format;
 
-            res.Update(data);
+            res.UpdateFull(data);
 
             return res;
         }
@@ -171,7 +171,7 @@ namespace XrEngine.OpenGL
         protected uint CreateLutTexture()
         {
             var targetTexture = _gl.GenTexture();
-            GlState.Current!.BindTexture(TextureTarget.Texture2D, targetTexture);
+            GlState.Current.BindTexture(TextureTarget.Texture2D, targetTexture);
 
             _gl.TexStorage2D(
                 TextureTarget.Texture2D,
@@ -193,7 +193,7 @@ namespace XrEngine.OpenGL
         protected uint CreateCubeMap(bool withMipmaps)
         {
             var targetTexture = _gl.GenTexture();
-            GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
+            GlState.Current.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
 
             _gl.TexStorage2D(
                    TextureTarget.TextureCubeMap,
@@ -238,10 +238,10 @@ namespace XrEngine.OpenGL
             _panToCubeProg = null;
             _inputTexture = null;
 
-            GlState.Current!.BindTexture(TextureTarget.Texture2D, 0);
-            GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, 0);
+            GlState.Current.BindTexture(TextureTarget.Texture2D, 0);
+            GlState.Current.BindTexture(TextureTarget.TextureCubeMap, 0);
 
-            GlState.Current!.SetActiveProgram(0);
+            GlState.Current.SetActiveProgram(0);
 
             GC.SuppressFinalize(this);
         }

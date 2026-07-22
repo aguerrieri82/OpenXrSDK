@@ -445,8 +445,8 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
             MagFilter = TextureMagFilter.Linear
         };
 
-        _colorTex.Update();
-        _interopTex.Update();
+        _colorTex.UpdateSampler();
+        _interopTex.UpdateSampler();
 
         _depthBuffer = new GlRenderBuffer(_gl);
 

@@ -26,19 +26,11 @@
 		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 		<UseMonoRuntime>false</UseMonoRuntime>
 		<MsExtVersion>$(BundledNETCoreAppPackageVersion)</MsExtVersion>
-
+		
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
 	</PropertyGroup>
 
-	<Target Name="EnableHardLinksForCopyLocal"
-        BeforeTargets="_CopyFilesMarkedCopyLocal"
-        Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-		<PropertyGroup>
-			<CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
-		</PropertyGroup>
-	</Target>
-	
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 	</PropertyGroup>
@@ -73,7 +65,7 @@
 
 
 	<Target Name="PropagateUseLink"
-		Condition="'$(CreateSymbolicLinksForCopyLocalIfPossible)' == 'true'"
+		Condition="'$(CreateHardLinksForCopyLocalIfPossible)' == 'true'"
         AfterTargets="GetCopyToOutputDirectoryItems">
 
 		<ItemGroup>
@@ -109,7 +101,7 @@
 	</Target>
 
 	<Target Name="PrepareNativeLibraryLinks"
-			Condition="'$(CreateSymbolicLinksForCopyLocalIfPossible)' == 'true'"
+			Condition="'$(CreateHardLinksForCopyLocalIfPossible)' == 'true'"
 			BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory">
 
 		<ItemGroup>

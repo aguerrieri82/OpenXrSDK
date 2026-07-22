@@ -65,6 +65,8 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public uint Handle => _range.Buffer.Handle;
+
         public long Version { get; set; }
     }
 
@@ -106,7 +108,7 @@ namespace XrEngine.OpenGL
 
         public void Load()
         {
-            GlState.Current!.SetActiveBuffer(_buffer, _slot);
+            GlState.Current.SetActiveBuffer(_buffer, _slot);
         }
 
         public GlBufferRangeSlot<T> Reserve(EngineObject owner)

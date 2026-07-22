@@ -12,6 +12,8 @@ namespace XrEngine.OpenGL
 {
     public partial class GlProgramInstance : IBufferProvider, IDisposable
     {
+        public static int MAX_BUFFERS = 30;
+
         static internal readonly Dictionary<ulong, GlBaseProgram> _programs = [];
 
         protected ShaderUpdate? _materialUpdate;
@@ -28,13 +30,14 @@ namespace XrEngine.OpenGL
         protected Object3D? _lastModel;
 
 
+
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
             Material = material;
             Global = global;
 
-            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(20));
+            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(MAX_BUFFERS, material));
             _materialBuffers = bufferMap.Buffers;
 
             if (model != null)
@@ -46,7 +49,7 @@ namespace XrEngine.OpenGL
         [MemberNotNull(nameof(_modelBuffers))]
         protected void LoadModelBuffers(Object3D model)
         {
-            var bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(20));
+            var bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(MAX_BUFFERS, model));
             _modelBuffers = bufferMap.Buffers;
 
             _lastModel = model;
@@ -54,15 +57,15 @@ namespace XrEngine.OpenGL
 
         public void UpdateModel(UpdateShaderContext ctx)
         {
-            Debug.Assert(ctx.Stage == UpdateShaderStage.Model);
+            Debug.Assert(ctx.Stage == UpdateShaderStage.Model && ctx.Model != null);
 
-            LoadModelBuffers(ctx.Model!);
+            LoadModelBuffers(ctx.Model);
 
             if (_modelUpdate == null)
             {
                 var localBuilder = new ShaderUpdateBuilder(ctx);
 
-                Material!.UpdateShader(localBuilder);
+                Material.UpdateShader(localBuilder);
 
                 if (Global.Shader is IShaderHandler handler)
                     handler.UpdateShader(localBuilder);
@@ -84,10 +87,13 @@ namespace XrEngine.OpenGL
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
-            Material!.UpdateShader(localBuilder);
+            Material.UpdateShader(localBuilder);
 
-            foreach (var feature in Global.ShaderUpdate!.Features!)
-                localBuilder.AddFeature(feature);
+            if (Global.ShaderUpdate?.Features != null)
+            {
+                foreach (var feature in Global.ShaderUpdate.Features)
+                    localBuilder.AddFeature(feature);
+            }
 
             if (ExtraFeatures != null)
             {
@@ -95,7 +101,7 @@ namespace XrEngine.OpenGL
                     localBuilder.AddFeature(feature);
             }
 
-            var shader = Material.Shader!;
+            var shader = Material.Shader;
 
             var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
 
@@ -116,7 +122,7 @@ namespace XrEngine.OpenGL
 
             if (!_programs.TryGetValue(_materialUpdate.FeaturesHash, out var program))
             {
-                Func<string, string?> resolver = name =>
+                string? Resolver(string name)
                 {
                     if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
                     {
@@ -134,7 +140,7 @@ namespace XrEngine.OpenGL
                         return result;
 
                     return Material.Resolver?.Invoke(name);
-                };
+                }
 
                 program = new GlSimpleProgram(_gl,
                     shader.VertexSourceName!,
@@ -142,7 +148,7 @@ namespace XrEngine.OpenGL
                     useGeo ? shader.GeometrySourceName : null,
                     useTess ? shader.TessControlSourceName : null,
                     useTess ? shader.TessEvalSourceName : null,
-                    resolver);
+Resolver);
 
                 if (useGeo)
                 {
@@ -162,18 +168,27 @@ namespace XrEngine.OpenGL
                         program.AddExtension(ext);
                 }
 
-                foreach (var ext in _materialUpdate.Extensions!)
-                    program.AddExtension(ext);
+                if (_materialUpdate.Extensions != null)
+                {
+                    foreach (var ext in _materialUpdate.Extensions)
+                        program.AddExtension(ext);
+                } 
+  
+                if (_materialUpdate.Features != null)
+                {
+                    foreach (var feature in _materialUpdate.Features)
+                        program.AddFeature(feature);
+                }
 
-                foreach (var feature in _materialUpdate.Features!)
-                    program.AddFeature(feature);
-
-                foreach (var ext in Global.ShaderUpdate!.Extensions!)
-                    program.AddExtension(ext);
+                if (Global.ShaderUpdate?.Extensions != null)
+                {
+                    foreach (var ext in Global.ShaderUpdate.Extensions)
+                        program.AddExtension(ext);
+                }
 
                 program.Build();
 
-                _programs[_materialUpdate.FeaturesHash!] = program;
+                _programs[_materialUpdate.FeaturesHash] = program;
             }
 
             var changed = Program == null || program.Handle != Program.Handle;
@@ -195,11 +210,11 @@ namespace XrEngine.OpenGL
 
             if (usage == BufferUsage.SharedSsbo)
             {
-                Debug.Assert(uniformName != null);
+                Debug.Assert(uniformName != null && _lastModel != null);
 
                 var range = Global.GetBufferRange<T>(bufferId, store, uniformName);
 
-                EngineObject engObj = store == BufferStore.Material ? Material : _lastModel!;
+                EngineObject engObj = store == BufferStore.Material ? Material : _lastModel;
 
                 var buffer = range.Reserve(engObj);
 
@@ -222,8 +237,6 @@ namespace XrEngine.OpenGL
 
                 return buffer;
             }
-
-
         }
 
         public void UpdateBuffers(UpdateShaderContext ctx, bool updateGlobals = false)
@@ -231,7 +244,7 @@ namespace XrEngine.OpenGL
             var update = ctx.Stage == UpdateShaderStage.Any ||
                          ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
 
-            if (update == null)
+            if (update?.BufferUpdates == null)
                 return;
 
             ctx.BufferProvider = this;
@@ -239,12 +252,14 @@ namespace XrEngine.OpenGL
             if (updateGlobals)
                 Global.UpdateBuffers(ctx);
 
-            foreach (var action in update.BufferUpdates!)
+            foreach (var action in update.BufferUpdates)
                 action(ctx);
         }
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {
+            Debug.Assert(Program != null);
+
             var update = ctx.Stage == UpdateShaderStage.Any ||
                          ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
 
@@ -258,13 +273,13 @@ namespace XrEngine.OpenGL
                 //TODO: unsure that ContextVersion change when Camera or Lights changes
                 if (ctx.ContextVersion != _lastGlobalContextVersion)
                 {
-                    Global.UpdateUniforms(ctx, Program!);
+                    Global.UpdateUniforms(ctx, Program);
                     _lastGlobalContextVersion = ctx.ContextVersion;
                 }
             }
 
-            foreach (var action in update.Actions!)
-                action(ctx, Program!);
+            foreach (var action in update.Actions)
+                action(ctx, Program);
         }
 
         public void Dispose()
@@ -278,7 +293,7 @@ namespace XrEngine.OpenGL
             _globalVersion = -1;
         }
 
-        public bool NeedUpdate => Program == null || _materialVersion != Material!.Version || _globalVersion != Global.Version;
+        public bool NeedUpdate => Program == null || _materialVersion != Material.Version || _globalVersion != Global.Version;
 
         public string[]? ExtraFeatures { get; set; }
 

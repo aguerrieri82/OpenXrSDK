@@ -78,12 +78,12 @@ namespace XrEngine.OpenGL
 
         public virtual void Bind()
         {
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, _handle);
+            GlState.Current.BindFrameBuffer(FramebufferTarget.Framebuffer, _handle);
         }
 
         public void BindRead(ReadBufferMode mode)
         {
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            GlState.Current.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
 
             if (_lastReadMode == mode)
                 return;
@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
 
         public virtual void BindDraw()
         {
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
+            GlState.Current.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
         }
 
         public virtual void BindDraw(params DrawBufferMode[] modes)
@@ -119,7 +119,7 @@ namespace XrEngine.OpenGL
 
         public virtual void Unbind()
         {
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
+            GlState.Current.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
         }
 
         public void CopyTo(IGlFrameBuffer dst, ClearBufferMask mask = ClearBufferMask.ColorBufferBit)

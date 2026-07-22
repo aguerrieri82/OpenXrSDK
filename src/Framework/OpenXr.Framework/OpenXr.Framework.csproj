@@ -26,8 +26,9 @@
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="runtimes/win-x64/*" 
+		<Content Include="runtimes/win-x64/native/*" 
 				 CopyToOutputDirectory="PreserveNewest" 
+				 Link="%(Filename)%(Extension)" 
 				 UseLink="True" />
 	</ItemGroup>
 

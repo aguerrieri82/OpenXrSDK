@@ -145,7 +145,7 @@ namespace XrEngine.OpenGL
                         if (useRenderTarget)
                         {
                             var renderBuf = new GlRenderBuffer(_gl);
-                            var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
+                            var intFormat = DepthFormat.ToInternalFormat();
                             renderBuf.Update(renderColor.Width, renderColor.Height, texSampleCount, intFormat);
                             depthAttachment = renderBuf;
                         }

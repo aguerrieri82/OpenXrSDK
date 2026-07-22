@@ -30,7 +30,7 @@ namespace XrEngine.OpenGL
             {
                 result = new GlRenderBuffer(gl);
 
-                result.Update(width, height, 1, format.GetInternalFormat());
+                result.Update(width, height, 1, format.ToInternalFormat());
 
                 _renderBuffers[key] = result;
             }
@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
                     Target = depth > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                 };
 
-                if (format.GetInternalFormat().IsDepth())
+                if (format.ToInternalFormat().IsDepth())
                 {
                     result.MinFilter = TextureMinFilter.Nearest;
                     result.MinFilter = TextureMinFilter.Nearest;

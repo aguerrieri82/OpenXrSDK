@@ -105,7 +105,7 @@ namespace XrSamples
                 0, _cameraParams.Fy, 0,
                 _cameraParams.Cx, _cameraParams.Cy, 1));
 
-            var format = GlUtils.GetInternalFormat(_cubeTexture.Format, TextureCompressionFormat.Uncompressed);
+            var format = _cubeTexture.Format.ToInternalFormat();
 
             gl.BindImageTexture(0, (uint)_cubeTexture.Handle, 0, true, 0, BufferAccessARB.ReadOnly, (GLEnum)format);
             gl.BindImageTexture(1, (uint)_cubeTexture.Handle, 0, true, 0, BufferAccessARB.WriteOnly, (GLEnum)format);

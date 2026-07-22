@@ -54,14 +54,14 @@ namespace XrEngine.OpenGL
 
         public void Use()
         {
-            GlState.Current!.SetActiveProgram(this);
+            GlState.Current.SetActiveProgram(this);
 
             GlDebug.Log(this, "UseProgram {0}", _handle);
         }
 
         public void Unbind()
         {
-            GlState.Current!.SetActiveProgram(0);
+            GlState.Current.SetActiveProgram(0);
 
             GlDebug.Log(this, "UseProgram NULL");
         }
@@ -172,7 +172,7 @@ namespace XrEngine.OpenGL
                 if (isUpdate)
                     glTextBuf.Update(tex2d.Data![0]);
 
-                GlState.Current!.LoadTexture(glTextBuf.Texture, slot, forceBinding);
+                GlState.Current.LoadTexture(glTextBuf.Texture, slot, forceBinding);
 
                 glTextBuf.Version = tex2d.Version;
             }
@@ -183,7 +183,7 @@ namespace XrEngine.OpenGL
 
                 var isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-                GlState.Current!.LoadTexture(glText, slot, forceBinding);
+                GlState.Current.LoadTexture(glText, slot, forceBinding);
 
                 if (isUpdate)
                     glText.Update(tex2d);
@@ -275,7 +275,7 @@ namespace XrEngine.OpenGL
                     _ => glBuffer.Target
                 };
 
-                GlState.Current!.SetActiveBuffer(glBuffer, slot, curTarget);
+                GlState.Current.SetActiveBuffer(glBuffer, slot, curTarget);
             }
         }
 

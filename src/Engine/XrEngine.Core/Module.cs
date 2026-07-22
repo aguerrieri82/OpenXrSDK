@@ -14,7 +14,7 @@ namespace XrEngine
             Context.Implement(ObjectManager.Instance);
             Context.Implement(TypeStateManager.Instance);
 
-            var assetLoader = AssetLoader.Instance;
+            var assetLoader = AssetLoader.Instance; 
 
             assetLoader.Register(DdsReader.Instance);
             assetLoader.Register(ExrReader.Instance);

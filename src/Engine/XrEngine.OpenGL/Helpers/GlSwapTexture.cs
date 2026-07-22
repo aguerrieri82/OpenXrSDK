@@ -53,7 +53,7 @@ namespace XrEngine.OpenGL
                 if (_temp.IsAllocated)
                     _temp.Recreate();
 
-                _temp.Allocate(_main.Width, _main.Height, _main.Depth, _main.InternalFormat.GetTextureFormat());
+                _temp.Allocate(_main.Width, _main.Height, _main.Depth, _main.InternalFormat.ToTextureFormat());
 
                 if (_main.MaxLevel > 0)
                     _temp.GenerateMipmap();

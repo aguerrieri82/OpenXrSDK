@@ -291,9 +291,11 @@ namespace XrSamples.Graffiti
                 _canvas.UndoRequest = false;
             }
 
-            GlState.Current!.SetActiveBuffer(_paintUniformsBuffer, 11);
-            GlState.Current!.SetActiveBuffer(_paintStateBuffer, 12);
-            GlState.Current!.SetActiveBuffer(_sprayUniformsBuffer, 13);
+            var glState = GlState.Current;
+
+            glState.SetActiveBuffer(_paintUniformsBuffer, 11);
+            glState.SetActiveBuffer(_paintStateBuffer, 12);
+            glState.SetActiveBuffer(_sprayUniformsBuffer, 13);
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);
@@ -301,7 +303,7 @@ namespace XrSamples.Graffiti
             RenderDrip(ctx);
             RenderResolve(ctx);
 
-            GlState.Current!.SetActiveProgram(0);
+            glState.SetActiveProgram(0);
 
             _lastFrame = ctx.Frame;
         }
@@ -363,28 +365,28 @@ namespace XrSamples.Graffiti
                 _canvas!.SprayTexture.ToGlTexture().Recreate();
             }
 
-            _dryTex.Update(data);
-            _tempWetTex.Update(data);
-            _wetTex.Update(data);
-            _tempDryTex.Update(data);
+            _dryTex.UpdateFull(data);
+            _tempWetTex.UpdateFull(data);
+            _wetTex.UpdateFull(data);
+            _tempDryTex.UpdateFull(data);
 
             if (!ReconstructMode)
             {
-                _undoDryTex?.Update(data);
-                _undoWetTex?.Update(data);
+                _undoDryTex?.UpdateFull(data);
+                _undoWetTex?.UpdateFull(data);
 
                 data.Format = TextureFormat.Rgba32;
-                _canvas!.RoughnessTexture.ToGlTexture().Update(data);
+                _canvas!.RoughnessTexture.ToGlTexture().UpdateFull(data);
 
                 data.Format = TextureFormat.Rgba32;
-                _canvas!.NormalTexture.ToGlTexture().Update(data);
+                _canvas!.NormalTexture.ToGlTexture().UpdateFull(data);
             }
 
             data.Format = TextureFormat.Rgba32;
-            _canvas!.ColorTexture.ToGlTexture().Update(data);
+            _canvas!.ColorTexture.ToGlTexture().UpdateFull(data);
 
             data.Format = TextureFormat.GrayFloat16;
-            _canvas!.SprayTexture.ToGlTexture().Update(data);
+            _canvas!.SprayTexture.ToGlTexture().UpdateFull(data);
 
             _sprayFrameBuffer.Configure(_canvas!.SprayTexture.ToGlTexture(), null, 1);
 
@@ -545,12 +547,14 @@ namespace XrSamples.Graffiti
             {
                 _sprayFrameBuffer.BindDraw();
 
-                GlState.Current!.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
+                var glState = GlState.Current;
 
-                GlState.Current!.SetWriteDepth(false);
-                GlState.Current!.SetUseDepth(false);
-                GlState.Current!.SetWriteColor(true);
-                GlState.Current!.SetAlphaMode(AlphaMode.Add);
+                glState.SetView(new Rect2I(0, 0, _sprayFrameBuffer.Color!.Width, _sprayFrameBuffer.Color.Height));
+
+                glState.SetWriteDepth(false);
+                glState.SetUseDepth(false);
+                glState.SetWriteColor(true);
+                glState.SetAlphaMode(AlphaMode.Add);
 
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
 

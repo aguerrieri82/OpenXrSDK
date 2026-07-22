@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using XrEngine.OpenGL;
 using XrEngine.Services;
 using XrInteraction;
 
@@ -22,6 +23,10 @@ namespace XrEngine.OpenXr.Android
             {
                 Log.Error(sender!, ex.Exception);
             };
+
+            GlDebug.Logger = (object sender, string message, object?[] args) =>
+                Log.Debug(sender, message, args);
+
 
             Context.Implement<IMainActivity>(this);
         }
@@ -67,7 +72,8 @@ namespace XrEngine.OpenXr.Android
 
         protected override void ConfigureMainLoop()
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
+#warning SYNC CONTEXT TEMPORARY DISABLED
+            //SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
         }
 
         protected override XrApp CreateApp()

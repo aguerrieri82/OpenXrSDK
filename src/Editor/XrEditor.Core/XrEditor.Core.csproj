@@ -6,7 +6,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="Assets/**/*" 
+				 UseLink="True"
+				 CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

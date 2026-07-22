@@ -102,8 +102,8 @@ namespace XrEngine.OpenGL
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            GlState.Current!.LoadTexture(depthTexture, TextureSlots.ProjDepth, true);
-            GlState.Current!.LoadTexture(_quod.DrawTexture!.ToGlTexture(), TextureSlots.Albedo, true);
+            _renderer.State.LoadTexture(depthTexture, TextureSlots.ProjDepth, true);
+            _renderer.State.LoadTexture(_quod.DrawTexture!.ToGlTexture(), TextureSlots.Albedo, true);
 
             DrawQuad();
 

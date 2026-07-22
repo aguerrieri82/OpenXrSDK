@@ -47,8 +47,9 @@ namespace XrEngine.OpenGL
             _lastUpdateVersion = -1;
             _sceneLayer = sceneLayer;
             _type = type;
-            if (sceneLayer != null)
-                sceneLayer.Changed += OnSceneLayerChanged;
+
+            sceneLayer?.Changed += OnSceneLayerChanged;
+
             Rebuild();
         }
 

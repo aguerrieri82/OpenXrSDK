@@ -10,6 +10,8 @@ namespace XrEngine
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
 
+        protected Geometry3D? _originalGeometry;
+
         public TriangleMesh()
         {
             _materials = [];
@@ -115,6 +117,14 @@ namespace XrEngine
             _geometry?.NotifyLoaded();
         }
 
+        public void ReplaceGeometry(Geometry3D geometry)
+        {
+            _originalGeometry ??= _geometry;
+            Geometry = geometry;
+        }
+
+        public Geometry3D? OriginalGeometry => _originalGeometry;
+
         public Geometry3D? Geometry
         {
             get => _geometry;
@@ -147,6 +157,33 @@ namespace XrEngine
 
             base.Dispose();
         }
+
+        protected override void CloneWork(Object3D newObj, ObjectCloneFlags flags)
+        {
+            base.CloneWork(newObj, flags);
+
+            var mesh = (TriangleMesh)newObj;
+
+            var curGeo = _originalGeometry ?? _geometry;
+
+            if ((flags & ObjectCloneFlags.CloneGeometry) != 0)
+                mesh._geometry = curGeo?.Clone();
+            else
+                mesh._geometry = curGeo;
+
+            foreach (var mat in _materials)
+            {
+                Material newMat;
+
+                if ((flags & ObjectCloneFlags.CloneMaterials) != 0)
+                    newMat = mat.Clone();
+                else
+                    newMat = mat;
+
+                mesh._materials.Add(newMat);
+            }
+        }
+
 
         [Action]
         public void DoExport()

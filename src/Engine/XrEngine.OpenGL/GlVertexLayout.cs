@@ -52,10 +52,10 @@ namespace XrEngine.OpenGL
             var infos = fields.Select(a => new
             {
                 Type = a.FieldType,
-                Ref = a.GetCustomAttribute<ShaderRefAttribute>()
+                Ref = a.GetCustomAttribute<ShaderRefAttribute>()!
             })
             .Where(a => a.Ref != null)
-            .OrderBy(a => a.Ref!.Location)
+            .OrderBy(a => a.Ref.Location)
             .ToArray();
 
             var attrbs = new List<GlVertexAttribute>();
@@ -72,7 +72,7 @@ namespace XrEngine.OpenGL
 
                 var item = new GlVertexAttribute
                 {
-                    Name = info.Ref!.Name,
+                    Name = info.Ref.Name,
                     Location = info.Ref.Location,
                     Component = info.Ref.Component
                 };
@@ -113,7 +113,7 @@ namespace XrEngine.OpenGL
                 item.Offset = curOfs;
                 curOfs += (uint)Marshal.SizeOf(info.Type);
 
-                if ((info.Ref!.Component & activeComponents) != 0)
+                if ((info.Ref.Component & activeComponents) != 0)
                     attrbs.Add(item);
 
             }

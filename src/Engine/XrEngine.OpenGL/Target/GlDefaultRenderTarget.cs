@@ -50,7 +50,7 @@ namespace XrEngine.OpenGL
             {
                 var depthBuf = new GlRenderBuffer(_gl);
 
-                depthBuf.Update(size.Width, size.Height, _sampleCount, DepthFormat.GetInternalFormat());
+                depthBuf.Update(size.Width, size.Height, _sampleCount, DepthFormat.ToInternalFormat());
 
                 _depth = depthBuf;
             }
@@ -77,7 +77,7 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(camera.ViewSize.Width > 0 && camera.ViewSize.Height > 0);
 
-            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
+            GlState.Current.SetView(new Rect2I(camera.ViewSize));
 
             if (camera.ViewSize.Width != _frameBuffer.Color!.Width || camera.ViewSize.Height != _frameBuffer.Color.Height)
                 SetSize(camera.ViewSize);
@@ -102,7 +102,7 @@ namespace XrEngine.OpenGL
 
             if (dst == null)
             {
-                GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
+                GlState.Current.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
                 _gl.DrawBuffers(GlState.DRAW_BACK);
             }
             else

@@ -7,7 +7,8 @@ namespace XrEngine.OpenGL
         [Conditional("DEBUG")]
         public static void Log(object sender, string message, params object?[] args)
         {
-            Logger?.Invoke(sender, message, args);
+            if (sender is GlTexture)
+                Logger?.Invoke(sender, message, args);
         }
 
         public static Action<object, string, object?[]>? Logger;

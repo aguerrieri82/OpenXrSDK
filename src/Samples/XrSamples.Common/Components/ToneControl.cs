@@ -15,9 +15,10 @@ namespace XrSamples.Components
         private bool _texSRgb;
         private ToneMapMode _toneMap;
         private bool _showPbr;
+        
         void Update()
         {
-            GlState.Current!.EnableFeature(EnableCap.FramebufferSrgb, FbRgb);
+            GlState.Current.EnableFeature(EnableCap.FramebufferSrgb, FbRgb);
 
             PbrMaterial.SHADER.ToneMap = _toneMap;
 

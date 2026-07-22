@@ -61,9 +61,7 @@ namespace XrEngine.OpenGL
                 layer.Prepare(ctx);
 
                 if (layer is GlLayer glLayer)
-                {
                     RenderLayer(glLayer);
-                }
             }
 
             EndRender(ctx);
@@ -76,7 +74,6 @@ namespace XrEngine.OpenGL
 
         protected virtual void EndRender(GlUpdateContext ctx)
         {
-
         }
 
         protected virtual IGlRenderTarget? GetRenderTarget()

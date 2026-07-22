@@ -105,7 +105,7 @@ namespace XrEditor
                 {
                     _selection.Set(_nodes.CreateNode(_currentPick));
                     Log.Info(this, _lastCollision?.Point.ToString() ?? "");
-                    Log.Info(this, _lastCollision?.TriangleId.ToString() ?? "");
+                    //Log.Info(this, _lastCollision?.TriangleId.ToString() ?? "");
                 }
 
             }

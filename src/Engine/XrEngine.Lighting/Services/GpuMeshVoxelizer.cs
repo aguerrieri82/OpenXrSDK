@@ -320,14 +320,15 @@ namespace XrEngine.Lighting
             ScanAxis axis,
             AxisTarget target)
         {
-
             Log.Debug(this, "Scan axis {0}", axis);
 
-            GlState.Current!.SetUseDepth(true);
-            GlState.Current.SetWriteDepth(true);
-            GlState.Current.EnableFeature(EnableCap.CullFace, false);
-            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
-            GlState.Current.SetColorMask(true, true, true, true, true);
+            var glState = GlState.Current;
+
+            glState.SetUseDepth(true);
+            glState.SetWriteDepth(true);
+            glState.EnableFeature(EnableCap.CullFace, false);
+            glState.SetAlphaMode(AlphaMode.Opaque);
+            glState.SetColorMask(true, true, true, true, true);
 
             uint lastProgram = 0;
 
@@ -504,7 +505,7 @@ namespace XrEngine.Lighting
 
                 if (mat.ColorMap != null)
                 {
-                    GlState.Current!.LoadTexture(mat.ColorMap.ToGlTexture(), 0);
+                    GlState.Current.LoadTexture(mat.ColorMap.ToGlTexture(), 0);
                     _scanProgram.SetUniform("uHasColorMap", true);
                 }
                 else
@@ -514,7 +515,7 @@ namespace XrEngine.Lighting
 
                 if (mat.MetallicRoughnessMap != null)
                 {
-                    GlState.Current!.LoadTexture(mat.MetallicRoughnessMap.ToGlTexture(), 1);
+                    GlState.Current.LoadTexture(mat.MetallicRoughnessMap.ToGlTexture(), 1);
                     _scanProgram.SetUniform("uHasMetallicRoughnessMap", true);
                 }
                 else
@@ -614,7 +615,7 @@ namespace XrEngine.Lighting
             if (result.Length < len)
                 result = new T[len];
 
-            GlUtils.GetPixelFormat(texture.InternalFormat.GetTextureFormat(), out var pf, out var pt);
+            GlUtils.GetPixelFormat(texture.InternalFormat.ToTextureFormat(), out var pf, out var pt);
 
             unsafe
             {

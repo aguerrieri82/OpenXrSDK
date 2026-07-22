@@ -175,6 +175,8 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender(GlUpdateContext ctx)
         {
+            Debug.Assert(_swap?.Active != null);
+
             _passTarget.RenderTarget!.End(true);
 
             if (_imageLight != null)
@@ -183,12 +185,13 @@ namespace XrEngine.OpenGL
                 _imageLight.Invalidate();
             }
 
-            _swap!.Active!.GenerateMipmap();
+            if (_swap.Active.Target == TextureTarget.Texture2D)
+                _swap.Active.GenerateMipmap();
 
             if (_reflection!.BlurLevel > 0)
                 _swap.Blur(2, _reflection!.BlurLevel);
 
-            _reflection.Texture = (Texture2D)_swap!.Active.ToEngineTexture();
+            _reflection.Texture = (Texture2D)_swap.Active.ToEngineTexture();
 
             if (_wasSrgb != ctx.IsSrgbTarget)
             {

@@ -1,11 +1,14 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace XrEngine
 {
     public class ShaderMaterial : Material, IShaderHandler
     {
-        protected Shader? _shader;
+        [AllowNull]
+        protected Shader _shader;
         protected long _lastLightVersion = -1;
 
-        public ShaderMaterial()
+        protected ShaderMaterial()
         {
             WriteDepth = true;
             UseDepth = true;
@@ -18,9 +21,9 @@
             _shader = shader;
         }
 
-        public Shader? Shader
+        public Shader Shader
         {
-            get => _shader;
+            get => _shader ?? throw new NullReferenceException("Shader is not assigned");
             set
             {
                 if (value == _shader)

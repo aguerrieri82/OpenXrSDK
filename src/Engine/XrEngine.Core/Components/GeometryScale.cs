@@ -25,8 +25,14 @@ namespace XrEngine
 
             foreach (var item in _host!.DescendantsOrSelf().OfType<TriangleMesh>())
             {
-                _geometries[item] = item.Geometry!.Clone();
-                item.Geometry.Flags = EngineObjectFlags.NotifyChanged;
+                var curGeo = item.OriginalGeometry ?? item.Geometry;
+
+                var newGeo = curGeo!.Clone();
+                _geometries[item] = newGeo;
+
+                item.ReplaceGeometry(newGeo);
+
+                item.Geometry!.Flags = EngineObjectFlags.NotifyChanged;
             }
 
             base.OnAttach();
@@ -75,15 +81,14 @@ namespace XrEngine
 
             var delta = (Size - _bounds.Size) / 2f;
 
-            var curTransform = _host.Transform.Matrix;
 
             foreach (var item in _geometries)
             {
                 var mesh = item.Key;
                 var geometry = item.Value;
 
-                var curVer = mesh.Geometry!.Vertices;
-                var startVer = geometry!.Vertices;
+                var curVer = geometry.Vertices;
+                var startVer = mesh!.OriginalGeometry!.Vertices;
 
                 for (var i = 0; i < curVer.Length; i++)
                 {
@@ -109,10 +114,10 @@ namespace XrEngine
                     curVer[i].Pos = (starVerPosWorld + verDelta).Transform(mesh.WorldMatrixInverse);
                 }
 
-                mesh.Geometry.NotifyChanged(ChangeType.Geometry);
-            }
+                mesh.ReplaceGeometry(geometry);
 
-            _host.Transform.Set(curTransform);
+                mesh.Geometry!.NotifyChanged(ChangeType.Geometry);
+            }
 
             if (_host is Group3D grp)
                 grp.UpdateBounds(true);
@@ -122,6 +127,20 @@ namespace XrEngine
         public void ResetSize()
         {
             Size = _bounds.Size;
+        }
+
+
+        [Action]
+        public void Reset()
+        {
+            foreach (var item in _geometries)
+            {
+                var mesh = item.Key;
+                item.Key.ReplaceGeometry(item.Key.OriginalGeometry!);
+                mesh.NotifyChanged(ChangeType.Geometry);
+            }
+
+            ResetSize();
         }
 
         public Vector3 Size

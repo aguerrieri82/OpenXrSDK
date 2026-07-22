@@ -380,16 +380,18 @@ namespace XrEngine.Reconstruct
 
             vs.Update();
 
-            GlState.Current!.SetView(new Rect2I
+            var glState = GlState.Current;
+
+            glState.SetView(new Rect2I
             {
                 Width = glTex.Width,
                 Height = glTex.Height
             });
 
-            GlState.Current.SetAlphaMode(AlphaMode.Opaque);
-            GlState.Current.SetWriteDepth(false);
-            GlState.Current.SetUseDepth(false);
-            GlState.Current.SetWriteColor(true);
+            glState.SetAlphaMode(AlphaMode.Opaque);
+            glState.SetWriteDepth(false);
+            glState.SetUseDepth(false);
+            glState.SetWriteColor(true);
 
             vs.Bind();
             vs.Draw();

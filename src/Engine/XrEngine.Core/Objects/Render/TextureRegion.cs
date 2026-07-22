@@ -9,25 +9,25 @@ namespace XrEngine
             Depth = 1;
         }
 
-        public int X { get; set; }
+        public int X;
 
-        public int Y { get; set; }
+        public int Y;
 
-        public int Z { get; set; }
+        public int Z;
 
-        public uint Width { get; set; }
+        public uint Width;
 
-        public uint Height { get; set; }
+        public uint Height;
 
-        public uint Depth { get; set; }
+        public uint Depth;
 
-        public uint MipLevel { get; set; }
+        public uint MipLevel;
 
-        public uint Layer { get; set; }
+        public uint Layer;
 
-        public TextureFormat Format { get; set; }
+        public TextureFormat Format;
 
-        public IMemoryBuffer<byte>? Data { get; set; }
+        public IMemoryBuffer<byte>? Data;
     }
 
 }

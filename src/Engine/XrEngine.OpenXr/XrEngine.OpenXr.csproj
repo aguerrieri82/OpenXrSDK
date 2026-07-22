@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
-
+	
 	<ItemGroup>
 		<Using Remove="Android.Widget" />
 		<Using Remove="Android.App" />

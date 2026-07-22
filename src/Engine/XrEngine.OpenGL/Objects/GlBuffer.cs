@@ -284,9 +284,11 @@ namespace XrEngine.OpenGL
             var oldHandle = _handle;
             var newHandle = _gl.GenBuffer();
 
-            GlState.Current?.DeleteBuffer(newHandle);
+            var glState = GlState.Current;
 
-            GlState.Current!.BindBuffer(BufferTargetARB.CopyWriteBuffer, newHandle);
+            glState.RemoveBufferRef(newHandle);
+
+            glState.BindBuffer(BufferTargetARB.CopyWriteBuffer, newHandle);
 
             _gl.BufferData(
                 BufferTargetARB.CopyWriteBuffer,
@@ -294,7 +296,7 @@ namespace XrEngine.OpenGL
                 null,
                 _usage);
 
-            GlState.Current.BindBuffer(BufferTargetARB.CopyReadBuffer, oldHandle);
+            glState.BindBuffer(BufferTargetARB.CopyReadBuffer, oldHandle);
 
             _gl.CopyBufferSubData(
                 CopyBufferSubDataTarget.CopyReadBuffer,
@@ -303,8 +305,8 @@ namespace XrEngine.OpenGL
                 0,
                 copySizeBytes);
 
-            GlState.Current.BindBuffer(BufferTargetARB.CopyReadBuffer, 0);
-            GlState.Current.BindBuffer(BufferTargetARB.CopyWriteBuffer, 0);
+            glState.BindBuffer(BufferTargetARB.CopyReadBuffer, 0);
+            glState.BindBuffer(BufferTargetARB.CopyWriteBuffer, 0);
 
             _handle = newHandle;
             _gl.DeleteBuffer(oldHandle);
@@ -530,12 +532,12 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            GlState.Current!.BindBuffer(_target, _handle);
+            GlState.Current.BindBuffer(_target, _handle);
         }
 
         public void Unbind()
         {
-            GlState.Current!.BindBuffer(_target, 0);
+            GlState.Current.BindBuffer(_target, 0);
         }
 
         protected void Destroy()
@@ -544,7 +546,9 @@ namespace XrEngine.OpenGL
 
             _gl.DeleteBuffer(_handle);
 
-            GlState.Current?.DeleteBuffer(_handle);
+            GlState.Current.RemoveBufferRef(_handle);
+
+            _handle = 0;
         }
 
         public override void Dispose()

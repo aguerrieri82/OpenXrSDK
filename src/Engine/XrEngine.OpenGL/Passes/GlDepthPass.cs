@@ -115,15 +115,7 @@ namespace XrEngine.OpenGL
             };
 
             if (_depthTexture.Width != curDepth.Width || _depthTexture.Height != curDepth.Height)
-            {
-                _depthTexture.Update(new TextureData
-                {
-                    Width = curDepth.Width,
-                    Height = curDepth.Height,
-                    Format = TextureFormat.GrayFloat32,
-                    MipLevel = 0,
-                });
-            }
+                _depthTexture.Allocate(curDepth.Width, curDepth.Height, 1, TextureFormat.GrayFloat32);
 
             GlImageProc.CopyDepth(provider.FrameBuffer, _depthTexture);
 

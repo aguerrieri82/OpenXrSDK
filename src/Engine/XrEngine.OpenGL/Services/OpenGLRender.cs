@@ -190,10 +190,13 @@ namespace XrEngine.OpenGL
             if (mode == RenderEngineDebug.Sync)
                 _gl.Enable(EnableCap.DebugOutputSynchronous);
 
-            var ignoreIds = new uint[] { 131186 };
+            var apiIgnore = new uint[] { 131186 };
+            var otherIgnore = new uint[] { 2147483647 };
 
             _gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DebugSeverityNotification, 0, null, false);
-            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, (uint)ignoreIds.Length, ignoreIds, false);
+            
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, (uint)apiIgnore.Length, apiIgnore, false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, (uint)otherIgnore.Length, otherIgnore, false);
 
             _isDebug = true;
         }
@@ -446,7 +449,7 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                _updateCtx.IsSrgbAutoEncode = GlState.Current!.IsFeatureEnabled(EnableCap.FramebufferSrgb);
+                _updateCtx.IsSrgbAutoEncode = _glState.IsFeatureEnabled(EnableCap.FramebufferSrgb);
 
                 if (RenderTarget is IGlFrameBufferProvider prov)
                 {

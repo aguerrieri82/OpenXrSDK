@@ -208,7 +208,6 @@ namespace XrEngine.OpenGL
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
-
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return Color;
 

@@ -8,19 +8,25 @@ namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
     {
-        protected readonly GlBufferMap<IGlBufferRange> _modelBufferRanges = new(32);
-        protected readonly GlBufferMap<IGlBufferRange> _materialBufferRanges = new(32);
+        public static int MAX_BUFFERS = 30;
 
-        protected readonly GlBufferMap<IGlBuffer> _bufferMap = new(32);
+        protected readonly GlBufferMap<IGlBufferRange> _modelBufferRanges;
+        protected readonly GlBufferMap<IGlBufferRange> _materialBufferRanges;
+
+        protected readonly GlBufferMap<IGlBuffer> _bufferMap;
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
         protected IShaderHandler?[] _lastGlobalHandler = [];
         protected ShaderUpdate? _shaderUpdate;
 
+
         public GlProgramGlobal(GL gl, Shader shader)
         {
             Shader = shader;
             _gl = gl;
+            _modelBufferRanges = new GlBufferMap<IGlBufferRange>(MAX_BUFFERS, this);
+            _materialBufferRanges = new GlBufferMap<IGlBufferRange>(MAX_BUFFERS, this);
+            _bufferMap = new GlBufferMap<IGlBuffer>(MAX_BUFFERS, this);
         }
 
         public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
@@ -99,10 +105,10 @@ namespace XrEngine.OpenGL
 
         public void UpdateBuffers(UpdateShaderContext ctx)
         {
-            if (_shaderUpdate == null)
+            if (_shaderUpdate?.BufferUpdates == null)
                 return;
 
-            foreach (var action in _shaderUpdate!.BufferUpdates!)
+            foreach (var action in _shaderUpdate.BufferUpdates)
                 action(ctx);
         }
 
@@ -111,7 +117,7 @@ namespace XrEngine.OpenGL
             if (_shaderUpdate == null)
                 return;
 
-            foreach (var action in _shaderUpdate.Actions!)
+            foreach (var action in _shaderUpdate.Actions)
                 action(ctx, uniformProvider);
         }
 

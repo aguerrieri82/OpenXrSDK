@@ -124,12 +124,7 @@ namespace XrEngine.Browser.Windows
             });
 
             if (eventType == TouchEventType.Moved)
-            {
                 _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);
-            }
-            else
-                Log.Debug(this, "{0} - {1}", pos, eventType);
-
         }
 
         public async Task UpdateTextureAsync(Texture2D tex, bool force = false)

@@ -151,11 +151,11 @@ namespace XrEngine.OpenGL
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            GlState.Current!.SetActiveBuffer(_uniforms, CONTACT_SHADOW_BUF, _uniforms.Target);
+            _renderer.State.SetActiveBuffer(_uniforms, CONTACT_SHADOW_BUF, _uniforms.Target);
 
             _contactProgram.Use();
 
-            GlState.Current!.LoadTexture(depthTexture, DEPTH_TEX_SLOT, true);
+            _renderer.State.LoadTexture(depthTexture, DEPTH_TEX_SLOT, true);
 
             DrawQuad();
 
@@ -168,7 +168,7 @@ namespace XrEngine.OpenGL
 
             _applyProgram.Use();
 
-            GlState.Current!.LoadTexture(_passTarget.Color!, MASK_TEX_SLOT, true);
+            GlState.Current.LoadTexture(_passTarget.Color!, MASK_TEX_SLOT, true);
             _applyProgram.SetUniform("uApplyStrength", 1f);
 
             _renderer.State.SetAlphaMode(AlphaMode.Blend);

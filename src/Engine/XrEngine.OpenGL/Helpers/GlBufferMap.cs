@@ -2,9 +2,13 @@
 {
     public class GlBufferMap<T> : IDisposable where T: class, IDisposable
     {
-        public GlBufferMap(int maxBuffers)
+        WeakReference<object>? _owner;
+
+        public GlBufferMap(int maxBuffers, object? owner = null)
         {
             Buffers = new T?[maxBuffers];
+            if (owner != null)
+                _owner = new WeakReference<object>(owner);
         }
 
         public void Dispose()
@@ -17,6 +21,10 @@
 
             GC.SuppressFinalize(this);
         }
+
+        public object? Owner => 
+            _owner != null && 
+            _owner.TryGetTarget(out var result) ? result : null;
 
         public readonly T?[] Buffers;
     }

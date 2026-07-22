@@ -118,12 +118,10 @@ namespace XrEngine.OpenGL
             };
         }
 
-        public static InternalFormat GetInternalFormat(this TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, uint blockSize = 0)
+        public static InternalFormat ToInternalFormat(this TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, uint blockSize = 0)
         {
-
             if (compression == TextureCompressionFormat.Uncompressed)
             {
-
                 return format switch
                 {
                     TextureFormat.Depth32Float => InternalFormat.DepthComponent32f,
@@ -249,7 +247,7 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public static TextureFormat GetTextureFormat(this InternalFormat internalFormat)
+        public static TextureFormat ToTextureFormat(this InternalFormat internalFormat)
         {
             return internalFormat switch
             {

@@ -43,23 +43,24 @@ namespace XrEngine.Compression
             };
         }
 
-        public async Task<IList<TextureData>> EncodeAsync(TextureData data, int mipsLevels, TextureCompressionInfo compressor)
+        public async Task<IList<TextureData>> EncodeAsync(TextureData data, int mipsLevels, TextureCompressionInfo compressor, uint handle)
         {
             var hash = TextureHash(data, compressor, mipsLevels);
 
             Task<IList<TextureData>> task;
 
-            await _dictMutex.WaitAsync().ConfigureAwait(false);
+            await _dictMutex.WaitAsync();
+
             try
             {
                 if (!_encodeTasks.TryGetValue(hash, out task!))
                 {
                     task = Task.Run(async () =>
                     {
-                        await _encodeLimit.WaitAsync().ConfigureAwait(false);
+                        await _encodeLimit.WaitAsync();
                         try
                         {
-                            return Encode(data, mipsLevels, hash, compressor);
+                            return Encode(data, mipsLevels, hash, compressor, handle);
                         }
                         finally
                         {
@@ -77,11 +78,11 @@ namespace XrEngine.Compression
 
             try
             {
-                return await task.ConfigureAwait(false);
+                return await task;
             }
             finally
             {
-                await _dictMutex.WaitAsync().ConfigureAwait(false);
+                await _dictMutex.WaitAsync();
                 try
                 {
                     _encodeTasks.Remove(hash);
@@ -113,7 +114,7 @@ namespace XrEngine.Compression
             _cacheCleared = true;
         }
 
-        public IList<TextureData> Encode(TextureData data, int mipsLevels, string? hash, TextureCompressionInfo compressor)
+        public IList<TextureData> Encode(TextureData data, int mipsLevels, string? hash, TextureCompressionInfo compressor, uint handle)
         {
             IList<TextureData>? result = null;
 
@@ -131,11 +132,12 @@ namespace XrEngine.Compression
 
                 lock (_cacheLock)
                 {
-                    if (File.Exists(cacheFile))
+                    if (File.Exists(cacheFile + ".valid"))
                     {
                         using var readStream = File.OpenRead(cacheFile);
                         result = PvrTranscoder.Instance.LoadTexture(readStream);
                         isCached = true;
+                        Log.Info(this, "Loaded from cache: {0} - {1}", handle, cacheFile);
                     }
                 }
             }
@@ -198,8 +200,14 @@ namespace XrEngine.Compression
                     lock (_cacheLock)
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
+
+                        if (File.Exists(cacheFile))
+                            File.Delete(cacheFile);
+                        
                         using var writeStream = File.OpenWrite(cacheFile);
                         PvrTranscoder.Instance.SaveTexture(writeStream, result);
+                      
+                        File.WriteAllText(cacheFile + ".valid", "");
                     }
                 }
             }
