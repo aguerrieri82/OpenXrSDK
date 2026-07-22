@@ -1462,6 +1462,62 @@ namespace XrEngine
             render.LoadTexture(texture);
         }
 
+        public static void Update(this TextureSampler sampler, Texture texture)
+        {
+            var changed = false;
+
+            if (sampler.MinFilter != texture.MinFilter)
+            {
+                sampler.MinFilter = texture.MinFilter;
+                changed = true;
+            }
+
+            if (sampler.MagFilter != texture.MagFilter)
+            {
+                sampler.MagFilter = texture.MagFilter;
+                changed = true;
+            }
+
+            if (sampler.WrapS != texture.WrapS)
+            {
+                sampler.WrapS = texture.WrapS;
+                changed = true;
+            }
+
+            if (texture is Texture2D tex2d)
+            {
+                if (sampler.MaxAnisotropy != tex2d.MaxAnisotropy)
+                {
+                    sampler.MaxAnisotropy = tex2d.MaxAnisotropy;
+                    changed = true;
+                }
+
+                if (sampler.WrapT != tex2d.WrapT)
+                {
+                    sampler.WrapT = tex2d.WrapT;
+                    changed = true;
+                }
+
+                if (sampler.BorderColor != tex2d.BorderColor)
+                {
+                    sampler.BorderColor = tex2d.BorderColor;
+                    changed = true;
+                }
+            }
+
+            if (texture is Texture3D tex3d)
+            {
+                if (sampler.WrapR != tex3d.WrapR)
+                {
+                    sampler.WrapR = tex3d.WrapR;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                sampler.Invalidate();
+        }
+
         #endregion
     }
 }

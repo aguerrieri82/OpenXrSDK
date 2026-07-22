@@ -155,6 +155,18 @@ namespace XrEngine.OpenGL
             return isChanged;
         }
 
+        public void LoadSampler(TextureSampler value, int slot = 0)
+        {
+            var glSamp = value.ToGlSampler();
+
+            GlState.Current.BindSampler(glSamp, slot);
+
+            var isSamplerUpdate = value.Version != glSamp.Version;
+
+            if (isSamplerUpdate)
+                glSamp.Update(value);
+        }
+
         public void LoadTexture(Texture value, int slot = 0, bool forceBinding = false)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
@@ -186,11 +198,7 @@ namespace XrEngine.OpenGL
                     if (glText.Sampler == null || glText.Sampler.Source != tex2d.Sampler)
                         glText.Sampler = tex2d.Sampler.ToGlSampler();
 
-                    glText.Sampler.Slot = slot;
-
-                    var isSamplerUpdate = tex2d.Sampler.Version != glText.Sampler.Version;
-                    if (isSamplerUpdate)
-                        glText.Sampler.Update(tex2d.Sampler);
+                    LoadSampler(tex2d.Sampler, slot);
                 }
                 else
                     glText.Sampler = null;

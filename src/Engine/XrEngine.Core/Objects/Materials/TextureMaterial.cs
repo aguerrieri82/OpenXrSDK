@@ -5,6 +5,9 @@ namespace XrEngine
     public class TextureMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
+        protected TextureSampler? _sampler;
+        protected long _lastTexVersion;
+
 
         static TextureMaterial()
         {
@@ -69,10 +72,31 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
+                {
                     up.LoadTexture(Texture, TextureSlots.Albedo);
+
+                    if (Texture.Format.IsSrgb() && ctx.NeedSrgbEncode)
+                    {
+                        _sampler ??= new TextureSampler() { DecodeSrgb = false };
+
+                        if (_lastTexVersion != Texture.Version)
+                        {
+                            _sampler.Update(Texture);
+                            _lastTexVersion = Texture.Version;
+                        }
+                 
+                        up.LoadSampler(_sampler, TextureSlots.Albedo);
+                    }
+                }
 
                 up.SetUniform("uColor", Color);
             });
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            _lastTexVersion = -1;
+            base.OnChanged(change);
         }
 
         public override void Dispose()

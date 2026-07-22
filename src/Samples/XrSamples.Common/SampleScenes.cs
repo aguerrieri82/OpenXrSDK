@@ -1442,11 +1442,6 @@ namespace XrSamples
                 IsSrgb = true
             });
 
-            tex.Sampler = new TextureSampler
-            {
-                DecodeSrgb = false,
-            };
-
             mesh.Materials.Add(new TextureMaterial(tex));
 
             scene.AddChild(mesh);

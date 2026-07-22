@@ -51,6 +51,8 @@ namespace XrEngine
 
         void LoadBuffer<T>(ISimpleBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default);
 
+        void LoadSampler(TextureSampler value, int slot = 0);
+
         void SetLineSize(float size);
 
     }
