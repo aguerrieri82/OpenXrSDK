@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography;
+using XrEngine.Helpers;
 
 namespace XrEngine.Compression
 {
@@ -96,9 +97,9 @@ namespace XrEngine.Compression
 
         public static string TextureHash(TextureData data, TextureCompressionInfo compressor, int mipsLevels)
         {
-            var dataHash = Convert.ToHexString(MD5.HashData(data.Data!.AsSpan()));
+            var dataHash = HashBuilder.Instance.Compute(data.Data!.AsSpan());
 
-            return $"{dataHash}_{compressor.Format}_{compressor.BlockSize}_{mipsLevels}_v7";
+            return $"{dataHash:X16}_{compressor.Format}_{compressor.BlockSize}_{mipsLevels}_v7";
         }
 
         public void ClearCache()

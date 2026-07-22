@@ -1436,7 +1436,12 @@ namespace XrSamples
             var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
 
             var mesh = AssetLoader.Instance.Load<TriangleMesh>(Path.Combine(path, "reconstruct_final.obj"));
-            var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(path, "reconstruct_final.jpg"));
+
+            var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(path, "reconstruct_final.jpg"), new TextureLoadOptions
+            {
+                IsSrgb = !XrPlatform.IsEditor
+            });
+
             mesh.Materials.Add(new TextureMaterial(tex));
 
             scene.AddChild(mesh);

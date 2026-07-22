@@ -38,6 +38,13 @@ namespace XrEngine.Helpers
             return _hash.GetCurrentHashAsUInt64();
         }
 
+        public ulong Compute(ReadOnlySpan<byte> data)
+        {
+            _hash.Reset();
+            _hash.Append(data);
+            return _hash.GetCurrentHashAsUInt64();
+        }
+
         public ulong Compute(string main, IReadOnlyList<string>? values)
         {
             _hash.Reset();

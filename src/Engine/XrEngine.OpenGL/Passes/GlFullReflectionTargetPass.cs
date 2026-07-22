@@ -185,8 +185,7 @@ namespace XrEngine.OpenGL
                 _imageLight.Invalidate();
             }
 
-            if (_swap.Active.Target == TextureTarget.Texture2D)
-                _swap.Active.GenerateMipmap();
+            _swap.Active.GenerateMipmap();
 
             if (_reflection!.BlurLevel > 0)
                 _swap.Blur(2, _reflection!.BlurLevel);
