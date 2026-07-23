@@ -98,11 +98,13 @@ namespace XrEngine.OpenGL
                 var texSampleCount = _multiView ? 1 : sampleCount;
 
                 var glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
+                glColor.SetLabel((Name ?? "RT Pool") + " - Color");
                 var renderColor = glColor;
 
                 if (UseIntermediateColor)
                 {
                     _intermediateColor ??= CreateIntermediateColor(glColor, texSampleCount);
+                    _intermediateColor.SetLabel((Name ?? "RT Pool") + " - Intermediate");
                     renderColor = _intermediateColor;
                 }
 
@@ -171,6 +173,8 @@ namespace XrEngine.OpenGL
                     target = singleView;
                 }
 
+                glDepth?.SetLabel((Name ?? "RT Pool") + " - Depth");
+
                 _targets[targetId] = target;
             }
 
@@ -201,5 +205,7 @@ namespace XrEngine.OpenGL
         public TextureFormat IntermediateFormat { get; set; }
 
         public GlTexture? IntermediateColor => _intermediateColor;
+
+        public string? Name { get; set; }
     }
 }

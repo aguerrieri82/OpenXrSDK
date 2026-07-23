@@ -3,15 +3,13 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
-using System.Linq.Expressions;
-
 #endif
 
 using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTexture : GlObject, IGlRenderAttachment
+    public class GlTexture : GlObject, IGlRenderAttachment, IGlSampler
     {
         static internal readonly Dictionary<uint, GlTexture> _attached = [];
 
@@ -405,28 +403,50 @@ namespace XrEngine.OpenGL
             _height = height;
         }
 
+        protected void FixSampler(IGlSampler sampler)
+        {
+            var curMin = sampler.MinFilter;
+
+            if (MaxLevel > 0)
+            {
+                if (sampler.MinFilter == TextureMinFilter.Nearest)
+                    sampler.MinFilter = TextureMinFilter.NearestMipmapNearest;
+                else
+                    sampler.MinFilter = TextureMinFilter.LinearMipmapLinear;
+            }
+            else
+            {
+                if (sampler.MinFilter == TextureMinFilter.NearestMipmapNearest)
+                    sampler.MinFilter = TextureMinFilter.Nearest;
+                else if (sampler.MinFilter == TextureMinFilter.LinearMipmapLinear)
+                    sampler.MinFilter = TextureMinFilter.Linear;
+            }
+
+            if (curMin != sampler.MinFilter && sampler is GlSampler glSampl)
+            {
+                if (glSampl.Source is TextureSampler texSampl)
+                {
+                    texSampl.MinFilter = (ScaleFilter)curMin;
+                    texSampl.Invalidate();
+                }
+            }
+        }
+
         public void UpdateSampler()
         {
+            if (Sampler != null)
+            {
+                FixSampler(Sampler);
+                return;
+            }
+
             BeginUpdate();
 
             var isMultiSample =
                 Target == TextureTarget.Texture2DMultisample ||
                 Target == TextureTarget.Texture2DMultisampleArray;
 
-            if (MaxLevel > 0)
-            {
-                if (MinFilter == TextureMinFilter.Nearest)
-                    MinFilter = TextureMinFilter.NearestMipmapNearest;
-                else
-                    MinFilter = TextureMinFilter.LinearMipmapLinear;
-            }
-            else
-            {
-                if (MinFilter == TextureMinFilter.NearestMipmapNearest)
-                    MinFilter = TextureMinFilter.Nearest;
-                else if (MinFilter == TextureMinFilter.LinearMipmapLinear)
-                    MinFilter = TextureMinFilter.Linear;
-            }
+            FixSampler(this);
 
             if (!isMultiSample)
             {

@@ -84,9 +84,17 @@ namespace XrEngine
                 {
                     Textures.GGXLUT!.NeverCompress = true;
                     Textures.MipCount = Textures.GGXEnv!.MipLevelCount;
+
                     Panorama = new Texture2D();
                     Panorama.AddComponent(new AssetSource(new TextureAsset(loader, uri, _loaderOptions)));
+                    Panorama.Name = "Ibl Panorama";
 
+                    Textures.Env?.Name = "Ibl Env";
+                    Textures.GGXEnv?.Name = "Ibl GGXEnv";
+                    Textures.CharlieEnv?.Name = "Ibl CharlieEnv";
+                    Textures.LambertianEnv?.Name = "Ibl LambertianEnv";
+                    Textures.GGXLUT?.Name = "Ibl GGXLut";
+                    Textures.CharlieLUT?.Name = "Ibl CharlieLut";
                     return;
                 }
             }

@@ -64,7 +64,8 @@ namespace XrEngine.OpenGL
                 BoundEye = boundEye,
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
-                UseMultiViewTarget = true
+                UseMultiViewTarget = true,
+                Name = "Contact Shadow"
             };
 
             _contactProgram = new GlSimpleProgram(

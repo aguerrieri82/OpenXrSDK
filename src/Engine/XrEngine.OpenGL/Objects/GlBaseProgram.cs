@@ -49,7 +49,11 @@ namespace XrEngine.OpenGL
             }
 
             foreach (var shader in shaders.Where(a => a != 0))
+            {
                 _gl.DetachShader(_handle, shader);
+                //_gl.DeleteShader(shader);
+            }
+
         }
 
         public void Use()
@@ -498,5 +502,6 @@ namespace XrEngine.OpenGL
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
 
+        public string? Name { get; set; }
     }
 }

@@ -8,7 +8,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlSampler : GlObject
+    public class GlSampler : GlObject, IGlSampler
     {
         const SamplerParameterI TextureSrgbDecodeExt = (SamplerParameterI)0x8A48;
         const int DecodeSrgbExt = 0x8A49;
@@ -20,6 +20,8 @@ namespace XrEngine.OpenGL
             : base(gl)
         {
             _supportsSrgbDecode ??= OpenGLRender.Current!.Extensions.Contains("GL_EXT_texture_sRGB_decode");
+
+            CompareFunc = DepthFunction.Lequal;
 
             MinFilter = TextureMinFilter.Linear;
             MagFilter = TextureMagFilter.Linear;
@@ -53,6 +55,9 @@ namespace XrEngine.OpenGL
 
             _gl.SamplerParameter(_handle, SamplerParameterI.MinFilter, (int)MinFilter);
             _gl.SamplerParameter(_handle, SamplerParameterI.MagFilter, (int)MagFilter);
+
+            _gl.SamplerParameter(_handle, SamplerParameterI.CompareFunc, (int)CompareFunc);
+            _gl.SamplerParameter(_handle, SamplerParameterI.CompareMode, (int)CompareMode);
 
             _gl.SamplerParameter(_handle, SamplerParameterI.WrapS, (int)WrapS);
             _gl.SamplerParameter(_handle, SamplerParameterI.WrapT, (int)WrapT);
@@ -119,9 +124,11 @@ namespace XrEngine.OpenGL
 
         public float MaxAnisotropy { get; set; }
 
+        public DepthFunction CompareFunc { get; set; }
+
+        public TextureCompareMode CompareMode { get; set; }
+
         public bool DecodeSrgb { get; set; }
-
-
 
         public long Version { get; set; }
 

@@ -200,8 +200,9 @@ namespace XrEngine.OpenGL
 
             _gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DebugSeverityNotification, 0, null, false);
             
-            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, (uint)apiIgnore.Length, apiIgnore, false);
-            _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, (uint)otherIgnore.Length, otherIgnore, false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [131186], false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [2147483647], false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 1u, [1281], false);
 
             _isDebug = true;
         }

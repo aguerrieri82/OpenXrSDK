@@ -26,7 +26,8 @@ namespace XrEngine.OpenGL
             {
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
-                UseMultiViewTarget = false
+                UseMultiViewTarget = false,
+                Name = "Depth Cull"
             };
 
             _program = new GlSimpleProgram(

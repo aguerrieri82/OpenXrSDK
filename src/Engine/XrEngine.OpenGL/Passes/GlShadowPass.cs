@@ -50,15 +50,19 @@ namespace XrEngine.OpenGL
             _depthTexture = new Texture2D
             {
                 BorderColor = Color.White,
-                WrapT = WrapMode.ClampToBorder,
-                WrapS = WrapMode.ClampToBorder,
+                Sampler = new TextureSampler
+                {
+                    MinFilter = scaleDepth,
+                    MagFilter = scaleDepth,
+                    WrapT = WrapMode.ClampToBorder,
+                    WrapS = WrapMode.ClampToBorder,
+                    UseTexCompare = _useShadowSampler,
+                },
                 Width = _renderer.Options.ShadowMap.Size,
                 Height = _renderer.Options.ShadowMap.Size,
                 Format = TextureFormat.Depth24,
-                MinFilter = scaleDepth,
-                MagFilter = scaleDepth,
                 MipLevelCount = 1,
-                Name = "Depth"
+                Name = "Shadow Depth"
             };
 
             if (_mode == ShadowMapMode.VSM)
@@ -75,7 +79,7 @@ namespace XrEngine.OpenGL
                     MagFilter = ScaleFilter.Linear,
                     MaxAnisotropy = 16.0f,
                     MipLevelCount = 1,
-                    Name = "Moments"
+                    Name = "Shadow Moments"
                 };
 
                 _vcmTempTex = new Texture2D
@@ -89,7 +93,8 @@ namespace XrEngine.OpenGL
                     MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
                     MaxAnisotropy = 16.0f,
-                    MipLevelCount = 1
+                    MipLevelCount = 1,
+                    Name = "Shadow Moments (Temp)"
                 };
             }
         }
@@ -108,17 +113,6 @@ namespace XrEngine.OpenGL
             _frameBuffer.Configure(glColorTex, glDeptTex, 1);
 
             glDeptTex.Bind();
-
-            if (_useShadowSampler)
-            {
-                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
-                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
-            }
-            else
-            {
-                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.None);
-            }
-
             glDeptTex.Unbind();
 
             base.Initialize();

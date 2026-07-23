@@ -45,19 +45,21 @@ namespace XrEngine.OpenGL
             var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
             var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
 
-            Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource);
-            Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource);
+            Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource, _vSourceName);
+            Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource, _fSourceName);
 
             if (gSource != null)
-                Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource);
+                Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource, _gSourceName);
 
             if (tcSource != null)
-                TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource);
+                TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource, _tcSourceName);
 
             if (teSource != null)
-                TessEval = GlShader.GetOrCreate(_gl, ShaderType.TessEvaluationShader, teSource);
+                TessEval = GlShader.GetOrCreate(_gl, ShaderType.TessEvaluationShader, teSource, _teSourceName);
 
             Create(Vertex, Fragment, Geometry?.Handle ?? 0, TessControl?.Handle ?? 0, TessEval?.Handle ?? 0);
+
+            SetLabel(Name);
 
             _values.Clear();
             _locations.Clear();

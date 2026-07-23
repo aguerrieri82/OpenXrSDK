@@ -37,7 +37,7 @@ namespace XrEngine.Objects
             bld.ExecuteAction((ctx, up) =>
             {
                 if (bld.Context.ShadowMapProvider.ShadowMap != null)
-                    up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, TextureSlots.ShadowMap);
+                    up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, TextureSlots.ShadowMap, true);
 
                 up.SetUniform("uShadowColor", ShadowColor);
 

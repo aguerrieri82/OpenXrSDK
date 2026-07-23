@@ -6,12 +6,13 @@ using Silk.NET.OpenGL;
 
 using System.Security.Cryptography;
 using System.Text;
+using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
 {
     public class GlShader : GlObject
     {
-        static readonly Dictionary<string, GlShader> _shaders = [];
+        static readonly Dictionary<ulong, GlShader> _shaders = [];
 
         protected int _refCount;
 
@@ -65,13 +66,14 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public static GlShader GetOrCreate(GL gl, ShaderType type, string source)
+        public static GlShader GetOrCreate(GL gl, ShaderType type, string source, string? name = null)
         {
-            var sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
+            var sourceHash = HashBuilder.Instance.Compute(source);
 
             if (!_shaders.TryGetValue(sourceHash, out var shader))
             {
                 shader = new GlShader(gl, type, source);
+                shader.SetLabel(name);
                 _shaders[sourceHash] = shader;
             }
             else

@@ -184,6 +184,7 @@ namespace XrEngine
                     Width = (uint)curSize.Width,
                     Height = (uint)curSize.Height,
                     Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                    Name = "Planar Reflection"
                 };
             }
 

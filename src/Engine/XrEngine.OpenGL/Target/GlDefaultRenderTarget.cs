@@ -44,6 +44,8 @@ namespace XrEngine.OpenGL
                 Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
             };
 
+            _color.SetLabel("Deafult RT - Color");
+
             _color.Allocate(size.Width, size.Height, 1, ColorFormat);
 
             if (_useRenderBuffer)
@@ -51,6 +53,8 @@ namespace XrEngine.OpenGL
                 var depthBuf = new GlRenderBuffer(_gl);
 
                 depthBuf.Update(size.Width, size.Height, _sampleCount, DepthFormat.ToInternalFormat());
+
+                depthBuf.SetLabel("Deafult RT - DepthBuf");
 
                 _depth = depthBuf;
             }
@@ -64,6 +68,8 @@ namespace XrEngine.OpenGL
                     MagFilter = TextureMagFilter.Nearest,
                     Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
                 };
+
+                depthTex.SetLabel("Deafult RT - Depth");
 
                 depthTex.Allocate(size.Width, size.Height, 1, DepthFormat);
 

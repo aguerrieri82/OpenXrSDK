@@ -25,6 +25,7 @@ namespace XrEngine.OpenGL
             _passTarget.DepthFormat = TextureFormat.Depth24;
 
             _passTarget.AddExtra(TextureFormat.RgbFloat16, FramebufferAttachment.ColorAttachment1, true);
+            _passTarget.Name = "HitTest";
         }
 
         public unsafe HitTestResult HitTest(uint x, uint y)

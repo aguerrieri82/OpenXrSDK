@@ -48,6 +48,8 @@ namespace XrEngine.OpenGL
                 MagFilter = _main.MagFilter,
             };
 
+            _temp.SetLabel(_main.Label + " - Temp");
+
             if (_temp.Width != _main.Width || _temp.Height != _main.Height || _temp.InternalFormat != _main.InternalFormat)
             {
                 if (_temp.IsAllocated)

@@ -68,7 +68,7 @@ namespace XrEditor
               })
               // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: false)
-              .CreateDepthSnapeshotView()
+              .CreateRoomManager()
               .Build();
     }
 }

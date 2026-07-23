@@ -45,7 +45,7 @@ namespace XrEngine.Helpers
             return _hash.GetCurrentHashAsUInt64();
         }
 
-        public ulong Compute(string main, IReadOnlyList<string>? values)
+        public ulong Compute(string main, IReadOnlyList<string>? values = null)
         {
             _hash.Reset();
 

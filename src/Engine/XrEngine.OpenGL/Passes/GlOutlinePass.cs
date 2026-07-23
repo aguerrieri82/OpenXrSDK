@@ -36,7 +36,8 @@ namespace XrEngine.OpenGL
                 BoundEye = boundEye,
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
-                UseMultiViewTarget = true
+                UseMultiViewTarget = true,
+                Name = "Outline"
             };
 
             if (_isDownsample)
@@ -47,7 +48,8 @@ namespace XrEngine.OpenGL
                     DepthMode = TargetDepthMode.None,
                     IsMultiView = isMultiView,
                     UseMultiViewTarget = true,
-                    Id = "temp"
+                    Id = "temp",
+                    Name = "Outline (Temp)"
                 };
             }
 

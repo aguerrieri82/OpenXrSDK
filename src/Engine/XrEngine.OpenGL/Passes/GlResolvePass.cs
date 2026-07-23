@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Xml.Linq;
 #endif
 
 namespace XrEngine.OpenGL
@@ -16,6 +17,8 @@ namespace XrEngine.OpenGL
         {
             _resolve = new();
             _passTarget = new GlRenderPassTarget(renderer.GL);
+            _passTarget.Name = "Resolve";
+
             _resolve.ToneMap = _renderer.Options.ToneMap;
 
             Context.Implement<IToneMapper>(this);

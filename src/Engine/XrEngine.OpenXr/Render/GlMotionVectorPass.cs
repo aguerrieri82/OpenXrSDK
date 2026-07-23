@@ -28,7 +28,10 @@ namespace XrEngine.OpenXr
             _xrApp = xrApp;
 
             _multiView = multiView;
+
             _pool = new GlRenderTargetPool(renderer.GL, multiView);
+            _pool.Name = "Motion Vectors";
+
             _isEditor = XrPlatform.IsEditor;
 
             _flags = GlRenderPassFlags.CustomCamera;

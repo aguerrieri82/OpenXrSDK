@@ -120,6 +120,7 @@ namespace XrEngine.OpenGL
             }
 
             glTexture = new GlTexture(gl);
+            glTexture.Sampler = value.Sampler?.ToGlSampler();
             glTexture.Update(value);
             return glTexture;
         }
@@ -265,6 +266,8 @@ namespace XrEngine.OpenGL
             glSampler.LodBias = sampler.LodBias;
             glSampler.MaxAnisotropy = sampler.MaxAnisotropy;
             glSampler.DecodeSrgb = sampler.DecodeSrgb;
+            glSampler.CompareMode = sampler.UseTexCompare ? TextureCompareMode.CompareRefToTexture : TextureCompareMode.None;
+            glSampler.CompareFunc = (DepthFunction)sampler.CompareFunc;
 
             glSampler.Update();
         }
@@ -350,7 +353,7 @@ namespace XrEngine.OpenGL
             glTexture.MaxLevel = GetMaxLevel(texture2D);
 
             if (string.IsNullOrWhiteSpace(glTexture.Label))
-                glTexture.SetLabel((texture2D.Name ?? "Texture") + " " + glTexture.Handle);
+                glTexture.SetLabel(texture2D.Name ?? "Texture");
 
             glTexture.Version = texture2D.Version;
             glTexture.Source = texture2D;

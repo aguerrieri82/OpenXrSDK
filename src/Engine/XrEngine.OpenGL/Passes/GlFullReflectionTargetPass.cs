@@ -31,7 +31,8 @@ namespace XrEngine.OpenGL
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 IsMultiView = PlanarReflection.IsMultiView,
-                UseMultiViewTarget = useMultiviewTarget
+                UseMultiViewTarget = useMultiviewTarget,
+                Name = "Full Reflection"
             };
         }
 

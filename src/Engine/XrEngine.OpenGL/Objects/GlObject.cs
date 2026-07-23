@@ -4,6 +4,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
+
 namespace XrEngine.OpenGL
 {
     public abstract class GlObject : IDisposable
@@ -76,10 +78,15 @@ namespace XrEngine.OpenGL
             else if (this is GlBaseProgram)
                 idType = ObjectIdentifier.Program;
 
+            else if (this is GlShader)
+                idType = ObjectIdentifier.Shader;
+
             else if (this is IGlVertexArray)
                 idType = ObjectIdentifier.VertexArray;
             else
                 return;
+
+            label = $"{label} ({_handle})";
 
             _gl.ObjectLabel(idType, _handle, (uint)label.Length, label);
             _gl.CheckError(false);

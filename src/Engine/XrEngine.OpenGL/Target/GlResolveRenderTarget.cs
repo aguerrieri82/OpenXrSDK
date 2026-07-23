@@ -22,7 +22,8 @@ namespace XrEngine.OpenGL
             _pool = new GlRenderTargetPool(gl, isMultiView)
             {
                 UseIntermediateColor = true,
-                IntermediateFormat = TextureFormat.RgbaFloat16
+                IntermediateFormat = TextureFormat.RgbaFloat16,
+                Name = "Resolve RT"
             };
 
             _sampleCount = sampleCount;

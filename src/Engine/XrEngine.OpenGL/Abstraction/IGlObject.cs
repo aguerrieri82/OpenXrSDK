@@ -4,6 +4,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
+
 namespace XrEngine.OpenGL
 {
     public interface IGlObject
@@ -12,7 +14,9 @@ namespace XrEngine.OpenGL
 
         IGlContext Owner { get; }
 
-        public GL GL { get; }
+        GL GL { get; }
+
+        void SetLabel(string? label);
 
     }
 }

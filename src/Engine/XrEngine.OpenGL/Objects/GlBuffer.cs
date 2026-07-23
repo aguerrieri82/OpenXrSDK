@@ -44,6 +44,7 @@ namespace XrEngine.OpenGL
             Version = -1;
             ActiveSlot = 0;
             IsMutable = true;
+           
             _elementSize = (uint)MarshalCache.SizeOf(typeof(T));
 
             Create();
@@ -58,6 +59,7 @@ namespace XrEngine.OpenGL
         protected void Create()
         {
             _handle = _gl.GenBuffer();
+             SetLabel(typeof(T).Name);
             CreateVersion++;
         }
 

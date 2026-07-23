@@ -104,6 +104,7 @@ namespace XrEngine.OpenGL
 
                 _colorTexture = GlTempAllocator.StaticTexture(_gl, width, height, arrayDepth, format, texId);
                 _colorTexture.EnableDebug = false;
+                _colorTexture.SetLabel((Name ?? "PassTarget") + " - Color");
 
                 isColorChanged = true;
             }
@@ -116,6 +117,8 @@ namespace XrEngine.OpenGL
                     _depthBuffer = GlTempAllocator.StaticTexture(_gl, width, height, 2, DepthFormat, texId);
                 else
                     _depthBuffer = GlTempAllocator.StaticRenderBuffer(_gl, width, height, DepthFormat, texId);
+
+                _depthBuffer.SetLabel((Name ?? "PassTarget") + " - Depth");
             }
 
             if (DepthMode == TargetDepthMode.Existing)
@@ -124,6 +127,8 @@ namespace XrEngine.OpenGL
             if (isColorChanged || _isDirty)
             {
                 FrameBuffer!.Bind();
+
+                int i = 0;
 
                 foreach (var extra in _extras)
                 {
@@ -142,10 +147,13 @@ namespace XrEngine.OpenGL
                         Target = arrayDepth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                     };
 
+                    extra.Texture.SetLabel((Name ?? "PassTarget") + " - Extra " + i);
+
                     extra.Texture.Allocate(width, height, arrayDepth, extra.Format);
 
                     if (extra.Attachment != null)
                         FrameBuffer!.Attach(extra.Texture, extra.Attachment.Value, true);
+                    i++;
                 }
 
                 _isDirty = false;
@@ -202,6 +210,8 @@ namespace XrEngine.OpenGL
         public TargetDepthMode DepthMode { get; set; }
 
         public TextureFormat DepthFormat { get; set; }
+
+        public string? Name { get; set; }   
 
         public string? Id { get; set; }
     }

@@ -148,7 +148,9 @@ namespace XrEngine.OpenGL
                     useGeo ? shader.GeometrySourceName : null,
                     useTess ? shader.TessControlSourceName : null,
                     useTess ? shader.TessEvalSourceName : null,
-Resolver);
+                    Resolver);
+
+                program.Name = Material.GetType().Name;
 
                 if (useGeo)
                 {
