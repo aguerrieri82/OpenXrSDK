@@ -36,6 +36,10 @@ vec4 LoadBaseColor()
 
 	#else
 
+		#ifdef COLOR_IS_SRGB
+			return vec4(sRGBToLinear(uMaterial.color.rgb), uMaterial.color.a);
+		#endif
+
 		return uMaterial.color;
 
 	#endif

@@ -94,32 +94,32 @@ namespace XrEngine.OpenGL
 
         protected void UseProgram(GlProgramInstance instance, bool updateUniforms)
         {
-            var updateContext = _renderer.UpdateContext;
+            var ctx = _renderer.UpdateContext;
 
-            updateContext.Shader = instance.Material.Shader;
-            updateContext.Stage = UpdateShaderStage.Shader;
+            ctx.Shader = instance.Material.Shader;
+            ctx.Stage = UpdateShaderStage.Shader;
 
-            instance.Global!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
+            instance.Global!.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
 
-            updateContext.Stage = UpdateShaderStage.Material;
+            ctx.Stage = UpdateShaderStage.Material;
 
-            instance.UpdateProgram(updateContext);
+            instance.UpdateProgram(ctx);
 
-            var programChanged = updateContext.ProgramInstanceId != instance.Program!.Handle;
+            var programChanged = ctx.ProgramInstanceId != instance.Program!.Handle;
 
-            updateContext.ProgramInstanceId = instance.Program!.Handle;
+            ctx.ProgramInstanceId = instance.Program!.Handle;
 
             instance.Program.Use();
 
             if (programChanged)
-                instance.Global.UpdateUniforms(updateContext, instance.Program);
+                instance.Global.UpdateUniforms(ctx, instance.Program);
 
             _renderer.ConfigureCaps(instance.Material);
 
             if (updateUniforms)
             {
-                instance.UpdateUniforms(updateContext, false);
-                instance.UpdateBuffers(updateContext);
+                instance.UpdateUniforms(ctx, false);
+                instance.UpdateBuffers(ctx);
             }
         }
 

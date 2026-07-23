@@ -69,6 +69,8 @@ namespace XrEngine
                 });
             }
 
+            bld.PrepareTexture(Texture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)

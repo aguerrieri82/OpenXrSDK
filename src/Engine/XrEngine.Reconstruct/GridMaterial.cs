@@ -92,6 +92,8 @@ namespace XrEngine.Reconstruct
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            bld.PrepareTexture(Texture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uCullInvalidUv", CullInvalidUv ? 1 : 0);

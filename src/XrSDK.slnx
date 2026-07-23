@@ -22,6 +22,12 @@
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
   </Folder>
+  <Folder Name="/#Docs/">
+    <File Path="../docs/android-profile.md" />
+    <File Path="../docs/srgb-rendering-notes.md" />
+    <File Path="../docs/ToDo.docx" />
+    <File Path="../readme.md" />
+  </Folder>
   <Folder Name="/#Filament/">
     <File Path="../third-party/filament/filament/backend/include/backend/platforms/PlatformWGL.h" />
     <File Path="../third-party/filament/filament/backend/src/opengl/platforms/PlatformWGL.cpp" />
@@ -33,9 +39,6 @@
   <Folder Name="/#Global/">
     <File Path="../.gitattributes" />
     <File Path="../.gitignore" />
-    <File Path="../AndroidProfile.md" />
-    <File Path="../readme.md" />
-    <File Path="../ToDo.docx" />
     <File Path=".editorconfig" />
     <File Path="AspNetCoreMini.props" />
     <File Path="Directory.Build.props" />

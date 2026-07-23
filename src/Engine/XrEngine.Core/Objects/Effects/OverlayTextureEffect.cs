@@ -26,6 +26,8 @@
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            bld.PrepareTexture(Texture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)

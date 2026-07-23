@@ -45,8 +45,16 @@ namespace XrEngine
 
             protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
             {
+                Texture? GetTexture(UpdateShaderContext ctx)
+                {
+                    var light = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                    return light?.Textures?.GGXEnv;
+                }
+
                 bld.AddFeature("COLOR_CORRECT");
                 bld.AddFeature("MIP_FACTOR");
+
+                bld.PrepareTexture(GetTexture(bld.Context));
 
                 bld.ExecuteAction((ctx, up) =>
                 {

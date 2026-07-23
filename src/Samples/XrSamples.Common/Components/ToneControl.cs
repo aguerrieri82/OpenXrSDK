@@ -11,14 +11,14 @@ namespace XrSamples.Components
 {
     public class ToneControl : BaseComponent<Scene3D>
     {
-        private bool _fbRgb;
+        private bool _fbSrgb;
         private bool _texSRgb;
         private ToneMapMode _toneMap;
         private bool _showPbr;
         
         void Update()
         {
-            GlState.Current.EnableFeature(EnableCap.FramebufferSrgb, FbRgb);
+            GlState.Current.EnableFeature(EnableCap.FramebufferSrgb, FbSRgb);
 
             PbrMaterial.SHADER.ToneMap = _toneMap;
 
@@ -27,12 +27,12 @@ namespace XrSamples.Components
             Changed?.Invoke();
         }
 
-        public bool FbRgb
+        public bool FbSRgb
         {
-            get => _fbRgb;
+            get => _fbSrgb;
             set
             {
-                _fbRgb = value;
+                _fbSrgb = value;
                 Update();
             }
         }

@@ -46,6 +46,9 @@ namespace XrEngine
             if (NormalScale > 0)
                 bld.AddFeature($"NORMAL_SCALE {NormalScale.ToString("0.0#######", CultureInfo.InvariantCulture)}");
 
+            if (Color.IsSrgb)
+                bld.AddFeature("COLOR_IS_SRGB");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uColor", Color);

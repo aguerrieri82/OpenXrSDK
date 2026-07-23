@@ -195,16 +195,17 @@ namespace XrEngine.OpenGL
             if (mode == RenderEngineDebug.Sync)
                 _gl.Enable(EnableCap.DebugOutputSynchronous);
 
-            var apiIgnore = new uint[] { 131186 };
-            var otherIgnore = new uint[] { 2147483647 };
-
             _gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DebugSeverityNotification, 0, null, false);
-            
+
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [131186], false);
             _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [2147483647], false);
-            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 1u, [1281], false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 2u, [1281, 2147483647], false);
 
             _isDebug = true;
+
+#if !GLES
+                _glState.EnableDebug = true;
+#endif
         }
 
         protected void ConfigureCaps()
@@ -255,7 +256,7 @@ namespace XrEngine.OpenGL
             _glState.Commit();
         }
 
-        #endregion
+#endregion
 
         #region RENDER
 
@@ -493,6 +494,12 @@ namespace XrEngine.OpenGL
                 _gl.Flush();
 
             PopGroup();
+
+#if GLES
+            if (EngineApp.Current.Stats.Frame > 6)
+                _glState.EnableDebug = _isDebug;
+#endif
+
         }
 
         public void SetRenderTarget(Texture2D? texture)
@@ -515,7 +522,7 @@ namespace XrEngine.OpenGL
             _target = target ?? _defaultTarget;
         }
 
-        #endregion
+#endregion
 
         #region ISurfaceProvider
 

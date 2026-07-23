@@ -53,6 +53,8 @@ namespace XrSamples.Earth
                 bld.LoadTextureFixSrgb(ctx => Constellations, 2);
             }
 
+            bld.PrepareTexture(Stars);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.LoadTextureFixSrgb(ctx, Stars, 0);

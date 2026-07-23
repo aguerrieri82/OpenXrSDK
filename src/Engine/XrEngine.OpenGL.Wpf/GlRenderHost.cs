@@ -29,6 +29,7 @@ namespace XrEngine.OpenGL.Wpf
         protected static wglChoosePixelFormatARBPtr? ChoosePixelFormatARB;
         protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
         protected static wglGetPixelFormatAttribivARBPtr? GetPixelFormatAttribivARB;
+        private OpenGLRender? _render;
 
         #region Native
 
@@ -185,7 +186,7 @@ namespace XrEngine.OpenGL.Wpf
                     WGL_DEPTH_BITS_ARB, 24,
                     WGL_STENCIL_BITS_ARB, 8,
 
-                    WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, 1,
+                  //  WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, 1,
 
                     0
             ];
@@ -379,17 +380,11 @@ namespace XrEngine.OpenGL.Wpf
             glOptions.FloatPrecision = ShaderPrecision.High;
             glOptions.Outline.Use = true;
 
-            var render = new OpenGLRender(_gl!, glOptions);
+            _render = new OpenGLRender(_gl!, glOptions);
 
             TakeContext();
 
-#if DEBUG
-            /*
-            if (EditorDebug.DebugEnabled)
-                render.EnableDebug(EditorDebug.DebugSync);
-            */
-#endif
-            return render;
+            return _render;
         }
 
         public override void EnableVSync(bool enable, int scale = 1)
@@ -439,15 +434,27 @@ namespace XrEngine.OpenGL.Wpf
 
         public override void BeginFrame(long frameNum)
         {
-            OpenGLRender.Current!.SetRenderTarget((IGlRenderTarget?)null);
+            /*
+            GlState.Current.EnableFeature(EnableCap.FramebufferSrgb, true);
 
-            OpenGLRender.Current!.PushGroup($"Begin frame {frameNum}");
+            GlState.Current.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
+            _gl.GetFramebufferAttachmentParameter(
+                FramebufferTarget.Framebuffer,
+                GLEnum.BackLeft,
+                FramebufferAttachmentParameterName.ColorEncoding,
+                out var encoding);
+
+            bool isSrgb = encoding == (int)InternalFormat.Srgb;
+
+            */
+
+            _render!.SetRenderTarget((IGlRenderTarget?)null);
+            _render!.PushGroup($"Begin frame {frameNum}");
         }
 
         public override void EndFrame()
         {
-            OpenGLRender.Current!.PopGroup();
-            base.EndFrame();
+            _render!.PopGroup();
         }
 
         public nint GetProcAddress(string proc, int? slot = null)

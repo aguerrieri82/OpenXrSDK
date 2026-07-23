@@ -34,6 +34,9 @@ namespace XrEngine.Objects
             if (options.UseShadowSampler)
                 bld.AddFeature("USE_SHADOW_SAMPLER");
 
+            if (ShadowColor.IsSrgb)
+                bld.AddFeature("COLOR_IS_SRGB");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (bld.Context.ShadowMapProvider.ShadowMap != null)

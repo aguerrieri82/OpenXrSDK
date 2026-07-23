@@ -33,13 +33,13 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.WriteObject<PathMaterial>(this);
+            container.WriteObject(this);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            container.ReadObject<PathMaterial>(this);
+            container.ReadObject(this);
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
@@ -53,8 +53,9 @@ namespace XrEngine
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.AddFeature($"POINT_COUNT {Math.Max(1, Points.Length)}");
+
             if (UseVertexColor)
-                bld.AddFeature($"USE_VERTEX_COLOR");
+                bld.AddFeature($"COMBINE_VERTEX_COLOR");
 
             bld.ExecuteAction((ctx, up) =>
             {

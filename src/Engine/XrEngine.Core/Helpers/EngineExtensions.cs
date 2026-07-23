@@ -1463,6 +1463,13 @@ namespace XrEngine
             render.LoadTexture(texture);
         }
 
+        public static void PrepareTexture(this ShaderUpdateBuilder builder, Texture? texture)
+        {
+            if (texture != null && texture.Format.IsSrgb())
+                builder.AddFeature("TEXTURE_IS_SRGB");
+        }
+
+
         public static void LoadTextureFixSrgb(this ShaderUpdateBuilder builder, UpdateAction<Texture2D> value, int slot)
         {
             builder.ExecuteAction((ctx, up) => up.LoadTextureFixSrgb(ctx, value(ctx), slot));
@@ -1470,27 +1477,31 @@ namespace XrEngine
 
         public static void LoadTextureFixSrgb(this IUniformProvider uniform, UpdateShaderContext ctx, Texture texture, int slot)
         {
-            if (texture.Format.IsSrgb())
+            //DO NOT MERGE LoadTexture, LoadSampler MUST BE AFTER in the other branch
+
+            var isSrgb = texture.Format.IsSrgb();
+
+            var isDecodeEnabled = !ctx.NeedSrgbEncode;
+
+            if (isSrgb && texture.Sampler != null)
             {
-                var isDecodeEnabled = !ctx.NeedSrgbEncode;
-
-                if (texture.Sampler != null)
+                if (texture.Sampler.DecodeSrgb != isDecodeEnabled)
                 {
-                    if (texture.Sampler.DecodeSrgb != isDecodeEnabled)
-                    {
-                        texture.Sampler.DecodeSrgb = isDecodeEnabled;
-                        texture.Sampler.Invalidate();
-                    }
-                }
-                else if (!isDecodeEnabled)
-                {
-                    var sampler = TextureSamplerFactory.DisableSrgbDecode(texture);
-
-                    uniform.LoadSampler(sampler, slot);
+                    texture.Sampler.DecodeSrgb = isDecodeEnabled;
+                    texture.Sampler.Invalidate();
                 }
             }
 
             uniform.LoadTexture(texture, slot);
+
+            if (!isDecodeEnabled && isSrgb && texture.Sampler == null)
+            {
+                var sampler = TextureSamplerFactory.DisableSrgbDecode(texture);
+
+                uniform.LoadSampler(sampler, slot);
+            }
+
+
         }
 
         public static void Update(this TextureSampler sampler, Texture texture)

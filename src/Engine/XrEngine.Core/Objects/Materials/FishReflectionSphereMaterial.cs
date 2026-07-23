@@ -114,6 +114,8 @@ namespace XrEngine
 
             bld.AddFeature($"MODE {(int)Mode}");
 
+            bld.PrepareTexture(LeftMainTexture ?? RightTexture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ((PerspectiveCamera)ctx.PassCamera!);

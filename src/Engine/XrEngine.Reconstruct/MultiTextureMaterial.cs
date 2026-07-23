@@ -33,6 +33,8 @@
             if (MixColors)
                 bld.AddFeature("MIX_COLORS");
 
+            bld.PrepareTexture(Texture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.LoadTextureFixSrgb(ctx, Texture!, 1);

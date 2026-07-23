@@ -8,6 +8,41 @@ namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
     {
+        public class ContextShaderHandler : IShaderHandler
+        {
+            private bool _lastIsSrgbAutoEncode;
+            private bool _lastIsSrgbTarget;
+
+            private bool _isFirstUpdate;
+
+            public bool NeedUpdateShader(UpdateShaderContext ctx)
+            {
+                return _isFirstUpdate ||
+                    (ctx.IsSrgbAutoEncode != _lastIsSrgbAutoEncode) ||
+                    (ctx.IsSrgbTarget != _lastIsSrgbTarget);
+            }
+
+            public void UpdateShader(ShaderUpdateBuilder bld)
+            {
+                _lastIsSrgbAutoEncode = bld.Context.IsSrgbAutoEncode;
+                _lastIsSrgbTarget = bld.Context.IsSrgbTarget;
+                _isFirstUpdate = false;
+
+                if (bld.Context.IsSrgbAutoEncode)
+                    bld.AddFeature("SRGB_AUTO_ENCODE");
+
+                if (bld.Context.IsSrgbTarget)
+                    bld.AddFeature("SRGB_TARGET");
+
+                if (bld.Context.NeedSrgbEncode)
+                    bld.AddFeature("SRGB_ENCODE");
+
+                bld.AddFeature("HIGH_QUALITY_SRGB");
+            }
+
+
+        }
+
         public static int MAX_BUFFERS = 30;
 
         protected readonly GlBufferMap<IGlBufferRange> _modelBufferRanges;
@@ -19,6 +54,8 @@ namespace XrEngine.OpenGL
         protected IShaderHandler?[] _lastGlobalHandler = [];
         protected ShaderUpdate? _shaderUpdate;
 
+        protected ContextShaderHandler _contextHandler;
+
 
         public GlProgramGlobal(GL gl, Shader shader)
         {
@@ -27,6 +64,7 @@ namespace XrEngine.OpenGL
             _modelBufferRanges = new GlBufferMap<IGlBufferRange>(MAX_BUFFERS, this);
             _materialBufferRanges = new GlBufferMap<IGlBufferRange>(MAX_BUFFERS, this);
             _bufferMap = new GlBufferMap<IGlBuffer>(MAX_BUFFERS, this);
+            _contextHandler = new();
         }
 
         public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
@@ -47,6 +85,8 @@ namespace XrEngine.OpenGL
 
                 foreach (var handler in globalHandlers.Where(a => a != null))
                     _handlers.Add(handler!);
+
+                _handlers.Add(_contextHandler);
             }
 
             var needUpdate = _shaderUpdate == null || handlersChanged || _handlers.Any(a => a.NeedUpdateShader(ctx));

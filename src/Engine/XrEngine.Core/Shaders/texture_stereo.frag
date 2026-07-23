@@ -1,4 +1,6 @@
-﻿in vec2 fUv;
+﻿#include "Shared/tonemap.glsl"
+
+in vec2 fUv;
 
 #ifdef EXTERNAL
     layout(binding=0) uniform samplerExternalOES uTextureLeft;
@@ -36,5 +38,7 @@ void main()
 
     #ifdef USE_COLOR
         FragColor *= uColor;
-    #endif         
+    #endif
+
+    toneMapTex(FragColor);
 }

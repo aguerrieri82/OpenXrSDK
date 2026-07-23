@@ -1,3 +1,5 @@
+#include "Shared/tonemap.glsl"
+
 precision highp float;
 
 layout(binding = 0) uniform samplerCube uCube;
@@ -29,4 +31,6 @@ void main()
     #endif
 
     FragColor = color.rgba;
+
+    toneMapTex(FragColor);
 }

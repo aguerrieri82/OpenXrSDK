@@ -27,7 +27,7 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
 
             DepthFormat = TextureFormat.Depth24Stencil8;
-            ColorFormat = TextureFormat.RgbaFloat16;
+            ColorFormat = TextureFormat.SRgba32;
 
             SetSize(new Size2I(16, 16));
         }

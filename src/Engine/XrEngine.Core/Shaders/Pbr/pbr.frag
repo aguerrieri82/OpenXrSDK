@@ -508,10 +508,10 @@ void main()
     #if TONE_MAP == 2
         color3.rgb = toneMapNeutral(color3.rgb);
     #endif
+#endif
 
-    #ifdef SRGB
-        color3.rgb = linearTosRGB(color3.rgb);
-    #endif
+#if defined(SRGB_ENCODE) 
+    color3.rgb = linearTosRGB(color3.rgb);
 #endif
 
 #ifdef USE_DEPTH_NOISE

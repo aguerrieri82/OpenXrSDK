@@ -58,6 +58,8 @@
             if (FixedEye != -1)
                 bld.AddFeature($"FIXED_EYE {FixedEye}");
 
+            bld.PrepareTexture(LeftTexture ?? RightTexture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (FixedEye != 1 && LeftTexture != null)

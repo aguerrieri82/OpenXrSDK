@@ -32,6 +32,8 @@ namespace XrEngine
 
             bld.AddFeature("USE_COLOR");
 
+            bld.PrepareTexture(MainLeftTexture ?? RightTexture);
+
             if (IsStereo)
             {
                 bld.ExecuteAction((ctx, up) =>

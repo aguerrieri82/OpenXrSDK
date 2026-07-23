@@ -244,12 +244,7 @@ namespace XrEngine
                     globalToneMap = mapper.IsGlobal;
 
                 if (ToneMap != ToneMapMode.None && !globalToneMap)
-                {
                     bld.AddFeature($"TONE_MAP {(int)ToneMap}");
-
-                    if (bld.Context.NeedSrgbEncode)
-                        bld.AddFeature($"SRGB");
-                }
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {
@@ -687,6 +682,9 @@ namespace XrEngine
 
             }
 
+            if (Color.IsSrgb)
+                bld.AddFeature("COLOR_IS_SRGB");
+
             if (ColorMapProjection != null)
             {
                 bld.AddFeature("HAS_COLORMAP_PROJ");
@@ -750,6 +748,10 @@ namespace XrEngine
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
+
+                if (ColorMap.Format.IsSrgb())
+                    bld.AddFeature("ALBEDO_SRGB");
+
                 bld.LoadTexture(ctx => ColorMap, TextureSlots.Albedo);
 
                 bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
