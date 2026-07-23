@@ -9,8 +9,8 @@ namespace XrEngine.OpenXr
         [StructLayout(LayoutKind.Sequential)]
         public struct Uniforms
         {
-            public Color Color;
-            public Color RimColor;
+            public Vector4 Color;
+            public Vector4 RimColor;
             public Vector4 CameraPos;
 
             public float FillAlpha;

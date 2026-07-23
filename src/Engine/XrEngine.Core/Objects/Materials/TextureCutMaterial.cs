@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine
@@ -6,7 +7,7 @@ namespace XrEngine
     [StructLayout(LayoutKind.Sequential, Size = 32)]
     public struct QuadStyle
     {
-        public Color BackColor;
+        public Vector4 BackColor;
         public float Opacity;
     }
 

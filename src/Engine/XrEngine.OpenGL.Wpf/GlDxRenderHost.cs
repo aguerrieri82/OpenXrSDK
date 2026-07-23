@@ -60,13 +60,15 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
     private OpenGLRender? _render;
     private readonly HighResolutionTimer _timer;
 
+    private long _lastFrameTime;
+
     #region WGL interop
 
     protected static wglCreateContextAttribsARBPtr? CreateContextAttribsARB;
     protected static wglChoosePixelFormatARBPtr? ChoosePixelFormatARB;
     protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
     protected static wglGetPixelFormatAttribivARBPtr? GetPixelFormatAttribivARB;
-    private long _lasftFrameTime;
+
 
     protected delegate bool wglSwapIntervalEXTPtr(int interval);
 
@@ -657,15 +659,25 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
     protected void WaitNextFrame()
     {
         var frameTime = (long)(Stopwatch.Frequency / (_refreshRate / (float)_vsyncScale));
+        var targetTime = _lastFrameTime + frameTime;
 
-        var curTime = Stopwatch.GetTimestamp();
+        var dispatcher = EngineApp.Current.Dispatcher;
 
-        var remaining = frameTime - (curTime - _lasftFrameTime);
+        while (true)
+        {
+            dispatcher.ProcessQueue();
 
-        if (remaining > 0)
-            _timer.Sleep(TimeSpan.FromTicks(remaining));
+            var remaining = targetTime - Stopwatch.GetTimestamp();
 
-        _lasftFrameTime = Stopwatch.GetTimestamp();
+            if (remaining <= 0)
+                break;
+
+            if (!_timer.Sleep(TimeSpan.FromTicks(remaining), dispatcher.WorkAvailable))
+            {
+            }
+        }
+
+        _lastFrameTime = Stopwatch.GetTimestamp();
     }
 
     public override void SwapBuffers()

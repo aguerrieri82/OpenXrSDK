@@ -117,7 +117,6 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
-                    opt.UseSRGB = true;
                     opt.ToneMap = ToneMapMode.None;
 
                     opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;

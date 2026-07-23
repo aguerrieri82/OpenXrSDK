@@ -185,7 +185,7 @@ namespace XrEngine
 
         public RenderContext RenderContext => _context;
 
-        public IDispatcher Dispatcher => _dispatcher;
+        public QueueDispatcher Dispatcher => _dispatcher;
 
         public PlayState PlayState => _playState;
 

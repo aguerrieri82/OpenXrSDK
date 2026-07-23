@@ -37,10 +37,9 @@ namespace XrEngine.OpenGL
                 if (bld.Context.NeedSrgbEncode)
                     bld.AddFeature("SRGB_ENCODE");
 
-                bld.AddFeature("HIGH_QUALITY_SRGB");
+                if (OpenGLRender.Current!.Options.UseHighQualitySrgb)
+                    bld.AddFeature("HIGH_QUALITY_SRGB");
             }
-
-
         }
 
         public static int MAX_BUFFERS = 30;

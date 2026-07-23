@@ -39,7 +39,6 @@ namespace XrEngine
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
-
             public Vector4 Color;
 
             [FieldOffset(16)]
@@ -55,7 +54,7 @@ namespace XrEngine
             public float OcclusionStrength;
 
             [FieldOffset(96)]
-            public Color ShadowColor;
+            public Vector4 ShadowColor;
 
             [FieldOffset(112)]
             public float NormalScale;

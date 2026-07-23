@@ -49,7 +49,7 @@ namespace XrEditor
 
         public static void CreateActions(object obj, Type objType, object? host, IList<ActionView> actions)
         {
-            foreach (var method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var method in objType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 var action = method.GetCustomAttribute<ActionAttribute>();
                 if (action == null)

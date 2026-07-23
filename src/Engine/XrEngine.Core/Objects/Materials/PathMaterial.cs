@@ -55,7 +55,10 @@ namespace XrEngine
             bld.AddFeature($"POINT_COUNT {Math.Max(1, Points.Length)}");
 
             if (UseVertexColor)
+            {
+                bld.AddFeature($"USE_VERTEX_COLOR");
                 bld.AddFeature($"COMBINE_VERTEX_COLOR");
+            }
 
             bld.ExecuteAction((ctx, up) =>
             {

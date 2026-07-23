@@ -24,13 +24,13 @@ This backend therefore uses `GlRenderTargetFlags.ForceSrgbEncode`.
 
 ### Normal WGL Window
 
-The render target must be `SRgba32`.
+The render target must be sRGB.
 
 ---
 
 # Shader Context Flags
 
-The global shader update handler emits:
+The global shader update handler (`GlProgramGlobal` - `ContextShaderHandler`) emits:
 
 ```csharp
 if (bld.Context.IsSrgbAutoEncode)
@@ -42,7 +42,8 @@ if (bld.Context.IsSrgbTarget)
 if (bld.Context.NeedSrgbEncode)
     bld.AddFeature("SRGB_ENCODE");
 
-bld.AddFeature("HIGH_QUALITY_SRGB");
+if (OpenGLRender.Current!.Options.UseHighQualitySrgb)
+    bld.AddFeature("HIGH_QUALITY_SRGB");
 ```
 
 Semantics:
@@ -110,77 +111,6 @@ That is what `toneMapColor` does.
 #endif
 ```
 
-## Why `toneMapColor` works this way
-
-### sRGB input -> linear destination
-
-```text
-COLOR_IS_SRGB
-!SRGB_ENCODE
-```
-
-The numeric color is encoded for display, but the current shader path must output linear values.
-
-This is the case for operations such as PBR lighting, where the color must first become linear before it is used in BRDF calculations.
-
-So:
-
-```text
-sRGB color
-    -> sRGBToLinear
-    -> linear shader value
-```
-
-### linear input -> sRGB destination
-
-```text
-!COLOR_IS_SRGB
-SRGB_ENCODE
-```
-
-The source value is already linear, while the destination requires sRGB-encoded values and the framebuffer is not doing that conversion automatically.
-
-So:
-
-```text
-linear color
-    -> linearTosRGB
-    -> sRGB target value
-```
-
-### sRGB input -> sRGB destination
-
-```text
-COLOR_IS_SRGB
-SRGB_ENCODE
-```
-
-No conversion is necessary.
-
-The input is already in exactly the representation the destination expects:
-
-```text
-sRGB color
-    -> pass through
-    -> sRGB target
-```
-
-Doing an sRGB decode followed immediately by an sRGB encode would be mathematically redundant and would only add shader cost and numerical error.
-
-### linear input -> linear destination
-
-```text
-!COLOR_IS_SRGB
-!SRGB_ENCODE
-```
-
-Again, no conversion is necessary:
-
-```text
-linear color
-    -> pass through
-    -> linear target
-```
 
 So the function is effectively a color-space bridge:
 
@@ -202,7 +132,7 @@ If the texture must be sRGB-aware:
 
 1. Call `PrepareTexture` during shader update.
 2. Bind it through `LoadTextureFixSrgb`.
-3. For all other cases, the fragment shader calls `toneMapTex(FragColor)`.
+3. The fragment shader calls `toneMapTex(FragColor)`.
 
 ## PrepareTexture
 
@@ -411,6 +341,63 @@ Do not collapse these into a single generic "sRGB on/off" state.
 
 ---
 
+# Keep `GL_FRAMEBUFFER_SRGB` Enabled
+
+There is no practical reason in the current engine design to disable `GL_FRAMEBUFFER_SRGB` globally.
+
+The engine already has enough information to decide whether shader-side encoding is required:
+
+```text
+IsSrgbAutoEncode
+    GL_FRAMEBUFFER_SRGB is enabled.
+
+IsSrgbTarget
+    The render target expects sRGB values.
+
+NeedSrgbEncode
+    IsSrgbTarget && !IsSrgbAutoEncode
+```
+
+So the preferred policy is:
+
+```text
+keep GL_FRAMEBUFFER_SRGB enabled
++
+describe the real destination semantics through the render context
++
+use ForceSrgbEncode only for backends where framebuffer state does not reflect the actual presentation behavior
+```
+
+With a normal sRGB render target, keeping framebuffer sRGB enabled gives the expected hardware linear -> sRGB conversion.
+
+With a linear render target, enabling `GL_FRAMEBUFFER_SRGB` does not create an sRGB target by itself; the attachment format/encoding still determines whether the conversion applies.
+
+For DX interop, the special case is already represented explicitly:
+
+```csharp
+_updateCtx.IsSrgbTarget = true;
+_updateCtx.IsSrgbAutoEncode = false;
+```
+
+through:
+
+```csharp
+GlRenderTargetFlags.ForceSrgbEncode
+```
+
+That tells shaders to encode manually even if the real GL state has `GL_FRAMEBUFFER_SRGB` enabled.
+
+Therefore disabling framebuffer sRGB just to make a particular pass work would only create another global state combination to reason about. The engine should instead keep the state stable and express exceptional behavior through the render-target semantics and shader features.
+
+In other words:
+
+```text
+Do not use GL_FRAMEBUFFER_SRGB OFF as a general color-management mode.
+Use target/input semantics to decide what conversion is required.
+```
+
+---
+
 # Empirically Verified Backend Summary
 
 | Backend | Target / Swapchain | Required behavior |
@@ -418,4 +405,4 @@ Do not collapse these into a single generic "sRGB on/off" state.
 | Native Quest / Android OpenXR | sRGB | Swapchain must be sRGB |
 | OpenXR Link | Linear or sRGB | Linear output is eventually encoded before presentation |
 | DX interop editor | sRGB | Shader must encode even if framebuffer sRGB is enabled |
-| Normal WGL window | `SRgba32` | Use an sRGB render target |
+| Normal WGL window | sRGB | Use an sRGB render target |

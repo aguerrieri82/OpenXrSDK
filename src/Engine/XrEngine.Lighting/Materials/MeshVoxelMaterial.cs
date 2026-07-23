@@ -14,7 +14,7 @@ namespace XrEngine.Lighting
         public int Face;
 
         [FieldOffset(16)]
-        public Color BaseColor;
+        public Vector4 BaseColor;
 
         [FieldOffset(32)]
         public Vector3 Normal;

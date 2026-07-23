@@ -48,12 +48,14 @@ namespace XrEngine.OpenGL
             UseOcclusionQuery = false;
             UseDepthPass = false;
             SortByCameraDistance = true;
-            UseSRGB = false;
+            UseSRGB = true;
             RequireTextureCompression = true;
             UseVolume = true;
             SampleCount = 4;
             UseInstanceDraw = true;
             CacheUniforms = true;
+            ToneMap = ToneMapMode.Neutral;
+            UseResolve = false;
             ContactShadow = new()
             {
                 Use = false,
@@ -94,9 +96,7 @@ namespace XrEngine.OpenGL
                 DownsampleFactor = 1.5f
             };
 
-            UseSRGB = false;
-            ToneMap = ToneMapMode.Neutral;
-            UseResolve = false;
+
         }
 
         public bool UseSRGB { get; set; }
@@ -144,6 +144,8 @@ namespace XrEngine.OpenGL
         public ToneMapMode ToneMap { get; set; }
 
         public bool UseResolve { get; set; }
+
+        public bool UseHighQualitySrgb { get; set; }
 
         public static GlRenderOptions Default() => new();
 

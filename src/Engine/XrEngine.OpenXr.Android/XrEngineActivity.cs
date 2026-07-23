@@ -72,8 +72,7 @@ namespace XrEngine.OpenXr.Android
 
         protected override void ConfigureMainLoop()
         {
-#warning SYNC CONTEXT TEMPORARY DISABLED
-            //SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
+            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
         }
 
         protected override XrApp CreateApp()

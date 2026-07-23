@@ -14,10 +14,12 @@ namespace XrEngine
         protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
         protected Thread _thread;
+        private AutoResetEvent _workAvailable;
 
         public QueueDispatcher()
         {
             _thread = Thread.CurrentThread;
+            _workAvailable = new AutoResetEvent(false); 
         }
 
         public void Post(Action action)
@@ -32,6 +34,8 @@ namespace XrEngine
             };
 
             _queue.Enqueue(task);
+
+            _workAvailable.Set();
         }
 
         public async Task ExecuteAsync(Action action)
@@ -54,6 +58,8 @@ namespace XrEngine
 
             _queue.Enqueue(task);
 
+            _workAvailable.Set();
+
             await task.Completion.Task;
         }
 
@@ -69,6 +75,8 @@ namespace XrEngine
             };
 
             _queue.Enqueue(task);
+
+            _workAvailable.Set();
 
             var result = await task.Completion.Task;
 
@@ -105,6 +113,8 @@ namespace XrEngine
                 _isProcessingQueue = false;
             }
         }
+
+        public AutoResetEvent WorkAvailable => _workAvailable;
 
         public Thread Thread => _thread;
 

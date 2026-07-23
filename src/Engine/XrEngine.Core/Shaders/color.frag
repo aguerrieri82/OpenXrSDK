@@ -11,9 +11,11 @@ layout(location=0) out vec4 FragColor;
 void main()
 {    
 	#if defined(USE_VERTEX_COLOR)
-		FragColor = fColor;	
-	#elif defined(COMBINE_VERTEX_COLOR)
-		FragColor = uColor * fColor;
+		#if defined(COMBINE_VERTEX_COLOR)
+			FragColor = uColor * fColor;
+		#else
+			FragColor = fColor;	
+		#endif
 	#else
 		FragColor = uColor;
 	#endif

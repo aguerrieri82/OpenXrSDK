@@ -11,7 +11,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = false;
+        public static readonly bool EnableVSync = true;
 
         public static readonly int VSyncScale = 4;
 
@@ -62,13 +62,12 @@ namespace XrEditor
                   opt.ContactShadow.IsMultiView = false;
 
                   opt.UseResolve = false;
-                  opt.UseSRGB = true;
                   opt.ToneMap = ToneMapMode.Neutral;
 
               })
               // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: false)
-              .CreateToneControl()
+              .CreateRoomManager()
               .Build();
     }
 }
