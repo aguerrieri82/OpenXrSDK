@@ -72,22 +72,7 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
-                {
-                    up.LoadTexture(Texture, TextureSlots.Albedo);
-
-                    if (Texture.Format.IsSrgb() && ctx.NeedSrgbEncode)
-                    {
-                        _sampler ??= new TextureSampler() { DecodeSrgb = false };
-
-                        if (_lastTexVersion != Texture.Version)
-                        {
-                            _sampler.Update(Texture);
-                            _lastTexVersion = Texture.Version;
-                        }
-                 
-                        up.LoadSampler(_sampler, TextureSlots.Albedo);
-                    }
-                }
+                    up.LoadTextureFixSrgb(ctx, Texture, TextureSlots.Albedo);
 
                 up.SetUniform("uColor", Color);
             });

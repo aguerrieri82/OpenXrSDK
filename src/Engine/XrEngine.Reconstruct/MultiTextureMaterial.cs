@@ -35,7 +35,7 @@
 
             bld.ExecuteAction((ctx, up) =>
             {
-                up.LoadTexture(Texture!, 1);
+                up.LoadTextureFixSrgb(ctx, Texture!, 1);
 
                 if (Exposure.Length > 0)
                     up.SetUniform("uExposure", Exposure);

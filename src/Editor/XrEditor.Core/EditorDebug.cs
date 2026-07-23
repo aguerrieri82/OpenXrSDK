@@ -54,7 +54,7 @@ namespace XrEditor
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Astc;
 
-                  opt.ShadowMap.Mode = ShadowMapMode.VSM;
+                  opt.ShadowMap.Mode = ShadowMapMode.PCF;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
                   opt.ShadowMap.UseShadowSampler = false;
 

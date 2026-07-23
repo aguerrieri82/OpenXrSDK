@@ -108,6 +108,29 @@ namespace XrEngine.Browser.Windows
             Scale = 1f;
         }
 
+        public  uint GetActiveTextureBinding(GL gl, TextureTarget target)
+        {
+            var binding = target switch
+            {
+                TextureTarget.Texture1D => GetPName.TextureBinding1D,
+                TextureTarget.Texture2D => GetPName.TextureBinding2D,
+                TextureTarget.Texture3D => GetPName.TextureBinding3D,
+                TextureTarget.Texture1DArray => GetPName.TextureBinding1DArray,
+                TextureTarget.Texture2DArray => GetPName.TextureBinding2DArray,
+                TextureTarget.TextureRectangle => GetPName.TextureBindingRectangle,
+                TextureTarget.TextureCubeMap => GetPName.TextureBindingCubeMap,
+                TextureTarget.Texture2DMultisample => GetPName.TextureBinding2DMultisample,
+                TextureTarget.Texture2DMultisampleArray => GetPName.TextureBinding2DMultisampleArray,
+                TextureTarget.TextureBuffer => GetPName.TextureBindingBuffer,
+                (TextureTarget)0x8D65 => (GetPName)0x8D67, // GL_TEXTURE_BINDING_EXTERNAL_OES
+
+                _ => throw new NotSupportedException($"Unsupported texture target: {target}")
+            };
+
+            return (uint)gl.GetInteger(binding);
+        }
+
+
         private unsafe InteropTarget CreateInteropTarget()
         {
 
@@ -126,6 +149,8 @@ namespace XrEngine.Browser.Windows
 
             target.Resource = target.Texture.QueryInterface<ID3D11Resource>();
 
+            var prevTex = GetActiveTextureBinding(_gl, TextureTarget.Texture2D);
+
             _gl.BindTexture(TextureTarget.Texture2D, target.GlTexture);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
@@ -138,7 +163,7 @@ namespace XrEngine.Browser.Windows
                 GetTextureParameter.TextureInternalFormat,
                 out int internalFormat);
 
-            _gl.BindTexture(TextureTarget.Texture2D, 0);
+            _gl.BindTexture(TextureTarget.Texture2D, prevTex);
 
             if (target.InteropObject == 0)
                 throw new InvalidOperationException("NVDXInterop.DxregisterObject failed.");

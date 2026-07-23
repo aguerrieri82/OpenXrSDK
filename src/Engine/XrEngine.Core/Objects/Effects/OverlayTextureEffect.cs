@@ -29,7 +29,7 @@
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
-                    up.LoadTexture(Texture, TextureSlots.Albedo);
+                    up.LoadTextureFixSrgb(ctx, Texture, TextureSlots.Albedo);
             });
 
         }

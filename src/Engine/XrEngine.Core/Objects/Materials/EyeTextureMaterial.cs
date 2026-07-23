@@ -61,10 +61,10 @@
             bld.ExecuteAction((ctx, up) =>
             {
                 if (FixedEye != 1 && LeftTexture != null)
-                    up.LoadTexture(LeftTexture, 0);
+                    up.LoadTextureFixSrgb(ctx,LeftTexture, 0);
 
                 if (FixedEye != 0 && RightTexture != null)
-                    up.LoadTexture(RightTexture, 1);
+                    up.LoadTextureFixSrgb(ctx, RightTexture, 1);
 
                 if (DebugEye != CameraEye.None)
                     up.SetUniform("uActiveEye", (uint)DebugEye);

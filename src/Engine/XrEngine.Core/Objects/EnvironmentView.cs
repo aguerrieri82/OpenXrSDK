@@ -55,7 +55,7 @@ namespace XrEngine
 
                     if (light != null && textures?.GGXEnv != null && ctx.PassCamera != null)
                     {
-                        up.LoadTexture(textures.GGXEnv, 0);
+                        up.LoadTextureFixSrgb(ctx, textures.GGXEnv, 0);
 
                         up.SetUniform("uMipCount", (int)textures.MipCount);
                         up.SetUniform("uMipFactor", Blur);

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using XrEngine.Helpers;
 using XrMath;
+using static XrEngine.ShaderUpdateBuilder;
 
 namespace XrEngine
 {
@@ -1460,6 +1461,36 @@ namespace XrEngine
         {
             var render = EngineApp.Current.Renderer;
             render.LoadTexture(texture);
+        }
+
+        public static void LoadTextureFixSrgb(this ShaderUpdateBuilder builder, UpdateAction<Texture2D> value, int slot)
+        {
+            builder.ExecuteAction((ctx, up) => up.LoadTextureFixSrgb(ctx, value(ctx), slot));
+        }
+
+        public static void LoadTextureFixSrgb(this IUniformProvider uniform, UpdateShaderContext ctx, Texture texture, int slot)
+        {
+            if (texture.Format.IsSrgb())
+            {
+                var isDecodeEnabled = !ctx.NeedSrgbEncode;
+
+                if (texture.Sampler != null)
+                {
+                    if (texture.Sampler.DecodeSrgb != isDecodeEnabled)
+                    {
+                        texture.Sampler.DecodeSrgb = isDecodeEnabled;
+                        texture.Sampler.Invalidate();
+                    }
+                }
+                else if (!isDecodeEnabled)
+                {
+                    var sampler = TextureSamplerFactory.DisableSrgbDecode(texture);
+
+                    uniform.LoadSampler(sampler, slot);
+                }
+            }
+
+            uniform.LoadTexture(texture, slot);
         }
 
         public static void Update(this TextureSampler sampler, Texture texture)

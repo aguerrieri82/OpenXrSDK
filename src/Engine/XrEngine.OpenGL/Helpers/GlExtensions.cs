@@ -62,11 +62,11 @@ namespace XrEngine.OpenGL
                 {
                     var target = targets[i];
 
-                    GlState.Current!.LoadTexture(texId, target, 0);
+                    GlState.Current.LoadTexture(texId, target, 0);
 
                     gL.GetInteger(bindings[i], out var curTexId);
 
-                    GlState.Current!.BindTexture(target, 0);
+                    GlState.Current.BindTexture(target, 0);
 
                     gL.CheckError(false);
 
@@ -505,26 +505,35 @@ namespace XrEngine.OpenGL
             return result;
         }
 
+
+        public static uint GetActiveTextureBinding(this GL gl, TextureTarget target)
+        {
+            var binding = target switch
+            {
+                TextureTarget.Texture1D => GetPName.TextureBinding1D,
+                TextureTarget.Texture2D => GetPName.TextureBinding2D,
+                TextureTarget.Texture3D => GetPName.TextureBinding3D,
+                TextureTarget.Texture1DArray => GetPName.TextureBinding1DArray,
+                TextureTarget.Texture2DArray => GetPName.TextureBinding2DArray,
+                TextureTarget.TextureRectangle => GetPName.TextureBindingRectangle,
+                TextureTarget.TextureCubeMap => GetPName.TextureBindingCubeMap,
+                TextureTarget.Texture2DMultisample => GetPName.TextureBinding2DMultisample,
+                TextureTarget.Texture2DMultisampleArray => GetPName.TextureBinding2DMultisampleArray,
+                TextureTarget.TextureBuffer => GetPName.TextureBindingBuffer,
+                (TextureTarget)0x8D65 => (GetPName)0x8D67, // GL_TEXTURE_BINDING_EXTERNAL_OES
+
+                _ => throw new NotSupportedException($"Unsupported texture target: {target}")
+            };
+
+            return (uint)gl.GetInteger(binding);
+        }
+
+
         [Conditional("DEBUG")]
         public static unsafe void DumpState(this GlTexture texture, string? name = null)
         {
             var gl = texture.GL;
             var target = texture.Target;
-
-            static GLEnum GetTextureBindingEnum(TextureTarget target)
-            {
-                return target switch
-                {
-                    TextureTarget.Texture2D => GLEnum.TextureBinding2D,
-                    TextureTarget.Texture2DArray => GLEnum.TextureBinding2DArray,
-                    TextureTarget.Texture3D => GLEnum.TextureBinding3D,
-                    TextureTarget.TextureCubeMap => GLEnum.TextureBindingCubeMap,
-                    TextureTarget.Texture2DMultisample => GLEnum.TextureBinding2DMultisample,
-                    TextureTarget.Texture2DMultisampleArray => GLEnum.TextureBinding2DMultisampleArray,
-                    GL_TEXTURE_EXTERNAL_OES => GL_TEXTURE_BINDING_EXTERNAL_OES,
-                    _ => throw new NotSupportedException($"Unsupported texture target: {target}")
-                };
-            }
 
             void DumpInt(GLEnum pname, string label)
             {
@@ -586,10 +595,7 @@ namespace XrEngine.OpenGL
                 Debug.WriteLine($"{label}: {(GLEnum)value} ({value})");
             }
 
-            var previous = 0;
-            gl.GetInteger(GetTextureBindingEnum(target), &previous);
-
-            gl.BindTexture(target, texture);
+            GlState.Current.BindTexture(target, texture);
 
             Debug.WriteLine("");
             Debug.WriteLine($"--- Texture state {(name != null ? $"[{name}]" : "")} ---");
@@ -619,8 +625,6 @@ namespace XrEngine.OpenGL
             DumpEnum(GLEnum.TextureImmutableFormat, "IMMUTABLE_FORMAT");
 
             DumpLevel();
-
-            gl.BindTexture(target, (uint)previous);
 
             var err = gl.GetError();
 

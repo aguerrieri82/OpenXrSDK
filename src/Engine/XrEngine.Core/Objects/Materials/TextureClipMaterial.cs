@@ -39,7 +39,7 @@ namespace XrEngine
                     up.SetUniform("uActiveEye", (uint)ctx.PassCamera!.ActiveEye);
 
                     if (RightTexture != null)
-                        up.LoadTexture(RightTexture, 1);
+                        up.LoadTextureFixSrgb(ctx, RightTexture, 1);
                 });
             }
 
@@ -48,7 +48,7 @@ namespace XrEngine
                 up.SetUniform("uColor", Color);
 
                 if (MainLeftTexture != null)
-                    up.LoadTexture(MainLeftTexture, 0);
+                    up.LoadTextureFixSrgb(ctx, MainLeftTexture, 0);
 
             });
         }

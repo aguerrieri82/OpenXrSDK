@@ -40,7 +40,7 @@ namespace XrEngine.Materials
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
-                    up.LoadTexture(Texture!, 0);
+                    up.LoadTextureFixSrgb(ctx, Texture!, 0);
 
                 up.SetUniform("uCubeRotation", Matrix3x3.CreateRotationY(Rotation));
             });

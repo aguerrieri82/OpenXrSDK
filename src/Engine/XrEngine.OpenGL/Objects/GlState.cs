@@ -9,6 +9,7 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 using XrMath;
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -201,12 +202,16 @@ namespace XrEngine.OpenGL
 
             var curSlotValue = slots[ActiveTexture.Value];
 
-            if (curSlotValue == texId && !force)
-                return;
-
-            _gl.BindTexture(target, texId);
-
-            slots[ActiveTexture.Value] = texId;
+            if (curSlotValue != texId || !force)
+            {
+                _gl.BindTexture(target, texId);
+                slots[ActiveTexture.Value] = texId;
+            }
+#if DEBUG
+            var realTex = _gl.GetActiveTextureBinding(target);
+            if (realTex != texId)
+                Log.Warn(this, "Inconsistent cache: Found {0} - Expected {1}", realTex, texId);
+#endif
         }
 
         public void SetActiveTexture(int slot, bool force = false)
@@ -216,17 +221,19 @@ namespace XrEngine.OpenGL
                 _gl.ActiveTexture(TextureUnit.Texture0 + slot);
                 ActiveTexture = slot;
             }
+            else
+            {
+#if DEBUG
+                var realActive = (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
+                if (realActive != slot)
+                    Log.Warn(this, "Inconsistent cache: Real Active {0} - Expected {1}", realActive, slot);
+#endif
+            }
         }
 
         public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
             SetActiveTexture(slot, force);
-
-            var curSlotValue = GetTextureSlots(target)[slot];
-
-            if (curSlotValue == texId && !force)
-                return;
-
             BindTexture(target, texId, force);
         }
 

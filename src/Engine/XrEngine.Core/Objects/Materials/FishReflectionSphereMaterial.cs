@@ -123,11 +123,11 @@ namespace XrEngine
 
                 if (Mode == FishReflectionMode.Eye)
                 {
-                    up.LoadTexture(LeftMainTexture!, 0);
-                    up.LoadTexture(RightTexture!, 1);
+                    up.LoadTextureFixSrgb(ctx, LeftMainTexture!, 0);
+                    up.LoadTextureFixSrgb(ctx, RightTexture!, 1);
                 }
                 else
-                    up.LoadTexture(LeftMainTexture!, 0);
+                    up.LoadTextureFixSrgb(ctx, LeftMainTexture!, 0);
 
                 up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
                 up.SetUniform("uTexCenter", TextureCenter);

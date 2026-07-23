@@ -32,7 +32,7 @@ namespace XrEngine.Browser.Windows
             _cpuMode = gl == null;
             _browser = new ChromeWebBrowser(gl);
 
-            TextureFormat = TextureFormat.Bgra32;
+            TextureFormat = TextureFormat.SBgra32;
             Size = new Size2I(1600, 1200);
             EnableElevation = true;
         }

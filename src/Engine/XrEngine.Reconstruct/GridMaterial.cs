@@ -110,7 +110,7 @@ namespace XrEngine.Reconstruct
                 up.SetUniform("uExposure", Exposure);
 
                 if (Texture != null)
-                    up.LoadTexture(Texture, 0);
+                    up.LoadTextureFixSrgb(ctx, Texture, 0);
 
                 var depth = ctx.RenderEngine!.GetDepth();
                 if (depth != null)
