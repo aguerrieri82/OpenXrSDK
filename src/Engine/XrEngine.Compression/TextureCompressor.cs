@@ -21,7 +21,7 @@ namespace XrEngine.Compression
         readonly SemaphoreSlim _encodeLimit = new(3, 3);
         bool _cacheCleared;
 
-        public static TextureCompressionInfo EncodeAstc(bool isNormalMap, float quality, uint blockSize)
+        public static TextureCompressionInfo EncodeAstc(bool isNormalMap, float quality, uint blockSize, int threadPriority)
         {
             return new TextureCompressionInfo
             {
@@ -29,7 +29,7 @@ namespace XrEngine.Compression
                 Align = 1,
                 BlockSize = blockSize,
                 RequireRgba = true,
-                Encode = data => AstcCompressor.Encode(data, isNormalMap, quality, blockSize)
+                Encode = data => AstcCompressor.Encode(data, isNormalMap, quality, blockSize, threadPriority)
             };
         }
 
@@ -61,6 +61,8 @@ namespace XrEngine.Compression
                         await _encodeLimit.WaitAsync();
                         try
                         {
+                            using var th = ThreadPriorityManager.Switch(ThreadPriority.Lowest);
+
                             return Encode(data, mipsLevels, hash, compressor, handle);
                         }
                         finally

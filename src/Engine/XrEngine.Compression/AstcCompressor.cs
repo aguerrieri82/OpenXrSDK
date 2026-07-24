@@ -158,6 +158,7 @@ namespace XrEngine.Compression
             public float quality;
             public uint flags;
             public byte thread_count;
+            public sbyte thread_priority;
             public astcenc_swizzle swizzle;
         }
 
@@ -176,7 +177,7 @@ namespace XrEngine.Compression
 
         #endregion
 
-        public static TextureData Encode(TextureData data, bool isNormalMap, float quality, uint blockSize)
+        public static TextureData Encode(TextureData data, bool isNormalMap, float quality, uint blockSize, int threadPriority = 0)
         {
             uint flags = 0;
             if (isNormalMap)
@@ -247,7 +248,8 @@ namespace XrEngine.Compression
                 profile = profile,
                 quality = quality,
                 swizzle = swizzle,
-                thread_count = 8
+                thread_count = 8,
+                thread_priority = (sbyte)threadPriority
             };
 
             using var srcPtr = data.Data!.MemoryLock();

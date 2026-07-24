@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics.CodeAnalysis;
+using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
 {
@@ -17,6 +18,17 @@ namespace XrEngine.OpenGL
         readonly string? _teSourceName;
 
         protected bool _isBuilt;
+
+        public GlSimpleProgram(GL gl, byte[] binary, GLEnum format)
+             : base(gl, str => throw new NotSupportedException())
+        {
+            _vSourceName = "";
+            _fSourceName = "";
+
+            Load(binary, format);
+
+            _isBuilt = true;
+        }
 
         public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string?> resolver)
             : base(gl, resolver)
@@ -37,7 +49,7 @@ namespace XrEngine.OpenGL
         [MemberNotNull(nameof(Fragment))]
         public override void Build()
         {
-            GlDebug.Log(this, "Building program {0}...", _handle);
+            Log.Info(this, "Building program {0}...", _handle);
 
             var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
             var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
@@ -67,10 +79,33 @@ namespace XrEngine.OpenGL
             for (var i = 0; i < _boundBuffers.Length; i++)
                 _boundBuffers[i] = 0;
 
-            GlDebug.Log(this, "Program built");
+            Log.Debug(this, "Program built");
 
             _isBuilt = true;
         }
+
+
+        public ulong GetSourceHash()
+        {
+            var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
+            var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
+            var gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
+            var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
+            var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
+
+            var builder = HashBuilder.Instance;
+
+            builder.Reset();
+
+            builder.Add(vSource ?? "");
+            builder.Add(fSource ?? "");
+            builder.Add(gSource ?? "");
+            builder.Add(tcSource ?? "");
+            builder.Add(teSource ?? "");
+
+            return builder.Value();
+        }
+
 
         public override void Dispose()
         {

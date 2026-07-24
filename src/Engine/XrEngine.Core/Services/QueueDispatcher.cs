@@ -16,9 +16,9 @@ namespace XrEngine
         protected Thread _thread;
         private AutoResetEvent _workAvailable;
 
-        public QueueDispatcher()
+        public QueueDispatcher(Thread? thread = null)
         {
-            _thread = Thread.CurrentThread;
+            _thread = thread ?? Thread.CurrentThread;
             _workAvailable = new AutoResetEvent(false); 
         }
 
@@ -85,10 +85,10 @@ namespace XrEngine
 
         public void ProcessQueue()
         {
+            _thread = Thread.CurrentThread;
+
             if (_isProcessingQueue)
                 return;
-
-            _thread = Thread.CurrentThread;
 
             _isProcessingQueue = true;
 
@@ -113,6 +113,8 @@ namespace XrEngine
                 _isProcessingQueue = false;
             }
         }
+
+
 
         public AutoResetEvent WorkAvailable => _workAvailable;
 

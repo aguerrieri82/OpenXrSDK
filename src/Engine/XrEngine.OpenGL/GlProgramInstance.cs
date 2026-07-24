@@ -1,11 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using XrEngine.Helpers;
+using System.Collections.Concurrent;
 
 
 #if GLES
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+
 #endif
 
 namespace XrEngine.OpenGL
@@ -14,7 +17,9 @@ namespace XrEngine.OpenGL
     {
         public static int MAX_BUFFERS = 30;
 
-        static internal readonly Dictionary<ulong, GlBaseProgram> _programs = [];
+        static internal readonly ConcurrentDictionary<ulong, GlSimpleProgram> _programs = [];
+
+        static GlSharedWorker _worker = new GlSharedWorker();
 
         protected ShaderUpdate? _materialUpdate;
         protected ShaderUpdate? _modelUpdate;
@@ -28,14 +33,17 @@ namespace XrEngine.OpenGL
         protected IGlBuffer?[] _modelBuffers;
 
         protected Object3D? _lastModel;
-
-
+        private bool _useTess;
+        private bool _useGeo;
+        private Task? _createTask;
 
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
             Material = material;
             Global = global;
+
+            //CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Shaders");
 
             var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(MAX_BUFFERS, material));
             _materialBuffers = bufferMap.Buffers;
@@ -81,12 +89,24 @@ namespace XrEngine.OpenGL
 
         public bool UpdateProgram(UpdateShaderContext ctx)
         {
+            if (_createTask != null)
+            {
+                if (!_createTask.IsCompleted)
+                    return false;
+
+                if (_createTask.IsFaulted)
+                    _createTask.GetAwaiter().GetResult();
+
+                _createTask = null;
+            }
+
             if (!NeedUpdate)
                 return false;
 
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
+
             Material.UpdateShader(localBuilder);
 
             if (Global.ShaderUpdate?.Features != null)
@@ -105,15 +125,15 @@ namespace XrEngine.OpenGL
 
             var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
 
-            var useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
+            _useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
 
-            var useGeo = shader.GeometrySourceName != null &&
+            _useGeo = shader.GeometrySourceName != null &&
                          (shader.TessEvalSourceName == null || tesMode == TessellationMode.Geometry);
 
-            if (useTess)
+            if (_useTess)
                 localBuilder.AddFeature("USE_TESS_SHADER");
 
-            if (useGeo)
+            if (_useGeo)
                 localBuilder.AddFeature("USE_GEO_SHADER");
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
@@ -122,73 +142,22 @@ namespace XrEngine.OpenGL
 
             if (!_programs.TryGetValue(_materialUpdate.FeaturesHash, out var program))
             {
-                string? Resolver(string name)
+                if (UseWorker)
                 {
-                    if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
+                    if (!_worker.IsStarted)
+                        _worker.Start();
+
+                    _createTask = _worker.Dispatcher.ExecuteAsync(() =>
                     {
-                        var fullPath = shader.SourcePaths.
-                                       Select(a => Path.Combine(a, name))
-                                      .FirstOrDefault(File.Exists);
+                        program = CreateProgram();
 
-                        if (fullPath != null)
-                            return File.ReadAllText(fullPath);
-                    }
+                        _programs[_materialUpdate.FeaturesHash] = program;
+                    });
 
-                    var result = shader.Resolver?.Invoke(name);
-
-                    if (!string.IsNullOrEmpty(result))
-                        return result;
-
-                    return Material.Resolver?.Invoke(name);
+                    return false;
                 }
 
-                program = new GlSimpleProgram(_gl,
-                    shader.VertexSourceName!,
-                    shader.FragmentSourceName!,
-                    useGeo ? shader.GeometrySourceName : null,
-                    useTess ? shader.TessControlSourceName : null,
-                    useTess ? shader.TessEvalSourceName : null,
-                    Resolver);
-
-                program.Name = Material.GetType().Name;
-
-                if (useGeo)
-                {
-                    program.AddExtension("GL_EXT_geometry_shader");
-                    program.AddExtension("GL_OES_geometry_shader");
-                }
-
-                if (useTess)
-                {
-                    program.AddExtension("GL_EXT_tessellation_shader");
-                    program.AddExtension("GL_OES_tessellation_shader");
-                }
-
-                if (ExtraExtensions != null)
-                {
-                    foreach (var ext in ExtraExtensions)
-                        program.AddExtension(ext);
-                }
-
-                if (_materialUpdate.Extensions != null)
-                {
-                    foreach (var ext in _materialUpdate.Extensions)
-                        program.AddExtension(ext);
-                } 
-  
-                if (_materialUpdate.Features != null)
-                {
-                    foreach (var feature in _materialUpdate.Features)
-                        program.AddFeature(feature);
-                }
-
-                if (Global.ShaderUpdate?.Extensions != null)
-                {
-                    foreach (var ext in Global.ShaderUpdate.Extensions)
-                        program.AddExtension(ext);
-                }
-
-                program.Build();
+                program = CreateProgram();
 
                 _programs[_materialUpdate.FeaturesHash] = program;
             }
@@ -203,6 +172,124 @@ namespace XrEngine.OpenGL
             _globalVersion = Global.Version;
 
             return changed;
+        }
+
+        protected GlSimpleProgram CreateProgram()
+        {
+            var shader = Material.Shader;
+
+            string? Resolver(string name)
+            {
+                if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
+                {
+                    var fullPath = shader.SourcePaths.
+                                   Select(a => Path.Combine(a, name))
+                                  .FirstOrDefault(File.Exists);
+
+                    if (fullPath != null)
+                        return File.ReadAllText(fullPath);
+                }
+
+                var result = shader.Resolver?.Invoke(name);
+
+                if (!string.IsNullOrEmpty(result))
+                    return result;
+
+                return Material.Resolver?.Invoke(name);
+            }
+
+            var program = new GlSimpleProgram(_gl,
+                shader.VertexSourceName!,
+                shader.FragmentSourceName!,
+                _useGeo ? shader.GeometrySourceName : null,
+                _useTess ? shader.TessControlSourceName : null,
+                _useTess ? shader.TessEvalSourceName : null,
+                Resolver);
+
+
+            program.Name = Material.GetType().Name;
+
+            string? cacheName = null;
+            ulong hash;
+            bool isLoaded = false;
+
+            if (!string.IsNullOrWhiteSpace(CachePath))
+            {
+                hash = program.GetSourceHash();
+
+                cacheName = Path.Combine(CachePath, hash + ".bin");
+
+                if (File.Exists(cacheName))
+                {
+                    try
+                    {
+                        var meta = File.ReadAllText(cacheName + ".meta");
+                        var format = (GLEnum)int.Parse(meta);
+                        var data = File.ReadAllBytes(cacheName);
+
+                        program.Load(data, format);
+
+                        isLoaded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(this, "Error loading program '{0}': {1}", cacheName, ex);
+                        File.Delete(cacheName);
+                    }
+                }
+            }
+
+            if (!isLoaded)
+            {
+                if (_useGeo)
+                {
+                    program.AddExtension("GL_EXT_geometry_shader");
+                    program.AddExtension("GL_OES_geometry_shader");
+                }
+
+                if (_useTess)
+                {
+                    program.AddExtension("GL_EXT_tessellation_shader");
+                    program.AddExtension("GL_OES_tessellation_shader");
+                }
+
+                if (ExtraExtensions != null)
+                {
+                    foreach (var ext in ExtraExtensions)
+                        program.AddExtension(ext);
+                }
+
+                if (_materialUpdate!.Extensions != null)
+                {
+                    foreach (var ext in _materialUpdate.Extensions)
+                        program.AddExtension(ext);
+                }
+
+                if (_materialUpdate.Features != null)
+                {
+                    foreach (var feature in _materialUpdate.Features)
+                        program.AddFeature(feature);
+                }
+
+                if (Global.ShaderUpdate?.Extensions != null)
+                {
+                    foreach (var ext in Global.ShaderUpdate.Extensions)
+                        program.AddExtension(ext);
+                }
+
+                program.Build();
+
+                if (!string.IsNullOrWhiteSpace(CachePath))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(cacheName)!);
+
+                    var data = program.GetBinary(out var format);
+                    File.WriteAllBytes(cacheName!, data);
+                    File.WriteAllText(cacheName + ".meta", format.ToString());
+                }
+            }
+
+            return program;
         }
 
         public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = "")
@@ -295,6 +382,8 @@ namespace XrEngine.OpenGL
             _globalVersion = -1;
         }
 
+        public bool IsReady => Program != null && Program.Handle != 0;
+
         public bool NeedUpdate => Program == null || _materialVersion != Material.Version || _globalVersion != Global.Version;
 
         public string[]? ExtraFeatures { get; set; }
@@ -306,5 +395,10 @@ namespace XrEngine.OpenGL
         public ShaderMaterial Material { get; }
 
         public GlBaseProgram? Program { get; set; }
+
+        public static string? CachePath { get; set; }
+
+        public bool UseWorker { get; set; }
+
     }
 }

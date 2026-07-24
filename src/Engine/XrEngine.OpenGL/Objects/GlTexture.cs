@@ -242,7 +242,7 @@ namespace XrEngine.OpenGL
             var normalizedDepth = Math.Max(depth, 1);
             var internalFormat = format.ToInternalFormat();
 
-            var needsAllocation = PrepareStorage(width, height, normalizedDepth, internalFormat);
+            var needsAllocation = PrepareStorage(width, height, normalizedDepth, internalFormat, false);
 
             BeginUpdate();
 
@@ -314,7 +314,7 @@ namespace XrEngine.OpenGL
                 ? format.ToInternalFormat()
                 : format.ToInternalFormat(compression, blockSize);
 
-            PrepareStorage(width, height, normalizedDepth, internalFormat);
+            PrepareStorage(width, height, normalizedDepth, internalFormat, compression != TextureCompressionFormat.Uncompressed);
 
             BeginUpdate();
 
@@ -563,7 +563,8 @@ namespace XrEngine.OpenGL
             uint width,
             uint height,
             uint depth,
-            InternalFormat internalFormat)
+            InternalFormat internalFormat,
+            bool isCompressed)
         {
             var changed =
                 _width != width ||
@@ -576,7 +577,10 @@ namespace XrEngine.OpenGL
                 if (_isAttached)
                     throw new InvalidOperationException("Cannot change storage of an attached texture");
 
-                if (_isStorageImmutable)
+                var mustRecreate = _isStorageImmutable ||
+                    _isCompressed != isCompressed;
+
+                if (mustRecreate)
                 {
                     if (!AllowRecreate)
                         throw new InvalidOperationException("Immutable texture storage changed");

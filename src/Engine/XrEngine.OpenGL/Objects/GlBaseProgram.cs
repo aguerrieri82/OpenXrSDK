@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace XrEngine.OpenGL
 {
@@ -17,6 +18,7 @@ namespace XrEngine.OpenGL
 
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
+        protected readonly GlRenderOptions _glOptions;
         protected readonly Func<string, string?> _resolver;
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
@@ -25,11 +27,51 @@ namespace XrEngine.OpenGL
 
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
+            _glOptions = OpenGLRender.Current?.Options ?? throw new InvalidOperationException("No active OpenGLRender");
+
             _resolver = includeResolver;
-            _cacheUniforms = OpenGLRender.Current?.Options.CacheUniforms == true;
+            _cacheUniforms = _glOptions.CacheUniforms == true;
         }
 
+
+        public byte[] GetBinary(out GLEnum format)
+        {
+            _gl.GetProgram(_handle, ProgramPropertyARB.ProgramBinaryLength, out var size);
+
+            var buffer = new byte[size];
+
+            _gl.GetProgramBinary(_handle, out var _, out format, buffer);
+
+            return buffer;
+        }
+
+        public void Load(byte[] binary, GLEnum format)
+        {
+            if (_handle != 0)
+                throw new InvalidOperationException();
+
+            _handle = _gl.CreateProgram();
+
+            _gl.ProgramBinary(
+                 _handle,
+                 format,
+                 binary,
+                 (uint)binary.Length);
+
+            Check();
+        }
+
+
         public abstract void Build();
+
+        protected void Check()
+        {
+            if (_gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus) == 0)
+            {
+                var log = _gl.GetProgramInfoLog(_handle);
+                throw new Exception(log);
+            }
+        }
 
         protected virtual void Create(params uint[] shaders)
         {
@@ -42,17 +84,10 @@ namespace XrEngine.OpenGL
 
             _gl.LinkProgram(_handle);
 
-            if (_gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus) == 0)
-            {
-                var log = _gl.GetProgramInfoLog(_handle);
-                throw new Exception(log);
-            }
+            Check();
 
             foreach (var shader in shaders.Where(a => a != 0))
-            {
                 _gl.DetachShader(_handle, shader);
-                //_gl.DeleteShader(shader);
-            }
 
         }
 
@@ -390,7 +425,7 @@ namespace XrEngine.OpenGL
             var builder = new StringBuilder();
 
             builder.Append("#version ")
-               .Append(OpenGLRender.Current!.Options.ShaderVersion!)
+               .Append(_glOptions.ShaderVersion!)
                .Append('\n');
 
             foreach (var ext in _extensions)
@@ -404,15 +439,15 @@ namespace XrEngine.OpenGL
                 _ => throw new NotSupportedException()
             };
 
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DShadow;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DMSArray;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DMS;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2DArray;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler2D;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" sampler3D;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.SamplerPrecision)).Append(" samplerCube;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.FloatPrecision)).Append(" float;\n");
-            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.IntPrecision)).Append(" int;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" sampler2DShadow;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" sampler2DMSArray;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" sampler2DMS;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" sampler2DArray;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" sampler2D;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" sampler3D;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.SamplerPrecision)).Append(" samplerCube;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.FloatPrecision)).Append(" float;\n");
+            builder.Append("precision ").Append(GetPrecision(_glOptions.IntPrecision)).Append(" int;\n");
 
             foreach (var feature in _features)
                 builder.Append("#define ").Append(feature).Append('\n');

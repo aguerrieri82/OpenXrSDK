@@ -130,6 +130,8 @@ namespace XrEngine
 
         public uint Depth { get; set; }
 
+        public Task? UpdateTask { get; set; }
+
         public static readonly Texture2D DepthBuffer = new() { Type = TextureType.Depth };
     }
 }

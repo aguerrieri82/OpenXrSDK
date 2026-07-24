@@ -161,7 +161,12 @@ namespace XrEngine.OpenGL
                 if (texture2D.Depth <= 1 && blockSize == 3)
                     blockSize = 4;
 
-                return TextureCompressor.EncodeAstc(texture2D.Type == TextureType.NormalMap, options.Quality, blockSize);
+                int threadPriority = 0;
+
+#if __ANDROID__
+                threadPriority = -2;
+#endif
+                return TextureCompressor.EncodeAstc(texture2D.Type == TextureType.NormalMap, options.Quality, blockSize, threadPriority);
             }
 
             if (options.Format == TextureCompressionFormat.Etc2)
@@ -184,8 +189,6 @@ namespace XrEngine.OpenGL
                 var curData = source.Data!;
 
                 glTexture.Version = sourceVersion;
-
-                source.NotifyLoaded();
 
                 var compressor = TextureCompressor.Instance;
 
@@ -232,6 +235,11 @@ namespace XrEngine.OpenGL
             catch (Exception ex)
             {
                 Log.Error(TAG, ex);
+            }
+            finally
+            {
+                source.UpdateTask = null;
+                source.NotifyLoaded();
             }
         }
 
@@ -309,13 +317,15 @@ namespace XrEngine.OpenGL
 
             if (texture2D.Data != null)
             {
+                if (texture2D.UpdateTask != null)
+                    return;
+
                 var compInfo = texture2D.ShouldCompress();
 
+                var data = texture2D.Data;
+
                 if (compInfo != null)
-                {
-                    Task.Run(() => CompressAsync(glTexture, texture2D, compInfo.Value));
-                    return;
-                }
+                    texture2D.UpdateTask = Task.Run(() => CompressAsync(glTexture, texture2D, compInfo.Value));
 
                 glTexture.UploadFull(
                     texture2D.Width,
@@ -323,10 +333,12 @@ namespace XrEngine.OpenGL
                     texture2D.Depth,
                     texture2D.Format,
                     texture2D.Compression,
-                    texture2D.Data,
+                    data,
                     0);
 
-                texture2D.NotifyLoaded();
+                if (compInfo == null)
+                    texture2D.NotifyLoaded();
+
                 return;
             }
 

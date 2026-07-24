@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <algorithm>
 #include <thread>
@@ -6,20 +5,24 @@
 
 #include "astcenc.h"
 
-
 #ifdef _WINDOWS
+	
+	#define NOMINMAX
 
-	#pragma comment(lib, "winmm.lib")
+    #include <Windows.h>
 
-	#define EXPORT __declspec(dllexport)
+    #pragma comment(lib, "winmm.lib")
 
-	#define APIENTRY __cdecl
+    #define EXPORT __declspec(dllexport)
+
 
 #else
 
-	#define EXPORT __attribute__((visibility("default")))
+    #include <sys/resource.h>
+    #include <unistd.h>
 
-	#define APIENTRY
+    #define EXPORT __attribute__((visibility("default")))
+    #define APIENTRY
 
 #endif
 
@@ -27,17 +30,52 @@
 
 struct astcenc_params
 {
-	astcenc_profile profile;
-	unsigned int block_x;
-	unsigned int block_y;
-	unsigned int block_z;
-	float quality;
-	unsigned int flags;
-	uint8_t thread_count;
-	astcenc_swizzle swizzle;
+    astcenc_profile profile;
+    unsigned int block_x;
+    unsigned int block_y;
+    unsigned int block_z;
+    float quality;
+    unsigned int flags;
+    uint8_t thread_count;
+    int8_t thread_priority;
+    astcenc_swizzle swizzle;
 };
 
 #pragma pack(pop)
+
+static void SetWorkerPriority(int8_t priority)
+{
+#ifdef _WINDOWS
+
+    SetThreadPriority(GetCurrentThread(), priority);
+
+#elif defined(__ANDROID__)
+
+    int niceValue;
+
+    switch (priority)
+    {
+        case 0:
+            niceValue = 0;
+            break;
+
+        case -1:
+            niceValue = 10;
+            break;
+
+        case -2:
+            niceValue = 19;
+            break;
+
+        default:
+            niceValue = 0;
+            break;
+    }
+
+    setpriority(PRIO_PROCESS, 0, niceValue);
+
+#endif
+}
 
 extern "C"
 {
@@ -114,11 +152,14 @@ extern "C"
         unsigned int threadCount = params.thread_count > 0 ? params.thread_count : 1;
 
         status = astcenc_context_alloc(&config, threadCount, &context);
+
         if (status != ASTCENC_SUCCESS)
             return status;
 
         if (threadCount == 1)
         {
+            SetWorkerPriority(params.thread_priority);
+
             status = astcenc_compress_image(
                 context,
                 &image,
@@ -135,15 +176,17 @@ extern "C"
             for (unsigned int i = 0; i < threadCount; i++)
             {
                 threads.emplace_back([&, i]()
-                    {
-                        errors[i] = astcenc_compress_image(
-                            context,
-                            &image,
-                            &params.swizzle,
-                            dst,
-                            (size_t)dstSize,
-                            i);
-                    });
+                {
+                    SetWorkerPriority(params.thread_priority);
+
+                    errors[i] = astcenc_compress_image(
+                        context,
+                        &image,
+                        &params.swizzle,
+                        dst,
+                        (size_t)dstSize,
+                        i);
+                });
             }
 
             for (std::thread& thread : threads)

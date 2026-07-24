@@ -5,12 +5,14 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
+using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
         int _frame = 0;
+        readonly TextureMaterial _dummyMaterial;
 
 #if GLES
         readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
@@ -23,6 +25,11 @@ namespace XrEngine.OpenGL
 #if GLES
             _bounds = new Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox(renderer.GL.Context);
 #endif
+
+            _dummyMaterial = new TextureMaterial
+            {
+                Texture = TextureFactory.CreateChecker()
+            };
         }
 
         protected override bool BeginRender(GlUpdateContext ctx)
@@ -186,6 +193,12 @@ namespace XrEngine.OpenGL
 
                     var progChanged = UpdateProgram(updateContext, progInst);
 
+                    if (!progInst.IsReady)
+                    {
+                        progInst = GetProgramInstance(_dummyMaterial);
+                        UpdateProgram(updateContext, progInst);
+                    }
+
                     var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
                     updateContext.ProgramInstanceId = progInst.Program!.Handle;
@@ -256,6 +269,7 @@ namespace XrEngine.OpenGL
 
             _renderer.State.BindVertexArray(0);
 
+
             _renderer.PopGroup();
 
             if (globalProgChangesCount > 0)
@@ -272,6 +286,9 @@ namespace XrEngine.OpenGL
             }
 #endif
         }
+
+
+
         public bool WriteDepth { get; set; }
     }
 }

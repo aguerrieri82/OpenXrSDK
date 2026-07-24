@@ -251,6 +251,8 @@ namespace XrEngine.OpenGL
                 {
                     var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3d);
 
+                    instance.UseWorker = _render.Options.UseAsyncShaderCompile && !EngineNativeLib.RdcIsAttached();
+
                     ConfigureProgramInstance(instance);
 
                     materialContent = new MaterialContent
