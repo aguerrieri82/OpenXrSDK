@@ -99,6 +99,8 @@ namespace XrEditor
             {
             }
 
+            ServiceManager.Instance.Shutdown();
+
             ModuleManager.Instance.Shutdown();
 
             Process.GetCurrentProcess().Kill();

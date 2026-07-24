@@ -16,7 +16,11 @@ namespace XrEngine.OpenGL
     public partial class GlProgramInstance : IBufferProvider, IDisposable
     {
         public static int MAX_BUFFERS = 32;
+
         static internal readonly ConcurrentDictionary<ulong, GlSimpleProgram> _programs = [];
+
+        static internal readonly Dictionary<ulong, Task> _pendingTasks = [];
+
         static readonly GlSharedWorker _worker = new();
 
         protected ShaderUpdate? _materialUpdate;
@@ -31,9 +35,10 @@ namespace XrEngine.OpenGL
         protected IGlBuffer?[] _modelBuffers;
 
         protected Object3D? _lastModel;
-        private bool _useTess;
-        private bool _useGeo;
-        private Task? _createTask;
+        protected bool _useTess;
+        protected bool _useGeo;
+        protected Task? _createTask;
+        protected ulong _createTaskKey;
 
         private readonly bool _useShaderCache;
 
@@ -101,6 +106,8 @@ namespace XrEngine.OpenGL
                 if (_createTask.IsFaulted)
                     _createTask.GetAwaiter().GetResult();
 
+                _pendingTasks.Remove(_createTaskKey);
+
                 _createTask = null;
             }
 
@@ -151,12 +158,19 @@ namespace XrEngine.OpenGL
                     if (!_worker.IsStarted)
                         _worker.Start();
 
+                    _createTaskKey = _materialUpdate.FeaturesHash;
+
+                    if (_pendingTasks.TryGetValue(_createTaskKey, out _createTask))
+                        return false;
+
                     _createTask = _worker.Dispatcher.ExecuteAsync(() =>
                     {
                         program = CreateProgram();
 
                         _programs[_materialUpdate.FeaturesHash] = program;
                     });
+
+                    _pendingTasks[_createTaskKey] = _createTask;
 
                     return false;
                 }

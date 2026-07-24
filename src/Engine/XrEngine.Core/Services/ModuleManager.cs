@@ -44,7 +44,6 @@ namespace XrEngine
                 if (assemblyRef.Name?.Contains("XrEngine") == true)
                     LoadAssembly(Assembly.Load(assemblyRef));
             }
-
         }
 
         public void Shutdown()

@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using XrEngine;
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 
@@ -154,7 +155,7 @@ namespace XrSamples.Dnd
         void OnTokenUpdate(VttToken token);
     }
 
-    public class AboveVttClient
+    public class AboveVttClient : IActiveService
     {
         static readonly JsonSerializerOptions JSON_OPT = new JsonSerializerOptions
         {
@@ -176,6 +177,7 @@ namespace XrSamples.Dnd
             _socketClient = new ClientWebSocket();
             _httpClient = new HttpClient();
             _listener = listener;
+
         }
 
         public async Task ConnectAsync(string campaignId)
@@ -258,6 +260,11 @@ namespace XrSamples.Dnd
                 }
             }
 
+        }
+
+        public void Dispose()
+        {
+            _ = DisconnectAsync();
         }
     }
 }

@@ -6,7 +6,7 @@ using XrMath;
 
 namespace XrEngine.Video
 {
-    public class RtspVideoReader : IVideoReader
+    public class RtspVideoReader : IVideoReader, IActiveService
     {
         RtspClient? _client;
         private RtspSession? _session;

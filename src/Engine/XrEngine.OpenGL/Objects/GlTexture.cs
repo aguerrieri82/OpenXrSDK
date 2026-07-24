@@ -577,13 +577,19 @@ namespace XrEngine.OpenGL
                 if (_isAttached)
                     throw new InvalidOperationException("Cannot change storage of an attached texture");
 
-                var mustRecreate = _isStorageImmutable ||
-                    _isCompressed != isCompressed;
+                var requiresImmutableStorage =
+                    SampleCount > 1 ||
+                    !IsMutable ||
+                    isCompressed &&
+                    (Target == TextureTarget.Texture2DArray ||
+                     Target == TextureTarget.Texture3D);
+
+                var mustRecreate = _isStorageImmutable || requiresImmutableStorage;
 
                 if (mustRecreate)
                 {
                     if (!AllowRecreate)
-                        throw new InvalidOperationException("Immutable texture storage changed");
+                        throw new InvalidOperationException("Texture storage changed and requires recreation");
 
                     Recreate();
                 }

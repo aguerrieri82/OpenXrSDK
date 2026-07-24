@@ -196,7 +196,7 @@ namespace XrEngine.OpenGL
                     if (!progInst.IsReady)
                     {
                         progInst = GetProgramInstance(_dummyMaterial);
-                        UpdateProgram(updateContext, progInst);
+                        progChanged = UpdateProgram(updateContext, progInst);
                     }
 
                     var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;

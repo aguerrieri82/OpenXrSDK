@@ -12,7 +12,7 @@ namespace XrEngine.Physics
         Joints = 0x1
     }
 
-    public class PhysicsManager : Behavior<Scene3D>, IDisposable, IReferenceTime
+    public class PhysicsManager : Behavior<Scene3D>, IActiveService, IReferenceTime
     {
         protected PhysicsSystem? _system;
         protected Thread? _simulateThread;

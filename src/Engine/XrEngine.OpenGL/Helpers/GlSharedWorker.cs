@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XrEngine.OpenGL
 {
-    public class GlSharedWorker : IDisposable
+    public class GlSharedWorker : IActiveService
     {
         readonly QueueDispatcher _dispatcher;
         readonly GlRenderOptions _options;
@@ -20,6 +20,8 @@ namespace XrEngine.OpenGL
             _thread = new Thread(MainLoop);
             _dispatcher = new QueueDispatcher(_thread);
             _options = OpenGLRender.Current!.Options;
+
+            ServiceManager.Instance.Register(this);
         }
 
         public void Start()
@@ -61,6 +63,9 @@ namespace XrEngine.OpenGL
                 _exitEvent.Set();
                 _thread.Join();
             }
+
+            _sharedCtx?.Dispose();
+            _exitEvent.Dispose();
 
             GC.SuppressFinalize(this);
         }
