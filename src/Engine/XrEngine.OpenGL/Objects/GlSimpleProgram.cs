@@ -46,9 +46,8 @@ namespace XrEngine.OpenGL
             _teSourceName = teSource;
         }
 
-        [MemberNotNull(nameof(Vertex))]
-        [MemberNotNull(nameof(Fragment))]
-        public override void Build(string? cachePath = null)
+
+        public override bool Build(string? cachePath = null, Func<ulong, bool>? validateHash = null)
         {
             Log.Info(this, "Building program {0}...", _handle);
 
@@ -57,6 +56,11 @@ namespace XrEngine.OpenGL
             var gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
             var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
             var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
+
+            UpdateSourceHash();
+
+            if (validateHash != null && !validateHash(_sourceHash))
+                return false;
 
             if (cachePath == null || !TryReadCache(cachePath))
             {
@@ -83,6 +87,14 @@ namespace XrEngine.OpenGL
             Log.Debug(this, "Program built");
 
             _isBuilt = true;
+
+            return true;
+        }
+
+        protected override void UpdateMeta(ProgramMeta meta)
+        {
+            meta.VSource = _vSourceName;
+            meta.FSource = _fSourceName;    
         }
 
         protected override void UpdateSourceHash()
@@ -105,7 +117,6 @@ namespace XrEngine.OpenGL
 
             _sourceHash = builder.Value();
         }
-
 
         public override void Dispose()
         {

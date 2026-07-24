@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         }
 
         [MemberNotNull(nameof(Computer))]
-        public override void Build(string? cachePath = null)
+        public override bool Build(string? cachePath = null, Func<ulong, bool>? validateHash = null)
         {
             GlDebug.Log(this, "Building program {0}...", _handle);
 
@@ -32,6 +32,8 @@ namespace XrEngine.OpenGL
             ClearCache();
 
             GlDebug.Log(this, "Program built");
+
+            return true;
         }
 
         public override void Dispose()

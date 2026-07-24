@@ -40,6 +40,9 @@ namespace CanvasUI
         {
             var manager = GetLayoutManager();
 
+#warning _layoutParams SHOULD BE NOT NULL, MAYBE AN InvalidateLayout ON AN ANOTHER THREAD SET IT NULL
+            _layoutParams ??= manager.ExtractLayoutParams(this);
+
             return manager.Arrange(finalRect, _layoutParams);
         }
 

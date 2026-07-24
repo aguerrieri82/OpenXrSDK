@@ -188,6 +188,8 @@
 
         public bool NeverCompress { get; set; }
 
+        public bool ForceSrgb { get; set; }
+
         public long Handle { get; set; }
 
         public string? Name { get; set; }

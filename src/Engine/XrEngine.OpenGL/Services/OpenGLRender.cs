@@ -791,15 +791,15 @@ namespace XrEngine.OpenGL
             foreach (var layer in _activeLayers)
                 layer.Dispose();
 
-            foreach (var program in GlProgramInstance._programs)
+            foreach (var program in GlProgramInstance._programsByFeatures)
                 program.Value.Dispose();
-            GlProgramInstance._programs.Clear();
+            GlProgramInstance._programsByFeatures.Clear();
 
             foreach (var texture in GlTexture._attached)
                 texture.Value.Dispose();
             GlTexture._attached.Clear();
 
-            GlProgramInstance._programs.Clear();
+            GlProgramInstance._programsByFeatures.Clear();
 
             GC.SuppressFinalize(this);
         }

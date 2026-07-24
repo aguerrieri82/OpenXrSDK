@@ -9,12 +9,26 @@ using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
 using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.Json;
 
 namespace XrEngine.OpenGL
 {
     public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
     {
+        static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions
+        {
+            IncludeFields = true,
+            WriteIndented = true,
+        };
+
+        protected class ProgramMeta
+        {
+            public string? Name;
+            public string? VSource;
+            public string? FSource;
+            public IList<string>? Features;
+            public GLEnum Format;
+        }
 
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
@@ -56,6 +70,8 @@ namespace XrEngine.OpenGL
 
             _handle = _gl.CreateProgram();
 
+            SetLabel(_label);
+
             _gl.ProgramBinary(
                  _handle,
                  format,
@@ -91,7 +107,18 @@ namespace XrEngine.OpenGL
 
                 File.WriteAllBytes(cacheName!, data);
 
-                File.WriteAllText(cacheName + ".meta", format.ToString());
+                var meta = new ProgramMeta
+                {
+                    Name = _label,
+                    Format = format,
+                    Features = _features
+                };
+
+                UpdateMeta(meta);
+
+                var json = JsonSerializer.Serialize(meta, JSON_OPTIONS);
+
+                File.WriteAllText(cacheName + ".meta.json", json);
 
                 return true;
             }
@@ -103,10 +130,13 @@ namespace XrEngine.OpenGL
             return false;
         }
 
+        protected virtual void UpdateMeta(ProgramMeta meta)
+        {
+
+        }
 
         protected bool TryReadCache(string cachePath)
         {
-            UpdateSourceHash();
 
             var cacheName = Path.Combine(cachePath, _sourceHash + ".bin");
 
@@ -114,11 +144,13 @@ namespace XrEngine.OpenGL
             {
                 try
                 {
-                    var meta = File.ReadAllText(cacheName + ".meta");
-                    var format = (GLEnum)int.Parse(meta);
+                    var json = File.ReadAllText(cacheName + ".meta.json");
+
+                    var meta = JsonSerializer.Deserialize<ProgramMeta>(json, JSON_OPTIONS)!;
+;
                     var data = File.ReadAllBytes(cacheName);
 
-                    Load(data, format);
+                    Load(data, meta.Format);
 
                     return true;
                 }
@@ -132,8 +164,7 @@ namespace XrEngine.OpenGL
             return false;
         }
 
-
-        public abstract void Build(string? cachePath = null);
+        public abstract bool Build(string? cachePath = null, Func<ulong, bool>? validateHash = null);
 
         protected void Check()
         {
@@ -147,6 +178,8 @@ namespace XrEngine.OpenGL
         protected virtual void Create(params uint[] shaders)
         {
             _handle = _gl.CreateProgram();
+
+            SetLabel(_label);
 
             GlDebug.Log(this, "CreateProgram {0}", _handle);
 
@@ -520,59 +553,75 @@ namespace XrEngine.OpenGL
             builder.Append("precision ").Append(GetPrecision(_glOptions.FloatPrecision)).Append(" float;\n");
             builder.Append("precision ").Append(GetPrecision(_glOptions.IntPrecision)).Append(" int;\n");
 
-            foreach (var feature in _features)
-                builder.Append("#define ").Append(feature).Append('\n');
+            if (!_glOptions.UseShaderPreprocessor)
+            {
+                foreach (var feature in _features)
+                    builder.Append("#define ").Append(feature).Append('\n');
+            }
 
             if (shaderType == ShaderType.VertexShader)
                 builder.Append("#define V_SHADER\n");
 
             PatchShader(shaderType, builder);
 
-            var incRe = IncludeRegex();
-
-            var included = new HashSet<string>();
-
-            string ReplaceIncludes(string path)
+            if (_glOptions.UseShaderPreprocessor)
             {
-                var source = _resolver(path);
+                var preProc = new GlslPreprocessor(_resolver!);
+#if DEBUG
+                preProc.EmitConditionComments = false;
+#endif
+                var source = preProc.Process(sourceName, _features);
 
-                if (string.IsNullOrEmpty(source))
-                    throw new InvalidOperationException($"include source '{path}' not found ");
+                builder.Append(source);
+            }
+            else
+            {
+                var incRe = IncludeRegex();
 
-                while (true)
+                var included = new HashSet<string>();
+
+                string ReplaceIncludes(string path)
                 {
-                    var match = incRe.Match(source);
-                    if (!match.Success)
-                        break;
+                    var source = _resolver(path);
 
-                    var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
-                        match.Groups[2].Value :
-                        match.Groups[1].Value;
+                    if (string.IsNullOrEmpty(source))
+                        throw new InvalidOperationException($"include source '{path}' not found ");
 
-                    var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(path) ?? "", incName))
-                                 .Replace('\\', '/');
-
-                    string replace;
-                    if (included.Contains(incPath))
-                        replace = "";
-                    else
+                    while (true)
                     {
-                        included.Add(incPath);
-                        replace = ReplaceIncludes(incPath);
+                        var match = incRe.Match(source);
+                        if (!match.Success)
+                            break;
+
+                        var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
+                            match.Groups[2].Value :
+                            match.Groups[1].Value;
+
+                        var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(path) ?? "", incName))
+                                     .Replace('\\', '/');
+
+                        string replace;
+                        if (included.Contains(incPath))
+                            replace = "";
+                        else
+                        {
+                            included.Add(incPath);
+                            replace = ReplaceIncludes(incPath);
+                        }
+
+                        source = string.Concat(
+                            source.AsSpan(0, match.Index),
+                            replace,
+                            "\n",
+                            source.AsSpan(match.Index + match.Length)
+                        );
                     }
 
-                    source = string.Concat(
-                        source.AsSpan(0, match.Index),
-                        replace,
-                        "\n",
-                        source.AsSpan(match.Index + match.Length)
-                    );
+                    return source;
                 }
 
-                return source;
+                builder.Append("\n\n").Append(ReplaceIncludes(sourceName));
             }
-
-            builder.Append("\n\n").Append(ReplaceIncludes(sourceName));
 
             return builder.ToString();
         }

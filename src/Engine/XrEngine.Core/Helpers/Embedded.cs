@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace XrEngine
 {
     public static class Embedded
     {
-        static readonly Dictionary<string, string> _resCache = [];
+        static readonly ConcurrentDictionary<string, string?> _resCache = [];
         static readonly HashSet<Assembly> _assemblies = [];
 
         public static string GetString(string resName)
@@ -45,21 +46,25 @@ namespace XrEngine
             if (resName.StartsWith('['))
             {
                 var index = resName.IndexOf(']');
-                var assName = resName.Substring(1, index - 1);
-                ctx = _assemblies.First(a => a.GetName().Name == assName);
-                resName = resName.Substring(index + 1);
+                var assName = resName[1..index];
+
+                lock (_assemblies)
+                    ctx = _assemblies.First(a => a.GetName().Name == assName);
+
+                resName = resName[(index + 1)..];
             }
 
             var reqName = $"{ctx.GetName().Name}:{resName}";
 
-            if (!_resCache.TryGetValue(reqName, out var result))
+            return _resCache.GetOrAdd(reqName, key =>
             {
                 resName = resName.Replace('/', '.');
 
                 if (!resName.StartsWith('/'))
                     resName = "." + resName;
 
-                var fullName = ctx.GetManifestResourceNames().SingleOrDefault(a => a.Contains(resName, StringComparison.CurrentCultureIgnoreCase));
+                var fullName = ctx.GetManifestResourceNames()
+                    .SingleOrDefault(a => a.Contains(resName, StringComparison.CurrentCultureIgnoreCase));
 
                 if (fullName == null)
                     return null;
@@ -67,11 +72,8 @@ namespace XrEngine
                 using var stream = ctx.GetManifestResourceStream(fullName);
                 using var reader = new StreamReader(stream!);
 
-                result = reader.ReadToEnd();
-
-                _resCache[reqName] = result;
-            }
-            return result;
+                return reader.ReadToEnd();
+            });
         }
 
         public static void Register(Assembly assembly)

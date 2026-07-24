@@ -38,7 +38,7 @@ struct MaterialData
 
 #ifdef USE_MATERIAL_SSBO
 
-	layout(std140, binding = 2) buffer Material
+	layout(std140, binding = 2) readonly buffer Material
 	{
         MaterialData materialData[];
 	};

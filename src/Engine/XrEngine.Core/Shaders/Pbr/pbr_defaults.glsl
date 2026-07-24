@@ -32,7 +32,13 @@ vec4 LoadBaseColor()
 
 		#endif
 
-		return texture(albedoTexture, albUv) * uMaterial.color;
+		vec4 color = texture(albedoTexture, albUv);
+
+		#if defined(TEXTURE_FORCE_SRGB) && !defined(TEXTURE_IS_SRGB) 
+    		color.rgb = sRGBToLinear(color.rgb);
+		#endif
+
+		return color * uMaterial.color;
 
 	#else
 

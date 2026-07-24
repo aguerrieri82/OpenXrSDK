@@ -35,17 +35,6 @@
             DebugEye = CameraEye.None;
         }
 
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.WriteObject<EyeTextureMaterial>(this);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            container.ReadObject<EyeTextureMaterial>(this);
-        }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
@@ -58,7 +47,8 @@
             if (FixedEye != -1)
                 bld.AddFeature($"FIXED_EYE {FixedEye}");
 
-            bld.PrepareTexture(LeftTexture ?? RightTexture);
+            bld.PrepareTexture(LeftTexture);
+            bld.PrepareTexture(RightTexture);
 
             bld.ExecuteAction((ctx, up) =>
             {

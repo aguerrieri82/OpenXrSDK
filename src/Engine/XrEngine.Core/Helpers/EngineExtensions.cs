@@ -1465,8 +1465,14 @@ namespace XrEngine
 
         public static void PrepareTexture(this ShaderUpdateBuilder builder, Texture? texture)
         {
-            if (texture != null && texture.Format.IsSrgb())
+            if (texture == null)
+                return;
+
+            if (texture.Format.IsSrgb())
                 builder.AddFeature("TEXTURE_IS_SRGB");
+           
+            if (texture.ForceSrgb)
+                builder.AddFeature("TEXTURE_FORCE_SRGB");
         }
 
 

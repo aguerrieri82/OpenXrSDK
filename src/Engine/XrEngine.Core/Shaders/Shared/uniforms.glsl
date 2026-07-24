@@ -26,7 +26,7 @@ struct ModellData
 
 #ifdef USE_MODEL_SSBO
 
-	layout(std140, binding = 3) buffer Model
+	layout(std140, binding = 3) readonly buffer Model
 	{
         ModellData modelData[];
 	};

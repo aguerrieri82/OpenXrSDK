@@ -52,8 +52,14 @@ namespace XrEngine.OpenGL
 
         public void SetLabel(string? label)
         {
-            if (string.IsNullOrEmpty(label) || _handle == 0 || !OpenGLRender.Current!.IsDebug)
+            if (string.IsNullOrEmpty(label) || !OpenGLRender.Current!.IsDebug)
                 return;
+
+            if (_handle == 0)
+            {
+                _label = label;
+                return;
+            }
 
             ObjectIdentifier idType;
 

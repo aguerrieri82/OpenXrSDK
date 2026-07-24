@@ -99,4 +99,8 @@ void toneMapTex(inout vec4 color)
 	#if !defined(TEXTURE_IS_SRGB) && defined(SRGB_ENCODE)
 		color.rgb = linearTosRGB(color.rgb);
 	#endif
+
+    #if defined(TEXTURE_FORCE_SRGB) && !defined(TEXTURE_IS_SRGB) 
+    	color.rgb = sRGBToLinear(color.rgb);
+    #endif
 }

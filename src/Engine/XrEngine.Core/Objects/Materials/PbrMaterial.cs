@@ -748,8 +748,7 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
 
-                if (ColorMap.Format.IsSrgb())
-                    bld.AddFeature("ALBEDO_SRGB");
+                bld.PrepareTexture(ColorMap);
 
                 bld.LoadTexture(ctx => ColorMap, TextureSlots.Albedo);
 

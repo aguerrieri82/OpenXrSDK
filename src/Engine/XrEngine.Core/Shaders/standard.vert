@@ -47,7 +47,7 @@ layout(location=2) in vec2 a_texcoord;
 	    uint drawId;    
     };
 
-    layout(std430, binding = 9) buffer InstanceData {
+    layout(std430, binding = 9) readonly buffer InstanceData {
         ModelInstance uInstances[];
     };
 

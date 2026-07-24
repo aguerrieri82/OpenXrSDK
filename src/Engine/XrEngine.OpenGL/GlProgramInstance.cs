@@ -17,7 +17,9 @@ namespace XrEngine.OpenGL
     {
         public static int MAX_BUFFERS = 32;
 
-        static internal readonly ConcurrentDictionary<ulong, GlSimpleProgram> _programs = [];
+        static internal readonly ConcurrentDictionary<ulong, GlSimpleProgram> _programsByFeatures = [];
+
+        static internal readonly ConcurrentDictionary<ulong, GlSimpleProgram> _programsByHash = [];
 
         static internal readonly Dictionary<ulong, Task> _pendingTasks = [];
 
@@ -151,7 +153,7 @@ namespace XrEngine.OpenGL
 
             _materialUpdate = localBuilder.Result;
 
-            if (!_programs.TryGetValue(_materialUpdate.FeaturesHash, out var program))
+            if (!_programsByFeatures.TryGetValue(_materialUpdate.FeaturesHash, out var program))
             {
                 if (UseWorker)
                 {
@@ -163,12 +165,7 @@ namespace XrEngine.OpenGL
                     if (_pendingTasks.TryGetValue(_createTaskKey, out _createTask))
                         return false;
 
-                    _createTask = _worker.Dispatcher.ExecuteAsync(() =>
-                    {
-                        program = CreateProgram();
-
-                        _programs[_materialUpdate.FeaturesHash] = program;
-                    });
+                    _createTask = _worker.Dispatcher.ExecuteAsync(CreateProgram);
 
                     _pendingTasks[_createTaskKey] = _createTask;
 
@@ -176,8 +173,6 @@ namespace XrEngine.OpenGL
                 }
 
                 program = CreateProgram();
- 
-                _programs[_materialUpdate.FeaturesHash] = program;
             }
 
             var changed = Program == null || program.Handle != Program.Handle;
@@ -265,7 +260,20 @@ namespace XrEngine.OpenGL
                     program.AddExtension(ext);
             }
 
-            program.Build(CachePath);
+            program.Build(CachePath, hash =>
+            {
+                if (_programsByHash.TryGetValue(hash, out var newProgram))
+                {
+                    program.Dispose();
+                    program = newProgram;
+                    return false;
+                }
+                return true;
+            });
+
+            _programsByFeatures[_materialUpdate.FeaturesHash] = program;
+
+            _programsByHash[program.SourceHash] = program;  
 
             return program;
         }

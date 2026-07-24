@@ -50,8 +50,10 @@ namespace XrEditor
                   opt.SampleCount = 4;
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
-                  opt.UseAsyncShaderCompile = true;
+
+                  opt.UseAsyncShaderCompile = false;
                   opt.UseShaderCache = true;
+                  opt.UseShaderPreprocessor = true;
 
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Astc;

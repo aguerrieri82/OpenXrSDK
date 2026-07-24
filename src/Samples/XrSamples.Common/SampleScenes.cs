@@ -2150,6 +2150,7 @@ namespace XrSamples
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
+                ForceSrgb = true,
                 Type = TextureType.External
             };
 
@@ -2160,6 +2161,7 @@ namespace XrSamples
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
+                ForceSrgb = true,
                 Type = TextureType.External
             };
 
@@ -2267,6 +2269,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
+                .RemovePlaneGrid()
                 .ConfigureSampleApp();
         }
 
