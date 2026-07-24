@@ -15,8 +15,11 @@ namespace XrEngine.Helpers
 
         private readonly XxHash3 _hash = new();
 
-        public void Add(string value)
+        public void Add(string? value)
         {
+            if (value == null)
+                return;
+
             var byteCount = Encoding.UTF8.GetByteCount(value);
             var requiredSize = sizeof(int) + byteCount;
 
@@ -28,12 +31,12 @@ namespace XrEngine.Helpers
             _hash.Append(_buffer.AsSpan(0, requiredSize));
         }
 
-        public ulong Compute(IReadOnlyList<Guid> values)
+        public ulong Compute(IReadOnlySet<Guid> values)
         {
             _hash.Reset();
 
-            for (int i = 0; i < values.Count; i++)
-                Add(values[i]);
+            foreach (var value  in values)
+                Add(value);
 
             return _hash.GetCurrentHashAsUInt64();
         }
@@ -45,7 +48,7 @@ namespace XrEngine.Helpers
             return _hash.GetCurrentHashAsUInt64();
         }
 
-        public ulong Compute(string main, IReadOnlyList<string>? values = null)
+        public ulong Compute(string main, IReadOnlySet<string>? values = null)
         {
             _hash.Reset();
 
@@ -53,8 +56,8 @@ namespace XrEngine.Helpers
 
             if (values != null)
             {
-                for (int i = 0; i < values.Count; i++)
-                    Add(values[i]);
+                foreach (var value in values)
+                    Add(value);
             }
 
             return _hash.GetCurrentHashAsUInt64();

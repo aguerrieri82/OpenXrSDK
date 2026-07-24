@@ -19,6 +19,7 @@ namespace XrEngine.OpenGL
 
         protected bool _isBuilt;
 
+
         public GlSimpleProgram(GL gl, byte[] binary, GLEnum format)
              : base(gl, str => throw new NotSupportedException())
         {
@@ -47,7 +48,7 @@ namespace XrEngine.OpenGL
 
         [MemberNotNull(nameof(Vertex))]
         [MemberNotNull(nameof(Fragment))]
-        public override void Build()
+        public override void Build(string? cachePath = null)
         {
             Log.Info(this, "Building program {0}...", _handle);
 
@@ -57,35 +58,34 @@ namespace XrEngine.OpenGL
             var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
             var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
 
-            Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource, _vSourceName);
-            Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource, _fSourceName);
+            if (cachePath == null || !TryReadCache(cachePath))
+            {
+                Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource, _vSourceName);
+                Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource, _fSourceName);
 
-            if (gSource != null)
-                Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource, _gSourceName);
+                if (gSource != null)
+                    Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource, _gSourceName);
 
-            if (tcSource != null)
-                TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource, _tcSourceName);
+                if (tcSource != null)
+                    TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource, _tcSourceName);
 
-            if (teSource != null)
-                TessEval = GlShader.GetOrCreate(_gl, ShaderType.TessEvaluationShader, teSource, _teSourceName);
+                if (teSource != null)
+                    TessEval = GlShader.GetOrCreate(_gl, ShaderType.TessEvaluationShader, teSource, _teSourceName);
 
-            Create(Vertex, Fragment, Geometry?.Handle ?? 0, TessControl?.Handle ?? 0, TessEval?.Handle ?? 0);
+                Create(Vertex, Fragment, Geometry?.Handle ?? 0, TessControl?.Handle ?? 0, TessEval?.Handle ?? 0);
 
-            SetLabel(Name);
+                if (cachePath != null)
+                    WriteCache(cachePath);
+            }
 
-            _values.Clear();
-            _locations.Clear();
-
-            for (var i = 0; i < _boundBuffers.Length; i++)
-                _boundBuffers[i] = 0;
+            ClearCache();
 
             Log.Debug(this, "Program built");
 
             _isBuilt = true;
         }
 
-
-        public ulong GetSourceHash()
+        protected override void UpdateSourceHash()
         {
             var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
             var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
@@ -103,7 +103,7 @@ namespace XrEngine.OpenGL
             builder.Add(tcSource ?? "");
             builder.Add(teSource ?? "");
 
-            return builder.Value();
+            _sourceHash = builder.Value();
         }
 
 
@@ -123,6 +123,7 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
+
 
         public GlShader? Vertex { get; set; }
 

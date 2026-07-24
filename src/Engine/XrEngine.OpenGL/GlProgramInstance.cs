@@ -15,11 +15,9 @@ namespace XrEngine.OpenGL
 {
     public partial class GlProgramInstance : IBufferProvider, IDisposable
     {
-        public static int MAX_BUFFERS = 30;
-
+        public static int MAX_BUFFERS = 32;
         static internal readonly ConcurrentDictionary<ulong, GlSimpleProgram> _programs = [];
-
-        static GlSharedWorker _worker = new GlSharedWorker();
+        static readonly GlSharedWorker _worker = new();
 
         protected ShaderUpdate? _materialUpdate;
         protected ShaderUpdate? _modelUpdate;
@@ -37,13 +35,19 @@ namespace XrEngine.OpenGL
         private bool _useGeo;
         private Task? _createTask;
 
+        private readonly bool _useShaderCache;
+
+
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
+            _useShaderCache = OpenGLRender.Current!.Options.UseShaderCache;
+
             Material = material;
             Global = global;
 
-            //CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Shaders");
+            if (_useShaderCache)
+                CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Shaders");
 
             var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(MAX_BUFFERS, material));
             _materialBuffers = bufferMap.Buffers;
@@ -158,7 +162,7 @@ namespace XrEngine.OpenGL
                 }
 
                 program = CreateProgram();
-
+ 
                 _programs[_materialUpdate.FeaturesHash] = program;
             }
 
@@ -204,90 +208,50 @@ namespace XrEngine.OpenGL
                 _useGeo ? shader.GeometrySourceName : null,
                 _useTess ? shader.TessControlSourceName : null,
                 _useTess ? shader.TessEvalSourceName : null,
-                Resolver);
-
-
-            program.Name = Material.GetType().Name;
-
-            string? cacheName = null;
-            ulong hash;
-            bool isLoaded = false;
-
-            if (!string.IsNullOrWhiteSpace(CachePath))
+                Resolver)
             {
-                hash = program.GetSourceHash();
+                Source = Material
+            };
 
-                cacheName = Path.Combine(CachePath, hash + ".bin");
+            program.SetLabel(Material.GetType().Name);
 
-                if (File.Exists(cacheName))
-                {
-                    try
-                    {
-                        var meta = File.ReadAllText(cacheName + ".meta");
-                        var format = (GLEnum)int.Parse(meta);
-                        var data = File.ReadAllBytes(cacheName);
-
-                        program.Load(data, format);
-
-                        isLoaded = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(this, "Error loading program '{0}': {1}", cacheName, ex);
-                        File.Delete(cacheName);
-                    }
-                }
+            if (_useGeo)
+            {
+                program.AddExtension("GL_EXT_geometry_shader");
+                program.AddExtension("GL_OES_geometry_shader");
             }
 
-            if (!isLoaded)
+            if (_useTess)
             {
-                if (_useGeo)
-                {
-                    program.AddExtension("GL_EXT_geometry_shader");
-                    program.AddExtension("GL_OES_geometry_shader");
-                }
-
-                if (_useTess)
-                {
-                    program.AddExtension("GL_EXT_tessellation_shader");
-                    program.AddExtension("GL_OES_tessellation_shader");
-                }
-
-                if (ExtraExtensions != null)
-                {
-                    foreach (var ext in ExtraExtensions)
-                        program.AddExtension(ext);
-                }
-
-                if (_materialUpdate!.Extensions != null)
-                {
-                    foreach (var ext in _materialUpdate.Extensions)
-                        program.AddExtension(ext);
-                }
-
-                if (_materialUpdate.Features != null)
-                {
-                    foreach (var feature in _materialUpdate.Features)
-                        program.AddFeature(feature);
-                }
-
-                if (Global.ShaderUpdate?.Extensions != null)
-                {
-                    foreach (var ext in Global.ShaderUpdate.Extensions)
-                        program.AddExtension(ext);
-                }
-
-                program.Build();
-
-                if (!string.IsNullOrWhiteSpace(CachePath))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(cacheName)!);
-
-                    var data = program.GetBinary(out var format);
-                    File.WriteAllBytes(cacheName!, data);
-                    File.WriteAllText(cacheName + ".meta", format.ToString());
-                }
+                program.AddExtension("GL_EXT_tessellation_shader");
+                program.AddExtension("GL_OES_tessellation_shader");
             }
+
+            if (ExtraExtensions != null)
+            {
+                foreach (var ext in ExtraExtensions)
+                    program.AddExtension(ext);
+            }
+
+            if (_materialUpdate!.Extensions != null)
+            {
+                foreach (var ext in _materialUpdate.Extensions)
+                    program.AddExtension(ext);
+            }
+
+            if (_materialUpdate.Features != null)
+            {
+                foreach (var feature in _materialUpdate.Features)
+                    program.AddFeature(feature);
+            }
+
+            if (Global.ShaderUpdate?.Extensions != null)
+            {
+                foreach (var ext in Global.ShaderUpdate.Extensions)
+                    program.AddExtension(ext);
+            }
+
+            program.Build(CachePath);
 
             return program;
         }

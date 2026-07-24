@@ -18,9 +18,9 @@ namespace XrEngine
 
         public List<UpdateBufferAction>? BufferUpdates;
 
-        public List<string>? Features;
+        public SortedSet<string>? Features;
 
-        public List<string>? Extensions;
+        public HashSet<string>? Extensions;
 
         public long ShaderVersion;
 

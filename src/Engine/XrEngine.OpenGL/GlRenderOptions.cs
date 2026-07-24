@@ -57,6 +57,7 @@ namespace XrEngine.OpenGL
             ToneMap = ToneMapMode.Neutral;
             UseResolve = false;
             UseAsyncShaderCompile = true;
+            UseShaderCache = true;  
             ContactShadow = new()
             {
                 Use = false,
@@ -149,6 +150,8 @@ namespace XrEngine.OpenGL
         public bool UseHighQualitySrgb { get; set; }
 
         public bool UseAsyncShaderCompile { get; set; }
+
+        public bool UseShaderCache { get; set; }
 
         public static GlRenderOptions Default() => new();
 

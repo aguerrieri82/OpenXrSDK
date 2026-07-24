@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         }
 
         [MemberNotNull(nameof(Computer))]
-        public override void Build()
+        public override void Build(string? cachePath = null)
         {
             GlDebug.Log(this, "Building program {0}...", _handle);
 
@@ -29,10 +29,7 @@ namespace XrEngine.OpenGL
 
             Create(Computer);
 
-            _values.Clear();
-            _locations.Clear();
-            for (var i = 0; i < _boundBuffers.Length; i++)
-                _boundBuffers[i] = 0;
+            ClearCache();
 
             GlDebug.Log(this, "Program built");
         }

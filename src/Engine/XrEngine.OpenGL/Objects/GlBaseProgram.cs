@@ -25,12 +25,16 @@ namespace XrEngine.OpenGL
         protected readonly int[] _boundBuffers = new int[32];
         protected readonly bool _cacheUniforms;
 
+        protected ulong _sourceHash;
+
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
             _glOptions = OpenGLRender.Current?.Options ?? throw new InvalidOperationException("No active OpenGLRender");
 
             _resolver = includeResolver;
             _cacheUniforms = _glOptions.CacheUniforms == true;
+
+            _features.EnsureCapacity(64);
         }
 
 
@@ -61,8 +65,75 @@ namespace XrEngine.OpenGL
             Check();
         }
 
+        protected virtual void UpdateSourceHash()
+        {
 
-        public abstract void Build();
+        }
+
+        public void ClearCache()
+        {
+            _values.Clear();
+            _locations.Clear();
+
+            for (var i = 0; i < _boundBuffers.Length; i++)
+                _boundBuffers[i] = 0;
+        }
+
+        protected bool WriteCache(string cachePath)
+        {
+            var cacheName = Path.Combine(cachePath, _sourceHash + ".bin");
+
+            var data = GetBinary(out var format);
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(cacheName)!);
+
+                File.WriteAllBytes(cacheName!, data);
+
+                File.WriteAllText(cacheName + ".meta", format.ToString());
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Warn(this, "Error writing cache in'{0}':\n{1}", cacheName, ex);
+
+            }
+            return false;
+        }
+
+
+        protected bool TryReadCache(string cachePath)
+        {
+            UpdateSourceHash();
+
+            var cacheName = Path.Combine(cachePath, _sourceHash + ".bin");
+
+            if (File.Exists(cacheName))
+            {
+                try
+                {
+                    var meta = File.ReadAllText(cacheName + ".meta");
+                    var format = (GLEnum)int.Parse(meta);
+                    var data = File.ReadAllBytes(cacheName);
+
+                    Load(data, format);
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(this, "Error loading program '{0}': {1}", cacheName, ex);
+                    File.Delete(cacheName);
+                }
+            }
+
+            return false;
+        }
+
+
+        public abstract void Build(string? cachePath = null);
 
         protected void Check()
         {
@@ -537,6 +608,7 @@ namespace XrEngine.OpenGL
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
 
-        public string? Name { get; set; }
+        public ulong SourceHash => _sourceHash;
+
     }
 }
