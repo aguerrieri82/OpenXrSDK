@@ -455,6 +455,13 @@ namespace XrEngine.OpenGL
 
                 _gl.BindBuffer(target, value);
             }
+
+            if (EnableDebug)
+            {
+                var realActive = _gl.GetActiveBufferBinding(target);
+                if (realActive != value)
+                    Log.Warn(this, "Inconsistent BUF cache for {0}: Real Active {1} - Expected {2}", target, realActive, value);
+            }
         }
 
         public void BindSampler(GlSampler sampler, int slot, bool force = false)
@@ -584,6 +591,7 @@ namespace XrEngine.OpenGL
             if (curSlotValue == buffer.Handle && !force)
                 return;
 
+            BufferTargets[target] = buffer.Handle;
 
             _gl.BindBufferBase(target, (uint)slot, buffer.Handle);
 

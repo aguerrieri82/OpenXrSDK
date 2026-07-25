@@ -195,7 +195,7 @@ namespace XrEngine.OpenGL
 
             _depthCull.Use();
 
-            _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, _depthData);
+            _renderer.State.SetActiveBuffer(_depthData, 0);
 
             var camera = _renderer.UpdateContext.PassCamera!;
             var planes = camera.FrustumPlanes(new Plane[6], out var _);

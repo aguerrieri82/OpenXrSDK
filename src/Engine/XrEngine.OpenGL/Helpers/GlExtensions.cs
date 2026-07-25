@@ -522,6 +522,24 @@ namespace XrEngine.OpenGL
             return result;
         }
 
+        public static uint GetActiveBufferBinding(this GL gl, BufferTargetARB target)
+        {
+            var pname =  target switch
+            {
+                BufferTargetARB.ArrayBuffer => GetPName.ArrayBufferBinding,
+                BufferTargetARB.ElementArrayBuffer => GetPName.ElementArrayBufferBinding,
+                BufferTargetARB.UniformBuffer => GetPName.UniformBufferBinding,
+                BufferTargetARB.ShaderStorageBuffer => GetPName.ShaderStorageBufferBinding,
+                BufferTargetARB.PixelPackBuffer => GetPName.PixelPackBufferBinding,
+                BufferTargetARB.PixelUnpackBuffer => GetPName.PixelUnpackBufferBinding,
+                BufferTargetARB.TransformFeedbackBuffer => GetPName.TransformFeedbackBufferBinding,
+                BufferTargetARB.DispatchIndirectBuffer => GetPName.DispatchIndirectBufferBinding,
+                _ => throw new NotSupportedException($"Unsupported buffer target: {target}")
+            };
+
+            return (uint)gl.GetInteger(pname);
+        }
+
 
         public static uint GetActiveTextureBinding(this GL gl, TextureTarget target)
         {

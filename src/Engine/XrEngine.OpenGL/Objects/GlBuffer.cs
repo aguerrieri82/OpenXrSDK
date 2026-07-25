@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 using System.Diagnostics;
 using Common.Interop;
 
+
 namespace XrEngine.OpenGL
 {
     public static class GlBuffer
@@ -119,6 +120,7 @@ namespace XrEngine.OpenGL
             }
         }
 
+
         public unsafe void UpdateRange(void* data, uint sizeBytes, int offsetBytes, bool preserve)
         {
             Debug.Assert(offsetBytes >= 0);
@@ -160,7 +162,23 @@ namespace XrEngine.OpenGL
                     _sizeBytes = Math.Max(_sizeBytes, writeEndBytes);
 
                 if (GlDebug.TrackBuffers)
+                {
                     GlBuffer.Tracker!.Update(this, _target, data, sizeBytes, offsetBytes);
+
+                    _gl.CheckError();
+          
+                    var active = _gl.GetActiveBufferBinding(_target);
+                    if (active != _handle)
+                        Log.Error(this, "Inconsistent BUF cache for {0}: Real Active {1} - Expected {2}", _target, active, _handle);
+
+                    /*
+                     if ((DateTime.Now - _lastCheckTime).TotalSeconds > 10)
+                     {
+                         GlBuffer.Tracker.CheckAll();
+                         _lastCheckTime = DateTime.Now;
+                     }
+                     */
+                }
 
                 _updateCount++;
             }

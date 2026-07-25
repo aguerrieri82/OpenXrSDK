@@ -1,4 +1,5 @@
 ﻿using XrEngine;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrSamples;
 using XrSamples.Dnd;
@@ -48,8 +49,8 @@ namespace XrEditor
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
                   opt.SampleCount = 4;
-                  opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
-                  opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                  opt.FloatPrecision = ShaderPrecision.High;
+                  opt.IntPrecision = ShaderPrecision.High;
 
                   opt.UseAsyncShaderCompile = true;
                   opt.UseShaderCache = true;
@@ -67,6 +68,8 @@ namespace XrEditor
 
                   opt.UseResolve = false;
                   opt.ToneMap = ToneMapMode.Neutral;
+
+                  GlDebug.TrackBuffers = false;
 
               })
               // .UseSpaceWarp()

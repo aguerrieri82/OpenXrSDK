@@ -29,6 +29,8 @@ namespace XrEngine.OpenGL
         public void Update(T value)
         {
             _range.Buffer.UpdateRange([value], _index);
+
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
         }
 
         public void Load(GlBaseProgram program)
@@ -91,7 +93,6 @@ namespace XrEngine.OpenGL
         protected readonly int _slot;
 
         private readonly Dictionary<object, GlBufferRangeSlot<T>> _slotsByOwner = [];
-
         private readonly Stack<int> _freeSlots = new();
 
         private GlBufferRangeSlot<T>?[] _slots = [];

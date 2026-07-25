@@ -144,7 +144,7 @@ namespace XrSamples.Android.Activities
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp();
 
-            GlDebug.TrackBuffers = true;
+            GlDebug.TrackBuffers = false;
 
             builder.EnableDebug();
 
