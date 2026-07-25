@@ -117,10 +117,10 @@ static RENDERDOC_API_1_6_0* GetRenderDoc()
 
     if (!getApi)
     {
-        mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD);
+        mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NOLOAD);
 
         if (!mod)
-            mod = dlopen("libVkLayer_GLES_RenderDoc.so", RTLD_NOW | RTLD_NOLOAD);
+            mod = dlopen("libVkLayer_GLES_RenderDoc.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NOLOAD);
 
         if (!mod)
             return nullptr;
@@ -137,7 +137,7 @@ static RENDERDOC_API_1_6_0* GetRenderDoc()
 
     if (getApi(eRENDERDOC_API_Version_1_6_0, (void**)&rdoc) != 1)
         return nullptr;
-
+     
     return rdoc;
  
 }

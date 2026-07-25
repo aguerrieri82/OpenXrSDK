@@ -271,6 +271,14 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder EnableDebug(this XrEngineAppBuilder self, bool sync = false)
+        {
+            return self.ConfigureApp(e =>
+            {
+                e.App.Renderer.EnableDebug(sync ? RenderEngineDebug.Sync : RenderEngineDebug.None);
+            });
+        }
+
         public static XrEngineAppBuilder EnableDebugNotRelease(this XrEngineAppBuilder self, bool sync = false)
         {
             return self.ConfigureApp(e =>

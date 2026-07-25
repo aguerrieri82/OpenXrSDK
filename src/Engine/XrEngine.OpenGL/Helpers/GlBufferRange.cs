@@ -82,7 +82,7 @@ namespace XrEngine.OpenGL
 
     public class GlBufferRange<T> : IGlBufferRange
     {
-        private const int AllocationChunkSize = 64;
+        private const int AllocationChunkSize = 512;
 
         protected readonly GL _gl;
         protected readonly GlBuffer<T> _buffer;
@@ -132,7 +132,7 @@ namespace XrEngine.OpenGL
 
                     Array.Resize(ref _slots, newCapacity);
 
-                    _buffer.Resize(checked((uint)(newCapacity * Unsafe.SizeOf<T>())), preserve: true);
+                    _buffer.Resize((uint)(newCapacity * Unsafe.SizeOf<T>()), preserve: true);
                 }
             }
 

@@ -16,8 +16,6 @@ namespace XrEngine.OpenGL
 
         BufferTargetARB Target { get; }
 
-        uint Handle { get; }
-
         int ActiveSlot { get; set; }
     }
 }

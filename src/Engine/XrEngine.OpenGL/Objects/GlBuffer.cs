@@ -16,20 +16,21 @@ namespace XrEngine.OpenGL
             var type = typeof(GlBuffer<>).MakeGenericType(contentType);
             return (IBuffer)Activator.CreateInstance(type, gl, target)!;
         }
+
+        public static GlBufferUpdateTracker? Tracker;
     }
 
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
         protected BufferUsageARB _usage;
-
         protected uint _capacityBytes;
         protected uint _sizeBytes;
         protected int _beginUpdateCount;
-
         protected long _updateCount;
-
         protected readonly uint _elementSize;
+
+
 
 #if GLES
         private Silk.NET.OpenGLES.Extensions.EXT.ExtBufferStorage? _storageExt;
@@ -40,6 +41,8 @@ namespace XrEngine.OpenGL
         {
             _target = target;
             _usage = BufferUsageARB.StaticDraw;
+
+            GlBuffer.Tracker ??= new GlBufferUpdateTracker(gl);
 
             Version = -1;
             ActiveSlot = 0;
@@ -123,6 +126,9 @@ namespace XrEngine.OpenGL
             if (sizeBytes == 0)
                 return;
 
+            if (data == null)
+                return;
+
             var writeEndBytes = (uint)offsetBytes + sizeBytes;
 
             BeginUpdate();
@@ -152,6 +158,9 @@ namespace XrEngine.OpenGL
                     _sizeBytes = writeEndBytes;
                 else
                     _sizeBytes = Math.Max(_sizeBytes, writeEndBytes);
+
+                if (GlDebug.TrackBuffers)
+                    GlBuffer.Tracker!.Update(this, _target, data, sizeBytes, offsetBytes);
 
                 _updateCount++;
             }

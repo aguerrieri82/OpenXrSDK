@@ -15,10 +15,8 @@ namespace XrEngine.Compression
 
     public class TextureCompressor
     {
-        readonly object _cacheLock = new object();
-        readonly Dictionary<string, Task<IList<TextureData>>> _encodeTasks = [];
-        readonly SemaphoreSlim _dictMutex = new(1, 1);
-        readonly SemaphoreSlim _encodeLimit = new(3, 3);
+        readonly object _cacheLock = new();
+        readonly AsyncTaskDispatcher _dispatcher = new AsyncTaskDispatcher(3, ThreadPriority.Lowest);
         bool _cacheCleared;
 
         public static TextureCompressionInfo EncodeAstc(bool isNormalMap, float quality, uint blockSize, int threadPriority)
@@ -44,57 +42,11 @@ namespace XrEngine.Compression
             };
         }
 
-        public async Task<IList<TextureData>> EncodeAsync(TextureData data, int mipsLevels, TextureCompressionInfo compressor, uint handle)
+        public Task<IList<TextureData>> EncodeAsync(TextureData data, int mipsLevels, TextureCompressionInfo compressor, uint handle)
         {
             var hash = TextureHash(data, compressor, mipsLevels);
 
-            Task<IList<TextureData>> task;
-
-            await _dictMutex.WaitAsync();
-
-            try
-            {
-                if (!_encodeTasks.TryGetValue(hash, out task!))
-                {
-                    task = Task.Run(async () =>
-                    {
-                        await _encodeLimit.WaitAsync();
-                        try
-                        {
-                            using var th = ThreadPriorityManager.Switch(ThreadPriority.Lowest);
-
-                            return Encode(data, mipsLevels, hash, compressor, handle);
-                        }
-                        finally
-                        {
-                            _encodeLimit.Release();
-                        }
-                    });
-
-                    _encodeTasks[hash] = task;
-                }
-            }
-            finally
-            {
-                _dictMutex.Release();
-            }
-
-            try
-            {
-                return await task;
-            }
-            finally
-            {
-                await _dictMutex.WaitAsync();
-                try
-                {
-                    _encodeTasks.Remove(hash);
-                }
-                finally
-                {
-                    _dictMutex.Release();
-                }
-            }
+            return _dispatcher.ExecuteAsync(() => Encode(data, mipsLevels, hash, compressor, handle), hash);
         }
 
         public static string TextureHash(TextureData data, TextureCompressionInfo compressor, int mipsLevels)
@@ -125,6 +77,8 @@ namespace XrEngine.Compression
 
             string? cacheFile = null;
 
+            string? validFile = null;
+
             hash ??= TextureHash(data, compressor, mipsLevels);
 
             if (CachePath != null)
@@ -132,15 +86,24 @@ namespace XrEngine.Compression
                 //ClearCache();
 
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
+                validFile = cacheFile + ".valid";
 
                 lock (_cacheLock)
                 {
-                    if (File.Exists(cacheFile + ".valid"))
+                    if (File.Exists(cacheFile) && File.Exists(validFile))
                     {
-                        using var readStream = File.OpenRead(cacheFile);
-                        result = PvrTranscoder.Instance.LoadTexture(readStream);
-                        isCached = true;
-                        Log.Info(this, "Loaded from cache: {0} - {1}", handle, cacheFile);
+                        try
+                        {
+                            using var readStream = File.OpenRead(cacheFile);
+                            result = PvrTranscoder.Instance.LoadTexture(readStream);
+                            isCached = true;
+                            Log.Info(this, "Loaded from cache: {0} - {1}", handle, cacheFile);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warn(this, "Invalid compression cache '{0}':\n{1}", cacheFile, ex);
+                            File.Delete(validFile);
+                        }
                     }
                 }
             }
@@ -206,11 +169,17 @@ namespace XrEngine.Compression
 
                         if (File.Exists(cacheFile))
                             File.Delete(cacheFile);
-                        
+
+                        if (File.Exists(validFile))
+                            File.Delete(validFile);
+
                         using var writeStream = File.OpenWrite(cacheFile);
+
                         PvrTranscoder.Instance.SaveTexture(writeStream, result);
-                      
-                        File.WriteAllText(cacheFile + ".valid", "");
+
+                        writeStream.Close();
+
+                        File.WriteAllText(validFile!, "");
                     }
                 }
             }

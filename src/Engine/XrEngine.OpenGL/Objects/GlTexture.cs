@@ -314,6 +314,9 @@ namespace XrEngine.OpenGL
                 ? format.ToInternalFormat()
                 : format.ToInternalFormat(compression, blockSize);
 
+#if DEBUG
+            _gl.ClearError();
+#endif
             PrepareStorage(width, height, normalizedDepth, internalFormat, compression != TextureCompressionFormat.Uncompressed);
 
             BeginUpdate();
@@ -329,6 +332,10 @@ namespace XrEngine.OpenGL
                 _gl.GenerateMipmap(Target);
 
             EndUpdate();
+#if DEBUG
+            if (_gl.CheckError())
+                Log.Warn(this, "Error uploading texture {0} - '{1}'", _handle, _label ?? "M/A");
+#endif
         }
 
         public unsafe void UploadRegion(TextureRegion region)
@@ -679,6 +686,7 @@ namespace XrEngine.OpenGL
             if (use3D && !_isAllocated)
                 AllocateCompressedArrayStorage(width, height, depth);
 
+
             foreach (var entry in data)
             {
                 if (entry.Data == null)
@@ -716,7 +724,6 @@ namespace XrEngine.OpenGL
                         pData);
                 }
 
-                _gl.CheckError();
             }
 
             if (!use3D)

@@ -74,12 +74,12 @@ namespace XrEngine.OpenGL
         {
         }
 
-        public OpenGLRender(GL gl, GlRenderOptions options)
-            : this(gl, options, new GlState(gl))
+        public OpenGLRender(GL gl, GlRenderOptions options, bool isDummy = false)
+            : this(gl, options, new GlState(gl), isDummy)
         {
         }
 
-        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state)
+        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state, bool isDummy)
         {
             Current = this;
 
@@ -98,6 +98,9 @@ namespace XrEngine.OpenGL
             };
 
             _dispatcher = new QueueDispatcher();
+
+            if (isDummy)
+                return;
 
             if (_options.ShadowMap.Mode != ShadowMapMode.None)
             {
@@ -166,7 +169,6 @@ namespace XrEngine.OpenGL
         protected internal void ResetState()
         {
             _glState.Reset();
-            //_gl.DrawBuffers(GlState.DRAW_COLOR_0);
         }
 
         public unsafe void EnableDebug(RenderEngineDebug mode)
@@ -307,7 +309,7 @@ namespace XrEngine.OpenGL
 
                         _updateCtx.ImageLightVersion = imgLight.Panorama.Version;
 
-                        ResetState();
+                        //ResetState();
                     }
                 }
 
@@ -448,24 +450,6 @@ namespace XrEngine.OpenGL
             _updateCtx.DeltaTime = (float)ctx.DeltaTime;
 
             _updateCtx.ContextVersion++;
-
-            if ((RenderTarget!.Flags & GlRenderTargetFlags.ForceSrgbEncode) != 0)
-            {
-                _updateCtx.IsSrgbTarget = true;
-                _updateCtx.IsSrgbAutoEncode = false;
-            }
-            else
-            {
-                _updateCtx.IsSrgbAutoEncode = _glState.IsFeatureEnabled(EnableCap.FramebufferSrgb);
-
-                if (RenderTarget is IGlFrameBufferProvider prov)
-                {
-                    var color = prov.FrameBuffer.Color;
-                    _updateCtx.IsSrgbTarget = color != null && color.InternalFormat.IsSrgb();
-                }
-                else
-                    _updateCtx.IsSrgbTarget = false;
-            }
 
             foreach (var pass in _renderPasses)
                 pass.Configure(_updateCtx);
@@ -614,7 +598,7 @@ namespace XrEngine.OpenGL
 
             var surface = SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
 
-            _glState.Reset();
+            ResetState();
 
             return surface ?? throw new Exception("Surface creation failed");
         }
@@ -810,6 +794,23 @@ namespace XrEngine.OpenGL
 
         public void Resume()
         {
+        }
+
+        internal void Begin(IGlRenderTarget renderTarget)
+        {
+            if ((renderTarget.Flags & GlRenderTargetFlags.ForceSrgbEncode) != 0)
+            {
+                _updateCtx.IsSrgbTarget = true;
+                _updateCtx.IsSrgbAutoEncode = false;
+                return;
+            }
+            
+            if (renderTarget is IGlFrameBufferProvider fbProv && fbProv.FrameBuffer.Color != null)
+                _updateCtx.IsSrgbTarget = fbProv.FrameBuffer.Color.InternalFormat.IsSrgb();
+            else
+                _updateCtx.IsSrgbTarget = false;
+
+            _updateCtx.IsSrgbAutoEncode = _glState.IsFeatureEnabled(EnableCap.FramebufferSrgb);
         }
 
         #endregion

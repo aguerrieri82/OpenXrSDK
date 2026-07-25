@@ -17,7 +17,7 @@ namespace XrEngine
 
         void SetUniform(string name, bool value, bool optional = false);
 
-        void SetUniform(string name, int value, bool optional = false);
+        void SetUniform(string name, int value, bool optional = false, bool force = false);
 
         void SetUniform(string name, uint value, bool optional = false);
 

@@ -51,12 +51,12 @@ namespace XrEditor
                   opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                   opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
 
-                  opt.UseAsyncShaderCompile = false;
+                  opt.UseAsyncShaderCompile = true;
                   opt.UseShaderCache = true;
                   opt.UseShaderPreprocessor = true;
 
-                  opt.Compression.Use = false;
-                  opt.Compression.Format = TextureCompressionFormat.Astc;
+                  opt.Compression.Use = true;
+                  opt.Compression.Format = TextureCompressionFormat.Etc2;
 
                   opt.ShadowMap.Mode = ShadowMapMode.PCF;
                   opt.ShadowMap.BiasMode = ShadowMapBiasMode.None;
@@ -71,7 +71,7 @@ namespace XrEditor
               })
               // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: false)
-              .CreateRoomManager()
+              .CreateDnd()
               .Build();
     }
 }

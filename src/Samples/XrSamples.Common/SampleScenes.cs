@@ -39,6 +39,7 @@ using XrEngine.Reconstruct;
 using XrSamples.Components;
 using XrEngine.Lighting;
 using System.Diagnostics;
+using XrEngine.OpenGL;
 
 namespace XrSamples
 {
@@ -1222,7 +1223,6 @@ namespace XrSamples
                 .UseApp(app)
                 .UseDefaultHDR()
                 //.UseSceneModel(true, false)
-                .RemovePlaneGrid()
                 .ConfigureApp(cfg =>
                 {
                     scene.FindByName<Light>("point-light-1")!.IsVisible = true;
@@ -1252,7 +1252,6 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-
             });
 
             return builder;
@@ -2150,7 +2149,6 @@ namespace XrSamples
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
-                ForceSrgb = true,
                 Type = TextureType.External
             };
 
@@ -2161,7 +2159,6 @@ namespace XrSamples
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
-                ForceSrgb = true,
                 Type = TextureType.External
             };
 
@@ -2269,7 +2266,6 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .RemovePlaneGrid()
                 .ConfigureSampleApp();
         }
 

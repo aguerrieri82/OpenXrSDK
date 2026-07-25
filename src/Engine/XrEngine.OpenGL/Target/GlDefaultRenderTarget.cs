@@ -90,6 +90,8 @@ namespace XrEngine.OpenGL
 
             _frameBuffer.BindDraw();
 
+            OpenGLRender.Current!.Begin(this);
+
             _isResolved = false;
         }
 

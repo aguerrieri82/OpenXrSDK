@@ -12,7 +12,7 @@ namespace XrEngine.OpenGL
     public class GlColorPass : GlBaseRenderPass
     {
         int _frame = 0;
-        readonly TextureMaterial _dummyMaterial;
+        readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
         readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
@@ -26,9 +26,11 @@ namespace XrEngine.OpenGL
             _bounds = new Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox(renderer.GL.Context);
 #endif
 
-            _dummyMaterial = new TextureMaterial
+            _dummyMaterial = new PbrMaterial
             {
-                Texture = TextureFactory.CreateChecker()
+                ColorMap = TextureFactory.CreateChecker(),
+                Metalness = 0,
+                Roughness = 0.5f
             };
         }
 
@@ -91,9 +93,9 @@ namespace XrEngine.OpenGL
 
         }
 
-        protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst, bool forceSync = false)
         {
-            return progInst.UpdateProgram(updateContext);
+            return progInst.UpdateProgram(updateContext, forceSync);
         }
 
         /*
@@ -196,6 +198,9 @@ namespace XrEngine.OpenGL
                     if (!progInst.IsReady)
                     {
                         progInst = GetProgramInstance(_dummyMaterial);
+                        updateContext.Stage = UpdateShaderStage.Shader;
+                        progInst.Global.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
+                        updateContext.Stage = UpdateShaderStage.Material;
                         progChanged = UpdateProgram(updateContext, progInst);
                     }
 

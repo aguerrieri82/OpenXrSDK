@@ -27,6 +27,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)xrengine-native\android-arm64\*.so" />
+		<_AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)renderdoc\android-arm64\*.so" />
 	</ItemGroup>
 
 	<ItemGroup>

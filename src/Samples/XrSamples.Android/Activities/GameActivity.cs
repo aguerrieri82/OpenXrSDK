@@ -8,6 +8,7 @@ using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
 using XrEngine.Devices.Android;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
@@ -110,6 +111,7 @@ namespace XrSamples.Android.Activities
                 {
                     opt.UseDepthPass = _settings.EnableDepthPass;
                     opt.UseOcclusionQuery = false;
+
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
 
@@ -117,10 +119,16 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
+                    opt.UseAsyncShaderCompile = true;
+                    opt.UseShaderCache = true;
+                    opt.UseShaderPreprocessor = true;
+
+                    PbrMaterial.SHADER.UseSharedSSBO = true;
+
                     opt.ToneMap = ToneMapMode.None;
 
                     opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
-                    opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                    opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
                     opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
                 });
             else
@@ -129,17 +137,16 @@ namespace XrSamples.Android.Activities
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve);
-
-            /*
-            builder.RemovePlaneGrid()
-                   .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
-            */
+            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
+                   .RemovePlaneGrid();
+                   //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp();
 
-            builder.EnableDebugNotRelease();
+            GlDebug.TrackBuffers = true;
+
+            builder.EnableDebug();
 
             MaterialFactory.DefaultPbr = typeof(PbrMaterial);
 

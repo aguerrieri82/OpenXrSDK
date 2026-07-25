@@ -10,6 +10,7 @@ using System.Text;
 using XrMath;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Common.Interop;
 
 namespace XrEngine.OpenGL
 {
@@ -275,7 +276,8 @@ namespace XrEngine.OpenGL
                         isChanged = true;
                     else
                     {
-                        var elSize = Marshal.SizeOf(lastArray.GetType()!.GetElementType()!);
+                        var elSize = MarshalCache.SizeOf(lastArray.GetType()!.GetElementType()!);
+
                         var b1 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(lastArray), lastArray.Length * elSize);
                         var b2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(curArray), curArray.Length * elSize);
 
@@ -360,9 +362,9 @@ namespace XrEngine.OpenGL
             SetUniform(name, value ? 1 : 0, optional);
         }
 
-        public void SetUniform(string name, int value, bool optional = false)
+        public void SetUniform(string name, int value, bool optional = false, bool force = false)
         {
-            if (!IsChanged(name, value))
+            if (!force && !IsChanged(name, value))
                 return;
             _gl.Uniform1(LocateUniform(name, optional), value);
         }

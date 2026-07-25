@@ -33,7 +33,7 @@
 		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
@@ -42,7 +42,7 @@
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>

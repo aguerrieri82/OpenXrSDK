@@ -4,6 +4,8 @@ using XrEngine.Helpers;
 using System.Collections.Concurrent;
 
 
+
+
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -41,7 +43,7 @@ namespace XrEngine.OpenGL
         protected bool _useGeo;
         protected Task? _createTask;
         protected ulong _createTaskKey;
-
+        protected GlFence? _createFence;
         private readonly bool _useShaderCache;
 
 
@@ -98,19 +100,30 @@ namespace XrEngine.OpenGL
         }
 
 
-        public bool UpdateProgram(UpdateShaderContext ctx)
+        public bool UpdateProgram(UpdateShaderContext ctx, bool forceSync = false)
         {
             if (_createTask != null)
             {
                 if (!_createTask.IsCompleted)
                     return false;
 
-                if (_createTask.IsFaulted)
-                    _createTask.GetAwaiter().GetResult();
+                try
+                {
+                    if (_createTask.IsFaulted)
+                        _createTask.GetAwaiter().GetResult();
 
-                _pendingTasks.Remove(_createTaskKey);
-
-                _createTask = null;
+                    if (_createFence != null)
+                    {
+                        _createFence.Wait();
+                        _createTask.Dispose();
+                        _createTask = null;
+                    }
+                }
+                finally
+                {
+                    _pendingTasks.Remove(_createTaskKey);
+                    _createTask = null;
+                }
             }
 
             if (!NeedUpdate)
@@ -155,7 +168,7 @@ namespace XrEngine.OpenGL
 
             if (!_programsByFeatures.TryGetValue(_materialUpdate.FeaturesHash, out var program))
             {
-                if (UseWorker)
+                if (UseWorker && !forceSync)
                 {
                     if (!_worker.IsStarted)
                         _worker.Start();
@@ -165,7 +178,12 @@ namespace XrEngine.OpenGL
                     if (_pendingTasks.TryGetValue(_createTaskKey, out _createTask))
                         return false;
 
-                    _createTask = _worker.Dispatcher.ExecuteAsync(CreateProgram);
+                    _createTask = _worker.Dispatcher.ExecuteAsync(() =>
+                    {
+                        CreateProgram();
+                        _createFence = GlFence.Create(_gl, SyncCondition.SyncGpuCommandsComplete);
+                        _gl.Flush();
+                    });
 
                     _pendingTasks[_createTaskKey] = _createTask;
 
@@ -285,11 +303,11 @@ namespace XrEngine.OpenGL
 
             if (usage == BufferUsage.SharedSsbo)
             {
-                Debug.Assert(uniformName != null && _lastModel != null);
+                Debug.Assert(uniformName != null && (_lastModel != null || store == BufferStore.Material));
 
                 var range = Global.GetBufferRange<T>(bufferId, store, uniformName);
 
-                EngineObject engObj = store == BufferStore.Material ? Material : _lastModel;
+                EngineObject engObj = store == BufferStore.Material ? Material : _lastModel!;
 
                 var buffer = range.Reserve(engObj);
 

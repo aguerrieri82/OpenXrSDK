@@ -26,6 +26,8 @@ namespace XrEngine.Lighting
         readonly HashSet<LightFieldEmitter> _activeEmitters = [];
         readonly HashSet<LightFieldReceiver> _activeOccluders = [];
 
+        readonly GlRenderOptions _glOptions;
+
         public LightFieldProvider()
         {
             _paddding = 1;
@@ -34,6 +36,8 @@ namespace XrEngine.Lighting
 
             _backer = new VoxelLightBaker();
             _fieldData = new LightFieldData();
+
+            _glOptions = OpenGLRender.Current!.Options;
 
             _ctxProvider = Context.Require<IGlContextProvider>();
 
@@ -74,7 +78,7 @@ namespace XrEngine.Lighting
                 else
                 {
                     _workerCtx.Take();
-                    OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl);
+                    OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl, _glOptions, isDummy: true);
                 }
             }
 

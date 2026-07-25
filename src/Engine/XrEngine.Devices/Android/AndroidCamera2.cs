@@ -11,11 +11,8 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Common.Interop;
-using Java.Text;
 using Java.Util.Concurrent;
-using Microsoft.Extensions.Hosting;
-using System;
-using System.Diagnostics.Metrics;
+
 using System.Runtime.Versioning;
 using XrEngine.Media;
 using XrMath;
@@ -133,6 +130,7 @@ namespace XrEngine.Devices.Android
         protected Surface? _texSurface = null;
         protected CameraConfiguration? _configuration;
         protected int[] _oldBinding = new int[1];
+        private Texture2D? _outTexture;
 
         public AndroidCamera2(string deviceId, CameraManager manager)
         {
@@ -268,9 +266,12 @@ namespace XrEngine.Devices.Android
             if (_outSurface != null)
                 outs.Add(new OutputConfiguration(_outSurface));
 
+            _outTexture = outTexture;
+
+
             if (outTexture != null)
             {
-                var glText = outTexture!.Handle;
+                var glText = outTexture.Handle;
 
                 if (glText == 0)
                     throw new InvalidOperationException("Texture is empty");
@@ -280,11 +281,18 @@ namespace XrEngine.Devices.Android
 
                 _surfaceTex = new SurfaceTexture((int)glText);
                 _surfaceTex.SetDefaultBufferSize(format.Width, format.Height);
-
+   
                 _texSurface = new Surface(_surfaceTex);
+                
+                //_texSurface IS CREATED as Rgba32 in GL ALWAYS but contains Srgb
+                outTexture.ForceSrgb = true;
+                outTexture.Format = TextureFormat.Rgba32;
+                //
 
                 outTexture.Width = (uint)format.Width;
                 outTexture.Height = (uint)format.Height;
+
+                outTexture.NotifyChanged();
 
                 outs.Add(new OutputConfiguration(_texSurface));
             }
@@ -421,6 +429,14 @@ namespace XrEngine.Devices.Android
             GLES20.GlGetIntegerv(GLES11Ext.GlTextureBindingExternalOes, _oldBinding, 0);
 
             _surfaceTex?.UpdateTexImage();
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(33) &&
+                _surfaceTex?.DataSpace == (int)global::Android.Hardware.DataSpaceType.SrgbLinear &&
+                _outTexture!.ForceSrgb)
+            {
+                _outTexture!.ForceSrgb = false;
+                _outTexture.NotifyChanged();
+            }
 
             GLES20.GlBindTexture(GLES11Ext.GlTextureExternalOes, _oldBinding[0]);
 

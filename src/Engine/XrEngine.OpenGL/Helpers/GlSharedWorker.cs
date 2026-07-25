@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
         {
             _sharedCtx!.Take();
 
-            OpenGLRender.Current = new OpenGLRender(_sharedCtx.Gl, _options);
+            OpenGLRender.Current = new OpenGLRender(_sharedCtx.Gl, _options, isDummy: true);
 
             while (_isStarted)
             {

@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
             label = $"{label} ({_handle})";
 
             _gl.ObjectLabel(idType, _handle, (uint)label.Length, label);
-            _gl.CheckError(false);
+            _gl.ClearError();
 
             _label = label;
         }

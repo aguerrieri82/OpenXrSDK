@@ -250,11 +250,15 @@ namespace XrEngine.OpenGL
             glTex.Slot = slot;
         }
 
-        public bool IsFeatureEnabled(EnableCap cap, bool defValue = false)
+        public bool IsFeatureEnabled(EnableCap cap, bool useCache = true)
         {
-            if (Features.TryGetValue(cap, out var value))
-                return value;
-            return defValue;
+            if (!useCache || !Features.TryGetValue(cap, out var value))
+            {
+                value = _gl.IsEnabled(cap);
+                Features[cap] = value;
+            }
+
+            return value;
         }
 
         public void EnableFeature(EnableCap cap, bool value, bool force = false)

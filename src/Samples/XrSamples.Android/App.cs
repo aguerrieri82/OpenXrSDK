@@ -1,5 +1,6 @@
 ﻿using Android.Runtime;
 using System.Diagnostics;
+using XrEngine;
 using XrEngine.Media;
 using XrEngine.Media.Android;
 
@@ -17,6 +18,9 @@ namespace XrSamples
         public override void OnCreate()
         {
             base.OnCreate();
+
+            bool isAttached = EngineNativeLib.RdcIsAttached();
+            global::Android.Util.Log.Warn("App", "RENDER DOC: {0}", isAttached);
 
             XrEngine.Context.Implement<SampleManager>();
             XrEngine.Context.Implement<IVideoReader>(() => new AndroidVideoReader());

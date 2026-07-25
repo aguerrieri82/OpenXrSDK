@@ -15,6 +15,11 @@ namespace XrEngine.OpenGL
         const TextureTarget GL_TEXTURE_EXTERNAL_OES = (TextureTarget)0x8D65;
         const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
 
+        public static void ClearError(this GL gl)
+        {
+            while (gl.GetError() != GLEnum.NoError) ;
+        }
+
         public static bool CheckError(this GL gl, bool log = true)
         {
             GLEnum err;
@@ -24,7 +29,7 @@ namespace XrEngine.OpenGL
             while ((err = gl.GetError()) != GLEnum.NoError)
             {
                 if (log)
-                    Log.Warn("CheckError", err.ToString());
+                    Log.Warn("CheckError", "{0}:\n{1}", err, Environment.StackTrace);
 
                 hasError = true;
             }
@@ -68,7 +73,7 @@ namespace XrEngine.OpenGL
 
                     GlState.Current.BindTexture(target, 0);
 
-                    gL.CheckError(false);
+                    gL.ClearError();
 
                     if (curTexId == texId)
                         return target;

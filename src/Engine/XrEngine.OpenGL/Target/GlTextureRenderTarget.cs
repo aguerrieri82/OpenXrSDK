@@ -25,6 +25,8 @@ namespace XrEngine.OpenGL
             GlState.Current.SetView(new Rect2I(camera.ViewSize));
 
             _frameBuffer.BindDraw();
+
+            OpenGLRender.Current!.Begin(this);
         }
 
         public void End(bool discardDepth)

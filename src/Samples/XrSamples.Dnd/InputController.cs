@@ -1,6 +1,8 @@
-﻿using OpenXr.Framework.Oculus;
+﻿using glTFLoader.Schema;
+using OpenXr.Framework.Oculus;
 using System.Numerics;
 using XrEngine;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 
 namespace XrSamples.Dnd
@@ -13,6 +15,13 @@ namespace XrSamples.Dnd
         {
             _inputs = e.GetInputs<XrOculusTouchController>();
 
+            var click = _inputs.Right.Button.AClick;
+
+            _host.AddBehavior((_, _) =>
+            {
+                if (click.IsChanged && click.Value)
+                    GlBuffer.Tracker!.CheckAll();
+            });
         }
 
         [Action]
