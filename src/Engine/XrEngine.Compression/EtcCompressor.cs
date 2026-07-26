@@ -67,6 +67,11 @@ namespace XrEngine.Compression
                 else if (data.Format == TextureFormat.SRgba32)
                     data.Format = TextureFormat.SBgra32;
 
+                else if (data.Format == TextureFormat.Rgb24)
+                {
+                    data = ImageUtils.PackToRgba8(data, 1);
+                    data.Format = TextureFormat.Bgra32;
+                }
                 else
                     throw new NotSupportedException();
             }

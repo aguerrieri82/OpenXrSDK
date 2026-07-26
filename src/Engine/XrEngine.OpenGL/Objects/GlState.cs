@@ -188,6 +188,9 @@ namespace XrEngine.OpenGL
             if (!TexturesSlots.TryGetValue(target, out var res))
             {
                 res = new uint[MAX_TEX_SLOTS];
+                
+                Array.Fill(res, uint.MaxValue);
+
                 TexturesSlots[target] = res;
             }
             return res;
@@ -212,7 +215,7 @@ namespace XrEngine.OpenGL
             {
                 var realTex = _gl.GetActiveTextureBinding(target);
                 if (realTex != texId)
-                    Log.Warn(this, "Inconsistent cache: Found {0} - Expected {1}", realTex, texId);
+                    Log.Warn(this, "Inconsistent TEX cache for {0} - slot {3}: Found {1} - Expected {2}", target, realTex, texId, ActiveTexture);
             }
         }
 
@@ -228,7 +231,7 @@ namespace XrEngine.OpenGL
             {
                 var realActive = (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
                 if (realActive != slot)
-                    Log.Warn(this, "Inconsistent cache: Real Active {0} - Expected {1}", realActive, slot);
+                    Log.Warn(this, "Inconsistent ACTIVE-TEX cache: Found {0} - Expected {1}", realActive, slot);
             }
         }
 
@@ -460,7 +463,7 @@ namespace XrEngine.OpenGL
             {
                 var realActive = _gl.GetActiveBufferBinding(target);
                 if (realActive != value)
-                    Log.Warn(this, "Inconsistent BUF cache for {0}: Real Active {1} - Expected {2}", target, realActive, value);
+                    Log.Warn(this, "Inconsistent BUF cache for {0}: Found {1} - Expected {2}", target, realActive, value);
             }
         }
 

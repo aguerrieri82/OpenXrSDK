@@ -129,6 +129,10 @@ namespace XrEngine.Browser.Windows
             {
                 Name = "Browser",
                 Format = TextureFormat,
+                WrapS = WrapMode.ClampToEdge,
+                WrapT = WrapMode.ClampToEdge,
+                MinFilter = ScaleFilter.Linear,
+                MagFilter = ScaleFilter.Linear
             };
 
             if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)

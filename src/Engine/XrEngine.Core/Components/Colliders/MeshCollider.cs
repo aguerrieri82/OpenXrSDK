@@ -12,21 +12,24 @@ namespace XrEngine
 
         public MeshCollider()
         {
+            Usage = ColliderUsage.All;
         }
 
         public MeshCollider(Geometry3D geometry)
+            : this()
         {
             _geometry = geometry;
+            _geometry.Flags &= ~EngineObjectFlags.GpuOnly;
         }
 
         public void Initialize()
         {
             if (_geometry == null)
             {
-                _geometry = _host!.Feature<Geometry3D>();
+                _geometry = _host.Feature<Geometry3D>()
+                    ?? throw new NotSupportedException("Geometry3D not found in Object");
 
-                if (_geometry == null)
-                    throw new NotSupportedException("Geometry3D not found in Object");
+                _geometry.Flags &= ~EngineObjectFlags.GpuOnly;
             }
         }
 
@@ -46,7 +49,7 @@ namespace XrEngine
         {
             Debug.Assert(_geometry != null);
 
-            _triangles = _geometry!.Triangles().ToArray();
+            _triangles = _geometry.Triangles().ToArray();
             _version = _geometry.Version;
         }
 
@@ -108,5 +111,7 @@ namespace XrEngine
         public bool UseConvexHull { get; set; }
 
         public Geometry3D? Geometry => _geometry;
+
+        public ColliderUsage Usage { get; set; }
     }
 }

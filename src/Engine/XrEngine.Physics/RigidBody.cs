@@ -332,7 +332,7 @@ namespace XrEngine.Physics
 
             foreach (var collider in _host.Components<ICollider3D>())
             {
-                if (!collider.IsEnabled)
+                if (!collider.IsEnabled || (collider.Usage & ColliderUsage.Physics) == 0)
                     continue;
 
                 if (collider is IRenderUpdate update)

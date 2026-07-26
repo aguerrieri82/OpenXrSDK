@@ -301,6 +301,11 @@ namespace XrEngine
             }
         }
 
+        public static IEnumerable<Object3D> AncestorsOrSelf(this Object3D self)
+        {
+            return new Object3D[] { self }.Concat(self.Ancestors());
+        }
+
         public static T? FindAncestor<T>(this Object3D self) where T : Group3D
         {
             return self.Ancestors().OfType<T>().FirstOrDefault();
@@ -397,7 +402,12 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null, bool isParallel = false)
+        public static void RayCollisions(this Scene3D self, 
+            Ray3 ray, 
+            ConcurrentBag<Collision> result, 
+            IEnumerable<ICollider3D>? colliders = null, 
+            bool isParallel = false,
+            bool excludeMesh = false)
         {
             IEnumerable<ICollider3D> GetColliders()
             {
@@ -405,15 +415,21 @@ namespace XrEngine
                 {
                     foreach (var collider in obj.Components<ICollider3D>())
                     {
-                        if (collider != null && collider.IsEnabled && ((Object3D)collider.Host!).IsVisible)
+                        if (collider != null && 
+                            collider.IsEnabled && 
+                            (collider.Usage & ColliderUsage.Collisions) != 0 &&
+                            ((Object3D)collider.Host!).IsVisible)
+                        {
                             yield return collider;
+                        }
                     }
                 }
             }
 
             colliders ??= GetColliders();
 
-            result.Clear();
+            if (excludeMesh)
+                colliders = colliders.Where(a => a is not MeshCollider);
 
             if (isParallel)
             {

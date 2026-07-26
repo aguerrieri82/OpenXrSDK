@@ -16,6 +16,7 @@ namespace XrEngine.Physics
         {
             MeshObjects = () => _host!.DescendantsOrSelf();
             Tolerance = 0.01f;
+            Usage = ColliderUsage.All;
         }
 
         protected override void Start(RenderContext ctx)
@@ -156,5 +157,6 @@ namespace XrEngine.Physics
 
         public float Tolerance { get; set; }
 
+        public ColliderUsage Usage { get; set; }
     }
 }

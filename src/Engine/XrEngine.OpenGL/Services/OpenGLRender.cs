@@ -30,17 +30,14 @@ namespace XrEngine.OpenGL
         protected long _lastLightLayerVersion;
         protected IGlRenderTarget? _target;
         protected Rect2I _view;
-
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
-
         protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
         protected readonly GL _gl;
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
         protected readonly QueueDispatcher _dispatcher;
-
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
         protected readonly GlShadowPass? _shadowPass;
@@ -48,10 +45,8 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
         protected GlTextureFilter _textureFilter;
-
         protected HashSet<string> _extensions;
-
-        private bool _isDebug;
+        protected bool _isDebug;
 
         public static class Props
         {
@@ -120,7 +115,7 @@ namespace XrEngine.OpenGL
             }
 
             if (_options.UsePlanarReflection)
-                _renderPasses.Add(new GlReflectionPass(this));
+                _renderPasses.Add(new GlReflectionPassGroup(this));
 
             _renderPasses.Add(new GlColorPass(this));
 
@@ -145,6 +140,9 @@ namespace XrEngine.OpenGL
 
             if (_options.UseResolve)
                 _renderPasses.Add(new GlResolvePass(this));
+
+            if (_options.UseRayCollider)
+                _renderPasses.Add(new GlRayColliderPassGroup(this));
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
@@ -199,14 +197,14 @@ namespace XrEngine.OpenGL
 
             _gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DebugSeverityNotification, 0, null, false);
 
-            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [131186], false);
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 2u, [131186, 131202], false);
             _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [2147483647], false);
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 2u, [1281, 2147483647], false);
 
             _isDebug = true;
 
 #if !GLES
-                _glState.EnableDebug = true;
+            _glState.EnableDebug = true;
 #endif
         }
 
@@ -378,6 +376,12 @@ namespace XrEngine.OpenGL
                 {
                     var volume = scene.EnsureLayer<VolumeLayer>();
                     AddLayer(scene, GlLayerType.Volume, volume);
+                }
+
+                if (_options.UseRayCollider)
+                {
+                    var collider = scene.EnsureLayer<MeshColliderLayer>();
+                    AddLayer(scene, GlLayerType.MeshCollider, collider);
                 }
 
                 _lastScene = scene;

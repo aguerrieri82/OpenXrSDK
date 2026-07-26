@@ -7,6 +7,11 @@ namespace XrEngine
     {
         protected bool _isInit;
 
+        public BoxCollider()
+        {
+            Usage = ColliderUsage.All;
+        }
+
         protected override void Start(RenderContext ctx)
         {
         }
@@ -108,6 +113,8 @@ namespace XrEngine
 
             return bounds.Contains(localPoint);
         }
+
+        public ColliderUsage Usage { get; set; }
 
         public Vector3 Size { get; set; }
 

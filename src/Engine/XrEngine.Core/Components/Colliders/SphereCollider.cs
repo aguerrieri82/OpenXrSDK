@@ -7,6 +7,7 @@ namespace XrEngine
     {
         public SphereCollider()
         {
+            Usage = ColliderUsage.All;
         }
 
         public void Initialize()
@@ -61,5 +62,7 @@ namespace XrEngine
         public float Radius { get; set; }
 
         public Vector3 Center { get; set; }
+
+        public ColliderUsage Usage { get; set; }
     }
 }

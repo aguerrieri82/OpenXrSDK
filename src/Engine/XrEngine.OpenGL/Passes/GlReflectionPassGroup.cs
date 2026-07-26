@@ -13,12 +13,12 @@
         public readonly int BoundEye;
     }
 
-    public class GlReflectionPass : GlBaseRenderPassGroup<IGlDynamicRenderPass<ReflectionTarget>, ReflectionTarget>
+    public class GlReflectionPassGroup : GlBaseRenderPassGroup<IGlDynamicRenderPass<ReflectionTarget>, ReflectionTarget>
     {
         GlSimpleReflectionTargetPass? _simple;
         GlFullReflectionTargetPass? _full;
 
-        public GlReflectionPass(OpenGLRender renderer)
+        public GlReflectionPassGroup(OpenGLRender renderer)
             : base(renderer)
         {
             UseMultiviewTarget = true;

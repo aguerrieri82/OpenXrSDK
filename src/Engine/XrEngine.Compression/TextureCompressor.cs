@@ -97,7 +97,7 @@ namespace XrEngine.Compression
                             using var readStream = File.OpenRead(cacheFile);
                             result = PvrTranscoder.Instance.LoadTexture(readStream);
                             isCached = true;
-                            Log.Info(this, "Loaded from cache: {0} - {1}", handle, cacheFile);
+                            Log.Debug(this, "Loaded from cache: {0} - {1}", handle, Path.GetFileName(cacheFile));
                         }
                         catch (Exception ex)
                         {

@@ -12,7 +12,8 @@
         Custom = 0x20,
         Light = 0x40,
         Volume = 0x80 | Color,
-        Static = 0x100
+        Static = 0x100,
+        MeshCollider = 0x200
     }
 
     public interface IGlLayer : IDisposable

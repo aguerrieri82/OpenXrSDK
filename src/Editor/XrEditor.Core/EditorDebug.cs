@@ -56,7 +56,7 @@ namespace XrEditor
                   opt.UseShaderCache = true;
                   opt.UseShaderPreprocessor = true;
 
-                  opt.Compression.Use = true;
+                  opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;
 
                   opt.ShadowMap.Mode = ShadowMapMode.PCF;
@@ -74,7 +74,7 @@ namespace XrEditor
               })
               // .UseSpaceWarp()
               .SetRenderQuality(1f, 2, useIntermediate: false)
-              .CreateDnd()
+              .CreateRoomManager()
               .Build();
     }
 }

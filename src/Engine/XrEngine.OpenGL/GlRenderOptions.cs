@@ -59,6 +59,7 @@ namespace XrEngine.OpenGL
             UseAsyncShaderCompile = true;
             UseShaderCache = true;
             UseShaderPreprocessor = true;
+            UseRayCollider = true;
             ContactShadow = new()
             {
                 Use = false,
@@ -155,6 +156,8 @@ namespace XrEngine.OpenGL
         public bool UseShaderCache { get; set; }
 
         public bool UseShaderPreprocessor { get; set; }
+
+        public bool UseRayCollider { get; set; }
 
         public static GlRenderOptions Default() => new();
 

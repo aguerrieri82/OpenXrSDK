@@ -17,6 +17,7 @@ namespace XrEngine
         public CapsuleCollider()
         {
             Pose = Pose3.Identity;
+            Usage = ColliderUsage.All;
         }
 
         public void Initialize()
@@ -92,5 +93,7 @@ namespace XrEngine
         public Pose3 Pose { get; set; }
 
         public CapsuleColliderMode Mode { get; set; }
+
+        public ColliderUsage Usage { get; set; }
     }
 }

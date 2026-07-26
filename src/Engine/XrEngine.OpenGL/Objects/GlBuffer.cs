@@ -29,6 +29,7 @@ namespace XrEngine.OpenGL
         protected uint _sizeBytes;
         protected int _beginUpdateCount;
         protected long _updateCount;
+        private BufferStorageMask _storageMask;
         protected readonly uint _elementSize;
 
 
@@ -170,14 +171,6 @@ namespace XrEngine.OpenGL
                     var active = _gl.GetActiveBufferBinding(_target);
                     if (active != _handle)
                         Log.Error(this, "Inconsistent BUF cache for {0}: Real Active {1} - Expected {2}", _target, active, _handle);
-
-                    /*
-                     if ((DateTime.Now - _lastCheckTime).TotalSeconds > 10)
-                     {
-                         GlBuffer.Tracker.CheckAll();
-                         _lastCheckTime = DateTime.Now;
-                     }
-                     */
                 }
 
                 _updateCount++;
@@ -206,8 +199,10 @@ namespace XrEngine.OpenGL
                 Unbind();
         }
 
-        public unsafe void Allocate(uint sizeInByte)
+        public unsafe void Allocate(uint sizeInByte, BufferAllocateFlags flags = BufferAllocateFlags.Mutable)
         {
+            IsMutable = (flags & BufferAllocateFlags.Mutable) != 0;
+
             if (_capacityBytes == sizeInByte)
             {
                 _sizeBytes = sizeInByte;
@@ -224,12 +219,10 @@ namespace XrEngine.OpenGL
                         throw new InvalidOperationException(
                             $"Immutable buffer size changed: OLD: {_capacityBytes} NEW: {sizeInByte}");
 
-                    AllocateImmutableStorage(sizeInByte);
+                    AllocateImmutableStorage(sizeInByte, flags);
                 }
                 else
-                {
                     _gl.BufferData(_target, sizeInByte, null, _usage);
-                }
 
                 _capacityBytes = sizeInByte;
                 _sizeBytes = sizeInByte;
@@ -289,7 +282,7 @@ namespace XrEngine.OpenGL
 
             if (!preserve || copySizeBytes == 0)
             {
-                Allocate(newCapacityBytes);
+                Allocate(newCapacityBytes, IsMutable ? BufferAllocateFlags.Mutable : BufferAllocateFlags.None);
                 return;
             }
 
@@ -347,28 +340,71 @@ namespace XrEngine.OpenGL
             _sizeBytes = copySizeBytes;
         }
 
-        private unsafe void AllocateImmutableStorage(uint sizeBytes)
+        private unsafe void AllocateImmutableStorage(uint sizeBytes, BufferAllocateFlags flags)
         {
-#if GLES
-            if (_storageExt == null &&
-                !_gl.TryGetExtension(out _storageExt))
+            _storageMask = 0;
+            
+            if ((flags & BufferAllocateFlags.Persistent) != 0)
             {
-                throw new NotSupportedException(
-                    "GL_EXT_buffer_storage not supported");
+                _storageMask |= BufferStorageMask.MapPersistentBit | BufferStorageMask.MapCoherentBit;
+                
+                if ((flags & BufferAllocateFlags.PersistentRead) != 0)
+                    _storageMask |= BufferStorageMask.MapReadBitExt;
+
+                if ((flags & BufferAllocateFlags.PersistentWrite) != 0)
+                    _storageMask |= BufferStorageMask.MapWriteBit;
             }
+            else
+                _storageMask = BufferStorageMask.DynamicStorageBit;
+
+#if GLES
+            if (_storageExt == null && !_gl.TryGetExtension(out _storageExt))
+                throw new NotSupportedException("GL_EXT_buffer_storage not supported");
+
 
             _storageExt!.BufferStorage(
                 (BufferStorageTarget)_target,
                 sizeBytes,
                 null,
-                BufferStorageMask.DynamicStorageBit);
+                _storageMask);
 #else
             _gl.BufferStorage(
                 (GLEnum)_target,
                 sizeBytes,
                 null,
-                BufferStorageMask.DynamicStorageBit);
+                _storageMask);
 #endif
+        }
+
+        public unsafe T* MapPermanentRead()
+        {
+            return MapPermanent(MapBufferAccessMask.ReadBit);
+        }
+
+        public unsafe T* MapPermanent(MapBufferAccessMask access)
+        {
+            return MapPermanent(0, _sizeBytes, access);
+        }
+
+        public unsafe T* MapPermanent(uint offsetInBytes, uint sizeBytes, MapBufferAccessMask access)
+        {
+            if (IsMutable || _sizeBytes == 0 || (_storageMask & BufferStorageMask.MapPersistentBit) == 0)
+                throw new InvalidOperationException();
+
+            Bind();
+
+            access |= MapBufferAccessMask.PersistentBit | MapBufferAccessMask.CoherentBit;
+
+            var ptr = _gl.MapBufferRange(
+                _target,
+                0,
+                _sizeBytes,
+                access);
+
+            Unbind();
+
+            return (T*)ptr;
+
         }
 
         public unsafe T* Map(MapBufferAccessMask access)

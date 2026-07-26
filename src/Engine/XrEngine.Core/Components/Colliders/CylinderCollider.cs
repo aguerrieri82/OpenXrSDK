@@ -5,6 +5,11 @@ namespace XrEngine
 {
     public class CylinderCollider : Behavior<Object3D>, ICollider3D
     {
+        public CylinderCollider()
+        {
+            Usage = ColliderUsage.All;
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             //TODO: Implement
@@ -59,5 +64,7 @@ namespace XrEngine
         public float Height { get; set; }
 
         public Pose3 Pose { get; set; }
+
+        public ColliderUsage Usage { get; set; }
     }
 }

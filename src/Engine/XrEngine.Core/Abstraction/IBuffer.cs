@@ -9,6 +9,16 @@
         ReadWrite = Read | Write
     }
 
+    [Flags]
+    public enum BufferAllocateFlags
+    {
+        None = 0,
+        Mutable = 0x1,
+        Persistent =0x2,
+        PersistentRead = 0x4 | Persistent,
+        PersistentWrite = 0x8 | Persistent,
+    }
+
     public interface ISimpleBuffer
     {
         void Update(object value);
@@ -33,7 +43,7 @@
 
         void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0, bool preserve = true);
 
-        void Allocate(uint sizeInByte);
+        void Allocate(uint sizeInByte, BufferAllocateFlags flags = BufferAllocateFlags.Mutable);
 
         byte* Lock(BufferAccessMode mode);
 

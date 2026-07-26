@@ -35,9 +35,9 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public static GlFence Create(GL gl, SyncCondition condition)
+        public static GlFence Create(GL gl)
         {
-            return new GlFence(gl, condition);
+            return new GlFence(gl, SyncCondition.SyncGpuCommandsComplete);
         }
     }
 }

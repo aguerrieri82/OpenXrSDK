@@ -40,7 +40,10 @@ namespace XrEngine
                 if (AffectChange(change))
                 {
                     EngineApp.Current!.Stats.LayerChanges++;
-                    if (change.IsAny(ChangeType.SceneRemove) || !BelongsToLayer(tObj))
+
+                    var belong = BelongsToLayer(tObj);
+
+                    if (change.IsAny(ChangeType.SceneRemove) || !belong)
                         Remove(tObj);
                     else
                         Add(tObj);

@@ -24,7 +24,7 @@ namespace XrEngine.Physics
         public PhysicsManager(float fps = 72)
         {
             Options = new PhysicsOptions();
-            StepSizeSecs = fps == 0 ? 0 : 1f / fps;
+            StepSizeSecs = fps == 0 ? 0 : (1f / fps);
             UpdatePriority = -1;
             UseQueue = true;
             IsMultiThread = false;

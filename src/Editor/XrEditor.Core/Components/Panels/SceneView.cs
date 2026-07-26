@@ -66,6 +66,7 @@ namespace XrEditor
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
         protected XrEngineApp? _engine;
+        private RayPointerHost _mousePointer;
         protected MemoryStateContainer? _sceneState;
         protected SingleSelector _cameraList;
         protected Camera? _oldXrCamera;
@@ -145,7 +146,9 @@ namespace XrEditor
 
             _engine = EditorDebug.CreateApp();
 
-            _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
+            _mousePointer = new RayPointerHost(_tools.OfType<PickTool>().Single());
+
+            _engine.App.ActiveScene!.AddComponent(_mousePointer);
 
             await UiThread;
 

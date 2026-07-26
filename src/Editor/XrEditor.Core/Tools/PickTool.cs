@@ -105,10 +105,11 @@ namespace XrEditor
                         LocalPoint = result.Object!.ToLocal(result.Pos),
                     };
                 }
-
             }
             else
             {
+                _collisions.Clear();
+
                 _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
 
                 _lastCollision = _collisions.OrderBy(a => a.Distance)

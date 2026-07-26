@@ -534,6 +534,8 @@ namespace XrEngine.OpenGL
                 BufferTargetARB.PixelUnpackBuffer => GetPName.PixelUnpackBufferBinding,
                 BufferTargetARB.TransformFeedbackBuffer => GetPName.TransformFeedbackBufferBinding,
                 BufferTargetARB.DispatchIndirectBuffer => GetPName.DispatchIndirectBufferBinding,
+                BufferTargetARB.CopyWriteBuffer => (GetPName)GLEnum.CopyWriteBufferBinding,
+                BufferTargetARB.CopyReadBuffer => (GetPName)GLEnum.CopyReadBufferBinding,
                 _ => throw new NotSupportedException($"Unsupported buffer target: {target}")
             };
 

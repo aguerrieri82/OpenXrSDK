@@ -181,7 +181,7 @@ namespace XrEngine.OpenGL
                     _createTask = _worker.Dispatcher.ExecuteAsync(() =>
                     {
                         CreateProgram();
-                        _createFence = GlFence.Create(_gl, SyncCondition.SyncGpuCommandsComplete);
+                        _createFence = GlFence.Create(_gl);
                         _gl.Flush();
                     });
 
