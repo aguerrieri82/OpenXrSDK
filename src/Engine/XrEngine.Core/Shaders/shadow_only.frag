@@ -16,5 +16,5 @@ void main()
 
 	FragColor = shadow * uShadowColor;
 
-	toneMapColor(FragColor);
+	fixSrgbColor(FragColor);
 }

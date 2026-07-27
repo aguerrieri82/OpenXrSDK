@@ -53,6 +53,7 @@ namespace XrEngine
             FovDegree = 45;
             Strength = 1f;
             BlurLevel = 0;
+            ShadingRate = 2;
         }
 
         public virtual bool PrepareMaterial(Material material)
@@ -335,5 +336,7 @@ namespace XrEngine
         public float Strength { get; set; }
 
         public int BlurLevel { get; set; }
+
+        public int ShadingRate { get; set; }
     }
 }

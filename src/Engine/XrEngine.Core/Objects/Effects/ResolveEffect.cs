@@ -40,6 +40,9 @@ namespace XrEngine
             {
                 bld.AddFeature($"FB_MODE");
                 bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
+
+                if (UseFetchRate)
+                    bld.AddExtension("GL_QCOM_shader_framebuffer_fetch_rate");
             }
 
             bld.AddFeature($"SAMPLE_COUNT {SampleCount}");
@@ -59,6 +62,10 @@ namespace XrEngine
 
         [Notify(ChangeType.Render)]
         public partial ToneMapMode ToneMap { get; set; }
+
+        public bool UseFetchRate { get; set; } 
+
+        public bool UseFbNonCoherent { get; set; }
 
         public Texture? Texture
         {

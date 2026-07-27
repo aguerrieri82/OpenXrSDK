@@ -40,5 +40,5 @@ void main()
         FragColor *= uColor;
     #endif
 
-    toneMapTex(FragColor);
+    fixSrgbTex(FragColor);
 }

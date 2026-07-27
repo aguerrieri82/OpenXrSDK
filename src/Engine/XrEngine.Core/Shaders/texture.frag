@@ -1,4 +1,4 @@
-﻿#include "Shared/tonemap.glsl"
+﻿#include "Shared/fragment_post.glsl"
 
 in vec2 fUv;
 
@@ -37,5 +37,7 @@ void main()
         FragColor = texture(uTexture, uv) * uColor;
     #endif
 
-    toneMapTex(FragColor);
+    doPost(FragColor);
+
+    fixSrgbTex(FragColor);
 }

@@ -83,7 +83,7 @@ vec3 toneMapACES(vec3 x)
 }
 
 
-void toneMapColor(inout vec4 color)
+void fixSrgbColor(inout vec4 color)
 {
 	#if defined(COLOR_IS_SRGB) && !defined(SRGB_ENCODE)
 		color.rgb = sRGBToLinear(color.rgb);
@@ -94,7 +94,7 @@ void toneMapColor(inout vec4 color)
 	#endif
 }
 
-void toneMapTex(inout vec4 color)
+void fixSrgbTex(inout vec4 color)
 {
 	#if !defined(TEXTURE_IS_SRGB) && defined(SRGB_ENCODE)
 		color.rgb = linearTosRGB(color.rgb);

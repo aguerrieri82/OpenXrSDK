@@ -87,13 +87,20 @@ out vec2 fUv;
     flat out vec4 fConst;
 #endif 
 
+#ifdef MOTION_VECTORS
+    #include "shared/motion_vectors.glsl"
+#endif
+
 void main()
 {
+    mat4 worldMatrix;
+    mat4 normalMatrix;
+
     #ifdef USE_INSTANCE
 
         #ifdef USE_DEPTH_CULL
 
-            ObjectData obj = objects[data[gl_InstanceID].drawId];
+            ObjectData obj = objects[uInstances[gl_InstanceID].drawId];
 
             if (!obj.visible) {
                 gl_Position = vec4(10.0, 0.0, 0.0, 1.0);
@@ -102,12 +109,12 @@ void main()
 
         #endif
 
-        mat4 worldMatrix = uInstances[gl_InstanceID].worldMatrix;
-        mat4 normalMatrix = uInstances[gl_InstanceID].normalMatrix;
+        worldMatrix = uInstances[gl_InstanceID].worldMatrix;
+        normalMatrix = uInstances[gl_InstanceID].normalMatrix;
 
     #else
-        mat4 worldMatrix = uModel.worldMatrix;
-        mat4 normalMatrix = uModel.normalMatrix;
+        worldMatrix = uModel.worldMatrix;
+        normalMatrix = uModel.normalMatrix;
     #endif
 
     vec3 position = a_position;
@@ -175,4 +182,8 @@ void main()
     #endif 
 
     computePos(pos);
+
+    #ifdef MOTION_VECTORS
+        computeMotionVectors();
+    #endif
 }

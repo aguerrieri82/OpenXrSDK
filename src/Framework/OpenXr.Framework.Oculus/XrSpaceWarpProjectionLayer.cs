@@ -60,9 +60,7 @@ namespace OpenXr.Framework.Oculus
                           _motionImageSize,
                           _motionProvider.MotionVectorFormat, // Rgba16f
                           2,
-                          SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit,
-                          1,
-                          false);
+                          SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit);
 
             _spaceWarpData.ColorImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData.ColorSwapchain);
 
@@ -70,9 +68,7 @@ namespace OpenXr.Framework.Oculus
                 _motionImageSize,
                 _motionProvider.DepthFormat, // DepthComponent16
                 2,
-                SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit,
-                1,
-                false);
+                SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit);
 
             _spaceWarpData.DepthImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData.DepthSwapchain);
         }
@@ -112,8 +108,8 @@ namespace OpenXr.Framework.Oculus
             var depthIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData.DepthSwapchain);
             _xrApp.WaitSwapchainImage(_spaceWarpData.DepthSwapchain);
 
-            _spColorImage = _spaceWarpData.ColorImages!.ItemPointer((int)colorIndex);
-            _spDepthImage = _spaceWarpData.DepthImages!.ItemPointer((int)depthIndex);
+            _spColorImage = _spaceWarpData.ColorImages.ItemPointer((int)colorIndex);
+            _spDepthImage = _spaceWarpData.DepthImages.ItemPointer((int)depthIndex);
 
             try
             {

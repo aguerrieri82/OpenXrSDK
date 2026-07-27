@@ -19,16 +19,11 @@ namespace XrEngine.OpenXr
             _pass = _renderer.Pass<GlMotionVectorPass>() ?? throw new NotSupportedException();
 
             if (XrPlatform.IsEditor)
-            {
                 MotionVectorFormat = (long)InternalFormat.Rgb16f;
-                DepthFormat = (long)InternalFormat.DepthComponent16;
-            }
             else
-            {
                 MotionVectorFormat = (long)InternalFormat.Rgba16f;
-                DepthFormat = (long)InternalFormat.DepthComponent16;
-            }
 
+            DepthFormat = (long)InternalFormat.DepthComponent16;
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)

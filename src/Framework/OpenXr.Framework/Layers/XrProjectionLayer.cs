@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
+using System.Xml.Linq;
+using XrMath;
 
 namespace OpenXr.Framework
 {
@@ -29,6 +31,7 @@ namespace OpenXr.Framework
         protected bool _useDepthSWC;
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
+        protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
 
         XrProjectionLayer()
         {
@@ -40,6 +43,7 @@ namespace OpenXr.Framework
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
 
+
             Priority = XrLayerPriority.Projection;
         }
 
@@ -48,6 +52,19 @@ namespace OpenXr.Framework
         {
             _renderView = renderView;
             _useDepthSWC = useDepthSwapchain;
+
+            if (_useDepthSWC)
+            {
+                _depthTest.Value = new CompositionLayerDepthTestFB
+                {
+                    Type = StructureType.CompositionLayerDepthTestFB,
+                    DepthMask = 1,
+                    CompareOp = CompareOpFB.LessOrEqualFB,
+                    Next = null
+                };
+
+                _header.ValueRef.Next = _depthTest.Pointer;
+            }
         }
 
         public override void Dispose()
@@ -59,7 +76,6 @@ namespace OpenXr.Framework
 
         public override void Destroy()
         {
-
             if (_swapchains != null)
             {
                 foreach (var item in _swapchains)
@@ -83,21 +99,35 @@ namespace OpenXr.Framework
         {
             Debug.Assert(_xrApp != null);
 
-            var swpCount = _xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
+            var options = _xrApp.RenderOptions;
+
+            var swpCount = options.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
 
             _swapchains = new XrSwapchainInfo[swpCount];
+
+            var colorSize = options.Size;
+
+            var depthSize = new Extent2Di((int)(colorSize.Width * options.ProjectionDepthScale),
+                                          (int)(colorSize.Height * options.ProjectionDepthScale));
 
             for (var i = 0; i < _swapchains.Length; i++)
             {
                 var colorSwap = _xrApp.CreateSwapChain(false);
-                var depthSwap = _useDepthSWC ? _xrApp.CreateSwapChain(true) : new Swapchain();
+
+                var depthSwap = _useDepthSWC ? 
+                    _xrApp.CreateSwapChain(depthSize, 
+                            options.DepthFormat,
+                            options.RenderMode == XrRenderMode.MultiView ? 2u : 0, 
+                            SwapchainUsageFlags.DepthStencilAttachmentBit) : new Swapchain();
+
                 _swapchains[i] = new XrSwapchainInfo
                 {
                     ColorSwapchain = colorSwap,
                     DepthSwapchain = depthSwap,
                     ColorImages = _xrApp.EnumerateSwapchainImages(colorSwap),
                     DepthImages = _useDepthSWC ? _xrApp.EnumerateSwapchainImages(depthSwap) : null,
-                    ViewSize = _xrApp.RenderOptions.Size
+                    ViewSize = colorSize,
+                    DepthSize = depthSize
                 };
             }
 
@@ -140,6 +170,7 @@ namespace OpenXr.Framework
                     if (_useDepthSWC)
                     {
                         var depthInfo = _depthInfo.ItemPointer(i);
+
                         depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
                         depthInfo->MinDepth = 0;
                         depthInfo->MaxDepth = 1;
@@ -147,7 +178,7 @@ namespace OpenXr.Framework
                         depthInfo->FarZ = 100;
                         depthInfo->Next = null;
                         depthInfo->SubImage.Swapchain = swapchain.DepthSwapchain;
-                        depthInfo->SubImage.ImageRect = projView.SubImage.ImageRect;
+                        depthInfo->SubImage.ImageRect = new Rect2Di(new Offset2Di(0, 0), swapchain.DepthSize);
 
                         projView.Next = depthInfo;
 

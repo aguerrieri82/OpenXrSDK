@@ -34,6 +34,7 @@ namespace XrEngine.OpenGL
                 UseMultiViewTarget = useMultiviewTarget,
                 Name = "Full Reflection"
             };
+
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -125,7 +126,9 @@ namespace XrEngine.OpenGL
 
             _passTarget.Configure(_swap.Active!);
 
-            _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
+            _passTarget.RenderTarget!.ShadingRate = _reflection.ShadingRate;
+
+            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
@@ -178,7 +181,7 @@ namespace XrEngine.OpenGL
         {
             Debug.Assert(_swap?.Active != null);
 
-            _passTarget.RenderTarget!.End(true);
+            _passTarget.RenderTarget!.End(discardDepth: true);
 
             if (_imageLight != null)
             {
@@ -216,6 +219,7 @@ namespace XrEngine.OpenGL
         {
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
+
 
         }
     }

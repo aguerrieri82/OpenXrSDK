@@ -202,7 +202,7 @@ namespace XrEngine.OpenGL
             base.EndRender(ctx);
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Object3D model)
         {
             _material.DrawId = (uint)_objects.Count + 1;
             return UpdateProgramResult.Changed;

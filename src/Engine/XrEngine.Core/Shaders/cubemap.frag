@@ -32,5 +32,5 @@ void main()
 
     FragColor = color.rgba;
 
-    toneMapTex(FragColor);
+    fixSrgbTex(FragColor);
 }

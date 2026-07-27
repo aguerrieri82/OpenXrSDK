@@ -2,11 +2,11 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Drawing;
-
 #endif
 
 using XrMath;
+using System.Diagnostics;
+using SkiaSharp;
 
 namespace XrEngine.OpenGL
 {
@@ -151,18 +151,48 @@ namespace XrEngine.OpenGL
             _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attachments.AsSpan());
         }
 
+
         public virtual GlTexture GetOrCreateEffect(FramebufferAttachment slot)
+        {
+            Debug.Assert(Color != null);
+
+            return GetOrCreateEffect(slot, Color.InternalFormat.ToTextureFormat());
+        }
+
+        public virtual GlTexture GetOrCreateEffect(FramebufferAttachment slot, TextureFormat format)
         {
             if (Color == null)
                 throw new NotSupportedException();
 
             if (!_attachments.TryGetValue(slot, out var obj))
             {
-                var glTex = Color.Clone(false);
+                GlTexture glTex;
+                if (Color.InternalFormat.ToTextureFormat() == format)
+                    glTex = Color.Clone(false);
+                else
+                {
+                    glTex = new GlTexture(_gl)
+                    {
+                        Target = Color.Target,
+                        MagFilter = Color.MagFilter,
+                        WrapS = Color.WrapS,
+                        WrapT = Color.WrapT,
+                        WrapR = Color.WrapR,
+                        MaxAnisotropy = Color.MaxAnisotropy,
+                        BorderColor = Color.BorderColor,
+                        IsMutable = Color.IsMutable,
+                        SampleCount = Color.SampleCount,
+                    };
+
+                    glTex.Allocate(Color.Width, Color.Height, Color.Depth, format);
+                    glTex.SetLabel((_label ?? "FB") + " - " + slot);
+                }
 
                 glTex.MaxLevel = 0;
+                glTex.BaseLevel = 0;
+                glTex.MinFilter = TextureMinFilter.Linear;
 
-                Attach(glTex, slot, true);
+                Attach(glTex, slot, useDraw: true);
 
                 Check();
 

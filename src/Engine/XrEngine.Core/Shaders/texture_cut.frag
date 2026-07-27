@@ -51,7 +51,7 @@ void main()
             FragColor = style.BackColor * uColor;
         }
 
-        toneMapTex(FragColor);
+        fixSrgbTex(FragColor);
 
         return;
     }
@@ -64,7 +64,7 @@ void main()
         FragColor = texture(uTexture, fUv) * uColor;
         FragColor.a *= style.Opacity;
 
-        toneMapTex(FragColor);
+        fixSrgbTex(FragColor);
 
         return;
     }

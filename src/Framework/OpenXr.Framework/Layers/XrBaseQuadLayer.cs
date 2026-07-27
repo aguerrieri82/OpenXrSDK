@@ -14,6 +14,7 @@ namespace OpenXr.Framework
         protected GetQuadDelegate _getQuad;
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
 
+
         public XrBaseQuadLayer(GetQuadDelegate getQuad)
         {
             _getQuad = getQuad;

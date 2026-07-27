@@ -25,5 +25,7 @@ namespace XrEngine.OpenGL
         IShaderHandler? ShaderHandler => null;
 
         GlRenderTargetFlags Flags { get; }
+
+        int ShadingRate { get; set; }
     }
 }

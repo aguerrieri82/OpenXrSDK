@@ -33,7 +33,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-               // SampleName = "DnD",
+                SampleName = "DnD",
                 Msaa = 2,
                 Scale = 1f,
                 Driver = GraphicDriver.OpenGL,

@@ -94,5 +94,7 @@ namespace XrEngine.OpenGL
         public IShaderHandler? ShaderHandler => _activeRt?.ShaderHandler;
 
         public GlRenderTargetFlags Flags { get; set; }
+
+        public int ShadingRate { get; set; }
     }
 }

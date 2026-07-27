@@ -55,5 +55,6 @@ namespace XrEngine.OpenGL
 
         public GlRenderTargetFlags Flags { get; set; }
 
+        public int ShadingRate { get; set; }
     }
 }

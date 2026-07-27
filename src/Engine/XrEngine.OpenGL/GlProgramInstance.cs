@@ -272,6 +272,13 @@ namespace XrEngine.OpenGL
                     program.AddFeature(feature);
             }
 
+            if (_materialUpdate.DynamicFeatures != null)
+            {
+                foreach (var feature in _materialUpdate.DynamicFeatures)
+                    program.AddDynamicFeature(feature);
+            }
+
+
             if (Global.ShaderUpdate?.Extensions != null)
             {
                 foreach (var ext in Global.ShaderUpdate.Extensions)

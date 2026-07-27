@@ -141,6 +141,8 @@ namespace XrEngine
 
         public string? Name { get; set; }
 
+        public int ShadingRate { get; set; }
+
         public int Priority { get; set; }
 
         [Notify(ChangeType.MaterialEnabled)]

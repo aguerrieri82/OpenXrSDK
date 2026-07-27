@@ -1,7 +1,10 @@
-﻿using Android.Runtime;
+﻿using Android.Opengl;
+using Android.Runtime;
+using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
+using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework.Android
 {
@@ -51,6 +54,7 @@ namespace OpenXr.Framework.Android
                 throw new NotSupportedException(KhrOpenglEsEnable.ExtensionName + " not supported");
             }
         }
+
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
             System.Diagnostics.Debug.Assert(viewInfo.SwapChainFormats != null);
@@ -58,8 +62,9 @@ namespace OpenXr.Framework.Android
             var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
-            result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
 
+            if (result.DepthFormat == 0)
+                result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
         }
 
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
@@ -91,7 +96,7 @@ namespace OpenXr.Framework.Android
         public T GetApi<T>() where T : class
         {
             if (typeof(T) == typeof(GL))
-                return (T)(object)GL.GetApi(GL.CreateDefaultContext(["libGLESv2.so"]));
+                return (T)(object)GL.GetApi(new MultiNativeContext(GL.CreateDefaultContext(["libGLESv2.so"]), new EglContext()));
             throw new NotSupportedException();
         }
 

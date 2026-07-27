@@ -54,43 +54,43 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            Debug.Assert(_reflection != null && _programInstance != null);
+            Debug.Assert(_reflection != null);
 
             if (!_reflection.PrepareMaterial(drawMaterial))
                 return UpdateProgramResult.Skip;
 
             if (_reflection.UseClipPlane)
             {
-                if (_programInstance.ExtraExtensions == null)
+                if (instance.ExtraExtensions == null)
                 {
-                    _programInstance.ExtraFeatures = ["USE_CLIP_PLANE"];
-                    _programInstance.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
-                    _programInstance.Invalidate();
+                    instance.ExtraFeatures = ["USE_CLIP_PLANE"];
+                    instance.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
+                    instance.Invalidate();
                 }
 
-                var upRes = base.UpdateProgram(updateContext, drawMaterial);
+                var upRes = base.UpdateProgram(instance, updateContext, drawMaterial);
 
-                _programInstance.Program!.Use();
+                instance.Program!.Use();
 
                 var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
-                _programInstance.Program!.SetUniform("uClipPlane", newPlane);
+                instance.Program!.SetUniform("uClipPlane", newPlane);
 
                 return UpdateProgramResult.Changed;
             }
             else
             {
-                if (_programInstance.ExtraFeatures != null)
+                if (instance.ExtraFeatures != null)
                 {
-                    _programInstance.ExtraFeatures = null;
-                    _programInstance.ExtraExtensions = null;
-                    _programInstance.Invalidate();
+                    instance.ExtraFeatures = null;
+                    instance.ExtraExtensions = null;
+                    instance.Invalidate();
                 }
 
-                var upRes = base.UpdateProgram(updateContext, drawMaterial);
+                var upRes = base.UpdateProgram(instance, updateContext, drawMaterial);
 
-                _programInstance.Program!.Use();
+                instance.Program!.Use();
 
                 return UpdateProgramResult.Changed;
             }
@@ -147,7 +147,7 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender(GlUpdateContext ctx)
         {
-            _passTarget.RenderTarget!.End(true);
+            _passTarget.RenderTarget!.End(discardDepth: true);
 
             base.EndRender(ctx);
         }
@@ -170,9 +170,12 @@ namespace XrEngine.OpenGL
 
         public void SetOptions(ReflectionTarget options)
         {
+            Debug.Assert(!_useInstanceDraw);
+
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
-            _programInstance = GetProgramInstance(_reflection.MaterialOverride!);
+
+            _progInstBase = GetProgramInstance(_reflection.MaterialOverride!);
         }
     }
 }

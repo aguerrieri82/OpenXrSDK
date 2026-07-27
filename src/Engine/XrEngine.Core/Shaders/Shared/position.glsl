@@ -11,8 +11,8 @@
 
     layout(std140, binding=10) uniform SceneMatrices
     {
-        uniform mat4 viewProj[NUM_VIEWS];
-        uniform vec3 position[NUM_VIEWS];
+        mat4 viewProj[NUM_VIEWS];
+        vec3 position[NUM_VIEWS];
         mat4 viewProjInv[NUM_VIEWS];
         float farPlane;
     } uMatrices;
@@ -36,6 +36,8 @@
     {
         return uMatrices.farPlane;
     }
+
+    #define ACTIVE_EYE gl_ViewID_OVR
 
 #else
 
@@ -66,6 +68,9 @@
             return uViewProjInv;
         }
 
+
+       #define ACTIVE_EYE uActiveEye
+
     #else
 
         vec3 getViewPos() 
@@ -87,6 +92,8 @@
         {
             return uCamera.viewProjInv;
         }
+
+        #define ACTIVE_EYE uCamera.activeEye
 
     #endif
 

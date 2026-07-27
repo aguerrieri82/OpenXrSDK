@@ -9,6 +9,8 @@ namespace OpenXr.Framework
         Stereo
     }
 
+
+
     public class XrRenderOptions
     {
         public XrRenderOptions()
@@ -18,8 +20,9 @@ namespace OpenXr.Framework
             RenderMode = XrRenderMode.SingleEye;
             GpuLevel = PerfSettingsLevelEXT.BoostExt;
             CpuLevel = PerfSettingsLevelEXT.BoostExt;
-            UseProjectionDepth = false;
-            UseQuodDepthCull = true;
+            UseProjectionDepth = true;
+            ProjectionDepthScale = 1f;
+            UseQuodDepthCull = false;
         }
 
         public Extent2Di Size { get; set; }
@@ -41,7 +44,10 @@ namespace OpenXr.Framework
         public PerfSettingsLevelEXT GpuLevel { get; set; }
 
         public bool UseProjectionDepth { get; set; }
+        
+        public float ProjectionDepthScale { get; set; }
 
+        [Obsolete]
         public bool UseQuodDepthCull { get; set; }
     }
 }

@@ -310,6 +310,25 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder SetXrOptions(this XrEngineAppBuilder self, Action<XrRenderOptions> options)
+        {
+            return self.ConfigureApp(e => options(e.XrApp.RenderOptions));
+        }
+
+
+        public static XrEngineAppBuilder SetAppOptions(this XrEngineAppBuilder self, Action<XrEngineAppOptions> options)
+        {
+            options(self.Options);
+            return self;
+        }
+
+        public static XrEngineAppBuilder UseProjDepth(this XrEngineAppBuilder self, XrProjDepthMode mode, float scale = 0.5f)
+        {
+            self.Options.ProjDepthScale = scale;
+            self.Options.ProjDepthMode = mode;
+            return self;
+        }
+
         public static XrEngineAppBuilder UseMultiView(this XrEngineAppBuilder self)
         {
             self.Options.RenderMode = XrRenderMode.MultiView;

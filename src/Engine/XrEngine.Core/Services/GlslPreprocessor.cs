@@ -7,6 +7,43 @@ using System.Text;
 
 namespace XrEngine;
 
+public readonly struct GlslRuntimeDefine
+{
+    public GlslRuntimeDefine(string symbol, string? uniformName = null)
+    {
+        if (string.IsNullOrWhiteSpace(symbol))
+            throw new ArgumentException("Runtime define symbol is required.", nameof(symbol));
+
+        Symbol = symbol;
+        UniformName = string.IsNullOrWhiteSpace(uniformName) ? ToUniformName(symbol) : uniformName;
+    }
+
+    public string Symbol { get; }
+
+    public string UniformName { get; }
+
+    private static string ToUniformName(string symbol)
+    {
+        var result = new StringBuilder(symbol.Length + 1);
+        result.Append('u');
+        bool upper = true;
+
+        foreach (char c in symbol)
+        {
+            if (c == '_')
+            {
+                upper = true;
+                continue;
+            }
+
+            result.Append(upper ? char.ToUpperInvariant(c) : char.ToLowerInvariant(c));
+            upper = false;
+        }
+
+        return result.ToString();
+    }
+}
+
 public sealed class GlslPreprocessor
 {
     private readonly Func<string, string> _includeResolver;
@@ -20,13 +57,13 @@ public sealed class GlslPreprocessor
 
     public int MaxIncludeDepth { get; set; } = 64;
 
-    public string Process(string sourceName, IReadOnlyList<string>? defines = null)
+    public string Process(string sourceName, IReadOnlyList<string>? defines = null, IReadOnlyList<GlslRuntimeDefine>? runtimeDefines = null)
     {
         if (sourceName == null)
             throw new ArgumentNullException(nameof(sourceName));
 
         sourceName = NormalizePath(sourceName);
-        var context = new Context(this, sourceName);
+        var context = new Context(this, sourceName, runtimeDefines);
 
         if (defines != null)
         {
@@ -39,7 +76,7 @@ public sealed class GlslPreprocessor
             }
         }
 
-        return context.ProcessFile(sourceName, 0);
+        return context.Complete(context.ProcessFile(sourceName, 0));
     }
 
     private static string NormalizePath(string path)
@@ -53,13 +90,57 @@ public sealed class GlslPreprocessor
         private readonly Dictionary<string, Macro> _macros = new(StringComparer.Ordinal);
         private readonly Dictionary<string, int> _fileIds = new(StringComparer.Ordinal);
         private readonly HashSet<string> _included = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, GlslRuntimeDefine>? _runtimeDefines;
+        private readonly HashSet<string>? _usedRuntimeDefines;
         private int _nextFileId = 1;
         private int _version = 100;
 
-        public Context(GlslPreprocessor owner, string sourceName)
+        public Context(GlslPreprocessor owner, string sourceName, IReadOnlyList<GlslRuntimeDefine>? runtimeDefines)
         {
             _owner = owner;
             _fileIds[sourceName] = 0;
+
+            if (runtimeDefines is { Count: > 0 })
+            {
+                _runtimeDefines = new Dictionary<string, GlslRuntimeDefine>(runtimeDefines.Count, StringComparer.Ordinal);
+                _usedRuntimeDefines = new HashSet<string>(StringComparer.Ordinal);
+
+                foreach (var runtimeDefine in runtimeDefines)
+                {
+                    if (!_runtimeDefines.TryAdd(runtimeDefine.Symbol, runtimeDefine))
+                        throw new ArgumentException($"Duplicate runtime define '{runtimeDefine.Symbol}'.", nameof(runtimeDefines));
+                }
+            }
+        }
+
+        public string Complete(string source)
+        {
+            if (_usedRuntimeDefines == null || _usedRuntimeDefines.Count == 0)
+                return source;
+
+            var declarations = new StringBuilder();
+            foreach (string symbol in _usedRuntimeDefines)
+                declarations.Append("uniform bool ").Append(_runtimeDefines![symbol].UniformName).Append(';').Append('\n');
+
+            int insert = 0;
+            foreach (var line in ReadLogicalLines(source))
+            {
+                string trimmed = line.Text.TrimStart();
+                if (trimmed.StartsWith("#version", StringComparison.Ordinal) ||
+                    trimmed.StartsWith("#extension", StringComparison.Ordinal) ||
+                    trimmed.Length == 0 || trimmed.StartsWith("//", StringComparison.Ordinal))
+                {
+                    int next = source.IndexOf('\n', insert);
+                    if (next < 0)
+                        return source + "\n" + declarations;
+                    insert = next + 1;
+                    continue;
+                }
+
+                break;
+            }
+
+            return source.Insert(insert, declarations.ToString());
         }
 
         public string ProcessFile(string fileName, int includeDepth)
@@ -94,6 +175,7 @@ public sealed class GlslPreprocessor
             var result = new StringBuilder(source.Length);
             var conditions = new Stack<ConditionalFrame>();
             bool inBlockComment = false;
+            var scope = new GlslScopeTracker();
 
             foreach (var logicalLine in ReadLogicalLines(source))
             {
@@ -131,11 +213,23 @@ public sealed class GlslPreprocessor
                         case "if":
                             {
                                 bool parentActive = active;
-                                bool branchActive = parentActive && EvaluateCondition(argument, fileId, logicalLine.LineNumber, fileName);
-                                var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
-                                    $"#if {argument.Trim()}", parentActive);
-                                conditions.Push(frame);
-                                EmitBranchStart(result, frame);
+                                if (TryBuildRuntimeCondition(argument, fileName, logicalLine.LineNumber, out string? runtimeCondition))
+                                {
+                                    bool emitRuntime = scope.IsInsideFunction;
+                                    var frame = new ConditionalFrame(parentActive, parentActive, false,
+                                        $"#if {argument.Trim()}", false, false, true, emitRuntime);
+                                    conditions.Push(frame);
+                                    if (parentActive && emitRuntime)
+                                        result.Append("if (").Append(runtimeCondition).Append(")\n{\n");
+                                }
+                                else
+                                {
+                                    bool branchActive = parentActive && EvaluateCondition(argument, fileId, logicalLine.LineNumber, fileName);
+                                    var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
+                                        $"#if {argument.Trim()}", parentActive);
+                                    conditions.Push(frame);
+                                    EmitBranchStart(result, frame);
+                                }
                                 break;
                             }
 
@@ -143,11 +237,23 @@ public sealed class GlslPreprocessor
                             {
                                 string name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#ifdef");
                                 bool parentActive = active;
-                                bool branchActive = parentActive && IsDefined(name);
-                                var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
-                                    $"#ifdef {name}", parentActive);
-                                conditions.Push(frame);
-                                EmitBranchStart(result, frame);
+                                if (TryGetRuntimeUniform(name, fileName, logicalLine.LineNumber, out string? uniformName))
+                                {
+                                    bool emitRuntime = scope.IsInsideFunction;
+                                    var frame = new ConditionalFrame(parentActive, parentActive, false,
+                                        $"#ifdef {name}", false, false, true, emitRuntime);
+                                    conditions.Push(frame);
+                                    if (parentActive && emitRuntime)
+                                        result.Append("if (").Append(uniformName).Append(")\n{\n");
+                                }
+                                else
+                                {
+                                    bool branchActive = parentActive && IsDefined(name);
+                                    var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
+                                        $"#ifdef {name}", parentActive);
+                                    conditions.Push(frame);
+                                    EmitBranchStart(result, frame);
+                                }
                                 break;
                             }
 
@@ -155,11 +261,23 @@ public sealed class GlslPreprocessor
                             {
                                 string name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#ifndef");
                                 bool parentActive = active;
-                                bool branchActive = parentActive && !IsDefined(name);
-                                var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
-                                    $"#ifndef {name}", parentActive);
-                                conditions.Push(frame);
-                                EmitBranchStart(result, frame);
+                                if (TryGetRuntimeUniform(name, fileName, logicalLine.LineNumber, out string? uniformName))
+                                {
+                                    bool emitRuntime = scope.IsInsideFunction;
+                                    var frame = new ConditionalFrame(parentActive, parentActive, false,
+                                        $"#ifndef {name}", false, false, true, emitRuntime);
+                                    conditions.Push(frame);
+                                    if (parentActive && emitRuntime)
+                                        result.Append("if (!").Append(uniformName).Append(")\n{\n");
+                                }
+                                else
+                                {
+                                    bool branchActive = parentActive && !IsDefined(name);
+                                    var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
+                                        $"#ifndef {name}", parentActive);
+                                    conditions.Push(frame);
+                                    EmitBranchStart(result, frame);
+                                }
                                 break;
                             }
 
@@ -171,6 +289,23 @@ public sealed class GlslPreprocessor
                                 var frame = conditions.Pop();
                                 if (frame.SeenElse)
                                     throw new GlslPreprocessorException(fileName, logicalLine.LineNumber, "#elif after #else.");
+
+                                if (frame.IsRuntime)
+                                {
+                                    if (!TryBuildRuntimeCondition(argument, fileName, logicalLine.LineNumber, out string? runtimeCondition))
+                                        throw new GlslPreprocessorException(fileName, logicalLine.LineNumber,
+                                            "A runtime conditional chain cannot contain a compile-time #elif.");
+
+                                    frame = frame with { BranchText = $"#elif {argument.Trim()}" };
+                                    conditions.Push(frame);
+                                    if (frame.ParentActive && frame.EmitRuntimeControlFlow)
+                                        result.Append("}\nelse if (").Append(runtimeCondition).Append(")\n{\n");
+                                    break;
+                                }
+
+                                if (ContainsRuntimeSymbol(argument))
+                                    throw new GlslPreprocessorException(fileName, logicalLine.LineNumber,
+                                        "A compile-time conditional chain cannot switch to a runtime #elif.");
 
                                 EmitBranchEnd(result, frame);
 
@@ -198,6 +333,15 @@ public sealed class GlslPreprocessor
                                 if (frame.SeenElse)
                                     throw new GlslPreprocessorException(fileName, logicalLine.LineNumber, "Duplicate #else.");
 
+                                if (frame.IsRuntime)
+                                {
+                                    frame = frame with { SeenElse = true, BranchText = "#else" };
+                                    conditions.Push(frame);
+                                    if (frame.ParentActive && frame.EmitRuntimeControlFlow)
+                                        result.Append("}\nelse\n{\n");
+                                    break;
+                                }
+
                                 EmitBranchEnd(result, frame);
 
                                 bool branchActive = frame.ParentActive && !frame.AnyTaken;
@@ -220,7 +364,15 @@ public sealed class GlslPreprocessor
                                     throw new GlslPreprocessorException(fileName, logicalLine.LineNumber, "#endif without matching #if.");
 
                                 var frame = conditions.Pop();
-                                EmitBranchEnd(result, frame);
+                                if (frame.IsRuntime)
+                                {
+                                    if (frame.ParentActive && frame.EmitRuntimeControlFlow)
+                                        result.Append("}\n");
+                                }
+                                else
+                                {
+                                    EmitBranchEnd(result, frame);
+                                }
                                 break;
                             }
 
@@ -268,6 +420,7 @@ public sealed class GlslPreprocessor
 
                 result.Append(ExpandLinePreservingComments(logicalLine.Text, blockCommentAtStart,
                     fileId, logicalLine.LineNumber, fileName)).Append('\n');
+                scope.Process(directiveView);
             }
 
             if (conditions.Count != 0)
@@ -400,6 +553,169 @@ public sealed class GlslPreprocessor
                 return value;
 
             throw new GlslPreprocessorException(fileName, lineNumber, "Empty #include target.");
+        }
+
+        private bool ContainsRuntimeSymbol(string expression)
+        {
+            if (_runtimeDefines == null)
+                return false;
+
+            foreach (var token in Tokenize(expression))
+            {
+                if (token.Kind == TokenKind.Identifier && token.Text != "defined" && _runtimeDefines.ContainsKey(token.Text))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetRuntimeUniform(string symbol, string fileName, int lineNumber, out string? uniformName)
+        {
+            uniformName = null;
+            if (_runtimeDefines == null || !_runtimeDefines.TryGetValue(symbol, out var runtimeDefine))
+                return false;
+
+            ValidateRuntimeMacro(symbol, fileName, lineNumber);
+            _usedRuntimeDefines!.Add(symbol);
+            uniformName = runtimeDefine.UniformName;
+            return true;
+        }
+
+        private void ValidateRuntimeMacro(string symbol, string fileName, int lineNumber)
+        {
+            if (!_macros.TryGetValue(symbol, out var macro))
+                return;
+
+            if (macro.Parameters != null || !string.IsNullOrWhiteSpace(macro.Body))
+                throw new GlslPreprocessorException(fileName, lineNumber,
+                    $"Runtime define '{symbol}' must be a valueless object-like macro.");
+        }
+
+        private bool TryBuildRuntimeCondition(string expression, string fileName, int lineNumber, out string? runtimeExpression)
+        {
+            runtimeExpression = null;
+            if (_runtimeDefines == null)
+                return false;
+
+            var tokens = Tokenize(expression);
+            bool hasRuntime = false;
+            var referenced = new HashSet<string>(StringComparer.Ordinal);
+
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                if (token.Kind != TokenKind.Identifier)
+                    continue;
+
+                if (token.Text == "defined")
+                {
+                    int j = NextSignificant(tokens, i + 1);
+                    if (j < 0)
+                        throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected after defined.");
+
+                    if (tokens[j].Text == "(")
+                    {
+                        int nameIndex = NextSignificant(tokens, j + 1);
+                        if (nameIndex < 0 || tokens[nameIndex].Kind != TokenKind.Identifier)
+                            throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected inside defined(...).");
+                        referenced.Add(tokens[nameIndex].Text);
+                    }
+                    else
+                    {
+                        if (tokens[j].Kind != TokenKind.Identifier)
+                            throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected after defined.");
+                        referenced.Add(tokens[j].Text);
+                    }
+
+                    continue;
+                }
+
+                referenced.Add(token.Text);
+            }
+
+            foreach (string symbol in referenced)
+            {
+                if (_runtimeDefines.ContainsKey(symbol))
+                {
+                    hasRuntime = true;
+                    continue;
+                }
+
+                if (hasRuntime || referenced.Any(_runtimeDefines.ContainsKey))
+                    throw new GlslPreprocessorException(fileName, lineNumber,
+                        $"Runtime condition mixes mapped symbol(s) with unmapped symbol '{symbol}'.");
+            }
+
+            if (!hasRuntime)
+                return false;
+
+            foreach (string symbol in referenced)
+                ValidateRuntimeMacro(symbol, fileName, lineNumber);
+
+            var output = new StringBuilder(expression.Length);
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                if (token.Kind == TokenKind.WhiteSpace)
+                {
+                    output.Append(token.Text);
+                    continue;
+                }
+
+                if (token.Kind == TokenKind.Identifier && token.Text == "defined")
+                {
+                    int j = NextSignificant(tokens, i + 1);
+                    string symbol;
+                    int end;
+                    if (tokens[j].Text == "(")
+                    {
+                        int nameIndex = NextSignificant(tokens, j + 1);
+                        int close = NextSignificant(tokens, nameIndex + 1);
+                        if (close < 0 || tokens[close].Text != ")")
+                            throw new GlslPreprocessorException(fileName, lineNumber, "Missing ')' after defined(...).");
+                        symbol = tokens[nameIndex].Text;
+                        end = close;
+                    }
+                    else
+                    {
+                        symbol = tokens[j].Text;
+                        end = j;
+                    }
+
+                    output.Append(_runtimeDefines[symbol].UniformName);
+                    _usedRuntimeDefines!.Add(symbol);
+                    i = end;
+                    continue;
+                }
+
+                if (token.Kind == TokenKind.Identifier)
+                {
+                    output.Append(_runtimeDefines[token.Text].UniformName);
+                    _usedRuntimeDefines!.Add(token.Text);
+                    continue;
+                }
+
+                if (token.Kind == TokenKind.Number)
+                {
+                    if (token.Text == "0")
+                        output.Append("false");
+                    else if (token.Text == "1")
+                        output.Append("true");
+                    else
+                        throw new GlslPreprocessorException(fileName, lineNumber,
+                            $"Only boolean literals 0 and 1 are supported in runtime conditions, got '{token.Text}'.");
+                    continue;
+                }
+
+                if (token.Text is not "!" and not "&&" and not "||" and not "(" and not ")")
+                    throw new GlslPreprocessorException(fileName, lineNumber,
+                        $"Operator '{token.Text}' is not supported in runtime boolean conditions.");
+
+                output.Append(token.Text);
+            }
+
+            runtimeExpression = output.ToString();
+            return true;
         }
 
         private bool EvaluateCondition(string expression, int fileId, int lineNumber, string fileName)
@@ -754,7 +1070,44 @@ public sealed class GlslPreprocessor
         bool AnyTaken,
         string BranchText,
         bool EmitDebug,
-        bool SeenElse = false);
+        bool SeenElse = false,
+        bool IsRuntime = false,
+        bool EmitRuntimeControlFlow = false);
+
+    private sealed class GlslScopeTracker
+    {
+        private readonly Stack<bool> _braces = new();
+        private string? _previousToken;
+        private int _functionDepth;
+
+        public bool IsInsideFunction => _functionDepth > 0;
+
+        public void Process(string line)
+        {
+            var tokens = Tokenize(line);
+
+            foreach (var token in tokens)
+            {
+                if (token.Kind == TokenKind.WhiteSpace)
+                    continue;
+
+                if (token.Text == "{")
+                {
+                    bool isFunction = _functionDepth == 0 && _previousToken == ")";
+                    _braces.Push(isFunction);
+                    if (isFunction)
+                        _functionDepth++;
+                }
+                else if (token.Text == "}")
+                {
+                    if (_braces.Count > 0 && _braces.Pop())
+                        _functionDepth--;
+                }
+
+                _previousToken = token.Text;
+            }
+        }
+    }
 
     private readonly record struct LogicalLine(string Text, int LineNumber);
 

@@ -1,4 +1,4 @@
-﻿#include "Shared/tonemap.glsl"
+﻿#include "Shared/fragment_post.glsl"
 
 #if defined(USE_VERTEX_COLOR) || defined(COMBINE_VERTEX_COLOR)
 	in vec4 fColor;
@@ -6,7 +6,11 @@
 
 uniform vec4 uColor;
 
-layout(location=0) out vec4 FragColor;
+#ifndef FRAG_LOCATION
+	#define FRAG_LOCATION 0
+#endif
+
+layout(location=FRAG_LOCATION) out vec4 FragColor;
 
 void main()
 {    
@@ -20,5 +24,7 @@ void main()
 		FragColor = uColor;
 	#endif
 
-	toneMapColor(FragColor);
+	doPost(FragColor);
+
+	fixSrgbColor(FragColor);
 }

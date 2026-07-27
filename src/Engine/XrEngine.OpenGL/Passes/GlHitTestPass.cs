@@ -72,9 +72,9 @@ namespace XrEngine.OpenGL
             return _passTarget.RenderTarget;
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            var effect = (HitTestEffect)_programInstance!.Material;
+            var effect = (HitTestEffect)instance!.Material;
 
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
@@ -83,13 +83,13 @@ namespace XrEngine.OpenGL
             if (drawMaterial is ShaderMaterial mat)
                 effect.HasSkin = mat.HasSkin;
 
-            return base.UpdateProgram(updateContext, drawMaterial);
+            return base.UpdateProgram(instance, updateContext, drawMaterial);
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Object3D model)
         {
             var objId = (uint)_objects.Count;
-            var effect = (HitTestEffect)_programInstance!.Material;
+            var effect = (HitTestEffect)instance!.Material;
             effect.DrawId = objId;
             return UpdateProgramResult.Changed;
         }
@@ -152,7 +152,7 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender(GlUpdateContext ctx)
         {
-            _passTarget.RenderTarget!.End(false);
+            _passTarget.RenderTarget!.End(discardDepth: false);
         }
 
         protected override ShaderMaterial CreateMaterial()

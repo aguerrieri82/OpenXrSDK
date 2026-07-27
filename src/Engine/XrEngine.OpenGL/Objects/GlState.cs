@@ -8,8 +8,8 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 
 using XrMath;
 using System.Runtime.CompilerServices;
-using Silk.NET.Core.Native;
-using System.Diagnostics;
+
+
 
 namespace XrEngine.OpenGL
 {
@@ -50,6 +50,7 @@ namespace XrEngine.OpenGL
             BufferTargets.Clear();
             Features.Clear();
             VertexArray = null;
+            ActiveShadingRate = null;
             TexturesSlots.Clear();
             BufferSlots.Clear();
 
@@ -119,6 +120,9 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
+
+            if (ActiveShadingRate != null)
+                SetShadingRate(ActiveShadingRate.Value, true);
 
             for (var i = 0; i < SamplerSlots.Length; i++)
                 BindSampler(SamplerSlots[i], i, true);
@@ -251,6 +255,26 @@ namespace XrEngine.OpenGL
                 BindSampler(0, slot);
 
             glTex.Slot = slot;
+        }
+
+        public void SetShadingRate(int rate, bool force = false)
+        {
+            if (!_gl.IsExtensionPresent("GL_EXT_fragment_shading_rate"))
+                return;
+
+            if (rate != ActiveShadingRate || force)
+            {
+                var realRate = rate switch
+                {
+                    1 => ShadingRate.Rate1X1PixelsExt,
+                    2 => ShadingRate.Rate2X2PixelsExt,
+                    4 => ShadingRate.Rate4X4PixelsExt,
+                    _ => throw new NotSupportedException()
+                };
+                _gl.ShadingRateExt.ShadingRate(realRate);
+            }
+
+            ActiveShadingRate = rate;
         }
 
         public bool IsFeatureEnabled(EnableCap cap, bool useCache = true)
@@ -434,19 +458,42 @@ namespace XrEngine.OpenGL
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
-            if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
-            {
-                FrameBufferTargets[target] = value;
+            bool changed;
 
-                if (target == FramebufferTarget.Framebuffer)
-                {
+            if (target == FramebufferTarget.Framebuffer)
+            {
+                changed =
+                    !FrameBufferTargets.TryGetValue(FramebufferTarget.ReadFramebuffer, out var read) || read != value ||
+                    !FrameBufferTargets.TryGetValue(FramebufferTarget.DrawFramebuffer, out var draw) || draw != value;
+            }
+            else
+            {
+                changed = !FrameBufferTargets.TryGetValue(target, out var current) || current != value;
+            }
+
+            if (!changed && !force)
+                return;
+
+            _gl.BindFramebuffer(target, value);
+
+            switch (target)
+            {
+                case FramebufferTarget.Framebuffer:
+                    FrameBufferTargets[FramebufferTarget.Framebuffer] = value;
                     FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
                     FrameBufferTargets[FramebufferTarget.DrawFramebuffer] = value;
-                }
-                else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue != value)
-                    FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
+                    break;
 
-                _gl.BindFramebuffer(target, value);
+                case FramebufferTarget.DrawFramebuffer:
+                    FrameBufferTargets[FramebufferTarget.DrawFramebuffer] = value;
+
+                    // GL_FRAMEBUFFER_BINDING aliases GL_DRAW_FRAMEBUFFER_BINDING.
+                    FrameBufferTargets[FramebufferTarget.Framebuffer] = value;
+                    break;
+
+                case FramebufferTarget.ReadFramebuffer:
+                    FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
+                    break;
             }
         }
 
@@ -631,6 +678,35 @@ namespace XrEngine.OpenGL
             ActiveTexture = null;
         }
 
+        public void ConfigureCaps(ShaderMaterial material)
+        {
+            SetCullFace(material.CullFront ? TriangleFace.Front : TriangleFace.Back);
+            SetUseDepth(material.UseDepth);
+            SetWriteDepth(material.WriteDepth);
+            SetDoubleSided(material.DoubleSided);
+            SetWriteColor(material.WriteColor);
+            SetAlphaMode(material.Alpha);
+            SetWireframe(material is WireframeMaterial);
+
+            SetStencilFunc((GlStencilFunction)material.StencilFunction);
+            SetWriteStencil(material.WriteStencil);
+            SetStencilRef(material.CompareStencilMask);
+
+            EnableFeature(EnableCap.ClipDistance0, material.UseClipDistance);
+
+            if (material.PolygonOffset.Y != 0)
+            {
+                EnableFeature(EnableCap.PolygonOffsetFill, true);
+                _gl.PolygonOffset(material.PolygonOffset.X, material.PolygonOffset.Y);
+            }
+            else
+                EnableFeature(EnableCap.PolygonOffsetFill, false);
+
+            if (material is ILineMaterial line)
+                SetLineWidth(line.LineWidth);
+
+            Commit();
+        }
 
 
         public float? ClearDepth;
@@ -667,6 +743,9 @@ namespace XrEngine.OpenGL
 
         public uint? VertexArray;
 
+        public int? ActiveShadingRate;
+
+
         public readonly Dictionary<EnableCap, bool> Features = [];
 
         public readonly Dictionary<TextureTarget, uint[]> TexturesSlots = [];
@@ -680,6 +759,7 @@ namespace XrEngine.OpenGL
         public readonly uint[] SamplerSlots = new uint[MAX_TEX_SLOTS];
 
         public static GlState Current => _current ?? throw new InvalidOperationException("No current state for this thread");
+
 
         public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
 

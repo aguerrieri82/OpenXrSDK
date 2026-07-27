@@ -163,7 +163,7 @@ namespace XrEngine.OpenGL
 
             DrawQuad();
 
-            _passTarget.RenderTarget!.End(false);
+            _passTarget.RenderTarget!.End(discardDepth: false);
 
             _renderer.RenderTarget!.Begin(camera);
 

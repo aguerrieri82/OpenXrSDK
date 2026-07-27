@@ -9,6 +9,8 @@ using OpenXr.Framework;
 
 namespace XrEngine.OpenGL
 {
+
+    [Obsolete]
     public class GlQuodCullPass : GlBaseRenderPass
     {
 
@@ -48,10 +50,7 @@ namespace XrEngine.OpenGL
                 _program.AddFeature("MULTISAMPLE");
                 _program.AddFeature($"DEPTH_SAMPLES {sampleCount}");
             }
-            /*
-            _program.AddExtension("GL_OVR_multiview2");
-            _program.AddFeature("MULTI_VIEW");
-            */
+
             _program.Build();
             _quod = quod;
         }

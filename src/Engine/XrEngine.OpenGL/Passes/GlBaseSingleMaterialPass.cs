@@ -4,7 +4,8 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlBaseSingleMaterialPass : GlBaseRenderPass
     {
-        protected GlProgramInstance? _programInstance;
+        protected GlProgramInstance? _progInstBase;
+        protected GlProgramInstance? _progInstMulti;
         protected bool _useInstanceDraw;
 
         protected enum UpdateProgramResult
@@ -24,7 +25,10 @@ namespace XrEngine.OpenGL
 
         protected override void Initialize()
         {
-            _programInstance = GetProgramInstance(CreateMaterial());
+            _progInstBase = GetProgramInstance(CreateMaterial());
+
+            if (_useInstanceDraw)
+                _progInstMulti = GetProgramInstance(CreateMaterial());
         }
 
         protected virtual void Draw(DrawContent draw)
@@ -34,23 +38,23 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(GlUpdateContext ctx)
         {
-            Debug.Assert(_programInstance != null);
+            Debug.Assert(_progInstBase != null);
 
             ctx.Stage = UpdateShaderStage.Shader;
 
-            UseProgram(_programInstance, false);
+            UseProgram(_progInstBase, false);
 
             return true;
         }
 
-        protected void UpdateMaterial(UpdateShaderContext ctx)
+        protected void UpdateMaterial(GlProgramInstance instance, UpdateShaderContext ctx)
         {
             var curStage = ctx.Stage;
 
             ctx.Stage = UpdateShaderStage.Material;
 
-            _programInstance!.UpdateUniforms(ctx, false);
-            _programInstance!.UpdateBuffers(ctx);
+            instance.UpdateUniforms(ctx, false);
+            instance.UpdateBuffers(ctx);
 
             ctx.Stage = curStage;
         }
@@ -62,25 +66,24 @@ namespace XrEngine.OpenGL
             return true;
         }
 
-        protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected virtual UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext ctx, Material drawMaterial)
         {
             if (!CanDraw(drawMaterial))
                 return UpdateProgramResult.Skip;
 
-            if (_programInstance!.UpdateProgram(updateContext))
+            if (instance.UpdateProgram(ctx))
                 return UpdateProgramResult.Changed;
 
             return UpdateProgramResult.Unchanged;
         }
 
-        protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        protected virtual UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext ctx, Object3D model)
         {
             return UpdateProgramResult.Unchanged;
         }
 
         public override void RenderLayer(GlLayer layer)
         {
-            Debug.Assert(_programInstance != null);
 
             var updateContext = _renderer.UpdateContext;
 
@@ -98,22 +101,32 @@ namespace XrEngine.OpenGL
 
                     if (matContent.IsHidden)
                         continue;
+                    /*
+                    var curInst = matContent.UseInstanceDraw && _useInstanceDraw ? 
+                        _progInstMulti : _progInstBase;
+                    */
+
+                    var curInst = _progInstBase;
+
+                    Debug.Assert(curInst != null);
+
+                    updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     updateContext.Stage = UpdateShaderStage.Material;
 
                     var drawMaterial = matContent.ProgramInstance!.Material;
 
-                    var upRes = UpdateProgram(updateContext, drawMaterial);
+                    var upRes = UpdateProgram(curInst, updateContext, drawMaterial);
 
                     if (upRes == UpdateProgramResult.Skip)
                         continue;
 
-                    _renderer.ConfigureCaps(_programInstance.Material);
+                    _renderer.ConfigureCaps(curInst.Material);
 
                     if (firstUpdate || upRes == UpdateProgramResult.Changed)
                     {
-                        _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
-                        _programInstance.UpdateBuffers(updateContext);
+                        curInst.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
+                        curInst.UpdateBuffers(updateContext);
                         firstUpdate = false;
                     }
 
@@ -132,7 +145,9 @@ namespace XrEngine.OpenGL
                         updateContext.Stage = UpdateShaderStage.Model;
 
                         if (_useInstanceDraw && verContent.Draw != null && verContent.Contents.Any(CanDraw))
+                        {
                             verContent.Draw();
+                        }
                         else
                         {
                             foreach (var draw in verContent.Contents)
@@ -142,12 +157,12 @@ namespace XrEngine.OpenGL
 
                                 updateContext.Model = draw.Object;
 
-                                upRes = UpdateProgram(updateContext, draw.Object!);
+                                upRes = UpdateProgram(curInst, updateContext, draw.Object!);
 
                                 if (upRes == UpdateProgramResult.Skip)
                                     continue;
 
-                                _programInstance.UpdateModel(updateContext);
+                                curInst.UpdateModel(updateContext);
 
                                 Draw(draw);
                             }
@@ -174,8 +189,11 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _programInstance?.Dispose();
-            _programInstance = null;
+            _progInstBase?.Dispose();
+            _progInstBase = null;
+
+            _progInstMulti?.Dispose();
+            _progInstMulti = null;
             base.Dispose();
         }
 

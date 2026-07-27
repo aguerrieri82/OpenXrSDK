@@ -126,5 +126,7 @@ namespace XrEngine.OpenGL
         public IShaderHandler? ShaderHandler => GlMultiViewShaderHandler.Instance;
 
         public GlRenderTargetFlags Flags { get; set; }
+
+        public int ShadingRate { get; set; }
     }
 }

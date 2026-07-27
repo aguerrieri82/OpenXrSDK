@@ -12,6 +12,7 @@ using SkiaSharp;
 using System.Diagnostics;
 using Common.Interop;
 using XrEngine.Helpers;
+using System.Diagnostics.CodeAnalysis;
 
 
 namespace XrEngine.OpenGL
@@ -44,9 +45,12 @@ namespace XrEngine.OpenGL
         protected readonly Thread _thread;
         protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
-        protected GlTextureFilter _textureFilter;
+        [MaybeNull]
+        protected readonly GlTextureFilter _textureFilter;
+        [MaybeNull]
         protected HashSet<string> _extensions;
         protected bool _isDebug;
+
 
         public static class Props
         {
@@ -96,6 +100,7 @@ namespace XrEngine.OpenGL
 
             if (isDummy)
                 return;
+
 
             if (_options.ShadowMap.Mode != ShadowMapMode.None)
             {
@@ -160,7 +165,7 @@ namespace XrEngine.OpenGL
             PbrMaterial.SHADER.ToneMap = _options.ToneMap;
         }
 
-        #endregion
+#endregion
 
         #region STATE
 
@@ -226,35 +231,6 @@ namespace XrEngine.OpenGL
             _gl.Disable(EnableCap.SampleCoverage);
         }
 
-        public void ConfigureCaps(ShaderMaterial material)
-        {
-            _glState.SetCullFace(material.CullFront ? TriangleFace.Front : TriangleFace.Back);
-            _glState.SetUseDepth(material.UseDepth);
-            _glState.SetWriteDepth(material.WriteDepth);
-            _glState.SetDoubleSided(material.DoubleSided);
-            _glState.SetWriteColor(material.WriteColor);
-            _glState.SetAlphaMode(material.Alpha);
-            _glState.SetWireframe(material is WireframeMaterial);
-
-            _glState.SetStencilFunc((GlStencilFunction)material.StencilFunction);
-            _glState.SetWriteStencil(material.WriteStencil);
-            _glState.SetStencilRef(material.CompareStencilMask);
-
-            _glState.EnableFeature(EnableCap.ClipDistance0, material.UseClipDistance);
-
-            if (material.PolygonOffset.Y != 0)
-            {
-                _glState.EnableFeature(EnableCap.PolygonOffsetFill, true);
-                _gl.PolygonOffset(material.PolygonOffset.X, material.PolygonOffset.Y);
-            }
-            else
-                _glState.EnableFeature(EnableCap.PolygonOffsetFill, false);
-
-            if (material is ILineMaterial line)
-                _glState.SetLineWidth(line.LineWidth);
-
-            _glState.Commit();
-        }
 
 #endregion
 
@@ -263,6 +239,17 @@ namespace XrEngine.OpenGL
         public IEnumerable<T> Passes<T>() where T : IGlRenderPass
         {
             return _renderPasses.OfType<T>();
+        }
+
+        public T EnsurePass<T>(Func<T> factory) where T : IGlRenderPass
+        {
+            var res = Passes<T>().FirstOrDefault();
+            if (res == null)
+            {
+                res = factory();
+                AddPass(res, -1); 
+            }
+            return res;
         }
 
         public void AddPass(IGlRenderPass pass, int position)
@@ -770,7 +757,7 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            _textureFilter.Dispose();
+            _textureFilter?.Dispose();
 
             foreach (var pass in _renderPasses)
                 pass.Dispose();
@@ -815,7 +802,18 @@ namespace XrEngine.OpenGL
                 _updateCtx.IsSrgbTarget = false;
 
             _updateCtx.IsSrgbAutoEncode = _glState.IsFeatureEnabled(EnableCap.FramebufferSrgb);
+
+            _glState.SetShadingRate(Math.Max(1, _target!.ShadingRate));
         }
+
+        public void ConfigureCaps(ShaderMaterial material)
+        {
+            _glState.ConfigureCaps(material);
+
+            _glState.SetShadingRate(Math.Max(1, Math.Max(material.ShadingRate, _target!.ShadingRate)));
+        }
+
+
 
         #endregion
 
@@ -835,7 +833,7 @@ namespace XrEngine.OpenGL
 
         public bool IsDebug => _isDebug;
 
-        public IReadOnlySet<string> Extensions => _extensions;
+        public IReadOnlySet<string> Extensions => _extensions ?? [];
 
         public static int SuspendErrors { get; set; }
 

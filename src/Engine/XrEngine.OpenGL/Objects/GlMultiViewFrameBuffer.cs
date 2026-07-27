@@ -133,6 +133,11 @@ namespace XrEngine.OpenGL
             }
 
             _isDirty = true;
+
+            _attachments[slot] = new GlAttachmentInfo
+            {
+                Attachment = attachment,
+            };
         }
 
         public override void Detach(FramebufferAttachment attachment)

@@ -1,19 +1,51 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using ExtShaderFramebufferFetchNonCoherent = Silk.NET.OpenGLES.Extensions.QCOM.QComShaderFramebufferFetchNoncoherent;
+using ExtFragmentShadingRate = Silk.NET.OpenGLES.Extensions.EXT.ExtFragmentShadingRate;
 #else
 using Silk.NET.OpenGL;
+using ExtFragmentShadingRate = Silk.NET.OpenGL.Extensions.EXT.ExtFragmentShadingRate;
+using ExtShaderFramebufferFetchNonCoherent = Silk.NET.OpenGL.Extensions.EXT.ExtShaderFramebufferFetchNonCoherent;
+
 #endif
 
 using System.Diagnostics;
 using XrEngine.Compression;
 
-
 namespace XrEngine.OpenGL
 {
     public static class GlExtensions
     {
-        const TextureTarget GL_TEXTURE_EXTERNAL_OES = (TextureTarget)0x8D65;
-        const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
+        public const TextureTarget GL_TEXTURE_EXTERNAL_OES = (TextureTarget)0x8D65;
+        public const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
+
+        static ExtShaderFramebufferFetchNonCoherent? _fbFetchExt;
+
+        static ExtFragmentShadingRate? _fsRateExt;
+
+
+        extension(GL gl)
+        {
+            public ExtFragmentShadingRate ShadingRateExt
+            {
+                get
+                {
+                    if (_fsRateExt == null)
+                        gl.TryGetExtension(out _fsRateExt);
+                    return _fsRateExt ?? throw new NotSupportedException();
+                }
+            }
+
+            public ExtShaderFramebufferFetchNonCoherent FbFetchNonCoherentExt
+            {
+                get
+                {
+                    if (_fbFetchExt == null)
+                        gl.TryGetExtension(out _fbFetchExt);
+                    return _fbFetchExt ?? throw new NotSupportedException();
+                }
+            }
+        }
 
         public static void ClearError(this GL gl)
         {

@@ -11,6 +11,8 @@ namespace OpenXr.Framework
 
         public Extent2Di ViewSize;
 
+        public Extent2Di DepthSize;
+
         public NativeArray<SwapchainImageBaseHeader>? ColorImages;
 
         public NativeArray<SwapchainImageBaseHeader>? DepthImages;

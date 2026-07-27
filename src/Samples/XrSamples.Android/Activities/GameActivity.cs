@@ -110,7 +110,6 @@ namespace XrSamples.Android.Activities
                 builder.UseOpenGL(opt =>
                 {
                     opt.UseDepthPass = _settings.EnableDepthPass;
-                    opt.UseOcclusionQuery = false;
 
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
@@ -123,13 +122,14 @@ namespace XrSamples.Android.Activities
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
 
-                    PbrMaterial.SHADER.UseSharedSSBO = true;
-
                     opt.ToneMap = ToneMapMode.None;
 
-                    opt.FloatPrecision = XrEngine.OpenGL.ShaderPrecision.High;
-                    opt.SamplerPrecision = XrEngine.OpenGL.ShaderPrecision.Medium;
-                    opt.IntPrecision = XrEngine.OpenGL.ShaderPrecision.High;
+                    opt.FloatPrecision = ShaderPrecision.High;
+                    opt.SamplerPrecision = ShaderPrecision.Medium;
+                    opt.IntPrecision = ShaderPrecision.High;
+
+                    opt.InvalidateDepth = false;
+
                 });
             else
                 ImageLight.UseCache = false;
@@ -138,6 +138,7 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
+                   .UseProjDepth(XrProjDepthMode.DepthPass, 0.5f)
                    .RemovePlaneGrid();
                    //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 

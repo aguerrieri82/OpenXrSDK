@@ -1,7 +1,11 @@
-﻿#ifdef MULTI_VIEW
-    layout(binding = 0) uniform sampler2DArray srcImage;
-#else
-    layout(binding = 0) uniform sampler2D srcImage;
+﻿#ifndef FB_MODE
+
+    #ifdef MULTI_VIEW
+        layout(binding = 0) uniform sampler2DArray srcImage;
+    #else
+        layout(binding = 0) uniform sampler2D srcImage;
+    #endif
+
 #endif
 
 #ifndef OUTLINE_SIZE
@@ -10,7 +14,9 @@
 
 uniform vec4 uColor;
 
-layout(location = FRAG_LOCATON) out vec4 fragColor;
+
+layout(location = COLOR_LOCATON) out vec4 fragColor;
+
 
 #ifdef MULTI_VIEW
 

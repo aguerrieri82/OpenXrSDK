@@ -106,23 +106,23 @@ namespace XrEngine.OpenGL
             return base.BeginRender(ctx);
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            _programInstance!.Material.DoubleSided = drawMaterial.DoubleSided;
+            instance!.Material.DoubleSided = drawMaterial.DoubleSided;
 
             if (drawMaterial is ShaderMaterial mat)
-                _programInstance!.Material.HasSkin = mat.HasSkin;
+                instance!.Material.HasSkin = mat.HasSkin;
 
-            return base.UpdateProgram(updateContext, drawMaterial);
+            return base.UpdateProgram(instance, updateContext, drawMaterial);
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Object3D model)
         {
             if (!Source!.HasOutline(model, out var color))
                 return UpdateProgramResult.Skip;
 
-            if (_programInstance!.Material.UpdateColor(Color.White))
-                UpdateMaterial(updateContext);
+            if (instance!.Material.UpdateColor(Color.White))
+                UpdateMaterial(instance, updateContext);
 
             return UpdateProgramResult.Unchanged;
         }
@@ -131,7 +131,7 @@ namespace XrEngine.OpenGL
         {
             var camera = ctx.PassCamera!;
 
-            _passTarget.RenderTarget!.End(false);
+            _passTarget.RenderTarget!.End(discardDepth: true);
 
             if (!_isDownsample)
             {
@@ -165,7 +165,7 @@ namespace XrEngine.OpenGL
 
             if (_isDownsample)
             {
-                _tempTarget!.RenderTarget!.End(false);
+                _tempTarget!.RenderTarget!.End(discardDepth: true);
 
                 _renderer.RenderTarget!.Begin(ctx.MainCamera!);
 

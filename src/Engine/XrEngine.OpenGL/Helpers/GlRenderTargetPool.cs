@@ -1,9 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+
 #else
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -94,18 +96,25 @@ namespace XrEngine.OpenGL
             if (!_targets.TryGetValue(targetId, out var target))
             {
                 GlTexture? glDepth = null;
+                GlTexture? glColor = null;
+                GlTexture? renderColor = null;
 
                 var texSampleCount = _multiView ? 1 : sampleCount;
 
-                var glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
-                glColor.SetLabel((Name ?? "RT Pool") + " - Color");
-                var renderColor = glColor;
-
-                if (UseIntermediateColor)
+                if (colorTex != 0)
                 {
-                    _intermediateColor ??= CreateIntermediateColor(glColor, texSampleCount);
-                    _intermediateColor.SetLabel((Name ?? "RT Pool") + " - Intermediate");
-                    renderColor = _intermediateColor;
+                    glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
+
+                    glColor.SetLabel((Name ?? "RT Pool") + " - Color");
+
+                    renderColor = glColor;
+
+                    if (UseIntermediateColor)
+                    {
+                        _intermediateColor ??= CreateIntermediateColor(glColor, texSampleCount);
+                        _intermediateColor.SetLabel((Name ?? "RT Pool") + " - Intermediate");
+                        renderColor = _intermediateColor;
+                    }
                 }
 
                 if (depthTex != 0)
@@ -115,13 +124,18 @@ namespace XrEngine.OpenGL
                 {
                     var multiView = new GlMultiViewRenderTarget(_gl);
 
-                    if (createDepth)
-                        glDepth ??= CreateDepth(renderColor, 2, texSampleCount);
-
+                    if (createDepth && glDepth == null)
+                    {
+                        Debug.Assert(renderColor != null);
+                        glDepth = CreateDepth(renderColor, 2, texSampleCount);
+                    }
+   
                     multiView.FrameBuffer.Configure(renderColor, glDepth, sampleCount);
 
                     if (UseIntermediateColor)
                     {
+                        Debug.Assert(glColor != null);
+
                         multiView.FrameBuffer.Attach(glColor, FramebufferAttachment.ColorAttachment1, false);
                         multiView.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
                         multiView.FrameBuffer.Check();
@@ -142,8 +156,10 @@ namespace XrEngine.OpenGL
 
                     IGlRenderAttachment? depthAttachment = glDepth;
 
-                    if (depthAttachment == null && createDepth)
+                    if (depthAttachment == null && createDepth && glDepth == null)
                     {
+                        Debug.Assert(renderColor != null);
+
                         if (useRenderTarget)
                         {
                             var renderBuf = new GlRenderBuffer(_gl);
@@ -153,7 +169,7 @@ namespace XrEngine.OpenGL
                         }
                         else
                         {
-                            glDepth ??= CreateDepth(renderColor, 1, texSampleCount);
+                            glDepth = CreateDepth(renderColor, 1, texSampleCount);
                             depthAttachment = glDepth;
                         }
                     }
@@ -165,6 +181,8 @@ namespace XrEngine.OpenGL
 
                     if (UseIntermediateColor)
                     {
+                        Debug.Assert(glColor != null);
+
                         singleView.FrameBuffer.Attach(glColor, FramebufferAttachment.ColorAttachment1, false);
                         singleView.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
                         singleView.FrameBuffer.Check();

@@ -49,6 +49,10 @@ namespace XrEngine
             if (Color.IsSrgb)
                 bld.AddFeature("COLOR_IS_SRGB");
 
+            bld.AddFeature("USE_INSTANCE", ctx => ctx.UseInstanceDraw);
+
+            bld.AddFeature($"FRAG_LOCATION {Location}");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uColor", Color);
@@ -62,5 +66,7 @@ namespace XrEngine
         public Color ShadowColor { get; set; }
 
         public Color Color { get; set; }
+
+        public int Location { get; set; }
     }
 }

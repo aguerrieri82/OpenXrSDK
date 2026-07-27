@@ -29,8 +29,10 @@ namespace XrEngine.OpenXr
 
             _multiView = multiView;
 
-            _pool = new GlRenderTargetPool(renderer.GL, multiView);
-            _pool.Name = "Motion Vectors";
+            _pool = new GlRenderTargetPool(renderer.GL, multiView)
+            {
+                Name = "Motion Vectors"
+            };
 
             _isEditor = XrPlatform.IsEditor;
 
@@ -67,7 +69,7 @@ namespace XrEngine.OpenXr
             return true;
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
             var effect = MotionVectorEffect.Instance;
 
@@ -78,7 +80,7 @@ namespace XrEngine.OpenXr
             if (drawMaterial is ShaderMaterial mat)
                 effect.HasSkin = mat.HasSkin;
 
-            return base.UpdateProgram(updateContext, drawMaterial);
+            return base.UpdateProgram(instance, updateContext, drawMaterial);
         }
 
         protected override bool BeginRender(GlUpdateContext ctx)
@@ -92,6 +94,8 @@ namespace XrEngine.OpenXr
                 _renderTarget = _pool.GetRenderTarget(_debugColor!, 0, 1, camera.ActiveEye);
             else
                 _renderTarget = _pool.GetRenderTarget(_colorTex, _depthTex, 1, camera.ActiveEye);
+
+            _renderTarget.ShadingRate = 2;
 
             _renderTarget.Begin(camera);
 
@@ -109,12 +113,11 @@ namespace XrEngine.OpenXr
         {
             var camera = ctx.PassCamera!;
 
-            MotionVectorEffect.Instance.EndPass(camera);
-
             _renderTarget?.End(false);
 
             if (camera.ActiveEye == -1 || camera.ActiveEye == 1)
             {
+                MotionVectorEffect.Instance.EndPass(camera);
                 _colorTex = 0;
                 _depthTex = 0;
             }

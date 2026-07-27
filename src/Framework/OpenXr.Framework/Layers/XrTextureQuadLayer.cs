@@ -42,7 +42,7 @@ namespace OpenXr.Framework
             {
                 _swapchain.Create(extent,
                     _xrApp.RenderOptions.ColorFormat, _eye != -1 ? 2u : 1u,
-                    SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit, 1, false);
+                    SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
             }
 
             _images = _swapchain.EnumerateImages();

@@ -16,10 +16,20 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             _resolve = new();
-            _passTarget = new GlRenderPassTarget(renderer.GL);
-            _passTarget.Name = "Resolve";
+
+            _passTarget = new GlRenderPassTarget(renderer.GL)
+            {
+                Name = "Resolve"
+            };
 
             _resolve.ToneMap = _renderer.Options.ToneMap;
+            _resolve.UseFetchRate = _gl.IsExtensionPresent("GL_QCOM_shader_framebuffer_fetch_rate");
+
+            if (_gl.IsExtensionPresent("GL_QCOM_shader_framebuffer_fetch_noncoherent"))
+            {
+                _resolve.UseFbNonCoherent = true;
+                _renderer.State.EnableFeature(EnableCap.FramebufferFetchNoncoherentQCom, true);
+            }
 
             Context.Implement<IToneMapper>(this);
         }
@@ -29,7 +39,7 @@ namespace XrEngine.OpenGL
             if (!IsEnabled)
                 return;
 
-            _resolve.EncodeSrgb = ctx.NeedSrgbEncode;
+            //_resolve.EncodeSrgb = ctx.NeedSrgbEncode;
 
             if (_renderer.RenderTarget is GlDefaultRenderTarget def)
             {
@@ -68,6 +78,9 @@ namespace XrEngine.OpenGL
                     _resolve.Texture = null;
                     _resolve.NotifyChanged();
                 }
+
+                if (_resolve.UseFbNonCoherent)
+                    _gl.FbFetchNonCoherentExt.FramebufferFetchBarrier();
 
                 UseEffect(_resolve);
 

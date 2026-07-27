@@ -1,9 +1,9 @@
 #include "uniforms.glsl"
 #include "../Shared/shadow.glsl"
 #include "../Shared/env_depth.glsl"
-#include "../Shared/tonemap.glsl"
 #include "../Shared/planar_reflection.glsl"
 #include "../Shared/consts.glsl"
+#include "../Shared/fragment_post.glsl"
 
 #if !defined(HAS_CLIP_VOLUME) && !defined(HAS_COLORMAP_PROJ) && ALPHA_MODE != ALPHA_MASK
 	layout(early_fragment_tests) in;
@@ -502,17 +502,7 @@ void main()
     color3 += emissive;
 #endif
 
-
-#ifdef TONE_MAP
-
-    #if TONE_MAP == 1
-        color3.rgb = toneMap(color3.rgb);
-    #endif
-
-    #if TONE_MAP == 2
-        color3.rgb = toneMapNeutral(color3.rgb);
-    #endif
-#endif
+doPostRgb(color3);
 
 #if defined(SRGB_ENCODE) 
     color3.rgb = linearTosRGB(color3.rgb);

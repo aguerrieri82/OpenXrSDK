@@ -18,6 +18,8 @@ namespace XrEngine.OpenGL
 
         void Detach(FramebufferAttachment slot);
 
+        GlTexture GetOrCreateEffect(FramebufferAttachment slot, TextureFormat format);
+
         GlTexture GetOrCreateEffect(FramebufferAttachment slot);
 
         void CopyTo(IGlFrameBuffer dst, ClearBufferMask mask = ClearBufferMask.ColorBufferBit);

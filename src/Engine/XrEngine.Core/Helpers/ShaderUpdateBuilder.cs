@@ -20,6 +20,8 @@ namespace XrEngine
 
         public SortedSet<string>? Features;
 
+        public SortedSet<string>? DynamicFeatures;
+
         public HashSet<string>? Extensions;
 
         public long ShaderVersion;
@@ -328,6 +330,17 @@ namespace XrEngine
         {
             _result.Features ??= [];
             _result.Features.Add(name);
+        }
+
+        public readonly void AddFeature(string name, Func<UpdateShaderContext, bool> dynamicValue)
+        {
+            _result.DynamicFeatures ??= [];
+            _result.DynamicFeatures.Add(name);
+
+            ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform(name, dynamicValue(ctx));
+            });
         }
 
         public readonly void AddExtension(string name)

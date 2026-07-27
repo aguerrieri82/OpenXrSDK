@@ -97,7 +97,8 @@ namespace XrEngine.OpenGL
                 Use = false,
                 Color = new Color(1, 1, 0, 0.7f),
                 Size = 2,
-                DownsampleFactor = 1.5f
+                DownsampleFactor = 1f
+                //DownsampleFactor = 1.5f
             };
 
 

@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenXr
 {
@@ -9,11 +10,23 @@ namespace XrEngine.OpenXr
         FilamentVulkan
     }
 
+    public enum XrProjDepthMode
+    {
+        None,
+        DepthPass,
+        DepthCopy
+    }
+
+
     public class XrEngineAppOptions
     {
         public GraphicDriver Driver { get; set; }
 
         public XrRenderMode RenderMode { get; set; }
+
+        public XrProjDepthMode ProjDepthMode { get; set; }  
+
+        public float ProjDepthScale { get; set; }
 
         public float ResolutionScale { get; set; }
 
@@ -50,6 +63,15 @@ namespace XrEngine.OpenXr
             _xrApp.RenderOptions.SampleCount = _options.UseIntermediate ? 1 : _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
             _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
+            _xrApp.RenderOptions.UseProjectionDepth = _options.ProjDepthMode != XrProjDepthMode.None;
+
+            if (_xrApp.RenderOptions.SampleCount > 1)
+            {
+                _xrApp.RenderOptions.ProjectionDepthScale = _options.ProjDepthScale;
+
+                if (_options.Driver == GraphicDriver.OpenGL)
+                    _xrApp.RenderOptions.DepthFormat = (long)GLEnum.DepthComponent16;
+            }
         }
 
         public T GetInputs<T>()

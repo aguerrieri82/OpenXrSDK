@@ -3,6 +3,8 @@ using XrEngine.OpenGL;
 
 namespace XrEngine.OpenXr
 {
+
+    [Obsolete]
     public class QuodDepthCullProvider : IQuodDepthCull
     {
         readonly Dictionary<IQuodTexture, GlQuodCullPass> _passes = [];

@@ -87,6 +87,7 @@ namespace OpenXr.Framework
 
         protected XrAppState _state;
         protected bool _isValid; //TODO rethink on _state
+        private uint _swapChainSampleCount;
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -570,6 +571,8 @@ namespace OpenXr.Framework
                 var viewsConfig = EnumerateViewConfigurationView(type);
                 var view = viewsConfig.First();
 
+                _swapChainSampleCount = view.RecommendedSwapchainSampleCount;
+
                 views.Add(new XrViewInfo
                 {
                     Type = type,
@@ -959,17 +962,15 @@ namespace OpenXr.Framework
 
             var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
 
-            var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);
+            var usage = isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit;
 
             if (isDepth)
                 usage |= SwapchainUsageFlags.SampledBit;
 
-            var sampleCount = _renderOptions.RenderMode == XrRenderMode.MultiView ? 1 : _renderOptions.SampleCount;
-
-            return CreateSwapChain(size, format, arraySize, usage, sampleCount, true);
+            return CreateSwapChain(size, format, arraySize, usage, true);
         }
 
-        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, uint sampleCount, bool mainSwapChain)
+        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage,  bool mainSwapChain = false)
         {
             var info = new SwapchainCreateInfo
             {
@@ -980,7 +981,7 @@ namespace OpenXr.Framework
                 ArraySize = arraySize,
                 MipCount = 1,
                 FaceCount = 1,
-                SampleCount = sampleCount,
+                SampleCount = _swapChainSampleCount,
                 UsageFlags = usage
             };
 

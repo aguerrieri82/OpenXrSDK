@@ -205,8 +205,25 @@ namespace XrEngine.OpenXr
                     pool.Clear();
             };
 
+            GlDepthExportPass? depthPass = null;
+
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
-                pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount));
+            {
+                var sampleCount = xrApp.RenderOptions.SampleCount;
+                var isMultiView = xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView;
+
+                if (depthTex != 0  && sampleCount > 1)
+                {
+                    depthPass ??= OpenGLRender.Current.EnsurePass(() => new GlDepthExportPass(OpenGLRender.Current, isMultiView));
+                 
+                    depthPass.Configure(depthTex);
+
+                    depthTex = 0;
+                }
+
+                return pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+            });
+
         }
 
         public static OpenGLRender BindEngineAppGLResolve(this XrApp xrApp, EngineApp app)

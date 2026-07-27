@@ -310,6 +310,7 @@ namespace XrEngine.UI
 
         public float DepthBias { get; set; }
 
+        [Obsolete]
         public bool EnableDepthCull { get; set; }
 
         public bool UseMips { get; set; }

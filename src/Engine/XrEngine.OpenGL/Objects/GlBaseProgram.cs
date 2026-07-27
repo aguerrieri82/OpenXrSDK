@@ -32,6 +32,7 @@ namespace XrEngine.OpenGL
         }
 
         protected readonly List<string> _features = [];
+        protected readonly List<string> _dynamicFeatures = [];
         protected readonly List<string> _extensions = [];
         protected readonly GlRenderOptions _glOptions;
         protected readonly Func<string, string?> _resolver;
@@ -516,6 +517,11 @@ namespace XrEngine.OpenGL
             _gl.Uniform3(LocateUniform(name, optional), value.X, value.Y, value.Z);
         }
 
+        public void AddDynamicFeature(string name)
+        {
+            _dynamicFeatures.Add(name);
+        }
+
         public void AddFeature(string name)
         {
             _features.Add(name);
@@ -572,12 +578,19 @@ namespace XrEngine.OpenGL
 #if DEBUG
                 preProc.EmitConditionComments = false;
 #endif
-                var source = preProc.Process(sourceName, _features);
+                var runDefine = _dynamicFeatures.Count == 0 ? null : _dynamicFeatures
+                    .Select(a => new GlslRuntimeDefine(a, a))
+                    .ToArray();
+
+                var source = preProc.Process(sourceName, _features, runDefine);
 
                 builder.Append(source);
             }
             else
             {
+                if (_dynamicFeatures.Count > 0)
+                    throw new InvalidOperationException("Use of dynamic fetaures with 'UseShaderPreprocessor' off");
+
                 var incRe = IncludeRegex();
 
                 var included = new HashSet<string>();

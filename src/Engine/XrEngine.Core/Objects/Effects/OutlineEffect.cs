@@ -20,8 +20,15 @@ namespace XrEngine
                 bld.AddFeature("MULTI_VIEW");
             }
 
-            bld.AddFeature($"FRAG_LOCATON {FragLocation}");
+            bld.AddFeature($"COLOR_LOCATON {ColorLocation}");
+            bld.AddFeature($"MASK_LOCATON {MaskLocation}");
             bld.AddFeature($"OUTLINE_SIZE {OutlineSize}");
+
+            if (Texture == null)
+            {
+                bld.AddFeature($"FB_MODE");
+                bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
+            }
 
             bld.ExecuteAction((ctx, up) =>
             {
@@ -32,7 +39,9 @@ namespace XrEngine
             });
         }
 
-        public uint FragLocation { get; set; }
+        public uint ColorLocation { get; set; }
+
+        public uint MaskLocation { get; set; }
 
         public bool IsMultiView { get; set; }
 
@@ -41,5 +50,7 @@ namespace XrEngine
         public Color Color { get; set; }
 
         public Texture? Texture { get; set; }
+
+        public bool UseFbNonCoherent { get; set; }    
     }
 }
