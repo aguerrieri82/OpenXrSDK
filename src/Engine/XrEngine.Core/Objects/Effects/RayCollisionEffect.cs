@@ -17,6 +17,7 @@
             : base()
         {
             _shader = SHADER;
+            WriteColor = false;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
@@ -25,11 +26,14 @@
             {
                 up.SetUniform("uDrawId", DrawId);
                 up.SetUniform("uSize", Size);
+                up.SetUniform("uFrame", Frame);
             });
         }
 
         public uint DrawId { get; set; }
 
         public uint Size { get; set; }
+
+        public uint Frame { get; set; }
     }
 }

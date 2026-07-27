@@ -233,6 +233,7 @@ namespace XrEngine.OpenGL
             }
         }
 
+
         public void Resize(uint newSizeBytes, bool preserve)
         {
             if (_capacityBytes == newSizeBytes)

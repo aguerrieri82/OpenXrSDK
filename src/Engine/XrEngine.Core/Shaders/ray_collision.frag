@@ -1,6 +1,7 @@
 ﻿
 uniform uint uDrawId;
 uniform uint uSize;
+uniform uint uFrame;
 
 layout(early_fragment_tests) in;
 
@@ -17,6 +18,6 @@ void main()
         uDrawId,
         uint(gl_PrimitiveID),
         uint(gl_FragCoord.z * 65535.0 + 0.5),
-        0u
+        uFrame
     );
 }

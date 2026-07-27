@@ -31,9 +31,11 @@ namespace XrEngine.OpenGL
         protected GlBufferRing<Vector4I> _idsBuffer;
         protected PerspectiveCamera _camera;
         protected uint _objId;
-        private Matrix4x4 _lastViewProjInv;
-        private readonly List<Object3D> _lastObjects;
-        private HitTestResult _lastHit;
+        protected Matrix4x4 _lastViewProjInv;
+        protected readonly List<Object3D> _lastObjects;
+        protected HitTestResult _lastHit;
+        private uint _lastWriteFrame;
+        protected readonly RayCollisionEffect _material;
         protected readonly List<Object3D> _objects = [];
         protected readonly uint _size;
         protected readonly Plane[] _cameraFrustum;
@@ -42,6 +44,11 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             _size = size;
+
+            _material = new RayCollisionEffect()
+            {
+                Size = size,
+            };
 
             _passTarget = new GlRenderPassTarget(_gl)
             {
@@ -93,9 +100,8 @@ namespace XrEngine.OpenGL
 
             _passTarget.RenderTarget!.Begin(_camera);
 
-            _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(true);
-            _renderer.State.SetWriteColor(true);
+            _renderer.State.SetWriteColor(false);
 
             _gl.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
 
@@ -103,7 +109,10 @@ namespace XrEngine.OpenGL
 
             _camera.FrustumPlanes(_cameraFrustum, out int _);
 
+            //_idsBuffer.ClearWrite();
             _idsBuffer.BindWrite(12);
+
+            _material.Frame = (uint)(ctx.Frame % uint.MaxValue);
 
             return base.BeginRender(ctx);
         }
@@ -136,7 +145,7 @@ namespace XrEngine.OpenGL
                     var i = (y * (int)_size) + x;
                     var pixData = data[i];
 
-                    if (pixData.X != 0)
+                    if (pixData.X != 0 && pixData.W == _lastWriteFrame)
                     {
                         _lastHit = new HitTestResult
                         {
@@ -181,6 +190,7 @@ namespace XrEngine.OpenGL
 
                 _lastObjects.Clear();
                 _lastObjects.AddRange(_objects);
+                _lastWriteFrame = _material.Frame;
             }
             else
             {
@@ -194,9 +204,7 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
         {
-            var objId = (uint)_objects.Count + 1;
-            var effect = (RayCollisionEffect)_programInstance!.Material;
-            effect.DrawId = objId;
+            _material.DrawId = (uint)_objects.Count + 1;
             return UpdateProgramResult.Changed;
         }
 
@@ -214,10 +222,7 @@ namespace XrEngine.OpenGL
 
         protected override ShaderMaterial CreateMaterial()
         {
-            return new RayCollisionEffect()
-            {
-                Size = _size
-            };
+            return _material;
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()

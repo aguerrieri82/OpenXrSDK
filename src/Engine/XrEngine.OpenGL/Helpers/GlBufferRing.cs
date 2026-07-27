@@ -18,6 +18,7 @@ namespace XrEngine.OpenGL
         private uint _slotSizeElements;
         private uint _slotCount;
         private int _updateCount;
+        private T[]? _clearData;
 
         public GlBufferRing(GL gl, BufferTargetARB target)
         {
@@ -32,11 +33,12 @@ namespace XrEngine.OpenGL
 
             _buffer.Allocate(slotSizeElements * (uint)sizeof(T) * count, BufferAllocateFlags.Persistent);
             _bufferData = _buffer.MapPermanentRead();
-            
+
             _fences = new GlFence?[count];
-            
+
             _readSlot = -1;
             _writeSlot = 0;
+            _clearData = new T[_slotSizeElements];
         }
 
         public bool WaitRead()
@@ -70,6 +72,11 @@ namespace XrEngine.OpenGL
 
             _readSlot = _writeSlot;
             _writeSlot = (int)((_writeSlot + 1) % _slotCount);
+        }
+
+        public void ClearWrite()
+        {
+            _buffer.UpdateRange(_clearData, (int)(_writeSlot * _slotSizeElements), true);
         }
 
         public void BindWrite(int bindSlot)

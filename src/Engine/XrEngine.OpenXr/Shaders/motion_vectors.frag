@@ -2,6 +2,8 @@
 in vec4 clipPos;
 in vec4 prevClipPos;
 
+layout(early_fragment_tests) in;
+
 out highp vec4 outVector;
 
 void main()
