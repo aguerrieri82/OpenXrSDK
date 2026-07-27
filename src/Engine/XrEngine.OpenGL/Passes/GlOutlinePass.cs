@@ -36,6 +36,7 @@ namespace XrEngine.OpenGL
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
                 UseMultiViewTarget = true,
+                ColorFormat= TextureFormat.GrayInt8,
                 Name = "Outline"
             };
 
@@ -47,6 +48,7 @@ namespace XrEngine.OpenGL
                     DepthMode = TargetDepthMode.None,
                     IsMultiView = isMultiView,
                     UseMultiViewTarget = true,
+                    ColorFormat = TextureFormat.Rgba32,
                     Id = "temp",
                     Name = "Outline (Temp)"
                 };
@@ -85,8 +87,7 @@ namespace XrEngine.OpenGL
 
             _frameSize = new Size2I((uint)(camera.ViewSize.Width / _downsampleFactor), (uint)(camera.ViewSize.Height / _downsampleFactor));
 
-            _passTarget.Configure(_frameSize.Width,
-                                  _frameSize.Height, TextureFormat.GrayInt8);
+            _passTarget.Configure(_frameSize.Width, _frameSize.Height);
 
             _passTarget.RenderTarget!.Begin(camera);
 
@@ -138,8 +139,7 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                _tempTarget!.Configure(_frameSize.Width,
-                                       _frameSize.Height, TextureFormat.Rgba32);
+                _tempTarget!.Configure(_frameSize.Width, _frameSize.Height);
 
                 _tempTarget!.RenderTarget!.Begin(camera);
 

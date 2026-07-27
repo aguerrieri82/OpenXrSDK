@@ -71,19 +71,25 @@ namespace XrEngine.OpenXr
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            SkinVertexShader.UpdateShaderModel(bld, true);
 
-            bld.LoadBufferArray(ctx =>
+#warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
+
+            SkinVertexShader.UpdateShaderModel(bld);
+
+            if (bld.Context.Model is ISkinnedMesh mesh)
             {
-                if (bld.Context.Model is not ISkinnedMesh mesh)
-                    return null;
+                bld.LoadBufferArray(ctx =>
+                {
+                    if (ctx.Model is not ISkinnedMesh mesh)
+                        return null;
 
-                if (!_skins.TryGetValue(bld.Context.Model, out var matrices))
-                    return null;
+                    if (!_skins.TryGetValue(ctx.Model, out var matrices))
+                        return null;
 
-                return matrices;
+                    return matrices;
 
-            }, 17, BufferStore.Model, BufferUsage.SSbo);
+                }, 17, BufferStore.Model, BufferUsage.SSbo);
+            }
 
             bld.ExecuteAction((ctx, up) =>
             {
@@ -118,7 +124,6 @@ namespace XrEngine.OpenXr
 
                         Array.Copy(skinned.SkinMatrices, matrices, matrices.Length);
                     }
-
                 }
             });
         }

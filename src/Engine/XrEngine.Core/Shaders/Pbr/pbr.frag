@@ -5,6 +5,10 @@
 #include "../Shared/planar_reflection.glsl"
 #include "../Shared/consts.glsl"
 
+#if !defined(HAS_CLIP_VOLUME) && !defined(HAS_COLORMAP_PROJ) && ALPHA_MODE != ALPHA_MASK
+	layout(early_fragment_tests) in;
+#endif
+
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;

@@ -40,6 +40,7 @@ namespace XrEngine.OpenGL
             DepthMode = TargetDepthMode.Create;
             BoundEye = -1;
             DepthFormat = TextureFormat.Depth24;
+            UseColor = true;
         }
 
         public GlTexture? GetExtra(int id)
@@ -71,11 +72,11 @@ namespace XrEngine.OpenGL
         public void Configure(GlTexture colorTexture)
         {
             _colorTexture = colorTexture;
-
-            Configure(colorTexture.Width, colorTexture.Height, colorTexture.InternalFormat.ToTextureFormat());
+            ColorFormat = colorTexture.InternalFormat.ToTextureFormat();
+            Configure(colorTexture.Width, colorTexture.Height);
         }
 
-        public void Configure(uint width, uint height, TextureFormat format)
+        public void Configure(uint width, uint height)
         {
             if (width == 0 || height == 0)
                 return;
@@ -98,11 +99,11 @@ namespace XrEngine.OpenGL
 
             var texId = string.IsNullOrEmpty(Id) ? "static" : Id;
 
-            if (_colorTexture == null || _colorTexture.Width != width || _colorTexture.Height != height)
+            if (UseColor && (_colorTexture == null || _colorTexture.Width != width || _colorTexture.Height != height))
             {
                 _colorTexture?.Dispose();
 
-                _colorTexture = GlTempAllocator.StaticTexture(_gl, width, height, arrayDepth, format, texId);
+                _colorTexture = GlTempAllocator.StaticTexture(_gl, width, height, arrayDepth, ColorFormat, texId);
                 _colorTexture.EnableDebug = false;
                 _colorTexture.SetLabel((Name ?? "PassTarget") + " - Color");
 
@@ -211,8 +212,13 @@ namespace XrEngine.OpenGL
 
         public TextureFormat DepthFormat { get; set; }
 
+        public TextureFormat ColorFormat { get; set; }
+
+        public bool UseColor { get; set; }
+
         public string? Name { get; set; }   
 
         public string? Id { get; set; }
+
     }
 }

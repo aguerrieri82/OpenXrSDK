@@ -1,10 +1,22 @@
 ﻿
 uniform uint uDrawId;
+uniform uint uSize;
 
-layout(location=0) out uvec2 Ids;
+layout(early_fragment_tests) in;
+
+layout(std430, binding = 12) buffer HitBuffer
+{
+    uvec4 Hits[];
+};
 
 void main()
-{    
-   Ids.x = uDrawId;
-   Ids.y = uint(gl_PrimitiveID);
+{
+    uint index = uint(gl_FragCoord.y) * uSize + uint(gl_FragCoord.x);
+
+    Hits[index] = uvec4(
+        uDrawId,
+        uint(gl_PrimitiveID),
+        uint(gl_FragCoord.z * 65535.0 + 0.5),
+        0u
+    );
 }

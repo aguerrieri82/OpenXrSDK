@@ -24,9 +24,12 @@
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uDrawId", DrawId);
+                up.SetUniform("uSize", Size);
             });
         }
 
         public uint DrawId { get; set; }
+
+        public uint Size { get; set; }
     }
 }

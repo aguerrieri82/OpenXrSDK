@@ -75,7 +75,7 @@ namespace XrEngine.OpenGL
                       sampleCount);
         }
 
-        public void Configure(GlTexture colorTex, GlTexture? depthTex, uint sampleCount)
+        public void Configure(GlTexture? colorTex, GlTexture? depthTex, uint sampleCount)
         {
             BeginUpdate();
 
@@ -83,7 +83,8 @@ namespace XrEngine.OpenGL
             _depth = depthTex;
             _sampleCount = sampleCount;
 
-            Attach(_color, FramebufferAttachment.ColorAttachment0, true);
+            if (_color != null)
+                Attach(_color, FramebufferAttachment.ColorAttachment0, true);
 
             if (_depth != null)
             {

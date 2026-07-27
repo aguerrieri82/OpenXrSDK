@@ -114,7 +114,7 @@ namespace XrEngine.OpenGL
 
                     if (_createFence != null)
                     {
-                        _createFence.Wait();
+                        _createFence.WaitGpu();
                         _createTask.Dispose();
                         _createTask = null;
                     }

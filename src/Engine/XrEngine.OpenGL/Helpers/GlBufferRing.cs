@@ -41,6 +41,11 @@ namespace XrEngine.OpenGL
 
         public bool WaitRead()
         {
+            return WaitRead(TimeSpan.Zero);
+        }
+
+        public bool WaitRead(TimeSpan maxTime)
+        {
             if (_readSlot == -1)
                 return false;
 
@@ -49,13 +54,13 @@ namespace XrEngine.OpenGL
             if (fence == null)
                 return false;
 
-            fence.Wait();
+            var result = fence.WaitClient(maxTime);
             
             fence.Dispose();
 
             _fences[_readSlot] = null;
 
-            return true;
+            return result;
         }
 
         public void Swap()
@@ -65,6 +70,13 @@ namespace XrEngine.OpenGL
 
             _readSlot = _writeSlot;
             _writeSlot = (int)((_writeSlot + 1) % _slotCount);
+        }
+
+        public void BindWrite(int bindSlot)
+        {
+            GlState.Current.LoadBufferRange(_buffer, bindSlot, 
+                (int)ActiveWriteOffsetBytes, 
+                (uint)(_slotSizeElements * sizeof(T)));
         }
 
         public int ActiveWriteSlot => _writeSlot;

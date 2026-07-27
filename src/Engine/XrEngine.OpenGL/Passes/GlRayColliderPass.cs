@@ -28,8 +28,7 @@ namespace XrEngine.OpenGL
 
         protected Func<Ray3?>? _getRay;
         protected GlRenderPassTarget _passTarget;
-        protected GlBufferRing<Vector2I> _idsBuffer;
-        protected GlBufferRing<float> _depthBuffer;
+        protected GlBufferRing<Vector4I> _idsBuffer;
         protected PerspectiveCamera _camera;
         protected uint _objId;
         private Matrix4x4 _lastViewProjInv;
@@ -39,7 +38,7 @@ namespace XrEngine.OpenGL
         protected readonly uint _size;
         protected readonly Plane[] _cameraFrustum;
 
-        internal GlRayColliderPass(OpenGLRender renderer, uint size = 3)
+        internal GlRayColliderPass(OpenGLRender renderer, uint size = 2)
             : base(renderer)
         {
             _size = size;
@@ -48,21 +47,23 @@ namespace XrEngine.OpenGL
             {
                 DepthFormat = TextureFormat.Depth16,
                 DepthMode = TargetDepthMode.Create,
+                UseColor = false,
                 Name = "Ray Collider"
             };
 
-            _passTarget.Configure(_size, _size, TextureFormat.RgUint32);
+            _passTarget.Configure(_size, _size);
 
-            _idsBuffer = new GlBufferRing<Vector2I>(_gl, BufferTargetARB.PixelPackBuffer);
+            _idsBuffer = new GlBufferRing<Vector4I>(_gl, BufferTargetARB.ShaderStorageBuffer);
             _idsBuffer.Allocate(_size * _size, 2);
-
-            _depthBuffer = new GlBufferRing<float>(_gl, BufferTargetARB.PixelPackBuffer);
-            _depthBuffer.Allocate(_size * _size, 2);
 
             _flags |= GlRenderPassFlags.CustomCamera;
 
-            _camera = new PerspectiveCamera();
-            _camera.FovDegree = 1;
+            _camera = new PerspectiveCamera
+            {
+                FovDegree = 1,
+                Near = 0.01f,
+                Far = 50f
+            };
 
             _lastObjects = [];
             _objects = [];
@@ -102,6 +103,8 @@ namespace XrEngine.OpenGL
 
             _camera.FrustumPlanes(_cameraFrustum, out int _);
 
+            _idsBuffer.BindWrite(12);
+
             return base.BeginRender(ctx);
         }
 
@@ -114,28 +117,32 @@ namespace XrEngine.OpenGL
             );
         }
 
+        protected override IGlRenderTarget? GetRenderTarget()
+        {
+            return _passTarget.RenderTarget;
+        }
+
         protected void ProcessLastHit()
         {
-            if (!_idsBuffer.WaitRead() || !_depthBuffer.WaitRead())
+            if (!_idsBuffer.WaitRead(TimeSpan.FromMicroseconds(0)))
                 return;
 
-            var ids = _idsBuffer.ActiveReadSpan;
-            var depths = _depthBuffer.ActiveReadSpan;
+            var data = _idsBuffer.ActiveReadSpan;
 
             for (var y = 0; y < _size; y++)
             {
                 for (var x = 0; x < _size; x++)
                 {
                     var i = (y * (int)_size) + x;
-                    var id = ids[i];
+                    var pixData = data[i];
 
-                    if (id.X != 0)
+                    if (pixData.X != 0)
                     {
                         _lastHit = new HitTestResult
                         {
-                            Object = _lastObjects[id.X - 1],
-                            Depth = depths[i],
-                            Index = (uint)id.Y
+                            Object = _lastObjects[pixData.X - 1],
+                            Depth = pixData.Z / (float)ushort.MaxValue,
+                            Index = (uint)pixData.Y
                         };
 
                         _lastHit.Pos = ToView((uint)x, (uint)y, _lastHit.Depth).Project(_lastViewProjInv);
@@ -164,38 +171,23 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender(GlUpdateContext ctx)
         {
-            ProcessLastHit();
+            if (_objects.Count > 0)
+            {
+                ProcessLastHit();
 
-            _idsBuffer.BeginUpdate();
+                _idsBuffer.Swap();
 
-            _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment0);
+                _lastViewProjInv = _camera.ViewProjectionInverse;
 
-            _gl.ReadPixels(
-                0, 0,
-                _size, _size,
-                PixelFormat.RGInteger,
-                PixelType.UnsignedInt,
-                (void*)_idsBuffer.ActiveWriteOffsetBytes);
+                _lastObjects.Clear();
+                _lastObjects.AddRange(_objects);
+            }
+            else
+            {
+                _lastHit.Object = null;
+            }
 
-            _idsBuffer.EndUpdate();
-
-            _depthBuffer.BeginUpdate();
-
-            _gl.ReadPixels(
-                0, 0,
-                _size, _size,
-                PixelFormat.DepthComponent,
-                PixelType.Float,
-                (void*)_depthBuffer.ActiveWriteOffsetBytes);
-
-            _depthBuffer.EndUpdate();
-
-            _passTarget.RenderTarget!.End(false);
-
-            _lastViewProjInv = _camera.ViewProjectionInverse;
-
-            _lastObjects.Clear();
-            _lastObjects.AddRange(_objects);
+            _passTarget.RenderTarget!.End(true);
 
             base.EndRender(ctx);
         }
@@ -222,7 +214,10 @@ namespace XrEngine.OpenGL
 
         protected override ShaderMaterial CreateMaterial()
         {
-            return new RayCollisionEffect();
+            return new RayCollisionEffect()
+            {
+                Size = _size
+            };
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()

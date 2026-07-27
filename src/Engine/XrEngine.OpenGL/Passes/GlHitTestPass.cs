@@ -21,11 +21,15 @@ namespace XrEngine.OpenGL
         public GlHitTestPass(OpenGLRender renderer)
             : base(renderer)
         {
-            _passTarget = new GlRenderPassTarget(renderer.GL);
-            _passTarget.DepthFormat = TextureFormat.Depth24;
+            _passTarget = new GlRenderPassTarget(renderer.GL)
+            {
+                DepthFormat = TextureFormat.Depth24,
+                ColorFormat = TextureFormat.RgUint32,
+                Name = "HitTest"
+            };
 
             _passTarget.AddExtra(TextureFormat.RgbFloat16, FramebufferAttachment.ColorAttachment1, true);
-            _passTarget.Name = "HitTest";
+
         }
 
         public unsafe HitTestResult HitTest(uint x, uint y)
@@ -121,7 +125,7 @@ namespace XrEngine.OpenGL
 
             var camera = ctx.PassCamera!;
 
-            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.RgUint32);
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height);
 
             if (_passTarget.RenderTarget == null)
                 return false;

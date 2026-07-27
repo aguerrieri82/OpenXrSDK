@@ -578,14 +578,36 @@ namespace XrEngine.OpenGL
             }
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
+        public void LoadBufferRange(IGlBuffer buffer, int slot, int offset, uint sizeBytes)
         {
-            SetActiveBuffer(buffer, slot, buffer.Target, force);
+            LoadBufferRange(buffer, slot, buffer.Target, offset, sizeBytes);
         }
 
-        public void SetActiveBuffer(IGlBuffer buffer, int slot, BufferTargetARB target, bool force = false)
+
+        public void LoadBufferRange(IGlBuffer buffer, int slot, BufferTargetARB target, int offset, uint sizeBytes)
+        {
+            var slots = GetBufferSlots(target);
+
+            var curSlotValue = slots[slot];
+
+            BufferTargets[target] = buffer.Handle;
+
+            _gl.BindBufferRange(target, (uint)slot, buffer.Handle, offset, sizeBytes);
+
+            buffer.ActiveSlot = slot;
+
+            slots[slot] = buffer.Handle;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void LoadBuffer(IGlBuffer buffer, int slot, bool force = false)
+        {
+            LoadBuffer(buffer, slot, buffer.Target, force);
+        }
+
+        public void LoadBuffer(IGlBuffer buffer, int slot, BufferTargetARB target, bool force = false)
         {
             var slots = GetBufferSlots(target);
 

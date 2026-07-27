@@ -293,9 +293,9 @@ namespace XrSamples.Graffiti
 
             var glState = GlState.Current;
 
-            glState.SetActiveBuffer(_paintUniformsBuffer, 11);
-            glState.SetActiveBuffer(_paintStateBuffer, 12);
-            glState.SetActiveBuffer(_sprayUniformsBuffer, 13);
+            glState.LoadBuffer(_paintUniformsBuffer, 11);
+            glState.LoadBuffer(_paintStateBuffer, 12);
+            glState.LoadBuffer(_sprayUniformsBuffer, 13);
 
             RenderSpray(ctx);
             RenderAccumulate(ctx);

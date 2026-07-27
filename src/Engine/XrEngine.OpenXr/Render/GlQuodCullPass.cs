@@ -56,6 +56,11 @@ namespace XrEngine.OpenGL
             _quod = quod;
         }
 
+        protected override IGlRenderTarget? GetRenderTarget()
+        {
+            return _passTarget.RenderTarget;
+        }
+
         public override void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)

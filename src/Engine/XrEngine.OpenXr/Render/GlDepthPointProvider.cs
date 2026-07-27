@@ -24,7 +24,8 @@ namespace XrEngine.OpenXr
 
             _target = new GlRenderPassTarget(gl)
             {
-                DepthMode = TargetDepthMode.None
+                DepthMode = TargetDepthMode.None,
+                ColorFormat = TextureFormat.RgbFloat32
             };
 
             _depthCamera = new PerspectiveCamera();
@@ -61,7 +62,7 @@ namespace XrEngine.OpenXr
             var renderer = OpenGLRender.Current!;
             var glState = renderer.State;
 
-            _target.Configure(texture.Width, texture.Height, TextureFormat.RgbFloat32);
+            _target.Configure(texture.Width, texture.Height);
 
             var curTarget = renderer.RenderTarget;
 

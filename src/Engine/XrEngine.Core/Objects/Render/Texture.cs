@@ -42,7 +42,9 @@
 
         GrayRawSInt16,
         GrayUint32,
-        RgUint32
+        RgUint32,
+        RgbUint32,
+        RgbaUint32,
     }
 
     public enum TextureCompressionFormat

@@ -65,6 +65,7 @@ namespace XrEngine.OpenGL
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
                 UseMultiViewTarget = true,
+                ColorFormat = TextureFormat.GrayFloat16,
                 Name = "Contact Shadow"
             };
 
@@ -98,6 +99,11 @@ namespace XrEngine.OpenGL
             _uniforms = new GlBuffer<ContactShadowUniforms>(_gl, BufferTargetARB.UniformBuffer);
         }
 
+        protected override IGlRenderTarget? GetRenderTarget()
+        {
+            return _passTarget.RenderTarget;
+        }
+
         public override void Render(GlUpdateContext ctx)
         {
             var options = _renderer.Options.ContactShadow;
@@ -122,10 +128,7 @@ namespace XrEngine.OpenGL
             if (depthTexture == null)
                 return;
 
-            _passTarget.Configure(
-                camera.ViewSize.Width,
-                camera.ViewSize.Height,
-                TextureFormat.GrayFloat16);
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height);
 
             var lightDir = Vector3.Normalize(-light.Direction);
 
@@ -152,7 +155,7 @@ namespace XrEngine.OpenGL
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            _renderer.State.SetActiveBuffer(_uniforms, CONTACT_SHADOW_BUF, _uniforms.Target);
+            _renderer.State.LoadBuffer(_uniforms, CONTACT_SHADOW_BUF, _uniforms.Target);
 
             _contactProgram.Use();
 
@@ -186,8 +189,6 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
-
-        public GlRenderPassTarget PassTarget => _passTarget;
 
         public ContactShadowOptions Options => _renderer.Options.ContactShadow;
     }

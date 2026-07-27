@@ -4,7 +4,6 @@
     {
         public static void UpdateShaderModel(ShaderUpdateBuilder bld, bool useUniform = false)
         {
-
             if (useUniform)
                 bld.SetUniform("uHasSkin", ctx => ctx.Model is ISkinnedMesh ? 1 : 0);
             else
@@ -15,9 +14,10 @@
                 bld.AddFeature("HAS_SKIN");
             }
 
+
             bld.LoadBufferArray(ctx =>
             {
-                if (bld.Context.Model is not ISkinnedMesh mesh)
+                if (ctx.Model is not ISkinnedMesh mesh)
                     return null;
 
                 if (mesh.SkinVersion == ctx.CurrentBuffer!.Version)

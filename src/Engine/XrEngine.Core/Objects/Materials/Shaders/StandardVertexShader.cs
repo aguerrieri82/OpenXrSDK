@@ -9,6 +9,7 @@ namespace XrEngine
         {
             VertexSourceName = "standard.vert";
             Resolver = str => Embedded.GetString(str);
+            UseModelSharedSsbo = true;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)
@@ -41,7 +42,8 @@ namespace XrEngine
                     NormalMatrix = ctx.Model.NormalMatrix,
                     WorldMatrix = modelWord
                 };
-            }, UniformsSlots.Model, BufferStore.Model);
+            }, UniformsSlots.Model, BufferStore.Model, 
+               UseModelSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
 
             SkinVertexShader.UpdateShaderModel(bld);
         }
@@ -51,6 +53,9 @@ namespace XrEngine
             var options = bld.Context.ShadowMapProvider?.Options;
 
             var shadowMode = options?.Mode ?? ShadowMapMode.None;
+
+            if (UseModelSharedSsbo)
+                bld.AddFeature("USE_MODEL_SSBO");
 
             if (shadowMode != ShadowMapMode.None)
             {
@@ -113,5 +118,7 @@ namespace XrEngine
         }
 
         public static readonly StandardVertexShader Instance = new();
+
+        public bool UseModelSharedSsbo { get; set; }
     }
 }

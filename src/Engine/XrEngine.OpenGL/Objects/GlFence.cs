@@ -19,9 +19,21 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Wait(ulong time = ulong.MaxValue)
+        public void WaitGpu()
         {
-            _gl.WaitSync(_handle, SyncBehaviorFlags.None, time);
+            _gl.WaitSync(_handle, SyncBehaviorFlags.None, 0);
+        }
+
+        public bool WaitClient(TimeSpan maxTime)
+        {
+            return WaitClient((ulong)(maxTime.Ticks * TimeSpan.NanosecondsPerTick));
+        }
+
+        public bool WaitClient(ulong time = ulong.MaxValue, SyncObjectMask mask = 0)
+        {
+            var result = _gl.ClientWaitSync(_handle, mask, time);
+
+            return result == GLEnum.AlreadySignaled || result == GLEnum.ConditionSatisfied;
         }
 
         public void Dispose()

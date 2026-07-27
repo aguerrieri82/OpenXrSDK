@@ -634,7 +634,7 @@ namespace XrEngine.OpenGL
 
         public void Load(int slot)
         {
-            GlState.Current?.SetActiveBuffer(this, slot);
+            GlState.Current?.LoadBuffer(this, slot);
         }
 
         public long CreateVersion { get; set; }

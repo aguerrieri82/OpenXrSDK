@@ -443,7 +443,7 @@ namespace XrEngine.OpenGL
                     _ => glBuffer.Target
                 };
 
-                GlState.Current.SetActiveBuffer(glBuffer, slot, curTarget);
+                GlState.Current.LoadBuffer(glBuffer, slot, curTarget);
             }
         }
 
