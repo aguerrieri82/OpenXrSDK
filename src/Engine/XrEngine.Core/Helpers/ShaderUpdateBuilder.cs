@@ -56,14 +56,23 @@ namespace XrEngine
 
         public Scene3D? Scene;
 
+        public Object3D? Model;
 
         public Shader? Shader;
 
         public IList<Light>? Lights;
 
-        public Object3D? Model;
+        public long ImageLightVersion;
+
+        public long Frame;
+
+        public float Time;
+
+        public float DeltaTime;
 
         public IRenderEngine? RenderEngine;
+
+        public IRenderPass? Pass;
 
         public VertexComponent ActiveComponents;
 
@@ -75,31 +84,23 @@ namespace XrEngine
 
         public Plane[] FrustumPlanes;
 
+        public int FrustumPlanesCount;
+
         public IShadowMapProvider? ShadowMapProvider;
 
         public IBloomProvider? BloomProvider;
 
-        public Texture2D? DepthMap;
-
-        public ShaderUpdate? LastGlobalUpdate;
-
-        public IRenderPass? Pass;
+        public IMotionVectorProvider? MotionVectorProvider;
 
         public IDepthCullProvider? DepthCullProvider;
 
-        public long ImageLightVersion;
-
-        public int FrustumPlanesCount;
+        public ShaderUpdate? LastGlobalUpdate;
 
         public long ContextVersion;
 
-        public long Frame;
-
         public bool UseInstanceDraw;
 
-        public float Time;
-
-        public float DeltaTime;
+        public bool UseMotionVectors;
 
         public bool IsSrgbTarget;
 
@@ -107,11 +108,9 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
-        public bool CopyDepth;
+        public bool UseCopyDepth;
 
         public Texture2D? CopyDepthImage;
-
-        public bool UseMotionVectors;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList
@@ -345,14 +344,21 @@ namespace XrEngine
             _result.Features.Add(name);
         }
 
-        public readonly void AddFeature(string name, Func<UpdateShaderContext, bool> dynamicValue)
+        public readonly void AddFeature(string name, Func<UpdateShaderContext, bool> getValue, bool isDynamic = true)
         {
+            if (!isDynamic)
+            {
+                if (getValue(Context))
+                    AddFeature(name);
+                return;
+            }
+      
             _result.DynamicFeatures ??= [];
             _result.DynamicFeatures.Add(name);
 
             ExecuteAction((ctx, up) =>
             {
-                up.SetUniform(name, dynamicValue(ctx));
+                up.SetUniform(name, getValue(ctx));
             });
         }
 

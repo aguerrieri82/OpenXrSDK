@@ -9,7 +9,7 @@
     #include "Shared/planar_reflection.glsl"
     out vec2 fPlanarUv;
 #endif
-
+ 
 
 layout(location=0) in vec3 a_position;
 layout(location=1) in vec3 a_normal;
@@ -23,35 +23,6 @@ layout(location=2) in vec2 a_texcoord;
     uniform vec4 uClipPlane;
 #endif
 
-#ifdef USE_DEPTH_CULL
-
-    struct ObjectData {
-        vec3 bboxMax;
-        vec3 bboxMin;
-        vec2 extent;
-        bool visible;
-        bool culled;
-    };
-
-    layout(std430, binding = 0) buffer ObjectBuffer {
-        ObjectData objects[];
-    };
-
-#endif
-
-#ifdef USE_INSTANCE
-
-    struct ModelInstance {
-        mat4 worldMatrix;
-        mat4 normalMatrix;
-	    uint drawId;    
-    };
-
-    layout(std430, binding = 9) readonly buffer InstanceData {
-        ModelInstance uInstances[];
-    };
-
-#endif
 
 #ifdef HAS_UV2
     layout(location=3) in vec2 a_texcoord2;
@@ -93,28 +64,18 @@ out vec2 fUv;
 
 void main()
 {
-    mat4 worldMatrix;
-    mat4 normalMatrix;
+    mat4 worldMatrix = uModel.worldMatrix;
+    mat4 normalMatrix = uModel.normalMatrix;
 
-    #ifdef USE_INSTANCE
+    #ifdef USE_DEPTH_CULL
 
-        #ifdef USE_DEPTH_CULL
+        ObjectData obj = uObjects[uModel.drawId];
 
-            ObjectData obj = objects[uInstances[gl_InstanceID].drawId];
+        if (!obj.visible) {
+            gl_Position = vec4(10.0, 0.0, 0.0, 1.0);
+            return;
+        }
 
-            if (!obj.visible) {
-                gl_Position = vec4(10.0, 0.0, 0.0, 1.0);
-                return;
-            }
-
-        #endif
-
-        worldMatrix = uInstances[gl_InstanceID].worldMatrix;
-        normalMatrix = uInstances[gl_InstanceID].normalMatrix;
-
-    #else
-        worldMatrix = uModel.worldMatrix;
-        normalMatrix = uModel.normalMatrix;
     #endif
 
     vec3 position = a_position;
@@ -184,6 +145,6 @@ void main()
     computePos(pos);
 
     #ifdef MOTION_VECTORS
-        computeMotionVectors();
+        computeMotionVectors(position);
     #endif
 }

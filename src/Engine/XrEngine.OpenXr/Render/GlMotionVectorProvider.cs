@@ -6,7 +6,7 @@ using XrEngine.OpenGL;
 
 namespace XrEngine.OpenXr
 {
-    internal class GlMotionVectorProvider : IMotionVectorProvider
+    internal class GlMotionVectorProvider : IXrMotionVectorProvider
     {
         readonly OpenGLRender _renderer;
         readonly EngineApp _app;
@@ -24,6 +24,9 @@ namespace XrEngine.OpenXr
                 MotionVectorFormat = (long)InternalFormat.Rgba16f;
 
             DepthFormat = (long)InternalFormat.DepthComponent16;
+            IsActive = true;
+
+            Context.Implement<IXrMotionVectorProvider>(this);
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)

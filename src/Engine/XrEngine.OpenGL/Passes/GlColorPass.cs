@@ -72,7 +72,22 @@ namespace XrEngine.OpenGL
         protected override void EndRender(GlUpdateContext ctx)
         {
             _renderer.State.SetActiveProgram(0);
-            //_renderer.RenderTarget!.End(false);
+            
+            if (ctx.UseMotionVectors)
+            {
+                if (ctx.PassCamera!.ActiveEye == -1 || ctx.PassCamera.ActiveEye == 1)
+                {
+                    ctx.MotionVectorProvider!.Swap(ctx.PassCamera,
+                        SelectLayers()
+                        .OfType<GlLayer>()
+                        .SelectMany(a => a.Content.Contents)
+                        .SelectMany(a => a.Value.Contents)
+                        .SelectMany(a => a.Value.Contents)
+                        .SelectMany(a => a.Value.Contents)
+                        .Select(a => a.Object!)
+                        .Where(a => a != null));
+                }
+            }
         }
 
         protected virtual bool CanDraw(DrawContent draw)

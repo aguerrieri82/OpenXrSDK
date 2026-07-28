@@ -29,6 +29,11 @@ mat4 alignTangent(vec3 tangent, vec3 position)
     );
 }
 
+#ifdef MOTION_VECTORS
+    #include "shared/motion_vectors.glsl"
+#endif
+
+
 void main()
 {
     //mat4 worldMatrix = uModel.worldMatrix;
@@ -57,4 +62,8 @@ void main()
     #endif
 
     computePos(pos);
+
+    #ifdef MOTION_VECTORS
+        computeMotionVectors(realPos);
+    #endif
 }

@@ -21,25 +21,58 @@ struct ModellData
 {
 	mat4 worldMatrix;
 	mat4 normalMatrix;
+	mat4 prevWorldMatrix;
 	int drawId;
 };
 
-#ifdef USE_MODEL_SSBO
 
-	layout(std140, binding = 3) readonly buffer Model
+struct ObjectData {
+    vec3 bboxMax;
+    vec3 bboxMin;
+    vec2 extent;
+    bool visible;
+    bool culled;
+};
+
+#ifdef USE_DEPTH_CULL
+
+    layout(std430, binding = 0) buffer Objects
 	{
-        ModellData modelData[];
-	};
+        ObjectData uObjects[];
+    };
 
-	uniform int uModelIndex;
+#endif
 
-	#define uModel modelData[uModelIndex]
+
+#ifdef USE_INSTANCE
+
+    layout(std140, binding = 9) readonly buffer Instances
+	{
+        ModellData uInstances[];
+    };
+
+	#define uModel uInstances[gl_InstanceID]
 
 #else
 
-	layout(std140, binding = 3) uniform Model
-	{
-		ModellData uModel;
-	};
+	#ifdef USE_MODEL_SSBO
+
+		layout(std140, binding = 3) readonly buffer Models
+		{
+			ModellData uModels[];
+		};
+
+		uniform int uModelIndex;
+
+		#define uModel uModels[uModelIndex]
+
+	#else
+
+		layout(std140, binding = 3) uniform Model
+		{
+			ModellData uModel;
+		};
+
+	#endif
 
 #endif

@@ -8,14 +8,16 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
-
+using XrEngine.Helpers;
+using System.Numerics;
 
 namespace XrEngine.OpenXr
 {
-    internal class GlMotionVectorProviderV2 : IMotionVectorProvider
+    internal class GlMotionVectorProviderV2 : IXrMotionVectorProvider, IMotionVectorProvider
     {
         readonly OpenGLRender _renderer;
         readonly EngineApp _app;
+        protected Texture2D? _texture;
 
         public GlMotionVectorProviderV2(EngineApp app, OpenGLRender renderer)
         {
@@ -28,21 +30,51 @@ namespace XrEngine.OpenXr
                 MotionVectorFormat = (long)InternalFormat.Rgba16f;
 
             DepthFormat = (long)InternalFormat.DepthComponent16;
+            IsActive = true;
+
+            renderer.UpdateContext.MotionVectorProvider = this;
+
+            Context.Implement<IXrMotionVectorProvider>(this);
+            Context.Implement<IMotionVectorProvider>(this);
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
             if (_renderer.RenderTarget is not IGlRenderTargetFB fbTarget)
-                throw new NotSupportedException();
+                return;
 
             var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
 
             var glTex = GlTexture.Attach(_renderer.GL, colorTex);
 
-            fbTarget.FrameBuffer.Attach(glTex, FramebufferAttachment.ColorAttachment2, true);
-
-            fbTarget.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2);
+            _texture = (Texture2D)glTex.ToEngineTexture();
         }
+
+        public void Swap(Camera camera, IEnumerable<Object3D> objects)
+        {
+            foreach (var obj in objects)
+                obj.SetProp(EngineProps.MotionVectorPrev, obj.WorldMatrix);
+
+            Matrix4x4[] viewProj = camera.Eyes != null && camera.Eyes.Length == 2 ?
+                    [camera.Eyes[0].ViewProj, camera.Eyes[1].ViewProj] :
+                    [camera.ViewProjection];
+
+            camera.SetProp(EngineProps.MotionVectorPrev, viewProj);
+        }
+
+        public Matrix4x4? GetPrevMatrix(Object3D model)
+        {
+            var matrice = model.GetProp<Matrix4x4>(EngineProps.MotionVectorPrev);
+            return matrice;
+        }
+
+        public Matrix4x4[]? GetPrevMatrix(Camera camera)
+        {
+            var matrices = camera.GetProp<Matrix4x4[]>(EngineProps.MotionVectorPrev);
+            return matrices;
+        }
+
+        public Texture2D? Texture => _texture;
 
         public long MotionVectorFormat { get; }
 

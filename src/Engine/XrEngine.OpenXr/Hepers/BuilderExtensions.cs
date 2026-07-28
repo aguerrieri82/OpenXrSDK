@@ -364,7 +364,7 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-        public static XrEngineAppBuilder UseSpaceWarp(this XrEngineAppBuilder self, bool separatedPass = true)
+        public static XrEngineAppBuilder UseSpaceWarp(this XrEngineAppBuilder self, bool separatedPass = false)
         {
             self.ConfigureApp(e =>
             {

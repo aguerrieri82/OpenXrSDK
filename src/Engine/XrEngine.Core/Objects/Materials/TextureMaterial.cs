@@ -14,7 +14,7 @@ namespace XrEngine
             SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "texture.frag",
-                IsLit = false,
+                UseMotionVectors = true
             };
         }
         public TextureMaterial()

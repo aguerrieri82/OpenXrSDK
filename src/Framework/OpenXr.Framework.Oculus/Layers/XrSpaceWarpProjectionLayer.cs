@@ -17,7 +17,7 @@ namespace OpenXr.Framework.Oculus
         }
 
         readonly NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo;
-        readonly IMotionVectorProvider _motionProvider;
+        readonly IXrMotionVectorProvider _motionProvider;
         readonly Pose3[] _lastPose = new Pose3[2];
 
         unsafe SwapchainImageBaseHeader* _spColorImage;
@@ -26,7 +26,7 @@ namespace OpenXr.Framework.Oculus
         Extent2Di _motionImageSize;
         bool _lastSpaceWarpActive;
 
-        public XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IMotionVectorProvider provider, bool useDepthSwapchain)
+        public XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IXrMotionVectorProvider provider, bool useDepthSwapchain)
             : base(renderView, useDepthSwapchain)
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));

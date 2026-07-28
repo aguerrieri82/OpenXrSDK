@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
             {
                 return _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
                        _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
-                       _tracker.IsChanged(() => ctx.CopyDepth);
+                       _tracker.IsChanged(() => ctx.UseCopyDepth);
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
@@ -38,11 +38,8 @@ namespace XrEngine.OpenGL
                 if (OpenGLRender.Current!.Options.UseHighQualitySrgb)
                     bld.AddFeature("HIGH_QUALITY_SRGB");
 
-                if (bld.Context.CopyDepth)
+                if (bld.Context.UseCopyDepth)
                     bld.AddFeature("COPY_DEPTH");
-
-                if (bld.Context.UseMotionVectors)
-                    bld.AddFeature("MOTION_VECTORS");
 
                 if (bld.Context.CopyDepthImage != null)
                 {
@@ -52,7 +49,7 @@ namespace XrEngine.OpenGL
                     {
                         if (ctx.CopyDepthImage != null)
                         {
-                            up.LoadImage(ctx.CopyDepthImage, 0, BufferAccessMode.Write);
+                            up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, BufferAccessMode.Write);
 
                             var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
                             var scale = size / ctx.PassCamera!.ViewSize.ToVector2();

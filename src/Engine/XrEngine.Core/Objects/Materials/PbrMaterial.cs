@@ -162,74 +162,31 @@ namespace XrEngine
 
         #region PbrShader
 
-        public class PbrShader : Shader, IShaderHandler, IInstanceShader
+        public class PbrShader : StandardVertexShader, IShaderHandler
         {
             long _iblVersion = -1;
             ILightFieldProvider? _lightFieldProvider;
 
-            readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
+            readonly PerspectiveCamera _depthCamera = new();
 
             public PbrShader()
             {
                 UseDepthCulling = true;
                 UseSharedSSBO = true;
+                UseMotionVectors = true;
             }
 
-            public bool NeedUpdateShader(UpdateShaderContext ctx)
+            public override bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+
                 return ctx.LastGlobalUpdate?.LightsHash != ctx.LightsHash ||
                        (ctx.LastGlobalUpdate?.ShaderVersion != Version) ||
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
-            public void UpdateShader(ShaderUpdateBuilder bld)
-            {
-                var stage = bld.Context.Stage;
-
-                if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
-                    UpdateShaderModel(bld);
-
-                if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader)
-                    UpdateShaderGlobal(bld);
-            }
-
-            protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
-            {
-                if (!bld.Context.UseInstanceDraw)
-                {
-                    bld.LoadBuffer(ctx =>
-                    {
-                        if (ctx.Model == null || ctx.CurrentBuffer == null)
-                            return null;
-
-                        //Get the word matrix trigger the update
-                        var modelWord = ctx.Model.WorldMatrix;
-
-                        var curVersion = ctx.Model.Transform.Version;
-
-                        if (curVersion == ctx.CurrentBuffer.Version)
-                            return null;
-
-                        ctx.CurrentBuffer.Version = curVersion;
-
-                        return (ModelUniforms?)new ModelUniforms
-                        {
-                            NormalMatrix = ctx.Model.NormalMatrix,
-                            WorldMatrix = modelWord
-                        };
-                    }, 
-                    UniformsSlots.Model, 
-                    BufferStore.Model, 
-                    UseSharedSSBO ? BufferUsage.SharedSsbo : BufferUsage.Uniforms,
-                    "uModelIndex"
-                    );
-                }
-
-                SkinVertexShader.UpdateShaderModel(bld);
-            }
-
-            protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)
+ 
+            protected override void UpdateShaderGlobal(ShaderUpdateBuilder bld)
             {
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
@@ -256,10 +213,7 @@ namespace XrEngine
                 }
 
                 if (UseSharedSSBO)
-                {
-                    bld.AddFeature("USE_MODEL_SSBO");
                     bld.AddFeature("USE_MATERIAL_SSBO");
-                }
 
                 bld.AddFeature("USE_CAMERA_POS");
 
@@ -276,35 +230,6 @@ namespace XrEngine
 
                 if (DepthNoiseFactor > 0)
                     bld.AddFeature("USE_DEPTH_NOISE");
-
-                if (bld.Context.ShadowMapProvider?.Options != null)
-                {
-                    var options = bld.Context.ShadowMapProvider!.Options;
-
-                    var shadowMode = options.Mode;
-
-                    if (shadowMode != ShadowMapMode.None)
-                    {
-                        bld.AddFeature("USE_SHADOW_MAP");
-                        bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
-                        bld.AddFeature("SHADOW_BIAS " + (int)options.BiasMode);
-
-                        if (options.UseShadowSampler)
-                            bld.AddFeature("USE_SHADOW_SAMPLER");
-
-                        bld.ExecuteAction((ctx, up) =>
-                        {
-                            if (ctx.ShadowMapProvider?.ShadowMap != null)
-                                up.LoadTexture(ctx.ShadowMapProvider.ShadowMap, TextureSlots.ShadowMap);
-
-                            if (options?.BiasMode == ShadowMapBiasMode.Value)
-                                up.SetUniform("uShadowBias", options!.Bias);
-
-                            if (shadowMode == ShadowMapMode.VSM)
-                                up.SetUniform("uLightBleed", options!.LightBleed);
-                        });
-                    }
-                }
 
                 if (bld.Context.BloomProvider != null)
                     bld.AddFeature("USE_BLOOM");
@@ -331,38 +256,6 @@ namespace XrEngine
                         }
                     });
                 }
-
-                bld.LoadBuffer((ctx) =>
-                {
-                    var result = new CameraUniforms
-                    {
-                        ViewProj = ctx.PassCamera!.ViewProjection,
-                        Position = ctx.PassCamera!.WorldPosition,
-                        Exposure = ctx.PassCamera.Exposure,
-                        ActiveEye = ctx.PassCamera.ActiveEye,
-                        ViewSize = ctx.PassCamera.ViewSize,
-                        NearPlane = ctx.PassCamera.Near,
-                        FarPlane = ctx.PassCamera.Far,
-                        DepthNoiseFactor = DepthNoiseFactor,
-                        DepthNoiseDistance = DepthNoiseDistance,
-                        FrustumPlane1 = ctx.FrustumPlanes[0],
-                        FrustumPlane2 = ctx.FrustumPlanes[1],
-                        FrustumPlane3 = ctx.FrustumPlanes[2],
-                        FrustumPlane4 = ctx.FrustumPlanes[3],
-                        FrustumPlane5 = ctx.FrustumPlanes[4],
-                        FrustumPlane6 = ctx.FrustumPlanes[5],
-                        View = ctx.PassCamera.View,
-                        Proj = ctx.PassCamera.Projection,
-                        ViewProjInv = ctx.PassCamera.ViewProjectionInverse,
-                    };
-
-                    var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
-                    if (light != null)
-                        result.LightSpaceMatrix = light.Value;
-
-                    return (CameraUniforms?)result;
-
-                }, UniformsSlots.Camera, BufferStore.Shader);
 
                 bld.LoadBuffer((ctx) =>
                 {
@@ -506,27 +399,9 @@ namespace XrEngine
                         });
                     }
                 }
-            }
 
-            public bool NeedUpdate(Object3D model, long curVersion)
-            {
-                //Get the word matrix trigger the update;
-                var wordMatrix = model.WorldMatrix;
-                return model.Transform.Version != curVersion;
+                base.UpdateShaderGlobal(bld);
             }
-
-            public unsafe long Update(byte* destData, Object3D model, int drawId)
-            {
-                *(ModelUniforms*)destData = new ModelUniforms
-                {
-                    NormalMatrix = model.NormalMatrix,
-                    WorldMatrix = model.WorldMatrix,
-                    DrawId = drawId
-                };
-                return model.Transform.Version;
-            }
-
-            public Type InstanceBufferType => typeof(ModelUniforms);
 
             public bool UseDepthCulling { get; set; }
 

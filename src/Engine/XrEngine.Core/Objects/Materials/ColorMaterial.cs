@@ -12,7 +12,7 @@ namespace XrEngine
             SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "color.frag",
-                IsLit = false
+                UseMotionVectors = true
             };
         }
 
@@ -49,7 +49,7 @@ namespace XrEngine
             if (Color.IsSrgb)
                 bld.AddFeature("COLOR_IS_SRGB");
 
-            bld.AddFeature("USE_INSTANCE", ctx => ctx.UseInstanceDraw);
+            bld.AddFeature("USE_INSTANCE", ctx => ctx.UseInstanceDraw, false);
 
             bld.AddFeature($"FRAG_LOCATION {Location}");
 

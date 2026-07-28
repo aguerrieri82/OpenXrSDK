@@ -1124,7 +1124,7 @@ namespace XrSamples
 
                         if (click.IsChanged && click.Value)
                         {
-                            var provider = Context.Require<IMotionVectorProvider>();
+                            var provider = Context.Require<IXrMotionVectorProvider>();
                             provider.IsActive = !provider.IsActive;
                         }
                     });

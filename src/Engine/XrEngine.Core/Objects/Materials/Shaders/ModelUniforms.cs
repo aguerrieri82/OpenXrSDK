@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
-    [StructLayout(LayoutKind.Explicit, Size = 144)]
+    [StructLayout(LayoutKind.Explicit, Size = 208)]
     public struct ModelUniforms
     {
         [FieldOffset(0)]
@@ -13,6 +13,9 @@ namespace XrEngine
         public Matrix4x4 NormalMatrix;
 
         [FieldOffset(128)]
+        public Matrix4x4 PrevWorldMatrix;
+
+        [FieldOffset(192)]
         public int DrawId;
     }
 }

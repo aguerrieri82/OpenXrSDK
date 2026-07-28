@@ -233,7 +233,7 @@ namespace XrEngine.OpenXr
 
                         depthCopyPass.Configure(depthTex);
 
-                        renderer.UpdateContext.CopyDepth = true;
+                        renderer.UpdateContext.UseCopyDepth = true;
                     }
                     else if (depthMode == XrProjDepthMode.DepthCopyImage)
                     {
@@ -397,23 +397,13 @@ namespace XrEngine.OpenXr
 
             if (renderer.HasPass<GlMotionVectorPass>())
             {
-                var provider = new GlMotionVectorProvider(app, renderer)
-                {
-                    IsActive = true
-                };
-
-                Context.Implement<IMotionVectorProvider>(provider);
+                var provider = new GlMotionVectorProvider(app, renderer);
 
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
             }
             else if (renderer.UpdateContext.UseMotionVectors)
             {
-                var provider = new GlMotionVectorProviderV2(app, renderer)
-                {
-                    IsActive = true
-                };
-
-                Context.Implement<IMotionVectorProvider>(provider);
+                var provider = new GlMotionVectorProviderV2(app, renderer);
 
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
             }

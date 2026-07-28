@@ -348,7 +348,10 @@ namespace XrEngine.OpenGL
         {
             var camera = ctx.PassCamera!;
 
-            if (ctx.Frame == _lastFrame && camera == _lastCamera)
+            var frameChanged = ctx.Frame != _lastFrame;
+            var cameraChanged = camera == _lastCamera;
+
+            if (!frameChanged && !cameraChanged)
                 return;
 
             //Update();
@@ -362,10 +365,10 @@ namespace XrEngine.OpenGL
                 ctx.FrustumPlanesCount = count;
             }
 
-
             ComputeVisibility();
 
-            UpdateVertexHandlers();
+            if (frameChanged)
+                UpdateVertexHandlers();
 
             _lastFrame = ctx.Frame;
             _lastCamera = camera;
@@ -423,9 +426,10 @@ namespace XrEngine.OpenGL
             }
         }
 
-
         protected unsafe void UpdateInstanceDraws(IInstanceShader instanceShader, VertexContent verContent, Material material)
         {
+            var ctx = _render.UpdateContext;
+
             var vHandler = verContent.VertexHandler!;
 
             var mode = InstanceBufferMode.Auto;
@@ -444,6 +448,9 @@ namespace XrEngine.OpenGL
 
                 mode = InstanceBufferMode.UpdateAlways;
             }
+
+            if (ctx.UseMotionVectors)
+                mode = InstanceBufferMode.UpdateAlways;
 
             if (mode != InstanceBufferMode.UpdateAlways)
             {
@@ -478,7 +485,7 @@ namespace XrEngine.OpenGL
                 for (var i = 0; i < verContent.Contents.Count; i++)
                 {
                     var draw = verContent.Contents[i];
-                    draw.InstanceVersion = instanceShader.Update(data, draw.Object!, draw.Id);
+                    draw.InstanceVersion = instanceShader.Update(ctx, data, draw.Object!, draw.Id);
                     data += elSize;
                 }
 
@@ -497,7 +504,7 @@ namespace XrEngine.OpenGL
                     if (!draw.InstanceChanged)
                         continue;
 
-                    draw.InstanceVersion = instanceShader.Update(buffer, draw.Object!, draw.Id);
+                    draw.InstanceVersion = instanceShader.Update(ctx, buffer, draw.Object!, draw.Id);
                     verContent.InstanceBuffer!.UpdateRange(new ReadOnlySpan<byte>(buffer, elSize), i, true);
                 }
 
@@ -506,7 +513,6 @@ namespace XrEngine.OpenGL
 
             if (verContent.Draw == null)
             {
-
                 var instBuffer = (IGlBuffer)verContent.InstanceBuffer;
 
                 if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
@@ -538,7 +544,7 @@ namespace XrEngine.OpenGL
 
         protected int ComputeVisibility()
         {
-            var updateContext = _render.UpdateContext;
+            var ctx = _render.UpdateContext;
 
             var totHidden = 0;
             var totDraw = 0;
@@ -563,8 +569,9 @@ namespace XrEngine.OpenGL
 
                             if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh && (mesh.Flags & EngineObjectFlags.NoFrustumCulling) == 0)
                             {
-                                draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes
-                                                                                  .AsSpan(0, updateContext.FrustumPlanesCount));
+                                draw.IsHidden = !mesh.WorldBounds
+                                            .IntersectFrustum(ctx.FrustumPlanes.AsSpan(0, ctx.FrustumPlanesCount));
+
                                 if (draw.IsHidden)
                                     totHidden++;
                             }
@@ -580,8 +587,6 @@ namespace XrEngine.OpenGL
                     material.IsHidden = allMatHidden;
                 }
             }
-
-
 
             return totHidden;
         }

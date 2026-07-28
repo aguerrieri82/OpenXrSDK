@@ -1,15 +1,17 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
 
-    public class StandardVertexShader : Shader, IShaderHandler
+    public class StandardVertexShader : Shader, IShaderHandler, IInstanceShader
     {
         public StandardVertexShader()
         {
             VertexSourceName = "standard.vert";
             Resolver = str => Embedded.GetString(str);
-            UseModelSharedSsbo = true;
+            UseSharedSsbo = true;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)
@@ -40,42 +42,69 @@ namespace XrEngine
                 return (ModelUniforms?)new ModelUniforms
                 {
                     NormalMatrix = ctx.Model.NormalMatrix,
+                    PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? modelWord,
                     WorldMatrix = modelWord
                 };
-            }, UniformsSlots.Model, BufferStore.Model, 
-               UseModelSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
+
+            }, UniformsSlots.Model, BufferStore.Model,
+               UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
+
 
             SkinVertexShader.UpdateShaderModel(bld);
         }
 
+
+        bool IInstanceShader.NeedUpdate(Object3D model, long curVersion)
+        {
+            //Get the word matrix trigger the update;
+            var wordMatrix = model.WorldMatrix;
+            return model.Transform.Version != curVersion;
+        }
+
+        unsafe long IInstanceShader.Update(UpdateShaderContext ctx, byte* destData, Object3D model, int drawId)
+        {
+            *(ModelUniforms*)destData = new ModelUniforms
+            {
+                NormalMatrix = model.NormalMatrix,
+                WorldMatrix = model.WorldMatrix,
+                PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? model.WorldMatrix,
+                DrawId = drawId
+            };
+
+            return model.Transform.Version;
+        }
+
         protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)
         {
-            var options = bld.Context.ShadowMapProvider?.Options;
+            var shadowOpt = bld.Context.ShadowMapProvider?.Options;
 
-            var shadowMode = options?.Mode ?? ShadowMapMode.None;
+            var shadowMode = shadowOpt?.Mode ?? ShadowMapMode.None;
 
-            if (UseModelSharedSsbo)
+            if (UseSharedSsbo)
                 bld.AddFeature("USE_MODEL_SSBO");
 
             if (shadowMode != ShadowMapMode.None)
             {
                 bld.AddFeature("USE_SHADOW_MAP");
                 bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
-                bld.AddFeature("SHADOW_BIAS " + (int)(options?.BiasMode ?? ShadowMapBiasMode.None));
+                bld.AddFeature("SHADOW_BIAS " + (int)(shadowOpt?.BiasMode ?? ShadowMapBiasMode.None));
+
+                if (shadowOpt!.UseShadowSampler)
+                    bld.AddFeature("USE_SHADOW_SAMPLER");
 
                 bld.ExecuteAction((ctx, up) =>
                 {
                     if (ctx.ShadowMapProvider?.ShadowMap != null)
-                        up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
+                        up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, TextureSlots.ShadowMap);
 
                     if (ctx.ShadowMapProvider?.Light != null)
                         up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light.Direction);
 
-                    if (options?.BiasMode == ShadowMapBiasMode.Value)
-                        up.SetUniform("uShadowBias", options!.Bias);
+                    if (shadowOpt?.BiasMode == ShadowMapBiasMode.Value)
+                        up.SetUniform("uShadowBias", shadowOpt!.Bias);
 
                     if (shadowMode == ShadowMapMode.VSM)
-                        up.SetUniform("uLightBleed", options!.LightBleed);
+                        up.SetUniform("uLightBleed", shadowOpt!.LightBleed);
                 });
             }
 
@@ -110,6 +139,35 @@ namespace XrEngine
                 return (CameraUniforms?)result;
 
             }, UniformsSlots.Camera, BufferStore.Shader);
+
+            if (bld.Context.UseMotionVectors && UseMotionVectors)
+            {
+                bld.AddFeature("MOTION_VECTORS");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    var texture = ctx.MotionVectorProvider?.Texture;
+
+                    if (texture != null)
+                    {
+                        var size = new Vector2(texture.Width, texture.Height);
+                        var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+
+                        up.SetUniform("uMotionImageScale", scale);
+                        up.LoadImage(texture, ImagesSlots.MotionVectors, BufferAccessMode.Write);
+                    }
+
+                    var matrices = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.PassCamera!);
+
+                    if (matrices != null)
+                    {
+                        up.SetUniform("uPrevViewProj[0]", matrices[0]);
+
+                        if (matrices.Length > 1)
+                            up.SetUniform("uPrevViewProj[1]", matrices[1]);
+                    }
+                });
+            }
         }
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
@@ -119,6 +177,10 @@ namespace XrEngine
 
         public static readonly StandardVertexShader Instance = new();
 
-        public bool UseModelSharedSsbo { get; set; }
+        public bool UseSharedSsbo { get; set; }
+
+        public bool UseMotionVectors { get; set; }
+
+        public Type InstanceBufferType => typeof(ModelUniforms);
     }
 }

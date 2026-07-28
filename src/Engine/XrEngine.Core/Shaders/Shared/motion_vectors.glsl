@@ -1,16 +1,11 @@
 
-struct FrameMatrices {
-	mat4 viewProj[2];
-	mat4 model;
-};
+uniform mat4 uPrevViewProj[2];
 
-uniform FrameMatrices uPrevMatrices;
+out vec4 fPrevClipPos;
+out vec4 fCurClipPos;
 
-out vec4 prevClipPos;
-out vec4 curClipPos;
-
-void computeMotionVectors()
+void computeMotionVectors(vec3 pos)
 {
-	prevClipPos = uPrevMatrices.viewProj[ACTIVE_EYE] * (uPrevMatrices.model * vec4(a_position, 1.0));
-	curClipPos = gl_Position;
+	fPrevClipPos = uPrevViewProj[ACTIVE_EYE] * (uModel.prevWorldMatrix * vec4(pos, 1.0));
+	fCurClipPos = gl_Position;
 }

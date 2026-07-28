@@ -9,8 +9,17 @@ uniform mat4 uWorldMatrix;
 
 out vec4 fColor;
 
+#ifdef MOTION_VECTORS
+    #include "shared/motion_vectors.glsl"
+#endif
+
 void main()
 {
     computePos(uWorldMatrix * vec4(a_position, 1.0));
+
     fColor = a_color_0;
+    
+    #ifdef MOTION_VECTORS
+        computeMotionVectors(a_position);
+    #endif
 }
