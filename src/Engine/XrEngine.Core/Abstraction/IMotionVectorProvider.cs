@@ -14,5 +14,7 @@ namespace XrEngine
         Matrix4x4[]? GetPrevMatrix(Camera camera);
 
         void Swap(Camera camera, IEnumerable<Object3D> objects);
+
+        bool IsActive { get; }
     }
 }

@@ -17,6 +17,8 @@ namespace XrEngine.OpenXr
             _options.ResolutionScale = 1;
             _options.SampleCount = 1;
             _options.RenderMode = XrRenderMode.SingleEye;
+            _options.ProjDepthScale = 1f;
+
             _platform = XrPlatform.Current;
         }
 

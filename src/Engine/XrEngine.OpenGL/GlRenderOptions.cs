@@ -10,6 +10,13 @@ namespace XrEngine.OpenGL
         High
     }
 
+    public enum MotionVectorMode
+    {
+        None,
+        Pass,
+        Shared
+    }
+
     public class GlOutlineOptions
     {
         public bool Use { get; set; }
@@ -35,6 +42,7 @@ namespace XrEngine.OpenGL
 
         public float Quality { get; set; }
     }
+
 
     public class GlRenderOptions
     {
@@ -159,6 +167,8 @@ namespace XrEngine.OpenGL
         public bool UseShaderPreprocessor { get; set; }
 
         public bool UseRayCollider { get; set; }
+
+        public MotionVectorMode MotionVectorMode { get; set; }
 
         public static GlRenderOptions Default() => new();
 

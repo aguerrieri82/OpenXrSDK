@@ -7,6 +7,8 @@ namespace XrEngine
 
     public class StandardVertexShader : Shader, IShaderHandler, IInstanceShader
     {
+        protected readonly ChangeTracker _tracker = new();
+
         public StandardVertexShader()
         {
             VertexSourceName = "standard.vert";
@@ -29,12 +31,16 @@ namespace XrEngine
         {
             bld.LoadBuffer(ctx =>
             {
+                Debug.Assert(ctx.Model != null);
+
                 //Get the word matrix trigger the update
-                var modelWord = ctx.Model!.WorldMatrix;
+                var modelWord = ctx.Model.WorldMatrix;
 
-                var curVersion = ctx.Model!.Transform.Version;
+                var curVersion = ctx.Model.Transform.Version;
 
-                if (curVersion == ctx.CurrentBuffer!.Version)
+                var motVectActive = ctx.UseMotionVectors && ctx.MotionVectorProvider?.IsActive == true;
+
+                if (curVersion == ctx.CurrentBuffer!.Version && !motVectActive)
                     return null;
 
                 ctx.CurrentBuffer!.Version = curVersion;
@@ -48,7 +54,6 @@ namespace XrEngine
 
             }, UniformsSlots.Model, BufferStore.Model,
                UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
-
 
             SkinVertexShader.UpdateShaderModel(bld);
         }
@@ -140,7 +145,9 @@ namespace XrEngine
 
             }, UniformsSlots.Camera, BufferStore.Shader);
 
-            if (bld.Context.UseMotionVectors && UseMotionVectors)
+            if (bld.Context.UseMotionVectors && 
+                UseMotionVectors && 
+                bld.Context.MotionVectorProvider?.IsActive == true)
             {
                 bld.AddFeature("MOTION_VECTORS");
 
@@ -172,7 +179,8 @@ namespace XrEngine
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
-            return false;
+            return _tracker.IsChanged(() => ctx.UseMotionVectors) ||
+                   _tracker.IsChanged(() => ctx.MotionVectorProvider?.IsActive ?? false);
         }
 
         public static readonly StandardVertexShader Instance = new();

@@ -12,11 +12,11 @@ namespace XrEngine.OpenXr
         readonly EngineApp _app;
         private readonly GlMotionVectorPass _pass;
 
-        public GlMotionVectorProvider(EngineApp app, OpenGLRender renderer)
+        public GlMotionVectorProvider(EngineApp app, OpenGLRender renderer, GlMotionVectorPass pass)
         {
             _renderer = renderer;
             _app = app;
-            _pass = _renderer.Pass<GlMotionVectorPass>() ?? throw new NotSupportedException();
+            _pass = pass;
 
             if (XrPlatform.IsEditor)
                 MotionVectorFormat = (long)InternalFormat.Rgb16f;

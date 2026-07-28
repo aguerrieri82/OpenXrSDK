@@ -6,9 +6,9 @@ namespace XrEngine
 {
     public class ChangeTracker
     {
-        readonly Dictionary<Func<bool>, bool> _oldValues = [];
+        readonly Dictionary<Func<object>, object> _oldValues = [];
 
-        public bool IsChanged(Func<bool> getter)
+        public bool IsChanged(Func<object> getter)
         {
             var curValue = getter();
             var isChanged = !_oldValues.TryGetValue(getter, out var oldValue) || !Equals(oldValue, curValue);

@@ -164,9 +164,7 @@ namespace XrEngine
 
         public class PbrShader : StandardVertexShader, IShaderHandler
         {
-            long _iblVersion = -1;
             ILightFieldProvider? _lightFieldProvider;
-
             readonly PerspectiveCamera _depthCamera = new();
 
             public PbrShader()
@@ -181,8 +179,9 @@ namespace XrEngine
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
 
                 return ctx.LastGlobalUpdate?.LightsHash != ctx.LightsHash ||
-                       (ctx.LastGlobalUpdate?.ShaderVersion != Version) ||
-                       (ibl?.Version ?? -1) != _iblVersion;
+                       ctx.LastGlobalUpdate?.ShaderVersion != Version ||
+                       _tracker.IsChanged(() => ibl?.Version ?? -1) ||
+                       base.NeedUpdateShader(ctx);
             }
 
  
@@ -221,12 +220,7 @@ namespace XrEngine
                     bld.AddFeature("USE_PUNCTUAL");
 
                 if (imgLight != null)
-                {
-                    _iblVersion = imgLight.Version;
                     bld.AddFeature("USE_IBL");
-                }
-                else
-                    _iblVersion = -1;
 
                 if (DepthNoiseFactor > 0)
                     bld.AddFeature("USE_DEPTH_NOISE");

@@ -449,7 +449,7 @@ namespace XrEngine.OpenGL
                 mode = InstanceBufferMode.UpdateAlways;
             }
 
-            if (ctx.UseMotionVectors)
+            if (ctx.UseMotionVectors && ctx.MotionVectorProvider?.IsActive == true)
                 mode = InstanceBufferMode.UpdateAlways;
 
             if (mode != InstanceBufferMode.UpdateAlways)

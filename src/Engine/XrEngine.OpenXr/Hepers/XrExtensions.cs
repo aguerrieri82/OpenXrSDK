@@ -395,13 +395,19 @@ namespace XrEngine.OpenXr
 
             var useDepth = xrApp.RenderOptions.UseProjectionDepth;
 
-            if (renderer.HasPass<GlMotionVectorPass>())
+            GlMotionVectorPass? motionVectorPass = null;
+
+            if (renderer.Options.MotionVectorMode == MotionVectorMode.Pass)
             {
-                var provider = new GlMotionVectorProvider(app, renderer);
+                motionVectorPass ??= renderer.EnsurePass(() => new GlMotionVectorPass(
+                            renderer, xrApp,
+                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView));
+
+                var provider = new GlMotionVectorProvider(app, renderer, motionVectorPass);
 
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
             }
-            else if (renderer.UpdateContext.UseMotionVectors)
+            else if (renderer.Options.MotionVectorMode == MotionVectorMode.Shared)
             {
                 var provider = new GlMotionVectorProviderV2(app, renderer);
 

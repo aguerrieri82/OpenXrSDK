@@ -36,6 +36,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(GlUpdateContext ctx)
         {
+            ctx.UseMotionVectors = true;
 
             GetRenderTarget()?.Begin(ctx.PassCamera!);
 
@@ -73,7 +74,7 @@ namespace XrEngine.OpenGL
         {
             _renderer.State.SetActiveProgram(0);
             
-            if (ctx.UseMotionVectors)
+            if (ctx.MotionVectorProvider != null && ctx.MotionVectorProvider.IsActive)
             {
                 if (ctx.PassCamera!.ActiveEye == -1 || ctx.PassCamera.ActiveEye == 1)
                 {
@@ -88,6 +89,8 @@ namespace XrEngine.OpenGL
                         .Where(a => a != null));
                 }
             }
+
+            ctx.UseMotionVectors = false;
         }
 
         protected virtual bool CanDraw(DrawContent draw)
