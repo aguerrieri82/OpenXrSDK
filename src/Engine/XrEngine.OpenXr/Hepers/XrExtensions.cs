@@ -229,11 +229,19 @@ namespace XrEngine.OpenXr
 
                     else if (depthMode == XrProjDepthMode.DepthCopy)
                     {
-                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView));
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, false));
 
                         depthCopyPass.Configure(depthTex);
 
                         renderer.UpdateContext.CopyDepth = true;
+                    }
+                    else if (depthMode == XrProjDepthMode.DepthCopyImage)
+                    {
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, true));
+
+                        renderer.UpdateContext.CopyDepthImage = (Texture2D?)depthCopyPass
+                            .Configure(depthTex)?
+                            .ToEngineTexture();
                     }
 
                     depthTex = 0;
@@ -396,7 +404,18 @@ namespace XrEngine.OpenXr
 
                 Context.Implement<IMotionVectorProvider>(provider);
 
-                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider, useDepth));
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
+            }
+            else if (renderer.UpdateContext.UseMotionVectors)
+            {
+                var provider = new GlMotionVectorProviderV2(app, renderer)
+                {
+                    IsActive = true
+                };
+
+                Context.Implement<IMotionVectorProvider>(provider);
+
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
             }
             else
                 xrApp.Layers.AddProjection(RenderView, useDepth);

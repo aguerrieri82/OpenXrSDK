@@ -13,7 +13,6 @@ namespace XrEngine.OpenXr
 
             public MotionVectorShader()
             {
-
             }
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)

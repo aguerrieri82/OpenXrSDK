@@ -18,10 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="Models/*" 
-				 Link="Assets/Models/%(Filename)%(Extension)" 
-				 UseLink="True"
-				 CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="Models/*" Link="Assets/Models/%(Filename)%(Extension)" UseLink="True" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

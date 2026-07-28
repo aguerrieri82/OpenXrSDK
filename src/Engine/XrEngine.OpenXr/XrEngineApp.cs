@@ -14,7 +14,8 @@ namespace XrEngine.OpenXr
     {
         None,
         DepthPass,
-        DepthCopy
+        DepthCopy,
+        DepthCopyImage 
     }
 
 

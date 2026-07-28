@@ -313,6 +313,32 @@ namespace XrEngine.OpenGL
                 glSamp.Update(value);
         }
 
+
+        public void LoadImage(Texture2D tex2d, int slot = 0, BufferAccessMode accessMode = BufferAccessMode.ReadWrite)
+        {
+            if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
+                glText = tex2d.ToGlTexture();
+
+            var isTexUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+
+            if (isTexUpdate)
+                glText.Update(tex2d);
+
+            bool layered = glText.Target == TextureTarget.Texture2DArray ||
+                           glText.Target == TextureTarget.Texture2DMultisampleArray;
+
+            var glMode = accessMode switch
+            {
+                BufferAccessMode.Read => BufferAccessARB.ReadOnly,
+                BufferAccessMode.Write => BufferAccessARB.WriteOnly,
+                BufferAccessMode.Replace => BufferAccessARB.WriteOnly,
+                BufferAccessMode.ReadWrite => BufferAccessARB.ReadWrite,
+                _ => throw new ArgumentOutOfRangeException(nameof(accessMode))
+            };
+
+            _gl.BindImageTexture((uint)slot, glText.Handle, 0, layered, 0, glMode, glText.InternalFormat);
+        }
+
         public void LoadTexture(Texture value, int slot = 0, bool forceBinding = false)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();

@@ -13,48 +13,62 @@ namespace XrEngine.OpenGL
     {
         readonly GlRenderTargetPool _pool;
         readonly DepthCopyFromColorEffect _effect;
-        uint _lastDepthTex;
+        private IGlRenderTargetFB? _renderTarget;
+        private bool _imageMode;
 
-        public GlDepthCopyPass(OpenGLRender renderer, bool multiView)
+        public GlDepthCopyPass(OpenGLRender renderer, bool multiView, bool imageMode)
             : base(renderer)
         {
-            _pool = new GlRenderTargetPool(renderer.GL, multiView);
+            _pool = new GlRenderTargetPool(renderer.GL, multiView)
+            {
+                ColorFormat = TextureFormat.GrayFloat32
+            };
 
             _effect = new DepthCopyFromColorEffect();
+
+            _imageMode = imageMode;
 
         }
 
         public override void Render(GlUpdateContext ctx)
         {
-            if (!IsEnabled)
+            if (!IsEnabled || _renderTarget == null)
                 return;
 
-            if (_lastDepthTex == 0)
-                return;
+            _renderTarget.Begin(ctx.PassCamera!);
 
-            var renderTarget = _pool.GetRenderTarget(0, _lastDepthTex, 1);
-
-            if (_renderer.RenderTarget is not IGlRenderTargetFB curTarget)
-                throw new NotSupportedException();
-
-            renderTarget.Begin(ctx.PassCamera!);
-
-            var glTex = curTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1);
-
-            _effect.Texture = glTex.ToEngineTexture();
+            if (_imageMode)
+            {
+                _effect.Texture = null;
+            }
+            else
+            {
+                var glTex = _renderTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1);
+                _effect.Texture = glTex.ToEngineTexture();
+            }
 
             UseEffect(_effect);
 
             DrawQuad();
 
-            renderTarget.End(false);
+            _renderTarget.End(false);
 
-            _lastDepthTex = 0;
+            _renderTarget = null;
         }
 
-        public void Configure(uint depthTex)
+        public GlTexture? Configure(uint depthTex)
         {
-            _lastDepthTex = depthTex;
+            if (_imageMode)
+            {
+                _renderTarget = _pool.GetRenderTarget(0, depthTex, 1, createColor: true);
+                _renderTarget.FrameBuffer.BindDraw();
+                _renderer.State.SetWriteColor(true);
+                _renderer.GL.ClearBuffer(BufferKind.Color, 0, [1f]);
+            }
+            else
+                _renderTarget = _pool.GetRenderTarget(0, depthTex, 1);
+
+            return _renderTarget.FrameBuffer.Color;
         }
 
         public override void Dispose()

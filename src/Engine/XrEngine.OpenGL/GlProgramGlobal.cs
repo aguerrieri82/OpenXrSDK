@@ -4,6 +4,9 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Numerics;
+using XrMath;
+
 namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
@@ -37,6 +40,28 @@ namespace XrEngine.OpenGL
 
                 if (bld.Context.CopyDepth)
                     bld.AddFeature("COPY_DEPTH");
+
+                if (bld.Context.UseMotionVectors)
+                    bld.AddFeature("MOTION_VECTORS");
+
+                if (bld.Context.CopyDepthImage != null)
+                {
+                    bld.AddFeature("COPY_DEPTH_IMG");
+
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        if (ctx.CopyDepthImage != null)
+                        {
+                            up.LoadImage(ctx.CopyDepthImage, 0, BufferAccessMode.Write);
+
+                            var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
+                            var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+
+                            up.SetUniform("uDepthImageScale", scale);
+                        }
+                    });
+                }
+
             }
         }
 

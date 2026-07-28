@@ -287,6 +287,7 @@ namespace XrEngine.OpenGL
                 InternalFormat.R32ui => TextureFormat.GrayUint32,
                 InternalFormat.Srgb8 => TextureFormat.SRgb24,
                 InternalFormat.Rgb16f => TextureFormat.RgbFloat16,
+                InternalFormat.RG32f => TextureFormat.RgFloat32,
 
                 _ => throw new NotSupportedException(),
             };

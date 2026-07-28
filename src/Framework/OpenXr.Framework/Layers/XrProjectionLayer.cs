@@ -32,6 +32,8 @@ namespace OpenXr.Framework
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
+        protected SwapchainImageBaseHeader*[]? _lastColorImages;
+        protected SwapchainImageBaseHeader*[]? _lastDepthImages;
 
         XrProjectionLayer()
         {
@@ -208,7 +210,7 @@ namespace OpenXr.Framework
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
             if (_renderView != null)
-                return Render(ref projViews, ref views, _swapchains, displayTime);
+                return Render(ref projViews, ref views, displayTime);
 
             return false;
         }
@@ -217,26 +219,48 @@ namespace OpenXr.Framework
         {
         }
 
-        protected virtual bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected virtual void Acquire(ref Span<CompositionLayerProjectionView> projViews)
         {
-            var colorImages = new SwapchainImageBaseHeader*[swapchains.Length];
-            var depthImages = _useDepthSWC ? new SwapchainImageBaseHeader*[swapchains.Length] : null;
+            Debug.Assert(_swapchains != null);
 
-            for (var i = 0; i < colorImages.Length; i++)
+            _lastColorImages = new SwapchainImageBaseHeader*[_swapchains.Length];
+            _lastDepthImages = _useDepthSWC ? new SwapchainImageBaseHeader*[_swapchains.Length] : null;
+
+            for (var i = 0; i < _lastColorImages.Length; i++)
             {
-                var swc = swapchains[i];
+                var swc = _swapchains[i];
 
-                var colorIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].ColorSwapchain);
-                colorImages[i] = swc.ColorImages!.ItemPointer((int)colorIndex);
-                _xrApp.WaitSwapchainImage(swapchains[i].ColorSwapchain);
+                var colorIndex = _xrApp!.AcquireSwapchainImage(_swapchains[i].ColorSwapchain);
+                _lastColorImages[i] = swc.ColorImages!.ItemPointer((int)colorIndex);
+                _xrApp.WaitSwapchainImage(_swapchains[i].ColorSwapchain);
 
                 if (_useDepthSWC)
                 {
-                    var depthIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].DepthSwapchain);
-                    depthImages![i] = swc.DepthImages!.ItemPointer((int)depthIndex);
-                    _xrApp.WaitSwapchainImage(swapchains[i].DepthSwapchain);
+                    var depthIndex = _xrApp!.AcquireSwapchainImage(_swapchains[i].DepthSwapchain);
+                    _lastDepthImages![i] = swc.DepthImages!.ItemPointer((int)depthIndex);
+                    _xrApp.WaitSwapchainImage(_swapchains[i].DepthSwapchain);
                 }
             }
+        }
+
+        protected virtual void Release()
+        {
+            Debug.Assert(_swapchains != null);
+
+            foreach (var sw in _swapchains)
+            {
+                _xrApp!.ReleaseSwapchainImage(sw.ColorSwapchain);
+                if (_useDepthSWC)
+                    _xrApp!.ReleaseSwapchainImage(sw.DepthSwapchain);
+            }
+
+            _lastColorImages = null;
+            _lastDepthImages = null;
+        }
+
+        protected virtual bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, long predTime)
+        {
+            Acquire(ref projViews);
 
             for (var i = 0; i < views.Length; i++)
             {
@@ -250,8 +274,8 @@ namespace OpenXr.Framework
                 var info = new RenderViewInfo
                 {
                     ProjViews = projViews,
-                    ColorImages = colorImages,
-                    DepthImages = depthImages,
+                    ColorImages = _lastColorImages!,
+                    DepthImages = _lastDepthImages,
                     Mode = _xrApp!.RenderOptions.RenderMode,
                     DisplayTime = predTime
                 };
@@ -261,16 +285,12 @@ namespace OpenXr.Framework
             catch (Exception ex)
             {
                 _xrApp!.Logger.LogError(ex, "Render failed: {ex}", ex);
+
                 return false;
             }
             finally
             {
-                foreach (var sw in swapchains)
-                {
-                    _xrApp!.ReleaseSwapchainImage(sw.ColorSwapchain);
-                    if (_useDepthSWC)
-                        _xrApp!.ReleaseSwapchainImage(sw.DepthSwapchain);
-                }
+                Release();
             }
 
             return true;

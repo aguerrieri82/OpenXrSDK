@@ -43,6 +43,8 @@
             }
         }
 
+        public int Priority { get; set; }
+
         public bool IsEnabled { get; set; }
 
         public GlRenderPassFlags Flags => _flags;

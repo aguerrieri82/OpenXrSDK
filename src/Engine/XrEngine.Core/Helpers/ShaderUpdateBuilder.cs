@@ -54,6 +54,9 @@ namespace XrEngine
 
         public Camera? PassCamera;
 
+        public Scene3D? Scene;
+
+
         public Shader? Shader;
 
         public IList<Light>? Lights;
@@ -84,6 +87,10 @@ namespace XrEngine
 
         public IDepthCullProvider? DepthCullProvider;
 
+        public long ImageLightVersion;
+
+        public int FrustumPlanesCount;
+
         public long ContextVersion;
 
         public long Frame;
@@ -101,6 +108,10 @@ namespace XrEngine
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
         public bool CopyDepth;
+
+        public Texture2D? CopyDepthImage;
+
+        public bool UseMotionVectors;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

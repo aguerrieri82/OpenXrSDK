@@ -364,17 +364,22 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-        public static XrEngineAppBuilder UseSpaceWarp(this XrEngineAppBuilder self)
+        public static XrEngineAppBuilder UseSpaceWarp(this XrEngineAppBuilder self, bool separatedPass = true)
         {
             self.ConfigureApp(e =>
             {
                 if (e.App.Renderer is not OpenGLRender openGl)
                     throw new NotSupportedException("Space warp is only supported on OpenGL");
 
-                if (openGl.Passes<GlMotionVectorPass>().Any())
-                    return;
+                if (separatedPass)
+                {
+                    if (openGl.Passes<GlMotionVectorPass>().Any())
+                        return;
 
-                openGl.AddPass(new GlMotionVectorPass(openGl, e.XrApp, e.XrApp.RenderOptions.RenderMode == XrRenderMode.MultiView), 0);
+                    openGl.AddPass(new GlMotionVectorPass(openGl, e.XrApp, e.XrApp.RenderOptions.RenderMode == XrRenderMode.MultiView), -1);
+                }
+                else
+                    openGl.UpdateContext.UseMotionVectors = true;
             });
 
             return self;

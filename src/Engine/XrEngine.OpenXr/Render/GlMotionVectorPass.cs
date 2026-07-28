@@ -43,6 +43,8 @@ namespace XrEngine.OpenXr
                 _debugColor = new GlTexture(renderer.GL);
                 _debugColor.Allocate(1024, 1024, 2, TextureFormat.RgbaFloat16);
             }
+
+            Priority = -1;
         }
 
         public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
@@ -73,7 +75,7 @@ namespace XrEngine.OpenXr
         {
             var effect = MotionVectorEffect.Instance;
 
-            effect.WriteDepth = drawMaterial.WriteDepth;
+            //effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
 
@@ -104,7 +106,7 @@ namespace XrEngine.OpenXr
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetClearColor(new Color(0, 0, 0, 0));
 
-            _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
+            _gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
 
             return base.BeginRender(ctx);
         }

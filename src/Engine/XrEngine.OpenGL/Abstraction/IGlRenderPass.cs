@@ -16,5 +16,7 @@
         bool IsEnabled { get; set; }
 
         GlRenderPassFlags Flags { get; }
+
+        int Priority { get; }
     }
 }

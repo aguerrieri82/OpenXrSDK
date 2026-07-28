@@ -81,7 +81,7 @@ namespace OpenXr.Framework.Oculus
             _xrApp?.DestroySwapchain(_spaceWarpData.ColorSwapchain);
         }
 
-        protected unsafe override bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long displayTime)
+        protected unsafe override bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, long displayTime)
         {
             var isActive = _motionProvider.IsActive;
 
@@ -98,7 +98,7 @@ namespace OpenXr.Framework.Oculus
             }
 
             if (!isActive)
-                return base.Render(ref projViews, ref views, swapchains, displayTime);
+                return base.Render(ref projViews, ref views, displayTime);
 
             Debug.Assert(_xrApp != null);
 
@@ -128,7 +128,7 @@ namespace OpenXr.Framework.Oculus
                     _lastPose[i] = curPose;
                 }
 
-                if (!base.Render(ref projViews, ref views, swapchains, displayTime))
+                if (!base.Render(ref projViews, ref views, displayTime))
                     return false;
 
             }

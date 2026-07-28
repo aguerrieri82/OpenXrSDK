@@ -39,9 +39,9 @@ namespace XrEngine.OpenGL
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
         protected readonly QueueDispatcher _dispatcher;
-        protected readonly IList<IGlRenderPass> _renderPasses = [];
+        protected readonly List<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
-        protected readonly GlShadowPass? _shadowPass;
+        protected GlShadowPass? _shadowPass;
         protected readonly Thread _thread;
         protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
@@ -101,53 +101,7 @@ namespace XrEngine.OpenGL
             if (isDummy)
                 return;
 
-
-            if (_options.ShadowMap.Mode != ShadowMapMode.None)
-            {
-                _shadowPass = new GlShadowPass(this);
-                _renderPasses.Add(_shadowPass);
-                _updateCtx.ShadowMapProvider = _shadowPass;
-            }
-
-            if (_options.UseDepthPass)
-            {
-                var depthPass = new GlDepthPass(this)
-                {
-                    UseOcclusionQuery = _options.UseOcclusionQuery
-                };
-                _renderPasses.Add(depthPass);
-                _updateCtx.DepthCullProvider = depthPass;
-            }
-
-            if (_options.UsePlanarReflection)
-                _renderPasses.Add(new GlReflectionPassGroup(this));
-
-            _renderPasses.Add(new GlColorPass(this));
-
-            if (_options.ContactShadow.Use)
-            {
-                var contact = new GlContactShadowPass(this, -1, _options.ContactShadow.IsMultiView);
-                _renderPasses.Add(contact);
-            }
-
-            if (_options.Outline.Use)
-            {
-                var outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
-                _renderPasses.Add(outline);
-            }
-
-            if (_options.UseHitTest)
-            {
-                var hitTest = new GlHitTestPass(this);
-                _renderPasses.Add(hitTest);
-                Context.Implement<IViewHitTest>(hitTest);
-            }
-
-            if (_options.UseResolve)
-                _renderPasses.Add(new GlResolvePass(this));
-
-            if (_options.UseRayCollider)
-                _renderPasses.Add(new GlRayColliderPassGroup(this));
+            ConfigurePasses();
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
@@ -236,6 +190,58 @@ namespace XrEngine.OpenGL
 
         #region RENDER
 
+        protected virtual void ConfigurePasses()
+        {
+            if (_options.ShadowMap.Mode != ShadowMapMode.None)
+            {
+                _shadowPass = new GlShadowPass(this);
+                _renderPasses.Add(_shadowPass);
+                _updateCtx.ShadowMapProvider = _shadowPass;
+            }
+
+            if (_options.UseDepthPass)
+            {
+                var depthPass = new GlDepthPass(this)
+                {
+                    UseOcclusionQuery = _options.UseOcclusionQuery
+                };
+                _renderPasses.Add(depthPass);
+                _updateCtx.DepthCullProvider = depthPass;
+            }
+
+            if (_options.UsePlanarReflection)
+                _renderPasses.Add(new GlReflectionPassGroup(this));
+
+            _renderPasses.Add(new GlColorPass(this));
+
+            if (_options.ContactShadow.Use)
+            {
+                var contact = new GlContactShadowPass(this, -1, _options.ContactShadow.IsMultiView);
+                _renderPasses.Add(contact);
+            }
+
+            if (_options.Outline.Use)
+            {
+                var outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
+                _renderPasses.Add(outline);
+            }
+
+            if (_options.UseHitTest)
+            {
+                var hitTest = new GlHitTestPass(this);
+                _renderPasses.Add(hitTest);
+                Context.Implement<IViewHitTest>(hitTest);
+            }
+
+            if (_options.UseResolve)
+                _renderPasses.Add(new GlResolvePass(this));
+
+            if (_options.UseRayCollider)
+                _renderPasses.Add(new GlRayColliderPassGroup(this));
+
+            _passesDirty = true;
+        }
+
         public IEnumerable<T> Passes<T>() where T : IGlRenderPass
         {
             return _renderPasses.OfType<T>();
@@ -255,10 +261,13 @@ namespace XrEngine.OpenGL
         public void AddPass(IGlRenderPass pass, int position)
         {
             if (position == -1)
+            {
                 _renderPasses.Add(pass);
+            }
             else
                 _renderPasses.Insert(position, pass);
 
+            _passesDirty = true;
         }
 
         protected void UpdateLights(Scene3D scene)
@@ -313,6 +322,20 @@ namespace XrEngine.OpenGL
             var layer = new GlLayer(this, scene, type, sceneLayer);
             _activeLayers.Add(layer);
             return layer;
+        }
+
+        protected void UpdatePasses()
+        {
+            var sorted = _renderPasses
+                .Where(x => x.Priority < 0).OrderBy(x => x.Priority)
+                .Concat(_renderPasses.Where(x => x.Priority == 0))
+                .Concat(_renderPasses.Where(x => x.Priority > 0).OrderBy(x => x.Priority))
+                .ToList();
+
+            _renderPasses.Clear();
+            _renderPasses.AddRange(sorted);
+
+            _passesDirty = false;
         }
 
         protected void UpdateLayers(Scene3D scene)
@@ -441,6 +464,9 @@ namespace XrEngine.OpenGL
             _updateCtx.DeltaTime = (float)ctx.DeltaTime;
 
             _updateCtx.ContextVersion++;
+
+            if (_passesDirty)
+                UpdatePasses();
 
             foreach (var pass in _renderPasses)
                 pass.Configure(_updateCtx);
@@ -839,6 +865,6 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static OpenGLRender? Current;
-
+        private bool _passesDirty;
     }
 }

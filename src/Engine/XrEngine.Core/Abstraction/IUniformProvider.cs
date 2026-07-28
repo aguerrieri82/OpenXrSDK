@@ -15,6 +15,8 @@ namespace XrEngine
     {
         void LoadTexture(Texture value, int slot = 0, bool forceBinding = false);
 
+        void LoadImage(Texture2D copyDepthImage, int slot = 0, BufferAccessMode accessMode = BufferAccessMode.ReadWrite);
+
         void SetUniform(string name, bool value, bool optional = false);
 
         void SetUniform(string name, int value, bool optional = false, bool force = false);

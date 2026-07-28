@@ -158,6 +158,9 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
+
+        public int Priority { get; protected set; }
+
         public GL Gl => _gl;
 
         public bool IsEnabled { get; set; }

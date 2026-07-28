@@ -29,6 +29,12 @@
         {
             bld.AddFeature($"DEPTH_LOCATION {DepthLocation}");
 
+            if (Texture == null)
+            {
+                bld.AddFeature($"USE_FETCH");
+                bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
+            }
+
             bld.ExecuteAction((_, up) =>
             {
                 if (Texture != null)

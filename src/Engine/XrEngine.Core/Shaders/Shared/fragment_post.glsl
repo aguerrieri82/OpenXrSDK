@@ -1,4 +1,3 @@
-
 #include "tonemap.glsl"
 
 #ifndef DEPTH_LOCATION
@@ -13,10 +12,22 @@
     layout(location=DEPTH_LOCATION) out float outDepth;
 #endif
 
+#ifdef COPY_DEPTH_IMG
+
+    #ifdef MULTI_VIEW
+        layout(r32f, binding=0) uniform writeonly mediump image2DArray uDepthImage;
+    #else
+        layout(r32f, binding=0) uniform writeonly mediump image2D uDepthImage;
+    #endif
+
+    uniform vec2 uDepthImageScale;
+
+#endif
+
 #ifdef MOTION_VECTORS
-    
-    in vec4 prevClipPos; 
-    in vec4 curClipPos; 
+
+    in vec4 prevClipPos;
+    in vec4 curClipPos;
 
     layout(location=MOTION_VECTORS_LOCATION) out vec4 outVector;
 
@@ -41,11 +52,24 @@ void doPostRgb(inout vec3 fragColor)
         outDepth = gl_FragCoord.z;
     #endif
 
+    #ifdef COPY_DEPTH_IMG
+
+        ivec2 p = ivec2(gl_FragCoord.xy * uDepthImageScale);
+
+        #ifdef MULTI_VIEW
+            imageStore(uDepthImage, ivec3(p, int(gl_ViewID_OVR)), vec4(gl_FragCoord.z));
+        #else
+            imageStore(uDepthImage, p, vec4(gl_FragCoord.z));
+        #endif
+
+    #endif
+
     #ifdef MOTION_VECTORS
-        vec3 cur = curClipPos.xyz  / curClipPos.w;
-	    vec3 prev = prevClipPos.xyz  / prevClipPos.w;
-	    outVector.xyz = cur - prev;
-	    outVector.w = 0.0;
+        vec3 cur = curClipPos.xyz / curClipPos.w;
+        vec3 prev = prevClipPos.xyz / prevClipPos.w;
+
+        outVector.xyz = cur - prev;
+        outVector.w = 0.0;
     #endif
 }
 
@@ -54,4 +78,3 @@ void doPost(inout vec4 fragColor)
 {
     doPostRgb(fragColor.rgb);
 }
-
