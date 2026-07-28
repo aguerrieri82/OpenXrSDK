@@ -46,14 +46,14 @@ namespace XrEngine.OpenXr
             };
         }
 
-        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app)
+        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, XrProjDepthMode depthMode)
         {
             if (app.Renderer is OpenGLRender openGl)
             {
                 if (openGl.Options.UseResolve)
                     return xrApp.BindEngineAppGLResolve(app);
                 else
-                    return xrApp.BindEngineAppGL(app);
+                    return xrApp.BindEngineAppGL(app, depthMode);
             }
 
             if (app.Renderer is FilamentRender)
@@ -194,7 +194,7 @@ namespace XrEngine.OpenXr
             return renderer;
         }
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, XrProjDepthMode depthMode)
         {
             var pool = new GlRenderTargetPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
@@ -205,23 +205,54 @@ namespace XrEngine.OpenXr
                     pool.Clear();
             };
 
-            GlDepthExportPass? depthPass = null;
+            GlDepthExportPass? depthExportPass = null;
+
+            GlDepthCopyPass? depthCopyPass = null;
 
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
             {
                 var sampleCount = xrApp.RenderOptions.SampleCount;
                 var isMultiView = xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView;
 
-                if (depthTex != 0  && sampleCount > 1)
+                var renderer = OpenGLRender.Current;
+
+                var isHandleDepth = depthTex != 0 && sampleCount > 1;
+
+                if (isHandleDepth)
                 {
-                    depthPass ??= OpenGLRender.Current.EnsurePass(() => new GlDepthExportPass(OpenGLRender.Current, isMultiView));
-                 
-                    depthPass.Configure(depthTex);
+                    if (depthMode == XrProjDepthMode.DepthPass)
+                    {
+                        depthExportPass ??= renderer.EnsurePass(() => new GlDepthExportPass(renderer, isMultiView));
+
+                        depthExportPass.Configure(depthTex);
+                    }
+
+                    else if (depthMode == XrProjDepthMode.DepthCopy)
+                    {
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView));
+
+                        depthCopyPass.Configure(depthTex);
+
+                        renderer.UpdateContext.CopyDepth = true;
+                    }
 
                     depthTex = 0;
                 }
 
-                return pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+                var renderTarget = pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+
+                if (depthMode == XrProjDepthMode.DepthCopy && isHandleDepth)
+                {
+                    renderTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1, TextureFormat.GrayInt16);
+
+                    renderTarget.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
+
+                    renderer.State.SetWriteColor(true);
+                    renderer.GL.Disable(EnableCap.Blend, 1);
+                    renderer.GL.ClearBuffer(BufferKind.Color, 1, [1f]);
+                }
+
+                return renderTarget;
             });
 
         }

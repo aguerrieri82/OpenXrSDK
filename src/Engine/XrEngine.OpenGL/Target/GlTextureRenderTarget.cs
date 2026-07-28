@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTextureRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
+    public class GlTextureRenderTarget : IGlRenderTargetFB
     {
         protected readonly GlTextureFrameBuffer _frameBuffer;
         protected readonly GL _gl;

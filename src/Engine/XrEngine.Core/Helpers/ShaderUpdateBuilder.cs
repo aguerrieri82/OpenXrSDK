@@ -99,6 +99,8 @@ namespace XrEngine
         public bool IsSrgbAutoEncode;
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
+
+        public bool CopyDepth;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

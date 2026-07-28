@@ -89,7 +89,7 @@ namespace XrEngine.OpenXr
             if (actionBuilder != null)
                 engine.XrApp.AddActions(actionBuilder);
 
-            engine.XrApp.BindEngineApp(engine.App); //TODO previous was in XrEngineApp.Create, but leads some error
+            engine.XrApp.BindEngineApp(engine.App, engine.Options.ProjDepthMode);
 
             return engine;
         }

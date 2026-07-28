@@ -75,7 +75,7 @@ namespace XrEngine.OpenGL
         public static readonly GlMultiViewShaderHandler Instance = new();
     }
 
-    public class GlMultiViewRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
+    public class GlMultiViewRenderTarget : IGlRenderTargetFB
     {
         protected GlMultiViewFrameBuffer _frameBuffer;
 

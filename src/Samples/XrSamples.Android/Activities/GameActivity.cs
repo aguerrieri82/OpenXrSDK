@@ -138,7 +138,7 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
-                   .UseProjDepth(XrProjDepthMode.DepthPass, 0.5f)
+                   .UseProjDepth(XrProjDepthMode.DepthCopy, 0.5f)
                    .RemovePlaneGrid();
                    //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 

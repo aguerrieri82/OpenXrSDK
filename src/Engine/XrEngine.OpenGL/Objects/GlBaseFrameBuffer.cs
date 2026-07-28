@@ -168,7 +168,13 @@ namespace XrEngine.OpenGL
             {
                 GlTexture glTex;
                 if (Color.InternalFormat.ToTextureFormat() == format)
+                {
                     glTex = Color.Clone(false);
+                    glTex.MaxLevel = 0;
+                    glTex.BaseLevel = 0;
+                    glTex.MinFilter = TextureMinFilter.Linear;
+                    glTex.UpdateSampler();
+                }
                 else
                 {
                     glTex = new GlTexture(_gl)
@@ -182,15 +188,14 @@ namespace XrEngine.OpenGL
                         BorderColor = Color.BorderColor,
                         IsMutable = Color.IsMutable,
                         SampleCount = Color.SampleCount,
+                        MaxLevel = 0,
+                        BaseLevel = 0,
+                        MinFilter = TextureMinFilter.Linear
                     };
 
                     glTex.Allocate(Color.Width, Color.Height, Color.Depth, format);
                     glTex.SetLabel((_label ?? "FB") + " - " + slot);
                 }
-
-                glTex.MaxLevel = 0;
-                glTex.BaseLevel = 0;
-                glTex.MinFilter = TextureMinFilter.Linear;
 
                 Attach(glTex, slot, useDraw: true);
 

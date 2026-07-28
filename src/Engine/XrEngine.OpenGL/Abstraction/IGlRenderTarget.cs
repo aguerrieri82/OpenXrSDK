@@ -28,4 +28,9 @@ namespace XrEngine.OpenGL
 
         int ShadingRate { get; set; }
     }
+
+    public interface IGlRenderTargetFB : IGlRenderTarget, IGlFrameBufferProvider
+    {
+
+    }
 }

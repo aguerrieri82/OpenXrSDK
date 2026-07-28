@@ -11,7 +11,6 @@
                 FragmentSourceName = "clear.frag",
                 VertexSourceName = "fullscreen.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = false,
                 Priority = -1
             };
         }

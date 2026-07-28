@@ -36,16 +36,26 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(GlUpdateContext ctx)
         {
-            GetRenderTarget()!.Begin(ctx.PassCamera!);
+
+            GetRenderTarget()?.Begin(ctx.PassCamera!);
+
+            _renderer.State.SetWriteColor(true);
 
             if (_renderer.Options.UseDepthPass)
             {
-                _renderer.State.SetWriteColor(true);
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
                 _gl.DepthFunc(DepthFunction.Lequal);
             }
             else
-                _renderer.Clear(ctx.PassCamera!.BackgroundColor);
+            {
+                _renderer.State.SetWriteDepth(true);
+                _renderer.State.SetClearDepth(1.0f);
+                _renderer.State.SetClearStencil(0);
+
+                _gl.ClearBuffer(BufferKind.Color, 0, ctx.PassCamera!.BackgroundColor.AsSpan());
+
+                _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
+            }
 
             _frame++;
 
@@ -291,8 +301,6 @@ namespace XrEngine.OpenGL
             }
 #endif
         }
-
-
 
         public bool WriteDepth { get; set; }
     }

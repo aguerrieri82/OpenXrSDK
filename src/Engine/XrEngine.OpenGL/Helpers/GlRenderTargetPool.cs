@@ -13,7 +13,7 @@ namespace XrEngine.OpenGL
     {
         private readonly GL _gl;
         private readonly bool _multiView;
-        private readonly Dictionary<ulong, IGlRenderTarget> _targets = [];
+        private readonly Dictionary<ulong, IGlRenderTargetFB> _targets = [];
 
         private GlTexture? _intermediateColor;
 
@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL
             return GetRenderTarget(colorTex.Handle, 0, sampleCount, -1);
         }
 
-        public IGlRenderTarget GetRenderTarget(uint colorTex, uint depthTex, uint sampleCount, int eyeIndex = -1, bool createDepth = true)
+        public IGlRenderTargetFB GetRenderTarget(uint colorTex, uint depthTex, uint sampleCount, int eyeIndex = -1, bool createDepth = true)
         {
             var targetId =
                  ((ulong)colorTex << 33) |

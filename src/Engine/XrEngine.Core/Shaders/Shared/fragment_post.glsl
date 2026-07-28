@@ -10,7 +10,7 @@
 #endif
 
 #ifdef COPY_DEPTH
-    layout(location=DEPTH_LOCATION) out uint outDepth;
+    layout(location=DEPTH_LOCATION) out float outDepth;
 #endif
 
 #ifdef MOTION_VECTORS
@@ -38,7 +38,7 @@ void doPostRgb(inout vec3 fragColor)
     #endif
 
     #ifdef COPY_DEPTH
-        outDepth = uint(gl_FragCoord.z * 65535.0 + 0.5);
+        outDepth = gl_FragCoord.z;
     #endif
 
     #ifdef MOTION_VECTORS

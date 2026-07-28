@@ -10,23 +10,18 @@ namespace XrEngine.OpenGL
     {
         public class ContextShaderHandler : IShaderHandler
         {
-            private bool _lastIsSrgbAutoEncode;
-            private bool _lastIsSrgbTarget;
+            private readonly ChangeTracker _tracker = new();
 
-            private bool _isFirstUpdate;
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return _isFirstUpdate ||
-                    (ctx.IsSrgbAutoEncode != _lastIsSrgbAutoEncode) ||
-                    (ctx.IsSrgbTarget != _lastIsSrgbTarget);
+                return _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
+                       _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
+                       _tracker.IsChanged(() => ctx.CopyDepth);
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-                _lastIsSrgbAutoEncode = bld.Context.IsSrgbAutoEncode;
-                _lastIsSrgbTarget = bld.Context.IsSrgbTarget;
-                _isFirstUpdate = false;
 
                 if (bld.Context.IsSrgbAutoEncode)
                     bld.AddFeature("SRGB_AUTO_ENCODE");
@@ -39,6 +34,9 @@ namespace XrEngine.OpenGL
 
                 if (OpenGLRender.Current!.Options.UseHighQualitySrgb)
                     bld.AddFeature("HIGH_QUALITY_SRGB");
+
+                if (bld.Context.CopyDepth)
+                    bld.AddFeature("COPY_DEPTH");
             }
         }
 
