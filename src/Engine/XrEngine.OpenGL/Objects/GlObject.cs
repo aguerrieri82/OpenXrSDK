@@ -78,7 +78,7 @@ namespace XrEngine.OpenGL
             else if (this is GlRenderBuffer)
                 idType = ObjectIdentifier.Renderbuffer;
             
-            else if (this is GlQuery)
+            else if (this is IGlQuery)
                 idType = ObjectIdentifier.Query;
             
             else if (this is GlBaseProgram)

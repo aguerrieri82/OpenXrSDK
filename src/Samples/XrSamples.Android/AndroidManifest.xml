@@ -44,6 +44,7 @@
 		android:supportsRtl="true">
 
 		<meta-data android:name="com.oculus.supportedDevices" android:value="all" />
+		<profileable android:shell="true" />
 
 	</application>
 

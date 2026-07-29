@@ -12,7 +12,7 @@
 
         public GlProgramInstance? ProgramInstance;
 
-        public GlQuery? Query;
+        public GlQuery<uint>? Query;
 
         public bool IsHidden;
 

@@ -51,6 +51,10 @@ namespace XrEngine.OpenGL
         protected HashSet<string> _extensions;
         protected bool _isDebug;
 
+        protected GlProfiler _profiler;
+
+        protected DateTime _lastProfileOutTime;
+
 
         public static class Props
         {
@@ -97,6 +101,8 @@ namespace XrEngine.OpenGL
             };
 
             _dispatcher = new QueueDispatcher();
+
+            _profiler = new GlProfiler(_gl);
 
             if (isDummy)
                 return;
@@ -449,8 +455,11 @@ namespace XrEngine.OpenGL
 
             _target = target;
             _view = view;
+            _profiler.IsEnabled = _isDebug;
 
             PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
+
+            using var frameProf = _profiler.Profile("Frame", _updateCtx.Frame, true);
 
             UpdateLayers(ctx.Scene);
 
@@ -482,12 +491,16 @@ namespace XrEngine.OpenGL
 
                 PushGroup($"Pass {pass.GetType().Name}");
 
+                using var passProf = _profiler.Profile(pass.GetType().Name, _updateCtx.Frame, true);
+                
                 pass.Render(_updateCtx);
 
                 PopGroup();
             }
 
             _dispatcher.ProcessQueue();
+
+            using var endFrameProf = _profiler.Profile("EndFrame", _updateCtx.Frame, true);
 
             _target.End(_options.InvalidateDepth);
 
@@ -501,6 +514,13 @@ namespace XrEngine.OpenGL
                 _glState.EnableDebug = _isDebug;
 #endif
 
+            _profiler.Collect();
+
+            if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 10)
+            {
+                Log.Debug(this, _profiler.GetStatsLog());
+                _lastProfileOutTime = DateTime.Now;
+            }
         }
 
         public void SetRenderTarget(Texture2D? texture)

@@ -81,9 +81,9 @@ void doPostRgb(inout vec3 fragColor)
         #endif
 
         #ifdef MULTI_VIEW
-            imageStore(uMotionImage, ivec3(mp, int(gl_ViewID_OVR)), motionDepth);
+             imageStore(uMotionImage, ivec3(mp, int(gl_ViewID_OVR)), motionDepth);
         #else
-            imageStore(uMotionImage, mp, motionDepth);
+             imageStore(uMotionImage, mp, motionDepth);
         #endif
 
     #endif

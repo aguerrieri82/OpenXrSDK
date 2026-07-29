@@ -60,10 +60,7 @@ namespace XrEngine.OpenGL
 
                         up.SetUniform("uDepthImageScale", scale);
                     });
-
-       
                 }
-
             }
         }
 

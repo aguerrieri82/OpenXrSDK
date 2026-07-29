@@ -21,7 +21,7 @@
     {
         None = 0,
         Mutable = 0x1,
-        Persistent =0x2,
+        Persistent = 0x2,
         PersistentRead = 0x4 | Persistent,
         PersistentWrite = 0x8 | Persistent,
     }

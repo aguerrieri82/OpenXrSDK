@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL
         {
             if (UseOcclusionQuery)
             {
-                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_gl));
+                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery<uint>(_gl));
                 draw.Query!.Begin(QueryTarget.AnySamplesPassed);
                 draw.Draw!();
                 draw.Query.End();

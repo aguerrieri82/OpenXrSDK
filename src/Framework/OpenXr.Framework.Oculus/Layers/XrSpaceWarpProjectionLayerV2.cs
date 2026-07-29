@@ -97,6 +97,8 @@ namespace OpenXr.Framework.Oculus
         {
             var isActive = _motionProvider.IsActive;
 
+            //isActive = true;
+
             if (isActive != _lastSpaceWarpActive)
             {
                 for (var i = 0; i < _spaceWarpInfo.Length; i++)

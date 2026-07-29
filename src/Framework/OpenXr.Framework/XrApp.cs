@@ -1078,6 +1078,7 @@ namespace OpenXr.Framework
             {
                 if (layers == null)
                     layerCount = 0;
+
                 EndFrame(frameTime, ref layers, layerCount);
 
                 //FramePredictedDisplayTime = 0;
