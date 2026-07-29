@@ -289,11 +289,13 @@ namespace XrEngine
                 _contentVersion++;
         }
 
+        public EngineObjectFlags Flags { get; set; }
+
+        public object? Tag { get; set; }
+
         public long ContentVersion => _contentVersion;
 
         public long Version => _version;
-
-        public EngineObjectFlags Flags { get; set; }
 
         public bool IsDisposed => _isDisposed;
 

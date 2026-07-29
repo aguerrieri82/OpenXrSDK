@@ -132,6 +132,9 @@ namespace XrEngine.OpenGL
             if (data == null)
                 return;
 
+            if (GlDebug.TrackBuffers)
+                _gl.ClearError();
+
             var writeEndBytes = (uint)offsetBytes + sizeBytes;
 
             BeginUpdate();

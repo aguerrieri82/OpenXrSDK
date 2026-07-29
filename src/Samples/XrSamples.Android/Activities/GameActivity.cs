@@ -138,18 +138,17 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
-                   .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.5f)
+                   .UseProjDepth(XrProjDepthMode.DepthCopy, _settings.DepthScale)
                    .RemovePlaneGrid();
                    //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp();
 
+#if DEBUG
             GlDebug.TrackBuffers = false;
-
-            builder.EnableDebug();
-
-            MaterialFactory.DefaultPbr = typeof(PbrMaterial);
+            builder.EnableDebug(true);
+#endif
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 

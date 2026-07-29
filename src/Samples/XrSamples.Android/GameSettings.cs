@@ -17,8 +17,6 @@ namespace XrSamples
 
         public bool EnableDepthPass { get; set; }
 
-        public bool UsePbrV2 { get; set; }
-
         public bool UseSpaceWarp { get; set; }
 
         public bool FrustumCulling { get; set; }
@@ -29,13 +27,16 @@ namespace XrSamples
 
         public bool UseResolve { get; set; }
 
+        public float DepthScale { get; set; }
+
         public static GameSettings Graffiti()
         {
             return new GameSettings
             {
-               // SampleName = "DnD",
+                SampleName = "DnD",
                 Msaa = 2,
                 Scale = 1f,
+                DepthScale = 0.5f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = true,
@@ -52,6 +53,7 @@ namespace XrSamples
             {
                 Msaa = 1,
                 Scale = 1f,
+                DepthScale = 0.5f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = true,

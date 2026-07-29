@@ -24,7 +24,7 @@ namespace OpenXr.Framework.Android
         public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
         {
             addr = GetProcAddress(proc);
-            return proc != null;
+            return addr != 0;
         }
     }
 }

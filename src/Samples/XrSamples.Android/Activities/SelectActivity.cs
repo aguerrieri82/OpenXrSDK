@@ -107,7 +107,7 @@ namespace XrSamples.Android.Activities
 
             //Compression
             var compression = FindViewById<CheckBox>(ResourceConstant.Id.compression)!;
-            compression.Checked = _settings.UsePbrV2;
+            compression.Checked = _settings.TextureCompression;
             compression.CheckedChange += (s, e) =>
             {
                 _settings.TextureCompression = e.IsChecked;

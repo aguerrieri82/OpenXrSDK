@@ -22,6 +22,7 @@
             UseDepth = false;
             WriteDepth = true;
             DepthLocation = 1;
+            Channel = "r";
         }
 
 
@@ -35,6 +36,13 @@
                 bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
             }
 
+            bld.AddFeature($"CHANNEL {Channel}");
+
+            if (HighPrecision)
+                bld.AddFeature($"PRECISION highp");
+            else
+                bld.AddFeature($"PRECISION mediump");
+
             bld.ExecuteAction((_, up) =>
             {
                 if (Texture != null)
@@ -44,8 +52,12 @@
             base.UpdateShaderMaterial(bld);
         }
 
+        public bool HighPrecision { get; set; }
+
         public int DepthLocation { get; set; }
 
         public Texture? Texture { get; set; }
+
+        public string Channel { get; set; }
     }
 }

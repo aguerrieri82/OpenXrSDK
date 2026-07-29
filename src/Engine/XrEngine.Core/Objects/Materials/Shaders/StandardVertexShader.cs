@@ -151,6 +151,9 @@ namespace XrEngine
             {
                 bld.AddFeature("MOTION_VECTORS");
 
+                if (bld.Context.CopyDepthImage?.Tag != null)
+                    bld.AddFeature("MOTION_VECTORS_DEPTH");
+               
                 bld.ExecuteAction((ctx, up) =>
                 {
                     var texture = ctx.MotionVectorProvider?.Texture;
@@ -180,6 +183,7 @@ namespace XrEngine
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             return _tracker.IsChanged(() => ctx.UseMotionVectors) ||
+                   _tracker.IsChanged(() => ctx.CopyDepthImage?.Tag ) ||
                    _tracker.IsChanged(() => ctx.MotionVectorProvider?.IsActive ?? false);
         }
 

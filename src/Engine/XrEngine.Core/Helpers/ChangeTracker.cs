@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace XrEngine
 {
     public class ChangeTracker
     {
-        readonly Dictionary<Func<object>, object> _oldValues = [];
+        readonly Dictionary<string, object?> _oldValues = [];
 
-        public bool IsChanged(Func<object> getter)
+        public bool IsChanged(Func<object?> getter, [CallerArgumentExpression(nameof(getter))] string? key = null)
         {
             var curValue = getter();
-            var isChanged = !_oldValues.TryGetValue(getter, out var oldValue) || !Equals(oldValue, curValue);
-            _oldValues[getter] = curValue;
+            var isChanged = !_oldValues.TryGetValue(key!, out var oldValue) || !Equals(oldValue, curValue);
+            _oldValues[key!] = curValue;
             return isChanged;
         }
         public void Clear()

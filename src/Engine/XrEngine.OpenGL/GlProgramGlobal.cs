@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -41,22 +42,26 @@ namespace XrEngine.OpenGL
                 if (bld.Context.UseCopyDepth)
                     bld.AddFeature("COPY_DEPTH");
 
-                if (bld.Context.CopyDepthImage != null)
+                if (bld.Context.CopyDepthImage != null && bld.Context.CopyDepthImage.Tag == null)
                 {
                     bld.AddFeature("COPY_DEPTH_IMG");
 
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        if (ctx.CopyDepthImage != null)
-                        {
-                            up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, BufferAccessMode.Write);
+                        Debug.Assert(ctx.CopyDepthImage?.Tag == null);
 
-                            var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
-                            var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+                        if (ctx.CopyDepthImage == null)
+                            return;
 
-                            up.SetUniform("uDepthImageScale", scale);
-                        }
+                        up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, BufferAccessMode.Write);
+
+                        var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
+                        var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+
+                        up.SetUniform("uDepthImageScale", scale);
                     });
+
+       
                 }
 
             }

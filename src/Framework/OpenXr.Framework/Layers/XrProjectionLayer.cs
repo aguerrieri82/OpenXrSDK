@@ -119,7 +119,7 @@ namespace OpenXr.Framework
                 var depthSwap = _useDepthSWC ? 
                     _xrApp.CreateSwapChain(depthSize, 
                             options.DepthFormat,
-                            options.RenderMode == XrRenderMode.MultiView ? 2u : 0, 
+                            options.RenderMode == XrRenderMode.MultiView ? 2u : 1, 
                             SwapchainUsageFlags.DepthStencilAttachmentBit) : new Swapchain();
 
                 _swapchains[i] = new XrSwapchainInfo

@@ -74,6 +74,8 @@ namespace OpenXr.Framework.Oculus
         {
             base.Acquire(ref projViews);
 
+#warning SINGLE VIEW NOT SUPPORTED
+
             Debug.Assert(_xrApp != null && _lastDepthImages != null && _lastDepthImages.Length == 1);
 
             var colorIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData.ColorSwapchain);

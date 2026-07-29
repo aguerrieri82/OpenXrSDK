@@ -8,7 +8,7 @@
     layout(location=DEPTH_LOCATION) out float outDepth;
 #endif
 
-#ifdef COPY_DEPTH_IMG
+#if defined(COPY_DEPTH_IMG) && !defined(MOTION_VECTORS_DEPTH)
 
     #ifdef MULTI_VIEW
         layout(r32f, binding=0) uniform writeonly mediump image2DArray uDepthImage;
@@ -20,15 +20,15 @@
 
 #endif
 
-#ifdef MOTION_VECTORS
+#if defined(MOTION_VECTORS) || defined(MOTION_VECTORS_DEPTH)
 
     in vec4 fPrevClipPos;
     in vec4 fCurClipPos;
 
     #ifdef MULTI_VIEW
-        layout(rgba16f, binding=1) uniform writeonly mediump image2DArray uMotionImage;
+        layout(rgba16f, binding=1) uniform writeonly highp image2DArray uMotionImage;
     #else
-        layout(rgba16f, binding=1) uniform writeonly mediump image2D uMotionImage;
+        layout(rgba16f, binding=1) uniform writeonly highp image2D uMotionImage;
     #endif
 
     uniform vec2 uMotionImageScale;
@@ -51,22 +51,22 @@ void doPostRgb(inout vec3 fragColor)
     #endif
 
     #ifdef COPY_DEPTH
-        outDepth = gl_FragCoord.z;
+        outDepth = 1.0 - gl_FragCoord.z;
     #endif
 
-    #ifdef COPY_DEPTH_IMG
+    #if defined(COPY_DEPTH_IMG) && !defined(MOTION_VECTORS_DEPTH)
 
         ivec2 dp = ivec2(gl_FragCoord.xy * uDepthImageScale);
 
         #ifdef MULTI_VIEW
-            imageStore(uDepthImage, ivec3(dp, int(gl_ViewID_OVR)), vec4(gl_FragCoord.z));
+            imageStore(uDepthImage, ivec3(dp, int(gl_ViewID_OVR)), vec4(1.0 - gl_FragCoord.z));
         #else
-            imageStore(uDepthImage, dp, vec4(gl_FragCoord.z));
+            imageStore(uDepthImage, dp, vec4(1.0 - gl_FragCoord.z));
         #endif
 
     #endif
 
-    #ifdef MOTION_VECTORS
+    #if defined(MOTION_VECTORS) || defined(MOTION_VECTORS_DEPTH)
 
         vec3 cur = fCurClipPos.xyz / fCurClipPos.w;
         vec3 prev = fPrevClipPos.xyz / fPrevClipPos.w;
@@ -74,10 +74,16 @@ void doPostRgb(inout vec3 fragColor)
 
         ivec2 mp = ivec2(gl_FragCoord.xy * uMotionImageScale);
 
-        #ifdef MULTI_VIEW
-            imageStore(uMotionImage, ivec3(mp, int(gl_ViewID_OVR)), vec4(motion, 0.0, 0.0));
+        #ifdef MOTION_VECTORS_DEPTH
+            vec4 motionDepth = vec4(motion, 1.0 - gl_FragCoord.z, 0.0);
         #else
-            imageStore(uMotionImage, mp, vec4(motion, 0.0, 0.0));
+            vec4 motionDepth = vec4(motion, 0.0, 0.0);
+        #endif
+
+        #ifdef MULTI_VIEW
+            imageStore(uMotionImage, ivec3(mp, int(gl_ViewID_OVR)), motionDepth);
+        #else
+            imageStore(uMotionImage, mp, motionDepth);
         #endif
 
     #endif

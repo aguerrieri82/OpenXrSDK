@@ -40,9 +40,6 @@ namespace XrEngine.OpenXr
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
-            if (_renderer.RenderTarget is not IGlRenderTargetFB fbTarget)
-                return;
-
             var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
 
             var glTex = GlTexture.Attach(_renderer.GL, colorTex);

@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         public GlSampler(GL gl)
             : base(gl)
         {
-            _supportsSrgbDecode ??= OpenGLRender.Current!.Extensions.Contains("GL_EXT_texture_sRGB_decode");
+            _supportsSrgbDecode ??= gl.IsExtensionPresent("GL_EXT_texture_sRGB_decode");
 
             CompareFunc = DepthFunction.Lequal;
 

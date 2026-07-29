@@ -71,7 +71,9 @@ namespace XrEngine.OpenXr
                 _xrApp.RenderOptions.ProjectionDepthScale = _options.ProjDepthScale;
 
                 if (_options.Driver == GraphicDriver.OpenGL)
+                {
                     _xrApp.RenderOptions.DepthFormat = (long)GLEnum.DepthComponent16;
+                }
             }
         }
 

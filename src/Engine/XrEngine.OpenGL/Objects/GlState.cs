@@ -19,11 +19,13 @@ namespace XrEngine.OpenGL
         static GlState? _current;
 
         private readonly GL _gl;
+        private readonly bool _hasShadingRate;
         private bool _stencilDirty;
 
         public GlState(GL gl)
         {
             _gl = gl;
+            _hasShadingRate = _gl.IsExtensionPresent("GL_EXT_fragment_shading_rate");
             _current = this;
         }
 
@@ -259,7 +261,7 @@ namespace XrEngine.OpenGL
 
         public void SetShadingRate(int rate, bool force = false)
         {
-            if (!_gl.IsExtensionPresent("GL_EXT_fragment_shading_rate"))
+            if (!_hasShadingRate)
                 return;
 
             if (rate != ActiveShadingRate || force)

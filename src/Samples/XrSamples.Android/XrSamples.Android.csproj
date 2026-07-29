@@ -28,6 +28,18 @@
 		<DebugType>full</DebugType>
 	</PropertyGroup>
 
+	<Target Name="InvalidateJavaOnGeneratedJcws"
+			BeforeTargets="_CompileJava">
+
+		<ItemGroup>
+			<_GeneratedJcwFiles Include="$(_TypeMapJavaStubsSourceDirectory)\**\*.java" />
+		</ItemGroup>
+
+		<Delete Files="$(_AndroidCompileJavaStampFile)"
+				Condition="'@(_GeneratedJcwFiles)' != ''" />
+
+	</Target>
+
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
 		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>

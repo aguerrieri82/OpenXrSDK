@@ -114,7 +114,7 @@ namespace XrEngine.OpenGL
                 if (colorTex != 0)
                     glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
 
-                if (colorTex == 0 && createColor)
+                else if (createColor)
                 {
                     Debug.Assert(glDepth != null);
 

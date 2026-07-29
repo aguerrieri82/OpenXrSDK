@@ -8,12 +8,12 @@ namespace XrEngine.UI
     public class Window3D : CanvasView3D, IUiWindow
     {
         protected RayPointerStatus _lastStatus;
-        protected MeshCollider _collider;
+        protected QuadCollider _collider;
         protected Vector2 _lastPosition;
 
         public Window3D()
         {
-            _collider = this.AddComponent<MeshCollider>();
+            _collider = this.AddComponent<QuadCollider>();
             _lastPosition.X = float.NaN;
         }
 

@@ -257,7 +257,7 @@ namespace XrEngine.OpenXr
 
                     renderer.State.SetWriteColor(true);
                     renderer.GL.Disable(EnableCap.Blend, 1);
-                    renderer.GL.ClearBuffer(BufferKind.Color, 1, [1f]);
+                    renderer.GL.ClearBuffer(BufferKind.Color, 1, [0f]);
                 }
 
                 return renderTarget;
