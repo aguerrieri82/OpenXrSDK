@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 using System.Text;
 using System.Globalization;
 
+
 namespace XrEngine.OpenGL
 {
     public class GlProfilerEntry : IDisposable
@@ -131,30 +132,40 @@ namespace XrEngine.OpenGL
         public bool IsValid => _isValid;    
     }
 
-    public struct GlProfilerStat
+    public struct GlProfilerStat : IProfilerStat
     {
         public string? Name;
 
         public long Frame;
 
-        public ulong TimeElapsed;
+        public ulong Value;
 
+        readonly ProfilerStatType IProfilerStat.Type => ProfilerStatType.Time;
+
+        readonly string? IProfilerStat.Name => Name;
+
+        readonly long IProfilerStat.Frame => Frame;
+
+        readonly ulong IProfilerStat.Value => Value;
     }
 
-    public class GlProfiler : IDisposable
+    public class GlProfiler : IGpuProfiler, IDisposable
     {
         protected internal GL _gl;
+
         protected List<GlProfilerEntry> _entries = [];
 
         protected Dictionary<string, List<GlProfilerStat>> _stats = [];
 
-        protected Dictionary<string, ulong> _averages = [];
+        protected Dictionary<string, double> _averages = [];
 
         public GlProfiler(GL gl)
         {
             _gl = gl;
-            MaxStats = 72 * 10;
+            MaxStats = 36 * 1;
             IsEnabled = true;
+
+            Context.Implement<IGpuProfiler>(this);
         }
 
         public GlProfilerEntry Profile(string name, long frame, bool useCounter = false)
@@ -193,7 +204,7 @@ namespace XrEngine.OpenGL
                     {
                         Name = entry.Name,
                         Frame = entry.Frame,
-                        TimeElapsed = entry.Result
+                        Value = entry.Result
                     });
 
                     UpdateAverage(entry.Name);
@@ -216,12 +227,12 @@ namespace XrEngine.OpenGL
                 return;
             }
 
-            ulong avg = 0;
+            double avg = 0;
 
             foreach (var stat in stats)
-                avg += stat.TimeElapsed;
+                avg += stat.Value / 1000.0;
 
-            avg /= (uint)stats.Count;
+            avg /= stats.Count;
 
             _averages[name] = avg;
         }
@@ -245,11 +256,11 @@ namespace XrEngine.OpenGL
 
             foreach (var item in entries)
             {
-                var us = item.Value / 1000;
-
                 sb.Append(item.Key.PadRight(maxNameLen));
                 sb.Append(" │ ");
-                sb.Append(us.ToString("N0", CultureInfo.InvariantCulture).PadLeft(10));
+                sb.Append(item.Value
+                    .ToString("N1", CultureInfo.InvariantCulture)
+                    .PadLeft(10));
                 sb.AppendLine(" us");
             }
 
@@ -272,7 +283,12 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public Dictionary<string, ulong> Averages => _averages;
+        IReadOnlyList<IProfilerStat> IProfiler.GetStats() => 
+            (IReadOnlyList<IProfilerStat>)_stats.Values.ToArray();
+
+        public Dictionary<string, double> Averages => _averages;
+
+        public Dictionary<string, List<GlProfilerStat>> Stats => _stats;
 
         public int MaxStats { get; set; }
 

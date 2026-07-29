@@ -1348,6 +1348,17 @@ namespace XrMath
                    point.Y >= self.Min.Y && point.Y <= self.Max.Y;
         }
 
+        public static Bounds2 Scale(in this Bounds2 self, float factor)
+        {
+            var halfSize = (self.Size * factor) / 2f;
+
+            return new Bounds2
+            {
+                Min = self.Center - halfSize,
+                Max = self.Center + halfSize
+            };
+        }
+
         #endregion
 
         #region RECT2

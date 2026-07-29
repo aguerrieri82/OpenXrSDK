@@ -598,6 +598,42 @@ namespace XrEngine
             DrawLine(p010, p011, strokeColor, strokeSize);
         }
 
+        public void DrawRect(
+            Vector3 topLeft,
+            Vector3 topRight,
+            Vector3 bottomRight,
+            Vector3 bottomLeft,
+            Color fillColor,
+            Color strokeColor,
+            UnitValue strokeSize)
+        {
+            if (!TryToScreen(topLeft, out var p0))
+                return;
+
+            if (!TryToScreen(topRight, out var p1))
+                return;
+
+            if (!TryToScreen(bottomRight, out var p2))
+                return;
+
+            if (!TryToScreen(bottomLeft, out var p3))
+                return;
+
+            using var builder = new SKPathBuilder();
+
+            builder.AddPoly([p0, p1, p2, p3], true);
+
+            var path = builder.Snapshot();
+
+            _canvas!.DrawPath(path, GetFill(fillColor));
+
+            if (!TryToScreenSize(strokeSize, topLeft, out var stroke))
+                return;
+
+            if (stroke > 0 && !float.IsNaN(stroke))
+                _canvas.DrawPath(path, GetStroke(strokeColor, stroke));
+        }
+
         public void DrawLine(Vector3 from, Vector3 to, Color strokeColor, UnitValue strokeSize)
         {
             DrawLine(new Line3(from, to), strokeColor, strokeSize);

@@ -4,6 +4,7 @@ using System.Diagnostics;
 namespace XrEngine.UI
 {
 
+    [UpdateMode(IsParallel = false)]
     public class CanvasView2D : CanvasView3D
     {
         ScreenCanvas? screenCanvas;

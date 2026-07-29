@@ -40,7 +40,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              //.UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -73,9 +73,10 @@ namespace XrEditor
 
               })
               .UseSpaceWarp()
+              .AddProfileOverlay()
               .SetRenderQuality(1f, 2, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateRoomManager()
+              .CreateBed()
               .Build();
     }
 }

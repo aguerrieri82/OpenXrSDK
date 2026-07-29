@@ -6,6 +6,8 @@ using Silk.NET.OpenGL;
 
 using XrMath;
 using System.Numerics;
+using System.Diagnostics;
+
 
 namespace XrEngine.OpenGL
 {
@@ -16,13 +18,13 @@ namespace XrEngine.OpenGL
         protected readonly OutlineEffect _outlineMat;
         protected Bounds2 _bounds;
         protected Size2I _frameSize;
+        private IGlCompositor? _compositor;
         protected readonly float _downsampleFactor;
         protected readonly bool _isDownsample;
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)
         {
-            UseScissor = true;
 
             _downsampleFactor = _renderer.Options.Outline.DownsampleFactor;
 
@@ -40,19 +42,16 @@ namespace XrEngine.OpenGL
                 Name = "Outline"
             };
 
-            if (_isDownsample)
+            _tempTarget = new GlRenderPassTarget(renderer.GL)
             {
-                _tempTarget = new GlRenderPassTarget(renderer.GL)
-                {
-                    BoundEye = boundEye,
-                    DepthMode = TargetDepthMode.None,
-                    IsMultiView = isMultiView,
-                    UseMultiViewTarget = true,
-                    ColorFormat = TextureFormat.Rgba32,
-                    Id = "temp",
-                    Name = "Outline (Temp)"
-                };
-            }
+                BoundEye = boundEye,
+                DepthMode = TargetDepthMode.None,
+                IsMultiView = isMultiView,
+                UseMultiViewTarget = true,
+                ColorFormat = TextureFormat.Rgba32,
+                Id = "temp",
+                Name = "Outline (Temp)"
+            };
 
             _outlineMat = new OutlineEffect()
             {
@@ -111,7 +110,7 @@ namespace XrEngine.OpenGL
             instance!.Material.DoubleSided = drawMaterial.DoubleSided;
 
             if (drawMaterial is ShaderMaterial mat)
-                instance!.Material.HasSkin = mat.HasSkin;
+                instance.Material.HasSkin = mat.HasSkin;
 
             return base.UpdateProgram(instance, updateContext, drawMaterial);
         }
@@ -133,29 +132,21 @@ namespace XrEngine.OpenGL
 
             _passTarget.RenderTarget!.End(discardDepth: true);
 
-            if (!_isDownsample)
-            {
-                _renderer.RenderTarget!.Begin(camera);
-            }
-            else
-            {
-                _tempTarget!.Configure(_frameSize.Width, _frameSize.Height);
+            //Process Mask
 
-                _tempTarget!.RenderTarget!.Begin(camera);
+            _tempTarget!.Configure(_frameSize.Width, _frameSize.Height);
 
-                _gl.Clear(ClearBufferMask.ColorBufferBit);
-            }
+            _tempTarget!.RenderTarget!.Begin(camera);
 
-            if (UseScissor)
-            {
-                var padding = (int)_renderer.Options.Outline.Size + 2;
-                _bounds.Min -= new Vector2(padding, padding);
-                _bounds.Max += new Vector2(padding, padding);
+            _gl.Clear(ClearBufferMask.ColorBufferBit);
 
-                _renderer.State.EnableFeature(EnableCap.ScissorTest, true);
+            var padding = (int)_renderer.Options.Outline.Size + 2;
+            _bounds.Min -= new Vector2(padding, padding);
+            _bounds.Max += new Vector2(padding, padding);
 
-                _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
-            }
+            _renderer.State.EnableFeature(EnableCap.ScissorTest, true);
+
+            _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
 
             _outlineMat.Texture = _passTarget.Color!.ToEngineTexture();
 
@@ -163,24 +154,20 @@ namespace XrEngine.OpenGL
 
             DrawQuad();
 
-            if (_isDownsample)
-            {
-                _tempTarget!.RenderTarget!.End(discardDepth: true);
+            _tempTarget!.RenderTarget!.End(discardDepth: true);
+   
 
-                _renderer.RenderTarget!.Begin(ctx.MainCamera!);
+            //Composition
+            
+            _compositor ??= _renderer.Feature<IGlCompositor>();
 
-                if (UseScissor)
-                    _gl.Scissor((int)(_bounds.Min.X * _downsampleFactor),
-                        (int)(_bounds.Min.Y * _downsampleFactor),
-                        (uint)(_bounds.Size.X * _downsampleFactor),
-                        (uint)(_bounds.Size.Y * _downsampleFactor));
+            Debug.Assert(_compositor != null);
 
-                OverlayTexture(_tempTarget.Color!, _passTarget.IsMultiView);
-            }
+            var region = _bounds.Scale(_downsampleFactor);
 
-            if (UseScissor)
-                _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
+            _compositor.AppendTexture(_tempTarget.Color!, region);
 
+            _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -231,40 +218,37 @@ namespace XrEngine.OpenGL
 
         protected override void Draw(DrawContent draw)
         {
-            if (UseScissor)
+            var camera = _renderer.UpdateContext.PassCamera!;
+
+            var bound = draw.Object!.WorldBounds;
+
+            var objectClipping = false;
+
+            var eyes = _passTarget.IsMultiView ? 2 : 1;
+
+            foreach (var corner in bound.Points)
             {
-                var camera = _renderer.UpdateContext.PassCamera!;
-
-                var bound = draw.Object!.WorldBounds;
-
-                var objectClipping = false;
-
-                var eyes = _passTarget.IsMultiView ? 2 : 1;
-
-                foreach (var corner in bound.Points)
+                for (var eye = 0; eye < eyes; eye++)
                 {
-                    for (var eye = 0; eye < eyes; eye++)
+                    var viewProj = camera!.Eyes != null ?
+                        camera.Eyes[Math.Max(camera.ActiveEye, eye)].ViewProj :
+                        camera.ViewProjection;
+
+                    if (!TryGetScreenPoint(corner, viewProj, out var screen))
                     {
-                        var viewProj = camera!.Eyes != null ?
-                            camera.Eyes[Math.Max(camera.ActiveEye, eye)].ViewProj :
-                            camera.ViewProjection;
-
-                        if (!TryGetScreenPoint(corner, viewProj, out var screen))
-                        {
-                            objectClipping = true;
-                            break;
-                        }
-
-                        _bounds.Min = Vector2.Min(_bounds.Min, screen);
-                        _bounds.Max = Vector2.Max(_bounds.Max, screen);
+                        objectClipping = true;
+                        break;
                     }
-                }
 
-                if (objectClipping)
-                {
-                    _bounds.Min = Vector2.Zero;
-                    _bounds.Max = new Vector2(_frameSize.Width, _frameSize.Height);
+                    _bounds.Min = Vector2.Min(_bounds.Min, screen);
+                    _bounds.Max = Vector2.Max(_bounds.Max, screen);
                 }
+            }
+
+            if (objectClipping)
+            {
+                _bounds.Min = Vector2.Zero;
+                _bounds.Max = new Vector2(_frameSize.Width, _frameSize.Height);
             }
 
             base.Draw(draw);
@@ -274,6 +258,6 @@ namespace XrEngine.OpenGL
 
         public GlRenderPassTarget PassTarget => _passTarget;
 
-        public bool UseScissor;
+
     }
 }

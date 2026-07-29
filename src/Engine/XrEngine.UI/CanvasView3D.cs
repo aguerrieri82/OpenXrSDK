@@ -12,6 +12,8 @@ namespace XrEngine.UI
         RenderTarget
     }
 
+
+    [UpdateMode(IsParallel = false)]
     public abstract class CanvasView3D : TriangleMesh, IQuodTexture
     {
         static readonly DynamicProp SurfaceProp = new("Surface");
@@ -69,6 +71,7 @@ namespace XrEngine.UI
 
             if (_activeTexture != null && _mode == CanvasViewMode.Texture)
                 Draw(ctx);
+
         }
 
         public void Draw(RenderContext? ctx)

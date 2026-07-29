@@ -1,9 +1,7 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using GlStencilFunction = Silk.NET.OpenGLES.StencilFunction;
 #else
 using Silk.NET.OpenGL;
-using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
 using System.Text;
@@ -205,6 +203,26 @@ namespace XrEngine.OpenGL
                 _updateCtx.ShadowMapProvider = _shadowPass;
             }
 
+
+            if (_options.UsePlanarReflection)
+                _renderPasses.Add(new GlReflectionPassGroup(this));
+
+            if (_options.Outline.Use)
+            {
+                var outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
+                _renderPasses.Add(outline);
+            }
+
+            if (_options.UseRayCollider)
+                _renderPasses.Add(new GlRayColliderPassGroup(this));
+
+            if (_options.UseHitTest)
+            {
+                var hitTest = new GlHitTestPass(this);
+                _renderPasses.Add(hitTest);
+                Context.Implement<IViewHitTest>(hitTest);
+            }
+
             if (_options.UseDepthPass)
             {
                 var depthPass = new GlDepthPass(this)
@@ -215,9 +233,6 @@ namespace XrEngine.OpenGL
                 _updateCtx.DepthCullProvider = depthPass;
             }
 
-            if (_options.UsePlanarReflection)
-                _renderPasses.Add(new GlReflectionPassGroup(this));
-
             _renderPasses.Add(new GlColorPass(this));
 
             if (_options.ContactShadow.Use)
@@ -226,24 +241,10 @@ namespace XrEngine.OpenGL
                 _renderPasses.Add(contact);
             }
 
-            if (_options.Outline.Use)
-            {
-                var outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
-                _renderPasses.Add(outline);
-            }
-
-            if (_options.UseHitTest)
-            {
-                var hitTest = new GlHitTestPass(this);
-                _renderPasses.Add(hitTest);
-                Context.Implement<IViewHitTest>(hitTest);
-            }
+            _renderPasses.Add(new GlCompositonPass(this));
 
             if (_options.UseResolve)
                 _renderPasses.Add(new GlResolvePass(this));
-
-            if (_options.UseRayCollider)
-                _renderPasses.Add(new GlRayColliderPassGroup(this));
 
             _passesDirty = true;
         }
@@ -785,6 +786,9 @@ namespace XrEngine.OpenGL
 
             if (typeof(T) == typeof(ITextureFilterProvider))
                 return _textureFilter as T;
+
+            if (typeof(T) == typeof(IGpuProfiler))
+                return _profiler as T;  
 
             return (T?)_renderPasses.FirstOrDefault(a => a is T);
         }

@@ -289,6 +289,11 @@ namespace XrEngine.OpenXr
             });
         }
 
+        public static XrEngineAppBuilder AddProfileOverlay(this XrEngineAppBuilder self)
+        {
+            return self.ConfigureApp(e => e.App.ActiveScene!.AddComponent<ProfileOverlay>());
+        }
+
         public static XrEngineAppBuilder UseOpenGL(this XrEngineAppBuilder self)
         {
             self.Options.Driver = GraphicDriver.OpenGL;
