@@ -1,5 +1,12 @@
 ﻿namespace XrEngine
 {
+
+    public unsafe interface IBufferLock : IDisposable
+    {
+        void* Data { get; }
+    }
+
+
     [Flags]
     public enum BufferAccessMode
     {
@@ -33,29 +40,24 @@
         void Update(T value);
     }
 
-    public unsafe interface IBuffer : ISimpleBuffer
+
+    public interface IBuffer : ISimpleBuffer
     {
         void BeginUpdate();
 
         void EndUpdate();
 
-        void Update(Func<object?> value);
-
         void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0, bool preserve = true);
 
         void Allocate(uint sizeInByte, BufferAllocateFlags flags = BufferAllocateFlags.Mutable);
 
-        byte* Lock(BufferAccessMode mode);
-
-        void Unlock();
+        IBufferLock Lock(BufferAccessMode mode);
 
         uint SizeBytes { get; }
     }
 
     public interface IBuffer<T> : IBuffer, ISimpleBuffer<T>
     {
-        void Update(Func<(T, bool)> getValue);
-
         void UpdateRange(ReadOnlySpan<T> value, int dstIndex = 0, bool preserve = true);
 
         void ReadArray(ref T[] result);

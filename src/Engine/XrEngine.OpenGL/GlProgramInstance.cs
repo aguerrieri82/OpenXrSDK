@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
             if (_useShaderCache)
                 CachePath ??= Path.Combine(Context.Require<IPlatform>().SharedPath, "Cache", "Shaders");
 
-            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(MAX_BUFFERS, material));
+            var bufferMap = material.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferArray<IGlBuffer>(MAX_BUFFERS, material));
             _materialBuffers = bufferMap.Buffers;
 
             if (model != null)
@@ -70,7 +70,7 @@ namespace XrEngine.OpenGL
         [MemberNotNull(nameof(_modelBuffers))]
         protected void LoadModelBuffers(Object3D model)
         {
-            var bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferMap<IGlBuffer>(MAX_BUFFERS, model));
+            var bufferMap = model.GetOrCreateProp(OpenGLRender.Props.BufferMap, () => new GlBufferArray<IGlBuffer>(MAX_BUFFERS, model));
             _modelBuffers = bufferMap.Buffers;
 
             _lastModel = model;

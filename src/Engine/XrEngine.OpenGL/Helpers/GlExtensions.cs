@@ -119,6 +119,22 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
+
+        public static unsafe T* MapPermanentRead<T>(this GlBuffer<T> self)
+        {
+            return self.MapPermanent(MapBufferAccessMask.ReadBit);
+        }
+
+        public static unsafe T* MapPermanentWrite<T>(this GlBuffer<T> self)
+        {
+            return self.MapPermanent(MapBufferAccessMask.WriteBit);
+        }
+
+        public static unsafe T* MapPermanent<T>(this GlBuffer<T> self, MapBufferAccessMask access)
+        {
+            return self.MapRange(0, self.SizeBytes, access | MapBufferAccessMask.PersistentBit | MapBufferAccessMask.CoherentBit);
+        }
+
         public static TRes GetGlResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject
         {
             return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () =>

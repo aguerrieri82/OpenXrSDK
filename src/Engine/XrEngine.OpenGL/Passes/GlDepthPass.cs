@@ -167,17 +167,19 @@ namespace XrEngine.OpenGL
                 if (count != _depthData.ArrayLength)
                     _depthData.Allocate((uint)(sizeof(DepthObjectData) * count));
 
-                var pData = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+                using var bufLock = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+
+                var data = bufLock.Span;
 
                 var i = 0;
                 foreach (var draw in draws)
                 {
                     var bounds = draw.Object!.WorldBounds;
-                    pData[i].BoundsMin = bounds.Min;
-                    pData[i].BoundsMax = bounds.Max;
-                    pData[i].IsVisible = true;
-                    pData[i].IsCulled = false;
-                    pData[i].Extent = Vector2.One;
+                    data[i].BoundsMin = bounds.Min;
+                    data[i].BoundsMax = bounds.Max;
+                    data[i].IsVisible = true;
+                    data[i].IsCulled = false;
+                    data[i].Extent = Vector2.One;
 
                     if (draw.Id != i)
                     {

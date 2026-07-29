@@ -392,6 +392,12 @@ namespace XrEngine.OpenGL
 
         public void Clear(Color color, int level = 0)
         {
+
+#warning DISABLED WITH RDC
+
+            if (EngineNativeLib.RdcIsAttached())
+                return;
+
             var colorSpan = color.ToArray();
 
 #if GLES

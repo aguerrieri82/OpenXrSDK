@@ -28,9 +28,10 @@ namespace XrEngine.OpenGL
 
         public void Update(T value)
         {
-            _range.Buffer.UpdateRange([value], _index);
-
-            _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
+            if (_range.UsePermanentMap)
+                _range.BufferData[_index] = value;
+            else
+                _range.Buffer.UpdateRange([value], _index);
         }
 
         public void Load(GlBaseProgram program)
@@ -79,7 +80,6 @@ namespace XrEngine.OpenGL
         ISimpleBuffer Reserve(EngineObject owner);
 
         void Release(ISimpleBuffer slot);
-
     }
 
     public class GlBufferRange<T> : IGlBufferRange
@@ -94,17 +94,20 @@ namespace XrEngine.OpenGL
 
         private readonly Dictionary<object, GlBufferRangeSlot<T>> _slotsByOwner = [];
         private readonly Stack<int> _freeSlots = new();
+        private readonly bool _usePermanentMap;
 
         private GlBufferRangeSlot<T>?[] _slots = [];
         private int _nextSlot;
         private bool _isDisposed;
+        private unsafe T* _bufferData;
 
-        public GlBufferRange(GL gl, string uniformName, int slot)
+        public GlBufferRange(GL gl, string uniformName, int slot, bool usePermanentMap = true)
         {
             _gl = gl;
             _buffer = new GlBuffer<T>(_gl, BufferTargetARB.ShaderStorageBuffer);
             _uniformName = uniformName;
             _slot = slot;
+            _usePermanentMap = usePermanentMap;
         }
 
         public void Load()
@@ -112,7 +115,7 @@ namespace XrEngine.OpenGL
             GlState.Current.LoadBuffer(_buffer, _slot);
         }
 
-        public GlBufferRangeSlot<T> Reserve(EngineObject owner)
+        public unsafe GlBufferRangeSlot<T> Reserve(EngineObject owner)
         {
             if (_slotsByOwner.TryGetValue(owner, out var existing))
                 return existing;
@@ -133,7 +136,23 @@ namespace XrEngine.OpenGL
 
                     Array.Resize(ref _slots, newCapacity);
 
-                    _buffer.Resize((uint)(newCapacity * Unsafe.SizeOf<T>()), preserve: true);
+                    var newSizeBytes = (uint)(newCapacity * Unsafe.SizeOf<T>());
+
+                    if (_buffer.SizeBytes == 0)
+                    {
+                        var flags = _usePermanentMap
+                            ? BufferAllocateFlags.PersistentWrite
+                            : BufferAllocateFlags.Mutable;
+
+                        _buffer.Allocate(newSizeBytes, flags);
+                    }
+                    else
+                    {
+                        _buffer.Resize(newSizeBytes, preserve: true);
+                    }
+
+                    if (_usePermanentMap)
+                        _bufferData = _buffer.MapPermanentWrite();
                 }
             }
 
@@ -154,7 +173,7 @@ namespace XrEngine.OpenGL
 
             if (slot.Owner != null)
                 _slotsByOwner.Remove(slot.Owner);
-            
+
             _freeSlots.Push(slot.Index);
         }
 
@@ -174,7 +193,6 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-
         ISimpleBuffer IGlBufferRange.Reserve(EngineObject owner)
         {
             return Reserve(owner);
@@ -184,6 +202,19 @@ namespace XrEngine.OpenGL
         {
             Release((GlBufferRangeSlot<T>)slot);
         }
+
+        public unsafe Span<T> BufferData
+        {
+            get
+            {
+                if (!_usePermanentMap)
+                    throw new InvalidOperationException("Permanent mapping is disabled.");
+
+                return new Span<T>(_bufferData, _slots.Length);
+            }
+        }
+
+        public bool UsePermanentMap => _usePermanentMap;
 
         public string UniformName => _uniformName;
 

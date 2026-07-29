@@ -10,6 +10,7 @@ using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrEngine.Helpers;
 using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -43,6 +44,8 @@ namespace XrEngine.OpenXr
             var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
 
             var glTex = GlTexture.Attach(_renderer.GL, colorTex);
+
+            glTex.Clear(Color.Black);
 
             _texture = (Texture2D)glTex.ToEngineTexture();
         }

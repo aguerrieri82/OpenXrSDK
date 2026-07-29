@@ -36,7 +36,7 @@ namespace XrSamples
                 SampleName = "DnD",
                 Msaa = 2,
                 Scale = 1f,
-                DepthScale = 0.5f,
+                DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = true,

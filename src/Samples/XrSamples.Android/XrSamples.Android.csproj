@@ -28,16 +28,10 @@
 		<DebugType>full</DebugType>
 	</PropertyGroup>
 
-	<Target Name="InvalidateJavaOnGeneratedJcws"
+	<Target Name="InvalidateJavaCompile"
 			BeforeTargets="_CompileJava">
-
-		<ItemGroup>
-			<_GeneratedJcwFiles Include="$(_TypeMapJavaStubsSourceDirectory)\**\*.java" />
-		</ItemGroup>
-
-		<Delete Files="$(_AndroidCompileJavaStampFile)"
-				Condition="'@(_GeneratedJcwFiles)' != ''" />
-
+		<Delete Files="$(IntermediateOutputPath)stamp\_CompileJava.stamp"
+				Condition="Exists('$(IntermediateOutputPath)stamp\_CompileJava.stamp')" />
 	</Target>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -45,7 +39,7 @@
 		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
@@ -54,7 +48,7 @@
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>

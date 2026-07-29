@@ -480,7 +480,9 @@ namespace XrEngine.OpenGL
 
             if (mode == InstanceBufferMode.UpdateAlways || mode == InstanceBufferMode.UpdateAllWhenChanged)
             {
-                var data = verContent.InstanceBuffer!.Lock(BufferAccessMode.Replace);
+                using var bufLock = verContent.InstanceBuffer!.Lock(BufferAccessMode.Replace);
+
+                var data = (byte*)bufLock.Data;
 
                 for (var i = 0; i < verContent.Contents.Count; i++)
                 {
@@ -488,8 +490,6 @@ namespace XrEngine.OpenGL
                     draw.InstanceVersion = instanceShader.Update(ctx, data, draw.Object!, draw.Id);
                     data += elSize;
                 }
-
-                verContent.InstanceBuffer.Unlock();
             }
             else
             {

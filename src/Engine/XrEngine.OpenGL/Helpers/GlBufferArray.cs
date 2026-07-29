@@ -1,10 +1,10 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public class GlBufferMap<T> : IDisposable where T: class, IDisposable
+    public class GlBufferArray<T> : IDisposable where T: class, IDisposable
     {
         WeakReference<object>? _owner;
 
-        public GlBufferMap(int maxBuffers, object? owner = null)
+        public GlBufferArray(int maxBuffers, object? owner = null)
         {
             Buffers = new T?[maxBuffers];
             if (owner != null)

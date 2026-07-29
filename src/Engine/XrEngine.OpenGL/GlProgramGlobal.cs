@@ -69,10 +69,10 @@ namespace XrEngine.OpenGL
 
         public static int MAX_BUFFERS = 30;
 
-        protected readonly GlBufferMap<IGlBufferRange> _modelBufferRanges;
-        protected readonly GlBufferMap<IGlBufferRange> _materialBufferRanges;
+        protected readonly GlBufferArray<IGlBufferRange> _modelBufferRanges;
+        protected readonly GlBufferArray<IGlBufferRange> _materialBufferRanges;
 
-        protected readonly GlBufferMap<IGlBuffer> _bufferMap;
+        protected readonly GlBufferArray<IGlBuffer> _bufferMap;
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
         protected IShaderHandler?[] _lastGlobalHandler = [];
@@ -85,9 +85,9 @@ namespace XrEngine.OpenGL
         {
             Shader = shader;
             _gl = gl;
-            _modelBufferRanges = new GlBufferMap<IGlBufferRange>(MAX_BUFFERS, this);
-            _materialBufferRanges = new GlBufferMap<IGlBufferRange>(MAX_BUFFERS, this);
-            _bufferMap = new GlBufferMap<IGlBuffer>(MAX_BUFFERS, this);
+            _modelBufferRanges = new GlBufferArray<IGlBufferRange>(MAX_BUFFERS, this);
+            _materialBufferRanges = new GlBufferArray<IGlBufferRange>(MAX_BUFFERS, this);
+            _bufferMap = new GlBufferArray<IGlBuffer>(MAX_BUFFERS, this);
             _contextHandler = new();
         }
 

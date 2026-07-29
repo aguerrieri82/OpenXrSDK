@@ -62,13 +62,11 @@ namespace XrEngine.OpenGL
                        _height);
             }
 
-            var pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+            using var pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
 
             using var pSrc = data.Data!.MemoryLock();
 
-            EngineNativeLib.CopyMemory(pSrc, (nint)pDst, data.Data.Size);
-
-            _buffer.Unmap();
+            EngineNativeLib.CopyMemory(pSrc, (nint)pDst.Data, data.Data.Size);
 
             Bind();
 
