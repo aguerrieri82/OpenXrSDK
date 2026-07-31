@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Angle\OpenXr.Framework.Angle.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrEngine.Audio\XrEngine.Audio.csproj" />

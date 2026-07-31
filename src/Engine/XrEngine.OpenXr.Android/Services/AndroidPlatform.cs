@@ -6,12 +6,14 @@ using Silk.NET.OpenGL;
 
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Vulkan;
+using OpenXr.Framework.Angle;
 using OpenXr.Framework;
 using XrEngine.Filament;
 using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
+
 
 namespace XrEngine.OpenXr.Android
 {
@@ -101,9 +103,24 @@ namespace XrEngine.OpenXr.Android
                     xrDriver = glDriver;
                 }
             }
+            else if (options.Driver == GraphicDriver.Angle)
+            {
+                var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
+
+                var ctx = new AngleVulkanContext();
+
+                Context.Implement(ctx);
+
+                var angleDriver = new XrAngleGraphicDriver(ctx);
+
+                renderEngine = new OpenGLRender(angleDriver.Gl!, glOptions);
+
+                xrDriver = angleDriver;
+            }
             else
             {
                 var glDriver = new AndroidXrOpenGLESGraphicDriver();
+
 
                 var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 

@@ -15,6 +15,9 @@ using static XrEngine.Filament.FilamentLib;
 using System.Diagnostics;
 using OpenXr.Framework.Oculus;
 using Common.Interop;
+using OpenXr.Framework.Angle;
+using Silk.NET.Vulkan;
+using StructureType = Silk.NET.OpenXR.StructureType;
 
 namespace XrEngine.OpenXr
 {
@@ -46,14 +49,14 @@ namespace XrEngine.OpenXr
             };
         }
 
-        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, XrProjDepthMode depthMode)
+        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, XrEngineAppOptions options)
         {
             if (app.Renderer is OpenGLRender openGl)
             {
                 if (openGl.Options.UseResolve)
                     return xrApp.BindEngineAppGLResolve(app);
                 else
-                    return xrApp.BindEngineAppGL(app, depthMode);
+                    return xrApp.BindEngineAppGL(app, options.ProjDepthMode, options.Driver == GraphicDriver.Angle);
             }
 
             if (app.Renderer is FilamentRender)
@@ -194,7 +197,7 @@ namespace XrEngine.OpenXr
             return renderer;
         }
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, XrProjDepthMode depthMode)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, XrProjDepthMode depthMode, bool useAngle)
         {
             var pool = new GlRenderTargetPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
@@ -261,7 +264,7 @@ namespace XrEngine.OpenXr
                 }
 
                 return renderTarget;
-            });
+            }, useAngle);
 
         }
 
@@ -282,10 +285,10 @@ namespace XrEngine.OpenXr
             {
                 swap.Select(colorTex, depthTex);
                 return swap;
-            });
+            }, false);
         }
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool useAngle)
         {
             OpenGLRender renderer;
 
@@ -305,6 +308,8 @@ namespace XrEngine.OpenXr
             else
                 renderer = (OpenGLRender)app.Renderer;
 
+            AngleVulkanContext? vulkanCtx = null;
+
             void RenderView(ref RenderViewInfo info)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
@@ -319,6 +324,7 @@ namespace XrEngine.OpenXr
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
                     var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
+
 
                     eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
                     eyes[i].Projection = transform.Projection;
@@ -335,8 +341,46 @@ namespace XrEngine.OpenXr
                     {
                         var rect = info.ProjViews[i].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                        var glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[i])->Image;
-                        var glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[i])->Image;
+                        uint glColorImage;
+                        uint glDepthImage;
+
+                        if (useAngle)
+                        {
+                            var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[i])->Image;
+                            var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[i])->Image;
+
+                            vulkanCtx ??= Context.Require<AngleVulkanContext>();
+
+                            var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
+                                    (int)info.ColorFormat, 
+                                    (uint)info.ColorSize.Width,
+                                    (uint)info.ColorSize.Height, 
+                                    info.ArraySize, 1, 1, 
+                                    ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit, 
+                                    info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
+                            
+                            glColorImage = colorImg.Texture;
+
+                            if (depthImagePtr != 0)
+                            {
+                                var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
+                                        (int)info.ColorFormat,
+                                        (uint)info.DepthSize.Width,
+                                        (uint)info.DepthSize.Height,
+                                        info.ArraySize, 1, 1,
+                                        ImageUsageFlags.DepthStencilAttachmentBit,
+                                        info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
+
+                                glDepthImage = colorImg.Texture;
+                            }
+                            else
+                                glDepthImage = 0;
+                        }
+                        else
+                        {
+                            glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[i])->Image;
+                            glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[i])->Image;
+                        }
 
                         var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
@@ -357,8 +401,9 @@ namespace XrEngine.OpenXr
                             depth->FarZ = camera.Far;
                         }
 
-                        app.RenderScene(null, false);
+                        app.RenderScene();
                     }
+
 
                     app.EndFrame();
                 }
@@ -366,8 +411,46 @@ namespace XrEngine.OpenXr
                 {
                     var rect = info.ProjViews[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                    var glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[0])->Image;
-                    var glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[0])->Image;
+                    uint glColorImage;
+                    uint glDepthImage;
+
+                    if (useAngle)
+                    {
+                        var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[0])->Image;
+                        var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[0])->Image;
+
+                        vulkanCtx ??= Context.Require<AngleVulkanContext>();
+
+                        var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
+                                (int)info.ColorFormat,
+                                (uint)info.ColorSize.Width,
+                                (uint)info.ColorSize.Height,
+                                info.ArraySize, 1, 1,
+                                ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
+                                info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
+
+                        glColorImage = colorImg.Texture;
+
+                        if (depthImagePtr != 0)
+                        {
+                            var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
+                                    (int)info.ColorFormat,
+                                    (uint)info.DepthSize.Width,
+                                    (uint)info.DepthSize.Height,
+                                    info.ArraySize, 1, 1,
+                                    ImageUsageFlags.DepthStencilAttachmentBit,
+                                    info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
+
+                            glDepthImage = colorImg.Texture;
+                        }
+                        else
+                            glDepthImage = 0;
+                    }
+                    else
+                    {
+                        glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[0])->Image;
+                        glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[0])->Image;
+                    }
 
                     var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
@@ -389,7 +472,7 @@ namespace XrEngine.OpenXr
                         depth->FarZ = camera.Far;
                     }
 
-                    app.RenderFrame(null, false);
+                    app.RenderFrame();
                 }
             }
 

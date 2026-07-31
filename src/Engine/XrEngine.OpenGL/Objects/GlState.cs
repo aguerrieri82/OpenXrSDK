@@ -748,6 +748,9 @@ namespace XrEngine.OpenGL
         public int? ActiveShadingRate;
 
 
+
+
+
         public readonly Dictionary<EnableCap, bool> Features = [];
 
         public readonly Dictionary<TextureTarget, uint[]> TexturesSlots = [];
@@ -761,7 +764,6 @@ namespace XrEngine.OpenGL
         public readonly uint[] SamplerSlots = new uint[MAX_TEX_SLOTS];
 
         public static GlState Current => _current ?? throw new InvalidOperationException("No current state for this thread");
-
 
         public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
 

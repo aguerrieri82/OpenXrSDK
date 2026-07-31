@@ -1,5 +1,9 @@
 ﻿
+#if GLES
+using Silk.NET.OpenGLES;
+#else
 using Silk.NET.OpenGL;
+#endif
 using Silk.NET.WGL;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -61,6 +65,11 @@ namespace XrEngine.OpenGL.Wpf
 
             _current = this;
 
+        }
+
+        public void SwapBuffers()
+        {
+            _wgl!.SwapBuffers(_hdc);
         }
 
         public GL Gl => _gl!;

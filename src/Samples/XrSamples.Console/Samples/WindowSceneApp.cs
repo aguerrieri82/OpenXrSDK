@@ -13,6 +13,8 @@ using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using XrSamples.Graffiti;
+using OpenXr.Framework;
+using OpenXr.Framework.Angle;
 
 namespace XrSamples
 {
@@ -36,6 +38,13 @@ namespace XrSamples
 
             var app = builder
                 .UsePlatform<ConsolePlatform>()
+                .EnableDebug()
+                .SetGlOptions(opt =>
+                {
+                    opt.UseAsyncShaderCompile = false;
+                    opt.UseShaderCache = false;
+                    opt.SampleCount = 1;
+                })
                 .Configure(_ =>
                 {
                     Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
@@ -44,8 +53,14 @@ namespace XrSamples
                 .Build()
                 .App;
 
-            var view = Window.Create(WindowOptions.Default);
-            view.ShouldSwapAutomatically = true;
+            var angle = Context.Require<AngleVulkanContext>();
+
+            var options = WindowOptions.Default;
+            if (angle != null)
+                options.API = GraphicsAPI.None;
+
+            var view = Window.Create(options);
+            view.ShouldSwapAutomatically = angle == null;
 
             var viewRect = new Rect2I();
 
@@ -58,32 +73,16 @@ namespace XrSamples
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
             }
 
-            //UboSsbo1000DrawBenchmark? bench = null;
-            OpenGLRender? render = null;
+            var render = (OpenGLRender)app.Renderer;
+            //render.AddPass(new GlSimulationPass(render, true), 0);
 
             view.Load += () =>
             {
                 UpdateSize();
 
-#if GLES
-                var gl = view.CreateOpenGLES();
-#else
-                var gl = view.CreateOpenGL();
-#endif
+                angle?.MakeCurrent();
 
-                var bench = new UboSsbo1000DrawBenchmark(gl, gles: false);
-                bench.Init();
-                bench.RunAll();
-
-#if GL_WRAPPER
-                render = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl));
-#else
-                render = new OpenGLRender(gl);
-#endif
-                render.EnableDebug(RenderEngineDebug.Sync);
-                render.AddPass(new GlSimulationPass(render, true), 0);
-
-                app.Renderer = render;
+                angle?.CreateWindowSurface(view.Native!.Win32!.Value.Hwnd);
 
                 app.Start();
             };
@@ -93,12 +92,15 @@ namespace XrSamples
                 UpdateSize();
             };
 
-            var isRecorded = false;
+            //var isRecorded = false;
 
             view.Render += t =>
             {
                 app.RenderFrame();
+                
+                angle?.SwapBuffers();
 
+                /*
                 if (!isRecorded)
                 {
                     var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-220511.json");
@@ -117,6 +119,7 @@ namespace XrSamples
 
                     isRecorded = true;
                 }
+                */
             };
 
             view.Run();

@@ -112,6 +112,7 @@ namespace XrEngine.OpenGL
             _extensions = GetExtensions();
 
 #if GLES
+
             foreach (var ex in _extensions)
                 Debug.WriteLine(ex);
 #endif
@@ -163,6 +164,9 @@ namespace XrEngine.OpenGL
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 2u, [131186, 131202], false);
             _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [2147483647], false);
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 2u, [1281, 2147483647], false);
+
+            //"glDisable: Enum 0x3000 is currently not supported."
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 1u, [1280], false);
 
             _isDebug = true;
 
@@ -492,7 +496,7 @@ namespace XrEngine.OpenGL
 
                 PushGroup($"Pass {pass.GetType().Name}");
 
-                using var passProf = _profiler.Profile(pass.GetType().Name, _updateCtx.Frame, true);
+                using var passProf = _profiler.Profile(pass.GetType().Name, _updateCtx.Frame);
                 
                 pass.Render(_updateCtx);
 
@@ -501,7 +505,7 @@ namespace XrEngine.OpenGL
 
             _dispatcher.ProcessQueue();
 
-            using var endFrameProf = _profiler.Profile("EndFrame", _updateCtx.Frame, true);
+            using var endFrameProf = _profiler.Profile("EndFrame", _updateCtx.Frame);
 
             _target.End(_options.InvalidateDepth);
 

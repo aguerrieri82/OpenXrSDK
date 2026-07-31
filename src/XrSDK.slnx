@@ -294,6 +294,10 @@
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
+    <Project Path="Framework/OpenXr.Framework.Angle/OpenXr.Framework.Angle.csproj" Id="dc910b56-2480-483c-875f-fbffdc545bf8">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="Framework/OpenXr.Framework.Oculus/OpenXr.Framework.Oculus.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />

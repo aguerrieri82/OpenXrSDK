@@ -7,7 +7,8 @@ namespace XrEngine.OpenXr
     {
         OpenGL,
         FilamentOpenGL,
-        FilamentVulkan
+        FilamentVulkan,
+        Angle
     }
 
     public enum XrProjDepthMode

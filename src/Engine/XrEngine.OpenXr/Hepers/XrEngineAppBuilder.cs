@@ -91,7 +91,7 @@ namespace XrEngine.OpenXr
             if (actionBuilder != null)
                 engine.XrApp.AddActions(actionBuilder);
 
-            engine.XrApp.BindEngineApp(engine.App, engine.Options.ProjDepthMode);
+            engine.XrApp.BindEngineApp(engine.App, engine.Options);
 
             return engine;
         }

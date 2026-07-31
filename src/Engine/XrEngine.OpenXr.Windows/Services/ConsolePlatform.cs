@@ -1,10 +1,18 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
-using Silk.NET.OpenGL;
 using System.Net.NetworkInformation;
 using XrEngine.OpenGL;
+using OpenXr.Framework.Angle;
+using Silk.NET.OpenXR;
+using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenXr.Windows
 {
@@ -56,12 +64,36 @@ namespace XrEngine.OpenXr.Windows
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
         {
             var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
-#if GL_WRAPPER
-            renderEngine = new OpenGLRender(new GlSwitchWrapper(_viewManager.View.CreateOpenGL()), glOptions);
+
+            if (options.Driver == GraphicDriver.OpenGL)
+            {
+#if GLES
+                var gl = _viewManager.View.CreateOpenGLES();
 #else
-            renderEngine = new OpenGLRender(_viewManager.View.CreateOpenGL(), glOptions);
+                var gl = _viewManager.View.CreateOpenGL();
 #endif
-            xrDriver = new XrOpenGLGraphicDriver(_viewManager.View);
+                renderEngine = new OpenGLRender(gl, glOptions);
+
+                xrDriver = new XrOpenGLGraphicDriver(_viewManager.View);
+
+            }
+            else if (options.Driver == GraphicDriver.Angle)
+            {
+                var ctx = new AngleVulkanContext();
+
+                Context.Implement(ctx);
+
+                var angleDriver = new XrAngleGraphicDriver(ctx);
+                
+                ctx.Initialize([], []);
+
+                renderEngine = new OpenGLRender(ctx.Gl!, glOptions);
+
+                xrDriver = angleDriver;
+            }
+            else
+                throw new NotSupportedException();
+
         }
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)

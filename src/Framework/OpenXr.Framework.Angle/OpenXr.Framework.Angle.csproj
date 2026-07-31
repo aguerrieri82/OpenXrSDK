@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="..\..\..\..\..\..\..\vk_layer_settings.txt" Link="runtimes\win-x64\vk_layer_settings.txt" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Silk.NET.Vulkan" Version="2.23.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
+		<PackageReference Include="Silk.NET.OpenGLES" Version="2.23.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(OpenGL)' == ''">
+		<PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="runtimes\win-x64\" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="runtimes/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />
+	</ItemGroup>
+
+
+</Project>

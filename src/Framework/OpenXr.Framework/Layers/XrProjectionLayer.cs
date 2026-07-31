@@ -16,6 +16,12 @@ namespace OpenXr.Framework
 
         public SwapchainImageBaseHeader*[]? DepthImages;
 
+        public Extent2Di ColorSize;
+        public Extent2Di DepthSize;
+        public long ColorFormat;
+        public long DepthFormat;
+        public uint ArraySize;
+
         public XrRenderMode Mode;
 
         public long DisplayTime;
@@ -277,6 +283,11 @@ namespace OpenXr.Framework
                     ColorImages = _lastColorImages!,
                     DepthImages = _lastDepthImages,
                     Mode = _xrApp!.RenderOptions.RenderMode,
+                    ColorSize = _swapchains![0].ViewSize,
+                    DepthSize = _swapchains[0].DepthSize,
+                    ArraySize =  _swapchains.Length == 1 ? 2u : 1,
+                    ColorFormat = _xrApp!.RenderOptions.ColorFormat,
+                    DepthFormat = _xrApp!.RenderOptions.DepthFormat,
                     DisplayTime = predTime
                 };
 

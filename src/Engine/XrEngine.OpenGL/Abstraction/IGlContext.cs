@@ -14,6 +14,8 @@ namespace XrEngine.OpenGL
 
         void Release();
 
+        void SwapBuffers();
+
         Thread? OwnerThread { get; }
     }
 }

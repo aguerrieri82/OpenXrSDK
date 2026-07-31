@@ -964,8 +964,7 @@ namespace OpenXr.Framework
 
             var usage = isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit;
 
-            if (isDepth)
-                usage |= SwapchainUsageFlags.SampledBit;
+            usage |= SwapchainUsageFlags.SampledBit;
 
             return CreateSwapChain(size, format, arraySize, usage, true);
         }

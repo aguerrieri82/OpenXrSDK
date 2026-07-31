@@ -1,9 +1,15 @@
 ﻿
+#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
+using OpenXr.Framework.Angle;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
-using Silk.NET.OpenGL;
 using System.IO;
 using System.Net.NetworkInformation;
 using XrEditor.Services;
@@ -95,6 +101,8 @@ namespace XrEditor
             }
             else if (driver == GraphicDriver.FilamentOpenGL)
                 _renderSurface = new FlGlRenderHost();
+            else if (driver == GraphicDriver.Angle)
+                _renderSurface = new AngleGlRenderHost();
             else
                 _renderSurface = new FlVulkanRenderHost();
 
@@ -118,6 +126,9 @@ namespace XrEditor
 
             else if (_renderSurface is FlVulkanRenderHost flVulkan)
                 xrDriver = flVulkan.CreateXrDriver();
+
+            else if (_renderSurface is AngleGlRenderHost angleHost)
+                xrDriver = new XrAngleGraphicDriver(angleHost.AngleContext);
 
             else
                 throw new NotSupportedException();

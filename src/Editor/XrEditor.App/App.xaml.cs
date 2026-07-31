@@ -20,6 +20,7 @@ namespace XrEditor
 
         public App()
         {
+
             DispatcherUnhandledException += (sender, e) =>
             {
                 Log.Warn(sender, e.Exception.Message);

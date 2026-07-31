@@ -294,6 +294,12 @@ namespace XrEngine.OpenXr
             return self.ConfigureApp(e => e.App.ActiveScene!.AddComponent<ProfileOverlay>());
         }
 
+        public static XrEngineAppBuilder UseAngle(this XrEngineAppBuilder self)
+        {
+            self.Options.Driver = GraphicDriver.Angle;
+            return self;
+        }
+
         public static XrEngineAppBuilder UseOpenGL(this XrEngineAppBuilder self)
         {
             self.Options.Driver = GraphicDriver.OpenGL;
