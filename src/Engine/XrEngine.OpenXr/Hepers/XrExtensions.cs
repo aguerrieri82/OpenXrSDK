@@ -310,6 +310,70 @@ namespace XrEngine.OpenXr
 
             AngleVulkanContext? vulkanCtx = null;
 
+            (uint Color, uint Depth) GetImages(ref RenderViewInfo info, int index)
+            {
+                if (!useAngle)
+                {
+                    return (
+                        ((SwapchainImageOpenGLKHR*)info.ColorImages[index])->Image,
+                        info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[index])->Image);
+                }
+
+                vulkanCtx ??= Context.Require<AngleVulkanContext>();
+
+                var target = info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
+
+                var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[index])->Image;
+                var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[index])->Image;
+
+                var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
+                        (int)info.ColorFormat,
+                        (uint)info.ColorSize.Width,
+                        (uint)info.ColorSize.Height,
+                        info.ArraySize, 1, 1,
+                        ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
+                        target);
+
+                if (depthImagePtr == 0)
+                    return (colorImg.Texture, 0);
+
+                var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
+                        (int)info.DepthFormat,
+                        (uint)info.DepthSize.Width,
+                        (uint)info.DepthSize.Height,
+                        info.ArraySize, 1, 1,
+                        ImageUsageFlags.DepthStencilAttachmentBit | 
+                        ImageUsageFlags.SampledBit, 
+                        target);
+
+                return (colorImg.Texture, depthImg.Texture);
+            }
+
+            void SetupRenderTarget(ref RenderViewInfo info, PerspectiveCamera camera, int index)
+            {
+                var images = GetImages(ref info, index);
+
+                var renderTarget = targetFactory(renderer.GL, images.Color, images.Depth);
+
+                camera.SetProp(OpenGLRender.Props.RenderTarget[index], renderTarget);
+
+                renderer.SetRenderTarget(renderTarget);
+
+                camera.ViewSize = info.ProjViews[index]
+                    .SubImage.ImageRect
+                    .Convert().To<Rect2I>()
+                    .Size;
+
+                var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(
+                    ref info.ProjViews[index], StructureType.CompositionLayerDepthInfoKhr);
+
+                if (depth != null)
+                {
+                    depth->NearZ = camera.Near;
+                    depth->FarZ = camera.Far;
+                }
+            }
+
             void RenderView(ref RenderViewInfo info)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
@@ -320,13 +384,13 @@ namespace XrEngine.OpenXr
                 camera.Transform.Version++;
 
                 var eyes = camera.Eyes;
+                var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();
 
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
                     var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
-
-                    eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
+                    eyes[i].World = transform.Transform * referenceFrame;
                     eyes[i].Projection = transform.Projection;
                     eyes[i].View = eyes[i].World.Invert();
                     eyes[i].ViewProj = eyes[i].View * eyes[i].Projection;
@@ -339,138 +403,24 @@ namespace XrEngine.OpenXr
 
                     for (var i = 0; i < info.ColorImages.Length; i++)
                     {
-                        var rect = info.ProjViews[i].SubImage.ImageRect.Convert().To<Rect2I>();
-
-                        uint glColorImage;
-                        uint glDepthImage;
-
-                        if (useAngle)
-                        {
-                            var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[i])->Image;
-                            var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[i])->Image;
-
-                            vulkanCtx ??= Context.Require<AngleVulkanContext>();
-
-                            var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
-                                    (int)info.ColorFormat, 
-                                    (uint)info.ColorSize.Width,
-                                    (uint)info.ColorSize.Height, 
-                                    info.ArraySize, 1, 1, 
-                                    ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit, 
-                                    info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
-                            
-                            glColorImage = colorImg.Texture;
-
-                            if (depthImagePtr != 0)
-                            {
-                                var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
-                                        (int)info.ColorFormat,
-                                        (uint)info.DepthSize.Width,
-                                        (uint)info.DepthSize.Height,
-                                        info.ArraySize, 1, 1,
-                                        ImageUsageFlags.DepthStencilAttachmentBit,
-                                        info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
-
-                                glDepthImage = colorImg.Texture;
-                            }
-                            else
-                                glDepthImage = 0;
-                        }
-                        else
-                        {
-                            glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[i])->Image;
-                            glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[i])->Image;
-                        }
-
-                        var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
-
-                        camera.SetProp(OpenGLRender.Props.RenderTarget[i], renderTarget);
-
-                        renderer.SetRenderTarget(renderTarget);
+                        SetupRenderTarget(ref info, camera, i);
 
                         camera.Projection = eyes[i].Projection;
                         camera.WorldMatrix = eyes[i].World;
                         camera.ActiveEye = i;
-                        camera.ViewSize = rect.Size;
-
-                        var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[i], StructureType.CompositionLayerDepthInfoKhr);
-
-                        if (depth != null)
-                        {
-                            depth->NearZ = camera.Near;
-                            depth->FarZ = camera.Far;
-                        }
 
                         app.RenderScene();
                     }
-
 
                     app.EndFrame();
                 }
                 else if (info.Mode == XrRenderMode.MultiView)
                 {
-                    var rect = info.ProjViews[0].SubImage.ImageRect.Convert().To<Rect2I>();
-
-                    uint glColorImage;
-                    uint glDepthImage;
-
-                    if (useAngle)
-                    {
-                        var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[0])->Image;
-                        var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[0])->Image;
-
-                        vulkanCtx ??= Context.Require<AngleVulkanContext>();
-
-                        var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
-                                (int)info.ColorFormat,
-                                (uint)info.ColorSize.Width,
-                                (uint)info.ColorSize.Height,
-                                info.ArraySize, 1, 1,
-                                ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
-                                info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
-
-                        glColorImage = colorImg.Texture;
-
-                        if (depthImagePtr != 0)
-                        {
-                            var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
-                                    (int)info.ColorFormat,
-                                    (uint)info.DepthSize.Width,
-                                    (uint)info.DepthSize.Height,
-                                    info.ArraySize, 1, 1,
-                                    ImageUsageFlags.DepthStencilAttachmentBit,
-                                    info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
-
-                            glDepthImage = colorImg.Texture;
-                        }
-                        else
-                            glDepthImage = 0;
-                    }
-                    else
-                    {
-                        glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[0])->Image;
-                        glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[0])->Image;
-                    }
-
-                    var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
-
-                    camera.SetProp(OpenGLRender.Props.RenderTarget[0], renderTarget);
-
-                    renderer.SetRenderTarget(renderTarget);
+                    SetupRenderTarget(ref info, camera, 0);
 
                     camera.Projection = eyes[0].Projection;
                     camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
-
-                    camera.ViewSize = rect.Size;
                     camera.ActiveEye = -1;
-
-                    var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[0], StructureType.CompositionLayerDepthInfoKhr);
-
-                    if (depth != null)
-                    {
-                        depth->NearZ = camera.Near;
-                        depth->FarZ = camera.Far;
-                    }
 
                     app.RenderFrame();
                 }
@@ -478,11 +428,9 @@ namespace XrEngine.OpenXr
 
             var useDepth = xrApp.RenderOptions.UseProjectionDepth;
 
-            GlMotionVectorPass? motionVectorPass = null;
-
             if (renderer.Options.MotionVectorMode == MotionVectorMode.Pass)
             {
-                motionVectorPass ??= renderer.EnsurePass(() => new GlMotionVectorPass(
+                var motionVectorPass = renderer.EnsurePass(() => new GlMotionVectorPass(
                             renderer, xrApp,
                             xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView));
 

@@ -38,12 +38,12 @@ namespace XrSamples
 
             var app = builder
                 .UsePlatform<ConsolePlatform>()
-                .EnableDebug()
-                .SetGlOptions(opt =>
+                //.EnableDebug()
+                .UseOpenGL(opt =>
                 {
                     opt.UseAsyncShaderCompile = false;
-                    opt.UseShaderCache = false;
-                    opt.SampleCount = 1;
+                    opt.UseShaderCache = true;
+                    opt.SampleCount = 2;
                 })
                 .Configure(_ =>
                 {
@@ -53,13 +53,14 @@ namespace XrSamples
                 .Build()
                 .App;
 
-            var angle = Context.Require<AngleVulkanContext>();
+            ;
 
             var options = WindowOptions.Default;
-            if (angle != null)
+            if (Context.TryRequire<AngleVulkanContext>(out var angle))
                 options.API = GraphicsAPI.None;
 
             var view = Window.Create(options);
+
             view.ShouldSwapAutomatically = angle == null;
 
             var viewRect = new Rect2I();

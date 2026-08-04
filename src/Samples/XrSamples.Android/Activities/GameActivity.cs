@@ -107,7 +107,12 @@ namespace XrSamples.Android.Activities
             builder.Options.Driver = _settings!.Driver;
 
             if (_settings.Driver == GraphicDriver.OpenGL)
-                builder.UseOpenGL(opt =>
+                builder.UseOpenGL();
+            else if (_settings.Driver == GraphicDriver.Angle)
+                builder.UseAngle();
+
+            if (_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle)
+                builder.SetGlOptions(opt =>
                 {
                     opt.UseDepthPass = _settings.EnableDepthPass;
 
@@ -130,11 +135,17 @@ namespace XrSamples.Android.Activities
 
                     opt.InvalidateDepth = false;
 
+                    if (_settings.Driver == GraphicDriver.Angle)
+                    {
+                        opt.UseAsyncShaderCompile = false;
+                        opt.UseShaderCache = false;
+                    }
+
                 });
             else
                 ImageLight.UseCache = false;
 
-            if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
+            if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)

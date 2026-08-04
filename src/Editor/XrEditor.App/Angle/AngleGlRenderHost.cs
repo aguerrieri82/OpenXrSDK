@@ -1,4 +1,13 @@
-﻿using OpenXr.Framework.Angle;
+﻿
+#if GLES
+using Silk.NET.OpenGLES;
+using Silk.NET.OpenGLES.Extensions.EXT;
+using ExtClipControl = Silk.NET.OpenGLES.Extensions.EXT.ExtClipControl;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+using OpenXr.Framework.Angle;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -13,7 +22,9 @@ namespace XrEditor
     {
         AngleGlContext _glContext;
         AngleVulkanContext _angleContext;
-
+#if GLES
+        ExtClipControl? _clipControl;
+#endif
         bool _isInit;
         private OpenGLRender? _render;
 
@@ -25,7 +36,23 @@ namespace XrEditor
             Context.Implement(_angleContext);
         }
 
+        public override void BeginFrame(long frameNum)
+        {
+#if GLES
+            if (_clipControl == null && !_glContext.Gl.TryGetExtension(out _clipControl))
+                throw new NotSupportedException();
 
+            _clipControl!.ClipControl(EXT.LowerLeftExt, EXT.NegativeOneToOneExt);
+#endif
+
+        }
+
+        public override void EndFrame()
+        {
+#if GLES
+            _clipControl!.ClipControl(EXT.UpperLeftExt, EXT.NegativeOneToOneExt);
+#endif
+        }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
@@ -48,7 +75,7 @@ namespace XrEditor
             glOptions.FloatPrecision = ShaderPrecision.High;
             glOptions.Outline.Use = true;
 
-            _render = new OpenGLRender(_glContext.Gl, glOptions);
+            _render = new OpenGLRender(_glContext.Gl, glOptions, useAngle: true);
 
             TakeContext();
 

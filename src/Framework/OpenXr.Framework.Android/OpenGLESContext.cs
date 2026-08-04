@@ -176,6 +176,13 @@ namespace OpenXr.Framework.Android
                 EGL14.EglNoContext);
         }
 
+        public void SwapBuffers()
+        {
+            EGL14.EglSwapBuffers(
+                Display,
+                Surface);
+        }
+
         public bool Take()
         {
             return EGL14.EglMakeCurrent(Display, Surface, Surface, Context);

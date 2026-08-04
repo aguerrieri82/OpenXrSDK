@@ -4,15 +4,15 @@ namespace OpenXr.Framework.Oculus
 {
     public interface IXrMotionVectorProvider
     {
-        unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode);
+        unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode);
 
         public float Near { get; }
 
         public float Far { get; }
 
-        public long MotionVectorFormat { get; }
+        public int MotionVectorFormat { get; }
 
-        public long DepthFormat { get; }
+        public int DepthFormat { get; }
 
         public bool IsActive { get; set; }
     }

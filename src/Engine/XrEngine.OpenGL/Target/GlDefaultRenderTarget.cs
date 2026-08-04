@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         private readonly uint _sampleCount;
         private readonly bool _useRenderBuffer;
 
-        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount)
+        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount, TextureFormat colorFormat = TextureFormat.SRgba32)
         {
             _gl = gl;
             _sampleCount = sampleCount;
@@ -27,7 +27,8 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
 
             DepthFormat = TextureFormat.Depth24Stencil8;
-            ColorFormat = TextureFormat.SRgba32;
+            ColorFormat = colorFormat;
+            Flags = GlRenderTargetFlags.Main;
 
             SetSize(new Size2I(16, 16));
         }
@@ -156,7 +157,7 @@ namespace XrEngine.OpenGL
 
         public GlTexture? Color => _color;
 
-        public GlRenderTargetFlags Flags => GlRenderTargetFlags.Main;
+        public GlRenderTargetFlags Flags { get; set; }
 
         public int ShadingRate { get; set; }
 

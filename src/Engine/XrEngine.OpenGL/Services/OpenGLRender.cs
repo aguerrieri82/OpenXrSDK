@@ -36,6 +36,7 @@ namespace XrEngine.OpenGL
         protected readonly GL _gl;
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
+        private readonly bool _useAngle;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly List<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
@@ -75,12 +76,12 @@ namespace XrEngine.OpenGL
         {
         }
 
-        public OpenGLRender(GL gl, GlRenderOptions options, bool isDummy = false)
-            : this(gl, options, new GlState(gl), isDummy)
+        public OpenGLRender(GL gl, GlRenderOptions options, bool isDummy = false, bool useAngle = false)
+            : this(gl, options, new GlState(gl), isDummy, useAngle)
         {
         }
 
-        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state, bool isDummy)
+        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state, bool isDummy, bool useAngle)
         {
             Current = this;
 
@@ -89,8 +90,13 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
+            _useAngle = useAngle;
 
-            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass && !options.ContactShadow.Use, options.SampleCount);
+            _defaultTarget = new GlDefaultRenderTarget(gl, 
+                    !options.UseDepthPass && !options.ContactShadow.Use,
+                    options.SampleCount,
+                    useAngle ? TextureFormat.Rgba32 : TextureFormat.SRgba32);
+
             _target = _defaultTarget;
 
             _updateCtx = new GlUpdateContext
@@ -460,7 +466,7 @@ namespace XrEngine.OpenGL
 
             _target = target;
             _view = view;
-            _profiler.IsEnabled = _isDebug;
+            _profiler.IsEnabled = false;
 
             PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
 
@@ -510,7 +516,7 @@ namespace XrEngine.OpenGL
             _target.End(_options.InvalidateDepth);
 
             if (flush)
-                _gl.Flush();
+                _gl.Finish();
 
             PopGroup();
 
@@ -886,6 +892,8 @@ namespace XrEngine.OpenGL
         public GlRenderOptions Options => _options;
 
         public bool IsDebug => _isDebug;
+
+        public bool UseAngle => _useAngle;  
 
         public IReadOnlySet<string> Extensions => _extensions ?? [];
 

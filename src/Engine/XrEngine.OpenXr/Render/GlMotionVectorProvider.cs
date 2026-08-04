@@ -19,24 +19,24 @@ namespace XrEngine.OpenXr
             _pass = pass;
 
             if (XrPlatform.IsEditor)
-                MotionVectorFormat = (long)InternalFormat.Rgb16f;
+                MotionVectorFormat = (int)InternalFormat.Rgb16f;
             else
-                MotionVectorFormat = (long)InternalFormat.Rgba16f;
+                MotionVectorFormat = (int)InternalFormat.Rgba16f;
 
-            DepthFormat = (long)InternalFormat.DepthComponent16;
+            DepthFormat = (int)InternalFormat.DepthComponent16;
             IsActive = true;
 
             Context.Implement<IXrMotionVectorProvider>(this);
         }
 
-        public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
+        public unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
             _pass.SetTargets(colorImg, depthImg);
         }
 
-        public long MotionVectorFormat { get; }
+        public int MotionVectorFormat { get; }
 
-        public long DepthFormat { get; }
+        public int DepthFormat { get; }
 
         public float Near => _app.ActiveScene?.ActiveCamera?.Near ?? 0.1f;
 

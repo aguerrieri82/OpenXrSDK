@@ -236,7 +236,7 @@ namespace XrSamples
                 grid.IsVisible = false;
         });
 
-        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot, bool forceOverlay = false)
+        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot, bool forceOverlay = false, bool noOverlay = false)
         {
             var panel = new Window3D
             {
@@ -253,7 +253,7 @@ namespace XrSamples
                 {
                     e.App.ActiveScene!.AddChild(panel);
 
-                    if (XrPlatform.IsAndroid || forceOverlay)
+                    if (!noOverlay && (XrPlatform.IsAndroid || forceOverlay))
                         panel.CreateOverlay(e.XrApp);
                 });
         }

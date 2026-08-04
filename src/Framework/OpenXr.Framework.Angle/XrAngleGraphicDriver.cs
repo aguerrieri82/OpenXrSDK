@@ -4,6 +4,10 @@ using Silk.NET.OpenXR.Extensions.KHR;
 using Silk.NET.Vulkan;
 using System.Text;
 using StructureType = Silk.NET.OpenXR.StructureType;
+using Silk.NET.Core.Contexts;
+using System.Diagnostics;
+
+
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -13,6 +17,8 @@ using Silk.NET.OpenGL;
 
 namespace OpenXr.Framework.Angle
 {
+
+
     public unsafe class XrAngleGraphicDriver : XrBasePlugin, IXrGraphicDriver, IDisposable
     {
         protected AngleVulkanContext _context;
@@ -39,6 +45,7 @@ namespace OpenXr.Framework.Angle
         {
             _app = app;
             extensions.Add(KhrVulkanEnable.ExtensionName);
+
         }
 
         public override void OnInstanceCreated()
@@ -53,7 +60,7 @@ namespace OpenXr.Framework.Angle
 
         }
 
-        public GraphicsBinding CreateBinding()
+        public unsafe GraphicsBinding CreateBinding()
         {
             var vulkanReq = new GraphicsRequirementsVulkanKHR()
             {
@@ -88,14 +95,16 @@ namespace OpenXr.Framework.Angle
                 Instance = new VkHandle(_context.VulkanInstanceHandle),
                 PhysicalDevice = physicalDevice,
                 QueueFamilyIndex = _context.QueueFamilyIndex,
-                QueueIndex = 1,
+                QueueIndex = 0,
             };
 
             _gl = GL.GetApi(_context);
 
+         
+
             return binding;
         }
-
+        
         public GL? Gl => _gl;
 
         public XrDynamicType SwapChainImageType => _swapChainType;

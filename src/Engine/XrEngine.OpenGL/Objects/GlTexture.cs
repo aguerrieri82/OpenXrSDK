@@ -394,19 +394,22 @@ namespace XrEngine.OpenGL
         {
 
 #warning DISABLED WITH RDC
-
+            /*
             if (EngineNativeLib.RdcIsAttached())
                 return;
+            */
 
             var colorSpan = color.ToArray();
+
+            GlUtils.GetPixelFormat(_internalFormat.ToTextureFormat(), out var pixelFormat, out var pixelType);
 
 #if GLES
             if (_clearExt == null)
                 _gl.TryGetExtension<ExtClearTexture>(out _clearExt);
 
-            _clearExt!.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
+            _clearExt!.ClearTexImage(_handle, level, pixelFormat, pixelType, colorSpan.AsSpan());
 #else
-            _gl.ClearTexImage(_handle, level, PixelFormat.Rgba, PixelType.Float, colorSpan.AsSpan());
+            _gl.ClearTexImage(_handle, level, pixelFormat, pixelType, colorSpan.AsSpan());
 #endif
         }
 

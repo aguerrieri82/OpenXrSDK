@@ -2,7 +2,7 @@
 
 
 	<PropertyGroup>
-		<TargetFrameworks/>
+		<TargetFrameworks />
 		<TargetFramework>$(CoreVersion)-android</TargetFramework>
 		<SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
 		<OutputType>Exe</OutputType>
@@ -28,15 +28,14 @@
 		<DebugType>full</DebugType>
 	</PropertyGroup>
 
-	<Target Name="InvalidateJavaCompile"
-			BeforeTargets="_CompileJava">
-		<Delete Files="$(IntermediateOutputPath)stamp\_CompileJava.stamp"
-				Condition="Exists('$(IntermediateOutputPath)stamp\_CompileJava.stamp')" />
+	<Target Name="InvalidateJavaCompile" BeforeTargets="_CompileJava">
+		<Delete Files="$(IntermediateOutputPath)stamp\_CompileJava.stamp" Condition="Exists('$(IntermediateOutputPath)stamp\_CompileJava.stamp')" />
 	</Target>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
 		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
+
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -55,6 +54,8 @@
 		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 		<PublishReadyToRun>true</PublishReadyToRun>
 	</PropertyGroup>
+
+
 
 	<ItemGroup>
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../libs/*.so" />

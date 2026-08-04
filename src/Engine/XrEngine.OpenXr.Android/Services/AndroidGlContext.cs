@@ -46,6 +46,11 @@ namespace XrEngine.OpenXr.Android
             return new AndroidGlContext(newCtx, _gl);
         }
 
+        public void SwapBuffers()
+        {
+            _ctx.SwapBuffers();
+        }
+
         public GL Gl => _gl;
 
         public Thread? OwnerThread => _ownerThread;

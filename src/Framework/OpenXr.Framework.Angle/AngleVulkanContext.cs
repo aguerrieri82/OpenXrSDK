@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.Core.Contexts;
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
+using System.Diagnostics;
 
 namespace OpenXr.Framework.Angle;
 
@@ -70,6 +71,9 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private const nint EGL_NO_DISPLAY = 0;
     private const nint EGL_NO_CONTEXT = 0;
     private const nint EGL_NO_SURFACE = 0;
+
+    private const int EGL_GL_COLORSPACE_KHR = 0x309D;
+    private const int EGL_GL_COLORSPACE_SRGB_KHR = 0x3089;
 
     private const uint GL_UPPER_LEFT_EXT = 0x8CA2;
     private const uint GL_NEGATIVE_ONE_TO_ONE_EXT = 0x935E;
@@ -233,63 +237,47 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        ArgumentNullException.ThrowIfNull(requiredInstanceExtensions);
-        ArgumentNullException.ThrowIfNull(requiredDeviceExtensions);
-
-        if (IsInitialized)
-        {
-            ValidateExtensions(
-                "Vulkan instance",
-                requiredInstanceExtensions,
-                EnabledInstanceExtensions);
-
-            ValidateExtensions(
-                "Vulkan device",
-                requiredDeviceExtensions,
-                EnabledDeviceExtensions);
-            return;
-        }
-           
-
         try
         {
-            int* displayAttributes = stackalloc int[]
+            if (!IsInitialized)
             {
-                EGL_PLATFORM_ANGLE_TYPE_ANGLE,
-                EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
+                int* displayAttributes = stackalloc int[]
+                {
+                    EGL_PLATFORM_ANGLE_TYPE_ANGLE,
+                    EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
 
-                EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
-                EGL_TRUE,
+                    //EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
+                    //EGL_TRUE,
                 
-                EGL_NONE
-            };
+                    EGL_NONE
+                };
 
-            Display = _eglGetPlatformDisplay(
-                EGL_PLATFORM_ANGLE_ANGLE,
-                0,
-                displayAttributes);
+                Display = _eglGetPlatformDisplay(
+                    EGL_PLATFORM_ANGLE_ANGLE,
+                    0,
+                    displayAttributes);
 
-            CheckHandle(
-                Display,
-                EGL_NO_DISPLAY,
-                "eglGetPlatformDisplayEXT");
-
-            int major;
-            int minor;
-
-            Check(
-                _eglInitialize(
+                CheckHandle(
                     Display,
-                    &major,
-                    &minor),
-                "eglInitialize");
+                    EGL_NO_DISPLAY,
+                    "eglGetPlatformDisplayEXT");
 
-            Check(
-                _eglBindApi(EGL_OPENGL_ES_API),
-                "eglBindAPI");
+                int major;
+                int minor;
 
-            int* configAttributes = stackalloc int[]
-            {
+                Check(
+                    _eglInitialize(
+                        Display,
+                        &major,
+                        &minor),
+                    "eglInitialize");
+
+                Check(
+                    _eglBindApi(EGL_OPENGL_ES_API),
+                    "eglBindAPI");
+
+                int* configAttributes = stackalloc int[]
+                {
                 EGL_SURFACE_TYPE,
                 EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
 
@@ -317,28 +305,28 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
                 EGL_NONE
             };
 
-            nint config;
-            int configCount;
+                nint config;
+                int configCount;
 
-            Check(
-                _eglChooseConfig(
-                    Display,
-                    configAttributes,
-                    &config,
-                    1,
-                    &configCount),
-                "eglChooseConfig");
+                Check(
+                    _eglChooseConfig(
+                        Display,
+                        configAttributes,
+                        &config,
+                        1,
+                        &configCount),
+                    "eglChooseConfig");
 
-            if (configCount == 0)
-            {
-                throw new InvalidOperationException(
-                    "ANGLE returned no matching EGLConfig.");
-            }
+                if (configCount == 0)
+                {
+                    throw new InvalidOperationException(
+                        "ANGLE returned no matching EGLConfig.");
+                }
 
-            Config = config;
+                Config = config;
 
-            int* contextAttributes = stackalloc int[]
-            {
+                int* contextAttributes = stackalloc int[]
+                {
                 EGL_CONTEXT_MAJOR_VERSION_KHR,
                 3,
 
@@ -348,19 +336,19 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
                 EGL_NONE
             };
 
-            Context = _eglCreateContext(
-                Display,
-                config,
-                EGL_NO_CONTEXT,
-                contextAttributes);
+                Context = _eglCreateContext(
+                    Display,
+                    config,
+                    EGL_NO_CONTEXT,
+                    contextAttributes);
 
-            CheckHandle(
-                Context,
-                EGL_NO_CONTEXT,
-                "eglCreateContext");
+                CheckHandle(
+                    Context,
+                    EGL_NO_CONTEXT,
+                    "eglCreateContext");
 
-            int* surfaceAttributes = stackalloc int[]
-            {
+                int* surfaceAttributes = stackalloc int[]
+                {
                 EGL_WIDTH,
                 1,
 
@@ -370,71 +358,62 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
                 EGL_NONE
             };
 
-            Surface = _eglCreatePbufferSurface(
-                Display,
-                config,
-                surfaceAttributes);
-
-            CheckHandle(
-                Surface,
-                EGL_NO_SURFACE,
-                "eglCreatePbufferSurface");
-
-            Check(
-                _eglMakeCurrent(
+                Surface = _eglCreatePbufferSurface(
                     Display,
+                    config,
+                    surfaceAttributes);
+
+                CheckHandle(
                     Surface,
-                    Surface,
-                    Context),
-                "eglMakeCurrent");
+                    EGL_NO_SURFACE,
+                    "eglCreatePbufferSurface");
 
-            nint eglDevice;
+                Check(
+                    _eglMakeCurrent(
+                        Display,
+                        Surface,
+                        Surface,
+                        Context),
+                    "eglMakeCurrent");
 
-            Check(
-                _eglQueryDisplayAttrib(
-                    Display,
-                    EGL_DEVICE_EXT,
-                    &eglDevice),
-                "eglQueryDisplayAttribEXT(EGL_DEVICE_EXT)");
+                nint eglDevice;
 
-            if (eglDevice == 0)
-            {
-                throw new InvalidOperationException(
-                    "ANGLE returned a null EGLDevice.");
+                Check(
+                    _eglQueryDisplayAttrib(
+                        Display,
+                        EGL_DEVICE_EXT,
+                        &eglDevice),
+                    "eglQueryDisplayAttribEXT(EGL_DEVICE_EXT)");
+
+                if (eglDevice == 0)
+                {
+                    throw new InvalidOperationException(
+                        "ANGLE returned a null EGLDevice.");
+                }
+
+                EglDevice = eglDevice;
+
+                _gl = GL.GetApi(this);
             }
 
-            EglDevice = eglDevice;
+            VulkanInstanceHandle = QueryDevicePointer(EGL_VULKAN_INSTANCE_ANGLE);
+            VulkanPhysicalDeviceHandle = QueryDevicePointer(EGL_VULKAN_PHYSICAL_DEVICE_ANGLE);
+            VulkanDeviceHandle = QueryDevicePointer(EGL_VULKAN_DEVICE_ANGLE);
+            VulkanQueueHandle = QueryDevicePointer(EGL_VULKAN_QUEUE_ANGLE);
+            QueueFamilyIndex = (uint)QueryDeviceInteger(EGL_VULKAN_QUEUE_FAMILIY_INDEX_ANGLE);
 
-            VulkanInstanceHandle =
-                QueryDevicePointer(EGL_VULKAN_INSTANCE_ANGLE);
+            EnabledInstanceExtensions = QueryExtensionArray(EGL_VULKAN_INSTANCE_EXTENSIONS_ANGLE);
+            EnabledDeviceExtensions = QueryExtensionArray(EGL_VULKAN_DEVICE_EXTENSIONS_ANGLE);
 
-            VulkanPhysicalDeviceHandle =
-                QueryDevicePointer(EGL_VULKAN_PHYSICAL_DEVICE_ANGLE);
+            ValidateExtensions(
+                "Vulkan instance",
+                requiredInstanceExtensions,
+                EnabledInstanceExtensions);
 
-            VulkanDeviceHandle =
-                QueryDevicePointer(EGL_VULKAN_DEVICE_ANGLE);
-
-            VulkanQueueHandle =
-                QueryDevicePointer(EGL_VULKAN_QUEUE_ANGLE);
-
-            QueueFamilyIndex = checked(
-                (uint)QueryDeviceInteger(
-                    EGL_VULKAN_QUEUE_FAMILIY_INDEX_ANGLE));
-
-            EnabledInstanceExtensions =
-                QueryExtensionArray(
-                    EGL_VULKAN_INSTANCE_EXTENSIONS_ANGLE);
-
-            EnabledDeviceExtensions =
-                QueryExtensionArray(
-                    EGL_VULKAN_DEVICE_EXTENSIONS_ANGLE);
-            /*
-            _glClipControlExt(
-                GL_UPPER_LEFT_EXT,
-                GL_NEGATIVE_ONE_TO_ONE_EXT);
-            */
-
-            _gl = GL.GetApi(this);
+            ValidateExtensions(
+                "Vulkan device",
+                requiredDeviceExtensions,
+                EnabledDeviceExtensions);
         }
         catch
         {
@@ -480,7 +459,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     /// Imports an existing VkImage and creates a GL texture aliasing the same storage.
     /// No VkImage or Vulkan memory is created.
     /// </summary>
-    public unsafe ImportedVulkanImage AttachVulkanImage(
+    public ImportedVulkanImage AttachVulkanImage(
         nint vkImage,
         int vkFormat,
         uint width,
@@ -570,7 +549,12 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
             _eglDestroySurface(Display, Surface);
         }
 
-        int* attributes = stackalloc int[] { EGL_NONE };
+        int* attributes = stackalloc int[]
+        {
+            EGL_GL_COLORSPACE_KHR,
+            EGL_GL_COLORSPACE_SRGB_KHR,
+            EGL_NONE
+        };
 
         Surface = _eglCreateWindowSurface(
             Display,

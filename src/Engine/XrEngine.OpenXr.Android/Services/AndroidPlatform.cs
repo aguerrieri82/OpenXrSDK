@@ -13,6 +13,7 @@ using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
+using Silk.NET.OpenGLES.Extensions.EXT;
 
 
 namespace XrEngine.OpenXr.Android
@@ -20,7 +21,11 @@ namespace XrEngine.OpenXr.Android
     public class AndroidPlatform : IXrEnginePlatform, IGlContextProvider
     {
         [ThreadStatic]
-        internal static AndroidGlContext? _currentGlContext;
+        internal static IGlContext? _currentGlContext;
+
+#if GLES
+        ExtClipControl? _clipControl;
+#endif
 
         readonly Context2 _context;
         private readonly DeviceInfo _info;
@@ -109,13 +114,22 @@ namespace XrEngine.OpenXr.Android
 
                 var ctx = new AngleVulkanContext();
 
+                ctx.Initialize([], []);
+
                 Context.Implement(ctx);
 
                 var angleDriver = new XrAngleGraphicDriver(ctx);
 
-                renderEngine = new OpenGLRender(angleDriver.Gl!, glOptions);
+                renderEngine = new OpenGLRender(ctx.Gl!, glOptions, useAngle: true);
+
+                if (_clipControl == null && !ctx.Gl!.TryGetExtension(out _clipControl))
+                    throw new NotSupportedException();
+
+                _clipControl!.ClipControl(EXT.UpperLeftExt, EXT.NegativeOneToOneExt);
 
                 xrDriver = angleDriver;
+
+                _currentGlContext = new AngleGlContext(ctx);
             }
             else
             {
@@ -141,10 +155,10 @@ namespace XrEngine.OpenXr.Android
 
         public IGlContext CreateShared()
         {
-            if (_currentGlContext == null)
-                throw new InvalidOperationException();
+            if (_currentGlContext is AndroidGlContext androidGl)
+                return androidGl.CreateShared(AndroidXrOpenGLESGraphicDriver.DEBUG_MODE);
 
-            return _currentGlContext.CreateShared(AndroidXrOpenGLESGraphicDriver.DEBUG_MODE);
+            throw new InvalidOperationException();
         }
 
         public string Name => "Android";

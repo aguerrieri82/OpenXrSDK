@@ -33,8 +33,8 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "DnD",
-                Msaa = 2,
+                SampleName = "Bed",
+                Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
@@ -42,7 +42,7 @@ namespace XrSamples
                 UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = true,
+                TextureCompression = false,
                 UseResolve = false
             };
         }

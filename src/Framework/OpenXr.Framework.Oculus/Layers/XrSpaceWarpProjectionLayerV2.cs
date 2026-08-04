@@ -5,14 +5,19 @@ using XrMath;
 
 namespace OpenXr.Framework.Oculus
 {
+    public struct SpaceWarpData
+    {
+        public Extent2Di ColorSize;
+        public Extent2Di DepthSize;
+        public Swapchain ColorSwapchain;
+        public Swapchain DepthSwapchain;
+        public NativeArray<SwapchainImageBaseHeader> ColorImages;
+
+        public NativeArray<SwapchainImageBaseHeader> DepthImages;
+    }
+
     public class XrSpaceWarpProjectionLayerV2 : XrProjectionLayer
     {
-        public struct SpaceWarpData
-        {
-            public Extent2Di ColorSize;
-            public Swapchain ColorSwapchain;
-            public NativeArray<SwapchainImageBaseHeader> ColorImages;
-        }
 
         readonly NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo;
         readonly IXrMotionVectorProvider _motionProvider;
@@ -50,6 +55,8 @@ namespace OpenXr.Framework.Oculus
                 Height = (int)spaceWarpProperties.RecommendedMotionVectorImageRectHeight
             };
 
+            _spaceWarpData.DepthSize = _swapchains![0].DepthSize;
+
             if (_spaceWarpData.ColorSize.Width == 0 || _spaceWarpData.ColorSize.Height == 0)
                 _spaceWarpData.ColorSize = _xrApp.RenderOptions.Size;
 
@@ -83,7 +90,7 @@ namespace OpenXr.Framework.Oculus
 
             _lastSpColorImage = _spaceWarpData.ColorImages.ItemPointer((int)colorIndex);
 
-            _motionProvider.UpdateMotionVectors(ref projViews, _lastSpColorImage, _lastDepthImages[0], _xrApp.RenderOptions.RenderMode);
+            _motionProvider.UpdateMotionVectors(_spaceWarpData, _lastSpColorImage, _lastDepthImages[0], _xrApp.RenderOptions.RenderMode);
         }
 
         protected override void Release()

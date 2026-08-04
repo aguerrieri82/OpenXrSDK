@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework;
 using Silk.NET.OpenGL;
+using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenXr
 {
@@ -86,6 +87,7 @@ namespace XrEngine.OpenXr
         public void EnterXr()
         {
             _xrApp?.Start();
+
         }
 
         public void ExitXr()

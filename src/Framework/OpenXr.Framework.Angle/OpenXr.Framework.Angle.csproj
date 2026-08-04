@@ -31,6 +31,9 @@
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="runtimes/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />
 	</ItemGroup>
-
+	
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Include="runtimes/android-arm64/*" Abi="arm64-v8a" />
+	</ItemGroup>
 
 </Project>

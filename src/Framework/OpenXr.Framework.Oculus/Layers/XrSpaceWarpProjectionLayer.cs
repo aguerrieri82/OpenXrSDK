@@ -8,13 +8,6 @@ namespace OpenXr.Framework.Oculus
 {
     public class XrSpaceWarpProjectionLayer : XrProjectionLayer
     {
-        public struct SpaceWarpData
-        {
-            public Swapchain ColorSwapchain;
-            public Swapchain DepthSwapchain;
-            public NativeArray<SwapchainImageBaseHeader> ColorImages;
-            public NativeArray<SwapchainImageBaseHeader> DepthImages;
-        }
 
         readonly NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo;
         readonly IXrMotionVectorProvider _motionProvider;
@@ -113,7 +106,7 @@ namespace OpenXr.Framework.Oculus
 
             try
             {
-                _motionProvider.UpdateMotionVectors(ref projViews, _spColorImage, _spDepthImage, _xrApp.RenderOptions.RenderMode);
+                _motionProvider.UpdateMotionVectors(_spaceWarpData, _spColorImage, _spDepthImage, _xrApp.RenderOptions.RenderMode);
 
                 for (var i = 0; i < projViews.Length; i++)
                 {

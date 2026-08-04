@@ -11,6 +11,8 @@ using XrEngine.OpenGL;
 using XrEngine.Helpers;
 using System.Numerics;
 using XrMath;
+using Silk.NET.Vulkan;
+using OpenXr.Framework.Angle;
 
 namespace XrEngine.OpenXr
 {
@@ -25,12 +27,22 @@ namespace XrEngine.OpenXr
             _renderer = renderer;
             _app = app;
 
-            if (XrPlatform.IsEditor)
-                MotionVectorFormat = (long)InternalFormat.Rgb16f;
+            if (renderer.UseAngle)
+            {
+                MotionVectorFormat = (int)Format.R16G16B16A16Sfloat;
+                DepthFormat = (int)Format.D16Unorm;
+            }
             else
-                MotionVectorFormat = (long)InternalFormat.Rgba16f;
+            {
+                if (XrPlatform.IsEditor)
+                    MotionVectorFormat = (int)InternalFormat.Rgb16f;
+                else
+                    MotionVectorFormat = (int)InternalFormat.Rgba16f;
 
-            DepthFormat = (long)InternalFormat.DepthComponent16;
+                DepthFormat = (int)InternalFormat.DepthComponent16;
+            }
+
+
             IsActive = true;
 
             renderer.UpdateContext.MotionVectorProvider = this;
@@ -39,15 +51,38 @@ namespace XrEngine.OpenXr
             Context.Implement<IMotionVectorProvider>(this);
         }
 
-        public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
+        public unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
-            var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
 
-            var glTex = GlTexture.Attach(_renderer.GL, colorTex);
+            uint colorTex;
+            uint depthTex;
 
-            glTex.Clear(Color.Black);
+            if (_renderer.UseAngle)
+            {
+                var colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
+        
+                var ctx = Context.Require<AngleVulkanContext>();
 
-            _texture = (Texture2D)glTex.ToEngineTexture();
+                colorTex = ctx.AttachVulkanImage(
+                    colorVkImage,
+                    MotionVectorFormat,
+                    (uint)spData.ColorSize.Width,
+                    (uint)spData.ColorSize.Height,
+                    2,1,1,
+                    ImageUsageFlags.ColorAttachmentBit |ImageUsageFlags.SampledBit,
+                    TextureTarget.Texture2DArray).Texture;
+            }
+            else
+            {
+                colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
+                depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
+            }
+
+            var colorGlTex = GlTexture.Attach(_renderer.GL, colorTex);
+
+            colorGlTex.Clear(Color.Black);
+
+            _texture = (Texture2D)colorGlTex.ToEngineTexture();
         }
 
         public void Swap(Camera camera, IEnumerable<Object3D> objects)
@@ -76,9 +111,9 @@ namespace XrEngine.OpenXr
 
         public Texture2D? Texture => _texture;
 
-        public long MotionVectorFormat { get; }
+        public int MotionVectorFormat { get; }
 
-        public long DepthFormat { get; }
+        public int DepthFormat { get; }
 
         public float Near => _app.ActiveScene?.ActiveCamera?.Near ?? 0.1f;
 
