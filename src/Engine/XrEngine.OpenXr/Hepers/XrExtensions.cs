@@ -335,7 +335,11 @@ namespace XrEngine.OpenXr
                         ImageUsageFlags.ColorAttachmentBit | 
                         ImageUsageFlags.SampledBit |
                         ImageUsageFlags.InputAttachmentBit,
+#if __ANDROID__
                         ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt,
+#else
+                        ImageCreateFlags.None,
+#endif
                         target);
 
                 if (depthImagePtr == 0)
@@ -349,7 +353,11 @@ namespace XrEngine.OpenXr
                         ImageUsageFlags.DepthStencilAttachmentBit | 
                         ImageUsageFlags.SampledBit |
                         ImageUsageFlags.InputAttachmentBit,
+#if __ANDROID__
                         ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt,
+#else
+                        ImageCreateFlags.None,
+#endif
                         target);
 
                 return (colorImg.Texture, depthImg.Texture);

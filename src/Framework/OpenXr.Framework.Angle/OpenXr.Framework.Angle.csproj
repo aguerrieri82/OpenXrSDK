@@ -31,6 +31,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="runtimes/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />
+		<Content Include="runtimes/win-x64/angledata/*" CopyToOutputDirectory="PreserveNewest" Link="angledata/%(Filename)%(Extension)" UseLink="True" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

@@ -20,6 +20,8 @@ namespace XrEditor
 
         public App()
         {
+           var test =  Environment.GetEnvironmentVariable("VK_LAYER_PATH");
+
 
             DispatcherUnhandledException += (sender, e) =>
             {

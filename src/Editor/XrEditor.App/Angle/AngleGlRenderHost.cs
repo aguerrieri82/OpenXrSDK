@@ -104,7 +104,9 @@ namespace XrEditor
 
         public IGlContext CreateShared()
         {
-            throw new NotImplementedException();
+            var shared = _angleContext.CreateSharedContext();
+
+            return new AngleGlContext(shared);
         }
 
         public IGlContext? Current => _glContext;

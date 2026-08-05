@@ -1,18 +1,20 @@
 {
-  "profiles": {
-    "Editor": {
-      "commandName": "Project",
-      "nativeDebugging": false
-    },
-    "Native": {
-      "commandName": "Project",
-      "nativeDebugging": true,
-        "environmentVariables": {
-            "ALSOFT_LOGLEVEL": "3",
-            "ALSOFT_LOGFILE": "d:\\al.txt",
-            "VK_LAYER_SETTINGS_PATH": "d:\\vk_layer_settings.txt",
-            "VK_LAYER_PATH": "d:\\Development\\Personal\\Git\\XrSDK\\src\\Editor\\XrEditor.App\\bin\\Debug\\net11.0-windows10.0.26100.0\\win-x64\\"
+    "profiles": {
+        "Editor": {
+            "commandName": "Project",
+            "nativeDebugging": false,
+            "environmentVariables": {
+
+            }
+        },
+        "Native": {
+            "commandName": "Project",
+            "nativeDebugging": true,
+            "environmentVariables": {
+
+                "ALSOFT_LOGLEVEL": "3",
+                "ALSOFT_LOGFILE": "d:\\al.txt"
+            }
         }
     }
-  }
 }

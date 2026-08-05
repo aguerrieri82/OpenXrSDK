@@ -65,9 +65,9 @@ namespace OpenXr.Framework.Angle
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
             var meta = (VulkanSwapchainCreateInfoMETA*)StructChain.FindNextStruct(ref info, StructureType.VulkanSwapchainCreateInfoMeta);
-
+#if __ANDROID__
             meta->AdditionalCreateFlags = (uint)ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt;
-
+#endif
         }
 
         public GraphicsBinding CreateBinding()

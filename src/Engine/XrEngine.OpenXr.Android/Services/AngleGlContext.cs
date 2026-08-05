@@ -13,9 +13,9 @@ namespace XrEngine.OpenXr.Android
     public class AngleGlContext : IGlContext
     {
         Thread? _ownerThread;
-        AngleVulkanContext _ctx;
+        IAngleContext _ctx;
 
-        public AngleGlContext(AngleVulkanContext ctx)
+        public AngleGlContext(IAngleContext ctx)
         {
             _ctx = ctx; 
         }
@@ -46,5 +46,7 @@ namespace XrEngine.OpenXr.Android
         public GL Gl => _ctx.Gl!;
 
         public Thread? OwnerThread => _ownerThread;
+
+        public IAngleContext AngleContext => _ctx;    
     }
 }

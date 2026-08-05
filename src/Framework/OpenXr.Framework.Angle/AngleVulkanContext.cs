@@ -7,1147 +7,13 @@ using Silk.NET.OpenGL;
 using Silk.NET.Core.Contexts;
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
-using Result = Silk.NET.Vulkan.Result;
 
 namespace OpenXr.Framework.Angle;
 
-public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
+public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 {
-    #region INTEROP
+    #region DELEGATES 
 
-    private const int EGL_FALSE = 0;
-    private const int EGL_NONE = 0x3038;
-
-    private const uint EGL_OPENGL_ES_API = 0x30A0;
-
-    private const int EGL_SURFACE_TYPE = 0x3033;
-    private const int EGL_PBUFFER_BIT = 0x0001;
-    private const int EGL_WINDOW_BIT = 0x0004;
-    private const int EGL_RENDERABLE_TYPE = 0x3040;
-    private const int EGL_OPENGL_ES3_BIT = 0x0040;
-
-    private const int EGL_RED_SIZE = 0x3024;
-    private const int EGL_GREEN_SIZE = 0x3023;
-    private const int EGL_BLUE_SIZE = 0x3022;
-    private const int EGL_ALPHA_SIZE = 0x3021;
-    private const int EGL_DEPTH_SIZE = 0x3025;
-    private const int EGL_STENCIL_SIZE = 0x3026;
-
-    private const int EGL_WIDTH = 0x3057;
-    private const int EGL_HEIGHT = 0x3056;
-
-
-    private const int EGL_CONTEXT_MAJOR_VERSION_KHR = 0x3098;
-    private const int EGL_CONTEXT_MINOR_VERSION_KHR = 0x30FB;
-
-    private const uint EGL_PLATFORM_ANGLE_ANGLE = 0x3202;
-    private const int EGL_PLATFORM_ANGLE_TYPE_ANGLE = 0x3203;
-    private const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
-
-    private const int EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE = 0x3451;
-
-    private const int EGL_TRUE = 1;
-
-    private const int EGL_DEVICE_EXT = 0x322C;
-
-    private const int EGL_VULKAN_INSTANCE_ANGLE = 0x34A9;
-    private const int EGL_VULKAN_INSTANCE_EXTENSIONS_ANGLE = 0x34AA;
-    private const int EGL_VULKAN_PHYSICAL_DEVICE_ANGLE = 0x34AB;
-    private const int EGL_VULKAN_DEVICE_ANGLE = 0x34AC;
-    private const int EGL_VULKAN_DEVICE_EXTENSIONS_ANGLE = 0x34AD;
-    private const int EGL_VULKAN_QUEUE_ANGLE = 0x34AF;
-
-    private const int EGL_VULKAN_QUEUE_FAMILIY_INDEX_ANGLE = 0x34D0;
-
-    private const uint EGL_VULKAN_IMAGE_ANGLE = 0x34D3;
-    private const int EGL_VULKAN_IMAGE_CREATE_INFO_HI_ANGLE = 0x34D4;
-    private const int EGL_VULKAN_IMAGE_CREATE_INFO_LO_ANGLE = 0x34D5;
-
-    private const uint GL_TEXTURE_2D = 0x0DE1;
-    private const uint GL_TEXTURE_2D_ARRAY = 0x8C1A;
-    private const uint GL_NO_ERROR = 0;
-
-    public const uint GL_LAYOUT_GENERAL_EXT = 0x958D;
-
-    public const uint GL_LAYOUT_COLOR_ATTACHMENT_EXT = 0x958E;
-
-    private const nint EGL_NO_DISPLAY = 0;
-    private const nint EGL_NO_CONTEXT = 0;
-    private const nint EGL_NO_SURFACE = 0;
-
-    private const int EGL_GL_COLORSPACE_KHR = 0x309D;
-    private const int EGL_GL_COLORSPACE_SRGB_KHR = 0x3089;
-
-    private const uint GL_UPPER_LEFT_EXT = 0x8CA2;
-    private const uint GL_NEGATIVE_ONE_TO_ONE_EXT = 0x935E;
-
-    private const int EGL_FEATURE_OVERRIDES_DISABLED_ANGLE = 0x3467;
-
-    private readonly nint _eglLibrary;
-    private readonly nint _glesLibrary;
-
-    private readonly EglGetProcAddress _eglGetProcAddress;
-    private readonly EglGetError _eglGetError;
-    private readonly EglInitialize _eglInitialize;
-    private readonly EglTerminate _eglTerminate;
-    private readonly EglBindApi _eglBindApi;
-    private readonly EglChooseConfig _eglChooseConfig;
-    private readonly EglCreateContext _eglCreateContext;
-    private readonly EglDestroyContext _eglDestroyContext;
-    private readonly EglCreatePbufferSurface _eglCreatePbufferSurface;
-    private readonly EglCreateWindowSurface _eglCreateWindowSurface;
-    private readonly EglDestroySurface _eglDestroySurface;
-    private readonly EglMakeCurrent _eglMakeCurrent;
-    private readonly EglSwapBuffers _eglSwapBuffers;
-    private readonly EglSwapInterval _eglSwapInterval;
-
-    private readonly EglGetPlatformDisplayExt _eglGetPlatformDisplay;
-    private readonly EglQueryDisplayAttribExt _eglQueryDisplayAttrib;
-    private readonly EglQueryDeviceAttribExt _eglQueryDeviceAttrib;
-
-    private readonly EglLockVulkanQueueAngle? _eglLockVulkanQueue;
-    private readonly EglUnlockVulkanQueueAngle? _eglUnlockVulkanQueue;
-
-    private readonly EglCreateImageKhr _eglCreateImage;
-    private readonly EglDestroyImageKhr _eglDestroyImage;
-
-    private readonly GlGenTextures _glGenTextures;
-    private readonly GlDeleteTextures _glDeleteTextures;
-    private readonly GlBindTexture _glBindTexture;
-    private readonly GlEglImageTargetTexStorageExt _glEglImageTargetTexStorage;
-    private readonly GlGetError _glGetError;
-    private readonly GlAcquireTexturesAngle? _glAcquireTexturesAngle;
-    private readonly GlReleaseTexturesAngle? _glReleaseTexturesAngle;
-
-    private readonly EglGetPlatformDisplay _eglGetPlatformDisplayAttrib;
-
-
-
-    #endregion
-
-    #region ImportedVulkanImage
-
-    public sealed class ImportedVulkanImage : IDisposable
-    {
-        private AngleVulkanContext? _owner;
-
-        internal ImportedVulkanImage(AngleVulkanContext owner, nint eglImage, uint texture, TextureTarget target, nint vkImage)
-        {
-            _owner = owner;
-            EglImage = eglImage;
-            Texture = texture;
-            Target = target;
-            VkImage = vkImage;
-        }
-
-        public void Dispose()
-        {
-            AngleVulkanContext? owner = _owner;
-            if (owner is null)
-                return;
-
-            _owner = null;
-            owner.DestroyImportedImage(this);
-        }
-
-        internal void ClearHandles()
-        {
-            EglImage = 0;
-            Texture = 0;
-            VkImage = 0;
-        }
-
-        public nint EglImage { get; private set; }
-
-        public uint Texture { get; private set; }
-
-        public TextureTarget Target { get; }
-
-        public nint VkImage { get; private set; }
-    }
-
-    #endregion
-
-    private GlClipControlExt _glClipControlExt = null!;
-
-    private bool _disposed;
-    private GL? _gl;
-    private readonly Dictionary<nint, ImportedVulkanImage> _images = [];
-
-    private Vk? _vk;
-    private Device _vkDevice;
-    private Queue _vkQueue;
-    private CommandPool _transitionCommandPool;
-
-    public AngleVulkanContext()
-    {
-        nint eglLibrary = 0;
-        nint glesLibrary = 0;
-
-#if __ANDROID__
-        var eglLibraryName = "libEGL_angle.so";
-        var glesLibraryName = "libGLESv2_angle.so";
-
-#else
-        var eglLibraryName = "libEGL.dll";
-        var glesLibraryName = "libGLESv2.dll";
-#endif
-
-        try
-        {
-            eglLibrary = LoadLibrary(eglLibraryName);
-
-            glesLibrary = LoadLibrary(glesLibraryName);
-
-            _eglLibrary = eglLibrary;
-            _glesLibrary = glesLibrary;
-
-            _eglGetProcAddress =
-                LoadExport<EglGetProcAddress>("eglGetProcAddress");
-
-            _eglGetError =
-                LoadExport<EglGetError>("eglGetError");
-
-            _eglInitialize =
-                LoadExport<EglInitialize>("eglInitialize");
-
-            _eglTerminate =
-                LoadExport<EglTerminate>("eglTerminate");
-
-            _eglBindApi =
-                LoadExport<EglBindApi>("eglBindAPI");
-
-            _eglChooseConfig =
-                LoadExport<EglChooseConfig>("eglChooseConfig");
-
-            _eglCreateContext =
-                LoadExport<EglCreateContext>("eglCreateContext");
-
-            _eglDestroyContext =
-                LoadExport<EglDestroyContext>("eglDestroyContext");
-
-            _eglCreatePbufferSurface =
-                LoadExport<EglCreatePbufferSurface>("eglCreatePbufferSurface");
-
-            _eglCreateWindowSurface =
-                LoadExport<EglCreateWindowSurface>("eglCreateWindowSurface");
-
-            _eglDestroySurface =
-                LoadExport<EglDestroySurface>("eglDestroySurface");
-
-            _eglMakeCurrent =
-                LoadExport<EglMakeCurrent>("eglMakeCurrent");
-
-            _eglSwapBuffers =
-                LoadExport<EglSwapBuffers>("eglSwapBuffers");
-
-            _eglSwapInterval =
-                LoadExport<EglSwapInterval>("eglSwapInterval");
-
-            _eglGetPlatformDisplay =
-                LoadEglProc<EglGetPlatformDisplayExt>(
-                    "eglGetPlatformDisplayEXT");
-
-            _eglQueryDisplayAttrib =
-                LoadEglProc<EglQueryDisplayAttribExt>(
-                    "eglQueryDisplayAttribEXT");
-
-            _eglQueryDeviceAttrib =
-                LoadEglProc<EglQueryDeviceAttribExt>(
-                    "eglQueryDeviceAttribEXT");
-
-            _eglLockVulkanQueue =
-                TryLoadEglProc<EglLockVulkanQueueAngle>(
-                    "eglLockVulkanQueueANGLE");
-
-            _eglUnlockVulkanQueue =
-                TryLoadEglProc<EglUnlockVulkanQueueAngle>(
-                    "eglUnlockVulkanQueueANGLE");
-
-            _eglGetPlatformDisplayAttrib =
-                LoadEglProc<EglGetPlatformDisplay>("eglGetPlatformDisplay");
-
-            _glClipControlExt = LoadEglProc<GlClipControlExt>("glClipControlEXT");
-
-            _eglCreateImage = LoadEglProc<EglCreateImageKhr>("eglCreateImageKHR");
-            _eglDestroyImage = LoadEglProc<EglDestroyImageKhr>("eglDestroyImageKHR");
-
-            _glGenTextures = LoadGlProc<GlGenTextures>("glGenTextures");
-            _glDeleteTextures = LoadGlProc<GlDeleteTextures>("glDeleteTextures");
-            _glBindTexture = LoadGlProc<GlBindTexture>("glBindTexture");
-            _glEglImageTargetTexStorage = LoadGlProc<GlEglImageTargetTexStorageExt>("glEGLImageTargetTexStorageEXT");
-            _glGetError = LoadGlProc<GlGetError>("glGetError");
-
-            _glAcquireTexturesAngle = LoadGlProc<GlAcquireTexturesAngle>("glAcquireTexturesANGLE");
-            _glReleaseTexturesAngle = LoadGlProc<GlReleaseTexturesAngle>("glReleaseTexturesANGLE");
-        }
-        catch
-        {
-            if (glesLibrary != 0)
-                NativeLibrary.Free(glesLibrary);
-
-            if (eglLibrary != 0)
-                NativeLibrary.Free(eglLibrary);
-
-            throw;
-        }
-    }
-
-    public void Initialize(
-        IReadOnlyCollection<string> requiredInstanceExtensions,
-        IReadOnlyCollection<string> requiredDeviceExtensions)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        try
-        {
-            if (!IsInitialized)
-            {
-                 fixed (byte* feature0 = "permanentlySwitchToFramebufferFetchMode\0"u8)
-                 fixed (byte* feature1 = "supportsMultisampledRenderToSingleSampled\0"u8)
-                {
-                    nint* disabledFeatures = stackalloc nint[]
-                    {
-                        //(nint)feature0,
-                        //(nint)feature1,
-                        0
-                    };
-
-                    nint* displayAttributes = stackalloc nint[]
-                    {
-                        EGL_PLATFORM_ANGLE_TYPE_ANGLE,
-                        EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
-
-                        EGL_FEATURE_OVERRIDES_DISABLED_ANGLE,
-                        (nint)disabledFeatures,
-
-#if ANGLE_DEBUG
-                        EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
-                        EGL_TRUE,
-#endif
-                        EGL_NONE
-                    };
-
-                    Display = _eglGetPlatformDisplayAttrib(
-                        EGL_PLATFORM_ANGLE_ANGLE,
-                        0,
-                        displayAttributes);
-                }
-
-                CheckHandle(
-                    Display,
-                    EGL_NO_DISPLAY,
-                    "eglGetPlatformDisplayEXT");
-
-                int major;
-                int minor;
-
-                Check(
-                    _eglInitialize(
-                        Display,
-                        &major,
-                        &minor),
-                    "eglInitialize");
-
-                Check(
-                    _eglBindApi(EGL_OPENGL_ES_API),
-                    "eglBindAPI");
-
-                int* configAttributes = stackalloc int[]
-                {
-                    EGL_SURFACE_TYPE,
-                    EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
-
-                    EGL_RENDERABLE_TYPE,
-                    EGL_OPENGL_ES3_BIT,
-
-                    EGL_RED_SIZE,
-                    8,
-
-                    EGL_GREEN_SIZE,
-                    8,
-
-                    EGL_BLUE_SIZE,
-                    8,
-
-                    EGL_ALPHA_SIZE,
-                    8,
-
-                    EGL_DEPTH_SIZE,
-                    24,
-
-                    EGL_STENCIL_SIZE,
-                    8,
-
-                    EGL_NONE
-                };
-
-                nint config;
-                int configCount;
-
-                Check(
-                    _eglChooseConfig(
-                        Display,
-                        configAttributes,
-                        &config,
-                        1,
-                        &configCount),
-                    "eglChooseConfig");
-
-                if (configCount == 0)
-                {
-                    throw new InvalidOperationException(
-                        "ANGLE returned no matching EGLConfig.");
-                }
-
-                Config = config;
-
-                int* contextAttributes = stackalloc int[]
-                {
-                    EGL_CONTEXT_MAJOR_VERSION_KHR,
-                    3,
-
-                    EGL_CONTEXT_MINOR_VERSION_KHR,
-                    2,
-
-                    EGL_NONE
-                };
-
-                Context = _eglCreateContext(
-                    Display,
-                    config,
-                    EGL_NO_CONTEXT,
-                    contextAttributes);
-
-                CheckHandle(
-                    Context,
-                    EGL_NO_CONTEXT,
-                    "eglCreateContext");
-
-                int* surfaceAttributes = stackalloc int[]
-                {
-                    EGL_WIDTH,
-                    1,
-
-                    EGL_HEIGHT,
-                    1,
-
-                    EGL_NONE
-                };
-
-                Surface = _eglCreatePbufferSurface(
-                    Display,
-                    config,
-                    surfaceAttributes);
-
-                CheckHandle(
-                    Surface,
-                    EGL_NO_SURFACE,
-                    "eglCreatePbufferSurface");
-
-                Check(
-                    _eglMakeCurrent(
-                        Display,
-                        Surface,
-                        Surface,
-                        Context),
-                    "eglMakeCurrent");
-
-                nint eglDevice;
-
-                Check(
-                    _eglQueryDisplayAttrib(
-                        Display,
-                        EGL_DEVICE_EXT,
-                        &eglDevice),
-                    "eglQueryDisplayAttribEXT(EGL_DEVICE_EXT)");
-
-                if (eglDevice == 0)
-                {
-                    throw new InvalidOperationException(
-                        "ANGLE returned a null EGLDevice.");
-                }
-
-                EglDevice = eglDevice;
-
-                _gl = GL.GetApi(this);
-            }
-
-            VulkanInstanceHandle = QueryDevicePointer(EGL_VULKAN_INSTANCE_ANGLE);
-            VulkanPhysicalDeviceHandle = QueryDevicePointer(EGL_VULKAN_PHYSICAL_DEVICE_ANGLE);
-            VulkanDeviceHandle = QueryDevicePointer(EGL_VULKAN_DEVICE_ANGLE);
-            VulkanQueueHandle = QueryDevicePointer(EGL_VULKAN_QUEUE_ANGLE);
-            QueueFamilyIndex = (uint)QueryDeviceInteger(EGL_VULKAN_QUEUE_FAMILIY_INDEX_ANGLE);
-
-            InitializeCommandPool();
-
-            EnabledInstanceExtensions = QueryExtensionArray(EGL_VULKAN_INSTANCE_EXTENSIONS_ANGLE);
-            EnabledDeviceExtensions = QueryExtensionArray(EGL_VULKAN_DEVICE_EXTENSIONS_ANGLE);
-
-            ValidateExtensions(
-                "Vulkan instance",
-                requiredInstanceExtensions,
-                EnabledInstanceExtensions);
-
-            ValidateExtensions(
-                "Vulkan device",
-                requiredDeviceExtensions,
-                EnabledDeviceExtensions);
-        }
-        catch
-        {
-            DestroyEglObjects();
-            throw;
-        }
-    }
-
-    public ImportedVulkanImage AttachVulkanImage(
-        nint vkImage,
-        int vkFormat,
-        uint width,
-        uint height,
-        uint arrayLayers,
-        uint mipLevels,
-        uint sampleCount,
-        ImageUsageFlags vkUsage,
-        ImageCreateFlags vkFlags,
-        TextureTarget glTarget)
-    {
-        EnsureInitialized();
-
-        if (_images.TryGetValue(vkImage, out var image))
-            return image;
-
-        VkImageCreateInfoNative imageInfo = new()
-        {
-            SType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            PNext = null,
-            Flags = (uint)vkFlags,
-            ImageType = VK_IMAGE_TYPE_2D,
-            Format = vkFormat,
-            Extent = new VkExtent3DNative { Width = width, Height = height, Depth = 1 },
-            MipLevels = mipLevels,
-            ArrayLayers = arrayLayers,
-            Samples = sampleCount,
-            Tiling = VK_IMAGE_TILING_OPTIMAL,
-            Usage = (uint)vkUsage,
-            SharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            QueueFamilyIndexCount = 0,
-            PQueueFamilyIndices = null,
-            InitialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-        };
-
-        ulong imageInfoAddress = (ulong)&imageInfo;
-
-        int* attributes = stackalloc int[]
-        {
-            EGL_VULKAN_IMAGE_CREATE_INFO_HI_ANGLE, unchecked((int)(imageInfoAddress >> 32)),
-            EGL_VULKAN_IMAGE_CREATE_INFO_LO_ANGLE, unchecked((int)imageInfoAddress),
-            EGL_NONE
-        };
-
-        var imageHandle = vkImage;
-
-        var eglImage = _eglCreateImage(Display, EGL_NO_CONTEXT, EGL_VULKAN_IMAGE_ANGLE, (nint)(&imageHandle), attributes);
-
-        CheckHandle(eglImage, 0, "eglCreateImageKHR(EGL_VULKAN_IMAGE_ANGLE)");
-
-        uint texture = 0;
-        try
-        {
-            texture = _gl!.GenTexture();
-
-            _gl.BindTexture(glTarget, texture);
-
-            _glEglImageTargetTexStorage((uint)glTarget, eglImage, null);
-
-            _gl.BindTexture(glTarget, 0);
-
-            var result = new ImportedVulkanImage(this, eglImage, texture, glTarget, vkImage);
-
-            _images[vkImage] = result;
-
-            return result;
-        }
-        catch
-        {
-            _gl!.BindTexture(glTarget, 0);
-
-            if (texture != 0)
-                _gl.DeleteTexture(texture);
-
-            _eglDestroyImage(Display, eglImage);
-
-            throw;
-        }
-    }
-    public void AcquireTexture(uint texture, uint layout)
-    {
-        _glAcquireTexturesAngle!(1, &texture, &layout);
-    }
-
-    public uint ReleaseTexture(uint texture)
-    {
-        uint layout;
-        _glReleaseTexturesAngle!(1, &texture, &layout);
-        return layout;
-    }
-
-    private void InitializeCommandPool()
-    {
-        if (_transitionCommandPool.Handle != 0)
-            return;
-
-        _vk = Vk.GetApi();
-        _vkDevice = new Device(VulkanDeviceHandle);
-        _vkQueue = new Queue(VulkanQueueHandle);
-
-        CommandPoolCreateInfo createInfo = new()
-        {
-            SType = StructureType.CommandPoolCreateInfo,
-            QueueFamilyIndex = QueueFamilyIndex,
-            Flags =
-                CommandPoolCreateFlags.TransientBit |
-                CommandPoolCreateFlags.ResetCommandBufferBit
-        };
-
-        CheckVk(
-            _vk.CreateCommandPool(
-                _vkDevice,
-                &createInfo,
-                null,
-                out _transitionCommandPool),
-            "vkCreateCommandPool");
-    }
-
-    private static void CheckVk(Result result, string operation)
-    {
-        if (result != Result.Success)
-            throw new InvalidOperationException($"{operation} failed with Vulkan result {result}.");
-    }
-
-    public void CreateWindowSurface(nint nativeWindow)
-    {
-        if (Surface != EGL_NO_SURFACE)
-        {
-            _eglMakeCurrent(Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-            _eglDestroySurface(Display, Surface);
-        }
-
-        int* attributes = stackalloc int[]
-        {
-            EGL_GL_COLORSPACE_KHR,
-            EGL_GL_COLORSPACE_SRGB_KHR,
-            EGL_NONE
-        };
-
-        Surface = _eglCreateWindowSurface(
-            Display,
-            Config,
-            nativeWindow,
-            attributes);
-
-        CheckHandle(Surface, EGL_NO_SURFACE, "eglCreateWindowSurface");
-        Check(_eglMakeCurrent(Display, Surface, Surface, Context), "eglMakeCurrent(window)");
-    }
-
-    public void SwapBuffers()
-    {
-        Check(_eglSwapBuffers(Display, Surface), "eglSwapBuffers");
-    }
-
-    public void SetSwapInterval(int interval)
-    {
-        Check(_eglSwapInterval(Display, interval), "eglSwapInterval");
-    }
-
-    public void ReleaseCurrent()
-    {
-        Check(
-            _eglMakeCurrent(
-                Display,
-                EGL_NO_SURFACE,
-                EGL_NO_SURFACE,
-                EGL_NO_CONTEXT),
-            "eglMakeCurrent(release)");
-    }
-
-    public void MakeCurrent()
-    {
-        EnsureInitialized();
-
-        Check(
-            _eglMakeCurrent(
-                Display,
-                Surface,
-                Surface,
-                Context),
-            "eglMakeCurrent");
-    }
-
-    public void ClearCurrent()
-    {
-        EnsureInitialized();
-
-        Check(
-            _eglMakeCurrent(
-                Display,
-                EGL_NO_SURFACE,
-                EGL_NO_SURFACE,
-                EGL_NO_CONTEXT),
-            "eglMakeCurrent(clear)");
-    }
-
-    public void LockVulkanQueue()
-    {
-        EnsureInitialized();
-
-        if (_eglLockVulkanQueue is null)
-        {
-            throw new NotSupportedException(
-                "eglLockVulkanQueueANGLE is unavailable.");
-        }
-
-        _eglLockVulkanQueue(Display);
-    }
-
-    public void UnlockVulkanQueue()
-    {
-        EnsureInitialized();
-
-        if (_eglUnlockVulkanQueue is null)
-        {
-            throw new NotSupportedException(
-                "eglUnlockVulkanQueueANGLE is unavailable.");
-        }
-
-        _eglUnlockVulkanQueue(Display);
-    }
-
-    public void Dispose()
-    {
-        if (_disposed)
-            return;
-
-        _disposed = true;
-
-        DestroyEglObjects();
-
-        if (_glesLibrary != 0)
-            NativeLibrary.Free(_glesLibrary);
-
-        if (_eglLibrary != 0)
-            NativeLibrary.Free(_eglLibrary);
-
-        GC.SuppressFinalize(this);
-    }
-
-    public static string[] SplitExtensionString(string? extensions)
-    {
-        if (string.IsNullOrWhiteSpace(extensions))
-            return Array.Empty<string>();
-
-        return extensions.Split(
-            ' ',
-            StringSplitOptions.RemoveEmptyEntries |
-            StringSplitOptions.TrimEntries);
-    }
-
-    private nint QueryDevicePointer(int attribute)
-    {
-        nint value;
-
-        Check(
-            _eglQueryDeviceAttrib(
-                EglDevice,
-                attribute,
-                &value),
-            $"eglQueryDeviceAttribEXT(0x{attribute:X})");
-
-        if (value == 0)
-        {
-            throw new InvalidOperationException(
-                $"ANGLE returned null for Vulkan attribute 0x{attribute:X}.");
-        }
-
-        return value;
-    }
-
-    private nint QueryDeviceInteger(int attribute)
-    {
-        nint value;
-
-        Check(
-            _eglQueryDeviceAttrib(
-                EglDevice,
-                attribute,
-                &value),
-            $"eglQueryDeviceAttribEXT(0x{attribute:X})");
-
-        return value;
-    }
-
-    private IReadOnlyList<string> QueryExtensionArray(int attribute)
-    {
-        nint arrayPointer;
-
-        Check(
-            _eglQueryDeviceAttrib(
-                EglDevice,
-                attribute,
-                &arrayPointer),
-            $"eglQueryDeviceAttribEXT(0x{attribute:X})");
-
-        if (arrayPointer == 0)
-            return [];
-
-        var result = new List<string>();
-
-        nint* extensionPointers = (nint*)arrayPointer;
-
-        for (int i = 0; extensionPointers[i] != 0; i++)
-        {
-            string? extension =
-                Marshal.PtrToStringUTF8(extensionPointers[i]);
-
-            if (!string.IsNullOrEmpty(extension))
-                result.Add(extension);
-        }
-
-        return result;
-    }
-
-    private static void ValidateExtensions(
-        string category,
-        IReadOnlyCollection<string> required,
-        IReadOnlyList<string> enabled)
-    {
-        if (required.Count == 0)
-            return;
-
-        var enabledSet = new HashSet<string>(
-            enabled,
-            StringComparer.Ordinal);
-
-        List<string>? missing = null;
-
-        foreach (string extension in required)
-        {
-            if (string.IsNullOrWhiteSpace(extension))
-                continue;
-
-            if (enabledSet.Contains(extension))
-                continue;
-
-            missing ??= [];
-            missing.Add(extension);
-        }
-
-        if (missing is null)
-            return;
-
-        throw new NotSupportedException(
-            $"ANGLE did not enable the required {category} extensions: " +
-            string.Join(", ", missing));
-    }
-
-    private static bool IsValidVkSampleCount(uint sampleCount)
-    {
-        return sampleCount is 1 or 2 or 4 or 8 or 16 or 32 or 64;
-    }
-
-    private void CheckGl(string operation)
-    {
-        uint error = _glGetError();
-        if (error != GL_NO_ERROR)
-            throw new InvalidOperationException($"{operation} failed with GL error 0x{error:X4}.");
-    }
-
-    private void DestroyImportedImage(ImportedVulkanImage image)
-    {
-        _images.Remove(image.VkImage);
-
-        var texture = image.Texture;
-        var eglImage = image.EglImage;
-
-        if (texture != 0) 
-            _gl!.DeleteTexture(texture);
-        
-        if (eglImage != 0 && Display != EGL_NO_DISPLAY) 
-            _eglDestroyImage(Display, eglImage);
-
-        image.ClearHandles();   
-    }
-
-    private void DestroyImportedImages()
-    {
-        foreach (var image in _images.Values)
-        {
-            var texture = image.Texture;
-            var eglImage = image.EglImage;
-
-            if (texture != 0) 
-                _gl!.DeleteTexture(texture);
-            
-            if (eglImage != 0 && Display != EGL_NO_DISPLAY) 
-                _eglDestroyImage(Display, eglImage);
-            
-            image.ClearHandles();
-        }
-
-        _images.Clear();
-    }
-
-    private void EnsureInitialized()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (!IsInitialized)
-            throw new InvalidOperationException("ANGLE has not been initialized.");
-    }
-
-    private void DestroyEglObjects()
-    {
-        if (Display != EGL_NO_DISPLAY)
-        {
-            if (_transitionCommandPool.Handle != 0 && _vk is not null)
-            {
-                _vk.DestroyCommandPool(
-                    _vkDevice,
-                    _transitionCommandPool,
-                    null);
-
-                _transitionCommandPool = default;
-                _vkQueue = default;
-                _vkDevice = default;
-                _vk.Dispose();
-                _vk = null;
-            }
-
-            DestroyImportedImages();
-
-            _eglMakeCurrent(
-                Display,
-                EGL_NO_SURFACE,
-                EGL_NO_SURFACE,
-                EGL_NO_CONTEXT);
-
-            if (Surface != EGL_NO_SURFACE)
-            {
-                _eglDestroySurface(
-                    Display,
-                    Surface);
-
-                Surface = EGL_NO_SURFACE;
-            }
-
-            if (Context != EGL_NO_CONTEXT)
-            {
-                _eglDestroyContext(
-                    Display,
-                    Context);
-
-                Context = EGL_NO_CONTEXT;
-            }
-
-            _eglTerminate(Display);
-
-            Display = EGL_NO_DISPLAY;
-        }
-
-        Config = 0;
-        EglDevice = 0;
-
-        VulkanInstanceHandle = 0;
-        VulkanPhysicalDeviceHandle = 0;
-        VulkanDeviceHandle = 0;
-        VulkanQueueHandle = 0;
-
-        QueueFamilyIndex = 0;
-
-        EnabledInstanceExtensions = Array.Empty<string>();
-        EnabledDeviceExtensions = Array.Empty<string>();
-    }
-
-    private static nint LoadLibrary(string name)
-    {
-        if (!NativeLibrary.TryLoad(name, out nint library))
-        {
-            throw new DllNotFoundException(
-                $"Could not load ANGLE library '{name}'.");
-        }
-
-        return library;
-    }
-
-    private T LoadExport<T>(string name) where T : Delegate
-    {
-        nint address =
-            NativeLibrary.GetExport(
-                _eglLibrary,
-                name);
-
-        return Marshal.GetDelegateForFunctionPointer<T>(address);
-    }
-
-    private T LoadEglProc<T>(string name) where T : Delegate
-    {
-        T? proc = TryLoadEglProc<T>(name);
-
-        return proc ?? throw new EntryPointNotFoundException($"ANGLE EGL function '{name}' is unavailable.");
-    }
-
-    private T? TryLoadEglProc<T>(string name)
-        where T : Delegate
-    {
-        nint address = _eglGetProcAddress(name);
-
-        if (address == 0 &&
-            NativeLibrary.TryGetExport(
-                _eglLibrary,
-                name,
-                out nint export))
-        {
-            address = export;
-        }
-
-        return address == 0
-            ? null
-            : Marshal.GetDelegateForFunctionPointer<T>(address);
-    }
-
-    private T LoadGlProc<T>(string name)
-        where T : Delegate
-    {
-        T? proc = TryLoadGlProc<T>(name);
-
-        return proc ??
-               throw new EntryPointNotFoundException(
-                   $"ANGLE GL function '{name}' is unavailable.");
-    }
-
-    private T? TryLoadGlProc<T>(string name)
-        where T : Delegate
-    {
-        nint address = _eglGetProcAddress(name);
-
-        if (address == 0 &&
-            NativeLibrary.TryGetExport(
-                _glesLibrary,
-                name,
-                out nint export))
-        {
-            address = export;
-        }
-
-        return address == 0
-            ? null
-            : Marshal.GetDelegateForFunctionPointer<T>(address);
-    }
-
-    private void Check(int result, string operation)
-    {
-        if (result != EGL_FALSE)
-            return;
-
-        int error = _eglGetError();
-
-        throw new InvalidOperationException(
-            $"{operation} failed with EGL error 0x{error:X4}.");
-    }
-
-    private void CheckHandle(
-        nint value,
-        nint invalidValue,
-        string operation)
-    {
-        if (value != invalidValue)
-            return;
-
-        int error = _eglGetError();
-
-        throw new InvalidOperationException(
-            $"{operation} failed with EGL error 0x{error:X4}.");
-    }
-
-    nint INativeContext.GetProcAddress(string proc, int? slot)
-    {
-        return _eglGetProcAddress(proc);
-    }
-
-    bool INativeContext.TryGetProcAddress(string proc, out nint addr, int? slot)
-    {
-        addr = ((INativeContext)this).GetProcAddress(proc, slot);
-        return addr != 0;
-    }
-
-
-    public nint Display { get; private set; }
-
-    public nint Config { get; private set; }
-
-    public nint Context { get; private set; }
-
-    public nint Surface { get; private set; }
-
-    public nint EglDevice { get; private set; }
-
-    public nint VulkanInstanceHandle { get; private set; }
-
-    public nint VulkanPhysicalDeviceHandle { get; private set; }
-
-    public nint VulkanDeviceHandle { get; private set; }
-
-    public nint VulkanQueueHandle { get; private set; }
-
-    public uint QueueFamilyIndex { get; private set; }
-
-    public uint QueueIndex => 0;
-
-    public GL? Gl => _gl;
-
-    public IReadOnlyList<string> EnabledInstanceExtensions { get; private set; } = [];
-
-    public IReadOnlyList<string> EnabledDeviceExtensions { get; private set; } = [];
-
-    public bool IsInitialized => Display != EGL_NO_DISPLAY;
-
-
-    #region INTEROP
-
-    private const uint VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO = 14;
-    private const int VK_IMAGE_TYPE_2D = 1;
-    private const int VK_IMAGE_TILING_OPTIMAL = 0;
-    private const int VK_SHARING_MODE_EXCLUSIVE = 0;
-    private const int VK_IMAGE_LAYOUT_UNDEFINED = 0;
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct VkExtent3DNative
-    {
-        public uint Width;
-        public uint Height;
-        public uint Depth;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct VkImageCreateInfoNative
-    {
-        public uint SType;
-        public void* PNext;
-        public uint Flags;
-        public int ImageType;
-        public int Format;
-        public VkExtent3DNative Extent;
-        public uint MipLevels;
-        public uint ArrayLayers;
-        public uint Samples;
-        public int Tiling;
-        public uint Usage;
-        public int SharingMode;
-        public uint QueueFamilyIndexCount;
-        public uint* PQueueFamilyIndices;
-        public int InitialLayout;
-    }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate nint EglCreateImageKhr(nint display, nint context, uint target, nint buffer, int* attributes);
@@ -1156,19 +22,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private delegate int EglDestroyImageKhr(nint display, nint image);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void GlGenTextures(int count, uint* textures);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void GlDeleteTextures(int count, uint* textures);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void GlBindTexture(uint target, uint texture);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void GlEglImageTargetTexStorageExt(uint target, nint image, int* attributes);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint GlGetError();
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate void GlAcquireTexturesAngle(
@@ -1288,12 +142,881 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate void GlClipControlExt(uint origin, uint depth);
 
-
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate nint EglGetPlatformDisplay(
     uint platform,
     nint nativeDisplay,
     nint* attributes);
 
+
     #endregion
+
+    #region CONSTS
+
+    private enum Egl : int
+    {
+        False = 0,
+        True = 1,
+        None = 0x3038,
+        OpenGlEsApi = 0x30A0,
+        SurfaceType = 0x3033,
+        PbufferBit = 0x0001,
+        WindowBit = 0x0004,
+        RenderableType = 0x3040,
+        OpenGlEs3Bit = 0x0040,
+        RedSize = 0x3024,
+        GreenSize = 0x3023,
+        BlueSize = 0x3022,
+        AlphaSize = 0x3021,
+        DepthSize = 0x3025,
+        StencilSize = 0x3026,
+        Width = 0x3057,
+        Height = 0x3056,
+        ContextMajorVersionKhr = 0x3098,
+        ContextMinorVersionKhr = 0x30FB,
+        PlatformAngle = 0x3202,
+        PlatformAngleType = 0x3203,
+        PlatformAngleTypeVulkan = 0x3450,
+        PlatformAngleDebugLayersEnabled = 0x3451,
+        DeviceExt = 0x322C,
+        VulkanInstance = 0x34A9,
+        VulkanInstanceExtensions = 0x34AA,
+        VulkanPhysicalDevice = 0x34AB,
+        VulkanDevice = 0x34AC,
+        VulkanDeviceExtensions = 0x34AD,
+        VulkanQueue = 0x34AF,
+        VulkanQueueFamilyIndex = 0x34D0,
+        VulkanImage = 0x34D3,
+        VulkanImageCreateInfoHi = 0x34D4,
+        VulkanImageCreateInfoLo = 0x34D5,
+        GlColorspaceKhr = 0x309D,
+        GlColorspaceSrgbKhr = 0x3089
+    }
+
+    private const nint EglNoDisplay = 0;
+    private const nint EglNoContext = 0;
+    private const nint EglNoSurface = 0;
+
+    #endregion
+
+    #region ImportedVulkanImage
+
+    public sealed class ImportedVulkanImage : IDisposable
+    {
+        private AngleVulkanContext? _owner;
+
+        internal ImportedVulkanImage(AngleVulkanContext owner, nint eglImage, uint texture, TextureTarget target, nint vkImage)
+        {
+            _owner = owner;
+            EglImage = eglImage;
+            Texture = texture;
+            Target = target;
+            VkImage = vkImage;
+        }
+
+        public void Dispose()
+        {
+            AngleVulkanContext? owner = _owner;
+            if (owner is null)
+                return;
+
+            _owner = null;
+            owner.DestroyImportedImage(this);
+        }
+
+        internal void ClearHandles()
+        {
+            EglImage = 0;
+            Texture = 0;
+            VkImage = 0;
+        }
+
+        public nint EglImage { get; private set; }
+        public uint Texture { get; private set; }
+        public TextureTarget Target { get; }
+        public nint VkImage { get; private set; }
+    }
+
+    #endregion
+
+    #region SharedContext
+
+    public sealed class SharedContext : INativeContext, IAngleContext
+    {
+        private AngleVulkanContext? _owner;
+        private GL? _gl;
+
+        internal SharedContext(AngleVulkanContext owner, nint context, nint surface)
+        {
+            _owner = owner;
+            Context = context;
+            Surface = surface;
+        }
+
+        public void MakeCurrent()
+        {
+            var owner = _owner ?? throw new ObjectDisposedException(nameof(SharedContext));
+            owner.Check(owner._eglMakeCurrent(owner.Display, Surface, Surface, Context), "eglMakeCurrent(shared)");
+        }
+
+        public void ReleaseCurrent()
+        {
+            var owner = _owner ?? throw new ObjectDisposedException(nameof(SharedContext));
+            owner.Check(owner._eglMakeCurrent(owner.Display, EglNoSurface, EglNoSurface, EglNoContext), "eglMakeCurrent(shared clear)");
+        }
+
+        public void SwapBuffers()
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Dispose()
+        {
+            var owner = _owner;
+            if (owner is null)
+                return;
+
+            _owner = null;
+
+            if (Surface != EglNoSurface)
+                owner._eglDestroySurface(owner.Display, Surface);
+
+            if (Context != EglNoContext)
+                owner._eglDestroyContext(owner.Display, Context);
+
+            _gl?.Dispose();
+            _gl = null;
+            Surface = EglNoSurface;
+            Context = EglNoContext;
+        }
+
+        nint INativeContext.GetProcAddress(string proc, int? slot)
+        {
+            var owner = _owner ?? throw new ObjectDisposedException(nameof(SharedContext));
+            return owner._eglGetProcAddress(proc);
+        }
+
+        bool INativeContext.TryGetProcAddress(string proc, out nint address, int? slot)
+        {
+            address = ((INativeContext)this).GetProcAddress(proc, slot);
+            return address != 0;
+        }
+
+        public GL Gl => _gl ??= GL.GetApi(this);
+        
+        public nint Context { get; private set; }
+
+        public nint Surface { get; private set; }
+
+    }
+
+    #endregion
+
+    #region DELGATES DECLARATIONS
+
+    private readonly EglGetProcAddress _eglGetProcAddress;
+    private readonly EglGetError _eglGetError;
+    private readonly EglInitialize _eglInitialize;
+    private readonly EglTerminate _eglTerminate;
+    private readonly EglBindApi _eglBindApi;
+    private readonly EglChooseConfig _eglChooseConfig;
+    private readonly EglCreateContext _eglCreateContext;
+    private readonly EglDestroyContext _eglDestroyContext;
+    private readonly EglCreatePbufferSurface _eglCreatePbufferSurface;
+    private readonly EglCreateWindowSurface _eglCreateWindowSurface;
+    private readonly EglDestroySurface _eglDestroySurface;
+    private readonly EglMakeCurrent _eglMakeCurrent;
+    private readonly EglSwapBuffers _eglSwapBuffers;
+    private readonly EglSwapInterval _eglSwapInterval;
+    private readonly EglQueryDisplayAttribExt _eglQueryDisplayAttrib;
+    private readonly EglQueryDeviceAttribExt _eglQueryDeviceAttrib;
+    private readonly EglLockVulkanQueueAngle? _eglLockVulkanQueue;
+    private readonly EglUnlockVulkanQueueAngle? _eglUnlockVulkanQueue;
+    private readonly EglCreateImageKhr _eglCreateImage;
+    private readonly EglDestroyImageKhr _eglDestroyImage;
+    private readonly GlEglImageTargetTexStorageExt _glEglImageTargetTexStorage;
+    private readonly GlAcquireTexturesAngle _glAcquireTexturesAngle;
+    private readonly GlReleaseTexturesAngle _glReleaseTexturesAngle;
+    private readonly EglGetPlatformDisplay _eglGetPlatformDisplayAttrib;
+
+    #endregion
+
+    private readonly nint _eglLibrary;
+    private readonly nint _glesLibrary;
+    private bool _disposed;
+    private GL? _gl;
+    private readonly Dictionary<nint, ImportedVulkanImage> _images = [];
+
+    public AngleVulkanContext()
+    {
+        nint eglLibrary = 0;
+        nint glesLibrary = 0;
+
+#if __ANDROID__
+        var eglLibraryName = "libEGL_angle.so";
+        var glesLibraryName = "libGLESv2_angle.so";
+#else
+        var eglLibraryName = "libEGL.dll";
+        var glesLibraryName = "libGLESv2.dll";
+#endif
+
+        try
+        {
+            eglLibrary = LoadLibrary(eglLibraryName);
+            glesLibrary = LoadLibrary(glesLibraryName);
+
+            _eglLibrary = eglLibrary;
+            _glesLibrary = glesLibrary;
+            _eglGetProcAddress = LoadExport<EglGetProcAddress>("eglGetProcAddress");
+            _eglGetError = LoadExport<EglGetError>("eglGetError");
+            _eglInitialize = LoadExport<EglInitialize>("eglInitialize");
+            _eglTerminate = LoadExport<EglTerminate>("eglTerminate");
+            _eglBindApi = LoadExport<EglBindApi>("eglBindAPI");
+            _eglChooseConfig = LoadExport<EglChooseConfig>("eglChooseConfig");
+            _eglCreateContext = LoadExport<EglCreateContext>("eglCreateContext");
+            _eglDestroyContext = LoadExport<EglDestroyContext>("eglDestroyContext");
+            _eglCreatePbufferSurface = LoadExport<EglCreatePbufferSurface>("eglCreatePbufferSurface");
+            _eglCreateWindowSurface = LoadExport<EglCreateWindowSurface>("eglCreateWindowSurface");
+            _eglDestroySurface = LoadExport<EglDestroySurface>("eglDestroySurface");
+            _eglMakeCurrent = LoadExport<EglMakeCurrent>("eglMakeCurrent");
+            _eglSwapBuffers = LoadExport<EglSwapBuffers>("eglSwapBuffers");
+            _eglSwapInterval = LoadExport<EglSwapInterval>("eglSwapInterval");
+            _eglQueryDisplayAttrib = LoadEglProc<EglQueryDisplayAttribExt>("eglQueryDisplayAttribEXT");
+            _eglQueryDeviceAttrib = LoadEglProc<EglQueryDeviceAttribExt>("eglQueryDeviceAttribEXT");
+            _eglLockVulkanQueue = TryLoadEglProc<EglLockVulkanQueueAngle>("eglLockVulkanQueueANGLE");
+            _eglUnlockVulkanQueue = TryLoadEglProc<EglUnlockVulkanQueueAngle>("eglUnlockVulkanQueueANGLE");
+
+            _eglGetPlatformDisplayAttrib = LoadEglProc<EglGetPlatformDisplay>("eglGetPlatformDisplay");
+            _eglCreateImage = LoadEglProc<EglCreateImageKhr>("eglCreateImageKHR");
+            _eglDestroyImage = LoadEglProc<EglDestroyImageKhr>("eglDestroyImageKHR");
+            _glEglImageTargetTexStorage = LoadGlProc<GlEglImageTargetTexStorageExt>("glEGLImageTargetTexStorageEXT");
+            _glAcquireTexturesAngle = LoadGlProc<GlAcquireTexturesAngle>("glAcquireTexturesANGLE");
+            _glReleaseTexturesAngle = LoadGlProc<GlReleaseTexturesAngle>("glReleaseTexturesANGLE");
+        }
+        catch
+        {
+            if (glesLibrary != 0)
+                NativeLibrary.Free(glesLibrary);
+
+            if (eglLibrary != 0)
+                NativeLibrary.Free(eglLibrary);
+
+            throw;
+        }
+    }
+
+    public void Initialize(IReadOnlyCollection<string> requiredInstanceExtensions, IReadOnlyCollection<string> requiredDeviceExtensions)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        try
+        {
+            if (!IsInitialized)
+            {
+                nint* displayAttributes = stackalloc nint[]
+                {
+                    (int)Egl.PlatformAngleType,
+                    (int)Egl.PlatformAngleTypeVulkan,
+
+#if ANGLE_DEBUG
+                    (int)Egl.PlatformAngleDebugLayersEnabled,
+                    (int)Egl.True,
+#endif
+                    (int)Egl.None
+                };
+
+                Display = _eglGetPlatformDisplayAttrib((uint)Egl.PlatformAngle, 0, displayAttributes);
+                CheckHandle(Display, EglNoDisplay, "eglGetPlatformDisplayEXT");
+
+                int major;
+                int minor;
+
+                Check(_eglInitialize(Display, &major, &minor), "eglInitialize");
+                Check(_eglBindApi((uint)Egl.OpenGlEsApi), "eglBindAPI");
+
+                int* configAttributes = stackalloc int[]
+                {
+                    (int)Egl.SurfaceType,
+                    (int)Egl.PbufferBit | (int)Egl.WindowBit,
+
+                    (int)Egl.RenderableType,
+                    (int)Egl.OpenGlEs3Bit,
+
+                    (int)Egl.RedSize,
+                    8,
+
+                    (int)Egl.GreenSize,
+                    8,
+
+                    (int)Egl.BlueSize,
+                    8,
+
+                    (int)Egl.AlphaSize,
+                    8,
+
+                    (int)Egl.DepthSize,
+                    24,
+
+                    (int)Egl.StencilSize,
+                    8,
+
+                    (int)Egl.None
+                };
+
+                nint config;
+                int configCount;
+
+                Check(_eglChooseConfig(Display, configAttributes, &config, 1, &configCount), "eglChooseConfig");
+
+                if (configCount == 0)
+                    throw new InvalidOperationException("ANGLE returned no matching EGLConfig.");
+
+                Config = config;
+
+                int* contextAttributes = stackalloc int[]
+                {
+                    (int)Egl.ContextMajorVersionKhr,
+                    3,
+
+                    (int)Egl.ContextMinorVersionKhr,
+                    2,
+
+                    (int)Egl.None
+                };
+
+                Context = _eglCreateContext(Display, config, EglNoContext, contextAttributes);
+                CheckHandle(Context, EglNoContext, "eglCreateContext");
+
+                int* surfaceAttributes = stackalloc int[]
+                {
+                    (int)Egl.Width,
+                    1,
+
+                    (int)Egl.Height,
+                    1,
+
+                    (int)Egl.None
+                };
+
+                Surface = _eglCreatePbufferSurface(Display, config, surfaceAttributes);
+                CheckHandle(Surface, EglNoSurface, "eglCreatePbufferSurface");
+                Check(_eglMakeCurrent(Display, Surface, Surface, Context), "eglMakeCurrent");
+
+                nint eglDevice;
+
+                Check(_eglQueryDisplayAttrib(Display, (int)Egl.DeviceExt, &eglDevice), "eglQueryDisplayAttribEXT(EGL_DEVICE_EXT)");
+
+                if (eglDevice == 0)
+                    throw new InvalidOperationException("ANGLE returned a null EGLDevice.");
+
+                EglDevice = eglDevice;
+
+                _gl = GL.GetApi(this);
+            }
+
+            VulkanInstanceHandle = QueryDevicePointer(Egl.VulkanInstance);
+            VulkanPhysicalDeviceHandle = QueryDevicePointer(Egl.VulkanPhysicalDevice);
+            VulkanDeviceHandle = QueryDevicePointer(Egl.VulkanDevice);
+            VulkanQueueHandle = QueryDevicePointer(Egl.VulkanQueue);
+            QueueFamilyIndex = (uint)QueryDeviceInteger(Egl.VulkanQueueFamilyIndex);
+
+            EnabledInstanceExtensions = QueryExtensionArray(Egl.VulkanInstanceExtensions);
+            EnabledDeviceExtensions = QueryExtensionArray(Egl.VulkanDeviceExtensions);
+
+            ValidateExtensions("Vulkan instance", requiredInstanceExtensions, EnabledInstanceExtensions);
+            ValidateExtensions("Vulkan device", requiredDeviceExtensions, EnabledDeviceExtensions);
+        }
+        catch
+        {
+            DestroyEglObjects();
+            throw;
+        }
+    }
+
+    public ImportedVulkanImage AttachVulkanImage(
+        nint vkImage,
+        int vkFormat,
+        uint width,
+        uint height,
+        uint arrayLayers,
+        uint mipLevels,
+        uint sampleCount,
+        ImageUsageFlags vkUsage,
+        ImageCreateFlags vkFlags,
+        TextureTarget glTarget)
+    {
+        if (_images.TryGetValue(vkImage, out var image))
+            return image;
+
+        ImageCreateInfo imageInfo = new()
+        {
+            SType = StructureType.ImageCreateInfo,
+            PNext = null,
+            Flags = vkFlags,
+            ImageType = ImageType.Type2D,
+            Format = (Format)vkFormat,
+            Extent = new Extent3D { Width = width, Height = height, Depth = 1 },
+            MipLevels = mipLevels,
+            ArrayLayers = arrayLayers,
+            Samples = (SampleCountFlags)sampleCount,
+            Tiling = ImageTiling.Optimal,
+            Usage = vkUsage,
+            SharingMode = SharingMode.Exclusive,
+            QueueFamilyIndexCount = 0,
+            PQueueFamilyIndices = null,
+            InitialLayout = ImageLayout.Undefined
+        };
+
+        ulong imageInfoAddress = (ulong)&imageInfo;
+
+        int* attributes = stackalloc int[]
+        {
+            (int)Egl.VulkanImageCreateInfoHi, unchecked((int)(imageInfoAddress >> 32)),
+            (int)Egl.VulkanImageCreateInfoLo, unchecked((int)imageInfoAddress),
+            (int)Egl.None
+        };
+
+        var imageHandle = vkImage;
+
+        var eglImage = _eglCreateImage(Display, EglNoContext, (uint)Egl.VulkanImage, (nint)(&imageHandle), attributes);
+
+        CheckHandle(eglImage, 0, "eglCreateImageKHR((uint)Egl.VulkanImage)");
+
+        uint texture = 0;
+        try
+        {
+            texture = _gl!.GenTexture();
+
+            _gl.BindTexture(glTarget, texture);
+
+            _glEglImageTargetTexStorage((uint)glTarget, eglImage, null);
+
+            _gl.BindTexture(glTarget, 0);
+
+            var result = new ImportedVulkanImage(this, eglImage, texture, glTarget, vkImage);
+
+            _images[vkImage] = result;
+
+            return result;
+        }
+        catch
+        {
+            _gl!.BindTexture(glTarget, 0);
+
+            if (texture != 0)
+                _gl.DeleteTexture(texture);
+
+            _eglDestroyImage(Display, eglImage);
+
+            throw;
+        }
+    }
+    public void AcquireTexture(uint texture, uint layout)
+    {
+        _glAcquireTexturesAngle(1, &texture, &layout);
+    }
+
+    public uint ReleaseTexture(uint texture)
+    {
+        uint layout;
+        _glReleaseTexturesAngle(1, &texture, &layout);
+        return layout;
+    }
+
+    public void CreateWindowSurface(nint nativeWindow)
+    {
+        if (Surface != EglNoSurface)
+        {
+            _eglMakeCurrent(Display, EglNoSurface, EglNoSurface, EglNoContext);
+            _eglDestroySurface(Display, Surface);
+        }
+
+        int* attributes = stackalloc int[]
+        {
+            (int)Egl.GlColorspaceKhr,
+            (int)Egl.GlColorspaceSrgbKhr,
+            (int)Egl.None
+        };
+
+        Surface = _eglCreateWindowSurface(Display, Config, nativeWindow, attributes);
+
+        CheckHandle(Surface, EglNoSurface, "eglCreateWindowSurface");
+        Check(_eglMakeCurrent(Display, Surface, Surface, Context), "eglMakeCurrent(window)");
+    }
+
+    public void SwapBuffers()
+    {
+        Check(_eglSwapBuffers(Display, Surface), "eglSwapBuffers");
+    }
+
+    public void SetSwapInterval(int interval)
+    {
+        Check(_eglSwapInterval(Display, interval), "eglSwapInterval");
+    }
+
+    public void ReleaseCurrent()
+    {
+        Check(_eglMakeCurrent(Display, EglNoSurface, EglNoSurface, EglNoContext), "eglMakeCurrent(release)");
+    }
+
+    public void MakeCurrent()
+    {
+        EnsureInitialized();
+
+        Check(_eglMakeCurrent(Display, Surface, Surface, Context), "eglMakeCurrent");
+    }
+
+    public SharedContext CreateSharedContext()
+    {
+        EnsureInitialized();
+
+        int* contextAttributes = stackalloc int[]
+        {
+            (int)Egl.ContextMajorVersionKhr, 3,
+            (int)Egl.ContextMinorVersionKhr, 2,
+            (int)Egl.None
+        };
+
+        var context = _eglCreateContext(Display, Config, Context, contextAttributes);
+        CheckHandle(context, EglNoContext, "eglCreateContext(shared)");
+
+        try
+        {
+            int* surfaceAttributes = stackalloc int[]
+            {
+                (int)Egl.Width, 1,
+                (int)Egl.Height, 1,
+                (int)Egl.None
+            };
+
+            var surface = _eglCreatePbufferSurface(Display, Config, surfaceAttributes);
+            CheckHandle(surface, EglNoSurface, "eglCreatePbufferSurface(shared)");
+
+            return new SharedContext(this, context, surface);
+        }
+        catch
+        {
+            _eglDestroyContext(Display, context);
+            throw;
+        }
+    }
+
+    public void LockVulkanQueue()
+    {
+        EnsureInitialized();
+
+        if (_eglLockVulkanQueue is null)
+            throw new NotSupportedException("eglLockVulkanQueueANGLE is unavailable.");
+
+        _eglLockVulkanQueue(Display);
+    }
+
+    public void UnlockVulkanQueue()
+    {
+        EnsureInitialized();
+
+        if (_eglUnlockVulkanQueue is null)
+            throw new NotSupportedException("eglUnlockVulkanQueueANGLE is unavailable.");
+
+        _eglUnlockVulkanQueue(Display);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+
+        DestroyEglObjects();
+
+        if (_glesLibrary != 0)
+            NativeLibrary.Free(_glesLibrary);
+
+        if (_eglLibrary != 0)
+            NativeLibrary.Free(_eglLibrary);
+
+        GC.SuppressFinalize(this);
+    }
+
+    public static string[] SplitExtensionString(string? extensions)
+    {
+        if (string.IsNullOrWhiteSpace(extensions))
+            return Array.Empty<string>();
+
+        return extensions.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
+
+    private nint QueryDevicePointer(Egl attribute)
+    {
+        nint value;
+
+        Check(
+            _eglQueryDeviceAttrib(EglDevice, (int)attribute, &value),
+            $"eglQueryDeviceAttribEXT(0x{(int)attribute:X})");
+
+        if (value == 0)
+        {
+            throw new InvalidOperationException($"ANGLE returned null for Vulkan attribute 0x{(int)attribute:X}.");
+        }
+
+        return value;
+    }
+
+    private nint QueryDeviceInteger(Egl attribute)
+    {
+        nint value;
+
+        Check(
+            _eglQueryDeviceAttrib(EglDevice, (int)attribute, &value),
+            $"eglQueryDeviceAttribEXT(0x{(int)attribute:X})");
+
+        return value;
+    }
+
+    private IReadOnlyList<string> QueryExtensionArray(Egl attribute)
+    {
+        nint arrayPointer;
+
+        Check(
+            _eglQueryDeviceAttrib(EglDevice, (int)attribute, &arrayPointer),
+            $"eglQueryDeviceAttribEXT(0x{(int)attribute:X})");
+
+        if (arrayPointer == 0)
+            return [];
+
+        var result = new List<string>();
+
+        nint* extensionPointers = (nint*)arrayPointer;
+
+        for (int i = 0; extensionPointers[i] != 0; i++)
+        {
+            string? extension = Marshal.PtrToStringUTF8(extensionPointers[i]);
+
+            if (!string.IsNullOrEmpty(extension))
+                result.Add(extension);
+        }
+
+        return result;
+    }
+
+    private static void ValidateExtensions(string category, IReadOnlyCollection<string> required, IReadOnlyList<string> enabled)
+    {
+        if (required.Count == 0)
+            return;
+
+        var enabledSet = new HashSet<string>(enabled, StringComparer.Ordinal);
+
+        List<string>? missing = null;
+
+        foreach (string extension in required)
+        {
+            if (string.IsNullOrWhiteSpace(extension))
+                continue;
+
+            if (enabledSet.Contains(extension))
+                continue;
+
+            missing ??= [];
+            missing.Add(extension);
+        }
+
+        if (missing is null)
+            return;
+
+        throw new NotSupportedException($"ANGLE did not enable the required {category} extensions: {string.Join(", ", missing)}");
+    }
+
+    private void DestroyImportedImage(ImportedVulkanImage image)
+    {
+        _images.Remove(image.VkImage);
+
+        var texture = image.Texture;
+        var eglImage = image.EglImage;
+
+        if (texture != 0)
+            _gl!.DeleteTexture(texture);
+
+        if (eglImage != 0 && Display != EglNoDisplay)
+            _eglDestroyImage(Display, eglImage);
+
+        image.ClearHandles();
+    }
+
+    private void DestroyImportedImages()
+    {
+        foreach (var image in _images.Values)
+        {
+            var texture = image.Texture;
+            var eglImage = image.EglImage;
+
+            if (texture != 0)
+                _gl!.DeleteTexture(texture);
+
+            if (eglImage != 0 && Display != EglNoDisplay)
+                _eglDestroyImage(Display, eglImage);
+
+            image.ClearHandles();
+        }
+
+        _images.Clear();
+    }
+
+    private void EnsureInitialized()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!IsInitialized)
+            throw new InvalidOperationException("ANGLE has not been initialized.");
+    }
+
+    private void DestroyEglObjects()
+    {
+        if (Display != EglNoDisplay)
+        {
+            DestroyImportedImages();
+
+            _eglMakeCurrent(Display, EglNoSurface, EglNoSurface, EglNoContext);
+
+            if (Surface != EglNoSurface)
+            {
+                _eglDestroySurface(Display, Surface);
+
+                Surface = EglNoSurface;
+            }
+
+            if (Context != EglNoContext)
+            {
+                _eglDestroyContext(Display, Context);
+
+                Context = EglNoContext;
+            }
+
+            _eglTerminate(Display);
+
+            Display = EglNoDisplay;
+        }
+
+        Config = 0;
+        EglDevice = 0;
+
+        VulkanInstanceHandle = 0;
+        VulkanPhysicalDeviceHandle = 0;
+        VulkanDeviceHandle = 0;
+        VulkanQueueHandle = 0;
+
+        QueueFamilyIndex = 0;
+
+        EnabledInstanceExtensions = Array.Empty<string>();
+        EnabledDeviceExtensions = Array.Empty<string>();
+    }
+
+    private static nint LoadLibrary(string name)
+    {
+        if (!NativeLibrary.TryLoad(name, out nint library))
+            throw new DllNotFoundException($"Could not load ANGLE library '{name}'.");
+
+        return library;
+    }
+
+    private T LoadExport<T>(string name) where T : Delegate
+    {
+        nint address = NativeLibrary.GetExport(_eglLibrary, name);
+
+        return Marshal.GetDelegateForFunctionPointer<T>(address);
+    }
+
+    private T LoadEglProc<T>(string name) where T : Delegate
+    {
+        T? proc = TryLoadEglProc<T>(name);
+
+        return proc ?? throw new EntryPointNotFoundException($"ANGLE EGL function '{name}' is unavailable.");
+    }
+
+    private T? TryLoadEglProc<T>(string name) where T : Delegate
+    {
+        nint address = _eglGetProcAddress(name);
+
+        if (address == 0 && NativeLibrary.TryGetExport(_eglLibrary, name, out nint export))
+        {
+            address = export;
+        }
+
+        return address == 0 ? null : Marshal.GetDelegateForFunctionPointer<T>(address);
+    }
+
+    private T LoadGlProc<T>(string name) where T : Delegate
+    {
+        T? proc = TryLoadGlProc<T>(name);
+
+        return proc ?? throw new EntryPointNotFoundException($"ANGLE GL function '{name}' is unavailable.");
+    }
+
+    private T? TryLoadGlProc<T>(string name) where T : Delegate
+    {
+        nint address = _eglGetProcAddress(name);
+
+        if (address == 0 && NativeLibrary.TryGetExport(_glesLibrary, name, out nint export))
+        {
+            address = export;
+        }
+
+        return address == 0 ? null : Marshal.GetDelegateForFunctionPointer<T>(address);
+    }
+
+    private void Check(int result, string operation)
+    {
+        if (result == (int)Egl.False)
+            throw new InvalidOperationException($"{operation} failed with EGL error 0x{_eglGetError():X4}.");
+    }
+
+    private void CheckHandle(nint value, nint invalidValue, string operation)
+    {
+        if (value == invalidValue)
+            throw new InvalidOperationException($"{operation} failed with EGL error 0x{_eglGetError():X4}.");
+    }
+
+    nint INativeContext.GetProcAddress(string proc, int? slot)
+    {
+        return _eglGetProcAddress(proc);
+    }
+
+    bool INativeContext.TryGetProcAddress(string proc, out nint addr, int? slot)
+    {
+        addr = ((INativeContext)this).GetProcAddress(proc, slot);
+        return addr != 0;
+    }
+
+    public nint Display { get; private set; }
+
+    public nint Config { get; private set; }
+    
+    public nint Context { get; private set; }
+    
+    public nint Surface { get; private set; }
+    
+    public nint EglDevice { get; private set; }
+    
+    public nint VulkanInstanceHandle { get; private set; }
+    
+    public nint VulkanPhysicalDeviceHandle { get; private set; }
+    
+    public nint VulkanDeviceHandle { get; private set; }
+    
+    public nint VulkanQueueHandle { get; private set; }
+    
+    public uint QueueFamilyIndex { get; private set; }
+
+    public IReadOnlyList<string> EnabledInstanceExtensions { get; private set; } = [];
+
+    public IReadOnlyList<string> EnabledDeviceExtensions { get; private set; } = [];
+
+    public bool IsInitialized => Display != EglNoDisplay;
+
+    public uint QueueIndex => 0;
+
+    public GL? Gl => _gl;
+
+
+
 }

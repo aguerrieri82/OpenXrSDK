@@ -158,6 +158,12 @@ namespace XrEngine.OpenXr.Android
             if (_currentGlContext is AndroidGlContext androidGl)
                 return androidGl.CreateShared(AndroidXrOpenGLESGraphicDriver.DEBUG_MODE);
 
+            if (_currentGlContext is AngleGlContext angleGl)
+            {
+                var shared = ((AngleVulkanContext)angleGl.AngleContext).CreateSharedContext();
+                return new AngleGlContext(shared);
+            }
+
             throw new InvalidOperationException();
         }
 

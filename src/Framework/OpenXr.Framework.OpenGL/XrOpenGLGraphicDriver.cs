@@ -78,10 +78,10 @@ namespace OpenXr.Framework.OpenGL
         {
             Debug.Assert(viewInfo.SwapChainFormats != null);
 
-            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
+            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((int)a));
 
             if (result.DepthFormat == 0)
-                result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
+                result.DepthFormat = (int)InternalFormat.Depth24Stencil8;
         }
 
         public T GetApi<T>() where T : class
