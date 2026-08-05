@@ -1043,7 +1043,7 @@ namespace XrSamples
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
-                .AddFloorShadow(4, true)
+                .AddFloorShadow(4, false)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
         }

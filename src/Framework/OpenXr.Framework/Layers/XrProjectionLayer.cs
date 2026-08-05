@@ -126,7 +126,7 @@ namespace OpenXr.Framework
                     _xrApp.CreateSwapChain(depthSize, 
                             options.DepthFormat,
                             options.RenderMode == XrRenderMode.MultiView ? 2u : 1, 
-                            SwapchainUsageFlags.DepthStencilAttachmentBit) : new Swapchain();
+                            SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit) : new Swapchain();
 
                 _swapchains[i] = new XrSwapchainInfo
                 {

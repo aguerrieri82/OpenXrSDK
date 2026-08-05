@@ -331,7 +331,9 @@ namespace XrEngine.OpenXr
                         (uint)info.ColorSize.Width,
                         (uint)info.ColorSize.Height,
                         info.ArraySize, 1, 1,
-                        ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
+                        ImageUsageFlags.ColorAttachmentBit | 
+                        ImageUsageFlags.SampledBit,
+                        ImageCreateFlags.None,
                         target);
 
                 if (depthImagePtr == 0)
@@ -343,7 +345,8 @@ namespace XrEngine.OpenXr
                         (uint)info.DepthSize.Height,
                         info.ArraySize, 1, 1,
                         ImageUsageFlags.DepthStencilAttachmentBit | 
-                        ImageUsageFlags.SampledBit, 
+                        ImageUsageFlags.SampledBit,
+                        ImageCreateFlags.None,
                         target);
 
                 return (colorImg.Texture, depthImg.Texture);
@@ -434,13 +437,13 @@ namespace XrEngine.OpenXr
                             renderer, xrApp,
                             xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView));
 
-                var provider = new GlMotionVectorProvider(app, renderer, motionVectorPass);
+                var provider = new GlMotionVectorProviderPass(app, renderer, motionVectorPass);
 
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
             }
             else if (renderer.Options.MotionVectorMode == MotionVectorMode.Shared)
             {
-                var provider = new GlMotionVectorProviderV2(app, renderer);
+                var provider = new GlMotionVectorProviderShared(app, renderer);
 
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
             }

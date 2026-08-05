@@ -13,19 +13,27 @@ using System.Numerics;
 using XrMath;
 using Silk.NET.Vulkan;
 using OpenXr.Framework.Angle;
+using static CanvasUI.TextLayoutManager;
 
 namespace XrEngine.OpenXr
 {
-    internal class GlMotionVectorProviderV2 : IXrMotionVectorProvider, IMotionVectorProvider
+    internal class GlMotionVectorProviderShared : IXrMotionVectorProvider, IMotionVectorProvider
     {
         readonly OpenGLRender _renderer;
         readonly EngineApp _app;
         protected Texture2D? _texture;
+        protected nint _colorVkImage;
+        protected readonly AngleVulkanContext? _context;
 
-        public GlMotionVectorProviderV2(EngineApp app, OpenGLRender renderer)
+        protected GlMultiViewFrameBuffer _testFb;
+
+        protected Dictionary<uint, uint> _imageLayouts = [];
+
+        public GlMotionVectorProviderShared(EngineApp app, OpenGLRender renderer)
         {
             _renderer = renderer;
             _app = app;
+            _testFb = new GlMultiViewFrameBuffer(renderer.GL);
 
             if (renderer.UseAngle)
             {
@@ -42,13 +50,15 @@ namespace XrEngine.OpenXr
                 DepthFormat = (int)InternalFormat.DepthComponent16;
             }
 
-
             IsActive = true;
 
             renderer.UpdateContext.MotionVectorProvider = this;
 
             Context.Implement<IXrMotionVectorProvider>(this);
             Context.Implement<IMotionVectorProvider>(this);
+
+            if (_renderer.UseAngle)
+                _context = Context.Require<AngleVulkanContext>();
         }
 
         public unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
@@ -59,17 +69,23 @@ namespace XrEngine.OpenXr
 
             if (_renderer.UseAngle)
             {
-                var colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
+                _colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
         
                 var ctx = Context.Require<AngleVulkanContext>();
 
                 colorTex = ctx.AttachVulkanImage(
-                    colorVkImage,
+                    _colorVkImage,
                     MotionVectorFormat,
                     (uint)spData.ColorSize.Width,
                     (uint)spData.ColorSize.Height,
                     2,1,1,
-                    ImageUsageFlags.ColorAttachmentBit |ImageUsageFlags.SampledBit,
+                    ImageUsageFlags.SampledBit | 
+                    ImageUsageFlags.TransferSrcBit |
+                    ImageUsageFlags.StorageBit |
+                    ImageUsageFlags.InputAttachmentBit |
+                    ImageUsageFlags.TransferDstBit | 
+                    ImageUsageFlags.ColorAttachmentBit,
+                    ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt | ImageCreateFlags.CreateMutableFormatBit,
                     TextureTarget.Texture2DArray).Texture;
             }
             else
@@ -85,8 +101,27 @@ namespace XrEngine.OpenXr
             _texture = (Texture2D)colorGlTex.ToEngineTexture();
         }
 
+        public void Begin()
+        {
+
+            if (_renderer.UseAngle)
+            {
+                var handle = (uint)_texture!.Handle;
+                if (!_imageLayouts.TryGetValue(handle, out var layout))
+                    layout = 0;
+                _context!.AcquireTexture(handle, layout);
+            }
+
+        }
+
         public void Swap(Camera camera, IEnumerable<Object3D> objects)
         {
+            if (_renderer.UseAngle)
+            {
+                var handle = (uint)_texture!.Handle;
+                _imageLayouts[handle] = _context!.ReleaseTexture(handle);
+            }
+
             foreach (var obj in objects)
                 obj.SetProp(EngineProps.MotionVectorPrev, obj.WorldMatrix);
 

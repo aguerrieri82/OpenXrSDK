@@ -8,6 +8,9 @@ using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
+using Silk.NET.Vulkan;
+using OpenXr.Framework.Angle;
+using OpenXr.Framework.Oculus;
 
 namespace XrEngine.OpenXr
 {
@@ -47,10 +50,28 @@ namespace XrEngine.OpenXr
             Priority = -1;
         }
 
-        public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
+        public unsafe void SetTargets(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, int colorFormat)
         {
-            _colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
-            _depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
+            if (_renderer.UseAngle)
+            {
+                var colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
+
+                var ctx = Context.Require<AngleVulkanContext>();
+
+                _colorTex = ctx.AttachVulkanImage(
+                    colorVkImage,
+                    colorFormat,
+                    (uint)spData.ColorSize.Width,
+                    (uint)spData.ColorSize.Height,
+                    2, 1, 1,
+                    ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
+                    ImageCreateFlags.None,
+                    TextureTarget.Texture2DArray).Texture;
+            }
+            else
+                _colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
+
+            //_depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -95,7 +116,7 @@ namespace XrEngine.OpenXr
             if (_isEditor)
                 _renderTarget = _pool.GetRenderTarget(_debugColor!, 0, 1, camera.ActiveEye);
             else
-                _renderTarget = _pool.GetRenderTarget(_colorTex, _depthTex, 1, camera.ActiveEye);
+                _renderTarget = _pool.GetRenderTarget(_colorTex, 0, 1, camera.ActiveEye);
 
             _renderTarget.ShadingRate = 2;
 

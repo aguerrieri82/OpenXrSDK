@@ -173,7 +173,7 @@ namespace XrEngine.OpenGL
             if (_gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus) == 0)
             {
                 var log = _gl.GetProgramInfoLog(_handle);
-                throw new Exception(log);
+                     throw new Exception(log);
             }
         }
 

@@ -64,7 +64,11 @@ namespace OpenXr.Framework.Oculus
                           _spaceWarpData.ColorSize,
                           _motionProvider.MotionVectorFormat, // Rgba16f
                           2,
-                          SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit);
+                          SwapchainUsageFlags.ColorAttachmentBit | 
+                          SwapchainUsageFlags.SampledBit |
+                          SwapchainUsageFlags.UnorderedAccessBit |
+                          SwapchainUsageFlags.TransferDstBit |
+                          SwapchainUsageFlags.TransferSrcBit);
 
             _spaceWarpData.ColorImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData.ColorSwapchain);
         }

@@ -36,7 +36,10 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(GlUpdateContext ctx)
         {
-            ctx.UseMotionVectors = true;
+            ctx.UseMotionVectors = _renderer.Options.MotionVectorMode == MotionVectorMode.Shared;
+
+            if (ctx.MotionVectorProvider != null && ctx.MotionVectorProvider.IsActive)
+                ctx.MotionVectorProvider.Begin();
 
             GetRenderTarget()?.Begin(ctx.PassCamera!);
 
@@ -73,8 +76,10 @@ namespace XrEngine.OpenGL
         protected override void EndRender(GlUpdateContext ctx)
         {
             _renderer.State.SetActiveProgram(0);
-            
-            if (ctx.MotionVectorProvider != null && ctx.MotionVectorProvider.IsActive)
+
+            var isSharedMv = _renderer.Options.MotionVectorMode == MotionVectorMode.Shared;
+
+            if (ctx.MotionVectorProvider != null && ctx.MotionVectorProvider.IsActive && isSharedMv)
             {
                 if (ctx.PassCamera!.ActiveEye == -1 || ctx.PassCamera.ActiveEye == 1)
                 {

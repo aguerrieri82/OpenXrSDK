@@ -15,6 +15,8 @@ namespace XrEngine
 
         void Swap(Camera camera, IEnumerable<Object3D> objects);
 
+        void Begin();
+
         bool IsActive { get; }
     }
 }

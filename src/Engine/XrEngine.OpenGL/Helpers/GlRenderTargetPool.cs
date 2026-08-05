@@ -106,7 +106,7 @@ namespace XrEngine.OpenGL
                 GlTexture? glColor = null;
                 GlTexture? renderColor = null;
 
-                var texSampleCount = _multiView ? 1 : sampleCount;
+                var texSampleCount = 1u;
 
                 if (depthTex != 0)
                     glDepth = GlTexture.Attach(_gl, depthTex, texSampleCount);

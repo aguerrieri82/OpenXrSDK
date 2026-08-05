@@ -34,12 +34,12 @@ namespace XrSamples
             return new GameSettings
             {
                 SampleName = "Bed",
-                Msaa = 1,
+                Msaa = 2,
                 Scale = 1f,
                 DepthScale = 0.25f,
-                Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
-                UseSpaceWarp = true,
+                Driver = GraphicDriver.Angle,
+                IsMultiView = false,
+                UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = true,
                 TextureCompression = false,
@@ -51,12 +51,12 @@ namespace XrSamples
         {
             return new GameSettings()
             {
-                Msaa = 1,
+                Msaa = 2,
                 Scale = 1f,
                 DepthScale = 0.5f,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
-                UseSpaceWarp = true,
+                IsMultiView = false,
+                UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = true
             };

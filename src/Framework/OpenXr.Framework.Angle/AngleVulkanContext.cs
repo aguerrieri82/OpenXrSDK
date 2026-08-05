@@ -7,7 +7,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.Core.Contexts;
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
-using System.Diagnostics;
+using Result = Silk.NET.Vulkan.Result;
 
 namespace OpenXr.Framework.Angle;
 
@@ -36,6 +36,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private const int EGL_WIDTH = 0x3057;
     private const int EGL_HEIGHT = 0x3056;
 
+
     private const int EGL_CONTEXT_MAJOR_VERSION_KHR = 0x3098;
     private const int EGL_CONTEXT_MINOR_VERSION_KHR = 0x30FB;
 
@@ -47,7 +48,6 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
     private const int EGL_TRUE = 1;
 
-
     private const int EGL_DEVICE_EXT = 0x322C;
 
     private const int EGL_VULKAN_INSTANCE_ANGLE = 0x34A9;
@@ -57,7 +57,6 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private const int EGL_VULKAN_DEVICE_EXTENSIONS_ANGLE = 0x34AD;
     private const int EGL_VULKAN_QUEUE_ANGLE = 0x34AF;
 
-    // The typo "FAMILIY" is present in ANGLE's actual public token.
     private const int EGL_VULKAN_QUEUE_FAMILIY_INDEX_ANGLE = 0x34D0;
 
     private const uint EGL_VULKAN_IMAGE_ANGLE = 0x34D3;
@@ -67,6 +66,10 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private const uint GL_TEXTURE_2D = 0x0DE1;
     private const uint GL_TEXTURE_2D_ARRAY = 0x8C1A;
     private const uint GL_NO_ERROR = 0;
+
+    public const uint GL_LAYOUT_GENERAL_EXT = 0x958D;
+
+    public const uint GL_LAYOUT_COLOR_ATTACHMENT_EXT = 0x958E;
 
     private const nint EGL_NO_DISPLAY = 0;
     private const nint EGL_NO_CONTEXT = 0;
@@ -78,6 +81,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private const uint GL_UPPER_LEFT_EXT = 0x8CA2;
     private const uint GL_NEGATIVE_ONE_TO_ONE_EXT = 0x935E;
 
+    private const int EGL_FEATURE_OVERRIDES_DISABLED_ANGLE = 0x3467;
 
     private readonly nint _eglLibrary;
     private readonly nint _glesLibrary;
@@ -112,16 +116,68 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private readonly GlBindTexture _glBindTexture;
     private readonly GlEglImageTargetTexStorageExt _glEglImageTargetTexStorage;
     private readonly GlGetError _glGetError;
+    private readonly GlAcquireTexturesAngle? _glAcquireTexturesAngle;
+    private readonly GlReleaseTexturesAngle? _glReleaseTexturesAngle;
 
-    private GlClipControlExt _glClipControlExt = null!;
+    private readonly EglGetPlatformDisplay _eglGetPlatformDisplayAttrib;
 
-    private readonly List<ImportedVulkanImage> _importedImages = [];
+
 
     #endregion
+
+    #region ImportedVulkanImage
+
+    public sealed class ImportedVulkanImage : IDisposable
+    {
+        private AngleVulkanContext? _owner;
+
+        internal ImportedVulkanImage(AngleVulkanContext owner, nint eglImage, uint texture, TextureTarget target, nint vkImage)
+        {
+            _owner = owner;
+            EglImage = eglImage;
+            Texture = texture;
+            Target = target;
+            VkImage = vkImage;
+        }
+
+        public void Dispose()
+        {
+            AngleVulkanContext? owner = _owner;
+            if (owner is null)
+                return;
+
+            _owner = null;
+            owner.DestroyImportedImage(this);
+        }
+
+        internal void ClearHandles()
+        {
+            EglImage = 0;
+            Texture = 0;
+            VkImage = 0;
+        }
+
+        public nint EglImage { get; private set; }
+
+        public uint Texture { get; private set; }
+
+        public TextureTarget Target { get; }
+
+        public nint VkImage { get; private set; }
+    }
+
+    #endregion
+
+    private GlClipControlExt _glClipControlExt = null!;
 
     private bool _disposed;
     private GL? _gl;
     private readonly Dictionary<nint, ImportedVulkanImage> _images = [];
+
+    private Vk? _vk;
+    private Device _vkDevice;
+    private Queue _vkQueue;
+    private CommandPool _transitionCommandPool;
 
     public AngleVulkanContext()
     {
@@ -140,6 +196,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         try
         {
             eglLibrary = LoadLibrary(eglLibraryName);
+
             glesLibrary = LoadLibrary(glesLibraryName);
 
             _eglLibrary = eglLibrary;
@@ -207,6 +264,9 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
                 TryLoadEglProc<EglUnlockVulkanQueueAngle>(
                     "eglUnlockVulkanQueueANGLE");
 
+            _eglGetPlatformDisplayAttrib =
+                LoadEglProc<EglGetPlatformDisplay>("eglGetPlatformDisplay");
+
             _glClipControlExt = LoadEglProc<GlClipControlExt>("glClipControlEXT");
 
             _eglCreateImage = LoadEglProc<EglCreateImageKhr>("eglCreateImageKHR");
@@ -215,9 +275,11 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
             _glGenTextures = LoadGlProc<GlGenTextures>("glGenTextures");
             _glDeleteTextures = LoadGlProc<GlDeleteTextures>("glDeleteTextures");
             _glBindTexture = LoadGlProc<GlBindTexture>("glBindTexture");
-            _glEglImageTargetTexStorage =
-                LoadGlProc<GlEglImageTargetTexStorageExt>("glEGLImageTargetTexStorageEXT");
+            _glEglImageTargetTexStorage = LoadGlProc<GlEglImageTargetTexStorageExt>("glEGLImageTargetTexStorageEXT");
             _glGetError = LoadGlProc<GlGetError>("glGetError");
+
+            _glAcquireTexturesAngle = LoadGlProc<GlAcquireTexturesAngle>("glAcquireTexturesANGLE");
+            _glReleaseTexturesAngle = LoadGlProc<GlReleaseTexturesAngle>("glReleaseTexturesANGLE");
         }
         catch
         {
@@ -241,18 +303,32 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         {
             if (!IsInitialized)
             {
-                int* displayAttributes = stackalloc int[]
+                ReadOnlySpan<byte> featureNameBytes = "permanentlySwitchToFramebufferFetchMode\0"u8;
+
+                byte* featureName = stackalloc byte[featureNameBytes.Length];
+                featureNameBytes.CopyTo(new Span<byte>(featureName, featureNameBytes.Length));
+
+                nint* disabledFeatures = stackalloc nint[]
+                {
+                    (nint)featureName,
+                    0
+                };
+
+                nint* displayAttributes = stackalloc nint[]
                 {
                     EGL_PLATFORM_ANGLE_TYPE_ANGLE,
                     EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
 
-                    //EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
-                    //EGL_TRUE,
-                
+                    EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
+                    EGL_TRUE,
+
+                    EGL_FEATURE_OVERRIDES_DISABLED_ANGLE,
+                    (nint)disabledFeatures,
+
                     EGL_NONE
                 };
 
-                Display = _eglGetPlatformDisplay(
+                Display = _eglGetPlatformDisplayAttrib(
                     EGL_PLATFORM_ANGLE_ANGLE,
                     0,
                     displayAttributes);
@@ -278,32 +354,32 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
                 int* configAttributes = stackalloc int[]
                 {
-                EGL_SURFACE_TYPE,
-                EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
+                    EGL_SURFACE_TYPE,
+                    EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
 
-                EGL_RENDERABLE_TYPE,
-                EGL_OPENGL_ES3_BIT,
+                    EGL_RENDERABLE_TYPE,
+                    EGL_OPENGL_ES3_BIT,
 
-                EGL_RED_SIZE,
-                8,
+                    EGL_RED_SIZE,
+                    8,
 
-                EGL_GREEN_SIZE,
-                8,
+                    EGL_GREEN_SIZE,
+                    8,
 
-                EGL_BLUE_SIZE,
-                8,
+                    EGL_BLUE_SIZE,
+                    8,
 
-                EGL_ALPHA_SIZE,
-                8,
+                    EGL_ALPHA_SIZE,
+                    8,
 
-                EGL_DEPTH_SIZE,
-                24,
+                    EGL_DEPTH_SIZE,
+                    24,
 
-                EGL_STENCIL_SIZE,
-                8,
+                    EGL_STENCIL_SIZE,
+                    8,
 
-                EGL_NONE
-            };
+                    EGL_NONE
+                };
 
                 nint config;
                 int configCount;
@@ -327,14 +403,14 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
                 int* contextAttributes = stackalloc int[]
                 {
-                EGL_CONTEXT_MAJOR_VERSION_KHR,
-                3,
+                    EGL_CONTEXT_MAJOR_VERSION_KHR,
+                    3,
 
-                EGL_CONTEXT_MINOR_VERSION_KHR,
-                2,
+                    EGL_CONTEXT_MINOR_VERSION_KHR,
+                    2,
 
-                EGL_NONE
-            };
+                    EGL_NONE
+                };
 
                 Context = _eglCreateContext(
                     Display,
@@ -349,14 +425,14 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
                 int* surfaceAttributes = stackalloc int[]
                 {
-                EGL_WIDTH,
-                1,
+                    EGL_WIDTH,
+                    1,
 
-                EGL_HEIGHT,
-                1,
+                    EGL_HEIGHT,
+                    1,
 
-                EGL_NONE
-            };
+                    EGL_NONE
+                };
 
                 Surface = _eglCreatePbufferSurface(
                     Display,
@@ -402,6 +478,8 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
             VulkanQueueHandle = QueryDevicePointer(EGL_VULKAN_QUEUE_ANGLE);
             QueueFamilyIndex = (uint)QueryDeviceInteger(EGL_VULKAN_QUEUE_FAMILIY_INDEX_ANGLE);
 
+            InitializeCommandPool();
+
             EnabledInstanceExtensions = QueryExtensionArray(EGL_VULKAN_INSTANCE_EXTENSIONS_ANGLE);
             EnabledDeviceExtensions = QueryExtensionArray(EGL_VULKAN_DEVICE_EXTENSIONS_ANGLE);
 
@@ -422,43 +500,6 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         }
     }
 
-    public sealed class ImportedVulkanImage : IDisposable
-    {
-        private AngleVulkanContext? _owner;
-
-        internal ImportedVulkanImage(AngleVulkanContext owner, nint eglImage, uint texture, TextureTarget target)
-        {
-            _owner = owner;
-            EglImage = eglImage;
-            Texture = texture;
-            Target = target;
-        }
-
-        public nint EglImage { get; private set; }
-        public uint Texture { get; private set; }
-        public TextureTarget Target { get; }
-
-        public void Dispose()
-        {
-            AngleVulkanContext? owner = _owner;
-            if (owner is null)
-                return;
-
-            _owner = null;
-            owner.DestroyImportedImage(this);
-        }
-
-        internal void ClearHandles()
-        {
-            EglImage = 0;
-            Texture = 0;
-        }
-    }
-
-    /// <summary>
-    /// Imports an existing VkImage and creates a GL texture aliasing the same storage.
-    /// No VkImage or Vulkan memory is created.
-    /// </summary>
     public ImportedVulkanImage AttachVulkanImage(
         nint vkImage,
         int vkFormat,
@@ -468,6 +509,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         uint mipLevels,
         uint sampleCount,
         ImageUsageFlags vkUsage,
+        ImageCreateFlags vkFlags,
         TextureTarget glTarget)
     {
         EnsureInitialized();
@@ -479,7 +521,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         {
             SType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             PNext = null,
-            Flags = 0,
+            Flags = (uint)vkFlags,
             ImageType = VK_IMAGE_TYPE_2D,
             Format = vkFormat,
             Extent = new VkExtent3DNative { Width = width, Height = height, Depth = 1 },
@@ -503,16 +545,15 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
             EGL_NONE
         };
 
-        nint imageHandle = vkImage;
-        nint eglImage = _eglCreateImage(
-            Display, EGL_NO_CONTEXT, EGL_VULKAN_IMAGE_ANGLE, (nint)(&imageHandle), attributes);
+        var imageHandle = vkImage;
+
+        var eglImage = _eglCreateImage(Display, EGL_NO_CONTEXT, EGL_VULKAN_IMAGE_ANGLE, (nint)(&imageHandle), attributes);
 
         CheckHandle(eglImage, 0, "eglCreateImageKHR(EGL_VULKAN_IMAGE_ANGLE)");
 
         uint texture = 0;
         try
         {
-
             texture = _gl!.GenTexture();
 
             _gl.BindTexture(glTarget, texture);
@@ -521,8 +562,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
             _gl.BindTexture(glTarget, 0);
 
-            var result = new ImportedVulkanImage(this, eglImage, texture, glTarget);
-            _importedImages.Add(result);
+            var result = new ImportedVulkanImage(this, eglImage, texture, glTarget, vkImage);
 
             _images[vkImage] = result;
 
@@ -539,6 +579,50 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
             throw;
         }
+    }
+    public void AcquireTexture(uint texture, uint layout)
+    {
+        _glAcquireTexturesAngle!(1, &texture, &layout);
+    }
+
+    public uint ReleaseTexture(uint texture)
+    {
+        uint layout;
+        _glReleaseTexturesAngle!(1, &texture, &layout);
+        return layout;
+    }
+
+    private void InitializeCommandPool()
+    {
+        if (_transitionCommandPool.Handle != 0)
+            return;
+
+        _vk = Vk.GetApi();
+        _vkDevice = new Device(VulkanDeviceHandle);
+        _vkQueue = new Queue(VulkanQueueHandle);
+
+        CommandPoolCreateInfo createInfo = new()
+        {
+            SType = StructureType.CommandPoolCreateInfo,
+            QueueFamilyIndex = QueueFamilyIndex,
+            Flags =
+                CommandPoolCreateFlags.TransientBit |
+                CommandPoolCreateFlags.ResetCommandBufferBit
+        };
+
+        CheckVk(
+            _vk.CreateCommandPool(
+                _vkDevice,
+                &createInfo,
+                null,
+                out _transitionCommandPool),
+            "vkCreateCommandPool");
+    }
+
+    private static void CheckVk(Result result, string operation)
+    {
+        if (result != Result.Success)
+            throw new InvalidOperationException($"{operation} failed with Vulkan result {result}.");
     }
 
     public void CreateWindowSurface(nint nativeWindow)
@@ -714,7 +798,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
             $"eglQueryDeviceAttribEXT(0x{attribute:X})");
 
         if (arrayPointer == 0)
-            return Array.Empty<string>();
+            return [];
 
         var result = new List<string>();
 
@@ -780,30 +864,37 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
     private void DestroyImportedImage(ImportedVulkanImage image)
     {
-        _importedImages.Remove(image);
-        uint texture = image.Texture;
-        nint eglImage = image.EglImage;
+        _images.Remove(image.VkImage);
 
-        if (texture != 0) _glDeleteTextures(1, &texture);
-        if (eglImage != 0 && Display != EGL_NO_DISPLAY) _eglDestroyImage(Display, eglImage);
+        var texture = image.Texture;
+        var eglImage = image.EglImage;
 
-        image.ClearHandles();
+        if (texture != 0) 
+            _gl!.DeleteTexture(texture);
+        
+        if (eglImage != 0 && Display != EGL_NO_DISPLAY) 
+            _eglDestroyImage(Display, eglImage);
+
+        image.ClearHandles();   
     }
 
     private void DestroyImportedImages()
     {
-        for (int i = _importedImages.Count - 1; i >= 0; i--)
+        foreach (var image in _images.Values)
         {
-            ImportedVulkanImage image = _importedImages[i];
-            uint texture = image.Texture;
-            nint eglImage = image.EglImage;
+            var texture = image.Texture;
+            var eglImage = image.EglImage;
 
-            if (texture != 0) _glDeleteTextures(1, &texture);
-            if (eglImage != 0 && Display != EGL_NO_DISPLAY) _eglDestroyImage(Display, eglImage);
+            if (texture != 0) 
+                _gl!.DeleteTexture(texture);
+            
+            if (eglImage != 0 && Display != EGL_NO_DISPLAY) 
+                _eglDestroyImage(Display, eglImage);
+            
             image.ClearHandles();
         }
 
-        _importedImages.Clear();
+        _images.Clear();
     }
 
     private void EnsureInitialized()
@@ -811,16 +902,27 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (!IsInitialized)
-        {
-            throw new InvalidOperationException(
-                "ANGLE has not been initialized.");
-        }
+            throw new InvalidOperationException("ANGLE has not been initialized.");
     }
 
     private void DestroyEglObjects()
     {
         if (Display != EGL_NO_DISPLAY)
         {
+            if (_transitionCommandPool.Handle != 0 && _vk is not null)
+            {
+                _vk.DestroyCommandPool(
+                    _vkDevice,
+                    _transitionCommandPool,
+                    null);
+
+                _transitionCommandPool = default;
+                _vkQueue = default;
+                _vkDevice = default;
+                _vk.Dispose();
+                _vk = null;
+            }
+
             DestroyImportedImages();
 
             _eglMakeCurrent(
@@ -877,8 +979,7 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         return library;
     }
 
-    private T LoadExport<T>(string name)
-        where T : Delegate
+    private T LoadExport<T>(string name) where T : Delegate
     {
         nint address =
             NativeLibrary.GetExport(
@@ -888,14 +989,11 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         return Marshal.GetDelegateForFunctionPointer<T>(address);
     }
 
-    private T LoadEglProc<T>(string name)
-        where T : Delegate
+    private T LoadEglProc<T>(string name) where T : Delegate
     {
         T? proc = TryLoadEglProc<T>(name);
 
-        return proc ??
-               throw new EntryPointNotFoundException(
-                   $"ANGLE EGL function '{name}' is unavailable.");
+        return proc ?? throw new EntryPointNotFoundException($"ANGLE EGL function '{name}' is unavailable.");
     }
 
     private T? TryLoadEglProc<T>(string name)
@@ -920,15 +1018,30 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     private T LoadGlProc<T>(string name)
         where T : Delegate
     {
+        T? proc = TryLoadGlProc<T>(name);
+
+        return proc ??
+               throw new EntryPointNotFoundException(
+                   $"ANGLE GL function '{name}' is unavailable.");
+    }
+
+    private T? TryLoadGlProc<T>(string name)
+        where T : Delegate
+    {
         nint address = _eglGetProcAddress(name);
 
-        if (address == 0 && NativeLibrary.TryGetExport(_glesLibrary, name, out nint export))
+        if (address == 0 &&
+            NativeLibrary.TryGetExport(
+                _glesLibrary,
+                name,
+                out nint export))
+        {
             address = export;
+        }
 
-        if (address == 0)
-            throw new EntryPointNotFoundException($"ANGLE GL function '{name}' is unavailable.");
-
-        return Marshal.GetDelegateForFunctionPointer<T>(address);
+        return address == 0
+            ? null
+            : Marshal.GetDelegateForFunctionPointer<T>(address);
     }
 
     private void Check(int result, string operation)
@@ -959,7 +1072,6 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
     nint INativeContext.GetProcAddress(string proc, int? slot)
     {
         return _eglGetProcAddress(proc);
-
     }
 
     bool INativeContext.TryGetProcAddress(string proc, out nint addr, int? slot)
@@ -970,14 +1082,21 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
 
     public nint Display { get; private set; }
+
     public nint Config { get; private set; }
+
     public nint Context { get; private set; }
+
     public nint Surface { get; private set; }
+
     public nint EglDevice { get; private set; }
 
     public nint VulkanInstanceHandle { get; private set; }
+
     public nint VulkanPhysicalDeviceHandle { get; private set; }
+
     public nint VulkanDeviceHandle { get; private set; }
+
     public nint VulkanQueueHandle { get; private set; }
 
     public uint QueueFamilyIndex { get; private set; }
@@ -986,12 +1105,9 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
     public GL? Gl => _gl;
 
+    public IReadOnlyList<string> EnabledInstanceExtensions { get; private set; } = [];
 
-    public IReadOnlyList<string> EnabledInstanceExtensions { get; private set; } =
-        Array.Empty<string>();
-
-    public IReadOnlyList<string> EnabledDeviceExtensions { get; private set; } =
-        Array.Empty<string>();
+    public IReadOnlyList<string> EnabledDeviceExtensions { get; private set; } = [];
 
     public bool IsInitialized => Display != EGL_NO_DISPLAY;
 
@@ -1052,6 +1168,18 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate uint GlGetError();
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate void GlAcquireTexturesAngle(
+        uint numTextures,
+        uint* textures,
+        uint* layouts);
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate void GlReleaseTexturesAngle(
+        uint numTextures,
+        uint* textures,
+        uint* layouts);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate nint EglGetProcAddress(
@@ -1158,6 +1286,13 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate void GlClipControlExt(uint origin, uint depth);
+
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate nint EglGetPlatformDisplay(
+    uint platform,
+    nint nativeDisplay,
+    nint* attributes);
 
     #endregion
 }

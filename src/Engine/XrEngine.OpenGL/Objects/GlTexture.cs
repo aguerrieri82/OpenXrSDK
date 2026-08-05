@@ -394,10 +394,10 @@ namespace XrEngine.OpenGL
         {
 
 #warning DISABLED WITH RDC
-            /*
-            if (EngineNativeLib.RdcIsAttached())
+        
+            if (!OpenGLRender.Current!.UseAngle && EngineNativeLib.RdcIsAttached())
                 return;
-            */
+        
 
             var colorSpan = color.ToArray();
 
