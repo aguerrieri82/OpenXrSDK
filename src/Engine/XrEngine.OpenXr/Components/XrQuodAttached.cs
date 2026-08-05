@@ -1,15 +1,25 @@
-﻿using OpenXr.Framework;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+using OpenXr.Framework;
+using OpenXr.Framework.Angle;
 using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
+using Silk.NET.Vulkan;
 using System.Diagnostics;
+using XrEngine.OpenGL;
 using XrEngine.UI;
-using XrMath;
+
 
 namespace XrEngine.OpenXr
 {
     public class XrQuodAttached : Behavior<CanvasView3D>, IDisposable
     {
         XrTextureQuadLayer[]? _layers;
+        AngleVulkanContext? _vulkanCtx;
         readonly XrApp _app;
 
         public XrQuodAttached(XrApp app)
@@ -48,9 +58,11 @@ namespace XrEngine.OpenXr
             }
             else
             {
+                bool useAngle = OpenGLRender.Current!.UseAngle;
+
                 var layer = new XrTextureQuadLayer(_host.BindToQuad(), RenderQuod, _host.PixelSize)
                 {
-                    Priority = XrLayerPriority.UiQuods
+                    Priority = XrLayerPriority.UiQuods,
                 };
 
                 _app.Layers.Add(layer);
@@ -71,18 +83,54 @@ namespace XrEngine.OpenXr
 
         }
 
-        unsafe bool RenderQuod(SwapchainImageBaseHeader* image, Size2I size, long predTime, int eye)
+        unsafe bool RenderQuod(QuadData data, SwapchainImageBaseHeader* image,  long predTime)
         {
             Debug.Assert(_host != null);
 
             if (image == null)
                 return _host.EnableDepthCull || _host.NeedDraw;
 
-            //TODO handle vulkan
-            var glImage = (SwapchainImageOpenGLKHR*)image;
+            uint glImage;
 
-            _host.SetRenderTarget(glImage->Image, size.Width, size.Height, eye);
+            bool useAngle = OpenGLRender.Current!.UseAngle;
+
+            OpenGLRender.Current.PushGroup("Render Quad");
+
+            if (useAngle)
+            {
+                _vulkanCtx ??= Context.Require<AngleVulkanContext>();
+                
+                var vkImage = (nint)((SwapchainImageVulkanKHR*)image)->Image;
+
+                glImage = _vulkanCtx.AttachVulkanImage(
+                    vkImage,
+                    data.Format,
+                    (uint)data.Size.Width,
+                    (uint)data.Size.Height,
+                    1, 1, 1,
+                    ImageUsageFlags.SampledBit |
+                    ImageUsageFlags.ColorAttachmentBit |
+                    ImageUsageFlags.TransferDstBit |
+                    ImageUsageFlags.TransferSrcBit |
+                    ImageUsageFlags.InputAttachmentBit,
+                    ImageCreateFlags.None,
+                    TextureTarget.Texture2D).Texture;
+
+                _vulkanCtx.AcquireTexture(glImage, 0);
+            }
+            else
+                glImage = ((SwapchainImageOpenGLKHR*)image)->Image; 
+
+            _host.SetRenderTarget(glImage, (uint)data.Size.Width, (uint)data.Size.Height, data.Eye);
             _host.Draw(EngineApp.Current.RenderContext);
+
+            if (useAngle)
+            {
+               _vulkanCtx!.ReleaseTexture(glImage);
+            }
+
+
+            OpenGLRender.Current.PopGroup();
 
             return true;
         }

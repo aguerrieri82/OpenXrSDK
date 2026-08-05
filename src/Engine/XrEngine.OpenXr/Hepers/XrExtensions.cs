@@ -201,6 +201,7 @@ namespace XrEngine.OpenXr
         {
             var pool = new GlRenderTargetPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
+            pool.Name = "Main";
 
             xrApp.SessionChanged += (s, e) =>
             {
@@ -332,8 +333,9 @@ namespace XrEngine.OpenXr
                         (uint)info.ColorSize.Height,
                         info.ArraySize, 1, 1,
                         ImageUsageFlags.ColorAttachmentBit | 
-                        ImageUsageFlags.SampledBit,
-                        ImageCreateFlags.None,
+                        ImageUsageFlags.SampledBit |
+                        ImageUsageFlags.InputAttachmentBit,
+                        ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt,
                         target);
 
                 if (depthImagePtr == 0)
@@ -345,8 +347,9 @@ namespace XrEngine.OpenXr
                         (uint)info.DepthSize.Height,
                         info.ArraySize, 1, 1,
                         ImageUsageFlags.DepthStencilAttachmentBit | 
-                        ImageUsageFlags.SampledBit,
-                        ImageCreateFlags.None,
+                        ImageUsageFlags.SampledBit |
+                        ImageUsageFlags.InputAttachmentBit,
+                        ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt,
                         target);
 
                 return (colorImg.Texture, depthImg.Texture);

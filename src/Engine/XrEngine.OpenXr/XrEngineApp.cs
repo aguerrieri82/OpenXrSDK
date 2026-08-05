@@ -74,7 +74,7 @@ namespace XrEngine.OpenXr
 
                 if (_options.Driver == GraphicDriver.OpenGL)
                 {
-                    _xrApp.RenderOptions.DepthFormat = (long)GLEnum.DepthComponent16;
+                    _xrApp.RenderOptions.DepthFormat = (int)GLEnum.DepthComponent16;
                 }
             }
         }

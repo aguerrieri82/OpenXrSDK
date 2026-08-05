@@ -110,6 +110,7 @@ namespace OpenXr.Framework
             _extensions.Add("XR_KHR_composition_layer_depth");
             _extensions.Add(KhrVisibilityMask.ExtensionName);
             _extensions.Add(ExtDebugUtils.ExtensionName);
+            _extensions.Add("XR_KHR_swapchain_usage_input_attachment_bit");
 
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
@@ -879,7 +880,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.DestroySwapchain(swapchain), "DestroySwapchain");
         }
 
-        public long[] EnumerateSwapchainFormats()
+        public int[] EnumerateSwapchainFormats()
         {
             uint count = 0;
             CheckResult(_xr!.EnumerateSwapchainFormats(Session, 0, ref count, null), "EnumerateSwapchainFormats");
@@ -889,7 +890,7 @@ namespace OpenXr.Framework
             fixed (long* pResult = result)
                 CheckResult(_xr!.EnumerateSwapchainFormats(Session, count, ref count, pResult), "EnumerateSwapchainFormats");
 
-            return result;
+            return result.Select(a => (int)a).ToArray();
         }
 
         public NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
@@ -948,29 +949,15 @@ namespace OpenXr.Framework
             CheckResult(_xr!.ReleaseSwapchainImage(swapchain, in info), "ReleaseSwapchainImage");
         }
 
-        protected internal Swapchain CreateSwapChain(bool isDepth = false)
+
+        public Swapchain CreateSwapChain(Extent2Di size, 
+            int format, 
+            uint arraySize, 
+            SwapchainUsageFlags usage,  
+            bool mainSwapChain = false)
         {
-            if (_renderOptions == null)
-                throw new ArgumentNullException("renderOptions");
+            const uint VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT = 128;
 
-            var size = _renderOptions.Size;
-
-            if (_renderOptions.RenderMode == XrRenderMode.Stereo)
-                size.Width *= 2;
-
-            var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
-
-            var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
-
-            var usage = isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit;
-
-            usage |= SwapchainUsageFlags.SampledBit;
-
-            return CreateSwapChain(size, format, arraySize, usage, true);
-        }
-
-        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage,  bool mainSwapChain = false)
-        {
             var info = new SwapchainCreateInfo
             {
                 Type = StructureType.SwapchainCreateInfo,
@@ -984,10 +971,24 @@ namespace OpenXr.Framework
                 UsageFlags = usage
             };
 
+            var meta = new VulkanSwapchainCreateInfoMETA
+            {
+                Type = StructureType.VulkanSwapchainCreateInfoMeta,
+                Next = null,
+                AdditionalCreateFlags = 0,
+                AdditionalUsageFlags = 0
+            };
+
+            if ((usage & SwapchainUsageFlags.InputAttachmentBitKhr) != 0)
+                meta.AdditionalUsageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+
+            info.Next = &meta;
+
             if (mainSwapChain)
                 PluginInvoke(p => p.ConfigureSwapchain(ref info));
 
             var result = new Swapchain();
+
             CheckResult(_xr!.CreateSwapchain(Session, in info, ref result), "CreateSwapchain");
 
             return result;

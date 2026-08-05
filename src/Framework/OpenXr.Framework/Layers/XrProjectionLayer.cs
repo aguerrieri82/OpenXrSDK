@@ -118,15 +118,24 @@ namespace OpenXr.Framework
             var depthSize = new Extent2Di((int)(colorSize.Width * options.ProjectionDepthScale),
                                           (int)(colorSize.Height * options.ProjectionDepthScale));
 
+            var isMs = options.SampleCount > 1;
+
             for (var i = 0; i < _swapchains.Length; i++)
             {
-                var colorSwap = _xrApp.CreateSwapChain(false);
+                var colorSwap = _xrApp.CreateSwapChain(colorSize,
+                            options.ColorFormat,
+                            options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                            SwapchainUsageFlags.ColorAttachmentBit |
+                            SwapchainUsageFlags.SampledBit |
+                            SwapchainUsageFlags.InputAttachmentBitKhr, true);
 
                 var depthSwap = _useDepthSWC ? 
                     _xrApp.CreateSwapChain(depthSize, 
                             options.DepthFormat,
                             options.RenderMode == XrRenderMode.MultiView ? 2u : 1, 
-                            SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit) : new Swapchain();
+                            SwapchainUsageFlags.DepthStencilAttachmentBit | 
+                            SwapchainUsageFlags.SampledBit |
+                            SwapchainUsageFlags.InputAttachmentBitKhr, true) : new Swapchain();
 
                 _swapchains[i] = new XrSwapchainInfo
                 {

@@ -4,8 +4,7 @@ using Silk.NET.OpenXR.Extensions.KHR;
 using Silk.NET.Vulkan;
 using System.Text;
 using StructureType = Silk.NET.OpenXR.StructureType;
-using Silk.NET.Core.Contexts;
-using System.Diagnostics;
+using Common.Interop;
 
 
 
@@ -24,6 +23,8 @@ namespace OpenXr.Framework.Angle
         protected AngleVulkanContext _context;
         protected KhrVulkanEnable? _vulkanExt;
         protected XrDynamicType _swapChainType;
+
+        protected NativeStruct<VulkanSwapchainCreateInfoMETA> _swcMeta;
 
         protected GL? _gl;
 
@@ -45,6 +46,7 @@ namespace OpenXr.Framework.Angle
         {
             _app = app;
             extensions.Add(KhrVulkanEnable.ExtensionName);
+            extensions.Add("XR_META_vulkan_swapchain_create_info");
 
         }
 
@@ -55,12 +57,20 @@ namespace OpenXr.Framework.Angle
 
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
-            result.DepthFormat = (long)Format.D24UnormS8Uint;
+            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
+            result.DepthFormat = (int)Format.D24UnormS8Uint;
 
         }
 
-        public unsafe GraphicsBinding CreateBinding()
+        public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
+        {
+            var meta = (VulkanSwapchainCreateInfoMETA*)StructChain.FindNextStruct(ref info, StructureType.VulkanSwapchainCreateInfoMeta);
+
+            meta->AdditionalCreateFlags = (uint)ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt;
+
+        }
+
+        public GraphicsBinding CreateBinding()
         {
             var vulkanReq = new GraphicsRequirementsVulkanKHR()
             {
@@ -95,7 +105,7 @@ namespace OpenXr.Framework.Angle
                 Instance = new VkHandle(_context.VulkanInstanceHandle),
                 PhysicalDevice = physicalDevice,
                 QueueFamilyIndex = _context.QueueFamilyIndex,
-                QueueIndex = 0,
+                QueueIndex = 1,
             };
 
             _gl = GL.GetApi(_context);

@@ -25,7 +25,7 @@ namespace XrSamples.Dnd
             map.WorldMatrix = scene.Settings.MapTransform;
 
             return builder.UseApp(app)
-                    .AddPanel(new DndSettingsPanel(scene.Settings, scene), noOverlay: true)
+                    .AddPanel(new DndSettingsPanel(scene.Settings, scene), noOverlay: false)
                     .UseDefaultHDR()
                     .ConfigureApp(scene.InputController.Configure)
                     .ConfigureSampleApp()

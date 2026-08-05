@@ -12,13 +12,11 @@ namespace OpenXr.Framework.Oculus
         public Swapchain ColorSwapchain;
         public Swapchain DepthSwapchain;
         public NativeArray<SwapchainImageBaseHeader> ColorImages;
-
         public NativeArray<SwapchainImageBaseHeader> DepthImages;
     }
 
     public class XrSpaceWarpProjectionLayerV2 : XrProjectionLayer
     {
-
         readonly NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo;
         readonly IXrMotionVectorProvider _motionProvider;
         readonly Pose3[] _lastPose = new Pose3[2];
@@ -66,6 +64,7 @@ namespace OpenXr.Framework.Oculus
                           2,
                           SwapchainUsageFlags.ColorAttachmentBit | 
                           SwapchainUsageFlags.SampledBit |
+                          SwapchainUsageFlags.InputAttachmentBitKhr |
                           SwapchainUsageFlags.UnorderedAccessBit |
                           SwapchainUsageFlags.TransferDstBit |
                           SwapchainUsageFlags.TransferSrcBit);

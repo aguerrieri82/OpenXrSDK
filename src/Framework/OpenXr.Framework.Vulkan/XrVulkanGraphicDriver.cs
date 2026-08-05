@@ -40,9 +40,9 @@ namespace OpenXr.Framework.Vulkan
 
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
+            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
             if (result.DepthFormat == 0)
-                result.DepthFormat = (long)Format.D24UnormS8Uint;
+                result.DepthFormat = (int)Format.D24UnormS8Uint;
         }
 
         public GraphicsBinding CreateBinding()

@@ -22,7 +22,8 @@ namespace XrEngine.OpenGL
         {
             _pool = new GlRenderTargetPool(renderer.GL, multiView)
             {
-                ColorFormat = TextureFormat.GrayFloat32
+                ColorFormat = TextureFormat.GrayFloat32,
+                Name = "Depth Copy"
             };
 
             _effect = new DepthCopyFromColorEffect();

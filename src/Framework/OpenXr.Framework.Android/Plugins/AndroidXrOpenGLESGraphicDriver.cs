@@ -61,19 +61,16 @@ namespace OpenXr.Framework.Android
 
             var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
 
-            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
+            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((int)a));
 
             if (result.DepthFormat == 0)
-                result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
+                result.DepthFormat = (int)InternalFormat.Depth24Stencil8;
         }
 
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
-
             if (_app!.RenderOptions.RenderMode == XrRenderMode.MultiView)
                 info.SampleCount = 1;
-
-            base.ConfigureSwapchain(ref info);
         }
 
         public GraphicsBinding CreateBinding()

@@ -18,7 +18,7 @@ namespace OpenXr.Framework
             _usageCount = usageCount;
         }
 
-        public void Create(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = false)
+        public void Create(Extent2Di size, int format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = false)
         {
             if (_swapchain.Handle != 0)
                 _xrApp.DestroySwapchain(_swapchain);

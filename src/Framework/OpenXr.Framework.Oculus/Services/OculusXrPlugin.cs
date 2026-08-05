@@ -770,18 +770,20 @@ namespace OpenXr.Framework.Oculus
             if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;
 
+            /*
+            if ((info.UsageFlags & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0)
+                return;
+            */
+
             _foveationInfo.Value = new SwapchainCreateInfoFoveationFB
             {
                 Type = StructureType.SwapchainCreateInfoFoveationFB,
+                Next = null,
                 Flags = _options.Foveation
             };
 
-            ref var curInput = ref Unsafe.As<SwapchainCreateInfo, BaseInStructure>(ref info);
 
-            while (curInput.Next != null)
-                curInput = ref Unsafe.AsRef<BaseInStructure>(curInput.Next);
-
-            curInput.Next = (BaseInStructure*)_foveationInfo.Pointer;
+            StructChain.AddNextStruct(ref info, _foveationInfo.Pointer);
         }
 
         public unsafe float GetSampleRate(Action action, ulong subActionPath = 0)

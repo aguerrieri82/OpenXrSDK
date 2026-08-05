@@ -5,15 +5,24 @@ using XrMath;
 
 namespace OpenXr.Framework
 {
-    public unsafe delegate bool RenderQuadDelegate(SwapchainImageBaseHeader* image, Size2I size, long predTime, int eye);
+    public unsafe delegate bool RenderQuadDelegate(QuadData data, SwapchainImageBaseHeader* image, long predTime);
+
+    public class QuadData
+    {
+        public Extent2Di Size;
+
+        public int Format;
+
+        public int Eye;
+    }
 
     public class XrTextureQuadLayer : XrBaseQuadLayer
     {
         protected RenderQuadDelegate _renderQuad;
         protected Size2I _size;
         protected NativeArray<SwapchainImageBaseHeader>? _images;
-        protected int _eye;
         protected XrSwapchain? _swapchain;
+        protected QuadData _data;
 
 
         public XrTextureQuadLayer(GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size)
@@ -21,13 +30,14 @@ namespace OpenXr.Framework
         {
             _renderQuad = renderQuad;
             _size = size;
-            _eye = -1;
+            _data = new QuadData();
+            _data.Eye = -1;
         }
 
         public void ConfigureStereo(XrSwapchain swapchain, int eye)
         {
             _swapchain = swapchain;
-            _eye = eye;
+            _data.Eye = eye;
         }
 
         public override void Create()
@@ -36,21 +46,32 @@ namespace OpenXr.Framework
 
             var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
+            if (Format == 0)
+                Format = _xrApp.RenderOptions.ColorFormat;
+
+            _data.Format = Format;
+            _data.Size = extent;    
+
             _swapchain ??= new XrSwapchain(_xrApp, 1);
 
             if (!_swapchain.IsCreated)
             {
                 _swapchain.Create(extent,
-                    _xrApp.RenderOptions.ColorFormat, _eye != -1 ? 2u : 1u,
-                    SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
+                    Format,
+                    _data.Eye != -1 ? 2u : 1u,
+                    SwapchainUsageFlags.SampledBit | 
+                    SwapchainUsageFlags.ColorAttachmentBit |
+                    SwapchainUsageFlags.InputAttachmentBitKhr |
+                    SwapchainUsageFlags.TransferSrcBit |
+                    SwapchainUsageFlags.TransferDstBit);
             }
 
             _images = _swapchain.EnumerateImages();
 
             _header.ValueRef.SubImage.Swapchain = _swapchain;
-            _header.ValueRef.SubImage.ImageArrayIndex = _eye == -1 ? 0 : (uint)_eye;
+            _header.ValueRef.SubImage.ImageArrayIndex = _data.Eye == -1 ? 0 : (uint)_data.Eye;
             _header.ValueRef.SubImage.ImageRect.Extent = extent;
-            _header.ValueRef.EyeVisibility = _eye == -1 ? EyeVisibility.Both : (_eye == 0 ? EyeVisibility.Left : EyeVisibility.Right);
+            _header.ValueRef.EyeVisibility = _data.Eye == -1 ? EyeVisibility.Both : (_data.Eye == 0 ? EyeVisibility.Left : EyeVisibility.Right);
             _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
         }
 
@@ -76,7 +97,7 @@ namespace OpenXr.Framework
 
             try
             {
-                return _renderQuad(_images.ItemPointer((int)index), _size, predTime, _eye);
+                return _renderQuad(_data, _images.ItemPointer((int)index), predTime);
             }
             finally
             {
@@ -93,5 +114,6 @@ namespace OpenXr.Framework
 
         public Size2I Size => _size;
 
+        public int Format { get; set; }
     }
 }

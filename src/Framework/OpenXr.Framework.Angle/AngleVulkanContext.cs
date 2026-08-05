@@ -303,35 +303,36 @@ public sealed unsafe class AngleVulkanContext : IDisposable, INativeContext
         {
             if (!IsInitialized)
             {
-                ReadOnlySpan<byte> featureNameBytes = "permanentlySwitchToFramebufferFetchMode\0"u8;
-
-                byte* featureName = stackalloc byte[featureNameBytes.Length];
-                featureNameBytes.CopyTo(new Span<byte>(featureName, featureNameBytes.Length));
-
-                nint* disabledFeatures = stackalloc nint[]
+                 fixed (byte* feature0 = "permanentlySwitchToFramebufferFetchMode\0"u8)
+                 fixed (byte* feature1 = "supportsMultisampledRenderToSingleSampled\0"u8)
                 {
-                    (nint)featureName,
-                    0
-                };
+                    nint* disabledFeatures = stackalloc nint[]
+                    {
+                        //(nint)feature0,
+                        //(nint)feature1,
+                        0
+                    };
 
-                nint* displayAttributes = stackalloc nint[]
-                {
-                    EGL_PLATFORM_ANGLE_TYPE_ANGLE,
-                    EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
+                    nint* displayAttributes = stackalloc nint[]
+                    {
+                        EGL_PLATFORM_ANGLE_TYPE_ANGLE,
+                        EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
 
-                    EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
-                    EGL_TRUE,
+                        EGL_FEATURE_OVERRIDES_DISABLED_ANGLE,
+                        (nint)disabledFeatures,
 
-                    EGL_FEATURE_OVERRIDES_DISABLED_ANGLE,
-                    (nint)disabledFeatures,
+#if ANGLE_DEBUG
+                        EGL_PLATFORM_ANGLE_DEBUG_LAYERS_ENABLED_ANGLE,
+                        EGL_TRUE,
+#endif
+                        EGL_NONE
+                    };
 
-                    EGL_NONE
-                };
-
-                Display = _eglGetPlatformDisplayAttrib(
-                    EGL_PLATFORM_ANGLE_ANGLE,
-                    0,
-                    displayAttributes);
+                    Display = _eglGetPlatformDisplayAttrib(
+                        EGL_PLATFORM_ANGLE_ANGLE,
+                        0,
+                        displayAttributes);
+                }
 
                 CheckHandle(
                     Display,

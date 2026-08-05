@@ -33,9 +33,9 @@ namespace OpenXr.Framework
 
         public uint SampleCount { get; set; }
 
-        public long ColorFormat { get; set; }
+        public int ColorFormat { get; set; }
 
-        public long DepthFormat { get; set; }
+        public int DepthFormat { get; set; }
 
         public XrRenderMode RenderMode { get; set; }
 

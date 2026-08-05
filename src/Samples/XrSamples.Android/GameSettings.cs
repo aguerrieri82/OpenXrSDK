@@ -33,16 +33,16 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Bed",
+                SampleName = "DnD",
                 Msaa = 2,
                 Scale = 1f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.Angle,
-                IsMultiView = false,
-                UseSpaceWarp = false,
+                IsMultiView = true,
+                UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = false,
+                TextureCompression = true,
                 UseResolve = false
             };
         }

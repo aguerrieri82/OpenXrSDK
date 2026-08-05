@@ -139,7 +139,6 @@ namespace XrSamples.Android.Activities
                     {
                         opt.UseAsyncShaderCompile = false;
                         opt.UseShaderCache = false;
-
                     }
 
                 });
@@ -150,7 +149,7 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
-                   //.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale)
+                   .UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale)
                    .RemovePlaneGrid();
                    //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
