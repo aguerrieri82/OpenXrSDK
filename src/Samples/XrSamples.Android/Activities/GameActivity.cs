@@ -137,6 +137,7 @@ namespace XrSamples.Android.Activities
 
                     if (_settings.Driver == GraphicDriver.Angle)
                     {
+                        opt.UseShaderCache = false;
                     }
 
                 });

@@ -28,6 +28,9 @@
         {
             bld.PrepareTexture(Texture);
 
+            if (bld.Context.UseAngle)
+                bld.AddFeature("FLIP_Y");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)

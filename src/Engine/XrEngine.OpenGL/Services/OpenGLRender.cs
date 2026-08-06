@@ -102,6 +102,7 @@ namespace XrEngine.OpenGL
             _updateCtx = new GlUpdateContext
             {
                 RenderEngine = this,
+                UseAngle = useAngle
             };
 
             _dispatcher = new QueueDispatcher();

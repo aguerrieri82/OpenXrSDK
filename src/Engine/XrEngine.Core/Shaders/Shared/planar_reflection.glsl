@@ -24,6 +24,10 @@
 		
 		projCoords = projCoords * 0.5 + 0.5;
 
+		#ifdef ANGLE
+            projCoords.y = 1.0 - projCoords.y;
+        #endif
+
 		return projCoords.xy;
 	}
 	
@@ -44,6 +48,10 @@
 			vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
 		
 			projCoords = projCoords * 0.5 + 0.5;
+			
+			#ifdef ANGLE
+				projCoords.y = 1.0 - projCoords.y;
+			#endif
 
 			#ifdef PLANAR_REFLECTION_MV
 				vec4 reflectionColor = textureLod(

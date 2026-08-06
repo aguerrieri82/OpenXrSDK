@@ -26,6 +26,8 @@ namespace XrEngine.OpenGL
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+                if (bld.Context.UseAngle)
+                    bld.AddFeature("ANGLE");
 
                 if (bld.Context.IsSrgbAutoEncode)
                     bld.AddFeature("SRGB_AUTO_ENCODE");

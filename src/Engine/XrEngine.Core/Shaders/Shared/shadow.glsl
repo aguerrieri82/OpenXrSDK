@@ -54,6 +54,10 @@ const vec2 PCF_OFFSETS[8] = vec2[8](
 
                 projCoords = projCoords * 0.5 + 0.5;
 
+                #ifdef ANGLE
+                    projCoords.y = 1.0 - projCoords.y;
+                #endif
+
                 float bias = getShadowBias(normal, lightDir);
 
                 float currentDepth = projCoords.z - bias;
@@ -82,6 +86,10 @@ const vec2 PCF_OFFSETS[8] = vec2[8](
             vec3 projCoords = postLightSpace.xyz / postLightSpace.w;
 
             projCoords = projCoords * 0.5 + 0.5;
+
+            #ifdef ANGLE
+                projCoords.y = 1.0 - projCoords.y;
+            #endif
 
             float bias = getShadowBias(normal, lightDir);
 

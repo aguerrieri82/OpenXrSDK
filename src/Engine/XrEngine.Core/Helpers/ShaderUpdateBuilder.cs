@@ -108,6 +108,8 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
+        public bool UseAngle;
+
         public bool UseCopyDepth;
 
         public Texture2D? CopyDepthImage;
