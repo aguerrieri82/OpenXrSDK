@@ -7,6 +7,9 @@
     <Platform Name="x64" />
   </Configurations>
   <Folder Name="/#Build/">
+    <File Path="../third-party/build-angle-android.cmd" />
+    <File Path="../third-party/build-angle.cmd" />
+    <File Path="../third-party/build-angle.sh" />
     <File Path="../third-party/build-etcpak.cmd" />
     <File Path="../third-party/build-filament.cmd" />
     <File Path="../third-party/build-libtiff.cmd" />

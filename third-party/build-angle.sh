@@ -22,13 +22,21 @@ if [ ! -d "$DEPOT_TOOLS_DIR/.git" ]; then
     echo "Cloning depot_tools..."
 
     git clone \
+        --depth 1 \
+        --single-branch \
+        --no-tags \
+        --filter=blob:none \
         https://chromium.googlesource.com/chromium/tools/depot_tools.git \
         "$DEPOT_TOOLS_DIR"
 else
     echo "Updating depot_tools..."
 
-    git -C "$DEPOT_TOOLS_DIR" fetch origin
-    git -C "$DEPOT_TOOLS_DIR" checkout -f origin/main
+    git -C "$DEPOT_TOOLS_DIR" fetch \
+        --depth 1 \
+        --no-tags \
+        origin main
+
+    git -C "$DEPOT_TOOLS_DIR" checkout -f FETCH_HEAD
 fi
 
 #
@@ -39,13 +47,22 @@ if [ ! -d "$ANGLE_DIR/.git" ]; then
     echo "Cloning ANGLE..."
 
     git clone \
+        --depth 1 \
+        --single-branch \
+        --no-tags \
+        --filter=blob:none \
         --branch "$ANGLE_BRANCH" \
         "$ANGLE_REPO" \
         "$ANGLE_DIR"
 else
-    echo "Fetching ANGLE..."
+    echo "Updating ANGLE..."
 
-    git -C "$ANGLE_DIR" fetch origin
+    git -C "$ANGLE_DIR" fetch \
+        --depth 1 \
+        --no-tags \
+        origin "$ANGLE_BRANCH"
+
+    git -C "$ANGLE_DIR" checkout -f FETCH_HEAD
 fi
 
 echo "ANGLE ready."
@@ -53,7 +70,7 @@ echo "ANGLE ready."
 export PATH="$DEPOT_TOOLS_DIR:$PATH"
 
 #
-# Always write a valid .gclient
+# gclient configuration
 #
 
 cat > "$ROOT/.gclient" <<EOF
@@ -66,6 +83,10 @@ solutions = [
     "custom_deps": {},
     "custom_vars": {
       "checkout_angle_cl_deps": False,
+      "checkout_angle_dawn_deps": False,
+      "checkout_angle_internal": False,
+      "checkout_angle_mesa": False,
+      "checkout_angle_restricted_traces": False,
     },
   },
 ]
@@ -74,17 +95,27 @@ target_os = ["android"]
 EOF
 
 #
-# Sync dependencies from the directory containing .gclient
+# Dependencies
 #
 
 cd "$ROOT"
 
 if [ ! -f "$ROOT/.gclient_entries" ]; then
     echo "Initial dependency sync..."
-    gclient sync -f -D -R --no-history --shallow
+
+    gclient sync \
+        -f \
+        -D \
+        -R \
+        --no-history \
+        --shallow
 else
     echo "Incremental dependency sync..."
-    gclient sync
+
+    gclient sync \
+        -D \
+        --no-history \
+        --shallow
 fi
 
 #
@@ -112,6 +143,7 @@ angle_enable_gl=false
 angle_enable_vulkan=true
 angle_enable_vulkan_validation_layers=true
 angle_enable_wgpu=false
+angle_enable_d3d11=false
 angle_enable_null=false
 
 use_siso=false
@@ -138,9 +170,17 @@ echo "$DIST_DIR"
 
 mkdir -p "$DIST_DIR"
 
-cp -f "$ANGLE_DIR/$OUT_DIR/libEGL_angle.so" "$DIST_DIR/"
-cp -f "$ANGLE_DIR/$OUT_DIR/libGLESv2_angle.so" "$DIST_DIR/"
-cp -f "$ANGLE_DIR/$OUT_DIR/libVkLayer_khronos_validation.so" "$DIST_DIR/"
+cp -f \
+    "$ANGLE_DIR/$OUT_DIR/libEGL_angle.so" \
+    "$DIST_DIR/"
+
+cp -f \
+    "$ANGLE_DIR/$OUT_DIR/libGLESv2_angle.so" \
+    "$DIST_DIR/"
+
+cp -f \
+    "$ANGLE_DIR/$OUT_DIR/libVkLayer_khronos_validation.so" \
+    "$DIST_DIR/"
 
 echo
 echo "ANGLE Android ARM64 build complete"
