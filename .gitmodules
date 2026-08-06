@@ -37,3 +37,9 @@
 [submodule "third-party/glTF-CSharp-Loader"]
 	path = third-party/glTF-CSharp-Loader
 	url = https://github.com/KhronosGroup/glTF-CSharp-Loader
+[submodule "third-party/google/angle"]
+	path = third-party/google/angle
+	url = https://github.com/aguerrieri82/angle.git
+[submodule "third-party/google/depot_tools"]
+	path = third-party/google/depot_tools
+	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git

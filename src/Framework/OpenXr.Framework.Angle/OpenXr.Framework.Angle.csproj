@@ -27,13 +27,13 @@
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 
 		<Content Visible="false"
-			Include="runtimes/win-x64/*"
+			Include="$(NativeLibsDir)angle/win-x64/*"
 			CopyToOutputDirectory="PreserveNewest"
 			Link="%(Filename)%(Extension)"
 			UseLink="True" />
 
 		<Content Visible="false"
-			Include="runtimes/win-x64/angledata/*"
+			Include="$(NativeLibsDir)angle/win-x64/angledata/*"
 			CopyToOutputDirectory="PreserveNewest"
 			Link="angledata/%(Filename)%(Extension)"
 			UseLink="True" />
@@ -41,7 +41,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Include="runtimes/android-arm64/*" Abi="arm64-v8a" />
+		<AndroidNativeLibrary Include="$(NativeLibsDir)angle/android-arm64/*" Abi="arm64-v8a" />
 	</ItemGroup>
 
 </Project>
