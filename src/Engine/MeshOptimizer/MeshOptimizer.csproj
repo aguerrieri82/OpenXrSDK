@@ -10,6 +10,7 @@
 		<Content Include="$(NativeLibsDir)meshoptimizer\win-x64\*.dll"
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
+				 Visible="False"
 				 Link="%(Filename)%(Extension)"/>
 
 	</ItemGroup>

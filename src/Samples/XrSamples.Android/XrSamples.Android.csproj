@@ -12,7 +12,7 @@
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 		<UseOpenGL>true</UseOpenGL>
 		<DiagnosticOn>false</DiagnosticOn>
-		<CreateHardLinksForCopyLocalIfPossible>false</CreateHardLinksForCopyLocalIfPossible>
+
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(DiagnosticOn)' == 'True'">

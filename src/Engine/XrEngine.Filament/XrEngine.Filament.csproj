@@ -6,16 +6,17 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(FilamentLink)' != 'PreBuilt'">
-		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
+		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*"
 				 UseLink="True"
-				 CopyToOutputDirectory="PreserveNewest" 
-				 Link="%(Filename)%(Extension)" />	
+				 CopyToOutputDirectory="PreserveNewest"
+				 Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(FilamentLink)' == 'PreBuilt'">
-		<Content Include="$(NativeLibsDir)filament-native\win-x64\$(NativeFolder)\*" 
-				 CopyToOutputDirectory="PreserveNewest" 
+		<Content Include="$(NativeLibsDir)filament-native\win-x64\$(NativeFolder)\*"
+				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
+			     Visible="False"
 				 Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
@@ -26,11 +27,11 @@
 	<ItemGroup Condition="'$(IsAndroid)' == 'true' AND '$(FilamentLink)' == 'PreBuilt'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)filament-native\android-arm64\*" />
 	</ItemGroup>
-	
+
 	<ItemGroup Condition="'$(FilamentLink)' != 'PreBuilt'">
 		<ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>

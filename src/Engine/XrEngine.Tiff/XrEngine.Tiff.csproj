@@ -9,6 +9,7 @@
 			Include="$(NativeLibsDir)libtiff\win-x64\*.dll" 
 			CopyToOutputDirectory="PreserveNewest" 
 			UseLink="True"
+			Visible="False"
 			Link="%(Filename)%(Extension)" />
 
 	</ItemGroup>

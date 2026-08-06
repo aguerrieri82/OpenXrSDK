@@ -11,6 +11,7 @@
 		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
 				 CopyToOutputDirectory="PreserveNewest" 
 				 UseLink="True"
+				 Visible="False"
 				 Link="%(Filename)%(Extension)" />
 	
 	</ItemGroup>

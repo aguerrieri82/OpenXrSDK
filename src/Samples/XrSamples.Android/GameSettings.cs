@@ -33,7 +33,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Helmet",
+                SampleName = "DnD",
                 Msaa = 2,
                 Scale = 1f,
                 DepthScale = 0.25f,

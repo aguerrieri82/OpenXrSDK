@@ -22,6 +22,7 @@
 		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*"
 			 CopyToOutputDirectory="PreserveNewest"
 			 Link="%(Filename)%(Extension)" 
+			 Visible="False"
 		     UseLink="True" />
 	</ItemGroup>
 

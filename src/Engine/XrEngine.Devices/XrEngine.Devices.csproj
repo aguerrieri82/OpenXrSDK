@@ -15,11 +15,13 @@
 		<Content Include="..\UsbCamera.Native\Bin\$(NativePlatform)\$(NativeFolder)\*"
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
+				 Visible="False"
 				 Link="%(Filename)%(Extension)" />
 
 		<Content Include="$(NativeLibsDir)\libuvc\win-x64\*.dll"
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
+				 Visible="False"
 				 Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 

@@ -13,6 +13,7 @@
 		<PackageReference Include="NAudio.Core" Version="2.3.0" />
 		<Content 
 			Include="sfizz_api.dll" 
+			Visible="False"
 			CopyToOutputDirectory="PreserveNewest" 
 			UseLink="True" />
 	</ItemGroup>

@@ -2,19 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
-		<CreateHardLinksForCopyLocalIfPossible>false</CreateHardLinksForCopyLocalIfPossible>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="..\..\..\..\..\..\..\vk_layer_settings.txt" Link="runtimes\win-x64\vk_layer_settings.txt" />
-	</ItemGroup>
-	
-	<ItemGroup>
 		<PackageReference Include="Silk.NET.Vulkan" Version="2.23.0" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
-	  <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+		<ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
@@ -26,14 +21,25 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-		<DefineConstants>$(DefineConstants);__ANGLE_DEBUG</DefineConstants>
+		<DefineConstants>$(DefineConstants);ANGLE_DEBUG</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="runtimes/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />
-		<Content Include="runtimes/win-x64/angledata/*" CopyToOutputDirectory="PreserveNewest" Link="angledata/%(Filename)%(Extension)" UseLink="True" />
+
+		<Content Visible="false"
+			Include="runtimes/win-x64/*"
+			CopyToOutputDirectory="PreserveNewest"
+			Link="%(Filename)%(Extension)"
+			UseLink="True" />
+
+		<Content Visible="false"
+			Include="runtimes/win-x64/angledata/*"
+			CopyToOutputDirectory="PreserveNewest"
+			Link="angledata/%(Filename)%(Extension)"
+			UseLink="True" />
+
 	</ItemGroup>
-	
+
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Include="runtimes/android-arm64/*" Abi="arm64-v8a" />
 	</ItemGroup>

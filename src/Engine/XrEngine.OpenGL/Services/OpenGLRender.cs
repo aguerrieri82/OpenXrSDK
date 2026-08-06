@@ -517,7 +517,13 @@ namespace XrEngine.OpenGL
             _target.End(_options.InvalidateDepth);
 
             if (flush)
-                _gl.Finish();
+            {
+                if (_useAngle)
+                    _gl.Finish();
+                else
+                    _gl.Flush();
+            }
+
 
             PopGroup();
 
