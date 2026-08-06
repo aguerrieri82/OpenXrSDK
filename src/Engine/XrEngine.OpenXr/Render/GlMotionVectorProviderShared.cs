@@ -13,7 +13,6 @@ using System.Numerics;
 using XrMath;
 using Silk.NET.Vulkan;
 using OpenXr.Framework.Angle;
-using static CanvasUI.TextLayoutManager;
 
 namespace XrEngine.OpenXr
 {
@@ -27,7 +26,6 @@ namespace XrEngine.OpenXr
 
         protected GlMultiViewFrameBuffer _testFb;
 
-        protected Dictionary<uint, uint> _imageLayouts = [];
 
         public GlMotionVectorProviderShared(EngineApp app, OpenGLRender renderer)
         {
@@ -103,25 +101,12 @@ namespace XrEngine.OpenXr
 
         public void Begin()
         {
-
             if (_renderer.UseAngle)
-            {
-                var handle = (uint)_texture!.Handle;
-                if (!_imageLayouts.TryGetValue(handle, out var layout))
-                    layout = 0;
-                _context!.AcquireTexture(handle, layout);
-            }
-
+                _context!.AcquireTexture((uint)_texture!.Handle);
         }
 
         public void Swap(Camera camera, IEnumerable<Object3D> objects)
         {
-            if (_renderer.UseAngle)
-            {
-                var handle = (uint)_texture!.Handle;
-                _imageLayouts[handle] = _context!.ReleaseTexture(handle);
-            }
-
             foreach (var obj in objects)
                 obj.SetProp(EngineProps.MotionVectorPrev, obj.WorldMatrix);
 

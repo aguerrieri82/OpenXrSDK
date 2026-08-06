@@ -35,25 +35,25 @@ namespace XrEngine.Transcoder
                 if (outImg.ColorType == PngLib.ColorTypeRgba)
                 {
                     if (outImg.BitDepth == 8)
-                        format = isSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32;
+                        format = isSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8;
                     else if (outImg.BitDepth == 16)
-                        format = isSrgb ? TextureFormat.SRgbaInt16 : TextureFormat.RgbaInt16;
+                        format = isSrgb ? TextureFormat.SRgbaInt16 : TextureFormat.Rgba16;
                     else
                         throw new NotSupportedException();
                 }
                 else if (outImg.ColorType == PngLib.ColorTypeRgb)
                 {
                     if (outImg.BitDepth == 8)
-                        format = isSrgb ? TextureFormat.SRgb24 : TextureFormat.Rgb24;
+                        format = isSrgb ? TextureFormat.SRgb8 : TextureFormat.Rgb8;
                     else
                         throw new NotSupportedException();
                 }
                 else if (outImg.ColorType == PngLib.ColorTypeGray && !isSrgb)
                 {
                     if (outImg.BitDepth == 16)
-                        format = TextureFormat.GrayInt16;
+                        format = TextureFormat.Gray16;
                     else if (outImg.BitDepth == 8)
-                        format = TextureFormat.GrayInt8;
+                        format = TextureFormat.Gray8;
                     else
                         throw new NotSupportedException();
                 }

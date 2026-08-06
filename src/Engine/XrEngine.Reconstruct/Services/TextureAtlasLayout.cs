@@ -342,7 +342,7 @@ namespace XrEngine.Reconstruct
             {
                 MinFilter = ScaleFilter.Linear,
                 MagFilter = ScaleFilter.Linear,
-                Format = TextureFormat.Rgb24,
+                Format = TextureFormat.Rgb8,
                 Width = (uint)layout.AtlasWidth,
                 Height = (uint)layout.AtlasHeight,
             };

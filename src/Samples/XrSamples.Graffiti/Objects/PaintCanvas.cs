@@ -202,7 +202,7 @@ namespace XrSamples.Graffiti
         [Action]
         public void SaveImage()
         {
-            var texture = _colorTexture.ToGlTexture().Read(TextureFormat.Rgba32);
+            var texture = _colorTexture.ToGlTexture().Read(TextureFormat.Rgba8);
             using var image = ImageUtils.ToBitmap(texture![0], false, SKAlphaType.Unpremul)!;
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
             using var outStream = File.OpenWrite(SaveImageName!);

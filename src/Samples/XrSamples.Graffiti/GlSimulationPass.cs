@@ -375,14 +375,14 @@ namespace XrSamples.Graffiti
                 _undoDryTex?.UpdateFull(data);
                 _undoWetTex?.UpdateFull(data);
 
-                data.Format = TextureFormat.Rgba32;
+                data.Format = TextureFormat.Rgba8;
                 _canvas!.RoughnessTexture.ToGlTexture().UpdateFull(data);
 
-                data.Format = TextureFormat.Rgba32;
+                data.Format = TextureFormat.Rgba8;
                 _canvas!.NormalTexture.ToGlTexture().UpdateFull(data);
             }
 
-            data.Format = TextureFormat.Rgba32;
+            data.Format = TextureFormat.Rgba8;
             _canvas!.ColorTexture.ToGlTexture().UpdateFull(data);
 
             data.Format = TextureFormat.GrayFloat16;

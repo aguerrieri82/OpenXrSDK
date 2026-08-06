@@ -158,8 +158,8 @@ namespace XrEngine.OpenGL
 
             if (data.Format == TextureFormat.RgbFloat16)
                 format = TextureFormat.RgbaFloat16;
-            else if (data.Format == TextureFormat.Rgb24)
-                format = TextureFormat.Rgba32;
+            else if (data.Format == TextureFormat.Rgb8)
+                format = TextureFormat.Rgba8;
             else
                 format = data.Format;
 

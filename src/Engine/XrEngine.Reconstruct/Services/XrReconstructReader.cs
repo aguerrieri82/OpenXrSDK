@@ -169,9 +169,9 @@ namespace XrEngine.Reconstruct
             _rightColorReader = Context.RequireNew<IVideoReader>();
             _scrColorReader = Context.RequireNew<IVideoReader>();
 
-            _leftColorReader.Open(new Uri(outPath1), TextureFormat.Rgb24);
-            _rightColorReader.Open(new Uri(outPath2), TextureFormat.Rgb24);
-            _scrColorReader.Open(new Uri(outPath3), TextureFormat.Rgb24);
+            _leftColorReader.Open(new Uri(outPath1), TextureFormat.Rgb8);
+            _rightColorReader.Open(new Uri(outPath2), TextureFormat.Rgb8);
+            _scrColorReader.Open(new Uri(outPath3), TextureFormat.Rgb8);
 
             _stats = JsonSerializer.Deserialize<RecordStats>(File.ReadAllText(statsPath), JSON_OPT)!;
 
@@ -369,7 +369,7 @@ namespace XrEngine.Reconstruct
                 leftData.Data = MemoryBuffer.Create(bytes);
                 leftData.Width = 1280;
                 leftData.Height = 1280;
-                leftData.Format = TextureFormat.Rgb24;
+                leftData.Format = TextureFormat.Rgb8;
             }
             else
             {
@@ -393,7 +393,7 @@ namespace XrEngine.Reconstruct
                 rightData.Data = MemoryBuffer.Create(bytes);
                 rightData.Width = 1280;
                 rightData.Height = 1280;
-                rightData.Format = TextureFormat.Rgb24;
+                rightData.Format = TextureFormat.Rgb8;
             }
             else
             {
@@ -430,7 +430,7 @@ namespace XrEngine.Reconstruct
                 data.Data = MemoryBuffer.Create(bytes);
                 data.Width = 1280;
                 data.Height = 1280;
-                data.Format = TextureFormat.Rgb24;
+                data.Format = TextureFormat.Rgb8;
             }
             else
             {

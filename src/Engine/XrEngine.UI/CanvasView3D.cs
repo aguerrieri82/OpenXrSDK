@@ -213,7 +213,7 @@ namespace XrEngine.UI
             {
                 _defLeftTexture ??= new Texture2D
                 {
-                    Format = TextureFormat.Rgba32,
+                    Format = TextureFormat.Rgba8,
                     WrapS = WrapMode.ClampToEdge,
                     WrapT = WrapMode.ClampToEdge,
                     MinFilter = ScaleFilter.Linear,
@@ -231,7 +231,7 @@ namespace XrEngine.UI
                 {
                     _defRightTexture ??= new Texture2D
                     {
-                        Format = TextureFormat.Rgba32,
+                        Format = TextureFormat.Rgba8,
                         WrapS = WrapMode.ClampToEdge,
                         WrapT = WrapMode.ClampToEdge,
                         MinFilter = ScaleFilter.Linear,

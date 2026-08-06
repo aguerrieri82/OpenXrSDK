@@ -312,6 +312,15 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     #endregion
 
+    public class AquiredTexture
+    {
+        public uint Texture;
+
+        public uint LastLayout;
+
+        public bool IsAcquired;
+    }
+
     #region DELGATES DECLARATIONS
 
     private readonly EglGetProcAddress _eglGetProcAddress;
@@ -346,6 +355,8 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     private bool _disposed;
     private GL? _gl;
     private readonly Dictionary<nint, ImportedVulkanImage> _images = [];
+
+    private readonly Dictionary<uint, AquiredTexture> _acquiredTextures = [];
 
     public AngleVulkanContext()
     {
@@ -611,16 +622,49 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             throw;
         }
     }
-    public void AcquireTexture(uint texture, uint layout)
+
+    public void ReleaseAllTextures()
     {
-        _glAcquireTexturesAngle(1, &texture, &layout);
+        foreach (var info in _acquiredTextures.Values)
+        {
+            if (info.IsAcquired)
+                ReleaseTexture(info.Texture);
+        }
     }
 
-    public uint ReleaseTexture(uint texture)
+
+    public void AcquireTexture(uint texture)
     {
+        if (!_acquiredTextures.TryGetValue(texture, out var info))
+        {
+            info = new AquiredTexture
+            {
+                Texture = texture,
+                LastLayout = 0,
+                IsAcquired = false
+            };
+            _acquiredTextures[texture] = info;
+        }
+
+        if (!info.IsAcquired)
+        {
+            var layout = info.LastLayout;
+            _glAcquireTexturesAngle(1, &texture, &layout);
+            info.IsAcquired = true;
+        }
+    }
+
+    public void ReleaseTexture(uint texture)
+    {
+        if (!_acquiredTextures.TryGetValue(texture, out var info) || !info.IsAcquired)
+            throw new InvalidOperationException("Texture is not acquired.");
+
         uint layout;
+        
         _glReleaseTexturesAngle(1, &texture, &layout);
-        return layout;
+        
+        info.IsAcquired = false;
+        info.LastLayout = layout;
     }
 
     public void CreateWindowSurface(nint nativeWindow)

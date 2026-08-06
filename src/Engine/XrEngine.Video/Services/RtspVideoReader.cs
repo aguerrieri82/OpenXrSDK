@@ -27,7 +27,7 @@ namespace XrEngine.Video
 
         }
 
-        public void Open(Uri uri, TextureFormat outFormat = TextureFormat.Rgba32)
+        public void Open(Uri uri, TextureFormat outFormat = TextureFormat.Rgba8)
         {
             //_out = new FileStream("d:\\out.h264", FileMode.Create, FileAccess.Write);   
 
@@ -173,7 +173,7 @@ namespace XrEngine.Video
                     {
                         data.Width = FrameSize.Width;
                         data.Height = FrameSize.Height;
-                        data.Format = TextureFormat.Rgba32;
+                        data.Format = TextureFormat.Rgba8;
                         data.Data = MemoryBuffer.Create(_dstBuffer.ByteArray);
                     }
 

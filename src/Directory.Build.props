@@ -31,11 +31,6 @@
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
 	</PropertyGroup>
 
-
-	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-		<DefineConstants>$(DefineConstants);ANGLE_DEBUG</DefineConstants>
-	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>full</DebugType>

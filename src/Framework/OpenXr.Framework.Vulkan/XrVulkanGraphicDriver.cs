@@ -87,6 +87,8 @@ namespace OpenXr.Framework.Vulkan
 
         public XrDynamicType SwapChainImageType => _swapChainType;
 
+        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY;
+
         public void Dispose()
         {
 

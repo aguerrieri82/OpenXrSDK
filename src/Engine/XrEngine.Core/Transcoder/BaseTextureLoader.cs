@@ -24,7 +24,7 @@ namespace XrEngine
                 result.AlignX = 4;
                 result.AlignY = 4;
 
-                if (format == TextureFormat.Rgba32 || format == TextureFormat.SRgba32)
+                if (format == TextureFormat.Rgba8 || format == TextureFormat.SRgba8)
                     result.BitPerPixel = 8;
                 else
                     result.BitPerPixel = 4; ;
@@ -63,11 +63,11 @@ namespace XrEngine
                 {
                     result.BitPerPixel = 64;
                 }
-                else if (format == TextureFormat.Rgb24)
+                else if (format == TextureFormat.Rgb8)
                 {
                     result.BitPerPixel = 24;
                 }
-                else if (format == TextureFormat.SRgba32 || format == TextureFormat.Rgba32)
+                else if (format == TextureFormat.SRgba8 || format == TextureFormat.Rgba8)
                 {
                     result.BitPerPixel = 32;
                 }

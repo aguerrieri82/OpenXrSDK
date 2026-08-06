@@ -286,7 +286,7 @@ namespace XrEngine.Devices.Android
                 
                 //_texSurface IS CREATED as Rgba32 in GL ALWAYS but contains Srgb
                 outTexture.ForceSrgb = true;
-                outTexture.Format = TextureFormat.Rgba32;
+                outTexture.Format = TextureFormat.Rgba8;
                 //
 
                 outTexture.Width = (uint)format.Width;

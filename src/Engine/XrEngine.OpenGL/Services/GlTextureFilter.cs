@@ -41,7 +41,7 @@ namespace XrEngine.OpenGL
             {
                 program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
 
-                if (src.Format == TextureFormat.Rgba32 || src.Format == TextureFormat.SRgba32)
+                if (dst.Format == TextureFormat.Rgba8 || dst.Format == TextureFormat.SRgba8)
                     program.AddFeature("FORMAT rgba8");
 
                 if (src.Depth > 1 || dst.Depth > 1)
@@ -96,7 +96,7 @@ namespace XrEngine.OpenGL
             {
                 program = new GlComputeProgram(_gl, progName, str => Embedded.GetString<Material>(str));
 
-                if (src.Format == TextureFormat.Rgba32 || src.Format == TextureFormat.SRgba32)
+                if (src.Format == TextureFormat.Rgba8 || src.Format == TextureFormat.SRgba8)
                     program.AddFeature("FORMAT rgba8");
 
                 if (src.Depth > 1 || dst.Depth > 1)

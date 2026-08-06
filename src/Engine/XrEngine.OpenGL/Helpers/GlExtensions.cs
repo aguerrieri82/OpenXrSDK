@@ -339,12 +339,12 @@ namespace XrEngine.OpenGL
 #if GLES
             //Necessary for generate mips
 
-            if (texture2D.Format == TextureFormat.SRgb24 &&
+            if (texture2D.Format == TextureFormat.SRgb8 &&
                 texture2D.MipLevelCount > 1 &&
                 texture2D.Data != null &&
                 texture2D.Data.Count == 1)
             {
-                texture2D.Format = TextureFormat.SRgba32;
+                texture2D.Format = TextureFormat.SRgba8;
                 texture2D.Data[0] = ImageUtils.PackToRgba8(texture2D.Data[0], 1);
             }
 

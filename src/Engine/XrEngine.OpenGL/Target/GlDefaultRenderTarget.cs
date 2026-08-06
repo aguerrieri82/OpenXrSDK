@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         private readonly uint _sampleCount;
         private readonly bool _useRenderBuffer;
 
-        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount, TextureFormat colorFormat = TextureFormat.SRgba32)
+        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount, TextureFormat colorFormat = TextureFormat.SRgba8)
         {
             _gl = gl;
             _sampleCount = sampleCount;

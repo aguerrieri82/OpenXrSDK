@@ -11,18 +11,18 @@ namespace XrEditor.Services
             PixelFormat pFormat;
             int stride;
 
-            if (format == TextureFormat.GrayInt8)
+            if (format == TextureFormat.Gray8)
             {
                 pFormat = PixelFormats.Gray8;
                 stride = (int)width;
 
             }
-            else if (format == TextureFormat.Rgba32)
+            else if (format == TextureFormat.Rgba8)
             {
                 pFormat = PixelFormats.Bgra32;
                 stride = (int)width * 4;
             }
-            else if (format == TextureFormat.Rgb24)
+            else if (format == TextureFormat.Rgb8)
             {
                 pFormat = PixelFormats.Rgb24;
                 stride = (int)width * 3;

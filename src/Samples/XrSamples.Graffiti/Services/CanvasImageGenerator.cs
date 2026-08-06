@@ -235,7 +235,7 @@ namespace XrSamples.Graffiti
 
             Log.Info(this, "Finish complete");
 
-            var texture = canvas.ColorTexture.ToGlTexture().Read(TextureFormat.Rgba32);
+            var texture = canvas.ColorTexture.ToGlTexture().Read(TextureFormat.Rgba8);
             var image = ImageUtils.ToBitmap(texture![0], false, SKAlphaType.Unpremul);
             return image!;
         }

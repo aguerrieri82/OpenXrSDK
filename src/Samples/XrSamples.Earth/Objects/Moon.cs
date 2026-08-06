@@ -19,7 +19,7 @@ namespace XrSamples.Earth
             Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/lroc_color_poles_16k.tif");
             Albedo.WrapS = WrapMode.Repeat;
             Albedo.WrapT = WrapMode.Repeat;
-            Albedo.Format = TextureFormat.SBgra32;
+            Albedo.Format = TextureFormat.SBgra8;
             Albedo.MinFilter = ScaleFilter.LinearMipmapLinear;
             Albedo.MipLevelCount = 20;
 

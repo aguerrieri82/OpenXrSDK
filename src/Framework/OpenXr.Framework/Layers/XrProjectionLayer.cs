@@ -71,7 +71,7 @@ namespace OpenXr.Framework
                     Next = null
                 };
 
-                _header.ValueRef.Next = _depthTest.Pointer;
+                StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
             }
         }
 
@@ -197,7 +197,7 @@ namespace OpenXr.Framework
                         depthInfo->SubImage.Swapchain = swapchain.DepthSwapchain;
                         depthInfo->SubImage.ImageRect = new Rect2Di(new Offset2Di(0, 0), swapchain.DepthSize);
 
-                        projView.Next = depthInfo;
+                        StructChain.AddNextStruct(ref projView, depthInfo);
 
                         if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
                         {

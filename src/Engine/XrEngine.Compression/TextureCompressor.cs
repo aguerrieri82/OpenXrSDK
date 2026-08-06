@@ -129,7 +129,7 @@ namespace XrEngine.Compression
 
                     if (compressor.RequireRgba)
                     {
-                        if (resizeData.Format == TextureFormat.RgbaInt16)
+                        if (resizeData.Format == TextureFormat.Rgba16)
                         {
                             Debug.Assert(compressor.Align == 1);
                             packData = ImageUtils.ConvertRgba16ToRgba32F(resizeData);

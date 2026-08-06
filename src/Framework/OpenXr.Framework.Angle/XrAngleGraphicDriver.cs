@@ -114,10 +114,17 @@ namespace OpenXr.Framework.Angle
 
             return binding;
         }
+
+        public override void OnFrameEnd()
+        {
+            _context.ReleaseAllTextures();
+        }
         
         public GL? Gl => _gl;
 
         public XrDynamicType SwapChainImageType => _swapChainType;
+
+        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY;
 
         public void Dispose()
         {

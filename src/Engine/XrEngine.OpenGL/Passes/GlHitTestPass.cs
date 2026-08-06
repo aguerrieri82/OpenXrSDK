@@ -24,7 +24,7 @@ namespace XrEngine.OpenGL
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 DepthFormat = TextureFormat.Depth24,
-                ColorFormat = TextureFormat.RgUint32,
+                ColorFormat = TextureFormat.RgUInt32,
                 Name = "HitTest"
             };
 

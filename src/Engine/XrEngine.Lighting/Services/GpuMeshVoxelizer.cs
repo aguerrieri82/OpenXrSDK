@@ -303,13 +303,13 @@ namespace XrEngine.Lighting
             };
 
             target.Color = new GlTexture(_gl);
-            target.Color.Allocate(width, height, layers, TextureFormat.Rgba32);
+            target.Color.Allocate(width, height, layers, TextureFormat.Rgba8);
 
             target.Normal = new GlTexture(_gl);
             target.Normal.Allocate(width, height, layers, TextureFormat.RgbFloat16);
 
             target.Material = new GlTexture(_gl);
-            target.Material.Allocate(width, height, layers, TextureFormat.Rgb24);
+            target.Material.Allocate(width, height, layers, TextureFormat.Rgb8);
 
             target.Depth = new GlTexture(_gl);
             target.Depth.Allocate(width, height, layers, TextureFormat.Depth24);

@@ -116,19 +116,13 @@ namespace XrEngine.OpenXr
                     ImageCreateFlags.None,
                     TextureTarget.Texture2D).Texture;
 
-                _vulkanCtx.AcquireTexture(glImage, 0);
+                _vulkanCtx.AcquireTexture(glImage);
             }
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image; 
 
             _host.SetRenderTarget(glImage, (uint)data.Size.Width, (uint)data.Size.Height, data.Eye);
             _host.Draw(EngineApp.Current.RenderContext);
-
-            if (useAngle)
-            {
-               _vulkanCtx!.ReleaseTexture(glImage);
-            }
-
 
             OpenGLRender.Current.PopGroup();
 

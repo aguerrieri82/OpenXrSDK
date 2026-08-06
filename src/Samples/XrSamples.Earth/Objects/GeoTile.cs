@@ -71,7 +71,7 @@ namespace XrSamples.Earth
 
             var texData = tiff.Read();
 
-            if (texData.Format == TextureFormat.GrayRawSInt16)
+            if (texData.Format == TextureFormat.GrayInt16)
             {
                 texData.Data = ImageUtils.ConvertShortToFloat(texData.Data!);
                 texData.Format = TextureFormat.GrayFloat32;
@@ -201,7 +201,7 @@ namespace XrSamples.Earth
                 HeightMap.MagFilter = ScaleFilter.LinearMipmapLinear;
                 HeightMap.MinFilter = ScaleFilter.Linear;
 
-                if (texData.Format == TextureFormat.GrayRawSInt16)
+                if (texData.Format == TextureFormat.GrayInt16)
                 {
                     HeightMap.MagFilter = ScaleFilter.Nearest;
                     HeightMap.MinFilter = ScaleFilter.Nearest;

@@ -72,7 +72,7 @@ namespace XrEngine
             {
                 case GlInternalFormat.CompressedRgb8Etc2:
                     comp = TextureCompressionFormat.Etc2;
-                    format = TextureFormat.Rgb24;
+                    format = TextureFormat.Rgb8;
                     break;
                 default:
                     throw new NotSupportedException();

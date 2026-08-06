@@ -56,7 +56,7 @@ namespace XrEngine.Media.Android
             GC.SuppressFinalize(this);
         }
 
-        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba32)
+        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba8)
         {
             if (!source.IsFile)
                 throw new NotSupportedException();

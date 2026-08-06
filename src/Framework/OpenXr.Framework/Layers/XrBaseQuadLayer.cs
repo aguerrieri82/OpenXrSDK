@@ -15,7 +15,7 @@ namespace OpenXr.Framework
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
 
 
-        public XrBaseQuadLayer(GetQuadDelegate getQuad)
+        public unsafe XrBaseQuadLayer(GetQuadDelegate getQuad)
         {
             _getQuad = getQuad;
             _header.ValueRef.Type = StructureType.CompositionLayerQuad;
@@ -23,8 +23,12 @@ namespace OpenXr.Framework
             _depthTest.Value = new CompositionLayerDepthTestFB
             {
                 Type = StructureType.CompositionLayerDepthTestFB,
+                DepthMask = 0,
+                CompareOp = CompareOpFB.LessOrEqualFB,
                 Next = null
             };
+
+            StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
 
             Priority = XrLayerPriority.BaseQuods;
         }
@@ -32,19 +36,11 @@ namespace OpenXr.Framework
         protected override unsafe bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {
             var quad = _getQuad();
-
             var pose = quad.Pose;
-
-            _depthTest.ValueRef.DepthMask = 0;
-            _depthTest.ValueRef.CompareOp = CompareOpFB.LessOrEqualFB;
-
-            var val = _depthTest.Value;
 
             layer.Size.Width = quad.Size.X;
             layer.Size.Height = quad.Size.Y;
             layer.Pose = _xrApp!.ReferenceFrame.Inverse().Multiply(quad.Pose).ToPoseF();
-
-            layer.Next = _depthTest.Pointer;
 
             return true;
         }

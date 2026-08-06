@@ -36,46 +36,46 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth16 or
                 TextureFormat.Depth24 => PixelFormat.DepthComponent,
 
-                TextureFormat.Depth32Stencil8 or
+                TextureFormat.Depth32FloatStencil8 or
                 TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
 
-                TextureFormat.SRgba32 or
+                TextureFormat.SRgba8 or
                 TextureFormat.RgbaFloat32 or
                 TextureFormat.RgbaFloat16 or
-                TextureFormat.RgbaInt16 or
+                TextureFormat.Rgba16 or
                 TextureFormat.SRgbaInt16 or
-                TextureFormat.Rgba32 => PixelFormat.Rgba,
+                TextureFormat.Rgba8 => PixelFormat.Rgba,
 
-                TextureFormat.SBgra32 or
-                TextureFormat.Bgra32 => PixelFormat.Bgra,
+                TextureFormat.SBgra8 or
+                TextureFormat.Bgra8 => PixelFormat.Bgra,
 
-                TextureFormat.GrayUint32 => PixelFormat.RedInteger,
+                TextureFormat.GrayUInt32 => PixelFormat.RedInteger,
 
-                TextureFormat.GrayInt8 or
+                TextureFormat.Gray8 or
 
-                TextureFormat.GrayInt16 => PixelFormat.Red,
+                TextureFormat.Gray16 => PixelFormat.Red,
 
-                TextureFormat.GrayRawSInt16 => PixelFormat.RedInteger,
+                TextureFormat.GrayInt16 => PixelFormat.RedInteger,
 
                 TextureFormat.RgFloat32 or
                 TextureFormat.RgFloat16 or
 
-                TextureFormat.Rg88 => PixelFormat.RG,
+                TextureFormat.Rg8 => PixelFormat.RG,
 
-                TextureFormat.RgUint32 => PixelFormat.RGInteger,
+                TextureFormat.RgUInt32 => PixelFormat.RGInteger,
 
-                TextureFormat.RgbUint32 => PixelFormat.RgbInteger,
+                TextureFormat.RgbUInt32 => PixelFormat.RgbInteger,
 
-                TextureFormat.RgbaUint32 => PixelFormat.RgbaInteger,
+                TextureFormat.RgbaUInt32 => PixelFormat.RgbaInteger,
 
                 TextureFormat.GrayFloat32 or
                 TextureFormat.GrayFloat16 => PixelFormat.Red,
 
-                TextureFormat.Rgb24 or
+                TextureFormat.Rgb8 or
                 TextureFormat.RgbFloat16 or
                 TextureFormat.RgbFloat32 or
                 TextureFormat.Rgb9e5Float or
-                TextureFormat.SRgb24 => PixelFormat.Rgb,
+                TextureFormat.SRgb8 => PixelFormat.Rgb,
 
                 _ => throw new NotSupportedException(),
             };
@@ -92,33 +92,33 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayFloat16 => PixelType.Float,
 
                 TextureFormat.Depth24 or
-                TextureFormat.RgUint32 or
-                TextureFormat.RgbUint32 or
-                TextureFormat.RgbaUint32 or
-                TextureFormat.GrayUint32 => PixelType.UnsignedInt,
+                TextureFormat.RgUInt32 or
+                TextureFormat.RgbUInt32 or
+                TextureFormat.RgbaUInt32 or
+                TextureFormat.GrayUInt32 => PixelType.UnsignedInt,
 
                 TextureFormat.RgbFloat16 or
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
 
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
-                TextureFormat.Depth32Stencil8 => PixelType.Float32UnsignedInt248Rev,
+                TextureFormat.Depth32FloatStencil8 => PixelType.Float32UnsignedInt248Rev,
 
                 TextureFormat.Depth16 or
-                TextureFormat.GrayInt16 or
-                TextureFormat.RgbaInt16 or
+                TextureFormat.Gray16 or
+                TextureFormat.Rgba16 or
                 TextureFormat.SRgbaInt16 => PixelType.UnsignedShort,
 
-                TextureFormat.GrayRawSInt16 => PixelType.Short,
+                TextureFormat.GrayInt16 => PixelType.Short,
 
-                TextureFormat.Rgba32 or
-                TextureFormat.Bgra32 or
-                TextureFormat.GrayInt8 or
-                TextureFormat.Rgb24 or
-                TextureFormat.SRgb24 or
-                TextureFormat.SBgra32 or
-                TextureFormat.Rg88 or
-                TextureFormat.SRgba32 => PixelType.UnsignedByte,
+                TextureFormat.Rgba8 or
+                TextureFormat.Bgra8 or
+                TextureFormat.Gray8 or
+                TextureFormat.Rgb8 or
+                TextureFormat.SRgb8 or
+                TextureFormat.SBgra8 or
+                TextureFormat.Rg8 or
+                TextureFormat.SRgba8 => PixelType.UnsignedByte,
 
                 _ => throw new NotSupportedException(),
             };
@@ -133,47 +133,37 @@ namespace XrEngine.OpenGL
                     TextureFormat.Depth32Float => InternalFormat.DepthComponent32f,
                     TextureFormat.Depth24 => InternalFormat.DepthComponent24,
                     TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
-                    TextureFormat.Depth32Stencil8 => InternalFormat.Depth32fStencil8,
+                    TextureFormat.Depth32FloatStencil8 => InternalFormat.Depth32fStencil8,
                     TextureFormat.Depth16 => InternalFormat.DepthComponent16,
 
-                    TextureFormat.SBgra32 or
-                    TextureFormat.SRgba32 => InternalFormat.Srgb8Alpha8,
+                    TextureFormat.SBgra8 or
+                    TextureFormat.SRgba8 => InternalFormat.Srgb8Alpha8,
 
-                    TextureFormat.Rgba32 or
-                    TextureFormat.Bgra32 => InternalFormat.Rgba8,
+                    TextureFormat.Rgba8 or
+                    TextureFormat.Bgra8 => InternalFormat.Rgba8,
 
-                    TextureFormat.GrayInt8 => InternalFormat.R8,
-                    TextureFormat.GrayInt16 => InternalFormat.R16,
-                    TextureFormat.GrayRawSInt16 => InternalFormat.R16i,
-                    TextureFormat.GrayUint32 => InternalFormat.R32ui,
-
-                    TextureFormat.RgUint32 => InternalFormat.RG32ui,
-
-                    TextureFormat.RgbUint32 => InternalFormat.Rgb32ui,
-
-                    TextureFormat.RgbaUint32 => InternalFormat.Rgba32ui,
-
-                    TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
-
-                    TextureFormat.RgbaFloat32 => InternalFormat.Rgba32f,
-
-                    TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
-
-                    TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
-
-                    TextureFormat.RgFloat16 => InternalFormat.RG16f,
-
-                    TextureFormat.RgFloat32 => InternalFormat.RG32f,
-
-                    TextureFormat.GrayFloat32 => InternalFormat.R32f,
+                    TextureFormat.Gray8 => InternalFormat.R8,   
+                    TextureFormat.Gray16 => InternalFormat.R16,
+                    TextureFormat.GrayInt16 => InternalFormat.R16i,
                     TextureFormat.GrayFloat16 => InternalFormat.R16f,
+                    TextureFormat.GrayUInt32 => InternalFormat.R32ui,
+                    TextureFormat.GrayFloat32 => InternalFormat.R32f,
 
-                    TextureFormat.RgbaInt16 => InternalFormat.Rgba16,
+                    TextureFormat.RgUInt32 => InternalFormat.RG32ui,
+                    TextureFormat.RgFloat16 => InternalFormat.RG16f,
+                    TextureFormat.RgFloat32 => InternalFormat.RG32f,
+                    TextureFormat.Rg8 => InternalFormat.RG8,
 
-                    TextureFormat.Rgb24 => InternalFormat.Rgb8,
-                    TextureFormat.SRgb24 => InternalFormat.Srgb8,
+                    TextureFormat.RgbUInt32 => InternalFormat.Rgb32ui,
+                    TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
+                    TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
+                    TextureFormat.Rgb8 => InternalFormat.Rgb8,
+                    TextureFormat.SRgb8 => InternalFormat.Srgb8,
 
-                    TextureFormat.Rg88 => InternalFormat.RG8,
+                    TextureFormat.RgbaUInt32 => InternalFormat.Rgba32ui,
+                    TextureFormat.RgbaFloat32 => InternalFormat.Rgba32f,
+                    TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
+                    TextureFormat.Rgba16 => InternalFormat.Rgba16,
 
                     TextureFormat.Rgb9e5Float => InternalFormat.Rgb9E5,
 
@@ -185,10 +175,10 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
-                    TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2EacOes,
-                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgb8Etc2,
-                    TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2EacOes,
+                    TextureFormat.Rgb8 => InternalFormat.CompressedRgb8Etc2,
+                    TextureFormat.Rgba8 => InternalFormat.CompressedRgba8Etc2EacOes,
+                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgb8Etc2,
+                    TextureFormat.SRgba8 => InternalFormat.CompressedSrgb8Alpha8Etc2EacOes,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
@@ -231,8 +221,8 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgbAlphaS3TCDxt5Ext,
-                    TextureFormat.Rgb24 => InternalFormat.CompressedRgbaS3TCDxt5Ext,
+                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgbAlphaS3TCDxt5Ext,
+                    TextureFormat.Rgb8 => InternalFormat.CompressedRgbaS3TCDxt5Ext,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
@@ -240,8 +230,8 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgbAlphaS3TCDxt1Ext,
-                    TextureFormat.Rgb24 => InternalFormat.CompressedRgbaS3TCDxt1Ext,
+                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgbAlphaS3TCDxt1Ext,
+                    TextureFormat.Rgb8 => InternalFormat.CompressedRgbaS3TCDxt1Ext,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
@@ -249,8 +239,8 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgbAlphaBptcUnormArb,
-                    TextureFormat.Rgb24 => InternalFormat.CompressedRgbaBptcUnormArb,
+                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgbAlphaBptcUnormArb,
+                    TextureFormat.Rgb8 => InternalFormat.CompressedRgbaBptcUnormArb,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
@@ -261,31 +251,31 @@ namespace XrEngine.OpenGL
         {
             return internalFormat switch
             {
-                InternalFormat.Rgba16 => TextureFormat.RgbaInt16,
+                InternalFormat.Rgba16 => TextureFormat.Rgba16,
                 InternalFormat.Rgb9E5 => TextureFormat.Rgb9e5Float,
                 InternalFormat.Rgb32f => TextureFormat.RgbFloat32,
                 InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,
-                InternalFormat.Rgba => TextureFormat.Rgba32,
-                InternalFormat.Rgba8 => TextureFormat.Rgba32,
-                InternalFormat.Srgb8Alpha8 => TextureFormat.SRgba32,
-                InternalFormat.R16 => TextureFormat.GrayInt16,
+                InternalFormat.Rgba => TextureFormat.Rgba8,
+                InternalFormat.Rgba8 => TextureFormat.Rgba8,
+                InternalFormat.Srgb8Alpha8 => TextureFormat.SRgba8,
+                InternalFormat.R16 => TextureFormat.Gray16,
                 InternalFormat.RG16f => TextureFormat.RgbFloat16,
                 InternalFormat.R32f => TextureFormat.GrayFloat32,
                 InternalFormat.R16f => TextureFormat.GrayFloat16,
                 //InternalFormat.DepthComponent16 => TextureFormat.GrayInt16,
-                InternalFormat.R8 => TextureFormat.GrayInt8,
+                InternalFormat.R8 => TextureFormat.Gray8,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
                 InternalFormat.DepthComponent24 => TextureFormat.Depth24,
-                InternalFormat.Depth32fStencil8 => TextureFormat.Depth32Stencil8,
+                InternalFormat.Depth32fStencil8 => TextureFormat.Depth32FloatStencil8,
                 InternalFormat.DepthComponent32f => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent16 => TextureFormat.Depth16,
-                InternalFormat.Rgb8 => TextureFormat.Rgb24,
-                InternalFormat.RG32ui => TextureFormat.RgUint32,
-                InternalFormat.Rgb32ui => TextureFormat.RgbUint32,
-                InternalFormat.Rgba32ui => TextureFormat.RgbaUint32,
-                InternalFormat.R32ui => TextureFormat.GrayUint32,
-                InternalFormat.Srgb8 => TextureFormat.SRgb24,
+                InternalFormat.Rgb8 => TextureFormat.Rgb8,
+                InternalFormat.RG32ui => TextureFormat.RgUInt32,
+                InternalFormat.Rgb32ui => TextureFormat.RgbUInt32,
+                InternalFormat.Rgba32ui => TextureFormat.RgbaUInt32,
+                InternalFormat.R32ui => TextureFormat.GrayUInt32,
+                InternalFormat.Srgb8 => TextureFormat.SRgb8,
                 InternalFormat.Rgb16f => TextureFormat.RgbFloat16,
                 InternalFormat.RG32f => TextureFormat.RgFloat32,
 

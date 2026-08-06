@@ -1,7 +1,15 @@
-﻿
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using OpenXr.Framework;
+using OpenXr.Framework.Angle;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
+using StructureType = Silk.NET.OpenXR.StructureType;
+using Silk.NET.Vulkan;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -12,9 +20,11 @@ namespace XrEngine.OpenXr
         protected readonly Dictionary<long, Texture2D> _textures;
         protected readonly XrPassthroughLayer _passTh;
         protected long _lastFrameTime;
+        protected bool _useAngle;
         protected Texture2D? _outTexture;
         protected Texture2D? _lastTexture;
         protected Camera? _lastCamera;
+        protected uint _lastGlImage;
 
         public OculusEnvDepthProvider(XrApp xrApp)
         {
@@ -23,6 +33,7 @@ namespace XrEngine.OpenXr
             _xrApp = xrApp;
             _textures = [];
             _lastFrameTime = -1;
+            _useAngle = _xrApp.Plugin<IXrGraphicDriver>() is XrAngleGraphicDriver;
             Blur = true;
         }
 
@@ -78,21 +89,42 @@ namespace XrEngine.OpenXr
                     depthCamera.Eyes[i].ViewProjInv = depthCamera.Eyes[i].ViewProj.Invert();
                 }
 
-                var img = _passTh.EnvironmentDepth.Images!.ItemPointer((int)data.SwapchainIndex);
-                var type = img->Type;
+                var image = _passTh.EnvironmentDepth.Images!.ItemPointer((int)data.SwapchainIndex);
+                var type = image->Type;
 
                 if (type == StructureType.SwapchainImageOpenglKhr ||
-                    type == StructureType.SwapchainImageOpenglESKhr)
+                    type == StructureType.SwapchainImageOpenglESKhr || _useAngle)
                 {
-                    var glImg = *(SwapchainImageOpenGLKHR*)img;
 
-                    if (!_textures.TryGetValue(glImg.Image, out var texture))
+                    if (_useAngle)
+                    {
+                        var ctx = Context.Require<AngleVulkanContext>();
+                        var vkImage = (nint)((SwapchainImageVulkanKHR*)image)->Image;
+                        
+                        _lastGlImage = ctx.AttachVulkanImage(
+                            vkImage,
+                            (int)Format.D16Unorm,
+                            (uint)_passTh.EnvironmentDepth.Size.Width,
+                            (uint)_passTh.EnvironmentDepth.Size.Height,
+                            2, 1, 1,
+                            ImageUsageFlags.SampledBit |
+                            ImageUsageFlags.DepthStencilAttachmentBit,
+                            ImageCreateFlags.None,
+                            TextureTarget.Texture2DArray).Texture;
+
+                        ctx.AcquireTexture(_lastGlImage);
+                    }
+                    else
+                        _lastGlImage = ((SwapchainImageOpenGLKHR*)image)->Image;
+
+
+                    if (!_textures.TryGetValue(_lastGlImage, out var texture))
                     {
                         texture = new Texture2D
                         {
-                            Handle = glImg.Image
+                            Handle = _lastGlImage
                         };
-                        _textures[glImg.Image] = texture;
+                        _textures[_lastGlImage] = texture;
                     }
 
                     if (Blur)
@@ -104,7 +136,7 @@ namespace XrEngine.OpenXr
                             {
                                 Width = (uint)_passTh.EnvironmentDepth.Size.Width,
                                 Height = (uint)_passTh.EnvironmentDepth.Size.Height,
-                                Format = TextureFormat.GrayInt16,
+                                Format = _useAngle ? TextureFormat.RgbaFloat16 : TextureFormat.Gray16,
                                 MinFilter = ScaleFilter.Linear,
                                 MagFilter = ScaleFilter.Linear,
                                 MipLevelCount = 1,
@@ -112,7 +144,7 @@ namespace XrEngine.OpenXr
                                 WrapS = WrapMode.ClampToEdge,
                                 WrapT = WrapMode.ClampToEdge,
                             };
-                            filter.Blur(texture, _outTexture, "Outline_Blur", 1, 0);
+                            filter.Blur(texture, _outTexture, "Depth_Blur", 1, 0);
                             _lastTexture = _outTexture;
                         }
                     }

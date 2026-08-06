@@ -72,7 +72,7 @@ namespace XrEngine
             {
                 case VkFormat.VK_FORMAT_R8G8B8_USCALED:
                     comp = TextureCompressionFormat.Uncompressed;
-                    format = TextureFormat.Rgb24;
+                    format = TextureFormat.Rgb8;
                     break;
                 case VkFormat.VK_FORMAT_R16G16B16A16_SFLOAT:
                     comp = TextureCompressionFormat.Uncompressed;

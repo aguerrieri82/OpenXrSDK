@@ -156,7 +156,7 @@ namespace XrEditor.Plot
             {
                 Width = _curColor!.Width,
                 Height = _curColor.Height,
-                Format = TextureFormat.Rgb24,
+                Format = TextureFormat.Rgb8,
                 Data = _curColor.Left.Data
             });
 
@@ -215,7 +215,7 @@ namespace XrEditor.Plot
             {
                 Width = _curColor.Width,
                 Height = _curColor.Height,
-                Format = TextureFormat.Rgb24,
+                Format = TextureFormat.Rgb8,
                 Data = _curColor.Left.Data
             });
 
@@ -250,7 +250,7 @@ namespace XrEditor.Plot
                     depthEye.ImageData!.AsSpan(),
                     _curDepth.Width,
                     _curDepth.Height,
-                    TextureFormat.GrayInt8);
+                    TextureFormat.Gray8);
 
             byte[] repData;
 
@@ -270,7 +270,7 @@ namespace XrEditor.Plot
                     _curScreen.Data.AsSpan(),
                     1280,
                     1280,
-                    TextureFormat.Rgb24);
+                    TextureFormat.Rgb8);
             }
             else
             {
@@ -290,7 +290,7 @@ namespace XrEditor.Plot
                      colorEye.Data.AsSpan(),
                      _curColor.Width,
                      _curColor.Height,
-                     TextureFormat.Rgb24);
+                     TextureFormat.Rgb8);
 
             }
 
@@ -298,7 +298,7 @@ namespace XrEditor.Plot
                    repData,
                    _curDepth.Width,
                    _curDepth.Height,
-                   TextureFormat.Rgb24);
+                   TextureFormat.Rgb8);
 
             Log.Info(this, "Depth: Min: {0} - Max: {1} - Size: {2}", depthEye.StatsProj.Min, depthEye.StatsProj.Max, (depthEye.StatsProj.Max - depthEye.StatsProj.Min));
         }

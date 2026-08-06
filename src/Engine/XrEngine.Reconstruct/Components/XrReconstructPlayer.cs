@@ -122,7 +122,7 @@ namespace XrEngine.Reconstruct
                 Width = 1280,
                 Height = 1280,
                 Data = color.Data,
-                Format = TextureFormat.Rgb24
+                Format = TextureFormat.Rgb8
             }, false);
 
             var imageStat = _reader.Stats?.Images.FirstOrDefault(a => a.ImageTime / 1000 == meta.LeftColor.Time);
@@ -171,7 +171,7 @@ namespace XrEngine.Reconstruct
                 Width = 1280,
                 Height = 1280,
                 Data = screen.Data,
-                Format = TextureFormat.Rgb24
+                Format = TextureFormat.Rgb8
             });
 
             var proj = MathUtils.CreateMatrix(metaColor!.LeftDepth!.Proj!);

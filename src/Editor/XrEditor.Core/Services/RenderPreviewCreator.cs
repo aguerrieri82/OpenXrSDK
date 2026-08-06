@@ -25,7 +25,7 @@ namespace XrEditor.Services
                 Height = 1024,
                 SampleCount = 1,
                 MipLevelCount = 1,
-                Format = TextureFormat.Rgb24,
+                Format = TextureFormat.Rgb8,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,

@@ -32,9 +32,9 @@ namespace OpenXr.Framework.Android
             extensions.Add(KhrAndroidSurfaceSwapchain.ExtensionName);
             extensions.Add("XR_FB_android_surface_swapchain_create");
 
-            var driver = app.Plugin<IXrGraphicDriver>().SwapChainImageType.StructureType;
+            var flags = app.Plugin<IXrGraphicDriver>().Flags;
 
-            if (driver == StructureType.SwapchainImageVulkanKhr)
+            if ((flags & XrGraphicDriverFlags.FlipAndroidSurfaceY) != 0)
             {
                 extensions.Add("XR_FB_composition_layer_image_layout");
 

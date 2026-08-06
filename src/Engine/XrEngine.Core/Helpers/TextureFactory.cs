@@ -16,7 +16,7 @@ namespace XrEngine.Helpers
             {
                 Width = sizeX * 2,
                 Height = sizeY * 2,
-                Format = TextureFormat.Rgba32
+                Format = TextureFormat.Rgba8
             };
 
             textureData.Data = MemoryBuffer.Create<byte>(textureData.Width * textureData.Height * 4);

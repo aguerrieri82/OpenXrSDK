@@ -8,17 +8,17 @@
         Depth32Float,
         Depth24,
         Depth24Stencil8,
-        Depth32Stencil8,
+        Depth32FloatStencil8,
         Depth16,
 
-        Rgb24,
-        Rgba32,
-        Bgra32,
+        Rgb8,
+        Rgba8,
+        Bgra8,
 
-        RgbaInt16,
+        Rgba16,
         SRgbaInt16,
 
-        Rg88,
+        Rg8,
 
         RgbFloat32,
         RgbaFloat32,
@@ -33,18 +33,18 @@
         GrayFloat32,
         GrayFloat16,
 
-        SRgb24,
-        SBgra32,
-        SRgba32,
+        SRgb8,
+        SBgra8,
+        SRgba8,
 
-        GrayInt8,
+        Gray8,
+        Gray16,
+
         GrayInt16,
-
-        GrayRawSInt16,
-        GrayUint32,
-        RgUint32,
-        RgbUint32,
-        RgbaUint32,
+        GrayUInt32,
+        RgUInt32,
+        RgbUInt32,
+        RgbaUInt32,
     }
 
     public enum TextureCompressionFormat

@@ -73,7 +73,7 @@ namespace XrEngine
                 Data = res,
                 Width = (uint)width,
                 Height = (uint)height,
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
             }]);
         }
     }

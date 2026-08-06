@@ -271,11 +271,11 @@ namespace XrEngine.Compression
             if (result != 0)
                 throw new InvalidOperationException();
 
-            if (newData.Format == TextureFormat.Bgra32)
-                newData.Format = TextureFormat.Rgba32;
+            if (newData.Format == TextureFormat.Bgra8)
+                newData.Format = TextureFormat.Rgba8;
 
-            if (newData.Format == TextureFormat.SBgra32)
-                newData.Format = TextureFormat.SRgba32;
+            if (newData.Format == TextureFormat.SBgra8)
+                newData.Format = TextureFormat.SRgba8;
 
             return newData;
         }

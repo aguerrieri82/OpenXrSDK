@@ -30,7 +30,7 @@ namespace XrEngine.OpenXr
                 MemoryBuffer.Create<byte>(16),
                 MemoryBuffer.Create<byte>(16)];
 
-            OpenGLRender.Current!.ReadTexture(mat.LastTexture, TextureFormat.GrayInt16, 0, 0, _buffers);
+            OpenGLRender.Current!.ReadTexture(mat.LastTexture, TextureFormat.Gray16, 0, 0, _buffers);
 
             var size = ((Grid3D)Geometry!).Size;
 

@@ -1072,6 +1072,7 @@ namespace OpenXr.Framework
                         layers = _layers.Render(ref _views!, space, frameTime, out layerCount);
 
                     ListInvoke<IXrLayer>(_layers.List, a => a.OnEndFrame());
+                    ListInvoke<XrBasePlugin>(_plugins, a => a.OnFrameEnd());
                 }
             }
             finally

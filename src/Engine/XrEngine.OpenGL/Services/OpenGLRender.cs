@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
             _defaultTarget = new GlDefaultRenderTarget(gl, 
                     !options.UseDepthPass && !options.ContactShadow.Use,
                     options.SampleCount,
-                    useAngle ? TextureFormat.Rgba32 : TextureFormat.SRgba32);
+                    useAngle ? TextureFormat.Rgba8 : TextureFormat.SRgba8);
 
             _target = _defaultTarget;
 
@@ -738,7 +738,7 @@ namespace XrEngine.OpenGL
 
         #region IO
 
-        public TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba32)
+        public TextureData ReadFrame(TextureFormat format = TextureFormat.Rgba8)
         {
             EnsureThread();
 

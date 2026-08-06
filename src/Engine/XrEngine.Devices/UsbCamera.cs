@@ -247,7 +247,7 @@ namespace XrEngine.Devices
                 {
                     Width = (uint)_lastWidth,
                     Height = (uint)_lastHeight,
-                    Format = TextureFormat.Rgba32,
+                    Format = TextureFormat.Rgba8,
                     Data = MemoryBuffer.Create(_readyBuffer)
                 });
 

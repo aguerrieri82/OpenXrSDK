@@ -184,7 +184,7 @@ namespace XrEngine
                     MipLevelCount = 10,
                     Width = (uint)curSize.Width,
                     Height = (uint)curSize.Height,
-                    Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                    Format = UseSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
                     Name = "Planar Reflection"
                 };
             }

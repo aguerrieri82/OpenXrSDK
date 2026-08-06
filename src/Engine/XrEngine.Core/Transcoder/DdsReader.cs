@@ -219,11 +219,11 @@ namespace XrEngine
                     case DXGI_FORMAT.DXGI_FORMAT_BC3_TYPELESS:
                     case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM:
                         comp = TextureCompressionFormat.Bc3;
-                        format = TextureFormat.Rgb24;
+                        format = TextureFormat.Rgb8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
                         comp = TextureCompressionFormat.Bc3;
-                        format = TextureFormat.SRgb24;
+                        format = TextureFormat.SRgb8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT:
                         comp = TextureCompressionFormat.Uncompressed;
@@ -235,15 +235,15 @@ namespace XrEngine
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
                         comp = TextureCompressionFormat.Uncompressed;
-                        format = TextureFormat.SRgba32;
+                        format = TextureFormat.SRgba8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
                         comp = TextureCompressionFormat.Bc1;
-                        format = TextureFormat.SRgb24;
+                        format = TextureFormat.SRgb8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
                         comp = TextureCompressionFormat.Bc7;
-                        format = TextureFormat.Rgb24;
+                        format = TextureFormat.Rgb8;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -260,10 +260,10 @@ namespace XrEngine
                     switch (file.header.ddspf.dwRGBBitCount)
                     {
                         case 32:
-                            format = TextureFormat.Rgba32;
+                            format = TextureFormat.Rgba8;
                             break;
                         case 24:
-                            format = TextureFormat.Rgb24;
+                            format = TextureFormat.Rgb8;
                             break;
                         default:
                             throw new NotSupportedException();
@@ -277,7 +277,7 @@ namespace XrEngine
                         case TextureCompressionFormat.Bc3:
                         case TextureCompressionFormat.Bc7:
                         case TextureCompressionFormat.Bc1:
-                            format = TextureFormat.Rgb24;
+                            format = TextureFormat.Rgb8;
                             break;
                         default:
                             throw new NotSupportedException();

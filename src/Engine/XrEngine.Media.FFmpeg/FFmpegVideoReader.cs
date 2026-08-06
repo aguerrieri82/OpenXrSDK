@@ -50,7 +50,7 @@ namespace XrEngine.Media.FFmpeg
             return result;
         }
 
-        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba32)
+        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba8)
         {
             _outFormat = outFormat;
 
@@ -90,8 +90,8 @@ namespace XrEngine.Media.FFmpeg
 
             var pixelFormat = _outFormat switch
             {
-                TextureFormat.Rgba32 => AVPixelFormat.AV_PIX_FMT_RGBA,
-                TextureFormat.Rgb24 => AVPixelFormat.AV_PIX_FMT_RGB24,
+                TextureFormat.Rgba8 => AVPixelFormat.AV_PIX_FMT_RGBA,
+                TextureFormat.Rgb8 => AVPixelFormat.AV_PIX_FMT_RGB24,
                 _ => throw new NotImplementedException()
             };
 

@@ -708,7 +708,7 @@ namespace XrEngine.Reconstruct
             {
                 Width = (uint)width,
                 Height = (uint)height,
-                Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                Format = UseSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
                 Data = MemoryBuffer.Create(File.ReadAllBytes(path))
             });
 
@@ -726,7 +726,7 @@ namespace XrEngine.Reconstruct
 
             SaveTextureRaw(
                 frame.CameraTexture!,
-                TextureFormat.Rgba32,
+                TextureFormat.Rgba8,
                 4,
                 Path.Combine(framePath, "color_rgba.raw"));
 
@@ -734,7 +734,7 @@ namespace XrEngine.Reconstruct
 
             SaveTextureRaw(
                 mat.LastTexture!,
-                TextureFormat.GrayInt16,
+                TextureFormat.Gray16,
                 2,
                 Path.Combine(framePath, "depth_u16.raw"));
         }
@@ -774,7 +774,7 @@ namespace XrEngine.Reconstruct
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.LinearMipmapLinear,
-                Format = TextureFormat.Rgba32
+                Format = TextureFormat.Rgba8
             };
         }
 
@@ -995,7 +995,7 @@ namespace XrEngine.Reconstruct
                 glState.SetWriteColor(true);
             }
 
-            var data = GlImageProc.Read(glDepthTex, TextureFormat.GrayInt16);
+            var data = GlImageProc.Read(glDepthTex, TextureFormat.Gray16);
 
             Debug.Assert(data != null && data.Count == 1);
 
@@ -1620,7 +1620,7 @@ namespace XrEngine.Reconstruct
             {
                 await EngineApp.RenderThread;
 
-                var data = GlImageProc.Read(_atlasTex.ToGlTexture(), TextureFormat.Rgb24);
+                var data = GlImageProc.Read(_atlasTex.ToGlTexture(), TextureFormat.Rgb8);
 
                 var jpeg = TurboJpegLib.Compress(new TurboJpegLib.ImageData
                 {

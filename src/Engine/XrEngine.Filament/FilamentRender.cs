@@ -238,14 +238,14 @@ namespace XrEngine.Filament
                 {
                     result.InternalFormat = texture.Format switch
                     {
-                        TextureFormat.Rgba32 => FlTextureInternalFormat.RGBA8,
-                        TextureFormat.SRgba32 => FlTextureInternalFormat.SRGB8_A8,
+                        TextureFormat.Rgba8 => FlTextureInternalFormat.RGBA8,
+                        TextureFormat.SRgba8 => FlTextureInternalFormat.SRGB8_A8,
                         TextureFormat.RgbFloat32 => FlTextureInternalFormat.RGB32F,
                         TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
                         TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
-                        TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
-                        TextureFormat.GrayInt8 => FlTextureInternalFormat.R8,
-                        TextureFormat.Rgb24 => FlTextureInternalFormat.RGB8,
+                        TextureFormat.Bgra8 => FlTextureInternalFormat.RGBA8,
+                        TextureFormat.Gray8 => FlTextureInternalFormat.R8,
+                        TextureFormat.Rgb8 => FlTextureInternalFormat.RGB8,
                         _ => throw new NotSupportedException(),
                     };
                 }
@@ -255,8 +255,8 @@ namespace XrEngine.Filament
                     {
                         result.InternalFormat = texture.Format switch
                         {
-                            TextureFormat.Rgb24 => FlTextureInternalFormat.DXT1_RGB,
-                            TextureFormat.SRgb24 => FlTextureInternalFormat.DXT1_SRGB,
+                            TextureFormat.Rgb8 => FlTextureInternalFormat.DXT1_RGB,
+                            TextureFormat.SRgb8 => FlTextureInternalFormat.DXT1_SRGB,
                             _ => throw new NotSupportedException(),
                         };
                     }
@@ -264,8 +264,8 @@ namespace XrEngine.Filament
                     {
                         result.InternalFormat = texture.Format switch
                         {
-                            TextureFormat.Rgb24 => FlTextureInternalFormat.DXT3_RGBA,
-                            TextureFormat.SRgb24 => FlTextureInternalFormat.DXT3_SRGBA,
+                            TextureFormat.Rgb8 => FlTextureInternalFormat.DXT3_RGBA,
+                            TextureFormat.SRgb8 => FlTextureInternalFormat.DXT3_SRGBA,
                             _ => throw new NotSupportedException(),
                         };
                     }
@@ -273,8 +273,8 @@ namespace XrEngine.Filament
                     {
                         result.InternalFormat = texture.Format switch
                         {
-                            TextureFormat.Rgb24 => FlTextureInternalFormat.RGBA_BPTC_UNORM,
-                            TextureFormat.SRgb24 => FlTextureInternalFormat.SRGB_ALPHA_BPTC_UNORM,
+                            TextureFormat.Rgb8 => FlTextureInternalFormat.RGBA_BPTC_UNORM,
+                            TextureFormat.SRgb8 => FlTextureInternalFormat.SRGB_ALPHA_BPTC_UNORM,
                             _ => throw new NotSupportedException(),
                         };
                     }
@@ -295,18 +295,18 @@ namespace XrEngine.Filament
                     {
                         result.Data.Format = mainData.Format switch
                         {
-                            TextureFormat.Rgb24 or
-                            TextureFormat.SRgb24 => FlPixelFormat.RGB,
+                            TextureFormat.Rgb8 or
+                            TextureFormat.SRgb8 => FlPixelFormat.RGB,
 
-                            TextureFormat.Rgba32 or
-                            TextureFormat.SRgba32 => FlPixelFormat.RGBA,
+                            TextureFormat.Rgba8 or
+                            TextureFormat.SRgba8 => FlPixelFormat.RGBA,
 
                             TextureFormat.RgbFloat32 => FlPixelFormat.RGB,
                             TextureFormat.RgbaFloat32 => FlPixelFormat.RGBA,
 
-                            TextureFormat.Bgra32 => FlPixelFormat.RGBA,
+                            TextureFormat.Bgra8 => FlPixelFormat.RGBA,
 
-                            TextureFormat.GrayInt8 => FlPixelFormat.R,
+                            TextureFormat.Gray8 => FlPixelFormat.R,
 
                             _ => throw new NotSupportedException(),
                         };
@@ -319,12 +319,12 @@ namespace XrEngine.Filament
                             TextureFormat.RgbaFloat32
                                 => FlPixelType.FLOAT,
 
-                            TextureFormat.Rgba32 or
-                            TextureFormat.Bgra32 or
-                            TextureFormat.SRgba32 or
-                            TextureFormat.Rgb24 or
-                            TextureFormat.SRgb24 or
-                            TextureFormat.GrayInt8
+                            TextureFormat.Rgba8 or
+                            TextureFormat.Bgra8 or
+                            TextureFormat.SRgba8 or
+                            TextureFormat.Rgb8 or
+                            TextureFormat.SRgb8 or
+                            TextureFormat.Gray8
                                 => FlPixelType.UBYTE,
 
                             _ => throw new NotSupportedException(),
@@ -335,7 +335,7 @@ namespace XrEngine.Filament
                     result.Data.DataSize = mainData.Data!.Size;
                     result.Data.Data = Allocate(result.Data.DataSize);
                     result.Data.AutoFree = true;
-                    result.Data.IsBgr = mainData.Format == TextureFormat.Bgra32 || mainData.Format == TextureFormat.SBgra32;
+                    result.Data.IsBgr = mainData.Format == TextureFormat.Bgra8 || mainData.Format == TextureFormat.SBgra8;
 
                     using var pSrc = mainData.Data.MemoryLock();
                     EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);

@@ -192,7 +192,7 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
 
         VisualBitmapScalingMode = BitmapScalingMode.NearestNeighbor;
 
-        ColorFormat = TextureFormat.SRgba32;
+        ColorFormat = TextureFormat.SRgba8;
     }
 
     protected override void OnHostLoaded()

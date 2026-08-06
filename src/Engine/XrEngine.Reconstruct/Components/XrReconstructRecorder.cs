@@ -45,7 +45,7 @@ namespace XrEngine.Reconstruct
         {
             _leftTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -55,7 +55,7 @@ namespace XrEngine.Reconstruct
 
             _rightTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,

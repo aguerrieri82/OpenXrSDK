@@ -91,7 +91,7 @@ namespace XrSamples.Earth
             if (colorPath != null)
             {
                 tile.Color = AssetLoader.Instance.Load<Texture2D>(store.GetPath(colorPath));
-                tile.Color.Format = TextureFormat.SBgra32;
+                tile.Color.Format = TextureFormat.SBgra8;
                 tile.Color.MipLevelCount = 20;
                 tile.Color.MinFilter = ScaleFilter.LinearMipmapLinear;
                 tile.Color.WrapS = WrapMode.ClampToEdge;

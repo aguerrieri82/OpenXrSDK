@@ -37,7 +37,7 @@ namespace XrSamples
 
             _cameraTexture = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,

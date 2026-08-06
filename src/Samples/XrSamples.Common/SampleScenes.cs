@@ -796,7 +796,7 @@ namespace XrSamples
 
             var videoTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -1958,7 +1958,7 @@ namespace XrSamples
 
             var texture = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -2144,7 +2144,7 @@ namespace XrSamples
 
             var leftTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -2154,7 +2154,7 @@ namespace XrSamples
 
             var rightTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,

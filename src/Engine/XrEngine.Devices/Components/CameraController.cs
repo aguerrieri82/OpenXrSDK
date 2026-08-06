@@ -115,7 +115,7 @@ namespace XrEngine.Devices
                 {
                     status.Texture = new Texture2D()
                     {
-                        Format = TextureFormat.Rgba32,
+                        Format = TextureFormat.Rgba8,
                         WrapT = WrapMode.ClampToEdge,
                         WrapS = WrapMode.ClampToEdge,
                         MagFilter = ScaleFilter.Linear,

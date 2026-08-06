@@ -255,7 +255,7 @@ namespace XrEngine.OpenXr
 
                 if (depthMode == XrProjDepthMode.DepthCopy && isHandleDepth)
                 {
-                    renderTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1, TextureFormat.GrayInt16);
+                    renderTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1, TextureFormat.Gray16);
 
                     renderTarget.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
 

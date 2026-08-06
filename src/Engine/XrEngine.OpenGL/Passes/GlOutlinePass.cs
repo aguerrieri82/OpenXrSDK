@@ -38,7 +38,7 @@ namespace XrEngine.OpenGL
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
                 UseMultiViewTarget = true,
-                ColorFormat= TextureFormat.GrayInt8,
+                ColorFormat= TextureFormat.Gray8,
                 Name = "Outline"
             };
 
@@ -48,7 +48,7 @@ namespace XrEngine.OpenGL
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
                 UseMultiViewTarget = true,
-                ColorFormat = TextureFormat.Rgba32,
+                ColorFormat = TextureFormat.Rgba8,
                 Id = "temp",
                 Name = "Outline (Temp)"
             };

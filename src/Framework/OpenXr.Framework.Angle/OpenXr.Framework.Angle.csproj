@@ -25,9 +25,9 @@
 		<PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="runtimes\win-x64\" />
-	</ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<DefineConstants>$(DefineConstants);__ANGLE_DEBUG</DefineConstants>
+	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="runtimes/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />

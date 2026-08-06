@@ -11,29 +11,29 @@ namespace XrEngine
     {
         static readonly Dictionary<TextureFormat, SKColorType> FORMAT_TO_SKIA = new()
         {
-            { TextureFormat.Bgra32,      SKColorType.Bgra8888 },
-            { TextureFormat.SBgra32,     SKColorType.Bgra8888 },
-            { TextureFormat.Rgba32,      SKColorType.Rgba8888 },
-            { TextureFormat.SRgba32,     SKColorType.Srgba8888 },
-            { TextureFormat.GrayInt8,    SKColorType.Gray8 },
+            { TextureFormat.Bgra8,      SKColorType.Bgra8888 },
+            { TextureFormat.SBgra8,     SKColorType.Bgra8888 },
+            { TextureFormat.Rgba8,      SKColorType.Rgba8888 },
+            { TextureFormat.SRgba8,     SKColorType.Srgba8888 },
+            { TextureFormat.Gray8,    SKColorType.Gray8 },
             { TextureFormat.RgbaFloat16, SKColorType.RgbaF16 },
             { TextureFormat.RgbaFloat32, SKColorType.RgbaF32 },
         };
 
         static readonly Dictionary<SKColorType, TextureFormat[]> SKIA_TO_FORMATS = new()
         {
-            { SKColorType.Bgra8888,  new[] { TextureFormat.Bgra32, TextureFormat.SBgra32 } },
-            { SKColorType.Rgba8888,  new[] { TextureFormat.Rgba32 } },
-            { SKColorType.Srgba8888, new[] { TextureFormat.SRgba32 } },
-            { SKColorType.Gray8,     new[] { TextureFormat.GrayInt8 } },
+            { SKColorType.Bgra8888,  new[] { TextureFormat.Bgra8, TextureFormat.SBgra8 } },
+            { SKColorType.Rgba8888,  new[] { TextureFormat.Rgba8 } },
+            { SKColorType.Srgba8888, new[] { TextureFormat.SRgba8 } },
+            { SKColorType.Gray8,     new[] { TextureFormat.Gray8 } },
             { SKColorType.RgbaF16,   new[] { TextureFormat.RgbaFloat16 } },
             { SKColorType.RgbaF32,   new[] { TextureFormat.RgbaFloat32 } },
         };
 
         public static bool IsBgr(this TextureFormat format)
         {
-            return format == TextureFormat.Bgra32 ||
-                   format == TextureFormat.SBgra32;
+            return format == TextureFormat.Bgra8 ||
+                   format == TextureFormat.SBgra8;
         }
 
         public static uint GetChannels(this TextureFormat format)
@@ -41,27 +41,27 @@ namespace XrEngine
             return format switch
             {
                 TextureFormat.RgFloat16 or
-                TextureFormat.Rg88 => 2,
+                TextureFormat.Rg8 => 2,
 
                 TextureFormat.SRgbaInt16 or
-                TextureFormat.RgbaInt16 or
-                TextureFormat.Rgba32 or
-                TextureFormat.SRgba32 or
-                TextureFormat.Bgra32 or
-                TextureFormat.SBgra32 or
+                TextureFormat.Rgba16 or
+                TextureFormat.Rgba8 or
+                TextureFormat.SRgba8 or
+                TextureFormat.Bgra8 or
+                TextureFormat.SBgra8 or
                 TextureFormat.RgbaFloat32 or
                 TextureFormat.RgbaFloat16 or
-                TextureFormat.SBgra32 => 4,
+                TextureFormat.SBgra8 => 4,
 
-                TextureFormat.Rgb24 or
+                TextureFormat.Rgb8 or
                 TextureFormat.RgbFloat32 or
-                TextureFormat.SRgb24 => 3,
+                TextureFormat.SRgb8 => 3,
 
                 TextureFormat.GrayFloat16 or
                 TextureFormat.GrayFloat32 or
-                TextureFormat.GrayInt8 or
-                TextureFormat.GrayInt16 or
-                TextureFormat.GrayInt16 => 1,
+                TextureFormat.Gray8 or
+                TextureFormat.Gray16 or
+                TextureFormat.Gray16 => 1,
 
                 _ => throw new NotSupportedException()
             };
@@ -71,27 +71,27 @@ namespace XrEngine
         {
             return format switch
             {
-                TextureFormat.Rg88 => 16,
-                TextureFormat.Rgba32 => 32,
-                TextureFormat.SRgba32 => 32,
-                TextureFormat.Bgra32 => 32,
-                TextureFormat.Rgb24 => 24,
-                TextureFormat.SRgb24 => 24,
-                TextureFormat.SBgra32 => 32,
+                TextureFormat.Rg8 => 16,
+                TextureFormat.Rgba8 => 32,
+                TextureFormat.SRgba8 => 32,
+                TextureFormat.Bgra8 => 32,
+                TextureFormat.Rgb8 => 24,
+                TextureFormat.SRgb8 => 24,
+                TextureFormat.SBgra8 => 32,
                 TextureFormat.RgbFloat32 => 32 * 3,
                 TextureFormat.RgbaFloat32 => 32 * 4,
                 TextureFormat.RgbaFloat16 => 16 * 4,
                 TextureFormat.Depth24 => 24,
                 TextureFormat.Depth16 => 16,
                 TextureFormat.Depth32Float => 32,
-                TextureFormat.GrayInt8 => 8,
+                TextureFormat.Gray8 => 8,
+                TextureFormat.Gray16 => 16,
                 TextureFormat.GrayInt16 => 16,
-                TextureFormat.GrayRawSInt16 => 16,
                 TextureFormat.RgFloat16 => 16 * 2,
                 TextureFormat.GrayFloat32 => 32,
                 TextureFormat.GrayFloat16 => 16,
                 TextureFormat.Rgb9e5Float => 32,
-                TextureFormat.RgbaInt16 => 64,
+                TextureFormat.Rgba16 => 64,
                 TextureFormat.SRgbaInt16 => 64,
                 _ => throw new NotSupportedException()
             };
@@ -104,27 +104,27 @@ namespace XrEngine
 
         public static bool IsSrgb(this TextureFormat format)
         {
-            return format == TextureFormat.SRgb24 ||
-                   format == TextureFormat.SRgba32 ||
-                   format == TextureFormat.SBgra32;
+            return format == TextureFormat.SRgb8 ||
+                   format == TextureFormat.SRgba8 ||
+                   format == TextureFormat.SBgra8;
         }
 
         public static bool IsInt16(this TextureFormat format)
         {
-            return format == TextureFormat.RgbaInt16 ||
+            return format == TextureFormat.Rgba16 ||
                     format == TextureFormat.SRgbaInt16;
         }
 
         public static bool IsInt8(this TextureFormat format)
         {
-            return format == TextureFormat.Rg88 ||
-                   format == TextureFormat.Rgb24 ||
-                   format == TextureFormat.Rgba32 ||
-                   format == TextureFormat.GrayInt8 ||
-                   format == TextureFormat.Bgra32 ||
-                   format == TextureFormat.SRgba32 ||
-                   format == TextureFormat.SBgra32 ||
-                    format == TextureFormat.SRgb24;
+            return format == TextureFormat.Rg8 ||
+                   format == TextureFormat.Rgb8 ||
+                   format == TextureFormat.Rgba8 ||
+                   format == TextureFormat.Gray8 ||
+                   format == TextureFormat.Bgra8 ||
+                   format == TextureFormat.SRgba8 ||
+                   format == TextureFormat.SBgra8 ||
+                    format == TextureFormat.SRgb8;
         }
 
         public static bool IsFloat16(this TextureFormat format)
@@ -187,7 +187,7 @@ namespace XrEngine
                 Data = mrImage,
                 Width = metal.Width,
                 Height = metal.Height,
-                Format = TextureFormat.Rgba32
+                Format = TextureFormat.Rgba8
             });
 
             return tex;
@@ -203,7 +203,7 @@ namespace XrEngine
                 Data = metalData,
                 Width = roughness.Width,
                 Height = roughness.Height,
-                Format = TextureFormat.GrayInt8
+                Format = TextureFormat.Gray8
             };
 
             return MergeMetalRaugh(texData, roughness.Data![0]);
@@ -371,8 +371,8 @@ namespace XrEngine
             result.Data = newData;
             result.Width = (uint)pWidth;
             result.Format = data.Format.IsBgr() ?
-               (data.Format.IsSrgb() ? TextureFormat.SBgra32 : TextureFormat.Bgra32) :
-               (data.Format.IsSrgb() ? TextureFormat.SRgba32 : TextureFormat.Rgba32);
+               (data.Format.IsSrgb() ? TextureFormat.SBgra8 : TextureFormat.Bgra8) :
+               (data.Format.IsSrgb() ? TextureFormat.SRgba8 : TextureFormat.Rgba8);
 
             return result;
 
@@ -380,7 +380,7 @@ namespace XrEngine
 
         public static unsafe TextureData ConvertRgba16ToRgba32F(TextureData data)
         {
-            if (data.Format != TextureFormat.RgbaInt16)
+            if (data.Format != TextureFormat.Rgba16)
                 throw new NotSupportedException();
 
             var result = data.Clone();
