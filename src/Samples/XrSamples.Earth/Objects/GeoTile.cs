@@ -73,7 +73,7 @@ namespace XrSamples.Earth
 
             if (texData.Format == TextureFormat.GrayInt16)
             {
-                texData.Data = ImageUtils.ConvertShortToFloat(texData.Data!);
+                texData.Content = ImageUtils.ConvertShortToFloat(texData.Content!);
                 texData.Format = TextureFormat.GrayFloat32;
             }
 

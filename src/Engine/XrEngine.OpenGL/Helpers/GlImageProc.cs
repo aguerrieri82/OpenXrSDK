@@ -310,7 +310,7 @@ namespace XrEngine.OpenGL
                     Format = format,
                     MipLevel = mipLevel,
                     Layer = face,
-                    Data = buffer
+                    Content = buffer
                 };
 
                 GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);

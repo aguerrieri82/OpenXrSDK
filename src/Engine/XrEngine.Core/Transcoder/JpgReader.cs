@@ -25,7 +25,7 @@ namespace XrEngine.Transcoder
                 Width = (uint)imgData.Width,
                 Height = (uint)imgData.Height,
                 Format = isSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
-                Data = MemoryBuffer.Create(imgData.Data),
+                Content = MemoryBuffer.Create(imgData.Data),
             }];
         }
 

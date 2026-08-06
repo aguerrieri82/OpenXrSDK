@@ -55,7 +55,7 @@ namespace XrEngine.Compression
 
         public static unsafe TextureData Encode(TextureData data)
         {
-            using var pData = data.Data!.MemoryLock();
+            using var pData = data.Content!.MemoryLock();
 
             if (!data.Format.IsBgr())
             {
@@ -91,7 +91,7 @@ namespace XrEngine.Compression
 
             var result = data.Clone();
             result.Compression = TextureCompressionFormat.Etc2;
-            result.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
+            result.Content = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
 
             if (result.Format == TextureFormat.Bgra8)
                 result.Format = TextureFormat.Rgba8;

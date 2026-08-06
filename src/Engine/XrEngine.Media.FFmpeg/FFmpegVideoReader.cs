@@ -193,9 +193,9 @@ namespace XrEngine.Media.FFmpeg
             var pixeSize = _outFormat.GetPixelSizeBit() / 8;
 
             var size = data.Width * data.Height * pixeSize;
-            data.Data = MemoryBuffer.CreateOrResize(data.Data, size);
+            data.Content = MemoryBuffer.CreateOrResize(data.Content, size);
 
-            using var pData = data.Data.MemoryLock();
+            using var pData = data.Content.MemoryLock();
 
             sws_scale(_swsContext, frame.data, frame.linesize, 0,
                  _pCodecContext->height, [pData], [(int)data.Width * (int)pixeSize]);

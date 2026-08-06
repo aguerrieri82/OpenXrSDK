@@ -18,7 +18,7 @@ namespace XrEngine
 
         public TextureCompressionFormat Compression { get; set; }
 
-        public IMemoryBuffer<byte>? Data { get; set; }
+        public IMemoryBuffer<byte>? Content { get; set; }
 
         public uint BlockSize { get; set; }
 

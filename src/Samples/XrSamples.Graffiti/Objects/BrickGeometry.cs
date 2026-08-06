@@ -148,7 +148,7 @@ namespace XrSamples.Graffiti.Objects
                 Layer = 0,
                 Format = TextureFormat.GrayFloat32,
                 Compression = TextureCompressionFormat.Uncompressed,
-                Data = buffer,
+                Content = buffer,
                 BlockSize = 0
             };
         }

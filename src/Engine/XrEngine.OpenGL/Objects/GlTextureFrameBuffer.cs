@@ -180,11 +180,11 @@ namespace XrEngine.OpenGL
             data.Layer = 0;
             data.MipLevel = 0;
             data.Depth = 0;
-            data.Data = MemoryBuffer.CreateOrResize(data.Data, Color.Width * Color.Height * pixelSize);
+            data.Content = MemoryBuffer.CreateOrResize(data.Content, Color.Width * Color.Height * pixelSize);
 
             BindRead(mode);
 
-            using var pData = data.Data.MemoryLock();
+            using var pData = data.Content.MemoryLock();
 
             _gl.ReadPixels(0, 0, Color!.Width, Color.Height, pixelFormat, pixelType, pData);
         }

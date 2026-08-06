@@ -24,7 +24,7 @@
 		<DefineConstants>$(DefineConstants);ANGLE_DEBUG</DefineConstants>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+	<ItemGroup Condition="'$(IsAndroid)' == 'false' and '$(UseAngle)' == 'true' ">
 
 		<Content Visible="false"
 			Include="$(NativeLibsDir)angle/win-x64/*"

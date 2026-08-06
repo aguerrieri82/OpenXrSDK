@@ -1,10 +1,10 @@
 ﻿#if GLES
-using Common.Interop;
 using Silk.NET.OpenGLES;
 #else
-using Common.Interop;
 using Silk.NET.OpenGL;
 #endif
+
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -15,7 +15,7 @@ namespace XrEngine.OpenGL
         int _alignment;
         uint _width;
         uint _height;
-        private InternalFormat _format;
+        private TextureFormat _format;
 
         public GlTextureBuffer(GL gl)
             : base(gl)
@@ -29,7 +29,8 @@ namespace XrEngine.OpenGL
                 WrapT = TextureWrapMode.ClampToEdge,
                 MagFilter = TextureMagFilter.Linear,
                 MinFilter = TextureMinFilter.Linear,
-                Target = TextureTarget.Texture2D
+                Target = TextureTarget.Texture2D,
+                IsMutable = false
             };
 
             _texture.UpdateSampler();
@@ -37,42 +38,34 @@ namespace XrEngine.OpenGL
             _handle = _texture.Handle;
         }
 
-        public unsafe void Update(TextureData data)
+        public unsafe void Update(TextureData texData)
         {
-            GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
+            Debug.Assert(texData.Content != null);
+
+            GlUtils.GetPixelFormat(texData.Format, out var pixelFormat, out var pixelType);
 
             _buffer.BeginUpdate();
 
-            if (_width != data.Width || _height != data.Height)
+            if (_width != texData.Width || _height != texData.Height)
             {
-                _buffer.Allocate(data.Data!.Size);
+                _buffer.Allocate(texData.Content!.Size);
 
-                _alignment = GlUtils.CalculateUnpackAlignment(data.Width, data.Format.GetPixelSizeBit() / 8);
+                _alignment = GlUtils.CalculateUnpackAlignment(texData.Width, texData.Format.GetPixelSizeBit() / 8);
 
-                _width = data.Width;
-                _height = data.Height;
-                _format = data.Format.ToInternalFormat();
+                _width = texData.Width;
+                _height = texData.Height;
+                _format = texData.Format;
 
-                _texture.Bind();
-
-                _gl.TexStorage2D(_texture.Target,
-                       1,
-                       (SizedInternalFormat)_format,
-                       _width,
-                       _height);
+                _texture.Allocate(_width, _height, 1, _format);
             }
 
-            using var pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
-
-            using var pSrc = data.Data!.MemoryLock();
-
-            EngineNativeLib.CopyMemory(pSrc, (nint)pDst.Data, data.Data.Size);
+            _buffer.Update(texData.Content);
 
             Bind();
 
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, _alignment);
 
-            _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, data.Width, data.Height, pixelFormat, pixelType, null);
+            _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, texData.Width, texData.Height, pixelFormat, pixelType, null);
 
             Unbind();
 

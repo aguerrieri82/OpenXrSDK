@@ -46,7 +46,7 @@ namespace XrEngine.Video
             {
                 if (Reader!.TryDecodeNextFrame(_data))
                 {
-                    if (_data.Data != null && _data.Data.Size > 0)
+                    if (_data.Content != null && _data.Content.Size > 0)
                     {
                         Texture.Data = [_data];
                         Texture.Width = _data.Width;

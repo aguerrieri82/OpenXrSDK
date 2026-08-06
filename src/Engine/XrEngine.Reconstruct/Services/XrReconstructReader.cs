@@ -366,7 +366,7 @@ namespace XrEngine.Reconstruct
             if (File.Exists(cacheLeft))
             {
                 var bytes = File.ReadAllBytes(cacheLeft);
-                leftData.Data = MemoryBuffer.Create(bytes);
+                leftData.Content = MemoryBuffer.Create(bytes);
                 leftData.Width = 1280;
                 leftData.Height = 1280;
                 leftData.Format = TextureFormat.Rgb8;
@@ -375,13 +375,13 @@ namespace XrEngine.Reconstruct
             {
                 _leftColorReader!.SeekToFrame(frameIndex - 1);
                 _leftColorReader!.TryDecodeNextFrame(leftData);
-                File.WriteAllBytes(cacheLeft, leftData.Data!.AsSpan());
+                File.WriteAllBytes(cacheLeft, leftData.Content!.AsSpan());
             }
 
             result.Left.Proj = MathUtils.CreateMatrix(leftMeta.Proj!);
             result.Left.View = MathUtils.CreateMatrix(leftMeta.View!);
 
-            result.Left.Data = leftData.Data;
+            result.Left.Data = leftData.Content;
             result.Left.Pose = leftMeta.Pose;
             result.Width = leftData.Width;
             result.Height = leftData.Height;
@@ -390,7 +390,7 @@ namespace XrEngine.Reconstruct
             if (File.Exists(cacheRight))
             {
                 var bytes = File.ReadAllBytes(cacheRight);
-                rightData.Data = MemoryBuffer.Create(bytes);
+                rightData.Content = MemoryBuffer.Create(bytes);
                 rightData.Width = 1280;
                 rightData.Height = 1280;
                 rightData.Format = TextureFormat.Rgb8;
@@ -399,14 +399,14 @@ namespace XrEngine.Reconstruct
             {
                 _rightColorReader.SeekToFrame(frameIndex);
                 _rightColorReader.TryDecodeNextFrame(rightData);
-                if (rightData.Data != null)
-                    File.WriteAllBytes(cacheRight, rightData.Data.AsSpan());
+                if (rightData.Content != null)
+                    File.WriteAllBytes(cacheRight, rightData.Content.AsSpan());
             }
 
             result.Right.Proj = MathUtils.CreateMatrix(rightMeta.Proj!);
             result.Right.View = MathUtils.CreateMatrix(rightMeta.View!);
             result.Right.Pose = rightMeta.Pose;
-            result.Right.Data = rightData.Data;
+            result.Right.Data = rightData.Content;
 
             return result;
         }
@@ -427,7 +427,7 @@ namespace XrEngine.Reconstruct
             if (File.Exists(cache))
             {
                 var bytes = File.ReadAllBytes(cache);
-                data.Data = MemoryBuffer.Create(bytes);
+                data.Content = MemoryBuffer.Create(bytes);
                 data.Width = 1280;
                 data.Height = 1280;
                 data.Format = TextureFormat.Rgb8;
@@ -436,12 +436,12 @@ namespace XrEngine.Reconstruct
             {
                 _scrColorReader!.SeekToFrame(frameIndex);
                 _scrColorReader!.TryDecodeNextFrame(data);
-                File.WriteAllBytes(cache, data.Data!.AsSpan());
+                File.WriteAllBytes(cache, data.Content!.AsSpan());
             }
 
             result.Time = meta.Time;
             result.Pose = meta.Pose;
-            result.Data = data.Data;
+            result.Data = data.Content;
             result.View = MathUtils.CreateMatrix(meta.View!);
 
             return result;

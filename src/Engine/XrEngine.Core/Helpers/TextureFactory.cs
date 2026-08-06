@@ -19,9 +19,9 @@ namespace XrEngine.Helpers
                 Format = TextureFormat.Rgba8
             };
 
-            textureData.Data = MemoryBuffer.Create<byte>(textureData.Width * textureData.Height * 4);
+            textureData.Content = MemoryBuffer.Create<byte>(textureData.Width * textureData.Height * 4);
 
-            using var dataLock = textureData.Data.MemoryLock();
+            using var dataLock = textureData.Content.MemoryLock();
 
             var lineSize = textureData.Width * 4;
 

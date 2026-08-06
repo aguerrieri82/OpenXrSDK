@@ -121,7 +121,7 @@ namespace XrEngine.Reconstruct
             {
                 Width = 1280,
                 Height = 1280,
-                Data = color.Data,
+                Content = color.Data,
                 Format = TextureFormat.Rgb8
             }, false);
 
@@ -170,7 +170,7 @@ namespace XrEngine.Reconstruct
             {
                 Width = 1280,
                 Height = 1280,
-                Data = screen.Data,
+                Content = screen.Data,
                 Format = TextureFormat.Rgb8
             });
 

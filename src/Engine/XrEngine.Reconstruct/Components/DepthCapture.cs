@@ -709,7 +709,7 @@ namespace XrEngine.Reconstruct
                 Width = (uint)width,
                 Height = (uint)height,
                 Format = UseSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
-                Data = MemoryBuffer.Create(File.ReadAllBytes(path))
+                Content = MemoryBuffer.Create(File.ReadAllBytes(path))
             });
 
             return texture;
@@ -999,7 +999,7 @@ namespace XrEngine.Reconstruct
 
             Debug.Assert(data != null && data.Count == 1);
 
-            return data[0].Data!;
+            return data[0].Content!;
         }
 
         [Action]
@@ -1373,7 +1373,7 @@ namespace XrEngine.Reconstruct
                 {
                     Width = colorData.Width,
                     Height = colorData.Height,
-                    Data = colorData.Data,
+                    Content = colorData.Content,
                     Layer = (uint)meta.Frame,
                     Format = colorData.Format
                 });
@@ -1390,7 +1390,7 @@ namespace XrEngine.Reconstruct
                 {
                     Meta = meta,
                     Texture = colorTexture,
-                    ColorData = colorData.Data
+                    ColorData = colorData.Content
                 });
 
                 if (SplatMode)
@@ -1398,7 +1398,7 @@ namespace XrEngine.Reconstruct
                     DepthGridSplatBuilder.CreateSplats(
                         splats,
                         geometry,
-                        colorData.Data!,
+                        colorData.Content!,
                         (int)colorTexture.Width,
                         (int)colorTexture.Height);
                 }
@@ -1624,7 +1624,7 @@ namespace XrEngine.Reconstruct
 
                 var jpeg = TurboJpegLib.Compress(new TurboJpegLib.ImageData
                 {
-                    Data = data![0]!.Data!.AsSpan().ToArray(),
+                    Data = data![0]!.Content!.AsSpan().ToArray(),
                     Width = (int)_atlasTex.Width,
                     Height = (int)_atlasTex.Height
                 }, 90, TurboJpegLib.TJPF.TJPF_RGB);

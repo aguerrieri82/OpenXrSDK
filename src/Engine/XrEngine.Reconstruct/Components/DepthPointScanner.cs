@@ -80,7 +80,7 @@ namespace XrEngine.Reconstruct
 
             var texData = _host!.Scene!.App!.Renderer.ReadTexture(texture, texture.Format)![0];
 
-            using var data = texData.Data!.MemoryLock();
+            using var data = texData.Content!.MemoryLock();
 
             var fData = (ushort*)data.Data;
 

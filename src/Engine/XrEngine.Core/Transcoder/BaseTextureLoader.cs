@@ -121,9 +121,9 @@ namespace XrEngine
                     else
                         size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * depth * padding.BitPerPixel) / 8;
 
-                    item.Data = MemoryBuffer.Create<byte>(size);
+                    item.Content = MemoryBuffer.Create<byte>(size);
 
-                    stream.ReadExactly(item.Data.AsSpan());
+                    stream.ReadExactly(item.Content.AsSpan());
 
                     results.Add(item);
                 }

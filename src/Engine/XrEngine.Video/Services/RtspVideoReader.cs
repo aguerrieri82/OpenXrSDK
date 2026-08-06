@@ -174,7 +174,7 @@ namespace XrEngine.Video
                         data.Width = FrameSize.Width;
                         data.Height = FrameSize.Height;
                         data.Format = TextureFormat.Rgba8;
-                        data.Data = MemoryBuffer.Create(_dstBuffer.ByteArray);
+                        data.Content = MemoryBuffer.Create(_dstBuffer.ByteArray);
                     }
 
                     _frameCount++;

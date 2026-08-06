@@ -15,7 +15,7 @@ namespace XrEngine.Browser.Windows
 
             var gl = EngineApp.Current.Renderer.Feature<GL>();
 
-            var webView = new ChromeWebBrowserView(gl)
+            var webView = new ChromeWebBrowserView(options.UseCpu ? null : gl)
             {
                 Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                 ZoomLevel = 0

@@ -11,6 +11,7 @@ using ExtShaderFramebufferFetchNonCoherent = Silk.NET.OpenGL.Extensions.EXT.ExtS
 
 using System.Diagnostics;
 using XrEngine.Compression;
+using Common.Interop;
 
 namespace XrEngine.OpenGL
 {
@@ -119,6 +120,14 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
+        public static unsafe void Update<T>(this GlBuffer<T> self, IMemoryBuffer<byte> data)
+        {
+            using var pDst = self.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+
+            using var pSrc = data.MemoryLock();
+
+            EngineNativeLib.CopyMemory(pSrc, (nint)pDst.Data, data.Size);
+        }
 
         public static unsafe T* MapPermanentRead<T>(this GlBuffer<T> self)
         {
@@ -204,7 +213,7 @@ namespace XrEngine.OpenGL
             if (isFloat && options.Format == TextureCompressionFormat.Etc2)
                 return null;
 
-            if (texture2D.Data == null || !texture2D.Data.All(a => a.Data != null))
+            if (texture2D.Data == null || !texture2D.Data.All(a => a.Content != null))
                 return null;
 
             if (options.Format == TextureCompressionFormat.Astc)

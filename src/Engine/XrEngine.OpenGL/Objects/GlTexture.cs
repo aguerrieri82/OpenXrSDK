@@ -635,10 +635,10 @@ namespace XrEngine.OpenGL
 
             foreach (var entry in data)
             {
-                if (entry.Data == null)
+                if (entry.Content == null)
                     continue;
 
-                if (entry.Data.Size == 0)
+                if (entry.Content.Size == 0)
                     throw new InvalidOperationException();
 
                 GlUtils.GetPixelFormat(entry.Format, out var pixelFormat, out var pixelType);
@@ -646,7 +646,7 @@ namespace XrEngine.OpenGL
                 var realTarget = GetLayerTarget(entry.Layer);
                 var uploadDepth = Math.Max(entry.Depth, 1);
 
-                using var pData = entry.Data.MemoryLock();
+                using var pData = entry.Content.MemoryLock();
 
                 if (use3D)
                 {
@@ -698,10 +698,10 @@ namespace XrEngine.OpenGL
 
             foreach (var entry in data)
             {
-                if (entry.Data == null)
+                if (entry.Content == null)
                     throw new InvalidOperationException("Compressed texture data is missing");
 
-                using var pData = entry.Data.MemoryLock();
+                using var pData = entry.Content.MemoryLock();
 
                 if (use3D)
                 {
@@ -715,7 +715,7 @@ namespace XrEngine.OpenGL
                         entry.Height,
                         entry.Depth,
                         _internalFormat,
-                        entry.Data.Size,
+                        entry.Content.Size,
                         pData);
                 }
                 else
@@ -729,7 +729,7 @@ namespace XrEngine.OpenGL
                         entry.Width,
                         entry.Height,
                         0,
-                        entry.Data.Size,
+                        entry.Content.Size,
                         pData);
                 }
 

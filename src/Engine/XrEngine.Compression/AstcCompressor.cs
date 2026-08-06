@@ -252,7 +252,7 @@ namespace XrEngine.Compression
                 thread_priority = (sbyte)threadPriority
             };
 
-            using var srcPtr = data.Data!.MemoryLock();
+            using var srcPtr = data.Content!.MemoryLock();
 
             var dstSize = 0;
 
@@ -261,11 +261,11 @@ namespace XrEngine.Compression
                 throw new InvalidOperationException();
 
             var newData = data.Clone();
-            newData.Data = MemoryBuffer.Create<byte>((uint)dstSize);
+            newData.Content = MemoryBuffer.Create<byte>((uint)dstSize);
             newData.Compression = TextureCompressionFormat.Astc;
             newData.BlockSize = blockSize;
 
-            using var dstPtr = newData.Data!.MemoryLock();
+            using var dstPtr = newData.Content!.MemoryLock();
 
             result = Encode(srcPtr, (int)data.Width, (int)data.Height, (int)data.Depth, type, ref pars, dstPtr, ref dstSize);
             if (result != 0)

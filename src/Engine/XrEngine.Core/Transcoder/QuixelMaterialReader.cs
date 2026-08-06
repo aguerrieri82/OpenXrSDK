@@ -281,12 +281,12 @@ namespace XrEngine
 
                         var ofs = texture.Type == TextureType.Roughness ? 1u : 2u;
 
-                        using var pSrc = tex2D.Data![0].Data!.MemoryLock();
+                        using var pSrc = tex2D.Data![0].Content!.MemoryLock();
                         using var pDst = mrImage.MemoryLock();
 
                         EngineNativeLib.ImageCopyChannel(pSrc, pDst, tex2D.Width, tex2D.Height, tex2D.Width * 4, tex2D.Width * 4, 0, ofs, 1);
 
-                        tex2D.Data[0].Data = mrImage;
+                        tex2D.Data[0].Content = mrImage;
                         //tex2D.Format = TextureFormat.Rgb24;
                         result.MetallicRoughnessMap = tex2D;
                     }

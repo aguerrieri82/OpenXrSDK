@@ -332,13 +332,13 @@ namespace XrEngine.Filament
 
                     }
 
-                    result.Data.DataSize = mainData.Data!.Size;
+                    result.Data.DataSize = mainData.Content!.Size;
                     result.Data.Data = Allocate(result.Data.DataSize);
                     result.Data.AutoFree = true;
                     result.Data.IsBgr = mainData.Format == TextureFormat.Bgra8 || mainData.Format == TextureFormat.SBgra8;
 
-                    using var pSrc = mainData.Data.MemoryLock();
-                    EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);
+                    using var pSrc = mainData.Content.MemoryLock();
+                    EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Content.Size);
                 }
             }
 

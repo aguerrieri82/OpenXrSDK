@@ -8,7 +8,7 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.Angle;
+        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
         public static readonly bool AutoStartApp = true;
 
@@ -40,7 +40,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+              //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -73,19 +73,17 @@ namespace XrEditor
 
                   if (Driver == GraphicDriver.Angle)
                   {
-                      opt.UseAsyncShaderCompile = false;
-                      opt.UseShaderCache = false;
-                      //opt.ToneMap = ToneMapMode.Neutral;
                   }
 
               })
               //.UseSpaceWarp()
               .AddProfileOverlay()
-              .UseAngle()
+              //.UseAngle()
+              .UseOpenGL()
               .EnableDebugNotRelease()
-              .SetRenderQuality(1f, 1, useIntermediate: false)
+              .SetRenderQuality(1f, 2, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateBed()
+              .CreateRoomManager()
               .Build();
     }
 }

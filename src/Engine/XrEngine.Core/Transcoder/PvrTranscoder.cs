@@ -186,8 +186,8 @@ namespace XrEngine
 
             foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Layer))
             {
-                Debug.Assert(img.Data != null);
-                stream.Write(img.Data.AsSpan());
+                Debug.Assert(img.Content != null);
+                stream.Write(img.Content.AsSpan());
             }
 
             stream.Dispose();

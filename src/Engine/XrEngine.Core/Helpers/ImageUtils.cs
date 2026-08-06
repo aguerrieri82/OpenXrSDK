@@ -168,8 +168,8 @@ namespace XrEngine
         {
             var mrImage = MemoryBuffer.Create<byte>(metal.Width * metal.Height * 4);
 
-            using var pMetal = metal.Data!.MemoryLock();
-            using var pRough = roughness.Data!.MemoryLock();
+            using var pMetal = metal.Content!.MemoryLock();
+            using var pRough = roughness.Content!.MemoryLock();
             using var pDst = mrImage.MemoryLock();
 
             EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width * GetPixelSizeByte(metal.Format), metal.Width * 4, 0, 2, 1);
@@ -184,7 +184,7 @@ namespace XrEngine
 
             tex.LoadData(new TextureData
             {
-                Data = mrImage,
+                Content = mrImage,
                 Width = metal.Width,
                 Height = metal.Height,
                 Format = TextureFormat.Rgba8
@@ -200,7 +200,7 @@ namespace XrEngine
 
             var texData = new TextureData
             {
-                Data = metalData,
+                Content = metalData,
                 Width = roughness.Width,
                 Height = roughness.Height,
                 Format = TextureFormat.Gray8
@@ -256,7 +256,7 @@ namespace XrEngine
 
             var image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), alphaType);
 
-            Debug.Assert(data.Data != null);
+            Debug.Assert(data.Content != null);
 
             Debug.Assert(image.RowBytes == data.Width * pixelSize);
 
@@ -264,14 +264,14 @@ namespace XrEngine
             {
                 var dst = MemoryBuffer.Create<byte>(data.Height * data.Width * pixelSize);
 
-                using var pData = data.Data.MemoryLock();
+                using var pData = data.Content.MemoryLock();
                 using var pDst = dst.MemoryLock();
                 EngineNativeLib.ImageFlipY(pData, pDst, data.Width, data.Height, data.Width * pixelSize);
                 image.SetPixels(pDst);
             }
             else
             {
-                using var pData = data.Data.MemoryLock();
+                using var pData = data.Content.MemoryLock();
                 image.SetPixels(pData);
             }
 
@@ -293,7 +293,7 @@ namespace XrEngine
                 Width = (uint)image.Width,
                 Height = (uint)image.Height,
                 Format = GetFormat(image.ColorType),
-                Data = buffer,
+                Content = buffer,
             };
         }
 
@@ -308,12 +308,12 @@ namespace XrEngine
             var channels = data.Format.GetPixelSizeBit() / 8;
 
             var result = data.Clone();
-            result.Data = MemoryBuffer.Create<byte>((uint)(channels * width * height));
+            result.Content = MemoryBuffer.Create<byte>((uint)(channels * width * height));
             result.Width = (uint)width;
             result.Height = (uint)height;
 
-            using var pSrc = data.Data!.MemoryLock();
-            using var pDst = result.Data.MemoryLock();
+            using var pSrc = data.Content!.MemoryLock();
+            using var pDst = result.Content.MemoryLock();
 
             EngineNativeLib.ImageResizeBilinearU8(data.Width, data.Height, pSrc, (uint)width, (uint)height, pDst, channels);
 
@@ -334,13 +334,13 @@ namespace XrEngine
 
             var newData = MemoryBuffer.Create<byte>((uint)(pWidth * pixelSize * pHeight));
 
-            using var pSrc = result.Data!.MemoryLock();
+            using var pSrc = result.Content!.MemoryLock();
 
             using var pDst = newData.MemoryLock();
 
             EngineNativeLib.ImagePack(data.Width, data.Height, pSrc, (uint)pWidth, (uint)pHeight, pDst, pixelSize);
 
-            result.Data = newData;
+            result.Content = newData;
             result.Width = (uint)pWidth;
             result.Height = (uint)pHeight;
 
@@ -362,13 +362,13 @@ namespace XrEngine
 
             var newData = MemoryBuffer.Create<byte>((uint)(pWidth * data.Height * 4));
 
-            using var pSrc = result.Data!.MemoryLock();
+            using var pSrc = result.Content!.MemoryLock();
 
             using var pDst = newData.MemoryLock();
 
             EngineNativeLib.ImagePackToRgba8(pSrc, pDst, data.Width, data.Height, data.Format.GetChannels(), (uint)align);
 
-            result.Data = newData;
+            result.Content = newData;
             result.Width = (uint)pWidth;
             result.Format = data.Format.IsBgr() ?
                (data.Format.IsSrgb() ? TextureFormat.SBgra8 : TextureFormat.Bgra8) :
@@ -387,13 +387,13 @@ namespace XrEngine
 
             var newData = MemoryBuffer.Create<byte>((data.Width * data.Height * sizeof(float) * 4));
 
-            using var pSrc = result.Data!.MemoryLock();
+            using var pSrc = result.Content!.MemoryLock();
 
             using var pDst = newData.MemoryLock();
 
             EngineNativeLib.ConvertRgba16ToRgba32F((ushort*)pSrc.Data, (float*)pDst.Data, data.Width, data.Height, data.Width * 2);
 
-            result.Data = newData;
+            result.Content = newData;
             result.Format = TextureFormat.RgbaFloat32;
 
             return result;
@@ -411,13 +411,13 @@ namespace XrEngine
 
             var newData = MemoryBuffer.Create<byte>(size * 2 * 4);
 
-            using var pSrc = result.Data!.MemoryLock();
+            using var pSrc = result.Content!.MemoryLock();
 
             using var pDst = newData.MemoryLock();
 
             EngineNativeLib.ConvertRgb32FToRgba16F((float*)pSrc.Data, (Half*)pDst.Data, size * 3);
 
-            result.Data = newData;
+            result.Content = newData;
             result.Format = TextureFormat.RgbaFloat16;
 
             return result;

@@ -28,7 +28,7 @@ namespace XrEditor
 
         public static NativeImage CreateImage(this IImageFactory self, TextureData data)
         {
-            return self.CreateImage(data.Data!.AsSpan(), data.Width, data.Height, data.Format);
+            return self.CreateImage(data.Content!.AsSpan(), data.Width, data.Height, data.Format);
         }
 
     }

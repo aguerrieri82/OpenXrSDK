@@ -157,7 +157,7 @@ namespace XrEditor.Plot
                 Width = _curColor!.Width,
                 Height = _curColor.Height,
                 Format = TextureFormat.Rgb8,
-                Data = _curColor.Left.Data
+                Content = _curColor.Left.Data
             });
 
             var mesh = new TriangleMesh(_depthMesh.Geometry!, new TextureMaterial(tex)
@@ -216,7 +216,7 @@ namespace XrEditor.Plot
                 Width = _curColor.Width,
                 Height = _curColor.Height,
                 Format = TextureFormat.Rgb8,
-                Data = _curColor.Left.Data
+                Content = _curColor.Left.Data
             });
 
             _depthMesh.NotifyChanged(ChangeType.Geometry);

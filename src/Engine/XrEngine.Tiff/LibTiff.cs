@@ -362,7 +362,7 @@ namespace XrEngine.Tiff
             var lineSize = w * ps;
 
             var buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
-            result.Data = buffer;
+            result.Content = buffer;
 
             using var data = buffer.MemoryLock();
 

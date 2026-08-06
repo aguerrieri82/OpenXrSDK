@@ -73,7 +73,7 @@ namespace XrEngine.Transcoder
                     Width = (uint)outImg.Width,
                     Height = (uint)outImg.Height,
                     Format = format,
-                    Data = buf
+                    Content = buf
                 }];
             }
         }

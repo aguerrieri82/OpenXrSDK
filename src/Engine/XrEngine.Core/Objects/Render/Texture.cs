@@ -96,7 +96,7 @@
 
         public void LoadData(TextureData data, bool initSampler = true)
         {
-            if (data.Data == null)
+            if (data.Content == null)
                 Log.Warn(this, "Tetxure LoadData without data");
 
             LoadData([data], initSampler);

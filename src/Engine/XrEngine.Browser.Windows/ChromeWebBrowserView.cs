@@ -219,7 +219,7 @@ namespace XrEngine.Browser.Windows
                 {
                     _texture.LoadData(new TextureData()
                     {
-                        Data = MemoryBuffer.Create(_browser.FrameBuffer),
+                        Content = MemoryBuffer.Create(_browser.FrameBuffer),
                         Width = _browser.Size.Width,
                         Height = _browser.Size.Height,
                         Format = TextureFormat

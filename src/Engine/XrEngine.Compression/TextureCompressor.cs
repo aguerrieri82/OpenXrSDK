@@ -51,7 +51,7 @@ namespace XrEngine.Compression
 
         public static string TextureHash(TextureData data, TextureCompressionInfo compressor, int mipsLevels)
         {
-            var dataHash = HashBuilder.Instance.Compute(data.Data!.AsSpan());
+            var dataHash = HashBuilder.Instance.Compute(data.Content!.AsSpan());
 
             return $"{dataHash:X16}_{compressor.Format}_{compressor.BlockSize}_{mipsLevels}_v7";
         }

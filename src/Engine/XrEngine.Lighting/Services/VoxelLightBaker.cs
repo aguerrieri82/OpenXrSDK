@@ -193,7 +193,7 @@ namespace XrEngine.Lighting
 
                 tex.LoadData(new TextureData
                 {
-                    Data = MemoryBuffer.Attach((byte*)field.Color[i], size),
+                    Content = MemoryBuffer.Attach((byte*)field.Color[i], size),
                     Width = (uint)field.Size.X,
                     Height = (uint)field.Size.Y,
                     Depth = (uint)field.Size.Z,
@@ -210,7 +210,7 @@ namespace XrEngine.Lighting
 
                 tex.LoadData(new TextureData
                 {
-                    Data = MemoryBuffer.Attach((byte*)field.Direction[i], size),
+                    Content = MemoryBuffer.Attach((byte*)field.Direction[i], size),
                     Width = (uint)field.Size.X,
                     Height = (uint)field.Size.Y,
                     Depth = (uint)field.Size.Z,

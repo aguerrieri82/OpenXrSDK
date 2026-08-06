@@ -1,13 +1,14 @@
 ﻿using glTFLoader.Schema;
-using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using XrMath;
+using static glTFLoader.Schema.Material;
 
 #pragma warning disable CS0649
 
@@ -16,6 +17,12 @@ namespace XrEngine.Gltf
 
     public class GltfLoader : IDisposable
     {
+        static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions
+        {
+            IncludeFields = true,
+            PropertyNameCaseInsensitive = true
+        };
+
         GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
 
@@ -123,7 +130,7 @@ namespace XrEngine.Gltf
         protected static T? TryLoadExtension<T>(Dictionary<string, object>? ext) where T : struct
         {
             if (ext != null && ext.TryGetValue(typeof(T).Name, out var extension))
-                return ((JObject)extension).ToObject<T>();
+                return ((JsonElement)extension).Deserialize<T>(JSON_OPTIONS);
             return null;
         }
 
@@ -313,11 +320,12 @@ namespace XrEngine.Gltf
             result ??= _options.MaterialFactory(matId);
 
             result.Name = gltMat.Name;
+
             result.Alpha = gltMat.AlphaMode switch
             {
-                glTFLoader.Schema.Material.AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
-                glTFLoader.Schema.Material.AlphaModeEnum.MASK => AlphaMode.Mask,
-                glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
+                var mode when mode == AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
+                var mode when mode == AlphaModeEnum.MASK => AlphaMode.Mask,
+                var mode when mode == AlphaModeEnum.BLEND => AlphaMode.Blend,
                 _ => throw new NotSupportedException()
             };
 
