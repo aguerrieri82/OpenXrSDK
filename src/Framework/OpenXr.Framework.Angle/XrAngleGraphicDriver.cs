@@ -20,6 +20,8 @@ namespace OpenXr.Framework.Angle
 
     public unsafe class XrAngleGraphicDriver : XrBasePlugin, IXrGraphicDriver, IDisposable
     {
+        const uint VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT = 128;
+
         protected AngleVulkanContext _context;
         protected KhrVulkanEnable? _vulkanExt;
         protected XrDynamicType _swapChainType;
@@ -47,7 +49,7 @@ namespace OpenXr.Framework.Angle
             _app = app;
             extensions.Add(KhrVulkanEnable.ExtensionName);
             extensions.Add("XR_META_vulkan_swapchain_create_info");
-
+            extensions.Add("XR_KHR_swapchain_usage_input_attachment_bit");
         }
 
         public override void OnInstanceCreated()
@@ -62,12 +64,24 @@ namespace OpenXr.Framework.Angle
 
         }
 
-        public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
+        public override void ConfigureSwapchain(ref SwapchainCreateInfo info, bool mainSwapChain)
         {
-            var meta = (VulkanSwapchainCreateInfoMETA*)StructChain.FindNextStruct(ref info, StructureType.VulkanSwapchainCreateInfoMeta);
+            _swcMeta.Value = new VulkanSwapchainCreateInfoMETA
+            {
+                Type = StructureType.VulkanSwapchainCreateInfoMeta,
+                Next = null,
+                AdditionalCreateFlags = 0,
+                AdditionalUsageFlags = 0
+            };
+
+            if ((info.UsageFlags & SwapchainUsageFlags.InputAttachmentBitKhr) != 0)
+                _swcMeta.ValueRef.AdditionalUsageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+
 #if __ANDROID__
-            meta->AdditionalCreateFlags = (uint)ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt;
+            _swcMeta.ValueRef.AdditionalCreateFlags = (uint)ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt;
 #endif
+
+            StructChain.AddNextStruct(ref info, _swcMeta.Pointer);
         }
 
         public GraphicsBinding CreateBinding()

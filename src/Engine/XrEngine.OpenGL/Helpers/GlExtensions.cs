@@ -21,104 +21,26 @@ namespace XrEngine.OpenGL
         public const GLEnum GL_TEXTURE_BINDING_EXTERNAL_OES = (GLEnum)0x8D67;
 
         static ExtShaderFramebufferFetchNonCoherent? _fbFetchExt;
-
         static ExtFragmentShadingRate? _fsRateExt;
 
+        #region MISC
 
-        extension(GL gl)
+        public static TRes GetGlResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject
         {
-            public ExtFragmentShadingRate ShadingRateExt
+            return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () =>
             {
-                get
-                {
-                    if (_fsRateExt == null)
-                        gl.TryGetExtension(out _fsRateExt);
-                    return _fsRateExt ?? throw new NotSupportedException();
-                }
-            }
+                var result = factory(obj);
 
-            public ExtShaderFramebufferFetchNonCoherent FbFetchNonCoherentExt
-            {
-                get
-                {
-                    if (_fbFetchExt == null)
-                        gl.TryGetExtension(out _fbFetchExt);
-                    return _fbFetchExt ?? throw new NotSupportedException();
-                }
-            }
+                if (result != null)
+                    ObjectBinder.Bind(obj, result);
+
+                return result;
+            });
         }
 
-        public static void ClearError(this GL gl)
-        {
-            while (gl.GetError() != GLEnum.NoError) ;
-        }
+        #endregion
 
-        public static bool CheckError(this GL gl, bool log = true)
-        {
-            GLEnum err;
-
-            var hasError = false;
-
-            while ((err = gl.GetError()) != GLEnum.NoError)
-            {
-                if (log)
-                    Log.Warn("CheckError", "{0}:\n{1}", err, Environment.StackTrace);
-
-                hasError = true;
-            }
-
-            return hasError;
-        }
-
-        public static TextureTarget FindTextureTarget(this GL gL, uint texId)
-        {
-            TextureTarget[] targets =
-            [
-                TextureTarget.Texture2DMultisample,
-                TextureTarget.Texture2D,
-                TextureTarget.Texture2DMultisampleArray,
-                TextureTarget.Texture2DArray,
-                TextureTarget.TextureCubeMap,
-                GL_TEXTURE_EXTERNAL_OES
-            ];
-
-            GetPName[] bindings =
-            [
-                GetPName.TextureBinding2DMultisample,
-                GetPName.TextureBinding2D,
-                GetPName.TextureBinding2DMultisampleArray,
-                GetPName.TextureBinding2DArray,
-                GetPName.TextureBindingCubeMap,
-                (GetPName)GL_TEXTURE_BINDING_EXTERNAL_OES
-            ];
-
-            OpenGLRender.SuspendErrors++;
-
-            try
-            {
-                for (var i = 0; i < targets.Length; i++)
-                {
-                    var target = targets[i];
-
-                    GlState.Current.LoadTexture(texId, target, 0);
-
-                    gL.GetInteger(bindings[i], out var curTexId);
-
-                    GlState.Current.BindTexture(target, 0);
-
-                    gL.ClearError();
-
-                    if (curTexId == texId)
-                        return target;
-                }
-            }
-            finally
-            {
-                OpenGLRender.SuspendErrors--;
-            }
-
-            throw new NotSupportedException();
-        }
+        #region GlBuffer
 
         public static unsafe void Update<T>(this GlBuffer<T> self, IMemoryBuffer<byte> data)
         {
@@ -144,18 +66,9 @@ namespace XrEngine.OpenGL
             return self.MapRange(0, self.SizeBytes, access | MapBufferAccessMask.PersistentBit | MapBufferAccessMask.CoherentBit);
         }
 
-        public static TRes GetGlResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject
-        {
-            return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () =>
-            {
-                var result = factory(obj);
+        #endregion
 
-                if (result != null)
-                    ObjectBinder.Bind(obj, result);
-
-                return result;
-            });
-        }
+        #region Texture 
 
         public static GlTexture ToGlTexture(this Texture value)
         {
@@ -237,6 +150,93 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
+
+        static TextureTarget GetTarget(this Texture2D texture2D)
+        {
+            if (texture2D is Texture3D)
+                return TextureTarget.Texture3D;
+
+            if (texture2D is TextureCube)
+                return TextureTarget.TextureCubeMap;
+
+            if (texture2D.Type == TextureType.External)
+                return GL_TEXTURE_EXTERNAL_OES;
+
+            if (texture2D.Depth > 1)
+            {
+                if (texture2D.SampleCount > 1)
+                    return TextureTarget.Texture2DMultisampleArray;
+
+                return TextureTarget.Texture2DArray;
+            }
+
+            if (texture2D.SampleCount > 1)
+                return TextureTarget.Texture2DMultisample;
+
+            return TextureTarget.Texture2D;
+        }
+
+        static uint GetMaxLevel(Texture2D texture2D)
+        {
+            if (texture2D.MipLevelCount > 0)
+                return texture2D.MipLevelCount - 1;
+
+            if (texture2D.MinFilter == ScaleFilter.LinearMipmapLinear)
+            {
+                if (texture2D.Width == 0 || texture2D.Height == 0)
+                    return 0;
+
+                return (uint)MathF.Floor(MathF.Log2(MathF.Max(texture2D.Width, texture2D.Height)));
+            }
+
+            return 0;
+        }
+
+        #endregion
+
+        #region TextureSampler
+
+        public static GlSampler ToGlSampler(this TextureSampler value)
+        {
+            return value.GetGlResource(a =>
+            {
+                var renderer = OpenGLRender.Current!;
+
+                var result = new GlSampler(renderer.GL);
+                result.Update(value);
+                return result;
+            });
+        }
+
+        public static void Update(this GlSampler glSampler, TextureSampler sampler)
+        {
+            glSampler.Source = sampler;
+            glSampler.Version = sampler.Version;
+
+            glSampler.MinFilter = (TextureMinFilter)sampler.MinFilter;
+            glSampler.MagFilter = (TextureMagFilter)sampler.MagFilter;
+
+            glSampler.WrapS = (TextureWrapMode)sampler.WrapS;
+            glSampler.WrapT = (TextureWrapMode)sampler.WrapT;
+            glSampler.WrapR = (TextureWrapMode)sampler.WrapR;
+
+            glSampler.BorderColor = sampler.BorderColor;
+            glSampler.MinLod = sampler.MinLod;
+            glSampler.MaxLod = sampler.MaxLod;
+            glSampler.LodBias = sampler.LodBias;
+            glSampler.MaxAnisotropy = sampler.MaxAnisotropy;
+            glSampler.DecodeSrgb = sampler.DecodeSrgb;
+            glSampler.CompareMode = sampler.UseTexCompare ? TextureCompareMode.CompareRefToTexture : TextureCompareMode.None;
+            glSampler.CompareFunc = (DepthFunction)sampler.CompareFunc;
+
+            glSampler.Update();
+        }
+
+
+        #endregion
+
+        #region GlTexture
+
         public static async Task CompressAsync(this GlTexture glTexture, Texture2D source, TextureCompressionInfo info)
         {
             const string TAG = nameof(CompressAsync);
@@ -276,7 +276,7 @@ namespace XrEngine.OpenGL
                 });
 
                 await EngineApp.MainThread;
-             
+
                 if (glTexture.Source != source || glTexture.Version != sourceVersion)
                 {
                     Log.Warn(TAG, "Texture changed while compressing {0}", glTexture.Handle);
@@ -305,46 +305,9 @@ namespace XrEngine.OpenGL
             }
         }
 
-
-        public static GlSampler ToGlSampler(this TextureSampler value)
-        {
-            return value.GetGlResource(a =>
-            {
-                var renderer = OpenGLRender.Current!;
-
-                var result = new GlSampler(renderer.GL);
-                result.Update(value);
-                return result;
-            });
-        }
-
-        public static void Update(this GlSampler glSampler, TextureSampler sampler)
-        {
-            glSampler.Source = sampler;
-            glSampler.Version = sampler.Version;
-
-            glSampler.MinFilter = (TextureMinFilter)sampler.MinFilter;
-            glSampler.MagFilter = (TextureMagFilter)sampler.MagFilter;
-
-            glSampler.WrapS = (TextureWrapMode)sampler.WrapS;
-            glSampler.WrapT = (TextureWrapMode)sampler.WrapT;
-            glSampler.WrapR = (TextureWrapMode)sampler.WrapR;
-
-            glSampler.BorderColor = sampler.BorderColor;
-            glSampler.MinLod = sampler.MinLod;
-            glSampler.MaxLod = sampler.MaxLod;
-            glSampler.LodBias = sampler.LodBias;
-            glSampler.MaxAnisotropy = sampler.MaxAnisotropy;
-            glSampler.DecodeSrgb = sampler.DecodeSrgb;
-            glSampler.CompareMode = sampler.UseTexCompare ? TextureCompareMode.CompareRefToTexture : TextureCompareMode.None;
-            glSampler.CompareFunc = (DepthFunction)sampler.CompareFunc;
-
-            glSampler.Update();
-        }
-
-
         public static void Update(this GlTexture glTexture, Texture2D texture2D)
         {
+
 #if GLES
             //Necessary for generate mips
 
@@ -440,51 +403,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-        static TextureTarget GetTarget(this Texture2D texture2D)
-        {
-            if (texture2D is Texture3D)
-                return TextureTarget.Texture3D;
-
-            if (texture2D is TextureCube)
-                return TextureTarget.TextureCubeMap;
-
-            if (texture2D.Type == TextureType.External)
-                return GL_TEXTURE_EXTERNAL_OES;
-
-            if (texture2D.Depth > 1)
-            {
-                if (texture2D.SampleCount > 1)
-                    return TextureTarget.Texture2DMultisampleArray;
-
-                return TextureTarget.Texture2DArray;
-            }
-
-            if (texture2D.SampleCount > 1)
-                return TextureTarget.Texture2DMultisample;
-
-            return TextureTarget.Texture2D;
-        }
-
-        static uint GetMaxLevel(Texture2D texture2D)
-        {
-            if (texture2D.MipLevelCount > 0)
-                return texture2D.MipLevelCount - 1;
-
-            if (texture2D.MinFilter == ScaleFilter.LinearMipmapLinear)
-            {
-                if (texture2D.Width == 0 || texture2D.Height == 0)
-                    return 0;
-
-                return (uint)MathF.Floor(MathF.Log2(MathF.Max(texture2D.Width, texture2D.Height)));
-            }
-
-            return 0;
-        }
-
-        public static Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
-        {
-            return GlTexture.Attach(gl, texId).ToEngineTexture(readFormat);
-        }
 
         public static Texture ToEngineTexture(this GlTexture glTexture, TextureFormat? readFormat = null)
         {
@@ -537,16 +455,6 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-        public static T? Pass<T>(this OpenGLRender self) where T : IGlRenderPass
-        {
-            return self.Passes<T>().Single();
-        }
-
-        public static bool HasPass<T>(this OpenGLRender self) where T : IGlRenderPass
-        {
-            return self.Passes<T>().Any();
-        }
-
         public static GlTexture Clone(this GlTexture self, bool includeContent)
         {
             var result = new GlTexture(self.GL)
@@ -578,50 +486,6 @@ namespace XrEngine.OpenGL
 
             return result;
         }
-
-        public static uint GetActiveBufferBinding(this GL gl, BufferTargetARB target)
-        {
-            var pname =  target switch
-            {
-                BufferTargetARB.ArrayBuffer => GetPName.ArrayBufferBinding,
-                BufferTargetARB.ElementArrayBuffer => GetPName.ElementArrayBufferBinding,
-                BufferTargetARB.UniformBuffer => GetPName.UniformBufferBinding,
-                BufferTargetARB.ShaderStorageBuffer => GetPName.ShaderStorageBufferBinding,
-                BufferTargetARB.PixelPackBuffer => GetPName.PixelPackBufferBinding,
-                BufferTargetARB.PixelUnpackBuffer => GetPName.PixelUnpackBufferBinding,
-                BufferTargetARB.TransformFeedbackBuffer => GetPName.TransformFeedbackBufferBinding,
-                BufferTargetARB.DispatchIndirectBuffer => GetPName.DispatchIndirectBufferBinding,
-                BufferTargetARB.CopyWriteBuffer => (GetPName)GLEnum.CopyWriteBufferBinding,
-                BufferTargetARB.CopyReadBuffer => (GetPName)GLEnum.CopyReadBufferBinding,
-                _ => throw new NotSupportedException($"Unsupported buffer target: {target}")
-            };
-
-            return (uint)gl.GetInteger(pname);
-        }
-
-
-        public static uint GetActiveTextureBinding(this GL gl, TextureTarget target)
-        {
-            var binding = target switch
-            {
-                TextureTarget.Texture1D => GetPName.TextureBinding1D,
-                TextureTarget.Texture2D => GetPName.TextureBinding2D,
-                TextureTarget.Texture3D => GetPName.TextureBinding3D,
-                TextureTarget.Texture1DArray => GetPName.TextureBinding1DArray,
-                TextureTarget.Texture2DArray => GetPName.TextureBinding2DArray,
-                TextureTarget.TextureRectangle => GetPName.TextureBindingRectangle,
-                TextureTarget.TextureCubeMap => GetPName.TextureBindingCubeMap,
-                TextureTarget.Texture2DMultisample => GetPName.TextureBinding2DMultisample,
-                TextureTarget.Texture2DMultisampleArray => GetPName.TextureBinding2DMultisampleArray,
-                TextureTarget.TextureBuffer => GetPName.TextureBindingBuffer,
-                (TextureTarget)0x8D65 => (GetPName)0x8D67, // GL_TEXTURE_BINDING_EXTERNAL_OES
-
-                _ => throw new NotSupportedException($"Unsupported texture target: {target}")
-            };
-
-            return (uint)gl.GetInteger(binding);
-        }
-
 
         [Conditional("DEBUG")]
         public static unsafe void DumpState(this GlTexture texture, string? name = null)
@@ -728,5 +592,169 @@ namespace XrEngine.OpenGL
             Debug.WriteLine("--- End texture state ---");
             Debug.WriteLine("");
         }
+
+        #endregion
+
+        #region OpenGLRender
+
+        public static T? Pass<T>(this OpenGLRender self) where T : IGlRenderPass
+        {
+            return self.Passes<T>().Single();
+        }
+
+        public static bool HasPass<T>(this OpenGLRender self) where T : IGlRenderPass
+        {
+            return self.Passes<T>().Any();
+        }
+
+        #endregion
+
+        #region GL
+
+        extension(GL gl)
+        {
+            public ExtFragmentShadingRate ShadingRateExt
+            {
+                get
+                {
+                    if (_fsRateExt == null)
+                        gl.TryGetExtension(out _fsRateExt);
+                    return _fsRateExt ?? throw new NotSupportedException();
+                }
+            }
+
+            public ExtShaderFramebufferFetchNonCoherent FbFetchNonCoherentExt
+            {
+                get
+                {
+                    if (_fbFetchExt == null)
+                        gl.TryGetExtension(out _fbFetchExt);
+                    return _fbFetchExt ?? throw new NotSupportedException();
+                }
+            }
+        }
+
+        public static void ClearError(this GL gl)
+        {
+            while (gl.GetError() != GLEnum.NoError) ;
+        }
+
+        public static bool CheckError(this GL gl, bool log = true)
+        {
+            GLEnum err;
+
+            var hasError = false;
+
+            while ((err = gl.GetError()) != GLEnum.NoError)
+            {
+                if (log)
+                    Log.Warn("CheckError", "{0}:\n{1}", err, Environment.StackTrace);
+
+                hasError = true;
+            }
+
+            return hasError;
+        }
+
+        public static TextureTarget FindTextureTarget(this GL gL, uint texId)
+        {
+            TextureTarget[] targets =
+            [
+                TextureTarget.Texture2DMultisample,
+                TextureTarget.Texture2D,
+                TextureTarget.Texture2DMultisampleArray,
+                TextureTarget.Texture2DArray,
+                TextureTarget.TextureCubeMap,
+                GL_TEXTURE_EXTERNAL_OES
+            ];
+
+            GetPName[] bindings =
+            [
+                GetPName.TextureBinding2DMultisample,
+                GetPName.TextureBinding2D,
+                GetPName.TextureBinding2DMultisampleArray,
+                GetPName.TextureBinding2DArray,
+                GetPName.TextureBindingCubeMap,
+                (GetPName)GL_TEXTURE_BINDING_EXTERNAL_OES
+            ];
+
+            OpenGLRender.SuspendErrors++;
+
+            try
+            {
+                for (var i = 0; i < targets.Length; i++)
+                {
+                    var target = targets[i];
+
+                    GlState.Current.LoadTexture(texId, target, 0);
+
+                    gL.GetInteger(bindings[i], out var curTexId);
+
+                    GlState.Current.BindTexture(target, 0);
+
+                    gL.ClearError();
+
+                    if (curTexId == texId)
+                        return target;
+                }
+            }
+            finally
+            {
+                OpenGLRender.SuspendErrors--;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        public static Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
+        {
+            return GlTexture.Attach(gl, texId).ToEngineTexture(readFormat);
+        }
+
+
+        public static uint GetActiveBufferBinding(this GL gl, BufferTargetARB target)
+        {
+            var pname =  target switch
+            {
+                BufferTargetARB.ArrayBuffer => GetPName.ArrayBufferBinding,
+                BufferTargetARB.ElementArrayBuffer => GetPName.ElementArrayBufferBinding,
+                BufferTargetARB.UniformBuffer => GetPName.UniformBufferBinding,
+                BufferTargetARB.ShaderStorageBuffer => GetPName.ShaderStorageBufferBinding,
+                BufferTargetARB.PixelPackBuffer => GetPName.PixelPackBufferBinding,
+                BufferTargetARB.PixelUnpackBuffer => GetPName.PixelUnpackBufferBinding,
+                BufferTargetARB.TransformFeedbackBuffer => GetPName.TransformFeedbackBufferBinding,
+                BufferTargetARB.DispatchIndirectBuffer => GetPName.DispatchIndirectBufferBinding,
+                BufferTargetARB.CopyWriteBuffer => (GetPName)GLEnum.CopyWriteBufferBinding,
+                BufferTargetARB.CopyReadBuffer => (GetPName)GLEnum.CopyReadBufferBinding,
+                _ => throw new NotSupportedException($"Unsupported buffer target: {target}")
+            };
+
+            return (uint)gl.GetInteger(pname);
+        }
+
+        public static uint GetActiveTextureBinding(this GL gl, TextureTarget target)
+        {
+            var binding = target switch
+            {
+                TextureTarget.Texture1D => GetPName.TextureBinding1D,
+                TextureTarget.Texture2D => GetPName.TextureBinding2D,
+                TextureTarget.Texture3D => GetPName.TextureBinding3D,
+                TextureTarget.Texture1DArray => GetPName.TextureBinding1DArray,
+                TextureTarget.Texture2DArray => GetPName.TextureBinding2DArray,
+                TextureTarget.TextureRectangle => GetPName.TextureBindingRectangle,
+                TextureTarget.TextureCubeMap => GetPName.TextureBindingCubeMap,
+                TextureTarget.Texture2DMultisample => GetPName.TextureBinding2DMultisample,
+                TextureTarget.Texture2DMultisampleArray => GetPName.TextureBinding2DMultisampleArray,
+                TextureTarget.TextureBuffer => GetPName.TextureBindingBuffer,
+                (TextureTarget)0x8D65 => (GetPName)0x8D67, // GL_TEXTURE_BINDING_EXTERNAL_OES
+
+                _ => throw new NotSupportedException($"Unsupported texture target: {target}")
+            };
+
+            return (uint)gl.GetInteger(binding);
+        }
+
+
+        #endregion
     }
 }

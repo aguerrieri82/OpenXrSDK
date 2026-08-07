@@ -29,6 +29,26 @@ namespace XrEngine.OpenXr
 
     public static class BuilderExtensions
     {
+        static bool? _isMetaQuest;
+
+        public static bool IsMetaQuest
+        {
+            get
+            {
+                if (_isMetaQuest == null)
+                {
+#if ANDROID
+                    _isMetaQuest =
+                        string.Equals(global::Android.OS.Build.Manufacturer, "Oculus", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(global::Android.OS.Build.Manufacturer, "Meta", StringComparison.OrdinalIgnoreCase) ||
+                        (global::Android.OS.Build.Model?.Contains("Quest", StringComparison.OrdinalIgnoreCase) ?? false);
+#else
+                        _isMetaQuest = true;
+#endif
+                }
+                return _isMetaQuest.Value;
+            }
+        }
 
         public static XrEngineAppBuilder AddWebUI(this XrEngineAppBuilder self,
             WebUIOptions options,
@@ -73,6 +93,9 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = true) => self.ConfigureApp(e =>
         {
+            if (!IsMetaQuest)
+                return;
+
             if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
                 e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer() { IsEnabled = enabled });
         });
@@ -196,6 +219,8 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
+            if (!IsMetaQuest)
+                return;
             e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.RightExt });
             e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.LeftExt });
         });

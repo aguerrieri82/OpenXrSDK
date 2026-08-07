@@ -765,11 +765,13 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(_foveation!.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
         }
 
-        public unsafe override void ConfigureSwapchain(ref SwapchainCreateInfo info)
+        public unsafe override void ConfigureSwapchain(ref SwapchainCreateInfo info, bool mainSwapChain)
         {
             if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;
 
+            if (!mainSwapChain)
+                return;
             /*
             if ((info.UsageFlags & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0)
                 return;

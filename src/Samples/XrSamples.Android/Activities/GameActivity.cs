@@ -86,7 +86,8 @@ namespace XrSamples.Android.Activities
                 openGL.EnableDebug();
             */
 
-            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
+            if (AndroidXrPlugin.IsMetaQuest)
+                app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
@@ -137,8 +138,13 @@ namespace XrSamples.Android.Activities
 
                     if (_settings.Driver == GraphicDriver.Angle)
                     {
-                        opt.UseShaderCache = false;
                     }
+                    
+                    //
+                    XrEngineGlobal.UseSharedSsbo = false;
+                    opt.UseInstanceDraw = false;
+                    opt.UseShaderCache = false;
+                    opt.UseAsyncShaderCompile = false;
 
                 });
             else
@@ -148,9 +154,12 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
-                   .UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale)
                    .RemovePlaneGrid();
-                   //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+
+            //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+
+            if (AndroidXrPlugin.IsMetaQuest && _settings.DepthScale > 0)
+                builder.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale);
 
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp(MotionVectorMode.Shared);

@@ -53,10 +53,12 @@ namespace XrEngine.OpenXr.Android
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
         {
-            return new XrApp(Context.Require<ILogger>(),
-                new OculusXrPlugin(),
-                xrDriver,
-                new AndroidXrPlugin(_context));
+            var plugins = new List<IXrPlugin>([xrDriver, new AndroidXrPlugin(_context)]);
+
+            if (AndroidXrPlugin.IsMetaQuest)
+                plugins.Add(new OculusXrPlugin());
+
+            return new XrApp(Context.Require<ILogger>(), plugins.ToArray());
         }
 
         public unsafe void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)

@@ -1,6 +1,5 @@
 ﻿
 #define PLANAR_REFLECTION
-#define FRAGMENT_SHADER
 
 #include "Shared/uniforms.glsl"
 #include "Shared/planar_reflection.glsl"

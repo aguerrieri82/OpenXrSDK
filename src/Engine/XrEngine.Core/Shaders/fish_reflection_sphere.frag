@@ -1,6 +1,4 @@
-﻿#define FRAGMENT_SHADER
-
-#include "Shared/uniforms.glsl"
+﻿#include "Shared/uniforms.glsl"
 #include "Shared/position.glsl"
 
 in vec3 fPos;

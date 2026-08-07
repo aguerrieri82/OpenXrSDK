@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using XrEngine.Services;
 using XrMath;
 
 namespace XrEngine
@@ -13,7 +14,7 @@ namespace XrEngine
         {
             VertexSourceName = "standard.vert";
             Resolver = str => Embedded.GetString(str);
-            UseSharedSsbo = true;
+            UseSharedSsbo = XrEngineGlobal.UseSharedSsbo;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)

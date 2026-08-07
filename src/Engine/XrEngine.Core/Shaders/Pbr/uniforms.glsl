@@ -36,26 +36,29 @@ struct MaterialData
 	float planarLevel;
 };
 
-#ifdef USE_MATERIAL_SSBO
+#ifndef VERTEX_SHADER
 
-	layout(std140, binding = 2) readonly buffer Material
-	{
-        MaterialData materialData[];
-	};
+	#ifdef USE_MATERIAL_SSBO
 
-	uniform int uMaterialIndex;
+		layout(std140, binding = 2) readonly buffer Material
+		{
+			MaterialData materialData[];
+		};
 
-	#define uMaterial materialData[uMaterialIndex]
+		uniform int uMaterialIndex;
 
-#else
+		#define uMaterial materialData[uMaterialIndex]
 
-	layout(std140, binding = 2) uniform Material
-	{
-		MaterialData uMaterial;
-	};
+	#else
+
+		layout(std140, binding = 2) uniform Material
+		{
+			MaterialData uMaterial;
+		};
+
+	#endif
 
 #endif
-
 
 layout(std140, binding = 4) uniform Ibl
 {

@@ -1,5 +1,4 @@
-﻿#define FRAGMENT_SHADER
-
+﻿
 #include "[XrEngine.Core]Shared/uniforms.glsl"
 #include "[XrEngine.Core]Shared/position.glsl"
 #include "[XrEngine.Core]Shared/depth_sampler.glsl"

@@ -1,5 +1,4 @@
-﻿#define VERTEX_SHADER
-
+﻿
 #include "[XrEngine.Core]Shared/uniforms.glsl"
 #include "[XrEngine.Core]Shared/position.glsl"
 

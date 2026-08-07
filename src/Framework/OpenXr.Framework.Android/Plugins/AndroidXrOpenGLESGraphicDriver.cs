@@ -67,11 +67,6 @@ namespace OpenXr.Framework.Android
                 result.DepthFormat = (int)InternalFormat.Depth24Stencil8;
         }
 
-        public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
-        {
-            if (_app!.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                info.SampleCount = 1;
-        }
 
         public GraphicsBinding CreateBinding()
         {
@@ -84,9 +79,9 @@ namespace OpenXr.Framework.Android
 
             var result = new GraphicsBinding();
             result.Type = StructureType.GraphicsBindingOpenglESAndroidKhr;
-            result.OpenGLESAndroidKhr.Display = ((IJavaObject)_context.Display!).Handle;
-            result.OpenGLESAndroidKhr.Config = ((IJavaObject)_context.Config!).Handle;
-            result.OpenGLESAndroidKhr.Context = ((IJavaObject)_context.Context!).Handle;
+            result.OpenGLESAndroidKhr.Display = (nint)_context.Display!.NativeHandle;
+            result.OpenGLESAndroidKhr.Config = (nint)_context.Config!.NativeHandle;
+            result.OpenGLESAndroidKhr.Context = (nint)_context.Context!.NativeHandle;
             return result;
         }
 

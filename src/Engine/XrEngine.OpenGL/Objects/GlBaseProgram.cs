@@ -32,6 +32,7 @@ namespace XrEngine.OpenGL
         }
 
         protected readonly List<string> _features = [];
+        protected readonly List<string> _mergedFetaures = [];
         protected readonly List<string> _dynamicFeatures = [];
         protected readonly List<string> _extensions = [];
         protected readonly GlRenderOptions _glOptions;
@@ -42,6 +43,7 @@ namespace XrEngine.OpenGL
         protected readonly bool _cacheUniforms;
 
         protected ulong _sourceHash;
+
 
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
@@ -587,9 +589,18 @@ namespace XrEngine.OpenGL
             builder.Append("precision ").Append(GetPrecision(_glOptions.FloatPrecision)).Append(" float;\n");
             builder.Append("precision ").Append(GetPrecision(_glOptions.IntPrecision)).Append(" int;\n");
 
+            _mergedFetaures.Clear();
+            _mergedFetaures.AddRange(_features);
+
+            if (shaderType == ShaderType.VertexShader)
+                _mergedFetaures.Add("VERTEX_SHADER");
+            
+            else if (shaderType == ShaderType.FragmentShader)
+                _mergedFetaures.Add("FRAGMENT_SHADER");
+
             if (!_glOptions.UseShaderPreprocessor)
             {
-                foreach (var feature in _features)
+                foreach (var feature in _mergedFetaures)
                     builder.Append("#define ").Append(feature).Append('\n');
             }
 
@@ -608,7 +619,7 @@ namespace XrEngine.OpenGL
                     .Select(a => new GlslRuntimeDefine(a, a))
                     .ToArray();
 
-                var source = preProc.Process(sourceName, _features, runDefine);
+                var source = preProc.Process(sourceName, _mergedFetaures, runDefine);
 
                 builder.Append(source);
             }

@@ -110,8 +110,6 @@ namespace OpenXr.Framework
             _extensions.Add("XR_KHR_composition_layer_depth");
             _extensions.Add(KhrVisibilityMask.ExtensionName);
             _extensions.Add(ExtDebugUtils.ExtensionName);
-            _extensions.Add("XR_KHR_swapchain_usage_input_attachment_bit");
-
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
             Current = this;
@@ -512,6 +510,8 @@ namespace OpenXr.Framework
                 enabledApiLayerNames: (byte**)requestedApiLayers
             );
 
+            PluginInvoke(a=> a.CreateInstance(ref instanceCreateInfo));
+
             CheckResult(_xr!.CreateInstance(in instanceCreateInfo, ref _instance), "CreateInstance");
 
             return _instance;
@@ -552,7 +552,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        #endregion
+#endregion
 
         #region SPACE AND VIEW
 
@@ -956,7 +956,6 @@ namespace OpenXr.Framework
             SwapchainUsageFlags usage,  
             bool mainSwapChain = false)
         {
-            const uint VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT = 128;
 
             var info = new SwapchainCreateInfo
             {
@@ -971,21 +970,9 @@ namespace OpenXr.Framework
                 UsageFlags = usage
             };
 
-            var meta = new VulkanSwapchainCreateInfoMETA
-            {
-                Type = StructureType.VulkanSwapchainCreateInfoMeta,
-                Next = null,
-                AdditionalCreateFlags = 0,
-                AdditionalUsageFlags = 0
-            };
 
-            if ((usage & SwapchainUsageFlags.InputAttachmentBitKhr) != 0)
-                meta.AdditionalUsageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+            PluginInvoke(p => p.ConfigureSwapchain(ref info, mainSwapChain));
 
-            info.Next = &meta;
-
-            if (mainSwapChain)
-                PluginInvoke(p => p.ConfigureSwapchain(ref info));
 
             var result = new Swapchain();
 
@@ -1779,6 +1766,12 @@ namespace OpenXr.Framework
             }
             if (lastEx != null && mustSucceed)
                 throw lastEx;
+        }
+
+        public bool TryPlugin<T>(out T? value) where T : IXrPlugin
+        {
+            value = _plugins.OfType<T>().FirstOrDefault();
+            return value != null;
         }
 
         public T Plugin<T>() where T : IXrPlugin

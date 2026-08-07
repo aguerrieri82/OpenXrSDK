@@ -1,4 +1,6 @@
 
+layout(local_size_x=16, local_size_y=16, local_size_z=1) in;
+
 precision highp image2D;
 precision highp int;
 // Physically Based Rendering
@@ -68,7 +70,7 @@ float gaSchlickGGX_IBL(float cosLi, float cosLo, float roughness)
 	return gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
 }
 
-layout(local_size_x=32, local_size_y=32, local_size_z=1) in;
+
 void main(void)
 {
 	// Get integration parameters.

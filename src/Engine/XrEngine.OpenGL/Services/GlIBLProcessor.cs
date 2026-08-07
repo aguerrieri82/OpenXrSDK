@@ -74,9 +74,11 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg.SetUniform("inputTexture", 0);
 
+            var steps = (Resolution + 15) / 16;
+
             _gl.BindImageTexture(0, _cubeMapId, 0, true, 0, BufferAccessARB.WriteOnly, EnvFormat);
 
-            _gl.DispatchCompute(Resolution / 32, Resolution / 32, 6);
+            _gl.DispatchCompute(steps, steps, 6);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
 
@@ -128,7 +130,7 @@ namespace XrEngine.OpenGL
 
                 }
 
-                var steps = (res + 31) / 32;
+                var steps = (res + 15) / 16;
 
                 _gl.BindImageTexture(0, texId, mipLevel, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
