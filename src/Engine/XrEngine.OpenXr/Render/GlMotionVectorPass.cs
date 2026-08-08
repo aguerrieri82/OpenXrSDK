@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr
         protected readonly bool _isEditor;
         protected bool _multiView;
         protected uint _colorTex;
-        protected uint _depthTex;
+        private AngleVulkanContext _vulkanCtx;
         protected readonly GlTexture? _debugColor;
 
         public GlMotionVectorPass(OpenGLRender renderer, XrApp xrApp, bool multiView = false)
@@ -53,24 +53,11 @@ namespace XrEngine.OpenXr
         {
             if (_renderer.UseAngle)
             {
-                var colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
-
-                var ctx = Context.Require<AngleVulkanContext>();
-
-                _colorTex = ctx.AttachVulkanImage(
-                    colorVkImage,
-                    colorFormat,
-                    (uint)swapchain.Size.Width,
-                    (uint)swapchain.Size.Height,
-                    2, 1, 1,
-                    ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
-                    ImageCreateFlags.None,
-                    TextureTarget.Texture2DArray).Texture;
+                _vulkanCtx ??= Context.Require<AngleVulkanContext>();
+                _colorTex = _vulkanCtx.AttachVulkanImage(colorImg, swapchain).Texture;
             }
             else
                 _colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
-
-            //_depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -81,7 +68,6 @@ namespace XrEngine.OpenXr
         protected override bool CanDraw(DrawContent draw)
         {
             return true;
-            //return draw.Object is not ISkinnedMesh;
         }
 
         protected override bool CanDraw(Material drawMaterial)
@@ -95,7 +81,7 @@ namespace XrEngine.OpenXr
         {
             var effect = MotionVectorEffect.Instance;
 
-            //effect.WriteDepth = drawMaterial.WriteDepth;
+            effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
 
@@ -125,6 +111,7 @@ namespace XrEngine.OpenXr
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetClearColor(new Color(0, 0, 0, 0));
+            _renderer.State.Commit();
 
             _gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
 
@@ -141,7 +128,6 @@ namespace XrEngine.OpenXr
             {
                 MotionVectorEffect.Instance.EndPass(camera);
                 _colorTex = 0;
-                _depthTex = 0;
             }
 
             base.EndRender(ctx);

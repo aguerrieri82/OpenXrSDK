@@ -78,6 +78,7 @@ namespace XrEngine.OpenXr
             glState.SetUseDepth(false);
             glState.SetWriteDepth(false);
             glState.SetAlphaMode(AlphaMode.Opaque);
+            glState.Commit();
 
             glState.BindVertexArray(_emptyVertexArray);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);

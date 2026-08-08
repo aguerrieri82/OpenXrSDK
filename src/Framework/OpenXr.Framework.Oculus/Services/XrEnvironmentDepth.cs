@@ -1,7 +1,7 @@
 ﻿using Common.Interop;
 using Silk.NET.OpenXR;
 using System.Diagnostics.CodeAnalysis;
-using XrMath;
+
 
 namespace OpenXr.Framework.Oculus
 {
@@ -12,8 +12,8 @@ namespace OpenXr.Framework.Oculus
         protected EnvironmentDepthProviderMETA _depthProvider;
         protected EnvironmentDepthSwapchainMETA _swapchain;
         protected NativeArray<SwapchainImageBaseHeader>? _images;
-        private Size2 _size;
-        private bool _isStarted;
+        protected Extent2Di _size;
+        protected bool _isStarted;
 
         public XrEnvironmentDepth()
         {
@@ -43,7 +43,7 @@ namespace OpenXr.Framework.Oculus
                 };
 
                 _app.CheckResult(_envDepth.GetEnvironmentDepthSwapchainStateMETA(_swapchain, out state), "GetEnvironmentDepthSwapchainStateMETA");
-                _size = new Size2(state.Width, state.Height);
+                _size = new Extent2Di((int)state.Width, (int)state.Height);
             }
 
             _app.CheckResult(_envDepth.StartEnvironmentDepthProviderMETA(_depthProvider), "StartEnvironmentDepthProviderMETA");
@@ -180,7 +180,7 @@ namespace OpenXr.Framework.Oculus
             throw new NotImplementedException();
         }
 
-        public Size2 Size => _size;
+        public Extent2Di Size => _size;
 
         public NativeArray<SwapchainImageBaseHeader>? Images => _images;
 

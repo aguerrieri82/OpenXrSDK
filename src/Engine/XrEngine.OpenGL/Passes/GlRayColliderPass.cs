@@ -101,6 +101,7 @@ namespace XrEngine.OpenGL
 
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetWriteColor(false);
+            _renderer.State.Commit();
 
             _gl.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
 

@@ -95,7 +95,10 @@ namespace OpenXr.Framework
 
         protected XrAppState _state;
         protected bool _isValid; //TODO rethink on _state
-        private uint _swapChainSampleCount;
+        protected uint _swapChainSampleCount;
+
+        public delegate void ConfigureStruct<T>(ref T data) where T : unmanaged;
+
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -961,9 +964,9 @@ namespace OpenXr.Framework
             int format,
             uint arraySize,
             SwapchainUsageFlags usage,
-            SwapchainTarget target)
+            SwapchainTarget target,
+            ConfigureStruct<SwapchainCreateInfo>? configure = null)
         {
-
             var info = new SwapchainCreateInfo
             {
                 Type = StructureType.SwapchainCreateInfo,
@@ -978,6 +981,8 @@ namespace OpenXr.Framework
             };
 
             PluginInvoke(p => p.Configure(ref info, target));
+
+            configure?.Invoke(ref info);
 
             var result = new Swapchain();
 

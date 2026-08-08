@@ -434,6 +434,8 @@ namespace XrEngine.OpenGL
             _glState.SetClearDepth(1.0f);
             _glState.SetClearColor(color);
             _glState.SetClearStencil(0);
+            _glState.Commit();
+
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 

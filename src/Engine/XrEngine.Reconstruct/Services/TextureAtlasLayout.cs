@@ -392,6 +392,7 @@ namespace XrEngine.Reconstruct
             glState.SetWriteDepth(false);
             glState.SetUseDepth(false);
             glState.SetWriteColor(true);
+            glState.Commit();
 
             vs.Bind();
             vs.Draw();

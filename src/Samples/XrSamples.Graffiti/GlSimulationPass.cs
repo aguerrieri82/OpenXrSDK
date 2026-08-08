@@ -555,6 +555,7 @@ namespace XrSamples.Graffiti
                 glState.SetUseDepth(false);
                 glState.SetWriteColor(true);
                 glState.SetAlphaMode(AlphaMode.Add);
+                glState.Commit();
 
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
 

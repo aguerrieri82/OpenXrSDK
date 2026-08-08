@@ -9,11 +9,12 @@ namespace OpenXr.Framework
         protected readonly XrApp _xrApp;
         protected Swapchain _swapchain;
         protected long _lastPredictedTime;
-
         protected readonly int _usageCount = 0;
         protected int _curUsageCount = 0;
         protected uint _lastImageIndex;
-        private NativeArray<SwapchainImageBaseHeader>? _images;
+        protected NativeArray<SwapchainImageBaseHeader>? _images;
+        protected SwapchainCreateInfo _info;
+
 
         public XrSwapchain(XrApp xrApp, int usageCount = 1)
         {
@@ -26,7 +27,7 @@ namespace OpenXr.Framework
             if (_swapchain.Handle != 0)
                 _xrApp.DestroySwapchain(_swapchain);
 
-            _swapchain = _xrApp.CreateSwapChain(size, format, arraySize, usage, target);
+            _swapchain = _xrApp.CreateSwapChain(size, format, arraySize, usage, target, (ref info) => _info = info);
 
             _lastPredictedTime = 0;
 
@@ -119,5 +120,7 @@ namespace OpenXr.Framework
         public uint LastImageIndex => _lastImageIndex;
 
         public Swapchain Value => _swapchain;
+
+        public ref SwapchainCreateInfo CreateInfo => ref _info;
     }
 }

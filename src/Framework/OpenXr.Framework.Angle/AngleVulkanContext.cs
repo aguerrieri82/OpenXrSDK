@@ -544,16 +544,52 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         }
     }
 
-    public unsafe ImportedVulkanImage AttachVulkanImage(SwapchainImageBaseHeader* image, XrSwapchain swapchain)
+    public ImportedVulkanImage AttachVulkanImage(SwapchainImageBaseHeader* image, XrSwapchain swapchain)
     {
-        return null;
+        var vkImage = (nint)((SwapchainImageVulkanKHR*)image)->Image;
+
+        var usage = ImageUsageFlags.None;
+        var flags = ImageCreateFlags.None;
+
+        if ((swapchain.Usage & SwapchainUsageFlags.ColorAttachmentBit) != 0) 
+            usage |= ImageUsageFlags.ColorAttachmentBit;
+        if ((swapchain.Usage & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0) 
+            usage |= ImageUsageFlags.DepthStencilAttachmentBit;
+        if ((swapchain.Usage & SwapchainUsageFlags.UnorderedAccessBit) != 0) 
+            usage |= ImageUsageFlags.StorageBit;
+        if ((swapchain.Usage & SwapchainUsageFlags.SampledBit) != 0) 
+            usage |= ImageUsageFlags.SampledBit;
+        if ((swapchain.Usage & SwapchainUsageFlags.TransferSrcBit) != 0) 
+            usage |= ImageUsageFlags.TransferSrcBit;
+        if ((swapchain.Usage & SwapchainUsageFlags.TransferDstBit) != 0) 
+            usage |= ImageUsageFlags.TransferDstBit;
+        if ((swapchain.Usage & SwapchainUsageFlags.InputAttachmentBitKhr) != 0) 
+            usage |= ImageUsageFlags.InputAttachmentBit;
+
+        var vkInfo = (VulkanSwapchainCreateInfoMETA*)StructChain.FindNextStruct(ref swapchain.CreateInfo, 
+                    Silk.NET.OpenXR.StructureType.VulkanSwapchainCreateInfoMeta);
+        
+        if (vkInfo != null)
+        {
+            flags = (ImageCreateFlags)vkInfo->AdditionalCreateFlags;
+            usage |= (ImageUsageFlags)vkInfo->AdditionalUsageFlags;
+        }
+
+        return AttachVulkanImage(vkImage,
+            (Format)swapchain.Format,
+            swapchain.Size,
+            swapchain.ArraySize,
+            1,
+            1,
+            usage,
+            flags,
+            swapchain.ArraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
     }
 
     public ImportedVulkanImage AttachVulkanImage(
         nint vkImage,
-        int vkFormat,
-        uint width,
-        uint height,
+        Format vkFormat,
+        Extent2Di size,
         uint arrayLayers,
         uint mipLevels,
         uint sampleCount,
@@ -570,8 +606,8 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             PNext = null,
             Flags = vkFlags,
             ImageType = ImageType.Type2D,
-            Format = (Format)vkFormat,
-            Extent = new Extent3D { Width = width, Height = height, Depth = 1 },
+            Format = vkFormat,
+            Extent = new Extent3D { Width = (uint)size.Width, Height = (uint)size.Height, Depth = 1 },
             MipLevels = mipLevels,
             ArrayLayers = arrayLayers,
             Samples = (SampleCountFlags)sampleCount,

@@ -21,9 +21,9 @@ namespace XrEngine.OpenXr
         readonly OpenGLRender _renderer;
         readonly EngineApp _app;
         protected Texture2D? _texture;
-        protected nint _colorVkImage;
         protected readonly AngleVulkanContext? _context;
         protected GlMultiViewFrameBuffer _testFb;
+        private AngleVulkanContext _vulkanCtx;
 
         public GlMotionVectorProviderShared(EngineApp app, OpenGLRender renderer)
         {
@@ -59,42 +59,16 @@ namespace XrEngine.OpenXr
 
         public unsafe void UpdateMotionVectors(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
-
             uint colorTex;
-            uint depthTex;
 
             if (_renderer.UseAngle)
             {
-                _colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
+                _vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
-                var ctx = Context.Require<AngleVulkanContext>();
-
-                colorTex = ctx.AttachVulkanImage(
-                    _colorVkImage,
-                    swapchain.Format,
-
-                    (uint)swapchain.Size.Width,
-                    (uint)swapchain.Size.Height,
-
-                    2, 1, 1,
-
-                    ImageUsageFlags.SampledBit |
-                    ImageUsageFlags.TransferSrcBit |
-                    ImageUsageFlags.StorageBit |
-                    ImageUsageFlags.InputAttachmentBit |
-                    ImageUsageFlags.TransferDstBit |
-                    ImageUsageFlags.ColorAttachmentBit,
-
-                    ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt |
-                    ImageCreateFlags.CreateMutableFormatBit,
-
-                    TextureTarget.Texture2DArray).Texture;
+                colorTex = _vulkanCtx.AttachVulkanImage(colorImg, swapchain).Texture;
             }
             else
-            {
                 colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
-                depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
-            }
 
             var colorGlTex = GlTexture.Attach(_renderer.GL, colorTex);
 

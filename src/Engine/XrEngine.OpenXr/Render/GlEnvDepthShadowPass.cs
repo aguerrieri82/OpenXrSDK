@@ -95,6 +95,7 @@ namespace XrEngine.OpenXr
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetAlphaMode(AlphaMode.Blend);
+            _renderer.State.Commit();
 
             _program.Use();
 

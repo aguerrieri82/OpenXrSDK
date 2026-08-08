@@ -152,6 +152,7 @@ namespace XrEngine.OpenGL
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetAlphaMode(AlphaMode.Opaque);
             _renderer.State.SetClearColor(Color.Transparent);
+            _renderer.State.Commit();
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
@@ -169,6 +170,7 @@ namespace XrEngine.OpenGL
 
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetWriteColor(true);
+            _renderer.State.Commit();
 
             _applyProgram.Use();
 

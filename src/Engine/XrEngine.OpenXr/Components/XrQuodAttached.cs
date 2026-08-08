@@ -95,34 +95,20 @@ namespace XrEngine.OpenXr
 
             OpenGLRender.Current.PushGroup("Render Quad");
 
-            var swp = data.Swapchain!;
+            var swapchain = data.Swapchain!;
 
             if (useAngle)
             {
                 _vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
-                var vkImage = (nint)((SwapchainImageVulkanKHR*)image)->Image;
-
-                glImage = _vulkanCtx.AttachVulkanImage(
-                    vkImage,
-                    swp.Format,
-                    (uint)swp.Size.Width,
-                    (uint)swp.Size.Height,
-                    1, 1, 1,
-                    ImageUsageFlags.SampledBit |
-                    ImageUsageFlags.ColorAttachmentBit |
-                    ImageUsageFlags.TransferDstBit |
-                    ImageUsageFlags.TransferSrcBit |
-                    ImageUsageFlags.InputAttachmentBit,
-                    ImageCreateFlags.None,
-                    TextureTarget.Texture2D).Texture;
+                glImage = _vulkanCtx.AttachVulkanImage(image, swapchain).Texture;
 
                 _vulkanCtx.AcquireTexture(glImage);
             }
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image;
 
-            _host.SetRenderTarget(glImage, (uint)swp.Size.Width, (uint)swp.Size.Height, data.Eye);
+            _host.SetRenderTarget(glImage, (uint)swapchain.Size.Width, (uint)swapchain.Size.Height, data.Eye);
             _host.Draw(EngineApp.Current.RenderContext);
 
             OpenGLRender.Current.PopGroup();

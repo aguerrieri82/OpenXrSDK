@@ -322,47 +322,12 @@ namespace XrEngine.OpenXr
 
                 vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
-                var colorSwp = info.Color[0];
+                var colorImg = vulkanCtx.AttachVulkanImage(info.ColorImages[index], info.Color[0]); 
 
-                var target = colorSwp.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
-
-                var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[index])->Image;
-                var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[index])->Image;
-
-                var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
-                        colorSwp.Format,
-                        (uint)colorSwp.Size.Width,
-                        (uint)colorSwp.Size.Height,
-                        colorSwp.ArraySize, 1, 1,
-                        ImageUsageFlags.ColorAttachmentBit |
-                        ImageUsageFlags.SampledBit |
-                        ImageUsageFlags.InputAttachmentBit,
-#if __ANDROID__
-                        ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt,
-#else
-                        ImageCreateFlags.None,
-#endif
-                        target);
-
-                if (depthImagePtr == 0)
+                if (info.DepthImages == null || info.Depth == null)
                     return (colorImg.Texture, 0);
 
-                var depthSwp = info.Color[0];
-
-                var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
-                        depthSwp.Format,
-                        (uint)depthSwp.Size.Width,
-                        (uint)depthSwp.Size.Height,
-                        depthSwp.ArraySize, 1, 1,
-                        ImageUsageFlags.DepthStencilAttachmentBit |
-                        ImageUsageFlags.SampledBit |
-                        ImageUsageFlags.InputAttachmentBit,
-#if __ANDROID__
-                        ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt,
-#else
-                        ImageCreateFlags.None,
-#endif
-                        target);
+                var depthImg = vulkanCtx.AttachVulkanImage(info.DepthImages[index], info.Depth[0]);
 
                 return (colorImg.Texture, depthImg.Texture);
             }

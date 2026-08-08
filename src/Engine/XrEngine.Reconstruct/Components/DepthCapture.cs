@@ -828,6 +828,7 @@ namespace XrEngine.Reconstruct
             glState.SetAlphaMode(AlphaMode.Add);
             glState.SetDoubleSided(true);
             glState.SetView(new Rect2I(0, 0, _atlasTex.Width, _atlasTex.Height));
+            glState.Commit();
 
             if (frame.ImageIndex == 0)
             {
@@ -864,6 +865,7 @@ namespace XrEngine.Reconstruct
             glState.SetWriteColor(true);
             glState.SetDoubleSided(false);
             glState.SetAlphaMode(AlphaMode.Opaque);
+            glState.Commit();
 
             var resolveProg = GlImageProc.LoadProgram(
                 gl,
@@ -978,6 +980,7 @@ namespace XrEngine.Reconstruct
                 glState.SetWriteColor(false);
                 glState.SetClearColor(Color.Transparent);
                 glState.SetAlphaMode(AlphaMode.Opaque);
+                glState.Commit();
 
                 gl.Clear(ClearBufferMask.DepthBufferBit);
 

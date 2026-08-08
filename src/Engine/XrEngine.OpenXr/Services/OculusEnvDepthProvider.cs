@@ -103,9 +103,8 @@ namespace XrEngine.OpenXr
 
                         _lastGlImage = ctx.AttachVulkanImage(
                             vkImage,
-                            (int)Format.D16Unorm,
-                            (uint)_passTh.EnvironmentDepth.Size.Width,
-                            (uint)_passTh.EnvironmentDepth.Size.Height,
+                            Format.D16Unorm,
+                            _passTh.EnvironmentDepth.Size,
                             2, 1, 1,
                             ImageUsageFlags.SampledBit |
                             ImageUsageFlags.DepthStencilAttachmentBit,

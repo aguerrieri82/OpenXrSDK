@@ -31,6 +31,8 @@ namespace XrEngine.OpenGL
             _renderTarget!.Begin(ctx.PassCamera!);
 
             _renderer.State.SetWriteDepth(true);
+            _renderer.State.Commit();
+
             _gl.Clear(ClearBufferMask.DepthBufferBit);
             _gl.DepthFunc(DepthFunction.Less);
 

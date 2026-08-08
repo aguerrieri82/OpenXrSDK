@@ -54,6 +54,7 @@ namespace XrEngine.OpenGL
                 _renderer.State.SetWriteDepth(true);
                 _renderer.State.SetClearDepth(1.0f);
                 _renderer.State.SetClearStencil(0);
+                _renderer.State.Commit();
 
                 _gl.ClearBuffer(BufferKind.Color, 0, ctx.PassCamera!.BackgroundColor.AsSpan());
 

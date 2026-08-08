@@ -192,6 +192,7 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ScissorTest, false);
             glState.EnableFeature(EnableCap.StencilTest, false);
             glState.SetWireframe(false);
+            glState.Commit();
 
             glState.LoadTexture(src, 0);
 
@@ -228,6 +229,7 @@ namespace XrEngine.OpenGL
             glState.SetWriteDepth(false);
             glState.SetUseDepth(false);
             glState.SetWriteColor(true);
+            glState.Commit();
 
             glState.LoadTexture(src, 0);
 
