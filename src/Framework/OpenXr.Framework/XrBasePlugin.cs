@@ -11,9 +11,7 @@ namespace OpenXr.Framework
 
         }
 
-        public virtual void ConfigureSwapchain(ref SwapchainCreateInfo info, bool mainSwapChain)
-        {
-        }
+
 
         public virtual void HandleEvent(ref EventDataBuffer buffer)
         {
@@ -55,9 +53,13 @@ namespace OpenXr.Framework
 
         }
 
-        public virtual IDisposable? Configure<T>(ref T data) where T : struct
+        public virtual IDisposable? Configure<T>(ref T data) where T : unmanaged
         {
             return null;
+        }
+
+        public virtual void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
+        {
         }
 
         public virtual void CreateInstance(ref InstanceCreateInfo info)

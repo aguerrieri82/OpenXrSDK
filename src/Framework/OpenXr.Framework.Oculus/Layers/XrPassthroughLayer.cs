@@ -1,4 +1,5 @@
 ﻿using Common.Interop;
+using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
@@ -145,7 +146,12 @@ namespace OpenXr.Framework.Oculus
             var caps = GetPtCapabilities();
 
             if ((caps.Capabilities & PassthroughCapabilityFlagsFB.BitFB) == 0)
-                throw new NotSupportedException();
+            {
+                _xrApp!.Logger.Log(LogLevel.Warning, "Passthrough not supprted");
+                IsEnabled = false;
+                return;
+            }
+  
 
             _xrApp!.Xr.TryGetInstanceExtension<FBPassthrough>(null, _xrApp!.Instance, out _passthrough);
 
@@ -189,6 +195,9 @@ namespace OpenXr.Framework.Oculus
 
         protected override bool Update(ref CompositionLayerPassthroughFB layer, ref View[] views, long predTime)
         {
+            if (_ptLayer.Handle == 0)
+                return false;
+
             layer.LayerHandle = _ptLayer;
             layer.Flags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
             return true;

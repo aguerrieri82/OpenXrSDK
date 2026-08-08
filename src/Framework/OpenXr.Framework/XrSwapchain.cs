@@ -1,35 +1,60 @@
 ﻿using Common.Interop;
 using Silk.NET.OpenXR;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OpenXr.Framework
 {
     public class XrSwapchain : IDisposable
     {
-        readonly XrApp _xrApp;
-        Swapchain _swapchain;
-        long _lastPredictedTime;
-        readonly int _usageCount = 0;
-        int _curUsageCount = 0;
-        uint _lastImage;
+        protected readonly XrApp _xrApp;
+        protected Swapchain _swapchain;
+        protected long _lastPredictedTime;
 
-        public XrSwapchain(XrApp xrApp, int usageCount)
+        protected readonly int _usageCount = 0;
+        protected int _curUsageCount = 0;
+        protected uint _lastImageIndex;
+        private NativeArray<SwapchainImageBaseHeader>? _images;
+
+        public XrSwapchain(XrApp xrApp, int usageCount = 1)
         {
             _xrApp = xrApp;
             _usageCount = usageCount;
         }
 
-        public void Create(Extent2Di size, int format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = false)
+        public void Create(Extent2Di size, int format, uint arraySize, SwapchainUsageFlags usage, SwapchainTarget target)
         {
             if (_swapchain.Handle != 0)
                 _xrApp.DestroySwapchain(_swapchain);
 
-            _swapchain = _xrApp.CreateSwapChain(size, format, arraySize, usage,  mainSwapChain);
+            _swapchain = _xrApp.CreateSwapChain(size, format, arraySize, usage, target);
+
             _lastPredictedTime = 0;
+            
+            Format = format;
+            ArraySize = arraySize;
+            Size = size;
+            Usage = usage;
         }
 
+        [MemberNotNull(nameof(_images))]
         public NativeArray<SwapchainImageBaseHeader> EnumerateImages()
         {
-            return _xrApp.EnumerateSwapchainImages(_swapchain);
+            _images ??= _xrApp.EnumerateSwapchainImages(_swapchain);
+            return _images;
+        }
+
+        public unsafe SwapchainImageBaseHeader* AcquireImageAndWait()
+        {
+            if (_images == null)
+                EnumerateImages();
+            
+            var index = Acquire();
+
+            var result = _images.ItemPointer((int)index);
+
+            Wait();
+
+            return result;  
         }
 
         public uint Acquire()
@@ -39,13 +64,13 @@ namespace OpenXr.Framework
             if (isNewFrame)
             {
                 _curUsageCount = 0;
-                _lastImage = _xrApp.AcquireSwapchainImage(_swapchain);
+                _lastImageIndex = _xrApp.AcquireSwapchainImage(_swapchain);
                 _lastPredictedTime = _xrApp.FramePredictedDisplayTime;
             }
 
             _curUsageCount++;
 
-            return _lastImage;
+            return _lastImageIndex;
         }
 
         public void Wait()
@@ -67,6 +92,11 @@ namespace OpenXr.Framework
                 _xrApp.DestroySwapchain(_swapchain);
                 _swapchain.Handle = 0;
             }
+
+            _images?.Dispose();
+            _images = null;
+
+            GC.SuppressFinalize(this);
         }
 
         public static implicit operator Swapchain(XrSwapchain self)
@@ -74,7 +104,19 @@ namespace OpenXr.Framework
             return self._swapchain;
         }
 
+        public int Format { get; protected set; }
+
+        public uint ArraySize { get; protected set; }
+
+        public Extent2Di Size { get; protected set; }
+
+        public SwapchainUsageFlags Usage { get; protected set; }
+
+        public NativeArray<SwapchainImageBaseHeader>? Images => _images;
+
         public bool IsCreated => _swapchain.Handle != 0;
+
+        public uint LastImageIndex => _lastImageIndex;
 
         public Swapchain Value => _swapchain;
     }

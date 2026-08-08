@@ -10,7 +10,6 @@ namespace OpenXr.Framework
     }
 
 
-
     public class XrRenderOptions
     {
         public XrRenderOptions()

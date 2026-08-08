@@ -5,13 +5,11 @@ using XrMath;
 
 namespace OpenXr.Framework
 {
-    public unsafe delegate bool RenderQuadDelegate(QuadData data, SwapchainImageBaseHeader* image, long predTime);
+    public unsafe delegate bool RenderQuadDelegate(QuadRenderData data, SwapchainImageBaseHeader* image, long predTime);
 
-    public class QuadData
+    public class QuadRenderData
     {
-        public Extent2Di Size;
-
-        public int Format;
+        public XrSwapchain? Swapchain;
 
         public int Eye;
     }
@@ -20,9 +18,8 @@ namespace OpenXr.Framework
     {
         protected RenderQuadDelegate _renderQuad;
         protected Size2I _size;
-        protected NativeArray<SwapchainImageBaseHeader>? _images;
         protected XrSwapchain? _swapchain;
-        protected QuadData _data;
+        protected QuadRenderData _data;
 
 
         public XrTextureQuadLayer(GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size)
@@ -30,14 +27,18 @@ namespace OpenXr.Framework
         {
             _renderQuad = renderQuad;
             _size = size;
-            _data = new QuadData();
-            _data.Eye = -1;
+
+            _data = new QuadRenderData
+            {
+                Eye = -1
+            };
         }
 
         public void ConfigureStereo(XrSwapchain swapchain, int eye)
         {
             _swapchain = swapchain;
             _data.Eye = eye;
+            _data.Swapchain = swapchain;    
         }
 
         public override void Create()
@@ -47,12 +48,11 @@ namespace OpenXr.Framework
             var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
             if (Format == 0)
-                Format = _xrApp.RenderOptions.ColorFormat;
-
-            _data.Format = Format;
-            _data.Size = extent;    
+                Format = _xrApp.RenderOptions.ColorFormat; 
 
             _swapchain ??= new XrSwapchain(_xrApp, 1);
+            
+            _data.Swapchain = _swapchain;
 
             if (!_swapchain.IsCreated)
             {
@@ -63,10 +63,9 @@ namespace OpenXr.Framework
                     SwapchainUsageFlags.ColorAttachmentBit |
                     SwapchainUsageFlags.InputAttachmentBitKhr |
                     SwapchainUsageFlags.TransferSrcBit |
-                    SwapchainUsageFlags.TransferDstBit);
+                    SwapchainUsageFlags.TransferDstBit,
+                    SwapchainTarget.Quad);
             }
-
-            _images = _swapchain.EnumerateImages();
 
             _header.ValueRef.SubImage.Swapchain = _swapchain;
             _header.ValueRef.SubImage.ImageArrayIndex = _data.Eye == -1 ? 0 : (uint)_data.Eye;
@@ -78,26 +77,23 @@ namespace OpenXr.Framework
 
         protected unsafe override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {
-            Debug.Assert(_xrApp != null);
-            Debug.Assert(_images != null);
-            Debug.Assert(_swapchain != null);
+            Debug.Assert(_xrApp != null && _swapchain != null);
 
             if (!base.Update(ref layer, ref views, predTime))
                 return false;
 
 #warning TODO: COPY THE OLD FRAME INSTEAD!
+
             /*
             if (!_renderQuad(null, new Size2I(), 0, _eye))
                 return false;
             */
 
-            var index = _swapchain.Acquire();
-
-            _swapchain.Wait();
+            var image = _swapchain.AcquireImageAndWait();
 
             try
             {
-                return _renderQuad(_data, _images.ItemPointer((int)index), predTime);
+                return _renderQuad(_data, image, predTime);
             }
             finally
             {

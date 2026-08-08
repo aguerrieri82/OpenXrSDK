@@ -8,17 +8,18 @@ using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
 using System.Runtime.InteropServices;
 
+
 namespace OpenXr.Framework.Android
 {
-    public unsafe class AndroidXrPlugin : XrBasePlugin
+    public unsafe class AndroidXrPlugin : XrBasePlugin, IDisposable
     {
         protected Context _context;
         protected KhrAndroidThreadSettings? _thread;
         protected uint _mainThreadId;
 
         protected NativeStruct<LoaderInitInfoAndroidKHR> _loaderInit;
-
         protected NativeStruct<InstanceCreateInfoAndroidKHR> _createInfo;
+
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Silk.NET.OpenXR.Result InitializeLoaderDelegate(LoaderInitInfoAndroidKHR* loader);
@@ -72,21 +73,25 @@ namespace OpenXr.Framework.Android
             base.OnSessionCreated();
         }
 
-        public override void CreateInstance(ref InstanceCreateInfo info)
+        public override IDisposable? Configure<T>(ref T data)
         {
-            _createInfo.Value = new InstanceCreateInfoAndroidKHR
+            if (data is InstanceCreateInfo)
             {
-                Type = StructureType.InstanceCreateInfoAndroidKhr,
-                ApplicationVM = _loaderInit.ValueRef.ApplicationVM,
-                ApplicationActivity = _loaderInit.ValueRef.ApplicationContext
-            };
+                _createInfo.Value = new InstanceCreateInfoAndroidKHR
+                {
+                    Type = StructureType.InstanceCreateInfoAndroidKhr,
+                    ApplicationVM = _loaderInit.ValueRef.ApplicationVM,
+                    ApplicationActivity = _loaderInit.ValueRef.ApplicationContext
+                };
 
-            StructChain.AddNextStruct(ref info, _createInfo.Pointer);
+                StructChain.AddNextStruct(ref data, _createInfo.Pointer);
+            }
+
+            return null;
         }
-
-        public override void ConfigureSwapchain(ref SwapchainCreateInfo info, bool mainSwapChain)
+        public override void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
-            if (!IsMetaQuest)
+            if (!XrDevice.IsMetaQuest)
                 info.UsageFlags &= ~SwapchainUsageFlags.InputAttachmentBitKhr;
         }
 
@@ -106,10 +111,12 @@ namespace OpenXr.Framework.Android
             InitAndroid(_context);
         }
 
+        public void Dispose()
+        {
+            _loaderInit.Dispose();
+            _createInfo.Dispose();
+            GC.SuppressFinalize(this);
+        }
 
-        public static bool IsMetaQuest =
-                string.Equals(Build.Manufacturer, "Oculus", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(Build.Manufacturer, "Meta", StringComparison.OrdinalIgnoreCase) ||
-                (Build.Model?.Contains("Quest", StringComparison.OrdinalIgnoreCase) == true);
     }
 }

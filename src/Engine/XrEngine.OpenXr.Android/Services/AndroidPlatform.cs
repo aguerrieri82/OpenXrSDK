@@ -55,7 +55,7 @@ namespace XrEngine.OpenXr.Android
         {
             var plugins = new List<IXrPlugin>([xrDriver, new AndroidXrPlugin(_context)]);
 
-            if (AndroidXrPlugin.IsMetaQuest)
+            if (XrDevice.IsMetaQuest)
                 plugins.Add(new OculusXrPlugin());
 
             return new XrApp(Context.Require<ILogger>(), plugins.ToArray());

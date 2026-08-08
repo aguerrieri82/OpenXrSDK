@@ -23,7 +23,6 @@ namespace XrEngine.OpenXr
         protected Texture2D? _texture;
         protected nint _colorVkImage;
         protected readonly AngleVulkanContext? _context;
-
         protected GlMultiViewFrameBuffer _testFb;
 
 
@@ -59,7 +58,7 @@ namespace XrEngine.OpenXr
                 _context = Context.Require<AngleVulkanContext>();
         }
 
-        public unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
+        public unsafe void UpdateMotionVectors(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
 
             uint colorTex;
@@ -73,17 +72,23 @@ namespace XrEngine.OpenXr
 
                 colorTex = ctx.AttachVulkanImage(
                     _colorVkImage,
-                    MotionVectorFormat,
-                    (uint)spData.ColorSize.Width,
-                    (uint)spData.ColorSize.Height,
+                    swapchain.Format,
+
+                    (uint)swapchain.Size.Width,
+                    (uint)swapchain.Size.Height,
+
                     2,1,1,
+                    
                     ImageUsageFlags.SampledBit | 
                     ImageUsageFlags.TransferSrcBit |
                     ImageUsageFlags.StorageBit |
                     ImageUsageFlags.InputAttachmentBit |
                     ImageUsageFlags.TransferDstBit | 
                     ImageUsageFlags.ColorAttachmentBit,
-                    ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt | ImageCreateFlags.CreateMutableFormatBit,
+
+                    ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt | 
+                    ImageCreateFlags.CreateMutableFormatBit,
+
                     TextureTarget.Texture2DArray).Texture;
             }
             else

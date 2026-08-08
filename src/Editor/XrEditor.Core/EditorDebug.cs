@@ -8,7 +8,7 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
+        public static readonly GraphicDriver Driver = GraphicDriver.Angle;
 
         public static readonly bool AutoStartApp = true;
 
@@ -19,10 +19,6 @@ namespace XrEditor
         public static readonly bool EnablePreview = false;
 
         public static readonly bool UseEs = false;
-
-        public static readonly bool DebugSync = true;
-
-        public static readonly bool DebugEnabled = true;
 
         public static readonly bool DisableDualRender = true;
 
@@ -76,14 +72,16 @@ namespace XrEditor
                   }
 
               })
+              .SetAppOptions(opt =>
+              {
+                  opt.Driver = Driver;
+              })
               //.UseSpaceWarp()
               .AddProfileOverlay()
-              //.UseAngle()
-              .UseOpenGL()
-              .EnableDebugNotRelease()
-              .SetRenderQuality(1f, 2, useIntermediate: false)
+              .EnableDebugNotRelease(sync: true)
+              .SetRenderQuality(1f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateSponza()
+              .CreateBed()
               .Build();
     }
 }

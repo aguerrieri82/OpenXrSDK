@@ -113,10 +113,6 @@ namespace XrEditor
         {
             renderEngine = _renderSurface!.CreateRenderEngine(options.DriverOptions);
 
-#if DEBUG
-            if (EditorDebug.DebugEnabled)
-                renderEngine.EnableDebug(EditorDebug.DebugSync ? RenderEngineDebug.Sync : RenderEngineDebug.None);
-#endif
 
             if (_renderSurface is GlRenderHost glHost)
                 xrDriver = new XrOpenGLGraphicDriver(new GlHostDevice(glHost));

@@ -229,7 +229,6 @@ namespace XrEngine.OpenGL
                 Initialize();
             }
 
-            //Debug.Assert(camera.Scene != null);
             var shadowRenderLayer = SelectLayers().First();
             var scene = shadowRenderLayer.Scene!;
             var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
@@ -282,6 +281,7 @@ namespace XrEngine.OpenGL
             _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
             _renderer.State.SetCullFace(TriangleFace.Back);
             _renderer.State.EnableFeature(EnableCap.CullFace, true);
+            _renderer.State.Commit();
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 

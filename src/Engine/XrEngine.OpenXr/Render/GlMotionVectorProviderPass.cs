@@ -39,9 +39,9 @@ namespace XrEngine.OpenXr
             Context.Implement<IXrMotionVectorProvider>(this);
         }
 
-        public unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
+        public unsafe void UpdateMotionVectors(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode)
         {
-            _pass.SetTargets(spData, colorImg, depthImg, MotionVectorFormat);
+            _pass.SetTargets(swapchain, colorImg, depthImg, MotionVectorFormat);
         }
 
         public int MotionVectorFormat { get; }

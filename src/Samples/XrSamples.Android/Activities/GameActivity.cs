@@ -86,7 +86,7 @@ namespace XrSamples.Android.Activities
                 openGL.EnableDebug();
             */
 
-            if (AndroidXrPlugin.IsMetaQuest)
+            if (XrDevice.IsMetaQuest)
                 app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
@@ -158,7 +158,7 @@ namespace XrSamples.Android.Activities
 
             //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
-            if (AndroidXrPlugin.IsMetaQuest && _settings.DepthScale > 0)
+            if (XrDevice.IsMetaQuest && _settings.DepthScale > 0)
                 builder.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale);
 
             if (_settings.UseSpaceWarp)

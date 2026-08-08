@@ -38,6 +38,14 @@ namespace OpenXr.Framework
         Disposed,
     }
 
+    public enum SwapchainTarget
+    {
+        Projection,
+        Quad,
+        MotionVectors,
+
+    }
+
     public unsafe class XrApp : IDisposable, IXrSession
     {
         const long DurationInfinite = 0x7fffffffffffffff;
@@ -510,7 +518,7 @@ namespace OpenXr.Framework
                 enabledApiLayerNames: (byte**)requestedApiLayers
             );
 
-            PluginInvoke(a=> a.CreateInstance(ref instanceCreateInfo));
+            PluginInvoke(a=> a.Configure(ref instanceCreateInfo));
 
             CheckResult(_xr!.CreateInstance(in instanceCreateInfo, ref _instance), "CreateInstance");
 
@@ -953,8 +961,8 @@ namespace OpenXr.Framework
         public Swapchain CreateSwapChain(Extent2Di size, 
             int format, 
             uint arraySize, 
-            SwapchainUsageFlags usage,  
-            bool mainSwapChain = false)
+            SwapchainUsageFlags usage,
+            SwapchainTarget target)
         {
 
             var info = new SwapchainCreateInfo
@@ -970,9 +978,7 @@ namespace OpenXr.Framework
                 UsageFlags = usage
             };
 
-
-            PluginInvoke(p => p.ConfigureSwapchain(ref info, mainSwapChain));
-
+            PluginInvoke(p => p.Configure(ref info, target));
 
             var result = new Swapchain();
 
@@ -1840,19 +1846,18 @@ namespace OpenXr.Framework
             GC.SuppressFinalize(this);
         }
 
-        public IDisposable? Configure<T>(ref T data) where T : struct
+        public IDisposable Configure<T>(ref T data) where T : unmanaged
         {
-            DisposeGroup? grp = null;
+            DisposeGroup grp = new();
+
             foreach (var plugin in _plugins)
             {
                 var conf = plugin.Configure(ref data);
 
                 if (conf != null)
-                {
-                    grp ??= new();
                     grp.Add(conf);
-                }
             }
+
             return grp;
         }
 

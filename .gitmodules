@@ -43,3 +43,6 @@
 [submodule "third-party/google/depot_tools"]
 	path = third-party/google/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
+[submodule "third-party/monado"]
+	path = third-party/monado
+	url = https://gitlab.freedesktop.org/aguerrieri82/monado

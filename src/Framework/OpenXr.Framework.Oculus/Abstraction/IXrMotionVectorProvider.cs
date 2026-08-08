@@ -4,7 +4,7 @@ namespace OpenXr.Framework.Oculus
 {
     public interface IXrMotionVectorProvider
     {
-        unsafe void UpdateMotionVectors(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode);
+        unsafe void UpdateMotionVectors(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, XrRenderMode mode);
 
         public float Near { get; }
 

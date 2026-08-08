@@ -114,6 +114,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntityQuery? _spatialQuery;
         protected FBTriangleMesh? _mesh;
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
+        protected NativeStruct<XrHandTrackingWideMotionModeInfoMETA> _handWideMotion;
         protected FBHapticPcm? _haptic;
         protected FBDisplayRefreshRate? _refreshRate;
         protected FBSpatialEntityContainer? _container;
@@ -765,13 +766,14 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(_foveation!.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
         }
 
-        public unsafe override void ConfigureSwapchain(ref SwapchainCreateInfo info, bool mainSwapChain)
+        public override unsafe void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
             if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;
 
-            if (!mainSwapChain)
+            if (target != SwapchainTarget.Projection)
                 return;
+
             /*
             if ((info.UsageFlags & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0)
                 return;
@@ -784,9 +786,9 @@ namespace OpenXr.Framework.Oculus
                 Flags = _options.Foveation
             };
 
-
             StructChain.AddNextStruct(ref info, _foveationInfo.Pointer);
         }
+
 
         public unsafe float GetSampleRate(Action action, ulong subActionPath = 0)
         {
@@ -969,21 +971,18 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        public unsafe override IDisposable? Configure<T>(ref T data)
+        public unsafe override IDisposable? Configure<T>(ref T data) 
         {
             if (data is HandTrackerCreateInfoEXT)
             {
-                var extra = new NativeStruct<XrHandTrackingWideMotionModeInfoMETA>(new XrHandTrackingWideMotionModeInfoMETA
+                _handWideMotion.Value = new XrHandTrackingWideMotionModeInfoMETA
                 {
                     Type = MetaHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
                     Next = null,
                     RequestedWideMotionMode = XrHandTrackingWideMotionModeMETA.HIGH_FIDELITY_BODY_TRACKING_META
-                });
+                };
 
-                ref var specificData = ref Unsafe.As<T, HandTrackerCreateInfoEXT>(ref data);
-                specificData.Next = extra.Pointer;
-
-                return extra;
+                StructChain.AddNextStruct(ref data, _handWideMotion.Pointer);
             }
 
             return null;
@@ -992,6 +991,8 @@ namespace OpenXr.Framework.Oculus
         public void Dispose()
         {
             _foveationInfo.Dispose();
+            _handWideMotion.Dispose();
+
             GC.SuppressFinalize(this);
         }
 

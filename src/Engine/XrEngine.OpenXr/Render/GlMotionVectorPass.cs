@@ -50,7 +50,7 @@ namespace XrEngine.OpenXr
             Priority = -1;
         }
 
-        public unsafe void SetTargets(in SpaceWarpData spData, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, int colorFormat)
+        public unsafe void SetTargets(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, int colorFormat)
         {
             if (_renderer.UseAngle)
             {
@@ -61,8 +61,8 @@ namespace XrEngine.OpenXr
                 _colorTex = ctx.AttachVulkanImage(
                     colorVkImage,
                     colorFormat,
-                    (uint)spData.ColorSize.Width,
-                    (uint)spData.ColorSize.Height,
+                    (uint)swapchain.Size.Width,
+                    (uint)swapchain.Size.Height,
                     2, 1, 1,
                     ImageUsageFlags.ColorAttachmentBit | ImageUsageFlags.SampledBit,
                     ImageCreateFlags.None,

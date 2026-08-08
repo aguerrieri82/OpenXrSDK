@@ -25,7 +25,6 @@ namespace OpenXr.Framework.Angle
         protected AngleVulkanContext _context;
         protected KhrVulkanEnable? _vulkanExt;
         protected XrDynamicType _swapChainType;
-
         protected NativeStruct<VulkanSwapchainCreateInfoMETA> _swcMeta;
 
         protected GL? _gl;
@@ -64,7 +63,7 @@ namespace OpenXr.Framework.Angle
 
         }
 
-        public override void ConfigureSwapchain(ref SwapchainCreateInfo info, bool mainSwapChain)
+        public override void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
             _swcMeta.Value = new VulkanSwapchainCreateInfoMETA
             {
@@ -133,16 +132,20 @@ namespace OpenXr.Framework.Angle
         {
             _context.ReleaseAllTextures();
         }
-        
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            _swcMeta.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
         public GL? Gl => _gl;
 
         public XrDynamicType SwapChainImageType => _swapChainType;
 
         public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY;
 
-        public void Dispose()
-        {
-            _context.Dispose();
-        }
+
     }
 }

@@ -73,7 +73,7 @@ namespace XrEngine.OpenXr
             for (var i = 0; i < 2; i++)
                 headViews[i].Type = StructureType.View;
 
-            void RenderView(ref RenderViewInfo info)
+            void RenderView(ref RenderViewsInfo info)
             {
                 nint colorImagePtr;
                 nint depthImagePtr;
@@ -233,7 +233,7 @@ namespace XrEngine.OpenXr
 
                     else if (depthMode == XrProjDepthMode.DepthCopy)
                     {
-                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, false));
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, imageMode: false));
 
                         depthCopyPass.Configure(depthTex);
 
@@ -241,7 +241,7 @@ namespace XrEngine.OpenXr
                     }
                     else if (depthMode == XrProjDepthMode.DepthCopyImage)
                     {
-                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, true));
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, imageMode: true));
 
                         renderer.UpdateContext.CopyDepthImage = (Texture2D?)depthCopyPass
                             .Configure(depthTex)?
@@ -311,7 +311,7 @@ namespace XrEngine.OpenXr
 
             AngleVulkanContext? vulkanCtx = null;
 
-            (uint Color, uint Depth) GetImages(ref RenderViewInfo info, int index)
+            (uint Color, uint Depth) GetImages(ref RenderViewsInfo info, int index)
             {
                 if (!useAngle)
                 {
@@ -322,16 +322,19 @@ namespace XrEngine.OpenXr
 
                 vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
-                var target = info.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
+                var colorSwp = info.Color[0];
+
+                var target = colorSwp.ArraySize == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
 
                 var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[index])->Image;
                 var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[index])->Image;
 
+
                 var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
-                        (int)info.ColorFormat,
-                        (uint)info.ColorSize.Width,
-                        (uint)info.ColorSize.Height,
-                        info.ArraySize, 1, 1,
+                        colorSwp.Format,
+                        (uint)colorSwp.Size.Width,
+                        (uint)colorSwp.Size.Height,
+                        colorSwp.ArraySize, 1, 1,
                         ImageUsageFlags.ColorAttachmentBit | 
                         ImageUsageFlags.SampledBit |
                         ImageUsageFlags.InputAttachmentBit,
@@ -345,11 +348,13 @@ namespace XrEngine.OpenXr
                 if (depthImagePtr == 0)
                     return (colorImg.Texture, 0);
 
+                var depthSwp = info.Color[0];
+
                 var depthImg = vulkanCtx.AttachVulkanImage(depthImagePtr,
-                        (int)info.DepthFormat,
-                        (uint)info.DepthSize.Width,
-                        (uint)info.DepthSize.Height,
-                        info.ArraySize, 1, 1,
+                        depthSwp.Format,
+                        (uint)depthSwp.Size.Width,
+                        (uint)depthSwp.Size.Height,
+                        depthSwp.ArraySize, 1, 1,
                         ImageUsageFlags.DepthStencilAttachmentBit | 
                         ImageUsageFlags.SampledBit |
                         ImageUsageFlags.InputAttachmentBit,
@@ -363,7 +368,7 @@ namespace XrEngine.OpenXr
                 return (colorImg.Texture, depthImg.Texture);
             }
 
-            void SetupRenderTarget(ref RenderViewInfo info, PerspectiveCamera camera, int index)
+            void SetupRenderTarget(ref RenderViewsInfo info, PerspectiveCamera camera, int index)
             {
                 var images = GetImages(ref info, index);
 
@@ -388,7 +393,7 @@ namespace XrEngine.OpenXr
                 }
             }
 
-            void RenderView(ref RenderViewInfo info)
+            void RenderView(ref RenderViewsInfo info)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
@@ -450,13 +455,13 @@ namespace XrEngine.OpenXr
 
                 var provider = new GlMotionVectorProviderPass(app, renderer, motionVectorPass);
 
-                xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
             }
             else if (renderer.Options.MotionVectorMode == MotionVectorMode.Shared)
             {
                 var provider = new GlMotionVectorProviderShared(app, renderer);
 
-                xrApp.Layers.Add(new XrSpaceWarpProjectionLayerV2(RenderView, provider));
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
             }
             else
                 xrApp.Layers.AddProjection(RenderView, useDepth);

@@ -3,7 +3,7 @@ using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework
 {
-    public class XrSwapchainInfo
+    public class XrSwapchainInfo : IDisposable
     {
         public Swapchain ColorSwapchain;
 
@@ -16,5 +16,12 @@ namespace OpenXr.Framework
         public NativeArray<SwapchainImageBaseHeader>? ColorImages;
 
         public NativeArray<SwapchainImageBaseHeader>? DepthImages;
+
+        public void Dispose()
+        {
+            ColorImages?.Dispose();
+            DepthImages?.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

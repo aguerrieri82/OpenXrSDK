@@ -83,7 +83,7 @@ namespace XrEngine.OpenXr
 
         }
 
-        unsafe bool RenderQuod(QuadData data, SwapchainImageBaseHeader* image,  long predTime)
+        unsafe bool RenderQuod(QuadRenderData data, SwapchainImageBaseHeader* image,  long predTime)
         {
             Debug.Assert(_host != null);
 
@@ -96,6 +96,8 @@ namespace XrEngine.OpenXr
 
             OpenGLRender.Current.PushGroup("Render Quad");
 
+            var swp = data.Swapchain!;
+
             if (useAngle)
             {
                 _vulkanCtx ??= Context.Require<AngleVulkanContext>();
@@ -104,9 +106,9 @@ namespace XrEngine.OpenXr
 
                 glImage = _vulkanCtx.AttachVulkanImage(
                     vkImage,
-                    data.Format,
-                    (uint)data.Size.Width,
-                    (uint)data.Size.Height,
+                    swp.Format,
+                    (uint)swp.Size.Width,
+                    (uint)swp.Size.Height,
                     1, 1, 1,
                     ImageUsageFlags.SampledBit |
                     ImageUsageFlags.ColorAttachmentBit |
@@ -121,7 +123,7 @@ namespace XrEngine.OpenXr
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image; 
 
-            _host.SetRenderTarget(glImage, (uint)data.Size.Width, (uint)data.Size.Height, data.Eye);
+            _host.SetRenderTarget(glImage, (uint)swp.Size.Width, (uint)swp.Size.Height, data.Eye);
             _host.Draw(EngineApp.Current.RenderContext);
 
             OpenGLRender.Current.PopGroup();
