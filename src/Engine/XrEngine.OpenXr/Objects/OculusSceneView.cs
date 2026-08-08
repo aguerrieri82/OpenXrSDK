@@ -24,6 +24,9 @@ namespace XrEngine.OpenXr
         {
             if (!_isSceneLoaded && !_isSceneLoading)
             {
+                if (!XrDevice.IsMetaQuest)
+                    return;
+
                 if (_app == null && XrApp.Current != null)
                     _app = XrApp.Current;
 

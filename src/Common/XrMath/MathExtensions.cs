@@ -837,6 +837,9 @@ namespace XrMath
             return new Vector3(worldPoint.X, worldPoint.Y, worldPoint.Z) / worldPoint.W;
         }
 
+
+       
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Project(in this Vector3 pos, in Plane plane)
         {
@@ -1381,6 +1384,7 @@ namespace XrMath
         #endregion
 
         #region MISC
+
 
         public static float ToRadians(this float value)
         {

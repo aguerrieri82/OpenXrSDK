@@ -170,8 +170,15 @@ namespace XrEngine.OpenGL
             _gl.DebugMessageControl(DebugSource.DebugSourceOther, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [2147483647], false);
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 2u, [1281, 2147483647], false);
 
-            //"glDisable: Enum 0x3000 is currently not supported."
+            //glDisable: Enum 0x3000 is currently not supported.
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 1u, [1280], false);
+
+            //Error:glObjectLabel::<name> is not an accepted value
+            //Error:glDisable::<cap> is not one of the accepted values
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 2u, [57, 55], false);
+            //Error:glEnable::<cap> is not one of the accepted values
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [55], false);
+
 
             _isDebug = true;
 

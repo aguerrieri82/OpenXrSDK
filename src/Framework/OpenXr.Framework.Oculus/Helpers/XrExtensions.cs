@@ -9,6 +9,16 @@ namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
+
+        public unsafe static Extent2Di? GetRecommendedResolution<T>(this XrBaseLayer<T> layer, long predictedDisplayTime = 0) where T : unmanaged
+        {
+            if (predictedDisplayTime == 0)
+                predictedDisplayTime = layer.App.FramePredictedDisplayTime;
+
+            return layer.App.Plugin<OculusXrPlugin>()
+                   .GetRecommendedLayerResolution(layer.Header, predictedDisplayTime);
+        }
+
         public unsafe static UuidEXT[] GetWalls(this RoomLayoutFB layout)
         {
             var span = new Span<UuidEXT>(layout.WallUuids, (int)layout.WallUuidCountOutput);
@@ -35,6 +45,8 @@ namespace OpenXr.Framework
             if (!xrOculus.GetSpaceComponentEnabled(space, SpaceComponentTypeFB.LocatableFB))
                 await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
         }
+
+
 
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {

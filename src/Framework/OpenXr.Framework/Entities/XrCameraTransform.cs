@@ -8,7 +8,7 @@ namespace OpenXr.Framework
     {
         public Matrix4x4 Projection;
 
-        public Matrix4x4 Transform;
+        public Matrix4x4 World;
 
         public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
@@ -32,7 +32,7 @@ namespace OpenXr.Framework
                        nearPlane,
                        farPlane),
 
-                Transform = pose.ToMatrix()
+                World = pose.ToMatrix()
             };
 
             return result;

@@ -128,7 +128,7 @@ namespace XrEngine.OpenXr
                         var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
                         camera.Projection = transform.Projection;
-                        camera.WorldMatrix = transform.Transform;
+                        camera.WorldMatrix = transform.World;
                         camera.ViewSize = rect.Size;
 
                         var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
@@ -176,7 +176,7 @@ namespace XrEngine.OpenXr
                     {
                         var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
 
-                        camera.Eyes[i].World = transform.Transform;
+                        camera.Eyes[i].World = transform.World;
                         camera.Eyes[i].Projection = transform.Projection;
 
                         var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
@@ -293,6 +293,7 @@ namespace XrEngine.OpenXr
         {
             OpenGLRender renderer;
 
+
             if (!app.HasRenderer)
             {
                 var driver = xrApp.Plugin<IXrGraphicDriver>();
@@ -366,6 +367,18 @@ namespace XrEngine.OpenXr
                 camera.IsMultiView = info.Mode == XrRenderMode.MultiView;
                 camera.Transform.Version++;
 
+                if (XrDevice.IsMetaQuest)
+                {
+                    var renderRes = info.Layer.GetRecommendedResolution(info.DisplayTime);
+                    if (renderRes != null)
+                    {
+                        info.ActualColorSize = renderRes.Value;
+                        camera.ViewSize = new Size2I((uint)renderRes.Value.Width, (uint)renderRes.Value.Height);
+                    }
+                    else
+                        camera.ViewSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
+                }
+
                 var eyes = camera.Eyes;
                 var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();
 
@@ -373,13 +386,14 @@ namespace XrEngine.OpenXr
                 {
                     var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
-                    eyes[i].World = transform.Transform * referenceFrame;
+                    eyes[i].World = transform.World * referenceFrame;
                     eyes[i].Projection = transform.Projection;
                     eyes[i].View = eyes[i].World.Invert();
                     eyes[i].ViewProj = eyes[i].View * eyes[i].Projection;
                     eyes[i].ViewProjInv = eyes[i].ViewProj.Invert();
                 }
 
+      
                 if (info.Mode == XrRenderMode.SingleEye)
                 {
                     app.BeginFrame();

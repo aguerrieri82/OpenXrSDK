@@ -86,14 +86,18 @@ namespace OpenXr.Framework.Oculus
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Result RetrieveSpaceDiscoveryResultsMETADelegate(Session session, ulong requestId, ref SpaceDiscoveryResultsMETA result);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public unsafe delegate Result GetRecommendedLayerResolutionMETADelegate(Session session, RecommendedLayerResolutionGetInfoMETA* getInfo, RecommendedLayerResolutionMETA* resolution);
+
         GetSpaceTriangleMeshMETADelegate? GetSpaceTriangleMeshMETA;
 
         DiscoverSpacesMETADelegate? DiscoverSpacesMETA;
 
         RetrieveSpaceDiscoveryResultsMETADelegate? RetrieveSpaceDiscoveryResultsMETA;
 
-        #endregion
-        #region STRUCTS
+        SetHandTrackingFrequencyHintMETADelegate? SetHandTrackingFrequencyHintMETA;
+
+        GetRecommendedLayerResolutionMETADelegate? GetRecommendedLayerResolutionMETA;
 
         #endregion
 
@@ -163,10 +167,12 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_foveation_configuration");
             extensions.Add("XR_FB_space_warp");
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
-            extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+            extensions.Add("XR_META_recommended_layer_resolution");
+
             extensions.Add("XR_META_spatial_entity_discovery");
             extensions.Add("XR_FB_composition_layer_depth_test");
-            extensions.Add("XR_META_hand_tracking_wide_motion_mode");
+            extensions.Add(MetaHandTrackingWideMotionMode.ExtensionName);
+            extensions.Add(MetaHandTrackingFrequencyHint.ExtensionName);
         }
 
         public unsafe override void OnInstanceCreated()
@@ -195,6 +201,12 @@ namespace OpenXr.Framework.Oculus
 
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
             RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
+ 
+            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
+            SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
+
+            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
+            GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
         }
 
         public override void OnSessionCreated()
@@ -707,6 +719,30 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
+        public unsafe Extent2Di? GetRecommendedLayerResolution(CompositionLayerBaseHeader* layer, long predictedDisplayTime)
+        {
+            var info = new RecommendedLayerResolutionGetInfoMETA
+            {
+                Layer = layer,
+                PredictedDisplayTime = predictedDisplayTime,
+                Next = null,
+                Type = StructureType.RecommendedLayerResolutionGetInfoMeta
+            };
+
+            var result = new RecommendedLayerResolutionMETA
+            {
+                Type = StructureType.RecommendedLayerResolutionMeta,
+                Next = null
+            };
+
+            _app!.CheckResult(GetRecommendedLayerResolutionMETA!(_app!.Session, &info, &result), "GetRecommendedLayerResolutionMETA");
+
+            if (result.IsValid == 1)
+                return result.RecommendedImageDimensions;
+
+            return null;
+        }
+
         public unsafe RoomLayoutFB GetSpaceRoomLayout(Space space)
         {
             var result = new RoomLayoutFB
@@ -882,9 +918,16 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
+        public void SetHandTrackingFrequencyHint(HandTrackingFrequencyHintMETA frequencyHint)
+        {
+            _app!.CheckResult(SetHandTrackingFrequencyHintMETA!(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
+        }
+
         public unsafe XrHandMesh GetHandMesh(HandTrackerEXT tracker)
         {
-            var mesh = new HandTrackingMeshFB
+
+
+var mesh = new HandTrackingMeshFB
             {
                 Type = StructureType.HandTrackingMeshFB
             };

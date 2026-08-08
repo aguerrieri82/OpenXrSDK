@@ -1,10 +1,13 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using System.Numerics;
+
 #else
 using Silk.NET.OpenGL;
 #endif
 
 using XrEngine.Helpers;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -131,21 +134,30 @@ namespace XrEngine.OpenGL
             return progInst.UpdateProgram(updateContext, forceSync);
         }
 
-        /*
+
         protected void SetBounds(Camera camera, Object3D obj)
         {
 
 #if GLES
-            var bounds = obj.WorldBounds;
+            if (obj is ISkinnedMesh)
+                return;
 
-            var min = Vector4.Transform(new Vector4(bounds.Min, 1.0f), camera.ViewProjection);
-            var max = Vector4.Transform(new Vector4(bounds.Max, 1.0f), camera.ViewProjection);
+            var min = new Vector4(float.PositiveInfinity);
+            var max = new Vector4(float.NegativeInfinity);
 
-            _bounds.PrimitiveBoundingBox(min.X, min.Y, min.Z, min.W, max.X, max.Y, max.Z, max.W);
+            foreach (var p in obj.WorldBounds.Points)
+            {
+                var clip = Vector4.Transform(new Vector4(p, 1), camera.ViewProjection);
+                min = Vector4.Min(min, clip);
+                max = Vector4.Max(max, clip);
+            }
+
+            _bounds.PrimitiveBoundingBox(
+                min.X, min.Y, min.Z, min.W, 
+                max.X, max.Y, max.Z, max.W);
 #endif
-
         }
-        */
+
 
         protected virtual void ConfigureCaps(ShaderMaterial material)
         {
@@ -288,7 +300,7 @@ namespace XrEngine.OpenGL
 
                                 progInst.UpdateModel(updateContext);
 
-                                //SetBounds(updateContext.PassCamera!, draw.Object!);
+                                SetBounds(updateContext.PassCamera!, draw.Object!);
 
 #if GL_VALIDATE_PROG
                                 progInst.Program.Validate();

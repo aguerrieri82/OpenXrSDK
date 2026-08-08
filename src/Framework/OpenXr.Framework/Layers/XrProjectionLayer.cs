@@ -8,6 +8,8 @@ namespace OpenXr.Framework
 {
     public ref struct RenderViewsInfo
     {
+        public XrProjectionLayer Layer;
+
         public Span<CompositionLayerProjectionView> ProjViews;
 
         public unsafe SwapchainImageBaseHeader*[] ColorImages;
@@ -19,6 +21,8 @@ namespace OpenXr.Framework
         public XrSwapchain[]? Depth;
 
         public XrRenderMode Mode;
+
+        public Extent2Di ActualColorSize;
 
         public long DisplayTime;
     }
@@ -278,10 +282,22 @@ namespace OpenXr.Framework
                     Mode = _xrApp!.RenderOptions.RenderMode,
                     Color = _colorSwaps,
                     Depth = _depthSwaps,
-                    DisplayTime = predTime
+                    DisplayTime = predTime,
+                    Layer = this
                 };
 
                 _renderView!(ref info);
+
+                var renderSize = _colorSwaps[0].Size;
+
+                if (info.ActualColorSize.Height > 0 || info.ActualColorSize.Width > 0)
+                    renderSize = _colorSwaps[0].Size;
+
+                for (var i = 0; i < _projViews.Length; i++)
+                {
+                    ref var view = ref _projViews.Item(i);
+                    view.SubImage.ImageRect.Extent = renderSize;
+                }       
             }
             catch (Exception ex)
             {

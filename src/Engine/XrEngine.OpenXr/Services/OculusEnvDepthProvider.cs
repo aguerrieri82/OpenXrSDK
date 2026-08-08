@@ -76,12 +76,12 @@ namespace XrEngine.OpenXr
                     var view = data.Views[i];
                     var transform = XrCameraTransform.FromView(view.Pose.ToPose3(), view.Fov, depthCamera.Near, depthCamera.Far);
 
-                    var cameraView = transform.Transform.Invert();
+                    var cameraView = transform.World.Invert();
 
                     depthCamera.Eyes[i] = new CameraEye
                     {
                         Projection = transform.Projection,
-                        World = transform.Transform,
+                        World = transform.World,
                         View = cameraView,
                         ViewProj = cameraView * transform.Projection,
                     };
