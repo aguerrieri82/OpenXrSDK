@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-#if __ANDROID__
+﻿#if __ANDROID__
 using Android.OS;
 #endif
 

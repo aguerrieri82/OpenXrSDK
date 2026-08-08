@@ -7,13 +7,14 @@ using Silk.NET.OpenGL;
 using Silk.NET.Core.Contexts;
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
+using Silk.NET.OpenXR;
+using VkStructureType = Silk.NET.Vulkan.StructureType;
 
 namespace OpenXr.Framework.Angle;
 
 public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 {
     #region DELEGATES 
-
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate nint EglCreateImageKhr(nint display, nint context, uint target, nint buffer, int* attributes);
@@ -148,7 +149,6 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     nint nativeDisplay,
     nint* attributes);
 
-
     #endregion
 
     #region CONSTS
@@ -216,7 +216,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
         public void Dispose()
         {
-            AngleVulkanContext? owner = _owner;
+            var owner = _owner;
             if (owner is null)
                 return;
 
@@ -303,7 +303,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         }
 
         public GL Gl => _gl ??= GL.GetApi(this);
-        
+
         public nint Context { get; private set; }
 
         public nint Surface { get; private set; }
@@ -424,7 +424,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         {
             if (!IsInitialized)
             {
-                nint* displayAttributes = stackalloc nint[]
+                var displayAttributes = stackalloc nint[]
                 {
                     (int)Egl.PlatformAngleType,
                     (int)Egl.PlatformAngleTypeVulkan,
@@ -445,7 +445,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
                 Check(_eglInitialize(Display, &major, &minor), "eglInitialize");
                 Check(_eglBindApi((uint)Egl.OpenGlEsApi), "eglBindAPI");
 
-                int* configAttributes = stackalloc int[]
+                var configAttributes = stackalloc int[]
                 {
                     (int)Egl.SurfaceType,
                     (int)Egl.PbufferBit | (int)Egl.WindowBit,
@@ -484,7 +484,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
                 Config = config;
 
-                int* contextAttributes = stackalloc int[]
+                var contextAttributes = stackalloc int[]
                 {
                     (int)Egl.ContextMajorVersionKhr,
                     3,
@@ -498,7 +498,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
                 Context = _eglCreateContext(Display, config, EglNoContext, contextAttributes);
                 CheckHandle(Context, EglNoContext, "eglCreateContext");
 
-                int* surfaceAttributes = stackalloc int[]
+                var surfaceAttributes = stackalloc int[]
                 {
                     (int)Egl.Width,
                     1,
@@ -544,6 +544,11 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         }
     }
 
+    public unsafe ImportedVulkanImage AttachVulkanImage(SwapchainImageBaseHeader* image, XrSwapchain swapchain)
+    {
+        return null;
+    }
+
     public ImportedVulkanImage AttachVulkanImage(
         nint vkImage,
         int vkFormat,
@@ -561,7 +566,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
         ImageCreateInfo imageInfo = new()
         {
-            SType = StructureType.ImageCreateInfo,
+            SType = VkStructureType.ImageCreateInfo,
             PNext = null,
             Flags = vkFlags,
             ImageType = ImageType.Type2D,
@@ -578,9 +583,9 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             InitialLayout = ImageLayout.Undefined
         };
 
-        ulong imageInfoAddress = (ulong)&imageInfo;
+        var imageInfoAddress = (ulong)&imageInfo;
 
-        int* attributes = stackalloc int[]
+        var attributes = stackalloc int[]
         {
             (int)Egl.VulkanImageCreateInfoHi, unchecked((int)(imageInfoAddress >> 32)),
             (int)Egl.VulkanImageCreateInfoLo, unchecked((int)imageInfoAddress),
@@ -632,7 +637,6 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         }
     }
 
-
     public void AcquireTexture(uint texture)
     {
         if (!_acquiredTextures.TryGetValue(texture, out var info))
@@ -660,9 +664,9 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             throw new InvalidOperationException("Texture is not acquired.");
 
         uint layout;
-        
+
         _glReleaseTexturesAngle(1, &texture, &layout);
-        
+
         info.IsAcquired = false;
         info.LastLayout = layout;
     }
@@ -675,7 +679,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             _eglDestroySurface(Display, Surface);
         }
 
-        int* attributes = stackalloc int[]
+        var attributes = stackalloc int[]
         {
             (int)Egl.GlColorspaceKhr,
             (int)Egl.GlColorspaceSrgbKhr,
@@ -714,7 +718,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     {
         EnsureInitialized();
 
-        int* contextAttributes = stackalloc int[]
+        var contextAttributes = stackalloc int[]
         {
             (int)Egl.ContextMajorVersionKhr, 3,
             (int)Egl.ContextMinorVersionKhr, 2,
@@ -726,7 +730,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
         try
         {
-            int* surfaceAttributes = stackalloc int[]
+            var surfaceAttributes = stackalloc int[]
             {
                 (int)Egl.Width, 1,
                 (int)Egl.Height, 1,
@@ -831,11 +835,11 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
         var result = new List<string>();
 
-        nint* extensionPointers = (nint*)arrayPointer;
+        var extensionPointers = (nint*)arrayPointer;
 
-        for (int i = 0; extensionPointers[i] != 0; i++)
+        for (var i = 0; extensionPointers[i] != 0; i++)
         {
-            string? extension = Marshal.PtrToStringUTF8(extensionPointers[i]);
+            var extension = Marshal.PtrToStringUTF8(extensionPointers[i]);
 
             if (!string.IsNullOrEmpty(extension))
                 result.Add(extension);
@@ -853,7 +857,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
         List<string>? missing = null;
 
-        foreach (string extension in required)
+        foreach (var extension in required)
         {
             if (string.IsNullOrWhiteSpace(extension))
                 continue;
@@ -957,7 +961,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     private static nint LoadLibrary(string name)
     {
-        if (!NativeLibrary.TryLoad(name, out nint library))
+        if (!NativeLibrary.TryLoad(name, out var library))
             throw new DllNotFoundException($"Could not load ANGLE library '{name}'.");
 
         return library;
@@ -965,23 +969,23 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     private T LoadExport<T>(string name) where T : Delegate
     {
-        nint address = NativeLibrary.GetExport(_eglLibrary, name);
+        var address = NativeLibrary.GetExport(_eglLibrary, name);
 
         return Marshal.GetDelegateForFunctionPointer<T>(address);
     }
 
     private T LoadEglProc<T>(string name) where T : Delegate
     {
-        T? proc = TryLoadEglProc<T>(name);
+        var proc = TryLoadEglProc<T>(name);
 
         return proc ?? throw new EntryPointNotFoundException($"ANGLE EGL function '{name}' is unavailable.");
     }
 
     private T? TryLoadEglProc<T>(string name) where T : Delegate
     {
-        nint address = _eglGetProcAddress(name);
+        var address = _eglGetProcAddress(name);
 
-        if (address == 0 && NativeLibrary.TryGetExport(_eglLibrary, name, out nint export))
+        if (address == 0 && NativeLibrary.TryGetExport(_eglLibrary, name, out var export))
         {
             address = export;
         }
@@ -991,16 +995,16 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     private T LoadGlProc<T>(string name) where T : Delegate
     {
-        T? proc = TryLoadGlProc<T>(name);
+        var proc = TryLoadGlProc<T>(name);
 
         return proc ?? throw new EntryPointNotFoundException($"ANGLE GL function '{name}' is unavailable.");
     }
 
     private T? TryLoadGlProc<T>(string name) where T : Delegate
     {
-        nint address = _eglGetProcAddress(name);
+        var address = _eglGetProcAddress(name);
 
-        if (address == 0 && NativeLibrary.TryGetExport(_glesLibrary, name, out nint export))
+        if (address == 0 && NativeLibrary.TryGetExport(_glesLibrary, name, out var export))
         {
             address = export;
         }
@@ -1034,21 +1038,21 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     public nint Display { get; private set; }
 
     public nint Config { get; private set; }
-    
+
     public nint Context { get; private set; }
-    
+
     public nint Surface { get; private set; }
-    
+
     public nint EglDevice { get; private set; }
-    
+
     public nint VulkanInstanceHandle { get; private set; }
-    
+
     public nint VulkanPhysicalDeviceHandle { get; private set; }
-    
+
     public nint VulkanDeviceHandle { get; private set; }
-    
+
     public nint VulkanQueueHandle { get; private set; }
-    
+
     public uint QueueFamilyIndex { get; private set; }
 
     public IReadOnlyList<string> EnabledInstanceExtensions { get; private set; } = [];
@@ -1060,7 +1064,5 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     public uint QueueIndex => 0;
 
     public GL? Gl => _gl;
-
-
 
 }

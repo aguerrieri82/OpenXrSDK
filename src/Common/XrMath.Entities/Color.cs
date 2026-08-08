@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -149,7 +148,6 @@ namespace XrMath
         {
             return new Color(a.R * v, a.G * v, a.B * v, a.A * v);
         }
-
 
         public Span<float> AsSpan()
         {

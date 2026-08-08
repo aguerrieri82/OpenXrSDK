@@ -19,7 +19,7 @@ namespace XrSamples
         {
             base.OnCreate();
 
-            bool isAttached = EngineNativeLib.RdcIsAttached();
+            var isAttached = EngineNativeLib.RdcIsAttached();
             global::Android.Util.Log.Warn("App", "RENDER DOC: {0}", isAttached);
 
             XrEngine.Context.Implement<SampleManager>();

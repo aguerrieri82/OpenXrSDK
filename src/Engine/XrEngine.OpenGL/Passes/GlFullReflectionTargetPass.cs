@@ -220,7 +220,6 @@ namespace XrEngine.OpenGL
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
 
-
         }
     }
 }

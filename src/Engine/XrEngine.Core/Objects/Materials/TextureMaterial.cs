@@ -8,7 +8,6 @@ namespace XrEngine
         protected TextureSampler? _sampler;
         protected long _lastTexVersion;
 
-
         static TextureMaterial()
         {
             SHADER = new StandardVertexShader

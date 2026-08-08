@@ -11,7 +11,7 @@
                 textWriter.Write(AnsiParser.GetForegroundColorEscapeCode(foreground.Value));
 
             textWriter.Write(message);
-            
+
             if (foreground != null)
                 textWriter.Write(AnsiParser.DefaultForegroundColor);
 

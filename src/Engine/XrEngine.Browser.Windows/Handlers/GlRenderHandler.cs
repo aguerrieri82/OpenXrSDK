@@ -108,7 +108,7 @@ namespace XrEngine.Browser.Windows
             Scale = 1f;
         }
 
-        public  uint GetActiveTextureBinding(GL gl, TextureTarget target)
+        public uint GetActiveTextureBinding(GL gl, TextureTarget target)
         {
             var binding = target switch
             {
@@ -129,7 +129,6 @@ namespace XrEngine.Browser.Windows
 
             return (uint)gl.GetInteger(binding);
         }
-
 
         private unsafe InteropTarget CreateInteropTarget()
         {

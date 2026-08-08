@@ -518,7 +518,7 @@ namespace OpenXr.Framework
                 enabledApiLayerNames: (byte**)requestedApiLayers
             );
 
-            PluginInvoke(a=> a.Configure(ref instanceCreateInfo));
+            PluginInvoke(a => a.Configure(ref instanceCreateInfo));
 
             CheckResult(_xr!.CreateInstance(in instanceCreateInfo, ref _instance), "CreateInstance");
 
@@ -560,7 +560,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-#endregion
+        #endregion
 
         #region SPACE AND VIEW
 
@@ -957,10 +957,9 @@ namespace OpenXr.Framework
             CheckResult(_xr!.ReleaseSwapchainImage(swapchain, in info), "ReleaseSwapchainImage");
         }
 
-
-        public Swapchain CreateSwapChain(Extent2Di size, 
-            int format, 
-            uint arraySize, 
+        public Swapchain CreateSwapChain(Extent2Di size,
+            int format,
+            uint arraySize,
             SwapchainUsageFlags usage,
             SwapchainTarget target)
         {

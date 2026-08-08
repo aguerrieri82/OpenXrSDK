@@ -81,7 +81,7 @@ namespace XrEngine.OpenGL
 
             var z = src.Depth == 0 ? 1 : src.Depth;
 
-            _gl.DispatchCompute((uint)((mipWidth + 15) / 16), (uint)((mipHeight + 15) / 16), (uint)z);
+            _gl.DispatchCompute((mipWidth + 15) / 16, (mipHeight + 15) / 16, z);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 

@@ -149,7 +149,7 @@ namespace XrEngine
         }
 
         public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot,
-            BufferStore store, 
+            BufferStore store,
             BufferUsage usage = BufferUsage.Uniforms,
             string? uniformName = null) where T : struct
         {
@@ -354,7 +354,7 @@ namespace XrEngine
                     AddFeature(name);
                 return;
             }
-      
+
             _result.DynamicFeatures ??= [];
             _result.DynamicFeatures.Add(name);
 

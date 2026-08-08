@@ -8,7 +8,6 @@ using XrMath;
 using System.Numerics;
 using System.Diagnostics;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlOutlinePass : GlBaseSingleMaterialPass
@@ -38,7 +37,7 @@ namespace XrEngine.OpenGL
                 DepthMode = TargetDepthMode.None,
                 IsMultiView = isMultiView,
                 UseMultiViewTarget = true,
-                ColorFormat= TextureFormat.Gray8,
+                ColorFormat = TextureFormat.Gray8,
                 Name = "Outline"
             };
 
@@ -155,10 +154,9 @@ namespace XrEngine.OpenGL
             DrawQuad();
 
             _tempTarget!.RenderTarget!.End(discardDepth: true);
-   
 
             //Composition
-            
+
             _compositor ??= _renderer.Feature<IGlCompositor>();
 
             Debug.Assert(_compositor != null);
@@ -260,7 +258,6 @@ namespace XrEngine.OpenGL
         public IOutlineSource? Source { get; set; }
 
         public GlRenderPassTarget PassTarget => _passTarget;
-
 
     }
 }

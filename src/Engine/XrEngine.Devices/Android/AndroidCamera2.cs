@@ -268,7 +268,6 @@ namespace XrEngine.Devices.Android
 
             _outTexture = outTexture;
 
-
             if (outTexture != null)
             {
                 var glText = outTexture.Handle;
@@ -281,9 +280,9 @@ namespace XrEngine.Devices.Android
 
                 _surfaceTex = new SurfaceTexture((int)glText);
                 _surfaceTex.SetDefaultBufferSize(format.Width, format.Height);
-   
+
                 _texSurface = new Surface(_surfaceTex);
-                
+
                 //_texSurface IS CREATED as Rgba32 in GL ALWAYS but contains Srgb
                 outTexture.ForceSrgb = true;
                 outTexture.Format = TextureFormat.Rgba8;

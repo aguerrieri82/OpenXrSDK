@@ -16,7 +16,7 @@ namespace XrEngine.OpenXr.Windows
             : base(nameof(OneLineConsoleFormatter))
         {
             _formatterOptions = options.CurrentValue;
-        
+
             _optionsReloadToken = options.OnChange(ReloadLoggerOptions);
         }
 

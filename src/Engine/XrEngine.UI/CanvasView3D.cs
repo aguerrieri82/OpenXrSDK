@@ -12,7 +12,6 @@ namespace XrEngine.UI
         RenderTarget
     }
 
-
     [UpdateMode(IsParallel = false)]
     public abstract class CanvasView3D : TriangleMesh, IQuodTexture
     {

@@ -29,7 +29,7 @@ namespace OpenXr.Framework
             _swapchain = _xrApp.CreateSwapChain(size, format, arraySize, usage, target);
 
             _lastPredictedTime = 0;
-            
+
             Format = format;
             ArraySize = arraySize;
             Size = size;
@@ -47,14 +47,14 @@ namespace OpenXr.Framework
         {
             if (_images == null)
                 EnumerateImages();
-            
+
             var index = Acquire();
 
             var result = _images.ItemPointer((int)index);
 
             Wait();
 
-            return result;  
+            return result;
         }
 
         public uint Acquire()

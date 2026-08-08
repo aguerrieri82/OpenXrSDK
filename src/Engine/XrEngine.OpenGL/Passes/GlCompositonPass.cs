@@ -5,8 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using XrMath;
-using System.Numerics;
-
 
 namespace XrEngine.OpenGL
 {
@@ -22,7 +20,7 @@ namespace XrEngine.OpenGL
         readonly List<CompositionImage> _textures = [];
 
         public GlCompositonPass(OpenGLRender renderer)
-            : base(renderer) 
+            : base(renderer)
         {
 
         }

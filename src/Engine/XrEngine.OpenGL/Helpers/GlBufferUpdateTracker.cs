@@ -73,7 +73,7 @@ namespace XrEngine.OpenGL
 
             Log.Info(this, "Check begin, {0} total", _buffers.Values.Count);
 
-            foreach (var state in _buffers.Values.Where(a=> a.Target == BufferTargetARB.ShaderStorageBuffer))
+            foreach (var state in _buffers.Values.Where(a => a.Target == BufferTargetARB.ShaderStorageBuffer))
             {
                 if (!Check(state))
                     result = false;

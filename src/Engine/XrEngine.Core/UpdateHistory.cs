@@ -1,7 +1,7 @@
 ﻿namespace XrEngine
 {
     public class UpdateAction
-    { 
+    {
         public Action? Execute { get; set; }
 
         public Action? Rollback { get; set; }

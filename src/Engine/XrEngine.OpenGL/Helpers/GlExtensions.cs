@@ -136,7 +136,7 @@ namespace XrEngine.OpenGL
                 if (texture2D.Depth <= 1 && blockSize == 3)
                     blockSize = 4;
 
-                int threadPriority = 0;
+                var threadPriority = 0;
 
 #if __ANDROID__
                 threadPriority = -2;
@@ -149,7 +149,6 @@ namespace XrEngine.OpenGL
 
             throw new NotSupportedException();
         }
-
 
         static TextureTarget GetTarget(this Texture2D texture2D)
         {
@@ -231,7 +230,6 @@ namespace XrEngine.OpenGL
 
             glSampler.Update();
         }
-
 
         #endregion
 
@@ -402,7 +400,6 @@ namespace XrEngine.OpenGL
                 glTexture.WrapR = (TextureWrapMode)tex3d.WrapR;
             }
         }
-
 
         public static Texture ToEngineTexture(this GlTexture glTexture, TextureFormat? readFormat = null)
         {
@@ -711,10 +708,9 @@ namespace XrEngine.OpenGL
             return GlTexture.Attach(gl, texId).ToEngineTexture(readFormat);
         }
 
-
         public static uint GetActiveBufferBinding(this GL gl, BufferTargetARB target)
         {
-            var pname =  target switch
+            var pname = target switch
             {
                 BufferTargetARB.ArrayBuffer => GetPName.ArrayBufferBinding,
                 BufferTargetARB.ElementArrayBuffer => GetPName.ElementArrayBufferBinding,
@@ -753,7 +749,6 @@ namespace XrEngine.OpenGL
 
             return (uint)gl.GetInteger(binding);
         }
-
 
         #endregion
     }

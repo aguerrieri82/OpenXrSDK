@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
-using System.Xml.Linq;
-using XrMath;
 
 namespace OpenXr.Framework
 {
@@ -29,10 +27,9 @@ namespace OpenXr.Framework
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
-
         protected readonly RenderViewDelegate? _renderView;
 
-        protected bool _useDepthSWC;
+        protected bool _useDepth;
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
@@ -47,6 +44,7 @@ namespace OpenXr.Framework
             _projViews = new NativeArray<CompositionLayerProjectionView>(2, typeof(CompositionLayerProjectionView));
 
             _header.ValueRef.Type = StructureType.CompositionLayerProjection;
+
             _header.ValueRef.LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
@@ -54,13 +52,13 @@ namespace OpenXr.Framework
             Priority = XrLayerPriority.Projection;
         }
 
-        public XrProjectionLayer(RenderViewDelegate renderView, bool useDepthSwapchain)
+        public XrProjectionLayer(RenderViewDelegate renderView, bool useDepth)
             : this()
         {
             _renderView = renderView;
-            _useDepthSWC = useDepthSwapchain;
+            _useDepth = useDepth;
 
-            if (_useDepthSWC)
+            if (_useDepth)
             {
                 _depthTest.Value = new CompositionLayerDepthTestFB
                 {
@@ -73,7 +71,6 @@ namespace OpenXr.Framework
                 StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
             }
         }
-
 
         public override void Destroy()
         {
@@ -102,7 +99,7 @@ namespace OpenXr.Framework
 
             _colorSwaps = new XrSwapchain[swpCount];
 
-            if (_useDepthSWC)
+            if (_useDepth)
                 _depthSwaps = new XrSwapchain[swpCount];
 
             var colorSize = options.Size;
@@ -121,9 +118,9 @@ namespace OpenXr.Framework
                             SwapchainUsageFlags.SampledBit |
                             SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
 
-                _colorSwaps[i] = colorSwap; 
+                _colorSwaps[i] = colorSwap;
 
-                if (_useDepthSWC)
+                if (_useDepth)
                 {
                     var depthSwap = new XrSwapchain(_xrApp);
 
@@ -174,7 +171,7 @@ namespace OpenXr.Framework
                     projView.SubImage.ImageRect.Extent.Height = colorSwap.Size.Height;
                     projView.SubImage.ImageRect.Extent.Width = colorSwap.Size.Width;
 
-                    if (_useDepthSWC)
+                    if (_useDepth)
                     {
                         var depthSwap = _depthSwaps![swIndex];
 
@@ -231,13 +228,13 @@ namespace OpenXr.Framework
             Debug.Assert(_colorSwaps != null);
 
             _lastColorImages = new SwapchainImageBaseHeader*[_colorSwaps.Length];
-            _lastDepthImages = _useDepthSWC ? new SwapchainImageBaseHeader*[_colorSwaps.Length] : null;
+            _lastDepthImages = _useDepth ? new SwapchainImageBaseHeader*[_colorSwaps.Length] : null;
 
             for (var i = 0; i < _lastColorImages.Length; i++)
             {
                 _lastColorImages[i] = _colorSwaps[i].AcquireImageAndWait();
 
-                if (_useDepthSWC)
+                if (_useDepth)
                     _lastDepthImages![i] = _depthSwaps![i].AcquireImageAndWait();
             }
         }
@@ -245,7 +242,7 @@ namespace OpenXr.Framework
         protected virtual void Release()
         {
             Debug.Assert(_colorSwaps != null);
-            
+
             foreach (var item in _colorSwaps)
                 item.Release();
 
@@ -280,7 +277,7 @@ namespace OpenXr.Framework
                     DepthImages = _lastDepthImages,
                     Mode = _xrApp!.RenderOptions.RenderMode,
                     Color = _colorSwaps,
-                    Depth = _depthSwaps,    
+                    Depth = _depthSwaps,
                     DisplayTime = predTime
                 };
 
@@ -323,11 +320,10 @@ namespace OpenXr.Framework
 
         public XrSwapchain[] ColorSwapChains => _colorSwaps ?? throw new InvalidOperationException();
 
-        public bool UseDepthSwapchain
+        public bool UseDepth
         {
-            get => _useDepthSWC;
-            set => _useDepthSWC = value;
+            get => _useDepth;
+            set => _useDepth = value;
         }
-
     }
 }

@@ -6,8 +6,6 @@ using System.Text;
 using StructureType = Silk.NET.OpenXR.StructureType;
 using Common.Interop;
 
-
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -16,7 +14,6 @@ using Silk.NET.OpenGL;
 
 namespace OpenXr.Framework.Angle
 {
-
 
     public unsafe class XrAngleGraphicDriver : XrBasePlugin, IXrGraphicDriver, IDisposable
     {
@@ -60,7 +57,6 @@ namespace OpenXr.Framework.Angle
         {
             result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
             result.DepthFormat = (int)Format.D24UnormS8Uint;
-
         }
 
         public override void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
@@ -106,24 +102,23 @@ namespace OpenXr.Framework.Angle
 
             VkHandle physicalDevice;
 
-            _app!.CheckResult(_vulkanExt.GetVulkanGraphicsDevice(_app.Instance, _app.SystemId, 
+            _app!.CheckResult(_vulkanExt.GetVulkanGraphicsDevice(_app.Instance, _app.SystemId,
                        new VkHandle(_context.VulkanInstanceHandle), &physicalDevice), "GetVulkanGraphicsDeviceKHR");
 
-            var binding = new GraphicsBinding();
-
-            binding.VulkanKhr = new GraphicsBindingVulkanKHR()
+            var binding = new GraphicsBinding
             {
-                Type = StructureType.GraphicsBindingVulkanKhr,
-                Device = new VkHandle(_context.VulkanDeviceHandle),
-                Instance = new VkHandle(_context.VulkanInstanceHandle),
-                PhysicalDevice = physicalDevice,
-                QueueFamilyIndex = _context.QueueFamilyIndex,
-                QueueIndex = 1,
+                VulkanKhr = new GraphicsBindingVulkanKHR()
+                {
+                    Type = StructureType.GraphicsBindingVulkanKhr,
+                    Device = new VkHandle(_context.VulkanDeviceHandle),
+                    Instance = new VkHandle(_context.VulkanInstanceHandle),
+                    PhysicalDevice = physicalDevice,
+                    QueueFamilyIndex = _context.QueueFamilyIndex,
+                    QueueIndex = 1,
+                }
             };
 
             _gl = GL.GetApi(_context);
-
-         
 
             return binding;
         }
@@ -145,7 +140,6 @@ namespace OpenXr.Framework.Angle
         public XrDynamicType SwapChainImageType => _swapChainType;
 
         public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY;
-
 
     }
 }

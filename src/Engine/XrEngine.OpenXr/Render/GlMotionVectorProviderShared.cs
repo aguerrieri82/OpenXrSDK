@@ -25,7 +25,6 @@ namespace XrEngine.OpenXr
         protected readonly AngleVulkanContext? _context;
         protected GlMultiViewFrameBuffer _testFb;
 
-
         public GlMotionVectorProviderShared(EngineApp app, OpenGLRender renderer)
         {
             _renderer = renderer;
@@ -67,7 +66,7 @@ namespace XrEngine.OpenXr
             if (_renderer.UseAngle)
             {
                 _colorVkImage = (nint)((SwapchainImageVulkanKHR*)colorImg)->Image;
-        
+
                 var ctx = Context.Require<AngleVulkanContext>();
 
                 colorTex = ctx.AttachVulkanImage(
@@ -77,16 +76,16 @@ namespace XrEngine.OpenXr
                     (uint)swapchain.Size.Width,
                     (uint)swapchain.Size.Height,
 
-                    2,1,1,
-                    
-                    ImageUsageFlags.SampledBit | 
+                    2, 1, 1,
+
+                    ImageUsageFlags.SampledBit |
                     ImageUsageFlags.TransferSrcBit |
                     ImageUsageFlags.StorageBit |
                     ImageUsageFlags.InputAttachmentBit |
-                    ImageUsageFlags.TransferDstBit | 
+                    ImageUsageFlags.TransferDstBit |
                     ImageUsageFlags.ColorAttachmentBit,
 
-                    ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt | 
+                    ImageCreateFlags.CreateMultisampledRenderToSingleSampledBitExt |
                     ImageCreateFlags.CreateMutableFormatBit,
 
                     TextureTarget.Texture2DArray).Texture;

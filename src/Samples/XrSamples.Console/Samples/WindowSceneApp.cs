@@ -1,20 +1,17 @@
 ﻿#if GLES
-using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework.Angle;
+using Silk.NET.Windowing;
 using XrEngine;
 using XrEngine.OpenGL;
-using Silk.NET.Windowing;
-using XrMath;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
-using Microsoft.Extensions.DependencyInjection;
-using XrSamples.Graffiti;
-using OpenXr.Framework;
-using OpenXr.Framework.Angle;
+using XrMath;
 
 namespace XrSamples
 {
@@ -98,7 +95,7 @@ namespace XrSamples
             view.Render += t =>
             {
                 app.RenderFrame();
-                
+
                 angle?.SwapBuffers();
 
                 /*

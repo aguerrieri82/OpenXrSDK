@@ -9,7 +9,6 @@ namespace OpenXr.Framework
         Stereo
     }
 
-
     public class XrRenderOptions
     {
         public XrRenderOptions()
@@ -43,7 +42,7 @@ namespace OpenXr.Framework
         public PerfSettingsLevelEXT GpuLevel { get; set; }
 
         public bool UseProjectionDepth { get; set; }
-        
+
         public float ProjectionDepthScale { get; set; }
 
         [Obsolete]

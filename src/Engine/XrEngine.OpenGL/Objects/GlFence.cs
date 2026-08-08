@@ -11,9 +11,9 @@ namespace XrEngine.OpenGL
     public class GlFence : IDisposable
     {
         private nint _handle;
-        GL _gl;
+        readonly GL _gl;
 
-        GlFence(GL  gl, SyncCondition condition)
+        GlFence(GL gl, SyncCondition condition)
         {
             _handle = gl.FenceSync(condition, SyncBehaviorFlags.None);
             _gl = gl;
@@ -38,10 +38,10 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            if (_handle !=0)
+            if (_handle != 0)
             {
                 _gl.DeleteSync(_handle);
-                _handle = 0;    
+                _handle = 0;
             }
 
             GC.SuppressFinalize(this);

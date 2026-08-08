@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Security.Cryptography;
 using XrEngine.Helpers;
 
 namespace XrEngine.Compression

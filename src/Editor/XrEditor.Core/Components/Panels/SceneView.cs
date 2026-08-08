@@ -3,7 +3,6 @@ using OpenXr.Framework.Oculus;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
-using System.Windows.Threading;
 using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
@@ -266,7 +265,6 @@ namespace XrEditor
             Context.Implement(_tools.OfType<IOutlineSource>().First());
 
             SynchronizationContext.SetSynchronizationContext(new XrEngine.Services.DispatcherSynchronizationContext(_engine!.App.Dispatcher));
-
 
             while (_isStarted)
             {

@@ -13,7 +13,6 @@ using System.Diagnostics;
 using XrEngine.OpenGL;
 using XrEngine.UI;
 
-
 namespace XrEngine.OpenXr
 {
     public class XrQuodAttached : Behavior<CanvasView3D>, IDisposable
@@ -58,7 +57,7 @@ namespace XrEngine.OpenXr
             }
             else
             {
-                bool useAngle = OpenGLRender.Current!.UseAngle;
+                var useAngle = OpenGLRender.Current!.UseAngle;
 
                 var layer = new XrTextureQuadLayer(_host.BindToQuad(), RenderQuod, _host.PixelSize)
                 {
@@ -83,7 +82,7 @@ namespace XrEngine.OpenXr
 
         }
 
-        unsafe bool RenderQuod(QuadRenderData data, SwapchainImageBaseHeader* image,  long predTime)
+        unsafe bool RenderQuod(QuadRenderData data, SwapchainImageBaseHeader* image, long predTime)
         {
             Debug.Assert(_host != null);
 
@@ -92,7 +91,7 @@ namespace XrEngine.OpenXr
 
             uint glImage;
 
-            bool useAngle = OpenGLRender.Current!.UseAngle;
+            var useAngle = OpenGLRender.Current!.UseAngle;
 
             OpenGLRender.Current.PushGroup("Render Quad");
 
@@ -101,7 +100,7 @@ namespace XrEngine.OpenXr
             if (useAngle)
             {
                 _vulkanCtx ??= Context.Require<AngleVulkanContext>();
-                
+
                 var vkImage = (nint)((SwapchainImageVulkanKHR*)image)->Image;
 
                 glImage = _vulkanCtx.AttachVulkanImage(
@@ -121,7 +120,7 @@ namespace XrEngine.OpenXr
                 _vulkanCtx.AcquireTexture(glImage);
             }
             else
-                glImage = ((SwapchainImageOpenGLKHR*)image)->Image; 
+                glImage = ((SwapchainImageOpenGLKHR*)image)->Image;
 
             _host.SetRenderTarget(glImage, (uint)swp.Size.Width, (uint)swp.Size.Height, data.Eye);
             _host.Draw(EngineApp.Current.RenderContext);

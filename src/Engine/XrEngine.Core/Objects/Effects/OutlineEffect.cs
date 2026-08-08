@@ -51,6 +51,6 @@ namespace XrEngine
 
         public Texture? Texture { get; set; }
 
-        public bool UseFbNonCoherent { get; set; }    
+        public bool UseFbNonCoherent { get; set; }
     }
 }

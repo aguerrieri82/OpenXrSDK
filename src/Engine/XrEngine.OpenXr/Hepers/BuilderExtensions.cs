@@ -330,7 +330,6 @@ namespace XrEngine.OpenXr
             return self.ConfigureApp(e => options(e.XrApp.RenderOptions));
         }
 
-
         public static XrEngineAppBuilder SetAppOptions(this XrEngineAppBuilder self, Action<XrEngineAppOptions> options)
         {
             options(self.Options);

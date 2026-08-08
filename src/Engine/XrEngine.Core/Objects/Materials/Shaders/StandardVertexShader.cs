@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using XrEngine.Services;
 using XrMath;
 
 namespace XrEngine
@@ -58,7 +57,6 @@ namespace XrEngine
 
             SkinVertexShader.UpdateShaderModel(bld);
         }
-
 
         bool IInstanceShader.NeedUpdate(Object3D model, long curVersion)
         {
@@ -146,15 +144,15 @@ namespace XrEngine
 
             }, UniformsSlots.Camera, BufferStore.Shader);
 
-            if (bld.Context.UseMotionVectors && 
-                UseMotionVectors && 
+            if (bld.Context.UseMotionVectors &&
+                UseMotionVectors &&
                 bld.Context.MotionVectorProvider?.IsActive == true)
             {
                 bld.AddFeature("MOTION_VECTORS");
 
                 if (bld.Context.CopyDepthImage?.Tag != null)
                     bld.AddFeature("MOTION_VECTORS_DEPTH");
-               
+
                 bld.ExecuteAction((ctx, up) =>
                 {
                     var texture = ctx.MotionVectorProvider?.Texture;
@@ -184,7 +182,7 @@ namespace XrEngine
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             return _tracker.IsChanged(() => ctx.UseMotionVectors) ||
-                   _tracker.IsChanged(() => ctx.CopyDepthImage?.Tag ) ||
+                   _tracker.IsChanged(() => ctx.CopyDepthImage?.Tag) ||
                    _tracker.IsChanged(() => ctx.MotionVectorProvider?.IsActive ?? false);
         }
 

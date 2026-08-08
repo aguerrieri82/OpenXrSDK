@@ -44,7 +44,6 @@ namespace XrEngine.OpenGL
 
         protected ulong _sourceHash;
 
-
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
             _glOptions = OpenGLRender.Current?.Options ?? throw new InvalidOperationException("No active OpenGLRender");
@@ -54,7 +53,6 @@ namespace XrEngine.OpenGL
 
             _features.EnsureCapacity(64);
         }
-
 
         public byte[] GetBinary(out GLEnum format)
         {
@@ -151,7 +149,7 @@ namespace XrEngine.OpenGL
                     var json = File.ReadAllText(cacheName + ".meta.json");
 
                     var meta = JsonSerializer.Deserialize<ProgramMeta>(json, JSON_OPTIONS)!;
-;
+                    ;
                     var data = File.ReadAllBytes(cacheName);
 
                     Load(data, meta.Format);
@@ -175,7 +173,7 @@ namespace XrEngine.OpenGL
             if (_gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus) == 0)
             {
                 var log = _gl.GetProgramInfoLog(_handle);
-                     throw new Exception(log);
+                throw new Exception(log);
             }
         }
 
@@ -315,7 +313,6 @@ namespace XrEngine.OpenGL
                 glSamp.Update(value);
         }
 
-
         public void LoadImage(Texture2D tex2d, int slot = 0, BufferAccessMode accessMode = BufferAccessMode.ReadWrite)
         {
             if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
@@ -326,7 +323,7 @@ namespace XrEngine.OpenGL
             if (isTexUpdate)
                 glText.Update(tex2d);
 
-            bool layered = glText.Target == TextureTarget.Texture2DArray ||
+            var layered = glText.Target == TextureTarget.Texture2DArray ||
                            glText.Target == TextureTarget.Texture2DMultisampleArray;
 
             var glMode = accessMode switch
@@ -594,7 +591,7 @@ namespace XrEngine.OpenGL
 
             if (shaderType == ShaderType.VertexShader)
                 _mergedFetaures.Add("VERTEX_SHADER");
-            
+
             else if (shaderType == ShaderType.FragmentShader)
                 _mergedFetaures.Add("FRAGMENT_SHADER");
 

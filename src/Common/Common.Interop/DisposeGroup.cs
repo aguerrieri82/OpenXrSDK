@@ -14,7 +14,7 @@
         {
             if (_items == null)
                 return;
-            
+
             foreach (var item in _items)
                 item.Dispose();
 

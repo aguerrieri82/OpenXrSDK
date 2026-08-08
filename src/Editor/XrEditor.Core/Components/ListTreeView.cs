@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using XrEditor.Abstraction;
-using XrEngine;
 
 namespace XrEditor
 {

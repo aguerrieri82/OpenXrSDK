@@ -9,7 +9,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public unsafe class GlRayColliderPass : GlBaseSingleMaterialPass, 
+    public unsafe class GlRayColliderPass : GlBaseSingleMaterialPass,
         IGlDynamicRenderPass<RayPoniterTarget>,
         IRayHitTestSource
     {
@@ -84,7 +84,6 @@ namespace XrEngine.OpenGL
             _getRay = getRay;
         }
 
-
         protected override bool BeginRender(GlUpdateContext ctx)
         {
             var ray = _getRay?.Invoke();
@@ -107,7 +106,7 @@ namespace XrEngine.OpenGL
 
             _objects.Clear();
 
-            _camera.FrustumPlanes(_cameraFrustum, out int _);
+            _camera.FrustumPlanes(_cameraFrustum, out var _);
 
             //_idsBuffer.ClearWrite();
             _idsBuffer.BindWrite(12);

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public interface IGpuProfiler : IProfiler
     {
@@ -13,7 +9,7 @@ namespace XrEngine
     {
         Unknown = 0,
         Time = 0x1,
-        Count = 0x2,    
+        Count = 0x2,
     }
 
     public interface IProfilerStat
@@ -24,7 +20,7 @@ namespace XrEngine
 
         ulong Value { get; }
 
-        ProfilerStatType Type { get; }  
+        ProfilerStatType Type { get; }
     }
 
     public interface IProfiler

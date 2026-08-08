@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public unsafe class GlBufferRing<T> : IDisposable
@@ -57,7 +56,7 @@ namespace XrEngine.OpenGL
                 return false;
 
             var result = fence.WaitClient(maxTime);
-            
+
             fence.Dispose();
 
             _fences[_readSlot] = null;
@@ -81,8 +80,8 @@ namespace XrEngine.OpenGL
 
         public void BindWrite(int bindSlot)
         {
-            GlState.Current.LoadBufferRange(_buffer, bindSlot, 
-                (int)ActiveWriteOffsetBytes, 
+            GlState.Current.LoadBufferRange(_buffer, bindSlot,
+                (int)ActiveWriteOffsetBytes,
                 (uint)(_slotSizeElements * sizeof(T)));
         }
 

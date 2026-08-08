@@ -11,8 +11,6 @@ namespace OpenXr.Framework
 
         }
 
-
-
         public virtual void HandleEvent(ref EventDataBuffer buffer)
         {
 

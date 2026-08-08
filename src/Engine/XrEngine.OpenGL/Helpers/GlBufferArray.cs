@@ -1,8 +1,8 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public class GlBufferArray<T> : IDisposable where T: class, IDisposable
+    public class GlBufferArray<T> : IDisposable where T : class, IDisposable
     {
-        WeakReference<object>? _owner;
+        readonly WeakReference<object>? _owner;
 
         public GlBufferArray(int maxBuffers, object? owner = null)
         {
@@ -22,8 +22,8 @@
             GC.SuppressFinalize(this);
         }
 
-        public object? Owner => 
-            _owner != null && 
+        public object? Owner =>
+            _owner != null &&
             _owner.TryGetTarget(out var result) ? result : null;
 
         public readonly T?[] Buffers;

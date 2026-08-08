@@ -25,7 +25,6 @@
             Channel = "r";
         }
 
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.AddFeature($"DEPTH_LOCATION {DepthLocation}");

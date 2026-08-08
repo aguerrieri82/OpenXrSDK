@@ -129,7 +129,7 @@ namespace XrEngine.OpenGL
             {
                 FrameBuffer!.Bind();
 
-                int i = 0;
+                var i = 0;
 
                 foreach (var extra in _extras)
                 {
@@ -216,7 +216,7 @@ namespace XrEngine.OpenGL
 
         public bool UseColor { get; set; }
 
-        public string? Name { get; set; }   
+        public string? Name { get; set; }
 
         public string? Id { get; set; }
 

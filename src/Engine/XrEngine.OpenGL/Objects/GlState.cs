@@ -9,8 +9,6 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 using XrMath;
 using System.Runtime.CompilerServices;
 
-
-
 namespace XrEngine.OpenGL
 {
     public class GlState
@@ -194,14 +192,13 @@ namespace XrEngine.OpenGL
             if (!TexturesSlots.TryGetValue(target, out var res))
             {
                 res = new uint[MAX_TEX_SLOTS];
-                
+
                 Array.Fill(res, uint.MaxValue);
 
                 TexturesSlots[target] = res;
             }
             return res;
         }
-
 
         public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
@@ -250,7 +247,7 @@ namespace XrEngine.OpenGL
         public void LoadTexture(GlTexture glTex, int slot, bool force = false)
         {
             LoadTexture(glTex.Handle, glTex.Target, slot, force);
-            
+
             if (glTex.Sampler != null)
                 BindSampler(glTex.Sampler, slot);
             else
@@ -623,7 +620,7 @@ namespace XrEngine.OpenGL
                     _gl.BindBuffer(key, 0);
                     BufferTargets[key] = 0;
                 }
-     
+
             }
         }
 
@@ -632,7 +629,6 @@ namespace XrEngine.OpenGL
         {
             LoadBufferRange(buffer, slot, buffer.Target, offset, sizeBytes);
         }
-
 
         public void LoadBufferRange(IGlBuffer buffer, int slot, BufferTargetARB target, int offset, uint sizeBytes)
         {
@@ -648,7 +644,6 @@ namespace XrEngine.OpenGL
 
             slots[slot] = buffer.Handle;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void LoadBuffer(IGlBuffer buffer, int slot, bool force = false)
@@ -710,7 +705,6 @@ namespace XrEngine.OpenGL
             Commit();
         }
 
-
         public float? ClearDepth;
 
         public Color? ClearColor;
@@ -746,10 +740,6 @@ namespace XrEngine.OpenGL
         public uint? VertexArray;
 
         public int? ActiveShadingRate;
-
-
-
-
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 

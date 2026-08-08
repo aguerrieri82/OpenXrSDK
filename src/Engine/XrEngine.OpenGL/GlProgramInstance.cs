@@ -1,10 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using XrEngine.Helpers;
 using System.Collections.Concurrent;
-
-
-
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -45,7 +41,6 @@ namespace XrEngine.OpenGL
         protected ulong _createTaskKey;
         protected GlFence? _createFence;
         private readonly bool _useShaderCache;
-
 
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
@@ -98,7 +93,6 @@ namespace XrEngine.OpenGL
 
             UpdateUniforms(ctx, false);
         }
-
 
         public bool UpdateProgram(UpdateShaderContext ctx, bool forceSync = false)
         {
@@ -278,7 +272,6 @@ namespace XrEngine.OpenGL
                     program.AddDynamicFeature(feature);
             }
 
-
             if (Global.ShaderUpdate?.Extensions != null)
             {
                 foreach (var ext in Global.ShaderUpdate.Extensions)
@@ -298,7 +291,7 @@ namespace XrEngine.OpenGL
 
             _programsByFeatures[_materialUpdate.FeaturesHash] = program;
 
-            _programsByHash[program.SourceHash] = program;  
+            _programsByHash[program.SourceHash] = program;
 
             return program;
         }

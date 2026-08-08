@@ -1,7 +1,5 @@
 ﻿using XrEngine;
 
-#pragma warning disable CA1416 
-
 [assembly: Module(typeof(XrEngine.Devices.Module))]
 
 namespace XrEngine.Devices

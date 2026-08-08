@@ -35,7 +35,6 @@
             DebugEye = CameraEye.None;
         }
 
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (LeftTexture?.Type == TextureType.External)
@@ -53,7 +52,7 @@
             bld.ExecuteAction((ctx, up) =>
             {
                 if (FixedEye != 1 && LeftTexture != null)
-                    up.LoadTextureFixSrgb(ctx,LeftTexture, 0);
+                    up.LoadTextureFixSrgb(ctx, LeftTexture, 0);
 
                 if (FixedEye != 0 && RightTexture != null)
                     up.LoadTextureFixSrgb(ctx, RightTexture, 1);

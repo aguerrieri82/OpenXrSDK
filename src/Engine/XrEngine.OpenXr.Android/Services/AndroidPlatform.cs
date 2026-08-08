@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
 using Silk.NET.OpenGLES.Extensions.EXT;
 
-
 namespace XrEngine.OpenXr.Android
 {
     public class AndroidPlatform : IXrEnginePlatform, IGlContextProvider
@@ -136,7 +135,6 @@ namespace XrEngine.OpenXr.Android
             else
             {
                 var glDriver = new AndroidXrOpenGLESGraphicDriver();
-
 
                 var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 

@@ -1,6 +1,5 @@
 ﻿#if GLES
 using XrEngine.Media;
-using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -39,7 +38,6 @@ using XrEngine.Reconstruct;
 using XrSamples.Components;
 using XrEngine.Lighting;
 using System.Diagnostics;
-using XrEngine.OpenGL;
 
 namespace XrSamples
 {
@@ -218,7 +216,7 @@ namespace XrSamples
 
                 obj.AddBehavior((_, _) =>
                 {
-                    var click = inputs.Right.Button.AClick; 
+                    var click = inputs.Right.Button.AClick;
                     if (click.IsChanged && click.Value)
                     {
                         var scene = obj.Scene!;
@@ -1293,7 +1291,6 @@ namespace XrSamples
                 Metalness = 0
             };
 
-
             var quod1 = scene.AddChild(new TriangleMesh(Quad3D.Default, mat1));
             quod1.Materials.Add(mat2);
 
@@ -1327,7 +1324,7 @@ namespace XrSamples
                 {
                     IsSrgb = isSrgb
                 };
-                
+
                 mat4.Color = color;
                 mat3.Color = color;
 

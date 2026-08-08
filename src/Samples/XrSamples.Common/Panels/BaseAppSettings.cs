@@ -5,7 +5,7 @@ namespace XrSamples
 {
     public abstract class BaseAppSettings<T> where T : EngineObject
     {
-        static JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions()
+        static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions()
         {
             IncludeFields = true
         };

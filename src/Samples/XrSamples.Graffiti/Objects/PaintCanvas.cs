@@ -163,7 +163,7 @@ namespace XrSamples.Graffiti
 
             block.PaintColor = _can.Color.ToVector4();
 
-            block.DeltaTime = (float)ctx.DeltaTime;
+            block.DeltaTime = ctx.DeltaTime;
 
             block.DryRoughness = DryRoughness;
             block.WetRoughness = WetRoughness;

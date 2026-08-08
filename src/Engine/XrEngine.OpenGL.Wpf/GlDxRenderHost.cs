@@ -12,7 +12,6 @@ using PresentParameters = Silk.NET.Direct3D9.PresentParameters;
 using System.Windows.Media;
 using XrEngine.Wpf;
 
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -68,7 +67,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
     protected static wglChoosePixelFormatARBPtr? ChoosePixelFormatARB;
     protected static wglSwapIntervalEXTPtr? SwapIntervalEXT;
     protected static wglGetPixelFormatAttribivARBPtr? GetPixelFormatAttribivARB;
-
 
     protected delegate bool wglSwapIntervalEXTPtr(int interval);
 
@@ -721,7 +719,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
         _mainCtx?.Take();
         return true;
     }
-
 
     public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
     {

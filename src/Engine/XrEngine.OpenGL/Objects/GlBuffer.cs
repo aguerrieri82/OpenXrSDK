@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 using System.Diagnostics;
 using Common.Interop;
 
-
 namespace XrEngine.OpenGL
 {
     public static class GlBuffer
@@ -20,7 +19,6 @@ namespace XrEngine.OpenGL
 
         public static GlBufferUpdateTracker? Tracker;
     }
-
 
     public unsafe class GlBufferMap<T> : IBufferLock
     {
@@ -44,7 +42,6 @@ namespace XrEngine.OpenGL
 
         void* IBufferLock.Data => _data;
     }
-
 
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
@@ -313,7 +310,7 @@ namespace XrEngine.OpenGL
 #if GLES
             useCpuCopy = true;
 #endif
-            
+
             //useCpuCopy = true;
 
             if (useCpuCopy)

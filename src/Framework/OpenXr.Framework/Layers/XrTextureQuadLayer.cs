@@ -1,5 +1,4 @@
-﻿using Common.Interop;
-using Silk.NET.OpenXR;
+﻿using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrMath;
 
@@ -38,7 +37,7 @@ namespace OpenXr.Framework
         {
             _swapchain = swapchain;
             _data.Eye = eye;
-            _data.Swapchain = swapchain;    
+            _data.Swapchain = swapchain;
         }
 
         public override void Create()
@@ -48,10 +47,10 @@ namespace OpenXr.Framework
             var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
             if (Format == 0)
-                Format = _xrApp.RenderOptions.ColorFormat; 
+                Format = _xrApp.RenderOptions.ColorFormat;
 
             _swapchain ??= new XrSwapchain(_xrApp, 1);
-            
+
             _data.Swapchain = _swapchain;
 
             if (!_swapchain.IsCreated)
@@ -59,7 +58,7 @@ namespace OpenXr.Framework
                 _swapchain.Create(extent,
                     Format,
                     _data.Eye != -1 ? 2u : 1u,
-                    SwapchainUsageFlags.SampledBit | 
+                    SwapchainUsageFlags.SampledBit |
                     SwapchainUsageFlags.ColorAttachmentBit |
                     SwapchainUsageFlags.InputAttachmentBitKhr |
                     SwapchainUsageFlags.TransferSrcBit |

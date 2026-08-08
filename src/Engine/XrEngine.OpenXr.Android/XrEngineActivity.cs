@@ -27,7 +27,6 @@ namespace XrEngine.OpenXr.Android
             GlDebug.Logger = (object sender, string message, object?[] args) =>
                 Log.Debug(sender, message, args);
 
-
             Context.Implement<IMainActivity>(this);
         }
 

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Buffers.Binary;
 using System.IO.Hashing;
 using System.Text;
 
@@ -35,7 +33,7 @@ namespace XrEngine.Helpers
         {
             _hash.Reset();
 
-            foreach (var value  in values)
+            foreach (var value in values)
                 Add(value);
 
             return _hash.GetCurrentHashAsUInt64();

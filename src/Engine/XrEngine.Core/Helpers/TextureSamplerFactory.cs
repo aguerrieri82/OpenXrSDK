@@ -1,6 +1,5 @@
 ﻿
 using System.Diagnostics;
-using System.Text;
 
 namespace XrEngine.Helpers
 {
@@ -13,8 +12,7 @@ namespace XrEngine.Helpers
             public long LastVersion;
         }
 
-        static Dictionary<Texture, TextureSamplerBind> _srgbSamplers = [];
-
+        static readonly Dictionary<Texture, TextureSamplerBind> _srgbSamplers = [];
 
         public static TextureSampler DisableSrgbDecode(Texture texture)
         {

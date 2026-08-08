@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public class GlSharedWorker : IActiveService
     {
@@ -16,7 +12,7 @@ namespace XrEngine.OpenGL
 
         public GlSharedWorker()
         {
-            _exitEvent = new AutoResetEvent(false); 
+            _exitEvent = new AutoResetEvent(false);
             _thread = new Thread(MainLoop);
             _dispatcher = new QueueDispatcher(_thread);
             _options = OpenGLRender.Current!.Options;
@@ -33,7 +29,7 @@ namespace XrEngine.OpenGL
 
             _sharedCtx = privider.CreateShared();
 
-            _isStarted = true;  
+            _isStarted = true;
 
             _thread.Start();
         }

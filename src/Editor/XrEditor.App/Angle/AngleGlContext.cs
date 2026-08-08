@@ -13,11 +13,11 @@ namespace XrEditor
     public class AngleGlContext : IGlContext
     {
         Thread? _ownerThread;
-        IAngleContext _ctx;
+        readonly IAngleContext _ctx;
 
         public AngleGlContext(IAngleContext ctx)
         {
-            _ctx = ctx; 
+            _ctx = ctx;
         }
 
         public void Dispose()

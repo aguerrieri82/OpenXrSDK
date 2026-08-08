@@ -16,7 +16,6 @@ namespace XrEngine.OpenGL
         {
             private readonly ChangeTracker _tracker = new();
 
-
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 return _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
@@ -78,7 +77,6 @@ namespace XrEngine.OpenGL
         protected ShaderUpdate? _shaderUpdate;
 
         protected ContextShaderHandler _contextHandler;
-
 
         public GlProgramGlobal(GL gl, Shader shader)
         {

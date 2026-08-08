@@ -14,12 +14,12 @@ namespace XrEngine
         protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
         protected Thread _thread;
-        private AutoResetEvent _workAvailable;
+        private readonly AutoResetEvent _workAvailable;
 
         public QueueDispatcher(Thread? thread = null)
         {
             _thread = thread ?? Thread.CurrentThread;
-            _workAvailable = new AutoResetEvent(false); 
+            _workAvailable = new AutoResetEvent(false);
         }
 
         public void Post(Action action)
@@ -113,8 +113,6 @@ namespace XrEngine
                 _isProcessingQueue = false;
             }
         }
-
-
 
         public AutoResetEvent WorkAvailable => _workAvailable;
 

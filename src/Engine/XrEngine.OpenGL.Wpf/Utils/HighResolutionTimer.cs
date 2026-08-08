@@ -110,7 +110,7 @@ public sealed class HighResolutionTimer : IDisposable
         if (!SetWaitableTimer(_handle, ref dueTime, 0, 0, 0, false))
             throw new Win32Exception(Marshal.GetLastWin32Error());
 
-        nint* handles = stackalloc nint[2];
+        var handles = stackalloc nint[2];
 
         handles[0] = _handle;
         handles[1] = wakeHandle.SafeWaitHandle.DangerousGetHandle();

@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using XrMath;
 
 namespace XrEngine
 {

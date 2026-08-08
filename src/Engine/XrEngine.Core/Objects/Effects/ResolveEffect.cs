@@ -63,7 +63,7 @@ namespace XrEngine
         [Notify(ChangeType.Render)]
         public partial ToneMapMode ToneMap { get; set; }
 
-        public bool UseFetchRate { get; set; } 
+        public bool UseFetchRate { get; set; }
 
         public bool UseFbNonCoherent { get; set; }
 

@@ -88,7 +88,7 @@ namespace XrEngine.OpenXr
                     {
                         colorImagePtr = (nint)((SwapchainImageOpenGLKHR*)colorImages[imgIndex])->Image;
                         depthImagePtr = depthImages == null ? 0 : (nint)((SwapchainImageOpenGLKHR*)depthImages[imgIndex])->Image;
-                        format = ((GLEnum)(int)xrApp.RenderOptions.ColorFormat) switch
+                        format = ((GLEnum)xrApp.RenderOptions.ColorFormat) switch
                         {
                             GLEnum.Srgb8Alpha8 => FlTextureInternalFormat.SRGB8_A8,
                             GLEnum.Rgba8 => FlTextureInternalFormat.RGBA8,
@@ -99,7 +99,7 @@ namespace XrEngine.OpenXr
                     {
                         colorImagePtr = (nint)((SwapchainImageVulkanKHR*)colorImages[imgIndex])->Image;
                         depthImagePtr = depthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)depthImages[imgIndex])->Image;
-                        format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.ColorFormat) switch
+                        format = ((Silk.NET.Vulkan.Format)xrApp.RenderOptions.ColorFormat) switch
                         {
                             Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FlTextureInternalFormat.SRGB8_A8,
                             Silk.NET.Vulkan.Format.R8G8B8A8Unorm => FlTextureInternalFormat.RGBA8,
@@ -329,13 +329,12 @@ namespace XrEngine.OpenXr
                 var colorImagePtr = (nint)((SwapchainImageVulkanKHR*)info.ColorImages[index])->Image;
                 var depthImagePtr = info.DepthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)info.DepthImages[index])->Image;
 
-
                 var colorImg = vulkanCtx.AttachVulkanImage(colorImagePtr,
                         colorSwp.Format,
                         (uint)colorSwp.Size.Width,
                         (uint)colorSwp.Size.Height,
                         colorSwp.ArraySize, 1, 1,
-                        ImageUsageFlags.ColorAttachmentBit | 
+                        ImageUsageFlags.ColorAttachmentBit |
                         ImageUsageFlags.SampledBit |
                         ImageUsageFlags.InputAttachmentBit,
 #if __ANDROID__
@@ -355,7 +354,7 @@ namespace XrEngine.OpenXr
                         (uint)depthSwp.Size.Width,
                         (uint)depthSwp.Size.Height,
                         depthSwp.ArraySize, 1, 1,
-                        ImageUsageFlags.DepthStencilAttachmentBit | 
+                        ImageUsageFlags.DepthStencilAttachmentBit |
                         ImageUsageFlags.SampledBit |
                         ImageUsageFlags.InputAttachmentBit,
 #if __ANDROID__

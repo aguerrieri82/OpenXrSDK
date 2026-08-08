@@ -96,7 +96,7 @@ namespace XrEngine.OpenGL
             _frameBuffer.BindDraw();
 
             GlMultiViewShaderHandler.Instance.SetCamera(camera);
-            
+
             OpenGLRender.Current!.Begin(this);
         }
 

@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-
 namespace XrEngine.OpenGL
 {
     public abstract class GlObject : IDisposable
@@ -65,22 +63,22 @@ namespace XrEngine.OpenGL
 
             if (this is GlTexture)
                 idType = ObjectIdentifier.Texture;
-            
+
             else if (this is GlSampler)
                 idType = ObjectIdentifier.Sampler;
-            
+
             else if (this is GlBaseFrameBuffer)
                 idType = ObjectIdentifier.Framebuffer;
-            
+
             else if (this is IGlBuffer)
                 idType = ObjectIdentifier.Buffer;
-            
+
             else if (this is GlRenderBuffer)
                 idType = ObjectIdentifier.Renderbuffer;
-            
+
             else if (this is IGlQuery)
                 idType = ObjectIdentifier.Query;
-            
+
             else if (this is GlBaseProgram)
                 idType = ObjectIdentifier.Program;
 

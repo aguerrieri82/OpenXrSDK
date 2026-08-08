@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
 using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
@@ -306,7 +305,6 @@ namespace XrEngine.OpenGL
             }
 
             _renderer.State.BindVertexArray(0);
-
 
             _renderer.PopGroup();
 

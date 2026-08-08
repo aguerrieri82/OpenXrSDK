@@ -184,7 +184,6 @@ namespace XrEngine
                        base.NeedUpdateShader(ctx);
             }
 
- 
             protected override void UpdateShaderGlobal(ShaderUpdateBuilder bld)
             {
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
@@ -510,9 +509,9 @@ namespace XrEngine
                     PlanarReflectionLevel = planar?.BlurLevel ?? 0
                 };
 
-            }, 
-            UniformsSlots.Material, 
-            BufferStore.Material, 
+            },
+            UniformsSlots.Material,
+            BufferStore.Material,
             SHADER.UseSharedSSBO ? BufferUsage.SharedSsbo : BufferUsage.Uniforms,
             "uMaterialIndex");
 

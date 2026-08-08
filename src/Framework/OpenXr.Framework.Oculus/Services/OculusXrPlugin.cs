@@ -7,7 +7,6 @@ using Silk.NET.OpenXR.Extensions.FB;
 
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using XrMath;
@@ -789,7 +788,6 @@ namespace OpenXr.Framework.Oculus
             StructChain.AddNextStruct(ref info, _foveationInfo.Pointer);
         }
 
-
         public unsafe float GetSampleRate(Action action, ulong subActionPath = 0)
         {
             var info = new HapticActionInfo(StructureType.HapticActionInfo)
@@ -971,7 +969,7 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        public unsafe override IDisposable? Configure<T>(ref T data) 
+        public unsafe override IDisposable? Configure<T>(ref T data)
         {
             if (data is HandTrackerCreateInfoEXT)
             {

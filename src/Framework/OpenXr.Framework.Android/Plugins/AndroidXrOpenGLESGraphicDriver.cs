@@ -1,10 +1,7 @@
-﻿using Android.Opengl;
-using Android.Runtime;
-using Silk.NET.Core.Contexts;
+﻿using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
-using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework.Android
 {
@@ -59,14 +56,13 @@ namespace OpenXr.Framework.Android
         {
             System.Diagnostics.Debug.Assert(viewInfo.SwapChainFormats != null);
 
-            var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
+            var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)a).ToString()).ToArray();
 
             result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((int)a));
 
             if (result.DepthFormat == 0)
                 result.DepthFormat = (int)InternalFormat.Depth24Stencil8;
         }
-
 
         public GraphicsBinding CreateBinding()
         {

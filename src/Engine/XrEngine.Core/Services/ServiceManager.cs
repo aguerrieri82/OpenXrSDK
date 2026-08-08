@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
-    public class ServiceManager 
+    public class ServiceManager
     {
         readonly HashSet<IActiveService> _activeServices = [];
 
         ServiceManager()
         {
-            
+
         }
 
         public void Register(IActiveService service)

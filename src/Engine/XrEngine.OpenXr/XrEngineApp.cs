@@ -1,6 +1,5 @@
 ﻿using OpenXr.Framework;
 using Silk.NET.OpenGL;
-using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenXr
 {
@@ -17,9 +16,8 @@ namespace XrEngine.OpenXr
         None,
         DepthPass,
         DepthCopy,
-        DepthCopyImage 
+        DepthCopyImage
     }
-
 
     public class XrEngineAppOptions
     {
@@ -27,7 +25,7 @@ namespace XrEngine.OpenXr
 
         public XrRenderMode RenderMode { get; set; }
 
-        public XrProjDepthMode ProjDepthMode { get; set; }  
+        public XrProjDepthMode ProjDepthMode { get; set; }
 
         public float ProjDepthScale { get; set; }
 

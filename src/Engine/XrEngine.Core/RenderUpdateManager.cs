@@ -128,7 +128,7 @@ namespace XrEngine
                         else
                             leafGroup.Items.Add(obj3d);
                     }
-   
+
                 }
             }
 

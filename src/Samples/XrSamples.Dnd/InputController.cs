@@ -1,5 +1,4 @@
-﻿using glTFLoader.Schema;
-using OpenXr.Framework.Oculus;
+﻿using OpenXr.Framework.Oculus;
 using System.Numerics;
 using XrEngine;
 using XrEngine.OpenGL;

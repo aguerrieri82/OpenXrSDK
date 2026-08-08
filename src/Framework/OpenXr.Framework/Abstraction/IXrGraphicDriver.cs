@@ -14,6 +14,6 @@ namespace OpenXr.Framework
 
         XrDynamicType SwapChainImageType { get; }
 
-        XrGraphicDriverFlags Flags =>  XrGraphicDriverFlags.None;
+        XrGraphicDriverFlags Flags => XrGraphicDriverFlags.None;
     }
 }

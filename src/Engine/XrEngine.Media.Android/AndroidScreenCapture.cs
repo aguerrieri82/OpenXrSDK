@@ -8,7 +8,6 @@ using XrInteraction;
 using ContextA = global::Android.Content.Context;
 
 #pragma warning disable CA1422
-#pragma warning disable CA1416
 
 namespace XrEngine.Media.Android
 {

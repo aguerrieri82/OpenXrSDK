@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Diagnostics;
 
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -424,7 +423,6 @@ namespace XrEngine.OpenGL.Wpf
             _mainCtx?.Take();
             return true;
         }
-
 
         public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)
         {

@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
         readonly GlRenderTargetPool _pool;
         readonly DepthCopyFromColorEffect _effect;
         private IGlRenderTargetFB? _renderTarget;
-        private bool _imageMode;
+        private readonly bool _imageMode;
         private readonly bool _fetchSupported;
 
         public GlDepthCopyPass(OpenGLRender renderer, bool multiView, bool imageMode)
@@ -84,13 +84,13 @@ namespace XrEngine.OpenGL
                 if (ctx.MotionVectorProvider != null)
                 {
                     motionTex = ctx.MotionVectorProvider.Texture;
-                    
+
                     Debug.Assert(motionTex != null);
 
                     if (motionTex.Width == glDepth.Width && motionTex.Height == glDepth.Height)
                     {
                         colorTex = motionTex.ToGlTexture().Handle;
-                        
+
                         motionTex.Tag = 1;
 
                         _effect.Channel = "b";

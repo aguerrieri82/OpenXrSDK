@@ -14,7 +14,6 @@
                 bld.AddFeature("HAS_SKIN");
             }
 
-
             bld.LoadBufferArray(ctx =>
             {
                 if (ctx.Model is not ISkinnedMesh mesh)

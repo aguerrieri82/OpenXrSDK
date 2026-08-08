@@ -142,7 +142,7 @@ namespace XrEngine.OpenGL
                     TextureFormat.Rgba8 or
                     TextureFormat.Bgra8 => InternalFormat.Rgba8,
 
-                    TextureFormat.Gray8 => InternalFormat.R8,   
+                    TextureFormat.Gray8 => InternalFormat.R8,
                     TextureFormat.Gray16 => InternalFormat.R16,
                     TextureFormat.GrayInt16 => InternalFormat.R16i,
                     TextureFormat.GrayFloat16 => InternalFormat.R16f,

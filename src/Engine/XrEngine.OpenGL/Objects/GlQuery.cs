@@ -5,8 +5,6 @@ using Silk.NET.OpenGLES.Extensions.EXT;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-
 namespace XrEngine.OpenGL
 {
     public interface IGlQuery : IGlObject
@@ -38,7 +36,7 @@ namespace XrEngine.OpenGL
                 if (_timerQuery == null)
                     throw new NotSupportedException();
             }
-              
+
 #endif
             Create();
         }
@@ -59,7 +57,7 @@ namespace XrEngine.OpenGL
 
         public bool IsCompleted()
         {
-            _gl.GetQueryObject(_handle, QueryObjectParameterName.ResultAvailable, out uint available);
+            _gl.GetQueryObject(_handle, QueryObjectParameterName.ResultAvailable, out var available);
 
             return available != 0;
         }
@@ -71,7 +69,7 @@ namespace XrEngine.OpenGL
 
                 if (typeof(T) == typeof(uint))
                 {
-                    _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out uint uintRes);
+                    _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out var uintRes);
                     _lastResult = (T)(object)uintRes;
                 }
 

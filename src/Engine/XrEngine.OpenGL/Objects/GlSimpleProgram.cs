@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics.CodeAnalysis;
 using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
@@ -18,7 +17,6 @@ namespace XrEngine.OpenGL
         readonly string? _teSourceName;
 
         protected bool _isBuilt;
-
 
         public GlSimpleProgram(GL gl, byte[] binary, GLEnum format)
              : base(gl, str => throw new NotSupportedException())
@@ -45,7 +43,6 @@ namespace XrEngine.OpenGL
             _tcSourceName = tcSource;
             _teSourceName = teSource;
         }
-
 
         public override bool Build(string? cachePath = null, Func<ulong, bool>? validateHash = null)
         {
@@ -94,7 +91,7 @@ namespace XrEngine.OpenGL
         protected override void UpdateMeta(ProgramMeta meta)
         {
             meta.VSource = _vSourceName;
-            meta.FSource = _fSourceName;    
+            meta.FSource = _fSourceName;
         }
 
         protected override void UpdateSourceHash()
@@ -135,7 +132,6 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
-
 
         public GlShader? Vertex { get; set; }
 

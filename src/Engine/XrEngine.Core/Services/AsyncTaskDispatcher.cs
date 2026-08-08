@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class AsyncTaskDispatcher
     {
@@ -14,7 +10,7 @@ namespace XrEngine
         public AsyncTaskDispatcher(int maxParallelism, ThreadPriority priority)
         {
             _queueLimit = new(maxParallelism, maxParallelism);
-            _priority = priority;   
+            _priority = priority;
         }
 
         public async Task<T> ExecuteAsync<T>(Func<T> action, string taskId)

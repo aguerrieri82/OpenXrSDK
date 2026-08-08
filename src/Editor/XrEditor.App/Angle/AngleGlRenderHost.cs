@@ -1,6 +1,5 @@
 ﻿
 #if GLES
-using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
 using ExtClipControl = Silk.NET.OpenGLES.Extensions.EXT.ExtClipControl;
 #else
@@ -8,10 +7,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using OpenXr.Framework.Angle;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using XrEngine;
 using XrEngine.OpenGL;
 using XrEngine.OpenGL.Wpf;
@@ -20,8 +16,8 @@ namespace XrEditor
 {
     public class AngleGlRenderHost : RenderHost, IGlContextProvider
     {
-        AngleGlContext _glContext;
-        AngleVulkanContext _angleContext;
+        readonly AngleGlContext _glContext;
+        readonly AngleVulkanContext _angleContext;
 #if GLES
         ExtClipControl? _clipControl;
 #endif
@@ -114,7 +110,6 @@ namespace XrEditor
         public override bool SupportsDualRender => false;
 
         public AngleVulkanContext AngleContext => _angleContext;
-
 
     }
 }

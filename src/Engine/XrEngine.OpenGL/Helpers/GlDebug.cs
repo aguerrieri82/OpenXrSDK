@@ -13,7 +13,6 @@ namespace XrEngine.OpenGL
 
         public static Action<object, string, object?[]>? Logger;
 
-
         public static bool TrackBuffers = false;
     }
 }

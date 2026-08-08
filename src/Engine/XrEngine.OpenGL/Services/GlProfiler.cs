@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 using System.Text;
 using System.Globalization;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlProfilerEntry : IDisposable
@@ -38,7 +37,7 @@ namespace XrEngine.OpenGL
                     _endQuery = new GlQuery<ulong>(profiler._gl);
                 }
             }
- 
+
             Name = name;
             Frame = frame;
         }
@@ -72,7 +71,6 @@ namespace XrEngine.OpenGL
                         _result = endRes - startRes;
                         _isValid = true;
                     }
-     
 
                     Destroy();
 
@@ -129,7 +127,7 @@ namespace XrEngine.OpenGL
 
         public long Frame { get; }
 
-        public bool IsValid => _isValid;    
+        public bool IsValid => _isValid;
     }
 
     public struct GlProfilerStat : IProfilerStat
@@ -283,7 +281,7 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        IReadOnlyList<IProfilerStat> IProfiler.GetStats() => 
+        IReadOnlyList<IProfilerStat> IProfiler.GetStats() =>
             (IReadOnlyList<IProfilerStat>)_stats.Values.ToArray();
 
         public Dictionary<string, double> Averages => _averages;

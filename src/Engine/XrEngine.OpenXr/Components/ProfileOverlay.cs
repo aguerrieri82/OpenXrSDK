@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using XrEngine.Interaction;
-using XrEngine.UI;
-using XrInteraction;
+﻿using XrEngine.UI;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -34,7 +31,6 @@ namespace XrEngine.OpenXr
 
                 _surface.DrawCanvas += OnDraw;
             }
-
 
             base.Update(ctx);
         }
@@ -87,8 +83,6 @@ namespace XrEngine.OpenXr
             obj.DrawLine(topRight, bottomRight, dim, UnitValue.Pixel(1));
             obj.DrawLine(bottomRight, bottomLeft, dim, UnitValue.Pixel(1));
             obj.DrawLine(bottomLeft, topLeft, dim, UnitValue.Pixel(1));
-
-
 
             obj.DrawRect(
                 topLeft,
@@ -170,16 +164,15 @@ namespace XrEngine.OpenXr
         [Range(0, 1, 0.01f)]
         public float PanelWidth { get; set; }
 
-
         [Range(0, 1, 0.01f)]
-        public float PanelHeight { get; set; } 
+        public float PanelHeight { get; set; }
 
         [Range(0, 2, 0.01f)]
         public float PanelDistance { get; set; }
 
         [Range(-1, 1, 0.01f)]
         public float PanelOffsetX { get; set; }
-       
+
         [Range(-1, 1, 0.01f)]
         public float PanelOffsetY { get; set; }
 

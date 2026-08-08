@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 
 using XrMath;
 using System.Diagnostics;
-using SkiaSharp;
 
 namespace XrEngine.OpenGL
 {
@@ -150,7 +149,6 @@ namespace XrEngine.OpenGL
 
             _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attachments.AsSpan());
         }
-
 
         public virtual GlTexture GetOrCreateEffect(FramebufferAttachment slot)
         {

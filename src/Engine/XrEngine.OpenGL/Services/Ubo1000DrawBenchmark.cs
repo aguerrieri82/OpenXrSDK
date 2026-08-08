@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 public struct ModelUniforms
 {
     [FieldOffset(0)]
-    public Matrix4x4 WorldMatrix; 
+    public Matrix4x4 WorldMatrix;
 
     [FieldOffset(64)]
     public Matrix4x4 NormalMatrix;

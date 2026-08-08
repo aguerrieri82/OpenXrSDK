@@ -43,7 +43,6 @@ namespace XrEngine.OpenGL
         public float Quality { get; set; }
     }
 
-
     public class GlRenderOptions
     {
         public GlRenderOptions()
@@ -108,7 +107,6 @@ namespace XrEngine.OpenGL
                 DownsampleFactor = 1f
                 //DownsampleFactor = 1.5f
             };
-
 
         }
 

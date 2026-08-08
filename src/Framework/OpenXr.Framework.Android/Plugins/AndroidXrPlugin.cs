@@ -8,7 +8,6 @@ using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
 using System.Runtime.InteropServices;
 
-
 namespace OpenXr.Framework.Android
 {
     public unsafe class AndroidXrPlugin : XrBasePlugin, IDisposable
@@ -20,12 +19,10 @@ namespace OpenXr.Framework.Android
         protected NativeStruct<LoaderInitInfoAndroidKHR> _loaderInit;
         protected NativeStruct<InstanceCreateInfoAndroidKHR> _createInfo;
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Silk.NET.OpenXR.Result InitializeLoaderDelegate(LoaderInitInfoAndroidKHR* loader);
 
         InitializeLoaderDelegate? InitializeLoader;
-
 
         public AndroidXrPlugin(Context context)
             : this(context, (uint)Process.MyTid())
@@ -58,7 +55,6 @@ namespace OpenXr.Framework.Android
         {
             _app!.CheckResult(_thread!.SetAndroidApplicationThread(_app!.Session!, type, threadId), "SetAndroidApplicationThread");
         }
-
 
         public override void OnInstanceCreated()
         {

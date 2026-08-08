@@ -151,7 +151,6 @@ namespace OpenXr.Framework.Oculus
                 IsEnabled = false;
                 return;
             }
-  
 
             _xrApp!.Xr.TryGetInstanceExtension<FBPassthrough>(null, _xrApp!.Instance, out _passthrough);
 

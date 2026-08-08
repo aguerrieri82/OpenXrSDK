@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
-using static XrEngine.Ktx2Reader;
 
 namespace XrEngine.OpenGL
 {
@@ -88,11 +87,11 @@ namespace XrEngine.OpenGL
         }
 
         public IGlRenderTargetFB GetRenderTarget(
-            uint colorTex, 
-            uint depthTex, 
-            uint sampleCount, 
+            uint colorTex,
+            uint depthTex,
+            uint sampleCount,
             int eyeIndex = -1,
-            bool createDepth = true, 
+            bool createDepth = true,
             bool createColor = false)
         {
             var targetId =
@@ -153,7 +152,7 @@ namespace XrEngine.OpenGL
                         Debug.Assert(renderColor != null);
                         glDepth = CreateDepth(renderColor, 2, texSampleCount);
                     }
-   
+
                     multiView.FrameBuffer.Configure(renderColor, glDepth, sampleCount);
 
                     if (UseIntermediateColor)

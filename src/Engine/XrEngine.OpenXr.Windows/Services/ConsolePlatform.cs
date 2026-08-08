@@ -11,8 +11,6 @@ using OpenXr.Framework.OpenGL;
 using System.Net.NetworkInformation;
 using XrEngine.OpenGL;
 using OpenXr.Framework.Angle;
-using Silk.NET.OpenXR;
-using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenXr.Windows
 {
@@ -84,7 +82,7 @@ namespace XrEngine.OpenXr.Windows
                 Context.Implement(ctx);
 
                 var angleDriver = new XrAngleGraphicDriver(ctx);
-                
+
                 ctx.Initialize([], []);
 
                 renderEngine = new OpenGLRender(ctx.Gl!, glOptions);

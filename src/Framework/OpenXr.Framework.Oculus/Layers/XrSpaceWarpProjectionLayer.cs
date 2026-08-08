@@ -19,8 +19,7 @@ namespace OpenXr.Framework.Oculus
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));
             _motionProvider = provider;
-            _useDepthSWC = true;
-
+            _useDepth = true;
         }
 
         public override void Create()
@@ -51,7 +50,7 @@ namespace OpenXr.Framework.Oculus
                           size,
                           _motionProvider.MotionVectorFormat, // Rgba16f
                           2,
-                          SwapchainUsageFlags.ColorAttachmentBit | 
+                          SwapchainUsageFlags.ColorAttachmentBit |
                           SwapchainUsageFlags.SampledBit |
                           SwapchainUsageFlags.InputAttachmentBitKhr |
                           SwapchainUsageFlags.UnorderedAccessBit |
@@ -73,7 +72,7 @@ namespace OpenXr.Framework.Oculus
 
 #warning SINGLE VIEW NOT SUPPORTED
 
-            Debug.Assert(_xrApp != null && 
+            Debug.Assert(_xrApp != null &&
                         _lastDepthImages != null &&
                         _spaceWarpSwap != null &&
                         _lastDepthImages.Length == 1);
@@ -138,7 +137,7 @@ namespace OpenXr.Framework.Oculus
 
             var depthIx = _depthSwaps!.Length == 1 ? 0 : index;
 
-            info->DepthSubImage.Swapchain =  _depthSwaps[depthIx];
+            info->DepthSubImage.Swapchain = _depthSwaps[depthIx];
             info->DepthSubImage.ImageArrayIndex = projView.SubImage.ImageArrayIndex;
             info->DepthSubImage.ImageRect = new Rect2Di
             {
@@ -156,8 +155,8 @@ namespace OpenXr.Framework.Oculus
 
             info->MaxDepth = 1;
             info->MinDepth = 0;
-            info->NearZ = _motionProvider.Near; // 0.01
-            info->FarZ = _motionProvider.Far; //10
+            info->NearZ = _motionProvider.Near;
+            info->FarZ = _motionProvider.Far;
             info->LayerFlags = CompositionLayerSpaceWarpInfoFlagsFB.None;
 
             info->AppSpaceDeltaPose = new Posef

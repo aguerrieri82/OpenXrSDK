@@ -6,8 +6,6 @@ using System.Collections.Concurrent;
 
 #endif
 
-using System.Security.Cryptography;
-using System.Text;
 using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL

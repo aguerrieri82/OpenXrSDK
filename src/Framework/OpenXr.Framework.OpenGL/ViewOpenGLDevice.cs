@@ -8,9 +8,6 @@ using Silk.NET.OpenXR;
 using Silk.NET.Windowing;
 using System.Diagnostics.CodeAnalysis;
 
-
-
-
 namespace OpenXr.Framework.OpenGL
 {
     public class ViewOpenGLDevice : IOpenGLDevice
@@ -36,11 +33,11 @@ namespace OpenXr.Framework.OpenGL
                 throw new NotSupportedException();
 
 #if !GLES
-    #if GL_WRAPPER
+#if GL_WRAPPER
                 _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
-    #else
+#else
                 _gl = _view.CreateOpenGL();
-    #endif
+#endif
 #endif
         }
 

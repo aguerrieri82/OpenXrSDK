@@ -10,7 +10,6 @@ using XrEngine.OpenGL;
 using XrMath;
 using Silk.NET.Vulkan;
 using OpenXr.Framework.Angle;
-using OpenXr.Framework.Oculus;
 
 namespace XrEngine.OpenXr
 {

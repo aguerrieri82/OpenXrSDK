@@ -100,7 +100,7 @@ namespace XrEngine.OpenXr
                     {
                         var ctx = Context.Require<AngleVulkanContext>();
                         var vkImage = (nint)((SwapchainImageVulkanKHR*)image)->Image;
-                        
+
                         _lastGlImage = ctx.AttachVulkanImage(
                             vkImage,
                             (int)Format.D16Unorm,
@@ -116,7 +116,6 @@ namespace XrEngine.OpenXr
                     }
                     else
                         _lastGlImage = ((SwapchainImageOpenGLKHR*)image)->Image;
-
 
                     if (!_textures.TryGetValue(_lastGlImage, out var texture))
                     {

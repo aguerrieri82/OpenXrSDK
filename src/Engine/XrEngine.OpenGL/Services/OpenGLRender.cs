@@ -12,7 +12,6 @@ using Common.Interop;
 using XrEngine.Helpers;
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace XrEngine.OpenGL
 {
 
@@ -54,7 +53,6 @@ namespace XrEngine.OpenGL
 
         protected DateTime _lastProfileOutTime;
 
-
         public static class Props
         {
             public static readonly DynamicProp GlResId = new(nameof(GlResId));
@@ -92,7 +90,7 @@ namespace XrEngine.OpenGL
             _options = options;
             _useAngle = useAngle;
 
-            _defaultTarget = new GlDefaultRenderTarget(gl, 
+            _defaultTarget = new GlDefaultRenderTarget(gl,
                     !options.UseDepthPass && !options.ContactShadow.Use,
                     options.SampleCount,
                     useAngle ? TextureFormat.Rgba8 : TextureFormat.SRgba8);
@@ -131,7 +129,7 @@ namespace XrEngine.OpenGL
             PbrMaterial.SHADER.ToneMap = _options.ToneMap;
         }
 
-#endregion
+        #endregion
 
         #region STATE
 
@@ -200,8 +198,7 @@ namespace XrEngine.OpenGL
             _gl.Disable(EnableCap.SampleCoverage);
         }
 
-
-#endregion
+        #endregion
 
         #region RENDER
 
@@ -213,7 +210,6 @@ namespace XrEngine.OpenGL
                 _renderPasses.Add(_shadowPass);
                 _updateCtx.ShadowMapProvider = _shadowPass;
             }
-
 
             if (_options.UsePlanarReflection)
                 _renderPasses.Add(new GlReflectionPassGroup(this));
@@ -271,7 +267,7 @@ namespace XrEngine.OpenGL
             if (res == null)
             {
                 res = factory();
-                AddPass(res, -1); 
+                AddPass(res, -1);
             }
             return res;
         }
@@ -298,7 +294,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Lights = [];
 
             var builder = HashBuilder.Instance;
-            
+
             builder.Reset();
 
             foreach (var light in lights.Content.Visible())
@@ -504,7 +500,7 @@ namespace XrEngine.OpenGL
                 PushGroup($"Pass {pass.GetType().Name}");
 
                 using var passProf = _profiler.Profile(pass.GetType().Name, _updateCtx.Frame);
-                
+
                 pass.Render(_updateCtx);
 
                 PopGroup();
@@ -523,7 +519,6 @@ namespace XrEngine.OpenGL
                 else
                     _gl.Flush();
             }
-
 
             PopGroup();
 
@@ -561,7 +556,7 @@ namespace XrEngine.OpenGL
             _target = target ?? _defaultTarget;
         }
 
-#endregion
+        #endregion
 
         #region ISurfaceProvider
 
@@ -805,14 +800,14 @@ namespace XrEngine.OpenGL
                 return _textureFilter as T;
 
             if (typeof(T) == typeof(IGpuProfiler))
-                return _profiler as T;  
+                return _profiler as T;
 
             return (T?)_renderPasses.FirstOrDefault(a => a is T);
         }
 
         public HashSet<string> GetExtensions()
         {
-            _gl.GetInteger(GetPName.NumExtensions, out int count);
+            _gl.GetInteger(GetPName.NumExtensions, out var count);
 
             var result = new HashSet<string>(count);
 
@@ -862,7 +857,7 @@ namespace XrEngine.OpenGL
                 _updateCtx.IsSrgbAutoEncode = false;
                 return;
             }
-            
+
             if (renderTarget is IGlFrameBufferProvider fbProv && fbProv.FrameBuffer.Color != null)
                 _updateCtx.IsSrgbTarget = fbProv.FrameBuffer.Color.InternalFormat.IsSrgb();
             else
@@ -879,8 +874,6 @@ namespace XrEngine.OpenGL
 
             _glState.SetShadingRate(Math.Max(1, Math.Max(material.ShadingRate, _target!.ShadingRate)));
         }
-
-
 
         #endregion
 
@@ -900,7 +893,7 @@ namespace XrEngine.OpenGL
 
         public bool IsDebug => _isDebug;
 
-        public bool UseAngle => _useAngle;  
+        public bool UseAngle => _useAngle;
 
         public IReadOnlySet<string> Extensions => _extensions ?? [];
 

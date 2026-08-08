@@ -6,7 +6,6 @@
         void* Data { get; }
     }
 
-
     [Flags]
     public enum BufferAccessMode
     {
@@ -39,7 +38,6 @@
     {
         void Update(T value);
     }
-
 
     public interface IBuffer : ISimpleBuffer
     {

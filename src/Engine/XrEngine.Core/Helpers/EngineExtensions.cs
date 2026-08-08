@@ -402,10 +402,10 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static void RayCollisions(this Scene3D self, 
-            Ray3 ray, 
-            ConcurrentBag<Collision> result, 
-            IEnumerable<ICollider3D>? colliders = null, 
+        public static void RayCollisions(this Scene3D self,
+            Ray3 ray,
+            ConcurrentBag<Collision> result,
+            IEnumerable<ICollider3D>? colliders = null,
             bool isParallel = false,
             bool excludeMesh = false)
         {
@@ -415,8 +415,8 @@ namespace XrEngine
                 {
                     foreach (var collider in obj.Components<ICollider3D>())
                     {
-                        if (collider != null && 
-                            collider.IsEnabled && 
+                        if (collider != null &&
+                            collider.IsEnabled &&
                             (collider.Usage & ColliderUsage.Collisions) != 0 &&
                             ((Object3D)collider.Host!).IsVisible)
                         {
@@ -1486,11 +1486,10 @@ namespace XrEngine
 
             if (texture.Format.IsSrgb())
                 builder.AddFeature("TEXTURE_IS_SRGB");
-           
+
             if (texture.ForceSrgb)
                 builder.AddFeature("TEXTURE_FORCE_SRGB");
         }
-
 
         public static void LoadTextureFixSrgb(this ShaderUpdateBuilder builder, UpdateAction<Texture2D> value, int slot)
         {
@@ -1522,7 +1521,6 @@ namespace XrEngine
 
                 uniform.LoadSampler(sampler, slot);
             }
-
 
         }
 

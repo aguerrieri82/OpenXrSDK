@@ -113,7 +113,6 @@ namespace XrEditor
         {
             renderEngine = _renderSurface!.CreateRenderEngine(options.DriverOptions);
 
-
             if (_renderSurface is GlRenderHost glHost)
                 xrDriver = new XrOpenGLGraphicDriver(new GlHostDevice(glHost));
 

@@ -51,7 +51,7 @@ namespace XrEngine
                 {
                     var i0 = (uint)(y * w + x);
                     var i1 = i0 + 1;
-                    var i2 = i0 + (uint)w;
+                    var i2 = i0 + w;
                     var i3 = i2 + 1;
 
                     indices[k++] = i0;

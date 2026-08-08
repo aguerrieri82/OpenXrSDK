@@ -6,7 +6,6 @@ namespace OpenXr.Framework
     {
         void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result);
 
-
         void Initialize(XrApp app, IList<string> extensions);
 
         void HandleEvent(ref EventDataBuffer buffer);

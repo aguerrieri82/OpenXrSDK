@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.IO;
+﻿using System.Globalization;
 using System.Text;
 
 namespace XrEngine;
@@ -26,9 +22,9 @@ public readonly struct GlslRuntimeDefine
     {
         var result = new StringBuilder(symbol.Length + 1);
         result.Append('u');
-        bool upper = true;
+        var upper = true;
 
-        foreach (char c in symbol)
+        foreach (var c in symbol)
         {
             if (c == '_')
             {
@@ -119,18 +115,18 @@ public sealed class GlslPreprocessor
                 return source;
 
             var declarations = new StringBuilder();
-            foreach (string symbol in _usedRuntimeDefines)
+            foreach (var symbol in _usedRuntimeDefines)
                 declarations.Append("uniform bool ").Append(_runtimeDefines![symbol].UniformName).Append(';').Append('\n');
 
-            int insert = 0;
+            var insert = 0;
             foreach (var line in ReadLogicalLines(source))
             {
-                string trimmed = line.Text.TrimStart();
+                var trimmed = line.Text.TrimStart();
                 if (trimmed.StartsWith("#version", StringComparison.Ordinal) ||
                     trimmed.StartsWith("#extension", StringComparison.Ordinal) ||
                     trimmed.Length == 0 || trimmed.StartsWith("//", StringComparison.Ordinal))
                 {
-                    int next = source.IndexOf('\n', insert);
+                    var next = source.IndexOf('\n', insert);
                     if (next < 0)
                         return source + "\n" + declarations;
                     insert = next + 1;
@@ -174,14 +170,14 @@ public sealed class GlslPreprocessor
 
             var result = new StringBuilder(source.Length);
             var conditions = new Stack<ConditionalFrame>();
-            bool inBlockComment = false;
+            var inBlockComment = false;
             var scope = new GlslScopeTracker();
 
             foreach (var logicalLine in ReadLogicalLines(source))
             {
-                bool blockCommentAtStart = inBlockComment;
-                string directiveView = ReplaceCommentsWithSpaces(logicalLine.Text, ref inBlockComment);
-                bool active = conditions.Count == 0 || conditions.Peek().CurrentActive;
+                var blockCommentAtStart = inBlockComment;
+                var directiveView = ReplaceCommentsWithSpaces(logicalLine.Text, ref inBlockComment);
+                var active = conditions.Count == 0 || conditions.Peek().CurrentActive;
 
                 if (TryReadDirective(directiveView, out var directive, out var argument))
                 {
@@ -203,8 +199,8 @@ public sealed class GlslPreprocessor
                         case "include":
                             if (active)
                             {
-                                string includeName = ParseInclude(argument, fileId, logicalLine.LineNumber, fileName);
-                                string includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
+                                var includeName = ParseInclude(argument, fileId, logicalLine.LineNumber, fileName);
+                                var includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
 
                                 result.Append(ProcessFile(includePath, includeDepth + 1));
                             }
@@ -212,10 +208,10 @@ public sealed class GlslPreprocessor
 
                         case "if":
                             {
-                                bool parentActive = active;
-                                if (TryBuildRuntimeCondition(argument, fileName, logicalLine.LineNumber, out string? runtimeCondition))
+                                var parentActive = active;
+                                if (TryBuildRuntimeCondition(argument, fileName, logicalLine.LineNumber, out var runtimeCondition))
                                 {
-                                    bool emitRuntime = scope.IsInsideFunction;
+                                    var emitRuntime = scope.IsInsideFunction;
                                     var frame = new ConditionalFrame(parentActive, parentActive, false,
                                         $"#if {argument.Trim()}", false, false, true, emitRuntime);
                                     conditions.Push(frame);
@@ -224,7 +220,7 @@ public sealed class GlslPreprocessor
                                 }
                                 else
                                 {
-                                    bool branchActive = parentActive && EvaluateCondition(argument, fileId, logicalLine.LineNumber, fileName);
+                                    var branchActive = parentActive && EvaluateCondition(argument, fileId, logicalLine.LineNumber, fileName);
                                     var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
                                         $"#if {argument.Trim()}", parentActive);
                                     conditions.Push(frame);
@@ -235,11 +231,11 @@ public sealed class GlslPreprocessor
 
                         case "ifdef":
                             {
-                                string name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#ifdef");
-                                bool parentActive = active;
-                                if (TryGetRuntimeUniform(name, fileName, logicalLine.LineNumber, out string? uniformName))
+                                var name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#ifdef");
+                                var parentActive = active;
+                                if (TryGetRuntimeUniform(name, fileName, logicalLine.LineNumber, out var uniformName))
                                 {
-                                    bool emitRuntime = scope.IsInsideFunction;
+                                    var emitRuntime = scope.IsInsideFunction;
                                     var frame = new ConditionalFrame(parentActive, parentActive, false,
                                         $"#ifdef {name}", false, false, true, emitRuntime);
                                     conditions.Push(frame);
@@ -248,7 +244,7 @@ public sealed class GlslPreprocessor
                                 }
                                 else
                                 {
-                                    bool branchActive = parentActive && IsDefined(name);
+                                    var branchActive = parentActive && IsDefined(name);
                                     var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
                                         $"#ifdef {name}", parentActive);
                                     conditions.Push(frame);
@@ -259,11 +255,11 @@ public sealed class GlslPreprocessor
 
                         case "ifndef":
                             {
-                                string name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#ifndef");
-                                bool parentActive = active;
-                                if (TryGetRuntimeUniform(name, fileName, logicalLine.LineNumber, out string? uniformName))
+                                var name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#ifndef");
+                                var parentActive = active;
+                                if (TryGetRuntimeUniform(name, fileName, logicalLine.LineNumber, out var uniformName))
                                 {
-                                    bool emitRuntime = scope.IsInsideFunction;
+                                    var emitRuntime = scope.IsInsideFunction;
                                     var frame = new ConditionalFrame(parentActive, parentActive, false,
                                         $"#ifndef {name}", false, false, true, emitRuntime);
                                     conditions.Push(frame);
@@ -272,7 +268,7 @@ public sealed class GlslPreprocessor
                                 }
                                 else
                                 {
-                                    bool branchActive = parentActive && !IsDefined(name);
+                                    var branchActive = parentActive && !IsDefined(name);
                                     var frame = new ConditionalFrame(parentActive, branchActive, branchActive,
                                         $"#ifndef {name}", parentActive);
                                     conditions.Push(frame);
@@ -292,7 +288,7 @@ public sealed class GlslPreprocessor
 
                                 if (frame.IsRuntime)
                                 {
-                                    if (!TryBuildRuntimeCondition(argument, fileName, logicalLine.LineNumber, out string? runtimeCondition))
+                                    if (!TryBuildRuntimeCondition(argument, fileName, logicalLine.LineNumber, out var runtimeCondition))
                                         throw new GlslPreprocessorException(fileName, logicalLine.LineNumber,
                                             "A runtime conditional chain cannot contain a compile-time #elif.");
 
@@ -309,7 +305,7 @@ public sealed class GlslPreprocessor
 
                                 EmitBranchEnd(result, frame);
 
-                                bool branchActive = frame.ParentActive && !frame.AnyTaken &&
+                                var branchActive = frame.ParentActive && !frame.AnyTaken &&
                                     EvaluateCondition(argument, fileId, logicalLine.LineNumber, fileName);
 
                                 frame = frame with
@@ -344,7 +340,7 @@ public sealed class GlslPreprocessor
 
                                 EmitBranchEnd(result, frame);
 
-                                bool branchActive = frame.ParentActive && !frame.AnyTaken;
+                                var branchActive = frame.ParentActive && !frame.AnyTaken;
                                 frame = frame with
                                 {
                                     CurrentActive = branchActive,
@@ -379,7 +375,7 @@ public sealed class GlslPreprocessor
                         case "error":
                             if (active)
                             {
-                                string message = Expand(argument, fileId, logicalLine.LineNumber, fileName).Trim();
+                                var message = Expand(argument, fileId, logicalLine.LineNumber, fileName).Trim();
                                 throw new GlslPreprocessorException(fileName, logicalLine.LineNumber,
                                     message.Length == 0 ? "#error" : message);
                             }
@@ -402,7 +398,7 @@ public sealed class GlslPreprocessor
                         case "line":
                             if (active)
                             {
-                                string expanded = Expand(argument, fileId, logicalLine.LineNumber, fileName).Trim();
+                                var expanded = Expand(argument, fileId, logicalLine.LineNumber, fileName).Trim();
                                 result.Append("#line ").Append(expanded).Append('\n');
                             }
                             break;
@@ -431,10 +427,10 @@ public sealed class GlslPreprocessor
 
         public void Define(string definition, string fileName, int lineNumber)
         {
-            int p = 0;
+            var p = 0;
             SkipHorizontalWhitespace(definition, ref p);
 
-            string name = ReadIdentifier(definition, ref p);
+            var name = ReadIdentifier(definition, ref p);
             if (name.Length == 0)
                 throw new GlslPreprocessorException(fileName, lineNumber, "Invalid #define: macro name expected.");
 
@@ -459,7 +455,7 @@ public sealed class GlslPreprocessor
                     while (true)
                     {
                         SkipHorizontalWhitespace(definition, ref p);
-                        string parameter = ReadIdentifier(definition, ref p);
+                        var parameter = ReadIdentifier(definition, ref p);
                         if (parameter.Length == 0)
                             throw new GlslPreprocessorException(fileName, lineNumber,
                                 $"Invalid parameter list for macro '{name}'.");
@@ -491,7 +487,7 @@ public sealed class GlslPreprocessor
             }
 
             SkipHorizontalWhitespace(definition, ref p);
-            string body = p < definition.Length ? definition[p..] : string.Empty;
+            var body = p < definition.Length ? definition[p..] : string.Empty;
             var macro = new Macro(name, parameters, body);
 
             if (_macros.TryGetValue(name, out var existing) && !MacroEquals(existing, macro))
@@ -519,7 +515,7 @@ public sealed class GlslPreprocessor
 
         private void Undef(string argument, string fileName, int lineNumber)
         {
-            string name = ParseSingleIdentifier(argument, fileName, lineNumber, "#undef");
+            var name = ParseSingleIdentifier(argument, fileName, lineNumber, "#undef");
             _macros.Remove(name);
         }
 
@@ -530,7 +526,7 @@ public sealed class GlslPreprocessor
 
         private int GetFileId(string fileName)
         {
-            if (_fileIds.TryGetValue(fileName, out int id))
+            if (_fileIds.TryGetValue(fileName, out var id))
                 return id;
 
             id = _nextFileId++;
@@ -540,7 +536,7 @@ public sealed class GlslPreprocessor
 
         private string ParseInclude(string argument, int fileId, int lineNumber, string fileName)
         {
-            string value = Expand(argument, fileId, lineNumber, fileName).Trim();
+            var value = Expand(argument, fileId, lineNumber, fileName).Trim();
 
             if (value.Length >= 2 && value[0] == '"' && value[^1] == '"')
                 return value[1..^1];
@@ -598,10 +594,10 @@ public sealed class GlslPreprocessor
                 return false;
 
             var tokens = Tokenize(expression);
-            bool hasRuntime = false;
+            var hasRuntime = false;
             var referenced = new HashSet<string>(StringComparer.Ordinal);
 
-            for (int i = 0; i < tokens.Count; i++)
+            for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.Kind != TokenKind.Identifier)
@@ -609,13 +605,13 @@ public sealed class GlslPreprocessor
 
                 if (token.Text == "defined")
                 {
-                    int j = NextSignificant(tokens, i + 1);
+                    var j = NextSignificant(tokens, i + 1);
                     if (j < 0)
                         throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected after defined.");
 
                     if (tokens[j].Text == "(")
                     {
-                        int nameIndex = NextSignificant(tokens, j + 1);
+                        var nameIndex = NextSignificant(tokens, j + 1);
                         if (nameIndex < 0 || tokens[nameIndex].Kind != TokenKind.Identifier)
                             throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected inside defined(...).");
                         referenced.Add(tokens[nameIndex].Text);
@@ -633,7 +629,7 @@ public sealed class GlslPreprocessor
                 referenced.Add(token.Text);
             }
 
-            foreach (string symbol in referenced)
+            foreach (var symbol in referenced)
             {
                 if (_runtimeDefines.ContainsKey(symbol))
                 {
@@ -649,11 +645,11 @@ public sealed class GlslPreprocessor
             if (!hasRuntime)
                 return false;
 
-            foreach (string symbol in referenced)
+            foreach (var symbol in referenced)
                 ValidateRuntimeMacro(symbol, fileName, lineNumber);
 
             var output = new StringBuilder(expression.Length);
-            for (int i = 0; i < tokens.Count; i++)
+            for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.Kind == TokenKind.WhiteSpace)
@@ -664,13 +660,13 @@ public sealed class GlslPreprocessor
 
                 if (token.Kind == TokenKind.Identifier && token.Text == "defined")
                 {
-                    int j = NextSignificant(tokens, i + 1);
+                    var j = NextSignificant(tokens, i + 1);
                     string symbol;
                     int end;
                     if (tokens[j].Text == "(")
                     {
-                        int nameIndex = NextSignificant(tokens, j + 1);
-                        int close = NextSignificant(tokens, nameIndex + 1);
+                        var nameIndex = NextSignificant(tokens, j + 1);
+                        var close = NextSignificant(tokens, nameIndex + 1);
                         if (close < 0 || tokens[close].Text != ")")
                             throw new GlslPreprocessorException(fileName, lineNumber, "Missing ')' after defined(...).");
                         symbol = tokens[nameIndex].Text;
@@ -720,8 +716,8 @@ public sealed class GlslPreprocessor
 
         private bool EvaluateCondition(string expression, int fileId, int lineNumber, string fileName)
         {
-            string withDefined = ReplaceDefinedOperators(expression, fileName, lineNumber);
-            string expanded = Expand(withDefined, fileId, lineNumber, fileName);
+            var withDefined = ReplaceDefinedOperators(expression, fileName, lineNumber);
+            var expanded = Expand(withDefined, fileId, lineNumber, fileName);
             var parser = new ExpressionParser(expanded, fileName, lineNumber);
             return parser.Parse() != 0;
         }
@@ -731,7 +727,7 @@ public sealed class GlslPreprocessor
             var tokens = Tokenize(expression);
             var result = new StringBuilder(expression.Length);
 
-            for (int i = 0; i < tokens.Count; i++)
+            for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.Kind != TokenKind.Identifier || token.Text != "defined")
@@ -740,7 +736,7 @@ public sealed class GlslPreprocessor
                     continue;
                 }
 
-                int j = NextSignificant(tokens, i + 1);
+                var j = NextSignificant(tokens, i + 1);
                 if (j < 0)
                     throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected after defined.");
 
@@ -749,11 +745,11 @@ public sealed class GlslPreprocessor
 
                 if (tokens[j].Text == "(")
                 {
-                    int nameIndex = NextSignificant(tokens, j + 1);
+                    var nameIndex = NextSignificant(tokens, j + 1);
                     if (nameIndex < 0 || tokens[nameIndex].Kind != TokenKind.Identifier)
                         throw new GlslPreprocessorException(fileName, lineNumber, "Identifier expected inside defined(...). ");
 
-                    int close = NextSignificant(tokens, nameIndex + 1);
+                    var close = NextSignificant(tokens, nameIndex + 1);
                     if (close < 0 || tokens[close].Text != ")")
                         throw new GlslPreprocessorException(fileName, lineNumber, "Missing ')' after defined(...). ");
 
@@ -780,14 +776,14 @@ public sealed class GlslPreprocessor
             int fileId, int lineNumber, string fileName)
         {
             var result = new StringBuilder(line.Length);
-            int start = 0;
-            bool inBlock = startsInBlockComment;
+            var start = 0;
+            var inBlock = startsInBlockComment;
 
-            for (int i = 0; i < line.Length; i++)
+            for (var i = 0; i < line.Length; i++)
             {
                 if (inBlock)
                 {
-                    int end = line.IndexOf("*/", i, StringComparison.Ordinal);
+                    var end = line.IndexOf("*/", i, StringComparison.Ordinal);
                     if (end < 0)
                     {
                         result.Append(line, start, line.Length - start);
@@ -846,7 +842,7 @@ public sealed class GlslPreprocessor
 
             var output = new List<Token>(tokens.Count);
 
-            for (int i = 0; i < tokens.Count; i++)
+            for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.Kind != TokenKind.Identifier)
@@ -888,14 +884,14 @@ public sealed class GlslPreprocessor
                     continue;
                 }
 
-                int open = NextSignificant(tokens, i + 1);
+                var open = NextSignificant(tokens, i + 1);
                 if (open < 0 || tokens[open].Text != "(")
                 {
                     output.Add(token);
                     continue;
                 }
 
-                var args = ReadMacroArguments(tokens, open, out int close, fileName, lineNumber);
+                var args = ReadMacroArguments(tokens, open, out var close, fileName, lineNumber);
                 if (args.Count != macro.Parameters.Count)
                 {
                     // A zero-parameter invocation is tokenized as one empty argument by the generic reader.
@@ -923,9 +919,9 @@ public sealed class GlslPreprocessor
             var rawArgs = new Dictionary<string, List<Token>>(StringComparer.Ordinal);
             var expandedArgs = new Dictionary<string, List<Token>>(StringComparer.Ordinal);
 
-            for (int i = 0; i < macro.Parameters!.Count; i++)
+            for (var i = 0; i < macro.Parameters!.Count; i++)
             {
-                string name = macro.Parameters[i];
+                var name = macro.Parameters[i];
                 rawArgs[name] = args[i];
                 expandedArgs[name] = ExpandTokens(args[i], fileId, lineNumber, fileName,
                     new HashSet<string>(StringComparer.Ordinal), depth + 1);
@@ -934,7 +930,7 @@ public sealed class GlslPreprocessor
             var body = Tokenize(macro.Body);
             var substituted = new List<Token>(body.Count);
 
-            for (int i = 0; i < body.Count; i++)
+            for (var i = 0; i < body.Count; i++)
             {
                 var token = body[i];
                 if (token.Kind != TokenKind.Identifier || !rawArgs.TryGetValue(token.Text, out var raw))
@@ -943,9 +939,9 @@ public sealed class GlslPreprocessor
                     continue;
                 }
 
-                int prev = PreviousSignificant(body, i - 1);
-                int next = NextSignificant(body, i + 1);
-                bool pasted = (prev >= 0 && body[prev].Text == "##") || (next >= 0 && body[next].Text == "##");
+                var prev = PreviousSignificant(body, i - 1);
+                var next = NextSignificant(body, i + 1);
+                var pasted = (prev >= 0 && body[prev].Text == "##") || (next >= 0 && body[next].Text == "##");
                 substituted.AddRange(CloneTokens(pasted ? raw : expandedArgs[token.Text]));
             }
 
@@ -956,8 +952,8 @@ public sealed class GlslPreprocessor
         {
             while (true)
             {
-                int paste = -1;
-                for (int i = 0; i < tokens.Count; i++)
+                var paste = -1;
+                for (var i = 0; i < tokens.Count; i++)
                 {
                     if (tokens[i].Text == "##")
                     {
@@ -969,12 +965,12 @@ public sealed class GlslPreprocessor
                 if (paste < 0)
                     return tokens;
 
-                int left = PreviousSignificant(tokens, paste - 1);
-                int right = NextSignificant(tokens, paste + 1);
+                var left = PreviousSignificant(tokens, paste - 1);
+                var right = NextSignificant(tokens, paste + 1);
                 if (left < 0 || right < 0)
                     throw new GlslPreprocessorException(fileName, lineNumber, "'##' requires a token on both sides.");
 
-                string merged = tokens[left].Text + tokens[right].Text;
+                var merged = tokens[left].Text + tokens[right].Text;
                 var check = Tokenize(merged).Where(t => t.Kind != TokenKind.WhiteSpace).ToList();
                 if (check.Count != 1 || check[0].Text != merged)
                     throw new GlslPreprocessorException(fileName, lineNumber,
@@ -990,9 +986,9 @@ public sealed class GlslPreprocessor
         {
             var args = new List<List<Token>>();
             var current = new List<Token>();
-            int depth = 0;
+            var depth = 0;
 
-            for (int i = open + 1; i < tokens.Count; i++)
+            for (var i = open + 1; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.Text == "(")
@@ -1031,9 +1027,9 @@ public sealed class GlslPreprocessor
 
         private void UpdateVersion(string argument, string fileName, int lineNumber)
         {
-            int p = 0;
+            var p = 0;
             SkipHorizontalWhitespace(argument, ref p);
-            int start = p;
+            var start = p;
 
             while (p < argument.Length && char.IsDigit(argument[p]))
                 p++;
@@ -1093,7 +1089,7 @@ public sealed class GlslPreprocessor
 
                 if (token.Text == "{")
                 {
-                    bool isFunction = _functionDepth == 0 && _previousToken == ")";
+                    var isFunction = _functionDepth == 0 && _previousToken == ")";
                     _braces.Push(isFunction);
                     if (isFunction)
                         _functionDepth++;
@@ -1124,22 +1120,22 @@ public sealed class GlslPreprocessor
 
     private static IEnumerable<LogicalLine> ReadLogicalLines(string source)
     {
-        int physicalLine = 1;
-        int start = 0;
+        var physicalLine = 1;
+        var start = 0;
         var current = new StringBuilder();
-        int logicalStart = 1;
+        var logicalStart = 1;
 
-        for (int i = 0; i <= source.Length; i++)
+        for (var i = 0; i <= source.Length; i++)
         {
-            bool end = i == source.Length;
+            var end = i == source.Length;
             if (end && start == source.Length)
                 break;
 
             if (!end && source[i] != '\r' && source[i] != '\n')
                 continue;
 
-            string part = source[start..i];
-            int newlineLength = 0;
+            var part = source[start..i];
+            var newlineLength = 0;
 
             if (!end)
             {
@@ -1148,7 +1144,7 @@ public sealed class GlslPreprocessor
                     newlineLength = 2;
             }
 
-            bool continued = !end && part.EndsWith('\\');
+            var continued = !end && part.EndsWith('\\');
             if (continued)
                 current.Append(part, 0, part.Length - 1);
             else
@@ -1172,7 +1168,7 @@ public sealed class GlslPreprocessor
 
     private static bool TryReadDirective(string line, out string directive, out string argument)
     {
-        int p = 0;
+        var p = 0;
         SkipHorizontalWhitespace(line, ref p);
 
         if (p >= line.Length || line[p] != '#')
@@ -1193,7 +1189,7 @@ public sealed class GlslPreprocessor
     {
         var result = new StringBuilder(line.Length);
 
-        for (int i = 0; i < line.Length; i++)
+        for (var i = 0; i < line.Length; i++)
         {
             if (inBlockComment)
             {
@@ -1235,13 +1231,13 @@ public sealed class GlslPreprocessor
     {
         var result = new List<Token>();
 
-        for (int i = 0; i < text.Length;)
+        for (var i = 0; i < text.Length;)
         {
-            char c = text[i];
+            var c = text[i];
 
             if (char.IsWhiteSpace(c))
             {
-                int start = i++;
+                var start = i++;
                 while (i < text.Length && char.IsWhiteSpace(text[i]))
                     i++;
                 result.Add(new Token(TokenKind.WhiteSpace, text[start..i]));
@@ -1250,7 +1246,7 @@ public sealed class GlslPreprocessor
 
             if (IsIdentifierStart(c))
             {
-                int start = i++;
+                var start = i++;
                 while (i < text.Length && IsIdentifierPart(text[i]))
                     i++;
                 result.Add(new Token(TokenKind.Identifier, text[start..i]));
@@ -1259,7 +1255,7 @@ public sealed class GlslPreprocessor
 
             if (char.IsDigit(c))
             {
-                int start = i++;
+                var start = i++;
                 while (i < text.Length && (char.IsLetterOrDigit(text[i]) || text[i] == '_' || text[i] == '.'))
                     i++;
                 result.Add(new Token(TokenKind.Number, text[start..i]));
@@ -1268,7 +1264,7 @@ public sealed class GlslPreprocessor
 
             if (c == '"')
             {
-                int start = i++;
+                var start = i++;
                 while (i < text.Length && text[i] != '"')
                     i++;
                 if (i < text.Length)
@@ -1280,7 +1276,7 @@ public sealed class GlslPreprocessor
             string? op = null;
             if (i + 1 < text.Length)
             {
-                string two = text.Substring(i, 2);
+                var two = text.Substring(i, 2);
                 if (two is "##" or "&&" or "||" or "<<" or ">>" or "<=" or ">=" or "==" or "!=")
                     op = two;
             }
@@ -1312,7 +1308,7 @@ public sealed class GlslPreprocessor
 
     private static int NextSignificant(IReadOnlyList<Token> tokens, int start)
     {
-        for (int i = start; i < tokens.Count; i++)
+        for (var i = start; i < tokens.Count; i++)
         {
             if (tokens[i].Kind != TokenKind.WhiteSpace)
                 return i;
@@ -1323,7 +1319,7 @@ public sealed class GlslPreprocessor
 
     private static int PreviousSignificant(IReadOnlyList<Token> tokens, int start)
     {
-        for (int i = start; i >= 0; i--)
+        for (var i = start; i >= 0; i--)
         {
             if (tokens[i].Kind != TokenKind.WhiteSpace)
                 return i;
@@ -1336,9 +1332,9 @@ public sealed class GlslPreprocessor
 
     private static string ParseSingleIdentifier(string argument, string fileName, int lineNumber, string directive)
     {
-        int p = 0;
+        var p = 0;
         SkipHorizontalWhitespace(argument, ref p);
-        string name = ReadIdentifier(argument, ref p);
+        var name = ReadIdentifier(argument, ref p);
         SkipHorizontalWhitespace(argument, ref p);
 
         if (name.Length == 0 || p != argument.Length)
@@ -1352,7 +1348,7 @@ public sealed class GlslPreprocessor
         if (p >= text.Length || !IsIdentifierStart(text[p]))
             return string.Empty;
 
-        int start = p++;
+        var start = p++;
         while (p < text.Length && IsIdentifierPart(text[p]))
             p++;
         return text[start..p];
@@ -1384,7 +1380,7 @@ public sealed class GlslPreprocessor
 
         public long Parse()
         {
-            long value = ParseLogicalOr(true);
+            var value = ParseLogicalOr(true);
             if (_p != _tokens.Count)
                 Error($"Unexpected token '{_tokens[_p].Text}' in preprocessor expression.");
             return value;
@@ -1392,11 +1388,11 @@ public sealed class GlslPreprocessor
 
         private long ParseLogicalOr(bool eval)
         {
-            long left = ParseLogicalAnd(eval);
+            var left = ParseLogicalAnd(eval);
             while (Match("||"))
             {
-                bool leftTrue = eval && left != 0;
-                long right = ParseLogicalAnd(eval && !leftTrue);
+                var leftTrue = eval && left != 0;
+                var right = ParseLogicalAnd(eval && !leftTrue);
                 if (eval)
                     left = leftTrue || right != 0 ? 1 : 0;
             }
@@ -1405,11 +1401,11 @@ public sealed class GlslPreprocessor
 
         private long ParseLogicalAnd(bool eval)
         {
-            long left = ParseBitwiseOr(eval);
+            var left = ParseBitwiseOr(eval);
             while (Match("&&"))
             {
-                bool leftFalse = eval && left == 0;
-                long right = ParseBitwiseOr(eval && !leftFalse);
+                var leftFalse = eval && left == 0;
+                var right = ParseBitwiseOr(eval && !leftFalse);
                 if (eval)
                     left = !leftFalse && right != 0 ? 1 : 0;
             }
@@ -1418,10 +1414,10 @@ public sealed class GlslPreprocessor
 
         private long ParseBitwiseOr(bool eval)
         {
-            long left = ParseBitwiseXor(eval);
+            var left = ParseBitwiseXor(eval);
             while (Match("|"))
             {
-                long right = ParseBitwiseXor(eval);
+                var right = ParseBitwiseXor(eval);
                 if (eval)
                     left |= right;
             }
@@ -1430,10 +1426,10 @@ public sealed class GlslPreprocessor
 
         private long ParseBitwiseXor(bool eval)
         {
-            long left = ParseBitwiseAnd(eval);
+            var left = ParseBitwiseAnd(eval);
             while (Match("^"))
             {
-                long right = ParseBitwiseAnd(eval);
+                var right = ParseBitwiseAnd(eval);
                 if (eval)
                     left ^= right;
             }
@@ -1442,10 +1438,10 @@ public sealed class GlslPreprocessor
 
         private long ParseBitwiseAnd(bool eval)
         {
-            long left = ParseEquality(eval);
+            var left = ParseEquality(eval);
             while (Match("&"))
             {
-                long right = ParseEquality(eval);
+                var right = ParseEquality(eval);
                 if (eval)
                     left &= right;
             }
@@ -1454,18 +1450,18 @@ public sealed class GlslPreprocessor
 
         private long ParseEquality(bool eval)
         {
-            long left = ParseRelational(eval);
+            var left = ParseRelational(eval);
             while (true)
             {
                 if (Match("=="))
                 {
-                    long right = ParseRelational(eval);
+                    var right = ParseRelational(eval);
                     if (eval)
                         left = left == right ? 1 : 0;
                 }
                 else if (Match("!="))
                 {
-                    long right = ParseRelational(eval);
+                    var right = ParseRelational(eval);
                     if (eval)
                         left = left != right ? 1 : 0;
                 }
@@ -1478,30 +1474,30 @@ public sealed class GlslPreprocessor
 
         private long ParseRelational(bool eval)
         {
-            long left = ParseShift(eval);
+            var left = ParseShift(eval);
             while (true)
             {
                 if (Match("<"))
                 {
-                    long right = ParseShift(eval);
+                    var right = ParseShift(eval);
                     if (eval)
                         left = left < right ? 1 : 0;
                 }
                 else if (Match(">"))
                 {
-                    long right = ParseShift(eval);
+                    var right = ParseShift(eval);
                     if (eval)
                         left = left > right ? 1 : 0;
                 }
                 else if (Match("<="))
                 {
-                    long right = ParseShift(eval);
+                    var right = ParseShift(eval);
                     if (eval)
                         left = left <= right ? 1 : 0;
                 }
                 else if (Match(">="))
                 {
-                    long right = ParseShift(eval);
+                    var right = ParseShift(eval);
                     if (eval)
                         left = left >= right ? 1 : 0;
                 }
@@ -1514,18 +1510,18 @@ public sealed class GlslPreprocessor
 
         private long ParseShift(bool eval)
         {
-            long left = ParseAdditive(eval);
+            var left = ParseAdditive(eval);
             while (true)
             {
                 if (Match("<<"))
                 {
-                    long right = ParseAdditive(eval);
+                    var right = ParseAdditive(eval);
                     if (eval)
                         left = unchecked(left << (int)right);
                 }
                 else if (Match(">>"))
                 {
-                    long right = ParseAdditive(eval);
+                    var right = ParseAdditive(eval);
                     if (eval)
                         left >>= (int)right;
                 }
@@ -1538,18 +1534,18 @@ public sealed class GlslPreprocessor
 
         private long ParseAdditive(bool eval)
         {
-            long left = ParseMultiplicative(eval);
+            var left = ParseMultiplicative(eval);
             while (true)
             {
                 if (Match("+"))
                 {
-                    long right = ParseMultiplicative(eval);
+                    var right = ParseMultiplicative(eval);
                     if (eval)
                         left = unchecked(left + right);
                 }
                 else if (Match("-"))
                 {
-                    long right = ParseMultiplicative(eval);
+                    var right = ParseMultiplicative(eval);
                     if (eval)
                         left = unchecked(left - right);
                 }
@@ -1562,18 +1558,18 @@ public sealed class GlslPreprocessor
 
         private long ParseMultiplicative(bool eval)
         {
-            long left = ParseUnary(eval);
+            var left = ParseUnary(eval);
             while (true)
             {
                 if (Match("*"))
                 {
-                    long right = ParseUnary(eval);
+                    var right = ParseUnary(eval);
                     if (eval)
                         left = unchecked(left * right);
                 }
                 else if (Match("/"))
                 {
-                    long right = ParseUnary(eval);
+                    var right = ParseUnary(eval);
                     if (eval)
                     {
                         if (right == 0)
@@ -1583,7 +1579,7 @@ public sealed class GlslPreprocessor
                 }
                 else if (Match("%"))
                 {
-                    long right = ParseUnary(eval);
+                    var right = ParseUnary(eval);
                     if (eval)
                     {
                         if (right == 0)
@@ -1605,19 +1601,19 @@ public sealed class GlslPreprocessor
 
             if (Match("-"))
             {
-                long value = ParseUnary(eval);
+                var value = ParseUnary(eval);
                 return eval ? unchecked(-value) : 0;
             }
 
             if (Match("!"))
             {
-                long value = ParseUnary(eval);
+                var value = ParseUnary(eval);
                 return eval ? value == 0 ? 1 : 0 : 0;
             }
 
             if (Match("~"))
             {
-                long value = ParseUnary(eval);
+                var value = ParseUnary(eval);
                 return eval ? ~value : 0;
             }
 
@@ -1628,7 +1624,7 @@ public sealed class GlslPreprocessor
         {
             if (Match("("))
             {
-                long value = ParseLogicalOr(eval);
+                var value = ParseLogicalOr(eval);
                 Expect(")");
                 return value;
             }
@@ -1649,7 +1645,7 @@ public sealed class GlslPreprocessor
 
         private static long ParseInteger(string text)
         {
-            string value = text;
+            var value = text;
             while (value.Length > 0 && value[^1] is 'u' or 'U' or 'l' or 'L')
                 value = value[..^1];
 
@@ -1659,7 +1655,7 @@ public sealed class GlslPreprocessor
             if (value.Length > 1 && value[0] == '0')
             {
                 ulong result = 0;
-                for (int i = 1; i < value.Length; i++)
+                for (var i = 1; i < value.Length; i++)
                 {
                     if (value[i] < '0' || value[i] > '7')
                         throw new FormatException($"Invalid octal integer literal '{text}'.");

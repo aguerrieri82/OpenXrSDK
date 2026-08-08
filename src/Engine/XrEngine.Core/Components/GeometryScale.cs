@@ -81,7 +81,6 @@ namespace XrEngine
 
             var delta = (Size - _bounds.Size) / 2f;
 
-
             foreach (var item in _geometries)
             {
                 var mesh = item.Key;
@@ -128,7 +127,6 @@ namespace XrEngine
         {
             Size = _bounds.Size;
         }
-
 
         [Action]
         public void Reset()
