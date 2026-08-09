@@ -14,18 +14,36 @@ using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework.Oculus
 {
+    
+    public class FoavetionInfo
+    {
+        public bool Use { get; set; }
+
+        public bool IsDynamic { get; set; } 
+
+        public FoveationLevelFB Level { get; set; }
+
+        public float Offset { get; set; }
+    }
+
 
     public class OculusXrPluginOptions
     {
-        public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
+        public OculusXrPluginOptions()
+        {
+            Foavetion = new FoavetionInfo()
+            {
+                Use = true,
+                IsDynamic = true,
+                Level = FoveationLevelFB.HighFB,
+                Offset = 0,
+            };
+            ColorSpace = ColorSpaceFB.Rec709FB;
+        }
+
+        public FoavetionInfo? Foavetion { get; set; }
 
         public ColorSpaceFB ColorSpace { get; set; }
-
-        public static readonly OculusXrPluginOptions Default = new()
-        {
-            Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB,
-            ColorSpace = ColorSpaceFB.Rec709FB
-        };
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -132,7 +150,7 @@ namespace OpenXr.Framework.Oculus
         protected readonly OculusXrPluginOptions _options;
 
         public OculusXrPlugin()
-            : this(OculusXrPluginOptions.Default)
+            : this(new OculusXrPluginOptions())
         {
 
         }
@@ -211,8 +229,12 @@ namespace OpenXr.Framework.Oculus
 
         public override void OnSessionCreated()
         {
-            base.OnSessionCreated();
             SetColorSpace(_options.ColorSpace);
+        }
+
+        public override void OnSessionBegin()
+        {
+            UpdateFoveation();
         }
 
         public void SetColorSpace(ColorSpaceFB colorSpace)
@@ -764,7 +786,14 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        public unsafe void UpdateFoveation(FoveationDynamicFB dynamic, FoveationLevelFB level, float offset)
+        public void UpdateFoveation()
+        {
+            if (_options.Foavetion == null || !_options.Foavetion.Use)
+                return;
+            UpdateFoveation(_options.Foavetion.IsDynamic, _options.Foavetion.Level, _options.Foavetion.Offset);
+        }
+
+        public unsafe void UpdateFoveation(bool isDynamic, FoveationLevelFB level, float offset)
         {
             var create = new FoveationProfileCreateInfoFB()
             {
@@ -774,7 +803,7 @@ namespace OpenXr.Framework.Oculus
             var info = new FoveationLevelProfileCreateInfoFB
             {
                 Type = StructureType.FoveationLevelProfileCreateInfoFB,
-                Dynamic = dynamic,
+                Dynamic = isDynamic ? FoveationDynamicFB.LevelEnabledFB : FoveationDynamicFB.DisabledFB,
                 Level = level,
                 VerticalOffset = offset
             };
@@ -794,8 +823,14 @@ namespace OpenXr.Framework.Oculus
 
             foreach (var proj in _app.Layers.List.OfType<XrProjectionLayer>())
             {
-                foreach (var swapChain in proj.ColorSwapChains)
+                foreach (var swapChain in proj.ColorSwapchains)
                     _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
+
+                if (proj.DepthSwapchains != null)
+                {
+                    foreach (var swapChain in proj.DepthSwapchains)
+                        _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
+                }
             }
 
             _app!.CheckResult(_foveation!.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
@@ -803,22 +838,20 @@ namespace OpenXr.Framework.Oculus
 
         public override unsafe void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
-            if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
+            if (!_options.UseFoveation)
                 return;
 
             if (target != SwapchainTarget.Projection)
                 return;
 
-            /*
-            if ((info.UsageFlags & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0)
-                return;
-            */
+            var isVulkan = (_app!.Plugin<IXrGraphicDriver>().Flags & XrGraphicDriverFlags.Vulkan) != 0;
 
             _foveationInfo.Value = new SwapchainCreateInfoFoveationFB
             {
                 Type = StructureType.SwapchainCreateInfoFoveationFB,
                 Next = null,
-                Flags = _options.Foveation
+                Flags = isVulkan ? SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB :
+                                   SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
             };
 
             StructChain.AddNextStruct(ref info, _foveationInfo.Pointer);

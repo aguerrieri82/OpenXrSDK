@@ -4,6 +4,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
+
 namespace XrEngine.OpenGL
 {
     public enum GlRenderTargetFlags
@@ -27,6 +29,8 @@ namespace XrEngine.OpenGL
         GlRenderTargetFlags Flags { get; }
 
         int ShadingRate { get; set; }
+
+        Size2I RenderSize { get; set; }
     }
 
     public interface IGlRenderTargetFB : IGlRenderTarget, IGlFrameBufferProvider

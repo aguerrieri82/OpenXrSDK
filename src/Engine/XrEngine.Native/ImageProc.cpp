@@ -1,5 +1,9 @@
 #include "pch.h"
 
+#define BCDEC_IMPLEMENTATION
+#define BCDEC_BC4BC5_PRECISE
+
+#include "..\..\..\third-party\bcdec\bcdec.h"
 
 static inline size_t AlignUp(size_t value, size_t alignment)
 {
@@ -482,4 +486,64 @@ bool ConvertRgb32FToRgba16F(
 
     return true;
 #endif
+}
+
+bool ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, uint8_t* dst)
+{
+    if (!src || !dst || width <= 0 || height <= 0)
+        return false;
+
+    const int blocksX = (width + 3) / 4;
+    const int blocksY = (height + 3) / 4;
+
+    int blockSize;
+    void (*decode)(const void*, void*, int);
+
+    switch (format)
+    {
+    case BCFormat::BC1:
+        blockSize = BCDEC_BC1_BLOCK_SIZE;
+        decode = bcdec_bc1;
+        break;
+
+    case BCFormat::BC3:
+        blockSize = BCDEC_BC3_BLOCK_SIZE;
+        decode = bcdec_bc3;
+        break;
+
+    case BCFormat::BC7:
+        blockSize = BCDEC_BC7_BLOCK_SIZE;
+        decode = bcdec_bc7;
+        break;
+
+    default:
+        return false;
+    }
+
+    for (int by = 0; by < blocksY; ++by)
+    {
+        for (int bx = 0; bx < blocksX; ++bx, src += blockSize)
+        {
+            const int x = bx * 4;
+            const int y = by * 4;
+            const bool fullBlock = x + 4 <= width && y + 4 <= height;
+
+            uint8_t temp[64];
+            uint8_t* out = fullBlock ? dst + (y * width + x) * 4 : temp;
+            const int pitch = fullBlock ? width * 4 : 16;
+
+            decode(src, out, pitch);
+
+            if (!fullBlock)
+            {
+                const int copyWidth = std::min(4, width - x);
+                const int copyHeight = std::min(4, height - y);
+
+                for (int row = 0; row < copyHeight; ++row)
+                    memcpy(dst + ((y + row) * width + x) * 4, temp + row * 16, copyWidth * 4);
+            }
+        }
+    }
+
+    return true;
 }

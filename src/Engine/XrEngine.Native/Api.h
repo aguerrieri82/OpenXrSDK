@@ -1,5 +1,17 @@
 #pragma once
 
+
+enum class BCFormat : int32_t
+{
+    BC1 = 1,
+    BC2 = 2,
+    BC3 = 3,
+    BC4 = 4,
+    BC5 = 5,
+    BC6H = 6,
+    BC7 = 7
+};
+
 extern "C" {
 
 	EXPORT void APIENTRY CopyMemory2(uint8_t* src, uint8_t* dst, uint32_t size);
@@ -65,6 +77,8 @@ extern "C" {
         uint32_t width, uint32_t height,
         const char* srcData, char* dstData, uint32_t pixelSizeByte);
 
+
+    EXPORT bool APIENTRY ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, uint8_t* dst);
 }
 
 

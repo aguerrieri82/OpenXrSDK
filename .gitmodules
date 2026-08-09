@@ -46,3 +46,6 @@
 [submodule "third-party/monado"]
 	path = third-party/monado
 	url = https://gitlab.freedesktop.org/aguerrieri82/monado
+[submodule "third-party/bcdec"]
+	path = third-party/bcdec
+	url = https://github.com/iOrange/bcdec.git

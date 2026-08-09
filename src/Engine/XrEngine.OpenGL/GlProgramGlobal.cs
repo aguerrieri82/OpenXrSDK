@@ -25,6 +25,9 @@ namespace XrEngine.OpenGL
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+                if (bld.Context.UsePrimitiveBoundingBox)
+                    bld.AddExtension("GL_EXT_primitive_bounding_box");
+
                 if (bld.Context.UseAngle)
                     bld.AddFeature("ANGLE");
 

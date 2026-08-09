@@ -5,7 +5,7 @@ namespace XrEngine.OpenXr
 {
     public interface IXrEnginePlatform : IPlatform
     {
-        XrApp CreateXrApp(IXrGraphicDriver xrDriver);
+        XrApp CreateXrApp(IList<IXrPlugin> plugins);
 
         void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver);
     }

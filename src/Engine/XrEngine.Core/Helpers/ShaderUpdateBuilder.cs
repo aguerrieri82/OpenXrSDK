@@ -112,7 +112,10 @@ namespace XrEngine
 
         public bool UseCopyDepth;
 
+        public bool UsePrimitiveBoundingBox;
+
         public Texture2D? CopyDepthImage;
+
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

@@ -205,7 +205,6 @@ namespace EngineSamples.Android
             {
                 try
                 {
-
                     using var bitmapBuffer = Java.Nio.ByteBuffer.Wrap(_frameBytes.AsArray());
                     _bitmap.CopyPixelsFromBuffer(bitmapBuffer);
                     _imageView!.SetImageBitmap(_bitmap);

@@ -1,8 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using Amazon.Runtime.Internal.Compression;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using XrEngine;
+using XrEngine.Compression;
 using XrMath;
 
 #pragma warning disable 8618
@@ -494,13 +496,37 @@ namespace XrSamples.Dnd
                 var fileName = Path.Combine(_basePath, $"{texId}.dds");
                 try
                 {
-                    var text = AssetLoader.Instance.Load<Texture2D>(fileName);
-                    text.WrapS = WrapMode.Repeat;
-                    text.WrapT = WrapMode.Repeat;
-                    text.Name = name;
-                    if (text.Data!.Count > 1)
-                        text.MinFilter = ScaleFilter.LinearMipmapLinear;
-                    return text;
+                    var tex = AssetLoader.Instance.Load<Texture2D>(fileName);
+
+                    lock (tex)
+                    {
+                        for (var i = 0; i < tex.Data!.Count; i++)
+                        {
+                            var comp = tex.Data[i].Compression;
+                            if (comp == TextureCompressionFormat.Bc3 ||
+                                comp == TextureCompressionFormat.Bc1 ||
+                                comp == TextureCompressionFormat.Bc7)
+                            {
+                                tex.Data[i] = ImageUtils.DecodeBC(tex.Data[i]);
+                                if (i == 0)
+                                {
+                                    tex.Compression = TextureCompressionFormat.Uncompressed;
+
+                                    if (tex.Format == TextureFormat.SRgb8)
+                                        tex.Format = TextureFormat.SRgba8;
+                                    else if (tex.Format == TextureFormat.Rgb8)
+                                        tex.Format = TextureFormat.Rgba8;
+                                }
+                            }
+                        }
+                    }
+
+                    tex.WrapS = WrapMode.Repeat;
+                    tex.WrapT = WrapMode.Repeat;
+                    tex.Name = name;
+                    if (tex.Data!.Count > 1)
+                        tex.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    return tex;
                 }
                 catch
                 {

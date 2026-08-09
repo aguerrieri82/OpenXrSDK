@@ -81,14 +81,6 @@ namespace XrSamples.Android.Activities
 
         protected override void OnXrAppStarted(XrApp app)
         {
-            /*
-            if (_engine?.App.Renderer is OpenGLRender openGL)
-                openGL.EnableDebug();
-            */
-
-            if (XrDevice.IsMetaQuest)
-                app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
-
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
             if (_webViewLayer != null)
@@ -150,10 +142,16 @@ namespace XrSamples.Android.Activities
             else
                 ImageLight.UseCache = false;
 
+            builder.UseOculus(opt =>
+            {
+
+            });
+
             if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
+                  // .AddProfileOverlay()
                    .RemovePlaneGrid();
 
             //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
@@ -164,9 +162,11 @@ namespace XrSamples.Android.Activities
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp(MotionVectorMode.Shared);
 
+       //     builder.EnableDebug(sync: false);
+
 #if DEBUG
             GlDebug.TrackBuffers = false;
-            builder.EnableDebug(true);
+            builder.EnableDebug(sync: true);
 #endif
 
             SampleScenes.DefaultHDR = _settings.Hdri;

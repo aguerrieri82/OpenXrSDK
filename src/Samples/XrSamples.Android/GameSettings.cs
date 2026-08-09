@@ -33,16 +33,16 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Sponza",
-                Msaa = 1,
+                SampleName = "DnD",
+                Msaa = 2,
                 Scale = 1f,
                 DepthScale = 0.25f,
-                Driver = GraphicDriver.Angle,
+                Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = false,
+                TextureCompression = true,
                 UseResolve = false
             };
         }
@@ -51,7 +51,7 @@ namespace XrSamples
         {
             return new GameSettings()
             {
-                Msaa = 2,
+                Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.5f,
                 Driver = GraphicDriver.OpenGL,

@@ -178,6 +178,9 @@ namespace XrEngine.OpenGL
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypeError, DebugSeverity.DontCare, 2u, [57, 55], false);
             //Error:glEnable::<cap> is not one of the accepted values
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [55], false);
+            //"Performance:glTexSubImage2D::Submission has been flushed"
+            _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [4], false);
+
 
 
             _isDebug = true;
@@ -472,7 +475,7 @@ namespace XrEngine.OpenGL
 
             _target = target;
             _view = view;
-            _profiler.IsEnabled = false;
+            _profiler.IsEnabled = _isDebug;
 
             PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
 

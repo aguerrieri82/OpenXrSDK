@@ -458,6 +458,41 @@ namespace XrEngine
             return result;
         }
 
+
+        public static unsafe TextureData DecodeBC(TextureData data)
+        {
+            var (bcFormat, blockSize) = data.Compression switch
+            {
+                TextureCompressionFormat.Bc1 => (EngineNativeLib.BcFormat.Bc1, 8),
+                TextureCompressionFormat.Bc3 => (EngineNativeLib.BcFormat.Bc3, 16),
+                TextureCompressionFormat.Bc7 => (EngineNativeLib.BcFormat.Bc7, 16),
+                _ => throw new NotSupportedException($"Unsupported BC format: {data.Compression}")
+            };
+
+            var result = data.Clone();
+            var depth = Math.Max(1, data.Depth);
+            var newData = MemoryBuffer.Create<byte>(data.Width * data.Height * depth * 4);
+
+            using var pSrc = result.Content!.MemoryLock();
+            using var pDst = newData.MemoryLock();
+
+            var compressedSliceSize = ((data.Width + 3) / 4) * ((data.Height + 3) / 4) * blockSize;
+            var decodedSliceSize = data.Width * data.Height * 4;
+
+            for (var z = 0; z < depth; z++)
+            {
+                if (!EngineNativeLib.ImageDecodeBC(pSrc.Data + z * compressedSliceSize, 
+                    (int)data.Width, (int)data.Height, bcFormat, pDst.Data + z * decodedSliceSize))
+                    throw new InvalidOperationException("BC decode failed.");
+            }
+
+            result.Content = newData;
+            result.Format = TextureFormat.Rgba8;
+            result.Compression = TextureCompressionFormat.Uncompressed;
+
+            return result;
+        }
+
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
             throw new NotImplementedException("Fix with srgb, does shit");

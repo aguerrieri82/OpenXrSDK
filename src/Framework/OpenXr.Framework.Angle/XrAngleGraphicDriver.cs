@@ -139,7 +139,7 @@ namespace OpenXr.Framework.Angle
 
         public XrDynamicType SwapChainImageType => _swapChainType;
 
-        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY;
+        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY | XrGraphicDriverFlags.Vulkan;
 
     }
 }

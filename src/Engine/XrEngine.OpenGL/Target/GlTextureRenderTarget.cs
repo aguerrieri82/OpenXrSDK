@@ -20,7 +20,10 @@ namespace XrEngine.OpenGL
 
         public void Begin(Camera camera)
         {
-            camera.ViewSize = _frameBuffer.Size;
+            if (RenderSize.Width == 0 || RenderSize.Height == 0)
+                camera.ViewSize = _frameBuffer.Size;
+            else
+                camera.ViewSize = RenderSize;
 
             GlState.Current.SetView(new Rect2I(camera.ViewSize));
 
@@ -56,5 +59,7 @@ namespace XrEngine.OpenGL
         public GlRenderTargetFlags Flags { get; set; }
 
         public int ShadingRate { get; set; }
+
+        public Size2I RenderSize { get; set; }
     }
 }

@@ -2,12 +2,13 @@
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrSamples;
+using XrSamples.Dnd;
 
 namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.Angle;
+        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
         public static readonly bool AutoStartApp = true;
 
@@ -71,6 +72,10 @@ namespace XrEditor
                   }
 
               })
+              .UseOculus(opt =>
+              {
+
+              })
               .SetAppOptions(opt =>
               {
                   opt.Driver = Driver;
@@ -80,7 +85,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateBed()
+              .CreateDnd()
               .Build();
     }
 }

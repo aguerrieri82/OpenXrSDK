@@ -71,12 +71,21 @@ namespace XrEngine.OpenXr
             configure?.Invoke(browser);
         });
 
-        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool enabled = true) => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool asLayer = false) => self.ConfigureApp(e =>
         {
-            if (!XrDevice.IsMetaQuest)
-                return;
-            if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
-                e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer() { IsEnabled = enabled });
+            if (!XrPlatform.IsEditor)
+                e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
+            else
+            {
+                if (!XrDevice.IsMetaQuest)
+                    return;
+
+                if (asLayer)
+                {
+                    if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
+                        e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
+                }
+            }
         });
 
         public static XrEngineAppBuilder UseLeftController(this XrEngineAppBuilder self)
@@ -431,6 +440,18 @@ namespace XrEngine.OpenXr
                     }
                 });
             });
+            return self;
+        }
+
+        public static XrEngineAppBuilder UseOculus(this XrEngineAppBuilder self, Action<OculusXrPluginOptions>? configure = null)
+        {
+            if (!XrDevice.IsMetaQuest)
+                return self;
+
+            var options = new OculusXrPluginOptions();
+            configure?.Invoke(options);
+            self.Options.XrPlugins.Add(new OculusXrPlugin(options));
+
             return self;
         }
 

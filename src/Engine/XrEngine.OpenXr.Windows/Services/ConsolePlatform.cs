@@ -94,11 +94,9 @@ namespace XrEngine.OpenXr.Windows
 
         }
 
-        public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
+        public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
-            return new XrApp(NullLogger.Instance,
-                     xrDriver,
-                     new OculusXrPlugin());
+            return new XrApp(NullLogger.Instance, [.. plugins]);
         }
 
         public IGlContext CreateShared()

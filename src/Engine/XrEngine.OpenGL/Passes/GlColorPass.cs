@@ -58,6 +58,9 @@ namespace XrEngine.OpenGL
                 _renderer.State.SetClearDepth(1.0f);
                 _renderer.State.SetClearStencil(0);
                 _renderer.State.Commit();
+#if GLES
+
+#endif
 
                 _gl.ClearBuffer(BufferKind.Color, 0, ctx.PassCamera!.BackgroundColor.AsSpan());
 
@@ -137,10 +140,12 @@ namespace XrEngine.OpenGL
 
         protected void SetBounds(Camera camera, Object3D obj)
         {
-
+            _renderer.UpdateContext.UsePrimitiveBoundingBox = false;
 #if GLES
             if (obj is ISkinnedMesh)
                 return;
+
+            _renderer.UpdateContext.UsePrimitiveBoundingBox = true;
 
             var min = new Vector4(float.PositiveInfinity);
             var max = new Vector4(float.NegativeInfinity);

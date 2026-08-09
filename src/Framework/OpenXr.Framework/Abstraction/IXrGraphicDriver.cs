@@ -5,7 +5,8 @@ namespace OpenXr.Framework
     public enum XrGraphicDriverFlags
     {
         None = 0,
-        FlipAndroidSurfaceY = 0x1
+        FlipAndroidSurfaceY = 0x1,
+        Vulkan = 0x2,
     }
 
     public interface IXrGraphicDriver : IXrPlugin

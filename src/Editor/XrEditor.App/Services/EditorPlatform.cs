@@ -131,13 +131,9 @@ namespace XrEditor
             Context.Implement(new RenderPreviewCreator(renderEngine));
         }
 
-        public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
+        public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
-            var opt = OculusXrPluginOptions.Default;
-
-            return new XrApp(NullLogger.Instance,
-                     xrDriver,
-                     new OculusXrPlugin(opt));
+            return new XrApp(NullLogger.Instance, [..plugins]);
         }
 
         public IRenderSurface RenderSurface => _renderSurface!;

@@ -70,16 +70,17 @@ namespace OpenXr.Framework.Vulkan
 
             _app!.CheckResult(_vulkanExt.GetVulkanGraphicsDevice(_app.Instance, _app.SystemId, new VkHandle(_device.Instance.Handle), &physicalDevice), "GetVulkanGraphicsDeviceKHR");
 
-            var binding = new GraphicsBinding();
-
-            binding.VulkanKhr = new GraphicsBindingVulkanKHR()
+            var binding = new GraphicsBinding
             {
-                Type = StructureType.GraphicsBindingVulkanKhr,
-                Device = new VkHandle(_device.LogicalDevice.Handle),
-                Instance = new VkHandle(_device.Instance.Handle),
-                PhysicalDevice = physicalDevice,
-                QueueFamilyIndex = _device.QueueFamilyIndex,
-                QueueIndex = _device.QueueIndex,
+                VulkanKhr = new GraphicsBindingVulkanKHR()
+                {
+                    Type = StructureType.GraphicsBindingVulkanKhr,
+                    Device = new VkHandle(_device.LogicalDevice.Handle),
+                    Instance = new VkHandle(_device.Instance.Handle),
+                    PhysicalDevice = physicalDevice,
+                    QueueFamilyIndex = _device.QueueFamilyIndex,
+                    QueueIndex = _device.QueueIndex,
+                }
             };
 
             return binding;
@@ -87,7 +88,7 @@ namespace OpenXr.Framework.Vulkan
 
         public XrDynamicType SwapChainImageType => _swapChainType;
 
-        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY;
+        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY | XrGraphicDriverFlags.Vulkan;
 
         public void Dispose()
         {

@@ -1802,21 +1802,14 @@ namespace OpenXr.Framework
         {
             Debug.Assert(viewInfo.BlendModes != null);
 
-            /*
-            EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend, EnvironmentBlendMode.Opaque];
-            result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
-            */
+            if (!viewInfo.BlendModes.Contains(result.BlendMode))
+                throw new NotSupportedException();
 
-            result.BlendMode = EnvironmentBlendMode.Opaque;
             result.Size = viewInfo.RecommendedImageRect;
-
-            //TODO change this
-            //result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
-
             result.Size = new Extent2Di
             {
-                Height = (int)(result.Size.Height * _renderOptions.ResolutionScale),
-                Width = (int)(result.Size.Width * _renderOptions.ResolutionScale),
+                Height = (int)(result.Size.Height * _renderOptions.ColorScale),
+                Width = (int)(result.Size.Width * _renderOptions.ColorScale),
             };
 
             PluginInvoke(a => a.SelectRenderOptions(viewInfo, result));

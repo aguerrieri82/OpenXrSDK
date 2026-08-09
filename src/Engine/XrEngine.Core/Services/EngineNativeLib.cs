@@ -5,6 +5,16 @@ namespace XrEngine
 
     public static class EngineNativeLib
     {
+        public enum BcFormat
+        {
+            Bc1 = 1,
+            Bc2 = 2,
+            Bc3 = 3,
+            Bc4 = 4,
+            Bc5 = 5,
+            Bc6H = 6,
+            Bc7 = 7
+        }
 
         const string LibName = "xrengine-native";
 
@@ -82,6 +92,11 @@ namespace XrEngine
         [DllImport(LibName)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool RdcIsAttached();
+
+
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern unsafe bool ImageDecodeBC(byte* src, int width, int height, BcFormat format, byte* dst);
 
     }
 }

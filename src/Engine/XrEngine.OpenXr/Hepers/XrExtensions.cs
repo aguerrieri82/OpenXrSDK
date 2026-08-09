@@ -343,10 +343,15 @@ namespace XrEngine.OpenXr
 
                 renderer.SetRenderTarget(renderTarget);
 
-                camera.ViewSize = info.ProjViews[index]
-                    .SubImage.ImageRect
-                    .Convert().To<Rect2I>()
-                    .Size;
+                if (XrDevice.IsMetaQuest)
+                {
+                    info.RenderSize = info.Layer.GetRecommendedResolution(info.DisplayTime);
+
+                    if (info.RenderSize != null)
+                        renderTarget.RenderSize = new Size2I((uint)info.RenderSize.Value.Width, (uint)info.RenderSize.Value.Height);
+                    else
+                        renderTarget.RenderSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
+                }
 
                 var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(
                     ref info.ProjViews[index], StructureType.CompositionLayerDepthInfoKhr);
@@ -366,18 +371,6 @@ namespace XrEngine.OpenXr
                 camera.IsStereo = true;
                 camera.IsMultiView = info.Mode == XrRenderMode.MultiView;
                 camera.Transform.Version++;
-
-                if (XrDevice.IsMetaQuest)
-                {
-                    var renderRes = info.Layer.GetRecommendedResolution(info.DisplayTime);
-                    if (renderRes != null)
-                    {
-                        info.ActualColorSize = renderRes.Value;
-                        camera.ViewSize = new Size2I((uint)renderRes.Value.Width, (uint)renderRes.Value.Height);
-                    }
-                    else
-                        camera.ViewSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
-                }
 
                 var eyes = camera.Eyes;
                 var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();

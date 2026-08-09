@@ -22,7 +22,7 @@ namespace OpenXr.Framework
 
         public XrRenderMode Mode;
 
-        public Extent2Di ActualColorSize;
+        public Extent2Di? RenderSize;
 
         public long DisplayTime;
     }
@@ -170,10 +170,14 @@ namespace OpenXr.Framework
                     projView.Type = StructureType.CompositionLayerProjectionView;
                     projView.Next = null;
                     projView.SubImage.Swapchain = colorSwap;
-                    projView.SubImage.ImageRect.Offset.X = swOfs;
-                    projView.SubImage.ImageRect.Offset.Y = 0;
-                    projView.SubImage.ImageRect.Extent.Height = colorSwap.Size.Height;
-                    projView.SubImage.ImageRect.Extent.Width = colorSwap.Size.Width;
+                    projView.SubImage.ImageRect = new Rect2Di(
+                        new Offset2Di(swOfs, 0),
+                        colorSwap.Size);
+
+                    if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
+                        projView.SubImage.ImageArrayIndex = (uint)i;
+                    else
+                        projView.SubImage.ImageArrayIndex = 0;
 
                     if (_useDepth)
                     {
@@ -181,34 +185,24 @@ namespace OpenXr.Framework
 
                         var depthInfo = _depthInfo.ItemPointer(i);
 
+                        if (_xrApp.RenderOptions.RenderMode == XrRenderMode.Stereo)
+                            swOfs = i * depthSwap.Size.Width;
+
                         depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
+                        depthInfo->Next = null;
                         depthInfo->MinDepth = 0;
                         depthInfo->MaxDepth = 1;
-                        depthInfo->NearZ = 0.01f;
-                        depthInfo->FarZ = 100;
-                        depthInfo->Next = null;
                         depthInfo->SubImage.Swapchain = depthSwap;
-                        depthInfo->SubImage.ImageRect = new Rect2Di(new Offset2Di(0, 0), depthSwap.Size);
+                        depthInfo->SubImage.ImageRect = new Rect2Di(
+                            new Offset2Di(swOfs, 0), 
+                            depthSwap.Size);
 
                         StructChain.AddNextStruct(ref projView, depthInfo);
 
                         if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                        {
                             depthInfo->SubImage.ImageArrayIndex = (uint)i;
-                        }
                         else
-                        {
                             depthInfo->SubImage.ImageArrayIndex = 0;
-                        }
-                    }
-
-                    if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                    {
-                        projView.SubImage.ImageArrayIndex = (uint)i;
-                    }
-                    else
-                    {
-                        projView.SubImage.ImageArrayIndex = 0;
                     }
 
                     UpdateView(ref projView, i);
@@ -255,6 +249,7 @@ namespace OpenXr.Framework
                 foreach (var item in _depthSwaps)
                     item.Release();
             }
+
             _lastColorImages = null;
             _lastDepthImages = null;
         }
@@ -290,8 +285,8 @@ namespace OpenXr.Framework
 
                 var renderSize = _colorSwaps[0].Size;
 
-                if (info.ActualColorSize.Height > 0 || info.ActualColorSize.Width > 0)
-                    renderSize = _colorSwaps[0].Size;
+                if (info.RenderSize != null)
+                    renderSize = info.RenderSize.Value;
 
                 for (var i = 0; i < _projViews.Length; i++)
                 {
@@ -334,7 +329,9 @@ namespace OpenXr.Framework
             base.Dispose();
         }
 
-        public XrSwapchain[] ColorSwapChains => _colorSwaps ?? throw new InvalidOperationException();
+        public XrSwapchain[] ColorSwapchains => _colorSwaps ?? throw new InvalidOperationException();
+
+        public XrSwapchain[]? DepthSwapchains => _depthSwaps;
 
         public bool UseDepth
         {

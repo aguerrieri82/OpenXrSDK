@@ -5,10 +5,11 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlResolveRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
+    public class GlResolveRenderTarget : IGlRenderTargetFB
     {
         protected readonly GlRenderTargetPool _pool;
         protected readonly uint _sampleCount;
@@ -96,5 +97,7 @@ namespace XrEngine.OpenGL
         public GlRenderTargetFlags Flags { get; set; }
 
         public int ShadingRate { get; set; }
+
+        public Size2I RenderSize { get; set; }
     }
 }

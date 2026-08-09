@@ -21,6 +21,11 @@ namespace XrEngine.OpenXr
 
     public class XrEngineAppOptions
     {
+        public XrEngineAppOptions()
+        {
+            XrPlugins = [];
+        }
+
         public GraphicDriver Driver { get; set; }
 
         public XrRenderMode RenderMode { get; set; }
@@ -36,6 +41,8 @@ namespace XrEngine.OpenXr
         public bool UseIntermediate { get; set; }
 
         public object? DriverOptions { get; set; }
+
+        public List<IXrPlugin> XrPlugins { get; }
     }
 
     public class XrEngineApp
@@ -59,11 +66,11 @@ namespace XrEngine.OpenXr
             _app = app;
             _app.Renderer = renderEngine;
 
-            _xrApp = _platform.CreateXrApp(xrDriver);
+            _xrApp = _platform.CreateXrApp([xrDriver, ..Options.XrPlugins]);
 
             _xrApp.RenderOptions.SampleCount = _options.UseIntermediate ? 1 : _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
-            _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
+            _xrApp.RenderOptions.ColorScale = _options.ResolutionScale;
             _xrApp.RenderOptions.UseProjectionDepth = _options.ProjDepthMode != XrProjDepthMode.None;
 
             if (_xrApp.RenderOptions.SampleCount > 1)

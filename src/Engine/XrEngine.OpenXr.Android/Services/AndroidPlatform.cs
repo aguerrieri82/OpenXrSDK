@@ -50,14 +50,10 @@ namespace XrEngine.OpenXr.Android
             };
         }
 
-        public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
+        public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
-            var plugins = new List<IXrPlugin>([xrDriver, new AndroidXrPlugin(_context)]);
 
-            if (XrDevice.IsMetaQuest)
-                plugins.Add(new OculusXrPlugin());
-
-            return new XrApp(Context.Require<ILogger>(), plugins.ToArray());
+            return new XrApp(Context.Require<ILogger>(), [..plugins, new AndroidXrPlugin(_context)]);
         }
 
         public unsafe void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
