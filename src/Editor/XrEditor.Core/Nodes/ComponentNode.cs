@@ -1,16 +1,17 @@
 ﻿using UI.Binding;
 using XrEngine;
+using static XrEngine.OpenGL.OpenGLRender;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 
 namespace XrEditor.Nodes
 {
     public class ComponentNode<T> : BaseNode<T>, IEditorProperties, IItemView, IDisposable, INodeChanged, IPresetManager where T : IComponent
     {
-        protected bool _autoGenProps;
+        protected PropertiesGenerationMode _autoGenProps;
 
         public ComponentNode(T value) : base(value)
         {
-            _autoGenProps = true;
+            _autoGenProps = PropertiesGenerationMode.None;
             if (value is INotifyPropertyChanged notify)
                 notify.PropertyChanged += OnPropertyChanged;
         }
@@ -28,6 +29,23 @@ namespace XrEditor.Nodes
 
         protected virtual void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
+            var curType = _value.GetType();
+            while (true)
+            {
+                PropertyView.CreateProperties(_value, curType, curProps);
+                
+                curType = curType.BaseType;
+
+                if (curType == null ||
+                    curType == typeof(object) || 
+                    (curType.IsGenericType && 
+                        (curType.GetGenericTypeDefinition() == typeof(BaseComponent<>) ||
+                         curType.GetGenericTypeDefinition() == typeof(Behavior<>) ||
+                         curType.GetGenericTypeDefinition() == typeof(AsyncBehavior<>))))
+                {
+                    break;
+                }
+            }
 
         }
 
@@ -43,7 +61,7 @@ namespace XrEditor.Nodes
 
         public event EventHandler? NodeChanged;
 
-        bool IEditorProperties.AutoGenerate
+        PropertiesGenerationMode IEditorProperties.AutoGenerate
         {
             get => _autoGenProps;
             set => _autoGenProps = value;

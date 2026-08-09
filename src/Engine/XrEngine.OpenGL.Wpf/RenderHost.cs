@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using XrInteraction;
@@ -19,6 +20,9 @@ namespace XrEngine.OpenGL.Wpf
         [DllImport("User32.dll")]
         static extern bool ReleaseCapture();
 
+        [DllImport("user32.dll")]
+        static extern IntPtr SetFocus(IntPtr hWnd);
+
         const ushort WM_MOUSEMOVE = 0x0200;
 
         const ushort WM_MBUTTONDOWN = 0x0207;
@@ -34,6 +38,9 @@ namespace XrEngine.OpenGL.Wpf
         const ushort MK_MBUTTON = 0x0010;
         const ushort MK_RBUTTON = 0x0002;
 
+        const ushort WM_KEYDOWN = 0x0100;
+        const ushort WM_KEYUP = 0x0101;
+
         const uint WS_CHILD = 0x40000000;
 
         #endregion
@@ -42,6 +49,7 @@ namespace XrEngine.OpenGL.Wpf
         {
             Loaded += (_, _) => Ready?.Invoke(this, EventArgs.Empty);
             base.SizeChanged += (_, _) => SizeChanged?.Invoke(this, EventArgs.Empty);
+            Focusable = true;
         }
 
         public void CapturePointer()
@@ -91,6 +99,9 @@ namespace XrEngine.OpenGL.Wpf
 
                     PointerDown?.Invoke(ev);
 
+                    Keyboard.Focus(this);
+                    SetFocus(hwnd);
+
                     break;
                 case WM_MOUSEWHEEL:
                     ev.Position.X = (short)(((int)lParam) & 0x0000FFFF);
@@ -115,9 +126,25 @@ namespace XrEngine.OpenGL.Wpf
 
                     PointerUp?.Invoke(ev);
                     break;
+
+                case WM_KEYDOWN:
+                    var key1 = (ushort)wParam;
+                    KeyDown?.Invoke(new KeyboardEvent() { Key = (KeyCode)KeyInterop.KeyFromVirtualKey((int)wParam) });
+                    break;
+                case WM_KEYUP:
+                    var key2 = (ushort)wParam;
+                    KeyUp?.Invoke(new KeyboardEvent() { Key = (KeyCode)KeyInterop.KeyFromVirtualKey((int)wParam) });
+                    break;
             }
 
             return IntPtr.Zero;
+        }
+
+        void IRenderSurface.Focus()
+        {
+            Keyboard.Focus(this);
+            if (_hwndSource != null)
+                SetFocus(_hwndSource.Handle);
         }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -191,6 +218,11 @@ namespace XrEngine.OpenGL.Wpf
         public event PointerEventDelegate? PointerMove;
 
         public event PointerEventDelegate? WheelMove;
+
+        public new event KeyboardEventDelegate? KeyUp;
+
+        public new event KeyboardEventDelegate? KeyDown;
+
 
         public IntPtr HWnd => _hwndSource!.Handle;
 

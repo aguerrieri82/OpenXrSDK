@@ -838,7 +838,7 @@ namespace OpenXr.Framework.Oculus
 
         public override unsafe void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
-            if (!_options.UseFoveation)
+            if (_options.Foavetion == null || !_options.Foavetion.Use)
                 return;
 
             if (target != SwapchainTarget.Projection)

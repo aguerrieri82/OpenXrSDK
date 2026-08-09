@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
+using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrInteraction;
 using XrMath;
@@ -104,6 +105,10 @@ namespace XrEditor
                 Name = "Editor Scene"
             };
 
+
+            _sceneCamera.AddComponent<TransformRecorder>();
+            _sceneCamera.AddComponent<TransformPlayer>();
+
             _sceneCamera.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
             _camera = _sceneCamera;
@@ -170,6 +175,7 @@ namespace XrEditor
         {
             AddTool(new SelectionTool());
             AddTool(new OrbitTool());
+            AddTool(new CameraMoveKeyTool());
             UpdateSize();
             Start();
         }
@@ -276,6 +282,8 @@ namespace XrEditor
                 {
                     var skipSurface = false;
 
+                    BeforeRender?.Invoke(_scene);
+
                     if (_engine.XrApp.IsStarted)
                     {
                         try
@@ -311,6 +319,7 @@ namespace XrEditor
                 _sceneDispatcher.ProcessQueue();
             }
         }
+
 
         protected virtual async void OnSceneChanged()
         {
@@ -491,6 +500,8 @@ namespace XrEditor
         public IEditorTool? ActiveTool { get; set; }
 
         public event Action<Scene3D?>? SceneChanged;
+
+        public event Action<Scene3D>? BeforeRender;
 
         public override string? Title => "Scene";
     }

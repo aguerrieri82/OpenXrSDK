@@ -95,7 +95,6 @@ namespace XrEngine.OpenXr
                 if (type == StructureType.SwapchainImageOpenglKhr ||
                     type == StructureType.SwapchainImageOpenglESKhr || _useAngle)
                 {
-
                     if (_useAngle)
                     {
                         var ctx = Context.Require<AngleVulkanContext>();
@@ -110,8 +109,6 @@ namespace XrEngine.OpenXr
                             ImageUsageFlags.DepthStencilAttachmentBit,
                             ImageCreateFlags.None,
                             TextureTarget.Texture2DArray).Texture;
-
-                        ctx.AcquireTexture(_lastGlImage);
                     }
                     else
                         _lastGlImage = ((SwapchainImageOpenGLKHR*)image)->Image;

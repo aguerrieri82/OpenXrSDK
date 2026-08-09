@@ -8,7 +8,7 @@ namespace XrEditor.Nodes
     {
         public RigidBodyNode(RigidBody value) : base(value)
         {
-            _autoGenProps = false;
+            _autoGenProps = PropertiesGenerationMode.None;
         }
 
         protected override void EditorProperties(Binder<RigidBody> binder, IList<PropertyView> curProps)

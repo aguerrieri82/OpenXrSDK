@@ -11,7 +11,7 @@ namespace OpenXr.Framework
         protected long _lastPredictedTime;
         protected readonly int _usageCount = 0;
         protected int _curUsageCount = 0;
-        protected uint _lastImageIndex;
+        protected int _lastImageIndex;
         protected NativeArray<SwapchainImageBaseHeader>? _images;
         protected SwapchainCreateInfo _info;
 
@@ -20,6 +20,7 @@ namespace OpenXr.Framework
         {
             _xrApp = xrApp;
             _usageCount = usageCount;
+            _lastImageIndex = -1;
         }
 
         public void Create(Extent2Di size, int format, uint arraySize, SwapchainUsageFlags usage, SwapchainTarget target)
@@ -51,22 +52,23 @@ namespace OpenXr.Framework
 
             var index = Acquire();
 
-            var result = _images.ItemPointer((int)index);
+            var result = _images.ItemPointer(index);
 
             Wait();
 
             return result;
         }
 
-        public uint Acquire()
+        public int Acquire()
         {
             var isNewFrame = _lastPredictedTime != _xrApp.FramePredictedDisplayTime;
 
             if (isNewFrame)
             {
                 _curUsageCount = 0;
-                _lastImageIndex = _xrApp.AcquireSwapchainImage(_swapchain);
+                _lastImageIndex = (int)_xrApp.AcquireSwapchainImage(_swapchain);
                 _lastPredictedTime = _xrApp.FramePredictedDisplayTime;
+                AfterAcquire?.Invoke(this);
             }
 
             _curUsageCount++;
@@ -83,7 +85,10 @@ namespace OpenXr.Framework
         public void Release()
         {
             if (_curUsageCount == _usageCount)
+            {
+                BeforeRelease?.Invoke(this);
                 _xrApp.ReleaseSwapchainImage(_swapchain);
+            }
         }
 
         public void Dispose()
@@ -117,10 +122,25 @@ namespace OpenXr.Framework
 
         public bool IsCreated => _swapchain.Handle != 0;
 
-        public uint LastImageIndex => _lastImageIndex;
+        public int LastImageIndex => _lastImageIndex;
+
+        public unsafe SwapchainImageBaseHeader* LastImage
+        {
+            get
+            {
+                if (_images == null || _lastImageIndex == -1)
+                    throw new InvalidOperationException();
+
+                return _images.ItemPointer(_lastImageIndex);
+            }
+        }
 
         public Swapchain Value => _swapchain;
 
         public ref SwapchainCreateInfo CreateInfo => ref _info;
+
+        public event Action<XrSwapchain>? BeforeRelease;
+
+        public event Action<XrSwapchain>? AfterAcquire;
     }
 }

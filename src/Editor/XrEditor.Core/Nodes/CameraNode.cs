@@ -7,7 +7,7 @@ namespace XrEditor.Nodes
     {
         public CameraNode(T value) : base(value)
         {
-            _autoGenProps = false;
+            _autoGenProps = PropertiesGenerationMode.None;
         }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)

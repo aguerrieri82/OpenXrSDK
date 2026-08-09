@@ -3,6 +3,7 @@ using OpenXr.Framework;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
@@ -37,6 +38,7 @@ namespace XrSamples.Dnd
             this.AddComponent<InputController>();
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
+
 
             _player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
             _player.Transform.SetScale(0.3f, 1.0f, 0.3f);

@@ -12,7 +12,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = true;
+        public static readonly bool EnableVSync = false;
 
         public static readonly int VSyncScale = 4;
 
@@ -64,6 +64,7 @@ namespace XrEditor
 
                   opt.UseResolve = false;
                   opt.ToneMap = ToneMapMode.Neutral;
+                  opt.UseProfiler = false;
 
                   GlDebug.TrackBuffers = false;
 
@@ -81,7 +82,7 @@ namespace XrEditor
                   opt.Driver = Driver;
               })
               //.UseSpaceWarp()
-              .AddProfileOverlay()
+              //.AddProfileOverlay()
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)

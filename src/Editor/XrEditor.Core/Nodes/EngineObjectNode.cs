@@ -5,7 +5,7 @@ namespace XrEditor.Nodes
 {
     public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager where T : EngineObject
     {
-        protected bool _autoGenProps;
+        protected PropertiesGenerationMode _autoGenProps;
         protected bool _keepChangeListener;
 
         protected event EventHandler? _nodeChanged;
@@ -48,7 +48,7 @@ namespace XrEditor.Nodes
 
         }
 
-        bool IEditorProperties.AutoGenerate
+        PropertiesGenerationMode IEditorProperties.AutoGenerate
         {
             get => _autoGenProps;
             set => _autoGenProps = value;

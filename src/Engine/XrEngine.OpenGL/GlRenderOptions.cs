@@ -168,6 +168,8 @@ namespace XrEngine.OpenGL
 
         public MotionVectorMode MotionVectorMode { get; set; }
 
+        public bool UseProfiler { get; set; }
+
         public static GlRenderOptions Default() => new();
 
     }

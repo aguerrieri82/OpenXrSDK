@@ -17,6 +17,7 @@ public abstract class ImageRenderHost : Image, IRenderSurface
         Stretch = Stretch.Fill;
         Focusable = true;
         ClipToBounds = true;
+        Focusable = true;
 
         Loaded += (_, _) =>
         {
@@ -31,6 +32,18 @@ public abstract class ImageRenderHost : Image, IRenderSurface
         MouseDown += OnMouseDown;
         MouseUp += OnMouseUp;
         MouseWheel += OnMouseWheel;
+        base.KeyUp += OnKeyUp;
+        base.KeyDown += OnKeyDown;
+    }
+
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        KeyDown?.Invoke(new KeyboardEvent() { Key = (KeyCode)e.Key });
+    }
+
+    private void OnKeyUp(object sender, KeyEventArgs e)
+    {
+        KeyUp?.Invoke(new KeyboardEvent() { Key = (KeyCode)e.Key });
     }
 
     protected virtual void OnHostLoaded()
@@ -141,6 +154,12 @@ public abstract class ImageRenderHost : Image, IRenderSurface
     {
     }
 
+    void IRenderSurface.Focus()
+    {
+        Focus();
+    }
+
+
     public Vector2 Size
     {
         get
@@ -158,6 +177,10 @@ public abstract class ImageRenderHost : Image, IRenderSurface
     public event PointerEventDelegate? PointerUp;
     public event PointerEventDelegate? PointerMove;
     public event PointerEventDelegate? WheelMove;
+
+    public new event KeyboardEventDelegate? KeyUp;
+
+    public new event KeyboardEventDelegate? KeyDown;
 
     public virtual nint HWnd => 0;
 

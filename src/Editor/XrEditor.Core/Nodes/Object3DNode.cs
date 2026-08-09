@@ -12,7 +12,7 @@ namespace XrEditor.Nodes
             : base(value)
         {
             _components.Add(new Transform3DNode(value.Transform, this));
-            _autoGenProps = false;
+            _autoGenProps = PropertiesGenerationMode.None;
         }
 
         public override void Actions(IList<ActionView> result)

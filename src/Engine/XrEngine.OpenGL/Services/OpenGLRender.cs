@@ -475,7 +475,7 @@ namespace XrEngine.OpenGL
 
             _target = target;
             _view = view;
-            _profiler.IsEnabled = _isDebug;
+            _profiler.IsEnabled = _options.UseProfiler;
 
             PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
 

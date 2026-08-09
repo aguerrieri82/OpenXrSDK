@@ -575,6 +575,9 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             usage |= (ImageUsageFlags)vkInfo->AdditionalUsageFlags;
         }
 
+        swapchain.BeforeRelease += OnBeforeRelease;
+        swapchain.AfterAcquire += OnAfterAcquire;
+
         return AttachVulkanImage(vkImage,
             (Format)swapchain.Format,
             swapchain.Size,
@@ -584,6 +587,22 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             usage,
             flags,
             swapchain.ArraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
+    }
+
+    private void OnAfterAcquire(XrSwapchain swapchain)
+    {
+        var vkImage = (nint)((SwapchainImageVulkanKHR*)swapchain.LastImage)->Image;
+        var image = _images[vkImage];
+
+        AcquireTexture(image.Texture);
+    }
+
+    private void OnBeforeRelease(XrSwapchain swapchain)
+    {
+        var vkImage = (nint)((SwapchainImageVulkanKHR*)swapchain.LastImage)->Image;
+        var image = _images[vkImage];
+
+        ReleaseTexture(image.Texture);
     }
 
     public ImportedVulkanImage AttachVulkanImage(

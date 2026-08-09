@@ -8,7 +8,7 @@ namespace XrEditor.Nodes
     {
         public MaterialNode(T value) : base(value)
         {
-            _autoGenProps = false;
+            _autoGenProps = PropertiesGenerationMode.None;
         }
 
         public void EditorActions(IList<ActionView> result)

@@ -17,7 +17,7 @@ namespace XrEditor.Nodes
 
         public IconView? Icon => (_value as IItemView)?.Icon;
 
-        public bool AutoGenerate { get; set; }
+        public PropertiesGenerationMode AutoGenerate { get; set; }
 
         public override bool IsLeaf => true;
 

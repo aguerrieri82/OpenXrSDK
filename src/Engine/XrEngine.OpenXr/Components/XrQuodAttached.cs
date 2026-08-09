@@ -102,8 +102,6 @@ namespace XrEngine.OpenXr
                 _vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
                 glImage = _vulkanCtx.AttachVulkanImage(image, swapchain).Texture;
-
-                _vulkanCtx.AcquireTexture(glImage);
             }
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image;

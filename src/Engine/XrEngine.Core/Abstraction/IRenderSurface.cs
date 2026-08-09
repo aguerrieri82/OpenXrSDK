@@ -3,7 +3,7 @@ using XrInteraction;
 
 namespace XrEngine
 {
-    public interface IRenderSurface : IPointer2EventSource
+    public interface IRenderSurface : IPointer2EventSource, IKeyboardEventSource
     {
         event EventHandler SizeChanged;
 
@@ -22,6 +22,8 @@ namespace XrEngine
         void BeginFrame(long frameNum);
 
         void EndFrame();
+
+        void Focus();
 
         public bool SupportsDualRender { get; }
 

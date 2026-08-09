@@ -8,7 +8,6 @@ namespace XrEditor.Nodes
 
         public PlayerNode(T value) : base(value)
         {
-            _autoGenProps = true;
         }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)

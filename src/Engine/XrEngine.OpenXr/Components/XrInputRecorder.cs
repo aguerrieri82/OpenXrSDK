@@ -1,102 +1,35 @@
 ﻿using OpenXr.Framework;
+using Silk.NET.OpenXR;
 using System.Text.Json;
 
 namespace XrEngine.OpenXr
 {
-    public class XrInputRecorder : Behavior<Scene3D>
+    public class XrInputRecorder : BaseFrameRecorder<XrInputRecorder.XrRecordFrame, Scene3D>
     {
-        #region RecordFrame
-
-        public struct RecordFrame
+        public class XrRecordFrame : RecordFrame
         {
-            public double Time;
-
             public long XrTime;
 
-            public Dictionary<string, XrInputState> Inputs;
+            public Dictionary<string, XrInputState>? Inputs;
         }
-
-        #endregion
-
-        #region RecordSession
-
-        public class RecordSession
-        {
-            public IList<RecordFrame>? Frames;
-        }
-
-        #endregion
-
-        RecordSession? _session;
 
         public XrInputRecorder()
         {
-            IsEnabled = false;
             OutFile = "inputs.json";
         }
 
-        protected override void Update(RenderContext ctx)
+        protected override bool CreateFrame(XrRecordFrame frame)
         {
             if (XrApp.Current == null)
-                return;
+                return false;
 
-            _session ??= new RecordSession
-            {
-                Frames = []
-            };
+            frame.XrTime = XrApp.Current.FramePredictedDisplayTime;
+            frame.Inputs = [];
 
-            lock (this)
-            {
-                var frame = new RecordFrame
-                {
-                    Time = ctx.Time,
-                    XrTime = XrApp.Current.FramePredictedDisplayTime,
-                    Inputs = []
-                };
+            foreach (var input in XrApp.Current.Inputs.Values)
+                frame.Inputs[input.Name] = input.GetState();
 
-                foreach (var input in XrApp.Current.Inputs.Values)
-                {
-                    frame.Inputs[input.Name] = input.GetState();
-
-                }
-                _session.Frames!.Add(frame);
-            }
+            return true;
         }
-
-        [Action]
-        public void Save()
-        {
-            var options = new JsonSerializerOptions
-            {
-                IncludeFields = true,
-            };
-
-            var path = Context.Require<IPlatform>().PersistentPath;
-
-            string json;
-
-            lock (this)
-                json = JsonSerializer.Serialize(_session, options);
-
-            File.WriteAllText(Path.Join(path, OutFile), json);
-        }
-
-        public override void GetState(IStateContainer container)
-        {
-            container.Write(nameof(OutFile), OutFile);
-            base.GetState(container);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            OutFile = container.Read<string>(nameof(OutFile));
-
-            base.SetStateWork(container);
-        }
-
-        [ValueType(ValueType.FileName)]
-        public string? OutFile { get; set; }
-
-        public RecordSession? Session => _session;
     }
 }

@@ -79,8 +79,6 @@ namespace XrEngine.OpenXr
 
         public void Begin()
         {
-            if (_renderer.UseAngle)
-                _context!.AcquireTexture((uint)_texture!.Handle);
         }
 
         public void Swap(Camera camera, IEnumerable<Object3D> objects)
