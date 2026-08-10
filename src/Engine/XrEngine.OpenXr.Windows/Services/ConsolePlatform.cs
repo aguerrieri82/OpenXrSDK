@@ -79,7 +79,7 @@ namespace XrEngine.OpenXr.Windows
             }
             else if (options.Driver == GraphicDriver.Angle)
             {
-                var ctx = new AngleVulkanContext();
+                var ctx = new AngleVulkanContext((int)options.SampleCount);
 
                 Context.Implement(ctx);
 
@@ -87,7 +87,7 @@ namespace XrEngine.OpenXr.Windows
 
                 ctx.Initialize([], []);
 
-                renderEngine = new OpenGLRender(ctx.Gl!, glOptions);
+                renderEngine = new OpenGLRender(ctx.Gl!, glOptions, useAngle: true);
 
                 xrDriver = angleDriver;
             }

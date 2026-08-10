@@ -29,5 +29,5 @@ await WindowSceneApp.Run(host.Services);
 //await SceneAnchors.Run(host.Services, logger);
 //await Physics.Run(host.Services, logger);
 
-await host.StopAsync();
+//await host.StopAsync();
 

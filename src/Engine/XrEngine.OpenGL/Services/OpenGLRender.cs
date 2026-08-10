@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
                 _defaultTarget = new GlDefaultRenderTarget(gl,
                     !options.UseDepthPass && !options.ContactShadow.Use,
                     options.SampleCount,
-                    useAngle ? TextureFormat.Rgba8 : TextureFormat.SRgba8);
+                    useAngle ? TextureFormat.Rgba8 : TextureFormat.SRgba8); //IMPORTANT: in angle sRGB with MSAA are not resolved!
             }
             else
                 _defaultTarget = new GlDefaultDirectRenderTarget(gl);
@@ -533,7 +533,7 @@ namespace XrEngine.OpenGL
 
             if (flush)
             {
-                if (_useAngle)
+                if (_useAngle && false)
                     _gl.Finish();
                 else
                     _gl.Flush();

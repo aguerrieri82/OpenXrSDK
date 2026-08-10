@@ -19,6 +19,7 @@ using Silk.NET.OpenXR;
 using Silk.NET.Maths;
 using CefSharp.DevTools.Media;
 using Windows.ApplicationModel.Appointments.DataProvider;
+using System.Diagnostics;
 
 namespace XrSamples
 {
@@ -37,6 +38,15 @@ namespace XrSamples
 
         public static Task Run(IServiceProvider services)
         {
+            if (!EngineNativeLib.RdcIsAttached())
+            {
+                using var profiles = new NvidiaProfiles();
+
+                profiles.DisableOpenGlThreadedOptimization();
+                profiles.SetOpenGlPresentMethod(NvidiaProfiles.OpenGlPresentMethod.Native);
+                profiles.SetVerticalSyncMode(NvidiaProfiles.VerticalSyncMode.ForceOff);
+            }
+
             XrDevice.IsMetaQuest = false;
 
             ModuleManager.Instance.Init();
@@ -45,17 +55,26 @@ namespace XrSamples
 
             EngineApp? app = null;
 
+            AngleVulkanContext? angle = null;
+
+            bool useAngle = true;
+
             void CreateApp()
             {
                 var builder = new XrEngineAppBuilder();
+
+                if (useAngle)
+                    builder.UseAngle();
+                else
+                    builder.UseOpenGL();
 
                 app = builder
                     .UsePlatform(new ConsolePlatform()
                     {
                         PersistentPath = "D:\\Projects\\XrEditor\\"
                     })
-                    //.EnableDebug()
-                    .UseOpenGL(opt =>
+
+                    .SetGlOptions(opt =>
                     {
                         opt.UseAsyncShaderCompile = false;
                         opt.UseShaderCache = true;
@@ -66,22 +85,25 @@ namespace XrSamples
                     {
                         Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
                     })
+                    .SetRenderQuality(1f, 1)
                     .CreateDnd()
                     .Build()
                     .App;
+
+                if (useAngle)
+                    Context.TryRequire(out angle);
             }
-           
+
 
             var options = WindowOptions.Default;
 
             options.Samples = 1;
             //options.WindowState = WindowState.Fullscreen;
-            options.VSync = false;
-            options.ShouldSwapAutomatically = false;
             options.Size = new Vector2D<int>(1600, 1000);
-
-            if (Context.TryRequire<AngleVulkanContext>(out var angle))
+            if (useAngle)
                 options.API = GraphicsAPI.None;
+
+
 
             var view = Window.Create(options);
 
@@ -103,20 +125,21 @@ namespace XrSamples
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
             }
 
-            AutoResetEvent renderReady = new AutoResetEvent(false);
-
             async void RenderLoop()
             {
-                angle?.MakeCurrent();
-
-                angle?.CreateWindowSurface(view.Native!.Win32!.Value.Hwnd);
-
-                view.MakeCurrent();
-
                 CreateApp();
 
+                if (useAngle)
+                {
+                    Debug.Assert(angle != null);
+
+                    angle.CreateWindowSurface(view.Native!.Win32!.Value.Hwnd);
+
+                    angle.SetSwapInterval(0);
+                }
+
                 UpdateSize();
-  
+
                 var player = app!.ActiveScene!.ActiveCamera!.AddComponent<TransformPlayer>();
                 player.Loop = true;
 
@@ -128,10 +151,14 @@ namespace XrSamples
 
                 var lastEmitTime = DateTime.Now;
 
-                renderReady.Set();
-
                 while (true)
                 {
+                    if (!useAngle && !view.GLContext!.IsCurrent)
+                    {
+                        view.MakeCurrent();
+                        view.GLContext!.SwapInterval(0);
+                    }
+
                     if (!view.IsVisible)
                     {
                         Thread.Sleep(10);
@@ -143,10 +170,11 @@ namespace XrSamples
 
                     app.RenderFrame();
 
-                    angle?.SwapBuffers();
-
-                    view.SwapBuffers();
-
+                    if (angle != null)
+                        angle.SwapBuffers();
+                    else
+                        view.SwapBuffers();
+ 
                     if ((DateTime.Now - lastEmitTime).TotalSeconds > 1)
                     {
                         Log.Info(typeof(WindowSceneApp), "{0} FPS", app.Stats.Fps);
@@ -159,15 +187,16 @@ namespace XrSamples
 
             view.Initialize();
 
-            view.ClearContext();
-
             var renderThread = new Thread(RenderLoop);
             renderThread.Start();
 
-            renderReady.WaitOne();
-
             while (!view.IsClosing)
             {
+                Debug.Assert(useAngle && view.GLContext == null);
+
+                if (!useAngle && view.GLContext!.IsCurrent)
+                    view.ClearContext();
+
                 view.DoEvents();
             }
 

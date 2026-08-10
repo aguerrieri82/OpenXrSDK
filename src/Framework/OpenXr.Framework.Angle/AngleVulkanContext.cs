@@ -190,7 +190,9 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         VulkanImageCreateInfoHi = 0x34D4,
         VulkanImageCreateInfoLo = 0x34D5,
         GlColorspaceKhr = 0x309D,
-        GlColorspaceSrgbKhr = 0x3089
+        GlColorspaceSrgbKhr = 0x3089,
+        SampleBuffers = 0x3032,
+        Samples = 0x3031
     }
 
     private const nint EglNoDisplay = 0;
@@ -358,8 +360,12 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     private readonly Dictionary<uint, AquiredTexture> _acquiredTextures = [];
 
-    public AngleVulkanContext()
+    int _sampleCount;
+
+    public AngleVulkanContext(int sampleCount = 1)
     {
+        _sampleCount = sampleCount;
+
         nint eglLibrary = 0;
         nint glesLibrary = 0;
 
@@ -447,29 +453,21 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
                 var configAttributes = stackalloc int[]
                 {
-                    (int)Egl.SurfaceType,
+                      (int)Egl.SurfaceType,
                     (int)Egl.PbufferBit | (int)Egl.WindowBit,
 
                     (int)Egl.RenderableType,
                     (int)Egl.OpenGlEs3Bit,
 
-                    (int)Egl.RedSize,
-                    8,
+                    (int)Egl.RedSize, 8,
+                    (int)Egl.GreenSize, 8,
+                    (int)Egl.BlueSize, 8,
+                    (int)Egl.AlphaSize, 8,
+                    (int)Egl.DepthSize, 24,
+                    (int)Egl.StencilSize, 8,
 
-                    (int)Egl.GreenSize,
-                    8,
-
-                    (int)Egl.BlueSize,
-                    8,
-
-                    (int)Egl.AlphaSize,
-                    8,
-
-                    (int)Egl.DepthSize,
-                    24,
-
-                    (int)Egl.StencilSize,
-                    8,
+                    (int)Egl.SampleBuffers, (_sampleCount <= 1 ? 0: 1),
+                    (int)Egl.Samples, (_sampleCount <= 1 ? 0: _sampleCount),
 
                     (int)Egl.None
                 };

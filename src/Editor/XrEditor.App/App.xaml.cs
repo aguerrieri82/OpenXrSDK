@@ -34,7 +34,11 @@ namespace XrEditor
             Gpu.EnableNvAPi();
 
             if (!EngineNativeLib.RdcIsAttached())
-                NvidiaProfiles.DisableOpenGlThreadedOptimization();
+            {
+                using var profiles = new NvidiaProfiles();
+                profiles.DisableOpenGlThreadedOptimization();
+                profiles.SetOpenGlPresentMethod(NvidiaProfiles.OpenGlPresentMethod.Native);
+            }
 
             _viewManager = new WpfViewManager();
             _mainDispatcher = new MainDispatcher();

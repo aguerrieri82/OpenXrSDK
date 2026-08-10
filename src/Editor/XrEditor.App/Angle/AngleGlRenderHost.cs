@@ -80,13 +80,14 @@ namespace XrEditor
 
         public override void EnableVSync(bool enable, int scale = 1)
         {
-            _angleContext.SetSwapInterval(scale);
+            _angleContext.SetSwapInterval(enable ? scale : 0);
         }
 
         public override void SwapBuffers()
         {
             _angleContext.SwapBuffers();
         }
+
         public override void ReleaseContext()
         {
             _angleContext.ReleaseCurrent();
