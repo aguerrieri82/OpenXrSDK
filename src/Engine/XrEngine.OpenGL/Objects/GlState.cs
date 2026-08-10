@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
     public class GlState
     {
         [ThreadStatic]
-        static GlState? _current;
+        internal static GlState? _current;
 
         private readonly GL _gl;
         private readonly bool _hasShadingRate;

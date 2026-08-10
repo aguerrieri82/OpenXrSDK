@@ -7,12 +7,12 @@ namespace OpenXr.Framework
     public static class XrDevice
     {
 #if __ANDROID__
-        public static readonly bool IsMetaQuest =
+        public static bool IsMetaQuest =
                 string.Equals(Build.Manufacturer, "Oculus", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(Build.Manufacturer, "Meta", StringComparison.OrdinalIgnoreCase) ||
                 (Build.Model?.Contains("Quest", StringComparison.OrdinalIgnoreCase) == true);
 #else
-        public static readonly bool IsMetaQuest = true;
+        public static bool IsMetaQuest = true;
 #endif
 
     }

@@ -6,7 +6,30 @@ public static unsafe class NvidiaProfiles
 {
     private const int NvapiOk = 0;
 
+    private const uint OglPreferDxPresentId = 0x20D690F8;
+    private const uint OglForceBlitId = 0x201F619F;
+    private const uint VSyncModeId = 0x00A879CF;
+    private const uint OglMaxFramesAllowedId = 0x208E55E3;
     private const uint OglThreadControlId = 0x20C1221E;
+    private const uint FrlFpsId = 0x10835002;
+
+    public enum OpenGlPresentMethod : uint
+    {
+        Native = 0x00000000,
+        Dxgi = 0x00000001,
+        Auto = 0x00000002
+    }
+
+    public enum VerticalSyncMode : uint
+    {
+        ApplicationControlled = 0x60925292,
+        ForceOff = 0x08416747,
+        ForceOn = 0x47814940,
+        FlipInterval2 = 0x32610244,
+        FlipInterval3 = 0x71271021,
+        FlipInterval4 = 0x13245256,
+        Virtual = 0x18888888
+    }
 
     private enum OglThreadControl : uint
     {
@@ -107,71 +130,88 @@ public static unsafe class NvidiaProfiles
     /// A null profile name modifies the global/base profile.
     /// Otherwise, the profile must already exist.
     /// </summary>
-    public static void DisableOpenGlThreadedOptimization(
-        string? profileName = null)
+    public static void DisableOpenGlThreadedOptimization(string? profileName = null)
+    {
+        SetDwordSetting(OglThreadControlId, (uint)OglThreadControl.Disable, profileName);
+    }
+
+    public static void SetOpenGlPresentMethod(OpenGlPresentMethod method, string? profileName = null)
+    {
+        SetDwordSetting(OglPreferDxPresentId, (uint)method, profileName);
+    }
+
+    public static OpenGlPresentMethod GetOpenGlPresentMethod(string? profileName = null)
+    {
+        return (OpenGlPresentMethod)GetDwordSetting(OglPreferDxPresentId, profileName);
+    }
+
+    public static void SetOpenGlForceBlit(bool enabled, string? profileName = null)
+    {
+        SetDwordSetting(OglForceBlitId, enabled ? 1u : 0u, profileName);
+    }
+
+    public static bool GetOpenGlForceBlit(string? profileName = null)
+    {
+        return GetDwordSetting(OglForceBlitId, profileName) != 0;
+    }
+
+    public static void SetVerticalSyncMode(VerticalSyncMode mode, string? profileName = null)
+    {
+        SetDwordSetting(VSyncModeId, (uint)mode, profileName);
+    }
+
+    public static VerticalSyncMode GetVerticalSyncMode(string? profileName = null)
+    {
+        return (VerticalSyncMode)GetDwordSetting(VSyncModeId, profileName);
+    }
+
+    public static void DisableFrameRateLimiter(string? profileName = null)
+    {
+        SetDwordSetting(FrlFpsId, 0, profileName);
+    }
+
+    public static void SetFrameRateLimit(uint fps, string? profileName = null)
+    {
+        if (fps > 0x3ff)
+            throw new ArgumentOutOfRangeException(nameof(fps), "NVIDIA FRL supports values up to 1023 FPS.");
+
+        SetDwordSetting(FrlFpsId, fps, profileName);
+    }
+
+    public static uint GetFrameRateLimit(string? profileName = null)
+    {
+        return GetDwordSetting(FrlFpsId, profileName);
+    }
+
+    public static uint GetOpenGlMaxFramesAllowed(string? profileName = null)
+    {
+        return GetDwordSetting(OglMaxFramesAllowedId, profileName);
+    }
+
+    public static void SetOpenGlMaxFramesAllowed(uint value, string? profileName = null)
+    {
+        SetDwordSetting(OglMaxFramesAllowedId, value, profileName);
+    }
+
+    private static void SetDwordSetting(uint settingId, uint value, string? profileName)
     {
         Check(Initialize(), nameof(Initialize));
-
         nint session = 0;
 
         try
         {
-            Check(
-                DrsCreateSession(out session),
-                nameof(DrsCreateSession));
-
-            Check(
-                DrsLoadSettings(session),
-                nameof(DrsLoadSettings));
-
-            nint profile;
-
-            if (profileName is null)
-            {
-                Check(
-                    DrsGetBaseProfile(session, out profile),
-                    nameof(DrsGetBaseProfile));
-            }
-            else
-            {
-                Check(
-                    DrsFindProfileByName(
-                        session,
-                        profileName,
-                        out profile),
-                    $"{nameof(DrsFindProfileByName)}(\"{profileName}\")");
-            }
+            Check(DrsCreateSession(out session), nameof(DrsCreateSession));
+            Check(DrsLoadSettings(session), nameof(DrsLoadSettings));
+            var profile = GetProfile(session, profileName);
 
             NvDrsSetting setting = default;
-
-            setting.Version =
-                (uint)sizeof(NvDrsSetting) |
-                (1u << 16);
-
-            /*
-            Check(
-                DrsGetSetting(
-                    session,
-                    profile,
-                    OglThreadControlId,
-                    &setting),
-                nameof(DrsGetSetting));
-            */
-
-            setting.SettingId = OglThreadControlId;
+            setting.Version = (uint)sizeof(NvDrsSetting) | (1u << 16);
+            setting.SettingId = settingId;
             setting.SettingType = NvDrsSettingType.Dword;
-            setting.CurrentValue.Dword = (uint)OglThreadControl.Disable;
+            setting.CurrentValue.Dword = value;
 
-            Check(
-                DrsSetSetting(
-                    session,
-                    profile,
-                    &setting),
-                nameof(DrsSetSetting));
-
-            Check(
-                DrsSaveSettings(session),
-                nameof(DrsSaveSettings));
+            Check(DrsSetSetting(session, profile, &setting), nameof(DrsSetSetting));
+            Check(DrsSaveSettings(session), nameof(DrsSaveSettings));
         }
         finally
         {
@@ -180,6 +220,48 @@ public static unsafe class NvidiaProfiles
 
             Unload();
         }
+    }
+
+    private static uint GetDwordSetting(uint settingId, string? profileName)
+    {
+        Check(Initialize(), nameof(Initialize));
+        nint session = 0;
+
+        try
+        {
+            Check(DrsCreateSession(out session), nameof(DrsCreateSession));
+            Check(DrsLoadSettings(session), nameof(DrsLoadSettings));
+            var profile = GetProfile(session, profileName);
+
+            NvDrsSetting setting = default;
+            setting.Version = (uint)sizeof(NvDrsSetting) | (1u << 16);
+
+            Check(DrsGetSetting(session, profile, settingId, &setting), nameof(DrsGetSetting));
+
+            if (setting.SettingType != NvDrsSettingType.Dword)
+                throw new InvalidOperationException($"NVAPI setting 0x{settingId:X8} is not a DWORD setting.");
+
+            return setting.CurrentValue.Dword;
+        }
+        finally
+        {
+            if (session != 0)
+                DrsDestroySession(session);
+
+            Unload();
+        }
+    }
+
+    private static nint GetProfile(nint session, string? profileName)
+    {
+        if (profileName is null)
+        {
+            Check(DrsGetBaseProfile(session, out var profile), nameof(DrsGetBaseProfile));
+            return profile;
+        }
+
+        Check(DrsFindProfileByName(session, profileName, out var namedProfile), $"{nameof(DrsFindProfileByName)}(\"{profileName}\")");
+        return namedProfile;
     }
 
     private static T GetFunction<T>(uint id)
@@ -341,8 +423,8 @@ public static unsafe class NvidiaProfiles
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int NvapiDrsGetSetting(
-    nint session,
-    nint profile,
-    uint settingId,
-    NvDrsSetting* setting);
+        nint session,
+        nint profile,
+        uint settingId,
+        NvDrsSetting* setting);
 }

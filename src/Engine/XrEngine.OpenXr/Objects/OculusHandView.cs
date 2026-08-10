@@ -22,12 +22,15 @@ namespace XrEngine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
+            if (!XrDevice.IsMetaQuest)
+                return;
+
             if (XrApp.Current == null)
                 throw new ArgumentNullException();
 
             Name ??= "Hand " + HandType;
 
-            _input = XrApp.Current?.AddHand<XrHandInputMesh>(HandType);
+            _input = XrApp.Current.AddHand<XrHandInputMesh>(HandType);
 
             base.Start(ctx);
         }

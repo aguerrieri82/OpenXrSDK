@@ -22,7 +22,7 @@ namespace XrEditor
 
         public static readonly bool DisableDualRender = true;
 
-        public static readonly bool UseDxHost = true;
+        public static readonly bool UseDxHost = false;
 
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
 
@@ -65,6 +65,7 @@ namespace XrEditor
                   opt.UseResolve = false;
                   opt.ToneMap = ToneMapMode.Neutral;
                   opt.UseProfiler = false;
+                  opt.UseDefaultIntermediate = true;
 
                   GlDebug.TrackBuffers = false;
 

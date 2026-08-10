@@ -38,9 +38,9 @@ namespace XrEngine.OpenGL
         private readonly bool _useAngle;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly List<IGlRenderPass> _renderPasses = [];
-        protected readonly GlDefaultRenderTarget _defaultTarget;
+        protected readonly IGlRenderTarget _defaultTarget;
         protected GlShadowPass? _shadowPass;
-        protected readonly Thread _thread;
+        protected Thread _thread;
         protected readonly Dictionary<Scene3D, LayersCache> _layersCache = [];
         protected List<IGlLayer> _activeLayers = [];
         [MaybeNull]
@@ -90,10 +90,17 @@ namespace XrEngine.OpenGL
             _options = options;
             _useAngle = useAngle;
 
-            _defaultTarget = new GlDefaultRenderTarget(gl,
+            if (options.UseDefaultIntermediate)
+            {
+                _defaultTarget = new GlDefaultRenderTarget(gl,
                     !options.UseDepthPass && !options.ContactShadow.Use,
                     options.SampleCount,
                     useAngle ? TextureFormat.Rgba8 : TextureFormat.SRgba8);
+            }
+            else
+                _defaultTarget = new GlDefaultDirectRenderTarget(gl);
+
+
 
             _target = _defaultTarget;
 
@@ -630,10 +637,12 @@ namespace XrEngine.OpenGL
                 {
                     return _gl.Context.GetProcAddress(name);
                 });
+
 #else
                 var grInterface = GRGlInterface.CreateOpenGl(name =>
                 {
-                    return _gl.Context.GetProcAddress(name);
+                     _gl.Context.TryGetProcAddress(name, out var result);
+                     return result;
                 });
 
 #endif
@@ -889,6 +898,7 @@ namespace XrEngine.OpenGL
 
         #endregion
 
+
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
 
         public GL GL => _gl;
@@ -913,6 +923,7 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static OpenGLRender? Current;
+
         private bool _passesDirty;
     }
 }

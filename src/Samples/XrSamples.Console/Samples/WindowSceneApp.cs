@@ -12,6 +12,13 @@ using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrMath;
+using XrSamples.Dnd;
+using XrEngine.Components;
+using OpenXr.Framework;
+using Silk.NET.OpenXR;
+using Silk.NET.Maths;
+using CefSharp.DevTools.Media;
+using Windows.ApplicationModel.Appointments.DataProvider;
 
 namespace XrSamples
 {
@@ -25,102 +32,144 @@ namespace XrSamples
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
 
+
+
+
         public static Task Run(IServiceProvider services)
         {
+            XrDevice.IsMetaQuest = false;
+
             ModuleManager.Instance.Init();
 
             Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>());
 
-            var builder = new XrEngineAppBuilder();
+            EngineApp? app = null;
 
-            var app = builder
-                .UsePlatform<ConsolePlatform>()
-                //.EnableDebug()
-                .UseOpenGL(opt =>
-                {
-                    opt.UseAsyncShaderCompile = false;
-                    opt.UseShaderCache = true;
-                    opt.SampleCount = 2;
-                })
-                .Configure(_ =>
-                {
-                    Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
-                })
-                .CreateBed()
-                .Build()
-                .App;
+            void CreateApp()
+            {
+                var builder = new XrEngineAppBuilder();
 
-            ;
+                app = builder
+                    .UsePlatform(new ConsolePlatform()
+                    {
+                        PersistentPath = "D:\\Projects\\XrEditor\\"
+                    })
+                    //.EnableDebug()
+                    .UseOpenGL(opt =>
+                    {
+                        opt.UseAsyncShaderCompile = false;
+                        opt.UseShaderCache = true;
+                        opt.SampleCount = 2;
+                        opt.UseDefaultIntermediate = true;
+                    })
+                    .Configure(_ =>
+                    {
+                        Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
+                    })
+                    .CreateDnd()
+                    .Build()
+                    .App;
+            }
+           
 
             var options = WindowOptions.Default;
+
+            options.Samples = 1;
+            //options.WindowState = WindowState.Fullscreen;
+            options.VSync = false;
+            options.ShouldSwapAutomatically = false;
+            options.Size = new Vector2D<int>(1600, 1000);
+
             if (Context.TryRequire<AngleVulkanContext>(out var angle))
                 options.API = GraphicsAPI.None;
 
             var view = Window.Create(options);
 
-            view.ShouldSwapAutomatically = angle == null;
-
-            var viewRect = new Rect2I();
-
-            var camera = app.ActiveScene!.PerspectiveCamera();
-
-            void UpdateSize()
+            async void UpdateSize()
             {
-                viewRect.Width = (uint)view.Size.X;
-                viewRect.Height = (uint)view.Size.Y;
+                if (app == null)
+                    return;
+
+                await EngineApp.MainThread;
+
+                var camera = app.ActiveScene!.PerspectiveCamera();
+
+                var viewRect = new Rect2I
+                {
+                    Width = (uint)view.FramebufferSize.X,
+                    Height = (uint)view.FramebufferSize.Y
+                };
+
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
             }
 
-            var render = (OpenGLRender)app.Renderer;
-            //render.AddPass(new GlSimulationPass(render, true), 0);
+            AutoResetEvent renderReady = new AutoResetEvent(false);
 
-            view.Load += () =>
+            async void RenderLoop()
             {
-                UpdateSize();
-
                 angle?.MakeCurrent();
 
                 angle?.CreateWindowSurface(view.Native!.Win32!.Value.Hwnd);
 
-                app.Start();
-            };
+                view.MakeCurrent();
 
-            view.Resize += x =>
-            {
+                CreateApp();
+
                 UpdateSize();
-            };
+  
+                var player = app!.ActiveScene!.ActiveCamera!.AddComponent<TransformPlayer>();
+                player.Loop = true;
 
-            //var isRecorded = false;
+                app!.Start();
 
-            view.Render += t =>
-            {
-                app.RenderFrame();
+                _ = player.LoadAsync();
 
-                angle?.SwapBuffers();
+                player.SetPlayState(PlayerState.Play);
 
-                /*
-                if (!isRecorded)
+                var lastEmitTime = DateTime.Now;
+
+                renderReady.Set();
+
+                while (true)
                 {
-                    var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-220511.json");
+                    if (!view.IsVisible)
+                    {
+                        Thread.Sleep(10);
+                        continue;
+                    }
 
-                    var generator = new CanvasImageGenerator((OpenGLRender)app.Renderer);
+                    if (view.IsClosing)
+                        break;
 
-                    using var image = generator.Generate(record, 0.001f / 1f);
+                    app.RenderFrame();
 
-                    Log.Debug(generator, "Encoding image...");
+                    angle?.SwapBuffers();
 
-                    using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-                    using var outStream = File.OpenWrite("d:\\image.png");
-                    data.SaveTo(outStream);
+                    view.SwapBuffers();
 
-                    Log.Debug(generator, "Image saved");
-
-                    isRecorded = true;
+                    if ((DateTime.Now - lastEmitTime).TotalSeconds > 1)
+                    {
+                        Log.Info(typeof(WindowSceneApp), "{0} FPS", app.Stats.Fps);
+                        lastEmitTime = DateTime.Now;
+                    }
                 }
-                */
-            };
+            }
 
-            view.Run();
+            view.Resize += _ => UpdateSize();
+
+            view.Initialize();
+
+            view.ClearContext();
+
+            var renderThread = new Thread(RenderLoop);
+            renderThread.Start();
+
+            renderReady.WaitOne();
+
+            while (!view.IsClosing)
+            {
+                view.DoEvents();
+            }
 
             return Task.CompletedTask;
         }

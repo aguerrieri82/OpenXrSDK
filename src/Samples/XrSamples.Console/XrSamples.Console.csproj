@@ -36,6 +36,7 @@
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\XrWebLink.Client\XrWebLink.Client.csproj" />
+		<ProjectReference Include="..\XrSamples.Dnd\XrSamples.Dnd.csproj" />
 		<ProjectReference Include="..\XrSamples.Earth\XrSamples.Earth.csproj" />
 		<ProjectReference Include="..\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
 	</ItemGroup>

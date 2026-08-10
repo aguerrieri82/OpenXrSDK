@@ -78,6 +78,8 @@ namespace XrEngine.OpenGL
             }
 
             _frameBuffer.Configure(_color, _depth, _sampleCount);
+
+            Log.Debug(this, "New size {0}x{1}", size.Width, size.Height);
         }
 
         public void Begin(Camera camera)

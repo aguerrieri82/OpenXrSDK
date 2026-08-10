@@ -57,6 +57,8 @@ namespace XrEngine.OpenXr.Windows
             Context.Implement<IProgressLogger>(new ProgressLogger());
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
 
+           PersistentPath = Path.Combine(_basePath, "Data");
+           CachePath = Path.Combine(_basePath, "Cache");
         }
 
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
@@ -104,9 +106,9 @@ namespace XrEngine.OpenXr.Windows
             throw new NotSupportedException();
         }
 
-        public string PersistentPath => Path.Combine(_basePath, "Data");
+        public string PersistentPath { get; set; }
 
-        public string CachePath => Path.Combine(_basePath, "Cache");
+        public string CachePath { get; set; }
 
         public string Name => "Console";
 

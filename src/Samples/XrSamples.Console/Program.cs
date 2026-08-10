@@ -25,7 +25,7 @@ Gpu.EnableNvAPi();
 Tasks.Services = host.Services;
 
 await WindowSceneApp.Run(host.Services);
-await XrSceneApp.Run(host.Services);
+//await XrSceneApp.Run(host.Services);
 //await SceneAnchors.Run(host.Services, logger);
 //await Physics.Run(host.Services, logger);
 

@@ -67,6 +67,7 @@ namespace XrEngine.OpenGL
             UseShaderCache = true;
             UseShaderPreprocessor = true;
             UseRayCollider = true;
+            UseDefaultIntermediate = true;
             ContactShadow = new()
             {
                 Use = false,
@@ -169,6 +170,8 @@ namespace XrEngine.OpenGL
         public MotionVectorMode MotionVectorMode { get; set; }
 
         public bool UseProfiler { get; set; }
+
+        public bool UseDefaultIntermediate { get; set; }
 
         public static GlRenderOptions Default() => new();
 

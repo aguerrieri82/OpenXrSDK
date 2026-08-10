@@ -117,7 +117,7 @@ namespace XrSamples
 
             var json = File.ReadAllText(Path.Join("D:\\Projects\\XrEditor", "inputs.json"));
 
-            var session = JsonSerializer.Deserialize<XrInputRecorder.RecordSession>(json, options);
+            var session = JsonSerializer.Deserialize<RecordSession<XrInputRecorder.XrRecordFrame>>(json, options);
 
             var data = new List<PoseTrainData>();
 
@@ -125,7 +125,7 @@ namespace XrSamples
 
             foreach (var frame in session.Frames)
             {
-                if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
+                if (!frame.Inputs!.TryGetValue("RightGripPose", out var pose))
                     continue;
                 var value = pose.Value;
                 if (value is JsonElement je)
