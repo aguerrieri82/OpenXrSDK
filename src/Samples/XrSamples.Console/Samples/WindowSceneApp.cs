@@ -80,6 +80,7 @@ namespace XrSamples
                         opt.UseShaderCache = true;
                         opt.SampleCount = 2;
                         opt.UseDefaultIntermediate = true;
+                        opt.UseDepthPass = false;
                     })
                     .Configure(_ =>
                     {

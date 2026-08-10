@@ -73,18 +73,17 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool asLayer = false) => self.ConfigureApp(e =>
         {
-            if (!XrPlatform.IsEditor)
-                e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
-            else
-            {
-                if (!XrDevice.IsMetaQuest)
-                    return;
+            if (!XrDevice.IsMetaQuest)
+                return;
 
-                if (asLayer)
-                {
-                    if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
-                        e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
-                }
+            if (!XrPlatform.IsEditor)
+            {
+                e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
+            }
+            else if (asLayer)
+            {
+                if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
+                    e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
             }
         });
 

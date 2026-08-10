@@ -68,6 +68,7 @@ namespace XrEngine.OpenGL
             UseShaderPreprocessor = true;
             UseRayCollider = true;
             UseDefaultIntermediate = true;
+            UsePrimitiveBoundingBox = true;
             ContactShadow = new()
             {
                 Use = false,
@@ -172,6 +173,8 @@ namespace XrEngine.OpenGL
         public bool UseProfiler { get; set; }
 
         public bool UseDefaultIntermediate { get; set; }
+
+        public bool UsePrimitiveBoundingBox { get;  set; }
 
         public static GlRenderOptions Default() => new();
 

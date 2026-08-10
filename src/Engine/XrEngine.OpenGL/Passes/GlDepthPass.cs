@@ -23,9 +23,9 @@ namespace XrEngine.OpenGL
         public GlDepthPass(OpenGLRender renderer)
             : base(renderer)
         {
-            UseOcclusionQuery = true;
+            UseOcclusionQuery = false;
             UseDepthCull = false;
-            OnlyLargeOccluder = true;
+            OnlyLargeOccluder = false;
 
             _useInstanceDraw = true;
 

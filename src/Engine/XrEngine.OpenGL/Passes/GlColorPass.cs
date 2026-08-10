@@ -140,6 +140,9 @@ namespace XrEngine.OpenGL
 
         protected void SetBounds(Camera camera, Object3D obj)
         {
+            if (!_renderer.Options.UsePrimitiveBoundingBox)
+                return;
+
             _renderer.UpdateContext.UsePrimitiveBoundingBox = false;
 #if GLES
             if (obj is ISkinnedMesh)

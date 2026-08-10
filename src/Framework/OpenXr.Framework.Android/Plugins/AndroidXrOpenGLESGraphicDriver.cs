@@ -1,4 +1,5 @@
-﻿using Silk.NET.Core.Contexts;
+﻿using Android.Content;
+using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
@@ -73,11 +74,22 @@ namespace OpenXr.Framework.Android
 
             _app!.CheckResult(_openGlEs!.GetOpenGlesgraphicsRequirements(_app!.Instance, _app.SystemId, ref req), "GetOpenGlesgraphicsRequirements");
 
-            var result = new GraphicsBinding();
-            result.Type = StructureType.GraphicsBindingOpenglESAndroidKhr;
-            result.OpenGLESAndroidKhr.Display = (nint)_context.Display!.NativeHandle;
-            result.OpenGLESAndroidKhr.Config = (nint)_context.Config!.NativeHandle;
-            result.OpenGLESAndroidKhr.Context = (nint)_context.Context!.NativeHandle;
+            var result = new GraphicsBinding
+            {
+                Type = StructureType.GraphicsBindingOpenglESAndroidKhr,
+                OpenGLESAndroidKhr = new()
+                {
+                    Type = StructureType.GraphicsBindingOpenglESAndroidKhr,
+                    Display = (nint)_context.Display!.NativeHandle,
+                    Config = (nint)_context.Config!.NativeHandle,
+                    Context = (nint)_context.Context!.NativeHandle,
+                    Next = null
+                }
+            };
+
+            _context.Take();
+            _context.SetSwapInterval(0);
+
             return result;
         }
 

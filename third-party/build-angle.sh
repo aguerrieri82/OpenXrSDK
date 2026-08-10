@@ -55,14 +55,7 @@ if [ ! -d "$ANGLE_DIR/.git" ]; then
         "$ANGLE_REPO" \
         "$ANGLE_DIR"
 else
-    echo "Updating ANGLE..."
-
-    git -C "$ANGLE_DIR" fetch \
-        --depth 1 \
-        --no-tags \
-        origin "$ANGLE_BRANCH"
-
-    git -C "$ANGLE_DIR" checkout -f FETCH_HEAD
+    echo "Using existing ANGLE checkout without updating it."
 fi
 
 echo "ANGLE ready."
@@ -75,20 +68,20 @@ export PATH="$DEPOT_TOOLS_DIR:$PATH"
 
 cat > "$ROOT/.gclient" <<EOF
 solutions = [
-  {
+{
     "name": "angle",
     "url": "$ANGLE_REPO",
     "deps_file": "DEPS",
     "managed": False,
     "custom_deps": {},
     "custom_vars": {
-      "checkout_angle_cl_deps": False,
-      "checkout_angle_dawn_deps": False,
-      "checkout_angle_internal": False,
-      "checkout_angle_mesa": False,
-      "checkout_angle_restricted_traces": False,
+        "checkout_angle_cl_deps": False,
+        "checkout_angle_dawn_deps": False,
+        "checkout_angle_internal": False,
+        "checkout_angle_mesa": False,
+        "checkout_angle_restricted_traces": False,
     },
-  },
+},
 ]
 
 target_os = ["android"]

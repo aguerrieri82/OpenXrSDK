@@ -178,9 +178,12 @@ namespace OpenXr.Framework.Android
 
         public void SwapBuffers()
         {
-            EGL14.EglSwapBuffers(
-                Display,
-                Surface);
+            EGL14.EglSwapBuffers(Display, Surface);
+        }
+
+        public void SetSwapInterval(int interval)
+        {
+            EGL14.EglSwapInterval(Display, interval);
         }
 
         public bool Take()

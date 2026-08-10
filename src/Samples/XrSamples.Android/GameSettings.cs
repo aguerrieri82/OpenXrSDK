@@ -34,10 +34,10 @@ namespace XrSamples
             return new GameSettings
             {
                 SampleName = "DnD",
-                Msaa = 2,
-                Scale = 1f,
+                Msaa = 1,
+                Scale = 0.5f,
                 DepthScale = 0.25f,
-                Driver = GraphicDriver.OpenGL,
+                Driver = GraphicDriver.Angle,
                 IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,

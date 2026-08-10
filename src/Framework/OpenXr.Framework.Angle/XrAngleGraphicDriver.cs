@@ -114,11 +114,14 @@ namespace OpenXr.Framework.Angle
                     Instance = new VkHandle(_context.VulkanInstanceHandle),
                     PhysicalDevice = physicalDevice,
                     QueueFamilyIndex = _context.QueueFamilyIndex,
-                    QueueIndex = 1,
+                    QueueIndex = 0,
                 }
             };
 
             _gl = GL.GetApi(_context);
+
+            _context.MakeCurrent();
+            _context.SetSwapInterval(0);
 
             return binding;
         }

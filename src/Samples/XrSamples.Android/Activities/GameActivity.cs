@@ -132,19 +132,27 @@ namespace XrSamples.Android.Activities
                     {
                     }
 
-                    //
-                    XrEngineGlobal.UseSharedSsbo = false;
-                    opt.UseInstanceDraw = false;
-                    opt.UseShaderCache = false;
-                    opt.UseAsyncShaderCompile = false;
-
+                    if (!XrDevice.IsMetaQuest)
+                    {
+                        if (_settings.Driver != GraphicDriver.Angle)
+                        {
+                            opt.UseInstanceDraw = false;
+                        }
+                        opt.UseAsyncShaderCompile = false;
+                        opt.UsePrimitiveBoundingBox = false;
+                    }
                 });
             else
                 ImageLight.UseCache = false;
 
+            builder.SetXrOptions(opt =>
+            {
+                if (!XrDevice.IsMetaQuest)
+                    opt.BlendMode = EnvironmentBlendMode.Opaque;
+            });
+
             builder.UseOculus(opt =>
             {
-
             });
 
             if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)

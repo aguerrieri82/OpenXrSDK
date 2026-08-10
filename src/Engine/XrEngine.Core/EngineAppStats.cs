@@ -7,12 +7,11 @@ namespace XrEngine
     {
         protected int _fpsFrameCount;
         protected int _frameCount;
-        protected DateTime _fpsLastTime;
+        protected long _fpsLastTime;
         protected ConcurrentDictionary<string, double> _updateTimes = [];
 
         public void BeginFrame()
         {
-            _startFrameTime = Stopwatch.GetTimestamp();
         }
 
         public void EndFrame()
@@ -20,19 +19,14 @@ namespace XrEngine
             _fpsFrameCount++;
             _frameCount++;
 
-            var total = Stopwatch.GetElapsedTime(_startFrameTime).TotalMilliseconds;
-
-            //Log.Value("Frame Time", (float)total);
-
-            var deltaSecs = (DateTime.UtcNow - _fpsLastTime).TotalSeconds;
+            var deltaSecs = Stopwatch.GetElapsedTime(_fpsLastTime).TotalSeconds;
 
             if (deltaSecs >= 2)
             {
                 Fps = (int)(_fpsFrameCount / deltaSecs);
                 _fpsFrameCount = 0;
-                _fpsLastTime = DateTime.UtcNow;
+                _fpsLastTime = Stopwatch.GetTimestamp();
             }
-
         }
 
         public void Update(IRenderUpdate renderUpdate, Action action)
@@ -52,7 +46,7 @@ namespace XrEngine
         }
 
         public long LayerChanges;
-        private long _startFrameTime;
+
 
         public long Frame => _frameCount;
 

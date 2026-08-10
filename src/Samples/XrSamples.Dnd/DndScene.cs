@@ -53,6 +53,18 @@ namespace XrSamples.Dnd
             _player.Name = "Player";
 
             AddChild(_player);
+
+#if __ANDROID__
+            
+            _scene!.AddComponent<StatsEmitter>();
+
+            var cameraPlayer = _scene!.ActiveCamera!.AddComponent<XrCameraPlayer>();
+            cameraPlayer.Loop = true;
+
+            _ = cameraPlayer.LoadAsync();
+
+            cameraPlayer.SetPlayState(PlayerState.Play);
+#endif
         }
 
         public async Task LoadAsync(string campaignId)

@@ -56,7 +56,10 @@ namespace XrEngine
                 if (_frameNum >= lastFrame)
                 {
                     if (Loop)
+                    {
                         Frame = FirstFrame;
+                        OnLoopStart();
+                    }
                     else
                         SetPlayState(PlayerState.Stop);
                 }
@@ -79,12 +82,17 @@ namespace XrEngine
             ApplyFrame(_frame);
         }
 
+        protected virtual void OnLoopStart()
+        {
+
+        }
+
         protected abstract void ApplyFrame(TFrame frame);
 
         [Action]
         public async Task LoadAsync()
         {
-            var path = Context.Require<IPlatform>().PersistentPath;
+            var path = Context.Require<IPlatform>().SharedPath;
 
             using var stream = File.OpenRead(Path.Join(path, SourceFile));
             _session = await JsonSerializer.DeserializeAsync<RecordSession<TFrame>>(stream, JSON_OPTIONS);

@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
 using Silk.NET.OpenXR;
 using VkStructureType = Silk.NET.Vulkan.StructureType;
+using Microsoft.Extensions.Logging;
 
 namespace OpenXr.Framework.Angle;
 
@@ -360,12 +361,16 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     private readonly Dictionary<uint, AquiredTexture> _acquiredTextures = [];
 
+    private readonly HashSet<XrSwapchain> _swapAttached = [];
+
     int _sampleCount;
 
     public AngleVulkanContext(int sampleCount = 1)
     {
-        _sampleCount = sampleCount;
+        UseImageAcquire = true;
 
+        _sampleCount = sampleCount;
+    
         nint eglLibrary = 0;
         nint glesLibrary = 0;
 
@@ -573,10 +578,15 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             usage |= (ImageUsageFlags)vkInfo->AdditionalUsageFlags;
         }
 
-        swapchain.BeforeRelease += OnBeforeRelease;
-        swapchain.AfterAcquire += OnAfterAcquire;
+        if (UseImageAcquire && !_swapAttached.Contains(swapchain))
+        {
+            swapchain.BeforeRelease += OnBeforeRelease;
+            swapchain.AfterAcquire += OnAfterAcquire;
 
-        return AttachVulkanImage(vkImage,
+            _swapAttached.Add(swapchain);
+        }
+
+        var result = AttachVulkanImage(vkImage,
             (Format)swapchain.Format,
             swapchain.Size,
             swapchain.ArraySize,
@@ -585,14 +595,15 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             usage,
             flags,
             swapchain.ArraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D);
+
+        if (UseImageAcquire)
+            AcquireTexture(result.Texture);
+
+        return result;
     }
 
     private void OnAfterAcquire(XrSwapchain swapchain)
     {
-        var vkImage = (nint)((SwapchainImageVulkanKHR*)swapchain.LastImage)->Image;
-        var image = _images[vkImage];
-
-        AcquireTexture(image.Texture);
     }
 
     private void OnBeforeRelease(XrSwapchain swapchain)
@@ -714,8 +725,11 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     public void ReleaseTexture(uint texture)
     {
         if (!_acquiredTextures.TryGetValue(texture, out var info) || !info.IsAcquired)
-            throw new InvalidOperationException("Texture is not acquired.");
-
+        {
+            XrApp.Current!.Logger.LogWarning("Texture {tex} not aquired", texture);
+            return;
+        }
+  
         uint layout;
 
         _glReleaseTexturesAngle(1, &texture, &layout);
@@ -1087,6 +1101,8 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         addr = ((INativeContext)this).GetProcAddress(proc, slot);
         return addr != 0;
     }
+
+    public bool UseImageAcquire { get; set; }
 
     public nint Display { get; private set; }
 
