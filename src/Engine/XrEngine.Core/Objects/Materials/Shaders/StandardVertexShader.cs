@@ -86,8 +86,10 @@ namespace XrEngine
 
             if (bld.Context.ClipRegions != null)
             {
-                bld.AddExtension(bld.Context.UseAngle ? "GL_ANGLE_clip_cull_distance" : "GL_EXT_clip_cull_distance");
+                bld.AddExtension("GL_EXT_clip_cull_distance");
+
                 bld.AddFeature("USE_VIEW_CLIP");
+
 
                 bld.ExecuteAction((ctx, up) =>
                 {

@@ -377,7 +377,7 @@ namespace XrEngine.OpenXr
                     var w = renderTarget.RenderSize.Width;
                     var h = renderTarget.RenderSize.Height;
 
-                    var cropW = (uint)MathF.Round(w / info.CropScale.X);
+                    var cropW = (uint)MathF.Round(w / (info.CropScale.X / 1.0f));
                     var x = viewIndex == 0 ? w - cropW : 0;
 
                     renderTarget.ClipRegions[viewIndex] = new Rect2I((int)x, 0, cropW, h);

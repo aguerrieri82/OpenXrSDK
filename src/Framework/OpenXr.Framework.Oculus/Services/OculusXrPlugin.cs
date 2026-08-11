@@ -220,11 +220,14 @@ namespace OpenXr.Framework.Oculus
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
             RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
  
-            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
-            SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
-
-            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
-            GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
+            if (!_app.IsMetaSimulator)
+            {
+                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
+                SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
+      
+                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
+                GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
+            }
         }
 
         public override void OnSessionCreated()
@@ -743,6 +746,9 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe Extent2Di? GetRecommendedLayerResolution(CompositionLayerBaseHeader* layer, long predictedDisplayTime)
         {
+            if (_app!.IsMetaSimulator)
+                return null;
+
             var info = new RecommendedLayerResolutionGetInfoMETA
             {
                 Layer = layer,
@@ -790,6 +796,10 @@ namespace OpenXr.Framework.Oculus
         {
             if (_options.Foavetion == null || !_options.Foavetion.Use)
                 return;
+            
+            if (_app.IsMetaSimulator)
+                return;
+
             UpdateFoveation(_options.Foavetion.IsDynamic, _options.Foavetion.Level, _options.Foavetion.Offset);
         }
 
@@ -953,6 +963,9 @@ namespace OpenXr.Framework.Oculus
 
         public void SetHandTrackingFrequencyHint(HandTrackingFrequencyHintMETA frequencyHint)
         {
+            if (_app!.IsMetaSimulator)
+                return;
+
             _app!.CheckResult(SetHandTrackingFrequencyHintMETA!(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
         }
 

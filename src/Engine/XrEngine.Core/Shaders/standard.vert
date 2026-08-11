@@ -160,5 +160,15 @@ void main()
         gl_ClipDistance[3] = clip.z * gl_Position.w - gl_Position.x;
         gl_ClipDistance[4] = clip.w * gl_Position.w - gl_Position.y;
 
+        #if defined(MULTI_VIEW) && defined(NV_MULTI_VIEW_CLIP_BUG)
+            if (ACTIVE_EYE == 0u)
+            {
+                gl_ClipDistance[1] = 1.0;
+                gl_ClipDistance[2] = 1.0;
+                gl_ClipDistance[3] = 1.0;
+                gl_ClipDistance[4] = 1.0;
+            }
+        #endif
+
     #endif
 }

@@ -41,12 +41,27 @@ namespace XrEngine
         Model
     }
 
+    public struct RenderDriverBugs
+    {
+        /// <summary>
+        /// Workaround for an NVIDIA Vulkan multiview clipping bug observed with per-view <c>gl_ClipDistance</c>.
+        /// If a primitive is completely rejected by clip distance in view 0, the corresponding primitive may also be
+        /// incorrectly discarded from view 1 even when view 1's clip distances would keep it visible.
+        /// 
+        /// When this workaround is enabled, view 0 does not use the per-view clip distances and its excluded region is
+        /// masked by a depth-prefill pass instead. View 1 continues to use normal clip-distance rejection.
+        /// </summary>
+        public bool NvMultiViewClipBug;
+    }
+
     public class UpdateShaderContext
     {
         public UpdateShaderContext()
         {
             FrustumPlanes = new Plane[6];
         }
+
+        public RenderDriverBugs Bugs;
 
         public UpdateShaderStage Stage;
 
@@ -117,6 +132,8 @@ namespace XrEngine
         public Texture2D? CopyDepthImage;
 
         public Rect2I[]? ClipRegions;
+
+        public bool IsMultiView;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

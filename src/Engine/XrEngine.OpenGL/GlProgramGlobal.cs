@@ -28,6 +28,9 @@ namespace XrEngine.OpenGL
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
 
+                if (bld.Context.Bugs.NvMultiViewClipBug)
+                    bld.AddFeature("NV_MULTI_VIEW_CLIP_BUG");
+
                 if (bld.Context.UsePrimitiveBoundingBox)
                     bld.AddExtension("GL_EXT_primitive_bounding_box");
 

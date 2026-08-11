@@ -14,6 +14,8 @@ namespace XrEngine.OpenGL
     public class GlColorPass : GlBaseRenderPass
     {
         int _frame = 0;
+        protected DepthClipEffect? _depthClipEffect;
+
         readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
@@ -61,10 +63,19 @@ namespace XrEngine.OpenGL
 #if GLES
 
 #endif
-
                 _gl.ClearBuffer(BufferKind.Color, 0, ctx.PassCamera!.BackgroundColor.AsSpan());
 
                 _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
+
+                if (ctx.Bugs.NvMultiViewClipBug &&
+                    ctx.ClipRegions != null && 
+                    ctx.ClipRegions.Length > 1 &&
+                    ctx.IsMultiView)
+                {
+                    _depthClipEffect ??= new DepthClipEffect();
+                    UseEffect(_depthClipEffect);
+                    DrawVirtual(6);
+                }
             }
 
             _frame++;
@@ -76,7 +87,8 @@ namespace XrEngine.OpenGL
         {
             return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color ||
                                                (a.Type & GlLayerType.Static) == GlLayerType.Static ||
-                                               (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline));
+                                               (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline))
+                                    .Where(a => a.SceneLayer == null || a.SceneLayer.IsVisible);
         }
 
         protected override void EndRender(GlUpdateContext ctx)

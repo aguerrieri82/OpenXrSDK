@@ -98,6 +98,7 @@ namespace OpenXr.Framework
         protected bool _layersCreated;
         protected bool _isValid; //TODO rethink on _state
         protected uint _swapChainSampleCount;
+        private string? _runtimeName;
 
         public delegate void ConfigureStruct<T>(ref T data) where T : unmanaged;
 
@@ -125,8 +126,17 @@ namespace OpenXr.Framework
             _extensions.Add(ExtDebugUtils.ExtensionName);
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
+#if !__ANDROID__
+            _extensions.Add(KhrWin32ConvertPerformanceCounterTime.ExtensionName);
+#endif
+
             Current = this;
             ReferenceFrame = Pose3.Identity;
+        }
+
+        public bool HasExtension(string name)
+        {
+            return _extensions.Contains(name);
         }
 
         #region START/STOP
@@ -468,7 +478,7 @@ namespace OpenXr.Framework
             _logger.LogInformation("Stopped");
         }
 
-#endregion
+        #endregion
 
         #region INSTANCE & SYSTEM
 
@@ -517,6 +527,8 @@ namespace OpenXr.Framework
             var props = new InstanceProperties(StructureType.InstanceProperties);
 
             CheckResult(_xr!.GetInstanceProperties(_instance, ref props), "GetInstanceProperties");
+
+            _runtimeName = Marshal.PtrToStringUTF8((nint)props.RuntimeName);
 
             return props;
 
@@ -839,13 +851,13 @@ namespace OpenXr.Framework
 
             CheckResult(_xr!.BeginSession(_session, &sessionBeginInfo), "BeginSession");
 
-            PluginInvoke(p => p.OnSessionBegin());
-
             if (!_layersCreated)
             {
                 LayersInvoke(a => a.Create());
                 _layersCreated = true;
             }
+
+            PluginInvoke(p => p.OnSessionBegin());
 
             _isValid = true;
         }
@@ -1942,5 +1954,9 @@ namespace OpenXr.Framework
         public Pose3 ReferenceFrame { get; set; }
 
         public bool UseLocalSpace { get; set; }
+
+        public string? RuntimeName => _runtimeName;
+
+        public bool IsMetaSimulator => _runtimeName == "Meta XR Simulator";
     }
 }

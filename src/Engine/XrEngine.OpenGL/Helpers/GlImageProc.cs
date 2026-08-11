@@ -140,8 +140,8 @@ namespace XrEngine.OpenGL
             if (_emptyVertexArray == 0)
                 _emptyVertexArray = gl.GenVertexArray();
 
-            GlState.Current!.BindVertexArray(_emptyVertexArray);
-            gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            GlState.Current.BindVertexArray(_emptyVertexArray);
+            gl.DrawArrays(PrimitiveType.Triangles, 0, vertices);
         }
 
         public static GlTexture GetDepth(GL gl, IGlFrameBuffer src)

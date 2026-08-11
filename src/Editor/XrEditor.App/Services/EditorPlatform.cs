@@ -133,7 +133,7 @@ namespace XrEditor
 
         public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
-            return new XrApp(NullLogger.Instance, [..plugins]);
+            return new XrApp(new NetLoggerProgressLogger(), [.. plugins]);
         }
 
         public IRenderSurface RenderSurface => _renderSurface!;

@@ -62,7 +62,8 @@ namespace OpenXr.Framework
 
             Priority = XrLayerPriority.Projection;
 
-            UseSimmetricFov = true; 
+            if (XrDevice.IsMetaQuest)
+                UseSimmetricFov = true;
         }
 
         public XrProjectionLayer(RenderViewDelegate renderView, bool useDepth)

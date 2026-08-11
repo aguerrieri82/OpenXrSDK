@@ -4,7 +4,7 @@
             "commandName": "Project",
             "nativeDebugging": false,
             "environmentVariables": {
-
+                "ANGLE_DUMP_SPIRV": "1"
             }
         },
         "Native": {

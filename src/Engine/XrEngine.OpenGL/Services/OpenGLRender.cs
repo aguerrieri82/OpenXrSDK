@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Common.Interop;
 using XrEngine.Helpers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenGL
 {
@@ -132,10 +133,28 @@ namespace XrEngine.OpenGL
 
             ConfigureCaps();
 
+            ConfigureDriver();
+
             PbrMaterial.SHADER.ToneMap = _options.ToneMap;
+
+
         }
 
         #endregion
+
+        protected unsafe void ConfigureDriver()
+        {
+            var vendor = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Vendor)) ?? "";
+            var renderer = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Renderer)) ?? "";
+
+            var isNvidia = vendor.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
+                           renderer.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
+
+            _updateCtx.Bugs.NvMultiViewClipBug = _useAngle &&
+                                                 OperatingSystem.IsWindows() &&
+                                                 isNvidia;
+        }
+
 
         #region STATE
 
@@ -887,6 +906,7 @@ namespace XrEngine.OpenGL
             }
 
             _updateCtx.ClipRegions = renderTarget.ClipRegions;
+            _updateCtx.IsMultiView = renderTarget is GlMultiViewRenderTarget;
 
             _glState.SetShadingRate(Math.Max(1, _target!.ShadingRate));
         }
