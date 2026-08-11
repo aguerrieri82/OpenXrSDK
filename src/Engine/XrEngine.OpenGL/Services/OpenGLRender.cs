@@ -875,15 +875,18 @@ namespace XrEngine.OpenGL
             {
                 _updateCtx.IsSrgbTarget = true;
                 _updateCtx.IsSrgbAutoEncode = false;
-                return;
+            }
+            else
+            {
+                if (renderTarget is IGlFrameBufferProvider fbProv && fbProv.FrameBuffer.Color != null)
+                    _updateCtx.IsSrgbTarget = fbProv.FrameBuffer.Color.InternalFormat.IsSrgb();
+                else
+                    _updateCtx.IsSrgbTarget = false;
+
+                _updateCtx.IsSrgbAutoEncode = _glState.IsFeatureEnabled(EnableCap.FramebufferSrgb);
             }
 
-            if (renderTarget is IGlFrameBufferProvider fbProv && fbProv.FrameBuffer.Color != null)
-                _updateCtx.IsSrgbTarget = fbProv.FrameBuffer.Color.InternalFormat.IsSrgb();
-            else
-                _updateCtx.IsSrgbTarget = false;
-
-            _updateCtx.IsSrgbAutoEncode = _glState.IsFeatureEnabled(EnableCap.FramebufferSrgb);
+            _updateCtx.ClipRegions = renderTarget.ClipRegions;
 
             _glState.SetShadingRate(Math.Max(1, _target!.ShadingRate));
         }

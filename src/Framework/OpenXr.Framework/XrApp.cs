@@ -92,8 +92,10 @@ namespace OpenXr.Framework
         protected KhrVisibilityMask? _visibilityMask;
         protected ExtDebugUtils? _debugUtils;
         protected KhrConvertTimespecTime? _convertTime;
+        protected KhrWin32ConvertPerformanceCounterTime? _win32Time;
 
         protected XrAppState _state;
+        protected bool _layersCreated;
         protected bool _isValid; //TODO rethink on _state
         protected uint _swapChainSampleCount;
 
@@ -329,6 +331,31 @@ namespace OpenXr.Framework
             return result;
         }
 
+        public long XrNow()
+        {
+#if ANDROID
+            var monoTime = Java.Lang.JavaSystem.NanoTime();
+
+            var timespec = new Timespec
+            {
+                Seconds = (nint)(monoTime / 1_000_000_000),
+                Nanoseconds = (nint)(monoTime % 1_000_000_000)
+            };
+
+            long result = 0;
+            CheckResult(_convertTime!.ConvertTimespecTimeToTime(_instance, ref timespec, ref result), "ConvertTimespecTimeToTime");
+            return result;
+#else
+            if (_win32Time == null && !_xr!.TryGetInstanceExtension(null, _instance, out _win32Time))
+                throw new NotSupportedException();
+
+            long winTime = Stopwatch.GetTimestamp();
+            long result = 0;
+            CheckResult(_win32Time!.ConvertWin32PerformanceCounterToTime(_instance, ref winTime, ref result), "ConvertWin32PerformanceCounterToTime");
+            return result;
+#endif
+        }
+
         public void AttachInstance(ulong instance)
         {
             _instance.Handle = instance;
@@ -351,8 +378,6 @@ namespace OpenXr.Framework
             SelectRenderOptions(_viewInfo, _renderOptions);
 
             _layers.Commit();
-
-            LayersInvoke(a => a.Create());
 
             PluginInvoke(p => p.OnSessionCreated());
 
@@ -409,6 +434,8 @@ namespace OpenXr.Framework
 
         public virtual void Stop()
         {
+            _layersCreated = false;
+
             _isValid = false;
 
             _state = XrAppState.Stopping;
@@ -441,7 +468,7 @@ namespace OpenXr.Framework
             _logger.LogInformation("Stopped");
         }
 
-        #endregion
+#endregion
 
         #region INSTANCE & SYSTEM
 
@@ -813,6 +840,12 @@ namespace OpenXr.Framework
             CheckResult(_xr!.BeginSession(_session, &sessionBeginInfo), "BeginSession");
 
             PluginInvoke(p => p.OnSessionBegin());
+
+            if (!_layersCreated)
+            {
+                LayersInvoke(a => a.Create());
+                _layersCreated = true;
+            }
 
             _isValid = true;
         }

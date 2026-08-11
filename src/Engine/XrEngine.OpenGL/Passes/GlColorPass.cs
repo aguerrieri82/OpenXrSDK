@@ -169,10 +169,22 @@ namespace XrEngine.OpenGL
 
         protected virtual void ConfigureCaps(ShaderMaterial material)
         {
+            var glState = _renderer.State;
+
             _renderer.ConfigureCaps(material);
 
             if (!WriteDepth)
-                _renderer.State.SetWriteDepth(false);
+                glState.SetWriteDepth(false);
+
+            var clipRegions = _renderer.UpdateContext.ClipRegions;
+
+            var enableClipRegions = clipRegions != null &&
+                                    clipRegions.Length > 0;
+
+            glState.EnableFeature(EnableCap.ClipDistance1, enableClipRegions);
+            glState.EnableFeature(EnableCap.ClipDistance2, enableClipRegions);
+            glState.EnableFeature(EnableCap.ClipDistance3, enableClipRegions);
+            glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
         public override void RenderLayer(GlLayer layer)

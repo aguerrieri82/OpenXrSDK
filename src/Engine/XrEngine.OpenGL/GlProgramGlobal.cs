@@ -20,11 +20,14 @@ namespace XrEngine.OpenGL
             {
                 return _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
                        _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
-                       _tracker.IsChanged(() => ctx.UseCopyDepth);
+                       _tracker.IsChanged(() => ctx.UseCopyDepth) ||
+                       _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox);
+
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+
                 if (bld.Context.UsePrimitiveBoundingBox)
                     bld.AddExtension("GL_EXT_primitive_bounding_box");
 

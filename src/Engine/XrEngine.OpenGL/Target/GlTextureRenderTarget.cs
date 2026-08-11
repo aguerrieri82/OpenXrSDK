@@ -61,5 +61,7 @@ namespace XrEngine.OpenGL
         public int ShadingRate { get; set; }
 
         public Size2I RenderSize { get; set; }
+
+        public Rect2I[]? ClipRegions { get; set; }
     }
 }

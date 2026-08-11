@@ -58,5 +58,7 @@
         public uint Width;
 
         public uint Height;
+
+        public static readonly Rect2I Empty = new();
     }
 }

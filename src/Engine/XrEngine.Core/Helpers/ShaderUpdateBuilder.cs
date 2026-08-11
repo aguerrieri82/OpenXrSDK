@@ -116,6 +116,7 @@ namespace XrEngine
 
         public Texture2D? CopyDepthImage;
 
+        public Rect2I[]? ClipRegions;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

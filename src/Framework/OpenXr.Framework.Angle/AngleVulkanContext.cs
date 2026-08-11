@@ -193,7 +193,9 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         GlColorspaceKhr = 0x309D,
         GlColorspaceSrgbKhr = 0x3089,
         SampleBuffers = 0x3032,
-        Samples = 0x3031
+        Samples = 0x3031,
+        FeatureOverridesEnabledAngle = 0x3466,
+        FeatureOverridesDisabledAngle = 0x3467
     }
 
     private const nint EglNoDisplay = 0;
@@ -435,6 +437,14 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         {
             if (!IsInitialized)
             {
+                var enabledFeatures = stackalloc nint[2];
+                enabledFeatures[0] = Marshal.StringToHGlobalAnsi("supportsClipCullDistanceInGSAndTS");
+                enabledFeatures[1] = 0;
+
+                var disabledFeatures = stackalloc nint[2];
+                disabledFeatures[0] = Marshal.StringToHGlobalAnsi("supportsProtectedMemory");
+                disabledFeatures[1] = 0;
+
                 var displayAttributes = stackalloc nint[]
                 {
                     (int)Egl.PlatformAngleType,
@@ -444,10 +454,23 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
                     (int)Egl.PlatformAngleDebugLayersEnabled,
                     (int)Egl.True,
 #endif
+                    (int)Egl.FeatureOverridesEnabledAngle,
+                    (nint)enabledFeatures,
+
+                    (int)Egl.FeatureOverridesDisabledAngle,
+                    (nint)disabledFeatures,
+
                     (int)Egl.None
                 };
 
                 Display = _eglGetPlatformDisplayAttrib((uint)Egl.PlatformAngle, 0, displayAttributes);
+
+                for (var i = 0; i < 1; i++)
+                    Marshal.FreeHGlobal(enabledFeatures[i]);
+
+                for (var i = 0; i < 1; i++)
+                    Marshal.FreeHGlobal(disabledFeatures[i]);
+
                 CheckHandle(Display, EglNoDisplay, "eglGetPlatformDisplayEXT");
 
                 int major;

@@ -16,14 +16,13 @@ using System.Diagnostics;
 using OpenXr.Framework.Oculus;
 using Common.Interop;
 using OpenXr.Framework.Angle;
-using Silk.NET.Vulkan;
 using StructureType = Silk.NET.OpenXR.StructureType;
 
 namespace XrEngine.OpenXr
 {
     public unsafe static class XrExtensions
     {
-        public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint colorTex, uint depthTex);
+        public delegate IGlRenderTargetFB GlRenderTargetFactory(GL gl, uint colorTex, uint depthTex);
 
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
@@ -312,55 +311,79 @@ namespace XrEngine.OpenXr
 
             AngleVulkanContext? vulkanCtx = null;
 
-            (uint Color, uint Depth) GetImages(ref RenderViewsInfo info, int index)
+            (uint Color, uint Depth) GetImages(ref RenderViewsInfo info, int swapIndex)
             {
                 if (!useAngle)
                 {
                     return (
-                        ((SwapchainImageOpenGLKHR*)info.ColorImages[index])->Image,
-                        info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[index])->Image);
+                        ((SwapchainImageOpenGLKHR*)info.ColorImages[swapIndex])->Image,
+                        info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[swapIndex])->Image);
                 }
 
                 vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
-                var colorImg = vulkanCtx.AttachVulkanImage(info.ColorImages[index], info.Color[0]); 
+                var colorImg = vulkanCtx.AttachVulkanImage(info.ColorImages[swapIndex], info.Color[0]); 
 
                 if (info.DepthImages == null || info.Depth == null)
                     return (colorImg.Texture, 0);
 
-                var depthImg = vulkanCtx.AttachVulkanImage(info.DepthImages[index], info.Depth[0]);
+                var depthImg = vulkanCtx.AttachVulkanImage(info.DepthImages[swapIndex], info.Depth[0]);
 
                 return (colorImg.Texture, depthImg.Texture);
             }
 
-            void SetupRenderTarget(ref RenderViewsInfo info, PerspectiveCamera camera, int index)
+            IGlRenderTargetFB SetupRenderTarget(ref RenderViewsInfo info, PerspectiveCamera camera, int swapIndex)
             {
-                var images = GetImages(ref info, index);
+                var images = GetImages(ref info, swapIndex);
 
                 var renderTarget = targetFactory(renderer.GL, images.Color, images.Depth);
 
-                camera.SetProp(OpenGLRender.Props.RenderTarget[index], renderTarget);
+                camera.SetProp(OpenGLRender.Props.RenderTarget[swapIndex], renderTarget);
 
                 renderer.SetRenderTarget(renderTarget);
 
                 if (XrDevice.IsMetaQuest)
                 {
-                    info.RenderSize = info.Layer.GetRecommendedResolution(info.DisplayTime);
+                    info.RenderedSize =  info.Layer.GetRecommendedResolution(info.DisplayTime);
 
-                    if (info.RenderSize != null)
-                        renderTarget.RenderSize = new Size2I((uint)info.RenderSize.Value.Width, (uint)info.RenderSize.Value.Height);
+                    if (info.RenderedSize != null)
+                    {
+                        info.RenderedSize = info.Layer.AdjustRenderSize(info.RenderedSize.Value);
+                        renderTarget.RenderSize = new Size2I((uint)info.RenderedSize.Value.Width, (uint)info.RenderedSize.Value.Height);
+                    }
                     else
                         renderTarget.RenderSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
                 }
 
                 var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(
-                    ref info.ProjViews[index], StructureType.CompositionLayerDepthInfoKhr);
+                    ref info.ProjViews[swapIndex], StructureType.CompositionLayerDepthInfoKhr);
 
                 if (depth != null)
                 {
                     depth->NearZ = camera.Near;
                     depth->FarZ = camera.Far;
                 }
+
+                return renderTarget;
+            }
+
+            void UpdateClipRegion(ref RenderViewsInfo info, IGlRenderTargetFB renderTarget, int viewIndex)
+            {
+                if (info.Layer.UseSimmetricFov)
+                {
+                    if (renderTarget.ClipRegions == null || renderTarget.ClipRegions.Length != 2)
+                        renderTarget.ClipRegions = new Rect2I[2];
+
+                    var w = renderTarget.RenderSize.Width;
+                    var h = renderTarget.RenderSize.Height;
+
+                    var cropW = (uint)MathF.Round(w / info.CropScale.X);
+                    var x = viewIndex == 0 ? w - cropW : 0;
+
+                    renderTarget.ClipRegions[viewIndex] = new Rect2I((int)x, 0, cropW, h);
+                }
+                else
+                    renderTarget.ClipRegions = null;
             }
 
             void RenderView(ref RenderViewsInfo info)
@@ -377,7 +400,12 @@ namespace XrEngine.OpenXr
 
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
-                    var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
+                    XrCameraTransform transform;
+
+                    if (info.Layer.UseSimmetricFov)
+                        transform = XrCameraTransform.FromView(info.ProjViews[i].Pose.ToPose3(), info.SharedFov, camera.Near, camera.Far);
+                    else
+                        transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
                     eyes[i].World = transform.World * referenceFrame;
                     eyes[i].Projection = transform.Projection;
@@ -393,11 +421,13 @@ namespace XrEngine.OpenXr
 
                     for (var i = 0; i < info.ColorImages.Length; i++)
                     {
-                        SetupRenderTarget(ref info, camera, i);
+                        var rt = SetupRenderTarget(ref info, camera, i);
 
                         camera.Projection = eyes[i].Projection;
                         camera.WorldMatrix = eyes[i].World;
                         camera.ActiveEye = i;
+
+                        UpdateClipRegion(ref info, rt, i);
 
                         app.RenderScene();
                     }
@@ -406,11 +436,14 @@ namespace XrEngine.OpenXr
                 }
                 else if (info.Mode == XrRenderMode.MultiView)
                 {
-                    SetupRenderTarget(ref info, camera, 0);
+                    var rt = SetupRenderTarget(ref info, camera, 0);
 
                     camera.Projection = eyes[0].Projection;
                     camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
                     camera.ActiveEye = -1;
+
+                    UpdateClipRegion(ref info, rt, 0);
+                    UpdateClipRegion(ref info, rt, 1);
 
                     app.RenderFrame();
                 }

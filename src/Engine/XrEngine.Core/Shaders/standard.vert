@@ -23,6 +23,9 @@ layout(location=2) in vec2 a_texcoord;
     uniform vec4 uClipPlane;
 #endif
 
+#ifdef USE_VIEW_CLIP
+    uniform vec4 uViewClip[2];
+#endif
 
 #ifdef HAS_UV2
     layout(location=3) in vec2 a_texcoord2;
@@ -146,5 +149,16 @@ void main()
 
     #ifdef MOTION_VECTORS
         computeMotionVectors(position);
+    #endif
+
+    #ifdef USE_VIEW_CLIP
+
+        vec4 clip = uViewClip[ACTIVE_EYE];
+
+        gl_ClipDistance[1] = gl_Position.x - clip.x * gl_Position.w;
+        gl_ClipDistance[2] = gl_Position.y - clip.y * gl_Position.w;
+        gl_ClipDistance[3] = clip.z * gl_Position.w - gl_Position.x;
+        gl_ClipDistance[4] = clip.w * gl_Position.w - gl_Position.y;
+
     #endif
 }

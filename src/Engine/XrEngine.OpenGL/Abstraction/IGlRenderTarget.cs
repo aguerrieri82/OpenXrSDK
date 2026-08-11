@@ -31,6 +31,8 @@ namespace XrEngine.OpenGL
         int ShadingRate { get; set; }
 
         Size2I RenderSize { get; set; }
+
+        Rect2I[]? ClipRegions { get; set; }
     }
 
     public interface IGlRenderTargetFB : IGlRenderTarget, IGlFrameBufferProvider
