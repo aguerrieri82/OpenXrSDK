@@ -96,6 +96,11 @@ namespace OpenXr.Framework
             };
         }
 
+        public string GetInteractionProfile()
+        {
+            return _app.GetCurrentInteractionProfile(_path);
+        }
+
         public DateTime LastChangeTime => _lastChangeTime;
 
         public bool IsActive => _isActive && (_isSimulated || _action.Handle != 0);

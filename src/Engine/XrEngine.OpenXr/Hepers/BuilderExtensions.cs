@@ -91,14 +91,14 @@ namespace XrEngine.OpenXr
         {
             self.UseInputs<XrOculusTouchController>(bld =>
 
-            bld.AddAction(a => a.Left!.AimPose)
-                .AddAction(a => a.Left!.GripPose)
-                .AddAction(a => a.Left!.SqueezeClick)
-                .AddAction(a => a.Left!.SqueezeValue)
-                .AddAction(a => a.Left!.Button!.XClick)
-                .AddAction(a => a.Left!.Button!.YClick)
-                .AddAction(a => a.Left!.TriggerClick)
-                .AddAction(a => a.Left!.TriggerValue));
+            bld.AddAction(a => a.Left.AimPose)
+                .AddAction(a => a.Left.GripPose)
+                .AddAction(a => a.Left.SqueezeClick)
+                .AddAction(a => a.Left.SqueezeValue)
+                .AddAction(a => a.Left.Button.XClick)
+                .AddAction(a => a.Left.Button.YClick)
+                .AddAction(a => a.Left.TriggerClick)
+                .AddAction(a => a.Left.TriggerValue));
 
             return self;
         }

@@ -38,12 +38,18 @@ namespace OpenXr.Framework.Oculus
                 Level = FoveationLevelFB.HighFB,
                 Offset = 0,
             };
+            UseHandsWideMotion = true;
             ColorSpace = ColorSpaceFB.Rec709FB;
         }
+
+        public bool UseHandsWideMotion { get; set; }
 
         public FoavetionInfo? Foavetion { get; set; }
 
         public ColorSpaceFB ColorSpace { get; set; }
+
+        public HandTrackingDataSourceEXT[]? HandDataSources { get; set; }
+
         public bool HandTrackingUnextrapolated { get; internal set; }
     }
 
@@ -118,6 +124,11 @@ namespace OpenXr.Framework.Oculus
 
         GetRecommendedLayerResolutionMETADelegate? GetRecommendedLayerResolutionMETA;
 
+        ResumeSimultaneousHandsAndControllersTrackingMETADelegate? ResumeSimultaneousHandsAndControllersTracking;
+
+        PauseSimultaneousHandsAndControllersTrackingMETADelegate? PauseSimultaneousHandsAndControllersTracking;
+
+
         #endregion
 
         protected class ActiveQuery
@@ -145,7 +156,8 @@ namespace OpenXr.Framework.Oculus
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
         protected FBColorSpace? _colorSpace;
-
+        protected NativeArray<HandTrackingDataSourceEXT>? _handsDataSources;
+        protected NativeStruct<HandTrackingDataSourceInfoEXT> _handDataSourceInfo;
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
         protected readonly OculusXrPluginOptions _options;
@@ -179,6 +191,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBHandTrackingMesh.ExtensionName);
             extensions.Add(FBColorSpace.ExtensionName);
 
+
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
             extensions.Add("XR_META_spatial_entity_mesh");
@@ -189,9 +202,12 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_META_recommended_layer_resolution");
             extensions.Add("XR_META_spatial_entity_discovery");
             extensions.Add("XR_FB_composition_layer_depth_test");
+            extensions.Add("XR_EXT_hand_tracking_data_source");
+
             extensions.Add(METAHandTrackingWideMotionMode.ExtensionName);
             extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);
             extensions.Add(METAHandTrackingUnextrapolatedPoses.ExtensionName);
+            extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);
 
         }
 
@@ -229,6 +245,12 @@ namespace OpenXr.Framework.Oculus
       
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
                 GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
+
+                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrResumeSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrResumeSimultaneousHandsAndControllersTrackingMETA ");
+                ResumeSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<ResumeSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
+
+                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "XrSimultaneousHandsAndControllersTrackingResumeInfoMETA", &func), "Bind XrSimultaneousHandsAndControllersTrackingResumeInfoMETA ");
+                PauseSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<PauseSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
             }
         }
 
@@ -1060,29 +1082,50 @@ var mesh = new HandTrackingMeshFB
             return result;
         }
 
+        public void SetHandsAndControllersTracking(bool isActive)
+        {
+            if (isActive)
+            {
+                var info = new SimultaneousHandsAndControllersTrackingResumeInfoMETA();
+                _app!.CheckResult(ResumeSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "ResumeSimultaneousHandsAndControllersTracking");
+            }
+            else
+            {
+                var info = new SimultaneousHandsAndControllersTrackingPauseInfoMETA();
+                _app!.CheckResult(PauseSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "PauseSimultaneousHandsAndControllersTracking");
+            }
+        }
+
         public unsafe override IDisposable? Configure<T>(ref T data)
         {
             if (data is HandTrackerCreateInfoEXT)
             {
-                _handWideMotion.Value = new HandTrackingWideMotionModeInfoMETA
+                if (_options.UseHandsWideMotion)
                 {
-                    Type = METAHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
-                    Next = null,
-                    RequestedWideMotionMode = HandTrackingWideMotionModeMETA.HIGH_FIDELITY_BODY_TRACKING_META
-                };
-
-                StructChain.AddNextStruct(ref data, _handWideMotion.Pointer);
-            }
-
-            if (data is HandJointsLocateInfoEXT)
-            {
-                if (_options.HandTrackingUnextrapolated)
-                {
-                    _handExtra = new HandTrackingUnextrapolatedPosesMETA
+                    _handWideMotion.Value = new HandTrackingWideMotionModeInfoMETA
                     {
+                        Type = METAHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
+                        Next = null,
+                        RequestedWideMotionMode = HandTrackingWideMotionModeMETA.HighFidelityBodyTrackingMeta
+                    };
 
-                    }
                     StructChain.AddNextStruct(ref data, _handWideMotion.Pointer);
+                }
+
+                if (_options.HandDataSources != null && _options.HandDataSources.Length > 0)
+                {
+                    _handsDataSources = new(_options.HandDataSources.Length, typeof(HandTrackingDataSourceEXT));
+                    _handsDataSources.CopyFrom(_options.HandDataSources);
+
+
+                    _handDataSourceInfo.Value = new HandTrackingDataSourceInfoEXT
+                    {
+                        Type = StructureType.HandTrackingDataSourceInfoExt,
+                        RequestedDataSourceCount = (uint)_handsDataSources.Length,
+                        RequestedDataSources = _handsDataSources.Pointer
+                    };
+
+                    StructChain.AddNextStruct(ref data, _handDataSourceInfo.Pointer);
                 }
             }
 
@@ -1093,6 +1136,8 @@ var mesh = new HandTrackingMeshFB
         {
             _foveationInfo.Dispose();
             _handWideMotion.Dispose();
+            _handsDataSources?.Dispose();
+            _handDataSourceInfo.Dispose();
 
             GC.SuppressFinalize(this);
         }

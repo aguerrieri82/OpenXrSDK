@@ -21,7 +21,7 @@ namespace OpenXr.Framework.Oculus
             Type = METAHandTrackingUnextrapolatedPoses.TypeHandTrackingUnextrapolatedPosesRequestMeta;
         }
 
-        public StructureType Type;
+        public readonly StructureType Type;
 
         public void* Next;
     }
@@ -34,7 +34,7 @@ namespace OpenXr.Framework.Oculus
             Type = METAHandTrackingUnextrapolatedPoses.TypeHandTrackingUnextrapolatedPosesMeta;
         }
 
-        public StructureType Type;
+        public readonly StructureType Type;
         
         public void* Next;
 

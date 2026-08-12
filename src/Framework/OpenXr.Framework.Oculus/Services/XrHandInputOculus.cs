@@ -28,10 +28,12 @@ namespace OpenXr.Framework.Oculus
     {
         private readonly OculusXrPlugin _oculus;
         private XrHandMesh? _mesh;
+        private HandTrackingDataSourceEXT _dataSource;
         private HandTrackingCapsulesStateFB.CapsulesBuffer _capsules;
         private readonly HandJointVelocityEXT[] _velocities;
         private float _scale;
-        private bool _isAiming;
+        private bool _isAimValid;
+        private Pose3 _aimPose;
         protected readonly XrHandAimState[] _aimStates = new XrHandAimState[4];
 
 
@@ -43,40 +45,38 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe override HandJointLocationEXT[] LocateHandJoints(Space space, long time)
         {
-            var scale = new HandTrackingScaleFB
+            var scale = new HandTrackingScaleFB()
             {
-                Type = StructureType.HandTrackingScaleFB,
                 SensorOutput = 1,
                 CurrentOutput = 1,
                 OverrideValueInput = 1,
                 OverrideHandScale = 0,
             };
 
-            var capsuleState = new HandTrackingCapsulesStateFB
+            var capsuleState = new HandTrackingCapsulesStateFB()
             {
                 Type = StructureType.HandTrackingCapsulesStateFB,
                 Next = &scale,
             };
 
-            var aimState = new HandTrackingAimStateFB
+            var aimState = new HandTrackingAimStateFB()
             {
                 Type = StructureType.HandTrackingAimStateFB,
-                
                 Next = &capsuleState
             };
 
-            var unextrapolated = new HandTrackingUnextrapolatedPosesMETA()
+            var dataSource = new HandTrackingDataSourceStateEXT()
             {
+                Type = StructureType.HandTrackingDataSourceStateExt,
                 Next = &aimState
             };
 
             var unextrapolatedPoses = new HandTrackingUnextrapolatedPosesMETA()
             {
-                Next = &unextrapolated
+                Next = &dataSource,
             };
 
-            unextrapolated.Next = &unextrapolatedPoses;
-
+            var unextrapolatedRequest = new HandTrackingUnextrapolatedPosesRequestMETA();
 
             fixed (HandJointVelocityEXT* pVelo = _velocities)
             {
@@ -84,15 +84,15 @@ namespace OpenXr.Framework.Oculus
                 {
                     Type = StructureType.HandJointVelocitiesExt,
                     JointCount = XR_HAND_JOINT_COUNT_EXT,
-                    JointVelocities = pVelo
+                    JointVelocities = pVelo,
+                    Next = UseUnextrapolatedPoses ?
+                         &unextrapolatedPoses :
+                         unextrapolatedPoses.Next
                 };
 
-                if (UseUnextrapolatedPoses)
-                    velocities.Next = &unextrapolatedPoses;
-                else
-                    velocities.Next = &aimState;
+                var resReq = UseUnextrapolatedPoses ? &unextrapolatedRequest : null;
 
-                var result = LocateHandJoints(space, time, &velocities);
+                var result = LocateHandJoints(space, time, &velocities, resReq);
 
                 if (!_app.ReferenceFrame.IsIdentity())
                 {
@@ -110,7 +110,10 @@ namespace OpenXr.Framework.Oculus
                     }
                 }
 
-                var isValid = (aimState.Status & HandTrackingAimFlagsFB.ValidBitFB) != 0;
+                _isAimValid = (aimState.Status & HandTrackingAimFlagsFB.ValidBitFB) != 0;
+
+                if (_isAimValid)
+                    _aimPose = aimState.AimPose.ToPose3();
 
                 _aimStates[0] = new XrHandAimState
                 {
@@ -140,7 +143,7 @@ namespace OpenXr.Framework.Oculus
                     IsPinching = (aimState.Status & HandTrackingAimFlagsFB.LittlePinchingBitFB) != 0
                 };
 
-                _isAiming = (aimState.Status & HandTrackingAimFlagsFB.ValidBitFB) != 0;
+                _dataSource = dataSource.IsActive == 1 ? dataSource.DataSource : 0;
 
                 _capsules = capsuleState.Capsules;
 
@@ -156,15 +159,20 @@ namespace OpenXr.Framework.Oculus
             _mesh.Type = _handType;
         }
 
+
         public bool UseUnextrapolatedPoses { get; set; }
 
-        public bool IsAiming => _isAiming;
+        public bool IsAimValid => _isAimValid;
+
+        public Pose3 Aim => _aimPose;
 
         public Span<HandCapsuleFB> Capsules => _capsules.AsSpan();
 
         public XrHandAimState[] AimStates => _aimStates;
 
         public XrHandMesh? Mesh => _mesh;
+
+        public HandTrackingDataSourceEXT DataSource => _dataSource;
 
         public float Scale => _scale;
     }

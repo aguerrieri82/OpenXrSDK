@@ -353,7 +353,7 @@ namespace OpenXr.Framework
 
                 for (var i = 0; i < _projViews.Length; i++)
                 {
-                    ref var view = ref _projViews.Item(i);
+                    ref var view = ref _projViews[i];
 
                     var colorOffset = 0;
 

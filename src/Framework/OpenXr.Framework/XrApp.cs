@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using XrMath;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
@@ -78,7 +79,7 @@ namespace OpenXr.Framework
         protected readonly Dictionary<string, XrHaptic> _haptics = [];
         protected readonly List<string> _extensions = [];
         protected readonly List<string> _apiLayers = [];
-        protected readonly List<string> _interactionProfiles = [];
+        protected Dictionary<string, IList<string>> _interactionProfiles =[];
         protected readonly IXrPlugin[] _plugins;
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
@@ -98,7 +99,9 @@ namespace OpenXr.Framework
         protected bool _layersCreated;
         protected bool _isValid; //TODO rethink on _state
         protected uint _swapChainSampleCount;
-        private string? _runtimeName;
+        protected string? _runtimeName;
+        protected string? _leftIntProfile;
+        protected string? _rightIntProfile;
 
         public delegate void ConfigureStruct<T>(ref T data) where T : unmanaged;
 
@@ -962,8 +965,8 @@ namespace OpenXr.Framework
 
             for (var i = 0; i < images.Length; i++)
             {
-                images.Item(i).Type = imageType.StructureType;
-                images.Item(i).Next = null;
+                images[i].Type = imageType.StructureType;
+                images[i].Next = null;
             }
 
             CheckResult(_xr!.EnumerateSwapchainImages(swapchain, count, ref count, images.Pointer), "EnumerateSwapchainImages");
@@ -1407,8 +1410,7 @@ namespace OpenXr.Framework
             foreach (var item in builder.Haptics)
                 AddHaptic(item);
 
-            foreach (var item in builder.Profiles)
-                _interactionProfiles.Add(item);
+            _interactionProfiles = builder.Profiles;
 
         }
 
@@ -1480,19 +1482,19 @@ namespace OpenXr.Framework
 
             if (suggBindings.Count > 0)
             {
-                foreach (var profile in _interactionProfiles)
+                foreach (var entry in _interactionProfiles)
                 {
-                    try
-                    {
-                        SuggestInteractionProfileBindings(StringToPath(profile), suggBindings.ToArray());
-                        break;
-                    }
-                    catch (OpenXrException ex)
-                    {
-                        _logger.LogWarning($"Interaction profile not supported ({ex.Result}): {profile}");
-                    }
+                    var paths = entry.Value.Select(StringToPath).ToArray();
+
+                    var entrySuggBindings = suggBindings
+                        .Where(a => paths.Contains(a.Binding))
+                        .ToArray();
+
+                    if (!TrySuggestInteractionProfileBindings(StringToPath(entry.Key), entrySuggBindings))
+                        _logger.LogWarning("Interaction profile not supported: {profile}", entry.Key);
                 }
             }
+
             AttachSessionToActionSet();
         }
 
@@ -1554,9 +1556,22 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected internal void SuggestInteractionProfileBindings(ulong ipPath, ActionSuggestedBinding[] bindings)
+        protected internal string PathToString(ulong path)
         {
+            if (path == 0)
+                return string.Empty;
 
+            var buffer = new byte[512];
+
+            uint bufferSize = (uint)buffer.Length;
+
+            CheckResult(_xr!.PathToString(_instance, path, ref bufferSize, buffer), "PathToString");
+
+            return Encoding.UTF8.GetString(buffer, 0, (int)bufferSize - 1);
+        }
+
+        protected internal bool TrySuggestInteractionProfileBindings(ulong ipPath, ActionSuggestedBinding[] bindings)
+        {
             fixed (ActionSuggestedBinding* pBindings = bindings)
             {
                 var info = new InteractionProfileSuggestedBinding
@@ -1567,7 +1582,9 @@ namespace OpenXr.Framework
                     SuggestedBindings = pBindings
                 };
 
-                CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, in info), "SuggestInteractionProfileBinding");
+                var result = _xr!.SuggestInteractionProfileBinding(_instance, in info);
+
+                return result == Result.Success;
             }
         }
 
@@ -1704,7 +1721,7 @@ namespace OpenXr.Framework
                 Frequency = frequencyHz
             };
 
-            CheckResult(_xr!.ApplyHapticFeedback(_session, in info, (HapticBaseHeader*)&vibration), "ApplyHapticFeedback");
+            CheckResult(_xr.ApplyHapticFeedback(_session, in info, (HapticBaseHeader*)&vibration), "ApplyHapticFeedback");
         }
 
         protected internal void StopHapticFeedback(Action action, ulong subActionPath = 0)
@@ -1718,7 +1735,29 @@ namespace OpenXr.Framework
                 SubactionPath = subActionPath
             };
 
-            CheckResult(_xr!.StopHapticFeedback(_session, in info), "StopHapticFeedback");
+            CheckResult(_xr.StopHapticFeedback(_session, in info), "StopHapticFeedback");
+        }
+
+        public string GetCurrentInteractionProfile(string path)
+        {
+            var pathId = StringToPath(path);
+
+            var state = new InteractionProfileState()
+            {
+                Type = StructureType.InteractionProfileState
+            };
+
+            CheckResult(_xr!.GetCurrentInteractionProfile(_session, pathId, ref state), "GetCurrentInteractionProfile");
+
+            return PathToString(state.InteractionProfile);
+        }
+
+
+        protected virtual void OnInteractionProfileChanged()
+        {
+            _leftIntProfile = GetCurrentInteractionProfile("/user/hand/left");
+
+            _rightIntProfile = GetCurrentInteractionProfile("/user/hand/right");
         }
 
         #endregion
@@ -1754,6 +1793,10 @@ namespace OpenXr.Framework
                             break;
                         case StructureType.EventDataReferenceSpaceChangePending:
                             //TODO handle
+                            break;
+
+                        case StructureType.EventDataInteractionProfileChanged:
+                            OnInteractionProfileChanged();
                             break;
 
                         case StructureType.EventDataVisibilityMaskChangedKhr:

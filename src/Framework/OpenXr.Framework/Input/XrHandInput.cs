@@ -35,16 +35,17 @@ namespace OpenXr.Framework
 
         public virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time)
         {
-            return LocateHandJoints(space, time, null);
+            return LocateHandJoints(space, time, null, null);
         }
 
-        protected virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time, void* next)
+        protected virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time, void* resultNext, void* locateNext)
         {
             var info = new HandJointsLocateInfoEXT()
             {
                 Type = StructureType.HandJointsLocateInfoExt,
                 BaseSpace = space,
-                Time = time
+                Time = time,
+                Next = locateNext
             };
 
             var data = new HandJointLocationEXT[XR_HAND_JOINT_COUNT_EXT];
@@ -53,7 +54,7 @@ namespace OpenXr.Framework
             {
                 Type = StructureType.HandJointLocationsExt,
                 JointCount = XR_HAND_JOINT_COUNT_EXT,
-                Next = next
+                Next = resultNext
             };
 
             fixed (HandJointLocationEXT* pData = data)

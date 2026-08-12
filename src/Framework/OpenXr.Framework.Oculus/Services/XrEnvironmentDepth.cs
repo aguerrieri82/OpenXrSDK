@@ -110,8 +110,8 @@ namespace OpenXr.Framework.Oculus
 
             for (var i = 0; i < images.Length; i++)
             {
-                images.Item(i).Type = imageType.StructureType;
-                images.Item(i).Next = null;
+                images[i].Type = imageType.StructureType;
+                images[i].Next = null;
             }
 
             _app.CheckResult(_envDepth.EnumerateEnvironmentDepthSwapchainImagesMETA(swapchain, count, out count, images.Pointer), "EnumerateEnvironmentDepthSwapchainImagesMETA");

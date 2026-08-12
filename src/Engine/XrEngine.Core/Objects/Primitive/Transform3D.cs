@@ -87,13 +87,17 @@ namespace XrEngine
 
             set
             {
-                if (value.W == 0)
-                    value.W = 1;
-                value = Quaternion.Normalize(value);
+                if (value.LengthSquared() == 0)
+                    value = Quaternion.Identity;
+                else
+                    value = Quaternion.Normalize(value);
+
                 if (_orientation.IsSimilar(value, ORIENTATION_TOLLERANCE))
                     return;
+
                 _orientation = value;
                 _rotation = _orientation.ToEuler();
+                
                 NotifyChanged();
             }
         }
