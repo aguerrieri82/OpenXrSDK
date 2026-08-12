@@ -13,6 +13,7 @@ using XrEngine.Helpers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
+
 namespace XrEngine.OpenGL
 {
 
@@ -25,6 +26,9 @@ namespace XrEngine.OpenGL
             public List<IGlLayer> Layers = [];
         }
 
+        [ThreadStatic]
+        internal static  OpenGLRender? _current;
+
         protected Scene3D? _lastScene;
         protected long _lastLightLayerVersion;
         protected IGlRenderTarget? _target;
@@ -32,11 +36,9 @@ namespace XrEngine.OpenGL
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
         protected readonly GlUpdateContext _updateCtx;
-        protected readonly int _maxTextureUnits;
         protected readonly GL _gl;
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
-        private readonly bool _useAngle;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly List<IGlRenderPass> _renderPasses = [];
         protected readonly IGlRenderTarget _defaultTarget;
@@ -46,13 +48,13 @@ namespace XrEngine.OpenGL
         protected List<IGlLayer> _activeLayers = [];
         [MaybeNull]
         protected readonly GlTextureFilter _textureFilter;
-        [MaybeNull]
-        protected HashSet<string> _extensions;
+        protected readonly HashSet<string> _extensions;
         protected bool _isDebug;
-
         protected GlProfiler _profiler;
-
         protected DateTime _lastProfileOutTime;
+        protected RenderEngineFeatures _features;
+
+        private bool _passesDirty;
 
         public static class Props
         {
@@ -71,25 +73,24 @@ namespace XrEngine.OpenGL
         #region CONSTRUCTORS
 
         public OpenGLRender(GL gl)
-            : this(gl, GlRenderOptions.Default())
+            : this(gl, new GlRenderOptions())
         {
         }
 
-        public OpenGLRender(GL gl, GlRenderOptions options, bool isDummy = false, bool useAngle = false)
-            : this(gl, options, new GlState(gl), isDummy, useAngle)
+        public OpenGLRender(GL gl, GlRenderOptions options, bool isDummy = false)
+            : this(gl, options, new GlState(gl), isDummy)
         {
         }
 
-        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state, bool isDummy, bool useAngle)
+        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state, bool isDummy)
         {
-            Current = this;
+            _current = this;
 
             _thread = Thread.CurrentThread;
 
             _glState = state;
             _gl = gl;
             _options = options;
-            _useAngle = useAngle;
 
             if (options.UseDefaultIntermediate)
             {
@@ -100,28 +101,27 @@ namespace XrEngine.OpenGL
             else
                 _defaultTarget = new GlDefaultDirectRenderTarget(gl);
 
-
-
             _target = _defaultTarget;
-
-            _updateCtx = new GlUpdateContext
-            {
-                RenderEngine = this,
-                UseAngle = useAngle
-            };
 
             _dispatcher = new QueueDispatcher();
 
             _profiler = new GlProfiler(_gl);
 
+            _extensions = GetExtensions();
+
+            _updateCtx = new GlUpdateContext
+            {
+                RenderEngine = this,
+            };
+
+            ConfigureDriver();
+
+
+
             if (isDummy)
                 return;
 
             ConfigurePasses();
-
-            _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
-
-            _extensions = GetExtensions();
 
 #if GLES
 
@@ -133,30 +133,88 @@ namespace XrEngine.OpenGL
 
             ConfigureCaps();
 
-            ConfigureDriver();
+
 
             PbrMaterial.SHADER.ToneMap = _options.ToneMap;
-
-
         }
 
         #endregion
 
         protected unsafe void ConfigureDriver()
         {
-            var vendor = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Vendor)) ?? "";
-            var renderer = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Renderer)) ?? "";
+            var version = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Version)) ?? "";
 
-            var isNvidia = vendor.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
-                           renderer.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
+            _features.ClipCullDistance = _extensions.Contains("GL_EXT_clip_cull_distance");
 
-            _updateCtx.Bugs.NvMultiViewClipBug = _useAngle &&
-                                                 OperatingSystem.IsWindows() &&
-                                                 isNvidia;
+            _features.PrimitiveBoundingBox = _extensions.Contains("GL_EXT_primitive_bounding_box");
+
+            _features.GeometryShader = _extensions.Contains("GL_EXT_geometry_shader") ||
+                                       _extensions.Contains("GL_OES_geometry_shader");
+
+            _features.TessellationShader = _extensions.Contains("GL_EXT_tessellation_shader") ||
+                                           _extensions.Contains("GL_OES_tessellation_shader");
+
+            _features.ShaderFramebufferFetch = _extensions.Contains("GL_EXT_shader_framebuffer_fetch");
+
+            _features.Multiview2 = _extensions.Contains("GL_OVR_multiview2");
+
+            _features.ImageExternalEssl3 = _extensions.Contains("GL_OES_EGL_image_external_essl3");
+
+            _features.ShaderFramebufferFetchRate = _extensions.Contains("GL_QCOM_shader_framebuffer_fetch_rate");
+
+            _features.BufferStorage = _extensions.Contains("GL_EXT_buffer_storage");
+
+            _features.ClearTexture = _extensions.Contains("GL_EXT_clear_texture");
+
+            _features.ClipControl = _extensions.Contains("GL_EXT_clip_control");
+
+            _features.DisjointTimerQuery = _extensions.Contains("GL_EXT_disjoint_timer_query");
+
+            _features.MultisampledRenderToTexture = _extensions.Contains("GL_EXT_multisampled_render_to_texture");
+
+            _gl.GetInteger(GetPName.MaxVertexShaderStorageBlocks, out _features.MaxVertexSsboBlocks);
+
+            _gl.GetInteger(GetPName.MaxFragmentShaderStorageBlocks, out _features.MaxFragmentSsboBlocks);
+
+            _gl.GetInteger(GetPName.MaxTextureImageUnits, out _features.MaxTextureUnits);
+
+            _features.GpuName = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Renderer)) ?? "";
+
+            _features.IsNvidia = _features.GpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
+
+            _features.IsAngle = _features.GpuName.Contains("ANGLE", StringComparison.OrdinalIgnoreCase);
+
+            _features.IsWindows = OperatingSystem.IsWindows();
+
+            _features.IsAndroid = OperatingSystem.IsAndroid();
+
+            _features.IsGlEs = version.StartsWith("OpenGL ES", StringComparison.OrdinalIgnoreCase);
+
+            //
+            if (_features.IsWindows && !_features.IsAngle)
+                _features.PrimitiveBoundingBox = false;
+
+            _updateCtx.Bugs.NvMultiViewClipBug = _features.IsAngle &&
+                                                 _features.IsWindows &&
+                                                 _features.IsNvidia;
+
+            _updateCtx.UseAngle = _features.IsAngle;
+
+            if (_features.MaxVertexSsboBlocks == 0)
+            {
+                _options.UseInstanceDraw = false;
+                _updateCtx.UseSharedSsbo = false;
+            }
+
         }
 
+        public void MakeCurrent()
+        {
+            _current = this;
+        }
 
         #region STATE
+
 
         protected internal void ResetState()
         {
@@ -205,8 +263,6 @@ namespace XrEngine.OpenGL
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [55], false);
             //"Performance:glTexSubImage2D::Submission has been flushed"
             _gl.DebugMessageControl(DebugSource.DebugSourceApi, DebugType.DebugTypePerformance, DebugSeverity.DontCare, 1u, [4], false);
-
-
 
             _isDebug = true;
 
@@ -550,12 +606,7 @@ namespace XrEngine.OpenGL
             _target.End(_options.InvalidateDepth);
 
             if (flush)
-            {
-                if (_useAngle && false)
-                    _gl.Finish();
-                else
-                    _gl.Flush();
-            }
+                _gl.Flush();
 
             PopGroup();
 
@@ -937,15 +988,14 @@ namespace XrEngine.OpenGL
 
         public bool IsDebug => _isDebug;
 
-        public bool UseAngle => _useAngle;
+        public RenderEngineFeatures Features => _features;
 
         public IReadOnlySet<string> Extensions => _extensions ?? [];
 
         public static int SuspendErrors { get; set; }
 
-        [ThreadStatic]
-        public static OpenGLRender? Current;
+        public static OpenGLRender? Current => _current;
 
-        private bool _passesDirty;
+        public bool IsNvidia { get; private set; }
     }
 }

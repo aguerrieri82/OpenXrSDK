@@ -9,6 +9,37 @@ namespace XrEngine
         Sync = 1
     }
 
+    public struct RenderEngineFeatures
+    {
+        public RenderEngineFeatures()
+        {
+            GpuName = "";
+        }
+
+        public bool ClipCullDistance;
+        public bool PrimitiveBoundingBox;
+        public bool GeometryShader;
+        public bool TessellationShader;
+        public bool ShaderFramebufferFetch;
+        public bool Multiview2;
+        public bool ShaderFramebufferFetchRate;
+        public bool ImageExternalEssl3;
+        public bool BufferStorage;
+        public bool ClearTexture;
+        public bool MultisampledRenderToTexture;
+        public bool DisjointTimerQuery;
+        public bool ClipControl;
+        public int MaxVertexSsboBlocks;
+        public int MaxTextureUnits;
+        public int MaxFragmentSsboBlocks;
+        public string GpuName;
+        public bool IsNvidia;
+        public bool IsAngle;
+        public bool IsWindows;
+        public bool IsAndroid;
+        public bool IsGlEs;
+    }
+
     public interface IRenderEngine : IDisposable
     {
         void Render(RenderContext ctx, Rect2I view, bool flush);
@@ -36,5 +67,7 @@ namespace XrEngine
         void EnableDebug(RenderEngineDebug mode);
 
         IDispatcher Dispatcher { get; }
+
+        RenderEngineFeatures Features { get; }
     }
 }

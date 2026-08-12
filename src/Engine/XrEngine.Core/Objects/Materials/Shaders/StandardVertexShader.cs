@@ -13,7 +13,6 @@ namespace XrEngine
         {
             VertexSourceName = "standard.vert";
             Resolver = str => Embedded.GetString(str);
-            UseSharedSsbo = XrEngineGlobal.UseSharedSsbo;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)
@@ -53,7 +52,7 @@ namespace XrEngine
                 };
 
             }, UniformsSlots.Model, BufferStore.Model,
-               UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
+               bld.Context.UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
 
             SkinVertexShader.UpdateShaderModel(bld);
         }
@@ -90,7 +89,6 @@ namespace XrEngine
 
                 bld.AddFeature("USE_VIEW_CLIP");
 
-
                 bld.ExecuteAction((ctx, up) =>
                 {
                     var clips = ctx.ClipRegions;
@@ -114,7 +112,7 @@ namespace XrEngine
                 });
             }
 
-            if (UseSharedSsbo)
+            if (bld.Context.UseSharedSsbo)
                 bld.AddFeature("USE_MODEL_SSBO");
 
             if (shadowMode != ShadowMapMode.None)
@@ -219,7 +217,6 @@ namespace XrEngine
 
         public static readonly StandardVertexShader Instance = new();
 
-        public bool UseSharedSsbo { get; set; }
 
         public bool UseMotionVectors { get; set; }
 

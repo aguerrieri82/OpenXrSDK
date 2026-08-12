@@ -38,7 +38,7 @@ namespace OpenXr.Framework
             return LocateHandJoints(space, time, null);
         }
 
-        protected unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time, void* next)
+        protected virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time, void* next)
         {
             var info = new HandJointsLocateInfoEXT()
             {

@@ -20,12 +20,10 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
-            Alpha = AlphaMode.Opaque;
             UseDepth = false;
             WriteDepth = true;
             WriteColor = false;
         }
-
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {

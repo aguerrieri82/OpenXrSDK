@@ -122,7 +122,7 @@ namespace XrEngine.Gltf
             foreach (var key in ext.Keys)
             {
                 if (!supportedExt.Contains(key))
-                    _log.AppendLine($"Extensions '{key}' not supported");
+                    LoadLog($"Extensions '{key}' not supported");
             }
         }
 
@@ -477,7 +477,7 @@ namespace XrEngine.Gltf
                                     result.ActiveComponents |= VertexComponent.UV1;
                                     break;
                                 default:
-                                    _log.AppendLine($"{attr.Key} data not supported");
+                                    LoadLog($"{attr.Key} data not supported");
                                     break;
                             }
 
@@ -539,7 +539,7 @@ namespace XrEngine.Gltf
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             default:
-                                _log.AppendLine($"{attr.Key} data not supported");
+                                LoadLog($"{attr.Key} data not supported");
                                 break;
                         }
 
@@ -581,6 +581,12 @@ namespace XrEngine.Gltf
                 result.Flags |= EngineObjectFlags.GpuOnly;
 
             return result;
+        }
+
+        protected void LoadLog(string text)
+        {
+            lock (_log)
+                _log.AppendLine(text);
         }
 
         public Object3D Duplicate(Object3D obj)

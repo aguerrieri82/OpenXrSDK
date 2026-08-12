@@ -1,5 +1,6 @@
 ﻿#include "Shared/uniforms.glsl"
 #include "Shared/position.glsl"
+#include "Shared/vertex_post.glsl"
 
 #ifdef HAS_SKIN
     #include "Shared/skin.glsl"
@@ -11,24 +12,20 @@
 #endif
  
 
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec3 a_normal;
-layout(location=2) in vec2 a_texcoord;
+layout(location=0) in vec3 aPosition;
+layout(location=1) in vec3 aNormal;
+layout(location=2) in vec2 aUv0;
 
 #ifdef HAS_TANGENTS
-    layout(location=4) in vec4 a_tangent;
+    layout(location=4) in vec4 aTangent;
 #endif
 
 #ifdef USE_CLIP_PLANE 
     uniform vec4 uClipPlane;
 #endif
 
-#ifdef USE_VIEW_CLIP
-    uniform vec4 uViewClip[2];
-#endif
-
 #ifdef HAS_UV2
-    layout(location=3) in vec2 a_texcoord2;
+    layout(location=3) in vec2 aUv2;
     out vec2 fUv2;
 #endif
 
@@ -81,8 +78,8 @@ void main()
 
     #endif
 
-    vec3 position = a_position;
-    vec3 normal = a_normal;
+    vec3 position = aPosition;
+    vec3 normal = aNormal;
 
     #ifdef HAS_SKIN
         skinTransform(position, normal);
@@ -96,19 +93,19 @@ void main()
     vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
 
     #ifdef FRAG_RAW_POS
-        fPos = a_position;
+        fPos = aPosition;
     #else
 	    fPos = pos.xyz; 
     #endif
 
-	fUv = a_texcoord;
+	fUv = aUv0;
 
     #ifdef USE_CAMERA_POS
 	    fCameraPos = getViewPos();
     #endif
 
     #ifdef HAS_UV2
-        fUv2 = a_texcoord2;
+        fUv2 = aUv2;
     #endif
     
     #ifdef PLANAR_REFLECTION
@@ -116,7 +113,7 @@ void main()
     #endif
 
 	#ifdef HAS_TEX_TRANSFORM
-	    fUv = (vec3(a_texcoord.xy, 1) * HAS_TEX_TRANSFORM).xy;
+	    fUv = (vec3(aUv0.xy, 1) * HAS_TEX_TRANSFORM).xy;
 	#endif
 
 	#ifdef USE_SHADOW_MAP
@@ -124,8 +121,8 @@ void main()
 	#endif
 
     #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-        vec3 T = normalize(vec3(worldMatrix * vec4(a_tangent.xyz, 0.0)));
-	    vec3 B = cross(N, T) * a_tangent.w;
+        vec3 T = normalize(vec3(worldMatrix * vec4(aTangent.xyz, 0.0)));
+	    vec3 B = cross(N, T) * aTangent.w;
 
         fTangentBasis = mat3(T, B, N);
 
@@ -142,7 +139,7 @@ void main()
     #endif
 
     #ifdef TANGENT_AS_CONST
-        fConst = a_tangent;
+        fConst = aTangent;
     #endif 
 
     computePos(pos);
@@ -151,24 +148,5 @@ void main()
         computeMotionVectors(position);
     #endif
 
-    #ifdef USE_VIEW_CLIP
-
-        vec4 clip = uViewClip[ACTIVE_EYE];
-
-        gl_ClipDistance[1] = gl_Position.x - clip.x * gl_Position.w;
-        gl_ClipDistance[2] = gl_Position.y - clip.y * gl_Position.w;
-        gl_ClipDistance[3] = clip.z * gl_Position.w - gl_Position.x;
-        gl_ClipDistance[4] = clip.w * gl_Position.w - gl_Position.y;
-
-        #if defined(MULTI_VIEW) && defined(NV_MULTI_VIEW_CLIP_BUG)
-            if (ACTIVE_EYE == 0u)
-            {
-                gl_ClipDistance[1] = 1.0;
-                gl_ClipDistance[2] = 1.0;
-                gl_ClipDistance[3] = 1.0;
-                gl_ClipDistance[4] = 1.0;
-            }
-        #endif
-
-    #endif
+    doPost();
 }

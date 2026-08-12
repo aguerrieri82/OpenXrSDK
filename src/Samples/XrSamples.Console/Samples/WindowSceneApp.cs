@@ -34,8 +34,6 @@ namespace XrSamples
             @"D:\Projects\"];
 
 
-
-
         public static Task Run(IServiceProvider services)
         {
             if (!EngineNativeLib.RdcIsAttached())
@@ -71,7 +69,8 @@ namespace XrSamples
                 app = builder
                     .UsePlatform(new ConsolePlatform()
                     {
-                        PersistentPath = "D:\\Projects\\XrEditor\\"
+                        PersistentPath = "D:\\Projects\\XrEditor\\",
+                        SharedPath = "D:\\Projects\\XrEditor\\Storage\\",
                     })
 
                     .SetGlOptions(opt =>
@@ -103,8 +102,6 @@ namespace XrSamples
             options.Size = new Vector2D<int>(1600, 1000);
             if (useAngle)
                 options.API = GraphicsAPI.None;
-
-
 
             var view = Window.Create(options);
 

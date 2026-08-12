@@ -19,6 +19,7 @@ namespace XrEngine.OpenXr
             {
                 _self._scope = null;
             }
+
             public object? State;
         }
 

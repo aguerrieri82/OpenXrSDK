@@ -19,7 +19,7 @@ namespace XrEngine.OpenXr
             _app = app;
             _pass = pass;
 
-            if (_renderer.UseAngle)
+            if (_renderer.Features.IsAngle)
             {
                 MotionVectorFormat = (int)Format.R16G16B16A16Sfloat;
                 DepthFormat = (int)Format.D16Unorm;

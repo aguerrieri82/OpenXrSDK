@@ -1,9 +1,9 @@
 ﻿#include "Shared/uniforms.glsl"
 #include "Shared/position.glsl"
 
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec3 a_normal;
-layout(location=2) in vec2 a_texcoord;
+layout(location=0) in vec3 aPosition;
+layout(location=1) in vec3 aNormal;
+layout(location=2) in vec2 aUv0;
 
 out vec3 fNormal;
 out vec3 fPos;
@@ -19,8 +19,8 @@ void main()
 {
     mat4 worldMatrix = uModel.worldMatrix;
     mat4 normalMatrix = uModel.normalMatrix;
-    vec3 position = a_position;
-    vec3 normal = a_normal;
+    vec3 position = aPosition;
+    vec3 normal = aNormal;
    
     #if (MODE == MODE_MAIN)
 
@@ -51,7 +51,7 @@ void main()
 
     vec4 pos = worldMatrix * vec4(position, 1.0);
 
-	fUv = a_texcoord;
+	fUv = aUv0;
 
     fNormal = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
     

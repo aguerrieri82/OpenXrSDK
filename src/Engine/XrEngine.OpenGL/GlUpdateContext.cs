@@ -4,5 +4,6 @@
     {
         public uint ProgramInstanceId;
 
+        public bool IsGlEs { get; internal set; }
     }
 }

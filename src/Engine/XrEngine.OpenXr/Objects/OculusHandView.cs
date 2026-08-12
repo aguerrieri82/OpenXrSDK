@@ -10,7 +10,7 @@ namespace XrEngine.OpenXr
 {
     public class OculusHandView : Group3D
     {
-        protected XrHandInputMesh? _input;
+        protected XrHandInputOculus? _input;
         protected bool _isInit;
         protected OculusHandMesh? _hand;
 
@@ -30,7 +30,7 @@ namespace XrEngine.OpenXr
 
             Name ??= "Hand " + HandType;
 
-            _input = XrApp.Current.AddHand<XrHandInputMesh>(HandType);
+            _input = XrApp.Current.AddHand<XrHandInputOculus>(HandType);
 
             base.Start(ctx);
         }
@@ -159,6 +159,6 @@ namespace XrEngine.OpenXr
 
         public HandEXT HandType { get; set; }
 
-        public XrHandInputMesh HandInput => _input ?? throw new ArgumentNullException();
+        public XrHandInputOculus HandInput => _input ?? throw new ArgumentNullException();
     }
 }

@@ -61,6 +61,16 @@ namespace OpenXr.Framework
         [AllowNull]
         public XrHaptic Haptic;
 
+        //XR_EXT_hand_interaction
+
+        [XrPath("/input/pinch_ext/pose")]
+        [AllowNull]
+        public XrPoseInput PinchPose;
+
+        [XrPath("/input/poke_ext/pose")]
+        [AllowNull]
+        public XrPoseInput PokePose;
+
     }
 
     public class XrInteractionProfileHand<THand> : XrInteractionProfileHand

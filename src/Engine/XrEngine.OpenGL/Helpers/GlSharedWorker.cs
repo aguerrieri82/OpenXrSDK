@@ -38,7 +38,7 @@
         {
             _sharedCtx!.Take();
 
-            OpenGLRender.Current = new OpenGLRender(_sharedCtx.Gl, _options, isDummy: true);
+            OpenGLRender._current = new OpenGLRender(_sharedCtx.Gl, _options, isDummy: true);
 
             while (_isStarted)
             {

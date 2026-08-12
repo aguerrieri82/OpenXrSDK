@@ -411,8 +411,6 @@ namespace XrEngine
 
         public Transform3D Transform => _transform;
 
-        public string? Tag { get; set; }
-
         public string? Name { get; set; }
     }
 }

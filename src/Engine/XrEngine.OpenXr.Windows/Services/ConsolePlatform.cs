@@ -57,8 +57,9 @@ namespace XrEngine.OpenXr.Windows
             Context.Implement<IProgressLogger>(new ProgressLogger());
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
 
-           PersistentPath = Path.Combine(_basePath, "Data");
-           CachePath = Path.Combine(_basePath, "Cache");
+            PersistentPath = Path.Combine(_basePath, "Data");
+            CachePath = Path.Combine(_basePath, "Cache");
+            SharedPath = Path.Combine(_basePath, "Storage");
         }
 
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
@@ -87,7 +88,7 @@ namespace XrEngine.OpenXr.Windows
 
                 ctx.Initialize([], []);
 
-                renderEngine = new OpenGLRender(ctx.Gl!, glOptions, useAngle: true);
+                renderEngine = new OpenGLRender(ctx.Gl!, glOptions);
 
                 xrDriver = angleDriver;
             }
@@ -105,6 +106,8 @@ namespace XrEngine.OpenXr.Windows
         {
             throw new NotSupportedException();
         }
+
+        public string SharedPath { get; set; }
 
         public string PersistentPath { get; set; }
 

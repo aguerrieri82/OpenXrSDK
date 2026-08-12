@@ -8,17 +8,17 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.Angle;
+        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = true;
+        public static readonly bool EnableVSync = false;
 
         public static readonly int VSyncScale = 4;
 
         public static readonly bool EnablePreview = false;
 
-        public static readonly bool UseEs = false;
+        public static readonly bool UseEs = true;
 
         public static readonly bool DisableDualRender = true;
 

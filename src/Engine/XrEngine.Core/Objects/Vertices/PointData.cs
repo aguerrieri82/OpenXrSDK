@@ -5,13 +5,13 @@ namespace XrEngine
 {
     public struct PointData
     {
-        [ShaderRef(0, "a_position", VertexComponent.Position)]
+        [ShaderRef(0, "aPosition", VertexComponent.Position)]
         public Vector3 Pos;
 
-        [ShaderRef(1, "a_color_0", VertexComponent.Color4)]
+        [ShaderRef(1, "aColor", VertexComponent.Color4)]
         public Color Color;
 
-        [ShaderRef(2, "a_size", VertexComponent.Size)]
+        [ShaderRef(2, "aSize", VertexComponent.Size)]
         public float Size;
     }
 }

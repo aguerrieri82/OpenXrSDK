@@ -1,22 +1,19 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System.Numerics;
-
 #else
 using Silk.NET.OpenGL;
 #endif
 
 using XrEngine.Helpers;
-using XrMath;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
-        int _frame = 0;
         protected DepthClipEffect? _depthClipEffect;
 
-        readonly ShaderMaterial _dummyMaterial;
+        protected readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
         readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
@@ -60,9 +57,7 @@ namespace XrEngine.OpenGL
                 _renderer.State.SetClearDepth(1.0f);
                 _renderer.State.SetClearStencil(0);
                 _renderer.State.Commit();
-#if GLES
 
-#endif
                 _gl.ClearBuffer(BufferKind.Color, 0, ctx.PassCamera!.BackgroundColor.AsSpan());
 
                 _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
@@ -77,8 +72,6 @@ namespace XrEngine.OpenGL
                     DrawVirtual(6);
                 }
             }
-
-            _frame++;
 
             return true;
         }
@@ -152,7 +145,7 @@ namespace XrEngine.OpenGL
 
         protected void SetBounds(Camera camera, Object3D obj)
         {
-            if (!_renderer.Options.UsePrimitiveBoundingBox)
+            if (!_renderer.Options.UsePrimitiveBoundingBox || !_renderer.Features.PrimitiveBoundingBox)
                 return;
 
             _renderer.UpdateContext.UsePrimitiveBoundingBox = false;
@@ -238,7 +231,7 @@ namespace XrEngine.OpenGL
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
-            var updateContext = _renderer.UpdateContext;
+            var ctx = _renderer.UpdateContext;
 
             var useDepthPass = _renderer.Options.UseDepthPass;
 
@@ -250,10 +243,10 @@ namespace XrEngine.OpenGL
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
-                updateContext.Shader = shader.Key;
-                updateContext.Stage = UpdateShaderStage.Shader;
+                ctx.Shader = shader.Key;
+                ctx.Stage = UpdateShaderStage.Shader;
 
-                progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
+                progGlobal!.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
 
                 foreach (var material in shader.Value.SortedContent!)
                 {
@@ -262,34 +255,34 @@ namespace XrEngine.OpenGL
                     if (material.Value.IsHidden)
                         continue;
 
-                    updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
+                    ctx.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     var progInst = matContent.ProgramInstance!;
 
-                    updateContext.Stage = UpdateShaderStage.Material;
+                    ctx.Stage = UpdateShaderStage.Material;
 
-                    updateContext.ActiveComponents = matContent.ActiveComponents;
+                    ctx.ActiveComponents = matContent.ActiveComponents;
 
-                    var progChanged = UpdateProgram(updateContext, progInst);
+                    var progChanged = UpdateProgram(ctx, progInst);
 
                     if (!progInst.IsReady)
                     {
                         progInst = GetProgramInstance(_dummyMaterial);
-                        updateContext.Stage = UpdateShaderStage.Shader;
-                        progInst.Global.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
-                        updateContext.Stage = UpdateShaderStage.Material;
-                        progChanged = UpdateProgram(updateContext, progInst);
+                        ctx.Stage = UpdateShaderStage.Shader;
+                        progInst.Global.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
+                        ctx.Stage = UpdateShaderStage.Material;
+                        progChanged = UpdateProgram(ctx, progInst);
                     }
 
-                    var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+                    var programChanged = ctx.ProgramInstanceId != progInst.Program!.Handle;
 
-                    updateContext.ProgramInstanceId = progInst.Program!.Handle;
+                    ctx.ProgramInstanceId = progInst.Program!.Handle;
 
                     progInst.Program.Use();
 
-                    progInst.UpdateBuffers(updateContext);
+                    progInst.UpdateBuffers(ctx);
 
-                    progInst.UpdateUniforms(updateContext, programChanged);
+                    progInst.UpdateUniforms(ctx, programChanged);
 
                     ConfigureCaps(progInst.Material!);
 
@@ -312,7 +305,7 @@ namespace XrEngine.OpenGL
 
                         vHandler.Bind();
 
-                        updateContext.Stage = UpdateShaderStage.Model;
+                        ctx.Stage = UpdateShaderStage.Model;
 
                         if (vertexContent.Draw != null)
                         {
@@ -328,11 +321,11 @@ namespace XrEngine.OpenGL
                                 if (!CanDraw(draw))
                                     continue;
 
-                                updateContext.Model = draw.Object;
+                                ctx.Model = draw.Object;
 
-                                progInst.UpdateModel(updateContext);
+                                progInst.UpdateModel(ctx);
 
-                                SetBounds(updateContext.PassCamera!, draw.Object!);
+                                SetBounds(ctx.PassCamera!, draw.Object!);
 
 #if GL_VALIDATE_PROG
                                 progInst.Program.Validate();
@@ -341,12 +334,8 @@ namespace XrEngine.OpenGL
                                 Draw(draw);
                             }
                         }
-
-                        //vHandler.Unbind();
                     }
                 }
-
-                _renderer.State.SetActiveProgram(0);
             }
 
             _renderer.State.BindVertexArray(0);

@@ -40,7 +40,6 @@ namespace XrEditor
 
             _clipControl!.ClipControl(EXT.LowerLeftExt, EXT.NegativeOneToOneExt);
 #endif
-
         }
 
         public override void EndFrame()
@@ -71,7 +70,7 @@ namespace XrEditor
             glOptions.FloatPrecision = ShaderPrecision.High;
             glOptions.Outline.Use = true;
 
-            _render = new OpenGLRender(_glContext.Gl, glOptions, useAngle: true);
+            _render = new OpenGLRender(_glContext.Gl, glOptions);
 
             TakeContext();
 

@@ -10,7 +10,6 @@ using OpenXr.Framework.Angle;
 using OpenXr.Framework;
 using XrEngine.Filament;
 using XrEngine.OpenGL;
-using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
 using Silk.NET.OpenGLES.Extensions.EXT;
@@ -117,7 +116,7 @@ namespace XrEngine.OpenXr.Android
 
                 var angleDriver = new XrAngleGraphicDriver(ctx);
 
-                renderEngine = new OpenGLRender(ctx.Gl!, glOptions, useAngle: true);
+                renderEngine = new OpenGLRender(ctx.Gl!, glOptions);
 
                 if (_clipControl == null && !ctx.Gl!.TryGetExtension(out _clipControl))
                     throw new NotSupportedException();

@@ -1155,6 +1155,6 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     public uint QueueIndex => 0;
 
-    public GL? Gl => _gl;
+    public GL Gl => _gl ?? throw new InvalidOperationException();
 
 }

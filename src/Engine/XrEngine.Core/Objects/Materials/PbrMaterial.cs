@@ -170,7 +170,6 @@ namespace XrEngine
             public PbrShader()
             {
                 UseDepthCulling = true;
-                UseSharedSSBO = true;
                 UseMotionVectors = true;
             }
 
@@ -210,7 +209,7 @@ namespace XrEngine
                     });
                 }
 
-                if (UseSharedSSBO)
+                if (bld.Context.UseSharedSsbo)
                     bld.AddFeature("USE_MATERIAL_SSBO");
 
                 bld.AddFeature("USE_CAMERA_POS");
@@ -405,8 +404,6 @@ namespace XrEngine
             public ToneMapMode ToneMap { get; set; }
 
             public bool UseLightField { get; set; }
-
-            public bool UseSharedSSBO { get; set; }
         }
 
         #endregion
@@ -512,7 +509,7 @@ namespace XrEngine
             },
             UniformsSlots.Material,
             BufferStore.Material,
-            SHADER.UseSharedSSBO ? BufferUsage.SharedSsbo : BufferUsage.Uniforms,
+            bld.Context.UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms,
             "uMaterialIndex");
 
             if (EmissiveColor != Color.Transparent)

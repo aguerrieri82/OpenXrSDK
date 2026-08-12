@@ -128,16 +128,8 @@ namespace XrSamples.Android.Activities
 
                     opt.InvalidateDepth = false;
 
-                    if (_settings.Driver == GraphicDriver.Angle)
-                    {
-                    }
-
                     if (!XrDevice.IsMetaQuest)
                     {
-                        if (_settings.Driver != GraphicDriver.Angle)
-                        {
-                            opt.UseInstanceDraw = false;
-                        }
                         opt.UseAsyncShaderCompile = false;
                         opt.UsePrimitiveBoundingBox = false;
                     }

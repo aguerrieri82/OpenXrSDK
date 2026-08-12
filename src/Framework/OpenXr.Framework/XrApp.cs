@@ -124,6 +124,8 @@ namespace OpenXr.Framework
             _extensions.Add("XR_KHR_composition_layer_depth");
             _extensions.Add(KhrVisibilityMask.ExtensionName);
             _extensions.Add(ExtDebugUtils.ExtensionName);
+            _extensions.Add("XR_EXT_hand_interaction");
+            
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
 #if !__ANDROID__

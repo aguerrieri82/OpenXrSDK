@@ -51,7 +51,7 @@ namespace XrEngine.OpenXr
 
         public unsafe void SetTargets(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, int colorFormat)
         {
-            if (_renderer.UseAngle)
+            if (_renderer.Features.IsAngle)
             {
                 _vulkanCtx ??= Context.Require<AngleVulkanContext>();
                 _colorTex = _vulkanCtx.AttachVulkanImage(colorImg, swapchain).Texture;

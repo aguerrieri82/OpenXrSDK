@@ -109,10 +109,7 @@ namespace XrEngine.OpenGL
                 DownsampleFactor = 1f
                 //DownsampleFactor = 1.5f
             };
-
         }
-
-        public bool UseSRGB { get; set; }
 
         public string? ShaderVersion { get; set; }
 
@@ -126,9 +123,29 @@ namespace XrEngine.OpenGL
 
         public ShaderPrecision IntPrecision { get; set; }
 
+        public ShadowMapOptions ShadowMap { get; }
+
+        public GlOutlineOptions Outline { get; }
+
+        public ToneMapMode ToneMap { get; set; }
+
+        public MotionVectorMode MotionVectorMode { get; set; }
+
         public bool RequireTextureCompression { get; set; }
 
         public bool FrustumCulling { get; set; }
+
+        public bool SortByCameraDistance { get; set; }
+
+        public uint SampleCount { get; set; }
+
+        public bool UseHitTest { get; set; }
+
+        public bool CacheUniforms { get; set; }
+
+        public bool InvalidateDepth { get; set; }
+
+        public bool UseSRGB { get; set; }
 
         public bool UseOcclusionQuery { get; set; }
 
@@ -138,23 +155,7 @@ namespace XrEngine.OpenGL
 
         public bool UseVolume { get; set; }
 
-        public uint SampleCount { get; set; }
-
-        public bool UseHitTest { get; set; }
-
-        public ShadowMapOptions ShadowMap { get; }
-
-        public GlOutlineOptions Outline { get; }
-
-        public bool SortByCameraDistance { get; set; }
-
         public bool UseInstanceDraw { get; set; }
-
-        public bool CacheUniforms { get; set; }
-
-        public bool InvalidateDepth { get; set; }
-
-        public ToneMapMode ToneMap { get; set; }
 
         public bool UseResolve { get; set; }
 
@@ -168,15 +169,11 @@ namespace XrEngine.OpenGL
 
         public bool UseRayCollider { get; set; }
 
-        public MotionVectorMode MotionVectorMode { get; set; }
-
         public bool UseProfiler { get; set; }
 
         public bool UseDefaultIntermediate { get; set; }
 
         public bool UsePrimitiveBoundingBox { get;  set; }
-
-        public static GlRenderOptions Default() => new();
 
     }
 }

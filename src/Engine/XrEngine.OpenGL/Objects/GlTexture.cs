@@ -395,9 +395,8 @@ namespace XrEngine.OpenGL
 
 #warning DISABLED WITH RDC
 
-            if (!OpenGLRender.Current!.UseAngle && EngineNativeLib.RdcIsAttached())
+            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
                 return;
-
 
             var colorSpan = color.ToArray();
 
@@ -405,7 +404,7 @@ namespace XrEngine.OpenGL
 
 #if GLES
             if (_clearExt == null)
-                _gl.TryGetExtension<ExtClearTexture>(out _clearExt);
+                _gl.TryGetExtension(out _clearExt);
 
             _clearExt!.ClearTexImage(_handle, level, pixelFormat, pixelType, colorSpan.AsSpan());
 #else

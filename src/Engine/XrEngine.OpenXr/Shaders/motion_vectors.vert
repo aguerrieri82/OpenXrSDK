@@ -33,7 +33,7 @@ struct Matrices {
 
 uniform Matrices uMatrices;
 
-layout (location = 0) in vec3 a_position;
+layout (location = 0) in vec3 aPosition;
 
 out vec4 clipPos;
 out vec4 prevClipPos;
@@ -73,8 +73,8 @@ void skinTransformPrevPos(inout vec3 pos)
 
 void main()
 {
-	vec3 curPos = a_position;
-    vec3 prevPos = a_position;
+	vec3 curPos = aPosition;
+    vec3 prevPos = aPosition;
 
 	if (uHasSkin)
     {

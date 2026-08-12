@@ -61,7 +61,7 @@ namespace XrEditor
         protected Scene3D? _scene;
         protected Thread? _renderThread;
         protected bool _isStarted;
-        protected XrHandInputMesh? _rHand;
+        protected XrHandInputOculus? _rHand;
         protected XrOculusTouchController? _inputs;
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;

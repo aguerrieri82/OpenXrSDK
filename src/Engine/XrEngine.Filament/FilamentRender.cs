@@ -71,8 +71,8 @@ namespace XrEngine.Filament
         protected FlBackend _driver;
         protected uint _renderTargetDepth;
         protected QueueDispatcher _dispatcher = new();
-
         protected FilamentOptions _options;
+        protected RenderEngineFeatures _features;
 
         public FilamentRender(FilamentOptions options)
         {
@@ -953,5 +953,7 @@ namespace XrEngine.Filament
         public Rect2I View => _viewport;
 
         public IDispatcher Dispatcher => _dispatcher;
+
+        public RenderEngineFeatures Features => _features;
     }
 }

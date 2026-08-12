@@ -44,6 +44,7 @@ namespace OpenXr.Framework.Oculus
         public FoavetionInfo? Foavetion { get; set; }
 
         public ColorSpaceFB ColorSpace { get; set; }
+        public bool HandTrackingUnextrapolated { get; internal set; }
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -135,7 +136,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntityQuery? _spatialQuery;
         protected FBTriangleMesh? _mesh;
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
-        protected NativeStruct<XrHandTrackingWideMotionModeInfoMETA> _handWideMotion;
+        protected NativeStruct<HandTrackingWideMotionModeInfoMETA> _handWideMotion;
         protected FBHapticPcm? _haptic;
         protected FBDisplayRefreshRate? _refreshRate;
         protected FBSpatialEntityContainer? _container;
@@ -186,17 +187,18 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_space_warp");
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
             extensions.Add("XR_META_recommended_layer_resolution");
-
             extensions.Add("XR_META_spatial_entity_discovery");
             extensions.Add("XR_FB_composition_layer_depth_test");
-            extensions.Add(MetaHandTrackingWideMotionMode.ExtensionName);
-            extensions.Add(MetaHandTrackingFrequencyHint.ExtensionName);
+            extensions.Add(METAHandTrackingWideMotionMode.ExtensionName);
+            extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);
+            extensions.Add(METAHandTrackingUnextrapolatedPoses.ExtensionName);
+
         }
 
         public unsafe override void OnInstanceCreated()
         {
             Debug.Assert(_app != null);
-
+            
             _app.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
@@ -1062,14 +1064,26 @@ var mesh = new HandTrackingMeshFB
         {
             if (data is HandTrackerCreateInfoEXT)
             {
-                _handWideMotion.Value = new XrHandTrackingWideMotionModeInfoMETA
+                _handWideMotion.Value = new HandTrackingWideMotionModeInfoMETA
                 {
-                    Type = MetaHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
+                    Type = METAHandTrackingWideMotionMode.TypeHandTrackingWideMotionModeInfoMeta,
                     Next = null,
-                    RequestedWideMotionMode = XrHandTrackingWideMotionModeMETA.HIGH_FIDELITY_BODY_TRACKING_META
+                    RequestedWideMotionMode = HandTrackingWideMotionModeMETA.HIGH_FIDELITY_BODY_TRACKING_META
                 };
 
                 StructChain.AddNextStruct(ref data, _handWideMotion.Pointer);
+            }
+
+            if (data is HandJointsLocateInfoEXT)
+            {
+                if (_options.HandTrackingUnextrapolated)
+                {
+                    _handExtra = new HandTrackingUnextrapolatedPosesMETA
+                    {
+
+                    }
+                    StructChain.AddNextStruct(ref data, _handWideMotion.Pointer);
+                }
             }
 
             return null;

@@ -212,7 +212,7 @@ namespace XrEngine.OpenGL
                 (ndc.Y + 1.0f) * 0.5f * _frameSize.Height
             );
 
-            if (_renderer.UseAngle)
+            if (_renderer.Features.IsAngle)
                 screenPos.Y = _frameSize.Height - screenPos.Y;
 
             return true;

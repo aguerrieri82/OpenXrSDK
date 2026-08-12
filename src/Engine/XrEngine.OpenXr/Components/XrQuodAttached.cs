@@ -57,7 +57,7 @@ namespace XrEngine.OpenXr
             }
             else
             {
-                var useAngle = OpenGLRender.Current!.UseAngle;
+                var useAngle = OpenGLRender.Current!.Features.IsAngle;
 
                 var layer = new XrTextureQuadLayer(_host.BindToQuad(), RenderQuod, _host.PixelSize)
                 {
@@ -91,7 +91,7 @@ namespace XrEngine.OpenXr
 
             uint glImage;
 
-            var useAngle = OpenGLRender.Current!.UseAngle;
+            var useAngle = OpenGLRender.Current!.Features.IsAngle;
 
             OpenGLRender.Current.PushGroup("Render Quad");
 

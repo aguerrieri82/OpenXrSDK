@@ -18,15 +18,15 @@ uniform float uSplatRadius;
 uniform float uSplatDepthBias;
 
 #ifdef DISTANCE_SCALE
-uniform mat4 uView;
-uniform float uSplatDistanceScale;
-uniform float uSplatMinRadius;
-uniform float uSplatMaxRadius;
+    uniform mat4 uView;
+    uniform float uSplatDistanceScale;
+    uniform float uSplatMinRadius;
+    uniform float uSplatMaxRadius;
 #endif
 
 #ifdef CAMERA_FACING
-uniform vec3 uCameraRight;
-uniform vec3 uCameraUp;
+    uniform vec3 uCameraRight;
+    uniform vec3 uCameraUp;
 #endif
 
 out vec2 vLocal;

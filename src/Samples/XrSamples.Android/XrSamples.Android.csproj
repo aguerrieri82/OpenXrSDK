@@ -29,7 +29,7 @@
 		<DebugType>full</DebugType>
 	</PropertyGroup>
 
-	<Target Name="InvalidateJavaCompile" BeforeTargets="_CompileJava">
+	<Target Condition="False" Name="InvalidateJavaCompile" BeforeTargets="_CompileJava">
 		<Delete Files="$(IntermediateOutputPath)stamp\_CompileJava.stamp" Condition="Exists('$(IntermediateOutputPath)stamp\_CompileJava.stamp')" />
 	</Target>
 
@@ -39,7 +39,7 @@
 
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
@@ -48,7 +48,7 @@
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)'=='_Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>

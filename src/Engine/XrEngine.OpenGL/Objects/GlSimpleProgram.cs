@@ -111,7 +111,7 @@ namespace XrEngine.OpenGL
             builder.Add(gSource ?? "");
             builder.Add(tcSource ?? "");
             builder.Add(teSource ?? "");
-            builder.Add(OpenGLRender.Current!.UseAngle ? "ANGLE" : "Native");
+            builder.Add(OpenGLRender.Current!.Features.IsAngle ? "ANGLE" : "Native");
 
             _sourceHash = builder.Value();
         }

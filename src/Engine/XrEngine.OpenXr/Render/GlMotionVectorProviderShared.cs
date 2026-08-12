@@ -31,7 +31,7 @@ namespace XrEngine.OpenXr
             _app = app;
             _testFb = new GlMultiViewFrameBuffer(renderer.GL);
 
-            if (renderer.UseAngle)
+            if (renderer.Features.IsAngle)
             {
                 MotionVectorFormat = (int)Format.R16G16B16A16Sfloat;
                 DepthFormat = (int)Format.D16Unorm;
@@ -53,7 +53,7 @@ namespace XrEngine.OpenXr
             Context.Implement<IXrMotionVectorProvider>(this);
             Context.Implement<IMotionVectorProvider>(this);
 
-            if (_renderer.UseAngle)
+            if (_renderer.Features.IsAngle)
                 _context = Context.Require<AngleVulkanContext>();
         }
 
@@ -61,7 +61,7 @@ namespace XrEngine.OpenXr
         {
             uint colorTex;
 
-            if (_renderer.UseAngle)
+            if (_renderer.Features.IsAngle)
             {
                 _vulkanCtx ??= Context.Require<AngleVulkanContext>();
 

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace OpenXr.Framework.Oculus
 {
-    public static class MetaHandTrackingFrequencyHint
+    public static class METAHandTrackingFrequencyHint
     {
         public const string ExtensionName = "XR_META_hand_tracking_frequency_hint";
 

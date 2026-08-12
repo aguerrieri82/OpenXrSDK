@@ -78,7 +78,7 @@ namespace XrEngine.Lighting
                 else
                 {
                     _workerCtx.Take();
-                    OpenGLRender.Current ??= new OpenGLRender(_workerCtx.Gl, _glOptions, isDummy: true);
+                    new OpenGLRender(_workerCtx.Gl, _glOptions, isDummy: true).MakeCurrent();
                 }
             }
 

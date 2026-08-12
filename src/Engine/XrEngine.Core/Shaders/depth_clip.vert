@@ -6,14 +6,10 @@ void main()
 {
     if (gl_ViewID_OVR == 1u)
     {
-        // View 1 uses normal ClipDistance in the scene pass.
-        // Degenerate this prefill primitive.
         gl_Position = vec4(-1.0, -1.0, 0.0, 1.0);
         return;
     }
 
-    // View 0 forbidden rectangle:
-    // [NDC -1 .. clip.x] x [clip.y .. clip.w]
     vec4 clip = uViewClip[0];
 
     vec2 p;
@@ -27,6 +23,6 @@ void main()
         default:p = vec2(clip.x, clip.w); break;
     }
 
-    // Near depth with normal OpenGL depth range / LESS.
+
     gl_Position = vec4(p, -1.0, 1.0);
 }
