@@ -26,7 +26,7 @@ namespace XrEngine
 
         private const float NormalLengthSqEpsilon = 1E-20f;
 
-        private readonly Geometry3D _geometry;
+        private readonly BaseGeometry3D<VertexData> _geometry;
 
         private VertexData[] _vertices;
         private uint[] _indices;
@@ -38,7 +38,7 @@ namespace XrEngine
         private float _cellSize;
         private long _lastVersion;
 
-        public TriangleMeshSpatialIndex(Geometry3D geometry, float cellSize = 0.10f)
+        public TriangleMeshSpatialIndex(BaseGeometry3D<VertexData> geometry, float cellSize = 0.10f)
         {
             _geometry = geometry;
             _vertices = Array.Empty<VertexData>();
@@ -594,7 +594,7 @@ namespace XrEngine
             return distSq <= radiusSq;
         }
 
-        public Geometry3D Geometry => _geometry;
+        public BaseGeometry3D<VertexData> Geometry => _geometry;
 
         public int TriangleCount => _triangles.Length;
 

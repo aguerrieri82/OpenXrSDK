@@ -420,7 +420,7 @@ namespace XrEngine.Gltf
             }
         }
 
-        public Geometry3D ProcessPrimitive(MeshPrimitive primitive, Geometry3D? result = null)
+        public BaseGeometry3D<VertexData> ProcessPrimitive(MeshPrimitive primitive, BaseGeometry3D<VertexData>? result = null)
         {
             result ??= new Geometry3D();
 
@@ -450,30 +450,30 @@ namespace XrEngine.Gltf
                             {
                                 case "POSITION":
                                     var vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                    result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                     result.ActiveComponents |= VertexComponent.Position;
                                     vertexCount = vValues.Length;
                                     break;
                                 case "NORMAL":
                                     var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                    result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                     result.ActiveComponents |= VertexComponent.Normal;
                                     break;
                                 case "TANGENT":
                                     if (_options != null && _options.DisableTangents)
                                         break;
                                     var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                    result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                     result.ActiveComponents |= VertexComponent.Tangent;
                                     break;
                                 case "TEXCOORD_0":
                                     var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                    result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                     result.ActiveComponents |= VertexComponent.UV0;
                                     break;
                                 case "TEXCOORD_1":
                                     var uValues1 = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                    result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                     result.ActiveComponents |= VertexComponent.UV1;
                                     break;
                                 default:
@@ -502,7 +502,7 @@ namespace XrEngine.Gltf
                         {
                             case "POSITION":
                                 var vValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                 result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
@@ -510,7 +510,7 @@ namespace XrEngine.Gltf
                                 break;
                             case "NORMAL":
                                 var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                 result.ActiveComponents |= VertexComponent.Normal;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
@@ -519,21 +519,21 @@ namespace XrEngine.Gltf
                                 if (_options.DisableTangents)
                                     break;
                                 var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
                                 var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                 result.ActiveComponents |= VertexComponent.UV0;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_1":
                                 var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                 result.ActiveComponents |= VertexComponent.UV1;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);

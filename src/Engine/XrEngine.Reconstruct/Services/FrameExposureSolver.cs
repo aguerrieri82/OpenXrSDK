@@ -229,7 +229,7 @@ namespace XrEngine.Reconstruct
         }
 
         public float[] Compute(
-            Geometry3D geometry,
+            BaseGeometry3D<VertexData> geometry,
             IMemoryBuffer<byte>[] images,
             int width,
             int height)

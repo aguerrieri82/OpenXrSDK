@@ -1,17 +1,21 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine
 {
-    public class Geometry3D : EngineObject, IHosted
+
+    public class BaseGeometry3D<T> : EngineObject, IHosted, IGeometryVertices<T> 
+        where T : unmanaged, IVertexProvider
     {
         protected bool _boundsDirty;
         protected Bounds3 _bounds;
         protected HashSet<EngineObject> _hosts = [];
-        protected VertexData[] _vertices;
+        protected T[] _vertices;
         protected uint[] _indices;
 
-        public Geometry3D()
+        public BaseGeometry3D()
         {
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
@@ -58,7 +62,7 @@ namespace XrEngine
             else
             {
                 Indices = container.ReadBuffer<uint>(nameof(Indices));
-                Vertices = container.ReadBuffer<VertexData>(nameof(Vertices));
+                Vertices = container.ReadBuffer<T>(nameof(Vertices));
                 ActiveComponents = container.Read<VertexComponent>(nameof(ActiveComponents));
             }
         }
@@ -84,8 +88,8 @@ namespace XrEngine
 
             for (var i = 0; i < Vertices.Length; i++)
             {
-                Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
-                Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
+                Vertices[i].Vertex.Pos = Vertices[i].Vertex.Pos.Transform(matrix);
+                Vertices[i].Vertex.Normal = Vertices[i].Vertex.Normal.Transform(normalMatrix).Normalize();
             }
 
             NotifyChanged(ChangeType.Geometry);
@@ -96,7 +100,7 @@ namespace XrEngine
             if (Indices.Length == 0)
                 return;
 
-            var vertices = new VertexData[Indices.Length];
+            var vertices = new T[Indices.Length];
 
             for (var i = 0; i < Indices.Length; i++)
                 vertices[i] = Vertices![Indices[i]];
@@ -121,7 +125,7 @@ namespace XrEngine
             writer.Write((int)ActiveComponents);
             writer.Write(Vertices.Length);
 
-            fixed (VertexData* pVertex = &Vertices[0])
+            fixed (VertexData* pVertex = &Vertices[0].Vertex)
                 writer.Write(new Span<byte>(pVertex, Vertices.Length * sizeof(VertexData)));
 
             writer.Write(Indices.Length);
@@ -137,7 +141,7 @@ namespace XrEngine
         public void ScaleUV(Vector2 scale)
         {
             for (var i = 0; i < _vertices.Length; i++)
-                _vertices[i].UV *= scale;
+                _vertices[i].Vertex.UV *= scale;
 
             NotifyChanged(ChangeType.Geometry);
         }
@@ -172,10 +176,11 @@ namespace XrEngine
             _vertices = [];
         }
 
-        public Geometry3D Clone()
+        public BaseGeometry3D<T> Clone()
         {
-            var result = Utils.CreateInstance<Geometry3D>(GetType());
-            result.Vertices = new VertexData[_vertices.Length];
+            var result = Utils.CreateInstance<BaseGeometry3D<T>>(GetType());
+
+            result.Vertices = new T[_vertices.Length];
             Array.Copy(_vertices, result.Vertices, _vertices.Length);
             result.Indices = new uint[_indices.Length];
             Array.Copy(_indices, result.Indices, _indices.Length);
@@ -188,7 +193,7 @@ namespace XrEngine
             return result;
         }
 
-        protected virtual void CloneWork(Geometry3D result)
+        protected virtual void CloneWork(BaseGeometry3D<T> result)
         {
 
         }
@@ -203,12 +208,21 @@ namespace XrEngine
             set => _indices = value;
         }
 
-        public VertexData[] Vertices
+        public T[] Vertices
         {
             get => _vertices;
             set => _vertices = value;
         }
 
         public DrawPrimitive Primitive { get; set; }
+    }
+
+    public class Geometry3D : BaseGeometry3D<VertexData>
+    {
+    }
+
+
+    public class SkinnedGeometry3D : BaseGeometry3D<SkinnedVertexData>
+    {
     }
 }

@@ -1,10 +1,11 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct VertexData
+    public struct VertexData : IVertexProvider
     {
         public static VertexData[] FromPos(float[] data)
         {
@@ -78,5 +79,8 @@ namespace XrEngine
 
         [ShaderRef(4, "aTangent", VertexComponent.Tangent)]
         public Vector4 Tangent;
+
+        [UnscopedRef]
+        ref VertexData IVertexProvider.Vertex => ref this;
     }
 }

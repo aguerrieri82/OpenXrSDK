@@ -76,15 +76,17 @@ namespace XrEngine.OpenXr
             if (!XrDevice.IsMetaQuest)
                 return;
 
-            if (!XrPlatform.IsEditor)
-            {
-                e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
-            }
-            else if (asLayer)
+            if (XrPlatform.IsEditor)
+                asLayer = true;
+
+            if (asLayer)
             {
                 if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
                     e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
             }
+
+            e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
+
         });
 
         public static XrEngineAppBuilder UseLeftController(this XrEngineAppBuilder self)

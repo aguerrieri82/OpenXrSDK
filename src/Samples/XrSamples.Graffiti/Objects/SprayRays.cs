@@ -4,7 +4,7 @@ namespace XrSamples.Graffiti.Objects
 {
     public class SprayRays : TriangleMesh
     {
-        public SprayRays(Geometry3D geometry)
+        public SprayRays(BaseGeometry3D<VertexData> geometry)
         {
             Materials.Add(new SprayMaterial());
 

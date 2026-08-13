@@ -428,7 +428,7 @@ namespace XrEngine.Filament
             };
         }
 
-        protected unsafe void Create(Guid geoId, Guid meshId, Geometry3D geo)
+        protected unsafe void Create(Guid geoId, Guid meshId, BaseGeometry3D<VertexData> geo)
         {
             void Create(bool updateMode)
             {

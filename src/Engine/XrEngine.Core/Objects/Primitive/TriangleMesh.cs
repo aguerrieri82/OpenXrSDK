@@ -5,29 +5,20 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds
+    public class BaseTriangleMesh<TVert> : Object3D, IVertexSource<TVert, uint>, ILocalBounds
+        where TVert : unmanaged, IVertexProvider
     {
         protected readonly ObservableCollection<Material> _materials;
-        protected Geometry3D? _geometry;
+        protected BaseGeometry3D<TVert>? _geometry;
+        protected BaseGeometry3D<TVert>? _originalGeometry;
 
-        protected Geometry3D? _originalGeometry;
-
-        public TriangleMesh()
+        public BaseTriangleMesh()
         {
             _materials = [];
             _materials.CollectionChanged += OnMaterialsChanged;
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
             InstanceCount = 1;
-        }
-
-        public TriangleMesh(Geometry3D geometry, Material? material = null)
-            : this()
-        {
-            Geometry = geometry;
-
-            if (material != null)
-                Materials.Add(material);
         }
 
         public override void GetState(IStateContainer container)
@@ -117,15 +108,15 @@ namespace XrEngine
             _geometry?.NotifyLoaded();
         }
 
-        public void ReplaceGeometry(Geometry3D geometry)
+        public void ReplaceGeometry(BaseGeometry3D<TVert> geometry)
         {
             _originalGeometry ??= _geometry;
             Geometry = geometry;
         }
 
-        public Geometry3D? OriginalGeometry => _originalGeometry;
+        public BaseGeometry3D<TVert>? OriginalGeometry => _originalGeometry;
 
-        public Geometry3D? Geometry
+        public BaseGeometry3D<TVert>? Geometry
         {
             get => _geometry;
             set
@@ -162,7 +153,7 @@ namespace XrEngine
         {
             base.CloneWork(newObj, flags);
 
-            var mesh = (TriangleMesh)newObj;
+            var mesh = (BaseTriangleMesh<TVert>)newObj;
 
             var curGeo = _originalGeometry ?? _geometry;
 
@@ -208,7 +199,7 @@ namespace XrEngine
 
         public UpdateMode BoundUpdateMode { get; set; }
 
-        public MeshExportInfo<TriangleMesh> Export { get; set; }
+        public MeshExportInfo<BaseTriangleMesh<TVert>> Export { get; set; }
 
         public int InstanceCount { get; set; }
 
@@ -220,12 +211,27 @@ namespace XrEngine
 
         DrawPrimitive IVertexSource.Primitive => _geometry?.Primitive ?? DrawPrimitive.Triangle;
 
-        uint[] IVertexSource<VertexData, uint>.Indices => _geometry?.Indices ?? [];
+        uint[] IVertexSource<TVert, uint>.Indices => _geometry?.Indices ?? [];
 
-        VertexData[] IVertexSource<VertexData, uint>.Vertices => _geometry?.Vertices ?? [];
+        TVert[] IVertexSource<TVert, uint>.Vertices => _geometry?.Vertices ?? [];
 
         IReadOnlyList<Material> IVertexSource.Materials => _materials;
 
         #endregion
+    }
+
+    public class TriangleMesh : BaseTriangleMesh<VertexData>
+    {
+        public TriangleMesh()
+        {
+        }
+
+        public TriangleMesh(BaseGeometry3D<VertexData> geometry, Material? material = null)
+        {
+            Geometry = geometry;
+
+            if (material != null)
+                Materials.Add(material);
+        }
     }
 }

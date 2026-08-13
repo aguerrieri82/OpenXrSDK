@@ -161,7 +161,8 @@ namespace XrEngine.Reconstruct
             _minVisibleSamples = Math.Clamp(parameters.MinVisibleSamples, 1, 4);
         }
 
-        public void Project(Geometry3D geometry, IReadOnlyList<ColorProjectionFrame> frames)
+        public void Project<T>(BaseGeometry3D<T> geometry, IReadOnlyList<ColorProjectionFrame> frames)
+            where T : unmanaged, IVertexProvider
         {
             var sourceVertices = geometry.Vertices;
 
@@ -198,14 +199,14 @@ namespace XrEngine.Reconstruct
                     ? sourceIndices.Length / 3
                     : sourceVertices.Length / 3;
 
-                var targetVertices = new VertexData[maxTriangleCount * 3];
+                var targetVertices = new T[maxTriangleCount * 3];
                 var targetIndices = new uint[maxTriangleCount * 3];
 
                 var vertexCount = 0;
                 var indexCount = 0;
 
-                fixed (VertexData* sourceVertexPtr = sourceVertices)
-                fixed (VertexData* targetVertexPtr = targetVertices)
+                fixed (VertexData* sourceVertexPtr = &sourceVertices[0].Vertex)
+                fixed (VertexData* targetVertexPtr = &targetVertices[0].Vertex)
                 fixed (uint* targetIndexPtr = targetIndices)
                 {
                     if (sourceIndices != null && sourceIndices.Length >= 3)

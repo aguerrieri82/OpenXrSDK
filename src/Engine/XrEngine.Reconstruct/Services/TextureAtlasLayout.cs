@@ -327,7 +327,7 @@ namespace XrEngine.Reconstruct
         }
 
         public async Task<Texture2D> GenerateAtlasTextureAsync(
-            IReadOnlyList<Geometry3D> geometries,
+            IReadOnlyList<BaseGeometry3D<VertexData>> geometries,
             Texture2D texArray,
             float[] exposures)
         {
@@ -402,7 +402,7 @@ namespace XrEngine.Reconstruct
             return texture;
         }
 
-        public TextureAtlasLayout Build(IReadOnlyList<Geometry3D> geometries)
+        public TextureAtlasLayout Build(IReadOnlyList<BaseGeometry3D<VertexData>> geometries)
         {
             var usedPoints = CollectUsedPoints(geometries);
 
@@ -533,7 +533,7 @@ namespace XrEngine.Reconstruct
             };
         }
 
-        public void RemapGeometryUvs(IReadOnlyList<Geometry3D> geometries, TextureAtlasLayout layout)
+        public void RemapGeometryUvs(IReadOnlyList<BaseGeometry3D<VertexData>> geometries, TextureAtlasLayout layout)
         {
             foreach (var geometry in geometries)
             {
@@ -623,7 +623,7 @@ namespace XrEngine.Reconstruct
                 0.0f);
         }
 
-        private Dictionary<int, List<Vector2>> CollectUsedPoints(IReadOnlyList<Geometry3D> geometries)
+        private Dictionary<int, List<Vector2>> CollectUsedPoints(IReadOnlyList<BaseGeometry3D<VertexData>> geometries)
         {
             var result = new Dictionary<int, List<Vector2>>();
 

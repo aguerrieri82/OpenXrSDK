@@ -333,7 +333,7 @@ namespace XrEngine.Reconstruct
             _maxCoveredAreaRatio = Math.Clamp(parameters.MaxCoveredAreaRatio, 0.0f, 1.0f);
         }
 
-        public List<AddedTriangle> FindMissingTriangles(Geometry3D geometry)
+        public List<AddedTriangle> FindMissingTriangles(BaseGeometry3D<VertexData> geometry)
         {
             var result = FindMissingTriangles(geometry.Vertices!, geometry.Indices!);
 

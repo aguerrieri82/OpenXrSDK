@@ -6,8 +6,8 @@ namespace XrSamples
 {
     public class GeometryLod : Behavior<TriangleMesh>
     {
-        Geometry3D? _lowGeo;
-        Geometry3D? _curGeo;
+        BaseGeometry3D<VertexData>? _lowGeo;
+        BaseGeometry3D<VertexData>? _curGeo;
 
         public GeometryLod()
         {

@@ -142,7 +142,7 @@ namespace XrEngine.Reconstruct
             _activeCells.Clear();
         }
 
-        public unsafe void FeedFrame(Geometry3D geometry)
+        public unsafe void FeedFrame(BaseGeometry3D<VertexData> geometry)
         {
             var vertices = geometry.Vertices!;
             var indices = geometry.Indices!;
@@ -178,7 +178,7 @@ namespace XrEngine.Reconstruct
             }
         }
 
-        public unsafe Geometry3D ExtractMesh(Geometry3D output)
+        public unsafe BaseGeometry3D<VertexData> ExtractMesh(BaseGeometry3D<VertexData> output)
         {
             var estimatedVertexCount = Math.Min(_activeCells.Count * 6, 8_000_000);
 

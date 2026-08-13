@@ -650,7 +650,7 @@ namespace XrEngine
             return this;
         }
 
-        public Geometry3D ToGeometry(Geometry3D? result = null, bool computeIndices = true)
+        public BaseGeometry3D<VertexData> ToGeometry(BaseGeometry3D<VertexData>? result = null, bool computeIndices = true)
         {
             result ??= new Geometry3D();
             result.Vertices = Vertices.ToArray();

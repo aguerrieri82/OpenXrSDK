@@ -421,7 +421,7 @@ namespace XrEngine
             _collapsePases = parameters.CollapsePases;
         }
 
-        public CollapseResult CollapseCloseVertices(Geometry3D geometry)
+        public CollapseResult CollapseCloseVertices(BaseGeometry3D<VertexData> geometry)
         {
             geometry.EnsureIndices();
 

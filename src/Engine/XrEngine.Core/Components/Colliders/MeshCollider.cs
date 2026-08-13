@@ -8,14 +8,14 @@ namespace XrEngine
     {
         long _version = -1;
         Triangle3[]? _triangles;
-        Geometry3D? _geometry;
+        BaseGeometry3D<VertexData>? _geometry;
 
         public MeshCollider()
         {
             Usage = ColliderUsage.All;
         }
 
-        public MeshCollider(Geometry3D geometry)
+        public MeshCollider(BaseGeometry3D<VertexData> geometry)
             : this()
         {
             _geometry = geometry;
@@ -110,7 +110,7 @@ namespace XrEngine
 
         public bool UseConvexHull { get; set; }
 
-        public Geometry3D? Geometry => _geometry;
+        public BaseGeometry3D<VertexData>? Geometry => _geometry;
 
         public ColliderUsage Usage { get; set; }
     }

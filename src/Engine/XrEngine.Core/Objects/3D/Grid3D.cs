@@ -11,7 +11,7 @@ namespace XrEngine
             Build();
         }
 
-        protected override void CloneWork(Geometry3D result)
+        protected override void CloneWork(BaseGeometry3D<VertexData> result)
         {
             var geo = (Grid3D)result;
             geo.Size = Size;

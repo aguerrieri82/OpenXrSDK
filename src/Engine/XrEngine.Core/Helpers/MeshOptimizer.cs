@@ -22,12 +22,14 @@ namespace XrEngine
 
         #endregion
 
-        public static unsafe uint[] GenerateVertexRemap(Geometry3D geometry)
+        public static unsafe uint[] GenerateVertexRemap<T>(BaseGeometry3D<T> geometry)
+            where T : unmanaged, IVertexProvider
         {
             return GenerateVertexRemap(geometry, out _);
         }
 
-        public static unsafe uint[] GenerateVertexRemap(Geometry3D geometry, out int vertexCount)
+        public static unsafe uint[] GenerateVertexRemap<T>(BaseGeometry3D<T> geometry, out int vertexCount)
+           where T : unmanaged, IVertexProvider
         {
             var vertices = geometry.Vertices;
             var indices = geometry.Indices;
@@ -37,7 +39,7 @@ namespace XrEngine
 
             var remap = new uint[vertices.Length];
 
-            fixed (VertexData* pVertices = vertices)
+            fixed (VertexData* pVertices = &vertices[0].Vertex)
             {
                 vertexCount = (int)MeshOptimizerLib.meshopt_generateVertexRemap(
                     remap,
@@ -51,14 +53,15 @@ namespace XrEngine
             return remap;
         }
 
-        public static unsafe void RemapVertexBuffer(Geometry3D geometry, uint[] remap, int vertexCount)
+        public static unsafe void RemapVertexBuffer<T>(BaseGeometry3D<T> geometry, uint[] remap, int vertexCount)
+            where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
             var oldVertices = geometry.Vertices;
             var oldIndices = geometry.Indices;
 
-            var newVertices = new VertexData[vertexCount];
+            var newVertices = new T[vertexCount];
             var newIndices = new uint[oldIndices.Length];
 
             MeshOptimizerLib.meshopt_remapIndexBuffer(
@@ -67,8 +70,8 @@ namespace XrEngine
                 oldIndices.Length,
                 remap);
 
-            fixed (VertexData* pSrc = oldVertices)
-            fixed (VertexData* pDst = newVertices)
+            fixed (VertexData* pSrc = &oldVertices[0].Vertex)
+            fixed (VertexData* pDst = &newVertices[0].Vertex)
             {
                 MeshOptimizerLib.meshopt_remapVertexBuffer(
                     pDst,
@@ -82,7 +85,8 @@ namespace XrEngine
             geometry.Indices = newIndices;
         }
 
-        public static void CompactVertices(Geometry3D geometry)
+        public static void CompactVertices<T>(BaseGeometry3D<T> geometry)
+            where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -91,7 +95,8 @@ namespace XrEngine
             RemapVertexBuffer(geometry, remap, vertexCount);
         }
 
-        public static void Optimize(Geometry3D geometry, float overdrawThreshold = 1.05f)
+        public static void Optimize<T>(BaseGeometry3D<T> geometry, float overdrawThreshold = 1.05f)
+           where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -101,7 +106,8 @@ namespace XrEngine
             OptimizeVertexFetch(geometry);
         }
 
-        public static void OptimizeVertexCache(Geometry3D geometry)
+        public static void OptimizeVertexCache<T>(BaseGeometry3D<T> geometry)
+           where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -117,7 +123,8 @@ namespace XrEngine
             geometry.Indices = result;
         }
 
-        public static void OptimizeOverdraw(Geometry3D geometry, float threshold = 1.05f)
+        public static void OptimizeOverdraw<T>(BaseGeometry3D<T> geometry, float threshold = 1.05f)
+                where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -129,7 +136,7 @@ namespace XrEngine
                 result,
                 indices,
                 indices.Length,
-                ref vertices[0].Pos,
+                ref vertices[0].Vertex.Pos,
                 vertices.Length,
                 SizeOfVertex,
                 threshold);
@@ -137,16 +144,17 @@ namespace XrEngine
             geometry.Indices = result;
         }
 
-        public static unsafe void OptimizeVertexFetch(Geometry3D geometry)
+        public static unsafe void OptimizeVertexFetch<T>(BaseGeometry3D<T> geometry)
+            where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
             var oldVertices = geometry.Vertices;
             var indices = geometry.Indices;
-            var newVertices = new VertexData[oldVertices.Length];
+            var newVertices = new T[oldVertices.Length];
 
-            fixed (VertexData* pSrc = oldVertices)
-            fixed (VertexData* pDst = newVertices)
+            fixed (VertexData* pSrc = &oldVertices[0].Vertex)
+            fixed (VertexData* pDst = &newVertices[0].Vertex)
             {
                 var count = MeshOptimizerLib.meshopt_optimizeVertexFetch(
                     pDst,
@@ -163,12 +171,13 @@ namespace XrEngine
             geometry.Indices = indices;
         }
 
-        public static SimplifyResult Simplify(
-            Geometry3D geometry,
+        public static SimplifyResult Simplify<T>(
+            BaseGeometry3D<T> geometry,
             float targetIndicesFactor = 0.5f,
             float targetError = 0.01f,
             SimplifyOptions options = SimplifyOptions.None,
             bool compact = true)
+            where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -182,7 +191,7 @@ namespace XrEngine
                 result,
                 indices,
                 indices.Length,
-                ref vertices[0].Pos,
+                ref vertices[0].Vertex.Pos,
                 vertices.Length,
                 SizeOfVertex,
                 targetIndexCount,
@@ -200,8 +209,7 @@ namespace XrEngine
             return new SimplifyResult((int)count, error);
         }
 
-        public static SimplifyResult SimplifyWithAttributes(
-            Geometry3D geometry,
+        public static SimplifyResult SimplifyWithAttributes<T>(BaseGeometry3D<T> geometry,
             float targetIndicesFactor = 0.5f,
             float targetError = 0.01f,
             float normalWeight = 0.1f,
@@ -209,6 +217,7 @@ namespace XrEngine
             SimplifyOptions options = SimplifyOptions.None,
             byte[]? vertexLock = null,
             bool compact = true)
+             where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -231,10 +240,10 @@ namespace XrEngine
                 result,
                 indices,
                 indices.Length,
-                ref vertices[0].Pos,
+                ref vertices[0].Vertex.Pos,
                 vertices.Length,
                 SizeOfVertex,
-                ref vertices[0].Normal.X,
+                ref vertices[0].Vertex.Normal.X,
                 SizeOfVertex,
                 weights,
                 weights.Length,
@@ -254,12 +263,12 @@ namespace XrEngine
             return new SimplifyResult((int)count, error);
         }
 
-        public static SimplifyResult SimplifySloppy(
-            Geometry3D geometry,
+        public static SimplifyResult SimplifySloppy<T>(BaseGeometry3D<T> geometry,
             float targetIndicesFactor = 0.5f,
             float targetError = 0.01f,
             byte[]? vertexLock = null,
             bool compact = true)
+            where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -273,7 +282,7 @@ namespace XrEngine
                 result,
                 indices,
                 indices.Length,
-                ref vertices[0].Pos,
+                ref vertices[0].Vertex.Pos,
                 vertices.Length,
                 SizeOfVertex,
                 vertexLock,
@@ -291,21 +300,22 @@ namespace XrEngine
             return new SimplifyResult((int)count, error);
         }
 
-        public static float ComputeSimplifyScale(Geometry3D geometry)
+        public static float ComputeSimplifyScale<T>(BaseGeometry3D<T> geometry)
+            where T : unmanaged, IVertexProvider
         {
             var vertices = geometry.Vertices;
 
             return MeshOptimizerLib.meshopt_simplifyScale(
-                ref vertices[0].Pos,
+                ref vertices[0].Vertex.Pos,
                 vertices.Length,
                 SizeOfVertex);
         }
 
-        public static MeshOptimizerLib.VertexCacheStatistics AnalyzeVertexCache(
-            Geometry3D geometry,
+        public static MeshOptimizerLib.VertexCacheStatistics AnalyzeVertexCache<T>(BaseGeometry3D<T> geometry,
             uint cacheSize = 16,
             uint warpSize = 32,
             uint primitiveGroupSize = 0)
+            where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -318,7 +328,8 @@ namespace XrEngine
                 primitiveGroupSize);
         }
 
-        public static MeshOptimizerLib.VertexFetchStatistics AnalyzeVertexFetch(Geometry3D geometry)
+        public static MeshOptimizerLib.VertexFetchStatistics AnalyzeVertexFetch<T>(BaseGeometry3D<T> geometry)
+                where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -329,7 +340,8 @@ namespace XrEngine
                 SizeOfVertex);
         }
 
-        public static MeshOptimizerLib.OverdrawStatistics AnalyzeOverdraw(Geometry3D geometry)
+        public static MeshOptimizerLib.OverdrawStatistics AnalyzeOverdraw<T>(BaseGeometry3D<T> geometry)
+           where T : unmanaged, IVertexProvider
         {
             geometry.EnsureIndices();
 
@@ -338,7 +350,7 @@ namespace XrEngine
             return MeshOptimizerLib.meshopt_analyzeOverdraw(
                 geometry.Indices,
                 geometry.Indices.Length,
-                ref vertices[0].Pos,
+                ref vertices[0].Vertex.Pos,
                 vertices.Length,
                 SizeOfVertex);
         }

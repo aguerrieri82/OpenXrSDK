@@ -9,7 +9,7 @@ namespace XrSamples.Graffiti
         readonly List<TriangleMesh> _buttons = [];
         readonly List<PbrMaterial> _materials = [];
 
-        protected Geometry3D? _buttonGeometry;
+        protected BaseGeometry3D<VertexData>? _buttonGeometry;
         protected readonly TriangleMesh _selectedMesh;
         protected float _visualIndex = -1;
         protected int _activeIndex = 2;

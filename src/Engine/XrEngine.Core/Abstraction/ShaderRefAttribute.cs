@@ -14,7 +14,8 @@
         UV1 = 0x80,
         Size = 0x100,
         BlendIndex = 0x200,
-        BlendWeight = 0x400
+        BlendWeight = 0x400,
+        Skin = 0x800
     }
 
     [AttributeUsage(AttributeTargets.Field)]

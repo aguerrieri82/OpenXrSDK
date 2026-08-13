@@ -11,7 +11,7 @@ namespace XrEngine.Components
         Bounds3 _splitBounds;
         Matrix4x4 _boundsTransform;
         TriangleMesh? _splittedMesh;
-        Geometry3D? _startGeo;
+        BaseGeometry3D<VertexData>? _startGeo;
 
         public MeshSplitter()
         {

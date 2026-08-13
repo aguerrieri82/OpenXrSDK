@@ -297,7 +297,7 @@ namespace XrEngine
 
         #endregion
 
-        private Geometry3D _geometry = null!;
+        private BaseGeometry3D<VertexData> _geometry = null!;
         private VertexData[] _vertices = Array.Empty<VertexData>();
         private uint[] _indices = Array.Empty<uint>();
         private TriangleInfo[] _triangles = Array.Empty<TriangleInfo>();
@@ -346,7 +346,7 @@ namespace XrEngine
             _coplanarPlaneDistance = parameters.CoplanarPlaneDistance;
         }
 
-        public void Unwrap(Geometry3D geometry)
+        public void Unwrap(BaseGeometry3D<VertexData> geometry)
         {
             _geometry = geometry;
 

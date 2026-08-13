@@ -70,7 +70,7 @@ public class GltfExporter
     private MemoryStream? _binStream;
     private Gltf? _root;
 
-    protected void ExportGeometry(Geometry3D geometry)
+    protected void ExportGeometry(BaseGeometry3D<VertexData> geometry)
     {
 
     }
