@@ -232,7 +232,7 @@ namespace XrEngine
                 finalIndices.AddRange(quadIndices);
             }
 
-            _vertices = finalVertices.ToArray();
+            Vertices = finalVertices.ToArray();
             _indices = finalIndices.ToArray();
 
             ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0 | VertexComponent.Tangent;

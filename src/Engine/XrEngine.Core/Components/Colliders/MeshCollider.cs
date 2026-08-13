@@ -97,8 +97,8 @@ namespace XrEngine
                             Object = _host,
                             LocalPoint = point.Value,
                             Point = worldPoint,
-                            Normal = _geometry.Vertices[(int)ix].Normal,
-                            Tangent = _geometry.Vertices[(int)ix].Tangent,
+                            Normal = _geometry.VerticesArray[(int)ix].Normal,
+                            Tangent = _geometry.VerticesArray[(int)ix].Tangent,
                             UV = null
                         };
                     }

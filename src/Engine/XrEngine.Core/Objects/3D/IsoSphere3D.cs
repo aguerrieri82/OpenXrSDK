@@ -92,7 +92,7 @@ namespace XrEngine
                 Subdivide();
 
             _indices = indicesLevels[^1].ToArray();
-            _vertices = new VertexData[vertices.Count];
+            Vertices = new VertexData[vertices.Count];
 
             for (var i = 0; i < vertices.Count; i++)
             {
@@ -107,7 +107,7 @@ namespace XrEngine
 
                 var spherical = Spherical.FromCartesian(normal * Radius);
 
-                Vertices[i] = new VertexData
+                VerticesArray[i] = new VertexData
                 {
                     Pos = vertices[i] * Radius,
                     Normal = normal,

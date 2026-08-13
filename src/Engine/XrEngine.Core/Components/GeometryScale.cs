@@ -86,8 +86,8 @@ namespace XrEngine
                 var mesh = item.Key;
                 var geometry = item.Value;
 
-                var curVer = geometry.Vertices;
-                var startVer = mesh!.OriginalGeometry!.Vertices;
+                var curVer = geometry.VerticesArray;
+                var startVer = mesh!.OriginalGeometry!.VerticesArray;
 
                 for (var i = 0; i < curVer.Length; i++)
                 {

@@ -22,7 +22,7 @@ namespace XrEngine
                 4, 5, 0
             ],
 
-            VerticesArray = VertexData.FromPos(
+            Vertices = VertexData.FromPos(
             [
                 -1, -1, -1,
                  1, -1, -1,

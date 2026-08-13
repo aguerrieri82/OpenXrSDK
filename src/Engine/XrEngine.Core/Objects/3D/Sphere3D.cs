@@ -72,7 +72,7 @@ namespace XrEngine
                 }
             }
 
-            _vertices = vertices.ToArray();
+            Vertices = vertices.ToArray();
             _indices = indices.ToArray();
 
             ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0 | VertexComponent.Tangent;

@@ -65,7 +65,7 @@ namespace XrEngine
 
             _geometry.EnsureIndices();
 
-            _vertices = _geometry.Vertices;
+            _vertices = _geometry.VerticesArray;
             _indices = _geometry.Indices;
 
             var triCount = _indices.Length / 3;
@@ -103,7 +103,7 @@ namespace XrEngine
             if ((uint)triangleId >= (uint)_triangles.Length)
                 throw new ArgumentOutOfRangeException(nameof(triangleId));
 
-            _vertices = _geometry.Vertices;
+            _vertices = _geometry.VerticesArray;
             _indices = _geometry.Indices;
 
             if (_indices.Length / 3 != _triangles.Length)

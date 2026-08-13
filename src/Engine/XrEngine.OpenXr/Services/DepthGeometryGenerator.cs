@@ -232,7 +232,7 @@ namespace XrEngine.OpenXr
 
             if (vertexCount == 0)
             {
-                geometry.VerticesArray = Array.Empty<VertexData>();
+                geometry.Vertices = Array.Empty<VertexData>();
                 geometry.Indices = Array.Empty<uint>();
             }
             else
@@ -243,7 +243,7 @@ namespace XrEngine.OpenXr
                 Array.Copy(_vertexBuffer, vertices, vertexCount);
                 Array.Copy(_indexBuffer, indices, vertexCount);
 
-                geometry.VerticesArray = vertices;
+                geometry.Vertices = vertices;
                 geometry.Indices = indices;
             }
 

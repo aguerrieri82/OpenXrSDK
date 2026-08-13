@@ -162,10 +162,10 @@ namespace XrEngine.OpenGL
                             if (geo!.Indices != null && geo.Indices.Length > 0)
                             {
                                 var index = geo.Indices[_lastHit.Index * 3];
-                                _lastHit.Normal = geo.Vertices[(int)index].Normal;
+                                _lastHit.Normal = geo.VerticesArray[(int)index].Normal;
                             }
                             else
-                                _lastHit.Normal = geo.Vertices[(int)_lastHit.Index * 3].Normal;
+                                _lastHit.Normal = geo.VerticesArray[(int)_lastHit.Index * 3].Normal;
 
                             //_lastHit.Normal = _lastHit.Normal.Transform(mesh.NormalMatrix).Normalize();
                         }

@@ -51,16 +51,16 @@ namespace XrSamples.Earth
             var p2 = ToUv(SouthEast);
             var p3 = ToUv(SouthWest);
 
-            var len = Geometry!.Vertices.Length;
+            var len = Geometry!.VerticesArray.Length;
 
             var trans = Matrix3x2.CreateScale(p1.X - p0.X, p2.Y - p0.Y) *
                         Matrix3x2.CreateTranslation(p0.X, p0.Y);
 
             for (var i = 0; i < len; i++)
             {
-                var uv0 = Geometry!.Vertices[i].UV;
+                var uv0 = Geometry!.VerticesArray[i].UV;
 
-                Geometry!.Vertices[i].UV1 = Vector2.Transform(uv0, trans);
+                Geometry!.VerticesArray[i].UV1 = Vector2.Transform(uv0, trans);
             }
 
         }

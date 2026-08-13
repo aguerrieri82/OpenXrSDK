@@ -65,10 +65,10 @@ namespace XrEngine.Components
                 _splittedMesh.Transform.Set(_host.Transform);
             }
 
-            _host.Geometry!.SetVertices(_startGeo.Vertices);
+            _host.Geometry!.SetVertices(_startGeo.VerticesArray);
             _host.Geometry!.Rebuild(_originalTriangles);
 
-            _splittedMesh.Geometry!.SetVertices(_startGeo.Vertices);
+            _splittedMesh.Geometry!.SetVertices(_startGeo.VerticesArray);
             _splittedMesh.Geometry!.Rebuild(_splitTriangles);
 
             return _splittedMesh;

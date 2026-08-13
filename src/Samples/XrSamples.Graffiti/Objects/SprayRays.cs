@@ -8,16 +8,16 @@ namespace XrSamples.Graffiti.Objects
         {
             Materials.Add(new SprayMaterial());
 
-            var vertices = new VertexData[geometry.Vertices.Length * 2];
+            var vertices = new VertexData[geometry.VerticesArray.Length * 2];
 
-            for (var i = 0; i < geometry.Vertices.Length; i++)
+            for (var i = 0; i < geometry.VerticesArray.Length; i++)
             {
-                vertices[(i * 2)] = geometry.Vertices[i];
-                vertices[(i * 2) + 1] = geometry.Vertices[i];
+                vertices[(i * 2)] = geometry.VerticesArray[i];
+                vertices[(i * 2) + 1] = geometry.VerticesArray[i];
             }
 
             var newGeo = new SimpleGeometry3D();
-            newGeo.VerticesArray = vertices;
+            newGeo.Vertices = vertices;
             newGeo.Primitive = DrawPrimitive.Line;
             newGeo.ActiveComponents = VertexComponent.Position;
             Geometry = newGeo;

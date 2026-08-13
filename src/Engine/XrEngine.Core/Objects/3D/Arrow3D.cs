@@ -25,12 +25,12 @@ namespace XrEngine
             builder.AddCylinder(Vector3.Zero, BaseDiameter / 2, BaseLength, Subs, UVMode.Normalized);
             builder.AddCone(new Vector3(0, 0, BaseLength), ArrowDiameter / 2, ArrowLength, Subs);
 
-            _vertices = builder.Vertices.ToArray();
+            Vertices = builder.Vertices.ToArray();
             _indices = [];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal;
 
-            this.SmoothNormals((uint)smoothStart, (uint)Vertices.Length - 1);
+            this.SmoothNormals((uint)smoothStart, (uint)VerticesArray.Length - 1);
 
             this.ComputeIndices();
         }

@@ -65,7 +65,7 @@ namespace XrEngine
                 }
             }
 
-            _vertices = vertices;
+            Vertices = vertices;
             _indices = indices;
 
             ActiveComponents = VertexComponent.Position | VertexComponent.UV0 | VertexComponent.Normal;

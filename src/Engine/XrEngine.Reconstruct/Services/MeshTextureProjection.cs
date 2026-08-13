@@ -163,7 +163,7 @@ namespace XrEngine.Reconstruct
 
         public void Project(Geometry3D<VertexData> geometry, IReadOnlyList<ColorProjectionFrame> frames)
         {
-            var sourceVertices = geometry.VerticesArray;
+            var sourceVertices = geometry.Vertices;
 
             if (sourceVertices == null || sourceVertices.Length < 3 || frames.Count == 0)
                 return;
@@ -249,7 +249,7 @@ namespace XrEngine.Reconstruct
                 if (indexCount != targetIndices.Length)
                     Array.Resize(ref targetIndices, indexCount);
 
-                geometry.VerticesArray = targetVertices;
+                geometry.Vertices = targetVertices;
                 geometry.Indices = targetIndices;
 
                 geometry.ActiveComponents |=

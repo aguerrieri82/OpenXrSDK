@@ -54,7 +54,7 @@ namespace XrEngine
                 }
             }
 
-            _vertices = builder.Vertices.ToArray();
+            Vertices = builder.Vertices.ToArray();
 
             ActiveComponents |= VertexComponent.Position | VertexComponent.Normal;
 

@@ -21,7 +21,7 @@ namespace XrEngine.Reconstruct
             if (_tempRgba.Size < byteSize)
                 _tempRgba.Allocate((uint)byteSize);
 
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
             var indices = geometry.Indices;
 
             var used = new bool[vertices.Length];

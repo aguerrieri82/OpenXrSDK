@@ -185,7 +185,7 @@ namespace XrEngine
             var geo = new SimpleGeometry3D
             {
                 Indices = indices.ToArray(),
-                VerticesArray = vertices.ToArray(),
+                Vertices = vertices.ToArray(),
                 ActiveComponents = active
             };
 

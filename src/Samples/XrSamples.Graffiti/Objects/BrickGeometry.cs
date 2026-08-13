@@ -166,7 +166,7 @@ namespace XrSamples.Graffiti.Objects
 
             if (!IsValid())
             {
-                VerticesArray = [];
+                Vertices = [];
                 Indices = [];
                 return;
             }
@@ -307,8 +307,8 @@ namespace XrSamples.Graffiti.Objects
 
             builder.ToGeometry(this);
 
-            for (var i = 0; i < Vertices.Length; i++)
-                Vertices[i].UV.Y = 1 - Vertices[i].UV.Y;
+            for (var i = 0; i < VerticesArray.Length; i++)
+                VerticesArray[i].UV.Y = 1 - VerticesArray[i].UV.Y;
 
             this.ComputeTangents();
         }

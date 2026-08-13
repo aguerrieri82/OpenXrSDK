@@ -335,7 +335,7 @@ namespace XrEngine.Reconstruct
 
         public List<AddedTriangle> FindMissingTriangles(Geometry3D<VertexData> geometry)
         {
-            var result = FindMissingTriangles(geometry.VerticesArray!, geometry.Indices!);
+            var result = FindMissingTriangles(geometry.Vertices!, geometry.Indices!);
 
             if (result.Count == 0)
                 return result;

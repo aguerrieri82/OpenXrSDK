@@ -82,7 +82,7 @@ namespace XrEngine.OpenXr
                         {
                             Indices = sceneMesh.Indices!,
                             ActiveComponents = VertexComponent.Position,
-                            VerticesArray = sceneMesh.Vertices!.Select(a => new VertexData
+                            Vertices = sceneMesh.Vertices!.Select(a => new VertexData
                             {
                                 Pos = new Vector3(a.X, a.Y, a.Z)
                             }).ToArray()

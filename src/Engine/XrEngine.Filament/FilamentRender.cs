@@ -472,7 +472,7 @@ namespace XrEngine.Filament
 
                 fixed (VertexAttribute* pAttr = attributesArray)
                 fixed (uint* pIndex = geo.Indices)
-                fixed (VertexData* pVert = geoData.VerticesArray)
+                fixed (VertexData* pVert = geoData.Vertices)
                 {
                     var layout = new VertexLayout
                     {
@@ -486,7 +486,7 @@ namespace XrEngine.Filament
                         layout = layout,
                         Bounds = geo.Bounds,
                         Vertices = (byte*)pVert,
-                        VerticesCount = geo.Vertices!.Length,
+                        VerticesCount = geo.VerticesArray!.Length,
                         Indices = pIndex,
                         IndicesCount = pIndex == null ? 0 : geo.Indices!.Length,
                         Primitive = PrimitiveType.TRIANGLES

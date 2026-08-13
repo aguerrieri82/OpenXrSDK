@@ -459,7 +459,7 @@ namespace XrEngine.Gltf
                     try
                     {
                         result.Indices = DracoDecoder.ReadIndices(mesh);
-                        result.VerticesArray = new TVert[mesh.VerticesSize];
+                        result.Vertices = new TVert[mesh.VerticesSize];
 
                         foreach (var attr in draco.Value.Attributes)
                         {
@@ -707,7 +707,7 @@ namespace XrEngine.Gltf
 
                     curMesh.Geometry = geo;
 
-                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
+                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.VerticesArray.Length * Marshal.SizeOf<VertexData>());
                 });
 
                 if (primitive.Material != null)

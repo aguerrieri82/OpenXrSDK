@@ -527,7 +527,7 @@ namespace XrEngine.Reconstruct
 
             return new SimpleGeometry3D
             {
-                VerticesArray = vertices,
+                Vertices = vertices,
                 Indices = indices,
                 ActiveComponents = VertexComponent.Position | VertexComponent.UV0 | VertexComponent.Tangent
             };
@@ -537,7 +537,7 @@ namespace XrEngine.Reconstruct
         {
             foreach (var geometry in geometries)
             {
-                var vertices = geometry.Vertices;
+                var vertices = geometry.VerticesArray;
 
                 if (vertices == null || vertices.Length == 0)
                     continue;
@@ -629,7 +629,7 @@ namespace XrEngine.Reconstruct
 
             foreach (var geometry in geometries)
             {
-                var vertices = geometry.Vertices;
+                var vertices = geometry.VerticesArray;
                 var indices = geometry.Indices;
 
                 if (vertices == null || vertices.Length == 0)

@@ -144,7 +144,7 @@ namespace XrEngine
                 }
             }
 
-            _vertices = verts;
+            Vertices = verts;
             _indices = indices.Select(a => (uint)a).ToArray();
 
             ActiveComponents |= VertexComponent.Normal;

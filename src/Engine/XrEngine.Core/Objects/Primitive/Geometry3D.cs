@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine
 {
 
-    public abstract class Geometry3D : EngineObject, IHosted, IGeometryVertices
+    public abstract class Geometry3D : EngineObject, IHosted
     {
         protected bool _boundsDirty;
         protected Bounds3 _bounds;
@@ -29,7 +30,6 @@ namespace XrEngine
         {
             return (Geometry3D<TRes>)(object)this;
         }
-
 
         public Geometry3D Clone()
         {
@@ -133,14 +133,12 @@ namespace XrEngine
             _indices = [];
         }
 
+
         public abstract IVerticesList NewVertices(int capacity = 0);
 
         public abstract void Rebuild();
 
         public abstract void UpdateBounds();
-
-        public abstract TVert[] GetVertices<TVert>() 
-            where TVert : unmanaged, IVertexProvider;
 
         public abstract void ScaleUV(Vector2 scale);
         
@@ -158,7 +156,7 @@ namespace XrEngine
 
         public DrawPrimitive Primitive { get; set; }
 
-        public abstract IVerticesArray Vertices { get; }
+        public abstract IVerticesArray VerticesArray { get; }
 
         public uint[] Indices
         {
@@ -167,9 +165,11 @@ namespace XrEngine
         }
     }
 
-    public class Geometry3D<TVert> : Geometry3D, IGeometryVertices<TVert>
+    public class Geometry3D<TVert> : Geometry3D
         where TVert : unmanaged, IVertexProvider
     {
+        #region VerticesArrayImpl
+
         readonly struct VerticesArrayImpl : IVerticesArray
         {
             readonly internal TVert[] _vertices;
@@ -196,16 +196,23 @@ namespace XrEngine
                 return GetEnumerator();
             }
 
-            public readonly ref VertexData this[int index] => ref _vertices[index].Vertex;
-
+            public readonly ref VertexData this[int index]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => ref _vertices[index].Vertex;
+            }
+         
             public readonly int Length => _vertices.Length;
         }
 
-        readonly struct VerticesList : IVerticesList
+        #endregion
+
+        #region VerticesListImpl
+        readonly struct VerticesListImpl : IVerticesList
         {
             internal readonly List<TVert> _vertices;
 
-            public VerticesList(int capacity = 0)
+            public VerticesListImpl(int capacity = 0)
             {
                 _vertices = new List<TVert>(capacity);
             }
@@ -293,11 +300,14 @@ namespace XrEngine
             }
         }
 
-        protected TVert[] _vertices;
+        #endregion
+
+        private TVert[] _vertices;
+        private VerticesArrayImpl _array;
 
         public Geometry3D()
         {
-            _vertices = [];
+            Vertices = [];
         }
 
         public override void ApplyTransform(Matrix4x4 matrix)
@@ -341,7 +351,7 @@ namespace XrEngine
             base.GetState(container);
 
             if (this is not IGeneratedContent)
-                container.WriteBuffer(nameof(Vertices), _vertices);
+                container.WriteBuffer(nameof(VerticesArray), _vertices);
         }
 
         protected override void SetStateWork(IStateContainer container)
@@ -349,15 +359,14 @@ namespace XrEngine
             base.SetStateWork(container);
 
             if (this is not IGeneratedContent)
-                _vertices = container.ReadBuffer<TVert>(nameof(Vertices));
+                _vertices = container.ReadBuffer<TVert>(nameof(VerticesArray));
         }
 
         public override void NotifyLoaded()
         {
             base.NotifyLoaded();
-            _vertices = [];
+            Vertices = [];
         }
-
 
         public override void ScaleUV(Vector2 scale)
         {
@@ -397,18 +406,7 @@ namespace XrEngine
             _boundsDirty = false;
         }
 
-        public override TGet[] GetVertices<TGet>()
-        {
-            if (typeof(TGet) != typeof(TVert))
-                throw new NotSupportedException();
 
-            return (TGet[])(object)_vertices;
-        }
-
-        public override IVerticesArray Vertices
-        {
-            get => new VerticesArrayImpl(_vertices);
-        }
 
         public override void SetVertices(IVerticesArray vertices)
         {
@@ -419,27 +417,29 @@ namespace XrEngine
 
         public override IVerticesList NewVertices(int capacity = 0)
         {
-            return new VerticesList(capacity);
+            return new VerticesListImpl(capacity);
         }
 
         public override void SetVertices(IVerticesList vertices)
         {
-            if (vertices is not VerticesList vl)
+            if (vertices is not VerticesListImpl vl)
                 throw new NotSupportedException();
 
             _vertices = vl._vertices.ToArray();
         }
 
-        public TVert[] VerticesArray
-        {
-            get => _vertices;
-            set => _vertices = value;
-        }
+        public override IVerticesArray VerticesArray => _array;
 
-        TVert[] IGeometryVertices<TVert>.Vertices
+        public TVert[] Vertices
         {
             get => _vertices;
-            set => _vertices = value;
+
+            [MemberNotNull(nameof(_vertices))]
+            set
+            {
+                _vertices = value;
+                _array = new VerticesArrayImpl(value);
+            }
         }
     }
 

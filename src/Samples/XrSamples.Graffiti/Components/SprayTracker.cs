@@ -28,8 +28,8 @@ namespace XrSamples.Graffiti
         protected override void Start(RenderContext ctx)
         {
             _brush = _host!.Scene!.Descendants<SprayBrush>().First();
-            _intersets = new Vector3[_brush.Geometry!.Vertices.Length];
-            _rays = new Ray3[_brush.Geometry!.Vertices.Length];
+            _intersets = new Vector3[_brush.Geometry!.VerticesArray.Length];
+            _rays = new Ray3[_brush.Geometry!.VerticesArray.Length];
             _originalGeo = _brush.Geometry!.Clone();
         }
 
@@ -97,7 +97,7 @@ namespace XrSamples.Graffiti
 
             for (var i = 0; i < _rays!.Length; i++)
             {
-                var vertex = _originalGeo!.Vertices[i].Pos;
+                var vertex = _originalGeo!.VerticesArray[i].Pos;
 
                 var x = vertex.X * radius * 2f;
                 var y = vertex.Y * radius * 2f;
@@ -124,7 +124,7 @@ namespace XrSamples.Graffiti
                 else
                     _intersets![i] = ray.PointAt(2f);
 
-                _brush.Geometry!.Vertices[i].Pos = _intersets[i];
+                _brush.Geometry!.VerticesArray[i].Pos = _intersets[i];
             }
 
             _brush.Geometry!.NotifyChanged(ChangeType.Geometry);

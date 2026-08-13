@@ -6,7 +6,6 @@ using XrMath;
 namespace XrEngine
 {
 
-
     public class TriangleMesh : Object3D, ILocalBounds, IVertexSource
     {
         protected readonly ObservableCollection<Material> _materials;
@@ -223,12 +222,10 @@ namespace XrEngine
 
         Array IVertexSource.Indices => _geometry?.Indices ?? [];
 
-        Array IVertexSource.Vertices => _geometry?.Vertices.ToArray() ?? Array.Empty<VertexData>();
+        Array IVertexSource.Vertices => _geometry?.VerticesArray.ToArray() ?? Array.Empty<VertexData>();
 
         IReadOnlyList<Material> IVertexSource.Materials => _materials;
 
         #endregion
     }
-
-   
 }

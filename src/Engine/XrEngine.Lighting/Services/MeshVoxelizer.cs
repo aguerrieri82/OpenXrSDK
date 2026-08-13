@@ -20,12 +20,12 @@ namespace XrEngine.Lighting
 
         public unsafe MeshVoxelGrid Voxelize(SimpleGeometry3D geometry, Matrix4x4 transform)
         {
-            if (geometry.Vertices == null || geometry.Vertices.Length == 0)
+            if (geometry.VerticesArray == null || geometry.VerticesArray.Length == 0)
                 throw new ArgumentException("Geometry has no vertices.", nameof(geometry));
 
             Log.Info(this, "Apply transform");
 
-            var srcVertices = geometry.VerticesArray;
+            var srcVertices = geometry.Vertices;
             var dstVertices = new VertexData[srcVertices.Length];
 
             var min = new Vector3(float.PositiveInfinity);
@@ -61,7 +61,7 @@ namespace XrEngine.Lighting
 
         public MeshVoxelGrid Voxelize(SimpleGeometry3D geometry)
         {
-            return Voxelize(geometry.VerticesArray, geometry.Indices, geometry.Bounds);
+            return Voxelize(geometry.Vertices, geometry.Indices, geometry.Bounds);
         }
 
         public MeshVoxelGrid Voxelize(

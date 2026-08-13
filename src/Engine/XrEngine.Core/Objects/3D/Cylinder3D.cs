@@ -35,7 +35,7 @@ namespace XrEngine
             if ((Parts & CylinderPart.TopCap) != 0)
                 builder.AddCircle(Center + new Vector3(0, 0, Height), Radius, Subs, true, UVMode);
 
-            _vertices = builder.Vertices.ToArray();
+            Vertices = builder.Vertices.ToArray();
             Indices = [];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;

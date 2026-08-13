@@ -425,7 +425,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var oldVertices = geometry.VerticesArray;
+            var oldVertices = geometry.Vertices;
             var oldIndices = geometry.Indices;
             var oldTriangleCount = oldIndices.Length / 3;
 
@@ -585,7 +585,7 @@ namespace XrEngine
             if (_fixWinding && (!recoveryEnabled || topologyChangedAfterWinding))
                 fixedWindingTriangles += FixWindingStage("final", ref newIndices);
 
-            geometry.VerticesArray = newVertices;
+            geometry.Vertices = newVertices;
             geometry.Indices = newIndices;
 
             if (_recomputeNormals)

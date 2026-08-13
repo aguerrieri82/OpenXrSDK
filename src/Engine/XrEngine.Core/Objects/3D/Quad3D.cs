@@ -21,7 +21,7 @@ namespace XrEngine
         {
             var halfSize = new Vector2(Size.X, Size.Y) / 2;
 
-            _vertices = VertexData.FromPosNormalUV(
+            Vertices = VertexData.FromPosNormalUV(
             [
                -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 0f,
                 halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 0f,

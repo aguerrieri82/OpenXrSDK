@@ -456,7 +456,7 @@ namespace XrSamples.Dnd
                         geo.ActiveComponents |= VertexComponent.UV1;
                     }
                 }
-                geo.VerticesArray = data;
+                geo.Vertices = data;
                 _geos[meshId] = geo;
 
                 if (rebuildNormals)

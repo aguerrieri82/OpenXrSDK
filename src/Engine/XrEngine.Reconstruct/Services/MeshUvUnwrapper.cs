@@ -352,7 +352,7 @@ namespace XrEngine
 
             _geometry.EnsureIndices();
 
-            _vertices = _geometry.VerticesArray;
+            _vertices = _geometry.Vertices;
             _indices = _geometry.Indices;
 
             BuildTriangles();
@@ -1055,7 +1055,7 @@ namespace XrEngine
                 newIndices.Add(GetOrCreateVertex(tri.C, tri.Chart, chart, newVertices, vertexMap, scale));
             }
 
-            _geometry.VerticesArray = newVertices.ToArray();
+            _geometry.Vertices = newVertices.ToArray();
             _geometry.Indices = newIndices.ToArray();
         }
 

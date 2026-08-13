@@ -4,6 +4,8 @@
             "commandName": "Project",
             "nativeDebugging": false,
             "environmentVariables": {
+                "DOTNET_TieredCompilation": "0",
+                "DOTNET_JitDisasm": "*ComputeTangents*",
                 "ANGLE_DUMP_SPIRV": "1"
             }
         },

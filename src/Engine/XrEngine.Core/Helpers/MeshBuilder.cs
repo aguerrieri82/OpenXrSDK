@@ -653,7 +653,7 @@ namespace XrEngine
         public Geometry3D<VertexData> ToGeometry(Geometry3D<VertexData>? result = null, bool computeIndices = true)
         {
             result ??= new SimpleGeometry3D();
-            result.VerticesArray = Vertices.ToArray();
+            result.Vertices = Vertices.ToArray();
             result.Indices = [];
             result.ActiveComponents |= VertexComponent.UV0;
 

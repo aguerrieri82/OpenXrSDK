@@ -29,7 +29,7 @@ namespace XrEngine
 
             builder.AddCircle(Center, Radius, Subs, false, UVMode);
 
-            _vertices = builder.Vertices.ToArray();
+            Vertices = builder.Vertices.ToArray();
             _indices = [];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;

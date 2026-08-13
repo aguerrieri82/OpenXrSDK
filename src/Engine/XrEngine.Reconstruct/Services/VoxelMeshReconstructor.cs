@@ -144,7 +144,7 @@ namespace XrEngine.Reconstruct
 
         public unsafe void FeedFrame(Geometry3D<VertexData> geometry)
         {
-            var vertices = geometry.Vertices!;
+            var vertices = geometry.VerticesArray!;
             var indices = geometry.Indices!;
 
             fixed (uint* pIndices = &indices[0])
@@ -162,7 +162,7 @@ namespace XrEngine.Reconstruct
 
         public unsafe void FeedFrame(SimpleGeometry3D geometry, Matrix4x4 transform)
         {
-            var vertices = geometry.Vertices!;
+            var vertices = geometry.VerticesArray!;
             var indices = geometry.Indices!;
 
             fixed (uint* pIndices = &indices[0])
@@ -205,7 +205,7 @@ namespace XrEngine.Reconstruct
                 }
             }
 
-            output.VerticesArray = vertices.ToArray();
+            output.Vertices = vertices.ToArray();
             output.Indices = indices.ToArray();
 
             output.ActiveComponents =

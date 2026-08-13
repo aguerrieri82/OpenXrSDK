@@ -1088,7 +1088,7 @@ namespace XrEngine.Reconstruct
                 File.WriteAllText(cacheName, objWriter.Text());
             }
 
-            Log.Warn(this, "Mesh extracted {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+            Log.Warn(this, "Mesh extracted {0} - {1}", _recMesh.Geometry.VerticesArray!.Length, _recMesh.Geometry.Indices!.Length);
 
             if (Optimize)
             {
@@ -1098,7 +1098,7 @@ namespace XrEngine.Reconstruct
 
                 collapse.CollapseCloseVertices((Geometry3D<VertexData>)_recMesh.Geometry!);
 
-                Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+                Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.VerticesArray!.Length, _recMesh.Geometry.Indices!.Length);
             }
 
             if (FillHoles)
@@ -1263,7 +1263,7 @@ namespace XrEngine.Reconstruct
                 MeshOptimizer.Optimize((Geometry3D<VertexData>)_recMesh.Geometry!);
             }
 
-            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
+            Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.VerticesArray!.Length, _recMesh.Geometry.Indices!.Length);
 
             await EngineApp.MainThread;
 

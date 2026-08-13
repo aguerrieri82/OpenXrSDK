@@ -49,7 +49,7 @@ namespace XrEngine
                 }
             }
 
-            _vertices = vertices.ToArray();
+            Vertices = vertices.ToArray();
 
             this.EnsureIndices();
 

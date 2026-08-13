@@ -247,7 +247,7 @@ namespace XrEngine.Reconstruct
                 for (var i = 0; i < images.Length; i++)
                     _imageLocks[i] = images[i].MemoryLock();
 
-                var vertices = geometry.VerticesArray!;
+                var vertices = geometry.Vertices!;
                 var indices = geometry.Indices;
 
                 fixed (VertexData* vertexPtr = vertices)

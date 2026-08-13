@@ -24,7 +24,7 @@ namespace XrEngine
             builder.AddCube(Center, Size);
             var halfSize = Size / 2;
 
-            _vertices = VertexData.FromPosNormalUV(
+            Vertices = VertexData.FromPosNormalUV(
             [
                //X    Y      Z       Normals
                 halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 1f, 1f,
@@ -55,8 +55,8 @@ namespace XrEngine
 
             if (Center != Vector3.Zero)
             {
-                for (var i = 0; i < Vertices.Length; i++)
-                    _vertices[i].Pos += Center;
+                for (var i = 0; i < VerticesArray.Length; i++)
+                    Vertices[i].Pos += Center;
             }
 
             Indices =

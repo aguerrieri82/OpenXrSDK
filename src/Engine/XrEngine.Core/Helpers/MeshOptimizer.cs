@@ -29,7 +29,7 @@ namespace XrEngine
 
         public static unsafe uint[] GenerateVertexRemap(Geometry3D<VertexData> geometry, out int vertexCount)
         {
-            var vertices = geometry.VerticesArray;
+            var vertices = geometry.Vertices;
             var indices = geometry.Indices;
 
             var sourceIndices = indices.Length > 0 ? indices : null;
@@ -55,7 +55,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var oldVertices = geometry.VerticesArray;
+            var oldVertices = geometry.Vertices;
             var oldIndices = geometry.Indices;
 
             var newVertices = new VertexData[vertexCount];
@@ -78,7 +78,7 @@ namespace XrEngine
                     remap);
             }
 
-            geometry.VerticesArray = newVertices;
+            geometry.Vertices = newVertices;
             geometry.Indices = newIndices;
         }
 
@@ -112,7 +112,7 @@ namespace XrEngine
                 result,
                 indices,
                 indices.Length,
-                geometry.Vertices.Length);
+                geometry.VerticesArray.Length);
 
             geometry.Indices = result;
         }
@@ -121,7 +121,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
             var indices = geometry.Indices;
             var result = new uint[indices.Length];
 
@@ -141,7 +141,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var oldVertices = geometry.VerticesArray;
+            var oldVertices = geometry.Vertices;
             var indices = geometry.Indices;
             var newVertices = new VertexData[oldVertices.Length];
 
@@ -159,7 +159,7 @@ namespace XrEngine
                 Array.Resize(ref newVertices, (int)count);
             }
 
-            geometry.VerticesArray = newVertices;
+            geometry.Vertices = newVertices;
             geometry.Indices = indices;
         }
 
@@ -172,7 +172,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
             var indices = geometry.Indices;
 
             var targetIndexCount = GetTargetIndexCount(indices.Length, targetIndicesFactor);
@@ -212,7 +212,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
             var indices = geometry.Indices;
 
             var targetIndexCount = GetTargetIndexCount(indices.Length, targetIndicesFactor);
@@ -263,7 +263,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
             var indices = geometry.Indices;
 
             var targetIndexCount = GetTargetIndexCount(indices.Length, targetIndicesFactor);
@@ -293,7 +293,7 @@ namespace XrEngine
 
         public static float ComputeSimplifyScale(Geometry3D geometry)
         {
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
 
             return MeshOptimizerLib.meshopt_simplifyScale(
                 ref vertices[0].Pos,
@@ -312,7 +312,7 @@ namespace XrEngine
             return MeshOptimizerLib.meshopt_analyzeVertexCache(
                 geometry.Indices,
                 geometry.Indices.Length,
-                geometry.Vertices.Length,
+                geometry.VerticesArray.Length,
                 cacheSize,
                 warpSize,
                 primitiveGroupSize);
@@ -325,7 +325,7 @@ namespace XrEngine
             return MeshOptimizerLib.meshopt_analyzeVertexFetch(
                 geometry.Indices,
                 geometry.Indices.Length,
-                geometry.Vertices.Length,
+                geometry.VerticesArray.Length,
                 SizeOfVertex);
         }
 
@@ -333,7 +333,7 @@ namespace XrEngine
         {
             geometry.EnsureIndices();
 
-            var vertices = geometry.Vertices;
+            var vertices = geometry.VerticesArray;
 
             return MeshOptimizerLib.meshopt_analyzeOverdraw(
                 geometry.Indices,

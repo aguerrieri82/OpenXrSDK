@@ -43,7 +43,7 @@ namespace XrEngine.OpenXr
                     var test = Cube3D.Default;
 
                     triMesh.Indices = test.Indices!;
-                    triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
+                    triMesh.Vertices = test.VerticesArray.Select(a => a.Pos).ToArray()!;
 
                     var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.ReferenceSpace, meshObj);
 

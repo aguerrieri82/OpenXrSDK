@@ -76,10 +76,10 @@ namespace XrEngine.OpenXr
 
             Geometry.ActiveComponents |= VertexComponent.Tangent;
 
-            for (var i = 0; i < Geometry.Vertices.Length; i++)
+            for (var i = 0; i < Geometry.VerticesArray.Length; i++)
             {
-                var uv = Geometry.Vertices[i].UV;
-                Geometry.Vertices[i].Tangent = new Vector4(1, 1, 1, uv.Y);
+                var uv = Geometry.VerticesArray[i].UV;
+                Geometry.VerticesArray[i].Tangent = new Vector4(1, 1, 1, uv.Y);
             }
         }
 

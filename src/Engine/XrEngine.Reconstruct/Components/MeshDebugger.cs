@@ -185,7 +185,7 @@ namespace XrEngine.Reconstruct
                 includeSelf: true);
 
             var source = _index.Geometry;
-            var sourceVertices = source.Vertices;
+            var sourceVertices = source.VerticesArray;
 
             var vertices = new VertexData[result.Count * 3];
             var indices = new uint[result.Count * 3];
@@ -213,7 +213,7 @@ namespace XrEngine.Reconstruct
 
             var geometry = (Geometry3D<VertexData>)_slice.Geometry!;
 
-            geometry.VerticesArray = vertices;
+            geometry.Vertices = vertices;
             geometry.Indices = indices;
             geometry.ActiveComponents = source.ActiveComponents;
 
@@ -254,7 +254,7 @@ namespace XrEngine.Reconstruct
 
             var geo = (Geometry3D<VertexData>)_host.Geometry!;
 
-            var result = filler.FindMissingTriangles(geo.VerticesArray, indices);
+            var result = filler.FindMissingTriangles(geo.Vertices, indices);
 
             _newTriangles = result.Select(a => BuildTriangle(a.A, a.B, a.C)).ToList();
 
@@ -271,7 +271,7 @@ namespace XrEngine.Reconstruct
                 I2 = c,
             };
 
-            var vert = _host!.Geometry!.Vertices;
+            var vert = _host!.Geometry!.VerticesArray;
 
             res.V0 = vert[(int)res.I0].Pos;
             res.V1 = vert[(int)res.I1].Pos;

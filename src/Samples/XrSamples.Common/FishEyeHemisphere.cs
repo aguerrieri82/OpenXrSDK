@@ -157,7 +157,7 @@ namespace XrEngine
                 }
             }
 
-            _vertices = vertices;
+            Vertices = vertices;
             _indices = indices;
 
             Primitive = DrawPrimitive.Triangle;
