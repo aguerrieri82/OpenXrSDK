@@ -38,10 +38,11 @@ namespace XrEngine.OpenGL
 
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
-            var srcInterface = obj.GetType().GetInterfaces()
-                .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IVertexSource<,>));
+            var tVert = obj.Vertices.GetType().GetElementType()!;
 
-            var type = typeof(GlVertexSourceHandler<,>).MakeGenericType(srcInterface.GetGenericArguments());
+            var tIndex = obj.Indices.GetType().GetElementType()!;
+
+            var type = typeof(GlVertexSourceHandler<,>).MakeGenericType([tVert, tIndex]);
 
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
@@ -52,7 +53,7 @@ namespace XrEngine.OpenGL
     {
         readonly GlVertexArray<TVert, TInd> _vertices;
         readonly PrimitiveType _primitive;
-        readonly IVertexSource<TVert, TInd> _source;
+        readonly IVertexSource _source;
         readonly GL _gl;
         EngineObject? _sourceObject;
         VertexComponent _lastComponents;
@@ -70,13 +71,13 @@ namespace XrEngine.OpenGL
             Version = source.Version;
         }
 
-        public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
+        public GlVertexSourceHandler(GL gl, IVertexSource source)
         {
             _source = source;
 
             UpdateLayout(out var layout);
 
-            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout!);
+            _vertices = new GlVertexArray<TVert, TInd>(gl, (TVert[])_source.Vertices, (TInd[])_source.Indices, layout!);
 
             _primitive = GlPrimitive(_source.Primitive);
 
@@ -162,7 +163,7 @@ namespace XrEngine.OpenGL
             if (UpdateLayout(out var layout))
                 _vertices.UpdateLayout(layout!);
 
-            _vertices.Update(_source.Vertices, _source.Indices);
+            _vertices.Update((TVert[])_source.Vertices, (TInd[])_source.Indices);
 
             _sourceObject = _source.Object;
 

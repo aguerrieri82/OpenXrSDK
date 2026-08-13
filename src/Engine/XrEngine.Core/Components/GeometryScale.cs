@@ -5,7 +5,7 @@ namespace XrEngine
 {
     public class GeometryScale : BaseComponent<Object3D>, IDrawGizmos, IScaleHandler
     {
-        private readonly Dictionary<TriangleMesh, BaseGeometry3D<VertexData>> _geometries = [];
+        private readonly Dictionary<TriangleMesh, Geometry3D> _geometries = [];
         private Bounds3 _bounds;
         private Vector3 _size;
 

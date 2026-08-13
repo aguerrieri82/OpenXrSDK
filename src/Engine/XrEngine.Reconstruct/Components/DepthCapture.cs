@@ -1031,7 +1031,7 @@ namespace XrEngine.Reconstruct
             {
                 if (_recMesh == null)
                 {
-                    _recMesh = new TriangleMesh(new Geometry3D());
+                    _recMesh = new TriangleMesh(new SimpleGeometry3D());
                     _recMesh.AddComponent<MeshDebugger>();
                 }
             }
@@ -1065,7 +1065,7 @@ namespace XrEngine.Reconstruct
                 if (!skipReconstruct)
                 {
                     Log.Info(this, "Feed frame {0}", meta.Frame);
-                    rec.FeedFrame(mesh.Geometry!);
+                    rec.FeedFrame((Geometry3D<VertexData>)mesh.Geometry!);
                 }
 
                 colorFrames.Add(new ColorProjectionFrame(
@@ -1080,7 +1080,7 @@ namespace XrEngine.Reconstruct
             {
                 Log.Info(this, "Extracting mesh");
 
-                rec.ExtractMesh(_recMesh.Geometry);
+                rec.ExtractMesh((Geometry3D<VertexData>)_recMesh.Geometry);
 
                 var objWriter = new ObjWriter();
                 objWriter.Add(_recMesh);
@@ -1096,7 +1096,7 @@ namespace XrEngine.Reconstruct
 
                 var collapse = new MeshCollapse(CollapseParams);
 
-                collapse.CollapseCloseVertices(_recMesh.Geometry!);
+                collapse.CollapseCloseVertices((Geometry3D<VertexData>)_recMesh.Geometry!);
 
                 Log.Warn(this, "Simplified {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
             }
@@ -1105,7 +1105,7 @@ namespace XrEngine.Reconstruct
             {
                 Log.Info(this, "Filling holes");
                 var filler = new MeshHoleFiller(HoleParams);
-                var fillRes = filler.FindMissingTriangles(_recMesh!.Geometry);
+                var fillRes = filler.FindMissingTriangles((Geometry3D<VertexData>)_recMesh!.Geometry);
                 Log.Warn(this, "{0} triangles found", fillRes.Count);
             }
 
@@ -1149,7 +1149,7 @@ namespace XrEngine.Reconstruct
 
                 var uvUnwrap = new MeshUvUnwrapper();
                 uvUnwrap.SetParameters(UvUnwrapParams);
-                uvUnwrap.Unwrap(_recMesh.Geometry);
+                uvUnwrap.Unwrap((Geometry3D<VertexData>)_recMesh.Geometry);
 
                 if (BuildAtlas)
                 {
@@ -1193,7 +1193,7 @@ namespace XrEngine.Reconstruct
 
                 var proj = new MeshTextureProjection();
                 proj.SetParams(ProjParams);
-                proj.Project(_recMesh.Geometry, colorFrames);
+                proj.Project((Geometry3D<VertexData>)_recMesh.Geometry, colorFrames);
 
                 if (SolveExposure)
                 {
@@ -1204,7 +1204,7 @@ namespace XrEngine.Reconstruct
                     solver.SetParams(ExposeParams);
 
                     exposures = solver.Compute(
-                        _recMesh.Geometry,
+                        (Geometry3D<VertexData>)_recMesh.Geometry,
                         colorData.ToArray(),
                         (int)colorSize.Width,
                         (int)colorSize.Height);
@@ -1225,7 +1225,7 @@ namespace XrEngine.Reconstruct
                     });
 
                     _atlasTex?.Dispose();
-                    _atlasTex = await builder.GenerateAtlasTextureAsync([_recMesh.Geometry], _colorArrayTex, exposures);
+                    _atlasTex = await builder.GenerateAtlasTextureAsync([(Geometry3D<VertexData>)_recMesh.Geometry], _colorArrayTex, exposures);
 
                     if (_texMat is not TextureMaterial)
                         _texMat = new TextureMaterial();
@@ -1260,7 +1260,7 @@ namespace XrEngine.Reconstruct
             if (Optimize)
             {
                 Log.Info(this, "Optmize");
-                MeshOptimizer.Optimize(_recMesh.Geometry!);
+                MeshOptimizer.Optimize((Geometry3D<VertexData>)_recMesh.Geometry!);
             }
 
             Log.Warn(this, "Done {0} - {1}", _recMesh.Geometry.Vertices!.Length, _recMesh.Geometry.Indices!.Length);
@@ -1345,7 +1345,7 @@ namespace XrEngine.Reconstruct
 
                 var depthBytes = File.ReadAllBytes(depthPath);
 
-                Geometry3D geometry;
+                SimpleGeometry3D geometry;
 
                 fixed (byte* pBytes = depthBytes)
                 {

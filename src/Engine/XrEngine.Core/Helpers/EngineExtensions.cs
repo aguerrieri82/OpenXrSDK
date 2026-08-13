@@ -566,40 +566,38 @@ namespace XrEngine
         public delegate void VertexAssignDelegate<TData, TValue>(ref TData vertexData, in TValue value)
              where TData : unmanaged, IVertexProvider;
 
-        public static void FlipYUV<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static void FlipYUV(this Geometry3D self) 
         {
-            var span = self.Vertices.AsSpan();
-
-            for (var i = 0; i < span.Length; i++)
+            for (var i = 0; i < self.Vertices.Length; i++)
             {
-                ref var ver = ref span[i].Vertex;
+                ref var ver = ref self.Vertices[i];
                 ver.UV.Y = 1 - ver.UV.Y;
             }
 
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static void Rebuild<T>(this BaseGeometry3D<T> self, IEnumerable<Triangle3> triangles) where T : unmanaged, IVertexProvider
+        public static void Rebuild(this Geometry3D self, IEnumerable<Triangle3> triangles)
         {
-            var vertices = new List<T>();
+            var vertices = self.NewVertices();
             var indices = triangles.SelectMany(a => a.Indices);
 
             foreach (var index in indices)
-                vertices.Add(self.Vertices[index]);
+                vertices.Add(self.Vertices[(int)index]);
 
-            self.Vertices = vertices.ToArray();
+            self.SetVertices(vertices);
             self.Indices = [];
 
             self.ComputeIndices();
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static Geometry3D TransformToLine<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static Geometry3D TransformToLine(this Geometry3D self)
         {
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
 
-            var res = new Geometry3D { Primitive = DrawPrimitive.Line };
+            var res = new Geometry3D<VertexData> { Primitive = DrawPrimitive.Line };
 
             if (self.Indices.Length == 0)
                 throw new NotSupportedException();
@@ -622,32 +620,32 @@ namespace XrEngine
                 dstI += 6;
             }
 
-            var vertices = new VertexData[self.Vertices.Length];
-            for (var i = 0; i < vertices.Length; i++)
-                vertices[i] = self.Vertices[i].Vertex;
+            var newVertices = self.NewVertices(self.Vertices.Length);
+            for (var i = 0; i < newVertices.Count; i++)
+                newVertices[i] = self.Vertices[i];
 
-            res.Vertices = vertices;
+            res.SetVertices(newVertices);
             res.Indices = newIndices;
             return res;
         }
 
-        public static Vector3[] ExtractPositions<T>(this BaseGeometry3D<T> self, bool useIndex = false) where T : unmanaged, IVertexProvider
+        public static Vector3[] ExtractPositions(this Geometry3D self, bool useIndex = false) 
         {
             if (!useIndex)
             {
                 var result = new Vector3[self.Vertices.Length];
                 for (var i = 0; i < result.Length; i++)
-                    result[i] = self.Vertices[i].Vertex.Pos;
+                    result[i] = self.Vertices[i].Pos;
                 return result;
             }
 
             var indexedResult = new Vector3[self.Indices.Length];
             for (var i = 0; i < indexedResult.Length; i++)
-                indexedResult[i] = self.Vertices[(int)self.Indices[i]].Vertex.Pos;
+                indexedResult[i] = self.Vertices[(int)self.Indices[i]].Pos;
             return indexedResult;
         }
 
-        public static void ComputeNormals<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static void ComputeNormals(this Geometry3D self) 
         {
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
@@ -663,15 +661,15 @@ namespace XrEngine
 
                     var triangle = new Triangle3
                     {
-                        V0 = self.Vertices[i0].Vertex.Pos,
-                        V1 = self.Vertices[i1].Vertex.Pos,
-                        V2 = self.Vertices[i2].Vertex.Pos,
+                        V0 = self.Vertices[(int)i0].Pos,
+                        V1 = self.Vertices[(int)i1].Pos,
+                        V2 = self.Vertices[(int)i2].Pos,
                     };
 
                     var normal = triangle.Normal();
-                    self.Vertices[i0].Vertex.Normal = normal;
-                    self.Vertices[i1].Vertex.Normal = normal;
-                    self.Vertices[i2].Vertex.Normal = normal;
+                    self.Vertices[(int)i0].Normal = normal;
+                    self.Vertices[(int)i1].Normal = normal;
+                    self.Vertices[(int)i2].Normal = normal;
                 }
             }
             else
@@ -685,15 +683,15 @@ namespace XrEngine
 
                     var triangle = new Triangle3
                     {
-                        V0 = self.Vertices[i0].Vertex.Pos,
-                        V1 = self.Vertices[i1].Vertex.Pos,
-                        V2 = self.Vertices[i2].Vertex.Pos,
+                        V0 = self.Vertices[i0].Pos,
+                        V1 = self.Vertices[i1].Pos,
+                        V2 = self.Vertices[i2].Pos,
                     };
 
                     var normal = triangle.Normal();
-                    self.Vertices[i0].Vertex.Normal = normal;
-                    self.Vertices[i1].Vertex.Normal = normal;
-                    self.Vertices[i2].Vertex.Normal = normal;
+                    self.Vertices[i0].Normal = normal;
+                    self.Vertices[i1].Normal = normal;
+                    self.Vertices[i2].Normal = normal;
                 }
             }
 
@@ -701,7 +699,7 @@ namespace XrEngine
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static void ToTriangles<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static void ToTriangles(this Geometry3D self)
         {
             if (self.Primitive != DrawPrimitive.Quad)
                 throw new NotSupportedException();
@@ -724,8 +722,7 @@ namespace XrEngine
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static void EnsureIndices<T>(this BaseGeometry3D<T> self)
-           where T : unmanaged, IVertexProvider
+        public static void EnsureIndices(this Geometry3D self)
         {
             if (self.Indices == null || self.Indices.Length == 0)
             {
@@ -737,13 +734,12 @@ namespace XrEngine
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static void SmoothNormals<T>(this BaseGeometry3D<T> self) 
-            where T : unmanaged, IVertexProvider
+        public static void SmoothNormals(this Geometry3D self) 
         {
             SmoothNormals(self, 0, (uint)self.Vertices.Length - 1);
         }
 
-        public static void SmoothNormals<T>(this BaseGeometry3D<T> self, uint startIndex, uint endIndex, int decimals = 4) where T : unmanaged, IVertexProvider
+        public static void SmoothNormals(this Geometry3D self, uint startIndex, uint endIndex, int decimals = 4) 
         {
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
@@ -752,7 +748,7 @@ namespace XrEngine
 
             for (var i = startIndex; i <= endIndex; i++)
             {
-                var pos = self.Vertices[i].Vertex.Pos.Round(decimals);
+                var pos = self.Vertices[(int)i].Pos.Round(decimals);
 
                 if (!groups.TryGetValue(pos, out var list))
                 {
@@ -773,7 +769,7 @@ namespace XrEngine
 
                 foreach (var index in group)
                 {
-                    var normal = self.Vertices[index].Vertex.Normal;
+                    var normal = self.Vertices[(int)index].Normal;
                     if (!normal.IsFinite())
                         continue;
 
@@ -787,13 +783,13 @@ namespace XrEngine
                 avg /= count;
 
                 foreach (var index in group)
-                    self.Vertices[index].Vertex.Normal = avg;
+                    self.Vertices[(int)index].Normal = avg;
             }
 
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static IEnumerable<Triangle3> Triangles<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static IEnumerable<Triangle3> Triangles(this Geometry3D self)
         {
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
@@ -810,9 +806,9 @@ namespace XrEngine
                         I2 = self.Indices[i++]
                     };
 
-                    triangle.V0 = self.Vertices[triangle.I0].Vertex.Pos;
-                    triangle.V1 = self.Vertices[triangle.I1].Vertex.Pos;
-                    triangle.V2 = self.Vertices[triangle.I2].Vertex.Pos;
+                    triangle.V0 = self.Vertices[(int)triangle.I0].Pos;
+                    triangle.V1 = self.Vertices[(int)triangle.I1].Pos;
+                    triangle.V2 = self.Vertices[(int)triangle.I2].Pos;
 
                     yield return triangle;
                 }
@@ -831,15 +827,15 @@ namespace XrEngine
                         I0 = i0,
                         I1 = i1,
                         I2 = i2,
-                        V0 = self.Vertices[i0].Vertex.Pos,
-                        V1 = self.Vertices[i1].Vertex.Pos,
-                        V2 = self.Vertices[i2].Vertex.Pos,
+                        V0 = self.Vertices[(int)i0].Pos,
+                        V1 = self.Vertices[(int)i1].Pos,
+                        V2 = self.Vertices[(int)i2].Pos,
                     };
                 }
             }
         }
 
-        public static void ComputeTangents<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static void ComputeTangents(this Geometry3D self) 
         {
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
@@ -855,9 +851,9 @@ namespace XrEngine
                 var i2 = self.Indices[i + 1];
                 var i3 = self.Indices[i + 2];
 
-                ref var vd1 = ref self.Vertices[i1].Vertex;
-                ref var vd2 = ref self.Vertices[i2].Vertex;
-                ref var vd3 = ref self.Vertices[i3].Vertex;
+                ref var vd1 = ref self.Vertices[(int)i1];
+                ref var vd2 = ref self.Vertices[(int)i2];
+                ref var vd3 = ref self.Vertices[(int)i3];
 
                 var v1 = vd1.Pos;
                 var v2 = vd2.Pos;
@@ -905,7 +901,7 @@ namespace XrEngine
 
             for (var i = 0; i < vertexCount; ++i)
             {
-                ref var vertex = ref self.Vertices[i].Vertex;
+                ref var vertex = ref self.Vertices[i];
                 var n = vertex.Normal;
                 var t = tan1[i];
 
@@ -920,27 +916,27 @@ namespace XrEngine
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static void SetVertexData<TVer, TValue>(this BaseGeometry3D<TVer> self, 
+        public static void SetVertexData<TVer, TValue>(this Geometry3D<TVer> self, 
             VertexAssignDelegate<TVer, TValue> selector, TValue[] array) 
             where TVer : unmanaged, IVertexProvider
         {
-            if (self.Vertices == null)
-                self.Vertices = new TVer[array.Length];
+            if (self.VerticesArray == null)
+                self.VerticesArray = new TVer[array.Length];
 
             if (self.Vertices.Length < array.Length)
             {
-                var newArray = self.Vertices;
+                var newArray = self.VerticesArray;
                 Array.Resize(ref newArray, array.Length);
-                self.Vertices = newArray;
+                self.VerticesArray = newArray;
             }
 
             for (var i = 0; i < array.Length; i++)
-                selector(ref self.Vertices[i], array[i]);
+                selector(ref self.VerticesArray[i], array[i]);
 
             self.NotifyChanged(ChangeType.Geometry);
         }
 
-        public static Bounds3 ComputeBounds<T>(this BaseGeometry3D<T> self, Matrix4x4 transform) where T : unmanaged, IVertexProvider
+        public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform) 
         {
             if (self.Vertices != null)
             {
@@ -949,12 +945,12 @@ namespace XrEngine
                 if (transform.IsIdentity)
                 {
                     for (var i = 0; i < self.Vertices.Length; i++)
-                        builder.Add(self.Vertices[i].Vertex.Pos);
+                        builder.Add(self.Vertices[i].Pos);
                 }
                 else
                 {
                     for (var i = 0; i < self.Vertices.Length; i++)
-                        builder.Add(self.Vertices[i].Vertex.Pos.Transform(transform));
+                        builder.Add(self.Vertices[i].Pos.Transform(transform));
                 }
 
                 return builder.Result;
@@ -963,7 +959,7 @@ namespace XrEngine
             return Bounds3.Zero;
         }
 
-        public static void EnsureCCW<T>(this BaseGeometry3D<T> self) where T : unmanaged, IVertexProvider
+        public static void EnsureCCW(this Geometry3D self) 
         {
             if (self.Indices.Length == 0)
                 throw new NotSupportedException();
@@ -977,9 +973,9 @@ namespace XrEngine
                 var i1 = iSpan[i + 1];
                 var i2 = iSpan[i + 2];
 
-                ref var v0 = ref self.Vertices[i0].Vertex;
-                ref var v1 = ref self.Vertices[i1].Vertex;
-                ref var v2 = ref self.Vertices[i2].Vertex;
+                ref var v0 = ref self.Vertices[(int)i0];
+                ref var v1 = ref self.Vertices[(int)i1];
+                ref var v2 = ref self.Vertices[(int)i2];
 
                 var tri = new Triangle3
                 {
@@ -1001,13 +997,14 @@ namespace XrEngine
             }
         }
 
-        public static void ComputeIndices<T>(this BaseGeometry3D<T> self, int decimals = 5) where T : unmanaged, IVertexProvider
+        public static void ComputeIndices(this Geometry3D self, int decimals = 5) 
         {
             var sourceVertices = self.Vertices!;
             var sourceIndices = self.Indices;
 
             var map = new Dictionary<Vector256<float>, uint>();
-            var newVertices = new List<T>(sourceVertices.Length);
+
+            var newVertices = self.NewVertices(sourceVertices.Length);
             map.EnsureCapacity(sourceVertices.Length);
 
             Vector256<float> Hash(in VertexData vert)
@@ -1025,9 +1022,9 @@ namespace XrEngine
                     vert.UV.Y);
             }
 
-            uint GetIndex(T vert)
+            uint GetIndex(ref VertexData vert)
             {
-                var hash = Hash(vert.Vertex);
+                var hash = Hash(vert);
 
                 if (map.TryGetValue(hash, out var index))
                     return index;
@@ -1043,7 +1040,7 @@ namespace XrEngine
                 var newIndices = new uint[sourceIndices.Length];
 
                 for (var i = 0; i < sourceIndices.Length; i++)
-                    newIndices[i] = GetIndex(sourceVertices[(int)sourceIndices[i]]);
+                    newIndices[i] = GetIndex(ref sourceVertices[(int)sourceIndices[i]]);
 
                 self.Indices = newIndices;
             }
@@ -1052,12 +1049,13 @@ namespace XrEngine
                 var newIndices = new uint[sourceVertices.Length];
 
                 for (var i = 0; i < sourceVertices.Length; i++)
-                    newIndices[i] = GetIndex(sourceVertices[i]);
+                    newIndices[i] = GetIndex(ref sourceVertices[i]);
 
                 self.Indices = newIndices;
             }
 
-            self.Vertices = newVertices.ToArray();
+            self.SetVertices(newVertices);
+
             self.NotifyChanged(ChangeType.Geometry);
         }
 

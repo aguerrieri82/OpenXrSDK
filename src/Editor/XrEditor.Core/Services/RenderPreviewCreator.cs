@@ -70,7 +70,7 @@ namespace XrEditor.Services
             return CreateMesh(IsoSphere3D.Default, material);
         }
 
-        public NativeImage? CreateGeometry(Geometry3D geometry)
+        public NativeImage? CreateGeometry(SimpleGeometry3D geometry)
         {
             return CreateMesh(geometry, _wireframe);
         }
@@ -113,7 +113,7 @@ namespace XrEditor.Services
             }
         }
 
-        protected NativeImage? CreateMesh(Geometry3D geometry, Material material)
+        protected NativeImage? CreateMesh(SimpleGeometry3D geometry, Material material)
         {
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();

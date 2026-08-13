@@ -511,7 +511,7 @@ namespace XrSamples
 
             racket.Transform.Update();
 
-            foreach (var geo in racket.DescendantsWithFeature<Geometry3D>())
+            foreach (var geo in racket.DescendantsWithFeature<SimpleGeometry3D>())
                 geo.Feature.ApplyTransform(racket.Transform.Matrix);
 
             racket.Transform.Reset();
@@ -1090,7 +1090,7 @@ namespace XrSamples
             mesh.AddComponent<LightFieldReceiver>();
             mesh.Name = "Bed";
 
-            XrEngine.MeshOptimizer.Optimize(mesh.Geometry!);
+            XrEngine.MeshOptimizer.Optimize((Geometry3D<VertexData>)mesh.Geometry!);
 
             return builder
                 .UseApp(app)
@@ -2451,14 +2451,16 @@ namespace XrSamples
             //Optimize  
             foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
             {
+                var geo = (Geometry3D<VertexData>)mesh.Geometry!;
+
                 Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
 
                 if (mesh.Name != "reflect_mirrors.003" && mesh.Name != "reflect_mirror_int.003")
-                    XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
+                    XrEngine.MeshOptimizer.Simplify(geo, 0.4f, 0.005f);
 
-                XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
-                XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
-                XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
+                XrEngine.MeshOptimizer.OptimizeVertexCache(geo);
+                XrEngine.MeshOptimizer.OptimizeOverdraw(geo, 1.05f);
+                XrEngine.MeshOptimizer.OptimizeVertexFetch(geo);
 
                 if (mesh.Name == "leather_armrest.007")
                 {

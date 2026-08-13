@@ -15,7 +15,7 @@ namespace XrSamples.Dnd
     {
         readonly Dictionary<string, ShaderMaterial> _materials = [];
         readonly ConcurrentDictionary<string, Texture2D?> _textures = [];
-        readonly Dictionary<string, Geometry3D> _geos = [];
+        readonly Dictionary<string, SimpleGeometry3D> _geos = [];
         private string _basePath = ".";
         private readonly HashSet<string> _unusedTex = [];
         private readonly List<string> _psNames = [];
@@ -383,9 +383,10 @@ namespace XrSamples.Dnd
 
                 var buffer = ReadBuffer(impMesh.ixResId);
 
-                geo = new Geometry3D();
-
-                geo.Indices = new uint[impMesh.ixCount];
+                geo = new SimpleGeometry3D
+                {
+                    Indices = new uint[impMesh.ixCount]
+                };
 
                 fixed (byte* pBuf = buffer)
                 {
@@ -455,7 +456,7 @@ namespace XrSamples.Dnd
                         geo.ActiveComponents |= VertexComponent.UV1;
                     }
                 }
-                geo.Vertices = data;
+                geo.VerticesArray = data;
                 _geos[meshId] = geo;
 
                 if (rebuildNormals)
@@ -535,7 +536,7 @@ namespace XrSamples.Dnd
             });
         }
 
-        Geometry3D? patch;
+        SimpleGeometry3D? patch;
 
         Object3D ProcessDraw(ImpDraw draw)
         {

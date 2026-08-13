@@ -126,10 +126,10 @@ namespace XrEngine.OpenGL
             {
                 _gl.EnableVertexAttribArray(attr.Location);
 
-                if (attr.Type == VertexAttribPointerType.Int)
-                    _gl.VertexAttribIPointer(attr.Location, (int)attr.Count, VertexAttribIType.Int, _layout.Size, (void*)attr.Offset);
+                if (attr.IsIntegerStore)
+                    _gl.VertexAttribIPointer(attr.Location, (int)attr.Count, (VertexAttribIType)attr.Type, _layout.Size, (void*)attr.Offset);
                 else
-                    _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset);
+                    _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, attr.IsNormalized, _layout.Size, (void*)attr.Offset);
             }
         }
 

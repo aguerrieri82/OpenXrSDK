@@ -8,7 +8,7 @@ namespace XrSamples.Graffiti
 {
     public class SprayTracker : Behavior<Can>, IDrawGizmos
     {
-        BaseGeometry3D<VertexData>? _originalGeo;
+        Geometry3D? _originalGeo;
         SprayBrush? _brush;
         PaintCanvas? _canvas;
         Ray3[]? _rays;

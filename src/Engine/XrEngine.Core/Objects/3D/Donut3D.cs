@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class Donut3D : Geometry3D, IGeneratedContent
+    public class Donut3D : SimpleGeometry3D, IGeneratedContent
     {
         public Donut3D()
             : this(1, 0.8f, 0.01f, 32)
@@ -54,7 +54,7 @@ namespace XrEngine
                 }
             }
 
-            Vertices = builder.Vertices.ToArray();
+            _vertices = builder.Vertices.ToArray();
 
             ActiveComponents |= VertexComponent.Position | VertexComponent.Normal;
 

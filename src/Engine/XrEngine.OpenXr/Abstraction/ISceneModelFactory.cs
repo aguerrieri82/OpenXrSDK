@@ -18,7 +18,7 @@ namespace XrEngine.OpenXr
 
         public Vector2 Size { get; set; }
 
-        public Geometry3D? Geometry { get; set; }
+        public SimpleGeometry3D? Geometry { get; set; }
     }
 
     public enum SceneModelType

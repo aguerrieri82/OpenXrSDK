@@ -1,7 +1,7 @@
 ﻿namespace XrEngine
 {
 
-    public class PointMesh : Object3D, IVertexSource<PointData, uint>
+    public class PointMesh : Object3D, IVertexSource
     {
         public PointMesh()
         {
@@ -29,9 +29,9 @@
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Point;
 
-        uint[] IVertexSource<PointData, uint>.Indices => [];
+        Array IVertexSource.Indices => Array.Empty<uint>();
 
-        PointData[] IVertexSource<PointData, uint>.Vertices => Vertices;
+        Array IVertexSource.Vertices => Vertices;
 
         IReadOnlyList<Material> IVertexSource.Materials => [Material];
 

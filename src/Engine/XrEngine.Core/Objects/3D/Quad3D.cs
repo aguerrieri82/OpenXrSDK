@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class Quad3D : Geometry3D, IGeneratedContent
+    public class Quad3D : SimpleGeometry3D, IGeneratedContent
     {
         public Quad3D()
             : this(Vector2.One)
@@ -21,7 +21,7 @@ namespace XrEngine
         {
             var halfSize = new Vector2(Size.X, Size.Y) / 2;
 
-            Vertices = VertexData.FromPosNormalUV(
+            _vertices = VertexData.FromPosNormalUV(
             [
                -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 0f,
                 halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 0f,
@@ -29,7 +29,7 @@ namespace XrEngine
                 -halfSize.X, -halfSize.Y, 0f, 0f, 0f, 1f,  0f, 1f,
              ]);
 
-            Indices =
+            _indices =
             [
                 2,1,0,
                 3,2,0,

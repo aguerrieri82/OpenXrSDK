@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -26,9 +27,9 @@ namespace XrEngine
 
         private const float NormalLengthSqEpsilon = 1E-20f;
 
-        private readonly BaseGeometry3D<VertexData> _geometry;
+        private readonly Geometry3D _geometry;
 
-        private VertexData[] _vertices;
+        private IVerticesArray? _vertices;
         private uint[] _indices;
         private Triangle3[] _triangles;
         private Vector3I[][] _triangleCells;
@@ -38,10 +39,9 @@ namespace XrEngine
         private float _cellSize;
         private long _lastVersion;
 
-        public TriangleMeshSpatialIndex(BaseGeometry3D<VertexData> geometry, float cellSize = 0.10f)
+        public TriangleMeshSpatialIndex(Geometry3D<VertexData> geometry, float cellSize = 0.10f)
         {
             _geometry = geometry;
-            _vertices = Array.Empty<VertexData>();
             _indices = Array.Empty<uint>();
             _triangles = Array.Empty<Triangle3>();
             _triangleCells = Array.Empty<Vector3I[]>();
@@ -410,7 +410,7 @@ namespace XrEngine
 
         public void Clear()
         {
-            _vertices = Array.Empty<VertexData>();
+            _vertices = null;
             _indices = Array.Empty<uint>();
             _triangles = Array.Empty<Triangle3>();
             _triangleCells = Array.Empty<Vector3I[]>();
@@ -472,6 +472,8 @@ namespace XrEngine
 
         private Triangle3 BuildTriangle(int triangleId)
         {
+            Debug.Assert(_vertices != null);
+
             var i = triangleId * 3;
 
             var res = new Triangle3()
@@ -482,9 +484,9 @@ namespace XrEngine
                 I2 = _indices[i + 2],
 
             };
-            res.V0 = _vertices[res.I0].Pos;
-            res.V1 = _vertices[res.I1].Pos;
-            res.V2 = _vertices[res.I2].Pos;
+            res.V0 = _vertices[(int)res.I0].Pos;
+            res.V1 = _vertices[(int)res.I1].Pos;
+            res.V2 = _vertices[(int)res.I2].Pos;
 
             return res;
         }
@@ -594,7 +596,7 @@ namespace XrEngine
             return distSq <= radiusSq;
         }
 
-        public BaseGeometry3D<VertexData> Geometry => _geometry;
+        public Geometry3D Geometry => _geometry;
 
         public int TriangleCount => _triangles.Length;
 

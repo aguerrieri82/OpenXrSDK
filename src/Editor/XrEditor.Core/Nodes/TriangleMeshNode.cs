@@ -5,7 +5,8 @@ namespace XrEditor.Nodes
 {
     public class TriangleMeshNode : Object3DNode<TriangleMesh>
     {
-        public TriangleMeshNode(TriangleMesh value) : base(value)
+        public TriangleMeshNode(TriangleMesh value) 
+            : base(value)
         {
         }
 

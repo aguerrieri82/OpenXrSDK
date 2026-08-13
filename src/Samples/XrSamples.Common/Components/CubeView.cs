@@ -5,7 +5,7 @@ namespace XrSamples
 {
     public class CubeView : TriangleMesh
     {
-        static readonly Geometry3D CubeGeometry = new()
+        static readonly SimpleGeometry3D CubeGeometry = new()
         {
             Indices = [
                 1, 2, 0,
@@ -21,7 +21,7 @@ namespace XrSamples
                 5, 1, 0,
                 4, 5, 0
             ],
-            Vertices = VertexData.FromPos(
+            VerticesArray = VertexData.FromPos(
             [
                 -1, -1, -1,
                  1, -1, -1,

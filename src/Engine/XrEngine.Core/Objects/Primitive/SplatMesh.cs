@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class SplatMesh : Object3D, IVertexSource<Vector2, uint>, ILocalBounds
+    public class SplatMesh : Object3D, IVertexSource, ILocalBounds
     {
         static readonly Vector2[] _vertices =
         [
@@ -95,9 +95,9 @@ namespace XrEngine
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Triangle;
 
-        uint[] IVertexSource<Vector2, uint>.Indices => _indices;
+        Array IVertexSource.Indices => _indices;
 
-        Vector2[] IVertexSource<Vector2, uint>.Vertices => _vertices;
+        Array IVertexSource.Vertices => _vertices;
 
         IReadOnlyList<Material> IVertexSource.Materials => [_depthMaterial, Material];
 

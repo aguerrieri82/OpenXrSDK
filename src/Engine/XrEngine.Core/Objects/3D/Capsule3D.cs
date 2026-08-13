@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Capsule3D : Geometry3D, IGeneratedContent
+    public class Capsule3D : SimpleGeometry3D, IGeneratedContent
     {
         public Capsule3D()
             : this(0.5f, 1)
@@ -144,8 +144,9 @@ namespace XrEngine
                 }
             }
 
-            Vertices = verts;
-            Indices = indices.Select(a => (uint)a).ToArray();
+            _vertices = verts;
+            _indices = indices.Select(a => (uint)a).ToArray();
+
             ActiveComponents |= VertexComponent.Normal;
         }
 

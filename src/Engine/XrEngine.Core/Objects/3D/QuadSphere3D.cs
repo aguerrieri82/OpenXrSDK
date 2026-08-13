@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class QuadSphere3D : Geometry3D, IGeneratedContent
+    public class QuadSphere3D : SimpleGeometry3D, IGeneratedContent
     {
         protected Vector2 _patchSize;
 
@@ -232,8 +232,8 @@ namespace XrEngine
                 finalIndices.AddRange(quadIndices);
             }
 
-            Vertices = finalVertices.ToArray();
-            Indices = finalIndices.ToArray();
+            _vertices = finalVertices.ToArray();
+            _indices = finalIndices.ToArray();
 
             ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0 | VertexComponent.Tangent;
         }

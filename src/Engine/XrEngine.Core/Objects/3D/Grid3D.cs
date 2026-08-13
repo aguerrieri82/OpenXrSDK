@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Grid3D : Geometry3D, IGeneratedContent
+    public class Grid3D : SimpleGeometry3D, IGeneratedContent
     {
         public Grid3D(Size2I size)
         {
@@ -11,12 +11,13 @@ namespace XrEngine
             Build();
         }
 
-        protected override void CloneWork(BaseGeometry3D<VertexData> result)
+        protected override void CloneWork(Geometry3D result)
         {
+            base.CloneWork(result);
             var geo = (Grid3D)result;
             geo.Size = Size;
         }
-
+       
         public void Build()
         {
             var w = Size.Width;
@@ -64,8 +65,8 @@ namespace XrEngine
                 }
             }
 
-            Vertices = vertices;
-            Indices = indices;
+            _vertices = vertices;
+            _indices = indices;
 
             ActiveComponents = VertexComponent.Position | VertexComponent.UV0 | VertexComponent.Normal;
 

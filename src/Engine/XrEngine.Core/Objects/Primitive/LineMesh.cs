@@ -2,7 +2,7 @@
 namespace XrEngine
 {
 
-    public class LineMesh : Object3D, IVertexSource<PointData, uint>
+    public class LineMesh : Object3D, IVertexSource
     {
         public LineMesh()
         {
@@ -32,9 +32,9 @@ namespace XrEngine
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Line;
 
-        uint[] IVertexSource<PointData, uint>.Indices => [];
+        Array IVertexSource.Indices => Array.Empty<uint>();
 
-        PointData[] IVertexSource<PointData, uint>.Vertices => Vertices;
+        Array IVertexSource.Vertices => Vertices;
 
         IReadOnlyList<Material> IVertexSource.Materials => [Material];
 

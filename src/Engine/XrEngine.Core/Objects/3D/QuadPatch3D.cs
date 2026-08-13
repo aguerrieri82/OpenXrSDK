@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class QuadPatch3D : Geometry3D, IGeneratedContent
+    public class QuadPatch3D : SimpleGeometry3D, IGeneratedContent
     {
         public QuadPatch3D()
             : this(Vector2.One)
@@ -49,7 +49,7 @@ namespace XrEngine
                 }
             }
 
-            Vertices = vertices.ToArray();
+            _vertices = vertices.ToArray();
 
             this.EnsureIndices();
 

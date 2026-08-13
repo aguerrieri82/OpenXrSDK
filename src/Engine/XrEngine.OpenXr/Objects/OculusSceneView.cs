@@ -78,11 +78,11 @@ namespace XrEngine.OpenXr
                     {
                         var sceneMesh = oculus.GetSpaceTriangleMesh(info.Space);
 
-                        var geo = new Geometry3D
+                        var geo = new SimpleGeometry3D
                         {
                             Indices = sceneMesh.Indices!,
                             ActiveComponents = VertexComponent.Position,
-                            Vertices = sceneMesh.Vertices!.Select(a => new VertexData
+                            VerticesArray = sceneMesh.Vertices!.Select(a => new VertexData
                             {
                                 Pos = new Vector3(a.X, a.Y, a.Z)
                             }).ToArray()

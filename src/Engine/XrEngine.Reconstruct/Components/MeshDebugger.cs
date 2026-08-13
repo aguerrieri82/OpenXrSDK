@@ -51,7 +51,7 @@ namespace XrEngine.Reconstruct
         {
             Debug.Assert(_host!.Geometry != null);
 
-            _index = new TriangleMeshSpatialIndex(_host.Geometry, CellSize);
+            _index = new TriangleMeshSpatialIndex((Geometry3D<VertexData>)_host.Geometry, CellSize);
 
             _canvas ??= new CanvasView2D();
 
@@ -157,7 +157,7 @@ namespace XrEngine.Reconstruct
 
             if (_slice == null)
             {
-                _slice = new TriangleMesh(new Geometry3D());
+                _slice = new TriangleMesh(new SimpleGeometry3D());
                 _slice.Materials.Add(new WireframeMaterial()
                 {
                     Color = new Color(1, 0, 0),
@@ -211,9 +211,9 @@ namespace XrEngine.Reconstruct
 
             Log.Warn(this, "{0} triangles found", result.Count);
 
-            var geometry = _slice.Geometry!;
+            var geometry = (Geometry3D<VertexData>)_slice.Geometry!;
 
-            geometry.Vertices = vertices;
+            geometry.VerticesArray = vertices;
             geometry.Indices = indices;
             geometry.ActiveComponents = source.ActiveComponents;
 
@@ -252,7 +252,9 @@ namespace XrEngine.Reconstruct
 
             var indices = _triangles!.SelectMany(a => new uint[] { a.I0, a.I1, a.I2 }).ToArray();
 
-            var result = filler.FindMissingTriangles(_host!.Geometry!.Vertices, indices);
+            var geo = (Geometry3D<VertexData>)_host.Geometry!;
+
+            var result = filler.FindMissingTriangles(geo.VerticesArray, indices);
 
             _newTriangles = result.Select(a => BuildTriangle(a.A, a.B, a.C)).ToList();
 
@@ -261,21 +263,19 @@ namespace XrEngine.Reconstruct
 
         private Triangle3 BuildTriangle(uint a, uint b, uint c)
         {
-
             var res = new Triangle3()
             {
                 Id = -1,
                 I0 = a,
                 I1 = b,
                 I2 = c,
-
             };
 
             var vert = _host!.Geometry!.Vertices;
 
-            res.V0 = vert[res.I0].Pos;
-            res.V1 = vert[res.I1].Pos;
-            res.V2 = vert[res.I2].Pos;
+            res.V0 = vert[(int)res.I0].Pos;
+            res.V1 = vert[(int)res.I1].Pos;
+            res.V2 = vert[(int)res.I2].Pos;
 
             return res;
         }

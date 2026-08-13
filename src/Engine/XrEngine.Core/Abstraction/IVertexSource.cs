@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using SkiaSharp;
+
+namespace XrEngine
 {
     public enum DrawPrimitive
     {
@@ -12,6 +14,10 @@
 
     public interface IVertexSource : ILayer3DItem, IGpuObject
     {
+        Array Indices { get; }
+
+        Array Vertices { get; }
+
         DrawPrimitive Primitive { get; }
 
         IReadOnlyList<Material> Materials { get; }
@@ -24,19 +30,11 @@
 
         int InstanceCount => 1;
 
-    }
-
-    public interface IVertexSource<TVertices, TIndices> : IVertexSource
-        where TVertices : unmanaged
-        where TIndices : unmanaged
-    {
-        TIndices[] Indices { get; }
-
-        TVertices[] Vertices { get; }
-
-        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices)
+        void NotifyBuffers(IBuffer vertices, IBuffer? indices)
         {
-
         }
+
     }
+
+
 }

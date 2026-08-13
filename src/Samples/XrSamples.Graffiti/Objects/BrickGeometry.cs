@@ -5,7 +5,7 @@ using XrEngine;
 
 namespace XrSamples.Graffiti.Objects
 {
-    public class BrickGeometry : Geometry3D, IGeneratedContent
+    public class BrickGeometry : SimpleGeometry3D, IGeneratedContent
     {
         public BrickGeometry()
         {
@@ -166,7 +166,7 @@ namespace XrSamples.Graffiti.Objects
 
             if (!IsValid())
             {
-                Vertices = [];
+                VerticesArray = [];
                 Indices = [];
                 return;
             }

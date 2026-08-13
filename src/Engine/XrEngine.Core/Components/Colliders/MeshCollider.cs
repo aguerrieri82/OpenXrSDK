@@ -8,14 +8,14 @@ namespace XrEngine
     {
         long _version = -1;
         Triangle3[]? _triangles;
-        BaseGeometry3D<VertexData>? _geometry;
+        Geometry3D? _geometry;
 
         public MeshCollider()
         {
             Usage = ColliderUsage.All;
         }
 
-        public MeshCollider(BaseGeometry3D<VertexData> geometry)
+        public MeshCollider(Geometry3D geometry)
             : this()
         {
             _geometry = geometry;
@@ -26,7 +26,7 @@ namespace XrEngine
         {
             if (_geometry == null)
             {
-                _geometry = _host.Feature<Geometry3D>()
+                _geometry = _host.Feature<SimpleGeometry3D>()
                     ?? throw new NotSupportedException("Geometry3D not found in Object");
 
                 _geometry.Flags &= ~EngineObjectFlags.GpuOnly;
@@ -36,7 +36,7 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            _geometry = container.Read<Geometry3D?>(nameof(Geometry));
+            _geometry = container.Read<SimpleGeometry3D?>(nameof(Geometry));
         }
 
         public override void GetState(IStateContainer container)
@@ -97,8 +97,8 @@ namespace XrEngine
                             Object = _host,
                             LocalPoint = point.Value,
                             Point = worldPoint,
-                            Normal = _geometry.Vertices[ix].Normal,
-                            Tangent = _geometry.Vertices[ix].Tangent,
+                            Normal = _geometry.Vertices[(int)ix].Normal,
+                            Tangent = _geometry.Vertices[(int)ix].Tangent,
                             UV = null
                         };
                     }
@@ -110,7 +110,7 @@ namespace XrEngine
 
         public bool UseConvexHull { get; set; }
 
-        public BaseGeometry3D<VertexData>? Geometry => _geometry;
+        public Geometry3D? Geometry => _geometry;
 
         public ColliderUsage Usage { get; set; }
     }

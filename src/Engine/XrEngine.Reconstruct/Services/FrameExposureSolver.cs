@@ -229,7 +229,7 @@ namespace XrEngine.Reconstruct
         }
 
         public float[] Compute(
-            BaseGeometry3D<VertexData> geometry,
+            Geometry3D<VertexData> geometry,
             IMemoryBuffer<byte>[] images,
             int width,
             int height)
@@ -247,7 +247,7 @@ namespace XrEngine.Reconstruct
                 for (var i = 0; i < images.Length; i++)
                     _imageLocks[i] = images[i].MemoryLock();
 
-                var vertices = geometry.Vertices!;
+                var vertices = geometry.VerticesArray!;
                 var indices = geometry.Indices;
 
                 fixed (VertexData* vertexPtr = vertices)

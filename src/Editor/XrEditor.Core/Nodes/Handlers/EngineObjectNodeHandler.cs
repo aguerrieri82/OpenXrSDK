@@ -1,4 +1,6 @@
-﻿using XrEngine;
+﻿
+using XrEngine;
+using XrEngine.Objects;
 using XrEngine.Physics;
 
 namespace XrEditor.Nodes
@@ -22,7 +24,7 @@ namespace XrEditor.Nodes
                 {
                     if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
-
+       
                     else if (obj is SplatMesh)
                         nodeType = typeof(SplatMeshNode);
 
@@ -30,7 +32,11 @@ namespace XrEditor.Nodes
                         nodeType = typeof(PbrMaterialNode);
 
                     else if (obj is Geometry3D)
-                        nodeType = typeof(Geometry3DNode);
+                    {
+                        var geoType = obj.FindGenericArgument(typeof(Geometry3D<>), 0);
+
+                        nodeType = typeof(Geometry3DNode<>).MakeGenericType(geoType);
+                    }
 
                     else if (obj is Texture2D)
                         nodeType = typeof(Texture2DNode);
@@ -46,6 +52,9 @@ namespace XrEditor.Nodes
 
                     else if (obj is Material)
                         nodeType = typeof(MaterialNode<>).MakeGenericType(obj.GetType());
+
+                    else if (obj is Joint3D)
+                        nodeType = typeof(Joint3DNode);
 
                     else if (obj is Group3D)
                         nodeType = typeof(Group3DNode<>).MakeGenericType(obj.GetType());

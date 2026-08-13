@@ -36,7 +36,7 @@ namespace XrEngine.Physics
 
             foreach (var item in MeshObjects())
             {
-                var geo = item.Feature<Geometry3D>();
+                var geo = item.Feature<SimpleGeometry3D>();
                 if (geo == null)
                     continue;
 
@@ -63,7 +63,7 @@ namespace XrEngine.Physics
 
             foreach (var item in MeshObjects())
             {
-                var geo = item.Feature<Geometry3D>();
+                var geo = item.Feature<SimpleGeometry3D>();
                 if (geo == null)
                     continue;
 
@@ -107,7 +107,7 @@ namespace XrEngine.Physics
                 return;
             foreach (var item in MeshObjects())
             {
-                var geo = item.Feature<Geometry3D>();
+                var geo = item.Feature<SimpleGeometry3D>();
                 if (geo == null)
                     continue;
 

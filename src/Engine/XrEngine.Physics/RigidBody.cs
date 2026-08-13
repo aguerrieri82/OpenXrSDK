@@ -142,7 +142,7 @@ namespace XrEngine.Physics
 
                 var host = (collider.Host as Object3D)!;
 
-                var geo = host.Feature<Geometry3D>();
+                var geo = host.Feature<SimpleGeometry3D>();
 
                 if (collider is MeshCollider mc && mc.Geometry != null)
                 {

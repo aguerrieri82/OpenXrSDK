@@ -22,7 +22,7 @@ namespace XrSamples.Graffiti
         protected readonly Texture2D _colorTexture;
         protected readonly Texture2D _normalTexture;
         protected readonly Texture2D _roughnessTexture;
-        protected readonly Geometry3D _geo;
+        protected readonly SimpleGeometry3D _geo;
         protected readonly Texture2D _sprayTexture;
         protected float _texelSize;
         protected Can? _can;

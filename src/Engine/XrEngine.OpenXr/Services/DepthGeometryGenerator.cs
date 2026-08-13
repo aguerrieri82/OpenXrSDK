@@ -192,14 +192,14 @@ namespace XrEngine.OpenXr
             _maxRatioSq = _maxUvWorldAreaRatio * _maxUvWorldAreaRatio;
         }
 
-        public Geometry3D CreateGeometry(
+        public SimpleGeometry3D CreateGeometry(
             ushort* depth,
             int depthWidth,
             int depthHeight,
             Matrix4x4 depthViewProjInv,
             Matrix4x4 colorViewPro)
         {
-            var geo = new Geometry3D();
+            var geo = new SimpleGeometry3D();
 
             UpdateGeometry(
                 geo,
@@ -213,7 +213,7 @@ namespace XrEngine.OpenXr
         }
 
         public void UpdateGeometry(
-            Geometry3D geometry,
+            Geometry3D<VertexData> geometry,
             ushort* depth,
             int depthWidth,
             int depthHeight,
@@ -232,7 +232,7 @@ namespace XrEngine.OpenXr
 
             if (vertexCount == 0)
             {
-                geometry.Vertices = Array.Empty<VertexData>();
+                geometry.VerticesArray = Array.Empty<VertexData>();
                 geometry.Indices = Array.Empty<uint>();
             }
             else
@@ -243,7 +243,7 @@ namespace XrEngine.OpenXr
                 Array.Copy(_vertexBuffer, vertices, vertexCount);
                 Array.Copy(_indexBuffer, indices, vertexCount);
 
-                geometry.Vertices = vertices;
+                geometry.VerticesArray = vertices;
                 geometry.Indices = indices;
             }
 

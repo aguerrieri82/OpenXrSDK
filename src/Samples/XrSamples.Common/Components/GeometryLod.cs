@@ -6,8 +6,8 @@ namespace XrSamples
 {
     public class GeometryLod : Behavior<TriangleMesh>
     {
-        BaseGeometry3D<VertexData>? _lowGeo;
-        BaseGeometry3D<VertexData>? _curGeo;
+        Geometry3D? _lowGeo;
+        Geometry3D? _curGeo;
 
         public GeometryLod()
         {
@@ -26,7 +26,7 @@ namespace XrSamples
 
             _host.Flags &= ~EngineObjectFlags.NotifyChanged;
 
-            XrEngine.MeshOptimizer.Simplify(_lowGeo, Factor, 0.1f);
+            XrEngine.MeshOptimizer.Simplify((Geometry3D<VertexData>)_lowGeo, Factor, 0.1f);
 
             if (_lowGeo.Indices.Length / (float)_curGeo.Indices.Length > 0.8f)
                 _lowGeo = null;

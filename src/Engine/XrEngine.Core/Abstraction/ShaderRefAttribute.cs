@@ -13,9 +13,9 @@
         UV0 = 0x40,
         UV1 = 0x80,
         Size = 0x100,
-        BlendIndex = 0x200,
-        BlendWeight = 0x400,
-        Skin = 0x800
+        JointIndex = 0x200,
+        JointWeight = 0x400,
+        Skin = JointIndex | JointWeight
     }
 
     [AttributeUsage(AttributeTargets.Field)]
@@ -31,6 +31,10 @@
         public uint Location { get; }
 
         public string Name { get; }
+
+        public bool IsNormalized { get; set; }
+
+        public bool IsIntegerStore { get; set; }
 
         public VertexComponent Component { get; }
     }

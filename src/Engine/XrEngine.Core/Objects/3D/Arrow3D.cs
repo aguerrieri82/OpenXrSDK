@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class Arrow3D : Geometry3D, IGeneratedContent
+    public class Arrow3D : SimpleGeometry3D, IGeneratedContent
     {
         public Arrow3D()
         {
@@ -25,8 +25,8 @@ namespace XrEngine
             builder.AddCylinder(Vector3.Zero, BaseDiameter / 2, BaseLength, Subs, UVMode.Normalized);
             builder.AddCone(new Vector3(0, 0, BaseLength), ArrowDiameter / 2, ArrowLength, Subs);
 
-            Vertices = builder.Vertices.ToArray();
-            Indices = [];
+            _vertices = builder.Vertices.ToArray();
+            _indices = [];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal;
 

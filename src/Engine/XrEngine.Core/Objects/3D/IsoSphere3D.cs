@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class IsoSphere3D : Geometry3D, IGeneratedContent
+    public class IsoSphere3D : SimpleGeometry3D, IGeneratedContent
     {
         public IsoSphere3D()
             : this(1, 3)
@@ -91,8 +91,8 @@ namespace XrEngine
             while (indicesLevels.Count < Levels)
                 Subdivide();
 
-            Indices = indicesLevels[^1].ToArray();
-            Vertices = new VertexData[vertices.Count];
+            _indices = indicesLevels[^1].ToArray();
+            _vertices = new VertexData[vertices.Count];
 
             for (var i = 0; i < vertices.Count; i++)
             {

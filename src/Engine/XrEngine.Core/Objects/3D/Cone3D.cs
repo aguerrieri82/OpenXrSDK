@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class Cone3D : Geometry3D, IGeneratedContent
+    public class Cone3D : SimpleGeometry3D, IGeneratedContent
     {
         public Cone3D()
             : this(0.5f, 1f, 15)
@@ -29,8 +29,8 @@ namespace XrEngine
 
             builder.AddCircle(Center, Radius, Subs, false, UVMode);
 
-            Vertices = builder.Vertices.ToArray();
-            Indices = [];
+            _vertices = builder.Vertices.ToArray();
+            _indices = [];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
 

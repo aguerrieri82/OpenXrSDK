@@ -428,7 +428,7 @@ namespace XrEngine.Filament
             };
         }
 
-        protected unsafe void Create(Guid geoId, Guid meshId, BaseGeometry3D<VertexData> geo)
+        protected unsafe void Create(Guid geoId, Guid meshId, Geometry3D geo)
         {
             void Create(bool updateMode)
             {
@@ -468,9 +468,11 @@ namespace XrEngine.Filament
 
                 var attributesArray = attributes.ToArray();
 
+                var geoData = (Geometry3D<VertexData>)geo;
+
                 fixed (VertexAttribute* pAttr = attributesArray)
                 fixed (uint* pIndex = geo.Indices)
-                fixed (VertexData* pVert = geo.Vertices)
+                fixed (VertexData* pVert = geoData.VerticesArray)
                 {
                     var layout = new VertexLayout
                     {

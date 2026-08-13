@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class Cube3D : Geometry3D, IGeneratedContent
+    public class Cube3D : SimpleGeometry3D, IGeneratedContent
     {
         public Cube3D()
             : this(Vector3.One)
@@ -24,7 +24,7 @@ namespace XrEngine
             builder.AddCube(Center, Size);
             var halfSize = Size / 2;
 
-            Vertices = VertexData.FromPosNormalUV(
+            _vertices = VertexData.FromPosNormalUV(
             [
                //X    Y      Z       Normals
                 halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 1f, 1f,

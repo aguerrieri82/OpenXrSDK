@@ -142,7 +142,7 @@ namespace XrEngine.Reconstruct
             _activeCells.Clear();
         }
 
-        public unsafe void FeedFrame(BaseGeometry3D<VertexData> geometry)
+        public unsafe void FeedFrame(Geometry3D<VertexData> geometry)
         {
             var vertices = geometry.Vertices!;
             var indices = geometry.Indices!;
@@ -160,7 +160,7 @@ namespace XrEngine.Reconstruct
             }
         }
 
-        public unsafe void FeedFrame(Geometry3D geometry, Matrix4x4 transform)
+        public unsafe void FeedFrame(SimpleGeometry3D geometry, Matrix4x4 transform)
         {
             var vertices = geometry.Vertices!;
             var indices = geometry.Indices!;
@@ -178,7 +178,7 @@ namespace XrEngine.Reconstruct
             }
         }
 
-        public unsafe BaseGeometry3D<VertexData> ExtractMesh(BaseGeometry3D<VertexData> output)
+        public unsafe Geometry3D<VertexData> ExtractMesh(Geometry3D<VertexData> output)
         {
             var estimatedVertexCount = Math.Min(_activeCells.Count * 6, 8_000_000);
 
@@ -205,7 +205,7 @@ namespace XrEngine.Reconstruct
                 }
             }
 
-            output.Vertices = vertices.ToArray();
+            output.VerticesArray = vertices.ToArray();
             output.Indices = indices.ToArray();
 
             output.ActiveComponents =

@@ -421,11 +421,11 @@ namespace XrEngine
             _collapsePases = parameters.CollapsePases;
         }
 
-        public CollapseResult CollapseCloseVertices(BaseGeometry3D<VertexData> geometry)
+        public CollapseResult CollapseCloseVertices(Geometry3D<VertexData> geometry)
         {
             geometry.EnsureIndices();
 
-            var oldVertices = geometry.Vertices;
+            var oldVertices = geometry.VerticesArray;
             var oldIndices = geometry.Indices;
             var oldTriangleCount = oldIndices.Length / 3;
 
@@ -585,7 +585,7 @@ namespace XrEngine
             if (_fixWinding && (!recoveryEnabled || topologyChangedAfterWinding))
                 fixedWindingTriangles += FixWindingStage("final", ref newIndices);
 
-            geometry.Vertices = newVertices;
+            geometry.VerticesArray = newVertices;
             geometry.Indices = newIndices;
 
             if (_recomputeNormals)

@@ -297,7 +297,7 @@ namespace XrEngine
 
         #endregion
 
-        private BaseGeometry3D<VertexData> _geometry = null!;
+        private Geometry3D<VertexData> _geometry = null!;
         private VertexData[] _vertices = Array.Empty<VertexData>();
         private uint[] _indices = Array.Empty<uint>();
         private TriangleInfo[] _triangles = Array.Empty<TriangleInfo>();
@@ -346,13 +346,13 @@ namespace XrEngine
             _coplanarPlaneDistance = parameters.CoplanarPlaneDistance;
         }
 
-        public void Unwrap(BaseGeometry3D<VertexData> geometry)
+        public void Unwrap(Geometry3D<VertexData> geometry)
         {
             _geometry = geometry;
 
             _geometry.EnsureIndices();
 
-            _vertices = _geometry.Vertices;
+            _vertices = _geometry.VerticesArray;
             _indices = _geometry.Indices;
 
             BuildTriangles();
@@ -1055,7 +1055,7 @@ namespace XrEngine
                 newIndices.Add(GetOrCreateVertex(tri.C, tri.Chart, chart, newVertices, vertexMap, scale));
             }
 
-            _geometry.Vertices = newVertices.ToArray();
+            _geometry.VerticesArray = newVertices.ToArray();
             _geometry.Indices = newIndices.ToArray();
         }
 

@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Sphere3D : Geometry3D, IGeneratedContent
+    public class Sphere3D : SimpleGeometry3D, IGeneratedContent
     {
         public Sphere3D()
         {

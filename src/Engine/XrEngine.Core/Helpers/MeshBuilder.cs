@@ -650,10 +650,10 @@ namespace XrEngine
             return this;
         }
 
-        public BaseGeometry3D<VertexData> ToGeometry(BaseGeometry3D<VertexData>? result = null, bool computeIndices = true)
+        public Geometry3D<VertexData> ToGeometry(Geometry3D<VertexData>? result = null, bool computeIndices = true)
         {
-            result ??= new Geometry3D();
-            result.Vertices = Vertices.ToArray();
+            result ??= new SimpleGeometry3D();
+            result.VerticesArray = Vertices.ToArray();
             result.Indices = [];
             result.ActiveComponents |= VertexComponent.UV0;
 

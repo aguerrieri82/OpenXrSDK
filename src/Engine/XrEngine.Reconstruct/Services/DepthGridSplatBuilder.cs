@@ -9,7 +9,7 @@ namespace XrEngine.Reconstruct
 
         public static void CreateSplats(
              List<SplatData> result,
-             Geometry3D geometry,
+             SimpleGeometry3D geometry,
              IMemoryBuffer<byte> colorRgba,
              int colorWidth,
              int colorHeight,

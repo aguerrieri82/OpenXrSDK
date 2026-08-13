@@ -1,7 +1,7 @@
 ﻿namespace XrEngine
 {
 
-    internal interface IHosted
+    public interface IHosted
     {
         void Attach(EngineObject obj);
 

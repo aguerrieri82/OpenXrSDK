@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class Cylinder3D : Geometry3D, IGeneratedContent
+    public class Cylinder3D : SimpleGeometry3D, IGeneratedContent
     {
         public Cylinder3D()
             : this(0.5f, 1f, 15)
@@ -35,7 +35,7 @@ namespace XrEngine
             if ((Parts & CylinderPart.TopCap) != 0)
                 builder.AddCircle(Center + new Vector3(0, 0, Height), Radius, Subs, true, UVMode);
 
-            Vertices = builder.Vertices.ToArray();
+            _vertices = builder.Vertices.ToArray();
             Indices = [];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;

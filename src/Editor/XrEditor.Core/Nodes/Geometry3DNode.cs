@@ -4,9 +4,10 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class Geometry3DNode : EngineObjectNode<Geometry3D>, IItemPreview, INotifyPropertyChanged
+    public class Geometry3DNode<TVert> : EngineObjectNode<Geometry3D<TVert>>, IItemPreview, INotifyPropertyChanged
+        where TVert : unmanaged, IVertexProvider
     {
-        public Geometry3DNode(Geometry3D value)
+        public Geometry3DNode(Geometry3D<TVert> value)
             : base(value)
         {
             _autoGenProps = PropertiesGenerationMode.All;
@@ -14,9 +15,11 @@ namespace XrEditor.Nodes
 
         public async Task<NativeImage?> CreatePreviewAsync()
         {
-            var preview = Context.Require<RenderPreviewCreator>();
+            if (_value is not SimpleGeometry3D simp)
+                return null;
 
-            return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateGeometry(_value));
+            var preview = Context.Require<RenderPreviewCreator>();
+            return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateGeometry(simp));
         }
 
         public void NotifyPropertyChanged(IProperty property)

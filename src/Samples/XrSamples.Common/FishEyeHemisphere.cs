@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class FishEyeHemisphere : Geometry3D, IGeneratedContent
+    public class FishEyeHemisphere : SimpleGeometry3D, IGeneratedContent
     {
         /// <summary>
         /// Hemisphere radius in local geometry units.
@@ -157,8 +157,8 @@ namespace XrEngine
                 }
             }
 
-            Vertices = vertices;
-            Indices = indices;
+            _vertices = vertices;
+            _indices = indices;
 
             Primitive = DrawPrimitive.Triangle;
 

@@ -137,7 +137,7 @@ namespace XrEngine.Lighting
         private Vector3I _voxelMax;
         private GlSimpleProgram? _scanProgram;
         private GpuMeshVoxelizerParams _params;
-        private readonly Dictionary<BaseGeometry3D<VertexData>, GlVertexSourceHandle> _vertexHandles = [];
+        private readonly Dictionary<Geometry3D, GlVertexSourceHandle> _vertexHandles = [];
 
         public GpuMeshVoxelizer(GL gl)
         {

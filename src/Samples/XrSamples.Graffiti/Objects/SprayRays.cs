@@ -4,7 +4,7 @@ namespace XrSamples.Graffiti.Objects
 {
     public class SprayRays : TriangleMesh
     {
-        public SprayRays(BaseGeometry3D<VertexData> geometry)
+        public SprayRays(Geometry3D geometry)
         {
             Materials.Add(new SprayMaterial());
 
@@ -16,8 +16,8 @@ namespace XrSamples.Graffiti.Objects
                 vertices[(i * 2) + 1] = geometry.Vertices[i];
             }
 
-            var newGeo = new Geometry3D();
-            newGeo.Vertices = vertices;
+            var newGeo = new SimpleGeometry3D();
+            newGeo.VerticesArray = vertices;
             newGeo.Primitive = DrawPrimitive.Line;
             newGeo.ActiveComponents = VertexComponent.Position;
             Geometry = newGeo;

@@ -1,14 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
-using System.Text;
-
+﻿
 namespace XrEngine
 {
-    public interface IGeometryVertices<T> where T : unmanaged, IVertexProvider
+    public interface IVerticesArray : IEnumerable<VertexData>
     {
-        T[] Vertices { get; }
+        ref VertexData this[int index] { get; }
+
+        int Length { get; }
+
+        Array ToArray();
+    }
+
+    public interface IVerticesList : IList<VertexData>
+    {
+
+    }
+
+
+    public interface IGeometryVertices
+    {
+        IVerticesArray Vertices { get; }
+    }
+
+    public interface IGeometryVertices<TVert> : IGeometryVertices
+        where TVert : unmanaged, IVertexProvider
+    {
+        new TVert[] Vertices { get; set; }
     }
 }

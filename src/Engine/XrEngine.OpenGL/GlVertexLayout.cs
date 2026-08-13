@@ -24,6 +24,10 @@ namespace XrEngine.OpenGL
         public string? Name;
 
         public VertexComponent Component;
+
+        public bool IsNormalized;
+
+        public bool IsIntegerStore;
     }
 
     public class GlVertexLayout
@@ -65,7 +69,9 @@ namespace XrEngine.OpenGL
                             Name = shaderRef.Name,
                             Location = shaderRef.Location,
                             Component = shaderRef.Component,
-                            Offset = fieldOffset
+                            Offset = fieldOffset,
+                            IsIntegerStore = shaderRef.IsIntegerStore,
+                            IsNormalized = shaderRef.IsNormalized
                         };
 
                         if (field.FieldType == typeof(Vector3))
@@ -101,6 +107,7 @@ namespace XrEngine.OpenGL
                         else if (field.FieldType == typeof(Vector4I))
                         {
                             item.Type = VertexAttribPointerType.Int;
+                            item.IsIntegerStore = true;
                             item.Count = 4;
                         }
                         else

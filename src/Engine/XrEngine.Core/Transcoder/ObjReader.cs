@@ -182,10 +182,10 @@ namespace XrEngine
             if (uvs.Count > 0)
                 active |= VertexComponent.UV0;
 
-            var geo = new Geometry3D
+            var geo = new SimpleGeometry3D
             {
                 Indices = indices.ToArray(),
-                Vertices = vertices.ToArray(),
+                VerticesArray = vertices.ToArray(),
                 ActiveComponents = active
             };
 

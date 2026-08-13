@@ -55,5 +55,19 @@ namespace XrEditor
         {
             return GetTypes(typeof(T));
         }
+
+        public static Type FindGenericArgument(this object host, Type genType, int argIndex)
+        {
+            var curType = host.GetType();
+
+            while (curType != null)
+            {
+                if (curType.IsGenericType && curType.GetGenericTypeDefinition() == genType)
+                    return curType.GetGenericArguments()[argIndex];
+                curType = curType.BaseType;
+            }
+
+            throw new NotSupportedException();
+        }
     }
 }

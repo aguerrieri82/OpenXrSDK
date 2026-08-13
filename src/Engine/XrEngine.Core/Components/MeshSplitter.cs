@@ -11,7 +11,7 @@ namespace XrEngine.Components
         Bounds3 _splitBounds;
         Matrix4x4 _boundsTransform;
         TriangleMesh? _splittedMesh;
-        BaseGeometry3D<VertexData>? _startGeo;
+        Geometry3D? _startGeo;
 
         public MeshSplitter()
         {
@@ -31,7 +31,7 @@ namespace XrEngine.Components
         protected override void OnAttach()
         {
             _splittedMesh = null;
-            _startGeo = _host!.Geometry!.Clone();
+            _startGeo = _host.Geometry!.Clone();
             base.OnAttach();
         }
 
@@ -56,7 +56,7 @@ namespace XrEngine.Components
                 foreach (var material in _host.Materials)
                     _splittedMesh.Materials.Add(material);
 
-                _splittedMesh.Geometry = new Geometry3D()
+                _splittedMesh.Geometry = new SimpleGeometry3D()
                 {
                     ActiveComponents = _startGeo!.ActiveComponents
                 };
@@ -65,10 +65,10 @@ namespace XrEngine.Components
                 _splittedMesh.Transform.Set(_host.Transform);
             }
 
-            _host.Geometry!.Vertices = _startGeo.Vertices;
+            _host.Geometry!.SetVertices(_startGeo.Vertices);
             _host.Geometry!.Rebuild(_originalTriangles);
 
-            _splittedMesh.Geometry!.Vertices = _startGeo.Vertices;
+            _splittedMesh.Geometry!.SetVertices(_startGeo.Vertices);
             _splittedMesh.Geometry!.Rebuild(_splitTriangles);
 
             return _splittedMesh;
@@ -125,13 +125,13 @@ namespace XrEngine.Components
             var reverse = _boundsTransform.Invert();
 
             canvas.State.Color = "#00A000";
-            canvas.State.Transform = _host!.WorldMatrix;
+            canvas.State.Transform = _host.WorldMatrix;
 
             foreach (var triangle in _splitTriangles)
                 canvas.DrawTriangle(triangle);
 
             canvas.State.Color = "#00ff00";
-            canvas.State.Transform = _boundsTransform * _host!.WorldMatrix;
+            canvas.State.Transform = _boundsTransform * _host.WorldMatrix;
             canvas.DrawBounds(_splitBounds);
 
             canvas.Restore();

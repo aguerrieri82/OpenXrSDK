@@ -34,7 +34,7 @@ namespace XrEngine.Gltf
                 }
                 if (seg == "/geo")
                 {
-                    assetType = typeof(Geometry3D);
+                    assetType = typeof(SimpleGeometry3D);
                     return true;
                 }
                 if (seg == "/mat")
@@ -105,7 +105,7 @@ namespace XrEngine.Gltf
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
                         var mesh = cache.Loader!.Model!.Meshes[meshId];
-                        result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj);
+                        result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (SimpleGeometry3D?)destObj);
                         break;
                     case "mat":
                         var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
@@ -113,7 +113,8 @@ namespace XrEngine.Gltf
                         break;
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMesh(meshId, (TriangleMesh?)destObj);
+#warning SKIN NOT SUPPORTED
+                        result = cache.Loader!.ProcessMesh<VertexData>(meshId, skinId: null, (TriangleMesh?)destObj);
                         break;
                     default:
                         throw new NotSupportedException();

@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class OculusHandMesh : BaseTriangleMesh<SkinnedVertexData>, ISkinnedMesh
+    public class OculusHandMesh : TriangleMesh, ISkinnedMesh
     {
         readonly XrHandMesh _mesh;
         protected Matrix4x4[] _invBindMatrices;
@@ -91,7 +91,7 @@ namespace XrEngine.OpenXr
         {
             var geometry = new SkinnedGeometry3D
             {
-                Vertices = new SkinnedVertexData[_mesh.Vertices!.Length],
+                VerticesArray = new SkinnedVertexData[_mesh.Vertices!.Length],
                 Indices = _mesh.Indices!,
                 ActiveComponents =
                     VertexComponent.Position |
@@ -104,11 +104,11 @@ namespace XrEngine.OpenXr
             {
                 var ix = _mesh.Vertices[i].BlendIndex;
 
-                geometry.Vertices[i].Vertex.Pos = _mesh.Vertices[i].Pos.ToVector3();
-                geometry.Vertices[i].Vertex.Normal = _mesh.Vertices[i].Normal.ToVector3();
-                geometry.Vertices[i].Vertex.UV = _mesh.Vertices[i].UV.ToVector2();
-                geometry.Vertices[i].Skin.JointIndices = new Vector4I(ix.X, ix.Y, ix.Z, ix.W);
-                geometry.Vertices[i].Skin.JointWeights = _mesh.Vertices[i].BlendWeight.ToVector4();
+                geometry.VerticesArray[i].Vertex.Pos = _mesh.Vertices[i].Pos.ToVector3();
+                geometry.VerticesArray[i].Vertex.Normal = _mesh.Vertices[i].Normal.ToVector3();
+                geometry.VerticesArray[i].Vertex.UV = _mesh.Vertices[i].UV.ToVector2();
+                geometry.VerticesArray[i].Skin.JointIndices = new Vector4I(ix.X, ix.Y, ix.Z, ix.W);
+                geometry.VerticesArray[i].Skin.JointWeights = _mesh.Vertices[i].BlendWeight.ToVector4();
             }
 
             Geometry = geometry;

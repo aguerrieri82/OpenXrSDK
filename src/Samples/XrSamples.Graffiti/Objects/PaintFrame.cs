@@ -45,7 +45,7 @@ namespace XrSamples.Graffiti
                 new Vector3(halfW - halfT, 0, 0),
                 new Vector3(thickness, height, depth));
 
-            Geometry = builder.ToGeometry(Geometry);
+            Geometry = builder.ToGeometry((Geometry3D<VertexData>?)_geometry);
 
             Size = size;
             Profile = profile;

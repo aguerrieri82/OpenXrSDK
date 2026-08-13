@@ -18,14 +18,14 @@ namespace XrEngine.Lighting
                 throw new InvalidOperationException("Failed to create native mesh voxelizer.");
         }
 
-        public unsafe MeshVoxelGrid Voxelize(Geometry3D geometry, Matrix4x4 transform)
+        public unsafe MeshVoxelGrid Voxelize(SimpleGeometry3D geometry, Matrix4x4 transform)
         {
             if (geometry.Vertices == null || geometry.Vertices.Length == 0)
                 throw new ArgumentException("Geometry has no vertices.", nameof(geometry));
 
             Log.Info(this, "Apply transform");
 
-            var srcVertices = geometry.Vertices;
+            var srcVertices = geometry.VerticesArray;
             var dstVertices = new VertexData[srcVertices.Length];
 
             var min = new Vector3(float.PositiveInfinity);
@@ -59,9 +59,9 @@ namespace XrEngine.Lighting
             return Voxelize(dstVertices, geometry.Indices, bounds);
         }
 
-        public MeshVoxelGrid Voxelize(Geometry3D geometry)
+        public MeshVoxelGrid Voxelize(SimpleGeometry3D geometry)
         {
-            return Voxelize(geometry.Vertices, geometry.Indices, geometry.Bounds);
+            return Voxelize(geometry.VerticesArray, geometry.Indices, geometry.Bounds);
         }
 
         public MeshVoxelGrid Voxelize(

@@ -41,7 +41,7 @@ namespace XrSamples.Earth
 
             }
 
-            Geometry3D sphere = HeightMap != null ?
+            SimpleGeometry3D sphere = HeightMap != null ?
                 new QuadSphere3D(SphereRadius, SubLevels) :
                 new Sphere3D(SphereRadius, 50);
             var mesh = new TriangleMesh(sphere, (Material)mat);
