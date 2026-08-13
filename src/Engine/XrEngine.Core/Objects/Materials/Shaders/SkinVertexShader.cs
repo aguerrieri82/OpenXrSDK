@@ -13,21 +13,7 @@
 
                 bld.AddFeature("HAS_SKIN");
             }
-
-            bld.LoadBufferArray(ctx =>
-            {
-                if (ctx.Model is not ISkinnedMesh mesh)
-                    return null;
-
-                if (mesh.SkinVersion == ctx.CurrentBuffer!.Version)
-                    return null;
-
-                ctx.CurrentBuffer!.Version = mesh.SkinVersion;
-
-                return mesh.Skin;
-
-            }, BufferSlots.Skin, BufferStore.Model, BufferUsage.SSbo);
-
+           
             bld.LoadBufferArray(ctx =>
             {
                 if (bld.Context.Model is not ISkinnedMesh mesh)
@@ -40,7 +26,7 @@
 
                 return mesh.SkinMatrices;
 
-            }, BufferSlots.SkinMatrices, BufferStore.Model, BufferUsage.SSbo);
+            }, BufferSlots.SkinMatrices, BufferStore.Model, BufferUsage.Uniforms);
         }
     }
 }

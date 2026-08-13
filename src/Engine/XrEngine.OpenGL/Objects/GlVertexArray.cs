@@ -1,5 +1,8 @@
 ﻿#if GLES
+using Common.Interop;
 using Silk.NET.OpenGLES;
+using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -10,9 +13,23 @@ namespace XrEngine.OpenGL
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
-        protected GlVertexLayout _layout;
+        protected class AttributeInfo
+        {
+            public IGlBuffer? Buffer;
+
+            public GlVertexLayout? Layout;
+
+            public Type? ElementType;
+
+            public int ElementSize;
+        }
+
+        protected GlVertexLayout _mainLayout;
         protected readonly GlBuffer<TVertexType> _vBuf;
         protected GlBuffer<TIndexType>? _iBuf;
+
+        protected List<AttributeInfo>? _attributes;
+
         protected long _vBufVersion;
         protected long _iBufVersion;
         protected readonly DrawElementsType _drawType;
@@ -29,7 +46,7 @@ namespace XrEngine.OpenGL
             : base(gl)
         {
             _gl = gl;
-            _layout = layout;
+            _mainLayout = layout;
             _vBuf = vBuf;
             _iBuf = iBuf;
 
@@ -43,6 +60,22 @@ namespace XrEngine.OpenGL
                 throw new NotSupportedException();
 
             Create();
+
+            Build();
+        }
+
+        public void AddAttributes(IGlBuffer buffer, GlVertexLayout layout, Type elementType)
+        {
+            _attributes ??= [];
+
+            _attributes.Add(new AttributeInfo
+            {
+                Buffer = buffer,
+                Layout = layout,
+                ElementType = elementType,
+                ElementSize = MarshalCache.SizeOf(elementType)
+            });
+
             Build();
         }
 
@@ -53,7 +86,6 @@ namespace XrEngine.OpenGL
 
             Bind();
 
-            _vBuf.Bind();
             _vBufVersion = _vBuf.CreateVersion;
 
             if (_iBuf != null)
@@ -67,11 +99,15 @@ namespace XrEngine.OpenGL
                 _iBufVersion = 0;
             }
 
-            Configure();
+            Configure(_vBuf, _mainLayout);
+
+            if (_attributes != null)
+            {
+                foreach (var attr in _attributes)
+                    Configure(attr.Buffer!, attr.Layout!);
+            }
 
             Unbind();
-
-            _vBuf.Unbind();
 
             _iBuf?.Unbind();
         }
@@ -105,28 +141,51 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void UpdateLayout(GlVertexLayout layout)
+        public void UpdateMainLayouts(GlVertexLayout layout)
         {
-            _layout = layout;
+            _mainLayout = layout;
 
             Bind();
 
-            _vBuf.Bind();
-
-            Configure();
-
-            _vBuf.Unbind();
+            Configure(_vBuf, _mainLayout);
 
             Unbind();
         }
 
-        protected unsafe void Configure()
+        protected unsafe void Configure(IGlBuffer buffer, GlVertexLayout layout)
         {
-            foreach (var attr in _layout.Attributes!)
+            buffer.Bind();
+
+            foreach (var attr in layout.Attributes!)
             {
                 _gl.EnableVertexAttribArray(attr.Location);
-                _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset);
+
+                if (attr.Type == VertexAttribPointerType.Int)
+                    _gl.VertexAttribIPointer(attr.Location, (int)attr.Count, VertexAttribIType.Int, layout.Size, (void*)attr.Offset);
+                else
+                    _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, layout.Size, (void*)attr.Offset);
             }
+
+            buffer.Unbind();
+        }
+
+        public unsafe void UpdateAttributes(Array data, int index)
+        {
+            var attr = _attributes![index];
+
+
+            var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                var ptr = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
+                var span = new Span<byte>(ptr, data.Length * attr.ElementSize);
+                attr.Buffer!.UpdateRange(span);
+            }
+            finally
+            {
+                handle.Free();
+            }
+
         }
 
         public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
@@ -197,6 +256,13 @@ namespace XrEngine.OpenGL
                     GlDebug.Log(this, "VA {0} deleted", _handle);
             }
 
+            if (_attributes != null)
+            {
+                foreach (var attr in _attributes)
+                    attr.Buffer?.Dispose();
+                _attributes = null;
+            }
+
             _iBuf?.Dispose();
 
             _vBuf.Dispose();
@@ -204,7 +270,7 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        public GlVertexLayout Layout => _layout;
+        public GlVertexLayout Layout => _mainLayout;
 
         public GlBuffer<TVertexType> VBuf => _vBuf;
 

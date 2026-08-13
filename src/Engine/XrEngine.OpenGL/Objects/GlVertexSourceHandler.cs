@@ -74,15 +74,31 @@ namespace XrEngine.OpenGL
         {
             _source = source;
 
-            UpdateLayout(out var layout);
+            UpdateMainLayout(out var mainLayout);
 
-            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout!);
+            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, mainLayout!);
 
             _primitive = GlPrimitive(_source.Primitive);
 
             _source.NotifyBuffers(_vertices.VBuf, _vertices.IBuf);
 
             _gl = gl;
+
+            if (_source.Host is IAttributesSource attrs)
+            {
+                var attrLen = attrs.BufferCount;
+                
+                for (var i = 0; i < attrLen; i++)
+                {
+                    var array = attrs.GetBuffer(i);
+                    var elementType = array.GetType().GetElementType()!;
+                    var buffer = GlBuffer.Create(_gl, BufferTargetARB.ArrayBuffer, elementType);
+                    
+                    var layout = CreateLayout(elementType);
+
+                    _vertices.AddAttributes(buffer, layout, elementType);
+                }
+            }
 
             Version = -1;
         }
@@ -92,7 +108,21 @@ namespace XrEngine.OpenGL
             return (GlVertexSourceHandle)Activator.CreateInstance(GetType(), this)!;
         }
 
-        protected bool UpdateLayout(out GlVertexLayout? layout)
+        protected GlVertexLayout CreateLayout(Type type)
+        {
+            var lKey = string.Concat(type.FullName, _source.ActiveComponents);
+
+            if (!_layouts.TryGetValue(lKey, out var layout))
+            {
+                layout = GlVertexLayout.FromType(type, _source.ActiveComponents);
+                _layouts[lKey] = layout;
+            }
+
+            return layout;
+        }
+
+
+        protected bool UpdateMainLayout(out GlVertexLayout? layout)
         {
             if (_lastComponents == _source.ActiveComponents)
             {
@@ -100,13 +130,7 @@ namespace XrEngine.OpenGL
                 return false;
             }
 
-            var lKey = string.Concat(typeof(TVert).FullName, _source.ActiveComponents);
-
-            if (!_layouts.TryGetValue(lKey, out layout))
-            {
-                layout = GlVertexLayout.FromType<TVert>(_source.ActiveComponents);
-                _layouts[lKey] = layout;
-            }
+            layout = CreateLayout(typeof(TVert));
 
             _lastComponents = _source.ActiveComponents;
 
@@ -140,7 +164,6 @@ namespace XrEngine.OpenGL
 
         public override void DrawInstances(int count, DrawPrimitive? forcePrimitive = null)
         {
-
             _vertices.DrawInstances(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive, count);
         }
 
@@ -156,17 +179,26 @@ namespace XrEngine.OpenGL
 
         public override void Update()
         {
-            if ((_source.Object.Flags & EngineObjectFlags.NoLogs) != 0)
+            if ((_source.Host.Flags & EngineObjectFlags.NoLogs) != 0)
                 _vertices.EnableDebug = true;
 
-            if (UpdateLayout(out var layout))
-                _vertices.UpdateLayout(layout!);
+            if (UpdateMainLayout(out var layout))
+                _vertices.UpdateMainLayouts(layout!);
 
             _vertices.Update(_source.Vertices, _source.Indices);
 
-            _sourceObject = _source.Object;
+            _sourceObject = _source.Host;
 
-            Version = _source.Object.Version;
+            if (_sourceObject is IAttributesSource attr)
+            {
+                for (int i = 0; i < attr.BufferCount; i++)
+                {
+                    var array = attr.GetBuffer(i);
+                    _vertices.UpdateAttributes(array, i);
+                }
+            }
+
+            Version = _sourceObject.Version;
 
             _source.NotifyLoaded();
         }
@@ -182,7 +214,8 @@ namespace XrEngine.OpenGL
 
         public override IVertexSource Source => _source;
 
-        public override bool NeedUpdate => _source.Object != null && (_source.Object.Version != Version || Version == -1 || _sourceObject != _source.Object);
+        public override bool NeedUpdate => _source.Host != null && 
+                            (_source.Host.Version != Version || Version == -1 || _sourceObject != _source.Host);
 
         public override GlVertexLayout Layout => _vertices.Layout;
     }

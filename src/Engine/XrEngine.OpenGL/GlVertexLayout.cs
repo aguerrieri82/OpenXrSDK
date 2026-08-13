@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -24,13 +25,22 @@ namespace XrEngine.OpenGL
         public string? Name;
 
         public VertexComponent Component;
+
+        public bool IsNormalized;
+
+        public bool IsIntegerStore;
     }
 
     public class GlVertexLayout
     {
         public static GlVertexLayout FromType<T>(VertexComponent activeComponents) where T : unmanaged
         {
-            if (typeof(T) == typeof(Vector2))
+            return FromType(typeof(T), activeComponents);
+        }
+
+        public static GlVertexLayout FromType(Type baseType, VertexComponent activeComponents)
+        {
+            if (baseType == typeof(Vector2))
             {
                 return new GlVertexLayout
                 {
@@ -43,85 +53,90 @@ namespace XrEngine.OpenGL
                         Offset = 0,
                         Component = VertexComponent.Position
                     }],
-                    Size = (uint)Marshal.SizeOf<T>()
+                    Size = (uint)MarshalCache.SizeOf(baseType)
                 };
             }
-
-            var fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-            var infos = fields.Select(a => new
-            {
-                Type = a.FieldType,
-                Ref = a.GetCustomAttribute<ShaderRefAttribute>()!
-            })
-            .Where(a => a.Ref != null)
-            .OrderBy(a => a.Ref.Location)
-            .ToArray();
 
             var attrbs = new List<GlVertexAttribute>();
 
-            var res = new GlVertexLayout
+            void Collect(Type type, uint baseOffset)
             {
-                Attributes = new GlVertexAttribute[infos.Length]
-            };
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-            uint curOfs = 0;
-            for (var i = 0; i < infos.Length; i++)
-            {
-                var info = infos[i];
+                foreach (var field in fields)
+                {
+                    var fieldOffset = baseOffset + (uint)Marshal.OffsetOf(type, field.Name).ToInt64();
+                    var shaderRef = field.GetCustomAttribute<ShaderRefAttribute>();
 
-                var item = new GlVertexAttribute
-                {
-                    Name = info.Ref.Name,
-                    Location = info.Ref.Location,
-                    Component = info.Ref.Component
-                };
+                    if (shaderRef != null)
+                    {
+                        var item = new GlVertexAttribute
+                        {
+                            Name = shaderRef.Name,
+                            Location = shaderRef.Location,
+                            Component = shaderRef.Component,
+                            Offset = fieldOffset,
+                            IsIntegerStore = shaderRef.IsIntegerStore,
+                            IsNormalized = shaderRef.IsNormalized
+                        };
 
-                if (info.Type == typeof(Vector3))
-                {
-                    item.Type = VertexAttribPointerType.Float;
-                    item.Count = 3;
-                }
-                else if (info.Type == typeof(Quaternion))
-                {
-                    item.Type = VertexAttribPointerType.Float;
-                    item.Count = 4;
-                }
-                else if (info.Type == typeof(Vector4))
-                {
-                    item.Type = VertexAttribPointerType.Float;
-                    item.Count = 4;
-                }
-                else if (info.Type == typeof(Vector2))
-                {
-                    item.Type = VertexAttribPointerType.Float;
-                    item.Count = 2;
-                }
-                else if (info.Type == typeof(float))
-                {
-                    item.Type = VertexAttribPointerType.Float;
-                    item.Count = 1;
-                }
-                else if (info.Type == typeof(Color))
-                {
-                    item.Type = VertexAttribPointerType.Float;
-                    item.Count = 4;
-                }
-                else
-                    throw new NotImplementedException();
+                        if (field.FieldType == typeof(Vector3))
+                        {
+                            item.Type = VertexAttribPointerType.Float;
+                            item.Count = 3;
+                        }
+                        else if (field.FieldType == typeof(Quaternion))
+                        {
+                            item.Type = VertexAttribPointerType.Float;
+                            item.Count = 4;
+                        }
+                        else if (field.FieldType == typeof(Vector4))
+                        {
+                            item.Type = VertexAttribPointerType.Float;
+                            item.Count = 4;
+                        }
+                        else if (field.FieldType == typeof(Vector2))
+                        {
+                            item.Type = VertexAttribPointerType.Float;
+                            item.Count = 2;
+                        }
+                        else if (field.FieldType == typeof(float))
+                        {
+                            item.Type = VertexAttribPointerType.Float;
+                            item.Count = 1;
+                        }
+                        else if (field.FieldType == typeof(Color))
+                        {
+                            item.Type = VertexAttribPointerType.Float;
+                            item.Count = 4;
+                        }
+                        else if (field.FieldType == typeof(Vector4I))
+                        {
+                            item.Type = VertexAttribPointerType.Int;
+                            item.IsIntegerStore = true;
+                            item.Count = 4;
+                        }
+                        else
+                            throw new NotImplementedException($"Unsupported vertex attribute type '{field.FieldType}'.");
 
-                item.Offset = curOfs;
-                curOfs += (uint)Marshal.SizeOf(info.Type);
+                        if ((shaderRef.Component & activeComponents) != 0)
+                            attrbs.Add(item);
 
-                if ((info.Ref.Component & activeComponents) != 0)
-                    attrbs.Add(item);
+                        continue;
+                    }
 
+                    if (field.FieldType.IsValueType && !field.FieldType.IsPrimitive && !field.FieldType.IsEnum)
+                        Collect(field.FieldType, fieldOffset);
+                }
             }
 
-            res.Size = (uint)Marshal.SizeOf<T>();
-            res.Attributes = attrbs.ToArray();
+            Collect(baseType, 0);
 
-            return res;
+            return new GlVertexLayout
+            {
+                Size = (uint)MarshalCache.SizeOf(baseType),
+                Attributes = attrbs.OrderBy(a => a.Location).ToArray()
+            };
         }
 
         public GlVertexAttribute[]? Attributes { get; set; }

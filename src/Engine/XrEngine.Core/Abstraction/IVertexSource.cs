@@ -18,7 +18,7 @@
 
         VertexComponent ActiveComponents { get; }
 
-        EngineObject Object { get; }
+        EngineObject Host { get; }
 
         int RenderPriority { get; }
 

@@ -214,7 +214,7 @@ namespace XrEngine
 
         #region IVertexSource
 
-        EngineObject IVertexSource.Object => _geometry!;
+        EngineObject IVertexSource.Host => _geometry!;
 
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 

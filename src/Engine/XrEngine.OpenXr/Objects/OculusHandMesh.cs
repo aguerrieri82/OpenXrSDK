@@ -97,7 +97,8 @@ namespace XrEngine.OpenXr
                 ActiveComponents =
                     VertexComponent.Position |
                     VertexComponent.Normal |
-                    VertexComponent.UV0
+                    VertexComponent.UV0 |
+                    VertexComponent.Skin
             };
 
             for (var i = 0; i < _mesh.Vertices.Length; i++)
@@ -115,8 +116,6 @@ namespace XrEngine.OpenXr
         }
 
         public Matrix4x4[] SkinMatrices => _skinMatrices;
-
-        SkinData[] ISkinnedMesh.Skin => ((SkinnedGeometry3D)_geometry!).Skin;
 
         public long SkinVersion => 1;
 

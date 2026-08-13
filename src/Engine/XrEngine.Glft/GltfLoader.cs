@@ -1,4 +1,5 @@
-﻿using glTFLoader.Schema;
+﻿using Common.Interop;
+using glTFLoader.Schema;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
@@ -6,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using XrEngine.Objects;
 using XrMath;
 using static glTFLoader.Schema.Material;
 
@@ -28,11 +30,15 @@ namespace XrEngine.Gltf
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<Image, TextureData> _images = [];
         readonly ConcurrentDictionary<Image, LoadTask<Texture2D>> _textures = [];
-        readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
+        readonly Dictionary<Mesh, Object3D> _meshes = [];
         readonly List<Task> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
+
+        readonly Dictionary<int, Object3D> _nodes = [];
+
+        readonly Dictionary<int, GltfSkin> _skins = [];
 
         string? _basePath;
         string? _filePath;
@@ -42,6 +48,9 @@ namespace XrEngine.Gltf
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
             "KHR_materials_pbrSpecularGlossiness" };
+
+
+        #region STRUCTS
 
         struct EXT_texture_webp
         {
@@ -96,6 +105,16 @@ namespace XrEngine.Gltf
 
             public Task Task;
         }
+
+        public class GltfSkin
+        {
+            public IList<Joint3D>? Joints;
+
+            public IList<Matrix4x4>? Matrices;
+        }
+
+
+        #endregion
 
         public GltfLoader()
             : this(a => a)
@@ -450,31 +469,43 @@ namespace XrEngine.Gltf
                             {
                                 case "POSITION":
                                     var vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                    result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                     result.ActiveComponents |= VertexComponent.Position;
                                     vertexCount = vValues.Length;
                                     break;
                                 case "NORMAL":
                                     var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                    result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                     result.ActiveComponents |= VertexComponent.Normal;
                                     break;
                                 case "TANGENT":
                                     if (_options != null && _options.DisableTangents)
                                         break;
                                     var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                    result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                     result.ActiveComponents |= VertexComponent.Tangent;
                                     break;
                                 case "TEXCOORD_0":
                                     var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                    result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                     result.ActiveComponents |= VertexComponent.UV0;
                                     break;
                                 case "TEXCOORD_1":
                                     var uValues1 = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                    result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                     result.ActiveComponents |= VertexComponent.UV1;
+                                    break;
+                                case "JOINTS_0":
+
+                                    var skinGeo = result as SkinnedGeometry3D;
+
+                                    if (skinGeo == null)
+                                        break;
+
+                                    var jValues = DracoDecoder.ReadAttribute<Vector4I>(mesh, attr.Value);
+                                    skinGeo.SetSkinData((ref SkinData a, in Vector4I b) => a.JointIndices = b, jValues);
+                                    result.ActiveComponents |= VertexComponent.JointIndex;
+
                                     break;
                                 default:
                                     LoadLog($"{attr.Key} data not supported");
@@ -502,7 +533,7 @@ namespace XrEngine.Gltf
                         {
                             case "POSITION":
                                 var vValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                 result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
@@ -510,7 +541,7 @@ namespace XrEngine.Gltf
                                 break;
                             case "NORMAL":
                                 var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                 result.ActiveComponents |= VertexComponent.Normal;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
@@ -519,24 +550,53 @@ namespace XrEngine.Gltf
                                 if (_options.DisableTangents)
                                     break;
                                 var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
                                 var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                 result.ActiveComponents |= VertexComponent.UV0;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_1":
                                 var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                 result.ActiveComponents |= VertexComponent.UV1;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
+                                break;
+                            case "JOINTS_0":
+
+                                var skinGeo = result as SkinnedGeometry3D;
+
+                                if (skinGeo == null)
+                                    break;
+
+                                if (acc.Type == Accessor.TypeEnum.SCALAR)
+                                {
+                                    if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                                    {
+                                        var jValues = ConvertBuffer<ushort>(buffer, view, acc);
+
+                                        skinGeo.SetSkinData((ref SkinData a, in ushort b) => a.JointIndices.X = b, jValues);
+
+                                        result.ActiveComponents |= VertexComponent.JointIndex;
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+                                }
+                                else
+                                {
+                                    Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
+                                    Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT);
+                                    var jValues = ConvertBuffer<Vector4I>(buffer, view, acc);
+                                    skinGeo.SetSkinData((ref SkinData a, in Vector4I b) => a.JointIndices = b, jValues);
+                                    result.ActiveComponents |= VertexComponent.JointIndex;
+                                }
                                 break;
                             default:
                                 LoadLog($"{attr.Key} data not supported");
@@ -549,7 +609,7 @@ namespace XrEngine.Gltf
                     {
                         var acc = _model!.Accessors[primitive.Indices.Value];
 
-                        Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.SCALAR);
+                        Debug.Assert(acc.Type == Accessor.TypeEnum.SCALAR);
 
                         var view = _model.BufferViews[acc.BufferView!.Value];
 
@@ -595,10 +655,14 @@ namespace XrEngine.Gltf
 
             if (obj is TriangleMesh mesh)
             {
-                var newMesh = new TriangleMesh();
-                newMesh.Geometry = mesh.Geometry;
+                var newMesh = new TriangleMesh
+                {
+                    Geometry = mesh.Geometry
+                };
+
                 foreach (var mat in mesh.Materials)
                     newMesh.Materials.Add(mat);
+
                 result = newMesh;
             }
             else if (obj is Group3D group)
@@ -618,7 +682,7 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        public Object3D ProcessMesh(int meshId, Object3D? result = null)
+        public Object3D ProcessMesh(int meshId, int? skinId, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
 
@@ -638,8 +702,14 @@ namespace XrEngine.Gltf
 
             foreach (var primitive in gltMesh.Primitives)
             {
-                var curMesh = new TriangleMesh();
-                curMesh.Geometry = new Geometry3D();
+                skinId = null;
+
+                var curMesh = new TriangleMesh()
+                {
+                    Geometry = skinId != null ? 
+                        new SkinnedGeometry3D() : 
+                        new Geometry3D()
+                };
 
                 Debug.Assert(primitive.Targets == null);
                 CheckExtensions(primitive.Extensions);
@@ -652,7 +722,8 @@ namespace XrEngine.Gltf
 
                     curMesh.Geometry = geo;
 
-                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
+                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name,
+                        curMesh.Geometry.Vertices.Length * MarshalCache.SizeOf(typeof(VertexData)));
                 });
 
                 if (primitive.Material != null)
@@ -666,6 +737,8 @@ namespace XrEngine.Gltf
                 }
 
                 group.AddChild(curMesh);
+
+
             }
 
             pIndex++;
@@ -685,24 +758,31 @@ namespace XrEngine.Gltf
             throw new NotSupportedException();
         }
 
-        protected Object3D ProcessNode(int nodeId, Group3D curGrp)
+        protected Object3D ProcessNode(int nodeId, Group3D? curGrp, bool isJoint)
         {
+            if (_nodes.TryGetValue(nodeId, out var nodeObj))
+            {
+                if (nodeObj.Parent == null)
+                    curGrp?.AddChild(nodeObj);
+                return nodeObj;
+            }
+
             var node = _model!.Nodes[nodeId];
 
             CheckExtensions(node.Extensions);
 
-            Object3D? nodeObj = null;
             Group3D? nodeGrp = null;
 
-            if (node.Children != null && node.Children.Length > 0)
+            if (isJoint || (node.Children != null && node.Children.Length > 0))
             {
-                nodeGrp = new Group3D();
+                nodeGrp = isJoint ? new Joint3D() : new Group3D();
                 nodeObj = nodeGrp;
             }
 
             if (node.Mesh != null)
             {
-                var nodeMesh = ProcessMesh(node.Mesh.Value);
+                Object3D nodeMesh = ProcessMesh(node.Mesh.Value, node.Skin);
+
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
                 else
@@ -719,10 +799,10 @@ namespace XrEngine.Gltf
                 nodeObj = new Object3D();
             }
 
-            if (nodeGrp != null)
+            if (nodeGrp != null && node.Children != null)
             {
-                foreach (var childNode in node.Children!)
-                    ProcessNode(childNode, nodeGrp);
+                foreach (var childNode in node.Children)
+                    ProcessNode(childNode, nodeGrp, isJoint);
             }
 
             nodeObj!.Name = node.Name;
@@ -757,11 +837,42 @@ namespace XrEngine.Gltf
 
             //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
-            curGrp.AddChild(nodeObj);
+            curGrp?.AddChild(nodeObj);
 
             GenerateId(nodeObj, "node", nodeId);
 
+            _nodes[nodeId] = nodeObj;
+
             return nodeObj;
+        }
+
+        protected GltfSkin ProcessSkin(int skinId)
+        {
+            var skin = _model!.Skins[skinId];
+
+            var skinObj = new GltfSkin
+            {
+                Joints = []
+            };
+
+            if (skin.InverseBindMatrices != null)
+            {
+                var matsAcc = _model.Accessors[skin.InverseBindMatrices.Value];
+                var view = _model.BufferViews[matsAcc.BufferView!.Value];
+                var buffer = LoadBuffer(view.Buffer);
+                skinObj.Matrices = ConvertBuffer<Matrix4x4>(buffer, view, matsAcc);
+            }
+
+            foreach (var joint in skin.Joints)
+            {
+                var jointObj = (Joint3D)ProcessNode(joint, null, true);
+
+                skinObj.Joints.Add(jointObj);
+            }
+
+            _skins[skinId] = skinObj;
+
+            return skinObj;
         }
 
         protected Group3D ProcessScene(Scene glScene)
@@ -769,7 +880,7 @@ namespace XrEngine.Gltf
             var scene = new Group3D();
 
             foreach (var nodeId in glScene.Nodes)
-                ProcessNode(nodeId, scene);
+                ProcessNode(nodeId, scene, false);
 
             return scene;
         }
@@ -782,6 +893,8 @@ namespace XrEngine.Gltf
             _mats.Clear();
             _meshes.Clear();
             _textures.Clear();
+            _skins.Clear();
+            _nodes.Clear();
 
             GC.SuppressFinalize(this);
         }
@@ -807,6 +920,12 @@ namespace XrEngine.Gltf
         public Object3D LoadScene()
         {
             var root = new Group3D();
+
+            if (_model!.Skins != null)
+            {
+                for (var i = 0; i < _model.Skins.Length; i++)
+                    ProcessSkin(i);
+            }
 
             foreach (var scene in _model!.Scenes)
                 root.AddChild(ProcessScene(scene));

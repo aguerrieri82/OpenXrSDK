@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using XrEngine.Helpers;
+using XrEngine.Objects;
 using XrMath;
 using static XrEngine.ShaderUpdateBuilder;
 
@@ -563,7 +564,9 @@ namespace XrEngine
 
         #region GEOMETRY
 
-        public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
+        public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, in T value);
+
+        public delegate void SkinAssignDelegate<T>(ref SkinData vertexData, in T value);
 
         public static void FlipYUV(this Geometry3D self)
         {
@@ -939,6 +942,25 @@ namespace XrEngine
             }
 
             self.ActiveComponents |= VertexComponent.Tangent;
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+
+        public static void SetSkinData<T>(this SkinnedGeometry3D self, SkinAssignDelegate<T> selector, T[] array)
+        {
+            if (self.Skin == null)
+                self.Skin = new SkinData[array.Length];
+
+            if (self.Skin.Length < array.Length)
+            {
+                var newArray = self.Skin;
+                Array.Resize(ref newArray, array.Length);
+                self.Skin = newArray;
+            }
+
+            for (var i = 0; i < array.Length; i++)
+                selector(ref self.Skin[i], array[i]);
+
             self.NotifyChanged(ChangeType.Geometry);
         }
 

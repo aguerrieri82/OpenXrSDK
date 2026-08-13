@@ -11,10 +11,10 @@ namespace XrEngine.OpenGL
 {
     public static class GlBuffer
     {
-        public static IBuffer Create(GL gl, BufferTargetARB target, Type contentType)
+        public static IGlBuffer Create(GL gl, BufferTargetARB target, Type contentType)
         {
             var type = typeof(GlBuffer<>).MakeGenericType(contentType);
-            return (IBuffer)Activator.CreateInstance(type, gl, target)!;
+            return (IGlBuffer)Activator.CreateInstance(type, gl, target)!;
         }
 
         public static GlBufferUpdateTracker? Tracker;

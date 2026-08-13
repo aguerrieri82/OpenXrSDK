@@ -1,28 +1,19 @@
-﻿
+﻿layout(location=5) in ivec4 aJointIndices;
+layout(location=6) in vec4 aJointWeights;
 
-struct SkinVertex
+#ifndef MAX_SKIN_JOINTS
+    #define MAX_SKIN_JOINTS 128
+#endif
+
+layout(std140, binding=19) uniform SkinMatrices
 {
-    uvec4 jointIndices;
-    vec4 jointWeights;
+    mat4 uSkinMatrices[MAX_SKIN_JOINTS];
 };
-
-layout(std430, binding = 18) readonly buffer SkinVertices
-{
-    SkinVertex uSkinVertices[];
-};
-
-layout(std430, binding = 19) readonly buffer SkinMatrices
-{
-    mat4 uSkinMatrices[];
-};
-
 
 void skinTransform(inout vec3 pos, inout vec3 normal)
 {
-    SkinVertex skinVertex = uSkinVertices[gl_VertexID];
-
-    uvec4 joints = skinVertex.jointIndices;
-    vec4 weights = skinVertex.jointWeights;
+    ivec4 joints = aJointIndices;
+    vec4 weights = aJointWeights;
 
     mat4 skin =
         weights.x * uSkinMatrices[joints.x] +
@@ -31,7 +22,5 @@ void skinTransform(inout vec3 pos, inout vec3 normal)
         weights.w * uSkinMatrices[joints.w];
 
     pos = (skin * vec4(pos, 1.0)).xyz;
-
     normal = normalize(mat3(skin) * normal);
 }
-

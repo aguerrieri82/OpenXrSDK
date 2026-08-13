@@ -28,7 +28,7 @@ namespace XrEngine
 
         #region IVertexSource
 
-        EngineObject IVertexSource.Object => this!;
+        EngineObject IVertexSource.Host => this!;
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Line;
 

@@ -113,7 +113,7 @@ namespace XrEngine.Gltf
                         break;
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMesh(meshId, (TriangleMesh?)destObj);
+                        result = cache.Loader!.ProcessMesh(meshId, null, (TriangleMesh?)destObj);
                         break;
                     default:
                         throw new NotSupportedException();

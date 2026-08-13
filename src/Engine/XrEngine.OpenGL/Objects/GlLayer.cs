@@ -267,9 +267,9 @@ namespace XrEngine.OpenGL
 
                 Debug.Assert(materialContent.Material == material);
 
-                var vertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc));
+                var vertexHandler = vrtSrc.Host.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc));
 
-                if (!materialContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
+                if (!materialContent.Contents.TryGetValue(vrtSrc.Host, out var vertexContent))
                 {
                     vertexContent = new VertexContent
                     {
@@ -280,7 +280,7 @@ namespace XrEngine.OpenGL
                     foreach (var attr in vertexHandler.Layout!.Attributes!)
                         vertexContent.ActiveComponents |= attr.Component;
 
-                    materialContent.Contents[vrtSrc.Object] = vertexContent;
+                    materialContent.Contents[vrtSrc.Host] = vertexContent;
 
                     if (incremental)
                         Update(materialContent);

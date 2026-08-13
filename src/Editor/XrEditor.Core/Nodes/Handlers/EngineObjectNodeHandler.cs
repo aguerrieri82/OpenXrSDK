@@ -1,4 +1,5 @@
 ﻿using XrEngine;
+using XrEngine.Objects;
 using XrEngine.Physics;
 
 namespace XrEditor.Nodes
@@ -22,6 +23,9 @@ namespace XrEditor.Nodes
                 {
                     if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
+                    
+                    else if (obj is Joint3D)
+                        nodeType = typeof(Joint3DNode);
 
                     else if (obj is SplatMesh)
                         nodeType = typeof(SplatMeshNode);
