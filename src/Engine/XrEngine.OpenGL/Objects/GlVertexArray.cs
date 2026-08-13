@@ -76,7 +76,11 @@ namespace XrEngine.OpenGL
                 ElementSize = MarshalCache.SizeOf(elementType)
             });
 
-            Build();
+            Bind();
+
+            Configure(buffer, layout);
+
+            Unbind();
         }
 
         public void Build()

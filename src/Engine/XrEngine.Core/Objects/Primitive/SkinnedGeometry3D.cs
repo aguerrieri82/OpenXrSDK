@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.Objects
 {
-    public class SkinnedGeometry3D : Geometry3D, IAttributesSource
+    public class SkinnedGeometry3D : Geometry3D, IVertexAttributes
     {
         private SkinData[] _skin;
 
@@ -15,9 +15,9 @@
             set => _skin = value;
         }
 
-        int IAttributesSource.BufferCount => 1;
+        int IVertexAttributes.BufferCount => 1;
 
-        Array IAttributesSource.GetBuffer(int index)
+        Array IVertexAttributes.GetBuffer(int index)
         {
             return _skin;
         }

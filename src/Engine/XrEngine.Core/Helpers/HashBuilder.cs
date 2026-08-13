@@ -1,5 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.IO.Hashing;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace XrEngine.Helpers
@@ -12,6 +14,11 @@ namespace XrEngine.Helpers
         byte[] _buffer = new byte[256];
 
         private readonly XxHash3 _hash = new();
+
+        public void Add<T>(T value) where T : unmanaged
+        {
+            _hash.Append(MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref value, 1)));
+        }
 
         public void Add(string? value)
         {

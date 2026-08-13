@@ -109,8 +109,6 @@ namespace XrEngine.Gltf
         public class GltfSkin
         {
             public IList<Joint3D>? Joints;
-
-            public IList<Matrix4x4>? Matrices;
         }
 
 
@@ -582,9 +580,13 @@ namespace XrEngine.Gltf
                                     {
                                         var jValues = ConvertBuffer<ushort>(buffer, view, acc);
 
-                                        skinGeo.SetSkinData((ref SkinData a, in ushort b) => a.JointIndices.X = b, jValues);
+                                        skinGeo.SetSkinData((ref SkinData a, in ushort b) =>
+                                        {
+                                            a.JointIndices.X = b;
+                                            a.JointWeights.X = 1;
+                                        }, jValues);
 
-                                        result.ActiveComponents |= VertexComponent.JointIndex;
+                                        result.ActiveComponents |= VertexComponent.Skin;
                                     }
                                     else
                                         throw new NotSupportedException();
@@ -615,11 +617,11 @@ namespace XrEngine.Gltf
 
                         var buffer = LoadBuffer(view.Buffer);
 
-                        if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                        if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                             result.Indices = ConvertBuffer<ushort>(buffer, view, acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
-                        else if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                        else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
                             result.Indices = ConvertBuffer<uint>(buffer, view, acc);
                         else
                             throw new NotSupportedException();
@@ -702,8 +704,6 @@ namespace XrEngine.Gltf
 
             foreach (var primitive in gltMesh.Primitives)
             {
-                skinId = null;
-
                 var curMesh = new TriangleMesh()
                 {
                     Geometry = skinId != null ? 
@@ -711,7 +711,19 @@ namespace XrEngine.Gltf
                         new Geometry3D()
                 };
 
+                if (skinId != null)
+                {
+                    var skin = _skins[skinId.Value];
+
+                    curMesh.AddComponent(new MeshSkin()
+                    {
+                        Joints = skin.Joints?.ToArray() ?? []
+                    });
+
+                }
+
                 Debug.Assert(primitive.Targets == null);
+
                 CheckExtensions(primitive.Extensions);
 
                 Load(curMesh, () =>
@@ -727,7 +739,12 @@ namespace XrEngine.Gltf
                 });
 
                 if (primitive.Material != null)
-                    curMesh.Materials.Add(ProcessMaterial(primitive.Material.Value));
+                {
+                    var mat = ProcessMaterial(primitive.Material.Value);
+                    mat.HasSkin = skinId != null;
+                    curMesh.Materials.Add(mat);
+                }
+
 
                 if (group == null)
                 {
@@ -737,8 +754,6 @@ namespace XrEngine.Gltf
                 }
 
                 group.AddChild(curMesh);
-
-
             }
 
             pIndex++;
@@ -855,12 +870,14 @@ namespace XrEngine.Gltf
                 Joints = []
             };
 
+            Matrix4x4[]? matrices = null;
+
             if (skin.InverseBindMatrices != null)
             {
                 var matsAcc = _model.Accessors[skin.InverseBindMatrices.Value];
                 var view = _model.BufferViews[matsAcc.BufferView!.Value];
                 var buffer = LoadBuffer(view.Buffer);
-                skinObj.Matrices = ConvertBuffer<Matrix4x4>(buffer, view, matsAcc);
+                matrices = ConvertBuffer<Matrix4x4>(buffer, view, matsAcc);
             }
 
             foreach (var joint in skin.Joints)
@@ -869,6 +886,11 @@ namespace XrEngine.Gltf
 
                 skinObj.Joints.Add(jointObj);
             }
+
+            Debug.Assert(matrices != null && matrices.Length == skinObj.Joints.Count);
+
+            for (var i = 0; i < skinObj.Joints.Count;i++)
+                skinObj.Joints[i].InverseBindMatrix = matrices[i];
 
             _skins[skinId] = skinObj;
 

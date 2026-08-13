@@ -156,6 +156,7 @@ namespace XrEngine.OpenGL
                                     continue;
 
                                 updateContext.Model = draw.Object;
+                                updateContext.Material = curInst.Material;
 
                                 upRes = UpdateProgram(curInst, updateContext, draw.Object!);
 

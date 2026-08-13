@@ -84,7 +84,7 @@ namespace XrEngine.OpenGL
 
             _gl = gl;
 
-            if (_source.Host is IAttributesSource attrs)
+            if (_source.Host is IVertexAttributes attrs)
             {
                 var attrLen = attrs.BufferCount;
                 
@@ -189,7 +189,7 @@ namespace XrEngine.OpenGL
 
             _sourceObject = _source.Host;
 
-            if (_sourceObject is IAttributesSource attr)
+            if (_sourceObject is IVertexAttributes attr)
             {
                 for (int i = 0; i < attr.BufferCount; i++)
                 {

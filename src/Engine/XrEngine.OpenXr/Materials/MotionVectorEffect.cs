@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -75,14 +76,13 @@ namespace XrEngine.OpenXr
 
             SkinVertexShader.UpdateShaderModel(bld);
 
-            if (bld.Context.Model is ISkinnedMesh mesh)
+            var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
+
+            if (mesh != null)
             {
                 bld.LoadBufferArray(ctx =>
                 {
-                    if (ctx.Model is not ISkinnedMesh mesh)
-                        return null;
-
-                    if (!_skins.TryGetValue(ctx.Model, out var matrices))
+                    if (!_skins.TryGetValue(ctx.Model!, out var matrices))
                         return null;
 
                     return matrices;
@@ -112,17 +112,16 @@ namespace XrEngine.OpenXr
                 {
                     _models[model] = world;
 
-                    if (ctx.Model is ISkinnedMesh skinned)
+                    Debug.Assert(mesh != null);
+
+                    if (!_skins.TryGetValue(model, out var matrices))
                     {
-                        if (!_skins.TryGetValue(model, out var matrices))
-                        {
-                            matrices = new Matrix4x4[skinned.SkinMatrices.Length];
+                        matrices = new Matrix4x4[mesh.SkinMatrices.Length];
 
-                            _skins[model] = matrices;
-                        }
-
-                        Array.Copy(skinned.SkinMatrices, matrices, matrices.Length);
+                        _skins[model] = matrices;
                     }
+
+                    Array.Copy(mesh.SkinMatrices, matrices, matrices.Length);
                 }
             });
         }

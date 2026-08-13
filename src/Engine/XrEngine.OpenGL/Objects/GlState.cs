@@ -183,6 +183,7 @@ namespace XrEngine.OpenGL
             if (VertexArray != value || force)
             {
                 _gl.BindVertexArray(value);
+                BufferTargets.Remove(BufferTargetARB.ElementArrayBuffer);
                 VertexArray = value;
             }
         }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XrEngine
 {
-    public interface IAttributesSource
+    public interface IVertexAttributes
     {
         int BufferCount { get; }
 

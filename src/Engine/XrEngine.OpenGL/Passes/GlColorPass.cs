@@ -150,7 +150,7 @@ namespace XrEngine.OpenGL
 
             _renderer.UpdateContext.UsePrimitiveBoundingBox = false;
 #if GLES
-            if (obj is ISkinnedMesh)
+            if (obj.Feature<ISkinnedMesh>() != null)
                 return;
 
             _renderer.UpdateContext.UsePrimitiveBoundingBox = true;
@@ -255,6 +255,8 @@ namespace XrEngine.OpenGL
                     if (material.Value.IsHidden)
                         continue;
 
+                    ctx.Material = matContent.Material as ShaderMaterial;
+
                     ctx.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     var progInst = matContent.ProgramInstance!;
@@ -336,6 +338,8 @@ namespace XrEngine.OpenGL
                         }
                     }
                 }
+
+                ctx.Material = null;
             }
 
             _renderer.State.BindVertexArray(0);

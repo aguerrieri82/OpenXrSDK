@@ -124,9 +124,9 @@ namespace XrEngine.OpenXr
                     group.WorldPosition = pose.Position;
                     group.WorldOrientation = pose.Orientation;
                 }
-
+                /*
                 if (model != null)
-                    model.IsVisible = input.IsActive;
+                    model.IsVisible = input.IsActive;*/
 
             });
 

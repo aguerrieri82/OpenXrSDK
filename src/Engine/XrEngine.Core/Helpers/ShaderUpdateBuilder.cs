@@ -73,6 +73,8 @@ namespace XrEngine
 
         public Object3D? Model;
 
+        public ShaderMaterial? Material;
+
         public Shader? Shader;
 
         public IList<Light>? Lights;
@@ -122,6 +124,8 @@ namespace XrEngine
         public bool IsSrgbAutoEncode;
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
+
+
 
         public bool UseSharedSsbo;
 
@@ -365,6 +369,9 @@ namespace XrEngine
 
         public readonly void AddFeature(string name)
         {
+            if (Context.Stage == UpdateShaderStage.Model)
+                throw new InvalidOperationException("Cannot add a material feature at model stage");
+
             _result.Features ??= [];
             _result.Features.Add(name);
         }
