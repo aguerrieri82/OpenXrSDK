@@ -189,7 +189,22 @@ namespace XrEngine
             _host?.NotifyChanged(ChangeType.Transform);
         }
 
-        public ref Matrix4x4 Matrix
+
+        public Matrix4x4 Matrix
+        {
+            get
+            {
+                if (_isDirty)
+                    Update();
+                return  _matrix;
+            }
+            set
+            {
+                Set(value);
+            }
+        }
+
+        public ref Matrix4x4 MatrixRef
         {
             get
             {

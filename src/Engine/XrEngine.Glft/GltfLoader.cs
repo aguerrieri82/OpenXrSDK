@@ -643,14 +643,10 @@ namespace XrEngine.Gltf
                     {
                         var acc = _model!.Accessors[attr.Value];
 
-                        var view = _model.BufferViews[acc.BufferView!.Value];
-
-                        var buffer = LoadBuffer(view.Buffer);
-
                         switch (attr.Key)
                         {
                             case "POSITION":
-                                var vValues = ConvertBuffer<Vector3>(buffer, view, acc);
+                                var vValues = ConvertBuffer<Vector3>(acc);
                                 result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                 result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
@@ -658,7 +654,7 @@ namespace XrEngine.Gltf
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "NORMAL":
-                                var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
+                                var nValues = ConvertBuffer<Vector3>(acc);
                                 result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                 result.ActiveComponents |= VertexComponent.Normal;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
@@ -667,21 +663,21 @@ namespace XrEngine.Gltf
                             case "TANGENT":
                                 if (_options.DisableTangents)
                                     break;
-                                var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
+                                var tValues = ConvertBuffer<Vector4>(acc);
                                 result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
-                                var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
+                                var uValues = ConvertBuffer<Vector2>(acc);
                                 result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                 result.ActiveComponents |= VertexComponent.UV0;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_1":
-                                var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
+                                var uValues1 = ConvertBuffer<Vector2>(acc);
                                 result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                 result.ActiveComponents |= VertexComponent.UV1;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
@@ -696,7 +692,7 @@ namespace XrEngine.Gltf
                                 {
                                     if (acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
                                     {
-                                        var wValues = ConvertBuffer<Vector4>(buffer, view, acc);
+                                        var wValues = ConvertBuffer<Vector4>(acc);
                                         skinGeo.SetSkinData((ref SkinData a, in Vector4 b) => a.JointWeights = b, wValues);
                                     }
                                     else
@@ -717,7 +713,7 @@ namespace XrEngine.Gltf
                                 {
                                     if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                                     {
-                                        var jValues = ConvertBuffer<ushort>(buffer, view, acc);
+                                        var jValues = ConvertBuffer<ushort>(acc);
 
                                         skinGeo1.SetSkinData((ref SkinData a, in ushort b) =>
                                         {
@@ -734,12 +730,12 @@ namespace XrEngine.Gltf
                                 {
                                     if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                                     {
-                                        var jValues1 = ConvertBuffer<Vector4US>(buffer, view, acc);
+                                        var jValues1 = ConvertBuffer<Vector4US>(acc);
                                         skinGeo1.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues1);
                                     }
                                     else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
                                     {
-                                        var jValues2 = ConvertBuffer<Vector4UB>(buffer, view, acc);
+                                        var jValues2 = ConvertBuffer<Vector4UB>(acc);
                                         skinGeo1.SetSkinData((ref SkinData a, in Vector4UB b) => a.JointIndices = b.ToVector4I(), jValues2);
                                     }
                                     else
@@ -763,16 +759,12 @@ namespace XrEngine.Gltf
 
                         Debug.Assert(acc.Type == Accessor.TypeEnum.SCALAR);
 
-                        var view = _model.BufferViews[acc.BufferView!.Value];
-
-                        var buffer = LoadBuffer(view.Buffer);
-
                         if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
-                            result.Indices = ConvertBuffer<ushort>(buffer, view, acc)
+                            result.Indices = ConvertBuffer<ushort>(acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
                         else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
-                            result.Indices = ConvertBuffer<uint>(buffer, view, acc);
+                            result.Indices = ConvertBuffer<uint>(acc);
                         else
                             throw new NotSupportedException();
                     }
@@ -919,9 +911,12 @@ namespace XrEngine.Gltf
         protected Camera ProcessCamera(int cameraId)
         {
             var camera = _model!.Cameras[cameraId];
+            var cameraObj = new PerspectiveCamera();
 
             CheckExtensions(camera.Extensions);
-            throw new NotSupportedException();
+            LoadLog("Camera not supported!");
+
+            return cameraObj;
         }
 
         protected Object3D ProcessNode(int nodeId, Group3D? curGrp, bool isJoint)
@@ -1016,6 +1011,8 @@ namespace XrEngine.Gltf
         {
             var skin = _model!.Skins[skinId];
 
+            CheckExtensions(skin.Extensions);
+
             var skinObj = new GltfSkin
             {
                 Joints = [],
@@ -1027,9 +1024,7 @@ namespace XrEngine.Gltf
             if (skin.InverseBindMatrices != null)
             {
                 var matsAcc = _model.Accessors[skin.InverseBindMatrices.Value];
-                var view = _model.BufferViews[matsAcc.BufferView!.Value];
-                var buffer = LoadBuffer(view.Buffer);
-                matrices = ConvertBuffer<Matrix4x4>(buffer, view, matsAcc);
+                matrices = ConvertBuffer<Matrix4x4>(matsAcc);
             }
 
             foreach (var joint in skin.Joints)
@@ -1051,10 +1046,14 @@ namespace XrEngine.Gltf
 
         protected void ProcessAnimation(glTFLoader.Schema.Animation anim)
         {
+            CheckExtensions(anim.Extensions);
+
             var samplers = new List<GltfSampler>();
 
             foreach (var sampler in anim.Samplers)
             {
+                CheckExtensions(sampler.Extensions);
+
                 var times = ConvertBuffer<float>(sampler.Input);
                 var values = ConvertBuffer(sampler.Output);
 
@@ -1071,6 +1070,9 @@ namespace XrEngine.Gltf
 
             foreach (var channel in anim.Channels)
             {
+                CheckExtensions(channel.Extensions);
+                CheckExtensions(channel.Target.Extensions);
+
                 if (channel.Target.Node == null)
                     continue;
 
@@ -1080,7 +1082,6 @@ namespace XrEngine.Gltf
 
                 if (!node.TryComponent<AnimationsHost>(out var animHost))
                     animHost = node.AddComponent<AnimationsHost>();
-
 
                 TimeFunctionDelegate timeFunc;
 

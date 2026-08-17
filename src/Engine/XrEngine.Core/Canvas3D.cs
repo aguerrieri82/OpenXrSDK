@@ -25,6 +25,9 @@ namespace XrEngine
             _curState.Transform = Matrix4x4.Identity;
             _curState.Color = Color.White;
             _lineMesh.Material.Alpha = AlphaMode.Blend;
+            _lineMesh.Material.UseDepth = false;
+            _lineMesh.Material.WriteDepth = false;
+
         }
 
         public void DrawLine(Line3 line)
