@@ -2,6 +2,8 @@
 {
     public class HitTestEffect : ShaderMaterial
     {
+        protected ChangeTracker _tracker = new();
+
         public static readonly StandardShader SHADER;
 
         static HitTestEffect()
@@ -25,6 +27,11 @@
             {
                 up.SetUniform("uDrawId", DrawId);
             });
+        }
+
+        public override bool NeedUpdateShader(UpdateShaderContext ctx)
+        {
+            return _tracker.IsChanged(() => HasSkin);
         }
 
         public uint DrawId { get; set; }

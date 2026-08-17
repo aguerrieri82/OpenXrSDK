@@ -113,6 +113,11 @@ namespace XrEngine.OpenXr
             Geometry = geometry;
         }
 
+        Bounds3 ISkinnedMesh.GetWorldBounds()
+        {
+            return _geometry!.Bounds.Transform(WorldMatrix);
+        }
+
         public Matrix4x4[] SkinMatrices => _skinMatrices;
 
         public long SkinMatricesVersion => _skinVersion;

@@ -8,6 +8,7 @@ namespace XrEngine
         protected Shader _shader;
         protected long _lastLightVersion = -1;
 
+
         protected ShaderMaterial()
         {
             WriteDepth = true;
@@ -65,7 +66,6 @@ namespace XrEngine
         {
             if (HasSkin)
                 bld.AddFeature("HAS_SKIN");
-
         }
 
         public bool HasSkin { get; set; }

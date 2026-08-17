@@ -120,7 +120,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            if (!NeedUpdate)
+            if (!NeedUpdate && !Material.NeedUpdateShader(ctx))
                 return false;
 
             ctx.BufferProvider = this;
@@ -388,7 +388,9 @@ namespace XrEngine.OpenGL
 
         public bool IsReady => Program != null && Program.Handle != 0;
 
-        public bool NeedUpdate => Program == null || _materialVersion != Material.Version || _globalVersion != Global.Version;
+        public bool NeedUpdate => Program == null ||
+            _materialVersion != Material.Version ||
+            _globalVersion != Global.Version;
 
         public string[]? ExtraFeatures { get; set; }
 

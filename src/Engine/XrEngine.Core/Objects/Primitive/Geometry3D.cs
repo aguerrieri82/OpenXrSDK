@@ -77,7 +77,7 @@ namespace XrEngine
         }
 
 
-        public void UpdateBounds()
+        public virtual void UpdateBounds()
         {
             _bounds = this.ComputeBounds(Matrix4x4.Identity);
             _boundsDirty = false;

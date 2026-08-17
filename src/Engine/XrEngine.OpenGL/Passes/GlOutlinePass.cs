@@ -107,10 +107,8 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            instance!.Material.DoubleSided = drawMaterial.DoubleSided;
-
-            if (drawMaterial is ShaderMaterial mat)
-                instance.Material.HasSkin = mat.HasSkin;
+            instance.Material.DoubleSided = drawMaterial.DoubleSided;
+            instance.Material.HasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
 
             return base.UpdateProgram(instance, updateContext, drawMaterial);
         }

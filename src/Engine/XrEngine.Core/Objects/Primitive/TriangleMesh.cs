@@ -56,8 +56,15 @@ namespace XrEngine
 
         public override void UpdateBounds(bool force = false)
         {
-            if (Geometry != null)
-                _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
+            if (_geometry == null)
+                return;
+
+            var skin = Feature<ISkinnedMesh>();
+
+            if (skin != null)
+                _worldBounds = skin.GetWorldBounds();
+            else
+                _worldBounds = _geometry.Bounds.Transform(WorldMatrix);
 
             _boundsDirty = false;
         }

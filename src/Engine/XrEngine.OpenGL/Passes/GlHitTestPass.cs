@@ -74,14 +74,12 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            var effect = (HitTestEffect)instance!.Material;
+            var effect = (HitTestEffect)instance.Material;
 
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
-
-            if (drawMaterial is ShaderMaterial mat)
-                effect.HasSkin = mat.HasSkin;
+            effect.HasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
 
             return base.UpdateProgram(instance, updateContext, drawMaterial);
         }
