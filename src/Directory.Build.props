@@ -26,7 +26,7 @@
 		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 		<UseMonoRuntime>false</UseMonoRuntime>
 		<MsExtVersion>$(BundledNETCoreAppPackageVersion)</MsExtVersion>
-		<UseAngle>true</UseAngle>
+		<UseAngle>false</UseAngle>
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
 	</PropertyGroup>

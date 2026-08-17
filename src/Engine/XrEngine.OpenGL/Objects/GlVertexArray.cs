@@ -1,11 +1,11 @@
 ﻿#if GLES
-using Common.Interop;
 using Silk.NET.OpenGLES;
-using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 #else
 using Silk.NET.OpenGL;
 #endif
+
+using Common.Interop;
+using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenGL
 {

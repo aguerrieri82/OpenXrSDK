@@ -125,8 +125,9 @@ namespace XrEngine.OpenGL
 
                     if (firstUpdate || upRes == UpdateProgramResult.Changed)
                     {
-                        curInst.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
                         curInst.UpdateBuffers(updateContext);
+                        curInst.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
+
                         firstUpdate = false;
                     }
 

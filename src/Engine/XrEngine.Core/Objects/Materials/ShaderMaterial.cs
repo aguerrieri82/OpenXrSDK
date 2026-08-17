@@ -8,6 +8,8 @@ namespace XrEngine
         protected Shader _shader;
         protected long _lastLightVersion = -1;
 
+        protected bool _isSkinDynamic;
+
 
         protected ShaderMaterial()
         {
@@ -59,13 +61,12 @@ namespace XrEngine
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
+            SkinVertexShader.UpdateShaderModel(bld, true);
         }
 
         protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            if (HasSkin)
-                bld.AddFeature("HAS_SKIN");
+            bld.AddFeature("HAS_SKIN", ctx => HasSkin, _isSkinDynamic);
         }
 
         public bool HasSkin { get; set; }

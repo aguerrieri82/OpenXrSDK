@@ -9,6 +9,6 @@ namespace XrEngine
 
         long SkinMatricesVersion { get; }
 
-        Bounds3 GetWorldBounds();
+        Bounds3 GetLocalBounds();
     }
 }

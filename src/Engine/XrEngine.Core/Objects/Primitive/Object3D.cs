@@ -95,6 +95,12 @@ namespace XrEngine
             return true;
         }
 
+        [Action]
+        public void ForceUpdateBounds()
+        {
+            UpdateBounds(true);
+        }
+
         public virtual void UpdateBounds(bool force = false)
         {
             _boundsDirty = false;
@@ -400,6 +406,8 @@ namespace XrEngine
             newObj.Name = Name;
             newObj.Tag = Tag;
         }
+
+
 
         public Group3D? Parent => _parent;
 

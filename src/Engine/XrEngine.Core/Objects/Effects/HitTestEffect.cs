@@ -19,6 +19,7 @@
             : base()
         {
             _shader = SHADER;
+            _isSkinDynamic = true;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
@@ -27,12 +28,10 @@
             {
                 up.SetUniform("uDrawId", DrawId);
             });
+
+            base.UpdateShaderModel(bld);
         }
 
-        public override bool NeedUpdateShader(UpdateShaderContext ctx)
-        {
-            return _tracker.IsChanged(() => HasSkin);
-        }
 
         public uint DrawId { get; set; }
     }

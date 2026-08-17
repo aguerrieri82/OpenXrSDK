@@ -81,6 +81,9 @@ namespace XrEngine
         {
             _bounds = this.ComputeBounds(Matrix4x4.Identity);
             _boundsDirty = false;
+
+            foreach (var host in _hosts.OfType<TriangleMesh>())
+                host.InvalidateLocalBounds();
         }
 
 

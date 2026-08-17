@@ -53,8 +53,6 @@ namespace XrEngine
 
             }, UniformsSlots.Model, BufferStore.Model,
                bld.Context.UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
-
-            SkinVertexShader.UpdateShaderModel(bld);
         }
 
         bool IInstanceShader.NeedUpdate(Object3D model, long curVersion)

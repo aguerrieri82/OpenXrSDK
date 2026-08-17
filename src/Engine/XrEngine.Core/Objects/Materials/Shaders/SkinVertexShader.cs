@@ -4,18 +4,15 @@ namespace XrEngine
 {
     public static class SkinVertexShader
     {
-        public static void UpdateShaderModel(ShaderUpdateBuilder bld, bool useUniform = false)
+        public static void UpdateShaderModel(ShaderUpdateBuilder bld, bool isDynamic = false)
         {
-            if (bld.Context.Material == null || !bld.Context.Material!.HasSkin)
+            if (!isDynamic && (bld.Context.Material == null || !bld.Context.Material!.HasSkin))
                 return;
-
-            var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
-
-            if (useUniform)
-                bld.SetUniform("uHasSkin", ctx => mesh != null ? 1 : 0);
 
             bld.LoadBufferArray(ctx =>
             {
+                var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
+
                 if (mesh == null)
                     return null;
 

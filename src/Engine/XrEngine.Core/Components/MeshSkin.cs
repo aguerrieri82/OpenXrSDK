@@ -39,12 +39,12 @@ namespace XrEngine
             if (curVer != _skinMatricesVersion)
             {
                 _skinMatricesVersion = curVer;
-                _host.InvalidateBounds();
+                _host.InvalidateLocalBounds();
             }
 
         }
 
-        public Bounds3 GetWorldBounds()
+        public Bounds3 GetLocalBounds()
         {
             var builder = new Bounds3Builder();
 
@@ -53,16 +53,17 @@ namespace XrEngine
 
             var geo = (SkinnedGeometry3D)_host.Geometry;
 
-            if (Joints != null && Joints.Length == geo.JointBounds.Length)
+            if (_skinMatrices != null && _skinMatrices.Length > 0)
             {
-                for (var i = 0; i < Joints.Length; i++)
+                foreach (var entry in geo.JointBounds)
                 {
-                    var points = geo.JointBounds[i].Points;
-
-                    var matrix = Joints[i].InverseBindMatrix * Joints[i].WorldMatrix;
+                    if (entry.Key >= _skinMatrices.Length)
+                        continue;
+                    
+                    var points = entry.Value.Points;
 
                     foreach (var p in points)
-                        builder.Add(p.Transform(matrix));
+                        builder.Add(p.Transform(_skinMatrices[entry.Key]));
                 }
             }
 
@@ -75,5 +76,7 @@ namespace XrEngine
         public Matrix4x4[] SkinMatrices => _skinMatrices;
 
         public long SkinMatricesVersion => _skinMatricesVersion;
+
+        public Guid SkinId { get; set; }
     }
 }

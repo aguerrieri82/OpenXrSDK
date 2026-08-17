@@ -28,7 +28,7 @@ namespace XrEngine.Animation
         [Action]
         public void Animate()
         {
-            _host.Animate("Take 001");
+            _host.Animate();
         }
 
         public IReadOnlyList<IAnimation> Animations => _animations;

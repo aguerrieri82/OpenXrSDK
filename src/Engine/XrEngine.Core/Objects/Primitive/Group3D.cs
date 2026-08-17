@@ -162,7 +162,7 @@ namespace XrEngine
             _localBounds = builder.Result;
             _worldBounds = _localBounds.Transform(WorldMatrix);
 
-            base.UpdateBounds();
+            base.UpdateBounds(force);
         }
 
         public void RemoveChild(Object3D child, bool preserveTransform = false)
@@ -185,6 +185,7 @@ namespace XrEngine
         {
             return _children.IndexOf(object3D);
         }
+
         public Bounds3 LocalBounds
         {
             get

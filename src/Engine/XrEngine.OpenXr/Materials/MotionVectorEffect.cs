@@ -57,6 +57,7 @@ namespace XrEngine.OpenXr
                 VertexSourceName = "motion_vectors.vert",
                 Resolver = str => Embedded.GetString<Module>(str)
             };
+            _isSkinDynamic = true;
         }
 
         public void EndPass(Camera camera)
@@ -72,8 +73,6 @@ namespace XrEngine.OpenXr
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             #warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
-
-            SkinVertexShader.UpdateShaderModel(bld);
 
             var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
 

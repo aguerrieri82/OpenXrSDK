@@ -18,7 +18,11 @@ namespace XrEditor
 
         public static readonly bool EnablePreview = false;
 
+#if GLES
         public static readonly bool UseEs = true;
+#else
+        public static readonly bool UseEs = false;
+#endif
 
         public static readonly bool DisableDualRender = true;
 
@@ -87,7 +91,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(2f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateDnd()
+              .CreateRobot()
               .Build();
     }
 }

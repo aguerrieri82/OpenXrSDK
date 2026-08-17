@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
             var depth = 1f;
 
             var ids = new uint[2];
-            var normal = Vector3.Zero;
+            var normal = Vector4.Zero;
             var txY = _lastSize.Height - y;
 
             _renderer.State.BindBuffer(BufferTargetARB.PixelPackBuffer, 0, true);
@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
                 return result;
 
             result.Object = _objects[(int)ids[0]];
-            result.Normal = normal;
+            result.Normal = new Vector3(normal.X, normal.Y, normal.Z);
             result.Depth = depth;
             result.Pos = ToView(x, y, result.Depth).Project(_lastViewProjInv);
             result.Index = ids[1];
@@ -76,12 +76,20 @@ namespace XrEngine.OpenGL
         {
             var effect = (HitTestEffect)instance.Material;
 
+            var hasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
+            var isChanged = hasSkin != effect.HasSkin;
+
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
-            effect.HasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
+            effect.HasSkin = hasSkin;
 
-            return base.UpdateProgram(instance, updateContext, drawMaterial);
+            var result = base.UpdateProgram(instance, updateContext, drawMaterial);
+            
+            if (result == UpdateProgramResult.Skip)
+                return UpdateProgramResult.Skip;
+
+            return isChanged ? UpdateProgramResult.Changed : result;
         }
 
         protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Object3D model)

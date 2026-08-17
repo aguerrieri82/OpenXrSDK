@@ -1397,6 +1397,24 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        [Sample("Helmet")]
+        public static XrEngineAppBuilder CreateRobot(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/BrainStem.glb"), GltfOptions, GetAssetPath);
+            mesh.Name = "mesh";
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr")
+                .ConfigureSampleApp();
+        }
+
         [Sample("Depth Snapeshot")]
         public static XrEngineAppBuilder CreateDepthSnapeshot(this XrEngineAppBuilder builder)
         {

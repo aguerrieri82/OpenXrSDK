@@ -112,6 +112,8 @@ namespace XrEngine.Gltf
         public class GltfSkin
         {
             public IList<Joint3D>? Joints;
+
+            public Guid Id;
         }
 
         public struct GltfSamplerValue
@@ -865,7 +867,8 @@ namespace XrEngine.Gltf
 
                     curMesh.AddComponent(new MeshSkin()
                     {
-                        Joints = skin.Joints?.ToArray() ?? []
+                        Joints = skin.Joints?.ToArray() ?? [],
+                        SkinId = skin.Id
                     });
 
                 }
@@ -1015,7 +1018,8 @@ namespace XrEngine.Gltf
 
             var skinObj = new GltfSkin
             {
-                Joints = []
+                Joints = [],
+                Id = Guid.NewGuid()
             };
 
             Matrix4x4[]? matrices = null;

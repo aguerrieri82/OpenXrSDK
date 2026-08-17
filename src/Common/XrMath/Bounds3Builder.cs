@@ -40,6 +40,8 @@ namespace XrMath
                 Add(item);
         }
 
+        public readonly bool IsEmpty => _isEmpty;
+
         public readonly Bounds3 Result => _isEmpty ? Bounds3.Zero : _result;
     }
 }

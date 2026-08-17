@@ -113,7 +113,7 @@ namespace XrEngine.OpenXr
             Geometry = geometry;
         }
 
-        Bounds3 ISkinnedMesh.GetWorldBounds()
+        Bounds3 ISkinnedMesh.GetLocalBounds()
         {
             return _geometry!.Bounds.Transform(WorldMatrix);
         }

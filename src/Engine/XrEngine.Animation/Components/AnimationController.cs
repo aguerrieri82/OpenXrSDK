@@ -80,7 +80,7 @@ namespace XrEngine.Animation
                 var start = steps[state.Step];
                 var end = steps[state.NextStep];
 
-                Log.Debug(this, "[{3}] {0} - {1} - {2}", (int)(time * 1000), state.Step, (int)(state.AnimationTime * 1000), anim.GetHashCode());
+                //Log.Debug(this, "[{3}] {0} - {1} - {2}", (int)(time * 1000), state.Step, (int)(state.AnimationTime * 1000), anim.GetHashCode());
 
                 time = start.TimeFunction?.Invoke(time, state.StepDuration) ?? time;
 

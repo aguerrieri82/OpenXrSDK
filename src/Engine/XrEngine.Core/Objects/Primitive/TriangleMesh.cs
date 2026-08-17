@@ -9,8 +9,10 @@ namespace XrEngine
     {
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
-
         protected Geometry3D? _originalGeometry;
+        protected Bounds3 _localBounds;
+        internal bool _localBoundsDirty;
+
 
         public TriangleMesh()
         {
@@ -59,14 +61,27 @@ namespace XrEngine
             if (_geometry == null)
                 return;
 
-            var skin = Feature<ISkinnedMesh>();
+            if (_localBoundsDirty || force)
+            {
+                var skin = Feature<ISkinnedMesh>();
 
-            if (skin != null)
-                _worldBounds = skin.GetWorldBounds();
-            else
-                _worldBounds = _geometry.Bounds.Transform(WorldMatrix);
+                if (skin != null)
+                    _localBounds = skin.GetLocalBounds();
+                else
+                    _localBounds = _geometry.Bounds;
+
+                _localBoundsDirty = false;
+            }
+
+            _worldBounds = _localBounds.Transform(WorldMatrix);
 
             _boundsDirty = false;
+        }
+
+        protected internal void InvalidateLocalBounds()
+        {
+            _localBoundsDirty = true;
+            InvalidateBounds();
         }
 
         public override void Update(RenderContext ctx)
@@ -130,28 +145,6 @@ namespace XrEngine
             Geometry = geometry;
         }
 
-        public Geometry3D? OriginalGeometry => _originalGeometry;
-
-        public Geometry3D? Geometry
-        {
-            get => _geometry;
-            set
-            {
-                if (_geometry == value)
-                    return;
-
-                if (_geometry != null)
-                    _geometry.Detach(this);
-
-                _geometry = value;
-
-                if (_geometry != null)
-                    _geometry.Attach(this);
-
-                NotifyChanged(ChangeType.Geometry);
-            }
-        }
-
         public override void Dispose()
         {
             foreach (var material in Materials)
@@ -203,15 +196,47 @@ namespace XrEngine
             IBuf = indices;
         }
 
+        public Bounds3 LocalBounds
+        {
+            get
+            {
+                if (_localBoundsDirty && BoundUpdateMode == UpdateMode.Automatic)
+                    UpdateBounds();
+                return _localBounds;
+            }
+        }
+
+        public Geometry3D? Geometry
+        {
+            get => _geometry;
+            set
+            {
+                if (_geometry == value)
+                    return;
+
+                if (_geometry != null)
+                    _geometry.Detach(this);
+
+                _geometry = value;
+
+                if (_geometry != null)
+                    _geometry.Attach(this);
+
+                InvalidateLocalBounds();
+
+                NotifyChanged(ChangeType.Geometry);
+            }
+        }
+
+        public Geometry3D? OriginalGeometry => _originalGeometry;
+
+        public IList<Material> Materials => _materials;
+
         public IBuffer<VertexData>? VBuf { get; internal set; }
 
         public IBuffer<uint>? IBuf { get; internal set; }
 
         public int RenderPriority { get; set; }
-
-        public IList<Material> Materials => _materials;
-
-        public Bounds3 LocalBounds => _geometry?.Bounds ?? Bounds3.Zero;
 
         public UpdateMode BoundUpdateMode { get; set; }
 
@@ -222,6 +247,8 @@ namespace XrEngine
         #region IVertexSource
 
         EngineObject IVertexSource.Host => _geometry!;
+
+
 
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 
