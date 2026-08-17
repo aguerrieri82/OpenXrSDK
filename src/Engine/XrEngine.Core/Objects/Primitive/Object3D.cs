@@ -12,7 +12,7 @@ namespace XrEngine
     }
 
     [StateManager(StateManagerMode.Manual)]
-    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName
+    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName, IWorldLocatable
     {
         internal Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;

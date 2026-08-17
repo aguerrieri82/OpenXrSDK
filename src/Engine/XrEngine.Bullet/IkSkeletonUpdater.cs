@@ -16,7 +16,7 @@ namespace XrEngine.Bullet
 
         readonly Dictionary<Joint3D, JointBinding> _bindings = [];
         readonly Dictionary<IkNode, JointBinding> _nodeBindings = [];
-        readonly Dictionary<IkNode, Object3D> _targets = [];
+        readonly Dictionary<IkNode, IWorldLocatable> _targets = [];
 
         bool _isBuilt;
 
@@ -243,20 +243,17 @@ namespace XrEngine.Bullet
                     worldOrientation);
         }
 
-        public void SetTarget(string name, Object3D obj)
+        public void SetTarget(string name, IWorldLocatable obj)
         {
             if (!_isBuilt)
                 Build();
 
-            var effector = Solver?.Effectors.FirstOrDefault(a => a.Name == name);
-
-            if (effector == null)
+            var effector = (Solver?.Effectors.FirstOrDefault(a => a.Name == name)) ?? 
                 throw new InvalidOperationException($"Effector '{name}' not found");
-
-            _targets[effector] = obj;
+            SetTarget(effector, obj);
         }
 
-        public void SetTarget(IkNode effector, Object3D obj)
+        public void SetTarget(IkNode effector, IWorldLocatable obj)
         {
             _targets[effector] = obj;
         }
