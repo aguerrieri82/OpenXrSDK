@@ -71,8 +71,7 @@ namespace XrEngine.OpenXr
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
-#warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
+            #warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
 
             SkinVertexShader.UpdateShaderModel(bld);
 

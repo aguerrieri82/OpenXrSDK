@@ -14,7 +14,7 @@ namespace XrEngine
 
         static GlowSphereMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "glow.frag",
                 IsLit = false

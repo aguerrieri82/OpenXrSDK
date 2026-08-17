@@ -91,7 +91,7 @@ namespace XrEngine.OpenGL
 
             UpdateBuffers(ctx);
 
-            UpdateUniforms(ctx, false);
+            UpdateUniforms(ctx, updateGlobals: false);
         }
 
         public bool UpdateProgram(UpdateShaderContext ctx, bool forceSync = false)

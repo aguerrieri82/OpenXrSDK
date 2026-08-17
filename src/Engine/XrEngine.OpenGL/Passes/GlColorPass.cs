@@ -6,6 +6,7 @@ using Silk.NET.OpenGL;
 
 using XrEngine.Helpers;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -137,30 +138,34 @@ namespace XrEngine.OpenGL
 
         }
 
-        protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst, bool forceSync = false)
+        protected virtual bool UpdateProgram(UpdateShaderContext ctx, GlProgramInstance progInst, bool forceSync = false)
         {
-            return progInst.UpdateProgram(updateContext, forceSync);
+            return progInst.UpdateProgram(ctx, forceSync);
         }
 
 
-        protected void SetBounds(Camera camera, Object3D obj)
+        protected void SetBounds(UpdateShaderContext ctx)
         {
+
+#if GLES
             if (!_renderer.Options.UsePrimitiveBoundingBox || !_renderer.Features.PrimitiveBoundingBox)
                 return;
 
-            _renderer.UpdateContext.UsePrimitiveBoundingBox = false;
-#if GLES
-            if (obj.Feature<ISkinnedMesh>() != null)
+            ctx.UsePrimitiveBoundingBox = false;
+
+            Debug.Assert(ctx.Material != null && ctx.Model != null && ctx.PassCamera != null);
+
+            if (ctx.Material.HasSkin)
                 return;
 
-            _renderer.UpdateContext.UsePrimitiveBoundingBox = true;
+            ctx.UsePrimitiveBoundingBox = true;
 
             var min = new Vector4(float.PositiveInfinity);
             var max = new Vector4(float.NegativeInfinity);
 
-            foreach (var p in obj.WorldBounds.Points)
+            foreach (var p in ctx.Model.WorldBounds.Points)
             {
-                var clip = Vector4.Transform(new Vector4(p, 1), camera.ViewProjection);
+                var clip = Vector4.Transform(new Vector4(p, 1), ctx.PassCamera.ViewProjection);
                 min = Vector4.Min(min, clip);
                 max = Vector4.Max(max, clip);
             }
@@ -327,7 +332,7 @@ namespace XrEngine.OpenGL
 
                                 progInst.UpdateModel(ctx);
 
-                                SetBounds(ctx.PassCamera!, draw.Object!);
+                                SetBounds(ctx);
 
 #if GL_VALIDATE_PROG
                                 progInst.Program.Validate();

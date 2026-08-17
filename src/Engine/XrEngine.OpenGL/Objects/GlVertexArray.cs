@@ -13,7 +13,7 @@ namespace XrEngine.OpenGL
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
-        protected class AttributeInfo
+        public class AttributeInfo
         {
             public IGlBuffer? Buffer;
 
@@ -82,6 +82,8 @@ namespace XrEngine.OpenGL
 
             Unbind();
         }
+
+        public IList<AttributeInfo>? Attributes => _attributes;
 
         public void Build()
         {
@@ -164,10 +166,10 @@ namespace XrEngine.OpenGL
             {
                 _gl.EnableVertexAttribArray(attr.Location);
 
-                if (attr.Type == VertexAttribPointerType.Int)
-                    _gl.VertexAttribIPointer(attr.Location, (int)attr.Count, VertexAttribIType.Int, layout.Size, (void*)attr.Offset);
+                if (attr.IsIntegerStore)
+                    _gl.VertexAttribIPointer(attr.Location, (int)attr.Count, (VertexAttribIType)attr.Type, layout.Size, (void*)attr.Offset);
                 else
-                    _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, layout.Size, (void*)attr.Offset);
+                    _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, attr.IsNormalized, layout.Size, (void*)attr.Offset);
             }
 
             buffer.Unbind();
@@ -192,7 +194,7 @@ namespace XrEngine.OpenGL
 
         }
 
-        public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
+        public void UpdateMain(TVertexType[] vertices, TIndexType[]? indices = null)
         {
             if (EnableDebug)
                 GlDebug.Log(this, "Update VA {0}", _handle);
@@ -274,7 +276,7 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        public GlVertexLayout Layout => _mainLayout;
+        public GlVertexLayout MainLayout => _mainLayout;
 
         public GlBuffer<TVertexType> VBuf => _vBuf;
 
@@ -284,7 +286,7 @@ namespace XrEngine.OpenGL
 
         void IGlVertexArray.Update(object vertexSpan, object? indexSpan)
         {
-            Update((TVertexType[])vertexSpan, (TIndexType[]?)indexSpan);
+            UpdateMain((TVertexType[])vertexSpan, (TIndexType[]?)indexSpan);
         }
 
         Type IGlVertexArray.VertexType => typeof(TVertexType);

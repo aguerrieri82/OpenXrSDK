@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Numerics;
 using XrEngine.Objects;
 using XrMath;
@@ -19,14 +20,6 @@ namespace XrEngine.OpenXr
             _mesh = mesh;
 
             Flags |= EngineObjectFlags.NoFrustumCulling;
-
-            /*
-            Materials.Add(new PbrV2Material
-            {
-                Color = "#ff0000",
-                HasSkin = true
-            });
-    */
 
             Materials.Add(new DepthOnlyMaterial()
             {
@@ -78,12 +71,17 @@ namespace XrEngine.OpenXr
 
         public void Update(HandJointLocationEXT[] joints)
         {
+            Debug.Assert(XrApp.Current != null);
+
+            var refFrame = XrApp.Current.ReferenceFrame.ToMatrix(); 
+
             for (var i = 0; i < _skinMatrices.Length; i++)
             {
                 var current = joints[i].Pose.ToPose3().ToMatrix();
 
-                _skinMatrices[i] = _invBindMatrices[i] * current * XrApp.Current!.ReferenceFrame.ToMatrix();
+                _skinMatrices[i] = _invBindMatrices[i] * current * refFrame;
             }
+
             _skinVersion++;
         }
 
@@ -117,9 +115,6 @@ namespace XrEngine.OpenXr
 
         public Matrix4x4[] SkinMatrices => _skinMatrices;
 
-        public long SkinVersion => 1;
-
         public long SkinMatricesVersion => _skinVersion;
-
     }
 }

@@ -9,7 +9,7 @@ namespace XrEngine
 
         static GlowConeMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "glow_cone.frag",
                 IsLit = false

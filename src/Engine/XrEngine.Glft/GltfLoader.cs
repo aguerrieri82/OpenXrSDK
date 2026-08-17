@@ -1,14 +1,17 @@
-﻿using Common.Interop;
+﻿
+using Common.Interop;
 using glTFLoader.Schema;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using XrEngine.Animation;
 using XrEngine.Objects;
 using XrMath;
+using static glTFLoader.Schema.AnimationSampler;
 using static glTFLoader.Schema.Material;
 
 #pragma warning disable CS0649
@@ -42,7 +45,7 @@ namespace XrEngine.Gltf
 
         string? _basePath;
         string? _filePath;
-
+        private MethodInfo? _convertBufGen;
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
@@ -109,6 +112,20 @@ namespace XrEngine.Gltf
         public class GltfSkin
         {
             public IList<Joint3D>? Joints;
+        }
+
+        public struct GltfSamplerValue
+        {
+            public float Time;
+
+            public object Value;
+        }
+
+        public class GltfSampler
+        {
+            public GltfSamplerValue[]? Values;
+            public InterpolationEnum Interpolation;
+
         }
 
 
@@ -411,6 +428,99 @@ namespace XrEngine.Gltf
             }
         }
 
+        Array ConvertBuffer(int accessorId)
+        {
+            return ConvertBuffer(_model!.Accessors[accessorId]);
+        }
+
+        Array ConvertBuffer(Accessor accessor)
+        {
+            Type type;
+
+            if (accessor.Type == Accessor.TypeEnum.VEC2)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Vector2);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.VEC3)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Vector3);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                    type = typeof(Vector3I);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.VEC4)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Vector4);
+                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                    type = typeof(Vector4US);
+                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                    type = typeof(Vector4UB);
+                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                    type = typeof(Vector4I);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.MAT4)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Matrix4x4);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.MAT3)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Matrix3x3);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.SCALAR)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(float);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.SHORT)
+                    type = typeof(short);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                    type = typeof(ushort);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.BYTE)
+                    type = typeof(sbyte);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                    type = typeof(byte);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                    type = typeof(uint);
+                else
+                    throw new NotSupportedException();
+            }
+            else
+                throw new NotSupportedException();
+
+            _convertBufGen ??= GetType().GetMethod("ConvertBuffer", 1,
+                               BindingFlags.NonPublic | BindingFlags.Instance,
+                               [typeof(Accessor)])!;
+
+            var genericMethod = _convertBufGen.MakeGenericMethod(type);
+
+            return (Array)genericMethod.Invoke(this, [accessor])!;
+        }
+
+        T[] ConvertBuffer<T>(int accessorId) where T : unmanaged
+        {
+            return ConvertBuffer<T>(_model!.Accessors[accessorId]);
+        }
+
+        T[] ConvertBuffer<T>(Accessor accessor) where T : unmanaged
+        {
+            var view = _model!.BufferViews[accessor.BufferView!.Value];
+            var buffer = LoadBuffer(view.Buffer);
+            return ConvertBuffer<T>(buffer, view, accessor);
+        }
+
         unsafe T[] ConvertBuffer<T>(byte[] buffer, BufferView view, Accessor acc) where T : unmanaged
         {
             Debug.Assert(acc.Sparse == null);
@@ -495,14 +605,22 @@ namespace XrEngine.Gltf
                                     break;
                                 case "JOINTS_0":
 
-                                    var skinGeo = result as SkinnedGeometry3D;
-
-                                    if (skinGeo == null)
+                                    if (result is not SkinnedGeometry3D skinGeo)
                                         break;
 
-                                    var jValues = DracoDecoder.ReadAttribute<Vector4I>(mesh, attr.Value);
-                                    skinGeo.SetSkinData((ref SkinData a, in Vector4I b) => a.JointIndices = b, jValues);
-                                    result.ActiveComponents |= VertexComponent.JointIndex;
+                                    if (acc.Type == Accessor.TypeEnum.VEC4)
+                                    {
+                                        if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                                        {
+                                            var jValues = DracoDecoder.ReadAttribute<Vector4US>(mesh, attr.Value);
+                                            skinGeo.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues);
+                                            result.ActiveComponents |= VertexComponent.JointIndex;
+                                        }
+                                        else
+                                            throw new NotSupportedException();
+                                    }
+                                    else
+                                        throw new NotSupportedException();
 
                                     break;
                                 default:
@@ -567,11 +685,30 @@ namespace XrEngine.Gltf
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
+                            case "WEIGHTS_0":
+
+                                if (result is not SkinnedGeometry3D skinGeo)
+                                    break;
+
+                                if (acc.Type == Accessor.TypeEnum.VEC4)
+                                {
+                                    if (acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                                    {
+                                        var wValues = ConvertBuffer<Vector4>(buffer, view, acc);
+                                        skinGeo.SetSkinData((ref SkinData a, in Vector4 b) => a.JointWeights = b, wValues);
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+                                }
+                                else
+                                    throw new NotSupportedException();
+
+                                result.ActiveComponents |= VertexComponent.JointWeight;
+
+                                break;
                             case "JOINTS_0":
 
-                                var skinGeo = result as SkinnedGeometry3D;
-
-                                if (skinGeo == null)
+                                if (result is not SkinnedGeometry3D skinGeo1)
                                     break;
 
                                 if (acc.Type == Accessor.TypeEnum.SCALAR)
@@ -580,7 +717,7 @@ namespace XrEngine.Gltf
                                     {
                                         var jValues = ConvertBuffer<ushort>(buffer, view, acc);
 
-                                        skinGeo.SetSkinData((ref SkinData a, in ushort b) =>
+                                        skinGeo1.SetSkinData((ref SkinData a, in ushort b) =>
                                         {
                                             a.JointIndices.X = b;
                                             a.JointWeights.X = 1;
@@ -591,14 +728,25 @@ namespace XrEngine.Gltf
                                     else
                                         throw new NotSupportedException();
                                 }
-                                else
+                                else if (acc.Type == Accessor.TypeEnum.VEC4)
                                 {
-                                    Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
-                                    Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT);
-                                    var jValues = ConvertBuffer<Vector4I>(buffer, view, acc);
-                                    skinGeo.SetSkinData((ref SkinData a, in Vector4I b) => a.JointIndices = b, jValues);
+                                    if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                                    {
+                                        var jValues1 = ConvertBuffer<Vector4US>(buffer, view, acc);
+                                        skinGeo1.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues1);
+                                    }
+                                    else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                                    {
+                                        var jValues2 = ConvertBuffer<Vector4UB>(buffer, view, acc);
+                                        skinGeo1.SetSkinData((ref SkinData a, in Vector4UB b) => a.JointIndices = b.ToVector4I(), jValues2);
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+
                                     result.ActiveComponents |= VertexComponent.JointIndex;
                                 }
+                                else
+                                    throw new NotSupportedException();
                                 break;
                             default:
                                 LoadLog($"{attr.Key} data not supported");
@@ -897,12 +1045,115 @@ namespace XrEngine.Gltf
             return skinObj;
         }
 
+        protected void ProcessAnimation(glTFLoader.Schema.Animation anim)
+        {
+            var samplers = new List<GltfSampler>();
+
+            foreach (var sampler in anim.Samplers)
+            {
+                var times = ConvertBuffer<float>(sampler.Input);
+                var values = ConvertBuffer(sampler.Output);
+
+                samplers.Add(new GltfSampler
+                {
+                    Interpolation = sampler.Interpolation,
+                    Values = times.Select((v, i) => new GltfSamplerValue
+                    {
+                        Time = v,
+                        Value = values.GetValue(i)!
+                    }).ToArray()
+                });
+            }
+
+            foreach (var channel in anim.Channels)
+            {
+                if (channel.Target.Node == null)
+                    continue;
+
+                var sampler = samplers[channel.Sampler];
+                var node = _nodes[channel.Target.Node.Value];
+                var path = channel.Target.Path;
+
+                if (!node.TryComponent<AnimationsHost>(out var animHost))
+                    animHost = node.AddComponent<AnimationsHost>();
+
+
+                TimeFunctionDelegate timeFunc;
+
+                if (sampler.Interpolation == InterpolationEnum.STEP)
+                    timeFunc = TimeFunctions.Step;
+                else if (sampler.Interpolation == InterpolationEnum.LINEAR)
+                    timeFunc = TimeFunctions.Linear;
+                else
+                    throw new NotSupportedException();
+
+                if (path == "scale")
+                {
+                    animHost.AddAnimation(new Vector3Animation()
+                    {
+                        Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
+                        {
+                            Time = a.Time,
+                            Value = (Vector3)a.Value,
+                            TimeFunction = timeFunc
+                        }).ToArray(),
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = v => node.Transform.Scale = v
+                    });
+                }
+                else if (path == "translation")
+                {
+                    animHost.AddAnimation(new Vector3Animation()
+                    {
+                        Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
+                        {
+                            Time = a.Time,
+                            Value = (Vector3)a.Value,
+                            TimeFunction = timeFunc
+                        }).ToArray(),
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = v => node.Transform.Position = v
+                    });
+                }
+                else if (path == "rotation")
+                {
+                    animHost.AddAnimation(new QuaternionAnimation()
+                    {
+                        Steps = sampler.Values!.Select(a => new AnimationStep<Quaternion>
+                        {
+                            Time = a.Time,
+                            Value = ((Vector4)a.Value).ToQuaternion(),
+                            TimeFunction = timeFunc
+                        }).ToArray(),
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = v => node.Transform.Orientation = v
+                    });
+                }
+                else
+                    throw new NotSupportedException();
+            }
+        }
+
+        protected void ProcessAnimations()
+        {
+            if (_model?.Animations == null)
+                return;
+
+            foreach (var anim in _model.Animations)
+                ProcessAnimation(anim);
+        }
+
         protected Group3D ProcessScene(Scene glScene)
         {
             var scene = new Group3D();
 
             foreach (var nodeId in glScene.Nodes)
                 ProcessNode(nodeId, scene, false);
+
+            ProcessAnimations();
 
             return scene;
         }

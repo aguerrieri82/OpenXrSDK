@@ -1,5 +1,6 @@
 ﻿using SkiaSharp;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -509,6 +510,21 @@ namespace XrEngine
             return self.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
 
+
+        public static IEnumerable<ObjectFeature<T>> DescendantsOrSelfWithFeature<T>(this Object3D self) where T : class
+        {
+            foreach (var item in self.DescendantsOrSelf())
+            {
+                var feat = item.Feature<T>();
+                if (feat != null)
+                    yield return new ObjectFeature<T>
+                    {
+                        Object = item,
+                        Feature = feat
+                    };
+            }
+        }
+
         public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D self) where T : class
         {
             foreach (var item in self.Descendants())
@@ -568,6 +584,79 @@ namespace XrEngine
 
         public delegate void SkinAssignDelegate<T>(ref SkinData vertexData, in T value);
 
+
+        public static unsafe void Serialize(this Geometry3D self, Stream stream)
+        {
+            var vertices = self.Vertices;
+            var indices = self.Indices;
+
+            using var writer = new BinaryWriter(stream);
+
+            writer.Write("GEOM");
+            writer.Write((int)self.ActiveComponents);
+            writer.Write(vertices.Length);
+
+            fixed (VertexData* pVertex = &vertices[0])
+                writer.Write(new Span<byte>(pVertex, vertices.Length * sizeof(VertexData)));
+
+            writer.Write(indices.Length);
+
+            if (indices.Length > 0)
+            {
+                fixed (uint* pIndex = &indices[0])
+                    writer.Write(new Span<byte>(pIndex, indices.Length * sizeof(uint)));
+            }
+
+            writer.Flush();
+        }
+
+        public static void ScaleUV(this Geometry3D self, Vector2 scale)
+        {
+            var vertices = self.Vertices;
+
+            for (var i = 0; i < vertices.Length; i++)
+                vertices[i].UV *= scale;
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+        public static void ApplyTransform(this Geometry3D self, Matrix4x4 matrix)
+        {
+            var inverse = matrix.Invert();
+
+            var normalMatrix = Matrix4x4.Transpose(inverse);
+
+            var vertices = self.Vertices;
+
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i].Pos = vertices[i].Pos.Transform(matrix);
+                vertices[i].Normal = vertices[i].Normal.Transform(normalMatrix).Normalize();
+            }
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+        public static void Rebuild(this Geometry3D self)
+        {
+            var vertices = self.Vertices;
+            var indices = self.Indices;
+
+            if (indices.Length == 0)
+                return;
+
+            var newVertices = new VertexData[indices.Length];
+
+            for (var i = 0; i < indices.Length; i++)
+                newVertices[i] = vertices[indices[i]];
+
+            self.Vertices = vertices;
+            self.Indices = [];
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+
         public static void FlipYUV(this Geometry3D self)
         {
             var span = self.Vertices.AsSpan();
@@ -603,8 +692,11 @@ namespace XrEngine
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
 
-            var res = new Geometry3D();
-            res.Primitive = DrawPrimitive.Line;
+            var res = new Geometry3D
+            {
+                Primitive = DrawPrimitive.Line
+            };
+
             if (self.Indices.Length > 0)
             {
                 var srcI = 0;
@@ -613,7 +705,7 @@ namespace XrEngine
                 var newSpan = newIndices.AsSpan();
                 var srcSpan = self.Indices.AsSpan();
 
-                while (srcI < self.Indices!.Length)
+                while (srcI < self.Indices.Length)
                 {
                     newSpan[dstI + 0] = srcSpan[srcI + 0];
                     newSpan[dstI + 1] = srcSpan[srcI + 1];
@@ -1298,7 +1390,9 @@ namespace XrEngine
 
             if (stereo)
             {
-                self.Eyes![0].ViewProj.FrustumPlanes(planes.AsSpan(0, 6));
+                Debug.Assert(self.Eyes != null);
+
+                self.Eyes[0].ViewProj.FrustumPlanes(planes.AsSpan(0, 6));
                 self.Eyes[1].ViewProj.FrustumPlanes(planes.AsSpan(6, 6));
             }
             else

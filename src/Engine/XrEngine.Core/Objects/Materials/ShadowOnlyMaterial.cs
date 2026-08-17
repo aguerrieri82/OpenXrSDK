@@ -8,7 +8,7 @@ namespace XrEngine.Objects
 
         static ShadowOnlyMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "shadow_only.frag",
                 IsLit = false,

@@ -21,9 +21,9 @@ namespace XrEngine.OpenXr
 
             Name = "XrRoot";
 
-            RightController = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
+            RightController = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/right_controller.glb");
 
-            LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
+            LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/left_controller.glb");
 
             Head = AddHead();
 
@@ -107,7 +107,7 @@ namespace XrEngine.OpenXr
                 Name = name,
             };
 
-            Object3D? model = null;
+            Group3D? model = null;
 
             IXrInput? input = null;
 
@@ -136,11 +136,7 @@ namespace XrEngine.OpenXr
 
             if (File.Exists(fullPath))
             {
-                model = GltfLoader.LoadFile(fullPath);
-                //model.Transform.Set(Matrix4x4.Identity);
-                //model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
-                //model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
-                //model.Transform.SetScale(1.06f);
+                model = (Group3D)GltfLoader.LoadFile(fullPath);
 
                 model.SetWorldPose(new Pose3()
                 {
@@ -148,10 +144,16 @@ namespace XrEngine.OpenXr
                     Orientation = new Quaternion(0f, 1f, 0f, -4.371139E-08f)
                 });
 
-                model.Transform.Scale = model.Transform.Scale * 1.06f;
+                model.Transform.SetScale(0.01f * 1.06f);
                 model.Name = "Controller";
 
+                model.Descendants<Joint3D>()
+                    .First(a=> a.Name!.EndsWith("oculus_controller_world"))
+                    .Transform.Orientation = Quaternion.Identity;
+
                 group.AddChild(model);
+
+
             }
 
             AddChild(group);

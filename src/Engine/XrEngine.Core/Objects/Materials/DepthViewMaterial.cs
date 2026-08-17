@@ -6,7 +6,7 @@
 
         static DepthViewMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "depth_view.frag",
                 IsLit = false,

@@ -141,6 +141,10 @@
       <Platform Solution="*|x64" Project="x64" />
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Animation/XrEngine.Animation.csproj" Id="4bbf93f7-4ebd-470b-a419-878f5275aacb">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Audio/XrEngine.Audio.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />

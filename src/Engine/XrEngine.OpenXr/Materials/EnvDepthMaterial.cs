@@ -11,7 +11,7 @@ namespace XrEngine.OpenXr
 
         static EnvDepthMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 VertexSourceName = "[XrEngine.OpenXr]env_depth_mesh.vert",
                 FragmentSourceName = "shadow_only.frag",

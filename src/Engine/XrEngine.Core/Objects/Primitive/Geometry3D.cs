@@ -76,36 +76,6 @@ namespace XrEngine
             }
         }
 
-        public void ApplyTransform(Matrix4x4 matrix)
-        {
-            var inverse = matrix.Invert();
-
-            var normalMatrix = Matrix4x4.Transpose(inverse);
-
-            for (var i = 0; i < Vertices.Length; i++)
-            {
-                Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
-                Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
-            }
-
-            NotifyChanged(ChangeType.Geometry);
-        }
-
-        public void Rebuild()
-        {
-            if (Indices.Length == 0)
-                return;
-
-            var vertices = new VertexData[Indices.Length];
-
-            for (var i = 0; i < Indices.Length; i++)
-                vertices[i] = Vertices![Indices[i]];
-
-            Vertices = vertices;
-            Indices = [];
-
-            NotifyChanged(ChangeType.Geometry);
-        }
 
         public void UpdateBounds()
         {
@@ -113,34 +83,6 @@ namespace XrEngine
             _boundsDirty = false;
         }
 
-        public unsafe void Serialize(Stream stream)
-        {
-            using var writer = new BinaryWriter(stream);
-
-            writer.Write("GEOM");
-            writer.Write((int)ActiveComponents);
-            writer.Write(Vertices.Length);
-
-            fixed (VertexData* pVertex = &Vertices[0])
-                writer.Write(new Span<byte>(pVertex, Vertices.Length * sizeof(VertexData)));
-
-            writer.Write(Indices.Length);
-
-            if (Indices.Length > 0)
-            {
-                fixed (uint* pIndex = &Indices[0])
-                    writer.Write(new Span<byte>(pIndex, Vertices.Length * sizeof(uint)));
-            }
-            writer.Flush();
-        }
-
-        public void ScaleUV(Vector2 scale)
-        {
-            for (var i = 0; i < _vertices.Length; i++)
-                _vertices[i].UV *= scale;
-
-            NotifyChanged(ChangeType.Geometry);
-        }
 
         public Bounds3 Bounds
         {
@@ -160,7 +102,7 @@ namespace XrEngine
             base.OnChanged(change);
         }
 
-        public void NotifyLoaded()
+        public virtual void NotifyLoaded()
         {
             if (!this.Is(EngineObjectFlags.GpuOnly))
                 return;

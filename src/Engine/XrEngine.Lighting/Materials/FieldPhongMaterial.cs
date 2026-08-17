@@ -9,7 +9,7 @@ namespace XrEngine.Lighting
 
         static FieldPhongMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "[XrEngine.Lighting]field_phong.frag",
             };

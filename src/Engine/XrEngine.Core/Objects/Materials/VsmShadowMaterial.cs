@@ -6,7 +6,7 @@
 
         static VsmShadowMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "vsm_shadow_map.frag",
                 IsLit = false,

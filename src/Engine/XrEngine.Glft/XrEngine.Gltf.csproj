@@ -8,11 +8,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		
-		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
-				 CopyToOutputDirectory="PreserveNewest" 
-				 UseLink="True"
-				 Visible="False"
-				 Link="%(Filename)%(Extension)" />
+		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" UseLink="True" Visible="False" Link="%(Filename)%(Extension)" />
 	
 	</ItemGroup>
 
@@ -23,6 +19,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\third-party\glTF-CSharp-Loader\glTFLoader\glTFLoader.csproj" />
 		<ProjectReference Include="..\Draco.Native\Draco.Native.vcxproj" />
+		<ProjectReference Include="..\XrEngine.Animation\XrEngine.Animation.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
 

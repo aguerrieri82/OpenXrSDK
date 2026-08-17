@@ -7,7 +7,7 @@ namespace XrEngine.Reconstruct
     {
         static readonly Shader SHADER;
 
-        public class GridMaterialShader : StandardVertexShader
+        public class GridMaterialShader : StandardShader
         {
             public GridMaterialShader()
             {

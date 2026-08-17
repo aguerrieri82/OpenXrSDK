@@ -22,7 +22,7 @@ namespace XrEngine
 
         static TextureCutMaterial()
         {
-            CUT_SHADER = new StandardVertexShader
+            CUT_SHADER = new StandardShader
             {
                 VertexSourceName = "texture_cut.vert",
                 FragmentSourceName = "texture_cut.frag",

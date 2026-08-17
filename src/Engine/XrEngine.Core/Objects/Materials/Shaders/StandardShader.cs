@@ -5,11 +5,11 @@ using XrMath;
 namespace XrEngine
 {
 
-    public class StandardVertexShader : Shader, IShaderHandler, IInstanceShader
+    public class StandardShader : Shader, IShaderHandler, IInstanceShader
     {
         protected readonly ChangeTracker _tracker = new();
 
-        public StandardVertexShader()
+        public StandardShader()
         {
             VertexSourceName = "standard.vert";
             Resolver = str => Embedded.GetString(str);
@@ -215,7 +215,7 @@ namespace XrEngine
                    _tracker.IsChanged(() => ctx.MotionVectorProvider?.IsActive ?? false);
         }
 
-        public static readonly StandardVertexShader Instance = new();
+        public static readonly StandardShader Instance = new();
 
 
         public bool UseMotionVectors { get; set; }

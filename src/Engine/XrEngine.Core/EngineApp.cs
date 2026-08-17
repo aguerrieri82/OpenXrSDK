@@ -11,7 +11,7 @@ namespace XrEngine
         Start
     }
 
-    public class EngineApp : IAsyncDisposable
+    public class EngineApp : IAsyncDisposable, IReferenceTime
     {
         static EngineApp? _current;
 
@@ -219,5 +219,7 @@ namespace XrEngine
         public static DispatcherSwitch MainThread => Current.Dispatcher.Switch;
 
         public static DispatcherSwitch RenderThread => Current.Renderer.Dispatcher.Switch;
+
+        double IReferenceTime.Time => _context.Time;
     }
 }

@@ -10,22 +10,25 @@ namespace OpenXr.Framework
     public static class Extensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToVector3(this Vector3f value)
+        public static Vector3 ToVector3(this in Vector3f value)
         {
             return new Vector3(value.X, value.Y, value.Z);
         }
 
-        public static Vector2 ToVector2(this Vector2f value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 ToVector2(this in Vector2f value)
         {
             return new Vector2(value.X, value.Y);
         }
 
-        public static Vector4 ToVector4(this Vector4f value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector4 ToVector4(this in Vector4f value)
         {
             return new Vector4(value.X, value.Y, value.Z, value.W);
         }
 
-        public static Posef ToPoseF(this Pose3 pose)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Posef ToPoseF(this in Pose3 pose)
         {
             return new Posef
             {
@@ -35,18 +38,19 @@ namespace OpenXr.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3f ToVector3f(this Vector3 vector)
+        public static Vector3f ToVector3f(this in Vector3 vector)
         {
             return new Vector3f(vector.X, vector.Y, vector.Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Quaternionf ToQuaternionf(this Quaternion quat)
+        public static Quaternionf ToQuaternionf(this in Quaternion quat)
         {
             return new Quaternionf(quat.X, quat.Y, quat.Z, quat.W);
         }
 
-        public static Pose3 ToPose3(this Posef pose)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Pose3 ToPose3(this in Posef pose)
         {
             return new Pose3
             {
@@ -74,6 +78,7 @@ namespace OpenXr.Framework
             return [eye0, eye1];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView, bool useDepthSwapchain)
         {
             manager.List.Add(new XrProjectionLayer(renderView, useDepthSwapchain));

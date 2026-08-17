@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr
 
         static GhostMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "[XrEngine.OpenXr]ghost.frag",
                 IsLit = false

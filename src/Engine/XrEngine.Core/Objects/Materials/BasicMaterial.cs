@@ -9,7 +9,7 @@ namespace XrEngine
 
         #region BasicShader
 
-        class BasicShader : StandardVertexShader
+        class BasicShader : StandardShader
         {
             ulong _lightHash;
 

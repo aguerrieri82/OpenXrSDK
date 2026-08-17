@@ -17,7 +17,7 @@ namespace XrEngine
 
         static GlowVolumeMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "glow_vol.frag",
                 IsLit = false

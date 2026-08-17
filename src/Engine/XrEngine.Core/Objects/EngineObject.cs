@@ -156,6 +156,8 @@ namespace XrEngine
 
             NotifyChanged(new ObjectChange(ChangeType.ComponentAdd, component));
 
+            Invalidate(InvalidateMode.Content);
+
             return component;
         }
 

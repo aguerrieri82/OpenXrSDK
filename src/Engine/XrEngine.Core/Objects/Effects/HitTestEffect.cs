@@ -2,11 +2,11 @@
 {
     public class HitTestEffect : ShaderMaterial
     {
-        public static readonly StandardVertexShader SHADER;
+        public static readonly StandardShader SHADER;
 
         static HitTestEffect()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "hit_test.frag",
                 IsLit = false

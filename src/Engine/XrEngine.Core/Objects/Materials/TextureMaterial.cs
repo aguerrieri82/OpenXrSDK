@@ -10,7 +10,7 @@ namespace XrEngine
 
         static TextureMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "texture.frag",
                 UseMotionVectors = true

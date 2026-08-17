@@ -1385,6 +1385,10 @@ namespace XrMath
 
         #region MISC
 
+        public static Quaternion ToQuaternion(this in Vector4 self)
+        {
+            return new Quaternion(self.X, self.Y, self.Z, self.W);
+        }
 
         public static float ToRadians(this float value)
         {

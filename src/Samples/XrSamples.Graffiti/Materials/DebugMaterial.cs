@@ -8,13 +8,13 @@ namespace XrSamples.Graffiti
 
         static DebugMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "texture.frag",
                 IsLit = false,
                 Resolver = str => str == "texture.frag" ?
                     Embedded.GetString<DebugMaterial>(str) :
-                    Embedded.GetString<StandardVertexShader>(str)
+                    Embedded.GetString<StandardShader>(str)
             };
         }
 

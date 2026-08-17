@@ -61,9 +61,15 @@ namespace XrEngine.OpenGL
         {
             _source = source._source;
 
-            _vertices = new GlVertexArray<TVert, TInd>(source._gl, source._vertices.VBuf, source._vertices.IBuf, source._vertices.Layout);
+            _vertices = new GlVertexArray<TVert, TInd>(source._gl, source._vertices.VBuf, source._vertices.IBuf, source._vertices.MainLayout);
 
             _primitive = source._primitive;
+
+            if (source._vertices.Attributes != null)
+            {
+                foreach (var attr in source._vertices.Attributes)
+                    _vertices.AddAttributes(attr.Buffer!, attr.Layout!, attr.ElementType!);
+            }
 
             _gl = source._gl;
 
@@ -83,6 +89,7 @@ namespace XrEngine.OpenGL
             _source.NotifyBuffers(_vertices.VBuf, _vertices.IBuf);
 
             _gl = gl;
+
 
             if (_source.Host is IVertexAttributes attrs)
             {
@@ -179,13 +186,13 @@ namespace XrEngine.OpenGL
 
         public override void Update()
         {
-            if ((_source.Host.Flags & EngineObjectFlags.NoLogs) != 0)
+            if ((_source.Host.Flags & EngineObjectFlags.NoLogs) == 0)
                 _vertices.EnableDebug = true;
 
             if (UpdateMainLayout(out var layout))
                 _vertices.UpdateMainLayouts(layout!);
 
-            _vertices.Update(_source.Vertices, _source.Indices);
+            _vertices.UpdateMain(_source.Vertices, _source.Indices);
 
             _sourceObject = _source.Host;
 
@@ -217,6 +224,6 @@ namespace XrEngine.OpenGL
         public override bool NeedUpdate => _source.Host != null && 
                             (_source.Host.Version != Version || Version == -1 || _sourceObject != _source.Host);
 
-        public override GlVertexLayout Layout => _vertices.Layout;
+        public override GlVertexLayout Layout => _vertices.MainLayout;
     }
 }

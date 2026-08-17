@@ -162,7 +162,7 @@ namespace XrEngine
 
         #region PbrShader
 
-        public class PbrShader : StandardVertexShader, IShaderHandler
+        public class PbrShader : StandardShader, IShaderHandler
         {
             ILightFieldProvider? _lightFieldProvider;
             readonly PerspectiveCamera _depthCamera = new();

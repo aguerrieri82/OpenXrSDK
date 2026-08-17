@@ -10,11 +10,11 @@ namespace XrEngine
 
     public class MirrorMaterial : ShaderMaterial
     {
-        static readonly StandardVertexShader SHADER;
+        static readonly StandardShader SHADER;
 
         static MirrorMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "mirror.frag",
                 VertexSourceName = "standard.vert",

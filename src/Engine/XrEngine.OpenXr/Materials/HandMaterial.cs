@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
 
         static HandMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "[XrEngine.OpenXr]hand.frag",
                 IsLit = false

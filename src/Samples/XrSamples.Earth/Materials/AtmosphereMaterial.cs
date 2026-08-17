@@ -10,7 +10,7 @@ namespace XrSamples.Earth
 
         static AtmosphereMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "atmosphere.frag",
                 IsLit = false,

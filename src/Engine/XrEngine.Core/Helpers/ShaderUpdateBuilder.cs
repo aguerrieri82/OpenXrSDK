@@ -125,8 +125,6 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
-
-
         public bool UseSharedSsbo;
 
         public bool UseAngle;

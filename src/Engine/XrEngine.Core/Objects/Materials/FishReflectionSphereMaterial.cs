@@ -19,7 +19,7 @@ namespace XrEngine
 
         static FishReflectionSphereMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "fish_reflection_sphere.frag",
                 SourcePaths = ["D:\\Development\\Personal\\Git\\XrSDK\\src\\Engine\\XrEngine.Core\\Shaders\\"],

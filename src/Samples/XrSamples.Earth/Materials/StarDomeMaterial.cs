@@ -8,7 +8,7 @@ namespace XrSamples.Earth
 
         static StarDomeMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "star_dome.frag",
                 IsLit = false,

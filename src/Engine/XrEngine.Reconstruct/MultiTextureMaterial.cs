@@ -7,7 +7,7 @@
 
         static MultiTextureMaterial()
         {
-            SHADER = new StandardVertexShader()
+            SHADER = new StandardShader()
             {
                 FragmentSourceName = "[XrEngine.Reconstruct]multi_tex.frag",
             };

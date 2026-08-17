@@ -9,7 +9,7 @@ namespace XrEngine
 
         static ColorMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "color.frag",
                 UseMotionVectors = true

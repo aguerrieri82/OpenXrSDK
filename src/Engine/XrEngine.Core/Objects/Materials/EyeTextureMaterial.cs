@@ -13,7 +13,7 @@
 
         static EyeTextureMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "texture_stereo.frag",
                 IsLit = false

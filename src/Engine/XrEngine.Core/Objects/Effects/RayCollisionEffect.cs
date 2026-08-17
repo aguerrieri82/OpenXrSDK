@@ -2,11 +2,11 @@
 {
     public class RayCollisionEffect : ShaderMaterial
     {
-        public static readonly StandardVertexShader SHADER;
+        public static readonly StandardShader SHADER;
 
         static RayCollisionEffect()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "ray_collision.frag",
                 IsLit = false
