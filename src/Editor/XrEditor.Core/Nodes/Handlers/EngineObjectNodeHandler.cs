@@ -1,4 +1,5 @@
 ﻿using XrEngine;
+using XrEngine.Animation;
 using XrEngine.Objects;
 using XrEngine.Physics;
 
@@ -8,7 +9,7 @@ namespace XrEditor.Nodes
     {
         public bool CanHandle(object value)
         {
-            return value is EngineObject || value is IComponent;
+            return value is EngineObject || value is IComponent || value is IAnimation;
         }
 
         public INode CreateNode(object value)
@@ -23,7 +24,7 @@ namespace XrEditor.Nodes
                 {
                     if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
-                    
+
                     else if (obj is Joint3D)
                         nodeType = typeof(Joint3DNode);
 
@@ -71,7 +72,7 @@ namespace XrEditor.Nodes
                 if (node != null)
                     return node;
             }
-            if (value is IComponent comp)
+            else if (value is IComponent comp)
             {
                 if (value is RigidBody)
                     nodeType = typeof(RigidBodyNode);
@@ -79,11 +80,16 @@ namespace XrEditor.Nodes
                 else if (value is IPlayer)
                     nodeType = typeof(PlayerNode<>).MakeGenericType(comp.GetType());
 
+                else if (value is AnimationsHost)
+                    nodeType = typeof(AnimationHostNode);
+
                 else
                     nodeType = typeof(ComponentNode<>).MakeGenericType(comp.GetType());
 
                 return (INode)Activator.CreateInstance(nodeType, comp)!;
             }
+            else if (value is IAnimation anim)
+                return new AnimationNode(anim);
 
             throw new NotSupportedException();
         }

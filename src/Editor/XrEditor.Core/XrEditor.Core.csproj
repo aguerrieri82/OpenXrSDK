@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<RootNamespace>XrEditor</RootNamespace>
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion);</TargetFrameworks>
+		<CreateHardLinksForCopyLocalIfPossible>false</CreateHardLinksForCopyLocalIfPossible>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -23,13 +23,15 @@ namespace XrEngine.OpenXr
 
             Materials.Add(new DepthOnlyMaterial()
             {
-                HasSkin = true
+                SkinMode = SkinMode.Static,
+                HasSkin = true,
             });
 
             Materials.Add(new HandMaterial()
             {
                 Color = new Color(1, 1, 1, 0.15f),
                 WriteDepth = false,
+                SkinMode = SkinMode.Static,
                 HasSkin = true,
                 Alpha = AlphaMode.Blend,
                 FadeStart = -0.051f,
@@ -44,6 +46,7 @@ namespace XrEngine.OpenXr
                 WriteDepth = false,
                 CullFront = true,
                 Priority = 2,
+                SkinMode = SkinMode.Static,
                 HasSkin = true,
                 Alpha = AlphaMode.Blend,
                 NormalScale = 0.003f,
@@ -121,5 +124,7 @@ namespace XrEngine.OpenXr
         public Matrix4x4[] SkinMatrices => _skinMatrices;
 
         public long SkinMatricesVersion => _skinVersion;
+
+        public Joint3D[]? Joints => null;
     }
 }

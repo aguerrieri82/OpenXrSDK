@@ -31,6 +31,7 @@ namespace XrEngine.Animation
             _host.Animate();
         }
 
+        [Editable]
         public IReadOnlyList<IAnimation> Animations => _animations;
     }
 }

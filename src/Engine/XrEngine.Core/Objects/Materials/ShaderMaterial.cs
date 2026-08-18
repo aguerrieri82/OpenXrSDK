@@ -2,13 +2,17 @@
 
 namespace XrEngine
 {
+    public enum SkinMode
+    {
+        Static,
+        Dynamic
+    }
+
     public class ShaderMaterial : Material, IShaderHandler
     {
         [AllowNull]
         protected Shader _shader;
         protected long _lastLightVersion = -1;
-
-        protected bool _isSkinDynamic;
 
 
         protected ShaderMaterial()
@@ -66,8 +70,10 @@ namespace XrEngine
 
         protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            bld.AddFeature("HAS_SKIN", ctx => HasSkin, _isSkinDynamic);
+            bld.AddFeature("HAS_SKIN", ctx => HasSkin, SkinMode == SkinMode.Dynamic);
         }
+
+        public SkinMode SkinMode { get; set; }
 
         public bool HasSkin { get; set; }
 

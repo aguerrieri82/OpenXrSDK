@@ -4,7 +4,7 @@
     {
         public readonly bool CanHandle(Type type)
         {
-            return typeof(T) == type;
+            return typeof(T).IsAssignableFrom(type);
         }
 
         public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)

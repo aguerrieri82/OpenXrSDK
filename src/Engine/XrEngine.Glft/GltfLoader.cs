@@ -884,6 +884,7 @@ namespace XrEngine.Gltf
                 if (primitive.Material != null)
                 {
                     var mat = ProcessMaterial(primitive.Material.Value);
+                    mat.SkinMode = SkinMode.Static;
                     mat.HasSkin = skinId != null;
                     curMesh.Materials.Add(mat);
                 }
@@ -1044,7 +1045,7 @@ namespace XrEngine.Gltf
             return skinObj;
         }
 
-        protected void ProcessAnimation(glTFLoader.Schema.Animation anim)
+        protected void ProcessAnimation(glTFLoader.Schema.Animation anim, Object3D root)
         {
             CheckExtensions(anim.Extensions);
 
@@ -1068,6 +1069,12 @@ namespace XrEngine.Gltf
                 });
             }
 
+
+            var group = new AnimationGroup()
+            {
+                IterationCount = 1
+            };
+
             foreach (var channel in anim.Channels)
             {
                 CheckExtensions(channel.Extensions);
@@ -1080,8 +1087,6 @@ namespace XrEngine.Gltf
                 var node = _nodes[channel.Target.Node.Value];
                 var path = channel.Target.Path;
 
-                if (!node.TryComponent<AnimationsHost>(out var animHost))
-                    animHost = node.AddComponent<AnimationsHost>();
 
                 TimeFunctionDelegate timeFunc;
 
@@ -1094,7 +1099,7 @@ namespace XrEngine.Gltf
 
                 if (path == "scale")
                 {
-                    animHost.AddAnimation(new Vector3Animation()
+                    group.Add(new Vector3Animation()
                     {
                         Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
                         {
@@ -1109,7 +1114,7 @@ namespace XrEngine.Gltf
                 }
                 else if (path == "translation")
                 {
-                    animHost.AddAnimation(new Vector3Animation()
+                    group.Add(new Vector3Animation()
                     {
                         Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
                         {
@@ -1124,7 +1129,7 @@ namespace XrEngine.Gltf
                 }
                 else if (path == "rotation")
                 {
-                    animHost.AddAnimation(new QuaternionAnimation()
+                    group.Add(new QuaternionAnimation()
                     {
                         Steps = sampler.Values!.Select(a => new AnimationStep<Quaternion>
                         {
@@ -1136,33 +1141,24 @@ namespace XrEngine.Gltf
                         Name = anim.Name,
                         SetTarget = (v, _) => node.Transform.Orientation = v
                     });
-
-
-                    animHost.AddAnimation(new QuaternionAnimation()
-                    {
-                        Steps = sampler.Values!.Select(a => new AnimationStep<Quaternion>
-                        {
-                            Time = a.Time,
-                            Value = ((Vector4)a.Value).ToQuaternion(),
-                            TimeFunction = timeFunc
-                        }).ToArray(),
-                        IterationCount = 1,
-                        Name = anim.Name,
-                        SetTarget = (v, ctx) => ((Object3D)ctx.Host!).Transform.Orientation = v
-                    });
                 }
                 else
                     throw new NotSupportedException();
             }
+
+            if (!root.TryComponent<AnimationsHost>(out var animHost))
+                animHost = root.AddComponent<AnimationsHost>();
+
+            animHost.AddAnimation(group);
         }
 
-        protected void ProcessAnimations()
+        protected void ProcessAnimations(Object3D root)
         {
             if (_model?.Animations == null)
                 return;
 
             foreach (var anim in _model.Animations)
-                ProcessAnimation(anim);
+                ProcessAnimation(anim, root);
         }
 
         protected Group3D ProcessScene(Scene glScene)
@@ -1172,7 +1168,6 @@ namespace XrEngine.Gltf
             foreach (var nodeId in glScene.Nodes)
                 ProcessNode(nodeId, scene, false);
 
-            ProcessAnimations();
 
             return scene;
         }
@@ -1231,6 +1226,9 @@ namespace XrEngine.Gltf
                 else
                     break;
             }
+
+
+            ProcessAnimations(curRoot);
 
             Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
 

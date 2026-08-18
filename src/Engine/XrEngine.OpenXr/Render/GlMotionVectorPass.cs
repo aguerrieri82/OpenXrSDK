@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr
         protected readonly bool _isEditor;
         protected bool _multiView;
         protected uint _colorTex;
-        private AngleVulkanContext _vulkanCtx;
+        protected AngleVulkanContext? _vulkanCtx;
         protected readonly GlTexture? _debugColor;
 
         public GlMotionVectorPass(OpenGLRender renderer, XrApp xrApp, bool multiView = false)

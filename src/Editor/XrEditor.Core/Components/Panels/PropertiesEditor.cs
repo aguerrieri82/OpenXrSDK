@@ -37,6 +37,8 @@ namespace XrEditor
 
         private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
+            await UiThread;
+
             var obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
 
             ActiveNode = obj != null ? Context.Require<NodeManager>().CreateNode(obj) : null;

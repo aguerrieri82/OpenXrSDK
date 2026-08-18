@@ -10,6 +10,8 @@ namespace XrEngine.Animation
 
         void Stop(IAnimationPlayback playback);
 
+        void Seek(IAnimationPlayback playback, float t);
+
         void StopAll();
 
         void Step(IAnimationPlayback playback);

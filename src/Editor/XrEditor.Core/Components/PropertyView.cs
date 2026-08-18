@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections;
+using System.ComponentModel;
 using System.Reflection;
 using UI.Binding;
 using XrEditor.Services;
@@ -86,7 +87,10 @@ namespace XrEditor
 
             foreach (var prop in objType.GetProperties(binding))
             {
-                if (!prop.CanWrite || !prop.CanRead)
+                if (!prop.CanRead)
+                    continue;
+
+                if (!prop.CanWrite && prop.GetCustomAttribute<EditableAttribute>() == null)
                     continue;
 
                 var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes());

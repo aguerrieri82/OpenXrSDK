@@ -107,10 +107,20 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            instance.Material.DoubleSided = drawMaterial.DoubleSided;
-            instance.Material.HasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
+            var effect = instance.Material;
 
-            return base.UpdateProgram(instance, updateContext, drawMaterial);
+            var hasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
+            var isChanged = hasSkin != effect.HasSkin;
+
+            effect.DoubleSided = drawMaterial.DoubleSided;
+            effect.HasSkin = hasSkin;
+
+            var result = base.UpdateProgram(instance, updateContext, drawMaterial);
+
+            if (result == UpdateProgramResult.Skip)
+                return UpdateProgramResult.Skip;
+
+            return isChanged ? UpdateProgramResult.Changed : result;
         }
 
         protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Object3D model)
@@ -182,6 +192,7 @@ namespace XrEngine.OpenGL
                 Color = Color.White,
                 WriteDepth = false,
                 UseDepth = false,
+                SkinMode = SkinMode.Dynamic
             };
         }
 

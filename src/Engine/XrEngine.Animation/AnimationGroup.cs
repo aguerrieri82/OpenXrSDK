@@ -11,7 +11,6 @@
         protected class State
         {
             public readonly Dictionary<IAnimation, IAnimationPlayback> Playbacks = [];
-
             public int Index;
             public IAnimationPlayback? Current;
         }
@@ -56,12 +55,23 @@
             return StepParallel(ctx, state);
         }
 
+        public void Reset(AnimationContext ctx)
+        {
+            var state = ctx.GetState<State>();
+
+            foreach (var item in state.Playbacks.Values)
+                item.Stop();
+
+            state.Playbacks.Clear();
+        }
+
         protected bool StepParallel(AnimationContext ctx, State state)
         {
             foreach (var anim in _animations)
             {
-                if (!state.Playbacks.TryGetValue(anim, out var playback))
+                if (!state.Playbacks.TryGetValue(anim, out var playback) || ctx.IsNewIteration)
                 {
+                    playback?.Stop();
                     playback = ctx.Controller.Start(anim, ctx.Host);
                     state.Playbacks[anim] = playback;
                 }
@@ -93,8 +103,8 @@
         protected virtual void Update()
         {
             _duration = Mode == AnimationGroupMode.Sequential
-                ? _animations.Sum(a => a.Duration)
-                : _animations.Count == 0 ? 0 : _animations.Max(a => a.Duration);
+                ? _animations.Sum(a => a.Duration + a.Delay)
+                : _animations.Count == 0 ? 0 : _animations.Max(a => a.Duration + a.Delay);
         }
 
         public AnimationGroupMode Mode

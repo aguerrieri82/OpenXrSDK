@@ -19,7 +19,7 @@
             : base()
         {
             _shader = SHADER;
-            _isSkinDynamic = true;
+            SkinMode = SkinMode.Dynamic;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)

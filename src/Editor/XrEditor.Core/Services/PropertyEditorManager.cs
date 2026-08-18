@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using XrEngine.Animation;
 using XrMath;
 
 namespace XrEditor.Services
@@ -17,6 +18,8 @@ namespace XrEditor.Services
             Register(new TypedPropertyEditorFactory<float, FloatEditor>());
             Register(new TypedPropertyEditorFactory<string, TextEditor<string>>());
 
+            Register(new TypedPropertyEditorFactory<IAnimation, AnimationEditor>());
+
             Register(new TextEditorFactory<Uri?>(a => string.IsNullOrWhiteSpace(a) ? null : new Uri(a)));
             Register(new TextEditorFactory<byte?>(a => string.IsNullOrWhiteSpace(a) ? null : byte.Parse(a)));
             Register(new TextEditorFactory<uint>(a => uint.Parse(a)));
@@ -24,6 +27,8 @@ namespace XrEditor.Services
 
             Register(new EnumEditorFactory());
             Register(new EngineObjectEditorFactory());
+
+            Register(new ListEditorFactory());
         }
 
         public IPropertyEditor? CreateEditor(Type type, IEnumerable<Attribute> attributes)

@@ -7,27 +7,36 @@ namespace XrEngine.Animation
 {
     public abstract class BaseAnimation<TValue> : IAnimation<TValue>
     {
-
-        [AllowNull]
-        private TValue _lastValue;
+        class State
+        {
+            [AllowNull]
+            public TValue LastValue;
+        }
 
         public BaseAnimation()
         {
-            _lastValue = default;
             Steps = [];
+        }
+
+        public virtual void Reset(AnimationContext ctx)
+        {
+            var state = ctx.GetState<State>();
+            state.LastValue = default;
         }
 
         public bool Step(AnimationContext ctx)
         {
             var typedCtx = (AnimationContext<TValue>)ctx;
 
-            var curValue = Interpolate(typedCtx.StartValue, typedCtx.EndValue, ctx.NormalizedTime);
+            var state = typedCtx.GetState<State>();
 
-            if (!Equals(curValue, _lastValue))
+            var curValue = Interpolate(typedCtx.StartValue, typedCtx.EndValue, ctx.Time);
+
+            if (!Equals(curValue, state.LastValue))
             {
                 SetTarget?.Invoke(curValue, ctx);
                 ValueChanged?.Invoke(this, curValue);
-                _lastValue = curValue;
+                state.LastValue = curValue;
             }
 
             return true;
@@ -48,7 +57,7 @@ namespace XrEngine.Animation
 
         public string? Name { get; set; }
 
-        public Action<TValue, AnimationContext> SetTarget { get; set; }
+        public Action<TValue, AnimationContext>? SetTarget { get; set; }
 
         public Type ValueType => typeof(TValue);
 

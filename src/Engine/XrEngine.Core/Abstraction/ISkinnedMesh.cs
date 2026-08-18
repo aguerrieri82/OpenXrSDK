@@ -10,5 +10,7 @@ namespace XrEngine
         long SkinMatricesVersion { get; }
 
         Bounds3 GetLocalBounds();
+
+        Joint3D[]? Joints { get; }
     }
 }

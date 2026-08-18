@@ -57,7 +57,8 @@ namespace XrEngine.OpenXr
                 VertexSourceName = "motion_vectors.vert",
                 Resolver = str => Embedded.GetString<Module>(str)
             };
-            _isSkinDynamic = true;
+
+            SkinMode = SkinMode.Dynamic;
         }
 
         public void EndPass(Camera camera)

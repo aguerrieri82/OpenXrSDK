@@ -31,6 +31,8 @@ namespace XrEngine.Animation
 
             public bool IsStarted;
             public bool IsCompleted;
+            public bool IsSeeking;
+            public bool IsNewIteration;
 
             public IAnimable? Host;
 
@@ -38,7 +40,7 @@ namespace XrEngine.Animation
 
             IAnimation IAnimationPlayback.Animation => _animation;
             float IAnimationPlayback.Time => Time;
-            float IAnimationPlayback.StartTime => StartTime;
+            float IAnimationPlayback.StartRefTime => StartTime;
             bool IAnimationPlayback.IsStarted => IsStarted;
             bool IAnimationPlayback.IsCompleted => IsCompleted;
             IAnimable IAnimationPlayback.Host => Host!;
@@ -47,13 +49,26 @@ namespace XrEngine.Animation
             {
                 _controller.Stop(this);
             }
+
+            void IAnimationPlayback.Seek(float t)
+            {
+                _controller.Seek(this, t);
+            }
         }
 
-        static readonly Dictionary<Type, MethodInfo> _processMethods = [];
+        delegate void ProcessInvoker(AnimationController controller, IAnimation anim, AnimationState state);
 
-        static MethodInfo? _processMethod;
+        static readonly Dictionary<Type, ProcessInvoker> _processMethods = [];
+
+        static MethodInfo? _createMethod;
 
         protected readonly List<AnimationState> _animations = [];
+
+        static ProcessInvoker CreateInvoker<TValue>()
+        {
+            return static (controller, anim, state) =>
+                controller.Process((IAnimation<TValue>)anim, state);
+        }
 
         protected override void Update(RenderContext ctx)
         {
@@ -76,25 +91,17 @@ namespace XrEngine.Animation
                 return;
             }
 
-            _processMethod ??= GetType()
-                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                .Single(m =>
-                    m.Name == nameof(Process) &&
-                    m.IsGenericMethodDefinition &&
-                    m.GetGenericArguments().Length == 1 &&
-                    m.GetParameters() is var p &&
-                    p.Length == 2 &&
-                    p[0].ParameterType.IsGenericType &&
-                    p[0].ParameterType.GetGenericTypeDefinition() == typeof(IAnimation<>) &&
-                    p[1].ParameterType == typeof(AnimationState));
+            _createMethod ??= GetType()
+                .GetMethod(nameof(CreateInvoker), BindingFlags.NonPublic | BindingFlags.Static);
 
-            if (!_processMethods.TryGetValue(anim.ValueType, out var method))
+            if (!_processMethods.TryGetValue(anim.ValueType, out var process))
             {
-                method = _processMethod.MakeGenericMethod(anim.ValueType);
-                _processMethods[anim.ValueType] = method;
+                var craeteGenMethod = _createMethod!.MakeGenericMethod(anim.ValueType);
+                process = (ProcessInvoker)craeteGenMethod.Invoke(null, [])!;
+                _processMethods[anim.ValueType] = process;
             }
 
-            method.Invoke(this, [anim, state]);
+            process!(this, anim, state);
         }
 
         protected bool UpdateTime(AnimationState state, out float referenceTime, out float deltaTime)
@@ -132,6 +139,8 @@ namespace XrEngine.Animation
             if (anim.Direction is AnimationDirection.Alternate or AnimationDirection.AlternateReverse)
                 state.Direction = -state.Direction;
 
+            state.IsNewIteration = true;
+
             return true;
         }
 
@@ -153,8 +162,11 @@ namespace XrEngine.Animation
                     Host = state.Host
                 };
 
-                state.Context.ReferenceTime = evaluationTime;
-                state.Context.NormalizedTime = time;
+                state.Context.RefTime = evaluationTime;
+                state.Context.Time = time;
+                state.Context.IsNewIteration = state.IsNewIteration;
+
+                state.IsNewIteration = false;
 
                 return anim.Step(state.Context);
             }
@@ -163,19 +175,24 @@ namespace XrEngine.Animation
             {
                 var overflow = state.AnimationTime - anim.Duration;
 
-                Evaluate(1f, referenceTime - overflow);
+                if (!state.IsSeeking && !Evaluate(1f, referenceTime - overflow))
+                {
+                    Stop(state);
+                    return;
+                }
 
                 if (!AdvanceIteration(anim, state))
                     return;
             }
 
-            Evaluate(state.AnimationTime / anim.Duration, referenceTime);
-
-            if (state.AnimationTime == anim.Duration)
+            if (!Evaluate(state.AnimationTime / anim.Duration, referenceTime))
             {
-                state.AnimationTime = 0;
-                AdvanceIteration(anim, state);
+                Stop(state);
+                return;
             }
+
+            if (state.AnimationTime == anim.Duration && !state.IsSeeking)
+                AdvanceIteration(anim, state);
         }
 
         protected void Process<TValue>(IAnimation<TValue> anim, AnimationState state)
@@ -185,24 +202,43 @@ namespace XrEngine.Animation
             if (steps.Count < 2)
                 return;
 
-            if (!UpdateTime(state, out var referenceTime, out var deltaTime))
+            if (!UpdateTime(state, out var referenceTime, out _))
                 return;
 
-            void EnterStep()
+            bool Evaluate(float animationTime, float evaluationTime)
             {
-                state.NextStep = state.Step + state.Direction;
-                state.StepDuration = MathF.Abs(steps[state.NextStep].Time - steps[state.Step].Time);
-                state.InvStepDuration = 1f / state.StepDuration;
-            }
+                var time = state.Direction > 0
+                    ? animationTime
+                    : anim.Duration - animationTime;
 
-            bool Evaluate(float time, float evaluationTime)
-            {
+                var step = state.Step;
+
+                if (step < 0)
+                    step = 0;
+
+                while (step > 0 && time < steps[step].Time)
+                    step--;
+
+                while (step < steps.Count - 2 && time > steps[step + 1].Time)
+                    step++;
+
+                state.Step = step;
+                state.NextStep = step + 1;
+
                 var start = steps[state.Step];
                 var end = steps[state.NextStep];
 
-                time = start.TimeFunction?.Invoke(time, state.StepDuration) ?? time;
+                state.StepDuration = end.Time - start.Time;
+                state.InvStepDuration = 1f / state.StepDuration;
+                state.StepTime = Math.Clamp(time - start.Time, 0, state.StepDuration);
 
-                state.Time = state.AnimationTime / anim.Duration;
+                var normalizedTime = state.StepTime * state.InvStepDuration;
+
+                normalizedTime = start.TimeFunction?.Invoke(normalizedTime, state.StepDuration) ?? normalizedTime;
+
+                state.Time = anim.Duration > 0
+                    ? time / anim.Duration
+                    : 0;
 
                 if (state.Context is not AnimationContext<TValue> context)
                 {
@@ -216,63 +252,45 @@ namespace XrEngine.Animation
 
                 context.StartValue = start.Value;
                 context.EndValue = end.Value;
-                context.ReferenceTime = evaluationTime;
-                context.NormalizedTime = time;
+                context.RefTime = evaluationTime;
+                context.Time = normalizedTime;
+                context.IsNewIteration = state.IsNewIteration;
+
+                state.IsNewIteration = false;
 
                 return anim.Step(context);
             }
 
-            bool AdvanceStep()
+            while (state.AnimationTime > anim.Duration)
             {
-                state.Step = state.NextStep;
+                var overflow = state.AnimationTime - anim.Duration;
 
-                var nextStep = state.Step + state.Direction;
-
-                if (nextStep >= 0 && nextStep < steps.Count)
+                if (!state.IsSeeking && !Evaluate(anim.Duration, referenceTime - overflow))
                 {
-                    EnterStep();
-                    return true;
+                    Stop(state);
+                    return;
                 }
 
                 if (!AdvanceIteration(anim, state))
-                    return false;
-
-                state.Step = state.Direction > 0 ? 0 : steps.Count - 1;
-                EnterStep();
-
-                return true;
-            }
-
-            if (state.Step < 0)
-            {
-                state.Step = state.Direction > 0 ? 0 : steps.Count - 1;
-                EnterStep();
-            }
-
-            state.StepTime += deltaTime;
-
-            while (state.StepTime > state.StepDuration)
-            {
-                var overflow = state.StepTime - state.StepDuration;
-
-                Evaluate(1f, referenceTime - overflow);
-
-                state.StepTime = overflow;
-
-                if (!AdvanceStep())
                     return;
+
+                state.Step = -1;
             }
 
-            Evaluate(state.StepTime * state.InvStepDuration, referenceTime);
-
-            if (state.StepTime == state.StepDuration)
+            if (!Evaluate(state.AnimationTime, referenceTime))
             {
-                state.StepTime = 0;
-                AdvanceStep();
+                Stop(state);
+                return;
+            }
+
+            if (state.AnimationTime == anim.Duration && !state.IsSeeking)
+            {
+                if (AdvanceIteration(anim, state))
+                    state.Step = -1;
             }
         }
 
-        public IAnimationPlayback Start(IAnimation animation, IAnimable? host =  null)
+        public IAnimationPlayback Start(IAnimation animation, IAnimable? host = null)
         {
             var state = new AnimationState(this, animation)
             {
@@ -289,7 +307,9 @@ namespace XrEngine.Animation
 
                 Direction = animation.Direction is
                     AnimationDirection.Forward or
-                    AnimationDirection.Alternate ? 1 : -1
+                    AnimationDirection.Alternate ? 1 : -1,
+
+                IsNewIteration = true
             };
 
             _animations.Add(state);
@@ -297,16 +317,52 @@ namespace XrEngine.Animation
             return state;
         }
 
-        protected void Stop(AnimationState state)
+        public void Stop(IAnimationPlayback playback)
         {
+            var state = (AnimationState)playback;
+
+            if (state.IsStarted)
+                state._animation.Reset(state.Context!);
+
             _animations.Remove(state);
         }
 
-        public void Stop(IAnimationPlayback playback)
+        public void Seek(IAnimationPlayback playback, float t)
         {
-            Stop((AnimationState)playback);
+            var state = (AnimationState)playback;
+            var anim = state._animation;
+            var referenceTime = (float)Reference.Time;
+
+            t = Math.Clamp(t, 0f, 1f);
+
+            var animationTime = t * anim.Duration;
+
+            state.StartTime = referenceTime;
+            state.ReferenceTime = referenceTime;
+
+            state.Time = t;
+            state.AnimationTime = animationTime;
+            state.StepTime = animationTime;
+
+            state.Iteration = 0;
+            state.Step = -1;
+            state.NextStep = -1;
+
+            state.Direction = anim.Direction is
+                AnimationDirection.Forward or
+                AnimationDirection.Alternate ? 1 : -1;
+
+            state.IsStarted = true;
+            state.IsCompleted = false;
+            state.IsSeeking = true;
+            state.IsNewIteration = true;
+
+            Step(state);
+
+            state.IsSeeking = false;
         }
 
+        [Action]
         public void StopAll()
         {
             _animations.Clear();

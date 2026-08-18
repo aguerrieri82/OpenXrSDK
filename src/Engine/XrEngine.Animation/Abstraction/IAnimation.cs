@@ -36,6 +36,8 @@ namespace XrEngine.Animation
 
         bool Step(AnimationContext ctx);
 
+        void Reset(AnimationContext ctx);
+
         string? Name { get; }
 
         Type ValueType { get; }

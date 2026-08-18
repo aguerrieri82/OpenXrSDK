@@ -15,9 +15,11 @@ namespace XrEngine.Animation
             return (TState)(_state ??= new TState());
         }
 
-        public float NormalizedTime;
+        public float Time;
 
-        public float ReferenceTime;
+        public float RefTime;
+
+        public bool IsNewIteration;
 
         public IAnimable? Host;
 

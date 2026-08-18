@@ -8,13 +8,15 @@ namespace XrEngine.Animation
     {
         void Stop();
 
+        void Seek(float t);
+
         IAnimation Animation { get; }
 
         IAnimable Host { get; }
 
         float Time { get; }
         
-        float StartTime { get; }
+        float StartRefTime { get; }
         
         bool IsStarted { get; }
 

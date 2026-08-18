@@ -20,6 +20,15 @@ namespace XrEditor.Nodes
 
                 if (_value.Geometry != null)
                     yield return factory.CreateNode(_value.Geometry);
+
+                var skin = _value.Feature<ISkinnedMesh>();
+
+                if (skin?.Joints != null)
+                {
+                    foreach (var joint in skin.Joints)
+                        yield return factory.CreateNode(joint);
+                }
+
             }
         }
 
