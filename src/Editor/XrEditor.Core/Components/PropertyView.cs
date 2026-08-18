@@ -90,7 +90,9 @@ namespace XrEditor
                 if (!prop.CanRead)
                     continue;
 
-                if (!prop.CanWrite && prop.GetCustomAttribute<EditableAttribute>() == null)
+                var editableAttr = prop.GetCustomAttribute<EditableAttribute>();
+
+                if (!prop.CanWrite && editableAttr == null)
                     continue;
 
                 var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
@@ -100,6 +102,10 @@ namespace XrEditor
                     if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                     {
                         var value = prop.GetValue(obj);
+
+                        if (value == null && editableAttr != null && editableAttr.AllowCreate)
+                            value = Activator.CreateInstance(prop.PropertyType);
+
                         if (value != null)
                             CreateProperties(value, null, host ?? obj, result, propertyChanged, prop.Name);
                     }

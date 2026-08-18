@@ -1437,9 +1437,15 @@ namespace XrSamples
                 {
                     switch (axis)
                     {
-                        case 'X': joint.DofX = Dof(min, max); break;
-                        case 'Y': joint.DofY = Dof(min, max); break;
-                        case 'Z': joint.DofZ = Dof(min, max); break;
+                        case 'X': 
+                            joint.DofX = Dof(min, max);
+                            break;
+                        case 'Y': 
+                            joint.DofY = Dof(min, max); 
+                            break;
+                        case 'Z': 
+                            joint.DofZ = Dof(min, max);
+                            break;
                     }
                 }
 

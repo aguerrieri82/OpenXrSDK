@@ -71,9 +71,9 @@ namespace XrEngine.Bullet
                 var attach = SolverPosition(joint);
                 var nodes = new List<IkNode>();
 
-                void AddDof(in JointDof dof, Vector3 axis)
+                void AddDof(JointDof? dof, Vector3 axis)
                 {
-                    if (!dof.Enabled)
+                    if (dof == null || !dof.Enabled)
                         return;
 
                     nodes.Add(new IkNode

@@ -30,7 +30,10 @@ namespace XrEditor.Nodes
             get
             {
                 var factory = Context.Require<NodeManager>();
-                return _value.Children.Select(a => factory.CreateNode(a)).SetParent(this);
+
+                return _value.Children
+                       .Select(a => factory.CreateNode(a))
+                       .SetParent(this);
             }
         }
 

@@ -1,10 +1,13 @@
 ﻿using XrEditor.Services;
 using XrEngine;
+using XrEngine.Physics;
 
 namespace XrEditor.Nodes
 {
     public class TriangleMeshNode : Object3DNode<TriangleMesh>
     {
+        GroupNode? _joints;
+
         public TriangleMeshNode(TriangleMesh value) : base(value)
         {
         }
@@ -25,8 +28,9 @@ namespace XrEditor.Nodes
 
                 if (skin?.Joints != null)
                 {
-                    foreach (var joint in skin.Joints)
-                        yield return factory.CreateNode(joint);
+                    _joints ??= new GroupNode(skin.Joints.Select(a => factory.CreateNode(a)), "Joints");
+                    _joints.SetParent(this);
+                    yield return _joints;
                 }
 
             }

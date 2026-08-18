@@ -6,17 +6,23 @@ using System.Text;
 
 namespace XrEngine
 {
-    public struct JointDof
+    public class JointDof
     {
-        public bool Enabled;
-        public float Min;
-        public float Max;
-        public float Rest;
+        public bool Enabled { get; set; }
+
+        [ValueType(ValueType.Radiant)]
+        public float Min { get; set; }
+        
+        [ValueType(ValueType.Radiant)]
+        public float Max { get; set; }
+
+        [ValueType(ValueType.Radiant)]
+        public float Rest { get; set; }
     }
 
     public class Joint3D : Group3D, IDrawGizmos, ISelectionHandler
     {
-        private bool _isSelected;
+        protected bool _isSelected;
 
         public Joint3D()
         {
@@ -90,11 +96,14 @@ namespace XrEngine
 
         public bool EnableGizmos { get; set; }
 
-        public JointDof DofX { get; set; }
-        
-        public JointDof DofY { get; set; }
-        
-        public JointDof DofZ { get; set; }
+        [Editable(AllowCreate = true)]
+        public JointDof? DofX { get; set; }
+
+        [Editable(AllowCreate = true)]
+        public JointDof? DofY { get; set; }
+
+        [Editable(AllowCreate = true)]
+        public JointDof? DofZ { get; set; }
 
         public bool IsEffector { get; set; }
     }
