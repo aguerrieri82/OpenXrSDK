@@ -26,10 +26,6 @@ namespace XrEngine.Animation
 
     public interface IAnimation
     {
-        bool IsStarted { get; }
-
-        bool IsCompleted { get; }
-
         float Duration { get; }
 
         float Delay { get; set; }
@@ -38,29 +34,20 @@ namespace XrEngine.Animation
 
         int IterationCount { get; set; }
 
-        void Step(AnimationContext ctx);
-
-        float StartTime { get; }
-
-        float Time { get; }
+        bool Step(AnimationContext ctx);
 
         string? Name { get; }
 
         Type ValueType { get; }
-
-
-
     }
 
 
-    public interface IAnimation<T> : IAnimation
+    public interface IAnimation<TValue> : IAnimation
     {
-        IList<AnimationStep<T>> Steps { get; }
+        IList<AnimationStep<TValue>> Steps { get; }
 
-        T Value { get; }
+        Action<TValue, AnimationContext>? SetTarget { get; }
 
-        Action<T>? SetTarget { get; }
-
-        event EventHandler<T>? ValueChanged;
+        event EventHandler<TValue>? ValueChanged;
     }
 }

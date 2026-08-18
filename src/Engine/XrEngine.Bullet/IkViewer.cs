@@ -89,21 +89,21 @@ namespace XrEngine.Bullet
 
             }
 
-            if (node.Right != null)
+            if (node.Sibling != null)
             {
-                var trSibling = node.Right.GetLocalTransform() * parentTransform;
+                var trSibling = node.Sibling.GetLocalTransform() * parentTransform;
 
-                Update(node.Right, trSibling, parentTransform.Translation);
+                Update(node.Sibling, trSibling, parentTransform.Translation);
 
-                UpdateMesh(node.Right, trSibling, parentTransform);
+                UpdateMesh(node.Sibling, trSibling, parentTransform);
             }
 
-            if (node.Left != null)
+            if (node.Child != null)
             {
-                var trChild = node.Left.GetLocalTransform() * baseTransform;
-                Update(node.Left, trChild, baseTransform.Translation);
+                var trChild = node.Child.GetLocalTransform() * baseTransform;
+                Update(node.Child, trChild, baseTransform.Translation);
 
-                UpdateMesh(node.Left, trChild, baseTransform);
+                UpdateMesh(node.Child, trChild, baseTransform);
             }
         }
 
@@ -138,24 +138,24 @@ namespace XrEngine.Bullet
                 Position = pos,
             }, 0.03f);
 
-            if (node.Right != null)
+            if (node.Sibling != null)
             {
-                var trSibling = node.Right.GetLocalTransform() * parentTransform;
+                var trSibling = node.Sibling.GetLocalTransform() * parentTransform;
 
                 canvas.State.Color = new Color(0, 1, 1, 1); // green
                 canvas.DrawLine(parentTransform.Translation, trSibling.Translation);
 
-                DrawWork(canvas, node.Right, trSibling, parentTransform);
+                DrawWork(canvas, node.Sibling, trSibling, parentTransform);
             }
 
-            if (node.Left != null)
+            if (node.Child != null)
             {
-                var trChild = node.Left.GetLocalTransform() * baseTransform;
+                var trChild = node.Child.GetLocalTransform() * baseTransform;
 
                 canvas.State.Color = new Color(1, 0, 1, 1); // red
                 canvas.DrawLine(pos, trChild.Translation);
 
-                DrawWork(canvas, node.Left, trChild, baseTransform);
+                DrawWork(canvas, node.Child, trChild, baseTransform);
             }
         }
 

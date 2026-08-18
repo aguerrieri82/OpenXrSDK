@@ -28,27 +28,27 @@ namespace XrEngine.Bullet
             {
                 nodes.Add(node);
 
-                if (node.Left != null)
-                    Collect(node.Left);
+                if (node.Child != null)
+                    Collect(node.Child);
 
-                if (node.Right != null)
-                    Collect(node.Right);
+                if (node.Sibling != null)
+                    Collect(node.Sibling);
             }
 
             void Link(IkNode node)
             {
-                if (node.Left != null)
+                if (node.Child != null)
                 {
-                    _ctx.IkInsertLeftChild(_nodeMap[node], _nodeMap[node.Left]);
-                    node.Left.Parent = node;
-                    Link(node.Left);
+                    _ctx.IkInsertLeftChild(_nodeMap[node], _nodeMap[node.Child]);
+                    node.Child.Parent = node;
+                    Link(node.Child);
                 }
 
-                if (node.Right != null)
+                if (node.Sibling != null)
                 {
-                    _ctx.IkInsertRightSibling(_nodeMap[node], _nodeMap[node.Right]);
-                    node.Right.Parent = node.Parent;
-                    Link(node.Right);
+                    _ctx.IkInsertRightSibling(_nodeMap[node], _nodeMap[node.Sibling]);
+                    node.Sibling.Parent = node.Parent;
+                    Link(node.Sibling);
                 }
             }
 

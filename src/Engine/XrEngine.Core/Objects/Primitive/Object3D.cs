@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using XrEngine;
 using XrMath;
 
 namespace XrEngine
@@ -12,7 +13,7 @@ namespace XrEngine
     }
 
     [StateManager(StateManagerMode.Manual)]
-    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName, IWorldLocatable
+    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName, IWorldLocatable, IAnimable
     {
         internal Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;

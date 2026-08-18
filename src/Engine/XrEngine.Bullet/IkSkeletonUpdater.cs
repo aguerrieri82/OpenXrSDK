@@ -110,8 +110,7 @@ namespace XrEngine.Bullet
                 {
                     first ??= node;
 
-                    if (last != null)
-                        last.Left = node;
+                    last?.Child = node;
 
                     last = node;
                 }
@@ -135,7 +134,7 @@ namespace XrEngine.Bullet
                     if (firstChild == null)
                         firstChild = childNode;
                     else
-                        lastChild!.Right = childNode;
+                        lastChild!.Sibling = childNode;
 
                     lastChild = childNode;
                 }
@@ -144,7 +143,7 @@ namespace XrEngine.Bullet
                     return firstChild;
 
                 if (firstChild != null)
-                    last!.Left = firstChild;
+                    last!.Child = firstChild;
 
                 return first;
             }
@@ -162,9 +161,7 @@ namespace XrEngine.Bullet
             if (node.Axis.LengthSquared() == 0)
                 return Quaternion.Identity;
 
-            return Quaternion.CreateFromAxisAngle(
-                Vector3.Normalize(node.Axis),
-                node.Theta);
+            return Quaternion.CreateFromAxisAngle(Vector3.Normalize(node.Axis), node.Theta);
         }
 
         protected override void Update(RenderContext ctx)
@@ -177,70 +174,44 @@ namespace XrEngine.Bullet
 
             Solver.Update(Method, true);
 
-            UpdateSolverTransforms(
-                Solver.Root,
-                NodeRotation(Solver.Root),
-                Quaternion.Identity);
+            UpdateSolverTransforms(Solver.Root, NodeRotation(Solver.Root), Quaternion.Identity);
 
-            ApplyJoints(
-                _host,
-                Quaternion.Identity,
-                _host.Parent?.WorldOrientation ?? Quaternion.Identity);
+            ApplyJoints(_host, Quaternion.Identity, _host.Parent?.WorldOrientation ?? Quaternion.Identity);
         }
 
-        void UpdateSolverTransforms(IkNode node, Quaternion baseRotation, Quaternion parentRotation)
+        void UpdateSolverTransforms(IkNode node, Quaternion baseRot, Quaternion parentRot)
         {
             if (_nodeBindings.TryGetValue(node, out var binding))
-                binding.SolverDelta = baseRotation;
+                binding.SolverDelta = baseRot;
 
-            if (node.Right != null)
+            if (node.Sibling != null)
             {
-                var siblingRotation =
-                    parentRotation * NodeRotation(node.Right);
-
-                UpdateSolverTransforms(
-                    node.Right,
-                    siblingRotation,
-                    parentRotation);
+                var siblingRotation = parentRot * NodeRotation(node.Sibling);
+                UpdateSolverTransforms(node.Sibling, siblingRotation, parentRot);
             }
 
-            if (node.Left != null)
+            if (node.Child != null)
             {
-                var childRotation =
-                    baseRotation * NodeRotation(node.Left);
-
-                UpdateSolverTransforms(
-                    node.Left,
-                    childRotation,
-                    baseRotation);
+                var childRotation = baseRot * NodeRotation(node.Child);
+                UpdateSolverTransforms(node.Child, childRotation, baseRot);
             }
         }
 
-        void ApplyJoints(
-            Joint3D joint,
-            Quaternion parentSolverDelta,
-            Quaternion parentWorldOrientation)
+        void ApplyJoints(Joint3D joint, Quaternion parentSolverDelta, Quaternion parentWorldOrientation)
         {
             var binding = _bindings[joint];
 
-            var solverDelta = binding.Node != null
-                ? binding.SolverDelta
-                : parentSolverDelta;
+            var solverDelta = binding.Node != null ? binding.SolverDelta : parentSolverDelta;
 
             var worldOrientation =
                 Solver!.WorldPose.Orientation *
                 solverDelta *
                 binding.ReferenceSolverOrientation;
 
-            joint.Transform.Orientation =
-                Quaternion.Inverse(parentWorldOrientation) *
-                worldOrientation;
+            joint.Transform.Orientation = Quaternion.Inverse(parentWorldOrientation) * worldOrientation;
 
             foreach (var child in joint.Children.OfType<Joint3D>())
-                ApplyJoints(
-                    child,
-                    solverDelta,
-                    worldOrientation);
+                ApplyJoints(child, solverDelta, worldOrientation);
         }
 
         public void SetTarget(string name, IWorldLocatable obj)
@@ -250,6 +221,7 @@ namespace XrEngine.Bullet
 
             var effector = (Solver?.Effectors.FirstOrDefault(a => a.Name == name)) ?? 
                 throw new InvalidOperationException($"Effector '{name}' not found");
+
             SetTarget(effector, obj);
         }
 
@@ -264,7 +236,7 @@ namespace XrEngine.Bullet
             Solver?.Reset();
         }
 
-        void DrawWork(Canvas3D canvas, IkNode node, Matrix4x4 baseTransform, Matrix4x4 parentTransform)
+        static void DrawWork(Canvas3D canvas, IkNode node, Matrix4x4 baseTransform, Matrix4x4 parentTransform)
         {
             if (node == null)
                 return;
@@ -295,24 +267,24 @@ namespace XrEngine.Bullet
                 Position = pos,
             }, 0.03f);
 
-            if (node.Right != null)
+            if (node.Sibling != null)
             {
-                var trSibling = node.Right.GetLocalTransform() * parentTransform;
+                var trSibling = node.Sibling.GetLocalTransform() * parentTransform;
 
                 canvas.State.Color = new Color(0, 1, 1, 1); // green
                 canvas.DrawLine(parentTransform.Translation, trSibling.Translation);
 
-                DrawWork(canvas, node.Right, trSibling, parentTransform);
+                DrawWork(canvas, node.Sibling, trSibling, parentTransform);
             }
 
-            if (node.Left != null)
+            if (node.Child != null)
             {
-                var trChild = node.Left.GetLocalTransform() * baseTransform;
+                var trChild = node.Child.GetLocalTransform() * baseTransform;
 
                 canvas.State.Color = new Color(1, 0, 1, 1); // red
                 canvas.DrawLine(pos, trChild.Translation);
 
-                DrawWork(canvas, node.Left, trChild, baseTransform);
+                DrawWork(canvas, node.Child, trChild, baseTransform);
             }
         }
 

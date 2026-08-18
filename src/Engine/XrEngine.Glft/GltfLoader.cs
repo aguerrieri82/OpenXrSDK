@@ -1104,7 +1104,7 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = v => node.Transform.Scale = v
+                        SetTarget = (v,_) => node.Transform.Scale = v
                     });
                 }
                 else if (path == "translation")
@@ -1119,7 +1119,7 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = v => node.Transform.Position = v
+                        SetTarget = (v, _) => node.Transform.Position = v
                     });
                 }
                 else if (path == "rotation")
@@ -1134,7 +1134,21 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = v => node.Transform.Orientation = v
+                        SetTarget = (v, _) => node.Transform.Orientation = v
+                    });
+
+
+                    animHost.AddAnimation(new QuaternionAnimation()
+                    {
+                        Steps = sampler.Values!.Select(a => new AnimationStep<Quaternion>
+                        {
+                            Time = a.Time,
+                            Value = ((Vector4)a.Value).ToQuaternion(),
+                            TimeFunction = timeFunc
+                        }).ToArray(),
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = (v, ctx) => ((Object3D)ctx.Host!).Transform.Orientation = v
                     });
                 }
                 else

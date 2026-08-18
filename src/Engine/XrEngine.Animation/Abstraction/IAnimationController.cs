@@ -6,13 +6,15 @@ namespace XrEngine.Animation
 {
     public interface IAnimationController
     {
-        void Start(IAnimation animation);
+        IAnimationPlayback Start(IAnimation animation, IAnimable? host = null);
 
-        void Stop(IAnimation animation);
+        void Stop(IAnimationPlayback playback);
 
         void StopAll();
 
-        IReadOnlyCollection<IAnimation> Animations { get; }
+        void Step(IAnimationPlayback playback);
+
+        IReadOnlyCollection<IAnimationPlayback> ActiveAnimations { get; }
 
         IReferenceTime Reference { get; }
     }

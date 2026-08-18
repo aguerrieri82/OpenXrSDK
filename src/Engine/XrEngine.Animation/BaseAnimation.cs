@@ -5,47 +5,38 @@ using System.Text;
 
 namespace XrEngine.Animation
 {
-    public abstract class BaseAnimation<T> : IAnimation<T>
+    public abstract class BaseAnimation<TValue> : IAnimation<TValue>
     {
-        private float _startTime;
-        private float _time;
 
         [AllowNull]
-        private T _value;
-        private bool _isStarted;
+        private TValue _lastValue;
 
         public BaseAnimation()
         {
-            _value = default;
+            _lastValue = default;
             Steps = [];
         }
 
-        public void Step(AnimationContext ctx)
+        public bool Step(AnimationContext ctx)
         {
-            var typedCtx = (AnimationContext<T>)ctx;
+            var typedCtx = (AnimationContext<TValue>)ctx;
 
-            var curValue = Interpolate(typedCtx.StartValue, typedCtx.EndValue, ctx.Time);
+            var curValue = Interpolate(typedCtx.StartValue, typedCtx.EndValue, ctx.NormalizedTime);
 
-            _time = ctx.Time;
-
-            if (!_isStarted)
+            if (!Equals(curValue, _lastValue))
             {
-                _isStarted = true;
-                _startTime = ctx.ReferenceTime;
-            }
-
-            if (!Equals(curValue, _value))
-            {
-                SetTarget?.Invoke(curValue);
+                SetTarget?.Invoke(curValue, ctx);
                 ValueChanged?.Invoke(this, curValue);
-                _value = curValue;
+                _lastValue = curValue;
             }
+
+            return true;
         }
 
 
-        protected abstract T Interpolate(T startValue, T endValue, float t);
+        protected abstract TValue Interpolate(TValue startValue, TValue endValue, float t);
 
-        public IList<AnimationStep<T>> Steps { get; set; }
+        public IList<AnimationStep<TValue>> Steps { get; set; }
 
         public float Duration => Steps == null || Steps.Count == 0 ? 0 : Steps[^1].Time;
 
@@ -57,21 +48,11 @@ namespace XrEngine.Animation
 
         public string? Name { get; set; }
 
-        public Action<T>? SetTarget { get; set; }
+        public Action<TValue, AnimationContext> SetTarget { get; set; }
 
-        public float StartTime => _startTime;
+        public Type ValueType => typeof(TValue);
 
-        public float Time => _time;
-
-        public T Value => _value;
-
-        public bool IsStarted => _isStarted;
-
-        public bool IsCompleted => _time >= 1;
-
-        public Type ValueType => typeof(T);
-
-        public event EventHandler<T>? ValueChanged;
+        public event EventHandler<TValue>? ValueChanged;
 
     }
 }

@@ -21,9 +21,9 @@ namespace XrEngine.Bullet
 
         public float Theta;
 
-        public IkNode? Left;
+        public IkNode? Child;
 
-        public IkNode? Right;
+        public IkNode? Sibling;
 
         public IkNode? Parent;
 

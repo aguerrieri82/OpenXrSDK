@@ -8,10 +8,21 @@ namespace XrEngine.Animation
 
     public class AnimationContext
     {
-        public float Time;
+        private object? _state;
+
+        public TState GetState<TState>() where TState : class, new()
+        {
+            return (TState)(_state ??= new TState());
+        }
+
+        public float NormalizedTime;
 
         public float ReferenceTime;
 
+        public IAnimable? Host;
+
+        [AllowNull]
+        public AnimationController Controller;
     }
 
     public class AnimationContext<T> : AnimationContext
