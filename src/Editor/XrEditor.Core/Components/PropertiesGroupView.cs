@@ -8,7 +8,7 @@ namespace XrEditor
         Inner
     }
 
-    public class PropertiesGroupView : BaseView
+    public class PropertiesGroupView : BaseView, IDisposable
     {
         private bool _isCollapsed;
         private object? _header;
@@ -211,6 +211,18 @@ namespace XrEditor
             DeletePresetCommand.IsEnabled = _selectedPreset != null;
             ApplyPresetCommand.IsEnabled = _selectedPreset != null;
             SavePresetCommand.IsEnabled = !string.IsNullOrWhiteSpace(_presetName);
+        }
+
+        public void Dispose()
+        {
+            foreach (var item in _groups)
+                item.Dispose();
+
+            foreach (var item in _properties)
+                item.Dispose();
+
+
+            GC.SuppressFinalize(this);
         }
 
         public Command SavePresetCommand { get; }

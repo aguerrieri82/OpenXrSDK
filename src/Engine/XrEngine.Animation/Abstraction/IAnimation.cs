@@ -23,9 +23,10 @@ namespace XrEngine.Animation
         AlternateReverse
     }
 
-
     public interface IAnimation
     {
+        IAnimationPlayback CreatePlayback(IAnimationController controller, IAnimable? host = null);
+
         float Duration { get; }
 
         float Delay { get; set; }
@@ -34,13 +35,7 @@ namespace XrEngine.Animation
 
         int IterationCount { get; set; }
 
-        bool Step(AnimationContext ctx);
-
-        void Reset(AnimationContext ctx);
-
         string? Name { get; }
-
-        Type ValueType { get; }
     }
 
 
@@ -48,8 +43,7 @@ namespace XrEngine.Animation
     {
         IList<AnimationStep<TValue>> Steps { get; }
 
-        Action<TValue, AnimationContext>? SetTarget { get; }
+        Action<TValue, IAnimable>? SetTarget { get; }
 
-        event EventHandler<TValue>? ValueChanged;
     }
 }

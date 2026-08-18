@@ -82,6 +82,9 @@ namespace XrEditor
                     result.Header = view.DisplayName;
             }
 
+            foreach (var prop in _props)
+                prop.Dispose();
+
             _props.Clear();
 
             editorProps.EditorProperties(_props);
@@ -164,6 +167,9 @@ namespace XrEditor
 
         protected void UpdateProperties()
         {
+            foreach (var item in _groups)
+                item.Dispose();
+
             _groups.Clear();
 
             if (_activeNode != null)

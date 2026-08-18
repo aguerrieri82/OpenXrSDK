@@ -22,7 +22,7 @@ namespace XrEngine.Animation
                 {
                     if (!string.IsNullOrWhiteSpace(animationName) && animationName != animation.Name)
                         continue;
-                    controller.Start(animation, item.Object);
+                    controller.CreatePlayback(animation, item.Object).Play();
                 }
             }
         }

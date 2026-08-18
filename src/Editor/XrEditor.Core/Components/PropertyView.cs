@@ -9,7 +9,7 @@ using INotifyPropertyChanged = UI.Binding.INotifyPropertyChanged;
 namespace XrEditor
 {
 
-    public class PropertyView : BaseView
+    public class PropertyView : BaseView, IDisposable
     {
 
         public PropertyView()
@@ -140,6 +140,14 @@ namespace XrEditor
 
                 result.Add(propView);
             }
+        }
+
+        public void Dispose()
+        {
+            if (Editor is IDisposable disposable)
+                disposable.Dispose();
+
+            GC.SuppressFinalize(this);
         }
 
         public string? Label { get; set; }

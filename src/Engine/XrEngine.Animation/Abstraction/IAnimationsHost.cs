@@ -12,7 +12,6 @@ namespace XrEngine.Animation
 
         public void ClearAnimations();
 
-
         IReadOnlyList<IAnimation> Animations { get; }
     }
 }

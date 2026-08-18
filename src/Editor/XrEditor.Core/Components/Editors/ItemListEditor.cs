@@ -9,7 +9,7 @@ using XrEngine;
 
 namespace XrEditor
 {
-    public class ItemListEditor : BaseEditor<object, object>
+    public class ItemListEditor : BaseEditor<object, object>, IDisposable
     {
         public class ItemListView
         {
@@ -59,6 +59,15 @@ namespace XrEditor
             }
         }
 
+        public void Dispose()
+        {
+            foreach (var item in _items)
+            {
+                if (item.Editor is IDisposable disposable)
+                    disposable.Dispose();
+            }
+        }
+
         public ItemListView? SelectedItem
         {
             get => _selectedItem;
@@ -66,7 +75,7 @@ namespace XrEditor
             {
                 if (_selectedItem == value)
                     return;
-                
+
                 _selectedItem = value;
 
                 if (_selectedItem != null)

@@ -1,67 +1,162 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public abstract class BaseAnimation<TValue> : IAnimation<TValue>
     {
-        class State
+        protected IList<AnimationStep<TValue>> _steps = [];
+
+        protected Action<TValue, IAnimable>? _setTarget;
+
+        protected float _delay;
+        protected int _iterationCount;
+        protected AnimationDirection _direction;
+        protected string? _name;
+
+
+        public virtual IAnimationPlayback CreatePlayback(IAnimationController controller, IAnimable? host = null)
         {
-            [AllowNull]
-            public TValue LastValue;
+            return new Playback(controller, this, host);
         }
 
-        public BaseAnimation()
+
+        protected abstract TValue Interpolate(TValue start, TValue end, float time);
+
+
+        protected virtual bool ApplyValue(TValue value, IAnimable host)
         {
-            Steps = [];
-        }
-
-        public virtual void Reset(AnimationContext ctx)
-        {
-            var state = ctx.GetState<State>();
-            state.LastValue = default;
-        }
-
-        public bool Step(AnimationContext ctx)
-        {
-            var typedCtx = (AnimationContext<TValue>)ctx;
-
-            var state = typedCtx.GetState<State>();
-
-            var curValue = Interpolate(typedCtx.StartValue, typedCtx.EndValue, ctx.Time);
-
-            if (!Equals(curValue, state.LastValue))
-            {
-                SetTarget?.Invoke(curValue, ctx);
-                ValueChanged?.Invoke(this, curValue);
-                state.LastValue = curValue;
-            }
+            _setTarget?.Invoke(value, host);
 
             return true;
         }
 
 
-        protected abstract TValue Interpolate(TValue startValue, TValue endValue, float t);
+        protected class Playback : BaseAnimationPlayback<BaseAnimation<TValue>>
+        {
 
-        public IList<AnimationStep<TValue>> Steps { get; set; }
+            protected int _step = -1;
+            protected int _nextStep = -1;
+            protected float _stepDuration;
+            protected float _invStepDuration;
 
-        public float Duration => Steps == null || Steps.Count == 0 ? 0 : Steps[^1].Time;
 
-        public float Delay { get; set; }
-        
-        public AnimationDirection Direction { get; set; }
+            public Playback(
+                IAnimationController controller,
+                BaseAnimation<TValue> animation,
+                IAnimable? host)
+                : base(controller, animation, host)
+            {
+      
+            }
 
-        public int IterationCount { get; set; }
+            protected override bool Evaluate(float time, float referenceTime)
+            {
+                var steps = _animation._steps;
 
-        public string? Name { get; set; }
+                if (steps.Count < 2)
+                    return true;
 
-        public Action<TValue, AnimationContext>? SetTarget { get; set; }
+                if (_step < 0)
+                {
+                    SetStep(_direction > 0
+                        ? 0
+                        : steps.Count - 2);
+                }
 
-        public Type ValueType => typeof(TValue);
+                while (_step > 0 && time < steps[_step].Time)
+                    SetStep(_step - 1);
 
-        public event EventHandler<TValue>? ValueChanged;
+                while (_step < steps.Count - 2 && time > steps[_nextStep].Time)
+                    SetStep(_step + 1);
 
+                var start = steps[_step];
+                var end = steps[_nextStep];
+
+                var stepTime = Math.Clamp(time - start.Time, 0, _stepDuration);
+                var normalizedTime = stepTime * _invStepDuration;
+
+                normalizedTime = start.TimeFunction?.Invoke(
+                    normalizedTime,
+                    _stepDuration) ?? normalizedTime;
+
+                var value = _animation.Interpolate(
+                    start.Value,
+                    end.Value,
+                    normalizedTime);
+
+                return _animation.ApplyValue(value, _host!);
+            }
+
+            protected void SetStep(int step)
+            {
+                _step = step;
+                _nextStep = step + 1;
+
+                var steps = _animation._steps;
+
+                _stepDuration = steps[_nextStep].Time - steps[_step].Time;
+                _invStepDuration = 1f / _stepDuration;
+            }
+
+
+            protected override void OnReset()
+            {
+                _step = -1;
+                _nextStep = -1;
+            }
+
+
+            protected override void OnSeek()
+            {
+                _step = -1;
+                _nextStep = -1;
+            }
+
+
+            protected override void OnIterationChanged()
+            {
+                _step = -1;
+                _nextStep = -1;
+            }
+        }
+
+
+        public IList<AnimationStep<TValue>> Steps
+        {
+            get => _steps;
+            set => _steps = value;
+        }
+
+        public Action<TValue, IAnimable>? SetTarget
+        {
+            get => _setTarget;
+            set => _setTarget = value;
+        }
+
+        public float Duration => _steps.Count > 0
+            ? _steps[_steps.Count - 1].Time
+            : 0;
+
+        public float Delay
+        {
+            get => _delay;
+            set => _delay = value;
+        }
+
+        public AnimationDirection Direction
+        {
+            get => _direction;
+            set => _direction = value;
+        }
+
+        public int IterationCount
+        {
+            get => _iterationCount;
+            set => _iterationCount = value;
+        }
+
+        public string? Name
+        {
+            get => _name;
+            set => _name = value;
+        }
     }
 }
