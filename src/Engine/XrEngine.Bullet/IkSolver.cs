@@ -92,11 +92,11 @@ namespace XrEngine.Bullet
                 item.Key.Theta = _ctx.IkGetNodeTheta(item.Value);
         }
 
-        public void SetTarget(IkNode node, Vector3 pos)
+        public void SetTarget(IkNode node, Vector3 worldPos)
         {
             var ix = _targetMap[node];
 
-            var localPos = WorldPose.Inverse().Transform(pos);
+            var localPos = WorldPose.Inverse().Transform(worldPos);
 
             _ctx.IkSetTarget(ix, localPos);
         }

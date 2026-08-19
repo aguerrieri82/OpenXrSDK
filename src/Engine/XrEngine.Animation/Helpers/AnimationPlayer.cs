@@ -8,12 +8,10 @@ namespace XrEngine.Animation
 
     public class AnimationPlayer : IPlayer, INotifyPropertyChanged, IDisposable
     {
-
-
-        protected readonly IAnimationController _controller;
+        protected readonly IAnimationManager _manager;
         protected readonly IAnimation _animation;
         protected PlayerState _state;
-        protected IAnimationPlayback? _playback;
+        protected IAnimationControl? _playback;
         private int _lastFrame;
 
         public AnimationPlayer(IAnimation animation)
@@ -23,10 +21,10 @@ namespace XrEngine.Animation
             if (scene == null)
                 throw new NotSupportedException();
 
-            if (!scene.TryComponent<AnimationController>(out var controller))
-                controller = scene.AddComponent<AnimationController>();
+            if (!scene.TryComponent<AnimationManager>(out var controller))
+                controller = scene.AddComponent<AnimationManager>();
 
-            _controller = controller;
+            _manager = controller;
             _animation = animation;
             _state = PlayerState.Stop;
             _lastFrame = -1;
@@ -47,7 +45,7 @@ namespace XrEngine.Animation
             if (_playback != null)
                 return;
 
-            _playback = _controller.CreatePlayback(_animation);
+            _playback = _manager.Create(_animation);
 
             _playback.Updated += OnUpdated;
         }
@@ -63,10 +61,10 @@ namespace XrEngine.Animation
 
             var curState = _playback?.State switch
             {
-                AnimationPlaybackState.Playing or
-                AnimationPlaybackState.Pending => PlayerState.Play,
+                AnimationState.Playing or
+                AnimationState.Pending => PlayerState.Play,
 
-                AnimationPlaybackState.Paused => PlayerState.Pause,
+                AnimationState.Paused => PlayerState.Pause,
 
                 _ => PlayerState.Stop
             };

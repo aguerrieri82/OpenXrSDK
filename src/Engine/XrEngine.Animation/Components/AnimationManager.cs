@@ -1,11 +1,11 @@
 ﻿namespace XrEngine.Animation
 {
-    public class AnimationController : Behavior<Scene3D>, IAnimationController
+    public class AnimationManager : Behavior<Scene3D>, IAnimationManager
     {
-        protected readonly List<IAnimationPlayback> _animations = [];
+        protected readonly List<IAnimationControl> _animations = [];
 
 
-        public IAnimationPlayback CreatePlayback(IAnimation animation, IAnimable? host = null)
+        public IAnimationControl Create(IAnimation animation, IAnimable? host = null)
         {
             var playback = _animations.FirstOrDefault(a =>
                 a.Animation == animation &&
@@ -14,7 +14,7 @@
             if (playback != null)
                 return playback;
 
-            playback = animation.CreatePlayback(this, host);
+            playback = animation.CreateControl(this, host);
 
             _animations.Add(playback);
 
@@ -22,7 +22,7 @@
         }
 
 
-        public void Remove(IAnimationPlayback playback)
+        public void Remove(IAnimationControl playback)
         {
             _animations.Remove(playback);
         }
@@ -46,7 +46,7 @@
             _animations.Clear();
         }
 
-        public IReadOnlyCollection<IAnimationPlayback> ActiveAnimations => _animations;
+        public IReadOnlyCollection<IAnimationControl> ActiveAnimations => _animations;
 
         public IReferenceTime Reference => _host.Scene!.App!;
     }

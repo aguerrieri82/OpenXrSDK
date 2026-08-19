@@ -23,9 +23,17 @@ namespace XrEngine.Animation
         AlternateReverse
     }
 
+    public struct AnimationTarget<TValue>
+    {
+        public TValue Value;
+        public int Direction;
+        public IAnimable? Host;
+
+    }
+
     public interface IAnimation
     {
-        IAnimationPlayback CreatePlayback(IAnimationController controller, IAnimable? host = null);
+        IAnimationControl CreateControl(IAnimationManager manager, IAnimable? host = null);
 
         float Duration { get; }
 
@@ -43,7 +51,7 @@ namespace XrEngine.Animation
     {
         IList<AnimationStep<TValue>> Steps { get; }
 
-        Action<TValue, IAnimable>? SetTarget { get; }
+        Action<AnimationTarget<TValue>>? SetTarget { get; }
 
     }
 }

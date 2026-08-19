@@ -1,14 +1,14 @@
 ﻿namespace XrEngine.Animation
 {
-    public abstract class BaseAnimationPlayback<TAnim> : IAnimationPlayback
+    public abstract class BaseAnimationControl<TAnim> : IAnimationControl
         where TAnim : IAnimation
     {
-        protected readonly IAnimationController _controller;
+        protected readonly IAnimationManager _manager;
         protected readonly TAnim _animation;
         protected readonly IAnimable? _host;
 
-        protected AnimationPlaybackState _state;
-        protected AnimationPlaybackState _pausedState;
+        protected AnimationState _state;
+        protected AnimationState _pausedState;
 
         protected float _startRefTime;
         protected float _referenceTime;
@@ -24,13 +24,13 @@
 
         private EventHandler? _updated;
 
-        protected BaseAnimationPlayback(IAnimationController controller, TAnim animation, IAnimable? host)
+        protected BaseAnimationControl(IAnimationManager manager, TAnim animation, IAnimable? host)
         {
-            _controller = controller;
+            _manager = manager;
             _animation = animation;
             _host = host;
 
-            _state = AnimationPlaybackState.Stopped;
+            _state = AnimationState.Stopped;
             _direction = GetInitialDirection();
 
             UpdateDuration();
@@ -39,9 +39,9 @@
 
         public virtual void Play()
         {
-            var referenceTime = (float)_controller.Reference.Time;
+            var referenceTime = (float)_manager.Reference.Time;
 
-            if (_state == AnimationPlaybackState.Paused)
+            if (_state == AnimationState.Paused)
             {
                 var pauseDuration = referenceTime - _pauseRefTime;
 
@@ -52,7 +52,7 @@
                 return;
             }
 
-            if (_state is AnimationPlaybackState.Playing or AnimationPlaybackState.Pending)
+            if (_state is AnimationState.Playing or AnimationState.Pending)
                 return;
 
             UpdateDuration();
@@ -67,31 +67,31 @@
             OnReset();
 
             SetState(_animation.Delay > 0
-                ? AnimationPlaybackState.Pending
-                : AnimationPlaybackState.Playing);
+                ? AnimationState.Pending
+                : AnimationState.Playing);
         }
 
 
         public virtual void Pause()
         {
-            if (_state is not (AnimationPlaybackState.Playing or AnimationPlaybackState.Pending))
+            if (_state is not (AnimationState.Playing or AnimationState.Pending))
                 return;
 
-            _pauseRefTime = (float)_controller.Reference.Time;
+            _pauseRefTime = (float)_manager.Reference.Time;
             _pausedState = _state;
 
-            SetState(AnimationPlaybackState.Paused);
+            SetState(AnimationState.Paused);
         }
 
 
         public virtual void Stop()
         {
-            if (_state == AnimationPlaybackState.Stopped)
+            if (_state == AnimationState.Stopped)
                 return;
 
-            SetState(AnimationPlaybackState.Stopped);
+            SetState(AnimationState.Stopped);
 
-            _controller.Remove(this);
+            _manager.Remove(this);
         }
 
 
@@ -103,7 +103,7 @@
 
             _animationTime = time * _duration;
 
-            var referenceTime = (float)_controller.Reference.Time;
+            var referenceTime = (float)_manager.Reference.Time;
 
             _referenceTime = referenceTime;
 
@@ -113,19 +113,18 @@
                 Stop();
         }
 
-
         public void Step(float referenceTime)
         {
-            if (_state == AnimationPlaybackState.Pending)
+            if (_state == AnimationState.Pending)
             {
                 if (referenceTime < _startRefTime)
                     return;
 
                 _referenceTime = _startRefTime;
-                SetState(AnimationPlaybackState.Playing);
+                SetState(AnimationState.Playing);
             }
 
-            if (_state != AnimationPlaybackState.Playing)
+            if (_state != AnimationState.Playing)
                 return;
 
             var deltaTime = referenceTime - _referenceTime;
@@ -174,7 +173,6 @@
             }
         }
 
-
         protected bool AdvanceIteration()
         {
             _iteration++;
@@ -194,7 +192,6 @@
             return true;
         }
 
-
         protected bool EvaluateCurrent(float referenceTime)
         {
             var animationTime = _direction > 0
@@ -212,15 +209,13 @@
             return result;
         }
 
-
         protected void Complete()
         {
-            SetState(AnimationPlaybackState.Completed);
-            _controller.Remove(this);
+            SetState(AnimationState.Completed);
+            _manager.Remove(this);
         }
 
-
-        protected void SetState(AnimationPlaybackState state)
+        protected void SetState(AnimationState state)
         {
             if (_state == state)
                 return;
@@ -230,13 +225,11 @@
             OnUpdated();
         }
 
-
         protected void UpdateDuration()
         {
             _duration = _animation.Duration;
             _invDuration = _duration > 0 ? 1f / _duration : 0;
         }
-
 
         protected int GetInitialDirection()
         {
@@ -245,9 +238,7 @@
                 : -1;
         }
 
-
         protected abstract bool Evaluate(float time, float referenceTime);
-
 
         protected virtual void OnReset()
         {
@@ -261,7 +252,7 @@
         {
         }
 
-        protected virtual void OnStateChanged(AnimationPlaybackState state)
+        protected virtual void OnStateChanged(AnimationState state)
         {
         }
 
@@ -270,14 +261,13 @@
             _updated?.Invoke(this, EventArgs.Empty);
         }
 
-
-        IAnimation IAnimationPlayback.Animation => _animation;
+        IAnimation IAnimationControl.Animation => _animation;
 
         public TAnim Animation => _animation;
 
         public IAnimable? Host => _host;
 
-        public AnimationPlaybackState State => _state;
+        public AnimationState State => _state;
 
         public float Time => _time;
 

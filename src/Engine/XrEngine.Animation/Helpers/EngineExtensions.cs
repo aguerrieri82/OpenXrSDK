@@ -8,8 +8,8 @@ namespace XrEngine.Animation
     {
         public static void Animate(this Object3D self, string? animationName = null, bool selfOnly = false)
         {
-            if (!self.Scene!.TryComponent<AnimationController>(out var controller))
-                controller = self.Scene!.AddComponent<AnimationController>();
+            if (!self.Scene!.TryComponent<AnimationManager>(out var controller))
+                controller = self.Scene!.AddComponent<AnimationManager>();
 
             var items = self.DescendantsOrSelfWithFeature<IAnimationsHost>();
 
@@ -22,7 +22,8 @@ namespace XrEngine.Animation
                 {
                     if (!string.IsNullOrWhiteSpace(animationName) && animationName != animation.Name)
                         continue;
-                    controller.CreatePlayback(animation, item.Object).Play();
+
+                    controller.Create(animation, item.Object).Play();
                 }
             }
         }

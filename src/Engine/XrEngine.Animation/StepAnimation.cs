@@ -1,50 +1,24 @@
-﻿namespace XrEngine.Animation
+﻿using System.Runtime.CompilerServices;
+
+namespace XrEngine.Animation
 {
-    public abstract class BaseAnimation<TValue> : IAnimation<TValue>
+    public class StepAnimation<TValue> : BaseValueAnimation<TValue>
     {
-        protected IList<AnimationStep<TValue>> _steps = [];
 
-        protected Action<TValue, IAnimable>? _setTarget;
+        #region Control
 
-        protected float _delay;
-        protected int _iterationCount;
-        protected AnimationDirection _direction;
-        protected string? _name;
-
-
-        public virtual IAnimationPlayback CreatePlayback(IAnimationController controller, IAnimable? host = null)
+        protected class Control : BaseAnimationControl<StepAnimation<TValue>>
         {
-            return new Playback(controller, this, host);
-        }
-
-
-        protected abstract TValue Interpolate(TValue start, TValue end, float time);
-
-
-        protected virtual bool ApplyValue(TValue value, IAnimable host)
-        {
-            _setTarget?.Invoke(value, host);
-
-            return true;
-        }
-
-
-        protected class Playback : BaseAnimationPlayback<BaseAnimation<TValue>>
-        {
-
             protected int _step = -1;
             protected int _nextStep = -1;
             protected float _stepDuration;
             protected float _invStepDuration;
 
 
-            public Playback(
-                IAnimationController controller,
-                BaseAnimation<TValue> animation,
-                IAnimable? host)
-                : base(controller, animation, host)
+            public Control(IAnimationManager manager, StepAnimation<TValue> animation, IAnimable? host)
+                : base(manager, animation, host)
             {
-      
+
             }
 
             protected override bool Evaluate(float time, float referenceTime)
@@ -96,20 +70,17 @@
                 _invStepDuration = 1f / _stepDuration;
             }
 
-
             protected override void OnReset()
             {
                 _step = -1;
                 _nextStep = -1;
             }
 
-
             protected override void OnSeek()
             {
                 _step = -1;
                 _nextStep = -1;
             }
-
 
             protected override void OnIterationChanged()
             {
@@ -118,6 +89,32 @@
             }
         }
 
+        #endregion
+
+        protected IList<AnimationStep<TValue>> _steps = [];
+
+        public override IAnimationControl CreateControl(IAnimationManager manager, IAnimable? host = null)
+        {
+            return new Control(manager, this, host);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual bool ApplyValue(TValue value, IAnimable host)
+        {
+            _setTarget?.Invoke(new AnimationTarget<TValue>
+            {
+                Value = value,
+                Host = host
+            });
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual TValue Interpolate(TValue start, TValue end, float time)
+        {
+            return _valueHandler.Interpolate(start, end, time);
+        }
 
         public IList<AnimationStep<TValue>> Steps
         {
@@ -125,38 +122,10 @@
             set => _steps = value;
         }
 
-        public Action<TValue, IAnimable>? SetTarget
-        {
-            get => _setTarget;
-            set => _setTarget = value;
-        }
-
-        public float Duration => _steps.Count > 0
+        public override float Duration => _steps.Count > 0
             ? _steps[_steps.Count - 1].Time
             : 0;
 
-        public float Delay
-        {
-            get => _delay;
-            set => _delay = value;
-        }
 
-        public AnimationDirection Direction
-        {
-            get => _direction;
-            set => _direction = value;
-        }
-
-        public int IterationCount
-        {
-            get => _iterationCount;
-            set => _iterationCount = value;
-        }
-
-        public string? Name
-        {
-            get => _name;
-            set => _name = value;
-        }
     }
 }

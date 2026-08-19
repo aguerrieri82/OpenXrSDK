@@ -1099,7 +1099,7 @@ namespace XrEngine.Gltf
 
                 if (path == "scale")
                 {
-                    group.Add(new Vector3Animation()
+                    group.Add(new StepAnimation<Vector3>()
                     {
                         Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
                         {
@@ -1109,12 +1109,12 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = (v,_) => node.Transform.Scale = v
+                        SetTarget = t => node.Transform.Scale = t.Value
                     });
                 }
                 else if (path == "translation")
                 {
-                    group.Add(new Vector3Animation()
+                    group.Add(new StepAnimation<Vector3>()
                     {
                         Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
                         {
@@ -1124,12 +1124,12 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = (v, _) => node.Transform.Position = v
+                        SetTarget = t => node.Transform.Position = t.Value
                     });
                 }
                 else if (path == "rotation")
                 {
-                    group.Add(new QuaternionAnimation()
+                    group.Add(new StepAnimation<Quaternion>()
                     {
                         Steps = sampler.Values!.Select(a => new AnimationStep<Quaternion>
                         {
@@ -1139,7 +1139,7 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = (v, _) => node.Transform.Orientation = v
+                        SetTarget = t => node.Transform.Orientation = t.Value
                     });
                 }
                 else

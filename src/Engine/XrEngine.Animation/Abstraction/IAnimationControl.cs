@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XrEngine.Animation
 {
-    public enum AnimationPlaybackState
+    public enum AnimationState
     {
         Pending,
         Playing,
@@ -13,13 +13,13 @@ namespace XrEngine.Animation
         Stopped
     }
 
-    public interface IAnimationPlayback
+    public interface IAnimationControl
     {
         IAnimation Animation { get; }
 
         IAnimable? Host { get; }
 
-        AnimationPlaybackState State { get; }
+        AnimationState State { get; }
 
         float Time { get; }
 

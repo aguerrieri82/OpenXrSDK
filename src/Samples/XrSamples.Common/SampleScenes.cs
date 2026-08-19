@@ -39,6 +39,7 @@ using XrSamples.Components;
 using XrEngine.Lighting;
 using System.Diagnostics;
 using System.Xml.Linq;
+using XrEngine.Animation;
 
 namespace XrSamples
 {
@@ -1398,8 +1399,8 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-        [Sample("Helmet")]
-        public static XrEngineAppBuilder CreateRobot(this XrEngineAppBuilder builder)
+        [Sample("Skin")]
+        public static XrEngineAppBuilder CreateSkin(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
 
@@ -1409,6 +1410,17 @@ namespace XrSamples
             mesh.Name = "mesh";
 
             scene.AddChild(mesh);
+
+            var host = mesh.Component<AnimationsHost>();
+
+            host.AddAnimation(ComputedAnimation.Create(
+                ComputeFunctions.Jump(
+                    0,
+                    Vector3.Normalize(new Vector3(0, 2, 1)),
+                    intensity: 5),
+                "Jump",
+                getTarget: _ => mesh.WorldPosition,
+                setTarget: t => mesh.WorldPosition = t.Value));
 
 
             void ConfigureIk(Joint3D root)

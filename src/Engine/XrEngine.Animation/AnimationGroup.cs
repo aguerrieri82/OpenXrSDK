@@ -9,27 +9,19 @@
 
     public class AnimationGroup : IAnimation
     {
-        protected readonly List<IAnimation> _animations = [];
+        #region Control
 
-        protected AnimationGroupMode _mode;
-        protected float _duration;
-
-
-        protected class Playback : BaseAnimationPlayback<AnimationGroup>
+        protected class Control : BaseAnimationControl<AnimationGroup>
         {
-            protected readonly List<IAnimationPlayback> _playbacks = [];
+            protected readonly List<IAnimationControl> _controls = [];
 
             protected int _current;
 
-
-            public Playback(
-                IAnimationController controller,
-                AnimationGroup animation,
-                IAnimable? host)
-                : base(controller, animation, host)
+            public Control(IAnimationManager manager, AnimationGroup animation, IAnimable? host)
+                : base(manager, animation, host)
             {
                 foreach (var child in animation._animations)
-                    _playbacks.Add(child.CreatePlayback(controller, host));
+                    _controls.Add(child.CreateControl(manager, host));
             }
 
 
@@ -37,21 +29,21 @@
             {
                 if (_animation._mode == AnimationGroupMode.Parallel)
                 {
-                    foreach (var playback in _playbacks)
+                    foreach (var playback in _controls)
                         playback.Step(referenceTime);
                 }
-                else if (_current < _playbacks.Count)
+                else if (_current < _controls.Count)
                 {
-                    var playback = _playbacks[_current];
+                    var playback = _controls[_current];
 
                     playback.Step(referenceTime);
 
-                    if (playback.State == AnimationPlaybackState.Completed)
+                    if (playback.State == AnimationState.Completed)
                     {
                         _current++;
 
-                        if (_current < _playbacks.Count)
-                            _playbacks[_current].Play();
+                        if (_current < _controls.Count)
+                            _controls[_current].Play();
                     }
                 }
 
@@ -63,58 +55,55 @@
             {
                 _current = 0;
 
-                foreach (var playback in _playbacks)
+                foreach (var playback in _controls)
                     playback.Stop();
 
                 if (_animation._mode == AnimationGroupMode.Parallel)
                 {
-                    foreach (var playback in _playbacks)
+                    foreach (var playback in _controls)
                         playback.Play();
                 }
-                else if (_playbacks.Count > 0)
+                else if (_controls.Count > 0)
                 {
-                    _playbacks[0].Play();
+                    _controls[0].Play();
                 }
             }
-
 
             protected override void OnIterationChanged()
             {
                 OnReset();
             }
 
-
-            protected override void OnStateChanged(AnimationPlaybackState state)
+            protected override void OnStateChanged(AnimationState state)
             {
                 switch (state)
                 {
-                    case AnimationPlaybackState.Paused:
-                        foreach (var playback in _playbacks)
+                    case AnimationState.Paused:
+                        foreach (var playback in _controls)
                             playback.Pause();
                         break;
 
-                    case AnimationPlaybackState.Playing:
-                        foreach (var playback in _playbacks)
+                    case AnimationState.Playing:
+                        foreach (var playback in _controls)
                         {
-                            if (playback.State == AnimationPlaybackState.Paused)
+                            if (playback.State == AnimationState.Paused)
                                 playback.Play();
                         }
                         break;
 
-                    case AnimationPlaybackState.Stopped:
-                    case AnimationPlaybackState.Completed:
-                        foreach (var playback in _playbacks)
+                    case AnimationState.Stopped:
+                    case AnimationState.Completed:
+                        foreach (var playback in _controls)
                             playback.Stop();
                         break;
                 }
             }
 
-
             protected override void OnSeek()
             {
                 if (_animation._mode == AnimationGroupMode.Parallel)
                 {
-                    foreach (var playback in _playbacks)
+                    foreach (var playback in _controls)
                         Seek(playback, _animationTime);
                 }
                 else
@@ -123,14 +112,13 @@
                 }
             }
 
-
             protected void SeekSequential(float time)
             {
                 var offset = 0f;
 
-                for (var i = 0; i < _playbacks.Count; i++)
+                for (var i = 0; i < _controls.Count; i++)
                 {
-                    var playback = _playbacks[i];
+                    var playback = _controls[i];
                     var animation = playback.Animation;
 
                     var start = offset + animation.Delay;
@@ -152,7 +140,7 @@
 
                         playback.Seek((time - start) / animation.Duration);
 
-                        if (_state == AnimationPlaybackState.Playing)
+                        if (_state == AnimationState.Playing)
                             playback.Play();
                         else
                             playback.Pause();
@@ -162,8 +150,7 @@
                 }
             }
 
-
-            protected static void Seek(IAnimationPlayback playback, float time)
+            protected static void Seek(IAnimationControl playback, float time)
             {
                 var animation = playback.Animation;
 
@@ -186,14 +173,16 @@
             }
         }
 
+        #endregion
 
-        public IAnimationPlayback CreatePlayback(
-            IAnimationController controller,
-            IAnimable? host = null)
+        protected readonly List<IAnimation> _animations = [];
+        protected AnimationGroupMode _mode;
+        protected float _duration;
+
+        public IAnimationControl CreateControl(IAnimationManager manager, IAnimable? host = null)
         {
-            return new Playback(controller, this, host);
+            return new Control(manager, this, host);
         }
-
 
         public void Add(IAnimation animation)
         {
@@ -201,21 +190,17 @@
             UpdateDuration();
         }
 
-
         public void Remove(IAnimation animation)
         {
             _animations.Remove(animation);
             UpdateDuration();
         }
 
-
         public void Clear()
         {
             _animations.Clear();
             UpdateDuration();
         }
-
-
         protected void UpdateDuration()
         {
             if (_animations.Count == 0)
@@ -228,7 +213,6 @@
                 ? _animations.Max(a => a.Delay + a.Duration)
                 : _animations.Sum(a => a.Delay + a.Duration);
         }
-
 
         public AnimationGroupMode Mode
         {

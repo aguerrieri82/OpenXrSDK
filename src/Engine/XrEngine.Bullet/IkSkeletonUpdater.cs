@@ -18,6 +18,8 @@ namespace XrEngine.Bullet
         readonly Dictionary<IkNode, JointBinding> _nodeBindings = [];
         readonly Dictionary<IkNode, IWorldLocatable> _targets = [];
 
+        Quaternion _referenceRootOrientation;
+
         bool _isBuilt;
 
         public IkSkeletonUpdater()
@@ -37,6 +39,8 @@ namespace XrEngine.Bullet
             _bindings.Clear();
             _nodeBindings.Clear();
             _targets.Clear();
+
+            _referenceRootOrientation = _host.Transform.Orientation;
 
             Solver = new IkSolver
             {
@@ -164,10 +168,25 @@ namespace XrEngine.Bullet
             return Quaternion.CreateFromAxisAngle(Vector3.Normalize(node.Axis), node.Theta);
         }
 
+        void UpdateWorldPose()
+        {
+            var parentOrientation = _host.Parent?.WorldOrientation ?? Quaternion.Identity;
+
+            Solver!.WorldPose = new Pose3
+            {
+                Position = _host.WorldPosition,
+                Orientation = parentOrientation * _referenceRootOrientation
+            };
+        }
+
         protected override void Update(RenderContext ctx)
         {
             if (Solver?.Root == null)
                 return;
+
+            UpdateWorldPose();
+
+            var solverInv = Solver.WorldPose.Inverse();
 
             foreach (var entry in _targets)
                 Solver.SetTarget(entry.Key, entry.Value.WorldPosition);
@@ -219,7 +238,7 @@ namespace XrEngine.Bullet
             if (!_isBuilt)
                 Build();
 
-            var effector = (Solver?.Effectors.FirstOrDefault(a => a.Name == name)) ?? 
+            var effector = (Solver?.Effectors.FirstOrDefault(a => a.Name == name)) ??
                 throw new InvalidOperationException($"Effector '{name}' not found");
 
             SetTarget(effector, obj);
