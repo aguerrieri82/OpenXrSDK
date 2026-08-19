@@ -88,7 +88,7 @@ namespace XrEditor
             return typeof(EngineObject).IsAssignableFrom(type);
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             return new ElementPicker();
         }

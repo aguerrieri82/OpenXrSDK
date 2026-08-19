@@ -11,7 +11,7 @@ namespace XrEditor
             return type == typeof(Vector3);
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
 

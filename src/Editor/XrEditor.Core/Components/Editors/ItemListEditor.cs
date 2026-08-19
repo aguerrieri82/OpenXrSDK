@@ -83,7 +83,7 @@ namespace XrEditor
                     if (_selectedItem.Editor == null)
                     {
                         var manager = Context.Require<PropertyEditorManager>();
-                        var editor = manager.CreateEditor(_selectedItem.Value!.GetType(), []);
+                        var editor = manager.CreateEditor(_selectedItem.Value!.GetType(), [], Host);
                         _selectedItem.Editor = editor;
                         if (editor != null)
                             editor!.Value = _selectedItem.Value!;
@@ -97,5 +97,6 @@ namespace XrEditor
         public bool CanEdit { get; set; }
 
         public ObservableCollection<ItemListView> Items => _items;
+
     }
 }

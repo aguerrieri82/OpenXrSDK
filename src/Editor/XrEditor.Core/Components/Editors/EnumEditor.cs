@@ -28,7 +28,7 @@ namespace XrEditor
             return type.IsEnum;
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             return (IPropertyEditor)Activator.CreateInstance(typeof(EnumEditor<>).MakeGenericType(type))!;
         }

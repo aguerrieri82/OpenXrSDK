@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public class ValueHandlerRegistry
     {
@@ -18,9 +13,8 @@ namespace XrEngine.Animation
 
         public void Register<T>(IAnimationValueHandler<T> handler)
         {
-            _handlers[typeof(T)] = handler; 
+            _handlers[typeof(T)] = handler;
         }
-
 
         public IAnimationValueHandler<T> GetHandler<T>()
         {

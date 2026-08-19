@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public interface IAnimationValueHandler<T>
     {
@@ -11,5 +7,7 @@ namespace XrEngine.Animation
         T Combine(T value, T offset);
 
         T Remove(T value, T offset);
+
+        T Identity { get; }
     }
 }

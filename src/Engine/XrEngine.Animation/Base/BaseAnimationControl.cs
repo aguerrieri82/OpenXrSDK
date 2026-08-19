@@ -36,7 +36,6 @@
             UpdateDuration();
         }
 
-
         public virtual void Play()
         {
             var referenceTime = (float)_manager.Reference.Time;
@@ -71,7 +70,6 @@
                 : AnimationState.Playing);
         }
 
-
         public virtual void Pause()
         {
             if (_state is not (AnimationState.Playing or AnimationState.Pending))
@@ -83,7 +81,6 @@
             SetState(AnimationState.Paused);
         }
 
-
         public virtual void Stop()
         {
             if (_state == AnimationState.Stopped)
@@ -93,7 +90,6 @@
 
             _manager.Remove(this);
         }
-
 
         public virtual void Seek(float time)
         {

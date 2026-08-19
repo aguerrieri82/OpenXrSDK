@@ -7,10 +7,11 @@
             return typeof(T).IsAssignableFrom(type);
         }
 
-        public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             var result = new TEditor();
             result.SetAttributes(attributes);
+            result.Host = host;
             return result;
         }
     }

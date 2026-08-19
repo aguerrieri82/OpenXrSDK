@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace XrEngine.Animation
 {
@@ -25,5 +22,7 @@ namespace XrEngine.Animation
         {
             return value * Quaternion.Inverse(offset);
         }
+
+        public Quaternion Identity => Quaternion.Identity;
     }
 }

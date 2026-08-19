@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public delegate T ComputeFunctionDelegate<T>(float t);
 
@@ -11,56 +8,6 @@ namespace XrEngine.Animation
 
         public ComputeFunctionDelegate<T> GetValue;
     }
-
-
-    public static class ComputeFunctions
-    {
-        public static ComputeFunction<Vector3> Sin(
-            Vector3 axis,
-            float amplitude = 1f,
-            float frequency = 1f,
-            float phase = 0f,
-            Vector3 offset = default,
-            float? duration = null)
-        {
-            axis = Vector3.Normalize(axis);
-
-            return new ComputeFunction<Vector3>
-            {
-                Duration = duration ?? 1f / MathF.Abs(frequency),
-                GetValue = t =>
-                    offset + axis * (amplitude * MathF.Sin(MathF.Tau * frequency * t + phase))
-            };
-        }
-
-        public static ComputeFunction<Vector3> Jump(
-            float baseY,
-            Vector3 direction,
-            float intensity = 1f,
-            float gravity = 9.81f)
-        {
-            return JumpImpulse(baseY, Vector3.Normalize(direction) * intensity, gravity);
-        }
-
-        public static ComputeFunction<Vector3> JumpImpulse(
-            float baseY,
-            Vector3 impulse,
-            float gravity = 9.81f)
-        {
-            var duration = 2f * impulse.Y / gravity;
-            var halfGravity = gravity * 0.5f;
-
-            return new ComputeFunction<Vector3>
-            {
-                Duration = duration,
-                GetValue = t => new Vector3(
-                    impulse.X * t,
-                    baseY + impulse.Y * t - halfGravity * t * t,
-                    impulse.Z * t)
-            };
-        }
-    }
-
 
     public static class ComputedAnimation
     {
@@ -91,7 +38,6 @@ namespace XrEngine.Animation
         }
     }
 
-
     public class ComputedAnimation<TValue> : BaseValueAnimation<TValue>
     {
         #region Control
@@ -105,7 +51,6 @@ namespace XrEngine.Animation
                 : base(manager, animation, host)
             {
             }
-
 
             protected override bool Evaluate(float time, float referenceTime)
             {
@@ -125,13 +70,11 @@ namespace XrEngine.Animation
                 });
             }
 
-
             protected override void OnReset()
             {
                 _hasInitialValue = false;
                 EnsureInitialValue();
             }
-
 
             protected override void OnIterationChanged()
             {
@@ -148,12 +91,10 @@ namespace XrEngine.Animation
                 EnsureInitialValue();
             }
 
-
             protected override void OnSeek()
             {
                 EnsureInitialValue();
             }
-
 
             protected void EnsureInitialValue()
             {
@@ -181,14 +122,13 @@ namespace XrEngine.Animation
 
         protected ComputeFunction<TValue> _compute;
 
-        public ComputedAnimation(ComputeFunction<TValue> compute)
+        public ComputedAnimation(ComputeFunction<TValue> compute, IAnimationValueHandler<TValue>? valueHandler = null)
+            : base(valueHandler)
         {
             _compute = compute;
         }
 
-        public override IAnimationControl CreateControl(
-            IAnimationManager manager,
-            IAnimable? host = null)
+        public override IAnimationControl CreateControl(IAnimationManager manager, IAnimable? host = null)
         {
             return new Control(manager, this, host);
         }

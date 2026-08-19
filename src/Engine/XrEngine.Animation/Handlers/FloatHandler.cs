@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Runtime.CompilerServices;
 
 namespace XrEngine.Animation
 {
@@ -24,5 +21,7 @@ namespace XrEngine.Animation
         {
             return value - offset;
         }
+
+        public float Identity => 0f;
     }
 }

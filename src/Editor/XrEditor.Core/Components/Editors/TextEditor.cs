@@ -60,7 +60,7 @@ namespace XrEditor
             return type == typeof(T);
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             return (IPropertyEditor)Activator.CreateInstance(typeof(TextEditor<>).MakeGenericType(type), _parser, _formatter)!;
         }

@@ -6,7 +6,6 @@
         Sequential
     }
 
-
     public class AnimationGroup : IAnimation
     {
         #region Control
@@ -23,7 +22,6 @@
                 foreach (var child in animation._animations)
                     _controls.Add(child.CreateControl(manager, host));
             }
-
 
             protected override bool Evaluate(float time, float referenceTime)
             {
@@ -49,7 +47,6 @@
 
                 return true;
             }
-
 
             protected override void OnReset()
             {

@@ -1,24 +1,22 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 namespace XrEngine.Animation
 {
-    #pragma warning disable CS8774
+#pragma warning disable CS8774
 
     public class AnimationPlayer : IPlayer, INotifyPropertyChanged, IDisposable
     {
         protected readonly IAnimationManager _manager;
         protected readonly IAnimation _animation;
         protected PlayerState _state;
-        protected IAnimationControl? _playback;
-        private int _lastFrame;
+        protected IAnimationControl? _control;
+        protected IAnimable? _host;
+        protected int _lastFrame;
 
-        public AnimationPlayer(IAnimation animation)
+        public AnimationPlayer(IAnimation animation, IAnimable? host)
         {
-            var scene = EngineApp.Current.ActiveScene;
-
-            if (scene == null)
+            var scene = EngineApp.Current.ActiveScene ??
                 throw new NotSupportedException();
 
             if (!scene.TryComponent<AnimationManager>(out var controller))
@@ -28,26 +26,27 @@ namespace XrEngine.Animation
             _animation = animation;
             _state = PlayerState.Stop;
             _lastFrame = -1;
+            _host = host;
 
             Fps = 30;
 
-            _ = EnsurePlabackAsync();
+            _ = EnsureCreatedAsync();
         }
 
-        [MemberNotNull(nameof(_playback))]
-        protected async Task EnsurePlabackAsync()
+        [MemberNotNull(nameof(_control))]
+        protected async Task EnsureCreatedAsync()
         {
-            if (_playback != null)
+            if (_control != null)
                 return;
 
             await EngineApp.MainThread;
 
-            if (_playback != null)
+            if (_control != null)
                 return;
 
-            _playback = _manager.Create(_animation);
+            _control = _manager.Create(_animation, _host);
 
-            _playback.Updated += OnUpdated;
+            _control.Updated += OnUpdated;
         }
 
         private void OnUpdated(object? sender, EventArgs e)
@@ -59,7 +58,7 @@ namespace XrEngine.Animation
                 _lastFrame = curFrame;
             }
 
-            var curState = _playback?.State switch
+            var curState = _control?.State switch
             {
                 AnimationState.Playing or
                 AnimationState.Pending => PlayerState.Play,
@@ -80,15 +79,14 @@ namespace XrEngine.Animation
         {
             await EngineApp.MainThread;
 
-            await EnsurePlabackAsync();
+            await EnsureCreatedAsync();
 
             var time = value / (Fps * _animation.Duration);
 
-            _playback.Seek(time);
+            _control.Seek(time);
 
             OnPropertyChanged(nameof(Frame));
         }
-
 
         public async void SetPlayState(PlayerState newState)
         {
@@ -96,16 +94,16 @@ namespace XrEngine.Animation
 
             if (newState == PlayerState.Play)
             {
-                await EnsurePlabackAsync();
-                _playback.Play();
+                await EnsureCreatedAsync();
+                _control.Play();
             }
             else if (newState == PlayerState.Pause)
             {
-                _playback?.Pause();
+                _control?.Pause();
             }
             else if (newState == PlayerState.Stop)
             {
-                _playback?.Stop();
+                _control?.Stop();
             }
         }
 
@@ -113,16 +111,15 @@ namespace XrEngine.Animation
         {
             OnPropertyChanged(nameof(PlayState));
 
-            if (_playback == null)
+            if (_control == null)
                 return;
 
             if (_state == PlayerState.Stop)
             {
-                _playback.Updated -= OnUpdated;
-                _playback = null;
+                _control.Updated -= OnUpdated;
+                _control = null;
             }
         }
-
 
         protected void OnPropertyChanged(string name)
         {
@@ -131,15 +128,15 @@ namespace XrEngine.Animation
 
         public void Dispose()
         {
-            _playback?.Updated -= OnUpdated;
+            _control?.Updated -= OnUpdated;
             GC.SuppressFinalize(this);
         }
 
         public int Frame
         {
-            get => _playback == null
+            get => _control == null
                 ? 0
-                : (int)MathF.Round(_playback.Time * _animation.Duration * Fps);
+                : (int)MathF.Round(_control.Time * _animation.Duration * Fps);
             set => SetFrame(value);
         }
 

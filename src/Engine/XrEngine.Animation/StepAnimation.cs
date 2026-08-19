@@ -14,7 +14,6 @@ namespace XrEngine.Animation
             protected float _stepDuration;
             protected float _invStepDuration;
 
-
             public Control(IAnimationManager manager, StepAnimation<TValue> animation, IAnimable? host)
                 : base(manager, animation, host)
             {
@@ -93,6 +92,11 @@ namespace XrEngine.Animation
 
         protected IList<AnimationStep<TValue>> _steps = [];
 
+        public StepAnimation(IAnimationValueHandler<TValue>? valueHandler = null)
+            : base(valueHandler)
+        {
+        }
+
         public override IAnimationControl CreateControl(IAnimationManager manager, IAnimable? host = null)
         {
             return new Control(manager, this, host);
@@ -125,7 +129,6 @@ namespace XrEngine.Animation
         public override float Duration => _steps.Count > 0
             ? _steps[_steps.Count - 1].Time
             : 0;
-
 
     }
 }

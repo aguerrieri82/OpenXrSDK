@@ -30,7 +30,16 @@ namespace XrEditor
             if (Player.EditValue is IDisposable disposable)
                 disposable.Dispose();
 
-            Player.EditValue = new AnimationPlayer(newValue);
+            IAnimable? animableHost;
+
+            if (Host is AnimationsHost animHost)
+                animableHost = animHost.Host;
+            else if (Host is IAnimable anim)
+                animableHost = anim;
+            else
+                throw new NotSupportedException();
+
+            Player.EditValue = new AnimationPlayer(newValue, animableHost);
         }
 
         public void Dispose()

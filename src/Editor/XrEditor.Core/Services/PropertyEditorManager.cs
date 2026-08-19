@@ -31,10 +31,10 @@ namespace XrEditor.Services
             Register(new ListEditorFactory());
         }
 
-        public IPropertyEditor? CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor? CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             var factory = _factories.FirstOrDefault(a => a.CanHandle(type));
-            return factory?.CreateEditor(type, attributes);
+            return factory?.CreateEditor(type, attributes, host);
         }
 
         public void Register(IPropertyEditorFactory factory)

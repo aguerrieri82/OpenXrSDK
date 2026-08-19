@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
-    public static  class TimeFunctions
+    public static class TimeFunctions
     {
         public static float Linear(float t, float duration) => t;
 

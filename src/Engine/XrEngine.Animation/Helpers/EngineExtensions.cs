@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public static class EngineExtensions
     {
+        public static AnimationBuilder<T> Animate<T>(this T self) where T : Object3D
+        {
+            return new AnimationBuilder<T>(self);
+        }
+
         public static void Animate(this Object3D self, string? animationName = null, bool selfOnly = false)
         {
             if (!self.Scene!.TryComponent<AnimationManager>(out var controller))

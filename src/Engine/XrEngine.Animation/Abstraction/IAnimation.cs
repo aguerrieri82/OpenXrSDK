@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public delegate float TimeFunctionDelegate(float t, float duration);
 
@@ -43,9 +39,8 @@ namespace XrEngine.Animation
 
         int IterationCount { get; set; }
 
-        string? Name { get; }
+        string? Name { get; set; }
     }
-
 
     public interface IAnimation<TValue> : IAnimation
     {

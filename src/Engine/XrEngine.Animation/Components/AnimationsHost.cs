@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public class AnimationsHost : BaseComponent<Object3D>, IAnimationsHost
     {
@@ -23,7 +19,6 @@ namespace XrEngine.Animation
         {
             _animations.Clear();
         }
-
 
         [Action]
         public void Animate()

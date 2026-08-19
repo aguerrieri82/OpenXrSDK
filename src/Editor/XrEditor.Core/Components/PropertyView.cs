@@ -47,7 +47,7 @@ namespace XrEditor
 
                 var valueType = propType.GetGenericArguments()[0];
 
-                var editor = manager.CreateEditor(valueType, field.GetCustomAttributes());
+                var editor = manager.CreateEditor(valueType, field.GetCustomAttributes(), obj);
 
                 if (editor == null)
                     continue;
@@ -95,7 +95,7 @@ namespace XrEditor
                 if (!prop.CanWrite && editableAttr == null)
                     continue;
 
-                var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
+                var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes(), obj);
 
                 if (editor == null)
                 {

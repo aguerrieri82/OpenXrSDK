@@ -1411,16 +1411,15 @@ namespace XrSamples
 
             scene.AddChild(mesh);
 
-            var host = mesh.Component<AnimationsHost>();
-
-            host.AddAnimation(ComputedAnimation.Create(
-                ComputeFunctions.Jump(
+            mesh.Animate()
+                .Name("Jump")
+                .Target(a => a.WorldPosition)
+                .Realative()
+                .FromFunction(ComputeFunctions.Jump(
                     0,
                     Vector3.Normalize(new Vector3(0, 2, 1)),
-                    intensity: 5),
-                "Jump",
-                getTarget: _ => mesh.WorldPosition,
-                setTarget: t => mesh.WorldPosition = t.Value));
+                    intensity: 5))
+                .Add();
 
 
             void ConfigureIk(Joint3D root)

@@ -15,9 +15,12 @@ namespace XrEditor.Services
 
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
-            return new ItemListEditor();
+            return new ItemListEditor()
+            {
+                Host = host
+            };
         }
     }
 }

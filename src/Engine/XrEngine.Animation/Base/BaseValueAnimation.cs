@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Linq;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public abstract class BaseValueAnimation<TValue> : IAnimation
     {
@@ -17,13 +12,12 @@ namespace XrEngine.Animation
 
         protected readonly IAnimationValueHandler<TValue> _valueHandler;
 
-        public BaseValueAnimation()
+        public BaseValueAnimation(IAnimationValueHandler<TValue>? valueHandler = null)
         {
             _iterationCount = 1;
             _direction = AnimationDirection.Forward;
-            _valueHandler = CreateValueHandler();
+            _valueHandler = (valueHandler ?? CreateValueHandler());
         }
-
 
         public virtual IAnimationValueHandler<TValue> CreateValueHandler()
         {

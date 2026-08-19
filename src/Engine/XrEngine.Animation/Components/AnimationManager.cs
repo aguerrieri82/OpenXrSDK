@@ -4,29 +4,26 @@
     {
         protected readonly List<IAnimationControl> _animations = [];
 
-
         public IAnimationControl Create(IAnimation animation, IAnimable? host = null)
         {
-            var playback = _animations.FirstOrDefault(a =>
+            var control = _animations.FirstOrDefault(a =>
                 a.Animation == animation &&
                 a.Host == host);
 
-            if (playback != null)
-                return playback;
+            if (control != null)
+                return control;
 
-            playback = animation.CreateControl(this, host);
+            control = animation.CreateControl(this, host);
 
-            _animations.Add(playback);
+            _animations.Add(control);
 
-            return playback;
+            return control;
         }
-
 
         public void Remove(IAnimationControl playback)
         {
             _animations.Remove(playback);
         }
-
 
         protected override void Update(RenderContext ctx)
         {
@@ -35,7 +32,6 @@
             for (var i = _animations.Count - 1; i >= 0; i--)
                 _animations[i].Step(referenceTime);
         }
-
 
         [Action]
         public void StopAll()
