@@ -92,7 +92,7 @@ namespace XrEngine.Animation
             return this;
         }
 
-        public AnimationBuilder<THost> FromFunction(ComputeFunction<TValue> compute)
+        public AnimationBuilder<THost> FromFunction(IComputeFunction<TValue> compute)
         {
             if (_steps != null)
                 throw new InvalidOperationException("A computed animation cannot be defined after keyframes have been added.");
@@ -282,12 +282,11 @@ namespace XrEngine.Animation
             if (_host == null)
                 throw new InvalidOperationException("Add() requires a host object. Use Build() to create a host-independent animation.");
 
-            if (!_host.TryComponent<AnimationsHost>(out var host))
-                host = _host.AddComponent<AnimationsHost>();
+            var animHost = _host.EnsureComponent<AnimationsHost>();
 
             var animation = Build();
 
-            host.AddAnimation(animation);
+            animHost.AddAnimation(animation);
 
             return animation;
         }
@@ -300,8 +299,7 @@ namespace XrEngine.Animation
             if (_host.Scene == null)
                 throw new InvalidOperationException("Create() requires the host object to be attached to a scene.");
 
-            if (!_host.Scene.TryComponent<AnimationManager>(out var manager))
-                manager = _host.Scene.AddComponent<AnimationManager>();
+            var manager = _host.Scene.EnsureComponent<AnimationManager>();
 
             return manager.Create(Build(), _host);
         }

@@ -1,29 +1,18 @@
 ﻿namespace XrEngine.Animation
 {
-    public delegate T ComputeFunctionDelegate<T>(float t);
 
-    public struct ComputeFunction<T>
-    {
-        public float Duration;
-
-        public ComputeFunctionDelegate<T> GetValue;
-    }
 
     public static class ComputedAnimation
     {
-        public static ComputedAnimation<T> Create<T>(
-            ComputeFunctionDelegate<T> getValue,
+        public static ComputedAnimation<TValue> Create<TValue>(
+            ComputeFunctionDelegate<TValue> getValue, 
             float duration = 1)
         {
-            return new ComputedAnimation<T>(new ComputeFunction<T>
-            {
-                Duration = duration,
-                GetValue = getValue
-            });
+            return new ComputedAnimation<TValue>(new DelegateComputeFunction<TValue>(getValue, duration));
         }
 
         public static ComputedAnimation<TValue> Create<TValue>(
-            ComputeFunction<TValue> compute,
+            IComputeFunction<TValue> compute,
             string? name = null,
             Action<AnimationTarget<TValue>>? setTarget = null,
             Func<IAnimable?, TValue>? getTarget = null)
@@ -38,7 +27,7 @@
         }
     }
 
-    public class ComputedAnimation<TValue> : BaseValueAnimation<TValue>
+    public class ComputedAnimation<TValue> : BaseValueAnimation<TValue>, IComputedAnimation
     {
         #region Control
 
@@ -120,9 +109,9 @@
 
         #endregion
 
-        protected ComputeFunction<TValue> _compute;
+        protected IComputeFunction<TValue> _compute;
 
-        public ComputedAnimation(ComputeFunction<TValue> compute, IAnimationValueHandler<TValue>? valueHandler = null)
+        public ComputedAnimation(IComputeFunction<TValue> compute, IAnimationValueHandler<TValue>? valueHandler = null)
             : base(valueHandler)
         {
             _compute = compute;
@@ -139,10 +128,15 @@
             return true;
         }
 
+        IComputeFunction IComputedAnimation.Compute => _compute;
+
         public Func<IAnimable?, TValue>? GetTarget { get; set; }
 
         public bool IsRelative { get; set; }
 
         public override float Duration => _compute.Duration;
+
+        [Editable]
+        public IComputeFunction<TValue> Compute => _compute;
     }
 }

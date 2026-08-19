@@ -1414,13 +1414,14 @@ namespace XrSamples
             mesh.Animate()
                 .Name("Jump")
                 .Target(a => a.WorldPosition)
-                .Realative()
+                .Relative()
                 .FromFunction(ComputeFunctions.Jump(
                     0,
                     Vector3.Normalize(new Vector3(0, 2, 1)),
                     intensity: 5))
                 .Add();
 
+            //var control = mesh.Animate("Jump");
 
             void ConfigureIk(Joint3D root)
             {
@@ -2456,6 +2457,7 @@ namespace XrSamples
                 if (!isRoomCaptured)
                 {
                     var model = scene.FindByName<TriangleMesh>("Mesh");
+
                     if (model != null && model.Component<XrAnchorUpdate>().HasPose)
                     {
                         model.Geometry!.EnsureIndices();

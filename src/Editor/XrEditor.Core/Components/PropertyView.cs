@@ -99,7 +99,7 @@ namespace XrEditor
 
                 if (editor == null)
                 {
-                    if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
+                    if ((prop.PropertyType.IsClass || prop.PropertyType.IsInterface) && prop.PropertyType != typeof(string))
                     {
                         var value = prop.GetValue(obj);
 

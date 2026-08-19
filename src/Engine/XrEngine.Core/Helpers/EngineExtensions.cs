@@ -40,6 +40,13 @@ namespace XrEngine
             return result;
         }
 
+        public static T EnsureComponent<T>(this EngineObject self) where T : IComponent, new()
+        {
+            if (!self.TryComponent<T>(out var result))
+                result = self.AddComponent<T>();
+            return result;
+        }
+
         public static T AddComponent<T>(this EngineObject self) where T : IComponent, new()
         {
             var result = new T();

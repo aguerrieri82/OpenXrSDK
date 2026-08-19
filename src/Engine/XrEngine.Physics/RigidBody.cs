@@ -309,9 +309,7 @@ namespace XrEngine.Physics
 
             _host.Scene.TryComponent(out _manager);
 
-            _system = _manager?.System;
-
-            if (_system == null)
+            _system = _manager?.System ?? 
                 throw new NotSupportedException("Add PhysicsManager to the scene");
 
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
