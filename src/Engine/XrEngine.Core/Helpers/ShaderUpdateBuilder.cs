@@ -6,6 +6,7 @@ using System.Text;
 using XrEngine.Helpers;
 using XrMath;
 
+
 namespace XrEngine
 {
     public delegate void UpdateUniformAction(UpdateShaderContext ctx, IUniformProvider up);
@@ -24,6 +25,8 @@ namespace XrEngine
 
         public HashSet<string>? Extensions;
 
+        public Dictionary<string, string>? Slots;
+
         public long ShaderVersion;
 
         public ulong LightsHash;
@@ -31,6 +34,8 @@ namespace XrEngine
         public ulong FeaturesHash;
 
         public IShaderHandler?[]? ShaderHandlers;
+
+
     }
 
     public enum UpdateShaderStage
@@ -398,6 +403,12 @@ namespace XrEngine
             _result.Extensions.Add(name);
         }
 
+        internal void SetSlot(string name, string value)
+        {
+            _result.Slots ??= [];
+            _result.Slots[name] = value;
+        }
+
         public readonly void ComputeHash(string shaderId)
         {
             _result.FeaturesHash = HashBuilder.Instance.Compute(shaderId, _result.Features);
@@ -408,6 +419,7 @@ namespace XrEngine
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
         }
 
+    
         public StringBuilder Logs { get; } = new StringBuilder();
 
         public UpdateShaderContext Context { get; }

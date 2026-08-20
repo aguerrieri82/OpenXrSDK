@@ -53,13 +53,14 @@ public sealed class GlslPreprocessor
 
     public int MaxIncludeDepth { get; set; } = 64;
 
-    public string Process(string sourceName, IReadOnlyList<string>? defines = null, IReadOnlyList<GlslRuntimeDefine>? runtimeDefines = null)
+    public string Process(string sourceName, IReadOnlyList<string>? defines = null,
+        IReadOnlyList<GlslRuntimeDefine>? runtimeDefines = null, IReadOnlyDictionary<string, string>? slots = null)
     {
         if (sourceName == null)
             throw new ArgumentNullException(nameof(sourceName));
 
         sourceName = NormalizePath(sourceName);
-        var context = new Context(this, sourceName, runtimeDefines);
+        var context = new Context(this, sourceName, runtimeDefines, slots);
 
         if (defines != null)
         {
@@ -88,13 +89,34 @@ public sealed class GlslPreprocessor
         private readonly HashSet<string> _included = new(StringComparer.Ordinal);
         private readonly Dictionary<string, GlslRuntimeDefine>? _runtimeDefines;
         private readonly HashSet<string>? _usedRuntimeDefines;
+        private readonly Dictionary<string, string>? _slots;
+        private readonly HashSet<string> _activeSlots = new(StringComparer.Ordinal);
         private int _nextFileId = 1;
         private int _version = 100;
 
-        public Context(GlslPreprocessor owner, string sourceName, IReadOnlyList<GlslRuntimeDefine>? runtimeDefines)
+        public Context(GlslPreprocessor owner, string sourceName, IReadOnlyList<GlslRuntimeDefine>? runtimeDefines,
+            IReadOnlyDictionary<string, string>? slots)
         {
             _owner = owner;
             _fileIds[sourceName] = 0;
+
+            if (slots is { Count: > 0 })
+            {
+                _slots = new Dictionary<string, string>(slots.Count, StringComparer.Ordinal);
+
+                foreach (var slot in slots)
+                {
+                    var p = 0;
+                    var name = ReadIdentifier(slot.Key, ref p);
+                    if (name.Length == 0 || p != slot.Key.Length)
+                        throw new ArgumentException($"Invalid slot name '{slot.Key}'.", nameof(slots));
+
+                    if (slot.Value == null)
+                        throw new ArgumentException($"Slot '{slot.Key}' has a null value.", nameof(slots));
+
+                    _slots.Add(slot.Key, slot.Value);
+                }
+            }
 
             if (runtimeDefines is { Count: > 0 })
             {
@@ -163,7 +185,7 @@ public sealed class GlslPreprocessor
             return ProcessSource(source, fileName, GetFileId(fileName), includeDepth);
         }
 
-        private string ProcessSource(string source, string fileName, int fileId, int includeDepth)
+        private string ProcessSource(string source, string fileName, int fileId, int includeDepth, GlslScopeTracker? sharedScope = null)
         {
             if (includeDepth > _owner.MaxIncludeDepth)
                 throw new GlslPreprocessorException(fileName, 0, $"Maximum include depth of {_owner.MaxIncludeDepth} exceeded.");
@@ -171,7 +193,7 @@ public sealed class GlslPreprocessor
             var result = new StringBuilder(source.Length);
             var conditions = new Stack<ConditionalFrame>();
             var inBlockComment = false;
-            var scope = new GlslScopeTracker();
+            var scope = sharedScope ?? new GlslScopeTracker();
 
             foreach (var logicalLine in ReadLogicalLines(source))
             {
@@ -203,6 +225,14 @@ public sealed class GlslPreprocessor
                                 var includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
 
                                 result.Append(ProcessFile(includePath, includeDepth + 1));
+                            }
+                            break;
+
+                        case "slot":
+                            if (active)
+                            {
+                                var name = ParseSingleIdentifier(argument, fileName, logicalLine.LineNumber, "#slot");
+                                result.Append(ProcessSlot(name, fileName, fileId, includeDepth, logicalLine.LineNumber, scope));
                             }
                             break;
 
@@ -423,6 +453,25 @@ public sealed class GlslPreprocessor
                 throw new GlslPreprocessorException(fileName, 0, "Unterminated conditional block; missing #endif.");
 
             return result.ToString();
+        }
+
+        private string ProcessSlot(string name, string fileName, int fileId, int includeDepth, int lineNumber,
+            GlslScopeTracker scope)
+        {
+            if (_slots == null || !_slots.TryGetValue(name, out var source))
+                throw new GlslPreprocessorException(fileName, lineNumber, $"Slot '{name}' has no replacement.");
+
+            if (!_activeSlots.Add(name))
+                throw new GlslPreprocessorException(fileName, lineNumber, $"Recursive slot expansion detected for '{name}'.");
+
+            try
+            {
+                return ProcessSource(source, fileName, fileId, includeDepth, scope);
+            }
+            finally
+            {
+                _activeSlots.Remove(name);
+            }
         }
 
         public void Define(string definition, string fileName, int lineNumber)

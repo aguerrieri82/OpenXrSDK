@@ -254,6 +254,7 @@ namespace XrEngine.OpenGL
                     program.AddExtension(ext);
             }
 
+
             if (_materialUpdate!.Extensions != null)
             {
                 foreach (var ext in _materialUpdate.Extensions)
@@ -270,6 +271,13 @@ namespace XrEngine.OpenGL
             {
                 foreach (var feature in _materialUpdate.DynamicFeatures)
                     program.AddDynamicFeature(feature);
+            }
+
+
+            if (_materialUpdate.Slots != null)
+            {
+                foreach (var entry in _materialUpdate.Slots)
+                    program.SetSlot(entry.Key, entry.Value);
             }
 
             if (Global.ShaderUpdate?.Extensions != null)

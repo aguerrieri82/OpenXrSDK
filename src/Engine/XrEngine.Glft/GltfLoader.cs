@@ -791,18 +791,16 @@ namespace XrEngine.Gltf
             {
                 var geoMorph = result.EnsureComponent<MorphedGeometry>();
 
+                geoMorph.Targets = new MorphTarget[primitive.Targets.Length];
+
                 var iTarget = 0;
 
                 foreach (var target in primitive.Targets)
                 {
-                    geoMorph.Targets ??= new MorphTarget[primitive.Targets.Length];
-
-                    var geoTarget = new MorphTarget()
+                    var morphTarget = new MorphTarget()
                     {
                         Components = new MorphComponent[target.Count]
                     };
-
-                    geoMorph.Targets[iTarget] = geoTarget;
 
                     var iComp = 0;
 
@@ -813,29 +811,33 @@ namespace XrEngine.Gltf
                         Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                         Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
 
-                        var geoComp = new MorphComponent
+                        var morphComp = new MorphComponent
                         {
                             Values = ConvertBuffer<Vector3>(acc)
                         };
 
-                        geoTarget.Components[iComp] = geoComp;
-
                         switch (attr.Key)
                         {
                             case "POSITION":
-                                geoComp.Component = VertexComponent.MorphPosition;
+                                morphComp.Component = VertexComponent.MorphPosition;
                                 break;
                             case "NORMAL":
-                                geoComp.Component = VertexComponent.MorphNormal;
+                                morphComp.Component = VertexComponent.MorphNormal;
                                 break;
                             case "TANGENT":
-                                geoComp.Component = VertexComponent.MorphTangent;
+                                morphComp.Component = VertexComponent.MorphTangent;
                                 break;
                             default:
                                 throw new NotSupportedException();
                         }
+
+                        morphTarget.Components[iComp] = morphComp;
+
                         iComp++;
                     }
+
+                    geoMorph.Targets[iTarget] = morphTarget;
+
                     iTarget++;
                 }
             }
@@ -1245,7 +1247,11 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = t => obj3d.Component<MeshMorph>().Weights = t.Value
+                        SetTarget = t =>
+                        {
+                            foreach (var meshMorph in obj3d.ComponentsDeep<MeshMorph>())
+                                meshMorph.Weights = t.Value;
+                        }
                     });
                 }
                 else

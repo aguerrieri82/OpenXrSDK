@@ -58,4 +58,4 @@ layout(std140, binding = 6) uniform MorphUniformBuffer
 
 #endif
 
-APPLY_MORPH
+#slot APPLY_MORPH

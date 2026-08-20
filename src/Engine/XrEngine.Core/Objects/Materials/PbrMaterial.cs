@@ -675,6 +675,7 @@ namespace XrEngine
             if ((bld.Context.ActiveComponents & VertexComponent.UV1) != 0)
                 bld.AddFeature("HAS_UV2");
 
+            base.UpdateShaderMaterial(bld);
         }
 
         public override void GetState(IStateContainer container)

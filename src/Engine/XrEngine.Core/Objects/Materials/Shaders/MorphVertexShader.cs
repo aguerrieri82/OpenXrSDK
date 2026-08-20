@@ -47,12 +47,12 @@ namespace XrEngine.Objects.Materials.Shaders
             Generate(bld, mesh, geo);
         }
 
-        static void Generate(ShaderUpdateBuilder bld, IMorphedMesh mesh, MorphedGeometry geo)
+        static void Generate(ShaderUpdateBuilder bld, IMorphedMesh morphMesh, MorphedGeometry morphGeo)
         {
-            if (geo.Targets == null || mesh.Weights.Length == 0)
+            if (morphGeo.Targets == null || morphMesh.Weights.Length == 0)
                 return;
 
-            var targetCount = Math.Min(mesh.Weights.Length, geo.Targets.Length);
+            var targetCount = Math.Min(morphMesh.Weights.Length, morphGeo.Targets.Length);
 
             if (targetCount > MorphUniforms.MaxTargets)
                 throw new InvalidOperationException();
@@ -63,9 +63,9 @@ namespace XrEngine.Objects.Materials.Shaders
             bld.AddFeature("USE_MORPH");
             bld.AddFeature($"MAX_MORPH_TARGETS {MorphUniforms.MaxTargets}");
 
-            var storage = geo.StorageType == MorphStorageType.Auto
+            var storage = morphGeo.StorageType == MorphStorageType.Auto
                 ? MorphStorageType.Texture
-                : geo.StorageType;
+                : morphGeo.StorageType;
 
             if (storage == MorphStorageType.Ssbo)
             {
@@ -73,9 +73,9 @@ namespace XrEngine.Objects.Materials.Shaders
 
                 uint ofs = 0;
 
-                for (var targetIndex = 0; targetIndex < geo.Targets.Length; targetIndex++)
+                for (var targetIndex = 0; targetIndex < morphGeo.Targets.Length; targetIndex++)
                 {
-                    var target = geo.Targets[targetIndex];
+                    var target = morphGeo.Targets[targetIndex];
 
                     foreach (var component in target.Components)
                     {
@@ -96,6 +96,8 @@ namespace XrEngine.Objects.Materials.Shaders
                                 case VertexComponent.MorphTangent:
                                     dst.TangentOfs = ofs;
                                     break;
+                                default:
+                                    throw new NotSupportedException();
                             }
                         }
 
@@ -107,10 +109,10 @@ namespace XrEngine.Objects.Materials.Shaders
                 {
                     var buffer = (IBuffer<Vector3>)ctx.CurrentBuffer!;
 
-                    if (buffer.Version != geo.Host!.Version)
+                    if (buffer.Version != morphGeo.Host!.Version)
                     {
-                        geo.UpdateBuffer(buffer);
-                        buffer.Version = geo.Host.Version;
+                        morphGeo.UpdateBuffer(buffer);
+                        buffer.Version = morphGeo.Host.Version;
                     }
 
                     return null;
@@ -121,13 +123,13 @@ namespace XrEngine.Objects.Materials.Shaders
             {
                 bld.AddFeature("USE_MORPH_TEXTURE");
 
-                var texture = geo.CreateTexture();
+                var texture = morphGeo.CreateTexture();
                 var width = texture.Width;
                 uint row = 0;
 
-                for (var targetIndex = 0; targetIndex < geo.Targets.Length; targetIndex++)
+                for (var targetIndex = 0; targetIndex < morphGeo.Targets.Length; targetIndex++)
                 {
-                    var target = geo.Targets[targetIndex];
+                    var target = morphGeo.Targets[targetIndex];
 
                     foreach (var component in target.Components)
                     {
@@ -148,6 +150,8 @@ namespace XrEngine.Objects.Materials.Shaders
                                 case VertexComponent.MorphTangent:
                                     dst.TangentOfs = row;
                                     break;
+                                default:
+                                    throw new NotSupportedException();
                             }
                         }
 
@@ -171,51 +175,47 @@ namespace XrEngine.Objects.Materials.Shaders
 
             for (var targetIndex = 0; targetIndex < targetCount; targetIndex++)
             {
-                var target = geo.Targets[targetIndex];
+                var target = morphGeo.Targets[targetIndex];
 
                 foreach (var component in target.Components)
                 {
                     switch (component.Component)
                     {
                         case VertexComponent.MorphPosition:
-                            bld.AddFeature($"MORPH_TARGET_{targetIndex}_POSITION");
-
                             builder.AppendLine(
                                 $"    position += morphFetch(uMorphTargets[{targetIndex}].positionOfs) * uMorphTargets[{targetIndex}].weight;");
                             break;
 
                         case VertexComponent.MorphNormal:
-                            bld.AddFeature($"MORPH_TARGET_{targetIndex}_NORMAL");
-
                             builder.AppendLine(
                                 $"    normal += morphFetch(uMorphTargets[{targetIndex}].normalOfs) * uMorphTargets[{targetIndex}].weight;");
                             break;
 
                         case VertexComponent.MorphTangent:
-                            bld.AddFeature($"MORPH_TARGET_{targetIndex}_TANGENT");
-
                             builder.AppendLine("#ifdef HAS_TANGENTS");
                             builder.AppendLine(
                                 $"    tangent += morphFetch(uMorphTargets[{targetIndex}].tangentOfs) * uMorphTargets[{targetIndex}].weight;");
                             builder.AppendLine("#endif");
                             break;
+                        default:
+                            throw new NotSupportedException();
                     }
                 }
             }
 
             builder.AppendLine("}");
 
-            bld.AddFeature($"APPLY_MORPH {builder}");
+            bld.SetSlot("APPLY_MORPH", builder.ToString());
 
             bld.LoadBuffer<MorphUniforms>(ctx =>
             {
-                var curVer = geo.Host!.Version + mesh.MorphVersion;
+                var curVer = morphGeo.Host!.Version + morphMesh.MorphVersion;
 
                 if (ctx.CurrentBuffer!.Version == curVer)
                     return null;
 
                 for (var i = 0; i < targetCount; i++)
-                    unif.Targets[i].Weight = mesh.Weights[i];
+                    unif.Targets[i].Weight = morphMesh.Weights[i];
 
                 ctx.CurrentBuffer.Version = curVer;
 

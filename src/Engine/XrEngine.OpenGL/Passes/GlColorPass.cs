@@ -270,6 +270,8 @@ namespace XrEngine.OpenGL
 
                     ctx.ActiveComponents = matContent.ActiveComponents;
 
+                    ctx.Model = matContent.SingleModel;
+
                     var progChanged = UpdateProgram(ctx, progInst);
 
                     if (!progInst.IsReady)

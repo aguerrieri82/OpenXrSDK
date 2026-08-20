@@ -29,7 +29,6 @@
 
     public struct ShaderMaterialKey
     {
-
         public Guid MateriaId;
 
         public VertexComponent ActiveComponent;
@@ -67,6 +66,8 @@
         public bool UseInstanceDraw;
 
         public VertexComponent ActiveComponents;
+
+        public Object3D? SingleModel;
     }
 
     public class VertexContent

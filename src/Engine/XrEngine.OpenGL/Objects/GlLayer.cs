@@ -336,6 +336,16 @@ namespace XrEngine.OpenGL
 
             materialContent.UseInstanceDraw = _render.Options.UseInstanceDraw && instanceShader != null &&
                                               verContentList.Any(a => a.Contents.Count > 1);
+
+
+            var isSingleDraw = verContentList.Count == 1 && 
+                                           verContentList.First().Contents.Count == 1;
+
+            if (isSingleDraw)
+                materialContent.SingleModel = verContentList.First().Contents[0].Object;
+            else
+                materialContent.SingleModel = null;
+
         }
 
         protected virtual void ConfigureProgramInstance(GlProgramInstance instance)
@@ -389,7 +399,8 @@ namespace XrEngine.OpenGL
 
                 shaderContent.IsDirty = false;
 
-                shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ? 0 : shaderContent.Contents.Max(a => a.Value.Material!.Priority);
+                shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ? 
+                    0 : shaderContent.Contents.Max(a => a.Value.Material!.Priority);
             }
 
             _content.SortedContent = _content.Contents

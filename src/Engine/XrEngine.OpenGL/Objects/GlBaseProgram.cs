@@ -39,10 +39,12 @@ namespace XrEngine.OpenGL
         protected readonly Func<string, string?> _resolver;
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
+        protected readonly Dictionary<string, string> _slots = [];
         protected readonly int[] _boundBuffers = new int[32];
         protected readonly bool _cacheUniforms;
 
         protected ulong _sourceHash;
+
 
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
@@ -557,6 +559,11 @@ namespace XrEngine.OpenGL
             _extensions.Add(name);
         }
 
+        public void SetSlot(string name, string value)
+        {
+            _slots[name] = value;
+        }
+
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
             var builder = new StringBuilder();
@@ -616,7 +623,7 @@ namespace XrEngine.OpenGL
                     .Select(a => new GlslRuntimeDefine(a, a))
                     .ToArray();
 
-                var source = preProc.Process(sourceName, _mergedFetaures, runDefine);
+                var source = preProc.Process(sourceName, _mergedFetaures, runDefine, _slots);
 
                 builder.Append(source);
             }
