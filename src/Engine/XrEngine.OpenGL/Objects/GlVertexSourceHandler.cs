@@ -2,9 +2,10 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using SkiaSharp;
-using System.Diagnostics.CodeAnalysis;
 #endif
+
+using System.Diagnostics;
+
 
 namespace XrEngine.OpenGL
 {
@@ -96,12 +97,15 @@ namespace XrEngine.OpenGL
 
                 for (var i = 0; i < attrLen; i++)
                 {
-                    var array = attrs.GetBuffer(i);
-                    var elementType = array.GetType().GetElementType()!;
-                    var buffer = GlBuffer.Create(_gl, BufferTargetARB.ArrayBuffer, elementType);
+                    var attrBuffer = attrs.GetBuffer(i);
 
-                    var layout = CreateLayout(elementType);
-                    _vertices.AddAttributes(buffer, layout, elementType);
+                    var elementType = attrBuffer.ElementType ?? attrBuffer.Data.GetType().GetElementType()!;
+
+                    var glBuffer = GlBuffer.Create(_gl, BufferTargetARB.ArrayBuffer, elementType);
+
+                    var layout = CreateLayout(elementType, attrBuffer.BaseLocation, attrBuffer.Component);
+
+                    _vertices.AddAttributes(glBuffer, layout, elementType);
                 }
             }
 
@@ -113,13 +117,22 @@ namespace XrEngine.OpenGL
             return (GlVertexSourceHandle)Activator.CreateInstance(GetType(), this)!;
         }
 
-        protected GlVertexLayout CreateLayout(Type type)
+        protected GlVertexLayout CreateLayout(Type type, uint baseLocation = 0, VertexComponent component = VertexComponent.None)
         {
             var lKey = string.Concat(type.FullName, _source.ActiveComponents);
 
             if (!_layouts.TryGetValue(lKey, out var layout))
             {
-                layout = GlVertexLayout.FromType(type, _source.ActiveComponents);
+                layout = GlVertexLayout.FromType(type, _source.ActiveComponents, baseLocation);
+
+                if (component != VertexComponent.None)
+                {
+                    Debug.Assert(layout.Attributes != null);
+
+                    for (var j = 0; j < layout.Attributes.Length; j++)
+                        layout.Attributes[j].Component = component;
+                }
+
                 _layouts[lKey] = layout;
             }
 
@@ -198,8 +211,8 @@ namespace XrEngine.OpenGL
             {
                 for (int i = 0; i < attrs.BufferCount; i++)
                 {
-                    var array = attrs.GetBuffer(i);
-                    _vertices.UpdateAttributes(array, i);
+                    var attrBuffer = attrs.GetBuffer(i);
+                    _vertices.UpdateAttributes(attrBuffer.Data, i);
                 }
             }
       

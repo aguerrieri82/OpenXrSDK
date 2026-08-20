@@ -139,11 +139,18 @@ namespace XrEngine
 
         public AlphaMode Alpha { get; set; }
 
+        public SkinMode SkinMode { get; set; }
+
+        public bool HasSkin { get; set; }
+
+        public bool HasMorph { get; set; }
+
         public string? Name { get; set; }
 
         public int ShadingRate { get; set; }
 
         public int Priority { get; set; }
+
 
         [Notify(ChangeType.MaterialEnabled)]
         public partial bool IsEnabled { get; set; }

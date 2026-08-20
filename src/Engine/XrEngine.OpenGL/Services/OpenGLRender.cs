@@ -178,6 +178,14 @@ namespace XrEngine.OpenGL
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _features.MaxTextureUnits);
 
+            _gl.GetInteger(GetPName.MaxVertexTextureImageUnits, out _features.MaxVertexTextureUnits);
+
+            _gl.GetInteger(GetPName.MaxVertexAttribs, out _features.MaxVertexAttribs);
+
+            _gl.GetInteger(GetPName.MaxTextureSize, out var maxTextureSize);
+            _features.MaxTextureSize = new Size2I((uint)maxTextureSize, (uint)maxTextureSize);
+
+
             _features.GpuName = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Renderer)) ?? "";
 
             _features.IsNvidia = _features.GpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);

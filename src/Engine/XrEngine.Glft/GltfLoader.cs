@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using XrEngine.Animation;
-using XrEngine.Objects;
+using XrEngine.Components;
 using XrMath;
 using static glTFLoader.Schema.AnimationSampler;
 using static glTFLoader.Schema.Material;
@@ -787,6 +787,59 @@ namespace XrEngine.Gltf
             if (_options.GeometryGpuOnly)
                 result.Flags |= EngineObjectFlags.GpuOnly;
 
+            if (primitive.Targets != null && primitive.Targets.Length > 0)
+            {
+                var geoMorph = result.EnsureComponent<MorphedGeometry>();
+
+                var iTarget = 0;
+
+                foreach (var target in primitive.Targets)
+                {
+                    geoMorph.Targets ??= new MorphTarget[primitive.Targets.Length];
+
+                    var geoTarget = new MorphTarget()
+                    {
+                        Components = new MorphComponent[target.Count]
+                    };
+
+                    geoMorph.Targets[iTarget] = geoTarget;
+
+                    var iComp = 0;
+
+                    foreach (var attr in target)
+                    {
+                        var acc = _model!.Accessors[attr.Value];
+
+                        Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
+                        Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
+
+                        var geoComp = new MorphComponent
+                        {
+                            Values = ConvertBuffer<Vector3>(acc)
+                        };
+
+                        geoTarget.Components[iComp] = geoComp;
+
+                        switch (attr.Key)
+                        {
+                            case "POSITION":
+                                geoComp.Component = VertexComponent.MorphPosition;
+                                break;
+                            case "NORMAL":
+                                geoComp.Component = VertexComponent.MorphNormal;
+                                break;
+                            case "TANGENT":
+                                geoComp.Component = VertexComponent.MorphTangent;
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
+                        iComp++;
+                    }
+                    iTarget++;
+                }
+            }
+
             return result;
         }
 
@@ -796,7 +849,7 @@ namespace XrEngine.Gltf
                 _log.AppendLine(text);
         }
 
-        public Object3D Duplicate(Object3D obj)
+        static Object3D Clone(Object3D obj)
         {
             Object3D result;
 
@@ -817,7 +870,7 @@ namespace XrEngine.Gltf
                 var newGroup = new Group3D();
 
                 foreach (var child in group.Children)
-                    newGroup.AddChild(Duplicate(child));
+                    newGroup.AddChild(Clone(child));
                 result = newGroup;
             }
             else
@@ -829,7 +882,7 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        public Object3D ProcessMesh(int meshId, int? skinId, Object3D? result = null)
+        public Object3D ProcessMesh(int meshId, Node? node, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
 
@@ -838,7 +891,7 @@ namespace XrEngine.Gltf
                 if (_options.UseInstances)
                     return new Object3DInstance() { Reference = result };
 
-                return Duplicate(result);
+                return Clone(result);
             }
 
             CheckExtensions(gltMesh.Extensions);
@@ -854,19 +907,26 @@ namespace XrEngine.Gltf
                     Geometry = new Geometry3D()
                 };
 
-                if (skinId != null)
+                if (node?.Skin != null)
                 {
-                    var skin = _skins[skinId.Value];
+                    var skin = _skins[node.Skin.Value];
 
                     curMesh.AddComponent(new MeshSkin()
                     {
                         Joints = skin.Joints?.ToArray() ?? [],
                         SkinId = skin.Id
                     });
-
                 }
 
-                Debug.Assert(primitive.Targets == null);
+                var weights = node?.Weights ?? gltMesh.Weights;
+
+                if (weights != null && weights.Length > 0)
+                {
+                    curMesh.AddComponent(new MeshMorph()
+                    {
+                        Weights = weights
+                    });
+                }
 
                 CheckExtensions(primitive.Extensions);
 
@@ -886,7 +946,8 @@ namespace XrEngine.Gltf
                 {
                     var mat = ProcessMaterial(primitive.Material.Value);
                     mat.SkinMode = SkinMode.Static;
-                    mat.HasSkin = skinId != null;
+                    mat.HasSkin = node?.Skin != null;
+                    mat.HasMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
                 }
 
@@ -944,7 +1005,7 @@ namespace XrEngine.Gltf
 
             if (node.Mesh != null)
             {
-                Object3D nodeMesh = ProcessMesh(node.Mesh.Value, node.Skin);
+                Object3D nodeMesh = ProcessMesh(node.Mesh.Value, node);
 
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
@@ -1048,6 +1109,8 @@ namespace XrEngine.Gltf
 
         protected void ProcessAnimation(glTFLoader.Schema.Animation anim, Object3D root)
         {
+            Debug.Assert(_model != null);
+
             CheckExtensions(anim.Extensions);
 
             var samplers = new List<GltfSampler>();
@@ -1059,15 +1122,42 @@ namespace XrEngine.Gltf
                 var times = ConvertBuffer<float>(sampler.Input);
                 var values = ConvertBuffer(sampler.Output);
 
-                samplers.Add(new GltfSampler
+                var ratio = values.Length / times.Length;
+
+                var gltfSampler = new GltfSampler
                 {
-                    Interpolation = sampler.Interpolation,
-                    Values = times.Select((v, i) => new GltfSamplerValue
+                    Interpolation = sampler.Interpolation
+                };
+
+                if (ratio == 1)
+                {
+                    gltfSampler.Values = times.Select((v, i) => new GltfSamplerValue
                     {
                         Time = v,
                         Value = values.GetValue(i)!
-                    }).ToArray()
-                });
+                    }).ToArray();
+                }
+                else
+                {
+                    var valueType = values.GetType().GetElementType()!;
+
+                    gltfSampler.Values = times.Select((v, i) =>
+                    {
+                        var valueArray = Array.CreateInstance(valueType, ratio);
+
+                        for (var j = 0; j < ratio; j++)
+                            valueArray.SetValue(values.GetValue((i * ratio) + j)!, j);
+
+                        return new GltfSamplerValue
+                        {
+                            Time = v,
+                            Value = valueArray
+                        };
+
+                    }).ToArray();
+                }
+
+                samplers.Add(gltfSampler);
             }
 
 
@@ -1085,9 +1175,9 @@ namespace XrEngine.Gltf
                     continue;
 
                 var sampler = samplers[channel.Sampler];
-                var node = _nodes[channel.Target.Node.Value];
+                var obj3d = _nodes[channel.Target.Node.Value];
                 var path = channel.Target.Path;
-
+ 
 
                 TimeFunctionDelegate timeFunc;
 
@@ -1110,7 +1200,7 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = t => node.Transform.Scale = t.Value
+                        SetTarget = t => obj3d.Transform.Scale = t.Value
                     });
                 }
                 else if (path == "translation")
@@ -1125,7 +1215,7 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = t => node.Transform.Position = t.Value
+                        SetTarget = t => obj3d.Transform.Position = t.Value
                     });
                 }
                 else if (path == "rotation")
@@ -1140,7 +1230,22 @@ namespace XrEngine.Gltf
                         }).ToArray(),
                         IterationCount = 1,
                         Name = anim.Name,
-                        SetTarget = t => node.Transform.Orientation = t.Value
+                        SetTarget = t => obj3d.Transform.Orientation = t.Value
+                    });
+                }
+                else if (path == "weights")
+                {
+                    group.Add(new StepAnimation<float[]>()
+                    {
+                        Steps = sampler.Values!.Select(a => new AnimationStep<float[]>
+                        {
+                            Time = a.Time,
+                            Value = (float[])a.Value,
+                            TimeFunction = timeFunc
+                        }).ToArray(),
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = t => obj3d.Component<MeshMorph>().Weights = t.Value
                     });
                 }
                 else

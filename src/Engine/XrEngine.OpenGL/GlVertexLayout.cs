@@ -33,12 +33,8 @@ namespace XrEngine.OpenGL
 
     public class GlVertexLayout
     {
-        public static GlVertexLayout FromType<T>(VertexComponent activeComponents) where T : unmanaged
-        {
-            return FromType(typeof(T), activeComponents);
-        }
 
-        public static GlVertexLayout FromType(Type baseType, VertexComponent activeComponents)
+        public static GlVertexLayout FromType(Type baseType, VertexComponent activeComponents, uint baseLocation = 0)
         {
             if (baseType == typeof(Vector2))
             {
@@ -46,12 +42,28 @@ namespace XrEngine.OpenGL
                 {
                     Attributes = [new GlVertexAttribute
                     {
-                        Name = "aCorner",
-                        Location = 0,
+                        Name = "aVector2",
+                        Location = baseLocation,
                         Type = VertexAttribPointerType.Float,
                         Count = 2,
                         Offset = 0,
-                        Component = VertexComponent.Position
+                        Component = VertexComponent.None
+                    }],
+                    Size = (uint)MarshalCache.SizeOf(baseType)
+                };
+            }
+            if (baseType == typeof(Vector3))
+            {
+                return new GlVertexLayout
+                {
+                    Attributes = [new GlVertexAttribute
+                    {
+                        Name = "aVector3",
+                        Location = baseLocation,
+                        Type = VertexAttribPointerType.Float,
+                        Count = 3,
+                        Offset = 0,
+                        Component = VertexComponent.None
                     }],
                     Size = (uint)MarshalCache.SizeOf(baseType)
                 };
@@ -73,7 +85,7 @@ namespace XrEngine.OpenGL
                         var item = new GlVertexAttribute
                         {
                             Name = shaderRef.Name,
-                            Location = shaderRef.Location,
+                            Location = baseLocation + shaderRef.Location,
                             Component = shaderRef.Component,
                             Offset = fieldOffset,
                             IsIntegerStore = shaderRef.IsIntegerStore,

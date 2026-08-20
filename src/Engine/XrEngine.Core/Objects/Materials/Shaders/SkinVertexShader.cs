@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public static class SkinVertexShader
     {
-        public static void UpdateShaderModel(ShaderUpdateBuilder bld, bool isDynamic = false)
+        public static void UpdateShader(ShaderUpdateBuilder bld, bool isDynamic = false)
         {
             if (!isDynamic && (bld.Context.Material == null || !bld.Context.Material!.HasSkin))
                 return;

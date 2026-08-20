@@ -6,6 +6,10 @@
     #include "Shared/skin.glsl"
 #endif
 
+#ifdef USE_MORPH
+    #include "Shared/morph.glsl"
+#endif
+
 #ifdef PLANAR_REFLECTION
     #include "Shared/planar_reflection.glsl"
     out vec2 fPlanarUv;
@@ -80,6 +84,18 @@ void main()
 
     vec3 position = aPosition;
     vec3 normal = aNormal;
+    
+    #ifdef HAS_TANGENTS
+        vec4 tangent = aTangent;
+    #endif
+
+    #ifdef USE_MORPH
+        applyMorph(position, normal
+        #ifdef HAS_TANGENTS
+            , tangent.xyz
+        #endif
+        );
+    #endif
 
     #ifdef HAS_SKIN
         skinTransform(position, normal);
@@ -121,8 +137,8 @@ void main()
 	#endif
 
     #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-        vec3 T = normalize(vec3(worldMatrix * vec4(aTangent.xyz, 0.0)));
-	    vec3 B = cross(N, T) * aTangent.w;
+        vec3 T = normalize(vec3(worldMatrix * vec4(tangent.xyz, 0.0)));
+	    vec3 B = cross(N, T) * tangent.w;
 
         fTangentBasis = mat3(T, B, N);
 

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using XrEngine.Objects.Materials.Shaders;
 
 namespace XrEngine
 {
@@ -13,7 +14,6 @@ namespace XrEngine
         [AllowNull]
         protected Shader _shader;
         protected long _lastLightVersion = -1;
-
 
         protected ShaderMaterial()
         {
@@ -65,17 +65,16 @@ namespace XrEngine
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            SkinVertexShader.UpdateShaderModel(bld, true);
+            SkinVertexShader.UpdateShader(bld, true);
+
         }
 
         protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.AddFeature("HAS_SKIN", ctx => HasSkin, SkinMode == SkinMode.Dynamic);
+
+            MorphVertexShader.UpdateShader(bld);
         }
-
-        public SkinMode SkinMode { get; set; }
-
-        public bool HasSkin { get; set; }
 
         public Func<string, string?>? Resolver { get; set; }
     }

@@ -106,11 +106,15 @@ namespace XrEngine
 
         int IVertexAttributes.BufferCount => 1;
 
-        Array IVertexAttributes.GetBuffer(int index)
+        VertexAttributesBuffer IVertexAttributes.GetBuffer(int index)
         {
             Debug.Assert(index == 0);
 
-            return _skin;
+            return new VertexAttributesBuffer
+            {
+                Data = _skin,
+                ElementType = typeof(SkinData)
+            };
         }
     }
 }

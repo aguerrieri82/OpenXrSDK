@@ -18,6 +18,8 @@
         public const int EnvDepth = 8;
         public const int HeightMap = 8;
 
+        public const int Morph = 9;
+
         public const int ProjDepth = 10;
 
         public const int ShadowMap = 14;

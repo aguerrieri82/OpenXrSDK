@@ -31,6 +31,8 @@ namespace XrEngine
         public bool ClipControl;
         public int MaxVertexSsboBlocks;
         public int MaxTextureUnits;
+        public int MaxVertexAttribs;
+        public Size2I MaxTextureSize;
         public int MaxFragmentSsboBlocks;
         public string GpuName;
         public bool IsNvidia;
@@ -38,6 +40,7 @@ namespace XrEngine
         public bool IsWindows;
         public bool IsAndroid;
         public bool IsGlEs;
+        public int MaxVertexTextureUnits;
     }
 
     public interface IRenderEngine : IDisposable

@@ -15,7 +15,11 @@
         Size = 0x100,
         JointIndex = 0x200,
         JointWeight = 0x400,
-        Skin = JointIndex | JointWeight
+        Skin = JointIndex | JointWeight,
+        MorphPosition = 0x800,
+        MorphNormal = 0x1000,
+        MorphTangent = 0x2000,
+
     }
 
     [AttributeUsage(AttributeTargets.Field)]

@@ -65,19 +65,19 @@ namespace XrEngine
             return result;
         }
 
-        [ShaderRef(0, "aPosition", VertexComponent.Position)]
+        [ShaderRef(AttributeSlots.Position, "aPosition", VertexComponent.Position)]
         public Vector3 Pos;
 
-        [ShaderRef(1, "aNormal", VertexComponent.Normal)]
+        [ShaderRef(AttributeSlots.Normal, "aNormal", VertexComponent.Normal)]
         public Vector3 Normal;
 
-        [ShaderRef(2, "aUv0", VertexComponent.UV0)]
+        [ShaderRef(AttributeSlots.UV0, "aUv0", VertexComponent.UV0)]
         public Vector2 UV;
 
-        [ShaderRef(3, "aUv1", VertexComponent.UV1)]
+        [ShaderRef(AttributeSlots.UV1, "aUv1", VertexComponent.UV1)]
         public Vector2 UV1;
 
-        [ShaderRef(4, "aTangent", VertexComponent.Tangent)]
+        [ShaderRef(AttributeSlots.Tangent, "aTangent", VertexComponent.Tangent)]
         public Vector4 Tangent;
 
         [UnscopedRef]

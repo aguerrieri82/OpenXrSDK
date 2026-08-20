@@ -1400,13 +1400,13 @@ namespace XrSamples
         }
 
 
-        public static XrEngineAppBuilder GltfTest(this XrEngineAppBuilder builder)
+        public static XrEngineAppBuilder CreateGltfTest(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/AlphaBlendModeTest.glb"), GltfOptions, GetAssetPath);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/AnimatedMorphCube.glb"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
 
             scene.AddChild(mesh);
@@ -1415,7 +1415,6 @@ namespace XrSamples
                 .UseApp(app)
                 .UseEnvironmentHDR("res://asset/Envs/Pisa.hdr")
                 .ConfigureSampleApp();
-
         }
 
         [Sample("Skin")]

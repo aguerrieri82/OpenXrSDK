@@ -8,5 +8,7 @@
         public const int Model = 3;
         public const int Ibl = 4;
         public const int MultiView = 10;
+
+        public const int Morph = 6;
     }
 }

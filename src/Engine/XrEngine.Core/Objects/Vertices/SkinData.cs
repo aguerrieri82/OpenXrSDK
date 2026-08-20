@@ -5,11 +5,11 @@ namespace XrEngine
 {
     public struct SkinData
     {
-        [ShaderRef(5, "aJointIndices", VertexComponent.Skin, IsIntegerStore = true)]
+        [ShaderRef(AttributeSlots.JointIndices, "aJointIndices", VertexComponent.JointIndex, IsIntegerStore = true)]
         public Vector4I JointIndices;
 
 
-        [ShaderRef(6, "aJointWeights", VertexComponent.Skin)]
+        [ShaderRef(AttributeSlots.JointWeights, "aJointWeights", VertexComponent.JointWeight)]
         public Vector4 JointWeights;
     }
 }

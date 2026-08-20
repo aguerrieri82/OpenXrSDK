@@ -4,10 +4,21 @@ using System.Text;
 
 namespace XrEngine
 {
+    public struct VertexAttributesBuffer
+    {
+        public uint BaseLocation;
+
+        public VertexComponent Component;
+
+        public Array Data;
+
+        public Type? ElementType;
+    }
+
     public interface IVertexAttributes
     {
         int BufferCount { get; }
 
-        Array GetBuffer(int index);
+        VertexAttributesBuffer GetBuffer(int index);
     }
 }

@@ -9,6 +9,7 @@
             Register(new Vector3Handler());
             Register(new QuaternionHandler());
             Register(new FloatHandler());
+            Register(new FloatArrayHandler());
         }
 
         public void Register<T>(IAnimationValueHandler<T> handler)
