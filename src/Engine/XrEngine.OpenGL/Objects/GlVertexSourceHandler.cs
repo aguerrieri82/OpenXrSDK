@@ -90,19 +90,17 @@ namespace XrEngine.OpenGL
 
             _gl = gl;
 
-
-            if (_source.Host is IVertexAttributes attrs)
+            foreach (var attrs in _source.Host.Components<IVertexAttributes>())
             {
                 var attrLen = attrs.BufferCount;
-                
+
                 for (var i = 0; i < attrLen; i++)
                 {
                     var array = attrs.GetBuffer(i);
                     var elementType = array.GetType().GetElementType()!;
                     var buffer = GlBuffer.Create(_gl, BufferTargetARB.ArrayBuffer, elementType);
-                    
-                    var layout = CreateLayout(elementType);
 
+                    var layout = CreateLayout(elementType);
                     _vertices.AddAttributes(buffer, layout, elementType);
                 }
             }
@@ -196,15 +194,15 @@ namespace XrEngine.OpenGL
 
             _sourceObject = _source.Host;
 
-            if (_sourceObject is IVertexAttributes attr)
+            foreach (var attrs in _source.Host.Components<IVertexAttributes>())
             {
-                for (int i = 0; i < attr.BufferCount; i++)
+                for (int i = 0; i < attrs.BufferCount; i++)
                 {
-                    var array = attr.GetBuffer(i);
+                    var array = attrs.GetBuffer(i);
                     _vertices.UpdateAttributes(array, i);
                 }
             }
-
+      
             Version = _sourceObject.Version;
 
             _source.NotifyLoaded();

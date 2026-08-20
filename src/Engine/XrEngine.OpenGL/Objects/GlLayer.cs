@@ -110,7 +110,7 @@ namespace XrEngine.OpenGL
         {
             GlUtils.EnsureRenderThread();
 
-            if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
+            if (!obj3d.TryFeature<IVertexSource>(out var vrtSrc))
                 return;
 
             obj3d.EnsureId();
@@ -202,7 +202,7 @@ namespace XrEngine.OpenGL
         {
             GlUtils.EnsureRenderThread();
 
-            if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
+            if (!obj3d.TryFeature<IVertexSource>(out var vrtSrc))
                 return;
 
             obj3d.EnsureId();

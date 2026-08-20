@@ -46,12 +46,6 @@ namespace XrEngine
             IsVisible = true;
         }
 
-        public virtual T? Feature<T>() where T : class
-        {
-            if (this is T tInt)
-                return tInt;
-            return _components?.OfType<T>().FirstOrDefault();
-        }
 
         public virtual void UpdateWorldMatrix(bool force = false)
         {

@@ -51,7 +51,7 @@ namespace XrEngine
             if (_host.Geometry == null)
                 throw new InvalidOperationException();
 
-            var geo = (SkinnedGeometry3D)_host.Geometry;
+            var geo = _host.Geometry.Component<SkinnedGeometry>();
 
             if (_skinMatrices != null && _skinMatrices.Length > 0)
             {

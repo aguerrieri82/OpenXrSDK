@@ -5,10 +5,15 @@ namespace XrEngine.Animation
     public class SinOptions
     {
         public Vector3 Axis { get; set; }
+        
         public float Amplitude { get; set; }
+        
         public float Frequency { get; set; }
+        
         public float Phase { get; set; }
+        
         public Vector3 Offset { get; set; }
+        
         public float? Duration { get; set; }
     }
 
@@ -21,13 +26,6 @@ namespace XrEngine.Animation
         
         public float Intensity { get; set; }
 
-        public float Gravity { get; set; }
-    }
-
-    public class JumpImpulseOptions
-    {
-        public float BaseY { get; set; }
-        public Vector3 Impulse { get; set; }
         public float Gravity { get; set; }
     }
 
@@ -88,31 +86,5 @@ namespace XrEngine.Animation
                 options);
         }
 
-
-        public static IComputeFunction<Vector3, JumpImpulseOptions> JumpImpulse(
-            float baseY,
-            Vector3 impulse,
-            float gravity = 9.81f)
-        {
-            var options = new JumpImpulseOptions
-            {
-                BaseY = baseY,
-                Impulse = impulse,
-                Gravity = gravity
-            };
-
-            return new DelegateComputeFunction<Vector3, JumpImpulseOptions>(
-                (t, o) =>
-                {
-                    var halfGravity = o.Gravity * 0.5f;
-
-                    return new Vector3(
-                        o.Impulse.X * t,
-                        o.BaseY + o.Impulse.Y * t - halfGravity * t * t,
-                        o.Impulse.Z * t);
-                },
-                o => 2f * o.Impulse.Y / o.Gravity,
-                options);
-        }
     }
 }

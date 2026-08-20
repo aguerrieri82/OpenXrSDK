@@ -2,9 +2,9 @@
 {
     public static class EngineExtensions
     {
-        public static AnimationBuilder<T> Animate<T>(this T self) where T : Object3D
+        public static AnimationBuilder<THost> Animate<THost>(this THost self) where THost : Object3D
         {
-            return new AnimationBuilder<T>(self);
+            return new AnimationBuilder<THost>(self);
         }
 
 

@@ -1,18 +1,19 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Text;
 using XrMath;
 
-namespace XrEngine.Objects
+namespace XrEngine
 {
-    public class SkinnedGeometry3D : Geometry3D, IVertexAttributes
+    public class SkinnedGeometry : BaseComponent<Geometry3D>, IVertexAttributes, IGeometryComponent
     {
         protected SkinData[] _skin;
         protected Dictionary<int, Bounds3> _jointBounds = [];
         protected bool _skinDirty;
 
-        public SkinnedGeometry3D()
+        public SkinnedGeometry()
         {
             _skin = [];
         }
@@ -20,11 +21,11 @@ namespace XrEngine.Objects
         public SkinData[] Skin
         {
             get => _skin;
-            set 
+            set
             {
                 _skin = value;
                 _skinDirty = true;
-                _boundsDirty = true;
+                _host.InvalidateBounds();
             }
         }
 
@@ -37,6 +38,8 @@ namespace XrEngine.Objects
 
             var maxIndex = _skin.Max(a => Max(a.JointIndices));
 
+            var vertices = _host.Vertices;
+
             var builders = new Bounds3Builder[maxIndex + 1];
             for (var i = 0; i < builders.Length; i++)
                 builders[i] = new Bounds3Builder();
@@ -44,21 +47,21 @@ namespace XrEngine.Objects
             void Add(int jIndex, int vIndex)
             {
                 ref var builder = ref builders[jIndex];
-                builder.Add(_vertices[vIndex].Pos);
+                builder.Add(vertices[vIndex].Pos);
             }
 
             var threshold = JointWeigthBoundsThreshold;
 
-            for (var i = 0; i  < _skin.Length; i++)
+            for (var i = 0; i < _skin.Length; i++)
             {
                 ref var skin = ref _skin[i];
-                
+
                 if (skin.JointWeights.X > threshold)
                     Add(skin.JointIndices.X, i);
-                
+
                 if (skin.JointWeights.Y > threshold)
                     Add(skin.JointIndices.Y, i);
-                
+
                 if (skin.JointWeights.Z > threshold)
                     Add(skin.JointIndices.Z, i);
 
@@ -78,17 +81,14 @@ namespace XrEngine.Objects
         }
 
 
-        public override void UpdateBounds()
+        public void UpdateBounds()
         {
-            base.UpdateBounds();
             UpdateJointBounds();
         }
 
-        public override void NotifyLoaded()
+        public void NotifyLoaded()
         {
-            base.NotifyLoaded();
-
-            if (this.Is(EngineObjectFlags.GpuOnly))
+            if (_host.Is(EngineObjectFlags.GpuOnly))
                 _skin = [];
         }
 
@@ -97,7 +97,7 @@ namespace XrEngine.Objects
             get
             {
                 if (_skinDirty)
-                    UpdateBounds();
+                    _host.UpdateBounds();
                 return _jointBounds;
             }
         }

@@ -1399,6 +1399,25 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+
+        public static XrEngineAppBuilder GltfTest(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/AlphaBlendModeTest.glb"), GltfOptions, GetAssetPath);
+            mesh.Name = "mesh";
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/Pisa.hdr")
+                .ConfigureSampleApp();
+
+        }
+
         [Sample("Skin")]
         public static XrEngineAppBuilder CreateSkin(this XrEngineAppBuilder builder)
         {
@@ -1421,7 +1440,10 @@ namespace XrSamples
                     intensity: 5))
                 .Add();
 
-            //var control = mesh.Animate("Jump");
+            var control = mesh.Animate("Jump", new JumpOptions
+            {
+                
+            });
 
             void ConfigureIk(Joint3D root)
             {

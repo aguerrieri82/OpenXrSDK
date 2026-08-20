@@ -90,10 +90,9 @@ namespace XrEngine.OpenXr
 
         public void CreateGeometry()
         {
-            var geometry = new SkinnedGeometry3D
+            var geometry = new Geometry3D
             {
                 Vertices = new VertexData[_mesh.Vertices!.Length],
-                Skin = new SkinData[_mesh.Vertices!.Length],
                 Indices = _mesh.Indices!,
                 ActiveComponents =
                     VertexComponent.Position |
@@ -102,6 +101,9 @@ namespace XrEngine.OpenXr
                     VertexComponent.Skin
             };
 
+            var skinGeo = geometry.AddComponent<SkinnedGeometry>();
+            skinGeo.Skin = new SkinData[_mesh.Vertices!.Length];
+
             for (var i = 0; i < _mesh.Vertices.Length; i++)
             {
                 var ix = _mesh.Vertices[i].BlendIndex;
@@ -109,8 +111,8 @@ namespace XrEngine.OpenXr
                 geometry.Vertices[i].Pos = _mesh.Vertices[i].Pos.ToVector3();
                 geometry.Vertices[i].Normal = _mesh.Vertices[i].Normal.ToVector3();
                 geometry.Vertices[i].UV = _mesh.Vertices[i].UV.ToVector2();
-                geometry.Skin[i].JointIndices = new Vector4I(ix.X, ix.Y, ix.Z, ix.W);
-                geometry.Skin[i].JointWeights = _mesh.Vertices[i].BlendWeight.ToVector4();
+                skinGeo.Skin[i].JointIndices = new Vector4I(ix.X, ix.Y, ix.Z, ix.W);
+                skinGeo.Skin[i].JointWeights = _mesh.Vertices[i].BlendWeight.ToVector4();
             }
 
             Geometry = geometry;

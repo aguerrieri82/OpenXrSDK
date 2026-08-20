@@ -85,6 +85,13 @@ namespace XrEngine
             Flags = EngineObjectFlags.EnableDebug | EngineObjectFlags.NotifyChanged;
         }
 
+        public virtual T? Feature<T>() where T : class
+        {
+            if (this is T tInt)
+                return tInt;
+            return _components?.OfType<T>().FirstOrDefault();
+        }
+
         public void SetState(IStateContainer container)
         {
             BeginUpdate();

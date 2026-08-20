@@ -84,6 +84,12 @@ namespace XrEngine
 
             foreach (var host in _hosts.OfType<TriangleMesh>())
                 host.InvalidateLocalBounds();
+
+            if (_components != null)
+            {
+                foreach (var item in _components.OfType<IGeometryComponent>())
+                    item.UpdateBounds();
+            }
         }
 
 
@@ -115,6 +121,13 @@ namespace XrEngine
 
             _indices = [];
             _vertices = [];
+
+            if (_components != null)
+            {
+                foreach (var item in _components.OfType<IGeometryComponent>())
+                    item.NotifyLoaded();
+            }
+
         }
 
         public Geometry3D Clone()
@@ -131,6 +144,11 @@ namespace XrEngine
             CloneWork(result);
 
             return result;
+        }
+
+        public void InvalidateBounds()
+        {
+            _boundsDirty = true;
         }
 
         protected virtual void CloneWork(Geometry3D result)

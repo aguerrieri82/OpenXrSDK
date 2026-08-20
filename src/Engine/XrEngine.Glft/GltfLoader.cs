@@ -607,15 +607,14 @@ namespace XrEngine.Gltf
                                     break;
                                 case "JOINTS_0":
 
-                                    if (result is not SkinnedGeometry3D skinGeo)
-                                        break;
+                                    result.EnsureComponent<SkinnedGeometry>();
 
                                     if (acc.Type == Accessor.TypeEnum.VEC4)
                                     {
                                         if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                                         {
                                             var jValues = DracoDecoder.ReadAttribute<Vector4US>(mesh, attr.Value);
-                                            skinGeo.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues);
+                                            result.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues);
                                             result.ActiveComponents |= VertexComponent.JointIndex;
                                         }
                                         else
@@ -685,15 +684,14 @@ namespace XrEngine.Gltf
                                 break;
                             case "WEIGHTS_0":
 
-                                if (result is not SkinnedGeometry3D skinGeo)
-                                    break;
+                                result.EnsureComponent<SkinnedGeometry>();
 
                                 if (acc.Type == Accessor.TypeEnum.VEC4)
                                 {
                                     if (acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
                                     {
                                         var wValues = ConvertBuffer<Vector4>(acc);
-                                        skinGeo.SetSkinData((ref SkinData a, in Vector4 b) => a.JointWeights = b, wValues);
+                                        result.SetSkinData((ref SkinData a, in Vector4 b) => a.JointWeights = b, wValues);
                                     }
                                     else
                                         throw new NotSupportedException();
@@ -706,8 +704,7 @@ namespace XrEngine.Gltf
                                 break;
                             case "JOINTS_0":
 
-                                if (result is not SkinnedGeometry3D skinGeo1)
-                                    break;
+                                result.EnsureComponent<SkinnedGeometry>();
 
                                 if (acc.Type == Accessor.TypeEnum.SCALAR)
                                 {
@@ -715,7 +712,7 @@ namespace XrEngine.Gltf
                                     {
                                         var jValues = ConvertBuffer<ushort>(acc);
 
-                                        skinGeo1.SetSkinData((ref SkinData a, in ushort b) =>
+                                        result.SetSkinData((ref SkinData a, in ushort b) =>
                                         {
                                             a.JointIndices.X = b;
                                             a.JointWeights.X = 1;
@@ -731,12 +728,12 @@ namespace XrEngine.Gltf
                                     if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                                     {
                                         var jValues1 = ConvertBuffer<Vector4US>(acc);
-                                        skinGeo1.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues1);
+                                        result.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues1);
                                     }
                                     else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
                                     {
                                         var jValues2 = ConvertBuffer<Vector4UB>(acc);
-                                        skinGeo1.SetSkinData((ref SkinData a, in Vector4UB b) => a.JointIndices = b.ToVector4I(), jValues2);
+                                        result.SetSkinData((ref SkinData a, in Vector4UB b) => a.JointIndices = b.ToVector4I(), jValues2);
                                     }
                                     else
                                         throw new NotSupportedException();
@@ -763,8 +760,14 @@ namespace XrEngine.Gltf
                             result.Indices = ConvertBuffer<ushort>(acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
+                        
                         else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
                             result.Indices = ConvertBuffer<uint>(acc);
+
+                        else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                            result.Indices = ConvertBuffer<byte>(acc)
+                                .Select(a => (uint)a)
+                                .ToArray();
                         else
                             throw new NotSupportedException();
                     }
@@ -848,9 +851,7 @@ namespace XrEngine.Gltf
             {
                 var curMesh = new TriangleMesh()
                 {
-                    Geometry = skinId != null ? 
-                        new SkinnedGeometry3D() : 
-                        new Geometry3D()
+                    Geometry = new Geometry3D()
                 };
 
                 if (skinId != null)

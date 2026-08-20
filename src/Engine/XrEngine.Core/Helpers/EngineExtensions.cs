@@ -14,7 +14,6 @@ namespace XrEngine
 {
     public struct ObjectFeature<T> where T : notnull
     {
-
         public Object3D Object;
 
         public T Feature;
@@ -24,6 +23,19 @@ namespace XrEngine
     {
 
         #region EngineObject
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Is(this EngineObject self, EngineObjectFlags flags)
+        {
+            return (self.Flags & flags) == flags;
+        }
+
+
+        public static bool TryFeature<T>(this EngineObject self, [NotNullWhen(true)] out T? result) where T : class
+        {
+            result = self.Feature<T>();
+            return result != null;
+        }
 
         public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
         {
@@ -280,6 +292,7 @@ namespace XrEngine
             while (stack.Count > 0)
             {
                 var cur = stack.Pop();
+
                 yield return cur;
 
                 if (cur is Group3D g && g.Children is not null)
@@ -320,37 +333,15 @@ namespace XrEngine
             return self.Ancestors().OfType<T>().FirstOrDefault();
         }
 
-        public static bool Feature<T>(this Object3D self, [NotNullWhen(true)] out T? result) where T : class
-        {
-            result = self.Feature<T>();
-            return result != null;
-        }
 
         public static T? FeatureDeep<T>(this Object3D self) where T : class
         {
-            var result = self.Feature<T>();
-
-            if (result != null)
-                return result;
-
-            if (self is Group3D group)
-            {
-                foreach (var child in group.Children)
-                {
-                    result = child.FeatureDeep<T>();
-                    if (result != null)
-                        return result;
-                }
-            }
-
-            return null;
+            return self
+                .DescendantsOrSelfWithFeature<T>()
+                .FirstOrDefault()
+                .Feature;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Is(this EngineObject self, EngineObjectFlags flags)
-        {
-            return (self.Flags & flags) == flags;
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T> Visible<T>(this IEnumerable<T> self) where T : Object3D
@@ -514,13 +505,14 @@ namespace XrEngine
 
         public static T? FindByName<T>(this Group3D self, string name) where T : Object3D
         {
-            return self.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
+            return self.Descendants<T>()
+                       .FirstOrDefault(a => a.Name == name);
         }
 
 
-        public static IEnumerable<ObjectFeature<T>> DescendantsOrSelfWithFeature<T>(this Object3D self) where T : class
+        public static IEnumerable<ObjectFeature<T>> Features<T>(this IEnumerable<Object3D> self) where T : class
         {
-            foreach (var item in self.DescendantsOrSelf())
+            foreach (var item in self)
             {
                 var feat = item.Feature<T>();
                 if (feat != null)
@@ -530,20 +522,16 @@ namespace XrEngine
                         Feature = feat
                     };
             }
+        }
+
+        public static IEnumerable<ObjectFeature<T>> DescendantsOrSelfWithFeature<T>(this Object3D self) where T : class
+        {
+            return self.DescendantsOrSelf().Features<T>();
         }
 
         public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D self) where T : class
         {
-            foreach (var item in self.Descendants())
-            {
-                var feat = item.Feature<T>();
-                if (feat != null)
-                    yield return new ObjectFeature<T>
-                    {
-                        Object = item,
-                        Feature = feat
-                    };
-            }
+            return self.Descendants().Features<T>();
         }
 
         public static IEnumerable<Object3D> Descendants(this Group3D self)
@@ -553,7 +541,6 @@ namespace XrEngine
 
         public static IEnumerable<T> Descendants<T>(this Group3D self) where T : Object3D
         {
-
             var stack = new Stack<Object3D>();
 
             for (var i = self.Children.Count - 1; i >= 0; i--)
@@ -1045,20 +1032,21 @@ namespace XrEngine
         }
 
 
-        public static void SetSkinData<T>(this SkinnedGeometry3D self, SkinAssignDelegate<T> selector, T[] array)
+        public static void SetSkinData<T>(this Geometry3D self, SkinAssignDelegate<T> selector, T[] array)
         {
-            if (self.Skin == null)
-                self.Skin = new SkinData[array.Length];
+            var skinGeo = self.EnsureComponent<SkinnedGeometry>();
 
-            if (self.Skin.Length < array.Length)
+            skinGeo.Skin ??= new SkinData[array.Length];
+
+            if (skinGeo.Skin.Length < array.Length)
             {
-                var newArray = self.Skin;
+                var newArray = skinGeo.Skin;
                 Array.Resize(ref newArray, array.Length);
-                self.Skin = newArray;
+                skinGeo.Skin = newArray;
             }
 
             for (var i = 0; i < array.Length; i++)
-                selector(ref self.Skin[i], array[i]);
+                selector(ref skinGeo.Skin[i], array[i]);
 
             self.NotifyChanged(ChangeType.Geometry);
         }
