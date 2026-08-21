@@ -150,7 +150,7 @@ namespace XrEngine.Objects.Materials.Shaders
             }
 
 
-            bld.SetSlot("APPLY_MORPH", () => GenerateSource(morphGeo, targetCount, mode, weightMask));
+            bld.SetSlot(ShaderSlots.ApplyMorph, () => GenerateSource(morphGeo, targetCount, mode, weightMask));
 
             var unif = new MorphUniforms();
             var offsetsInitialized = false;

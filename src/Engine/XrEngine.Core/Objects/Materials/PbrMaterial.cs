@@ -443,8 +443,8 @@ namespace XrEngine
         {
             PlanarReflection? planar = null;
 
-            bld.SetSlot("FS_INCLUDES", () => "#include \"./pbr_defaults.glsl\"");
-            bld.SetSlot("FRAGMENT_LOADER", () => "FragmentProperties frag = LoadFragmentProperties();");
+            bld.SetFsIncludes("pbr_defaults.glsl");
+            bld.SetFragmentLoader("FragmentProperties frag = LoadFragmentProperties();");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
