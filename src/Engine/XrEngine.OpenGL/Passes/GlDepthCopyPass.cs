@@ -15,7 +15,7 @@ namespace XrEngine.OpenGL
         readonly DepthCopyFromColorEffect _effect;
         private IGlRenderTargetFB? _renderTarget;
         private readonly bool _imageMode;
-        private readonly bool _fetchSupported;
+
 
         public GlDepthCopyPass(OpenGLRender renderer, bool multiView, bool imageMode)
             : base(renderer)
@@ -30,7 +30,6 @@ namespace XrEngine.OpenGL
 
             _imageMode = imageMode;
 
-            _fetchSupported = _gl.IsExtensionPresent("EXT_shader_framebuffer_fetch");
 
             _flags = GlRenderPassFlags.CustomCamera;
 
@@ -45,7 +44,7 @@ namespace XrEngine.OpenGL
 
             if (_imageMode)
             {
-                if (_fetchSupported)
+                if (_renderer.Features.ShaderFramebufferFetch)
                     _effect.Texture = null;
                 else
                     _effect.Texture = ctx.CopyDepthImage;

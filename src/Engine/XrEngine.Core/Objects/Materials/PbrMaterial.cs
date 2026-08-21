@@ -1,4 +1,5 @@
 ﻿
+
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -30,7 +31,7 @@ namespace XrEngine
         Full
     }
 
-    public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
+    public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial, IRefractionMaterial
     {
 
         #region MaterialUniforms
@@ -655,6 +656,55 @@ namespace XrEngine
                 bld.SetUniform("uLightFieldOfs", ctx => LightFieldOfs);
             }
 
+            if (HasRefraction)
+            {
+                bld.AddFeature("USE_REFRACTION");
+
+                var refSrc = bld.Context.Scene?.Feature<IScreenRefractionSource>();
+                if (refSrc != null)
+                {
+
+                    bld.AddFeature("VOLUME_BACKGROUND");
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        var texture = refSrc.GetRefractionTextures((PerspectiveCamera)ctx.PassCamera!)[0];
+                        if (texture != null)
+                            up.LoadTexture(texture, TextureSlots.VolumeBackground);
+                    });
+                }
+
+                if (ThicknessMap != null)
+                    bld.AddFeature("USE_THICKNESS_MAP");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (ctx.VolumeForeground != null)
+                        up.LoadTexture(ctx.VolumeForeground, TextureSlots.VolumeForeground);
+                    if (ThicknessMap != null)
+                        up.LoadTexture(ThicknessMap, TextureSlots.ThicknessMap);
+                });
+
+                bld.LoadBuffer(ctx =>
+                {
+                    var curVer = _contentVersion + _version;
+
+                    if (ctx.CurrentBuffer == null || curVer == ctx.CurrentBuffer.Version)
+                        return null;
+
+                    ctx.CurrentBuffer!.Version = curVer;
+
+                    return (VolumeUniforms?)new VolumeUniforms
+                    {
+                        AttenuationColor = AttenuationColor.ToVector3(),
+                        AttenuationDistance = AttenuationDistance,
+                        TransmissionFactor = TransmissionFactor,
+                        Ior = Ior,
+                        Thickness = Thickness,
+
+                    };
+                }, UniformsSlots.Volume, BufferStore.Material);
+            }
+
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
 
@@ -756,6 +806,20 @@ namespace XrEngine
         public Matrix3x3? UV0Transform { get; set; }
 
         public Matrix4x4? ColorMapProjection { get; set; }
+
+        public float Ior { get; set; }
+
+        public float Thickness { get; set; }
+
+        public float AttenuationDistance { get; set; }
+
+        public Color AttenuationColor { get; set; }
+
+        public float TransmissionFactor { get; set; }
+
+        public Texture2D ThicknessMap { get; set; }
+
+        public bool HasRefraction => Thickness > 0;
 
         public static bool ForceIblTransform { get; set; }
 

@@ -45,6 +45,7 @@ namespace XrEngine.OpenGL
 
     public class GlRenderOptions
     {
+
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
@@ -174,6 +175,9 @@ namespace XrEngine.OpenGL
         public bool UseDefaultIntermediate { get; set; }
 
         public bool UsePrimitiveBoundingBox { get;  set; }
+
+        public bool UseRefraction { get; set; }
+
 
     }
 }

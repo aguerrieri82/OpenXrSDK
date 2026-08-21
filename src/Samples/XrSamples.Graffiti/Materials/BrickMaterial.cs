@@ -19,10 +19,11 @@ namespace XrSamples.Graffiti
         {
             bld.LoadBuffer<BrickUniforms>(ctx =>
             {
-                var geo = ((TriangleMesh)ctx.Model!).Geometry as BrickGeometry;
-                if (geo == null)
+                if (((TriangleMesh)ctx.Model!).Geometry is not BrickGeometry geo)
                     return null;
+
                 return BrickUniforms.CreateDefault(geo);
+           
             }, 15, BufferStore.Material);
 
             base.UpdateShaderModel(bld);

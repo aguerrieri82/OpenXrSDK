@@ -69,6 +69,74 @@ namespace XrEngine.Devices
             return status;
         }
 
+
+        static Rect2 CalcSensorCropRegion(
+            float sensorWidth,
+            float sensorHeight,
+            float currentWidth,
+            float currentHeight)
+        {
+            var scaleX = currentWidth / sensorWidth;
+            var scaleY = currentHeight / sensorHeight;
+
+            var maxScale = MathF.Max(scaleX, scaleY);
+
+            scaleX /= maxScale;
+            scaleY /= maxScale;
+
+            return new Rect2
+            {
+                X = sensorWidth * (1.0f - scaleX) * 0.5f,
+                Y = sensorHeight * (1.0f - scaleY) * 0.5f,
+                Width = sensorWidth * scaleX,
+                Height = sensorHeight * scaleY
+            };
+        }
+
+        public Matrix3x3 GetUvTransform(string cameraId, Matrix4x4 eyeProjection)
+        {
+            var cam = GetStatus(cameraId).Params!;
+
+            var sensorW = cam.SensorSize!.Value.Width;
+            var sensorH = cam.SensorSize.Value.Height;
+
+            var crop = CalcSensorCropRegion(
+                sensorW,
+                sensorH,
+                cam.CurrentSize.Width,
+                cam.CurrentSize.Height);
+
+            // Camera image bounds on the z = -1 image plane.
+            var x0 = (crop.X - cam.Cx) / cam.Fx;
+            var x1 = (crop.X + crop.Width - cam.Cx) / cam.Fx;
+
+            var y0 = (crop.Y - cam.Cy) / cam.Fy;
+            var y1 = (crop.Y + crop.Height - cam.Cy) / cam.Fy;
+
+            static Vector2 Project(float x, float y, in Matrix4x4 projection)
+            {
+                var p = Vector4.Transform(new Vector4(x, y, -1f, 1f), projection);
+                var ndc = new Vector2(p.X, p.Y) / p.W;
+
+                return ndc * 0.5f + new Vector2(0.5f);
+            }
+
+            var s0 = Project(x0, y0, eyeProjection);
+            var s1 = Project(x1, y1, eyeProjection);
+
+            // screenUv -> cameraUv
+            //
+            // screen = s0 + cameraUv * (s1 - s0)
+            //
+            // cameraUv = screen * scale + offset
+
+            var scale = Vector2.One / (s1 - s0);
+            var offset = -s0 * scale;
+
+            return Matrix3x3.CreateScale(scale.X, scale.Y) *
+                   Matrix3x3.CreateTranslation(offset.X, offset.Y);
+        }
+
         public async Task<bool> StartCameraAsync(string cameraId, Size2? resolution = null, float? fps = null)
         {
             Debug.Assert(_manager != null);

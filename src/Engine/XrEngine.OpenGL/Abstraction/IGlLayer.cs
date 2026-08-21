@@ -13,7 +13,9 @@
         Light = 0x40,
         Volume = 0x80 | Color,
         Static = 0x100,
-        MeshCollider = 0x200
+        MeshCollider = 0x200,
+
+        Refraction = 0x400 | Color
     }
 
     public interface IGlLayer : IDisposable

@@ -19,11 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*"
-			 CopyToOutputDirectory="PreserveNewest"
-			 Link="%(Filename)%(Extension)" 
-			 Visible="False"
-		     UseLink="True" />
+		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

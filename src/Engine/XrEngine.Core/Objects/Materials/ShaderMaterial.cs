@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using XrEngine.Components;
-using XrEngine.Objects.Materials.Shaders;
 
 namespace XrEngine
 {

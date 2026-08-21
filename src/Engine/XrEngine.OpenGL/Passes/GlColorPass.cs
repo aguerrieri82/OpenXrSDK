@@ -7,13 +7,15 @@ using Silk.NET.OpenGL;
 using XrEngine.Helpers;
 using System.Numerics;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Silk.NET.Core.Native;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
         protected DepthClipEffect? _depthClipEffect;
-
+        private ColorCopyDownsampleEffect _colorCopyEffect;
         protected readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
@@ -196,43 +198,55 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
+
+        [MemberNotNull(nameof(_colorCopyEffect))]
+        protected void PrepareColorCopy()
+        {
+            if (_colorCopyEffect == null)
+            {
+                var ctx = _renderer.UpdateContext;
+
+                var downsample = 2u;
+
+                var colorSize = ctx.PassCamera!.ViewSize;
+
+                _colorCopyEffect = new ColorCopyDownsampleEffect
+                {
+                    DownsampleFactor = (int)downsample,
+                    IsMultiView = ctx.IsMultiView,
+                    ShadingRate = (int)downsample,
+                    DestTexture = new Texture2D
+                    {
+                        Depth = ctx.IsMultiView ? 2u : 1u,
+                        Height = colorSize.Height / downsample,
+                        Width = colorSize.Width / downsample,
+                        MipLevelCount = 10,
+                        MinFilter = ScaleFilter.LinearMipmapLinear,
+                        MagFilter = ScaleFilter.Linear,
+                        WrapS = WrapMode.ClampToEdge,
+                        WrapT = WrapMode.ClampToEdge,
+                        Format = TextureFormat.Rgba8,
+                        NeverCompress = true,
+                        Name = "Refraction Foreground"
+                    }
+                };
+            }
+
+            if (!_renderer.Features.ShaderFramebufferFetch)
+            {
+                var color = (_renderer.RenderTarget?.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture()) ?? 
+                    throw new NotSupportedException();
+
+                _colorCopyEffect.SourceTexture = (Texture2D)color;
+            }
+        }
+
         public override void RenderLayer(GlLayer layer)
         {
             GlUtils.EnsureRenderThread();
 
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
-#if GL_WRAPPER
-            
-            var timer = Stopwatch.StartNew();
-
-            bool isRecording = false;
-
-            var wrapper = _gl as OpenGLWrapper.GlSwitchWrapper;
-
-            if (wrapper != null && layer.IsStatic)
-            {
-                if (layer.RenderActions.Count == 0 && _frame > 1000)
-                {
-                    _renderer.State.Reset();
-                    isRecording = true;
-                    wrapper.BeginRecord();
-                }
-                else if (layer.RenderActions.Count > 0)
-                {
-                    layer.Execute(wrapper.Enqueue.Instance);
-                    _renderer.State.Reset();
-
-                    if (layer.IsStatic && _frame % 100 == 0)
-                    {
-                        timer.Stop();
-                        Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
-                    }
-                    return;
-                }
-            }
-#endif
-
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
             var ctx = _renderer.UpdateContext;
@@ -242,6 +256,21 @@ namespace XrEngine.OpenGL
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
             uint globalProgChangesCount = 0;
+
+            if (layer.Type == GlLayerType.Refraction)
+            {
+                PrepareColorCopy();
+                UseEffect(_colorCopyEffect);
+                DrawQuad();
+
+                _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+
+                _colorCopyEffect.DestTexture!.ToGlTexture().GenerateMipmap();
+
+                ctx.VolumeForeground = _colorCopyEffect.DestTexture;
+            }
+            else
+                ctx.VolumeForeground = null;
 
             foreach (var shader in layer.Content.SortedContent!)
             {
@@ -358,16 +387,6 @@ namespace XrEngine.OpenGL
             if (globalProgChangesCount > 0)
                 Log.Debug(this, "Changes: {0}", globalProgChangesCount);
 
-#if GL_WRAPPER
-            if (wrapper != null && isRecording)
-                layer.RenderActions.AddRange(wrapper.EndRecord());
-
-            if (layer.IsStatic && _frame % 100 == 0)
-            {
-                timer.Stop();
-                Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
-            }
-#endif
         }
 
         public bool WriteDepth { get; set; }

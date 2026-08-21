@@ -4,31 +4,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using XrEngine.Components;
 
-namespace XrEngine.Objects.Materials.Shaders
+namespace XrEngine
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MorphTarget
-    {
-        public float Weight;
-        public uint PositionOfs;
-        public uint NormalOfs;
-        public uint TangentOfs;
-    }
-
-    [InlineArray(MorphUniforms.MaxTargets)]
-    public struct MorphTargetArray
-    {
-        private MorphTarget _element0;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MorphUniforms
-    {
-        public const int MaxTargets = 60;
-
-        public MorphTargetArray Targets;
-    }
-
     public static class MorphVertexShader
     {
         public static void UpdateShader(ShaderUpdateBuilder bld)
@@ -155,7 +132,7 @@ namespace XrEngine.Objects.Materials.Shaders
             var unif = new MorphUniforms();
             var offsetsInitialized = false;
 
-            void SetOffset(ref MorphTarget target, VertexComponent component, uint offset)
+            void SetOffset(ref MorphTargetUniform target, VertexComponent component, uint offset)
             {
                 switch (component)
                 {

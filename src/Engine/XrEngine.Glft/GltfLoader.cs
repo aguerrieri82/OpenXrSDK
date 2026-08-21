@@ -51,10 +51,33 @@ namespace XrEngine.Gltf
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
             "KHR_texture_basisu",
+            "KHR_materials_ior",
+            "KHR_materials_transmission",
+            "KHR_materials_volume",
+            "KHR_materials_iridescence",
             "KHR_materials_pbrSpecularGlossiness" };
 
 
         #region STRUCTS
+
+        struct KHR_materials_ior
+        {
+            public float ior;
+        }
+
+        struct KHR_materials_transmission
+        {
+            public float transmissionFactor;
+            public TextureInfo? transmissionTexture;
+        }
+
+        struct KHR_materials_volume
+        {
+            public float thicknessFactor;
+            public TextureInfo? thicknessTexture;
+            public float attenuationDistance;
+            public float[]? attenuationColor;
+        }
 
         struct EXT_texture_webp
         {
@@ -64,6 +87,18 @@ namespace XrEngine.Gltf
         struct KHR_texture_basisu
         {
             public int? source;
+        }
+
+        struct KHR_materials_iridescence
+        {
+            public float iridescenceFactor;
+            public TextureInfo? iridescenceTexture;
+
+            public float iridescenceIor;
+
+            public float iridescenceThicknessMinimum;
+            public float iridescenceThicknessMaximum;
+            public TextureInfo? iridescenceThicknessTexture;
         }
 
         struct KHR_draco_mesh_compression
@@ -353,12 +388,19 @@ namespace XrEngine.Gltf
             return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
         }
 
-        public PbrMaterial ProcessMaterial(int matId, PbrMaterial? result = null)
+        public PbrMaterial ProcessMaterial(int matId, Node? node = null, PbrMaterial? result = null)
         {
             var gltMat = _model!.Materials[matId];
 
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrMaterial)mat;
+
+            CheckExtensions(gltMat.Extensions);
+
+            var ior = TryLoadExtension<KHR_materials_ior>(gltMat.Extensions);
+            var volume = TryLoadExtension<KHR_materials_volume>(gltMat.Extensions);
+            var trans = TryLoadExtension<KHR_materials_transmission>(gltMat.Extensions);
+            var irid = TryLoadExtension<KHR_materials_iridescence>(gltMat.Extensions);
 
             result ??= _options.MaterialFactory(matId);
 
@@ -416,6 +458,34 @@ namespace XrEngine.Gltf
             }
 
             result.EmissiveColor = new Color(gltMat.EmissiveFactor);
+            result.Ior = ior?.ior ?? 1.5f;
+
+            if (trans != null)
+            {
+                result.TransmissionFactor = trans.Value.transmissionFactor;
+                if (trans.Value.transmissionTexture != null)
+                    throw new NotSupportedException();
+            }
+
+            if (volume != null)
+            {
+                result.Thickness = volume.Value.thicknessFactor * (node?.Scale?[0] ?? 1);
+                result.AttenuationDistance = volume.Value.attenuationDistance;
+                result.AttenuationColor = volume.Value.attenuationColor == null ? Color.White :
+                                          new Color(volume.Value.attenuationColor);
+
+                if (result.AttenuationDistance == 0)
+                    result.AttenuationDistance = float.PositiveInfinity;
+
+                if (volume.Value.thicknessTexture != null)
+                {
+                    if (volume.Value.thicknessTexture.TexCoord != 0)
+                        throw new NotSupportedException();
+
+                    var texId = volume.Value.thicknessTexture.Index;
+                    result.ThicknessMap = ProcessTextureTask(texId, volume.Value.thicknessTexture.Extensions).Result;
+                }
+            }
 
             AssignAsset(result, "mat", matId);
 
@@ -954,7 +1024,7 @@ namespace XrEngine.Gltf
 
                 if (primitive.Material != null)
                 {
-                    var mat = ProcessMaterial(primitive.Material.Value);
+                    var mat = ProcessMaterial(primitive.Material.Value, node);
                     mat.Skin = SkinMode.Static;
                     mat.UseSkin = node?.Skin != null;
                     mat.UseMorph = weights != null && weights.Length > 0;

@@ -6,11 +6,6 @@ layout(binding=3) uniform sampler2D occlusionTexture;
 layout(binding=9) uniform sampler2D emissiveTexture;
 
 
-#ifndef LOAD_FRAGMENT_PROPS
-	#define LOAD_FRAGMENT_PROPS LoadFragmentProperties()
-#endif
-
-
 vec4 LoadBaseColor()
 {
 	#ifdef USE_ALBEDO_MAP

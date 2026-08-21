@@ -23,5 +23,11 @@
         public const int ProjDepth = 10;
 
         public const int ShadowMap = 14;
+
+        public const int VolumeBackground = 11;
+        public const int VolumeForeground = 12;
+
+        public const int ThicknessMap = 13;
+
     }
 }

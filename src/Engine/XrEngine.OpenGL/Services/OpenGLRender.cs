@@ -503,6 +503,12 @@ namespace XrEngine.OpenGL
                     AddLayer(scene, GlLayerType.Volume, volume);
                 }
 
+                if (_options.UseRefraction)
+                {
+                    var refraction = scene.EnsureLayer<RefractionLayer>();
+                    AddLayer(scene, GlLayerType.Refraction, refraction);
+                }
+
                 if (_options.UseRayCollider)
                 {
                     var collider = scene.EnsureLayer<MeshColliderLayer>();
