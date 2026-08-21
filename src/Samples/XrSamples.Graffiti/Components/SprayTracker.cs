@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
@@ -27,10 +28,13 @@ namespace XrSamples.Graffiti
 
         protected override void Start(RenderContext ctx)
         {
-            _brush = _host!.Scene!.Descendants<SprayBrush>().First();
-            _intersets = new Vector3[_brush.Geometry!.Vertices.Length];
-            _rays = new Ray3[_brush.Geometry!.Vertices.Length];
-            _originalGeo = _brush.Geometry!.Clone();
+            _brush = _host.Scene!.Descendants<SprayBrush>().First();
+
+            Debug.Assert(_brush.Geometry != null);
+            
+            _intersets = new Vector3[_brush.Geometry.Vertices.Length];
+            _rays = new Ray3[_brush.Geometry.Vertices.Length];
+            _originalGeo = _brush.Geometry.Clone();
         }
 
         protected override void Update(RenderContext ctx)
@@ -71,7 +75,7 @@ namespace XrSamples.Graffiti
             if (_originalGeo == null || _host == null || _brush == null)
                 return;
 
-            _canvas ??= _host!.Scene!.Descendants<PaintCanvas>().First();
+            _canvas ??= _host.Scene!.Descendants<PaintCanvas>().First();
 
             var world = _host.Transform.Matrix;
 
@@ -138,7 +142,7 @@ namespace XrSamples.Graffiti
                 return;
 
             canvas.Save();
-            canvas.State.Color = _host!.Color;
+            canvas.State.Color = _host.Color;
 
             for (var i = 0; i < _rays.Length; i++)
                 canvas.DrawLine(_rays[i].Origin, _intersets[i]);

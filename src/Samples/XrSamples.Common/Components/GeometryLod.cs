@@ -49,9 +49,9 @@ namespace XrSamples
 
             var sb = new List<Vector2>();
 
-            foreach (var p in _host!.LocalBounds.Points)
+            foreach (var p in _host.LocalBounds.Points)
             {
-                var t = p.Transform(_host!.WorldMatrix);
+                var t = p.Transform(_host.WorldMatrix);
                 var s = ctx.Camera!.WorldToScreen(t);
                 sb.Add(s);
             }

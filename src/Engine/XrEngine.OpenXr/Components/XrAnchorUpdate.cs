@@ -54,8 +54,8 @@ namespace XrEngine.OpenXr
 
             if (LogChanges)
             {
-                var deltaPos = (loc.Pose.Position - _host!.WorldPosition).Length();
-                var deltaOri = (loc.Pose.Orientation - _host!.WorldOrientation).Length();
+                var deltaPos = (loc.Pose.Position - _host.WorldPosition).Length();
+                var deltaOri = (loc.Pose.Orientation - _host.WorldOrientation).Length();
                 if (deltaPos > 0.005 || deltaOri > 0.005)
                     Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
             }

@@ -40,9 +40,9 @@ namespace XrSamples.Graffiti
             Debug.Assert(_inputs?.Right?.Thumbstick != null);
             Debug.Assert(_inputs?.Right?.GripPose != null);
 
-            _canvas ??= _host!.Scene!.Descendants<PaintCanvas>().First();
-            _paintSelector ??= _host!.Scene!.Descendants<PaintSelector>().First();
-            _can ??= _host!.Scene!.Descendants<Can>().First();
+            _canvas ??= _host.Scene!.Descendants<PaintCanvas>().First();
+            _paintSelector ??= _host.Scene!.Descendants<PaintSelector>().First();
+            _can ??= _host.Scene!.Descendants<Can>().First();
 
             var clearButton = _inputs.Right.Button.AClick;
             var selectButton = _inputs.Right.ThumbstickClick;
@@ -70,13 +70,13 @@ namespace XrSamples.Graffiti
                     var pose = _inputs.Right.GripPose.Value;
                     PlaceSelector(pose, new Vector3(0, 0.03f, 0));
                     _paintSelector.IsVisible = true;
-                    _host!.ActiveTool = GraffitiTool.PaintSelector;
+                    _host.ActiveTool = GraffitiTool.PaintSelector;
                 }
                 else
                 {
                     _can.Color = _paintSelector.Colors[(int)_paintSelector.ActiveIndex];
                     _paintSelector.IsVisible = false;
-                    _host!.ActiveTool = GraffitiTool.None;
+                    _host.ActiveTool = GraffitiTool.None;
                 }
             }
 

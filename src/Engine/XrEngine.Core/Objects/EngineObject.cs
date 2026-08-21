@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using static Java.Util.Jar.Attributes;
 
 namespace XrEngine
 {
@@ -64,8 +65,16 @@ namespace XrEngine
         public int Id;
     }
 
+    public enum ObjectCloneFlags
+    {
+        None = 0x0,
+        CloneGeometry = 0x1,
+        CloneMaterials = 0x2,
+        CloneComponents = 0x4,
+    }
+
     [StateManager(StateManagerMode.Manual)]
-    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
+    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject, ICloneable
     {
         //protected Dictionary<int, object?>? _props;
         protected object?[]? _props;
@@ -274,6 +283,7 @@ namespace XrEngine
             GeneratePath(parts);
             return string.Join("/", parts);
         }
+     
 
         public virtual void GeneratePath(List<string> parts)
         {
@@ -297,6 +307,37 @@ namespace XrEngine
             if ((mode & InvalidateMode.Content) == InvalidateMode.Content)
                 _contentVersion++;
         }
+
+        object ICloneable.Clone()
+        {
+            return Clone(ObjectCloneFlags.None);
+        }
+
+        public virtual EngineObject Clone(ObjectCloneFlags flags)
+        {
+            var newObj = (EngineObject)Activator.CreateInstance(GetType())!;
+
+            CloneWork(newObj, flags);
+
+            return newObj;
+        }
+
+        protected virtual void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
+        {
+            if (_components != null)
+            {
+                foreach (var comp in _components)
+                {
+                    if ((flags & ObjectCloneFlags.CloneComponents) != 0 && comp is ICloneable cloneable)
+                        newObj.AddComponent((IComponent)cloneable.Clone());
+                    else
+                        newObj.AddComponent(comp);
+                }
+            }
+            newObj.Flags = Flags;
+            newObj.Tag = Tag;
+        }
+
 
         public EngineObjectFlags Flags { get; set; }
 

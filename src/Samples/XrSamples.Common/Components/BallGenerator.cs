@@ -94,7 +94,7 @@ namespace XrSamples
                         lastContact = null;
                     }
 
-                    audioReceiver ??= _host!.ObjectsWithComponent<AudioReceiver>().FirstOrDefault();
+                    audioReceiver ??= _host.ObjectsWithComponent<AudioReceiver>().FirstOrDefault();
 
                     if (audioReceiver != null)
                     {
@@ -155,7 +155,7 @@ namespace XrSamples
                 ball = NewBall();
                 ball.WorldPosition = worldPos;
                 _balls.Add(ball);
-                _host!.Scene!.AddChild(ball);
+                _host.Scene!.AddChild(ball);
             }
 
             NewBallCreated?.Invoke(ball);

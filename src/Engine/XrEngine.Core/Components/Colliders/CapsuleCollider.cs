@@ -27,7 +27,7 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
-            var localPoint = _host!.ToLocal(worldPoint);
+            var localPoint = _host.ToLocal(worldPoint);
 
             localPoint = Pose.Inverse().Transform(localPoint);
 
@@ -45,7 +45,7 @@ namespace XrEngine
 
         public Collision? CollideWith(Ray3 ray)
         {
-            var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host.WorldMatrixInverse);
 
             var sphereCenter = new Vector3(0, 0, Height / 2);
 

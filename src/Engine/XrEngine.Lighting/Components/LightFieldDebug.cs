@@ -93,7 +93,7 @@ namespace XrEngine.Lighting
 
         protected override void OnAttach()
         {
-            _provider = _host!.Component<LightFieldProvider>();
+            _provider = _host.Component<LightFieldProvider>();
         }
 
         public override void GetState(IStateContainer container)
@@ -339,7 +339,7 @@ namespace XrEngine.Lighting
             PbrMaterial.SHADER.UseLightField = true;
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
 
-            foreach (var light in _host!.Descendants<Light>())
+            foreach (var light in _host.Descendants<Light>())
                 light.IsVisible = false;
 
             Log.Info(this, "Texture loaded");
@@ -349,7 +349,7 @@ namespace XrEngine.Lighting
         {
             var faces = new List<GpuVoxelFaceInstance>();
 
-            foreach (var child in _host!.Children)
+            foreach (var child in _host.Children)
             {
                 if (child.TryComponent<LightFieldReceiver>(out var rec) && rec.IsOccluder)
                 {
@@ -372,7 +372,7 @@ namespace XrEngine.Lighting
             _meshMat.Invalidate();
 
             if (_meshView.Parent == null)
-                _host!.Scene!.AddChild(_meshView);
+                _host.Scene!.AddChild(_meshView);
         }
 
         [Action]

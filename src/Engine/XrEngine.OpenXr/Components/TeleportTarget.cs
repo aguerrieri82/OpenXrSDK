@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
         {
             var bounds2 = new Bounds2()
             {
-                Min = new Vector2(_host!.WorldBounds.Min.X, _host.WorldBounds.Min.Z),
+                Min = new Vector2(_host.WorldBounds.Min.X, _host.WorldBounds.Min.Z),
                 Max = new Vector2(_host.WorldBounds.Max.X, _host.WorldBounds.Max.Z)
             };
             return point.Y == _host.WorldBounds.Max.Y && bounds2.Contains(new Vector2(point.X, point.Z));
@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
 
         public IEnumerable<float> GetYPlanes()
         {
-            yield return _host!.WorldBounds.Max.Y;
+            yield return _host.WorldBounds.Max.Y;
         }
     }
 }

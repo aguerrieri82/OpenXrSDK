@@ -16,7 +16,7 @@ namespace XrEngine.Lighting
         [Action]
         public void ForceUpdate()
         {
-            _host!.Invalidate();
+            _host.Invalidate();
 
             _ = _provider?.RebuildAsync();
         }
@@ -30,7 +30,7 @@ namespace XrEngine.Lighting
 
         public void UpdateLight(VoxelLightBaker backer)
         {
-            Log.Info(this, "Updating light {0}", _host!.Name ?? _host.GetType().Name);
+            Log.Info(this, "Updating light {0}", _host.Name ?? _host.GetType().Name);
 
             if (_host is PointLight point)
             {
@@ -103,7 +103,7 @@ namespace XrEngine.Lighting
                 });
             }
 
-            _lightVersion = _host!.ContentVersion + _host.Version;
+            _lightVersion = _host.ContentVersion + _host.Version;
 
             Log.Debug(this, "Light updated");
         }

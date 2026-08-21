@@ -5,12 +5,7 @@ using XrMath;
 namespace XrEngine
 {
 
-    public enum ObjectCloneFlags
-    {
-        None = 0x0,
-        CloneGeometry = 0x1,
-        CloneMaterials = 0x2
-    }
+
 
     [StateManager(StateManagerMode.Manual)]
     public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName, IWorldLocatable, IAnimable
@@ -381,28 +376,20 @@ namespace XrEngine
                 parts.Add(Name ?? GetType().Name);
         }
 
-        public virtual Object3D Clone(ObjectCloneFlags flags)
+        protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
-            var newObj = (Object3D)Activator.CreateInstance(GetType())!;
+            var obj3d = (Object3D)newObj;
 
-            CloneWork(newObj, flags);
+            obj3d._transform = _transform.Clone();
+            obj3d._worldDirty = true;
+            obj3d._worldInverseDirty = true;
+            obj3d._visibleDirty = true;
+            obj3d._normalMatrixDirty = true;
+            obj3d._boundsDirty = true;
+            obj3d.Name = Name;
 
-            return newObj;
+            base.CloneWork(newObj, flags);
         }
-
-        protected virtual void CloneWork(Object3D newObj, ObjectCloneFlags flags)
-        {
-            newObj._transform = _transform.Clone();
-            newObj._worldDirty = true;
-            newObj._worldInverseDirty = true;
-            newObj._visibleDirty = true;
-            newObj._normalMatrixDirty = true;
-            newObj._boundsDirty = true;
-            newObj.Name = Name;
-            newObj.Tag = Tag;
-        }
-
-
 
         public Group3D? Parent => _parent;
 

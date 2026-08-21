@@ -45,7 +45,7 @@ namespace XrEngine.Reconstruct
             }
 
             if (HideInput != null && HideInput.IsActive && HideInput.IsChanged && HideInput.Value)
-                _host!.IsVisible = !_host.IsVisible;
+                _host.IsVisible = !_host.IsVisible;
 
             if (ClearInput != null && ClearInput.IsActive && ClearInput.IsChanged && ClearInput.Value)
             {
@@ -78,7 +78,7 @@ namespace XrEngine.Reconstruct
                 return;
             }
 
-            var texData = _host!.Scene!.App!.Renderer.ReadTexture(texture, texture.Format)![0];
+            var texData = _host.Scene!.App!.Renderer.ReadTexture(texture, texture.Format)![0];
 
             using var data = texData.Content!.MemoryLock();
 

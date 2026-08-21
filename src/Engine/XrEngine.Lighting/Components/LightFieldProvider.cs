@@ -90,7 +90,7 @@ namespace XrEngine.Lighting
             {
                 var bounds = new Bounds3Builder();
 
-                foreach (var mesh in _host!.Descendants<TriangleMesh>())
+                foreach (var mesh in _host.Descendants<TriangleMesh>())
                 {
                     if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
                         continue;
@@ -147,7 +147,7 @@ namespace XrEngine.Lighting
                 {
                     _backer.ClearScene();
 
-                    foreach (var mesh in _host!.Descendants<TriangleMesh>())
+                    foreach (var mesh in _host.Descendants<TriangleMesh>())
                     {
                         if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
                             continue;
@@ -172,7 +172,7 @@ namespace XrEngine.Lighting
 
             var lightDirty = meshDirty || gridDirty || profileDirty;
 
-            foreach (var light in _host!.Descendants<Light>())
+            foreach (var light in _host.Descendants<Light>())
             {
                 if (!light.TryComponent<LightFieldEmitter>(out var emit))
                     continue;
@@ -197,7 +197,7 @@ namespace XrEngine.Lighting
             {
                 _backer.ClearLightField();
 
-                foreach (var light in _host!.Descendants<Light>())
+                foreach (var light in _host.Descendants<Light>())
                 {
                     if (!light.TryComponent<LightFieldEmitter>(out var emit))
                         continue;

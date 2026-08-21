@@ -51,7 +51,7 @@ namespace XrSamples.Earth
             var localUp = Vector3.Normalize(cameraPosition);
 
             var worldNorthAxis = new Vector3(0, 1, 0)
-                .Transform(_host!.Earth.Transform.Orientation)
+                .Transform(_host.Earth.Transform.Orientation)
                 .Normalize();
 
             var localEast = Vector3.Cross(worldNorthAxis, localUp).Normalize();
@@ -76,7 +76,7 @@ namespace XrSamples.Earth
             var lonRad = (latLng.X * MathF.PI / 180.0f);
             var latRad = (latLng.Y * MathF.PI / 180.0f);
 
-            var radius = (_host!.Earth.SphereRadius + Unit(altitude));
+            var radius = (_host.Earth.SphereRadius + Unit(altitude));
 
             // Compute Cartesian coordinates
             var x = radius * MathF.Cos(latRad) * MathF.Cos(lonRad);

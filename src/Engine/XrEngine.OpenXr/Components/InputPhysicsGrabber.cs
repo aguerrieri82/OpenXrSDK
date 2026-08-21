@@ -40,7 +40,7 @@ namespace XrEngine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-            _host!.Scene!.AddChild(_grabView);
+            _host.Scene!.AddChild(_grabView);
             base.Start(ctx);
         }
 
@@ -72,7 +72,7 @@ namespace XrEngine.OpenXr
 
             //_grabObject.SetActiveTool(this, true);
 
-            var pm = _host!.Scene!.Component<PhysicsManager>();
+            var pm = _host.Scene!.Component<PhysicsManager>();
 
             _joint = pm.AddJoint(JointType.D6,
                         _grabView,

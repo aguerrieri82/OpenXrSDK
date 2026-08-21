@@ -17,13 +17,13 @@ namespace XrEngine
 
         protected override void OnAttach()
         {
-            _host!.UpdateBounds(true);
+            _host.UpdateBounds(true);
 
-            _bounds = _host!.WorldBounds;
+            _bounds = _host.WorldBounds;
 
             _size = _bounds.Size;
 
-            foreach (var item in _host!.DescendantsOrSelf().OfType<TriangleMesh>())
+            foreach (var item in _host.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 var curGeo = item.OriginalGeometry ?? item.Geometry;
 
@@ -45,7 +45,7 @@ namespace XrEngine
 
             canvas.Save();
 
-            //canvas.State.Transform = _host!.WorldMatrix;
+            //canvas.State.Transform = _host.WorldMatrix;
 
             var planes = _bounds.Faces().ToArray();
 

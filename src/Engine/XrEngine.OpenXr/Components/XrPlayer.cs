@@ -22,7 +22,7 @@ namespace XrEngine.OpenXr
 
                 head.Pose.Orientation = head.Pose.Orientation.KeepYawOnly();
 
-                _host!.SetWorldPose(head.Pose, false);
+                _host.SetWorldPose(head.Pose, false);
                 _lastPose = head.Pose;
             }
         }
@@ -61,7 +61,7 @@ namespace XrEngine.OpenXr
 
             app.ReferenceFrame = newRef;
 
-            _host!.WorldPosition = position;
+            _host.WorldPosition = position;
         }
 
         public float Height { get; set; }

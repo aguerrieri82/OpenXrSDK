@@ -170,16 +170,21 @@ namespace XrEngine
         [Notify(ChangeType.MaterialEnabled)]
         public partial bool IsEnabled { get; set; }
 
-        public virtual Material Clone()
+        public override Material Clone(ObjectCloneFlags flags)
         {
             var newMat = (Material)MemberwiseClone();
 
             newMat._hosts = [];
+
             if (newMat._props != null)
                 newMat._props = [];
 
-            return newMat;
+            if (newMat._components != null)
+                newMat._components = [];
 
+            CloneWork(newMat, flags);
+
+            return newMat;
         }
     }
 }

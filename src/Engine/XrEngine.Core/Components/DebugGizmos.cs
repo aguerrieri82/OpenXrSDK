@@ -17,7 +17,7 @@ namespace XrEngine
             if (ShowBounds)
             {
 
-                foreach (var obj in _host!.DescendantsWithFeature<ILocalBounds>())
+                foreach (var obj in _host.DescendantsWithFeature<ILocalBounds>())
                 {
                     if (obj.Object is Group3D)
                         canvas.State.Color = new Color(0, 1, 1, 1);

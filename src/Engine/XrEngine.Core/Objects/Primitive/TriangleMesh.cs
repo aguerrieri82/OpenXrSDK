@@ -158,7 +158,7 @@ namespace XrEngine
             base.Dispose();
         }
 
-        protected override void CloneWork(Object3D newObj, ObjectCloneFlags flags)
+        protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
             base.CloneWork(newObj, flags);
 
@@ -167,7 +167,7 @@ namespace XrEngine
             var curGeo = _originalGeometry ?? _geometry;
 
             if ((flags & ObjectCloneFlags.CloneGeometry) != 0)
-                mesh._geometry = curGeo?.Clone();
+                mesh._geometry = curGeo?.Clone(flags);
             else
                 mesh._geometry = curGeo;
 
@@ -176,7 +176,7 @@ namespace XrEngine
                 Material newMat;
 
                 if ((flags & ObjectCloneFlags.CloneMaterials) != 0)
-                    newMat = mat.Clone();
+                    newMat = mat.Clone(flags);
                 else
                     newMat = mat;
 

@@ -37,7 +37,7 @@ namespace XrEngine.OpenXr
             Debug.Assert(_host != null);
             if (_lastTargetsVersion != _host.ContentVersion)
             {
-                _lastTargets = _host!.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature).ToArray();
+                _lastTargets = _host.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature).ToArray();
                 _lastTargetsVersion = _host.ContentVersion;
             }
             return _lastTargets;
@@ -78,7 +78,7 @@ namespace XrEngine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-            _host!.Scene!.AddChild(_rayView);
+            _host.Scene!.AddChild(_rayView);
             base.Start(ctx);
         }
 
@@ -89,10 +89,10 @@ namespace XrEngine.OpenXr
 
             if (IsSimulation)
             {
-                var obj = _host!.Scene!.Children.OfType<XrRoot>().First().LeftController!;
+                var obj = _host.Scene!.Children.OfType<XrRoot>().First().LeftController!;
 
                 _lastRay = obj.GetWorldPose().ToRay();
-                _lastRay.Origin = _host!.WorldPosition;
+                _lastRay.Origin = _host.WorldPosition;
             }
             else
             {
@@ -153,7 +153,7 @@ namespace XrEngine.OpenXr
 
         protected virtual void Teleport(Vector3 position)
         {
-            var handler = _host!.Feature<ITeleportHandler>();
+            var handler = _host.Feature<ITeleportHandler>();
 
             if (handler != null)
                 handler.Teleport(position);

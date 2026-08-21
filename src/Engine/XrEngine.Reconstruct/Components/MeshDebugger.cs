@@ -49,7 +49,7 @@ namespace XrEngine.Reconstruct
 
         protected override void OnAttach()
         {
-            Debug.Assert(_host!.Geometry != null);
+            Debug.Assert(_host.Geometry != null);
 
             _index = new TriangleMeshSpatialIndex(_host.Geometry, CellSize);
 
@@ -61,7 +61,7 @@ namespace XrEngine.Reconstruct
         protected override void Start(RenderContext ctx)
         {
             if (_canvas!.Parent == null)
-                _host!.Scene!.AddChild(_canvas);
+                _host.Scene!.AddChild(_canvas);
 
         }
 
@@ -94,7 +94,7 @@ namespace XrEngine.Reconstruct
 
             var hideList = string.IsNullOrEmpty(HideList) ? [] : HideList.Split(',').Select(int.Parse).ToArray();
 
-            ctx.Transform3 = _host!.WorldMatrix;
+            ctx.Transform3 = _host.WorldMatrix;
 
             if (ShowTriangles)
             {
@@ -177,7 +177,7 @@ namespace XrEngine.Reconstruct
             }
 
             if (_slice.Parent == null)
-                _host!.Scene!.AddChild(_slice);
+                _host.Scene!.AddChild(_slice);
 
             var result = _index.SearchAroundTriangle(
                 triangleId,
@@ -252,7 +252,7 @@ namespace XrEngine.Reconstruct
 
             var indices = _triangles!.SelectMany(a => new uint[] { a.I0, a.I1, a.I2 }).ToArray();
 
-            var result = filler.FindMissingTriangles(_host!.Geometry!.Vertices, indices);
+            var result = filler.FindMissingTriangles(_host.Geometry!.Vertices, indices);
 
             _newTriangles = result.Select(a => BuildTriangle(a.A, a.B, a.C)).ToList();
 
@@ -271,7 +271,7 @@ namespace XrEngine.Reconstruct
 
             };
 
-            var vert = _host!.Geometry!.Vertices;
+            var vert = _host.Geometry!.Vertices;
 
             res.V0 = vert[res.I0].Pos;
             res.V1 = vert[res.I1].Pos;
@@ -299,7 +299,7 @@ namespace XrEngine.Reconstruct
             set
             {
                 _showSlice = value;
-                //_host!.IsVisible = !_showSlice;
+                //_host.IsVisible = !_showSlice;
                 _slice?.IsVisible = _showSlice;
             }
         }

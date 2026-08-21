@@ -121,7 +121,7 @@ namespace XrEngine
 
             _refCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
 
-            var newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
+            var newBounds = _host.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
 
             var proj = _refCamera.Projection;
 
@@ -261,7 +261,7 @@ namespace XrEngine
         public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             /*
-            var bounds = _host!.WorldBounds;
+            var bounds = _host.WorldBounds;
             var pos = bounds.Center;
             canvas.Save();
             canvas.State.Color = "#00ff00";

@@ -158,7 +158,7 @@ namespace XrSamples
 
         protected override void OnAttach()
         {
-            _host!.AddChild(_attachedGroup);
+            _host.AddChild(_attachedGroup);
             base.OnAttach();
         }
 
@@ -204,7 +204,7 @@ namespace XrSamples
 
             var joint = AddFixed(_mainTube, CarBody, _mainTube.WorldBounds.Center);
 
-            _seatPosDiff = _mainTube.GetWorldPose().Difference(_host!.GetWorldPose().Multiply(SeatLocalPose));
+            _seatPosDiff = _mainTube.GetWorldPose().Difference(_host.GetWorldPose().Multiply(SeatLocalPose));
         }
 
         protected void AttachWheels()
@@ -390,7 +390,7 @@ namespace XrSamples
             _steerLeft = AddFixedV2(t1, t3, p3);
             _steerRight = AddFixedV2(t2, t3, p4);
 
-            _host!.AddChild(_chassis);
+            _host.AddChild(_chassis);
 
             _mainTube = t5;
         }
@@ -444,7 +444,7 @@ namespace XrSamples
 
         Joint AddFixedV2(Object3D obj0, Object3D obj1, Vector3 point)
         {
-            var manager = _host!.Scene!.Component<PhysicsManager>();
+            var manager = _host.Scene!.Component<PhysicsManager>();
 
             var pose0 = new Pose3
             {
@@ -468,7 +468,7 @@ namespace XrSamples
 
         Joint AddFixed(Object3D obj0, Object3D obj1, Vector3 point)
         {
-            var manager = _host!.Scene!.Component<PhysicsManager>();
+            var manager = _host.Scene!.Component<PhysicsManager>();
 
             var pose0 = new Pose3
             {
@@ -533,7 +533,7 @@ namespace XrSamples
 
         Joint AddRotationV2(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis, bool motor = false)
         {
-            var manager = _host!.Scene!.Component<PhysicsManager>();
+            var manager = _host.Scene!.Component<PhysicsManager>();
 
             var pose0 = new Pose3
             {
@@ -565,7 +565,7 @@ namespace XrSamples
 
         Joint AddSpherical(Object3D obj0, Object3D obj1, Vector3 point)
         {
-            var manager = _host!.Scene!.Component<PhysicsManager>();
+            var manager = _host.Scene!.Component<PhysicsManager>();
 
             var pose0 = new Pose3
             {
@@ -742,7 +742,7 @@ namespace XrSamples
 
             SyncSound();
 
-            _manager ??= _host!.Scene!.Component<PhysicsManager>();
+            _manager ??= _host.Scene!.Component<PhysicsManager>();
 
             _manager.Execute(() =>
             {

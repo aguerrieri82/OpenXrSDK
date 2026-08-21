@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
         public bool CanGrab(Vector3 position)
         {
             if (_local != null && IsEnabled)
-                return _local.LocalBounds.Contains(_host!.ToLocal(position));
+                return _local.LocalBounds.Contains(_host.ToLocal(position));
 
             return false;
         }

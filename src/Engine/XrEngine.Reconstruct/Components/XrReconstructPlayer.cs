@@ -98,7 +98,7 @@ namespace XrEngine.Reconstruct
 
         protected override void OnAttach()
         {
-            _host!.AddChild(_head);
+            _host.AddChild(_head);
             _host.AddChild(_projection);
             _host.AddChild(_cube);
             _host.AddChild(_reader.SceneModel!);
@@ -140,7 +140,7 @@ namespace XrEngine.Reconstruct
             _projection.WorldMatrix = ComputeQuadMatrix(pose.ToMatrix(), camera, _projDistance);
 
             if (AttachCamera)
-                _host!.ActiveCamera!.SetWorldPose(combinedPose);
+                _host.ActiveCamera!.SetWorldPose(combinedPose);
 
             ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
 
@@ -221,7 +221,7 @@ namespace XrEngine.Reconstruct
             _projection.WorldMatrix = ComputeQuadMatrix(pose.ToMatrix(), camera, _projDistance);
 
             if (AttachCamera)
-                _host!.ActiveCamera!.SetWorldPose(pose);
+                _host.ActiveCamera!.SetWorldPose(pose);
 
             ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = camera.GetViewProj(pose);
             ((PbrMaterial)_reader.SceneModel!.Materials[0]).ColorMapProjection = Matrix4x4.Identity;

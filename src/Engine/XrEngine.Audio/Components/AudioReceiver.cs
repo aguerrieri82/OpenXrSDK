@@ -9,7 +9,7 @@ namespace XrEngine.Audio
 
         protected override void Start(RenderContext ctx)
         {
-            var system = _host!.Scene!.Component<AudioSystem>();
+            var system = _host.Scene!.Component<AudioSystem>();
 
             _listener = new AlListener(system.Device.Al);
 
@@ -20,10 +20,10 @@ namespace XrEngine.Audio
             if (_listener == null)
                 return;
 
-            _listener.Position = _host!.WorldPosition;
+            _listener.Position = _host.WorldPosition;
             _listener.Orientation = new AudioOrientation
             {
-                Forward = _host!.Forward,
+                Forward = _host.Forward,
                 Up = Vector3.UnitY
             };
         }

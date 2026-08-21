@@ -72,7 +72,7 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_manager != null);
 
-            _host!.WorldPosition = worldPos;
+            _host.WorldPosition = worldPos;
             _lastPose = GetHostPose();
 
             _manager.Execute(() =>
@@ -444,7 +444,7 @@ namespace XrEngine.Physics
 
         private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)
         {
-            _contactEvent?.Invoke(_host!, (Object3D)other.Tag!, otherIndex, data);
+            _contactEvent?.Invoke(_host, (Object3D)other.Tag!, otherIndex, data);
         }
 
         protected override void Update(RenderContext ctx)

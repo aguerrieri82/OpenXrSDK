@@ -58,7 +58,7 @@ namespace XrEngine.OpenXr
 
         public XrInput<bool>? BButton { get; set; }
 
-        public int PointerId => _host!.Id.Value.GetHashCode();
+        public int PointerId => _host.Id.Value.GetHashCode();
 
         public bool IsCaptured => _captureCount > 0;
 

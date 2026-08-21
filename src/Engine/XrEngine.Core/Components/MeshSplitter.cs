@@ -31,7 +31,7 @@ namespace XrEngine.Components
         protected override void OnAttach()
         {
             _splittedMesh = null;
-            _startGeo = _host!.Geometry!.Clone();
+            _startGeo = _host.Geometry!.Clone();
             base.OnAttach();
         }
 
@@ -125,13 +125,13 @@ namespace XrEngine.Components
             var reverse = _boundsTransform.Invert();
 
             canvas.State.Color = "#00A000";
-            canvas.State.Transform = _host!.WorldMatrix;
+            canvas.State.Transform = _host.WorldMatrix;
 
             foreach (var triangle in _splitTriangles)
                 canvas.DrawTriangle(triangle);
 
             canvas.State.Color = "#00ff00";
-            canvas.State.Transform = _boundsTransform * _host!.WorldMatrix;
+            canvas.State.Transform = _boundsTransform * _host.WorldMatrix;
             canvas.DrawBounds(_splitBounds);
 
             canvas.Restore();

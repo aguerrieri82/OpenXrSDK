@@ -21,12 +21,12 @@ namespace XrEngine
 
         protected override void Start(RenderContext ctx)
         {
-            Pointers ??= _host!.Scene?
+            Pointers ??= _host.Scene?
                 .Components<IComponent>()
                 .OfType<IRayPointer>()
                 .ToArray();
 
-            _collider = _host!.Feature<ICollider3D>();
+            _collider = _host.Feature<ICollider3D>();
         }
 
         protected override void Update(RenderContext ctx)

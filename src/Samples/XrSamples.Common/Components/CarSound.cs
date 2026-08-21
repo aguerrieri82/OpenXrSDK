@@ -202,7 +202,7 @@ namespace XrSamples
 
         protected override void Start(RenderContext ctx)
         {
-            Play(_engine, () => _host!.Forward);
+            Play(_engine, () => _host.Forward);
             base.Start(ctx);
         }
 

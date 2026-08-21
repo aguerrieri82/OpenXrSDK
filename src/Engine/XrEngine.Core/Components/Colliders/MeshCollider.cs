@@ -68,7 +68,7 @@ namespace XrEngine
             if (_version != _geometry.Version)
                 Update();
 
-            var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host.WorldMatrixInverse);
 
             if (!_geometry.Bounds.Intersects(localRay.ToLine(1000f), out _))
                 return null;

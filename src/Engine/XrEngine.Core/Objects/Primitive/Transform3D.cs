@@ -216,7 +216,7 @@ namespace XrEngine
 
         public long Version { get; set; }
 
-        public Object3D Host => _host!;
+        public Object3D Host => _host;
 
         public const float POS_TOLLERANCE = 0.0001f;
         public const float SCALE_TOLLERANCE = 0.00001f;
