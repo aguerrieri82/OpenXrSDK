@@ -29,7 +29,7 @@
             }).Add(_gizmos.Content);
         }
 
-        public void DrawGizmos()
+        public void DrawGizmos(RenderContext ctx)
         {
             if (_drawGizmos == null || _drawGizmos.Count == 0)
                 return;
@@ -41,7 +41,7 @@
                 foreach (var draw in _drawGizmos)
                 {
                     if (draw.IsEnabled)
-                        draw.DrawGizmos(_gizmos);
+                        draw.DrawGizmos(_gizmos, ctx);
                 }
             }
 
@@ -85,7 +85,7 @@
             _app = app;
 
             foreach (var obj in this.TypeLayerContent<Object3D>())
-                NotifyChanged(obj, ObjectChangeType.SceneAdd);
+                NotifyChanged(obj, ChangeType.SceneAdd);
         }
 
         public void Render(RenderContext ctx)
@@ -95,27 +95,31 @@
 
         public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
+            if (_app != null && Thread.CurrentThread != _app.Dispatcher.Thread)
+            {
+                if (!UpdateManager.IsUpdating)
+                    Log.Warn(this, "Scene change outside main thread");
+            }
 
             change.Target ??= sender;
 
             //Log.Debug(this, "Scene Change: {0}", change.Type);
 
-            if (!change.IsAny(ObjectChangeType.Transform) &&
+            if (!change.IsAny(ChangeType.Transform) &&
                 !change.Targets<object>().All(a => a is Material) &&
-                (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))
+                (change.Target is not Light || !change.IsAny(ChangeType.Render)))
             {
-                Version++;
+                _version++;
 
                 UpdateDrawGizmos();
             }
 
-            if (change.IsAny(ObjectChangeType.Scene,
-                             ObjectChangeType.MateriaAdd,
-                             ObjectChangeType.MateriaRemove,
-                             ObjectChangeType.Components))
+            if (change.IsAny(ChangeType.Scene,
+                             ChangeType.MateriaAdd,
+                             ChangeType.MateriaRemove,
+                             ChangeType.Components))
             {
-                ContentVersion++;
+                _contentVersion++;
             }
 
             foreach (var listener in _changeListener)
@@ -171,7 +175,11 @@
                 throw new InvalidOperationException("Scene changes are locked");
         }
 
-        public long ContentVersion { get; protected set; }
+        [Action]
+        public void Capture()
+        {
+            _app?.CaptureFrames(1);
+        }
 
         public Canvas3D Gizmos => _gizmos;
 

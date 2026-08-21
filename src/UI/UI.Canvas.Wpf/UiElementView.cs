@@ -158,7 +158,6 @@ namespace UI.Canvas.Wpf
             if (e.RightButton == MouseButtonState.Pressed)
                 buttons |= UiPointerButton.Right;
 
-
             DispatchPointerEvent(e, UiEventType.PointerMove, buttons);
             base.OnMouseMove(e);
         }
@@ -202,7 +201,6 @@ namespace UI.Canvas.Wpf
 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
                 mod |= UiModifier.Shift;
-
 
             if (capture != null)
             {

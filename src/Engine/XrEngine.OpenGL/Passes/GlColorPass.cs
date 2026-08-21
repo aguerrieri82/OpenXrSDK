@@ -1,15 +1,20 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System.Numerics;
-using XrMath;
 #else
 using Silk.NET.OpenGL;
 #endif
+
+using XrEngine.Helpers;
+using System.Numerics;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
+        protected DepthClipEffect? _depthClipEffect;
+
+        protected readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
         readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
@@ -22,20 +27,52 @@ namespace XrEngine.OpenGL
 #if GLES
             _bounds = new Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox(renderer.GL.Context);
 #endif
+
+            _dummyMaterial = new PbrMaterial
+            {
+                ColorMap = TextureFactory.CreateChecker(),
+                Metalness = 0,
+                Roughness = 0.5f
+            };
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            GetRenderTarget()!.Begin(camera);
+            ctx.UseMotionVectors = _renderer.Options.MotionVectorMode == MotionVectorMode.Shared;
+
+            if (ctx.MotionVectorProvider != null && ctx.MotionVectorProvider.IsActive)
+                ctx.MotionVectorProvider.Begin();
+
+            GetRenderTarget()?.Begin(ctx.PassCamera!);
+
+            _renderer.State.SetWriteColor(true);
 
             if (_renderer.Options.UseDepthPass)
             {
-                _renderer.State.SetWriteColor(true);
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
                 _gl.DepthFunc(DepthFunction.Lequal);
             }
             else
-                _renderer.Clear(_renderer.UpdateContext.PassCamera!.BackgroundColor);
+            {
+                _renderer.State.SetWriteDepth(true);
+                _renderer.State.SetClearDepth(1.0f);
+                _renderer.State.SetClearStencil(0);
+                _renderer.State.Commit();
+
+                _gl.ClearBuffer(BufferKind.Color, 0, ctx.PassCamera!.BackgroundColor.AsSpan());
+
+                _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
+
+                if (ctx.Bugs.NvMultiViewClipBug &&
+                    ctx.ClipRegions != null && 
+                    ctx.ClipRegions.Length > 1 &&
+                    ctx.IsMultiView)
+                {
+                    _depthClipEffect ??= new DepthClipEffect();
+                    UseEffect(_depthClipEffect);
+                    DrawVirtual(6);
+                }
+            }
 
             return true;
         }
@@ -43,17 +80,39 @@ namespace XrEngine.OpenGL
         protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color ||
-                                               (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline));
+                                               (a.Type & GlLayerType.Static) == GlLayerType.Static ||
+                                               (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline))
+                                    .Where(a => a.SceneLayer == null || a.SceneLayer.IsVisible);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            // _renderer.State.SetActiveProgram(0);
-            // _renderer.RenderTarget!.End(false);
+            _renderer.State.SetActiveProgram(0);
+
+            var isSharedMv = _renderer.Options.MotionVectorMode == MotionVectorMode.Shared;
+
+            if (ctx.MotionVectorProvider != null && ctx.MotionVectorProvider.IsActive && isSharedMv)
+            {
+                if (ctx.PassCamera!.ActiveEye == -1 || ctx.PassCamera.ActiveEye == 1)
+                {
+                    ctx.MotionVectorProvider!.Swap(ctx.PassCamera,
+                        SelectLayers()
+                        .OfType<GlLayer>()
+                        .SelectMany(a => a.Content.Contents)
+                        .SelectMany(a => a.Value.Contents)
+                        .SelectMany(a => a.Value.Contents)
+                        .SelectMany(a => a.Value.Contents)
+                        .Select(a => a.Object!)
+                        .Where(a => a != null));
+                }
+            }
+
+            ctx.UseMotionVectors = false;
         }
 
         protected virtual bool CanDraw(DrawContent draw)
         {
+
             if (draw.IsHidden || draw.IsClipped)
                 return false;
 
@@ -79,89 +138,168 @@ namespace XrEngine.OpenGL
 
         }
 
-        protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        protected virtual bool UpdateProgram(UpdateShaderContext ctx, GlProgramInstance progInst, bool forceSync = false)
         {
-            return progInst.UpdateProgram(updateContext);
+            return progInst.UpdateProgram(ctx, forceSync);
         }
 
-        protected void SetBounds(Camera camera, Object3D obj)
+        protected void SetBounds(UpdateShaderContext ctx)
         {
 
 #if GLES
-            var bounds = obj.WorldBounds;
+            if (!_renderer.Options.UsePrimitiveBoundingBox || !_renderer.Features.PrimitiveBoundingBox)
+                return;
 
-            var min = Vector4.Transform(new Vector4(bounds.Min, 1.0f), camera.ViewProjection);
-            var max = Vector4.Transform(new Vector4(bounds.Max, 1.0f), camera.ViewProjection);
+            ctx.UsePrimitiveBoundingBox = false;
 
-            _bounds.PrimitiveBoundingBox(min.X, min.Y, min.Z, min.W, max.X, max.Y, max.Z, max.W);
+            Debug.Assert(ctx.Material != null && ctx.Model != null && ctx.PassCamera != null);
+
+            if (ctx.Material.HasSkin)
+                return;
+
+            ctx.UsePrimitiveBoundingBox = true;
+
+            var min = new Vector4(float.PositiveInfinity);
+            var max = new Vector4(float.NegativeInfinity);
+
+            foreach (var p in ctx.Model.WorldBounds.Points)
+            {
+                var clip = Vector4.Transform(new Vector4(p, 1), ctx.PassCamera.ViewProjection);
+                min = Vector4.Min(min, clip);
+                max = Vector4.Max(max, clip);
+            }
+
+            _bounds.PrimitiveBoundingBox(
+                min.X, min.Y, min.Z, min.W, 
+                max.X, max.Y, max.Z, max.W);
 #endif
-
         }
+
 
         protected virtual void ConfigureCaps(ShaderMaterial material)
         {
+            var glState = _renderer.State;
+
             _renderer.ConfigureCaps(material);
 
             if (!WriteDepth)
-                _renderer.State.SetWriteDepth(false);
+                glState.SetWriteDepth(false);
+
+            var clipRegions = _renderer.UpdateContext.ClipRegions;
+
+            var enableClipRegions = clipRegions != null &&
+                                    clipRegions.Length > 0;
+
+            glState.EnableFeature(EnableCap.ClipDistance1, enableClipRegions);
+            glState.EnableFeature(EnableCap.ClipDistance2, enableClipRegions);
+            glState.EnableFeature(EnableCap.ClipDistance3, enableClipRegions);
+            glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
-        public override void RenderLayer(GlLayerV2 layer)
+        public override void RenderLayer(GlLayer layer)
         {
+            GlUtils.EnsureRenderThread();
+
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
+#if GL_WRAPPER
+            
+            var timer = Stopwatch.StartNew();
+
+            bool isRecording = false;
+
+            var wrapper = _gl as OpenGLWrapper.GlSwitchWrapper;
+
+            if (wrapper != null && layer.IsStatic)
+            {
+                if (layer.RenderActions.Count == 0 && _frame > 1000)
+                {
+                    _renderer.State.Reset();
+                    isRecording = true;
+                    wrapper.BeginRecord();
+                }
+                else if (layer.RenderActions.Count > 0)
+                {
+                    layer.Execute(wrapper.Enqueue.Instance);
+                    _renderer.State.Reset();
+
+                    if (layer.IsStatic && _frame % 100 == 0)
+                    {
+                        timer.Stop();
+                        Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
+                    }
+                    return;
+                }
+            }
+#endif
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
-            var updateContext = _renderer.UpdateContext;
+            var ctx = _renderer.UpdateContext;
 
             var useDepthPass = _renderer.Options.UseDepthPass;
 
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
-            uint progChangeCount = 0;
+            uint globalProgChangesCount = 0;
 
-            foreach (var shader in layer.Content.Contents)
+            foreach (var shader in layer.Content.SortedContent!)
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
-                updateContext.Shader = shader.Key;
-                updateContext.Stage = UpdateShaderStage.Shader;
+                ctx.Shader = shader.Key;
+                ctx.Stage = UpdateShaderStage.Shader;
 
-                progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
+                progGlobal!.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
 
-                foreach (var material in shader.Value.SortedContent!.OrderBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0))
+                foreach (var material in shader.Value.SortedContent!)
                 {
                     var matContent = material.Value;
 
                     if (material.Value.IsHidden)
                         continue;
 
-                    updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
+                    ctx.Material = matContent.Material as ShaderMaterial;
+
+                    ctx.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     var progInst = matContent.ProgramInstance!;
 
-                    updateContext.Stage = UpdateShaderStage.Material;
+                    ctx.Stage = UpdateShaderStage.Material;
 
-                    updateContext.ActiveComponents = matContent.ActiveComponents;
+                    ctx.ActiveComponents = matContent.ActiveComponents;
 
-                    var progUpdated = UpdateProgram(updateContext, progInst);
+                    ctx.Model = matContent.SingleModel;
 
-                    var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+                    Debug.Assert(ctx.Model != null || !ctx.Material!.HasMorph);
 
-                    updateContext.ProgramInstanceId = progInst.Program!.Handle;
+                    var progChanged = UpdateProgram(ctx, progInst);
+
+                    if (!progInst.IsReady)
+                    {
+                        progInst = GetProgramInstance(_dummyMaterial);
+                        ctx.Stage = UpdateShaderStage.Shader;
+                        progInst.Global.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
+                        ctx.Stage = UpdateShaderStage.Material;
+                        ctx.Material = progInst.Material;
+                        progChanged = UpdateProgram(ctx, progInst);
+                    }
+
+                    var programChanged = ctx.ProgramInstanceId != progInst.Program!.Handle;
+
+                    ctx.ProgramInstanceId = progInst.Program!.Handle;
 
                     progInst.Program.Use();
 
-                    progInst.UpdateBuffers(updateContext);
+                    progInst.UpdateBuffers(ctx);
 
-                    progInst.UpdateUniforms(updateContext, programChanged);
+                    progInst.UpdateUniforms(ctx, programChanged);
 
                     ConfigureCaps(progInst.Material!);
 
-                    if (progUpdated)
+                    if (progChanged)
                     {
-                        progChangeCount++;
+                        globalProgChangesCount++;
                         layer.Invalidate(shader.Value);
                     }
 
@@ -178,10 +316,13 @@ namespace XrEngine.OpenGL
 
                         vHandler.Bind();
 
-                        updateContext.Stage = UpdateShaderStage.Model;
+                        ctx.Stage = UpdateShaderStage.Model;
 
                         if (vertexContent.Draw != null)
                         {
+#if GL_VALIDATE_PROG
+                            progInst.Program.Validate();
+#endif
                             vertexContent.Draw();
                         }
                         else
@@ -191,111 +332,42 @@ namespace XrEngine.OpenGL
                                 if (!CanDraw(draw))
                                     continue;
 
-                                updateContext.Model = draw.Object;
+                                ctx.Model = draw.Object;
 
-                                progInst.UpdateModel(updateContext);
+                                progInst.UpdateModel(ctx);
 
-                                SetBounds(updateContext.PassCamera!, draw.Object!);
+                                SetBounds(ctx);
+
+#if GL_VALIDATE_PROG
+                                progInst.Program.Validate();
+#endif
 
                                 Draw(draw);
                             }
                         }
-
-                        //vHandler.Unbind();
                     }
                 }
 
-                _renderer.State.SetActiveProgram(0);
+                ctx.Material = null;
             }
 
             _renderer.State.BindVertexArray(0);
 
             _renderer.PopGroup();
 
-            if (progChangeCount > 0)
-                Log.Debug(this, "Changes: {0}", progChangeCount);
-        }
+            if (globalProgChangesCount > 0)
+                Log.Debug(this, "Changes: {0}", globalProgChangesCount);
 
+#if GL_WRAPPER
+            if (wrapper != null && isRecording)
+                layer.RenderActions.AddRange(wrapper.EndRecord());
 
-        public override void RenderLayer(GlLayer layer)
-        {
-            if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
-                return;
-
-            _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
-
-            var updateContext = _renderer.UpdateContext;
-
-            var useDepthPass = _renderer.Options.UseDepthPass;
-
-            var useOcclusion = _renderer.Options.UseOcclusionQuery;
-
-            updateContext.UseInstanceDraw = false;
-
-            updateContext.Stage = UpdateShaderStage.Any;
-
-            foreach (var shader in layer.Content.ShaderContentsSorted)
+            if (layer.IsStatic && _frame % 100 == 0)
             {
-                var progGlobal = shader.Value!.ProgramGlobal;
-
-                updateContext.Shader = shader.Key;
-
-                progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
-
-                IEnumerable<VertexContent> vertices = shader.Value.ContentsSorted;
-
-                if (_renderer.Options.SortByCameraDistance)
-                    vertices = vertices.OrderBy(a => a.RenderPriority).ThenBy(a => a.AvgDistance);
-
-                foreach (var vertex in vertices)
-                {
-                    if (vertex.IsHidden)
-                        continue;
-
-                    if (useOcclusion && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
-                        continue;
-
-                    var vHandler = vertex.VertexHandler!;
-
-                    updateContext.ActiveComponents = vertex.ActiveComponents;
-
-                    vHandler.Bind();
-
-                    foreach (var draw in vertex.Contents)
-                    {
-                        if (!CanDraw(draw))
-                            continue;
-
-                        var progInst = draw.ProgramInstance!;
-
-                        updateContext.Model = draw.Object;
-
-                        UpdateProgram(updateContext, progInst);
-
-                        var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
-
-                        updateContext.ProgramInstanceId = progInst.Program!.Handle;
-
-                        progInst.Program.Use();
-
-                        progInst.UpdateUniforms(updateContext, programChanged);
-
-                        progInst.UpdateBuffers(updateContext);
-
-                        ConfigureCaps(draw.ProgramInstance!.Material!);
-
-                        SetBounds(updateContext.PassCamera!, draw.Object!);
-
-                        Draw(draw);
-                    }
-
-                    vHandler.Unbind();
-                }
-
-
+                timer.Stop();
+                Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
             }
-
-            _renderer.PopGroup();
+#endif
         }
 
         public bool WriteDepth { get; set; }

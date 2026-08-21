@@ -8,7 +8,7 @@ namespace OpenXr.Framework
     {
         public Matrix4x4 Projection;
 
-        public Matrix4x4 Transform;
+        public Matrix4x4 World;
 
         public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
@@ -22,21 +22,21 @@ namespace OpenXr.Framework
 
         public static XrCameraTransform FromView(Pose3 pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-            var result = new XrCameraTransform();
+            var result = new XrCameraTransform
+            {
+                Projection = CreateProjectionFov(
+                       MathF.Tan(fov.AngleLeft),
+                       MathF.Tan(fov.AngleRight),
+                       MathF.Tan(reverseUpDown ? fov.AngleDown : fov.AngleUp),
+                       MathF.Tan(reverseUpDown ? fov.AngleUp : fov.AngleDown),
+                       nearPlane,
+                       farPlane),
 
-            result.Projection = CreateProjectionFov(
-                   MathF.Tan(fov.AngleLeft),
-                   MathF.Tan(fov.AngleRight),
-                   MathF.Tan(reverseUpDown ? fov.AngleDown : fov.AngleUp),
-                   MathF.Tan(reverseUpDown ? fov.AngleUp : fov.AngleDown),
-                   nearPlane,
-                   farPlane);
-
-            result.Transform = pose.ToMatrix();
+                World = pose.ToMatrix()
+            };
 
             return result;
         }
-
 
         unsafe static Matrix4x4 CreateProjectionFov(float tanAngleLeft,
                                                      float tanAngleRight,

@@ -6,7 +6,7 @@
 
         static DepthOnlyMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "empty.frag",
                 IsLit = false
@@ -20,7 +20,5 @@
             WriteColor = false;
             WriteDepth = true;
         }
-
-
     }
 }

@@ -37,8 +37,6 @@ namespace XrEngine
         public bool IsLeaf => Left == null && Right == null;
     }
 
-
-
     public class BvhGraph<T> where T : Object3D
     {
         public BvhGraph(IEnumerable<T> objects)

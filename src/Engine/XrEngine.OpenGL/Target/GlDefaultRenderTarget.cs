@@ -2,15 +2,10 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-
 #endif
 
-
 using System.Diagnostics;
-
-
 using XrMath;
-
 
 namespace XrEngine.OpenGL
 {
@@ -19,96 +14,88 @@ namespace XrEngine.OpenGL
         readonly GL _gl;
         private GlTexture? _color;
         private IGlRenderAttachment? _depth;
+        private bool _isResolved;
         private readonly GlTextureFrameBuffer _frameBuffer;
         private readonly uint _sampleCount;
+        private readonly bool _useRenderBuffer;
 
-
-        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount)
+        public GlDefaultRenderTarget(GL gl, bool useRenderBuffer, uint sampleCount, TextureFormat colorFormat = TextureFormat.SRgba8)
         {
             _gl = gl;
             _sampleCount = sampleCount;
-
-            if (useRenderBuffer)
-                _depth = new GlRenderBuffer(_gl);
-
+            _useRenderBuffer = useRenderBuffer;
             _frameBuffer = new GlTextureFrameBuffer(_gl);
+
+            DepthFormat = TextureFormat.Depth24Stencil8;
+            ColorFormat = colorFormat;
+            Flags = GlRenderTargetFlags.Main;
 
             SetSize(new Size2I(16, 16));
         }
 
         protected void SetSize(Size2I size)
         {
-            var isTexChanged = false;
+            _color?.Dispose();
+            _depth?.Dispose();
 
-            if (_sampleCount > 1 || _color == null)
+            _color = new GlTexture(_gl)
             {
-                _color?.Dispose();
+                MaxLevel = 0,
+                SampleCount = _sampleCount,
+                Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
+            };
 
-                _color = new GlTexture(_gl)
+            _color.SetLabel("Deafult RT - Color");
+
+            _color.Allocate(size.Width, size.Height, 1, ColorFormat);
+
+            if (_useRenderBuffer)
+            {
+                var depthBuf = new GlRenderBuffer(_gl);
+
+                depthBuf.Update(size.Width, size.Height, _sampleCount, DepthFormat.ToInternalFormat());
+
+                depthBuf.SetLabel("Deafult RT - DepthBuf");
+
+                _depth = depthBuf;
+            }
+            else
+            {
+                var depthTex = new GlTexture(_gl)
                 {
                     MaxLevel = 0,
                     SampleCount = _sampleCount,
-                    IsMutable = _sampleCount <= 1,
+                    MinFilter = TextureMinFilter.Nearest,
+                    MagFilter = TextureMagFilter.Nearest,
                     Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
                 };
 
-                isTexChanged = true;
+                depthTex.SetLabel("Deafult RT - Depth");
+
+                depthTex.Allocate(size.Width, size.Height, 1, DepthFormat);
+
+                _depth = depthTex;
             }
 
-            _color.Update(1, new TextureData
-            {
-                Width = size.Width,
-                Height = size.Height,
-                Format = TextureFormat.Rgba32,
-            });
+            _frameBuffer.Configure(_color, _depth, _sampleCount);
 
-
-            if (_depth is GlRenderBuffer renderBuffer)
-                renderBuffer.Update(size.Width, size.Height, _sampleCount, InternalFormat.Depth24Stencil8);
-
-            else if (_depth is GlTexture texture)
-            {
-                if (_sampleCount > 1 || _depth == null)
-                {
-                    texture?.Dispose();
-
-                    _depth = new GlTexture(_gl)
-                    {
-                        IsMutable = _sampleCount <= 1,
-                        MaxLevel = 0,
-                        SampleCount = _sampleCount,
-                        MinFilter = TextureMinFilter.Nearest,
-                        MagFilter = TextureMagFilter.Nearest,
-                        Target = _sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D
-                    };
-
-                    isTexChanged = true;
-                }
-
-                ((GlTexture)_depth).Update(1, new TextureData
-                {
-                    Width = size.Width,
-                    Height = size.Height,
-                    Format = TextureFormat.Depth24Stencil8,
-                });
-
-            }
-
-            if (isTexChanged)
-                _frameBuffer.Configure(_color, _depth, _sampleCount);
-
+            Log.Debug(this, "New size {0}x{1}", size.Width, size.Height);
         }
 
         public void Begin(Camera camera)
         {
             Debug.Assert(camera.ViewSize.Width > 0 && camera.ViewSize.Height > 0);
 
-            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
+            GlState.Current.SetView(new Rect2I(camera.ViewSize));
 
             if (camera.ViewSize.Width != _frameBuffer.Color!.Width || camera.ViewSize.Height != _frameBuffer.Color.Height)
                 SetSize(camera.ViewSize);
 
-            _frameBuffer.Bind();
+            _frameBuffer.BindDraw();
+
+            OpenGLRender.Current!.Begin(this);
+
+            _isResolved = false;
         }
 
         public void Dispose()
@@ -117,36 +104,68 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public void End(bool discardDepth)
+        public void Resolve(bool discardDepth, GlTextureFrameBuffer src, GlTextureFrameBuffer? dst)
         {
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _frameBuffer.Handle);
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
+            if (discardDepth)
+                src.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
 
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-            GlState.Current.SetDrawBuffers(GlState.DRAW_BACK);
+            src.BindRead(ReadBufferMode.ColorAttachment0);
 
-            var w = _frameBuffer.Color!.Width;
-            var h = _frameBuffer.Color.Height;
+            if (dst == null)
+            {
+                GlState.Current.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
+                _gl.DrawBuffers(GlState.DRAW_BACK);
+            }
+            else
+                dst.BindDraw();
+
+            var w = src.Color!.Width;
+            var h = src.Color.Height;
 
             _gl.BlitFramebuffer(0, 0, (int)w, (int)h, 0, 0, (int)w, (int)h, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
 
-            _frameBuffer.Unbind();
+            src.Unbind();
+
+            dst?.Unbind();
+
+            if (dst == null)
+                _isResolved = true;
         }
 
-        public void CommitDepth()
+        public void End(bool discardDepth)
         {
-
+            if (!_isResolved)
+                Resolve(discardDepth, _frameBuffer, null);
         }
 
         public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
+            if (attachment == FramebufferAttachment.ColorAttachment0)
+                return _color;
+
             if (attachment == FramebufferAttachment.DepthAttachment)
                 return _frameBuffer.QueryTexture(FramebufferAttachment.DepthAttachment);
 
             return null;
         }
 
-        public IGlFrameBuffer FrameBuffer => _frameBuffer;
+        public TextureFormat DepthFormat { get; set; }
+
+        public TextureFormat ColorFormat { get; set; }
+
+        IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
+
+        public GlTextureFrameBuffer FrameBuffer => _frameBuffer;
+
+        public GlTexture? Color => _color;
+
+        public GlRenderTargetFlags Flags { get; set; }
+
+        public int ShadingRate { get; set; }
+
+        public Size2I RenderSize { get; set; }
+
+        public Rect2I[]? ClipRegions { get; set; }
 
     }
 }

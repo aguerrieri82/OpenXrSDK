@@ -1,33 +1,53 @@
 ﻿using Common.Interop;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace OpenXr.Framework
 {
-    public unsafe ref struct RenderViewInfo
+    public ref struct RenderViewsInfo
     {
+        public XrProjectionLayer Layer;
+
         public Span<CompositionLayerProjectionView> ProjViews;
 
-        public SwapchainImageBaseHeader*[] ColorImages;
+        public unsafe SwapchainImageBaseHeader*[] ColorImages;
 
-        public SwapchainImageBaseHeader*[]? DepthImages;
+        public unsafe SwapchainImageBaseHeader*[]? DepthImages;
+
+        public XrSwapchain[] Color;
+
+        public XrSwapchain[]? Depth;
 
         public XrRenderMode Mode;
 
-        public long DisplayTime;
+        public Extent2Di? RenderedSize;
 
+        public Vector2 CropScale;
+
+        public Fovf SharedFov;
+
+        public long DisplayTime;
     }
 
-    public unsafe delegate void RenderViewDelegate(ref RenderViewInfo info);
+    public delegate void RenderViewDelegate(ref RenderViewsInfo info);
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         protected readonly RenderViewDelegate? _renderView;
-        protected XrSwapchainInfo[]? _swapchains;
-        protected bool _useDepthSWC = false;
+
+        protected bool _useDepth;
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
+        protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
+        protected SwapchainImageBaseHeader*[]? _lastColorImages;
+        protected SwapchainImageBaseHeader*[]? _lastDepthImages;
+        protected XrSwapchain[]? _colorSwaps;
+        protected XrSwapchain[]? _depthSwaps;
+        protected Fovf _sharedFov;
+        protected Vector2 _sharedFovScale;
 
         XrProjectionLayer()
         {
@@ -35,77 +55,171 @@ namespace OpenXr.Framework
             _projViews = new NativeArray<CompositionLayerProjectionView>(2, typeof(CompositionLayerProjectionView));
 
             _header.ValueRef.Type = StructureType.CompositionLayerProjection;
+
             _header.ValueRef.LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
-            Priority = 10;
+
+            Priority = XrLayerPriority.Projection;
+
+            if (XrDevice.IsMetaQuest)
+                UseSimmetricFov = true;
         }
 
-        public XrProjectionLayer(RenderViewDelegate renderView)
+        public XrProjectionLayer(RenderViewDelegate renderView, bool useDepth)
             : this()
         {
             _renderView = renderView;
-        }
+            _useDepth = useDepth;
 
-        public override void Dispose()
-        {
-            _depthInfo.Dispose();
-            _projViews.Dispose();
-            base.Dispose();
+            if (_useDepth)
+            {
+                _depthTest.Value = new CompositionLayerDepthTestFB
+                {
+                    Type = StructureType.CompositionLayerDepthTestFB,
+                    DepthMask = 1,
+                    CompareOp = CompareOpFB.LessOrEqualFB,
+                    Next = null
+                };
+
+                StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
+            }
         }
 
         public override void Destroy()
         {
-
-            if (_swapchains != null)
+            if (_colorSwaps != null)
             {
-                foreach (var item in _swapchains)
-                {
-                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.ColorSwapchain), "DestroySwapchain");
+                foreach (var item in _colorSwaps)
+                    item.Dispose();
+            }
 
-                    if (item.DepthSwapchain.Handle != 0)
-                        _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.DepthSwapchain), "DestroySwapchain");
-
-                    item.ColorImages?.Dispose();
-                    item.DepthImages?.Dispose();
-                }
-
-                _swapchains = null;
+            if (_depthSwaps != null)
+            {
+                foreach (var item in _depthSwaps)
+                    item.Dispose();
             }
 
             _header.ValueRef.Space.Handle = 0;
         }
 
-
         public override void Create()
         {
             Debug.Assert(_xrApp != null);
 
-            var swpCount = _xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
-
-            _swapchains = new XrSwapchainInfo[swpCount];
-
-            for (var i = 0; i < _swapchains.Length; i++)
+            if (UseSimmetricFov)
             {
-                var colorSwap = _xrApp.CreateSwapChain(false);
-                var depthSwap = _useDepthSWC ? _xrApp.CreateSwapChain(true) : new Swapchain();
-                _swapchains[i] = new XrSwapchainInfo
+                var views = new View[2];
+                views[0].Type = StructureType.View;
+                views[1].Type = StructureType.View;
+
+                var now = _xrApp.XrNow();
+
+                _xrApp.LocateViews(_xrApp.ReferenceSpace, now, views);
+
+                var fovs = views.Select(a => a.Fov).ToArray();
+
+                _sharedFov = BuildSharedFov(fovs);
+
+                _sharedFovScale = GetSharedFovScale(fovs);
+            }
+
+            var options = _xrApp.RenderOptions;
+
+            var swpCount = options.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
+
+            _colorSwaps = new XrSwapchain[swpCount];
+
+            if (_useDepth)
+                _depthSwaps = new XrSwapchain[swpCount];
+
+            var colorSize = AdjustRenderSize(options.Size);
+
+            var depthSize = new Extent2Di((int)(colorSize.Width * options.ProjectionDepthScale),
+                                          (int)(colorSize.Height * options.ProjectionDepthScale));
+
+            for (var i = 0; i < _colorSwaps.Length; i++)
+            {
+                var colorSwap = new XrSwapchain(_xrApp);
+
+                colorSwap.Create(colorSize,
+                            options.ColorFormat,
+                            options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                            SwapchainUsageFlags.ColorAttachmentBit |
+                            SwapchainUsageFlags.SampledBit |
+                            SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
+
+                _colorSwaps[i] = colorSwap;
+
+                if (_useDepth)
                 {
-                    ColorSwapchain = colorSwap,
-                    DepthSwapchain = depthSwap,
-                    ColorImages = _xrApp.EnumerateSwapchainImages(colorSwap),
-                    DepthImages = _useDepthSWC ? _xrApp.EnumerateSwapchainImages(depthSwap) : null,
-                    ViewSize = _xrApp.RenderOptions.Size
-                };
+                    var depthSwap = new XrSwapchain(_xrApp);
+
+                    depthSwap.Create(depthSize,
+                           options.DepthFormat,
+                           options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                           SwapchainUsageFlags.DepthStencilAttachmentBit |
+                           SwapchainUsageFlags.SampledBit |
+                           SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
+
+                    _depthSwaps![i] = depthSwap;
+                }
             }
 
             base.Create();
         }
 
+        protected static Fovf BuildSharedFov(Fovf[] fovs)
+        {
+            var maxX = 0f;
+            var maxUp = 0f;
+            var maxDown = 0f;
+
+            for (var i = 0; i < fovs.Length; i++)
+            {
+                var fov = fovs[i];
+                maxX = MathF.Max(maxX, MathF.Max(MathF.Abs(MathF.Tan(fov.AngleLeft)), MathF.Abs(MathF.Tan(fov.AngleRight))));
+                maxUp = MathF.Max(maxUp, MathF.Abs(MathF.Tan(fov.AngleUp)));
+                maxDown = MathF.Max(maxDown, MathF.Abs(MathF.Tan(fov.AngleDown)));
+            }
+
+            return new Fovf
+            {
+                AngleLeft = -MathF.Atan(maxX),
+                AngleRight = MathF.Atan(maxX),
+                AngleUp = MathF.Atan(maxUp),
+                AngleDown = -MathF.Atan(maxDown)
+            };
+        }
+
+        protected static Vector2 GetSharedFovScale(Fovf[] fovs)
+        {
+            var maxX = 0f;
+            for (var i = 0; i < fovs.Length; i++)
+                maxX = MathF.Max(maxX, MathF.Max(MathF.Abs(MathF.Tan(fovs[i].AngleLeft)), MathF.Abs(MathF.Tan(fovs[i].AngleRight))));
+
+            var fov = fovs[0];
+            var width = MathF.Abs(MathF.Tan(fov.AngleLeft)) + MathF.Abs(MathF.Tan(fov.AngleRight));
+
+            return new Vector2(2f * maxX / width, 1f);
+        }
+
+        public Extent2Di AdjustRenderSize(Extent2Di size)
+        {
+            if (!UseSimmetricFov)
+                return size;
+
+            return new Extent2Di
+            {
+                Width = (int)MathF.Ceiling(size.Width * _sharedFovScale.X),
+                Height = (int)MathF.Ceiling(size.Height * _sharedFovScale.Y)
+            };
+        }
+
         protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, long displayTime)
         {
             Debug.Assert(_xrApp != null);
-            Debug.Assert(_swapchains != null);
+            Debug.Assert(_colorSwaps != null);
 
             if (layer.Views == null)
             {
@@ -121,51 +235,35 @@ namespace OpenXr.Framework
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye)
                         swIndex = i;
 
-                    var swapchain = _swapchains[swIndex];
-                    var swOfs = 0;
-
-                    if (_xrApp.RenderOptions.RenderMode == XrRenderMode.Stereo)
-                        swOfs = i * swapchain.ViewSize.Width;
+                    var colorSwap = _colorSwaps[swIndex];
 
                     projView.Type = StructureType.CompositionLayerProjectionView;
                     projView.Next = null;
-                    projView.SubImage.Swapchain = swapchain.ColorSwapchain;
-                    projView.SubImage.ImageRect.Offset.X = swOfs;
-                    projView.SubImage.ImageRect.Offset.Y = 0;
-                    projView.SubImage.ImageRect.Extent.Height = swapchain.ViewSize.Height;
-                    projView.SubImage.ImageRect.Extent.Width = swapchain.ViewSize.Width;
-
-                    if (_useDepthSWC)
-                    {
-                        var depthInfo = _depthInfo.ItemPointer(i);
-                        depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
-                        depthInfo->MinDepth = 0;
-                        depthInfo->MaxDepth = 1;
-                        depthInfo->NearZ = 0;
-                        depthInfo->FarZ = 0;
-                        depthInfo->Next = null;
-                        depthInfo->SubImage.Swapchain = swapchain.DepthSwapchain;
-                        depthInfo->SubImage.ImageRect = projView.SubImage.ImageRect;
-
-                        projView.Next = depthInfo;
-
-                        if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                        {
-                            depthInfo->SubImage.ImageArrayIndex = (uint)i;
-                        }
-                        else
-                        {
-                            depthInfo->SubImage.ImageArrayIndex = 0;
-                        }
-                    }
+                    projView.SubImage.Swapchain = colorSwap;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                    {
                         projView.SubImage.ImageArrayIndex = (uint)i;
-                    }
                     else
-                    {
                         projView.SubImage.ImageArrayIndex = 0;
+
+                    if (_useDepth)
+                    {
+                        var depthSwap = _depthSwaps![swIndex];
+
+                        var depthInfo = _depthInfo.ItemPointer(i);
+
+                        depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
+                        depthInfo->Next = null;
+                        depthInfo->MinDepth = 0;
+                        depthInfo->MaxDepth = 1;
+                        depthInfo->SubImage.Swapchain = depthSwap;
+
+                        StructChain.AddNextStruct(ref projView, depthInfo);
+
+                        if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
+                            depthInfo->SubImage.ImageArrayIndex = (uint)i;
+                        else
+                            depthInfo->SubImage.ImageArrayIndex = 0;
                     }
 
                     UpdateView(ref projView, i);
@@ -175,7 +273,7 @@ namespace OpenXr.Framework
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
             if (_renderView != null)
-                return Render(ref projViews, ref views, _swapchains, displayTime);
+                return Render(ref projViews, ref views, displayTime);
 
             return false;
         }
@@ -184,26 +282,44 @@ namespace OpenXr.Framework
         {
         }
 
-        protected virtual bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected virtual void Acquire(ref Span<CompositionLayerProjectionView> projViews)
         {
-            var colorImages = new SwapchainImageBaseHeader*[swapchains.Length];
-            var depthImages = _useDepthSWC ? new SwapchainImageBaseHeader*[swapchains.Length] : null;
+            Debug.Assert(_colorSwaps != null);
 
-            for (var i = 0; i < colorImages.Length; i++)
+            _lastColorImages = new SwapchainImageBaseHeader*[_colorSwaps.Length];
+            _lastDepthImages = _useDepth ? new SwapchainImageBaseHeader*[_colorSwaps.Length] : null;
+
+            for (var i = 0; i < _lastColorImages.Length; i++)
             {
-                var swc = swapchains[i];
+                _lastColorImages[i] = _colorSwaps[i].AcquireImageAndWait();
 
-                var colorIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].ColorSwapchain);
-                colorImages[i] = swc.ColorImages!.ItemPointer((int)colorIndex);
-                _xrApp.WaitSwapchainImage(swapchains[i].ColorSwapchain);
-
-                if (_useDepthSWC)
-                {
-                    var depthIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].DepthSwapchain);
-                    depthImages![i] = swc.DepthImages!.ItemPointer((int)depthIndex);
-                    _xrApp.WaitSwapchainImage(swapchains[i].DepthSwapchain);
-                }
+                if (_useDepth)
+                    _lastDepthImages![i] = _depthSwaps![i].AcquireImageAndWait();
             }
+        }
+
+        protected virtual void Release()
+        {
+            Debug.Assert(_colorSwaps != null);
+
+            foreach (var item in _colorSwaps)
+                item.Release();
+
+            if (_depthSwaps != null)
+            {
+                foreach (var item in _depthSwaps)
+                    item.Release();
+            }
+
+            _lastColorImages = null;
+            _lastDepthImages = null;
+        }
+
+        protected virtual bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, long predTime)
+        {
+            Debug.Assert(_colorSwaps != null);
+
+            Acquire(ref projViews);
 
             for (var i = 0; i < views.Length; i++)
             {
@@ -214,43 +330,126 @@ namespace OpenXr.Framework
 
             try
             {
-                var info = new RenderViewInfo
+                var info = new RenderViewsInfo
                 {
                     ProjViews = projViews,
-                    ColorImages = colorImages,
-                    DepthImages = depthImages,
+                    ColorImages = _lastColorImages!,
+                    DepthImages = _lastDepthImages,
                     Mode = _xrApp!.RenderOptions.RenderMode,
-                    DisplayTime = predTime
+                    Color = _colorSwaps,
+                    Depth = _depthSwaps,
+                    DisplayTime = predTime,
+                    Layer = this,
+                    CropScale = _sharedFovScale,
+                    SharedFov = _sharedFov
                 };
 
                 _renderView!(ref info);
+
+                var renderSize = _colorSwaps[0].Size;
+
+                if (info.RenderedSize != null)
+                    renderSize = info.RenderedSize.Value;
+
+                for (var i = 0; i < _projViews.Length; i++)
+                {
+                    ref var view = ref _projViews[i];
+
+                    var colorOffset = 0;
+
+                    if (_xrApp!.RenderOptions.RenderMode == XrRenderMode.Stereo)
+                        colorOffset = i * _colorSwaps[0].Size.Width;
+
+                    if (UseSimmetricFov)
+                    {
+                        var cropW = (int)MathF.Round(renderSize.Width / info.CropScale.X);
+                        var x = i == 0 ? renderSize.Width - cropW : 0;
+
+                        view.SubImage.ImageRect.Offset.X = colorOffset + x;
+                        view.SubImage.ImageRect.Offset.Y = 0;
+                        view.SubImage.ImageRect.Extent.Width = cropW;
+                        view.SubImage.ImageRect.Extent.Height = renderSize.Height;
+                    }
+                    else
+                    {
+                        view.SubImage.ImageRect.Offset.X = colorOffset;
+                        view.SubImage.ImageRect.Offset.Y = 0;
+                        view.SubImage.ImageRect.Extent = renderSize;
+                    }
+
+                    if (_useDepth)
+                    {
+                        var depth = (CompositionLayerDepthInfoKHR*)view.Next;
+                        var depthSize = _depthSwaps![0].Size;
+                        var depthOffset = 0;
+
+                        if (_xrApp.RenderOptions.RenderMode == XrRenderMode.Stereo)
+                            depthOffset = i * depthSize.Width;
+
+                        if (UseSimmetricFov)
+                        {
+                            var cropW = (int)MathF.Round(depthSize.Width / info.CropScale.X);
+                            var x = i == 0 ? depthSize.Width - cropW : 0;
+
+                            depth->SubImage.ImageRect.Offset.X = depthOffset + x;
+                            depth->SubImage.ImageRect.Offset.Y = 0;
+                            depth->SubImage.ImageRect.Extent.Width = cropW;
+                            depth->SubImage.ImageRect.Extent.Height = depthSize.Height;
+                        }
+                        else
+                        {
+                            depth->SubImage.ImageRect.Offset.X = depthOffset;
+                            depth->SubImage.ImageRect.Offset.Y = 0;
+                            depth->SubImage.ImageRect.Extent = depthSize;
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
                 _xrApp!.Logger.LogError(ex, "Render failed: {ex}", ex);
+
                 return false;
             }
             finally
             {
-                foreach (var sw in swapchains)
-                {
-                    _xrApp!.ReleaseSwapchainImage(sw.ColorSwapchain);
-                    if (_useDepthSWC)
-                        _xrApp!.ReleaseSwapchainImage(sw.DepthSwapchain);
-                }
+                Release();
             }
 
             return true;
         }
 
-
-        public IEnumerable<Swapchain> ColorSwapChains => _swapchains?.Select(a => a.ColorSwapchain) ?? [];
-
-        public bool UseDepthSwapchain
+        public override void Dispose()
         {
-            get => _useDepthSWC;
-            set => _useDepthSWC = value;
+            _depthInfo.Dispose();
+            _projViews.Dispose();
+            _depthTest.Dispose();
+
+            if (_colorSwaps != null)
+            {
+                foreach (var item in _colorSwaps)
+                    item.Dispose();
+            }
+
+            if (_depthSwaps != null)
+            {
+                foreach (var item in _depthSwaps)
+                    item.Dispose();
+            }
+
+            base.Dispose();
         }
 
+        public XrSwapchain[] ColorSwapchains => _colorSwaps ?? throw new InvalidOperationException();
+
+        public XrSwapchain[]? DepthSwapchains => _depthSwaps;
+
+        public bool UseSimmetricFov { get; set; }
+
+        public bool UseDepth
+        {
+            get => _useDepth;
+            set => _useDepth = value;
+        }
     }
 }

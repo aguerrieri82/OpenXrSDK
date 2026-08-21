@@ -6,7 +6,6 @@
 
         public float Min;
 
-
         public readonly float Size => Max - Min;
 
         public readonly float Center => (Max + Min) / 2;

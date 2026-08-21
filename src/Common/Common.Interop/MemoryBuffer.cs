@@ -14,6 +14,11 @@ namespace Common.Interop
             return buffer;
         }
 
+        public static unsafe IMemoryBuffer<T> Attach<T>(T* data, uint size)
+        {
+            return new NativeMemoryBuffer<T>(data, size);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IMemoryBuffer<T> Create<T>(uint size)
         {

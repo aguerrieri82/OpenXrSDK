@@ -2,21 +2,20 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Security.Cryptography;
-
+using Silk.NET.OpenGL.Extensions.ARB;
 #endif
-
 
 namespace XrEngine.OpenGL
 {
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
-        static GlSimpleProgram? _drawQuad;
-        static uint _emptyVertexArray;
+        static OverlayTextureEffect _overlayEffect = new();
+        static readonly Dictionary<ShaderMaterial, GlProgramInstance> _instances = [];
 
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
         protected GL _gl;
+        protected GlRenderPassFlags _flags;
 
         public GlBaseRenderPass(OpenGLRender renderer)
         {
@@ -25,7 +24,12 @@ namespace XrEngine.OpenGL
             IsEnabled = true;
         }
 
-        public virtual void Configure(RenderContext ctx)
+        public void UseEffect(ShaderMaterial material)
+        {
+            UseProgram(GetProgramInstance(material), true);
+        }
+
+        public virtual void Configure(GlUpdateContext ctx)
         {
         }
 
@@ -38,7 +42,7 @@ namespace XrEngine.OpenGL
             return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);
         }
 
-        public virtual void Render(RenderContext ctx)
+        public virtual void Render(GlUpdateContext ctx)
         {
             if (!IsEnabled)
                 return;
@@ -49,7 +53,7 @@ namespace XrEngine.OpenGL
                 _isInit = true;
             }
 
-            if (!BeginRender(ctx.Camera!))
+            if (!BeginRender(ctx))
                 return;
 
             foreach (var layer in SelectLayers())
@@ -57,26 +61,19 @@ namespace XrEngine.OpenGL
                 layer.Prepare(ctx);
 
                 if (layer is GlLayer glLayer)
-                {
                     RenderLayer(glLayer);
-                }
-                else if (layer is GlLayerV2 glLayer2)
-                {
-                    RenderLayer(glLayer2);
-                }
             }
 
-            EndRender();
+            EndRender(ctx);
         }
 
-        protected virtual bool BeginRender(Camera camera)
+        protected virtual bool BeginRender(GlUpdateContext ctx)
         {
             return true;
         }
 
-        protected virtual void EndRender()
+        protected virtual void EndRender(GlUpdateContext ctx)
         {
-
         }
 
         protected virtual IGlRenderTarget? GetRenderTarget()
@@ -84,84 +81,73 @@ namespace XrEngine.OpenGL
             return _renderer.RenderTarget;
         }
 
-        protected GlProgramInstance CreateProgram(ShaderMaterial material)
+        protected GlProgramInstance GetProgramInstance(ShaderMaterial material)
         {
-            var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_gl, material.Shader!));
-            return new GlProgramInstance(_gl, material, global, null);
+            if (!_instances.TryGetValue(material, out var instance))
+            {
+                var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_gl, material.Shader!));
+                instance = new GlProgramInstance(_renderer.GL, material, global, null);
+                _instances[material] = instance;
+            }
+            return instance;
         }
 
         protected void UseProgram(GlProgramInstance instance, bool updateUniforms)
         {
-            var updateContext = _renderer.UpdateContext;
+            var ctx = _renderer.UpdateContext;
 
-            updateContext.Shader = instance.Material.Shader;
+            ctx.Shader = instance.Material.Shader;
+            ctx.Stage = UpdateShaderStage.Shader;
 
-            instance.Global!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
+            instance.Global!.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
 
-            instance.UpdateProgram(updateContext);
+            ctx.Stage = UpdateShaderStage.Material;
+            ctx.Material = instance.Material;
 
-            var programChanged = updateContext.ProgramInstanceId != instance.Program!.Handle;
+            instance.UpdateProgram(ctx);
 
-            updateContext.ProgramInstanceId = instance.Program!.Handle;
+            var programChanged = ctx.ProgramInstanceId != instance.Program!.Handle;
+
+            ctx.ProgramInstanceId = instance.Program!.Handle;
 
             instance.Program.Use();
 
             if (programChanged)
-                instance.Global.UpdateUniforms(updateContext, instance.Program);
+                instance.Global.UpdateUniforms(ctx, instance.Program);
 
             _renderer.ConfigureCaps(instance.Material);
 
             if (updateUniforms)
             {
-                instance.UpdateUniforms(updateContext, false);
-                instance.UpdateBuffers(updateContext);
+                instance.UpdateUniforms(ctx, false);
+                instance.UpdateBuffers(ctx);
             }
-
         }
 
-
-        protected void ProcessImage(GlTexture src, GlTexture dst)
+        protected void OverlayTexture(GlTexture texture, bool isMultiView)
         {
-            _gl.BindImageTexture(0, src, 0, false, 0, GLEnum.ReadOnly, src.InternalFormat);
-            _gl.CheckError();
-            _gl.BindImageTexture(1, dst, 0, false, 0, GLEnum.WriteOnly, dst.InternalFormat);
-            _gl.CheckError();
-            _gl.DispatchCompute((src.Width + 15) / 16, (src.Height + 15) / 16, 1);
-            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+            OverlayTexture(texture.ToEngineTexture(), isMultiView);
         }
 
-        protected void OverlayTexture(GlTexture texture)
+        protected void OverlayTexture(Texture texture, bool isMultiView)
         {
-            OverlayTexture(texture.ToEngineTexture());
-        }
+            _overlayEffect ??= new();
+            _overlayEffect.Texture = texture;
 
-        protected void OverlayTexture(Texture texture)
-        {
-            if (_drawQuad == null)
-            {
-                _drawQuad = new GlSimpleProgram(_gl, "fullscreen.vert", "texture_full.frag", str => Embedded.GetString<Material>(str));
-                _drawQuad.Build();
-            }
-
-            _drawQuad.Use();
-            _drawQuad.LoadTexture(texture, 0);
-
-            _renderer.State.SetUseDepth(false);
-            _renderer.State.SetWriteDepth(false);
-            _renderer.State.SetAlphaMode(AlphaMode.Blend);
+            UseEffect(_overlayEffect);
 
             DrawQuad();
         }
 
-        protected void DrawQuad()
+        protected void DrawVirtual(uint vertices)
         {
-            if (_emptyVertexArray == 0)
-                _emptyVertexArray = _gl.GenVertexArray();
-
-            _renderer.State.BindVertexArray(_emptyVertexArray);
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            GlImageProc.DrawVirtual(_gl, vertices);
         }
 
+        protected void DrawQuad()
+        {
+            GlImageProc.DrawQuad(_gl);
+        }
 
         public virtual void Dispose()
         {
@@ -173,11 +159,12 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public virtual void RenderLayer(GlLayerV2 layer)
-        {
-            throw new NotSupportedException();
-        }
+        public int Priority { get; protected set; }
+
+        public GL Gl => _gl;
 
         public bool IsEnabled { get; set; }
+
+        public GlRenderPassFlags Flags => _flags;
     }
 }

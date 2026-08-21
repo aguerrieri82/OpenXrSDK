@@ -10,7 +10,11 @@ namespace XrEngine.OpenGL
     {
         public uint Handle { get; }
 
-        public GL GL { get; }
+        IGlContext Owner { get; }
+
+        GL GL { get; }
+
+        void SetLabel(string? label);
 
     }
 }

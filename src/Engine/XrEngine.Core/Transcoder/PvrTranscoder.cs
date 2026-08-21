@@ -30,6 +30,16 @@ namespace XrEngine
             ASTC_10x10 = 38,
             ASTC_12x10 = 39,
             ASTC_12x12 = 40,
+            ASTC_3x3x3 = 41,
+            ASTC_4x3x3 = 42,
+            ASTC_4x4x3 = 43,
+            ASTC_4x4x4 = 44,
+            ASTC_5x4x4 = 45,
+            ASTC_5x5x4 = 46,
+            ASTC_5x5x5 = 47,
+            ASTC_6x5x5 = 48,
+            ASTC_6x6x5 = 49,
+            ASTC_6x6x6 = 50,
             RGBA8 = 0x0808080861626772,
             RGB8 = 0x0008080800626772,
             RGBFloat32 = 0x0020202000626772,
@@ -88,20 +98,33 @@ namespace XrEngine
                 Width = images[0].Width,
                 Height = images[0].Height,
                 NumSurfaces = 1,
-                NumFaces = images.Count == 1 ? 1 : images.Max(a => a.Face) + 1,
-                Depth = 1,
+                NumFaces = images.Count == 1 ? 1 : images.Max(a => a.Layer) + 1,
+                Depth = images[0].Depth,
                 MIPMapCount = images.Count == 1 ? 1 : images.Max(a => a.MipLevel) + 1
             };
 
             if (images[0].Compression == TextureCompressionFormat.Astc)
             {
-                header.PixelFormat = images[0].BlockSize switch
+                if (images[0].Depth > 1)
                 {
-                    4 => PixelFormat.ASTC_4x4,
-                    6 => PixelFormat.ASTC_6x6,
-                    8 => PixelFormat.ASTC_8x8,
-                    _ => throw new NotSupportedException()
-                };
+                    header.PixelFormat = images[0].BlockSize switch
+                    {
+                        3 => PixelFormat.ASTC_3x3x3,
+                        4 => PixelFormat.ASTC_4x4x4,
+                        _ => throw new NotSupportedException()
+                    };
+                }
+                else
+                {
+                    header.PixelFormat = images[0].BlockSize switch
+                    {
+                        4 => PixelFormat.ASTC_4x4,
+                        6 => PixelFormat.ASTC_6x6,
+                        8 => PixelFormat.ASTC_8x8,
+                        _ => throw new NotSupportedException()
+                    };
+                }
+
                 if (images[0].Format.IsSrgb())
                     header.ColorSpace = ColorSpace.sRGB;
                 else
@@ -111,28 +134,28 @@ namespace XrEngine
             {
                 switch (images[0].Format)
                 {
-                    case TextureFormat.Rgba32:
+                    case TextureFormat.Rgba8:
                         header.ColorSpace = ColorSpace.LinearRGB;
                         if (images[0].Compression == TextureCompressionFormat.Etc2)
                             header.PixelFormat = PixelFormat.ETC2_RGBA;
                         else
                             header.PixelFormat = PixelFormat.RGBA8;
                         break;
-                    case TextureFormat.Rgb24:
+                    case TextureFormat.Rgb8:
                         header.ColorSpace = ColorSpace.LinearRGB;
                         if (images[0].Compression == TextureCompressionFormat.Etc2)
                             header.PixelFormat = PixelFormat.ETC2_RGB;
                         else
                             header.PixelFormat = PixelFormat.RGB8;
                         break;
-                    case TextureFormat.SRgb24:
+                    case TextureFormat.SRgb8:
                         header.ColorSpace = ColorSpace.sRGB;
                         if (images[0].Compression == TextureCompressionFormat.Etc2)
                             header.PixelFormat = PixelFormat.ETC2_RGB;
                         else
                             header.PixelFormat = PixelFormat.RGB8;
                         break;
-                    case TextureFormat.SRgba32:
+                    case TextureFormat.SRgba8:
                         header.ColorSpace = ColorSpace.sRGB;
                         if (images[0].Compression == TextureCompressionFormat.Etc2)
                             header.PixelFormat = PixelFormat.ETC2_RGBA;
@@ -161,15 +184,14 @@ namespace XrEngine
 
             stream.WriteStruct(header);
 
-            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
+            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Layer))
             {
-                Debug.Assert(img.Data != null);
-                stream.Write(img.Data.AsSpan());
+                Debug.Assert(img.Content != null);
+                stream.Write(img.Content.AsSpan());
             }
 
             stream.Dispose();
         }
-
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
@@ -189,8 +211,7 @@ namespace XrEngine
 
             var test = (ulong)header.PixelFormat >> 32;
 
-            if (header.NumSurfaces != 1 ||
-                header.Depth != 1)
+            if (header.NumSurfaces != 1)
             {
                 throw new NotSupportedException();
             }
@@ -204,26 +225,26 @@ namespace XrEngine
                 case PixelFormat.ETC2_RGB:
                     comp = TextureCompressionFormat.Etc2;
                     if (header.ColorSpace == ColorSpace.sRGB)
-                        format = TextureFormat.SRgb24;
+                        format = TextureFormat.SRgb8;
                     else
-                        format = TextureFormat.Rgb24;
+                        format = TextureFormat.Rgb8;
                     break;
                 case PixelFormat.ETC2_RGBA:
                     comp = TextureCompressionFormat.Etc2;
                     if (header.ColorSpace == ColorSpace.sRGB)
-                        format = TextureFormat.SRgba32;
+                        format = TextureFormat.SRgba8;
                     else
-                        format = TextureFormat.Rgba32;
+                        format = TextureFormat.Rgba8;
                     break;
                 case PixelFormat.ETC1:
                     comp = TextureCompressionFormat.Etc1;
-                    format = TextureFormat.Rgb24;
+                    format = TextureFormat.Rgb8;
                     break;
                 case PixelFormat.RGB8:
                     if (header.ColorSpace == ColorSpace.LinearRGB)
-                        format = TextureFormat.Rgb24;
+                        format = TextureFormat.Rgb8;
                     else
-                        format = TextureFormat.SRgb24;
+                        format = TextureFormat.SRgb8;
                     break;
                 case PixelFormat.RGBFloat32:
                     format = TextureFormat.RgbFloat32;
@@ -234,13 +255,27 @@ namespace XrEngine
                 case PixelFormat.ASTC_4x4:
                 case PixelFormat.ASTC_6x6:
                 case PixelFormat.ASTC_8x8:
-                    if (header.ColorSpace == ColorSpace.sRGB)
-                        format = TextureFormat.SRgba32;
+                case PixelFormat.ASTC_3x3x3:
+
+                    if (header.ChannelType == ChannelType.Float)
+                    {
+                        if (header.ColorSpace == ColorSpace.sRGB)
+                            throw new NotSupportedException();
+                        format = TextureFormat.RgbaFloat16;
+                    }
                     else
-                        format = TextureFormat.Rgba32;
+                    {
+                        if (header.ColorSpace == ColorSpace.sRGB)
+                            format = TextureFormat.SRgba8;
+                        else
+                            format = TextureFormat.Rgba8;
+                    }
+
                     comp = TextureCompressionFormat.Astc;
+
                     blockSize = header.PixelFormat switch
                     {
+                        PixelFormat.ASTC_3x3x3 => 3,
                         PixelFormat.ASTC_4x4 => 4,
                         PixelFormat.ASTC_6x6 => 6,
                         PixelFormat.ASTC_8x8 => 8,
@@ -251,7 +286,7 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
 
-            return ReadData(seekStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format, blockSize);
+            return ReadData(seekStream, header.Width, header.Height, header.Depth, header.MIPMapCount, header.NumFaces, comp, format, blockSize);
 
         }
 

@@ -84,9 +84,7 @@ namespace XrEngine
 
         public float Section { get; set; }
 
-
         public static readonly Sphere3D Default = new(1f, 30);
-
 
         public static readonly Sphere3D SemiSphere = new(1f, 30, 0.5f);
     }

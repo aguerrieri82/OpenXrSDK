@@ -24,7 +24,7 @@
             foreach (var obj in layer.Content)
                 NotifyObjectAdded(layer, obj);
 
-            layer.NotifyChanged(_scene, ObjectChangeType.SceneAdd);
+            layer.NotifyChanged(_scene, ChangeType.SceneAdd);
 
             _version++;
 

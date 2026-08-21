@@ -33,7 +33,6 @@ namespace XrEngine
                 -1,  1,  1
             ]),
 
-
             ActiveComponents = VertexComponent.Position
         };
 
@@ -46,32 +45,36 @@ namespace XrEngine
 
             protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
             {
-                bld.AddFeature("UNIFORM_EXP");
+                Texture? GetTexture(UpdateShaderContext ctx)
+                {
+                    var light = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                    return light?.Textures?.GGXEnv;
+                }
 
-                if (PbrV1Material.LinearOutput)
-                    bld.AddFeature("LINEAR_OUTPUT");
+                bld.AddFeature("COLOR_CORRECT");
+                bld.AddFeature("MIP_FACTOR");
 
-                bld.AddFeature(PbrV1Material.ToneMap.ToString());
+                bld.PrepareTexture(GetTexture(bld.Context));
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    var image = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-                    var textures = image?.Textures;
+                    var light = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                    var textures = light?.Textures;
 
-                    if (image != null && textures != null && ctx.PassCamera != null)
+                    if (light != null && textures?.GGXEnv != null && ctx.PassCamera != null)
                     {
-                        up.SetUniform("uGGXEnvSampler", textures.Env!, 0);
+                        up.LoadTextureFixSrgb(ctx, textures.GGXEnv, 0);
+
                         up.SetUniform("uMipCount", (int)textures.MipCount);
-                        up.SetUniform("uEnvBlurNormalized", Blur);
-                        up.SetUniform("uEnvIntensity", image.Intensity);
-                        up.SetUniform("uViewProjectionMatrix", ctx.PassCamera.ViewProjection);
-                        up.SetUniform("uExposure", ctx.PassCamera.Exposure);
-                        up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.RotationY));
+                        up.SetUniform("uMipFactor", Blur);
+                        up.SetUniform("uIntensity", light.Intensity * ctx.PassCamera.Exposure);
+                        up.SetUniform("uCubeRotation", Matrix3x3.CreateRotationY(light.RotationY));
                     }
                 });
             }
 
             public float Blur { get; set; }
+
         }
 
         public EnvironmentView()
@@ -79,5 +82,7 @@ namespace XrEngine
             Geometry = CubeGeometry;
             Materials.Add(new EnvViewMaterial() { });
         }
+
+        public EnvViewMaterial Material => (EnvViewMaterial)Materials[0];
     }
 }

@@ -68,7 +68,6 @@ namespace XrEngine.Media.Windows
 
         int CopyAllItems(IMFAttributes dest);
 
-
         // HRESULT GetSampleFlags(DWORD *pdwSampleFlags)
         [PreserveSig]
         int GetSampleFlags(out uint pdwSampleFlags);

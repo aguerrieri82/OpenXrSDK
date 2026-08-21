@@ -6,8 +6,6 @@ namespace OpenXr.Framework
     {
         void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result);
 
-        void ConfigureSwapchain(ref SwapchainCreateInfo info);
-
         void Initialize(XrApp app, IList<string> extensions);
 
         void HandleEvent(ref EventDataBuffer buffer);
@@ -20,6 +18,8 @@ namespace OpenXr.Framework
 
         void OnSessionEnd();
 
-        IDisposable? Configure<T>(ref T data) where T : struct;
+        void Configure(ref SwapchainCreateInfo info, SwapchainTarget target);
+
+        IDisposable? Configure<T>(ref T data) where T : unmanaged;
     }
 }

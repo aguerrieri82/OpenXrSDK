@@ -6,7 +6,6 @@ using Android.Util;
 using Microsoft.Extensions.Logging;
 using XrInteraction;
 
-
 namespace OpenXr.Framework.Android
 {
     public abstract class XrActivity : Activity, IMainActivity
@@ -43,6 +42,9 @@ namespace OpenXr.Framework.Android
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            
+            Window!.AddFlags(global::Android.Views.WindowManagerFlags.KeepScreenOn);
+
             OnLoad();
         }
 
@@ -52,7 +54,6 @@ namespace OpenXr.Framework.Android
         }
 
         protected abstract XrApp CreateApp();
-
 
         protected virtual void OnXrAppStarted(XrApp app)
         {
@@ -82,9 +83,16 @@ namespace OpenXr.Framework.Android
 
         void RunAppThread()
         {
-            _loopThread = new Thread(RunApp);
-            _loopThread.Name = "XrEngine Render Thread";
+            _loopThread = new Thread(RunApp)
+            {
+                Name = "XrEngine Render Thread"
+            };
+
             _loopThread.Start();
+        }
+
+        protected virtual void ConfigureMainLoop()
+        {
         }
 
         void RunApp()
@@ -97,6 +105,8 @@ namespace OpenXr.Framework.Android
 
                 _mainThread.ExecuteAsync(() => OnXrAppStarted(_xrApp)).Wait();
 
+                ConfigureMainLoop();
+
                 while (_xrApp.IsStarted)
                 {
                     try
@@ -107,6 +117,7 @@ namespace OpenXr.Framework.Android
                     {
                         _xrApp.Logger.LogError(ex.ToString());
                         _xrApp.Stop();
+                        throw;
                     }
                 }
             }
@@ -189,7 +200,6 @@ namespace OpenXr.Framework.Android
 
             base.OnActivityResult(requestCode, resultCode, data);
         }
-
 
         Context IMainActivity.Context => this;
     }

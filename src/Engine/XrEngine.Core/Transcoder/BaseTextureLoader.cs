@@ -13,8 +13,6 @@ namespace XrEngine
             public uint BitPerPixel;
         }
 
-
-
         public abstract IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
@@ -26,7 +24,7 @@ namespace XrEngine
                 result.AlignX = 4;
                 result.AlignY = 4;
 
-                if (format == TextureFormat.Rgba32 || format == TextureFormat.SRgba32)
+                if (format == TextureFormat.Rgba8 || format == TextureFormat.SRgba8)
                     result.BitPerPixel = 8;
                 else
                     result.BitPerPixel = 4; ;
@@ -65,11 +63,11 @@ namespace XrEngine
                 {
                     result.BitPerPixel = 64;
                 }
-                else if (format == TextureFormat.Rgb24)
+                else if (format == TextureFormat.Rgb8)
                 {
                     result.BitPerPixel = 24;
                 }
-                else if (format == TextureFormat.SRgba32 || format == TextureFormat.Rgba32)
+                else if (format == TextureFormat.SRgba8 || format == TextureFormat.Rgba8)
                 {
                     result.BitPerPixel = 32;
                 }
@@ -82,8 +80,10 @@ namespace XrEngine
             return result;
         }
 
-        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format, uint blockSize = 0)
+        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint depth, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format, uint blockSize = 0)
         {
+            depth = Math.Max(depth, 1);
+
             var padding = GetFormatAlign(comp, format);
 
             static uint Align(uint value, uint align)
@@ -101,9 +101,10 @@ namespace XrEngine
                     {
                         Width = (uint)MathF.Max(1, width >> mipLevel),
                         Height = (uint)MathF.Max(1, height >> mipLevel),
+                        Depth = faceCount == 1 ? depth : faceCount,
                         MipLevel = (uint)mipLevel,
                         Format = format,
-                        Face = (uint)face,
+                        Layer = (uint)face,
                         BlockSize = blockSize,
                         Compression = comp,
                     };
@@ -114,14 +115,15 @@ namespace XrEngine
                     {
                         var blocksX = (item.Width + blockSize - 1) / blockSize;
                         var blocksY = (item.Height + blockSize - 1) / blockSize;
-                        size = blocksX * blocksY * 16;
+                        var blocksZ = (item.Depth + blockSize - 1) / blockSize;
+                        size = blocksX * blocksY * blocksZ * 16;
                     }
                     else
-                        size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
+                        size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * depth * padding.BitPerPixel) / 8;
 
-                    item.Data = MemoryBuffer.Create<byte>(size);
+                    item.Content = MemoryBuffer.Create<byte>(size);
 
-                    stream.ReadExactly(item.Data.AsSpan());
+                    stream.ReadExactly(item.Content.AsSpan());
 
                     results.Add(item);
                 }

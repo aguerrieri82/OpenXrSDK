@@ -5,6 +5,11 @@ namespace XrEngine
 {
     public class CylinderCollider : Behavior<Object3D>, ICollider3D
     {
+        public CylinderCollider()
+        {
+            Usage = ColliderUsage.All;
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             //TODO: Implement
@@ -23,8 +28,6 @@ namespace XrEngine
 
             return radius + tolerance <= Radius;
         }
-
-
 
         public float Distance(Vector3 worldPoint)
         {
@@ -56,11 +59,12 @@ namespace XrEngine
             //TODO: Implement
         }
 
-
         public float Radius { get; set; }
 
         public float Height { get; set; }
 
         public Pose3 Pose { get; set; }
+
+        public ColliderUsage Usage { get; set; }
     }
 }

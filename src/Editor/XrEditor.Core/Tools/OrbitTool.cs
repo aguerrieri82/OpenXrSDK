@@ -130,6 +130,5 @@ namespace XrEditor
 
         public float ZoomSpeed { get; set; }
 
-
     }
 }

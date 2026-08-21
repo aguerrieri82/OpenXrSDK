@@ -2,6 +2,6 @@
 {
     public interface IAlAudioDecoder
     {
-        AudioData Decode(Stream stream);
+        AlAudioData Decode(Stream stream);
     }
 }

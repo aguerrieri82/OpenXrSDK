@@ -21,7 +21,6 @@ namespace CanvasUI
         Shift = 0x4
     }
 
-
     public enum UiEventType
     {
         GotFocus,

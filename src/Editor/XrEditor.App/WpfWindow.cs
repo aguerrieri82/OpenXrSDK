@@ -14,11 +14,14 @@ namespace XrEditor
 
         public Size2 Size
         {
-            get => new Size2((float)_window.Width, (float)_window.Height);
+            get => new Size2((float)_window.ActualWidth, (float)_window.ActualHeight);
             set
             {
-                _window.Width = value.Width;
-                _window.Height = value.Height;
+                if (value.Width != 0)
+                    _window.Width = value.Width;
+
+                if (value.Height != 0)
+                    _window.Height = value.Height;
             }
         }
 

@@ -1,0 +1,81 @@
+﻿#include "./uniforms_comp.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+
+// Wet layer:
+//   rgb = wetColor * wetDensity
+//   a   = wetDensity
+layout(rgba16f, binding = 1) readonly uniform highp image2D uWetPaint;
+
+
+// Dry / visible layer:
+//   rgb = visible resolved color
+//   a   = accumulated visible density
+layout(rgba16f, binding = 2) readonly uniform highp image2D uDryPaint;
+
+
+layout(rgba16f, binding = 3) writeonly uniform highp image2D uWetPaintOut;
+layout(rgba16f, binding = 4) writeonly uniform highp image2D uDryPaintOut;
+
+
+// Incoming density texture.
+// Only R is used.
+layout(binding = 0) uniform highp sampler2D uIncomingDensity;
+
+
+#define INPUT_EPS 0.0001
+
+
+vec3 MixWetIntoDry(
+    vec3 dryColor,
+    float dryDensity,
+    vec3 wetColor,
+    float wetDensity)
+{
+    float wetCoverage = DensityToCoverage(wetDensity);
+
+    return mix(dryColor, wetColor, wetCoverage);
+}
+
+
+void main()
+{
+    ivec2 local = ivec2(gl_GlobalInvocationID.xy);
+
+    ivec2 p = local + ComputeOffset;
+
+    if (any(greaterThanEqual(p, CanvasSize)))
+        return;
+
+    vec4 wet = imageLoad(uWetPaint, p);
+    vec4 dry = imageLoad(uDryPaint, p);
+
+    float incomingDensity =
+        texelFetch(uIncomingDensity, p, 0).r * PaintColor.a;
+
+    if (incomingDensity > INPUT_EPS)
+    {
+        vec3 incomingColor = PaintColor.rgb;
+
+        // Wet accumulates additively.
+        wet.rgb += incomingColor * incomingDensity;
+        wet.a   += incomingDensity;
+
+        // Current mixed wet color after additive accumulation.
+        vec3 mixedWetColor = wet.rgb / wet.a;
+
+        // The new incoming amount is committed immediately to visible/dry.
+        dry.rgb = MixWetIntoDry(
+            dry.rgb,
+            dry.a,
+            mixedWetColor,
+            incomingDensity
+        );
+
+        dry.a += incomingDensity;
+    }
+
+    imageStore(uWetPaintOut, p, wet);
+    imageStore(uDryPaintOut, p, dry);
+}

@@ -49,7 +49,6 @@ namespace XrEditor
 
         }
 
-
         public void AddDivider()
         {
             Items.Add(new ActionDivider());
@@ -93,7 +92,6 @@ namespace XrEditor
 
             return result;
         }
-
 
         public ObservableCollection<IToolbarItem> Items { get; } = [];
     }

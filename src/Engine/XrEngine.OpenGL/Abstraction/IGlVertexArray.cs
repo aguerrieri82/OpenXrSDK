@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public interface IGlVertexArray : IDisposable
+    public interface IGlVertexArray : IDisposable, IGlObject
     {
         void Update(object vertexSpan, object? indexSpan = null);
 
@@ -19,5 +19,6 @@ namespace XrEngine.OpenGL
         Type VertexType { get; }
 
         Type IndexType { get; }
+
     }
 }

@@ -13,11 +13,17 @@ namespace XrEngine.OpenXr.Windows
         private ConsoleFormatterOptions _formatterOptions;
 
         public OneLineConsoleFormatter(IOptionsMonitor<ConsoleFormatterOptions> options)
+            : base(nameof(OneLineConsoleFormatter))
+        {
+            _formatterOptions = options.CurrentValue;
 
-            : base(nameof(OneLineConsoleFormatter)) => (_optionsReloadToken, _formatterOptions) = (options.OnChange(ReloadLoggerOptions), options.CurrentValue);
+            _optionsReloadToken = options.OnChange(ReloadLoggerOptions);
+        }
 
-        private void ReloadLoggerOptions(ConsoleFormatterOptions options) =>
+        private void ReloadLoggerOptions(ConsoleFormatterOptions options)
+        {
             _formatterOptions = options;
+        }
 
         public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider? scopeProvider, TextWriter textWriter)
         {
@@ -35,6 +41,7 @@ namespace XrEngine.OpenXr.Windows
             textWriter.WriteColoredMessage($" [{category}] ", null, ConsoleColor.Blue);
             textWriter.WriteColoredMessage($"{message}", null, color);
             textWriter.WriteLine();
+
             if (logEntry.Exception != null)
             {
                 textWriter.WriteColoredMessage(logEntry.Exception.ToString(), null, color);
@@ -44,7 +51,6 @@ namespace XrEngine.OpenXr.Windows
 
         private static ConsoleColor GetLogLevelConsoleColors(LogLevel2 logLevel)
         {
-
             return logLevel switch
             {
                 LogLevel2.Trace => ConsoleColor.Gray,

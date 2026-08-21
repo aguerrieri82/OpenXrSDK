@@ -82,7 +82,6 @@ namespace XrEngine.OpenXr
             _host!.Transform.Position = _startPosition + Axis * absLen;
         }
 
-
         public void ConfigureInput(IXrBasicInteractionProfile input)
         {
             Input = input.Right!.GripPose;

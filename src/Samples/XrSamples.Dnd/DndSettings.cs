@@ -40,13 +40,12 @@ namespace XrSamples.Dnd
             point.IsVisible = PointInt > 0;
             point.Intensity = PointInt;
             point.Range = PointRange;
-            point.NotifyChanged(ObjectChangeType.Property);
+            point.NotifyChanged(ChangeType.Property);
 
             //image.IsVisible = ImageInt > 0;
             image.Intensity = ImageInt;
-
+            image.Invalidate();
         }
-
 
         public float Zoom { get; set; }
 
@@ -59,7 +58,6 @@ namespace XrSamples.Dnd
         public float PointRange { get; set; }
 
         public float ImageInt { get; set; }
-
 
         public Matrix4x4 MapTransform { get; set; }
     }

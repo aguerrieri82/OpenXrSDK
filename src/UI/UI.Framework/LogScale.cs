@@ -14,7 +14,6 @@
             return MathF.Log10(value);
         }
 
-
         public static readonly LogScale Instance = new();
     }
 }

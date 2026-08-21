@@ -21,7 +21,6 @@ namespace XrEngine.OpenXr.Android
             return request.Uri?.Host == _host && request.Method == "GET";
         }
 
-
         public WebResponse? HandleRequest(WebRequest request)
         {
             Log.Info(this, "Browser Handle Request: {0}", request.Uri);

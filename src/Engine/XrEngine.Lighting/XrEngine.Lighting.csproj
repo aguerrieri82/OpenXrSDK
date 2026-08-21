@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\*" />
+	  <EmbeddedResource Include="Profiles\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+    <ProjectReference Include="..\XrEngine.UI\XrEngine.UI.csproj" />
+  </ItemGroup>
+
+</Project>

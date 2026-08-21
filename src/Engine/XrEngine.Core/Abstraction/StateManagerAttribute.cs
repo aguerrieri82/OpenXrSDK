@@ -3,7 +3,9 @@
     public enum StateManagerMode
     {
         Explicit,
-        Auto
+        Auto,
+        Manual,
+        None
     }
 
     [AttributeUsage(AttributeTargets.Class)]

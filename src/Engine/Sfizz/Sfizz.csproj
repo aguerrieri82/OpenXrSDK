@@ -4,7 +4,6 @@
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="libs/arm64-v8a/libsfizz_api.so" />
 		<Compile Remove="SfizzSampleProvider.cs" />
@@ -12,7 +11,11 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<PackageReference Include="NAudio.Core" Version="2.3.0" />
-		<Content Include="sfizz_api.dll" CopyToOutputDirectory="PreserveNewest" />
+		<Content 
+			Include="sfizz_api.dll" 
+			Visible="False"
+			CopyToOutputDirectory="PreserveNewest" 
+			UseLink="True" />
 	</ItemGroup>
 
 </Project>

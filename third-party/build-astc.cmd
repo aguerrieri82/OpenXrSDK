@@ -6,6 +6,7 @@ cd astc-encoder-native
 md out-android
 cd out-android
 
+
 del CMakeCache.txt
 
 cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchain.cmake ^

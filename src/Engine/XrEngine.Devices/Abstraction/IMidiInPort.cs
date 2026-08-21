@@ -8,7 +8,6 @@
         public long Timestamp;
     }
 
-
     public interface IMidiInPort
     {
         void Close();

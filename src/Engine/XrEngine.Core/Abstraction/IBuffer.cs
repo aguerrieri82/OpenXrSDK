@@ -1,5 +1,11 @@
 ﻿namespace XrEngine
 {
+
+    public unsafe interface IBufferLock : IDisposable
+    {
+        void* Data { get; }
+    }
+
     [Flags]
     public enum BufferAccessMode
     {
@@ -9,34 +15,50 @@
         ReadWrite = Read | Write
     }
 
-    public unsafe interface IBuffer
+    [Flags]
+    public enum BufferAllocateFlags
+    {
+        None = 0,
+        Mutable = 0x1,
+        Persistent = 0x2,
+        PersistentRead = 0x4 | Persistent,
+        PersistentWrite = 0x8 | Persistent,
+    }
+
+    public interface ISimpleBuffer
+    {
+        void Update(object value);
+
+        long Version { get; set; }
+
+        uint Handle { get; }
+    }
+
+    public interface ISimpleBuffer<T> : ISimpleBuffer
+    {
+        void Update(T value);
+    }
+
+    public interface IBuffer : ISimpleBuffer
     {
         void BeginUpdate();
 
         void EndUpdate();
 
-        void Update(object value);
+        void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0, bool preserve = true);
 
-        void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0);
+        void Allocate(uint sizeInByte, BufferAllocateFlags flags = BufferAllocateFlags.Mutable);
 
-        void Allocate(uint sizeInByte);
-
-        byte* Lock(BufferAccessMode mode);
-
-        void Unlock();
-
-        long Hash { get; set; }
-
-        long Version { get; set; }
+        IBufferLock Lock(BufferAccessMode mode);
 
         uint SizeBytes { get; }
     }
 
-    public interface IBuffer<T> : IBuffer
+    public interface IBuffer<T> : IBuffer, ISimpleBuffer<T>
     {
-        void Update(T value);
+        void UpdateRange(ReadOnlySpan<T> value, int dstIndex = 0, bool preserve = true);
 
-        void UpdateRange(ReadOnlySpan<T> value, int dstIndex);
+        void ReadArray(ref T[] result);
     }
 
 }

@@ -13,7 +13,6 @@ namespace XrEngine.Devices
         public T Data { get; }
     }
 
-
     [StructLayout(LayoutKind.Sequential)]
     public struct BlePedalData
     {
@@ -23,7 +22,6 @@ namespace XrEngine.Devices
 
         public int DeltaTime;
     }
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct BlePedalSettings
@@ -126,7 +124,6 @@ namespace XrEngine.Devices
             return raw;
         }
 
-
         public async Task<BlePedalSettings> ReadSettingsAsync()
         {
             var data = await _device!.ReadCharacteristicAsync(_settingsChar!);
@@ -160,7 +157,6 @@ namespace XrEngine.Devices
         }
 
         public bool IsConnected => _device?.IsConnected ?? false;
-
 
         public event EventHandler<DataEventArgs<BlePedalData>>? Data;
     }

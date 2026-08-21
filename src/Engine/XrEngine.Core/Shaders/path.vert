@@ -1,5 +1,6 @@
 ﻿#include "Shared/uniforms.glsl"
 #include "Shared/position.glsl"
+#include "Shared/vertex_post.glsl"
 
 layout(location=0) in vec3 aLocalPos;
 layout(location=2) in vec2 aUV;
@@ -29,10 +30,13 @@ mat4 alignTangent(vec3 tangent, vec3 position)
     );
 }
 
+#ifdef MOTION_VECTORS
+    #include "shared/motion_vectors.glsl"
+#endif
+
+
 void main()
 {
-    //mat4 worldMatrix = uModel.worldMatrix;
-
     int pi = int(aLocalPos.z);
 
     vec3 p = uPoints[pi];
@@ -57,4 +61,10 @@ void main()
     #endif
 
     computePos(pos);
+
+    #ifdef MOTION_VECTORS
+        computeMotionVectors(realPos);
+    #endif
+
+    doPost();
 }

@@ -7,12 +7,13 @@ namespace XrEngine
     {
         public Matrix4x4 ViewProj;
 
+        public Matrix4x4 ViewProjInv;
+
         public Matrix4x4 View;
 
         public Matrix4x4 World;
 
         public Matrix4x4 Projection;
-
 
     }
 
@@ -23,14 +24,27 @@ namespace XrEngine
         protected Matrix4x4 _viewProj;
         protected Matrix4x4 _viewProjInverse;
         protected Vector3 _target;
-        protected bool _viewProjDirty = true;
+        protected bool _viewProjDirty;
+        protected Size2I _viewSize;
+        protected bool _projDirty;
+        protected bool _projInverseDirty;
+        protected float _near;
+        protected float _far;
 
         public Camera()
+            : this(true)
         {
-            Near = 0.001f;
-            Far = 10;
-            Exposure = 1;
-            Flags |= EngineObjectFlags.DisableNotifyChangedScene;
+        }
+
+        public Camera(bool isInit)
+        {
+            if (isInit)
+            {
+                Near = 0.001f;
+                Far = 10;
+                Exposure = 1;
+                Flags |= EngineObjectFlags.DisableNotifyChangedScene;
+            }
         }
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)
@@ -72,24 +86,56 @@ namespace XrEngine
 
         public Camera Clone()
         {
-            var camera = (Camera)Activator.CreateInstance(GetType())!;
+            var camera = (Camera)Activator.CreateInstance(GetType(), [false])!;
             camera.CopyFrom(this);
             return camera;
         }
 
-        protected virtual void CopyFrom(Camera camera)
+        public virtual void CopyFrom(Camera camera)
         {
-            BackgroundColor = camera.BackgroundColor;
-            Near = camera.Near;
-            Far = camera.Far;
-            Exposure = camera.Exposure;
-            Projection = camera.Projection;
-            WorldMatrix = camera.WorldMatrix;
+            _viewProjDirty = true;
+            _projInverseDirty = true;
+
+            _near = camera.Near;
+            _far = camera.Far;
+            _proj = camera.Projection;
             _target = camera.Target;
+            _viewSize = camera._viewSize;
+
+            BackgroundColor = camera.BackgroundColor;
+            Exposure = camera.Exposure;
+            WorldMatrix = camera.WorldMatrix;
             Eyes = camera.Eyes;
             ActiveEye = camera.ActiveEye;
+            IsStereo = camera.IsStereo;
+            IsMultiView = camera.IsMultiView;
+            ViewSize = camera.ViewSize;
         }
 
+        protected virtual void ExtractProjectionInternals()
+        {
+
+        }
+
+        protected virtual void BuildProjection()
+        {
+
+        }
+
+        protected void UpdateViewProjectionAndInverse()
+        {
+            _viewProj = View * Projection;
+            _viewProjInverse = _viewProj.Invert();
+            _viewProjDirty = false;
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ChangeType.Transform))
+                _viewProjDirty = true;
+
+            base.OnChanged(change);
+        }
 
         public Vector3 Target
         {
@@ -105,7 +151,7 @@ namespace XrEngine
             get => WorldMatrixInverse;
             set
             {
-                Matrix4x4.Invert(value, out var inverse);
+                var inverse = value.Invert();
                 WorldMatrix = inverse;
                 _viewProjDirty = true;
             }
@@ -113,12 +159,22 @@ namespace XrEngine
 
         public Matrix4x4 Projection
         {
-            get => _proj;
+            get
+            {
+                if (_projDirty)
+                    BuildProjection();
+                return _proj;
+            }
             set
             {
+                if (value == _proj)
+                    return;
+
                 _proj = value;
-                Matrix4x4.Invert(_proj, out _projInverse);
+                _projDirty = false;
+                _projInverseDirty = true;
                 _viewProjDirty = true;
+                ExtractProjectionInternals();
             }
         }
 
@@ -127,7 +183,7 @@ namespace XrEngine
             get
             {
                 if (_viewProjDirty)
-                    UpdateViewProjection();
+                    UpdateViewProjectionAndInverse();
                 return _viewProj;
             }
         }
@@ -137,35 +193,71 @@ namespace XrEngine
             get
             {
                 if (_viewProjDirty)
-                    UpdateViewProjection();
+                    UpdateViewProjectionAndInverse();
                 return _viewProjInverse;
             }
         }
 
-        protected void UpdateViewProjection()
+        public Matrix4x4 ProjectionInverse
         {
-            _viewProj = View * Projection;
-            Matrix4x4.Invert(_viewProj, out _viewProjInverse);
-            _viewProjDirty = false;
+            get
+            {
+                if (_projInverseDirty)
+                {
+                    _projInverse = _proj.Invert();
+                    _projInverseDirty = false;
+                }
+
+                return _projInverse;
+            }
         }
 
-        protected override void OnChanged(ObjectChange change)
+        [Range(0.01f, 1f, 0.01f)]
+        public float Near
         {
-            if (change.IsAny(ObjectChangeType.Transform))
+            get => _near;
+            set
+            {
+                if (_near == value)
+                    return;
+                _near = value;
+                _projDirty = true;
                 _viewProjDirty = true;
-
-            base.OnChanged(change);
+            }
         }
 
-        public Matrix4x4 ProjectionInverse => _projInverse;
+        [Range(0.5f, 1000, 1)]
+        public float Far
+        {
+            get => _far;
+            set
+            {
+                if (_far == value)
+                    return;
+
+                _far = value;
+
+                _projDirty = true;
+                _viewProjDirty = true;
+            }
+        }
+
+        public Size2I ViewSize
+        {
+            get => _viewSize;
+            set
+            {
+                if (_viewSize.Width == value.Width && _viewSize.Height == value.Height)
+                    return;
+
+                _viewSize = value;
+
+                _projDirty = true;
+                _viewProjDirty = true;
+            }
+        }
 
         public Matrix4x4 ViewInverse => WorldMatrix;
-
-        public Color BackgroundColor { get; set; }
-
-        public float Near { get; set; }
-
-        public float Far { get; set; }
 
         [Range(0, 10, 0.1f)]
         public float Exposure { get; set; }
@@ -174,8 +266,11 @@ namespace XrEngine
 
         public int ActiveEye { get; set; }
 
-        public Size2I ViewSize { get; set; }
-
         public bool IsStereo { get; set; }
+
+        public bool IsMultiView { get; set; }
+
+        public Color BackgroundColor { get; set; }
+
     }
 }

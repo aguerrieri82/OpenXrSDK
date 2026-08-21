@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using XrEngine;
 
 namespace XrEditor.Services
@@ -15,7 +16,7 @@ namespace XrEditor.Services
         protected DateTime _lastUpdate;
         protected bool _isDirty;
         protected bool _isActive;
-        protected IMainDispatcher _main;
+        protected IMainDispatcher _mainDispatcher;
         protected Task _updateLoop;
         protected bool _isDisposed;
         private bool _updating;
@@ -23,7 +24,7 @@ namespace XrEditor.Services
         public BaseUIRetainLogger()
         {
             _isActive = true;
-            _main = Context.Require<IMainDispatcher>();
+            _mainDispatcher = Context.Require<IMainDispatcher>();
             _messages = [];
             _updateLoop = UpdateLoopTask();
         }
@@ -43,6 +44,9 @@ namespace XrEditor.Services
             if (_updating)
                 return;
 
+            if (!_mainDispatcher.IsActive)
+                return;
+
             _updating = true;
 
             var progressMgs = _progressMessage;
@@ -54,15 +58,14 @@ namespace XrEditor.Services
             _lastUpdate = invokeTime;
             _isDirty = false;
 
-            await _main.ExecuteAsync(() =>
-            {
-                if (_messages.Count > 0)
-                    UpdateMessages();
+            await _mainDispatcher.Switch;
 
-                UpdateProgress(progressCurrent, progressTotal, progressMgs);
+            if (!_messages.IsEmpty)
+                UpdateMessages();
 
-                _updating = false;
-            });
+            UpdateProgress(progressCurrent, progressTotal, progressMgs);
+
+            _updating = false;
         }
 
         protected abstract void UpdateMessages();
@@ -82,7 +85,7 @@ namespace XrEditor.Services
             LogMessage(this, "Done", LogLevel.Info);
         }
 
-        public virtual void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
+        public virtual void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = true)
         {
             if (string.IsNullOrWhiteSpace(text) || !IsActive)
                 return;
@@ -93,6 +96,12 @@ namespace XrEditor.Services
                 _ = UpdateAsync();
             else
                 _isDirty = true;
+
+#if DEBUG
+            var src = source is Type type ? type.Name : source.GetType().Name;
+
+            Debug.WriteLine("[{0}] {1} {2}", src, text, level.ToString().Substring(0, 3).ToUpper());
+#endif
         }
 
         public virtual void LogProgress(object source, double current, double total, string? message = null, bool retain = false)
@@ -109,7 +118,6 @@ namespace XrEditor.Services
             else
                 _isDirty = true;
         }
-
 
         public async ValueTask DisposeAsync()
         {

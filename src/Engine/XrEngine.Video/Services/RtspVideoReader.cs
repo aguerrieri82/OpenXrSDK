@@ -6,7 +6,7 @@ using XrMath;
 
 namespace XrEngine.Video
 {
-    public class RtspVideoReader : IVideoReader
+    public class RtspVideoReader : IVideoReader, IActiveService
     {
         RtspClient? _client;
         private RtspSession? _session;
@@ -21,14 +21,13 @@ namespace XrEngine.Video
         private FrameBuffer _dstBuffer;
         private DateTime _lastPingTime;
 
-
         public RtspVideoReader()
         {
             UdpPort = 1400;
 
         }
 
-        public void Open(Uri uri, TextureFormat outFormat = TextureFormat.Rgba32)
+        public void Open(Uri uri, TextureFormat outFormat = TextureFormat.Rgba8)
         {
             //_out = new FileStream("d:\\out.h264", FileMode.Create, FileAccess.Write);   
 
@@ -47,7 +46,6 @@ namespace XrEngine.Video
 
             _streamName = uri.ToString();
 
-
             Log.Debug(this, "Rtsp: Describe");
 
             var streams = _client.Describe(_streamName);
@@ -56,7 +54,6 @@ namespace XrEngine.Video
 
             if (_videoStream == null)
                 throw new InvalidOperationException();
-
 
             Log.Debug(this, "Rtsp: Setup");
 
@@ -92,7 +89,6 @@ namespace XrEngine.Video
                     Height = (int)FrameSize.Height,
                     ImageFormat = ImageFormat.Rgb32
                 }, extraData.ToArray());
-
 
                 Log.Debug(this, "Rtsp: Open Client");
 
@@ -177,8 +173,8 @@ namespace XrEngine.Video
                     {
                         data.Width = FrameSize.Width;
                         data.Height = FrameSize.Height;
-                        data.Format = TextureFormat.Rgba32;
-                        data.Data = MemoryBuffer.Create(_dstBuffer.ByteArray);
+                        data.Format = TextureFormat.Rgba8;
+                        data.Content = MemoryBuffer.Create(_dstBuffer.ByteArray);
                     }
 
                     _frameCount++;

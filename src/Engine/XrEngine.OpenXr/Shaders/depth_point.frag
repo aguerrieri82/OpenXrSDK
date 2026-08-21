@@ -1,5 +1,5 @@
 ﻿
-layout(binding=8) uniform highp sampler2DArray envDepth;
+layout(binding=8) uniform sampler2DArray envDepth;
 
 uniform mat4 uDepthViewProjInv[2];
 uniform uint uActiveEye;

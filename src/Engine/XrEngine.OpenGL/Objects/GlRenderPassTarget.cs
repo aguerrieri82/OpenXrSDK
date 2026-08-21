@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using XrMath;
-
 namespace XrEngine.OpenGL
 {
     public enum TargetDepthMode
@@ -28,7 +26,6 @@ namespace XrEngine.OpenGL
             public bool IsMutable;
         }
 
-        private bool _mustDisposeColor;
         private IGlRenderTarget? _renderTarget;
         private GlTexture? _colorTexture;
         private IGlRenderAttachment? _depthBuffer;
@@ -42,9 +39,9 @@ namespace XrEngine.OpenGL
             _gl = gL;
             DepthMode = TargetDepthMode.Create;
             BoundEye = -1;
-            DepthFormat = TextureFormat.Depth24Float;
+            DepthFormat = TextureFormat.Depth24;
+            UseColor = true;
         }
-
 
         public GlTexture? GetExtra(int id)
         {
@@ -67,7 +64,6 @@ namespace XrEngine.OpenGL
             return _extras.Count - 1;
         }
 
-
         public void Configure(Texture colorTexture)
         {
             Configure(colorTexture.ToGlTexture());
@@ -76,11 +72,11 @@ namespace XrEngine.OpenGL
         public void Configure(GlTexture colorTexture)
         {
             _colorTexture = colorTexture;
-            Configure(colorTexture.Width, colorTexture.Height, GlUtils.GetTextureFormat(colorTexture.InternalFormat));
+            ColorFormat = colorTexture.InternalFormat.ToTextureFormat();
+            Configure(colorTexture.Width, colorTexture.Height);
         }
 
-
-        public void Configure(uint width, uint height, TextureFormat format)
+        public void Configure(uint width, uint height)
         {
             if (width == 0 || height == 0)
                 return;
@@ -89,7 +85,7 @@ namespace XrEngine.OpenGL
 
             var isColorChanged = _colorTexture != _lastColorTexture;
 
-            var depth = IsMultiView ? 2u : 1u;
+            var arrayDepth = IsMultiView ? 2u : 1u;
 
             if (_renderTarget == null)
             {
@@ -101,66 +97,29 @@ namespace XrEngine.OpenGL
                 updateTarget = true;
             }
 
-            if (_colorTexture == null || _colorTexture.Width != width || _colorTexture.Height != height)
+            var texId = string.IsNullOrEmpty(Id) ? "static" : Id;
+
+            if (UseColor && (_colorTexture == null || _colorTexture.Width != width || _colorTexture.Height != height))
             {
-                if (_mustDisposeColor)
-                    _colorTexture?.Dispose();
+                _colorTexture?.Dispose();
 
-                _colorTexture = new GlTexture(_gl)
-                {
-                    MinFilter = _colorTexture?.MinFilter ?? TextureMinFilter.Linear,
-                    MagFilter = _colorTexture?.MagFilter ?? TextureMagFilter.Linear,
-                    WrapS = _colorTexture?.WrapS ?? TextureWrapMode.ClampToEdge,
-                    WrapT = _colorTexture?.WrapT ?? TextureWrapMode.ClampToEdge,
-                    BorderColor = _colorTexture?.BorderColor ?? Color.White,
-                    MaxLevel = 0,
-                    EnableDebug = false,
-                    Target = depth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
-                };
-
-                _colorTexture.Update(depth, new TextureData
-                {
-                    Width = width,
-                    Height = height,
-                    Format = format
-                });
-
-                _mustDisposeColor = true;
+                _colorTexture = GlTempAllocator.StaticTexture(_gl, width, height, arrayDepth, ColorFormat, texId);
+                _colorTexture.EnableDebug = false;
+                _colorTexture.SetLabel((Name ?? "PassTarget") + " - Color");
 
                 isColorChanged = true;
             }
 
             if (DepthMode == TargetDepthMode.Create && (_depthBuffer == null || isColorChanged))
             {
-                if (_renderTarget is GlMultiViewRenderTarget)
-                {
-                    _depthBuffer?.Dispose();
+                _depthBuffer?.Dispose();
 
-                    _depthBuffer = new GlTexture(_gl)
-                    {
-                        MinFilter = TextureMinFilter.Nearest,
-                        MagFilter = TextureMagFilter.Nearest,
-                        MaxLevel = 0,
-                        Target = TextureTarget.Texture2DArray
-                    };
-
-                    ((GlTexture)_depthBuffer).Update(2, new TextureData
-                    {
-                        Width = width,
-                        Height = height,
-                        Format = DepthFormat
-                    });
-                }
+                if (IsMultiView)
+                    _depthBuffer = GlTempAllocator.StaticTexture(_gl, width, height, 2, DepthFormat, texId);
                 else
-                {
-                    _depthBuffer ??= new GlRenderBuffer(_gl);
+                    _depthBuffer = GlTempAllocator.StaticRenderBuffer(_gl, width, height, DepthFormat, texId);
 
-                    ((GlRenderBuffer)_depthBuffer!).Update(
-                         width,
-                         height,
-                         1,
-                         GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed));
-                }
+                _depthBuffer.SetLabel((Name ?? "PassTarget") + " - Depth");
             }
 
             if (DepthMode == TargetDepthMode.Existing)
@@ -169,6 +128,8 @@ namespace XrEngine.OpenGL
             if (isColorChanged || _isDirty)
             {
                 FrameBuffer!.Bind();
+
+                var i = 0;
 
                 foreach (var extra in _extras)
                 {
@@ -184,18 +145,16 @@ namespace XrEngine.OpenGL
                         MagFilter = TextureMagFilter.Linear,
                         MaxLevel = 0,
                         IsMutable = extra.IsMutable,
-                        Target = TextureTarget.Texture2D
+                        Target = arrayDepth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                     };
 
-                    extra.Texture.Update(depth, new TextureData
-                    {
-                        Width = width,
-                        Height = height,
-                        Format = extra.Format
-                    });
+                    extra.Texture.SetLabel((Name ?? "PassTarget") + " - Extra " + i);
+
+                    extra.Texture.Allocate(width, height, arrayDepth, extra.Format);
 
                     if (extra.Attachment != null)
-                        FrameBuffer!.BindAttachment(extra.Texture, extra.Attachment.Value, true);
+                        FrameBuffer!.Attach(extra.Texture, extra.Attachment.Value, true);
+                    i++;
                 }
 
                 _isDirty = false;
@@ -222,11 +181,6 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            if (_mustDisposeColor)
-                _colorTexture?.Dispose();
-
-            if (DepthMode == TargetDepthMode.Create)
-                _depthBuffer?.Dispose();
 
             foreach (var extra in _extras)
                 extra.Texture?.Dispose();
@@ -240,9 +194,9 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public GlTexture? ColorTexture => _colorTexture;
+        public GlTexture? Color => _colorTexture;
 
-        public IGlRenderAttachment? DepthBuffer => _depthBuffer;
+        public IGlRenderAttachment? Depth => _depthBuffer;
 
         public IGlFrameBuffer? FrameBuffer => ((IGlFrameBufferProvider?)_renderTarget)?.FrameBuffer;
 
@@ -257,5 +211,14 @@ namespace XrEngine.OpenGL
         public TargetDepthMode DepthMode { get; set; }
 
         public TextureFormat DepthFormat { get; set; }
+
+        public TextureFormat ColorFormat { get; set; }
+
+        public bool UseColor { get; set; }
+
+        public string? Name { get; set; }
+
+        public string? Id { get; set; }
+
     }
 }

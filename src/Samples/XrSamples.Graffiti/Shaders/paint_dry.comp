@@ -1,0 +1,45 @@
+﻿#include "./uniforms_comp.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+
+// Wet layer:
+//   rgb = wetColor * wetDensity
+//   a   = wetDensity
+layout(rgba16f, binding = 1) readonly uniform highp image2D uWetPaint;
+
+layout(rgba16f, binding = 3) writeonly uniform highp image2D uWetPaintOut;
+
+
+#define WET_CLEAR_EPS 0.0001
+
+
+void main()
+{
+    ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+
+    if (any(greaterThanEqual(p, CanvasSize)))
+        return;
+
+    vec4 wet = imageLoad(uWetPaint, p);
+
+    if (wet.a > WET_CLEAR_EPS)
+    {
+        vec3 wetColor = wet.rgb / wet.a;
+
+        float deltaD = min(wet.a, DryRate * DeltaTime);
+
+        wet.a -= deltaD;
+
+        if (wet.a > WET_CLEAR_EPS)
+            wet.rgb = wetColor * wet.a;
+        else
+            wet = vec4(0.0);
+    }
+    else
+    {
+        wet = vec4(0.0);
+    }
+
+    imageStore(uWetPaintOut, p, wet);
+}

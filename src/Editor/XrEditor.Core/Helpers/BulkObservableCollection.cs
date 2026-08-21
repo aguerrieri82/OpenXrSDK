@@ -3,13 +3,13 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using XrEngine;
 
-
 namespace XrEditor
 {
     public class BulkObservableCollection<T> : ObservableCollection<T>
     {
         int _updateCount = 0;
         bool _isChanged;
+
         private readonly IMainDispatcher _dispatcher;
 
         public BulkObservableCollection()
@@ -58,7 +58,7 @@ namespace XrEditor
 
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            Debug.Assert(_dispatcher.IsCurrentThread);
+            Debug.Assert(_dispatcher.Thread == Thread.CurrentThread);
 
             if (_updateCount > 0)
             {

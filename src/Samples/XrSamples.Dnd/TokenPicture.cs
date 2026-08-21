@@ -17,6 +17,7 @@ namespace XrSamples.Dnd
             SKFont? _font1;
             SKFont? _font2;
             SKPaint? _white;
+            private Task? _loadTask;
 
             public TokenPicture()
             {
@@ -38,27 +39,46 @@ namespace XrSamples.Dnd
                 base.Start(ctx);
             }
 
-            protected override void Draw(SKCanvas canvas)
+            protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
             {
-                canvas.Clear();
 
-                _image ??= ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!).Result;
+                if (_image == null)
+                {
+                    _loadTask ??= Task.Run(async () =>
+                    {
+                        _image = await ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!);
+                    });
+
+                    if (!_loadTask.IsCompleted)
+                        return;
+                }
 
                 var height = (int)(PixelSize.Height * 0.1);
                 var barHeight = (int)(PixelSize.Height * 0.05);
 
-                canvas.Save();
+                canvas.Clear();
 
+                canvas.Save();
 
                 if (_vttToken!.TokenStyleSelect == "circle")
                 {
-                    using var path = new SKPath();
-                    var radius = height / 2;
-                    path.AddOval(new SKRect(0, 0, PixelSize.Width, PixelSize.Height - height - barHeight));
+                    using var pathBuilder = new SKPathBuilder();
+
+                    pathBuilder.AddOval(
+                        new SKRect(
+                            0,
+                            0,
+                            PixelSize.Width,
+                            PixelSize.Height - height - barHeight));
+
+                    using var path = pathBuilder.Detach();
                     canvas.ClipPath(path);
                 }
 
-                canvas.DrawBitmap(_image, new SKRect(0, 0, PixelSize.Width, PixelSize.Height - height - barHeight));
+                canvas.DrawBitmap(
+                    _image,
+                    new SKRect(0, 0, PixelSize.Width, PixelSize.Height - height - barHeight),
+                    new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
 
                 canvas.Restore();
 
@@ -77,7 +97,7 @@ namespace XrSamples.Dnd
 
                 var size = _font1.MeasureText(_vttToken!.Name);
 
-                canvas.DrawText(_vttToken!.Name, (_pixelSize.Width - size) / 2, _pixelSize.Height - _font1.Metrics.Descent, _font1, _white);
+                canvas.DrawText(_vttToken!.Name, (_pixelSize.Width - size) / 2, _pixelSize.Height - _font1.Metrics.Descent, SKTextAlign.Left, _font1, _white);
 
                 var max = int.Parse(_vttToken.HitPointInfo?.Maximum?.ToString() ?? "0");
                 var cur = _vttToken.HitPointInfo?.Current ?? 0;
@@ -93,11 +113,9 @@ namespace XrSamples.Dnd
                 var hp = $"{cur} / {max}";
                 size = _font2!.MeasureText(hp);
 
-                canvas.DrawText(hp, (barWidth - size) / 2, _pixelSize.Height - height - _font2.Metrics.Bottom, _font2, _white);
+                canvas.DrawText(hp, (barWidth - size) / 2, _pixelSize.Height - height - _font2.Metrics.Bottom, SKTextAlign.Left, _font2, _white);
 
                 _isDirty = false;
-
-                base.Draw(canvas);
             }
 
             public override bool NeedDraw => _isDirty;

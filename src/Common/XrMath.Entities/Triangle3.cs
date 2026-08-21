@@ -47,6 +47,18 @@ namespace XrMath
             }
         }
 
+        public readonly Vector3 Min => Vector3.Min(Vector3.Min(V0, V1), V2);
+
+        public readonly Vector3 Max => Vector3.Max(Vector3.Max(V0, V1), V2);
+
+        public readonly Vector3 Center => (V0 + V1 + V2) / 3.0f;
+
+        public readonly Vector3 Cross => Vector3.Cross(V1 - V0, V2 - V0);
+
+        public readonly float AreaSq => Cross.LengthSquared();
+
+        public int Id;
+
         public Vector3 V0;
 
         public Vector3 V1;

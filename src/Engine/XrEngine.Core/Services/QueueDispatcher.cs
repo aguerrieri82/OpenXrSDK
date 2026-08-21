@@ -13,7 +13,30 @@ namespace XrEngine
 
         protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
-        protected Thread? _thread;
+        protected Thread _thread;
+        private readonly AutoResetEvent _workAvailable;
+
+        public QueueDispatcher(Thread? thread = null)
+        {
+            _thread = thread ?? Thread.CurrentThread;
+            _workAvailable = new AutoResetEvent(false);
+        }
+
+        public void Post(Action action)
+        {
+            var task = new QueueTask()
+            {
+                Action = () =>
+                {
+                    action();
+                    return null;
+                }
+            };
+
+            _queue.Enqueue(task);
+
+            _workAvailable.Set();
+        }
 
         public async Task ExecuteAsync(Action action)
         {
@@ -35,6 +58,8 @@ namespace XrEngine
 
             _queue.Enqueue(task);
 
+            _workAvailable.Set();
+
             await task.Completion.Task;
         }
 
@@ -51,19 +76,21 @@ namespace XrEngine
 
             _queue.Enqueue(task);
 
+            _workAvailable.Set();
+
             var result = await task.Completion.Task;
 
             return (T)result!;
         }
 
-
         public void ProcessQueue()
         {
+            _thread = Thread.CurrentThread;
+
             if (_isProcessingQueue)
                 return;
 
             _isProcessingQueue = true;
-            _thread = Thread.CurrentThread;
 
             try
             {
@@ -73,11 +100,11 @@ namespace XrEngine
                     {
                         var result = task.Action!();
 
-                        task.Completion!.SetResult(result);
+                        task.Completion?.SetResult(result);
                     }
                     catch (Exception ex)
                     {
-                        task.Completion!.SetException(ex);
+                        task.Completion?.SetException(ex);
                     }
                 }
             }
@@ -86,5 +113,11 @@ namespace XrEngine
                 _isProcessingQueue = false;
             }
         }
+
+        public AutoResetEvent WorkAvailable => _workAvailable;
+
+        public Thread Thread => _thread;
+
+        public DispatcherSwitch Switch => new(this);
     }
 }

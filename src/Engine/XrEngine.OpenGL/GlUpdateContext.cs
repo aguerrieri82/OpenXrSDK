@@ -4,8 +4,6 @@
     {
         public uint ProgramInstanceId;
 
-        public long ImageLightVersion;
-
-
+        public bool IsGlEs { get; internal set; }
     }
 }

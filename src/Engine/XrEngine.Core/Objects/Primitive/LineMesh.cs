@@ -9,6 +9,7 @@ namespace XrEngine
             Material = new LineMaterial();
             Material.Attach(this);
             Vertices = [];
+            Flags |= EngineObjectFlags.NoLogs;
             ActiveComponents = VertexComponent.Position | VertexComponent.Color4;
         }
 
@@ -16,7 +17,6 @@ namespace XrEngine
         {
 
         }
-
 
         public PointData[] Vertices { get; set; }
 
@@ -26,10 +26,9 @@ namespace XrEngine
 
         public int RenderPriority { get; set; }
 
-
         #region IVertexSource
 
-        EngineObject IVertexSource.Object => this!;
+        EngineObject IVertexSource.Host => this!;
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Line;
 

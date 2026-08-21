@@ -24,6 +24,9 @@ namespace XrEngine.OpenXr
         {
             if (!_isSceneLoaded && !_isSceneLoading)
             {
+                if (!XrDevice.IsMetaQuest)
+                    return;
+
                 if (_app == null && XrApp.Current != null)
                     _app = XrApp.Current;
 
@@ -112,8 +115,7 @@ namespace XrEngine.OpenXr
 
                     if (isLocatable)
                     {
-                        if (!oculus.GetSpaceComponentEnabled(info.Space, SpaceComponentTypeFB.LocatableFB))
-                            await oculus.SetSpaceComponentStatusAsync(info.Space, SpaceComponentTypeFB.LocatableFB, true);
+                        await oculus.EnsureSpaceComponentAsync(info.Space, SpaceComponentTypeFB.LocatableFB);
 
                         model.AddComponent(new XrAnchorUpdate
                         {

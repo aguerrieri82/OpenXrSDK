@@ -8,11 +8,10 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
-
 namespace XrEngine.OpenGL
 {
 
-    [StructLayout(LayoutKind.Explicit, Size = 176)]
+    [StructLayout(LayoutKind.Explicit, Size = 304)]
     public struct SceneMatrices
     {
         [FieldOffset(0)]
@@ -28,7 +27,14 @@ namespace XrEngine.OpenGL
         public Vector3 Position2;
 
         [FieldOffset(160)]
+        public Matrix4x4 ViewProjInv1;
+
+        [FieldOffset(224)]
+        public Matrix4x4 ViewProjInv2;
+
+        [FieldOffset(288)]
         public float FarPlane;
+
     }
 
     public class GlMultiViewShaderHandler : IShaderHandler
@@ -47,7 +53,7 @@ namespace XrEngine.OpenGL
             bld.AddFeature("MULTI_VIEW");
 
             if (bld.Context.Stage == UpdateShaderStage.Shader)
-                bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, 10, BufferStore.Shader);
+                bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, UniformsSlots.MultiView, BufferStore.Shader);
         }
 
         public void SetCamera(Camera camera)
@@ -59,22 +65,21 @@ namespace XrEngine.OpenGL
 
             _matrices.ViewProj1 = eyes[0].ViewProj;
             _matrices.ViewProj2 = eyes[1].ViewProj;
+            _matrices.ViewProjInv1 = eyes[0].ViewProjInv;
+            _matrices.ViewProjInv2 = eyes[1].ViewProjInv;
             _matrices.Position1 = eyes[0].World.Translation;
             _matrices.Position2 = eyes[1].World.Translation;
             _matrices.FarPlane = camera.Far;
         }
 
-
         public static readonly GlMultiViewShaderHandler Instance = new();
     }
 
-    public class GlMultiViewRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
+    public class GlMultiViewRenderTarget : IGlRenderTargetFB
     {
-        static readonly InvalidateFramebufferAttachment[] DepthStencilAttachment = [InvalidateFramebufferAttachment.DepthStencilAttachment];
-
         protected GlMultiViewFrameBuffer _frameBuffer;
 
-        readonly GL _gl;
+        protected readonly GL _gl;
 
         public GlMultiViewRenderTarget(GL gl)
         {
@@ -84,21 +89,24 @@ namespace XrEngine.OpenGL
 
         public void Begin(Camera camera)
         {
-            camera.ViewSize = _frameBuffer.Size;
-            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
+            if (RenderSize.Width == 0 || RenderSize.Height == 0)
+                camera.ViewSize = _frameBuffer.Size;
+            else
+                camera.ViewSize = RenderSize;
 
-            _frameBuffer.Bind();
+            GlState.Current.SetView(new Rect2I(camera.ViewSize));
+
+            _frameBuffer.BindDraw();
 
             GlMultiViewShaderHandler.Instance.SetCamera(camera);
+
+            OpenGLRender.Current!.Begin(this);
         }
 
         public void End(bool discardDepth)
         {
             if (discardDepth)
-            {
-                _frameBuffer.Bind();
-                _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
-            }
+                _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthStencilAttachment);
 
             _frameBuffer.Unbind();
         }
@@ -114,16 +122,18 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-
-        public void CommitDepth()
-        {
-            _gl.Flush();
-        }
-
         public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;
 
         IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
 
         public IShaderHandler? ShaderHandler => GlMultiViewShaderHandler.Instance;
+
+        public GlRenderTargetFlags Flags { get; set; }
+
+        public int ShadingRate { get; set; }
+
+        public Size2I RenderSize { get; set; }
+
+        public Rect2I[]? ClipRegions { get; set; }
     }
 }

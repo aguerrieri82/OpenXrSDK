@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework.Oculus;
 using System.Numerics;
 using XrEngine;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 
 namespace XrSamples.Dnd
@@ -13,6 +14,13 @@ namespace XrSamples.Dnd
         {
             _inputs = e.GetInputs<XrOculusTouchController>();
 
+            var click = _inputs.Right.Button.AClick;
+
+            _host.AddBehavior((_, _) =>
+            {
+                if (click.IsChanged && click.Value)
+                    GlBuffer.Tracker!.CheckAll();
+            });
         }
 
         [Action]
@@ -38,7 +46,6 @@ namespace XrSamples.Dnd
 
             Map!.Transform.Set(newTrans);
 
-
         }
 
         [Action]
@@ -46,13 +53,13 @@ namespace XrSamples.Dnd
         {
             var materials = Map!.Descendants<TriangleMesh>()
                                .SelectMany(a => a.Materials)
-                               .OfType<PbrV2Material>()
+                               .OfType<PbrMaterial>()
                                .Distinct();
 
             foreach (var material in materials)
             {
                 material.Simplified = !material.Simplified;
-                material.NotifyChanged(ObjectChangeType.Property);
+                material.NotifyChanged(ChangeType.Property);
             }
         }
 

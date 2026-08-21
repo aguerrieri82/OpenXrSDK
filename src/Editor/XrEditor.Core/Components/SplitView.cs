@@ -70,7 +70,6 @@ namespace XrEditor
             }
         }
 
-
         public SplitViewSizeMode SizeMode { get; set; }
 
         public void GetState(IStateContainer container)

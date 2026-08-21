@@ -1,6 +1,5 @@
 ﻿
 #define PLANAR_REFLECTION
-#define FRAGMENT_SHADER
 
 #include "Shared/uniforms.glsl"
 #include "Shared/planar_reflection.glsl"
@@ -28,7 +27,7 @@ void main()
 		vec3 Lo = normalize(cameraPos - fPos);
 		vec3 Lr = reflect(-Lo, N);
 
-		FragColor.rgb = planarReflection(vec3(1.0), fPos, Lr, 0.0, 0.0);
+		FragColor.rgb = planarReflection(vec3(1.0), fPos, Lr, 0.0, 0.0, 1.0, 0.0);
 	#else
 
 		#ifdef PLANAR_REFLECTION_MV

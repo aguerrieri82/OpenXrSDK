@@ -73,7 +73,7 @@
             if (_suspend > 0)
                 return;
 
-            if (change.IsAny(ObjectChangeType.SceneAdd))
+            if (change.IsAny(ChangeType.SceneAdd))
                 Add(new SceneAddAction
                 {
                     Scene = _scene,
@@ -81,7 +81,7 @@
                     Object = sender,
                 });
 
-            else if (change.IsAny(ObjectChangeType.SceneRemove))
+            else if (change.IsAny(ChangeType.SceneRemove))
             {
                 Add(new SceneRemoveAction
                 {
@@ -90,7 +90,7 @@
                     Object = sender,
                 });
             }
-            else if (change.IsAny(ObjectChangeType.Render))
+            else if (change.IsAny(ChangeType.Render))
             {
 
             }

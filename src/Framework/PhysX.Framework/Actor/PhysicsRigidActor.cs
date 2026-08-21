@@ -4,9 +4,7 @@ using XrMath;
 namespace PhysX.Framework
 {
 
-
     public delegate void ActorContactEventHandler(PhysicsActor other, int otherIndex, ContactPair[] pairs);
-
 
     public abstract unsafe class PhysicsRigidActor : PhysicsActor
     {
@@ -79,7 +77,6 @@ namespace PhysX.Framework
         }
 
         public bool NotifyContacts { get; set; }
-
 
         public event ActorContactEventHandler? Contact;
 

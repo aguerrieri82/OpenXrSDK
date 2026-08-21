@@ -1,48 +1,67 @@
-﻿using Common.Interop;
+﻿
+using Common.Interop;
 using glTFLoader.Schema;
-using Newtonsoft.Json.Linq;
-using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using TurboJpeg;
-
+using System.Text.Json;
+using XrEngine.Animation;
+using XrEngine.Components;
 using XrMath;
+using static glTFLoader.Schema.AnimationSampler;
+using static glTFLoader.Schema.Material;
 
 #pragma warning disable CS0649
-
 
 namespace XrEngine.Gltf
 {
 
     public class GltfLoader : IDisposable
     {
+        static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions
+        {
+            IncludeFields = true,
+            PropertyNameCaseInsensitive = true
+        };
+
         GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
 
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<Image, TextureData> _images = [];
         readonly ConcurrentDictionary<Image, LoadTask<Texture2D>> _textures = [];
-        readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
+        readonly Dictionary<Mesh, Object3D> _meshes = [];
         readonly List<Task> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
 
+        readonly Dictionary<int, Object3D> _nodes = [];
+
+        readonly Dictionary<int, GltfSkin> _skins = [];
+
         string? _basePath;
         string? _filePath;
-
+        private MethodInfo? _convertBufGen;
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
+            "KHR_texture_basisu",
             "KHR_materials_pbrSpecularGlossiness" };
 
 
+        #region STRUCTS
+
         struct EXT_texture_webp
+        {
+            public int? source;
+        }
+
+        struct KHR_texture_basisu
         {
             public int? source;
         }
@@ -78,7 +97,6 @@ namespace XrEngine.Gltf
             public int texCoord;
         }
 
-
         struct KHR_materials_sheen
         {
             public float[]? sheenColorFactor;
@@ -97,10 +115,33 @@ namespace XrEngine.Gltf
             public Task Task;
         }
 
+        public class GltfSkin
+        {
+            public IList<Joint3D>? Joints;
+
+            public Guid Id;
+        }
+
+        public struct GltfSamplerValue
+        {
+            public float Time;
+
+            public object Value;
+        }
+
+        public class GltfSampler
+        {
+            public GltfSamplerValue[]? Values;
+            public InterpolationEnum Interpolation;
+
+        }
+
+
+        #endregion
+
         public GltfLoader()
             : this(a => a)
         {
-
         }
 
         public GltfLoader(Func<string, string> resourceResolver)
@@ -123,14 +164,14 @@ namespace XrEngine.Gltf
             foreach (var key in ext.Keys)
             {
                 if (!supportedExt.Contains(key))
-                    _log.AppendLine($"Extensions '{key}' not supported");
+                    LoadLog($"Extensions '{key}' not supported");
             }
         }
 
         protected static T? TryLoadExtension<T>(Dictionary<string, object>? ext) where T : struct
         {
             if (ext != null && ext.TryGetValue(typeof(T).Name, out var extension))
-                return ((JObject)extension).ToObject<T>();
+                return ((JsonElement)extension).Deserialize<T>(JSON_OPTIONS);
             return null;
         }
 
@@ -164,43 +205,28 @@ namespace XrEngine.Gltf
                     else
                         throw new NotSupportedException();
 
-                    //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
-
                     Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                    if (img.MimeType == Image.MimeTypeEnum.image_jpeg)
-                    {
-                        var outImg = TurboJpegLib.Decompress(data);
-
-                        Debug.Assert(outImg.Data != null);
-
-                        return new TextureData
-                        {
-                            Data = MemoryBuffer.Create(outImg.Data),
-                            Width = (uint)outImg.Width,
-                            Height = (uint)outImg.Height,
-                            Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                        };
-                    }
-
+                    Uri uri;
+                    var mimeType = img.MimeType.ToString()?.Replace('_', '/');
+                    if (string.IsNullOrEmpty(mimeType))
+                        uri = new Uri("file://" + img.Uri);
                     else
+                        uri = AssetLoader.Instance.GetMimeUri(mimeType);
+
+                    var loader = (ITextureLoader)AssetLoader.Instance.GetLoader(uri);
+
+                    using var stream = new MemoryStream(data);
+
+                    var texData = loader.LoadTexture(stream, new TextureLoadOptions
                     {
-                        using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
-                        return new TextureData
-                        {
-                            Data = MemoryBuffer.Create(image.Bytes),
-                            Width = (uint)image.Width,
-                            Height = (uint)image.Height,
-                            Format = image.ColorType switch
-                            {
-                                SKColorType.Srgba8888 => TextureFormat.SRgba32,
-                                SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
-                                SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                                SKColorType.Gray8 => TextureFormat.GrayInt8,
-                                _ => throw new NotSupportedException()
-                            }
-                        };
-                    }
+                        IsSrgb = useSrgb
+                    });
+
+                    if (texData.Count == 0)
+                        throw new InvalidOperationException();
+
+                    return texData[0];
 
                 }
                 finally
@@ -231,7 +257,9 @@ namespace XrEngine.Gltf
 
             var webP = TryLoadExtension<EXT_texture_webp>(texture.Extensions);
 
-            texture.Source ??= webP?.source;
+            var basisu = TryLoadExtension<KHR_texture_basisu>(texture.Extensions);
+
+            texture.Source ??= webP?.source ?? basisu?.source;
 
             var imageInfo = _model!.Images[texture.Source!.Value];
 
@@ -280,7 +308,7 @@ namespace XrEngine.Gltf
 
                     if (!hasMinFilter)
                     {
-                        texResult.MinFilter = ScaleFilter.LinearMipmapLinear;
+                        texResult.MinFilter = ScaleFilter.Linear;
                         texResult.MagFilter = ScaleFilter.Linear;
                     }
 
@@ -325,139 +353,22 @@ namespace XrEngine.Gltf
             return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
         }
 
-        public PbrV1Material ProcessMaterialV1(int matId, PbrV1Material? result = null)
+        public PbrMaterial ProcessMaterial(int matId, PbrMaterial? result = null)
         {
             var gltMat = _model!.Materials[matId];
 
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
-                return (PbrV1Material)mat;
+                return (PbrMaterial)mat;
 
-            result ??= MaterialFactory.CreatePbr<PbrV1Material>();
-
-            result.Name = gltMat.Name;
-            result.AlphaCutoff = gltMat.AlphaCutoff;
-            result.EmissiveFactor = MathUtils.ToVector3(gltMat.EmissiveFactor);
-            result.Alpha = gltMat.AlphaMode switch
-            {
-                glTFLoader.Schema.Material.AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
-                glTFLoader.Schema.Material.AlphaModeEnum.MASK => AlphaMode.Mask,
-                glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
-                _ => throw new NotSupportedException()
-            };
-            result.DoubleSided = gltMat.DoubleSided;
-
-            if (gltMat.PbrMetallicRoughness != null)
-            {
-                result.MetallicRoughness = new PbrV1Material.MetallicRoughnessData
-                {
-                    RoughnessFactor = gltMat.PbrMetallicRoughness.RoughnessFactor,
-                    MetallicFactor = gltMat.PbrMetallicRoughness.MetallicFactor,
-                    BaseColorFactor = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor)
-                };
-
-                if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
-                {
-                    result.MetallicRoughness.BaseColorTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
-                    result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
-                }
-
-                if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
-                {
-                    result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
-                    result.MetallicRoughness.MetallicRoughnessUVSet = gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord;
-                }
-
-                result.Type = PbrV1Material.MaterialType.Metallic;
-            }
-
-            if (gltMat.EmissiveTexture != null)
-                result.EmissiveTexture = DecodeTextureBaseTask(gltMat.EmissiveTexture).Result;
-
-            if (gltMat.NormalTexture != null)
-            {
-                result.NormalTexture = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
-                result.NormalTexture.Type = TextureType.NormalMap;
-                result.NormalScale = gltMat.NormalTexture.Scale;
-                result.NormalUVSet = gltMat.NormalTexture.TexCoord;
-            }
-
-            if (gltMat.OcclusionTexture != null)
-            {
-                result.OcclusionTexture = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
-                result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
-                result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
-            }
-
-            var specGloss = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
-            if (specGloss != null)
-            {
-                result.SpecularGlossiness = new PbrV1Material.SpecularGlossinessData
-                {
-                    DiffuseFactor = new Color(specGloss.Value.diffuseFactor!),
-                    SpecularFactor = new Color(specGloss.Value.specularFactor!),
-                    GlossinessFactor = specGloss.Value.glossinessFactor
-                };
-
-                if (specGloss.Value.diffuseTexture != null)
-                {
-                    result.SpecularGlossiness.DiffuseTexture = DecodeTextureBaseTask(specGloss.Value.diffuseTexture).Result;
-                    result.SpecularGlossiness.DiffuseUVSet = specGloss.Value.diffuseTexture.TexCoord;
-                }
-
-                if (specGloss.Value.specularGlossinessTexture != null)
-                {
-                    result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBaseTask(specGloss.Value.specularGlossinessTexture).Result;
-                    result.SpecularGlossiness.SpecularGlossinessUVSet = specGloss.Value.specularGlossinessTexture.TexCoord;
-                }
-
-                result.Type = PbrV1Material.MaterialType.Specular;
-            }
-
-            var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
-            if (sheen != null)
-            {
-                result.Sheen = new PbrV1Material.SheenData();
-
-                if (sheen.Value.sheenColorFactor != null)
-                    result.Sheen.ColorFactor = MathUtils.ToVector3(sheen.Value.sheenColorFactor);
-
-                result.Sheen.RoughnessFactor = sheen.Value.sheenRoughnessFactor;
-
-                if (sheen.Value.sheenColorTexture != null)
-                {
-                    result.Sheen.ColorTexture = DecodeTextureBaseTask(sheen.Value.sheenColorTexture).Result;
-                    result.Sheen.ColorTextureUVSet = sheen.Value.sheenColorTexture.TexCoord;
-                }
-                if (sheen.Value.sheenRoughnessTexture != null)
-                {
-                    result.Sheen.RoughnessTexture = DecodeTextureBaseTask(sheen.Value.sheenRoughnessTexture).Result;
-                    result.Sheen.RoughnessTextureUVSet = sheen.Value.sheenRoughnessTexture.TexCoord;
-                }
-            }
-
-            AssignAsset(result, "mat", matId);
-
-            _mats[gltMat] = result;
-
-            return result;
-        }
-
-
-        public unsafe PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
-        {
-            var gltMat = _model!.Materials[matId];
-
-            if (result == null && _mats.TryGetValue(gltMat, out var mat))
-                return (PbrV2Material)mat;
-
-            result ??= new PbrV2Material();
+            result ??= _options.MaterialFactory(matId);
 
             result.Name = gltMat.Name;
+
             result.Alpha = gltMat.AlphaMode switch
             {
-                glTFLoader.Schema.Material.AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
-                glTFLoader.Schema.Material.AlphaModeEnum.MASK => AlphaMode.Mask,
-                glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
+                var mode when mode == AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
+                var mode when mode == AlphaModeEnum.MASK => AlphaMode.Mask,
+                var mode when mode == AlphaModeEnum.BLEND => AlphaMode.Blend,
                 _ => throw new NotSupportedException()
             };
 
@@ -465,14 +376,19 @@ namespace XrEngine.Gltf
 
             result.AlphaCutoff = gltMat.AlphaCutoff;
 
-
             if (gltMat.PbrMetallicRoughness != null)
             {
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
+                {
                     result.ColorMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
+                    ApplyMips(result.ColorMap);
+                }
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
+                {
                     result.MetallicRoughnessMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
+                    ApplyMips(result.MetallicRoughnessMap);
+                }
 
                 result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
                 result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
@@ -490,13 +406,129 @@ namespace XrEngine.Gltf
             {
                 result.OcclusionMap = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
+                ApplyMips(result.OcclusionMap);
             }
+
+            if (gltMat.EmissiveTexture != null)
+            {
+                result.EmissiveMap = DecodeTextureBaseTask(gltMat.EmissiveTexture, true).Result;
+                ApplyMips(result.EmissiveMap);
+            }
+
+            result.EmissiveColor = new Color(gltMat.EmissiveFactor);
 
             AssignAsset(result, "mat", matId);
 
             _mats[gltMat] = result;
 
             return result;
+        }
+
+        private void ApplyMips(Texture2D texture)
+        {
+            if (_options.UseMips)
+            {
+                texture.MipLevelCount = 10;
+                texture.MinFilter = ScaleFilter.LinearMipmapLinear;
+            }
+            else
+            {
+                texture.MipLevelCount = 0;
+                texture.MinFilter = ScaleFilter.Linear;
+            }
+        }
+
+        Array ConvertBuffer(int accessorId)
+        {
+            return ConvertBuffer(_model!.Accessors[accessorId]);
+        }
+
+        Array ConvertBuffer(Accessor accessor)
+        {
+            Type type;
+
+            if (accessor.Type == Accessor.TypeEnum.VEC2)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Vector2);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.VEC3)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Vector3);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                    type = typeof(Vector3I);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.VEC4)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Vector4);
+                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                    type = typeof(Vector4US);
+                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                    type = typeof(Vector4UB);
+                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                    type = typeof(Vector4I);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.MAT4)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Matrix4x4);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.MAT3)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(Matrix3x3);
+                else
+                    throw new NotImplementedException();
+            }
+            else if (accessor.Type == Accessor.TypeEnum.SCALAR)
+            {
+                if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                    type = typeof(float);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.SHORT)
+                    type = typeof(short);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                    type = typeof(ushort);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.BYTE)
+                    type = typeof(sbyte);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                    type = typeof(byte);
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                    type = typeof(uint);
+                else
+                    throw new NotSupportedException();
+            }
+            else
+                throw new NotSupportedException();
+
+            _convertBufGen ??= GetType().GetMethod("ConvertBuffer", 1,
+                               BindingFlags.NonPublic | BindingFlags.Instance,
+                               [typeof(Accessor)])!;
+
+            var genericMethod = _convertBufGen.MakeGenericMethod(type);
+
+            return (Array)genericMethod.Invoke(this, [accessor])!;
+        }
+
+        T[] ConvertBuffer<T>(int accessorId) where T : unmanaged
+        {
+            return ConvertBuffer<T>(_model!.Accessors[accessorId]);
+        }
+
+        T[] ConvertBuffer<T>(Accessor accessor) where T : unmanaged
+        {
+            var view = _model!.BufferViews[accessor.BufferView!.Value];
+            var buffer = LoadBuffer(view.Buffer);
+            return ConvertBuffer<T>(buffer, view, accessor);
         }
 
         unsafe T[] ConvertBuffer<T>(byte[] buffer, BufferView view, Accessor acc) where T : unmanaged
@@ -555,34 +587,53 @@ namespace XrEngine.Gltf
                             {
                                 case "POSITION":
                                     var vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                    result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                     result.ActiveComponents |= VertexComponent.Position;
                                     vertexCount = vValues.Length;
                                     break;
                                 case "NORMAL":
                                     var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                    result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                     result.ActiveComponents |= VertexComponent.Normal;
                                     break;
                                 case "TANGENT":
                                     if (_options != null && _options.DisableTangents)
                                         break;
                                     var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                    result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                     result.ActiveComponents |= VertexComponent.Tangent;
                                     break;
                                 case "TEXCOORD_0":
                                     var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                    result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                     result.ActiveComponents |= VertexComponent.UV0;
                                     break;
                                 case "TEXCOORD_1":
                                     var uValues1 = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                    result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                     result.ActiveComponents |= VertexComponent.UV1;
                                     break;
+                                case "JOINTS_0":
+
+                                    result.EnsureComponent<SkinnedGeometry>();
+
+                                    if (acc.Type == Accessor.TypeEnum.VEC4)
+                                    {
+                                        if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                                        {
+                                            var jValues = DracoDecoder.ReadAttribute<Vector4US>(mesh, attr.Value);
+                                            result.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues);
+                                            result.ActiveComponents |= VertexComponent.JointIndex;
+                                        }
+                                        else
+                                            throw new NotSupportedException();
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+
+                                    break;
                                 default:
-                                    _log.AppendLine($"{attr.Key} data not supported");
+                                    LoadLog($"{attr.Key} data not supported");
                                     break;
                             }
 
@@ -599,23 +650,19 @@ namespace XrEngine.Gltf
                     {
                         var acc = _model!.Accessors[attr.Value];
 
-                        var view = _model.BufferViews[acc.BufferView!.Value];
-
-                        var buffer = LoadBuffer(view.Buffer);
-
                         switch (attr.Key)
                         {
                             case "POSITION":
-                                var vValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                var vValues = ConvertBuffer<Vector3>(acc);
+                                result.SetVertexData((ref VertexData a, in Vector3 b) => a.Pos = b, vValues);
                                 result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "NORMAL":
-                                var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                var nValues = ConvertBuffer<Vector3>(acc);
+                                result.SetVertexData((ref VertexData a, in Vector3 b) => a.Normal = b, nValues);
                                 result.ActiveComponents |= VertexComponent.Normal;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
@@ -623,28 +670,89 @@ namespace XrEngine.Gltf
                             case "TANGENT":
                                 if (_options.DisableTangents)
                                     break;
-                                var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                var tValues = ConvertBuffer<Vector4>(acc);
+                                result.SetVertexData((ref VertexData a, in Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
-                                var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                var uValues = ConvertBuffer<Vector2>(acc);
+                                result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV = b, uValues);
                                 result.ActiveComponents |= VertexComponent.UV0;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_1":
-                                var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                var uValues1 = ConvertBuffer<Vector2>(acc);
+                                result.SetVertexData((ref VertexData a, in Vector2 b) => a.UV1 = b, uValues1);
                                 result.ActiveComponents |= VertexComponent.UV1;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
+                            case "WEIGHTS_0":
+
+                                result.EnsureComponent<SkinnedGeometry>();
+
+                                if (acc.Type == Accessor.TypeEnum.VEC4)
+                                {
+                                    if (acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
+                                    {
+                                        var wValues = ConvertBuffer<Vector4>(acc);
+                                        result.SetSkinData((ref SkinData a, in Vector4 b) => a.JointWeights = b, wValues);
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+                                }
+                                else
+                                    throw new NotSupportedException();
+
+                                result.ActiveComponents |= VertexComponent.JointWeight;
+
+                                break;
+                            case "JOINTS_0":
+
+                                result.EnsureComponent<SkinnedGeometry>();
+
+                                if (acc.Type == Accessor.TypeEnum.SCALAR)
+                                {
+                                    if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                                    {
+                                        var jValues = ConvertBuffer<ushort>(acc);
+
+                                        result.SetSkinData((ref SkinData a, in ushort b) =>
+                                        {
+                                            a.JointIndices.X = b;
+                                            a.JointWeights.X = 1;
+                                        }, jValues);
+
+                                        result.ActiveComponents |= VertexComponent.Skin;
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+                                }
+                                else if (acc.Type == Accessor.TypeEnum.VEC4)
+                                {
+                                    if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                                    {
+                                        var jValues1 = ConvertBuffer<Vector4US>(acc);
+                                        result.SetSkinData((ref SkinData a, in Vector4US b) => a.JointIndices = b.ToVector4I(), jValues1);
+                                    }
+                                    else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                                    {
+                                        var jValues2 = ConvertBuffer<Vector4UB>(acc);
+                                        result.SetSkinData((ref SkinData a, in Vector4UB b) => a.JointIndices = b.ToVector4I(), jValues2);
+                                    }
+                                    else
+                                        throw new NotSupportedException();
+
+                                    result.ActiveComponents |= VertexComponent.JointIndex;
+                                }
+                                else
+                                    throw new NotSupportedException();
+                                break;
                             default:
-                                _log.AppendLine($"{attr.Key} data not supported");
+                                LoadLog($"{attr.Key} data not supported");
                                 break;
                         }
 
@@ -654,23 +762,24 @@ namespace XrEngine.Gltf
                     {
                         var acc = _model!.Accessors[primitive.Indices.Value];
 
-                        Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.SCALAR);
+                        Debug.Assert(acc.Type == Accessor.TypeEnum.SCALAR);
 
-                        var view = _model.BufferViews[acc.BufferView!.Value];
-
-                        var buffer = LoadBuffer(view.Buffer);
-
-                        if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
-                            result.Indices = ConvertBuffer<ushort>(buffer, view, acc)
+                        if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                            result.Indices = ConvertBuffer<ushort>(acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
-                        else if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_INT)
-                            result.Indices = ConvertBuffer<uint>(buffer, view, acc);
+                        
+                        else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                            result.Indices = ConvertBuffer<uint>(acc);
+
+                        else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                            result.Indices = ConvertBuffer<byte>(acc)
+                                .Select(a => (uint)a)
+                                .ToArray();
                         else
                             throw new NotSupportedException();
                     }
                 }
-
 
             }
             else
@@ -686,19 +795,84 @@ namespace XrEngine.Gltf
             if (_options.GeometryGpuOnly)
                 result.Flags |= EngineObjectFlags.GpuOnly;
 
+            if (primitive.Targets != null && primitive.Targets.Length > 0)
+            {
+                var geoMorph = result.EnsureComponent<MorphedGeometry>();
+
+                geoMorph.Targets = new MorphTarget[primitive.Targets.Length];
+
+                var iTarget = 0;
+
+                foreach (var target in primitive.Targets)
+                {
+                    var morphTarget = new MorphTarget()
+                    {
+                        Components = new MorphComponent[target.Count]
+                    };
+
+                    var iComp = 0;
+
+                    foreach (var attr in target)
+                    {
+                        var acc = _model!.Accessors[attr.Value];
+
+                        Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
+                        Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
+
+                        var morphComp = new MorphComponent
+                        {
+                            Values = ConvertBuffer<Vector3>(acc)
+                        };
+
+                        switch (attr.Key)
+                        {
+                            case "POSITION":
+                                morphComp.Component = VertexComponent.MorphPosition;
+                                break;
+                            case "NORMAL":
+                                morphComp.Component = VertexComponent.MorphNormal;
+                                break;
+                            case "TANGENT":
+                                morphComp.Component = VertexComponent.MorphTangent;
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        morphTarget.Components[iComp] = morphComp;
+
+                        iComp++;
+                    }
+
+                    geoMorph.Targets[iTarget] = morphTarget;
+
+                    iTarget++;
+                }
+            }
+
             return result;
         }
 
-        public Object3D Duplicate(Object3D obj)
+        protected void LoadLog(string text)
+        {
+            lock (_log)
+                _log.AppendLine(text);
+        }
+
+        static Object3D Clone(Object3D obj)
         {
             Object3D result;
 
             if (obj is TriangleMesh mesh)
             {
-                var newMesh = new TriangleMesh();
-                newMesh.Geometry = mesh.Geometry;
+                var newMesh = new TriangleMesh
+                {
+                    Geometry = mesh.Geometry
+                };
+
                 foreach (var mat in mesh.Materials)
                     newMesh.Materials.Add(mat);
+
                 result = newMesh;
             }
             else if (obj is Group3D group)
@@ -706,7 +880,7 @@ namespace XrEngine.Gltf
                 var newGroup = new Group3D();
 
                 foreach (var child in group.Children)
-                    newGroup.AddChild(Duplicate(child));
+                    newGroup.AddChild(Clone(child));
                 result = newGroup;
             }
             else
@@ -718,7 +892,7 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        public Object3D ProcessMesh(int meshId, Object3D? result = null)
+        public Object3D ProcessMesh(int meshId, Node? node, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
 
@@ -727,7 +901,7 @@ namespace XrEngine.Gltf
                 if (_options.UseInstances)
                     return new Object3DInstance() { Reference = result };
 
-                return Duplicate(result);
+                return Clone(result);
             }
 
             CheckExtensions(gltMesh.Extensions);
@@ -738,10 +912,32 @@ namespace XrEngine.Gltf
 
             foreach (var primitive in gltMesh.Primitives)
             {
-                var curMesh = new TriangleMesh();
-                curMesh.Geometry = new Geometry3D();
+                var curMesh = new TriangleMesh()
+                {
+                    Geometry = new Geometry3D()
+                };
 
-                Debug.Assert(primitive.Targets == null);
+                if (node?.Skin != null)
+                {
+                    var skin = _skins[node.Skin.Value];
+
+                    curMesh.AddComponent(new MeshSkin()
+                    {
+                        Joints = skin.Joints?.ToArray() ?? [],
+                        SkinId = skin.Id
+                    });
+                }
+
+                var weights = node?.Weights ?? gltMesh.Weights;
+
+                if (weights != null && weights.Length > 0)
+                {
+                    curMesh.AddComponent(new MeshMorph()
+                    {
+                        Weights = weights
+                    });
+                }
+
                 CheckExtensions(primitive.Extensions);
 
                 Load(curMesh, () =>
@@ -752,18 +948,19 @@ namespace XrEngine.Gltf
 
                     curMesh.Geometry = geo;
 
-                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
+                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name,
+                        curMesh.Geometry.Vertices.Length * MarshalCache.SizeOf(typeof(VertexData)));
                 });
 
                 if (primitive.Material != null)
                 {
-                    var pbrType = _options.PbrType ?? MaterialFactory.DefaultPbr;
-
-                    if (pbrType == typeof(PbrV2Material))
-                        curMesh.Materials.Add(ProcessMaterialV2(primitive.Material.Value));
-                    else
-                        curMesh.Materials.Add(ProcessMaterialV1(primitive.Material.Value));
+                    var mat = ProcessMaterial(primitive.Material.Value);
+                    mat.Skin = SkinMode.Static;
+                    mat.HasSkin = node?.Skin != null;
+                    mat.HasMorph = weights != null && weights.Length > 0;
+                    curMesh.Materials.Add(mat);
                 }
+
 
                 if (group == null)
                 {
@@ -787,29 +984,39 @@ namespace XrEngine.Gltf
         protected Camera ProcessCamera(int cameraId)
         {
             var camera = _model!.Cameras[cameraId];
+            var cameraObj = new PerspectiveCamera();
 
             CheckExtensions(camera.Extensions);
-            throw new NotSupportedException();
+            LoadLog("Camera not supported!");
+
+            return cameraObj;
         }
 
-        protected Object3D ProcessNode(int nodeId, Group3D curGrp)
+        protected Object3D ProcessNode(int nodeId, Group3D? curGrp, bool isJoint)
         {
+            if (_nodes.TryGetValue(nodeId, out var nodeObj))
+            {
+                if (nodeObj.Parent == null)
+                    curGrp?.AddChild(nodeObj);
+                return nodeObj;
+            }
+
             var node = _model!.Nodes[nodeId];
 
             CheckExtensions(node.Extensions);
 
-            Object3D? nodeObj = null;
             Group3D? nodeGrp = null;
 
-            if (node.Children != null && node.Children.Length > 0)
+            if (isJoint || (node.Children != null && node.Children.Length > 0))
             {
-                nodeGrp = new Group3D();
+                nodeGrp = isJoint ? new Joint3D() : new Group3D();
                 nodeObj = nodeGrp;
             }
 
             if (node.Mesh != null)
             {
-                var nodeMesh = ProcessMesh(node.Mesh.Value);
+                Object3D nodeMesh = ProcessMesh(node.Mesh.Value, node);
+
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
                 else
@@ -826,10 +1033,10 @@ namespace XrEngine.Gltf
                 nodeObj = new Object3D();
             }
 
-            if (nodeGrp != null)
+            if (nodeGrp != null && node.Children != null)
             {
-                foreach (var childNode in node.Children!)
-                    ProcessNode(childNode, nodeGrp);
+                foreach (var childNode in node.Children)
+                    ProcessNode(childNode, nodeGrp, isJoint);
             }
 
             nodeObj!.Name = node.Name;
@@ -864,11 +1071,211 @@ namespace XrEngine.Gltf
 
             //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
-            curGrp.AddChild(nodeObj);
+            curGrp?.AddChild(nodeObj);
 
             GenerateId(nodeObj, "node", nodeId);
 
+            _nodes[nodeId] = nodeObj;
+
             return nodeObj;
+        }
+
+        protected GltfSkin ProcessSkin(int skinId)
+        {
+            var skin = _model!.Skins[skinId];
+
+            CheckExtensions(skin.Extensions);
+
+            var skinObj = new GltfSkin
+            {
+                Joints = [],
+                Id = Guid.NewGuid()
+            };
+
+            Matrix4x4[]? matrices = null;
+
+            if (skin.InverseBindMatrices != null)
+            {
+                var matsAcc = _model.Accessors[skin.InverseBindMatrices.Value];
+                matrices = ConvertBuffer<Matrix4x4>(matsAcc);
+            }
+
+            foreach (var joint in skin.Joints)
+            {
+                var jointObj = (Joint3D)ProcessNode(joint, null, true);
+
+                skinObj.Joints.Add(jointObj);
+            }
+
+            Debug.Assert(matrices != null && matrices.Length == skinObj.Joints.Count);
+
+            for (var i = 0; i < skinObj.Joints.Count;i++)
+                skinObj.Joints[i].InverseBindMatrix = matrices[i];
+
+            _skins[skinId] = skinObj;
+
+            return skinObj;
+        }
+
+        protected void ProcessAnimation(glTFLoader.Schema.Animation anim, Object3D root)
+        {
+            Debug.Assert(_model != null);
+
+            CheckExtensions(anim.Extensions);
+
+            var samplers = new List<GltfSampler>();
+
+            foreach (var sampler in anim.Samplers)
+            {
+                CheckExtensions(sampler.Extensions);
+
+                var times = ConvertBuffer<float>(sampler.Input);
+                var values = ConvertBuffer(sampler.Output);
+
+                if (values.Length % times.Length != 0)
+                    throw new InvalidOperationException();
+
+                var ratio = values.Length / times.Length;
+                var valueType = values.GetType().GetElementType()!;
+
+                var gltfSampler = new GltfSampler
+                {
+                    Interpolation = sampler.Interpolation,
+                    Values = [.. times.Select((time, i) =>
+                    {
+                        object value;
+
+                        if (ratio == 1)
+                            value = values.GetValue(i)!;
+                        else
+                        {
+                            var array = Array.CreateInstance(valueType, ratio);
+                            Array.Copy(values, i * ratio, array, 0, ratio);
+                            value = array;
+                        }
+
+                        return new GltfSamplerValue
+                        {
+                            Time = time,
+                            Value = value
+                        };
+                    })]
+                };
+
+                samplers.Add(gltfSampler);
+            }
+
+
+            var group = new AnimationGroup()
+            {
+                IterationCount = 1
+            };
+
+            foreach (var channel in anim.Channels)
+            {
+                CheckExtensions(channel.Extensions);
+                CheckExtensions(channel.Target.Extensions);
+
+                if (channel.Target.Node == null)
+                    continue;
+
+                var sampler = samplers[channel.Sampler];
+                var obj3d = _nodes[channel.Target.Node.Value];
+                var path = channel.Target.Path;
+
+                Debug.Assert(sampler.Values != null);
+
+                TimeFunctionDelegate timeFunc;
+
+                if (sampler.Interpolation == InterpolationEnum.STEP)
+                    timeFunc = TimeFunctions.Step;
+                else if (sampler.Interpolation == InterpolationEnum.LINEAR)
+                    timeFunc = TimeFunctions.Linear;
+                else
+                    throw new NotSupportedException();
+
+                if (path == "scale")
+                {
+                    group.Add(new StepAnimation<Vector3>()
+                    {
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<Vector3>
+                        {
+                            Time = a.Time,
+                            Value = (Vector3)a.Value,
+                            TimeFunction = timeFunc
+                        })],
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = t => obj3d.Transform.Scale = t.Value
+                    });
+                }
+                else if (path == "translation")
+                {
+                    group.Add(new StepAnimation<Vector3>()
+                    {
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<Vector3>
+                        {
+                            Time = a.Time,
+                            Value = (Vector3)a.Value,
+                            TimeFunction = timeFunc
+                        })],
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = t => obj3d.Transform.Position = t.Value
+                    });
+                }
+                else if (path == "rotation")
+                {
+                    group.Add(new StepAnimation<Quaternion>()
+                    {
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<Quaternion>
+                        {
+                            Time = a.Time,
+                            Value = ((Vector4)a.Value).ToQuaternion(),
+                            TimeFunction = timeFunc
+                        })],
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = t => obj3d.Transform.Orientation = t.Value
+                    });
+                }
+                else if (path == "weights")
+                {
+                    group.Add(new StepAnimation<float[]>()
+                    {
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<float[]>
+                        {
+                            Time = a.Time,
+                            Value = (float[])a.Value,
+                            TimeFunction = timeFunc
+                        })],
+
+                        IterationCount = 1,
+                        Name = anim.Name,
+                        SetTarget = t =>
+                        {
+                            foreach (var meshMorph in obj3d.ComponentsDeep<MeshMorph>())
+                                meshMorph.Weights = t.Value;
+                        }
+                    });
+                }
+                else
+                    throw new NotSupportedException();
+            }
+
+            if (!root.TryComponent<AnimationsHost>(out var animHost))
+                animHost = root.AddComponent<AnimationsHost>();
+
+            animHost.AddAnimation(group);
+        }
+
+        protected void ProcessAnimations(Object3D root)
+        {
+            if (_model?.Animations == null)
+                return;
+
+            foreach (var anim in _model.Animations)
+                ProcessAnimation(anim, root);
         }
 
         protected Group3D ProcessScene(Scene glScene)
@@ -876,7 +1283,8 @@ namespace XrEngine.Gltf
             var scene = new Group3D();
 
             foreach (var nodeId in glScene.Nodes)
-                ProcessNode(nodeId, scene);
+                ProcessNode(nodeId, scene, false);
+
 
             return scene;
         }
@@ -889,6 +1297,8 @@ namespace XrEngine.Gltf
             _mats.Clear();
             _meshes.Clear();
             _textures.Clear();
+            _skins.Clear();
+            _nodes.Clear();
 
             GC.SuppressFinalize(this);
         }
@@ -903,7 +1313,6 @@ namespace XrEngine.Gltf
             _model = glTFLoader.Interface.LoadModel(filePath);
         }
 
-
         public Object3D Load(string filePath, GltfLoaderOptions options)
         {
             LoadModel(filePath, options);
@@ -915,6 +1324,12 @@ namespace XrEngine.Gltf
         public Object3D LoadScene()
         {
             var root = new Group3D();
+
+            if (_model!.Skins != null)
+            {
+                for (var i = 0; i < _model.Skins.Length; i++)
+                    ProcessSkin(i);
+            }
 
             foreach (var scene in _model!.Scenes)
                 root.AddChild(ProcessScene(scene));
@@ -929,8 +1344,10 @@ namespace XrEngine.Gltf
                     break;
             }
 
-            Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
 
+            ProcessAnimations(curRoot);
+
+            Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
 
             return curRoot;
         }
@@ -980,7 +1397,6 @@ namespace XrEngine.Gltf
             var loader = new GltfLoader(resourceResolver);
             return loader.Load(filePath, options);
         }
-
 
         public glTFLoader.Schema.Gltf? Model => _model;
 

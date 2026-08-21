@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class NodeView : BaseView, IDisposable
     {
@@ -52,24 +50,23 @@ namespace XrEditor
             }
         }
 
-        protected void OnChildRemoved(INode sender, INode child)
+        protected async void OnChildRemoved(INode sender, INode child)
         {
-            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
-            {
-                var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
-                childView?.Remove();
-            });
+            await UiThread;
+
+            var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node.Value == child.Value);
+
+            childView?.Remove();
         }
 
-        protected void OnChildAdded(INode sender, INode child)
+        protected async void OnChildAdded(INode sender, INode child)
         {
-            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
-            {
-                var childView = _panel.CreateNode(child, _host);
-                _host.AddChild(childView!);
-            });
-        }
+            await UiThread;
 
+            var childView = _panel.CreateNode(child, _host);
+
+            _host.AddChild(childView!);
+        }
 
         protected void OnLoadChildren(ListTreeNodeView nodeView, IList<ListTreeNodeView> result)
         {
@@ -79,7 +76,6 @@ namespace XrEditor
             foreach (var item in _node.Children)
                 result.Add(_panel.CreateNode(item, _host)!);
         }
-
 
         public void Dispose()
         {
@@ -94,7 +90,6 @@ namespace XrEditor
 
             GC.SuppressFinalize(this);
         }
-
 
         public IconView? Icon
         {
@@ -117,7 +112,6 @@ namespace XrEditor
                 return _node.Value?.ToString() ?? "";
             }
         }
-
 
         public override string ToString()
         {

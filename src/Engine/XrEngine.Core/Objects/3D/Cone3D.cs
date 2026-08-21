@@ -37,8 +37,6 @@ namespace XrEngine
             this.SmoothNormals(0, (uint)smoothEnd - 1);
 
             this.ComputeIndices();
-
-            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public Vector3 Center { get; set; }

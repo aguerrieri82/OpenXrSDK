@@ -13,7 +13,6 @@ namespace XrEngine.Gltf
             public DateTime LastEditTime { get; set; }
         }
 
-
         GltfAssetLoader() { }
 
         protected string GetFilePath(Uri uri)
@@ -110,11 +109,11 @@ namespace XrEngine.Gltf
                         break;
                     case "mat":
                         var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMaterialV2(matId, (PbrV2Material?)destObj);
+                        result = cache.Loader!.ProcessMaterial(matId, (PbrMaterial?)destObj);
                         break;
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMesh(meshId, (TriangleMesh?)destObj);
+                        result = cache.Loader!.ProcessMesh(meshId, null, (TriangleMesh?)destObj);
                         break;
                     default:
                         throw new NotSupportedException();
@@ -144,7 +143,6 @@ namespace XrEngine.Gltf
         }
 
         public bool UseCache { get; set; }
-
 
         public static readonly GltfAssetLoader Instance = new GltfAssetLoader();
     }

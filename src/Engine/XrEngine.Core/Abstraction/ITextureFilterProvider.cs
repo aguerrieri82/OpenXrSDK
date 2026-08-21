@@ -53,9 +53,8 @@
             return data;
         }
 
-
-        public static void Blur(this ITextureFilterProvider fp, Texture2D src, Texture2D dst, string key, int activeChannels) =>
-            fp.Kernel3x3(src, dst, BLUR_KERNEL_3x3, key, activeChannels);
+        public static void Blur(this ITextureFilterProvider fp, Texture2D src, Texture2D dst, string key, int activeChannels, int mipLevel) =>
+            fp.Kernel3x3(src, dst, BLUR_KERNEL_3x3, key, activeChannels, mipLevel);
 
         public static void BlurX(this ITextureFilterProvider fp, Texture2D src, Texture2D dst, int size, string key, int activeChannels) =>
             fp.KernelX(src, dst, BuildGaussianWeights(size), key, activeChannels);
@@ -66,10 +65,10 @@
 
     public interface ITextureFilterProvider
     {
-        void Kernel3x3(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels);
+        void Kernel3x3(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, int mipLevel = 0);
 
-        void KernelX(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels);
+        void KernelX(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, int mipLevel = 0);
 
-        void KernelY(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels);
+        void KernelY(Texture2D src, Texture2D dst, float[] data, string key, int activeChannels, int mipLevel = 0);
     }
 }

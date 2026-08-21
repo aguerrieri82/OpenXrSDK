@@ -12,7 +12,8 @@ namespace XrEngine.UI
         RenderTarget
     }
 
-    public abstract class CanvasView3D : TriangleMesh
+    [UpdateMode(IsParallel = false)]
+    public abstract class CanvasView3D : TriangleMesh, IQuodTexture
     {
         static readonly DynamicProp SurfaceProp = new("Surface");
 
@@ -21,10 +22,14 @@ namespace XrEngine.UI
         protected float _dpi;
         protected float _dpiScale;
         protected bool _sizeDirty;
-        protected Dictionary<nint, Texture2D> _targets = [];
+        protected Dictionary<uint, Texture2D> _targets = [];
         protected Texture2D? _activeTexture;
-        protected Texture2D? _defaultTexture;
+        protected int _activeEye;
+        protected Texture2D? _defLeftTexture;
+        protected Texture2D? _defRightTexture;
+        protected Texture2D? _lastDrawTexture;
         protected CanvasViewMode _mode;
+        protected bool _isStereo;
 
         public CanvasView3D()
         {
@@ -38,46 +43,75 @@ namespace XrEngine.UI
 
             Geometry = quad;
             Mode = CanvasViewMode.Texture;
+            UseMips = false;
         }
 
-        public void SetRenderTarget(nint imageId, uint width, uint height)
+        public void SetRenderTarget(uint imageId, uint width, uint height, int activeEye = 0)
         {
             if (!_targets.TryGetValue(imageId, out var texture))
             {
-                texture = new Texture2D
-                {
-                    Width = width,
-                    Height = height,
-                    Format = TextureFormat.Rgba32
-                };
-                CreateSurface(texture, imageId);
+                texture = _scene!.App!.Renderer.AttachTexture(imageId);
+
+                if (!EnableDepthCull)
+                    CreateSurface(texture);
+
                 _targets[imageId] = texture;
             }
             _activeTexture = texture;
+            _activeEye = activeEye;
         }
-
 
         public override void Update(RenderContext ctx)
         {
             base.Update(ctx);
 
-            if (_activeTexture != null && NeedDraw && _mode == CanvasViewMode.Texture)
-            {
-                if (_sizeDirty)
-                    UpdateSize();
+            if (_sizeDirty)
+                UpdateSize();
 
-                Draw();
+            if (_activeTexture != null && _mode == CanvasViewMode.Texture)
+                Draw(ctx);
+
+        }
+
+        public void Draw(RenderContext? ctx)
+        {
+            var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ?
+                _defLeftTexture : _activeTexture;
+
+            if ((NeedDraw || _lastDrawTexture == null) && (_activeEye <= 0 || IsStereo))
+            {
+                Draw(drawTexture, ctx, Math.Max(_activeEye, 0));
+
+                if (IsStereo && _mode == CanvasViewMode.Texture)
+                {
+                    Debug.Assert(_activeEye <= 0);
+                    Draw(_defRightTexture, ctx, 1);
+                }
+
+                _lastDrawTexture = drawTexture;
+            }
+
+            else if (_lastDrawTexture != null && _lastDrawTexture != _activeTexture && !EnableDepthCull)
+                _scene!.App!.Renderer.CopyTexture(_lastDrawTexture, _activeTexture!);
+
+            if (EnableDepthCull && Mode == CanvasViewMode.RenderTarget)
+            {
+                if (Context.TryRequire<IQuodDepthCull>(out var depthCull))
+                    depthCull.Cull(this);
             }
         }
 
-        public void Draw()
+        protected void Draw(Texture2D? texture, RenderContext? ctx, int activeEye)
         {
-            Debug.Assert(_activeTexture != null);
+            Debug.Assert(texture != null);
 
-            var surface = GetSurface(_activeTexture);
+            var surface = GetSurface(texture);
 
-            var scaleX = (_activeTexture.Width / _pixelSize.Width) * _dpiScale;
-            var scaleY = (_activeTexture.Height / _pixelSize.Height) * _dpiScale;
+            if (surface == null)
+                return;
+
+            var scaleX = (texture.Width / _pixelSize.Width) * _dpiScale;
+            var scaleY = (texture.Height / _pixelSize.Height) * _dpiScale;
 
             var canvas = surface!.Canvas;
 
@@ -85,23 +119,23 @@ namespace XrEngine.UI
 
             var surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
 
-            surfaceProvider!.BeginDrawSurface();
+            surfaceProvider!.BeginDrawSurface(canvas.Surface!, texture);
 
-            Draw(canvas);
+            Draw(canvas, ctx, activeEye);
 
             canvas.Flush();
 
             surface.Flush();
 
-            surfaceProvider.EndDrawSurface();
+            surfaceProvider.EndDrawSurface(canvas.Surface!, texture);
         }
 
-        protected virtual void Draw(SKCanvas canvas)
+        protected virtual void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
         {
 
         }
 
-        protected SKSurface CreateSurface(Texture2D texture, nint imageId = 0)
+        protected SKSurface CreateSurface(Texture2D texture)
         {
             var surface = GetSurface(texture);
             surface?.Dispose();
@@ -111,7 +145,8 @@ namespace XrEngine.UI
             if (surfaceProvider == null)
                 throw new NotSupportedException();
 
-            surface = surfaceProvider.CreateSurface(texture, imageId);
+            surface = surfaceProvider.CreateSurface(texture);
+
             texture.SetProp(SurfaceProp, surface);
 
             return surface;
@@ -129,15 +164,43 @@ namespace XrEngine.UI
 
             Transform.Scale = new Vector3(Size.Width, Size.Height, 0.01f);
 
-            if (_defaultTexture != null && _activeTexture == _defaultTexture)
+            if (_defLeftTexture != null)
             {
-                _activeTexture.Width = _pixelSize.Width;
-                _activeTexture.Height = _pixelSize.Height;
+                _defLeftTexture.Width = _pixelSize.Width;
+                _defLeftTexture.Height = _pixelSize.Height;
+                _defLeftTexture.NotifyChanged(ChangeType.Unspecified);
 
-                CreateSurface(_activeTexture);
+                CreateSurface(_defLeftTexture);
+            }
+
+            if (_defRightTexture != null)
+            {
+                _defRightTexture.Width = _pixelSize.Width;
+                _defRightTexture.Height = _pixelSize.Height;
+                _defRightTexture.NotifyChanged(ChangeType.Unspecified);
+
+                CreateSurface(_defRightTexture);
             }
 
             _sizeDirty = false;
+        }
+
+        protected virtual Material CreateMaterial(Texture2D leftMain, Texture2D? right)
+        {
+            if (IsStereo && right != null)
+            {
+                return new EyeTextureMaterial(leftMain, right)
+                {
+                    DoubleSided = true,
+                    Alpha = AlphaMode.Blend,
+                };
+            }
+
+            return new TextureMaterial(leftMain)
+            {
+                DoubleSided = true,
+                Alpha = AlphaMode.Blend,
+            };
         }
 
         protected virtual void UpdateMode()
@@ -147,51 +210,48 @@ namespace XrEngine.UI
 
             if (_mode == CanvasViewMode.Texture)
             {
-                _defaultTexture ??= new Texture2D
+                _defLeftTexture ??= new Texture2D
                 {
-                    Format = TextureFormat.Rgba32,
+                    Format = TextureFormat.Rgba8,
                     WrapS = WrapMode.ClampToEdge,
                     WrapT = WrapMode.ClampToEdge,
                     MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
+                    MipLevelCount = 0
                 };
 
-                Materials.Add(new TextureMaterial(_defaultTexture)
+                if (UseMips)
                 {
-                    DoubleSided = true,
-                    Alpha = AlphaMode.Blend,
-                });
-
-                _activeTexture = _defaultTexture;
-            }
-            else
-            {
-                Materials.Add(new ColorMaterial
-                {
-                    Color = Color.Transparent,
-                    WriteColor = true,
-                    WriteDepth = true,
-                    DoubleSided = false,
-                });
-
-                if (_defaultTexture != null)
-                {
-                    _defaultTexture.Dispose();
-                    _defaultTexture = null;
+                    _defLeftTexture.MipLevelCount = 4;
+                    _defLeftTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
                 }
 
-                _activeTexture = null;
+                if (IsStereo && Mode == CanvasViewMode.Texture)
+                {
+                    _defRightTexture ??= new Texture2D
+                    {
+                        Format = TextureFormat.Rgba8,
+                        WrapS = WrapMode.ClampToEdge,
+                        WrapT = WrapMode.ClampToEdge,
+                        MinFilter = ScaleFilter.Linear,
+                        MagFilter = ScaleFilter.Linear,
+                        MipLevelCount = 0
+                    };
 
-                UpdateSize();
+                    if (UseMips)
+                    {
+                        _defRightTexture.MipLevelCount = 4;
+                        _defRightTexture.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    }
+                }
+
+                Materials.Add(CreateMaterial(_defLeftTexture, _defRightTexture));
+
+                _activeTexture = _defLeftTexture;
             }
+            else
+                _activeTexture = null;
         }
-
-
-        public abstract bool NeedDraw { get; }
-
-        public Size2I PixelSize => _pixelSize;
-
-        public Texture2D? ActiveTexture => _activeTexture;
 
         public CanvasViewMode Mode
         {
@@ -235,6 +295,41 @@ namespace XrEngine.UI
                 _dpiScale = value;
             }
         }
+
+        public bool IsStereo
+        {
+            get => _isStereo;
+            set
+            {
+                _isStereo = value;
+                UpdateMode();
+            }
+        }
+
+        public Texture2D? DrawTexture => _defLeftTexture;
+
+        public int ActiveEye => _activeEye;
+
+        public float DepthBias { get; set; }
+
+        [Obsolete]
+        public bool EnableDepthCull { get; set; }
+
+        public bool UseMips { get; set; }
+
+        public abstract bool NeedDraw { get; }
+
+        public Size2I PixelSize
+        {
+            get
+            {
+                if (_sizeDirty)
+                    UpdateSize();
+                return _pixelSize;
+            }
+        }
+
+        public Texture2D? ActiveTexture => _activeTexture;
 
     }
 }

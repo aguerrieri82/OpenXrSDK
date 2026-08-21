@@ -1,6 +1,5 @@
 ﻿using XrEngine;
 
-
 [assembly: Module(typeof(XrEngine.Tiff.Module))]
 
 namespace XrEngine.Tiff

@@ -4,13 +4,12 @@
     {
         static readonly Shader SHADER;
 
-
         static LineMaterial()
         {
             SHADER = new CameraOnlyVertexShader
             {
-                FragmentSourceName = "line.frag",
                 VertexSourceName = "line.vert",
+                FragmentSourceName = "color.frag",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false
             };
@@ -23,11 +22,16 @@
             LineWidth = 1;
         }
 
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
+        {
+            bld.AddFeature("USE_VERTEX_COLOR");
+
+            base.UpdateShaderMaterial(bld);
+        }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uWorldMatrix", (ctx) => ctx.Model!.WorldMatrix);
-
         }
 
         public float LineWidth { get; set; }

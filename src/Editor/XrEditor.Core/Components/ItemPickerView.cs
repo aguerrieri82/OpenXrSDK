@@ -72,7 +72,6 @@ namespace XrEditor
 
         public IList<ItemView>? Items { get; set; }
 
-
         public IItemsSource? ItemsSource { get; set; }
 
         public async Task<object?> ShowAsync(string title)

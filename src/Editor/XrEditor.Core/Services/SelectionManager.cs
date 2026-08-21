@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using XrEngine;
 
 namespace XrEditor.Services
@@ -8,28 +9,50 @@ namespace XrEditor.Services
         protected BulkObservableCollection<INode> _items = [];
         protected bool _isChanged;
         protected int _update;
-        protected readonly IMainDispatcher _main;
+        protected readonly IMainDispatcher _mainDispatcher;
 
         public SelectionManager()
         {
             _items.CollectionChanged += OnChanged;
-            _main = Context.Require<IMainDispatcher>();
+            _mainDispatcher = Context.Require<IMainDispatcher>();
         }
 
         protected virtual void NotifyChanged()
         {
             _isChanged = false;
-            Changed?.Invoke(_items.AsReadOnly());
+            Changed?.Invoke(_items.ToArray().AsReadOnly());
         }
 
-        private void OnChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private async void OnChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (_update > 0)
-            {
                 _isChanged = true;
-                return;
+            else
+                NotifyChanged();
+
+            await EngineApp.MainThread;
+
+            var oldItems = e.OldItems?.Cast<INode>().Select(a => a.Value).OfType<Object3D>();
+            var newItems = e.NewItems?.Cast<INode>().Select(a => a.Value).OfType<Object3D>();
+
+            var isSel = e.Action == NotifyCollectionChangedAction.Add;
+
+            var valid = e.Action == NotifyCollectionChangedAction.Add ||
+                        e.Action == NotifyCollectionChangedAction.Remove;
+
+            var curItems = isSel ? newItems : oldItems;
+
+            if (curItems != null && valid)
+            {
+                foreach (var item in curItems)
+                {
+                    foreach (var handler in item.Components<ISelectionHandler>())
+                        handler.OnSelected(item, isSel);
+
+                    if (item is ISelectionHandler handler1)
+                        handler1.OnSelected(item, isSel);
+                }
             }
-            NotifyChanged();
         }
 
         public void BeginUpdate()
@@ -44,27 +67,36 @@ namespace XrEditor.Services
                 NotifyChanged();
         }
 
-        public void Clear() => _main.ExecuteAsync(() =>
+        public async void Clear()
         {
-            _items.Clear();
-        });
+            if (_items.Count == 0)
+                return;
 
-        public void Set(params INode[] items) => _main.ExecuteAsync(() =>
+            await _mainDispatcher.Switch;
+
+            for (var i = _items.Count - 1; i >= 0; i--)
+                _items.RemoveAt(i);
+        }
+
+        public async void Set(params INode[] items)
         {
+            if (items.SequenceEqual(_items))
+                return;
+
             BeginUpdate();
 
-            _items.Clear();
+            Clear();
+
             foreach (var item in items)
                 _items.Add(item);
 
             EndUpdate();
-        });
+        }
 
         public bool IsSelected(INode value)
         {
             return _items.Contains(value);
         }
-
 
         public event Action<IReadOnlyCollection<INode>>? Changed;
 

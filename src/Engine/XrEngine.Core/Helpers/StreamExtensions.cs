@@ -19,7 +19,7 @@
             stream.Write(span);
         }
 
-        public unsafe static MemoryStream ToMemory(this Stream stream)
+        public static MemoryStream ToMemory(this Stream stream)
         {
             if (stream is MemoryStream memory)
                 return memory;
@@ -30,7 +30,7 @@
             return result;
         }
 
-        public unsafe static Stream EnsureSeek(this Stream stream)
+        public static Stream EnsureSeek(this Stream stream)
         {
             if (!stream.CanSeek)
                 return stream.ToMemory();

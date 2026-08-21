@@ -24,8 +24,6 @@
             }
         }
 
-
-
         public string? DisplayName
         {
             get => _displayName;

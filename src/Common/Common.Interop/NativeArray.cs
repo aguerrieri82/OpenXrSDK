@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Common.Interop
 {
@@ -24,11 +24,22 @@ namespace Common.Interop
             Marshal.Copy(buffer, 0, _buffer, buffer.Length);
         }
 
+        public unsafe void CopyFrom<T>(T[] data) where T : unmanaged
+        {
+            for (var i = 0; i < data.Length; i++)
+            {
+                var pItem = ItemPointer<T>(i);
+                *pItem = data[i];
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe TBase* ItemPointer(int index)
         {
             return ItemPointer<TBase>(index);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe T* ItemPointer<T>(int index) where T : unmanaged
         {
             if (index < 0 || index >= Length)
@@ -40,23 +51,26 @@ namespace Common.Interop
             return (T*)(_buffer + _itemSize * index);
         }
 
-        public unsafe ref T Item<T>(int index) where T : unmanaged
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref T ItemAt<T>(int index) where T : unmanaged
         {
             var pItem = ItemPointer<T>(index);
 
             return ref pItem[0];
         }
 
-        public ref TBase Item(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TBase ItemAt(int index)
         {
-            return ref Item<TBase>(index);
+            return ref ItemAt<TBase>(index);
         }
 
         public TBase[] ToArray()
         {
             var result = new TBase[Length];
             for (var i = 0; i < Length; i++)
-                result[i] = Item(i);
+                result[i] = ItemAt(i);
             return result;
         }
 
@@ -70,6 +84,8 @@ namespace Common.Interop
 
             GC.SuppressFinalize(this);
         }
+
+        public ref TBase this[int index] => ref ItemAt(index);
 
         public unsafe TBase* Pointer => (TBase*)_buffer;
 

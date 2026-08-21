@@ -2,7 +2,7 @@
 {
     public interface IDrawGizmos
     {
-        void DrawGizmos(Canvas3D canvas);
+        void DrawGizmos(Canvas3D canvas, RenderContext ctx);
 
         bool IsEnabled { get; }
     }

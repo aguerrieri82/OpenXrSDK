@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTextureRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
+    public class GlTextureRenderTarget : IGlRenderTargetFB
     {
         protected readonly GlTextureFrameBuffer _frameBuffer;
         protected readonly GL _gl;
@@ -20,18 +20,23 @@ namespace XrEngine.OpenGL
 
         public void Begin(Camera camera)
         {
-            camera.ViewSize = _frameBuffer.Size;
-            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
-            _frameBuffer.Bind();
+            if (RenderSize.Width == 0 || RenderSize.Height == 0)
+                camera.ViewSize = _frameBuffer.Size;
+            else
+                camera.ViewSize = RenderSize;
+
+            GlState.Current.SetView(new Rect2I(camera.ViewSize));
+
+            _frameBuffer.BindDraw();
+
+            OpenGLRender.Current!.Begin(this);
         }
 
         public void End(bool discardDepth)
         {
             if (discardDepth && _frameBuffer.Depth != null)
-            {
-                _frameBuffer.Bind();
                 _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
-            }
+
             _frameBuffer.Unbind();
         }
 
@@ -47,14 +52,16 @@ namespace XrEngine.OpenGL
             return _frameBuffer.QueryTexture(attachment);
         }
 
-        public void CommitDepth()
-        {
-            _gl.Flush();
-        }
-
         public GlTextureFrameBuffer FrameBuffer => _frameBuffer;
 
         IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
 
+        public GlRenderTargetFlags Flags { get; set; }
+
+        public int ShadingRate { get; set; }
+
+        public Size2I RenderSize { get; set; }
+
+        public Rect2I[]? ClipRegions { get; set; }
     }
 }

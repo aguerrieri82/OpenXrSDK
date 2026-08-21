@@ -48,7 +48,6 @@ namespace XrEngine.Audio
                 var startSample = (int)(Data.Format!.SampleRate * time);
                 var endSample = (int)(Data.Format!.SampleRate * (time + length));
 
-
                 var bestOfs = -1;
                 var bestValue = float.NegativeInfinity;
 
@@ -99,7 +98,7 @@ namespace XrEngine.Audio
 
         public Dictionary<string, int> OffsetMap { get; set; }
 
-        public AudioData? Data { get; set; }
+        public AlAudioData? Data { get; set; }
 
         public IFunction2? Function { get; set; }
 

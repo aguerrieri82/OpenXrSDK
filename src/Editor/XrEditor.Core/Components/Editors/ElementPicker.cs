@@ -51,7 +51,6 @@ namespace XrEditor
             base.OnEditValueChanged(newValue);
         }
 
-
         public ImageView? Image
         {
             get => _image;
@@ -76,7 +75,6 @@ namespace XrEditor
             }
         }
 
-
         public static ElementPicker Create<T>(IProperty<T?> binding) where T : EngineObject
         {
             return new ElementPicker(binding!.Convert(new CastConverter<T, EngineObject?>()));
@@ -90,7 +88,7 @@ namespace XrEditor
             return typeof(EngineObject).IsAssignableFrom(type);
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             return new ElementPicker();
         }

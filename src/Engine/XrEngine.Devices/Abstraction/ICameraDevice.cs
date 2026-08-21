@@ -45,6 +45,8 @@ namespace XrEngine.Devices
 
         public Size2I? SensorSize { get; set; }
 
+        public Size2I CurrentSize { get; set; }
+
         public CameraParamsRange<int> SensitivityISO { get; set; }
 
         public CameraParamsRange<long> ExpositionTimeNs { get; set; }
@@ -63,21 +65,56 @@ namespace XrEngine.Devices
 
         public Vector2 Fov => new(Fx, Fy);
 
+        public Matrix4x4 GetViewProj(Pose3 headPose)
+        {
+            var sensorWorldMatrix = GetLensPose().ToMatrix() * headPose.ToMatrix();
+
+            Matrix4x4.Invert(sensorWorldMatrix, out var viewMatrix);
+
+            return viewMatrix * GetProjection(0.1f, 10f);
+        }
+
+        public Matrix4x4 GetProjection(float near, float far)
+        {
+            var w = CurrentSize.Width;
+            var h = CurrentSize.Height;
+
+            var fx = Fx;
+            var fy = Fy;
+            var cx = Cx;
+            var cy = Cy;
+
+            return new Matrix4x4(
+                2.0f * fx / w, 0.0f, 0.0f, 0.0f,
+                0.0f, 2.0f * fy / h, 0.0f, 0.0f,
+                (w - 2.0f * cx) / w,
+                (2.0f * cy - h) / h,
+                -(far + near) / (far - near),
+                -1.0f,
+                0.0f,
+                0.0f,
+                -(2.0f * far * near) / (far - near),
+                0.0f
+            );
+        }
+
         public Pose3 GetLensPose()
         {
             if (Rotation == null || Position == null)
                 return Pose3.Identity;
 
-            var worldRot = Quaternion.Inverse(Rotation!.Value);
-            var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, (float)Math.PI);
+            var realPos = Position.Value;
+            var rawRot = Rotation.Value;
 
-            return new Pose3()
+            var worldRot = Quaternion.Inverse(rawRot);
+            var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+
+            return new Pose3
             {
-                Position = Position!.Value,
-                Orientation = worldRot * sensorFix
+                Position = realPos,
+                Orientation = Quaternion.Normalize(worldRot * sensorFix)
             };
         }
-
     }
 
     public enum CameraParamMode
@@ -111,6 +148,10 @@ namespace XrEngine.Devices
 
         void Configure(CameraConfiguration configuration);
 
+        bool IsOpen { get; }
+
+        bool IsCapturing { get; }
+
         Task OpenAsync();
 
         CameraParams GetParams();
@@ -120,7 +161,6 @@ namespace XrEngine.Devices
         void StopCapture();
 
         void UpdateTexture();
-
 
         event Action<CaptureImage>? NewImage;
 

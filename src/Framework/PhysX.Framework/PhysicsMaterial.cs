@@ -14,7 +14,6 @@ namespace PhysX.Framework
         public bool ForceNew;
     }
 
-
     public unsafe class PhysicsMaterial : PhysicsObject<PxMaterial>
     {
         protected int _refCount;

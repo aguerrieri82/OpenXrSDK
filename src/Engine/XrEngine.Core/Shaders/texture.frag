@@ -1,4 +1,6 @@
-﻿in vec2 fUv;
+﻿#include "Shared/fragment_post.glsl"
+
+in vec2 fUv;
 
 #ifdef EXTERNAL
     layout(binding=0) uniform samplerExternalOES uTexture;
@@ -34,4 +36,8 @@ void main()
     #else
         FragColor = texture(uTexture, uv) * uColor;
     #endif
+
+    doPost(FragColor);
+
+    fixSrgbTex(FragColor);
 }

@@ -47,7 +47,35 @@
     <DataTemplate DataType="{x:Type local:PropertiesGroupView}">
         <StackPanel Orientation="Vertical">
             <ContentPresenter x:Name="header"/>
+            <DockPanel x:Name="preset" Margin="5,5,5,5" >
+                <DockPanel.Resources>
+                    <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
+                        <Style.Resources>
+                            <SolidColorBrush x:Key="Button.Disabled.Background" Color="Transparent"/>
 
+                        </Style.Resources>
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.2"/>
+
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DockPanel.Resources>
+                
+                <Button Command="{Binding DeletePresetCommand}" Padding="5,5,5,5" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="5,0,5,0">
+                    <ic:Icon  Filled="True" Color="#A53" Size="15" Kind="icon_delete"/>
+                </Button>
+                <Button Command="{Binding SavePresetCommand}" Padding="5,5,5,5" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="5,0,0,0">
+                    <ic:Icon  Filled="True" Color="#35A" Size="15" Kind="icon_save"/>
+                </Button>
+                <Button Command="{Binding ApplyPresetCommand}" Padding="5,5,5,5" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="5,0,0,0">
+                    <ic:Icon Filled="True" Color="#5A5" Size="15" Kind="icon_check"/>
+                </Button>
+                <ComboBox SelectedItem="{Binding SelectedPreset, Mode=TwoWay}" 
+                          Text="{Binding PresetName}"
+                          IsEditable="True" ItemsSource="{Binding Presets}" DisplayMemberPath="Name" />
+            </DockPanel>
             <StackPanel x:Name="content" Orientation="Vertical">
                 <Border  Padding="25,8,8,8">
                     <ItemsControl ItemsSource="{Binding Properties}">
@@ -65,15 +93,15 @@
                 </Border>
                 <ItemsControl ItemsSource="{Binding Groups}"/>
 
-                <ItemsControl ItemsSource="{Binding Actions}">
+                <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding Actions}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Margin="10,0,10,10" Orientation="Horizontal"/>
+                            <WrapPanel  Orientation="Horizontal" Margin="10,0,10,10" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button MinWidth="70" Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,5,0">
+                            <Button MinWidth="70" Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,5,5">
                                 <TextBlock Text="{Binding DisplayName}"/>
                             </Button>
                         </DataTemplate>
@@ -90,10 +118,12 @@
             <DataTrigger Binding="{Binding GroupType}" Value="Main">
                 <Setter TargetName="header" Property="ContentTemplate" Value="{StaticResource MainGroupHeader}"/>
                 <Setter TargetName="header" Property="Content" Value="{Binding}"/>
+
             </DataTrigger>
             <DataTrigger Binding="{Binding GroupType}" Value="Inner">
                 <Setter TargetName="header" Property="ContentTemplate" Value="{StaticResource InnerGroupHeader}"/>
                 <Setter TargetName="header" Property="Content" Value="{Binding}"/>
+                <Setter TargetName="preset" Property="Visibility" Value="Collapsed"/>
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>

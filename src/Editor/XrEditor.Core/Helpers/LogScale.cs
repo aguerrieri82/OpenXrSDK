@@ -26,7 +26,5 @@
             return MathF.Log10(value);
         }
 
-
-
     }
 }

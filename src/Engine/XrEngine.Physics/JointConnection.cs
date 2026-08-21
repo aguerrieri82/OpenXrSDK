@@ -23,7 +23,7 @@ namespace XrEngine.Physics
             Joint.Dispose();
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!Joint.IsCreated)
                 return;
@@ -40,7 +40,6 @@ namespace XrEngine.Physics
 
             ps0.Position -= -Joint.Object0!.Transform.LocalPivot;
             ps1.Position -= -Joint.Object1!.Transform.LocalPivot;
-
 
             var start = ps0.Position;
             var end = start + Vector3.UnitX.Transform(ps0.Orientation) * 0.5f;

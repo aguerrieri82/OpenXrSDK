@@ -6,6 +6,8 @@ using System.Runtime.Versioning;
 using ContextA = global::Android.Content.Context;
 using MidiDeviceInfo2 = Android.Media.Midi.MidiDeviceInfo;
 
+#pragma warning disable CA1422
+
 namespace XrEngine.Devices.Android
 {
     [SupportedOSPlatform("android23.0")]
@@ -17,7 +19,6 @@ namespace XrEngine.Devices.Android
         {
             _manager = (MidiManager)Application.Context.GetSystemService(ContextA.MidiService)!;
         }
-
 
         public IList<MidiDeviceInfo> FindDevices()
         {

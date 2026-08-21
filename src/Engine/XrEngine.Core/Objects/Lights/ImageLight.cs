@@ -4,13 +4,15 @@ using XrMath;
 
 namespace XrEngine
 {
+
+    [StateManager(StateManagerMode.Explicit)]
     public class ImageLight : Light
     {
         private string? _cacheBasePath;
 
         private static readonly TextureLoadOptions _loaderOptions = new()
         {
-            Format = TextureFormat.RgbaFloat32
+            Format = TextureFormat.RgbaFloat16
         };
 
         public ImageLight()
@@ -41,7 +43,7 @@ namespace XrEngine
 
             var fullPath = Path.Combine(_cacheBasePath, fileName);
 
-            var data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
+            var data = EngineApp.Current.Renderer.ReadTexture(texture, texture.Format, 0, null);
             if (data == null)
                 return false;
 
@@ -82,44 +84,37 @@ namespace XrEngine
                 {
                     Textures.GGXLUT!.NeverCompress = true;
                     Textures.MipCount = Textures.GGXEnv!.MipLevelCount;
+
                     Panorama = new Texture2D();
                     Panorama.AddComponent(new AssetSource(new TextureAsset(loader, uri, _loaderOptions)));
+                    Panorama.Name = "Ibl Panorama";
+
+                    Textures.Env?.Name = "Ibl Env";
+                    Textures.GGXEnv?.Name = "Ibl GGXEnv";
+                    Textures.CharlieEnv?.Name = "Ibl CharlieEnv";
+                    Textures.LambertianEnv?.Name = "Ibl LambertianEnv";
+                    Textures.GGXLUT?.Name = "Ibl GGXLut";
+                    Textures.CharlieLUT?.Name = "Ibl CharlieLut";
                     return;
                 }
             }
 
             Panorama = (Texture2D)loader.LoadAsset(uri, typeof(Texture2D), null, _loaderOptions);
-            Panorama.NotifyChanged(ObjectChangeType.Render);
+            Panorama.NotifyChanged(ChangeType.Render);
 
-            NotifyChanged(ObjectChangeType.Render);
+            NotifyChanged(ChangeType.Render);
         }
 
         public void NotifyIBLCreated()
         {
             if (!string.IsNullOrWhiteSpace(_cacheBasePath))
             {
-                SaveCacheTexture<TextureCube>("lamb.pvr", Textures!.LambertianEnv);
-                SaveCacheTexture<TextureCube>("ggx.pvr", Textures!.GGXEnv);
-                SaveCacheTexture<Texture2D>("ggx_lut.pvr", Textures!.GGXLUT);
-                SaveCacheTexture<TextureCube>("env.pvr", Textures!.Env);
+                SaveCacheTexture("lamb.pvr", Textures!.LambertianEnv);
+                SaveCacheTexture("ggx.pvr", Textures!.GGXEnv);
+                SaveCacheTexture("ggx_lut.pvr", Textures!.GGXLUT);
+                SaveCacheTexture("env.pvr", Textures!.Env);
             }
             Textures.GGXLUT!.NeverCompress = true;
-        }
-
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.Write(nameof(RotationY), RotationY);
-            container.Write("Panorama", Panorama);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            RotationY = container.Read<float>(nameof(RotationY));
-            Panorama = container.Read("Panorama", Panorama);
-            if (Panorama != null)
-                Panorama.NotifyChanged(ObjectChangeType.Render);
         }
 
         public override void Dispose()
@@ -134,8 +129,11 @@ namespace XrEngine
 
         public Texture2D? Panorama { get; set; }
 
-        [ValueType(ValueType.Radiant)]
+        [ValueType(ValueType.Radiant), SaveState]
         public float RotationY { get; set; }
+
+        [SaveState]
+        public float ShadowStrength { get; set; }
 
         public Matrix3x3 LightTransform { get; set; }
 

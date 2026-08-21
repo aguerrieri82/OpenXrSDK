@@ -4,7 +4,8 @@
     {
         None,
         Radiant,
-        FileName
+        FileName,
+        Direction
     }
 
     [AttributeUsage(AttributeTargets.Property)]

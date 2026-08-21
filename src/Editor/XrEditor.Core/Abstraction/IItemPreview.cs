@@ -1,6 +1,4 @@
-﻿using XrEditor.Abstraction;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public interface IItemPreview
     {

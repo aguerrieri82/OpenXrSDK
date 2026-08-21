@@ -28,7 +28,6 @@ namespace XrEngine
             base.OnEnabledChanged();
         }
 
-
         protected virtual bool AffectChange(ObjectChange change)
         {
             return true;
@@ -36,14 +35,22 @@ namespace XrEngine
 
         protected override void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
-            if (sender is T tObj && AffectChange(change))
+            if (sender is T tObj)
             {
-                EngineApp.Current!.Stats.LayerChanges++;
-                if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))
-                    Remove(tObj);
-                else
-                    Add(tObj);
+                if (AffectChange(change))
+                {
+                    EngineApp.Current!.Stats.LayerChanges++;
+
+                    var belong = BelongsToLayer(tObj);
+
+                    if (change.IsAny(ChangeType.SceneRemove) || !belong)
+                        Remove(tObj);
+                    else
+                        Add(tObj);
+                }
+
             }
+
         }
 
         protected bool Contains(T obj)

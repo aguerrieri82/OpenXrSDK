@@ -21,7 +21,6 @@
         {
             var useCache = destObj == null && (options == null || options.UseCache);
 
-
             EngineObject obj;
 
             lock (_cache)
@@ -46,7 +45,6 @@
         {
             _loaders.Add(assetLoader);
         }
-
 
         public static readonly AssetLoader Instance = new();
     }

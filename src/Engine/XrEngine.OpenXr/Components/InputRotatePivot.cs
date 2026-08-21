@@ -21,7 +21,6 @@ namespace XrEngine.OpenXr
         MoveStatus _left;
         MoveStatus _right;
 
-
         protected override void Update(RenderContext ctx)
         {
             if (Left == null || Right == null || LeftClick == null || RightClick == null)
@@ -32,7 +31,6 @@ namespace XrEngine.OpenXr
             var cart = new Spherical() { Azm = MathF.PI / 2, Pol = MathF.PI / 2, R = 1 }.ToCartesian();
 
         }
-
 
         protected bool Process(XrPoseInput pose, XrBoolInput click, XrHaptic? haptic, ref MoveStatus status)
         {
@@ -97,7 +95,6 @@ namespace XrEngine.OpenXr
             var rollRot = MathF.Abs(deltaAng) < 0.0001f ? Quaternion.Identity :
                           Quaternion.CreateFromAxisAngle(curDir, deltaAng);
 
-
             _host!.Transform.SetLocalPivot(LocalPivot, true);
 
             var newOri = rollRot *
@@ -110,7 +107,7 @@ namespace XrEngine.OpenXr
             return true;
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 
@@ -126,7 +123,6 @@ namespace XrEngine.OpenXr
             canvas.State.Color = "#0000FF";
                */
             var wordPivot = _host!.ToWorld(LocalPivot);
-
 
             if (_left.IsMoving)
                 canvas.DrawLine(wordPivot, _left.LastPos);
@@ -164,13 +160,11 @@ namespace XrEngine.OpenXr
             _left.LastPos = curPos;
         }
 
-
         public Func<Quaternion, bool>? ValidateOrientation { get; set; }
 
         public Vector3 LocalPivot { get; set; }
 
         public Vector3 Normal { get; set; }
-
 
         public XrPoseInput? Left { get; set; }
 

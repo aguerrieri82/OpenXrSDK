@@ -4,18 +4,39 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
+
 namespace XrEngine.OpenGL
 {
+    public enum GlRenderTargetFlags
+    {
+        None = 0,
+        Main = 0x1,
+
+        ForceSrgbEncode = 0x2
+    }
+
     public interface IGlRenderTarget : IDisposable
     {
         void Begin(Camera camera);
 
-        void End(bool finalPass);
+        void End(bool discardDepth);
 
         GlTexture? QueryTexture(FramebufferAttachment attachment);
 
-        void CommitDepth();
-
         IShaderHandler? ShaderHandler => null;
+
+        GlRenderTargetFlags Flags { get; }
+
+        int ShadingRate { get; set; }
+
+        Size2I RenderSize { get; set; }
+
+        Rect2I[]? ClipRegions { get; set; }
+    }
+
+    public interface IGlRenderTargetFB : IGlRenderTarget, IGlFrameBufferProvider
+    {
+
     }
 }

@@ -46,7 +46,6 @@
 
         public T Value { get; set; }
 
-
         public event EventHandler<T>? ValueChanged;
     }
 }

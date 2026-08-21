@@ -10,7 +10,6 @@ namespace CanvasUI
         Render = 0x2
     }
 
-
     public class UiProperty
     {
         public UiProperty(string name, Type type, Type ownerType)
@@ -32,7 +31,6 @@ namespace CanvasUI
 
         public MethodInfo? OnChangedMethod;
     }
-
 
     public class UiProperty<T> : UiProperty
     {

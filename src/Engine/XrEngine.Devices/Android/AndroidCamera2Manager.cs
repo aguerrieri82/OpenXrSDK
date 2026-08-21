@@ -10,7 +10,7 @@ namespace XrEngine.Devices.Android
 {
 
     [SupportedOSPlatform("android29.0")]
-    public class AndroidCamera2Manager : ICameraManager
+    public class AndroidCamera2Manager : ILocalCameraManger
     {
         const string KEY_CAMERA_POSITION = "com.meta.extra_metadata.position";
         const string KEY_CAMERA_SOURCE = "com.meta.extra_metadata.camera_source";
@@ -51,6 +51,13 @@ namespace XrEngine.Devices.Android
                 var facing = chars.Get(CameraCharacteristics.LensFacing);
                 var source = chars.Get(new CameraCharacteristics.Key(KEY_CAMERA_SOURCE, javaType));
                 var pos = chars.Get(new CameraCharacteristics.Key(KEY_CAMERA_POSITION, javaType));
+
+                var caps = (int[])chars.Get(CameraCharacteristics.RequestAvailableCapabilities)!;
+
+                var isLogical =
+                    caps.Contains((int)RequestAvailableCapabilities.LogicalMultiCamera);
+
+                var phys = chars.PhysicalCameraIds?.ToArray();
 
                 string? direction;
                 string? posName;

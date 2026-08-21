@@ -1,12 +1,10 @@
 ﻿using SkiaSharp;
-using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using XrEngine;
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
-
-
 
 namespace XrSamples.Dnd
 {
@@ -145,7 +143,6 @@ namespace XrSamples.Dnd
         public string? RequestTimeEpoch { get; set; }
     }
 
-
     public class VttCurrentSceneResponse
     {
         public Guid DmScene { get; set; }
@@ -158,7 +155,7 @@ namespace XrSamples.Dnd
         void OnTokenUpdate(VttToken token);
     }
 
-    public class AboveVttClient
+    public class AboveVttClient : IActiveService
     {
         static readonly JsonSerializerOptions JSON_OPT = new JsonSerializerOptions
         {
@@ -180,6 +177,7 @@ namespace XrSamples.Dnd
             _socketClient = new ClientWebSocket();
             _httpClient = new HttpClient();
             _listener = listener;
+
         }
 
         public async Task ConnectAsync(string campaignId)
@@ -195,7 +193,6 @@ namespace XrSamples.Dnd
             _receiveThread.Start();
 
         }
-
 
         public async Task<SKBitmap> DownloadImageAsync(string uri)
         {
@@ -225,7 +222,6 @@ namespace XrSamples.Dnd
             return result!;
         }
 
-
         public async Task UpdateTokenAsync(Guid sceneId, VttToken token)
         {
             var action = new VttAction();
@@ -244,7 +240,6 @@ namespace XrSamples.Dnd
 
             await _socketClient.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
-
 
         protected async void ReceiveLoop()
         {
@@ -265,6 +260,11 @@ namespace XrSamples.Dnd
                 }
             }
 
+        }
+
+        public void Dispose()
+        {
+            _ = DisconnectAsync();
         }
     }
 }

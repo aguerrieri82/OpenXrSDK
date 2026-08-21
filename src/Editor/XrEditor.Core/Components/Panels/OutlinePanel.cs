@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using XrEditor.Services;
 using XrEngine;
 
@@ -22,7 +21,7 @@ namespace XrEditor
             Instance = this;
             _nodeFactory = Context.Require<NodeManager>();
             _selection = Context.Require<SelectionManager>();
-            _selection.Changed += OnSelectionChanged;
+            _selection.Changed += OnManagerSelectionChanged;
             _treeView = new ListTreeView();
         }
 
@@ -55,13 +54,15 @@ namespace XrEditor
 
         }
 
-        private void OnSelectionChanged(ListTreeNodeView obj)
+        private async void OnNodeSelectionChanged(ListTreeNodeView obj)
         {
-            Debug.Assert(_mainDispatcher.IsCurrentThread);
+            await UiThread;
 
             var node = ((NodeView)obj.Header!).Node;
 
             var curSelected = _selection.IsSelected(node);
+
+            //Log.Debug(this, "[Sel-Node] OnSelectionChanged: {0} ({1})", obj.IsSelected, obj.Header);
 
             if (!obj.IsSelected && curSelected)
                 _selection.Items.Remove(node);
@@ -70,8 +71,12 @@ namespace XrEditor
                 _selection.Items.Add(node);
         }
 
-        private void OnSelectionChanged(IReadOnlyCollection<INode> newSelection)
+        private async void OnManagerSelectionChanged(IReadOnlyCollection<INode> newSelection)
         {
+            await UiThread;
+
+            //Log.Debug(this, "[Sel-Man] OnSelectionChanged: {0}", newSelection.Count);
+
             foreach (var curSel in _treeView.SelectedItems.ToArray())
             {
                 var node = ((NodeView)curSel.Header!).Node;
@@ -81,12 +86,18 @@ namespace XrEditor
 
             foreach (var item in newSelection)
             {
+                //Log.Debug(this, "[Sel-Man] new-selection: {0}", item.Value);
+
                 if (_listNodeMap.TryGetValue(item, out var listNode))
-                    listNode.IsSelected = true;
+                    listNode.SetSelectedCore(true, false);
             }
 
-            if (newSelection.Count == 1)
-                ExpandNode(newSelection.First());
+            _mainDispatcher.Execute(() =>
+            {
+                if (newSelection.Count == 1)
+                    ExpandNode(newSelection.First());
+            }, true);
+
         }
 
         protected internal ListTreeNodeView? CreateNode(object? value, ListTreeNodeView? parent)
@@ -99,7 +110,7 @@ namespace XrEditor
             if (!_listNodeMap.TryGetValue(node, out var listNode))
             {
                 listNode = new ListTreeNodeView(_treeView, parent);
-                listNode.SelectionChanged += OnSelectionChanged;
+                listNode.SelectionChanged += OnNodeSelectionChanged;
                 listNode.Header = new NodeView(listNode, this, node);
                 listNode.IsSelected = _selection.IsSelected(node);
 
@@ -112,10 +123,8 @@ namespace XrEditor
                     listNode.Unload();
             }
 
-
             return listNode;
         }
-
 
         protected override async Task LoadAsync()
         {
@@ -137,7 +146,7 @@ namespace XrEditor
             var root = CreateNode(_sceneView?.Scene, null);
             _treeView.Items.Clear();
             if (root != null)
-                _treeView.Items.Add(root!);
+                _treeView.Items.Add(root);
         }
 
         public static OutlinePanel? Instance { get; internal set; }

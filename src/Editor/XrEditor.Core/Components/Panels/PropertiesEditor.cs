@@ -17,7 +17,6 @@ namespace XrEditor
         private readonly ObservableCollection<PropertiesGroupView> _groups = [];
         private readonly List<PropertyView> _props = [];
         private ImageView? _nodePreview;
-        private IDispatcher? _renderDispatcher;
         private int _isUpdatingProps;
 
         public PropertiesEditor(PropertiesEditorMode mode, Guid panelId)
@@ -38,6 +37,8 @@ namespace XrEditor
 
         private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
+            await UiThread;
+
             var obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
 
             ActiveNode = obj != null ? Context.Require<NodeManager>().CreateNode(obj) : null;
@@ -50,7 +51,6 @@ namespace XrEditor
             else
                 NodePreview = null;
         }
-
 
         public bool NodePreviewVisible => NodePreview != null;
 
@@ -67,6 +67,8 @@ namespace XrEditor
                 Node = node
             };
 
+            result.RefreshPresets();
+
             if (node is IItemView view)
             {
                 if (node.Value is IComponent comp)
@@ -80,11 +82,22 @@ namespace XrEditor
                     result.Header = view.DisplayName;
             }
 
+            foreach (var prop in _props)
+                prop.Dispose();
+
             _props.Clear();
 
             editorProps.EditorProperties(_props);
-            if (editorProps.AutoGenerate)
-                PropertyView.CreateProperties(node.Value, node.Value.GetType(), _props, node as INotifyPropertyChanged);
+
+            if (editorProps.AutoGenerate != PropertiesGenerationMode.None)
+            {
+                var onlySelf = editorProps.AutoGenerate == PropertiesGenerationMode.OnlySelf;
+
+                PropertyView.CreateProperties(node.Value,
+                    onlySelf ? node.Value.GetType() : null, 
+                    _props, node as INotifyPropertyChanged);
+            }
+        
 
             var propsCats = _props.GroupBy(a => a.Category);
 
@@ -154,6 +167,9 @@ namespace XrEditor
 
         protected void UpdateProperties()
         {
+            foreach (var item in _groups)
+                item.Dispose();
+
             _groups.Clear();
 
             if (_activeNode != null)
@@ -217,15 +233,17 @@ namespace XrEditor
 
             var obj = (EngineObject)_activeNode!.Value;
 
-            await EngineApp.Current!.Dispatcher.ExecuteAsync(() => obj.AddComponent(comp));
-
             var grp = CreateProps(comp.GetNode());
 
             if (grp != null)
                 _groups.Add(grp);
+
+            await EngineApp.MainThread;
+
+            obj.AddComponent(comp);
         }
 
-        protected virtual void OnNodeChanged(object? sender, EventArgs e)
+        protected async virtual void OnNodeChanged(object? sender, EventArgs e)
         {
             if (_isUpdatingProps > 0)
                 return;
@@ -248,14 +266,12 @@ namespace XrEditor
 
             _isUpdatingProps++;
 
-            _renderDispatcher ??= EngineApp.Current!.Dispatcher;
+            await EngineApp.MainThread;
 
-            _renderDispatcher.ExecuteAsync(() =>
-            {
-                foreach (var update in updates)
-                    update();
-                _isUpdatingProps--;
-            });
+            foreach (var update in updates)
+                update();
+
+            _isUpdatingProps--;
         }
 
         public ObservableCollection<PropertiesGroupView> Groups => _groups;
@@ -322,7 +338,6 @@ namespace XrEditor
         public PropertiesEditorMode Mode { get; }
 
         public override string? Title { get; }
-
 
         public static readonly Guid PROPERTIES = new("3fc8a4fb-806b-49cd-b770-ec127c8e5f79");
 

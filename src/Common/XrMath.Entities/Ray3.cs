@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 
-
 namespace XrMath
 {
     public struct Ray3

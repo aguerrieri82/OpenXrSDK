@@ -1,89 +1,145 @@
-﻿namespace OpenXr.Framework
-{
+﻿using OpenXr.Framework.Input;
+using System.Diagnostics.CodeAnalysis;
 
+namespace OpenXr.Framework
+{
     public class XrInteractionProfileHand
     {
         [XrPath("/input/squeeze")]
-        public XrBoolInput? SqueezeClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput SqueezeClick;
 
         [XrPath("/input/squeeze/value")]
-        public XrFloatInput? SqueezeValue;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrFloatInput SqueezeValue;
 
         [XrPath("/input/trigger")]
-        public XrBoolInput? TriggerClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput TriggerClick;
 
         [XrPath("/input/trigger/value")]
-        public XrFloatInput? TriggerValue;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrFloatInput TriggerValue;
 
         [XrPath("/input/trigger/touch")]
-        public XrBoolInput? TriggerTouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput TriggerTouch;
 
         [XrPath("/input/thumbstick")]
-        public XrVector2Input? Thumbstick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrVector2Input Thumbstick;
 
         [XrPath("/input/thumbstick/y")]
-        public XrFloatInput? ThumbstickY;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrFloatInput ThumbstickY;
 
         [XrPath("/input/thumbstick/x")]
-        public XrFloatInput? ThumbstickX;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrFloatInput ThumbstickX;
 
         [XrPath("/input/thumbstick/click")]
-        public XrBoolInput? ThumbstickClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput ThumbstickClick;
 
         [XrPath("/input/thumbstick/touch")]
-        public XrBoolInput? ThumbstickTouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput ThumbstickTouch;
 
         [XrPath("/input/thumbrest/touch")]
-        public XrBoolInput? ThumbrestTouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput ThumbrestTouch;
 
         [XrPath("/input/grip/pose")]
-        public XrPoseInput? GripPose;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro, XrProfiles.Simple, XrProfiles.Hand)]
+        [AllowNull]
+        public XrPoseInput GripPose;
 
         [XrPath("/input/aim/pose")]
-        public XrPoseInput? AimPose;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro, XrProfiles.Simple, XrProfiles.Hand)]
+        [AllowNull]
+        public XrPoseInput AimPose;
 
         [XrPath("/output/haptic")]
-        public XrHaptic? Haptic;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro, XrProfiles.Simple)]
+        [AllowNull]
+        public XrHaptic Haptic;
 
+        [XrPath("/input/pinch_ext/pose")]
+        [XrProfile(XrProfiles.Hand)]
+        [AllowNull]
+        public XrPoseInput PinchPose;
 
+        [XrPath("/input/poke_ext/pose")]
+        [XrProfile(XrProfiles.Hand)]
+        [AllowNull]
+        public XrPoseInput PokePose;
     }
 
     public class XrInteractionProfileHand<THand> : XrInteractionProfileHand
     {
-        public THand? Button;
+        [AllowNull]
+        public THand Button;
     }
 
     public class XrInteractionProfileHandLeft
     {
         [XrPath("/input/x/click")]
-        public XrBoolInput? XClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput XClick;
 
         [XrPath("/input/x/touch")]
-        public XrBoolInput? XTouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput XTouch;
 
         [XrPath("/input/y/click")]
-        public XrBoolInput? YClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput YClick;
 
         [XrPath("/input/y/touch")]
-        public XrBoolInput? YTouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput YTouch;
 
         [XrPath("/input/menu/click")]
-        public XrBoolInput? MenuClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro, XrProfiles.Simple)]
+        [AllowNull]
+        public XrBoolInput MenuClick;
     }
 
     public class XrInteractionProfileHandRight
     {
         [XrPath("/input/a/click")]
-        public XrBoolInput? AClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput AClick;
 
         [XrPath("/input/a/touch")]
-        public XrBoolInput? ATouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput ATouch;
 
         [XrPath("/input/b/click")]
-        public XrBoolInput? BClick;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput BClick;
 
         [XrPath("/input/b/touch")]
-        public XrBoolInput? BTouch;
+        [XrProfile(XrProfiles.TouchPlus, XrProfiles.Touch, XrProfiles.TouchPro)]
+        [AllowNull]
+        public XrBoolInput BTouch;
     }
-
 }

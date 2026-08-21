@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
-
 namespace XrEngine.Physics
 {
     public delegate void RigidBodyContactEventHandler(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs);
@@ -46,7 +45,6 @@ namespace XrEngine.Physics
 
         private event RigidBodyContactEventHandler? _contactEvent;
 
-
         public RigidBody()
         {
             Type = PhysicsActorType.Dynamic;
@@ -72,11 +70,16 @@ namespace XrEngine.Physics
 
         public void Teleport(Vector3 worldPos)
         {
+            Debug.Assert(_manager != null);
+
             _host!.WorldPosition = worldPos;
             _lastPose = GetHostPose();
 
-            DynamicActor.Stop();
-            DynamicActor.GlobalPose = _lastPose;
+            _manager.Execute(() =>
+            {
+                DynamicActor.Stop();
+                DynamicActor.GlobalPose = _lastPose;
+            });
         }
 
         protected void SetHostPose(Pose3 pose)
@@ -100,12 +103,14 @@ namespace XrEngine.Physics
 
         protected override void OnEnabled()
         {
-            _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, false);
+            _manager?.Execute(() =>
+                _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, false));
         }
 
         protected override void OnDisabled()
         {
-            _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
+            _manager?.Execute(() =>
+                _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true));
         }
 
         protected PhysicsGeometry? CreateGeometry(ICollider3D? collider, ref Pose3 pose, Vector3 scale)
@@ -283,6 +288,8 @@ namespace XrEngine.Physics
             if (_system == null)
                 return;
 
+            using var writeLock = _system.Scene.LockWrite();
+
             if (_actor != null)
             {
                 _actor.Dispose();
@@ -302,15 +309,15 @@ namespace XrEngine.Physics
 
             _host.Scene.TryComponent(out _manager);
 
-            _system = _manager?.System;
-
-            if (_system == null)
+            _system = _manager?.System ?? 
                 throw new NotSupportedException("Add PhysicsManager to the scene");
 
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
             if (!scale.IsSameValue(10e-5f))
                 throw new NotSupportedException("Not uniform scale is not supported");
+
+            using var writeLock = _system.Scene.LockWrite();
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {
@@ -323,7 +330,7 @@ namespace XrEngine.Physics
 
             foreach (var collider in _host.Components<ICollider3D>())
             {
-                if (!collider.IsEnabled)
+                if (!collider.IsEnabled || (collider.Usage & ColliderUsage.Physics) == 0)
                     continue;
 
                 if (collider is IRenderUpdate update)
@@ -371,6 +378,8 @@ namespace XrEngine.Physics
         {
             if (_actor == null || _system == null || _host == null)
                 return;
+
+            using var writeLock = _system.Scene.LockWrite();
 
             //Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
             //_actor.SetScale(scale.X);
@@ -448,11 +457,14 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
             Debug.Assert(_actor != null);
+            Debug.Assert(_system?.Scene != null);
 
             var curPose = GetHostPose();
 
             if (!curPose.IsFinite())
                 return;
+
+            using var writeLock = _system.Scene.LockWrite();
 
             if (Type == PhysicsActorType.Dynamic)
             {
@@ -465,7 +477,7 @@ namespace XrEngine.Physics
                 {
                     if (_lastTool != null && ToolMode == RigidBodyToolMode.KinematicTarget && UpdatePoseOnToolRelease)
                     {
-                        _actor.GlobalPose = DynamicActor.KinematicTarget;
+                        _actor.GlobalPose = curPose;
                     }
                     else
                     {
@@ -540,7 +552,7 @@ namespace XrEngine.Physics
             Type = container.Read<PhysicsActorType>(nameof(Type));
         }
 
-        public unsafe void Dispose()
+        public void Dispose()
         {
             Destroy();
             GC.SuppressFinalize(this);
@@ -565,7 +577,6 @@ namespace XrEngine.Physics
                 _contactEvent -= value;
             }
         }
-
 
         [Category("Advanced")]
         public float ContactReportThreshold { get; set; }

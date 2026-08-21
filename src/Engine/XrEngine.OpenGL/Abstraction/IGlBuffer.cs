@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace XrEngine.OpenGL
 {
     public interface IGlBuffer : IBuffer, IDisposable
@@ -13,10 +12,10 @@ namespace XrEngine.OpenGL
 
         void Unbind();
 
+        void Load(int slot);
+
         BufferTargetARB Target { get; }
 
-        uint Handle { get; }
-
-        int Slot { get; set; }
+        int ActiveSlot { get; set; }
     }
 }

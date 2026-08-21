@@ -14,18 +14,36 @@ namespace XrEngine.OpenGL
 
         IGlRenderAttachment? Depth { get; }
 
-        void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw);
+        void Attach(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0);
+
+        void Detach(FramebufferAttachment slot);
+
+        GlTexture GetOrCreateEffect(FramebufferAttachment slot, TextureFormat format);
 
         GlTexture GetOrCreateEffect(FramebufferAttachment slot);
 
+        void CopyTo(IGlFrameBuffer dst, ClearBufferMask mask = ClearBufferMask.ColorBufferBit);
+
         void Bind();
+
+        void BindDraw();
+
+        void BindDraw(params DrawBufferMode[] modes);
+
+        void BindRead(ReadBufferMode mode);
 
         void Unbind();
 
         void Check(bool force = false);
 
-        void SetDrawBuffers(params DrawBufferMode[] modes);
+        void Invalidate(params InvalidateFramebufferAttachment[] attachments);
+
+        void BeginUpdate();
+
+        void EndUpdate();
 
         Size2I Size { get; }
+
+        uint SampleCount { get; }
     }
 }

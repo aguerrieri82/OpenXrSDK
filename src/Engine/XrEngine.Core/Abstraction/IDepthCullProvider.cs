@@ -28,7 +28,6 @@ namespace XrEngine
         public uint DrawId;
     }
 
-
     public interface IDepthCullProvider
     {
         IBuffer<DepthObjectData> DepthCullBuffer { get; }

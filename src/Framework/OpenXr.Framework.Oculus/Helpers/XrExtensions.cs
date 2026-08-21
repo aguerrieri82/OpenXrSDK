@@ -9,6 +9,16 @@ namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
+
+        public unsafe static Extent2Di? GetRecommendedResolution<T>(this XrBaseLayer<T> layer, long predictedDisplayTime = 0) where T : unmanaged
+        {
+            if (predictedDisplayTime == 0)
+                predictedDisplayTime = layer.App.FramePredictedDisplayTime;
+
+            return layer.App.Plugin<OculusXrPlugin>()
+                   .GetRecommendedLayerResolution(layer.Header, predictedDisplayTime);
+        }
+
         public unsafe static UuidEXT[] GetWalls(this RoomLayoutFB layout)
         {
             var span = new Span<UuidEXT>(layout.WallUuids, (int)layout.WallUuidCountOutput);
@@ -18,6 +28,22 @@ namespace OpenXr.Framework
         public unsafe static Guid ToGuid(this UuidEXT uuid)
         {
             return new Guid(new Span<byte>(uuid.Data, 16));
+        }
+
+        public static IEnumerable<SpaceQueryResultFB> SpaceWithComponents(this OculusXrPlugin xrOculus, IEnumerable<SpaceQueryResultFB> spaces, params SpaceComponentTypeFB[] componets)
+        {
+            foreach (var space in spaces)
+            {
+                var caps = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
+                if (componets.All(a => caps.Contains(a)))
+                    yield return space;
+            }
+        }
+
+        public static async Task EnsureSpaceComponentAsync(this OculusXrPlugin xrOculus, Space space, SpaceComponentTypeFB component)
+        {
+            if (!xrOculus.GetSpaceComponentEnabled(space, SpaceComponentTypeFB.LocatableFB))
+                await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
         }
 
 
@@ -69,7 +95,7 @@ namespace OpenXr.Framework
                             if (!xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.LocatableFB))
                                 await xrOculus.SetSpaceComponentStatusAsync(space.Space, SpaceComponentTypeFB.LocatableFB, true);
 
-                            var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.ReferenceSpace, 1);
+                            var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.ReferenceSpace);
                             item.Pose = local.Pose;
 
                         }

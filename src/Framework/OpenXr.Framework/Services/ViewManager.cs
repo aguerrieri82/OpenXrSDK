@@ -1,7 +1,6 @@
 ﻿using Silk.NET.Windowing;
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace OpenXr.Framework
 {
     public class ViewManager
@@ -21,7 +20,6 @@ namespace OpenXr.Framework
             _view.Initialize();
             _view.DoEvents();
         }
-
 
         [MemberNotNull(nameof(_view))]
         protected void CreateWindow()

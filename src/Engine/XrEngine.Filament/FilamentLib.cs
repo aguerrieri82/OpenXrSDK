@@ -15,14 +15,12 @@ namespace XrEngine.Filament
             TRIANGLE_STRIP = 5     //!< triangle strip
         };
 
-
         public enum ReleaseContextMode
         {
             NotRelease = 0,
             ReleaseOnExecute = 1,
             ReleaseAndSuspend = 2
         };
-
 
         public enum FlLightType : byte
         {
@@ -167,7 +165,6 @@ namespace XrEngine.Filament
             UINT_2_10_10_10_REV,  //!< unsigned normalized 10 bits RGB, 2 bits alpha
         }
 
-
         public enum VertexAttributeType
         {
             Position,
@@ -229,7 +226,6 @@ namespace XrEngine.Filament
             public FlQualityLevel HdrColorBuffer;
         }
 
-
         public struct VulkanSharedContext
         {
             public nint Instance;
@@ -283,7 +279,6 @@ namespace XrEngine.Filament
             public int RenderTargetId;
 
         }
-
 
         public struct RenderTargetOptions
         {
@@ -459,7 +454,6 @@ namespace XrEngine.Filament
             public bool ShowSkybox;
         };
 
-
         public struct GraphicContextInfo
         {
             public struct WinGlContext
@@ -486,7 +480,6 @@ namespace XrEngine.Filament
         {
             public nint Handle;
         }
-
 
         [DllImport("filament-native")]
         public static extern FilamentApp Initialize(ref InitializeOptions options);
@@ -554,10 +547,8 @@ namespace XrEngine.Filament
         [DllImport("filament-native")]
         public static extern void SetMeshMaterial(FilamentApp app, Guid id, Guid matId);
 
-
         [DllImport("filament-native")]
         public static extern void UpdateMeshGeometry(FilamentApp app, Guid meshId, Guid geometryId, ref GeometryInfo info);
-
 
         [DllImport("filament-native")]
         public static extern nint Allocate(uint size);

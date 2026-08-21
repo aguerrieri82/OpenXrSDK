@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 
-
 namespace XrEngine
 {
     public struct JsonStateContainer : IStateContainer

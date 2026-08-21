@@ -17,6 +17,8 @@ namespace XrEngine.OpenXr
             _options.ResolutionScale = 1;
             _options.SampleCount = 1;
             _options.RenderMode = XrRenderMode.SingleEye;
+            _options.ProjDepthScale = 1f;
+
             _platform = XrPlatform.Current;
         }
 
@@ -27,13 +29,11 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-
         public XrEngineAppBuilder ConfigureApp(Action<XrEngineApp> configure)
         {
             _configurations.Add(configure);
             return this;
         }
-
 
         public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile : IXrBasicInteractionProfile, new()
         {
@@ -91,7 +91,7 @@ namespace XrEngine.OpenXr
             if (actionBuilder != null)
                 engine.XrApp.AddActions(actionBuilder);
 
-            engine.XrApp.BindEngineApp(engine.App); //TODO previous was in XrEngineApp.Create, but leads some error
+            engine.XrApp.BindEngineApp(engine.App, engine.Options);
 
             return engine;
         }

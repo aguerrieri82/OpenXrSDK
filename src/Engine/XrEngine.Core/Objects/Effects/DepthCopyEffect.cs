@@ -16,7 +16,6 @@
             };
         }
 
-
         public DepthCopyEffect()
             : base()
         {

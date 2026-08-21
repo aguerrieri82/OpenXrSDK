@@ -6,7 +6,6 @@
 
         public BaseView? Content { get; set; }
 
-
         public IList<ActionView>? Actions { get; set; }
     }
 }

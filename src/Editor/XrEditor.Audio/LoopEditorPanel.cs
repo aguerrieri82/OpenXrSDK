@@ -11,6 +11,7 @@ using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Devices;
 using XrEngine.Devices.Windows;
+using XrEngine.Media;
 
 namespace XrEditor.Audio
 {
@@ -26,7 +27,6 @@ namespace XrEditor.Audio
 
             public Vector2[]? Frequencies { get; set; }
         }
-
 
         public class Settings : BaseView, IItemView
         {
@@ -105,7 +105,6 @@ namespace XrEditor.Audio
                 set => SetProperty(ref _pitchFactor, value);
             }
 
-
             public bool ShowMain
             {
                 get => _showMain;
@@ -135,8 +134,6 @@ namespace XrEditor.Audio
             IconView? IItemView.Icon => null;
         }
 
-
-
         protected Settings _settings;
         protected DiscretePlotterSerie _mainAudio;
         protected DiscretePlotterSerie _loopAudio;
@@ -152,7 +149,6 @@ namespace XrEditor.Audio
         protected AudioClip? _loopClip;
         protected AudioClip? _pitchClip;
         protected float[]? _loopClipData;
-
 
         public LoopEditorPanel()
         {
@@ -245,10 +241,9 @@ namespace XrEditor.Audio
             _statusText = ToolBar.AddText("");
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_insights", () => Task.Run(GenerateLoops));
-            // LoadWaveAsset("CarSound.wav");
         }
 
-        public void GenerateLoops()
+        public async void GenerateLoops()
         {
             _settings.Offset = 0;
             var slices = new List<AudioSlice>();
@@ -280,9 +275,10 @@ namespace XrEditor.Audio
 
             var json = JsonConvert.SerializeObject(slices);
 
-            _mainDispatcher.Execute(() => Context.Require<IClipboard>().Copy(json, "text/json"));
-        }
+            await UiThread;
 
+            Context.Require<IClipboard>().Copy(json, "text/json");
+        }
 
         public Task PlayAsync()
         {
@@ -327,7 +323,6 @@ namespace XrEditor.Audio
                         buffers[i] = buffer;
                     }
 
-
                     lastVersion = _version;
                 }
 
@@ -362,7 +357,15 @@ namespace XrEditor.Audio
             Load(data);
         }
 
-        public void Load(AudioData data)
+        public void LoadAsset(string path)
+        {
+            var asset = Context.Require<IAssetStore>();
+            var soundPath = asset.GetPath(path);
+            var bytes = Context.Require<IAudioDecoder>().DecodeToPCM(soundPath, out var format);
+            Load(new AlAudioData(format.ToAlAudioFormat(), bytes));
+        }
+
+        public void Load(AlAudioData data)
         {
             _clip = new AudioClip(data.Buffer, AudioFormatConverter.ToAudioFormat(data.Format));
 
@@ -587,7 +590,6 @@ namespace XrEditor.Audio
             ComputeCorrelation();
         }
 
-
         protected unsafe void UpdateDftPlot()
         {
             if (_loopClip == null)
@@ -623,6 +625,8 @@ namespace XrEditor.Audio
 
         public override void OnActivate()
         {
+            //LoadAsset("1141558.audio-Air_Burst_Single_Long_02.mp3");
+
             var toolProps = Context.Require<PanelManager>().Panels
                  .OfType<PropertiesEditor>()
                  .FirstOrDefault(a => a.Mode == PropertiesEditorMode.Custom);

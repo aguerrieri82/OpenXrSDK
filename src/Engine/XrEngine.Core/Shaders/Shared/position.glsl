@@ -11,42 +11,91 @@
 
     layout(std140, binding=10) uniform SceneMatrices
     {
-        uniform mat4 viewProj[NUM_VIEWS];
-        uniform vec3 position[NUM_VIEWS];
+        mat4 viewProj[NUM_VIEWS];
+        vec3 position[NUM_VIEWS];
+        mat4 viewProjInv[NUM_VIEWS];
         float farPlane;
     } uMatrices;
 
     vec3 getViewPos() 
     {
-       return uMatrices.position[gl_ViewID_OVR];   
+        return uMatrices.position[gl_ViewID_OVR];   
     }
 
     mat4 getViewProj() 
     {
-       return uMatrices.viewProj[gl_ViewID_OVR];   
+        return uMatrices.viewProj[gl_ViewID_OVR];   
+    }
+
+    mat4 getViewProjInv()
+    {
+        return uMatrices.viewProjInv[gl_ViewID_OVR];
     }
 
     float getFarPlane() 
     {
-       return uMatrices.farPlane;
+        return uMatrices.farPlane;
     }
+
+    #define ACTIVE_EYE gl_ViewID_OVR
 
 #else
 
-    vec3 getViewPos() 
-    {
-       return uCamera.pos;   
-    }
+    #ifdef CAMERA_UNIFORMS
 
-    mat4 getViewProj() 
-    {
-       return uCamera.viewProj;   
-    }
+        uniform vec3 uCameraPos;
+        uniform mat4 uViewProj;
+        uniform float uFarPlane;
+        uniform mat4 uViewProjInv;
 
-    float getFarPlane() 
-    {
-       return uCamera.farPlane;   
-    }
+        vec3 getViewPos() 
+        {
+            return uCameraPos;   
+        }
+
+        mat4 getViewProj() 
+        {
+            return uViewProj;   
+        }
+
+        float getFarPlane() 
+        {
+            return uFarPlane;   
+        }
+
+        mat4 getViewProjInv()
+        {
+            return uViewProjInv;
+        }
+
+
+       #define ACTIVE_EYE uActiveEye
+
+    #else
+
+        vec3 getViewPos() 
+        {
+            return uCamera.pos;   
+        }
+
+        mat4 getViewProj() 
+        {
+            return uCamera.viewProj;   
+        }
+
+        float getFarPlane() 
+        {
+            return uCamera.farPlane;   
+        }
+
+        mat4 getViewProjInv()
+        {
+            return uCamera.viewProjInv;
+        }
+
+        #define ACTIVE_EYE uCamera.activeEye
+
+    #endif
 
 #endif
 

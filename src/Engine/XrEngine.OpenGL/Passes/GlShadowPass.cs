@@ -3,9 +3,6 @@ using System.Numerics;
 using XrMath;
 using System.Diagnostics;
 
-
-
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -21,40 +18,51 @@ namespace XrEngine.OpenGL
         private readonly Texture2D _depthTexture;
         private readonly Texture2D? _vcmMomentsTex;
         private readonly Texture2D? _vcmTempTex;
-        private string _allLightsHash = "";
+        private ulong _allLightsHash;
         private DirectionalLight? _light;
-        private Camera? _oldCamera;
+
         private long _recLayerVersion = -1;
         private long _castLayerVersion = -1;
         private long _updateFrame;
         private long _lightVersion;
         private ShadowMapMode _mode;
+        private readonly bool _useShadowSampler;
+        private float _lastUpdateTime;
 
         private readonly OrtoCamera _lightCamera;
 
         public GlShadowPass(OpenGLRender renderer)
             : base(renderer)
         {
-
-            UseShadowSampler = false;
-
             _mode = renderer.Options.ShadowMap.Mode;
 
-            _lightCamera = new OrtoCamera();
-            _lightCamera.Name = "Shadow";
+            _flags = GlRenderPassFlags.CustomCamera;
+
+            _useShadowSampler = renderer.Options.ShadowMap.UseShadowSampler && _mode != ShadowMapMode.VSM;
+
+            _lightCamera = new OrtoCamera
+            {
+                Name = "Shadow"
+            };
+
+            var scaleDepth = _useShadowSampler && _mode != ShadowMapMode.VSM ? ScaleFilter.Linear : ScaleFilter.Nearest;
 
             _depthTexture = new Texture2D
             {
                 BorderColor = Color.White,
-                WrapT = WrapMode.ClampToBorder,
-                WrapS = WrapMode.ClampToBorder,
+                Sampler = new TextureSampler
+                {
+                    MinFilter = scaleDepth,
+                    MagFilter = scaleDepth,
+                    WrapT = WrapMode.ClampToBorder,
+                    WrapS = WrapMode.ClampToBorder,
+                    UseTexCompare = _useShadowSampler,
+                },
                 Width = _renderer.Options.ShadowMap.Size,
                 Height = _renderer.Options.ShadowMap.Size,
-                Format = TextureFormat.Depth24Float,
-                MinFilter = ScaleFilter.Nearest,
-                MagFilter = ScaleFilter.Nearest,
+                Format = TextureFormat.Depth24,
                 MipLevelCount = 1,
-                Name = "Depth"
+                Name = "Shadow Depth"
             };
 
             if (_mode == ShadowMapMode.VSM)
@@ -66,14 +74,13 @@ namespace XrEngine.OpenGL
                     WrapS = WrapMode.ClampToBorder,
                     Width = _renderer.Options.ShadowMap.Size,
                     Height = _renderer.Options.ShadowMap.Size,
-                    Format = TextureFormat.RgbaFloat32,
+                    Format = TextureFormat.RgbaFloat16,
                     MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
                     MaxAnisotropy = 16.0f,
-                    MipLevelCount = 6,
-                    Name = "Moments"
+                    MipLevelCount = 1,
+                    Name = "Shadow Moments"
                 };
-
 
                 _vcmTempTex = new Texture2D
                 {
@@ -82,11 +89,12 @@ namespace XrEngine.OpenGL
                     WrapS = WrapMode.ClampToBorder,
                     Width = _renderer.Options.ShadowMap.Size,
                     Height = _renderer.Options.ShadowMap.Size,
-                    Format = TextureFormat.RgbaFloat32,
-                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    Format = TextureFormat.RgbaFloat16,
+                    MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
                     MaxAnisotropy = 16.0f,
-                    MipLevelCount = 1
+                    MipLevelCount = 1,
+                    Name = "Shadow Moments (Temp)"
                 };
             }
         }
@@ -104,13 +112,8 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
             _frameBuffer.Configure(glColorTex, glDeptTex, 1);
 
-            if (UseShadowSampler)
-            {
-                glDeptTex.Bind();
-                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
-                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
-                glDeptTex.Unbind();
-            }
+            glDeptTex.Bind();
+            glDeptTex.Unbind();
 
             base.Initialize();
         }
@@ -127,13 +130,13 @@ namespace XrEngine.OpenGL
             return _renderer.Layers.Where(a => a.Type == GlLayerType.CastShadow);
         }
 
-        protected bool UpdateLight()
+        protected bool UpdateLight(GlUpdateContext ctx)
         {
-            if (_allLightsHash != _renderer.UpdateContext.LightsHash)
+            if (_allLightsHash != ctx.LightsHash)
             {
-                _allLightsHash = _renderer.UpdateContext.LightsHash!;
+                _allLightsHash = ctx.LightsHash!;
 
-                _light = _renderer.UpdateContext.Lights?
+                _light = ctx.Lights?
                     .OfType<DirectionalLight>()
                     .FirstOrDefault(a => a.CastShadows);
 
@@ -143,48 +146,64 @@ namespace XrEngine.OpenGL
             return IsEnabled;
         }
 
-        public override void Render(RenderContext ctx)
+        public override void Render(GlUpdateContext ctx)
         {
-            UpdateLight();
+            UpdateLight(ctx);
 
             base.Render(ctx);
         }
 
-        protected void UpdateCamera(CastShadowsLayer castLayer, ReceiveShadowsLayer recvLayer)
+        protected bool UpdateCamera(CastShadowsLayer castLayer, ReceiveShadowsLayer recvLayer)
         {
             Debug.Assert(_light != null);
 
             _lightCamera.CreateViewFromDirection(_light.Direction, Vector3.UnitY);
 
-            Bounds3 sourceBounds;
-            Bounds3 finalBounds;
-
-            var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints();
-            var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
-
-            var receiveBounds = recvLayer.WorldBounds;
-            var receiveBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View);
-
-            var castBounds = castLayer.WorldBounds;
-            var castBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View);
-
             var options = _renderer.Options.ShadowMap;
 
-            if (options.IsCasterMode)
-                sourceBounds = castBoundsLight;
-            else
-                sourceBounds = receiveBoundsLight;
+            var camera = _renderer.UpdateContext.PassCamera!;
 
-            sourceBounds.Min -= options.Expand;
-            sourceBounds.Max += options.Expand;
+            var castBoundsLight = castLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
 
-            if (options.UseFrustumIntersect)
+            Bounds3 receiverBoundsLight;
+
+            if (options.UseVirtualReceiver)
             {
-                if (!frustumLightBounds.Intersects(sourceBounds, out finalBounds))
-                    return;
+                var frustumPoints = camera.FrustumPoints(options.FrustumMaxDistance);
+                receiverBoundsLight = frustumPoints.ComputeBounds(_lightCamera.View);
             }
             else
-                finalBounds = sourceBounds;
+            {
+                var receiveBoundsLight = recvLayer.WorldBounds.Points.ComputeBounds(_lightCamera.View);
+
+                if (options.UseFrustumIntersect)
+                {
+                    var frustumPoints = camera.FrustumPoints(options.FrustumMaxDistance);
+                    var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
+
+                    if (!frustumLightBounds.Intersects(receiveBoundsLight, out receiverBoundsLight))
+                        return false;
+                }
+                else
+                {
+                    receiverBoundsLight = receiveBoundsLight;
+                }
+            }
+
+            receiverBoundsLight.Min -= options.Expand;
+            receiverBoundsLight.Max += options.Expand;
+
+            var finalBounds = receiverBoundsLight;
+
+            // XY: fit shadow map to visible receivers.
+            finalBounds.Min.X = receiverBoundsLight.Min.X;
+            finalBounds.Max.X = receiverBoundsLight.Max.X;
+            finalBounds.Min.Y = receiverBoundsLight.Min.Y;
+            finalBounds.Max.Y = receiverBoundsLight.Max.Y;
+
+            // Z: include casters so off-screen casters can still project shadows.
+            finalBounds.Min.Z = Math.Min(castBoundsLight.Min.Z, receiverBoundsLight.Min.Z);
+            finalBounds.Max.Z = Math.Max(castBoundsLight.Max.Z, receiverBoundsLight.Max.Z);
 
             var zNear = Math.Max(0.05f, -finalBounds.Max.Z);
             var zFar = Math.Max(zNear + 0.01f, -finalBounds.Min.Z);
@@ -192,10 +211,16 @@ namespace XrEngine.OpenGL
             _lightCamera.Near = Math.Max(0.05f, zNear - 1.0f);
             _lightCamera.Far = zFar + 1.0f;
 
-            _lightCamera.SetViewArea(finalBounds.Min.X, finalBounds.Max.X, finalBounds.Min.Y, finalBounds.Max.Y);
+            _lightCamera.SetViewArea(
+                finalBounds.Min.X,
+                finalBounds.Max.X,
+                finalBounds.Min.Y,
+                finalBounds.Max.Y);
+
+            return true;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
             var curMode = _renderer.Options.ShadowMap.Mode;
             if (curMode != _mode)
@@ -204,7 +229,6 @@ namespace XrEngine.OpenGL
                 Initialize();
             }
 
-            //Debug.Assert(camera.Scene != null);
             var shadowRenderLayer = SelectLayers().First();
             var scene = shadowRenderLayer.Scene!;
             var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
@@ -214,23 +238,34 @@ namespace XrEngine.OpenGL
             if (_light == null)
                 return false;
 
-            if (recLayer.Content.Count == 0)
+            if (recLayer.Content.Count == 0 && !_renderer.Options.ShadowMap.UseVirtualReceiver)
                 return false;
 
+            var updateInterval = _renderer.Options.ShadowMap.UpdateInterval;
+
+            if (updateInterval > 0 && (ctx.Time - _lastUpdateTime) < updateInterval)
+                return false;
+
+            var curLightVers = _light.ContentVersion + _light.Version;
+
             if (!_renderer.Options.ShadowMap.UseFrustumIntersect &&
+                !_renderer.Options.ShadowMap.UseVirtualReceiver &&
                 recLayer.ContentVersion == _recLayerVersion &&
                 castLayer.ContentVersion == _castLayerVersion &&
-                _light.ContentVersion == _lightVersion)
+                curLightVers == _lightVersion)
                 return false;
 
             if (_updateFrame == frame)
+                return false;
+
+            if (!UpdateCamera(castLayer, recLayer))
                 return false;
 
             //Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name);
 
             _updateFrame = frame;
 
-            _frameBuffer!.Bind();
+            _frameBuffer!.BindDraw();
 
             _renderer.State.SetWriteDepth(true);
 
@@ -246,33 +281,30 @@ namespace XrEngine.OpenGL
             _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
             _renderer.State.SetCullFace(TriangleFace.Back);
             _renderer.State.EnableFeature(EnableCap.CullFace, true);
+            _renderer.State.Commit();
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            UpdateCamera(castLayer, recLayer);
-
-            _oldCamera = _renderer.UpdateContext.PassCamera;
-            _renderer.UpdateContext.PassCamera = _lightCamera;
-            _renderer.UpdateContext.ContextVersion++;
+            ctx.PassCamera = _lightCamera;
+            ctx.ContextVersion++;
 
             _recLayerVersion = recLayer.ContentVersion;
             _castLayerVersion = castLayer.ContentVersion;
-            _lightVersion = _light.ContentVersion;
+            _lightVersion = curLightVers;
 
-            return base.BeginRender(camera);
+            _lastUpdateTime = ctx.Time;
+
+            return base.BeginRender(ctx);
         }
 
-
-
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            _renderer.UpdateContext.PassCamera = _oldCamera;
             _renderer.State.SetCullFace(TriangleFace.Back);
-
 
             if (_mode == ShadowMapMode.VSM)
             {
                 _frameBuffer!.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
+
                 var radius = _renderer.Options.ShadowMap.BlurRadius;
 
                 if (radius > 0)
@@ -283,15 +315,15 @@ namespace XrEngine.OpenGL
                     filter.BlurY(_vcmTempTex!, _vcmMomentsTex!, radius, "Shadow_Blur_Y", 2);
                 }
 
+                /*
                 var glTex = _vcmMomentsTex!.ToGlTexture();
                 glTex.GenerateMipmap();
-
+                */
             }
-
 
             _frameBuffer!.Unbind();
 
-            base.EndRender();
+            base.EndRender(ctx);
         }
 
         public DirectionalLight? Light => _light;
@@ -299,8 +331,6 @@ namespace XrEngine.OpenGL
         public Texture2D? DepthTexture => _light == null ? null : (_mode == ShadowMapMode.VSM ? _vcmMomentsTex : _depthTexture);
 
         public Camera LightCamera => _lightCamera;
-
-        public bool UseShadowSampler { get; set; }
 
         ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap;
 

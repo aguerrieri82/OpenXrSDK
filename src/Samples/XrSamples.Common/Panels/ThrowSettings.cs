@@ -126,8 +126,6 @@ namespace XrSamples
                 Context.Implement<IProgressLogger>(service);
                 Context.Implement<ILogger>(service);
             }
-
-
         }
 
     }

@@ -6,8 +6,6 @@ using XrEngine.OpenGL;
 using XrMath;
 using System.Diagnostics;
 
-
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
@@ -30,17 +28,16 @@ namespace XrSamples
 
         public PanoramaMaker()
         {
-            _cubeTexture = new TextureCube();
-            _cubeTexture.LoadData(new TextureData
+            _cubeTexture = new TextureCube()
             {
                 Width = 1024,
                 Height = 1024,
                 Format = TextureFormat.RgbaFloat16
-            });
+            };
 
             _cameraTexture = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -108,7 +105,7 @@ namespace XrSamples
                 0, _cameraParams.Fy, 0,
                 _cameraParams.Cx, _cameraParams.Cy, 1));
 
-            var format = GlUtils.GetInternalFormat(_cubeTexture.Format, TextureCompressionFormat.Uncompressed);
+            var format = _cubeTexture.Format.ToInternalFormat();
 
             gl.BindImageTexture(0, (uint)_cubeTexture.Handle, 0, true, 0, BufferAccessARB.ReadOnly, (GLEnum)format);
             gl.BindImageTexture(1, (uint)_cubeTexture.Handle, 0, true, 0, BufferAccessARB.WriteOnly, (GLEnum)format);
@@ -126,7 +123,7 @@ namespace XrSamples
 
             _camera.UpdateTexture();
 
-            _lastCameraPose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+            _lastCameraPose = XrApp.Current.LocateSpace(XrApp.Current.Head,
                 XrApp.Current.ReferenceSpace, _camera.LastTimestamp).Pose;
 
             if (_rootPose == null)
@@ -141,7 +138,6 @@ namespace XrSamples
 
             base.Update(ctx);
         }
-
 
         public TextureCube CubeTexture => _cubeTexture;
 

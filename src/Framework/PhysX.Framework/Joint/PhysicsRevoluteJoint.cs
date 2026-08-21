@@ -23,7 +23,6 @@ namespace PhysX.Framework
             set => RevoluteJoint.SetDriveVelocityMut(value, true);
         }
 
-
         public float DriveForceLimit
         {
             get => RevoluteJoint.GetDriveForceLimit();
@@ -41,7 +40,6 @@ namespace PhysX.Framework
             get => RevoluteJoint.GetRevoluteJointFlags();
             set => RevoluteJoint.SetRevoluteJointFlagsMut(value);
         }
-
 
         public float Angle => RevoluteJoint.GetAngle();
 

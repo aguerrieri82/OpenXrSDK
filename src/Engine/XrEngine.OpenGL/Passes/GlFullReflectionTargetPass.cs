@@ -15,22 +15,26 @@ namespace XrEngine.OpenGL
         static readonly Bounds3 _clipSpace = new Bounds3() { Min = -Vector3.One, Max = Vector3.One };
 
         private readonly GlRenderPassTarget _passTarget;
-
         private PlanarReflection? _reflection;
-        private Camera? _oldCamera;
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
-
+        private GlSwapTexture? _swap;
+        private bool _wasSrgb;
 
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
-            PbrV2Material.ForceIblTransform = true;
+            PbrMaterial.ForceIblTransform = true;
+
+            _flags = GlRenderPassFlags.CustomCamera;
+
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 IsMultiView = PlanarReflection.IsMultiView,
-                UseMultiViewTarget = useMultiviewTarget
+                UseMultiViewTarget = useMultiviewTarget,
+                Name = "Full Reflection"
             };
+
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -55,8 +59,9 @@ namespace XrEngine.OpenGL
             return draw.Object!.IsVisible;
         }
 
-        protected override bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        protected override bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst, bool forceSync = false)
         {
+
             if (!_reflection!.UseClipPlane)
                 return base.UpdateProgram(updateContext, progInst);
 
@@ -67,7 +72,7 @@ namespace XrEngine.OpenGL
                 progInst.Invalidate();
             }
 
-            var upRes = base.UpdateProgram(updateContext, progInst);
+            var upRes = base.UpdateProgram(updateContext, progInst, forceSync);
 
             var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
 
@@ -77,22 +82,35 @@ namespace XrEngine.OpenGL
             return upRes;
         }
 
-
         protected override void ConfigureCaps(ShaderMaterial material)
         {
             base.ConfigureCaps(material);
             _renderer.State.EnableFeature(EnableCap.ClipDistance0, true);
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            if (camera.Scene == null || _reflection == null)
+            var mainCamera = ctx.MainCamera!;
+
+            if (ctx.Scene == null || _reflection == null || mainCamera.ViewSize.Width == 0 | mainCamera.ViewSize.Height == 0)
                 return false;
 
             if (!_reflection.Host!.IsVisible)
                 return false;
 
-            _reflection.Update(camera, _passTarget.BoundEye);
+            _reflection.Update(mainCamera, _passTarget.BoundEye);
+
+            if (_swap != null && _swap.Main?.Handle == 0)
+            {
+                _swap.Dispose();
+                _swap = null;
+            }
+
+            Debug.Assert(_reflection.Texture != null);
+
+            _swap ??= new GlSwapTexture();
+
+            _swap.Configure(_reflection.Texture.ToGlTexture());
 
             var clipSize = _reflection.ClipBounds.Size.ToVector2() *
                            _reflection.ReflectionCamera.ViewSize.ToVector2() / 2;
@@ -103,31 +121,40 @@ namespace XrEngine.OpenGL
             if (!_reflection.ClipBounds.Intersects(_clipSpace))
                 return false;
 
-            _oldCamera = camera;
+            ctx.PassCamera = _reflection.ReflectionCamera;
+            ctx.ContextVersion++;
 
-            _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
-            _renderer.UpdateContext.ContextVersion++;
+            _passTarget.Configure(_swap.Active!);
 
-            _passTarget.Configure(_reflection.Texture!);
-            _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
+            _passTarget.RenderTarget!.ShadingRate = _reflection.ShadingRate;
+
+            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetClearColor(_reflection.ReflectionCamera.BackgroundColor);
+            _renderer.State.Commit();
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            ProcessImageLight();
+            ProcessImageLight(ctx);
+
+            _wasSrgb = ctx.IsSrgbTarget;
+
+            ctx.IsSrgbTarget = _reflection.UseSrgb;
+
+            if (_wasSrgb != ctx.IsSrgbTarget)
+                PbrMaterial.SHADER.Invalidate();
 
             return true;
         }
 
-        protected void ProcessImageLight()
+        protected void ProcessImageLight(GlUpdateContext ctx)
         {
             if (_reflection!.AdjustIbl)
             {
-                _imageLight = _renderer.UpdateContext.Lights?.OfType<ImageLight>().FirstOrDefault();
+                _imageLight = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
 
                 if (_imageLight != null)
                 {
@@ -144,22 +171,36 @@ namespace XrEngine.OpenGL
                     );
 
                     _imageLight.LightTransform = refMatrix;
+                    _imageLight.Invalidate();
                 }
             }
             else
                 _imageLight = null;
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            _passTarget.RenderTarget!.End(true);
+            Debug.Assert(_swap?.Active != null);
 
-            _renderer.UpdateContext.PassCamera = _oldCamera;
+            _passTarget.RenderTarget!.End(discardDepth: true);
 
             if (_imageLight != null)
             {
                 _imageLight.LightTransform = _oldImageLightTransform;
-                //_imageLight.NotifyChanged(ObjectChangeType.Render);
+                _imageLight.Invalidate();
+            }
+
+            _swap.Active.GenerateMipmap();
+
+            if (_reflection!.BlurLevel > 0)
+                _swap.Blur(2, _reflection!.BlurLevel);
+
+            _reflection.Texture = (Texture2D)_swap.Active.ToEngineTexture();
+
+            if (_wasSrgb != ctx.IsSrgbTarget)
+            {
+                ctx.IsSrgbTarget = _wasSrgb;
+                PbrMaterial.SHADER.Invalidate();
             }
         }
 
@@ -171,6 +212,7 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             _passTarget.Dispose();
+            _swap?.Dispose();
             base.Dispose();
         }
 
@@ -178,6 +220,7 @@ namespace XrEngine.OpenGL
         {
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
+
         }
     }
 }

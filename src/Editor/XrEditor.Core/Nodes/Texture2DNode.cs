@@ -1,5 +1,4 @@
 ﻿using UI.Binding;
-using XrEditor.Abstraction;
 using XrEditor.Services;
 using XrEngine;
 
@@ -57,6 +56,13 @@ namespace XrEditor.Nodes
         }
 
         public override string DisplayName => _value.Name ?? base.DisplayName;
+
+        public override IconView? Icon => new()
+        {
+            Color = "#aaaaaa",
+            Name = "icon_texture",
+            Filled = false
+        };
 
     }
 }

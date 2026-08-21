@@ -16,7 +16,6 @@ namespace XrEditor
             _basePath = basePath;
         }
 
-
         public void Load(string basePath)
         {
             _basePath = basePath;
@@ -26,9 +25,7 @@ namespace XrEditor
         {
         }
 
-
         public string? BasePath => _basePath;
-
 
         public static XrEngineProject? Current { get; private set; }
     }

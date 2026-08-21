@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace XrEngine
 {
@@ -12,6 +13,8 @@ namespace XrEngine
 
             public bool IsParallel;
 
+            public Type? Type;
+
             public IList<IRenderUpdate> Items = [];
         }
 
@@ -24,6 +27,7 @@ namespace XrEngine
 
         protected readonly Scene3D _scene;
         protected long _lastVersion = -1;
+        protected bool _isUpdating;
         protected readonly List<UpdateGroup> _groups = [];
         protected readonly ConcurrentDictionary<Object3D, NotificationStatus> _notStatus = [];
 
@@ -71,8 +75,15 @@ namespace XrEngine
                 Priority = 1
             };
 
+            var leafSerialGroup = new UpdateGroup()
+            {
+                Name = "Leafs Serial",
+                IsParallel = false,
+                Priority = 1
+            };
+
             _groups.Clear();
-            _groups.AddRange(objGroup, leafGroup);
+            _groups.AddRange(objGroup, leafGroup, leafSerialGroup);
 
             void Visit(object obj)
             {
@@ -81,13 +92,19 @@ namespace XrEngine
                     foreach (var comp in engObj.Components<IComponent>().OfType<IRenderUpdate>())
                     {
                         var priority = comp.UpdatePriority + 100;
-                        var compGroup = _groups.FirstOrDefault(a => a.Priority == priority);
+                        var type = comp.GetType();
+
+                        var compGroup = _groups.FirstOrDefault(a => a.Type == type);
+
                         if (compGroup == null)
                         {
+                            var mode = type.GetCustomAttribute<UpdateModeAttribute>(true);
+
                             compGroup = new UpdateGroup()
                             {
+                                Type = type,
                                 Priority = priority,
-                                IsParallel = true,
+                                IsParallel = mode == null || mode.IsParallel,
                                 Name = "Components " + comp.UpdatePriority
                             };
 
@@ -104,7 +121,14 @@ namespace XrEngine
                             Visit(child);
                     }
                     else if (obj is Object3D obj3d)
-                        leafGroup.Items.Add(obj3d);
+                    {
+                        var mode = obj3d.GetType().GetCustomAttribute<UpdateModeAttribute>(true);
+                        if (mode != null && !mode.IsParallel)
+                            leafSerialGroup.Items.Add(obj3d);
+                        else
+                            leafGroup.Items.Add(obj3d);
+                    }
+
                 }
             }
 
@@ -118,6 +142,7 @@ namespace XrEngine
         public void Update(RenderContext ctx)
         {
             ctx.UpdateOnlySelf = true;
+            _isUpdating = true;
 
             try
             {
@@ -139,15 +164,18 @@ namespace XrEngine
                             item.Update(ctx);
                     }
                 }
-                ;
             }
             finally
             {
                 ctx.UpdateOnlySelf = false;
+                _isUpdating = false;
+
             }
         }
 
         public bool IsParallel { get; set; }
+
+        public bool IsUpdating => _isUpdating;
     }
 
 }

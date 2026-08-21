@@ -44,10 +44,8 @@ namespace XrEditor
             set { SetValue(SKSourceProperty, value); }
         }
 
-
         public static readonly DependencyProperty SKSourceProperty =
             DependencyProperty.Register("SKSource", typeof(SKBitmap), typeof(SKBitmapView), new PropertyMetadata(null, OnSKSourceChanged));
-
 
     }
 }

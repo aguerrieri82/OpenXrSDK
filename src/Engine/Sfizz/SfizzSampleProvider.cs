@@ -1,6 +1,5 @@
 ﻿using NAudio.Wave;
 
-
 namespace Sfizz
 {
     public class SfizzSampleProvider : ISampleProvider
@@ -11,7 +10,6 @@ namespace Sfizz
         private readonly SfizzLib.Buffer _buffer;
         private readonly int _bufSize;
 
-
         public SfizzSampleProvider(SfizzLib.Synth synth, SfizzLib.Buffer buffer, int bufSize, int sampleRate, int channels = 2)
         {
             _synth = synth;
@@ -20,7 +18,6 @@ namespace Sfizz
             _lastOffset = -1;
             _format = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
         }
-
 
         public unsafe int Read(float[] buffer, int offset, int count)
         {
@@ -40,7 +37,6 @@ namespace Sfizz
                 return max;
             }
         }
-
 
         public WaveFormat WaveFormat => _format;
     }

@@ -4,12 +4,15 @@
     {
         public readonly bool CanHandle(Type type)
         {
-            return typeof(T) == type;
+            return typeof(T).IsAssignableFrom(type);
         }
 
-        public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
-            return new TEditor();
+            var result = new TEditor();
+            result.SetAttributes(attributes);
+            result.Host = host;
+            return result;
         }
     }
 }

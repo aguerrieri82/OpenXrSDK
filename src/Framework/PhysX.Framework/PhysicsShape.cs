@@ -148,13 +148,11 @@ namespace PhysX.Framework
             set => _handle->SetRestOffsetMut(value);
         }
 
-
         public float ContactOffset
         {
             get => _handle->GetContactOffset();
             set => _handle->SetContactOffsetMut(value);
         }
-
 
         public float TorsionalPatchRadius
         {
@@ -195,7 +193,6 @@ namespace PhysX.Framework
                 _handle->SetGeometryMut(value);
             }
         }
-
 
         public uint NotCollideGroup
         {

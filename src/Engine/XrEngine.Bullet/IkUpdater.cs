@@ -4,8 +4,7 @@ namespace XrEngine.Bullet
 {
     public class IkUpdater : Behavior<Object3D>
     {
-        readonly Dictionary<IkNode, Object3D> _targets = [];
-
+        readonly Dictionary<IkNode, IWorldLocatable> _targets = [];
 
         public IkUpdater()
         {
@@ -30,18 +29,17 @@ namespace XrEngine.Bullet
 
         }
 
-        public void SetTarget(string name, Object3D obj)
+        public void SetTarget(string name, IWorldLocatable obj)
         {
             var effector = Solver?.Effectors.First(a => a.Name == name);
             if (effector != null)
                 SetTarget(effector, obj);
         }
 
-        public void SetTarget(IkNode effector, Object3D obj)
+        public void SetTarget(IkNode effector, IWorldLocatable obj)
         {
             _targets[effector] = obj;
         }
-
 
         [Action]
         public void Reset()

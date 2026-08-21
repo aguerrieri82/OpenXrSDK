@@ -6,7 +6,6 @@ namespace Common.Interop
     {
         private readonly IMemoryBuffer<T> _buffer;
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MemoryLock(IMemoryBuffer<T> buffer)
         {
@@ -49,5 +48,7 @@ namespace Common.Interop
         uint Size { get; }
 
         Span<T> AsSpan();
+
+        T[] AsArray();
     }
 }

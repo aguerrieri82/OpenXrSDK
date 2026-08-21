@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
+	  <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+    <ProjectReference Include="..\XrEngine.Filament\XrEngine.Filament.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenGL.Wpf\XrEngine.OpenGL.Wpf.csproj" />
+  </ItemGroup>
+
+</Project>

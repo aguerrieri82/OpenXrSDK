@@ -13,48 +13,53 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
-            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+            var head = XrApp.Current.SpacesTracker.GetLastLocation(XrApp.Current.Head);
 
-            if (local != null)
+            if (head != null && head.IsValid)
             {
                 if (Height == 0)
-                    local.Pose.Position.Y = 0;
+                    head.Pose.Position.Y = 0;
 
-                //_host!.Transform.Position = local.Pose.Position;
-                //_host.Transform.Orientation = local.Pose.Orientation;
+                head.Pose.Orientation = head.Pose.Orientation.KeepYawOnly();
 
-                local.Pose.Orientation = local.Pose.Orientation.KeepYawOnly();
-
-                _host!.SetWorldPose(local.Pose, false);
-                _lastPose = local.Pose;
+                _host!.SetWorldPose(head.Pose, false);
+                _lastPose = head.Pose;
             }
         }
 
         public void Teleport(Vector3 position)
         {
-            if (XrApp.Current == null || !XrApp.Current.IsStarted)
+            var app = XrApp.Current;
+
+            if (app == null || !app.IsStarted)
                 return;
 
-            var newRef = new Pose3()
+            var targetHeadPosition = position;
+            targetHeadPosition.Y += Height;
+
+            var oldRef = app.ReferenceFrame;
+
+            var newRef = new Pose3
             {
-                Position = position,
+                Position = targetHeadPosition,
                 Orientation = Quaternion.Identity
             };
 
-            newRef.Position.Y += Height;
+            var head = app.SpacesTracker.GetLastLocation(app.Head);
 
-            XrApp.Current.ReferenceFrame = Pose3.Identity;
-
-            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
-
-            if (local != null)
+            if (head != null && head.IsValid)
             {
+                var rawHeadPose = oldRef.Inverse().Multiply(head.Pose);
+
+                var rawHeadPosition = rawHeadPose.Position;
+
                 if (Height == 0)
-                    local.Pose.Position.Y = 0;
-                newRef.Position -= local.Pose.Position;
+                    rawHeadPosition.Y = 0;
+
+                newRef.Position = targetHeadPosition - rawHeadPosition;
             }
 
-            XrApp.Current.ReferenceFrame = newRef;
+            app.ReferenceFrame = newRef;
 
             _host!.WorldPosition = position;
         }

@@ -32,7 +32,7 @@ namespace XrEngine.OpenXr
             var result = new ObjectGrab();
             result.IsValid = _host.HandInput.IsActive;
 
-            if (!_isInit || !result.IsValid)
+            if (!_isInit || !result.IsValid || !_host.ShowCapsule)
                 return result;
 
             var thumbObj = _host.Children[_thumbIndex];

@@ -13,7 +13,6 @@
         DecodeTexture = 0x1
     }
 
-
     public interface IVideoCodec : IDisposable
     {
         void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat, byte[]? extraData = null);

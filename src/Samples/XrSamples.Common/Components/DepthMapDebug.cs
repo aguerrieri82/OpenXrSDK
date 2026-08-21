@@ -12,14 +12,14 @@ namespace XrSamples
         bool _suspendRender;
         GlDepthPass? _depthPass;
         OpenGLRender? _renderer;
-        GlLayerV2? _opaque;
+        GlLayer? _opaque;
 
         protected override void Start(RenderContext ctx)
         {
             ActiveObject = "#3396";
-            _renderer = (OpenGLRender)ctx.Scene!.App!.Renderer!;
+            _renderer = (OpenGLRender)ctx.Scene!.App!.Renderer;
             _depthPass = _renderer.Pass<GlDepthPass>()!;
-            _opaque = (GlLayerV2)_renderer.Layers.First(a => a.Type == GlLayerType.Opaque);
+            _opaque = (GlLayer)_renderer.Layers.First(a => a.Type == GlLayerType.Opaque);
 
             base.Start(ctx);
         }
@@ -42,11 +42,10 @@ namespace XrSamples
             base.Update(ctx);
         }
 
-
         [Action]
         public void PrintStatus()
         {
-            _opaque = (GlLayerV2)_renderer!.Layers.First(a => a.Type == GlLayerType.Opaque);
+            _opaque = (GlLayer)_renderer!.Layers.First(a => a.Type == GlLayerType.Opaque);
 
             var draws = _opaque!.Content.Contents.Values
                 .SelectMany(a => a.Contents.Values)
@@ -83,7 +82,6 @@ namespace XrSamples
                 var clipped = draws.Where(a => a.DepthData.IsCulled).Count();
                 var hidden = draws.Where(a => !a.DepthData.IsVisible).Count();
 
-
                 var data = JsonSerializer.Serialize(draw.DepthData, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
                 Log.Info(this, "Draw Id: {0}\n{1}", draw.Id, data);
 
@@ -92,7 +90,6 @@ namespace XrSamples
                 Log.Info(this, "hidden: {0}, clipped: {1}", hidden, clipped);
             }
         }
-
 
         [Action]
         public void RequestFrame()

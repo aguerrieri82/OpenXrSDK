@@ -3,7 +3,6 @@ using System.Reflection;
 using XrEditor.Services;
 using XrEngine;
 
-
 [assembly: Module(typeof(XrEditor.Plot.Module))]
 
 namespace XrEditor.Plot

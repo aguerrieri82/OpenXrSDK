@@ -1,10 +1,11 @@
-﻿using System.Collections.Concurrent;
+﻿using Amazon.Runtime.Internal.Compression;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using XrEngine;
+using XrEngine.Compression;
 using XrMath;
-
 
 #pragma warning disable 8618
 
@@ -38,7 +39,6 @@ namespace XrSamples.Dnd
             public Half X;
             public Half Y;
             public Half Z;
-
 
             public Vector3 ToVecto3()
             {
@@ -97,7 +97,6 @@ namespace XrSamples.Dnd
             public string name { get; set; }
         }
 
-
         public class ImpDraw
         {
             public int id { get; set; }
@@ -106,7 +105,6 @@ namespace XrSamples.Dnd
             public string psId { get; set; }
             public float[] world { get; set; }
         }
-
 
         public class ImpMesh
         {
@@ -137,7 +135,6 @@ namespace XrSamples.Dnd
         }
 
         #endregion
-
 
         void AddTask(Action action)
         {
@@ -205,7 +202,7 @@ namespace XrSamples.Dnd
 
                 _psNames.Add(impMat.ps.name);
 
-                var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+                var pbr = (PbrMaterial)MaterialFactory.CreatePbr(Color.White);
                 pbr.Simplified = SimpleMaterials;
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
@@ -221,8 +218,6 @@ namespace XrSamples.Dnd
                     pbr.Roughness = impMat.cbs[0].values[16][1];
                     pbr.OcclusionStrength = impMat.cbs[0].values[18][3];
                 }
-
-
 
                 if (impMat.ps.name == "Custom Image Shader")
                 {
@@ -250,11 +245,9 @@ namespace XrSamples.Dnd
                                name.EndsWith("-nml") ||
                                name.EndsWith("_n");
 
-
                             var isSpec = name.EndsWith("smt") ||
                                           name.EndsWith("smooth") ||
                                           name.Contains("specular");
-
 
                             var isAO = name.EndsWith("ao") ||
                                        name.Contains("occlusion");
@@ -265,7 +258,6 @@ namespace XrSamples.Dnd
 
                             var isMetal = name.EndsWith("_mtl") ||
                               name.EndsWith("-m");
-
 
                             if (isDif)
                                 pbr.ColorMap = (Texture2D)tex;
@@ -317,12 +309,12 @@ namespace XrSamples.Dnd
                             }
                             else
                             {
-                                _unusedTex.Add(impTex.name);
+                                lock (_unusedTex)
+                                    _unusedTex.Add(impTex.name);
                             }
                         });
                     }
                 }
-
 
                 if (impMat.ps.name == "Dungeon Alchemist/likeCharlie/TreeLeaves")
                 {
@@ -344,7 +336,6 @@ namespace XrSamples.Dnd
                         Debug.WriteLine($"####### Alpha {alphaCut} {pbr.ColorMap?.Name}");
                     }
                 }
-
 
                 mat = pbr;
                 mat.SetProp("ps_name", impMat.ps.name);
@@ -384,7 +375,6 @@ namespace XrSamples.Dnd
 
             var mesh = new TriangleMesh();
 
-
             if (!_geos.TryGetValue(meshId, out var geo))
             {
                 var impMesh = Read<ImpMesh>($"mesh_{meshId}.json");
@@ -394,8 +384,6 @@ namespace XrSamples.Dnd
                 var buffer = ReadBuffer(impMesh.ixResId);
 
                 geo = new Geometry3D();
-
-
 
                 geo.Indices = new uint[impMesh.ixCount];
 
@@ -416,9 +404,7 @@ namespace XrSamples.Dnd
                     else
                         throw new NotSupportedException();
 
-
                 }
-
 
                 var maxIdx = geo.Indices.Max();
 
@@ -483,7 +469,6 @@ namespace XrSamples.Dnd
                         geo.Vertices[i].Normal.Z *= -1;
                     */
 
-
                     //Flip indices
                     for (var i = 0; i < geo.Indices.Length; i += 3)
                     {
@@ -492,7 +477,6 @@ namespace XrSamples.Dnd
                         geo.Indices[i + 2] = tmp;
                     }
                 }
-
 
             }
 
@@ -512,13 +496,37 @@ namespace XrSamples.Dnd
                 var fileName = Path.Combine(_basePath, $"{texId}.dds");
                 try
                 {
-                    var text = AssetLoader.Instance.Load<Texture2D>(fileName);
-                    text.WrapS = WrapMode.Repeat;
-                    text.WrapT = WrapMode.Repeat;
-                    text.Name = name;
-                    if (text.Data!.Count > 1)
-                        text.MinFilter = ScaleFilter.LinearMipmapLinear;
-                    return text;
+                    var tex = AssetLoader.Instance.Load<Texture2D>(fileName);
+
+                    lock (tex)
+                    {
+                        for (var i = 0; i < tex.Data!.Count; i++)
+                        {
+                            var comp = tex.Data[i].Compression;
+                            if (comp == TextureCompressionFormat.Bc3 ||
+                                comp == TextureCompressionFormat.Bc1 ||
+                                comp == TextureCompressionFormat.Bc7)
+                            {
+                                tex.Data[i] = ImageUtils.DecodeBC(tex.Data[i]);
+                                if (i == 0)
+                                {
+                                    tex.Compression = TextureCompressionFormat.Uncompressed;
+
+                                    if (tex.Format == TextureFormat.SRgb8)
+                                        tex.Format = TextureFormat.SRgba8;
+                                    else if (tex.Format == TextureFormat.Rgb8)
+                                        tex.Format = TextureFormat.Rgba8;
+                                }
+                            }
+                        }
+                    }
+
+                    tex.WrapS = WrapMode.Repeat;
+                    tex.WrapT = WrapMode.Repeat;
+                    tex.Name = name;
+                    if (tex.Data!.Count > 1)
+                        tex.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    return tex;
                 }
                 catch
                 {
@@ -644,7 +652,7 @@ namespace XrSamples.Dnd
 
         public float MapY { get; set; }
 
-        public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();
+        public IEnumerable<PbrMaterial> Materials => _materials.Values.OfType<PbrMaterial>();
 
         public bool FlipZ { get; set; } = true;
 

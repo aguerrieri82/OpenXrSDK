@@ -6,12 +6,15 @@ using Silk.NET.OpenGL;
 
 using Silk.NET.OpenXR;
 using Silk.NET.Windowing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OpenXr.Framework.OpenGL
 {
     public class ViewOpenGLDevice : IOpenGLDevice
     {
         readonly IView _view;
+
+        [AllowNull]
         readonly GL _gl;
         readonly nint _hdc;
         readonly nint _glctx;
@@ -30,7 +33,11 @@ namespace OpenXr.Framework.OpenGL
                 throw new NotSupportedException();
 
 #if !GLES
-            _gl = _view.CreateOpenGL();
+#if GL_WRAPPER
+                _gl = new OpenGLWrapper.GlSwitchWrapper(_view.CreateOpenGL());
+#else
+                _gl = _view.CreateOpenGL();
+#endif
 #endif
         }
 

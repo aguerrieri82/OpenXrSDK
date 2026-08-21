@@ -7,6 +7,8 @@ using Android.Views;
 using XrInteraction;
 using ContextA = global::Android.Content.Context;
 
+#pragma warning disable CA1422
+
 namespace XrEngine.Media.Android
 {
 
@@ -34,7 +36,6 @@ namespace XrEngine.Media.Android
         static DisplayMetrics GetRealMetrics()
         {
             var dm = (DisplayManager)Application.Context.GetSystemService(ContextA.DisplayService)!;
-
 
             var display = dm.GetDisplay(Display.DefaultDisplay)!;
 

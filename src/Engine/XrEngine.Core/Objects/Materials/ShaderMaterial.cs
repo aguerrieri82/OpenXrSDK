@@ -1,15 +1,24 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics.CodeAnalysis;
+using XrEngine.Components;
+using XrEngine.Objects.Materials.Shaders;
+
+namespace XrEngine
 {
-    public abstract class ShaderMaterial : Material, IShaderHandler
+
+    public class ShaderMaterial : Material, IShaderHandler
     {
-        protected Shader? _shader;
+        [AllowNull]
+        protected Shader _shader;
         protected long _lastLightVersion = -1;
 
-        public ShaderMaterial()
+        protected internal readonly ChangeTracker _tracker = new();
+
+        protected ShaderMaterial()
         {
             WriteDepth = true;
             UseDepth = true;
             WriteColor = true;
+            Morph = MorphMode.AllTargets;
         }
 
         public ShaderMaterial(Shader shader)
@@ -18,26 +27,30 @@
             _shader = shader;
         }
 
-        public Shader? Shader
+        public Shader Shader
         {
-            get => _shader;
+            get => _shader ?? throw new NullReferenceException("Shader is not assigned");
             set
             {
                 if (value == _shader)
                     return;
                 _shader = value;
-                NotifyChanged(ObjectChangeType.Render);
+                NotifyChanged(ChangeType.Render);
             }
         }
 
         public override void Reload()
         {
-            _shader?.NotifyChanged(ObjectChangeType.Material);
+            _shader?.NotifyChanged(ChangeType.Render);
+
             base.Reload();
         }
 
+ 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
+            if (HasMorph)
+                return MorphVertexShader.NeedUpdateShader(ctx);
             return false;
         }
 
@@ -52,17 +65,19 @@
                 UpdateShaderMaterial(bld);
         }
 
-
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
+            SkinVertexShader.UpdateShader(bld, true);
         }
 
         protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            bld.AddFeature("HAS_SKIN", ctx => HasSkin, Skin == SkinMode.Dynamic);
 
+            if (HasMorph)
+                MorphVertexShader.UpdateShader(bld);
         }
 
-        public long ContentVersion { get; set; }
+        public Func<string, string?>? Resolver { get; set; }
     }
 }

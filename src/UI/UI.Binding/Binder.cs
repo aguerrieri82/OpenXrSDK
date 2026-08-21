@@ -14,9 +14,12 @@ namespace UI.Binding
 
     public class Binder<T>
     {
-        public Binder(T value)
+        readonly Action<Action>? _dispatcher;
+
+        public Binder(T value, Action<Action>? dispatcher = null)
         {
             Value = value;
+            _dispatcher = dispatcher;
         }
 
         public IProperty<TVal> Prop<TVal>(Expression<Func<T, TVal>> exp)
@@ -34,7 +37,14 @@ namespace UI.Binding
             var name = body.ToString();
             name = name.Substring(name.IndexOf('.') + 1);
 
-            var result = new SimpleProperty<TVal>(() => getter(Value), v => setter(Value, v), name!);
+            var result = new SimpleProperty<TVal>(() => getter(Value), v =>
+            {
+                if (_dispatcher != null)
+                    _dispatcher(() => setter(Value, v));
+                else
+                    setter(Value, v);
+
+            }, name!);
 
             result.Changed += (s, e) =>
             {

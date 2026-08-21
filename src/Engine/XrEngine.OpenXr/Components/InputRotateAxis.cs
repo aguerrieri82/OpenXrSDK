@@ -36,7 +36,6 @@ namespace XrEngine.OpenXr
                 return;
             }
 
-
             var a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
             var a2 = Process(Right, RightClick, RightHaptic, ref _right);
 
@@ -106,7 +105,7 @@ namespace XrEngine.OpenXr
             return status.StartAngle - curDir.SignedAngleWith(status.StartDir, plane.Normal);
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 

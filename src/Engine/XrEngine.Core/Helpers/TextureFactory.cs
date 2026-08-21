@@ -5,9 +5,9 @@ namespace XrEngine.Helpers
 {
     public static class TextureFactory
     {
-        public unsafe static Texture2D CreateChecker()
+        public static Texture2D CreateChecker()
         {
-            return CreateChecker(16, 16, Color.White, Color.Black);
+            return CreateChecker(128, 128, Color.White, Color.Black);
         }
 
         public unsafe static Texture2D CreateChecker(uint sizeX, uint sizeY, Color color1, Color color2)
@@ -16,12 +16,12 @@ namespace XrEngine.Helpers
             {
                 Width = sizeX * 2,
                 Height = sizeY * 2,
-                Format = TextureFormat.Rgba32
+                Format = TextureFormat.Rgba8
             };
 
-            textureData.Data = MemoryBuffer.Create<byte>(textureData.Width * textureData.Height * 4);
+            textureData.Content = MemoryBuffer.Create<byte>(textureData.Width * textureData.Height * 4);
 
-            using var dataLock = textureData.Data.MemoryLock();
+            using var dataLock = textureData.Content.MemoryLock();
 
             var lineSize = textureData.Width * 4;
 
@@ -38,8 +38,8 @@ namespace XrEngine.Helpers
             texture.LoadData(textureData);
             texture.WrapS = WrapMode.Repeat;
             texture.WrapT = WrapMode.Repeat;
-            texture.MagFilter = ScaleFilter.Nearest;
-            texture.MinFilter = ScaleFilter.Nearest;
+            texture.MagFilter = ScaleFilter.Linear;
+            texture.MinFilter = ScaleFilter.Linear;
 
             return texture;
         }

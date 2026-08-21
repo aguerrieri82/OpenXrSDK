@@ -22,7 +22,6 @@ namespace OpenXr.Framework.OpenGL
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 
-
         public XrOpenGLGraphicDriver(IView view)
             : this(new ViewOpenGLDevice(view))
         {
@@ -38,7 +37,6 @@ namespace OpenXr.Framework.OpenGL
                 Type = typeof(SwapchainImageOpenGLKHR)
             };
         }
-
 
         public override void Initialize(XrApp app, IList<string> extensions)
         {
@@ -80,8 +78,10 @@ namespace OpenXr.Framework.OpenGL
         {
             Debug.Assert(viewInfo.SwapChainFormats != null);
 
-            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
-            result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
+            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((int)a));
+
+            if (result.DepthFormat == 0)
+                result.DepthFormat = (int)InternalFormat.Depth24Stencil8;
         }
 
         public T GetApi<T>() where T : class

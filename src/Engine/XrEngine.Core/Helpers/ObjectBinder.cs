@@ -38,7 +38,6 @@ namespace XrEngine
             return (T)_bindings[a];
         }
 
-
         public static bool TryGet<T>(object a, [NotNullWhen(true)] out T? result) where T : class
         {
             result = null;

@@ -23,7 +23,6 @@ namespace XrEngine.OpenXr
             WeightedExponential
         }
 
-
         InputGrabber? _lastTool;
         bool _lastKinematic;
         PhysicsManager? _manager;
@@ -144,7 +143,6 @@ namespace XrEngine.OpenXr
                 _isMoving = true;
             }
 
-
             _manager ??= _host.Scene!.Component<PhysicsManager>();
 
             _body ??= _host.Component<RigidBody>();
@@ -193,7 +191,6 @@ namespace XrEngine.OpenXr
 
             if (mustThrow)
             {
-
                 var velocity = Vector3.Zero;
                 var angVel = Vector3.Zero;
                 Vector3 lastWordPos;
@@ -257,7 +254,6 @@ namespace XrEngine.OpenXr
                 _isMoving = false;
             }
         }
-
 
         public float MinDeltaTime { get; set; }
 

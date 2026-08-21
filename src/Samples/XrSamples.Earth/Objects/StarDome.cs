@@ -16,7 +16,6 @@ namespace XrSamples.Earth
                                      Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI);
         }
 
-
         public float Size
         {
             get => _transform.Scale.X / AU;

@@ -5,13 +5,15 @@ namespace XrEngine
     public class TextureMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
+        protected TextureSampler? _sampler;
+        protected long _lastTexVersion;
 
         static TextureMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "texture.frag",
-                IsLit = false,
+                UseMotionVectors = true
             };
         }
         public TextureMaterial()
@@ -38,7 +40,6 @@ namespace XrEngine
             base.SetStateWork(container);
             container.ReadObject<TextureMaterial>(this);
         }
-
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
@@ -67,13 +68,21 @@ namespace XrEngine
                 });
             }
 
+            bld.PrepareTexture(Texture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
-                    up.LoadTexture(Texture, 0);
+                    up.LoadTextureFixSrgb(ctx, Texture, TextureSlots.Albedo);
 
                 up.SetUniform("uColor", Color);
             });
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            _lastTexVersion = -1;
+            base.OnChanged(change);
         }
 
         public override void Dispose()

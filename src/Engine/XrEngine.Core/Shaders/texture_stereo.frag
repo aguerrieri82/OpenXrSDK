@@ -1,4 +1,6 @@
-﻿in vec2 fUv;
+﻿#include "Shared/tonemap.glsl"
+
+in vec2 fUv;
 
 #ifdef EXTERNAL
     layout(binding=0) uniform samplerExternalOES uTextureLeft;
@@ -11,23 +13,32 @@
 layout(location=0) out vec4 FragColor;
 
 #ifdef MULTI_VIEW
-
-    void main()
-    {
-        if (gl_ViewID_OVR == 0u)
-            FragColor = texture(uTextureLeft, fUv);
-        else 
-            FragColor = texture(uTextureRight, fUv);
-    }
-
+    #define ACTIVE_EYE gl_ViewID_OVR
 #else
     uniform uint uActiveEye;
-
-    void main()
-    {
-        if (uActiveEye == 0u)
-            FragColor = texture(uTextureLeft, fUv);
-        else 
-            FragColor = texture(uTextureRight, fUv);
-    }
+    #define ACTIVE_EYE uActiveEye
 #endif
+
+
+#ifdef USE_COLOR
+    uniform vec4 uColor;
+#endif
+
+void main()
+{
+    #ifdef FIXED_EYE
+        if (ACTIVE_EYE != uint(FIXED_EYE))
+            discard;
+    #endif
+
+    if (ACTIVE_EYE == 0u)
+        FragColor = texture(uTextureLeft, fUv);
+    else 
+        FragColor = texture(uTextureRight, fUv);
+
+    #ifdef USE_COLOR
+        FragColor *= uColor;
+    #endif
+
+    fixSrgbTex(FragColor);
+}

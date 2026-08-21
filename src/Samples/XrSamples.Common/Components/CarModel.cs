@@ -21,7 +21,6 @@ namespace XrSamples
         readonly double FDR = 4.0;          // Final drive ratio
         readonly double efficiency = 0.9;   // Transmission efficiency
 
-
         // Resistance constants
         readonly double C_rr = 0.015;       // Rolling resistance coefficient
         readonly double g = 9.81;           // Gravitational acceleration (m/s^2)
@@ -35,8 +34,6 @@ namespace XrSamples
 
         double omega_wheel;
         double engineRPM;
-
-
 
         public void Step(float dt)
         {
@@ -77,7 +74,6 @@ namespace XrSamples
             engineRPM = omega_engine * (60 / (2 * Math.PI));
         }
 
-
         public float Acceleration = 0;
 
         public float Gear = 3.5f;
@@ -85,7 +81,6 @@ namespace XrSamples
         public float OmegaWheel => (float)omega_wheel;
 
         public float EngineRPM => (float)engineRPM;
-
 
     }
 
@@ -179,7 +174,6 @@ namespace XrSamples
 
             _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
-
 
         protected void AttachBody()
         {
@@ -336,7 +330,6 @@ namespace XrSamples
                 Name = "chassis"
             };
 
-
             Debug.Assert(WheelFL != null && WheelFR != null && WheelBL != null && WheelBR != null);
 
             /*
@@ -401,7 +394,6 @@ namespace XrSamples
 
             _mainTube = t5;
         }
-
 
         private void OnContact(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs)
         {
@@ -539,7 +531,6 @@ namespace XrSamples
             return joint;
         }
 
-
         Joint AddRotationV2(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis, bool motor = false)
         {
             var manager = _host!.Scene!.Component<PhysicsManager>();
@@ -597,7 +588,6 @@ namespace XrSamples
 
             return joint;
         }
-
 
         protected Pose3 GetPoseRef(Pose3 deltaRef, Pose3 lastPose)
         {
@@ -678,7 +668,6 @@ namespace XrSamples
             XrApp.Current.ReferenceFrame = GetPoseRef(_seatPosDiff, XrApp.Current.ReferenceFrame);
         }
 
-
         protected void SyncSteering()
         {
             float wheelAngle;
@@ -708,8 +697,6 @@ namespace XrSamples
             if (ShowHideBodyInput != null && ShowHideBodyInput.IsActive && ShowHideBodyInput.IsChanged && ShowHideBodyInput.Value)
                 CarBody!.IsVisible = !CarBody!.IsVisible;
         }
-
-
 
         protected void SyncGear()
         {
@@ -782,7 +769,7 @@ namespace XrSamples
             SyncCamera();
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
 
         }
@@ -850,7 +837,6 @@ namespace XrSamples
             var leverHeight = 0.3f;
             var leverOffset = 0.1f;
 
-
             var centerY = ySize / 2;
             var boxSizeX = (xSize - lineSize * 3 - padSize * 2) / 2;
             var boxSizeY = (ySize - lineSize - padSize * 2) / 2;
@@ -888,7 +874,6 @@ namespace XrSamples
             lines.Add(b4);
             lines.Add(b5);
 
-
             var boxMesh = new TriangleMesh();
             var builder = new MeshBuilder();
             var offset = new Vector2(xSize, ySize) / -2f;
@@ -913,7 +898,6 @@ namespace XrSamples
             builder.AddColliders(boxMesh);
 
             _attachedGroup.AddChild(boxMesh);
-
 
             builder = new MeshBuilder();
             builder.AddCylinder(Vector3.Zero, (lineSize * 1.5f / 2f) - 0.001f, leverHeight, 10, UVMode.Normalized)
@@ -1067,7 +1051,6 @@ namespace XrSamples
             }
         }
 
-
         [Range(-1, 1, 0.01f)]
         public float SteeringAngle
         {
@@ -1083,7 +1066,6 @@ namespace XrSamples
             }
         }
 
-
         [Range(0, 10, 0.1f)]
         public float WheelSpeedRad
         {
@@ -1094,7 +1076,6 @@ namespace XrSamples
                 _isWheelChanged = true;
             }
         }
-
 
         [Range(0, 50000, 1)]
         public float WheelDensity

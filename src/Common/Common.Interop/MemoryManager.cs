@@ -1,17 +1,19 @@
 ﻿using System.Collections.Concurrent; // Added for thread safety
 using System.Runtime.InteropServices;
 
+#pragma warning disable CS0649
+
 namespace Common.Interop
 {
     public static unsafe class MemoryManager
     {
+
         struct MemoryBlock
         {
             public nint Data;
             public int Size;
             public WeakReference Owner;
         }
-
 
 #if DEBUG
         static readonly ConcurrentDictionary<nint, MemoryBlock> _blocks = new();
@@ -38,7 +40,6 @@ namespace Common.Interop
         {
             if (data == 0)
                 return;
-
 
             NativeMemory.Free((void*)data);
 

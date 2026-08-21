@@ -1,6 +1,6 @@
 ﻿
-layout (location = 0) in vec3 a_position;
-layout (location = 2) in vec2 a_texcoord_0;
+layout (location = 0) in vec3 aPosition;
+layout (location = 2) in vec2 aUv0;
 
 
 #ifdef MULTI_VIEW
@@ -12,12 +12,15 @@ layout (location = 2) in vec2 a_texcoord_0;
 #endif
 
 out vec2 fUv;
-uniform mat4 uModel;
 
 void main()
 {
-    gl_Position = uModel * vec4(a_position, 1.0);
-    gl_Position.z = -gl_Position.w;
+    fUv = aUv0;
 
-    fUv = a_texcoord_0;
+    vec2 clip;
+
+    clip.x = aPosition.x >= 0.0 ? 1.0 : -1.0;
+    clip.y = aPosition.y >= 0.0 ? 1.0 : -1.0;
+
+    gl_Position = vec4(clip, -1.0, 1.0);
 }

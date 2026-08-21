@@ -70,6 +70,8 @@ namespace OpenXr.Framework
             }
         }
 
+        public XrApp App => _xrApp ?? throw new InvalidOperationException();
+
         public int Priority { get; set; }
 
         public virtual XrLayerFlags Flags => XrLayerFlags.None;

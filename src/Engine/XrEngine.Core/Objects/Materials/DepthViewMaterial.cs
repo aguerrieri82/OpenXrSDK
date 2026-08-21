@@ -6,7 +6,7 @@
 
         static DepthViewMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "depth_view.frag",
                 IsLit = false,
@@ -19,7 +19,6 @@
         {
             _shader = SHADER;
         }
-
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
@@ -39,7 +38,6 @@
                 bld.SetUniform("uFarPlane", ctx => Camera.Far);
             }
         }
-
 
         public Texture2D? Texture { get; set; }
 

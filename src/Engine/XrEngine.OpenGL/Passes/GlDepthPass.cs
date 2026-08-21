@@ -2,14 +2,12 @@
 
 using System.Numerics;
 
-
 #if GLES
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 
 #endif
-
 
 namespace XrEngine.OpenGL
 {
@@ -25,9 +23,9 @@ namespace XrEngine.OpenGL
         public GlDepthPass(OpenGLRender renderer)
             : base(renderer)
         {
-            UseOcclusionQuery = true;
+            UseOcclusionQuery = false;
             UseDepthCull = false;
-            OnlyLargeOccluder = true;
+            OnlyLargeOccluder = false;
 
             _useInstanceDraw = true;
 
@@ -42,20 +40,21 @@ namespace XrEngine.OpenGL
             _lastContentVersion = -1;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            _renderer.RenderTarget!.Begin(camera);
+            _renderer.RenderTarget!.Begin(ctx.PassCamera!);
             _renderer.State.SetWriteDepth(true);
+            _renderer.State.Commit();
 
             _gl.Clear(ClearBufferMask.DepthBufferBit);
             _gl.DepthFunc(DepthFunction.Less);
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            if (UseDepthCull && _renderer.UpdateContext.PassCamera!.ActiveEye == 0)
+            if (UseDepthCull && ctx.PassCamera!.ActiveEye == 0)
             {
                 UpdateDepthPyramid();
                 UpdateVisibility();
@@ -88,7 +87,7 @@ namespace XrEngine.OpenGL
         {
             if (UseOcclusionQuery)
             {
-                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_gl));
+                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery<uint>(_gl));
                 draw.Query!.Begin(QueryTarget.AnySamplesPassed);
                 draw.Draw!();
                 draw.Query.End();
@@ -96,7 +95,6 @@ namespace XrEngine.OpenGL
             else
                 draw.Draw!();
         }
-
 
         protected bool UpdateDepthPyramid()
         {
@@ -117,20 +115,10 @@ namespace XrEngine.OpenGL
                 BorderColor = Color.White
             };
 
-
-
             if (_depthTexture.Width != curDepth.Width || _depthTexture.Height != curDepth.Height)
-            {
-                _depthTexture.Update(0, new TextureData
-                {
-                    Width = curDepth.Width,
-                    Height = curDepth.Height,
-                    Format = TextureFormat.GrayFloat32,
-                    MipLevel = 0,
-                });
-            }
+                _depthTexture.Allocate(curDepth.Width, curDepth.Height, 1, TextureFormat.GrayFloat32);
 
-            GlImageProc.Instance.CopyDepth(provider.FrameBuffer, _depthTexture);
+            GlImageProc.CopyDepth(provider.FrameBuffer, _depthTexture);
 
             var w = _depthTexture.Width;
             var h = _depthTexture.Height;
@@ -166,11 +154,11 @@ namespace XrEngine.OpenGL
 
         protected unsafe void UpdateVisibility()
         {
-            var contVersion = SelectLayers().OfType<GlLayerV2>().Sum(a => a.Version);
+            var contVersion = SelectLayers().OfType<GlLayer>().Sum(a => a.Version);
 
             if (contVersion != _lastContentVersion)
             {
-                var draws = SelectLayers().OfType<GlLayerV2>()
+                var draws = SelectLayers().OfType<GlLayer>()
                    .SelectMany(a => a.Content.Contents.Values)
                    .SelectMany(a => a.Contents.Values)
                    .SelectMany(a => a.Contents.Values)
@@ -180,17 +168,19 @@ namespace XrEngine.OpenGL
                 if (count != _depthData.ArrayLength)
                     _depthData.Allocate((uint)(sizeof(DepthObjectData) * count));
 
-                var pData = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+                using var bufLock = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+
+                var data = bufLock.Span;
 
                 var i = 0;
                 foreach (var draw in draws)
                 {
                     var bounds = draw.Object!.WorldBounds;
-                    pData[i].BoundsMin = bounds.Min;
-                    pData[i].BoundsMax = bounds.Max;
-                    pData[i].IsVisible = true;
-                    pData[i].IsCulled = false;
-                    pData[i].Extent = Vector2.One;
+                    data[i].BoundsMin = bounds.Min;
+                    data[i].BoundsMax = bounds.Max;
+                    data[i].IsVisible = true;
+                    data[i].IsCulled = false;
+                    data[i].Extent = Vector2.One;
 
                     if (draw.Id != i)
                     {
@@ -206,14 +196,12 @@ namespace XrEngine.OpenGL
                 _lastContentVersion = contVersion;
             }
 
-
             _depthCull.Use();
 
-            _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, _depthData);
+            _renderer.State.LoadBuffer(_depthData, 0);
 
             var camera = _renderer.UpdateContext.PassCamera!;
-            var planes = new Plane[6];
-            camera.FrustumPlanes(planes);
+            var planes = camera.FrustumPlanes(new Plane[6], out var _);
 
             _renderer.State.LoadTexture(_depthTexture!, 0);
 
@@ -248,7 +236,6 @@ namespace XrEngine.OpenGL
 
             _renderer.State.SetActiveProgram(0);
         }
-
 
         bool IDepthCullProvider.IsActive => UseDepthCull;
 

@@ -1,0 +1,56 @@
+﻿using XrEngine.OpenGL.Wpf;
+
+namespace XrEngine.Filament.Wpf
+{
+    public class FlGlRenderHost : GlRenderHost
+    {
+        private FilamentRender? _render;
+
+        public FlGlRenderHost()
+            : base(false)
+        {
+        }
+
+        public override IRenderEngine CreateRenderEngine(object? driverOptions)
+        {
+            _render = new FilamentRender(new FilamentOptions
+            {
+                WindowHandle = HWnd,
+                //Context = _glCtx,
+                Driver = FilamentLib.FlBackend.OpenGL,
+                EnableStereo = false,
+                OneViewPerTarget = true,
+                MaterialCachePath = "d:\\Materials",
+            });
+
+            var ctx = _render.GetContext();
+
+            _hdc = ctx.WinGl.HDc;
+            _glCtx = ctx.WinGl.GlCTx;
+
+            return _render;
+        }
+
+        public override bool TakeContext()
+        {
+            try
+            {
+                return base.TakeContext();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public override void EnableVSync(bool enable, int scale = 1)
+        {
+
+        }
+
+        public override void SwapBuffers()
+        {
+        }
+
+    }
+}

@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿
+using XrMath;
 
 namespace XrEngine
 {
@@ -10,15 +11,18 @@ namespace XrEngine
         Start
     }
 
-    public class EngineApp : IAsyncDisposable
+    public class EngineApp : IAsyncDisposable, IReferenceTime
     {
+        static EngineApp? _current;
+
         protected readonly HashSet<Scene3D> _scenes = [];
         protected readonly RenderContext _context;
         protected float _startTime;
         protected Scene3D? _activeScene;
         protected readonly EngineAppStats _stats;
         protected PlayState _playState;
-        protected Thread? _renderThread;
+        protected IRenderEngine? _renderer;
+        protected int _captureCount;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
@@ -26,12 +30,12 @@ namespace XrEngine
         {
             _stats = new EngineAppStats();
             _context = new RenderContext();
-            //_changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             _dispatcher = new QueueDispatcher();
+
             //TODO set current by hand (more app in editor)
-            if (Current == null)
+            if (_current == null)
             {
-                Current = this;
+                _current = this;
                 Context.Implement(this);
             }
         }
@@ -90,13 +94,16 @@ namespace XrEngine
 
         public bool BeginFrame()
         {
-            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+            _dispatcher.ProcessQueue();
+
+            if (_activeScene == null || _activeScene.ActiveCamera == null || _renderer == null)
                 return false;
+
+            if (_captureCount > 0)
+                EngineNativeLib.RdcStartFrameCapture();
 
             _context.Frame++;
             _context.Scene = _activeScene;
-
-            _renderThread = Thread.CurrentThread;
 
             if (_playState == PlayState.Start)
             {
@@ -112,9 +119,7 @@ namespace XrEngine
                 _activeScene.Update(_context);
             }
 
-            _dispatcher.ProcessQueue();
-
-            _activeScene.DrawGizmos();
+            _activeScene.DrawGizmos(_context);
 
             _stats.BeginFrame();
 
@@ -123,7 +128,6 @@ namespace XrEngine
 
         public void RenderScene(Camera? camera = null, bool flush = true)
         {
-
             if (_activeScene == null || Renderer == null)
                 return;
 
@@ -140,6 +144,12 @@ namespace XrEngine
 
         public void EndFrame()
         {
+            if (_captureCount > 0)
+            {
+                EngineNativeLib.RdcEndFrameCapture(true);
+                _captureCount--;
+            }
+
             _stats.EndFrame();
         }
 
@@ -168,9 +178,14 @@ namespace XrEngine
             return ValueTask.CompletedTask;
         }
 
+        public void CaptureFrames(int count)
+        {
+            _captureCount = count;
+        }
+
         public RenderContext RenderContext => _context;
 
-        public IDispatcher Dispatcher => _dispatcher;
+        public QueueDispatcher Dispatcher => _dispatcher;
 
         public PlayState PlayState => _playState;
 
@@ -182,12 +197,29 @@ namespace XrEngine
 
         public Scene3D? ActiveScene => _activeScene;
 
-        public Thread? RenderThread => _renderThread;
+        public bool HasRenderer => _renderer != null;
 
-        public IRenderEngine? Renderer { get; set; }
+        public IRenderEngine Renderer
+        {
+            get => _renderer ?? throw new NotSupportedException();
+
+            set => _renderer = value;
+        }
 
         public IReferenceTime? ReferenceTime { get; set; }
 
-        public static EngineApp? Current { get; private set; }
+        public static EngineApp Current
+        {
+            set => _current = value;
+            get => _current ?? throw new NotSupportedException();
+        }
+
+        public static bool IsCreated => _current != null;
+
+        public static DispatcherSwitch MainThread => Current.Dispatcher.Switch;
+
+        public static DispatcherSwitch RenderThread => Current.Renderer.Dispatcher.Switch;
+
+        double IReferenceTime.Time => _context.Time;
     }
 }

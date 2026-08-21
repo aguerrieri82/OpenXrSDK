@@ -14,7 +14,7 @@ namespace XrMath
             _isEmpty = true;
         }
 
-        public void Add(Vector3 point)
+        public void Add(in Vector3 point)
         {
             _result.Min = Vector3.Min(_result.Min, point);
             _result.Max = Vector3.Max(_result.Max, point);
@@ -27,7 +27,7 @@ namespace XrMath
                 Add(point);
         }
 
-        public void Add(Bounds3 newBounds)
+        public void Add(in Bounds3 newBounds)
         {
             _result.Min = Vector3.Min(newBounds.Min, _result.Min);
             _result.Max = Vector3.Max(newBounds.Max, _result.Max);
@@ -39,6 +39,8 @@ namespace XrMath
             foreach (var item in newBounds)
                 Add(item);
         }
+
+        public readonly bool IsEmpty => _isEmpty;
 
         public readonly Bounds3 Result => _isEmpty ? Bounds3.Zero : _result;
     }

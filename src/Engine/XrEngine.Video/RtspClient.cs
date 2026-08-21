@@ -53,7 +53,6 @@ namespace VirtualCamera.IPCamera
         public TimeSpan SessionTimeout { get; set; }
     }
 
-
     public class RtspClient
     {
         TcpClient? _client;
@@ -204,7 +203,6 @@ namespace VirtualCamera.IPCamera
 
                 _authHash1 = HashMD5($"{username}:{dic["realm"]}:{password}");
 
-
             }
         }
 
@@ -212,10 +210,6 @@ namespace VirtualCamera.IPCamera
         {
             return Convert.ToHexStringLower(MD5.HashData(Encoding.ASCII.GetBytes(input)));
         }
-
-
-
-
 
         public IList<RtspStream> Describe(string streamName)
         {
@@ -433,7 +427,6 @@ namespace VirtualCamera.IPCamera
 
             return dictionary;
         }
-
 
         public TimeSpan Timeout { get; set; }
 

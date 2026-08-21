@@ -1,4 +1,6 @@
-﻿uniform vec4 uShadowColor;
+﻿#include "Shared/tonemap.glsl"
+
+uniform vec4 uShadowColor;
 uniform vec3 uLightDirection;
 
 in vec4 fPosLightSpace;
@@ -12,5 +14,7 @@ void main()
 {    
 	float shadow = calculateShadow(fPosLightSpace, fNormal, -uLightDirection);
 
-	FragColor =  shadow * uShadowColor;
+	FragColor = shadow * uShadowColor;
+
+	fixSrgbColor(FragColor);
 }

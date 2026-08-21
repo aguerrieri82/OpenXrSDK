@@ -44,7 +44,6 @@ namespace XrEngine
                 Matrix4x4.CreateFromQuaternion(_orientation) *
                 Matrix4x4.CreateTranslation(_position);
 
-
             _isDirty = false;
 
             return true;
@@ -64,7 +63,7 @@ namespace XrEngine
         {
             _isDirty = true;
 
-            _host?.NotifyChanged(ObjectChangeType.Transform);
+            _host?.NotifyChanged(ChangeType.Transform);
 
             Version++;
         }
@@ -88,13 +87,17 @@ namespace XrEngine
 
             set
             {
-                if (value.W == 0)
-                    value.W = 1;
-                value = Quaternion.Normalize(value);
+                if (value.LengthSquared() == 0)
+                    value = Quaternion.Identity;
+                else
+                    value = Quaternion.Normalize(value);
+
                 if (_orientation.IsSimilar(value, ORIENTATION_TOLLERANCE))
                     return;
+
                 _orientation = value;
                 _rotation = _orientation.ToEuler();
+                
                 NotifyChanged();
             }
         }
@@ -158,7 +161,7 @@ namespace XrEngine
             _rotation = _orientation.ToEuler();
             _matrix = matrix;
 
-            _host?.NotifyChanged(ObjectChangeType.Transform);
+            _host?.NotifyChanged(ChangeType.Transform);
             Version++;
         }
 
@@ -183,10 +186,25 @@ namespace XrEngine
             _orientation = container.Read<Quaternion>(nameof(Orientation));
             _localPivot = container.Read<Vector3>(nameof(LocalPivot));
             _isDirty = true;
-            _host?.NotifyChanged(ObjectChangeType.Transform);
+            _host?.NotifyChanged(ChangeType.Transform);
         }
 
-        public ref Matrix4x4 Matrix
+
+        public Matrix4x4 Matrix
+        {
+            get
+            {
+                if (_isDirty)
+                    Update();
+                return  _matrix;
+            }
+            set
+            {
+                Set(value);
+            }
+        }
+
+        public ref Matrix4x4 MatrixRef
         {
             get
             {
@@ -199,7 +217,6 @@ namespace XrEngine
         public long Version { get; set; }
 
         public Object3D Host => _host!;
-
 
         public const float POS_TOLLERANCE = 0.0001f;
         public const float SCALE_TOLLERANCE = 0.00001f;

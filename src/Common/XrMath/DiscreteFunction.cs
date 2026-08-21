@@ -74,7 +74,6 @@ namespace XrMath
                 Points[i].Y = bounds.Max.Y - Points[i].Y;
         }
 
-
         public Vector2[] Points = [];
     }
 }

@@ -1,7 +1,7 @@
 ﻿using UI.Binding;
-using XrEditor.Abstraction;
 using XrEditor.Services;
 using XrEngine;
+using XrEngine.Objects;
 
 namespace XrEditor.Nodes
 {
@@ -10,10 +10,8 @@ namespace XrEditor.Nodes
         public Geometry3DNode(Geometry3D value)
             : base(value)
         {
-            _autoGenProps = true;
+            _autoGenProps = PropertiesGenerationMode.All;
         }
-
-
 
         public async Task<NativeImage?> CreatePreviewAsync()
         {

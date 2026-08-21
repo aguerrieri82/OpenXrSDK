@@ -40,12 +40,10 @@ namespace XrEngine.Devices.Android
                 base.OnScanFailed(errorCode);
             }
 
-
             public Task<BluetoothDevice?> Task => _source.Task;
         }
 
         #endregion
-
 
         private readonly BluetoothManager _bltManager;
         private readonly BluetoothAdapter _adapter;
@@ -76,7 +74,6 @@ namespace XrEngine.Devices.Android
             foreach (var device in _adapter.BondedDevices!)
                 AddDevice(device);
 
-
             if (filter.MaxDevices > 0 && result.Count >= filter.MaxDevices)
                 return result;
 
@@ -85,7 +82,6 @@ namespace XrEngine.Devices.Android
             var scanSettings = new ScanSettings.Builder()
                 .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)!
                 .Build()!;
-
 
             var scanCallback = new BleScanCallback(filter);
             scanner.StartScan(null, scanSettings, scanCallback);

@@ -24,7 +24,6 @@
             }).Style(style));
         }
 
-
         public static IUiBuilder<T> AddButton<T>(this IUiBuilder<T> builder, Action<IUiBuilder<Button>>? build = null) where T : UiContainer
         {
             return builder.AddChild(build);

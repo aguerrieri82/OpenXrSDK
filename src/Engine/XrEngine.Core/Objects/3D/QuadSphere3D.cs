@@ -20,7 +20,6 @@ namespace XrEngine
             Build();
         }
 
-
         public void Build()
         {
             // Generate initial cube quads
@@ -131,7 +130,6 @@ namespace XrEngine
                 }
                 return (uint)index;
             }
-
 
             (List<Vector3>, List<uint>) GenerateSphere(int levels)
             {

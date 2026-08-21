@@ -40,7 +40,7 @@ namespace OpenAl.Framework
         static readonly int FMT = StrToInt("fmt ");
         static readonly int DATA = StrToInt("data");
 
-        public AudioData Decode(Stream stream)
+        public AlAudioData Decode(Stream stream)
         {
             var header = stream.ReadStruct<wav_header>();
 
@@ -65,7 +65,7 @@ namespace OpenAl.Framework
             else
                 throw new NotSupportedException();
 
-            var result = new AudioData(
+            var result = new AlAudioData(
                 new AlAudioFormat
                 {
                     SampleType = sampleType,

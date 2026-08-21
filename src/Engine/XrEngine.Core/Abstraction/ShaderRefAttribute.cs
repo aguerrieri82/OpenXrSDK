@@ -12,7 +12,14 @@
         Color4 = 0x20,
         UV0 = 0x40,
         UV1 = 0x80,
-        Size = 0x100
+        Size = 0x100,
+        JointIndex = 0x200,
+        JointWeight = 0x400,
+        Skin = JointIndex | JointWeight,
+        MorphPosition = 0x800,
+        MorphNormal = 0x1000,
+        MorphTangent = 0x2000,
+
     }
 
     [AttributeUsage(AttributeTargets.Field)]
@@ -28,6 +35,10 @@
         public uint Location { get; }
 
         public string Name { get; }
+
+        public bool IsNormalized { get; set; }
+
+        public bool IsIntegerStore { get; set; }
 
         public VertexComponent Component { get; }
     }

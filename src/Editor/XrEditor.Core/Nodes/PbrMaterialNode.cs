@@ -2,12 +2,11 @@
 using XrEditor.Services;
 using XrEngine;
 
-
 namespace XrEditor.Nodes
 {
-    public class PbrMaterialNode : MaterialNode<PbrV2Material>
+    public class PbrMaterialNode : MaterialNode<PbrMaterial>
     {
-        public PbrMaterialNode(PbrV2Material value) : base(value)
+        public PbrMaterialNode(PbrMaterial value) : base(value)
         {
         }
 
@@ -28,10 +27,13 @@ namespace XrEditor.Nodes
 
                 if (_value.OcclusionMap != null)
                     yield return factory.CreateNode(_value.OcclusionMap);
+
+                foreach (var child in base.Children)
+                    yield return child;
             }
         }
 
-        protected override void EditorProperties(Binder<PbrV2Material> binder, IList<PropertyView> curProps)
+        protected override void EditorProperties(Binder<PbrMaterial> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);
         }

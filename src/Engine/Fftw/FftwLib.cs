@@ -36,7 +36,6 @@ namespace Fftw
         [DllImport("fftw3")]
         static internal extern nint fftw_malloc(long size);
 
-
         public static void Dft(FftwBuffer<double> inData, FftwBuffer<Complex> outData, DftFlags flags = DftFlags.FFTW_ESTIMATE)
         {
             var result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);

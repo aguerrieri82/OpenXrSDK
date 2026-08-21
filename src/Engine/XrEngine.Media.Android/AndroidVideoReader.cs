@@ -1,9 +1,9 @@
 ﻿using Android.Graphics;
 using Android.Media;
+using Android.Opengl;
 using Android.Views;
 using XrEngine.OpenGL;
 using XrMath;
-
 
 namespace XrEngine.Media.Android
 {
@@ -18,6 +18,7 @@ namespace XrEngine.Media.Android
         private bool _isDecoderInit;
         private MediaFormat? _inputFormat;
         private SurfaceTexture? _surfaceTex;
+        protected int[] _oldBinding = new int[1];
 
         public AndroidVideoReader()
         {
@@ -55,7 +56,7 @@ namespace XrEngine.Media.Android
             GC.SuppressFinalize(this);
         }
 
-        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba32)
+        public void Open(Uri source, TextureFormat outFormat = TextureFormat.Rgba8)
         {
             if (!source.IsFile)
                 throw new NotSupportedException();
@@ -165,7 +166,11 @@ namespace XrEngine.Media.Android
 
                 if (_surfaceTex != null)
                 {
-                    _surfaceTex.UpdateTexImage();
+                    GLES20.GlGetIntegerv(GLES11Ext.GlTextureBindingExternalOes, _oldBinding, 0);
+
+                    _surfaceTex?.UpdateTexImage();
+
+                    GLES20.GlBindTexture(GLES11Ext.GlTextureExternalOes, _oldBinding[0]);
                 }
 
                 return true;

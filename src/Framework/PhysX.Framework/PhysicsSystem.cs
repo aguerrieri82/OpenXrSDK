@@ -6,7 +6,6 @@ using System.Text;
 using XrMath;
 using static PhysX.NativeMethods;
 
-
 #pragma warning disable CS0649
 
 namespace PhysX.Framework
@@ -29,7 +28,6 @@ namespace PhysX.Framework
         public PxTransform globalPose1;
         public PxTransform globalPose2;
     }
-
 
     public class PhysicsOptions
     {
@@ -75,7 +73,6 @@ namespace PhysX.Framework
         protected PxDefaultCpuDispatcher* _dispatcher;
         protected PhysicsOptions _options;
         protected PhysicsScene? _scene;
-
 
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
@@ -209,7 +206,6 @@ namespace PhysX.Framework
             var curScale = _tolerancesScale;
 
             var param = curScale.CookingParamsNew();
-
 
             /*
             var isValid = param.PhysPxValidateConvexMesh(&desc);
@@ -346,7 +342,6 @@ namespace PhysX.Framework
                 shape.SimulationFilterData = data;
             }
 
-
             return result;
         }
 
@@ -439,21 +434,18 @@ namespace PhysX.Framework
             sceneDesc.kineKineFilteringMode = PxPairFilteringMode.Keep;
             sceneDesc.staticKineFilteringMode = PxPairFilteringMode.Keep;
 
-
             if (_options.EnableCCD)
                 sceneDesc.flags |= PxSceneFlags.EnableCcd;
             if (_options.EnablePCM)
                 sceneDesc.flags |= PxSceneFlags.EnablePcm;
 
-            sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism;
+            sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism | PxSceneFlags.RequireRwLock;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
-
 
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
 
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLocalFrames, 1f);
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f);
-
 
             if (_pvd != null)
             {
@@ -466,11 +458,11 @@ namespace PhysX.Framework
                     pvdClient->SetScenePvdFlagMut(PxPvdSceneFlag.TransmitScenequeries, true);
                 }
             }
+
         }
 
-
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        static unsafe PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
+        static PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
         {
             var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
             var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
@@ -531,8 +523,6 @@ namespace PhysX.Framework
                     {
                         _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
 
-
-
                     });
                 }
             }
@@ -572,8 +562,6 @@ namespace PhysX.Framework
             uint error;
             float curTime = 0;
 
-            //var test = _pvd->IsConnectedMut(false);
-
             while (curTime < deltaSecs)
             {
                 if (curTime + stepSizeSecs > deltaSecs)
@@ -586,9 +574,11 @@ namespace PhysX.Framework
                 else
                     _lastDeltaTime = stepSizeSecs;
 
-                _scene!.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
-
-                _scene.Scene.FetchResultsMut(true, &error);
+                using (var writeLock = _scene!.LockWrite())
+                {
+                    _scene.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
+                    _scene.Scene.FetchResultsMut(true, &error);
+                }
 
                 _time += _lastDeltaTime;
 

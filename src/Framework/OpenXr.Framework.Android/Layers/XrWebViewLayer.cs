@@ -205,7 +205,6 @@ namespace OpenXr.Framework.Android
         protected Vector2 _lastLayerSize;
         protected InputController _input;
 
-
         public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
             : base(getQuad)
         {
@@ -284,7 +283,6 @@ namespace OpenXr.Framework.Android
             }
         }
 
-
         protected void CreateWebView()
         {
             /*
@@ -317,14 +315,12 @@ namespace OpenXr.Framework.Android
 
             _webView.SetLayerType(LayerType.Hardware, null);
 
-
             if (_context is Activity activity)
             {
                 var layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
                 activity.AddContentView(_webView, layout);
             }
         }
-
 
         public HandlerXrThread MainThread => _mainThread;
 

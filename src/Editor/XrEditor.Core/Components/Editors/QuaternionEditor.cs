@@ -63,7 +63,6 @@ namespace XrEditor
             };
         }
 
-
         protected override void OnEditValueChanged(Quaternion newValue)
         {
             _suspendUpdate++;

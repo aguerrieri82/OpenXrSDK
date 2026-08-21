@@ -33,8 +33,6 @@ namespace XrEngine
             this.SmoothNormals((uint)smoothStart, (uint)Vertices.Length - 1);
 
             this.ComputeIndices();
-
-            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public uint Subs { get; set; }

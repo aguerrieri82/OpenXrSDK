@@ -15,16 +15,14 @@ namespace XrEngine
     {
         public static readonly Shader SHADER;
 
-
         static GlowVolumeMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "glow_vol.frag",
                 IsLit = false
             };
         }
-
 
         public GlowVolumeMaterial()
             : base()

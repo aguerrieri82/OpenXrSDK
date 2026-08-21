@@ -12,7 +12,6 @@ namespace XrEditor.Services
             Factory = factory;
         }
 
-
         public Guid PanelId { get; }
 
         public Func<IPanel> Factory { get; }
@@ -51,7 +50,6 @@ namespace XrEditor.Services
             }
         }
 
-
         public T? Panel<T>() where T : IPanel
         {
             return _panels.OfType<T>().FirstOrDefault();
@@ -67,7 +65,6 @@ namespace XrEditor.Services
             }
             return result;
         }
-
 
         public async Task<T> PanelAsync<T>() where T : IPanel
         {
@@ -87,18 +84,15 @@ namespace XrEditor.Services
             return (T)await source.Task;
         }
 
-
         public async Task CloseAllAsync()
         {
             await Task.WhenAll(_panels.Select(a => a.CloseAsync()));
         }
 
-
         public void Register(PanelInfo info)
         {
             _infos[info.PanelId] = info;
         }
-
 
         public void Register(Func<IPanel> factory, Guid panelId, string? title = null)
         {
@@ -118,11 +112,9 @@ namespace XrEditor.Services
             Register(() => new T(), panelAttr.PanelId, displayAttr?.DisplayName);
         }
 
-
         public IReadOnlyList<IPanel> Panels => _panels;
 
         public IReadOnlyCollection<PanelInfo> PanelsInfo => _infos.Values;
-
 
     }
 }

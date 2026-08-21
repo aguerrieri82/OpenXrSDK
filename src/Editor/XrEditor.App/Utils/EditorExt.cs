@@ -22,12 +22,10 @@ namespace XrEditor
             }
         }
 
-
         public static bool GetContainer(UIElement element)
         {
             return (bool)element.GetValue(ControlProperty);
         }
-
 
         public static void SetContainer(UIElement element, IEditorUIElement value)
         {

@@ -16,7 +16,6 @@ namespace XrEngine.OpenXr
         public CreateModelDelegate? CreateModel { get; set; }
     }
 
-
     public class DefaultSceneModelFactory : ISceneModelFactory
     {
         readonly Dictionary<SceneModelType, SceneModelOptions> _models = [];
@@ -152,7 +151,6 @@ namespace XrEngine.OpenXr
         }
 
         public Dictionary<SceneModelType, SceneModelOptions> Models => _models;
-
 
         public static readonly DefaultSceneModelFactory Instance = new DefaultSceneModelFactory();
     }

@@ -6,7 +6,7 @@ namespace XrEngine
     {
         static MaterialFactory()
         {
-            DefaultPbr = typeof(PbrV2Material);
+            DefaultPbr = typeof(PbrMaterial);
         }
 
         public static IPbrMaterial CreatePbr(Color color)
@@ -37,7 +37,6 @@ namespace XrEngine
         {
             return new T();
         }
-
 
         public static Type DefaultPbr { get; set; }
     }

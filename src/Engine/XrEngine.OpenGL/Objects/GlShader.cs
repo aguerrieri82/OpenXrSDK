@@ -2,17 +2,17 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Collections.Concurrent;
+
 #endif
 
-using System.Security.Cryptography;
-using System.Text;
-
+using XrEngine.Helpers;
 
 namespace XrEngine.OpenGL
 {
     public class GlShader : GlObject
     {
-        static readonly Dictionary<string, GlShader> _shaders = [];
+        static readonly Dictionary<ulong, GlShader> _shaders = [];
 
         protected int _refCount;
 
@@ -23,15 +23,17 @@ namespace XrEngine.OpenGL
             _refCount++;
         }
 
-        public GlShader(GL gl, ShaderType type, string source)
+        public GlShader(GL gl, ShaderType type, string source, string? name)
             : this(gl)
         {
-            Create(type, source);
+            Create(type, source, name);
         }
 
-        public void Create(ShaderType type, string source)
+        public void Create(ShaderType type, string source, string? name)
         {
             _handle = _gl.CreateShader(type);
+
+            SetLabel(name);
 
             ShaderSource = source;
             Type = type;
@@ -41,6 +43,8 @@ namespace XrEngine.OpenGL
 
         public void Update()
         {
+            Log.Info(this, "Building shader '{0}'", _label);
+
             _gl.ShaderSource(_handle, ShaderSource);
 
             _gl.CompileShader(_handle);
@@ -59,26 +63,34 @@ namespace XrEngine.OpenGL
             {
                 _gl.DeleteShader(_handle);
 
-                var cache = _shaders.First(a => a.Value == this);
-                _shaders.Remove(cache.Key);
+                lock (_shaders)
+                {
+                    var cache = _shaders.First(a => a.Value == this);
+
+                    _shaders.Remove(cache.Key);
+                }
 
                 base.Dispose();
             }
         }
 
-        public static GlShader GetOrCreate(GL gl, ShaderType type, string source)
+        public static GlShader GetOrCreate(GL gl, ShaderType type, string source, string? name = null)
         {
-            var sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
+            var sourceHash = HashBuilder.Instance.Compute(source);
 
-            if (!_shaders.TryGetValue(sourceHash, out var shader))
+            lock (_shaders)
             {
-                shader = new GlShader(gl, type, source);
-                _shaders[sourceHash] = shader;
-            }
-            else
-                shader._refCount++;
+                if (!_shaders.TryGetValue(sourceHash, out var shader))
+                {
+                    shader = new GlShader(gl, type, source, name);
 
-            return shader;
+                    _shaders[sourceHash] = shader;
+                }
+                else
+                    shader._refCount++;
+
+                return shader;
+            }
         }
 
         public ShaderType Type { get; set; }

@@ -9,7 +9,7 @@
     <DataTemplate DataType="{x:Type local:ListTreeView}">
         <ListView app:EditorExt.Container="{Binding}" 
                   VirtualizingStackPanel.IsVirtualizing="True" 
-                                    VirtualizingPanel.VirtualizationMode="Recycling"
+                                    VirtualizingPanel.VirtualizationMode="Standard"
                   BorderThickness="0" 
                   Background="Transparent" 
                   ItemsSource="{Binding Items}" 

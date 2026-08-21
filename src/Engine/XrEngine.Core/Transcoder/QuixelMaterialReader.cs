@@ -12,7 +12,6 @@ namespace XrEngine
     {
         private readonly Dictionary<string, IPbrMaterial> _materialCache = [];
 
-
         #region QuixelMaterialInfo
 
         protected class QuixelMaterialInfo
@@ -89,7 +88,6 @@ namespace XrEngine
             {
 
             }
-
 
             public class ReferencePreviewInfo
             {
@@ -244,7 +242,7 @@ namespace XrEngine
 
                     var tex2D = AssetLoader.Instance.Load<Texture2D>(texUri, new TextureLoadOptions
                     {
-                        Format = texture.IsSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                        IsSrgb = texture.IsSrgb,
                         MimeType = texture.MimeType
                     });
 
@@ -269,14 +267,12 @@ namespace XrEngine
                         //tex2D.Format = TextureFormat.Gray8;
                     }
 
-
                     else if (texture.Type == TextureType.Normal)
                     {
                         result.NormalMap = tex2D;
                         result.NormalScale = 1;
                         //tex2D.Format = TextureFormat.Rgb24;
                     }
-
 
                     else if (texture.Type == TextureType.Roughness ||
                              texture.Type == TextureType.Metallic)
@@ -285,12 +281,12 @@ namespace XrEngine
 
                         var ofs = texture.Type == TextureType.Roughness ? 1u : 2u;
 
-                        using var pSrc = tex2D.Data![0].Data!.MemoryLock();
+                        using var pSrc = tex2D.Data![0].Content!.MemoryLock();
                         using var pDst = mrImage.MemoryLock();
 
                         EngineNativeLib.ImageCopyChannel(pSrc, pDst, tex2D.Width, tex2D.Height, tex2D.Width * 4, tex2D.Width * 4, 0, ofs, 1);
 
-                        tex2D.Data[0].Data = mrImage;
+                        tex2D.Data[0].Content = mrImage;
                         //tex2D.Format = TextureFormat.Rgb24;
                         result.MetallicRoughnessMap = tex2D;
                     }

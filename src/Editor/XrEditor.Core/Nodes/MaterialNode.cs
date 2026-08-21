@@ -1,8 +1,6 @@
 ﻿using UI.Binding;
-using XrEditor.Abstraction;
 using XrEditor.Services;
 using XrEngine;
-
 
 namespace XrEditor.Nodes
 {
@@ -10,7 +8,7 @@ namespace XrEditor.Nodes
     {
         public MaterialNode(T value) : base(value)
         {
-            _autoGenProps = false;
+            _autoGenProps = PropertiesGenerationMode.None;
         }
 
         public void EditorActions(IList<ActionView> result)
@@ -18,6 +16,16 @@ namespace XrEditor.Nodes
             ActionView.CreateActions(_value, typeof(Material), null, result);
         }
 
+        public override IEnumerable<INode> Children
+        {
+            get
+            {
+                var factory = Context.Require<NodeManager>();
+
+                if (_value is ShaderMaterial shad)
+                    yield return factory.CreateNode(shad.Shader!);
+            }
+        }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {

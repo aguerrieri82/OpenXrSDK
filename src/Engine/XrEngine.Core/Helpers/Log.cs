@@ -15,9 +15,15 @@ namespace XrEngine
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Warning);
         }
 
+        //[Conditional("DEBUG")]
         public static void Debug(object source, string message, params object?[] args)
         {
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Debug);
+        }
+
+        public static void Error(object source, string message, params object?[] args)
+        {
+            Logger.LogMessage(source, string.Format(message, args), LogLevel.Error);
         }
 
         public static void Error(object source, Exception exception, string message = "{0}")
@@ -35,7 +41,6 @@ namespace XrEngine
         {
             TimeLogger.Checkpoint(name, color);
         }
-
 
         public static IProgressLogger Logger => Context.Require<IProgressLogger>();
 

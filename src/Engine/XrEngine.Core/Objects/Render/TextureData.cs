@@ -2,7 +2,6 @@
 
 namespace XrEngine
 {
-
     public class TextureData
     {
         public uint Width { get; set; }
@@ -13,16 +12,15 @@ namespace XrEngine
 
         public uint MipLevel { get; set; }
 
-        public uint Face { get; set; }
+        public uint Layer { get; set; }
 
         public TextureFormat Format { get; set; }
 
         public TextureCompressionFormat Compression { get; set; }
 
-        public IMemoryBuffer<byte>? Data { get; set; }
+        public IMemoryBuffer<byte>? Content { get; set; }
 
         public uint BlockSize { get; set; }
-
 
         public TextureData Clone()
         {

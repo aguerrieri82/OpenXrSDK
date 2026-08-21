@@ -1,13 +1,13 @@
 using _Microsoft.Android.Resource.Designer;
 using Android.Content;
 using Android.Content.PM;
-
 using System.Text.Json;
 using XrEngine.OpenXr;
 
+#pragma warning disable CA1416
+
 namespace XrSamples.Android.Activities
 {
-
 
     [Activity(
         Label = "@string/app_name",
@@ -18,15 +18,15 @@ namespace XrSamples.Android.Activities
 
     public class SelectActivity : Activity
     {
-        const string TAG = nameof(SelectActivity);
-
-        private readonly GameSettings _settings = GameSettings.Helmet();
+        private readonly GameSettings _settings = GameSettings.Graffiti();
         private IList<AppSample>? _samples;
+
+        public SelectActivity()
+        {
+        }
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
-            System.Diagnostics.Debug.WriteLine("Hello from SelectActivity.OnCreate");
-
             base.OnCreate(savedInstanceState);
 
             if (!string.IsNullOrWhiteSpace(_settings.SampleName) && savedInstanceState == null)
@@ -40,7 +40,6 @@ namespace XrSamples.Android.Activities
 
             //Samples
             var manager = XrEngine.Context.Require<SampleManager>();
-            manager.AddType(typeof(Dnd.Builder));
 
             _samples = manager.List();
 
@@ -70,7 +69,6 @@ namespace XrSamples.Android.Activities
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 images.Select(a => a.Name!).ToArray());
-
 
             hdris.ItemSelected += (s, e) =>
             {
@@ -107,21 +105,22 @@ namespace XrSamples.Android.Activities
                 _settings.EnableDepthPass = e.IsChecked;
             };
 
-            //Pbr
-            var pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
-            pbr.Checked = _settings.UsePbrV2;
-            pbr.CheckedChange += (s, e) =>
+            //Compression
+            var compression = FindViewById<CheckBox>(ResourceConstant.Id.compression)!;
+            compression.Checked = _settings.TextureCompression;
+            compression.CheckedChange += (s, e) =>
             {
-                _settings.UsePbrV2 = e.IsChecked;
+                _settings.TextureCompression = e.IsChecked;
             };
 
-            //Pbr
+            //Space-Warp
             var sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
             sw.Checked = _settings.UseSpaceWarp;
             sw.CheckedChange += (s, e) =>
             {
                 _settings.UseSpaceWarp = e.IsChecked;
             };
+
         }
 
         protected void StartGame()

@@ -269,7 +269,6 @@ namespace CanvasUI
 
                     var align = child.Align ?? lp.AlignItems;
 
-
                     var childRect = new Rect2
                     {
                         X = curPos.X,

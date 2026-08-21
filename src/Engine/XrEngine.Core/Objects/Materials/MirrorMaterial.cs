@@ -10,11 +10,11 @@ namespace XrEngine
 
     public class MirrorMaterial : ShaderMaterial
     {
-        static readonly StandardVertexShader SHADER;
+        static readonly StandardShader SHADER;
 
         static MirrorMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "mirror.frag",
                 VertexSourceName = "standard.vert",
@@ -74,7 +74,7 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 if (planar.Texture != null)
-                    up.LoadTexture(planar.Texture, 7);
+                    up.LoadTexture(planar.Texture, TextureSlots.PlanarReflection);
 
                 if (PlanarReflection.IsMultiView)
                 {
@@ -89,8 +89,6 @@ namespace XrEngine
 
             });
         }
-
-
 
         public uint TextureSize { get; set; }
 

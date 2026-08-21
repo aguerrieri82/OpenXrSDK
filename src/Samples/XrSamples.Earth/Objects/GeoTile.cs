@@ -22,7 +22,6 @@ namespace XrSamples.Earth
             var latRad = (float)DegreesToRadians(latLng.Y);
             var lonRad = (float)DegreesToRadians(latLng.X);
 
-
             // Compute Cartesian coordinates
             var x = SphereRadius * MathF.Cos(latRad) * MathF.Cos(lonRad);
             var y = SphereRadius * MathF.Sin(latRad);
@@ -54,10 +53,8 @@ namespace XrSamples.Earth
 
             var len = Geometry!.Vertices.Length;
 
-
             var trans = Matrix3x2.CreateScale(p1.X - p0.X, p2.Y - p0.Y) *
                         Matrix3x2.CreateTranslation(p0.X, p0.Y);
-
 
             for (var i = 0; i < len; i++)
             {
@@ -74,9 +71,9 @@ namespace XrSamples.Earth
 
             var texData = tiff.Read();
 
-            if (texData.Format == TextureFormat.GrayRawSInt16)
+            if (texData.Format == TextureFormat.GrayInt16)
             {
-                texData.Data = ImageUtils.ConvertShortToFloat(texData.Data!);
+                texData.Content = ImageUtils.ConvertShortToFloat(texData.Content!);
                 texData.Format = TextureFormat.GrayFloat32;
             }
 
@@ -204,7 +201,7 @@ namespace XrSamples.Earth
                 HeightMap.MagFilter = ScaleFilter.LinearMipmapLinear;
                 HeightMap.MinFilter = ScaleFilter.Linear;
 
-                if (texData.Format == TextureFormat.GrayRawSInt16)
+                if (texData.Format == TextureFormat.GrayInt16)
                 {
                     HeightMap.MagFilter = ScaleFilter.Nearest;
                     HeightMap.MinFilter = ScaleFilter.Nearest;
@@ -226,7 +223,7 @@ namespace XrSamples.Earth
             base.Update(ctx);
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 
@@ -235,7 +232,6 @@ namespace XrSamples.Earth
             var p2 = ToCartesian(SouthEast);
             var p3 = ToCartesian(SouthWest);
 
-
             canvas.State.Color = "#ffff00";
             canvas.State.Transform = Parent!.WorldMatrix;
 
@@ -243,7 +239,6 @@ namespace XrSamples.Earth
             canvas.DrawLine(p2, p3);
             canvas.DrawLine(p0, p2);
             canvas.DrawLine(p1, p3);
-
 
             var center = (p0 + p1 + p2 + p3) / 4f;
             var zAxis = center.Normalize();

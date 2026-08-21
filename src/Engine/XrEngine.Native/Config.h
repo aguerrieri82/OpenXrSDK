@@ -6,9 +6,11 @@
 
 	#define EXPORT __declspec(dllexport)
 
-	#define APIENTRY __cdecl
+	#define FORCE_INLINE __forceinline
 
 #else
+
+	#define FORCE_INLINE inline __attribute__((always_inline))
 
 	#define EXPORT __attribute__((visibility("default")))
 

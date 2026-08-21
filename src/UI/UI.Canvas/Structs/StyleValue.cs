@@ -1,5 +1,4 @@
 ﻿
-
 namespace CanvasUI
 {
     public enum UiStyleMode
@@ -46,7 +45,6 @@ namespace CanvasUI
         readonly object? IStyleValue.Value => Value;
 
         public readonly bool HasValue => Mode == UiStyleMode.Value && Value != null;
-
 
         public T? Value;
 

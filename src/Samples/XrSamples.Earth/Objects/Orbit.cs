@@ -79,7 +79,6 @@ namespace XrSamples.Earth
 
             var xw = xOrb * cosw - yOrb * sinw;
             var yw = xOrb * sinw + yOrb * cosw;
-            var zw = 0.0;
 
             // b) Inclination i around X
             var cosi = Math.Cos(Inclination);
@@ -184,12 +183,9 @@ namespace XrSamples.Earth
 
         public double SemiMajorAxis { get; set; }
 
-
         public double MeanAnomalyAtEpoch { get; set; }
 
-
         public double MeanMotion { get; set; }
-
 
         public double ArgumentOfPerihelion { get; set; }
 

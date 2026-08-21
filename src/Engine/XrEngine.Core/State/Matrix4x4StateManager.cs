@@ -19,7 +19,6 @@ namespace XrEngine
             container.Write(key, floats.ToArray());
         }
 
-
         public static readonly Matrix4x4StateManager Instance = new();
     }
 }

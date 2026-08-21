@@ -2,10 +2,11 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+
 #endif
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -13,7 +14,7 @@ namespace XrEngine.OpenGL
     {
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void FramebufferTextureMultiviewOVRDelegate(
+        public delegate void FramebufferTextureMultiviewOVRDelegate(
             FramebufferTarget target,
             FramebufferAttachment attachment,
             uint texture,
@@ -23,7 +24,7 @@ namespace XrEngine.OpenGL
         );
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void FramebufferTextureMultisampleMultiviewOVRDelegate(
+        public delegate void FramebufferTextureMultisampleMultiviewOVRDelegate(
             FramebufferTarget target,
             FramebufferAttachment attachment,
             uint texture,
@@ -33,25 +34,26 @@ namespace XrEngine.OpenGL
             uint numViews
         );
 
-        static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
+        public static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
 
-        static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
+        public static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
 
         protected uint _width;
         protected uint _height;
         protected uint _sampleCount;
         protected GlTexture? _color;
         protected GlTexture? _depth;
-        protected Size2I _size;
         protected readonly TextureTarget _target;
-        protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
         {
+            BaseViewIndex = 0;
+            NumViews = 2;
 
             _handle = _gl.GenFramebuffer();
             _target = TextureTarget.Texture2DArray;
+
             _gl.CheckError();
 
             BindFunctions(gl);
@@ -73,17 +75,16 @@ namespace XrEngine.OpenGL
                       sampleCount);
         }
 
-
-        public void Configure(GlTexture colorTex, GlTexture? depthTex, uint sampleCount)
+        public void Configure(GlTexture? colorTex, GlTexture? depthTex, uint sampleCount)
         {
+            BeginUpdate();
+
             _color = colorTex;
             _depth = depthTex;
             _sampleCount = sampleCount;
 
-
-            Bind();
-
-            BindAttachment(_color, FramebufferAttachment.ColorAttachment0, true);
+            if (_color != null)
+                Attach(_color, FramebufferAttachment.ColorAttachment0, true);
 
             if (_depth != null)
             {
@@ -91,31 +92,33 @@ namespace XrEngine.OpenGL
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
-                BindAttachment(_depth, depthAtt, false);
+                Attach(_depth, depthAtt, false);
             }
 
-            Check();
-
-            _size = new Size2I(_color.Width, _color.Height);
+            EndUpdate();
         }
 
-        public void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw)
+        public override void Attach(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0)
         {
+            Bind();
+
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
 
-            if (_sampleCount > 1)
+            if (_sampleCount > 1 && (attachment is GlTexture tex))
             {
+                Debug.Assert(tex.Target == TextureTarget.Texture2DArray);
+
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
 
                 FramebufferTextureMultisampleMultiviewOVR(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    0,
+                    (uint)layer,
                     _sampleCount,
-                    0, 2);
+                    BaseViewIndex, NumViews);
             }
             else
             {
@@ -123,16 +126,21 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
 
                 FramebufferTextureMultiviewOVR!(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    0, 0, 2);
+                    (uint)layer, BaseViewIndex, NumViews);
             }
 
             _isDirty = true;
+
+            _attachments[slot] = new GlAttachmentInfo
+            {
+                Attachment = attachment,
+            };
         }
 
-        public void Detach(FramebufferAttachment attachment)
+        public override void Detach(FramebufferAttachment attachment)
         {
             Bind();
 
@@ -142,12 +150,12 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
 
                 FramebufferTextureMultisampleMultiviewOVR(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     attachment,
                     0,
                     0,
                     _sampleCount,
-                    0, 2);
+                    BaseViewIndex, NumViews);
 
                 _gl.CheckError();
 
@@ -158,47 +166,19 @@ namespace XrEngine.OpenGL
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
 
                 FramebufferTextureMultiviewOVR(
-                    Target,
+                    FramebufferTarget.Framebuffer,
                     attachment,
                     0,
-                    0, 0, 2);
+                    0, BaseViewIndex, NumViews);
 
                 _gl.CheckError();
             }
 
-            var status = _gl.CheckFramebufferStatus(Target);
-
-            if (status != GLEnum.FramebufferComplete)
-            {
-                throw new Exception($"Frame buffer state invalid: {status}");
-            }
-        }
-
-        public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
-        {
-            if (Color == null)
-                throw new NotSupportedException();
-
-            if (!_attachments.TryGetValue(slot, out var obj))
-            {
-                var glTex = Color.Clone(false);
-
-                Bind();
-                BindAttachment(glTex, slot, true);
-                SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
-                Check();
-
-                obj = glTex;
-            }
-
-            return (GlTexture)obj;
+            Check();
         }
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
-            if (attachment == FramebufferAttachment.DepthAttachment && _sampleCount > 1)
-                return GlDepthUtils.GetDepthUsingFramebufferArray(_gl, this, 2);
-
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return _color;
 
@@ -208,11 +188,15 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public Size2I Size => _size;
+        public override GlTexture? Color => _color;
 
-        public GlTexture? Color => _color;
+        public override IGlRenderAttachment? Depth => _depth;
 
-        public IGlRenderAttachment? Depth => _depth;
+        public override uint SampleCount => _sampleCount;
+
+        public uint BaseViewIndex { get; set; }
+
+        public uint NumViews { get; set; }
 
     }
 }

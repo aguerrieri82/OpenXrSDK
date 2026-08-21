@@ -38,10 +38,9 @@ namespace XrEditor
                     IsActive = wasActive;
                 }
             });
+
             _isEnabled = true;
         }
-
-
 
         public static void CreateActions(object obj, IList<ActionView> actions)
         {
@@ -50,7 +49,7 @@ namespace XrEditor
 
         public static void CreateActions(object obj, Type objType, object? host, IList<ActionView> actions)
         {
-            foreach (var method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var method in objType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 var action = method.GetCustomAttribute<ActionAttribute>();
                 if (action == null)
@@ -60,10 +59,9 @@ namespace XrEditor
                 if (name.EndsWith("Async"))
                     name = name[..^5];
 
-                var propView = new ActionView
+                var propView = new ActionView(() => method.Invoke(obj, null), EngineApp.Current.Dispatcher)
                 {
-                    DisplayName = name,
-                    ExecuteCommand = new Command(() => method.Invoke(obj, null)),
+                    DisplayName = method.Name
                 };
 
                 actions.Add(propView);
@@ -119,7 +117,6 @@ namespace XrEditor
                 OnPropertyChanged(nameof(IsActive));
             }
         }
-
 
         public string? Name { get; set; }
     }

@@ -2,30 +2,34 @@
 {
     public class ShadowController : BaseComponent<Scene3D>
     {
-        private IShadowMapProvider? _provider;
+        private IShadowMapProvider? _mapProvider;
 
-        public ShadowController()
-        {
-
-        }
-
-        protected override void OnAttach()
-        {
-            _provider = _host?.App?.Renderer?.Feature<IShadowMapProvider>();
-
-            base.OnAttach();
-        }
+        private IContactShadowProvider? _contactProvider;
 
         [Action]
         public void Apply()
         {
             foreach (var light in _host!.Children.OfType<DirectionalLight>())
-                light.ContentVersion++;
+                light.Invalidate();
         }
 
-        public ShadowMapOptions? Options
+        public ShadowMapOptions? MapOptions
         {
-            get => _provider?.Options;
+            get
+            {
+                _mapProvider ??= _host?.App?.Renderer.Feature<IShadowMapProvider>();
+                return _mapProvider?.Options;
+            }
+            set => throw new NotSupportedException();
+        }
+
+        public ContactShadowOptions? ContactOptions
+        {
+            get
+            {
+                _contactProvider ??= _host?.App?.Renderer.Feature<IContactShadowProvider>();
+                return _contactProvider?.Options;
+            }
             set => throw new NotSupportedException();
         }
     }

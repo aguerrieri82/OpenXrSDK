@@ -1,11 +1,18 @@
-﻿namespace XrEngine
+﻿using System.Numerics;
+
+namespace XrEngine
 {
     public enum AlphaMode
     {
-        Opaque = 0,
-        Mask = 1,
-        Blend = 2,
-        BlendMain = 4 | Blend
+        Opaque = 0x1,
+        Blend = 0x2,
+        Mask = 0x4 | Opaque,
+        BlendMain = 0x8 | Blend | Opaque,
+        Add = Blend | 0x10,
+        Min = Blend | 0x20,
+        Max = Blend | 0x40,
+        Punch = Blend | 0x80,
+        Over = Blend | 0x100,
     }
 
     public enum StencilFunction
@@ -20,10 +27,22 @@
         Always = 0x0207
     }
 
-    public abstract class Material : EngineObject, IHosted, IMaterial
+    public enum SkinMode
+    {
+        Static,
+        Dynamic
+    }
+
+    public enum MorphMode
+    {
+        NotEmptyTargets,
+        AllTargets,
+        DynamicTargets,
+    }
+
+    public abstract partial class Material : EngineObject, IHosted, IMaterial
     {
         protected HashSet<EngineObject> _hosts = [];
-        protected bool _isEnabled;
 
         public Material()
         {
@@ -65,7 +84,7 @@
         protected override void SetStateWork(IStateContainer container)
         {
             container.ReadObject(this);
-            NotifyChanged(ObjectChangeType.Render);
+            NotifyChanged(ChangeType.Render);
             base.SetStateWork(container);
         }
 
@@ -94,9 +113,17 @@
         [Action]
         public virtual void Reload()
         {
+            OnChanged(ChangeType.Render);
+        }
 
-            this.OnChanged(ObjectChangeType.Material);
+        public void NotifyChanged()
+        {
+            NotifyChanged(ChangeType.Render);
+        }
 
+        public override void Invalidate(InvalidateMode mode = InvalidateMode.Content)
+        {
+            base.Invalidate(mode);
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;
@@ -111,31 +138,37 @@
 
         public bool DoubleSided { get; set; }
 
+        public bool CullFront { get; set; }
+
         public bool CastShadows { get; set; }
 
         public byte? WriteStencil { get; set; }
 
         public byte? CompareStencilMask { get; set; }
 
+        public Vector2 PolygonOffset { get; set; }
+
         public StencilFunction StencilFunction { get; set; }
 
         public AlphaMode Alpha { get; set; }
 
+        public SkinMode Skin { get; set; }
+
+        public MorphMode Morph { get; set; }
+
+        public bool HasSkin { get; set; }
+
+        public bool HasMorph { get; set; }
+
         public string? Name { get; set; }
+
+        public int ShadingRate { get; set; }
 
         public int Priority { get; set; }
 
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set
-            {
-                if (_isEnabled == value)
-                    return;
-                _isEnabled = value;
-                NotifyChanged(ObjectChangeType.MaterialEnabled);
-            }
-        }
+
+        [Notify(ChangeType.MaterialEnabled)]
+        public partial bool IsEnabled { get; set; }
 
         public virtual Material Clone()
         {

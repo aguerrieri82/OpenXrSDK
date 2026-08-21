@@ -7,10 +7,11 @@ using XrMath;
 namespace XrEngine.OpenXr
 {
 
-    public class RayPointerCollider : Behavior<Scene3D>
+    public class RayPointerCollider : Behavior<Scene3D>, IRayPointerProvider
     {
         protected IRayTarget[] _sceneTargets = [];
         protected Collision? _lastCollision;
+        protected IRayHitTestSource? _hitTestSource;
         protected readonly RayView _rayView;
         protected readonly HitTargetView _hitView;
         protected readonly ConcurrentBag<Collision> _collisions = [];
@@ -24,7 +25,7 @@ namespace XrEngine.OpenXr
 
         protected override void OnAttach()
         {
-            _host!.AddChild(_rayView);
+            _host.AddChild(_rayView);
             _host.AddChild(_hitView);
         }
 
@@ -69,14 +70,34 @@ namespace XrEngine.OpenXr
 
             Collision? result = null;
 
+            _collisions.Clear();
+
             var colliders = Handler != null && Handler.IsActive ? Handler.GetColliders() : null;
 
-            _host.RayCollisions(ray, _collisions, colliders, ParallelColliders);
+            if (_hitTestSource != null)
+            {
+                if (_hitTestSource.LastHit.Object != null)
+                {
+                    var lastHit = _hitTestSource.LastHit;
+
+                    _collisions.Add(new Collision
+                    {
+                        Object = lastHit.Object,
+                        Point = lastHit.Pos,
+                        Normal = lastHit.Normal,
+                        TriangleId = lastHit.Index,
+                        LocalPoint = lastHit.Object!.ToLocal(lastHit.Pos),
+                        Distance = (lastHit.Pos - ray.Origin).Length(),
+                    });
+                }
+            }
+
+            _host.RayCollisions(ray, _collisions, colliders, ParallelColliders, excludeMesh: _hitTestSource != null);
 
             if (_collisions.Count > 0)
             {
                 var minDistance = _collisions.Min(a => a.Distance);
-                result = _collisions.Where(a => a.Distance == minDistance).FirstOrDefault();
+                result = _collisions.FirstOrDefault(a => a.Distance == minDistance);
             }
 
             if (result != null)
@@ -128,6 +149,10 @@ namespace XrEngine.OpenXr
                 target.NotifyCollision(ctx, collision);
         }
 
+        public void SetHitTestSource(IRayHitTestSource source)
+        {
+            _hitTestSource = source;
+        }
 
         public IRayColliderHandler? Handler { get; set; }
 

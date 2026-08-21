@@ -16,7 +16,6 @@
             _toggle.Style.FontSize = UnitValue.Dp(24);
             _toggle.Style.Padding = UnitRectValue.All(-3f / 24f, Unit.Em);
 
-
             _checkedContent = new Icon() { IconName = IconName.IconCheckBox };
             _uncheckedContent = new Icon() { IconName = IconName.IconCheckBoxOutlineBlank };
 
@@ -46,7 +45,6 @@
 
             ValueChanged?.Invoke(this, _toggle.IsChecked, !_toggle.IsChecked);
         }
-
 
         public object? Content
         {

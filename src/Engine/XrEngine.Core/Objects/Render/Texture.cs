@@ -1,5 +1,4 @@
-﻿
-namespace XrEngine
+﻿namespace XrEngine
 {
 
     public enum TextureFormat
@@ -7,22 +6,26 @@ namespace XrEngine
         Unknown,
 
         Depth32Float,
-        Depth24Float,
+        Depth24,
         Depth24Stencil8,
-        Depth32Stencil8,
+        Depth32FloatStencil8,
         Depth16,
 
-        Rgb24,
-        Rgba32,
-        Bgra32,
+        Rgb8,
+        Rgba8,
+        Bgra8,
 
-        Rg88,
+        Rgba16,
+        SRgbaInt16,
+
+        Rg8,
 
         RgbFloat32,
         RgbaFloat32,
 
         RgbFloat16,
         RgbaFloat16,
+        Rgb9e5Float,
 
         RgFloat32,
         RgFloat16,
@@ -30,14 +33,18 @@ namespace XrEngine
         GrayFloat32,
         GrayFloat16,
 
-        SRgb24,
-        SBgra32,
-        SRgba32,
+        SRgb8,
+        SBgra8,
+        SRgba8,
 
-        GrayInt8,
+        Gray8,
+        Gray16,
+
         GrayInt16,
-
-        GrayRawSInt16
+        GrayUInt32,
+        RgUInt32,
+        RgbUInt32,
+        RgbaUInt32,
     }
 
     public enum TextureCompressionFormat
@@ -49,8 +56,6 @@ namespace XrEngine
         Bc1 = 0x31545844,
         Bc7 = 0x20374342,
         Astc = 0x43545341
-
-
     }
 
     public enum WrapMode
@@ -78,10 +83,11 @@ namespace XrEngine
         NormalMap
     }
 
-
-    public abstract class Texture : EngineObject, IDisposable
+    public abstract class Texture : EngineObject, IDisposable, IGpuObject
     {
-        protected Texture() { }
+        protected Texture()
+        {
+        }
 
         protected Texture(IList<TextureData> data)
         {
@@ -90,24 +96,58 @@ namespace XrEngine
 
         public void LoadData(TextureData data, bool initSampler = true)
         {
+            if (data.Content == null)
+                Log.Warn(this, "Tetxure LoadData without data");
+
             LoadData([data], initSampler);
         }
 
         public virtual void LoadData(IList<TextureData> data, bool initSampler = true)
         {
+            if (data.Count == 0)
+                throw new InvalidOperationException("Texture data is empty");
+
             Data = data;
-            Width = data[0].Width;
-            Format = data[0].Format;
+            Width = data.Max(a => a.Width);
+
+            if (Format == TextureFormat.Unknown)
+                Format = data[0].Format;
+
             Compression = data[0].Compression;
 
             if (initSampler)
-            {
-                MagFilter = ScaleFilter.Linear;
-                MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
-                WrapS = WrapMode.ClampToEdge;
-            }
+                InitSampler();
 
-            NotifyChanged(ObjectChangeType.Render);
+            NotifyChanged();
+        }
+
+        public virtual void SetDescription(
+            uint width,
+            TextureFormat format,
+            TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed,
+            bool initSampler = true)
+        {
+            Width = width;
+            Format = format;
+            Compression = compression;
+            Data = null;
+
+            if (initSampler)
+                InitSampler();
+
+            NotifyChanged();
+        }
+
+        protected virtual void InitSampler()
+        {
+            if (MinFilter == 0)
+                MinFilter = ScaleFilter.Linear;
+
+            if (MagFilter == 0)
+                MagFilter = ScaleFilter.Linear;
+
+            if (WrapS == 0)
+                WrapS = WrapMode.ClampToEdge;
         }
 
         public void NotifyLoaded()
@@ -127,6 +167,11 @@ namespace XrEngine
             parts.Add($"Texture-{DateTime.UtcNow.Ticks}");
         }
 
+        public void NotifyChanged()
+        {
+            NotifyChanged(ChangeType.Render);
+        }
+
         public IList<TextureData>? Data { get; set; }
 
         public uint Width { get; set; }
@@ -141,7 +186,11 @@ namespace XrEngine
 
         public TextureCompressionFormat Compression { get; set; }
 
+        public TextureSampler? Sampler { get; set; }
+
         public bool NeverCompress { get; set; }
+
+        public bool ForceSrgb { get; set; }
 
         public long Handle { get; set; }
 
@@ -149,4 +198,5 @@ namespace XrEngine
 
         public string? Hash { get; set; }
     }
+
 }

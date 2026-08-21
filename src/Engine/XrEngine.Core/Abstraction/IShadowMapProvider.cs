@@ -17,7 +17,6 @@ namespace XrEngine
         Value = 2
     }
 
-
     public class ShadowMapOptions
     {
         public ShadowMapMode Mode { get; set; }
@@ -33,13 +32,20 @@ namespace XrEngine
 
         public Vector3 Expand { get; set; }
 
-
         [Range(0, 1, 0.01f)]
         public float LightBleed { get; set; }
 
         public int BlurRadius { get; set; }
 
         public bool UseFrustumIntersect { get; set; }
+
+        public bool UseShadowSampler { get; set; }
+
+        public bool UseVirtualReceiver { get; set; }
+
+        public float? FrustumMaxDistance { get; set; }
+
+        public float UpdateInterval { get; set; }
     }
 
     public interface IShadowMapProvider
@@ -53,4 +59,5 @@ namespace XrEngine
 
         DirectionalLight? Light { get; }
     }
+
 }

@@ -18,8 +18,23 @@ namespace XrEngine
         public Object3D? Object;
 
         public Vector4? Tangent;
+
+        public uint TriangleId;
+
+        public Collision Clone()
+        {
+            return (Collision)MemberwiseClone();
+        }
     }
 
+    [Flags]
+    public enum ColliderUsage
+    {
+        None = 0x0,
+        Physics = 0x1,
+        Collisions = 0x2,
+        All = Physics | Collisions
+    }
 
     public interface ICollider3D : IComponent
     {
@@ -28,5 +43,7 @@ namespace XrEngine
         bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f);
 
         void Initialize();
+
+        ColliderUsage Usage { get; }
     }
 }

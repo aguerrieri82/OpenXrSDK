@@ -35,7 +35,6 @@
 
         public ref T ValueRef => ref *_value;
 
-
         public static implicit operator T?(NativeStruct<T> value)
         {
             if (value.Pointer == null)
@@ -47,7 +46,6 @@
         {
             return value.Pointer;
         }
-
 
         public void Dispose()
         {

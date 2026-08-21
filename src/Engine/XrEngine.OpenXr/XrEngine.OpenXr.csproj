@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
-
+	
 	<ItemGroup>
 		<Using Remove="Android.Widget" />
 		<Using Remove="Android.App" />
@@ -11,17 +11,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Shaders\depth_point.frag" />
-	  <EmbeddedResource Include="Shaders\motion_vectors.frag" />
-	  <EmbeddedResource Include="Shaders\motion_vectors.vert" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Include="Components\InputMoveAxix.cs" />
+	  <EmbeddedResource Include="Shaders\*" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Angle\OpenXr.Framework.Angle.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrEngine.Audio\XrEngine.Audio.csproj" />
@@ -30,9 +25,14 @@
 		<ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
 		<ProjectReference Include="..\XrEngine.Physics\XrEngine.Physics.csproj" />
+		<ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
 		<ProjectReference Include="..\XrEngine.UI\XrEngine.UI.csproj" />
 	</ItemGroup>
 
+	<ItemGroup Condition="$([System.String]::Copy('$(DefineConstants)').Contains('GL_WRAPPER'))">
+		<Using Include="OpenGLWrapper.IGLWrapper" Alias="GL" />
+		<Using Include="OpenGLWrapper" />
+	</ItemGroup>
 
 
 </Project>

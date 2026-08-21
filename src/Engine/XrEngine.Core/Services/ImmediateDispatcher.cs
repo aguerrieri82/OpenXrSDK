@@ -12,5 +12,12 @@
         {
             return Task.FromResult(action());
         }
+
+        public void Post(Action action)
+        {
+            action();
+        }
+
+        public Thread Thread => Thread.CurrentThread;
     }
 }

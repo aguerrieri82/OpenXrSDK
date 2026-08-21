@@ -25,7 +25,6 @@ namespace XrEditor
             _isEnabled = true;
         }
 
-
         public bool CanExecute(object? parameter)
         {
             return _isEnabled && !_isExecuting;
@@ -55,11 +54,9 @@ namespace XrEditor
                     return;
                 _isEnabled = value;
                 CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-
             }
         }
 
         public event EventHandler? CanExecuteChanged;
-
     }
 }

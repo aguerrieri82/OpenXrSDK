@@ -2,7 +2,6 @@
 using XrEngine;
 using XrEngine.OpenXr;
 
-
 namespace XrSamples.Dnd
 {
     public static class Builder
@@ -26,11 +25,11 @@ namespace XrSamples.Dnd
             map.WorldMatrix = scene.Settings.MapTransform;
 
             return builder.UseApp(app)
-                    .AddPanel(new DndSettingsPanel(scene.Settings, scene))
+                    .AddPanel(new DndSettingsPanel(scene.Settings, scene), noOverlay: false)
                     .UseDefaultHDR()
                     .ConfigureApp(scene.InputController.Configure)
                     .ConfigureSampleApp()
-                    .UseTeleport(ControllerHand.Left, scene.Player);
+                    .UseTeleport(ControllerHand.Right, scene.Player);
         }
     }
 }

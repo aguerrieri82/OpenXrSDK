@@ -1,9 +1,19 @@
 ﻿using System.Numerics;
+using XrEngine;
 using XrMath;
 
 namespace XrEngine
 {
-    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName
+
+    public enum ObjectCloneFlags
+    {
+        None = 0x0,
+        CloneGeometry = 0x1,
+        CloneMaterials = 0x2
+    }
+
+    [StateManager(StateManagerMode.Manual)]
+    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName, IWorldLocatable, IAnimable
     {
         internal Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;
@@ -36,12 +46,6 @@ namespace XrEngine
             IsVisible = true;
         }
 
-        public virtual T? Feature<T>() where T : class
-        {
-            if (this is T tInt)
-                return tInt;
-            return _components?.OfType<T>().FirstOrDefault();
-        }
 
         public virtual void UpdateWorldMatrix(bool force = false)
         {
@@ -65,7 +69,7 @@ namespace XrEngine
             _transform.Version++;
 
             if (IsNotifyChangedScene())
-                _scene?.NotifyChanged(this, ObjectChangeType.Transform);
+                _scene?.NotifyChanged(this, ChangeType.Transform);
         }
 
         bool IsNotifyChangedScene()
@@ -84,6 +88,12 @@ namespace XrEngine
             }
 
             return true;
+        }
+
+        [Action]
+        public void ForceUpdateBounds()
+        {
+            UpdateBounds(true);
         }
 
         public virtual void UpdateBounds(bool force = false)
@@ -121,7 +131,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Transform))
+            if (change.IsAny(ChangeType.Transform))
             {
                 InvalidateWorld();
 
@@ -129,11 +139,11 @@ namespace XrEngine
                     _parent?.InvalidateBounds();
             }
 
-            if (change.IsAny(ObjectChangeType.Geometry))
+            if (change.IsAny(ChangeType.Geometry))
                 InvalidateBounds();
 
             //Transform changes are notified when world matrix is updated
-            if (_parent != null && change.Type != ObjectChangeType.Transform)
+            if (_parent != null && change.Type != ChangeType.Transform)
                 _scene?.NotifyChanged(this, change);
 
             base.OnChanged(change);
@@ -141,8 +151,9 @@ namespace XrEngine
 
         public override void Dispose()
         {
-            _parent?.RemoveChild(this);
             base.Dispose();
+            _parent?.RemoveChild(this);
+
         }
 
         public float DistanceTo(Vector3 point)
@@ -169,7 +180,7 @@ namespace XrEngine
 
         protected void UpdateWorldInverse()
         {
-            Matrix4x4.Invert(WorldMatrix, out _worldMatrixInverse);
+            _worldMatrixInverse = WorldMatrix.Invert();
             _worldInverseDirty = false;
         }
 
@@ -181,14 +192,14 @@ namespace XrEngine
 
         internal void SetParent(Group3D? value, bool preserveTransform)
         {
-            var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
+            var changeType = ChangeType.Parent | ChangeType.Transform;
 
             var curWorldMatrix = WorldMatrix;
 
             _parent = value;
 
             if (_scene == null && value != null)
-                changeType |= ObjectChangeType.SceneAdd;
+                changeType |= ChangeType.SceneAdd;
 
             var oldScene = _scene;
 
@@ -196,7 +207,7 @@ namespace XrEngine
 
             if (_scene == null)
             {
-                changeType |= ObjectChangeType.SceneRemove;
+                changeType |= ChangeType.SceneRemove;
                 oldScene?.NotifyChanged(this, changeType);
             }
 
@@ -254,24 +265,29 @@ namespace XrEngine
                     return;
                 _isVisible = value;
                 _visibleDirty = true;
-                NotifyChanged(ObjectChangeType.Visibility);
+                NotifyChanged(ChangeType.Visibility);
             }
         }
 
+        [ValueType(ValueType.Direction)]
         public Vector3 Forward
         {
             get => (-Vector3.UnitZ).Transform(WorldOrientation);
             set
             {
                 WorldOrientation = value.ToOrientation();
+                //var delta = Forward.RotationTowards(value);
+                //WorldOrientation = Quaternion.Normalize(delta * WorldOrientation);
             }
         }
 
+        [ValueType(ValueType.Direction)]
         public Vector3 Up
         {
             get => Vector3.UnitY.Transform(WorldOrientation);
         }
 
+        [ValueType(ValueType.Direction)]
         public Vector3 Right
         {
             get => Vector3.UnitX.Transform(WorldOrientation);
@@ -300,7 +316,6 @@ namespace XrEngine
                     value;
             }
         }
-
 
         public Bounds3 WorldBounds
         {
@@ -366,6 +381,29 @@ namespace XrEngine
                 parts.Add(Name ?? GetType().Name);
         }
 
+        public virtual Object3D Clone(ObjectCloneFlags flags)
+        {
+            var newObj = (Object3D)Activator.CreateInstance(GetType())!;
+
+            CloneWork(newObj, flags);
+
+            return newObj;
+        }
+
+        protected virtual void CloneWork(Object3D newObj, ObjectCloneFlags flags)
+        {
+            newObj._transform = _transform.Clone();
+            newObj._worldDirty = true;
+            newObj._worldInverseDirty = true;
+            newObj._visibleDirty = true;
+            newObj._normalMatrixDirty = true;
+            newObj._boundsDirty = true;
+            newObj.Name = Name;
+            newObj.Tag = Tag;
+        }
+
+
+
         public Group3D? Parent => _parent;
 
         public Scene3D? Scene => _scene;
@@ -375,8 +413,6 @@ namespace XrEngine
         public double LifeTime => _lastUpdateTime - _creationTime;
 
         public Transform3D Transform => _transform;
-
-        public string? Tag { get; set; }
 
         public string? Name { get; set; }
     }

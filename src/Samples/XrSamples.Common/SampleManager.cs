@@ -54,11 +54,20 @@ namespace XrSamples
                 Name = "Light Room",
                 Uri = "res://asset/Envs/lightroom_14b.hdr"
             };
-
             yield return new HDRInfo
             {
                 Name = "Court",
                 Uri = "res://asset/Envs/footprint_court.hdr"
+            };
+            yield return new HDRInfo
+            {
+                Name = "Studio Tomoco",
+                Uri = "res://asset/Envs/StudioTomoco.hdr"
+            };
+            yield return new HDRInfo
+            {
+                Name = "Cannon Exterior",
+                Uri = "res://asset/Envs/Cannon_Exterior.hdr"
             };
         }
 
@@ -79,7 +88,13 @@ namespace XrSamples
                             Name = sample.Name,
                             Build = (XrEngineAppBuilder builder) =>
                             {
-                                method.Invoke(null, [builder]);
+                                var args = method.GetParameters();
+
+                                var argList = new object?[args.Length];
+                                argList[0] = builder;
+                                for (var i = 1; i < args.Length; i++)
+                                    argList[i] = args[i].DefaultValue;
+                                method.Invoke(null, argList);
                                 return builder;
                             }
                         });

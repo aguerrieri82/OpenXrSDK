@@ -20,7 +20,6 @@
             Element = element;
         }
 
-
         readonly T IUiBuilder<T>.Element => Element;
 
         public T Element;
@@ -131,7 +130,6 @@
             }
             return builder;
         }
-
 
         public static IUiBuilder<T> AsColumn<T>(this IUiBuilder<T> builder) where T : UiContainer
         {

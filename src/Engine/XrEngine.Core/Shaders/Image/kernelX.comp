@@ -1,8 +1,20 @@
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-layout(local_size_x = 16, local_size_y = 16) in;
+#ifndef FORMAT
+    #define FORMAT rgba16f
+#endif
 
-layout(rgba32f, binding = 0) readonly highp uniform image2D uIn;
-layout(rgba32f, binding = 1) restrict writeonly uniform highp image2D uOut;
+#ifndef MIP_LEVEL
+    #define MIP_LEVEL 0
+#endif
+
+#ifdef USE_ARRAY
+    layout(FORMAT, binding = 0) readonly highp uniform image2DArray uIn;
+    layout(FORMAT, binding = 1) restrict writeonly uniform highp image2DArray uOut;
+#else
+    layout(FORMAT, binding = 0) readonly highp uniform image2D uIn;
+    layout(FORMAT, binding = 1) restrict writeonly uniform highp image2D uOut;
+#endif
 
 uniform int   uRadius;
 uniform float uWeights[64];
@@ -10,12 +22,45 @@ uniform float uWeights[64];
 void main()
 {
     ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+
+#ifdef USE_ARRAY
+    int layer = int(gl_GlobalInvocationID.z);
+    ivec3 ip = ivec3(p, layer);
+    ivec3 sz = imageSize(uIn);
+
+    if (p.x >= sz.x || p.y >= sz.y || layer >= sz.z) return;
+#else
     ivec2 sz = imageSize(uIn);
+
     if (p.x >= sz.x || p.y >= sz.y) return;
+#endif
 
+#if CHANNELS == 2
     vec2 acc = vec2(0.0);
+#elif CHANNELS == 3
+    vec3 acc = vec3(0.0);
+#else
+    float acc = 0.0;
+#endif
 
-    vec2 c = imageLoad(uIn, p).xy;
+#ifdef USE_ARRAY
+    #if CHANNELS == 2
+        vec2 c = imageLoad(uIn, ip).rg;
+    #elif CHANNELS == 3
+        vec3 c = imageLoad(uIn, ip).rgb;
+    #else
+        float c = imageLoad(uIn, ip).r;
+    #endif
+#else
+    #if CHANNELS == 2
+        vec2 c = imageLoad(uIn, p).rg;
+    #elif CHANNELS == 3
+        vec3 c = imageLoad(uIn, p).rgb;
+    #else
+        float c = imageLoad(uIn, p).r;
+    #endif
+#endif
+
     acc += c * uWeights[0];
 
     for (int i = 1; i <= uRadius; ++i)
@@ -23,12 +68,49 @@ void main()
         int y0 = clamp(p.y - i, 0, sz.y - 1);
         int y1 = clamp(p.y + i, 0, sz.y - 1);
 
-        vec2 a = imageLoad(uIn, ivec2(p.x, y0)).xy;
-        vec2 b = imageLoad(uIn, ivec2(p.x, y1)).xy;
+#ifdef USE_ARRAY
+        #if CHANNELS == 2
+            vec2 a = imageLoad(uIn, ivec3(p.x, y0, layer)).rg;
+            vec2 b = imageLoad(uIn, ivec3(p.x, y1, layer)).rg;
+        #elif CHANNELS == 3
+            vec3 a = imageLoad(uIn, ivec3(p.x, y0, layer)).rgb;
+            vec3 b = imageLoad(uIn, ivec3(p.x, y1, layer)).rgb;
+        #else
+            float a = imageLoad(uIn, ivec3(p.x, y0, layer)).r;
+            float b = imageLoad(uIn, ivec3(p.x, y1, layer)).r;
+        #endif
+#else
+        #if CHANNELS == 2
+            vec2 a = imageLoad(uIn, ivec2(p.x, y0)).rg;
+            vec2 b = imageLoad(uIn, ivec2(p.x, y1)).rg;
+        #elif CHANNELS == 3
+            vec3 a = imageLoad(uIn, ivec2(p.x, y0)).rgb;
+            vec3 b = imageLoad(uIn, ivec2(p.x, y1)).rgb;
+        #else
+            float a = imageLoad(uIn, ivec2(p.x, y0)).r;
+            float b = imageLoad(uIn, ivec2(p.x, y1)).r;
+        #endif
+#endif
 
         float w = uWeights[i];
         acc += (a + b) * w;
     }
 
-    imageStore(uOut, p, vec4(acc, 0.0, 0.0));
+#ifdef USE_ARRAY
+    #if CHANNELS == 3
+        imageStore(uOut, ip, vec4(acc, 1.0));
+    #elif CHANNELS == 2
+        imageStore(uOut, ip, vec4(acc, 1.0, 1.0));
+    #else
+        imageStore(uOut, ip, vec4(acc));
+    #endif
+#else
+    #if CHANNELS == 3
+        imageStore(uOut, p, vec4(acc, 1.0));
+    #elif CHANNELS == 2
+        imageStore(uOut, p, vec4(acc, 1.0, 1.0));
+    #else
+        imageStore(uOut, p, vec4(acc));
+    #endif
+#endif
 }

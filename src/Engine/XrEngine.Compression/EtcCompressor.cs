@@ -40,8 +40,6 @@ namespace XrEngine.Compression
             public int Test;
         };
 
-
-
         [DllImport("etcpack")]
         static unsafe extern byte* Encode(
         uint width,
@@ -50,28 +48,30 @@ namespace XrEngine.Compression
         ref EncodeOptions options,
         out uint outSize);
 
-
         [DllImport("etcpack")]
         static unsafe extern void Free(byte* data);
 
         #endregion
 
-
         public static unsafe TextureData Encode(TextureData data)
         {
-
-            using var pData = data.Data!.MemoryLock();
+            using var pData = data.Content!.MemoryLock();
 
             if (!data.Format.IsBgr())
             {
-                EngineNativeLib.RgbToBgr(data.Width, data.Height, pData, pData, data.Format.GetPixelSizeBit() / 8);
+                EngineNativeLib.ConvertRgbToBgr(data.Width, data.Height, pData, pData, data.Format.GetPixelSizeBit() / 8);
 
-                if (data.Format == TextureFormat.Rgba32)
-                    data.Format = TextureFormat.Bgra32;
+                if (data.Format == TextureFormat.Rgba8)
+                    data.Format = TextureFormat.Bgra8;
 
-                else if (data.Format == TextureFormat.SRgba32)
-                    data.Format = TextureFormat.SBgra32;
+                else if (data.Format == TextureFormat.SRgba8)
+                    data.Format = TextureFormat.SBgra8;
 
+                else if (data.Format == TextureFormat.Rgb8)
+                {
+                    data = ImageUtils.PackToRgba8(data, 1);
+                    data.Format = TextureFormat.Bgra8;
+                }
                 else
                     throw new NotSupportedException();
             }
@@ -91,13 +91,13 @@ namespace XrEngine.Compression
 
             var result = data.Clone();
             result.Compression = TextureCompressionFormat.Etc2;
-            result.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
+            result.Content = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
 
-            if (result.Format == TextureFormat.Bgra32)
-                result.Format = TextureFormat.Rgba32;
+            if (result.Format == TextureFormat.Bgra8)
+                result.Format = TextureFormat.Rgba8;
 
-            if (result.Format == TextureFormat.SBgra32)
-                result.Format = TextureFormat.SRgba32;
+            if (result.Format == TextureFormat.SBgra8)
+                result.Format = TextureFormat.SRgba8;
 
             return result;
         }

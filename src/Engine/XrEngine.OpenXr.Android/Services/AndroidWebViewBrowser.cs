@@ -96,7 +96,10 @@ namespace XrEngine.OpenXr.Android
 
             await _webViewLayer.MainThread.ExecuteAsync(() =>
             {
-                _webViewLayer.WebView!.AddJavascriptInterface(_interface, "bridge");
+                if (_webViewLayer.WebView == null)
+                    throw new InvalidOperationException();
+
+                _webViewLayer.WebView.AddJavascriptInterface(_interface, "bridge");
                 _webViewLayer.ShouldInterceptRequest = HandleResponse;
             });
 
@@ -105,9 +108,6 @@ namespace XrEngine.OpenXr.Android
 
         public async Task NavigateAsync(string uri)
         {
-            if (_webViewLayer.WebView == null)
-                throw new InvalidOperationException();
-
             if (!_isInit)
                 await InitAsync();
 
@@ -115,7 +115,7 @@ namespace XrEngine.OpenXr.Android
             {
                 Log.Info(this, "NavigateAsync {0}", uri);
 
-                _webViewLayer.WebView.LoadUrl(uri);
+                _webViewLayer.WebView?.LoadUrl(uri);
 
                 Log.Debug(this, "Navigate END");
             });

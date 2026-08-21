@@ -28,7 +28,6 @@ namespace CanvasUI.Components
         Advance
     }
 
-
     #endregion
 
     #region Bounds1
@@ -428,7 +427,6 @@ namespace CanvasUI.Components
             return false;
         }
 
-
         protected void OnPointerDown(UiElement sender, UiPointerEvent uiEvent)
         {
             if (NotifyDown(uiEvent, GetValue(uiEvent)))
@@ -728,7 +726,6 @@ namespace CanvasUI.Components
             return MinY + (_chartArea.Bottom - y) / PixelPerUnitY;
         }
 
-
         public float ValueToPixelY(float valueY)
         {
             return _chartArea.Bottom - ((valueY - MinY) * PixelPerUnitY);
@@ -756,7 +753,7 @@ namespace CanvasUI.Components
                         var legendColor = SKResources.FillColor(serie.Color);
 
                         var label = GetLegendLabel(serie);
-                        canvas.DrawText(label, new SKPoint(_legendArea.X, curLabelY), font, legendColor);
+                        canvas.DrawText(label, _legendArea.X, curLabelY, SKTextAlign.Left, font, legendColor);
 
                         curLabelY += font.Size + 4;
                     }
@@ -804,7 +801,8 @@ namespace CanvasUI.Components
                             if (labelStartPx > lastLabelPx)
                             {
                                 canvas.DrawText(label,
-                                    new SKPoint(px - labelSize / 2f, _xAxisArea.Y + font.Size),
+                                    px - labelSize / 2f, _xAxisArea.Y + font.Size,
+                                    SKTextAlign.Left,
                                     font,
                                     labelPaint);
 
@@ -869,15 +867,17 @@ namespace CanvasUI.Components
                                 new SKPoint(_yAxisArea.Right - 4, py),
                                 tickPaint);
 
-
                             var label = activeSerie?.FormatValue(curY) ?? "";
                             var labelSize = font.MeasureText(label);
                             var labelStartPy = py - font.Size / 2 + font.Size;
 
                             if (labelStartPy > lastLabelPy || true)
                             {
-                                canvas.DrawText(label,
-                                    new SKPoint(_yAxisArea.Right - 6 - labelSize, py),
+                                canvas.DrawText(
+                                    label,
+                                    _yAxisArea.Right - 6 - labelSize,
+                                    py,
+                                    SKTextAlign.Left,
                                     font,
                                     labelPaint);
 
@@ -898,7 +898,6 @@ namespace CanvasUI.Components
                     }
 
                 }
-
 
                 canvas.ClipRect(_chartArea.ToSKRect());
 
@@ -929,7 +928,6 @@ namespace CanvasUI.Components
 
                 var labelFill = SKResources.FillColor("#00000080");
 
-
                 foreach (var cp in ReferencesX)
                 {
                     if (cp.Value < ViewRect.X || cp.Value > ViewRect.Right)
@@ -956,15 +954,17 @@ namespace CanvasUI.Components
                         var nameSize = font.MeasureText(cp.Name);
                         canvas.DrawRect(pixelX + 4, curOfs - font.Size, nameSize + 8, font.Size + 8, labelFill);
 
-                        canvas.DrawText(cp.Name,
-                            new SKPoint(pixelX + 8, curOfs + 2),
+                        canvas.DrawText(
+                            cp.Name,
+                            pixelX + 8,
+                            curOfs + 2,
+                            SKTextAlign.Left,
                             font,
                             SKResources.FillColor(cp.Color));
 
                         curOfs -= font.Size + 16;
                     }
                 }
-
 
                 foreach (var cp in ReferencesY)
                 {
@@ -1089,7 +1089,6 @@ namespace CanvasUI.Components
             return new Rect2(minMaxX.Min, minMaxY.Min, minMaxX.Length, minMaxY.Length);
         }
 
-
         protected internal void ComputeMetrics(bool advance = false, bool animate = false)
         {
             if (_chartArea.Width == 0 || _chartArea.Height == 0)
@@ -1211,9 +1210,7 @@ namespace CanvasUI.Components
             ViewChanged?.Invoke(this, EventArgs.Empty);
         }
 
-
         public event EventHandler? ViewChanged;
-
 
         [UiProperty(0f, UiPropertyFlags.Render)]
         public float MinX
@@ -1243,7 +1240,6 @@ namespace CanvasUI.Components
             set => SetValue(nameof(PixelPerUnitX), value);
         }
 
-
         [UiProperty(AutoScaleYMode.None, UiPropertyFlags.Render)]
         public AutoScaleYMode AutoScaleY
         {
@@ -1251,14 +1247,12 @@ namespace CanvasUI.Components
             set => SetValue(nameof(AutoScaleY), value);
         }
 
-
         [UiProperty(AutoScaleXMode.None, UiPropertyFlags.Render)]
         public AutoScaleXMode AutoScaleX
         {
             get => GetValue<AutoScaleXMode>(nameof(AutoScaleX))!;
             set => SetValue(nameof(AutoScaleX), value);
         }
-
 
         [UiProperty]
         public ObservableCollection<IPlotterSerie> Series
@@ -1281,7 +1275,6 @@ namespace CanvasUI.Components
             set => SetValue(nameof(ReferencesY), value);
         }
 
-
         [UiProperty]
         public Rect2 ViewRect
         {
@@ -1295,7 +1288,6 @@ namespace CanvasUI.Components
             get => GetValue<float>(nameof(CursorX));
             set => SetValue(nameof(CursorX), value);
         }
-
 
         [UiProperty(false, UiPropertyFlags.Render)]
         public bool ShowLegend
@@ -1317,7 +1309,6 @@ namespace CanvasUI.Components
             get => GetValue<bool>(nameof(ShowAxisX));
             set => SetValue(nameof(ShowAxisX), value);
         }
-
 
         [UiProperty(0f, UiPropertyFlags.Render)]
         public float TickIntervalX

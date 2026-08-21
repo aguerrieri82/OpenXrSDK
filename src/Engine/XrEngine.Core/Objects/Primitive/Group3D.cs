@@ -5,11 +5,24 @@ namespace XrEngine
     public class Group3D : Object3D, ILocalBounds
     {
         protected List<Object3D> _children = [];
+
         private Bounds3 _localBounds;
 
         public Group3D()
         {
             BoundUpdateMode = UpdateMode.Manual;
+        }
+
+        protected override void CloneWork(Object3D newObj, ObjectCloneFlags flags)
+        {
+            var newGrp = (Group3D)newObj;
+
+            newGrp.BoundUpdateMode = BoundUpdateMode;
+
+            foreach (var child in _children)
+                newGrp.AddChild(child.Clone(flags));
+
+            base.CloneWork(newObj, flags);
         }
 
         public override void Dispose()
@@ -22,7 +35,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Visibility))
+            if (change.IsAny(ChangeType.Visibility))
             {
                 foreach (var child in this.Descendants())
                     child._visibleDirty = true;
@@ -113,7 +126,7 @@ namespace XrEngine
 
             //child.EnsureId();
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ChildAdd, child));
+            NotifyChanged(new ObjectChange(ChangeType.ChildAdd, child));
 
             InvalidateBounds();
 
@@ -149,7 +162,7 @@ namespace XrEngine
             _localBounds = builder.Result;
             _worldBounds = _localBounds.Transform(WorldMatrix);
 
-            base.UpdateBounds();
+            base.UpdateBounds(force);
         }
 
         public void RemoveChild(Object3D child, bool preserveTransform = false)
@@ -163,7 +176,7 @@ namespace XrEngine
 
             child.SetParent(null, preserveTransform);
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ChildRemove, child));
+            NotifyChanged(new ObjectChange(ChangeType.ChildRemove, child));
 
             InvalidateBounds();
         }
@@ -172,6 +185,7 @@ namespace XrEngine
         {
             return _children.IndexOf(object3D);
         }
+
         public Bounds3 LocalBounds
         {
             get
@@ -185,8 +199,6 @@ namespace XrEngine
         public UpdateMode BoundUpdateMode { get; set; }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
-
-
 
     }
 }

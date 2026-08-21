@@ -9,9 +9,9 @@ namespace XrEngine
 
         #region BasicShader
 
-        class BasicShader : StandardVertexShader
+        class BasicShader : StandardShader
         {
-            string? _lightHash;
+            ulong _lightHash;
 
             protected override void UpdateShaderGlobal(ShaderUpdateBuilder bld)
             {
@@ -33,7 +33,7 @@ namespace XrEngine
                         }
                     }
 
-                    _lightHash = ctx.LightsHash!;
+                    _lightHash = ctx.LightsHash;
                 });
 
             }
@@ -107,7 +107,6 @@ namespace XrEngine
             });
         }
 
-
         public Texture2D? DiffuseTexture { get; set; }
 
         public Color Color { get; set; }
@@ -117,7 +116,6 @@ namespace XrEngine
         public Color Specular { get; set; }
 
         public float Shininess { get; set; }
-
 
     }
 }

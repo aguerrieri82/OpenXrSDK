@@ -1,6 +1,33 @@
-﻿const float gamma      = 2.2;
+﻿const float pureWhite  = 1.0;
+
+#ifdef HIGH_QUALITY_SRGB
+
+vec3 sRGBToLinear(vec3 c)
+{
+    bvec3 cutoff = lessThanEqual(c, vec3(0.04045));
+
+    vec3 low = c / 12.92;
+    vec3 high = pow((c + 0.055) / 1.055, vec3(2.4));
+
+    return mix(high, low, cutoff);
+}
+
+vec3 linearTosRGB(vec3 c)
+{
+    c = max(c, vec3(0.0));
+
+    bvec3 cutoff = lessThanEqual(c, vec3(0.0031308));
+
+    vec3 low = c * 12.92;
+    vec3 high = 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055;
+
+    return mix(high, low, cutoff);
+}
+
+#else
+
+const float gamma      = 2.2;
 const float inv_gamma  = 1.0 / gamma;
-const float pureWhite  = 1.0;
 
 vec3 sRGBToLinear(vec3 srgbIn)
 {
@@ -11,6 +38,8 @@ vec3 linearTosRGB(vec3 color)
 {
     return pow(color, vec3(inv_gamma));
 }
+
+#endif
 
 
 vec3 toneMap(vec3 color)
@@ -40,4 +69,38 @@ vec3 toneMapNeutral( vec3 color )
 
     float g = 1. - 1. / (desaturation * (peak - newPeak) + 1.);
     return mix(color, newPeak * vec3(1, 1, 1), g);
+}
+
+vec3 toneMapACES(vec3 x)
+{
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+
+void fixSrgbColor(inout vec4 color)
+{
+	#if defined(COLOR_IS_SRGB) && !defined(SRGB_ENCODE)
+		color.rgb = sRGBToLinear(color.rgb);
+	#endif
+
+	#if !defined(COLOR_IS_SRGB) && defined(SRGB_ENCODE)
+		color.rgb = linearTosRGB(color.rgb);
+	#endif
+}
+
+void fixSrgbTex(inout vec4 color)
+{
+	#if !defined(TEXTURE_IS_SRGB) && defined(SRGB_ENCODE)
+		color.rgb = linearTosRGB(color.rgb);
+	#endif
+
+    #if defined(TEXTURE_FORCE_SRGB) && !defined(TEXTURE_IS_SRGB) 
+    	color.rgb = sRGBToLinear(color.rgb);
+    #endif
 }

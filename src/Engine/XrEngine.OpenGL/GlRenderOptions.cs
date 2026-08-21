@@ -10,6 +10,13 @@ namespace XrEngine.OpenGL
         High
     }
 
+    public enum MotionVectorMode
+    {
+        None,
+        Pass,
+        Shared
+    }
+
     public class GlOutlineOptions
     {
         public bool Use { get; set; }
@@ -19,6 +26,8 @@ namespace XrEngine.OpenGL
         public float Size { get; set; }
 
         public bool IsMultiView { get; set; }
+
+        public float DownsampleFactor { get; set; }
     }
 
     public class GlCompressionOptions
@@ -34,25 +43,43 @@ namespace XrEngine.OpenGL
         public float Quality { get; set; }
     }
 
-
     public class GlRenderOptions
     {
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
             IntPrecision = ShaderPrecision.High;
+            SamplerPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = false;
             UseDepthPass = false;
             SortByCameraDistance = true;
-            UseSRGB = false;
-            UseLayerV2 = true;
+            UseSRGB = true;
             RequireTextureCompression = true;
             UseVolume = true;
             SampleCount = 4;
             UseInstanceDraw = true;
             CacheUniforms = true;
+            ToneMap = ToneMapMode.Neutral;
+            UseResolve = false;
+            UseAsyncShaderCompile = true;
+            UseShaderCache = true;
+            UseShaderPreprocessor = true;
+            UseRayCollider = true;
+            UseDefaultIntermediate = true;
+            UsePrimitiveBoundingBox = true;
+            ContactShadow = new()
+            {
+                Use = false,
+                MaxDistance = 0.12f,
+                Thickness = 0.015f,
+                Strength = 0.65f,
+                StepCount = 6.0f,
+                DepthBias = 0.0005f,
+                FadeDistance = 0.12f,
+                ApplyStrength = 1.0f
+            };
             Compression = new GlCompressionOptions
             {
                 Use = false,
@@ -63,42 +90,62 @@ namespace XrEngine.OpenGL
             };
             ShadowMap = new ShadowMapOptions()
             {
-                Mode = ShadowMapMode.VSM,
-                Bias = 0,
-                BiasMode = ShadowMapBiasMode.Auto,
+                Mode = ShadowMapMode.PCF,
+                Bias = 0.001f,
+                BiasMode = ShadowMapBiasMode.Value,
                 Size = 2048,
-                LightBleed = 0.1f,
-                BlurRadius = 10,
+                LightBleed = 0.15f,
+                BlurRadius = 2,
                 IsCasterMode = false,
                 UseFrustumIntersect = false,
+                UseShadowSampler = true,
                 Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
             Outline = new GlOutlineOptions()
             {
                 Use = false,
                 Color = new Color(1, 1, 0, 0.7f),
-                Size = 2
+                Size = 2,
+                DownsampleFactor = 1f
+                //DownsampleFactor = 1.5f
             };
-
-            /*
-            PbrMaterial.LinearOutput = true;
-            PbrMaterial.ToneMap = PbrMaterial.ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
-            */
         }
-
-        public bool UseSRGB { get; set; }
 
         public string? ShaderVersion { get; set; }
 
+        public ContactShadowOptions ContactShadow { get; set; }
+
         public GlCompressionOptions Compression { get; set; }
+
+        public ShaderPrecision SamplerPrecision { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
 
         public ShaderPrecision IntPrecision { get; set; }
 
+        public ShadowMapOptions ShadowMap { get; }
+
+        public GlOutlineOptions Outline { get; }
+
+        public ToneMapMode ToneMap { get; set; }
+
+        public MotionVectorMode MotionVectorMode { get; set; }
+
         public bool RequireTextureCompression { get; set; }
 
         public bool FrustumCulling { get; set; }
+
+        public bool SortByCameraDistance { get; set; }
+
+        public uint SampleCount { get; set; }
+
+        public bool UseHitTest { get; set; }
+
+        public bool CacheUniforms { get; set; }
+
+        public bool InvalidateDepth { get; set; }
+
+        public bool UseSRGB { get; set; }
 
         public bool UseOcclusionQuery { get; set; }
 
@@ -108,23 +155,25 @@ namespace XrEngine.OpenGL
 
         public bool UseVolume { get; set; }
 
-        public uint SampleCount { get; set; }
-
-        public bool UseHitTest { get; set; }
-
-        public ShadowMapOptions ShadowMap { get; }
-
-        public GlOutlineOptions Outline { get; }
-
-        public bool SortByCameraDistance { get; set; }
-
-        public bool UseLayerV2 { get; set; }
-
         public bool UseInstanceDraw { get; set; }
 
-        public bool CacheUniforms { get; set; }
+        public bool UseResolve { get; set; }
 
-        public static GlRenderOptions Default() => new();
+        public bool UseHighQualitySrgb { get; set; }
+
+        public bool UseAsyncShaderCompile { get; set; }
+
+        public bool UseShaderCache { get; set; }
+
+        public bool UseShaderPreprocessor { get; set; }
+
+        public bool UseRayCollider { get; set; }
+
+        public bool UseProfiler { get; set; }
+
+        public bool UseDefaultIntermediate { get; set; }
+
+        public bool UsePrimitiveBoundingBox { get;  set; }
 
     }
 }

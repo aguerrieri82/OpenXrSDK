@@ -17,25 +17,33 @@ namespace XrSamples
 
         public bool EnableDepthPass { get; set; }
 
-        public bool UsePbrV2 { get; set; }
-
         public bool UseSpaceWarp { get; set; }
 
         public bool FrustumCulling { get; set; }
 
+        public bool TextureCompression { get; set; }
 
-        public static GameSettings Helmet()
+        public float Scale { get; set; }
+
+        public bool UseResolve { get; set; }
+
+        public float DepthScale { get; set; }
+
+        public static GameSettings Graffiti()
         {
             return new GameSettings
             {
-                SampleName = "Capture",
-                Msaa = 2,
-                UsePbrV2 = true,
+                SampleName = "DnD",
+                Msaa = 1,
+                Scale = 0.5f, 
+                DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false,
+                IsMultiView = true,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
-                FrustumCulling = false
+                FrustumCulling = true,
+                TextureCompression = true,
+                UseResolve = false
             };
         }
 
@@ -44,11 +52,12 @@ namespace XrSamples
             return new GameSettings()
             {
                 Msaa = 1,
+                Scale = 1f,
+                DepthScale = 0.5f,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
-                UseSpaceWarp = true,
+                IsMultiView = false,
+                UseSpaceWarp = false,
                 EnableDepthPass = false,
-                UsePbrV2 = true,
                 FrustumCulling = true
             };
         }

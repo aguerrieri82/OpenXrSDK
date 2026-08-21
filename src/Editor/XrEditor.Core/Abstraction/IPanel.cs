@@ -12,8 +12,6 @@
         public Guid PanelId { get; }
     }
 
-
-
     public interface IPanel
     {
         Task CloseAsync();

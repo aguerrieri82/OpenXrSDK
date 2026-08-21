@@ -16,7 +16,18 @@ namespace XrEngine
         Mutable = 0x60,
         NotifyChanged = 0x80,
         NoFrustumCulling = 0x100,
-        LargeOccluder = 0x200
+        LargeOccluder = 0x200,
+        Static = 0x400,
+        NoLogs = 0x800,
+        Secondary = 0x1000
+    }
+
+    [Flags]
+    public enum InvalidateMode
+    {
+        Object = 1,
+        Content = 2,
+        All = Object | Content
     }
 
     public static class DynamicPropRegistry
@@ -48,12 +59,12 @@ namespace XrEngine
             return prop.Id;
         }
 
-
         public string Name;
 
         public int Id;
     }
 
+    [StateManager(StateManagerMode.Manual)]
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
     {
         //protected Dictionary<int, object?>? _props;
@@ -63,9 +74,22 @@ namespace XrEngine
         protected ObjectChangeSet _lastChanges;
         protected int _updateCount;
 
+        protected long _version;
+
+        protected long _contentVersion;
+
+        private bool _isDisposed;
+
         public EngineObject()
         {
             Flags = EngineObjectFlags.EnableDebug | EngineObjectFlags.NotifyChanged;
+        }
+
+        public virtual T? Feature<T>() where T : class
+        {
+            if (this is T tInt)
+                return tInt;
+            return _components?.OfType<T>().FirstOrDefault();
         }
 
         public void SetState(IStateContainer container)
@@ -137,7 +161,9 @@ namespace XrEngine
             _components ??= [];
             _components.Add(component);
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentAdd, component));
+            NotifyChanged(new ObjectChange(ChangeType.ComponentAdd, component));
+
+            Invalidate(InvalidateMode.Content);
 
             return component;
         }
@@ -151,12 +177,12 @@ namespace XrEngine
 
             _components?.Remove(component);
 
-            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentRemove, component));
+            NotifyChanged(new ObjectChange(ChangeType.ComponentRemove, component));
         }
 
         public void NotifyChanged(ObjectChange change)
         {
-            if ((Flags & EngineObjectFlags.NotifyChanged) == 0)
+            if (!this.Is(EngineObjectFlags.NotifyChanged))
                 return;
 
             if (_updateCount > 0)
@@ -172,7 +198,7 @@ namespace XrEngine
 
         protected virtual void OnChanged(ObjectChange change)
         {
-            Version++;
+            Invalidate();
             Changed?.Invoke(this, change);
         }
 
@@ -212,8 +238,10 @@ namespace XrEngine
         {
             if (_components != null)
             {
-                foreach (var component in _components.OfType<IDisposable>())
-                    component.Dispose();
+                foreach (var component in _components)
+                    component.Detach(true);
+
+                _components.Clear();
                 _components = null;
             }
 
@@ -229,12 +257,14 @@ namespace XrEngine
             ObjectBinder.Unbind(this);
 
             GC.SuppressFinalize(this);
+
+            _isDisposed = true;
         }
 
         public void EnsureId()
         {
             if (_id.Value == Guid.Empty)
-                _id = Utils.HashGuid(GeneratePath());
+                _id = Guid.NewGuid();
 
         }
 
@@ -259,9 +289,24 @@ namespace XrEngine
             }
         }
 
-        public long Version { get; protected set; }
+        public virtual void Invalidate(InvalidateMode mode = InvalidateMode.Object)
+        {
+            if ((mode & InvalidateMode.Object) == InvalidateMode.Object)
+                _version++;
+
+            if ((mode & InvalidateMode.Content) == InvalidateMode.Content)
+                _contentVersion++;
+        }
 
         public EngineObjectFlags Flags { get; set; }
+
+        public object? Tag { get; set; }
+
+        public long ContentVersion => _contentVersion;
+
+        public long Version => _version;
+
+        public bool IsDisposed => _isDisposed;
 
         public ObjectId Id
         {

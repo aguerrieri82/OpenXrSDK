@@ -27,7 +27,6 @@ namespace XrEditor
             X = new FloatEditor() { Scale = _scale };
             Y = new FloatEditor() { Scale = _scale };
 
-
             Binding = binding;
 
             X.ValueChanged += e =>
@@ -53,6 +52,11 @@ namespace XrEditor
             };
         }
 
+        public override void SetAttributes(IEnumerable<Attribute> attributes)
+        {
+            X.SetAttributes(attributes);
+            Y.SetAttributes(attributes);
+        }
 
         protected override void OnEditValueChanged(Vector2 newValue)
         {
@@ -60,7 +64,6 @@ namespace XrEditor
 
             X._isLoading++;
             Y._isLoading++;
-
 
             try
             {

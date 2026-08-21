@@ -1,6 +1,5 @@
 ﻿using Android.OS;
 
-
 namespace OpenXr.Framework.Android
 {
     public class HandlerXrThread : IXrThread

@@ -72,13 +72,13 @@ namespace XrEngine
             {
                 case GlInternalFormat.CompressedRgb8Etc2:
                     comp = TextureCompressionFormat.Etc2;
-                    format = TextureFormat.Rgb24;
+                    format = TextureFormat.Rgb8;
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
-            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
+            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, 1, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
         }
 
         protected override bool CanHandleExtension(string extension)

@@ -4,7 +4,6 @@ using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
 
-
 namespace XrEditor
 {
 
@@ -31,7 +30,6 @@ namespace XrEditor
 
         public Command CloseCommand { get; }
     }
-
 
     public class MainView : BaseView, IUserInteraction, IStateManager
     {
@@ -87,26 +85,24 @@ namespace XrEditor
             };
         }
 
-        public void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)
+        public async void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)
         {
-            Context.Require<IMainDispatcher>().ExecuteAsync(async () =>
+            await UiThread;
+
+            var color = type switch
             {
-                var color = type switch
-                {
-                    MessageType.Error => "red",
-                    MessageType.Info => "blue",
-                    _ => throw new NotSupportedException()
-                };
+                MessageType.Error => "red",
+                MessageType.Info => "blue",
+                _ => throw new NotSupportedException()
+            };
 
-                var msg = new MessageView(this, message, color);
+            var msg = new MessageView(this, message, color);
 
-                Messages.Add(msg);
+            Messages.Add(msg);
 
-                await UIUtils.DelayAsync(TimeSpan.FromMilliseconds(showTimeMs));
+            await UIUtils.DelayAsync(TimeSpan.FromMilliseconds(showTimeMs));
 
-                msg.Close();
-
-            });
+            msg.Close();
         }
 
         public void GetState(IStateContainer container)
@@ -136,9 +132,13 @@ namespace XrEditor
         {
             if (!File.Exists("layout.json"))
                 return;
+
             var json = File.ReadAllText("layout.json");
             var container = new JsonStateContainer(json);
             SetState(container);
+
+            if (Host!.State == WindowState.Minimized)
+                Host.State = WindowState.Normal;
         }
 
         public MainToolbarView Toolbar { get; }

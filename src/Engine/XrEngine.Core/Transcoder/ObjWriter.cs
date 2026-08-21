@@ -13,8 +13,6 @@ namespace XrEngine
             Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         }
 
-
-
         public void Add(TriangleMesh mesh)
         {
             Debug.Assert(mesh.Geometry != null);

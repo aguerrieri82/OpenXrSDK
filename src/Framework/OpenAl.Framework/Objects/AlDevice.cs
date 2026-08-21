@@ -31,7 +31,6 @@ namespace OpenAl.Framework
         const bool useSoft = false;
 #endif
 
-
         static AlDevice()
         {
             _alc = ALContext.GetApi(useSoft);
@@ -85,7 +84,6 @@ namespace OpenAl.Framework
             _alc.MakeContextCurrent(_context);
         }
 
-
         public static IList<string> ListDevices(bool onlyDefault)
         {
             var result = new List<string>();
@@ -97,7 +95,6 @@ namespace OpenAl.Framework
 
                 result.AddRange(enumeration.GetStringList(devType));
             }
-
 
             return result;
         }

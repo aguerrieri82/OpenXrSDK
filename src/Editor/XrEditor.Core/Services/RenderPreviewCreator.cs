@@ -25,13 +25,12 @@ namespace XrEditor.Services
                 Height = 1024,
                 SampleCount = 1,
                 MipLevelCount = 1,
-                Format = TextureFormat.Rgb24,
+                Format = TextureFormat.Rgb8,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear
             };
-
 
             _scene = new Scene3D();
             var camera = new PerspectiveCamera()
@@ -51,7 +50,7 @@ namespace XrEditor.Services
             _light = new ImageLight();
             _light.LoadPanorama("res://asset/Envs/pisa.hdr");
             _light.Intensity = 2.5f;
-            _light.NotifyChanged(ObjectChangeType.Render);
+            _light.NotifyChanged(ChangeType.Render);
 
             _app = new EngineApp();
             _app.Renderer = _engine;
@@ -83,7 +82,7 @@ namespace XrEditor.Services
 
             if (texture.Width == 0 || texture.Height == 0)
             {
-                var src = texture.Component<AssetSource>();
+                texture.TryComponent<AssetSource>(out var src);
                 if (src?.Asset != null)
                     src.Asset.Update(texture);
             }
@@ -95,7 +94,7 @@ namespace XrEditor.Services
                 texture.Transform = null;
 
                 _textureMaterial.Texture = texture;
-                _textureMaterial.NotifyChanged(ObjectChangeType.Render);
+                _textureMaterial.NotifyChanged(ChangeType.Render);
 
                 _mesh.Materials.Clear();
                 _mesh.Materials.Add(_textureMaterial);
@@ -105,7 +104,6 @@ namespace XrEditor.Services
 
                 _app.ActiveScene!.Clear();
                 _app.ActiveScene!.AddChild(_mesh);
-
 
                 return CreateImage();
             }
@@ -120,7 +118,7 @@ namespace XrEditor.Services
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();
             _mesh.Materials.Add(material.Clone());
-            _mesh.NotifyChanged(ObjectChangeType.Render);
+            _mesh.NotifyChanged(ChangeType.Render);
 
             var diagonal = geometry.Bounds.Size.Length();
             var distance = diagonal / (2 * MathF.Tan((45f / 180f * MathF.PI) / 2));
@@ -134,14 +132,13 @@ namespace XrEditor.Services
             return CreateImage();
         }
 
-
         protected NativeImage? CreateImage()
         {
             _engine.SetRenderTarget(_texture);
 
             _app.RenderFrame();
 
-            var data = ((IFrameReader)_app.Renderer!).ReadFrame(_texture.Format);
+            var data = ((IFrameReader)_app.Renderer).ReadFrame(_texture.Format);
 
             _engine.SetRenderTarget(null);
 

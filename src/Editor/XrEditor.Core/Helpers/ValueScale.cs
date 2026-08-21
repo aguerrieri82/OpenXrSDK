@@ -19,6 +19,9 @@
 
         public virtual string? Format(float scaleValue)
         {
+            if (scaleValue != 0.0f && MathF.Abs(scaleValue) < MathF.Pow(10.0f, -DecimalDigits))
+                return scaleValue.ToString("0." + new string('#', DecimalDigits) + "E+0");
+
             return Math.Round(scaleValue, DecimalDigits).ToString();
         }
 

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Windows.Controls;
 using XrEngine;
+using XrEngine.OpenXr;
 using XrEngine.Reconstruct;
 using XrMath;
 
@@ -40,19 +41,18 @@ namespace XrEditor.Plot
         private EyesFrame<DepthFrame>? _curDepth;
         private EyesFrame<ColorFrame>? _curColor;
         private int _colorOffset;
-        private float _fovScale;
-        private Vector2 _center;
         private ColorMode _colorMode;
         private ColorFrame? _curScreen;
         private bool _autoOffset;
         private float _depthCutOff;
         private Bounds3 _roomBounds;
+        private TriangleMesh? _depthMesh;
+        private int _meshCount;
+        private DepthGeometryGenerator? _generator;
 
         public ReconstructPanel()
         {
             _overlay = 0f;
-            _fovScale = 1f;
-            _center.X = -530;
             _autoOffset = true;
             _depthCutOff = 1;
             _axis = VectorAxis.Y;
@@ -70,12 +70,12 @@ namespace XrEditor.Plot
             VoxelStartFrame = 141;
             VoxelEndFrame = 151;
             ExportPointsCommand = new Command(ExportPoints);
+            SelectCommand = new Command(SelectMesh);
         }
 
         protected override Task LoadAsync()
         {
             _reader = XrReconstructReader.Current;
-            _reader.Open("D:\\Projects\\XrEditor\\Capture");
 
             OnPropertyChanged(nameof(TotalFrames));
             ReadFrame(0);
@@ -94,7 +94,7 @@ namespace XrEditor.Plot
             Log.Info(this, "{0} Points Exported!", points.Count);
         }
 
-        public void ReadFrame(int frameIndex)
+        public async void ReadFrame(int frameIndex)
         {
             if (_reader == null)
                 return;
@@ -133,6 +133,93 @@ namespace XrEditor.Plot
             OnPropertyChanged(nameof(ColorOffset));
 
             UpdateImages();
+
+            if (EngineApp.IsCreated)
+            {
+                await EngineApp.MainThread;
+                UpdateMesh();
+            }
+        }
+
+        protected async void SelectMesh()
+        {
+            var scene = EngineApp.Current.ActiveScene;
+
+            if (scene == null || _depthMesh == null)
+                return;
+
+            await EngineApp.MainThread;
+
+            var tex = new Texture2D();
+
+            tex!.LoadData(new TextureData
+            {
+                Width = _curColor!.Width,
+                Height = _curColor.Height,
+                Format = TextureFormat.Rgb8,
+                Content = _curColor.Left.Data
+            });
+
+            var mesh = new TriangleMesh(_depthMesh.Geometry!, new TextureMaterial(tex)
+            {
+                Alpha = AlphaMode.Blend,
+                UseDepth = false,
+                WriteDepth = false,
+                Priority = _meshCount++
+            });
+
+            scene.AddChild(mesh);
+
+            _depthMesh.Materials[0].Priority = _meshCount + 1;
+            _depthMesh.Materials[0].NotifyChanged(ChangeType.Render);
+
+        }
+
+        protected unsafe void UpdateMesh()
+        {
+            var scene = EngineApp.Current.ActiveScene;
+
+            if (scene == null)
+                return;
+
+            if (_curDepth?.Left?.Data == null)
+                return;
+
+            if (_curColor?.Left?.Data == null)
+                return;
+
+            using var data = _curDepth.Left.Data.MemoryLock();
+
+            _generator ??= new DepthGeometryGenerator(320, 320);
+
+            var geo = _generator.CreateGeometry(data.Data,
+                (int)_curDepth.Width, (int)_curDepth.Height,
+                (_curDepth.Left.View * _curDepth.Left.Proj).Invert(),
+                 _reader!.LeftCamera!.GetViewProj(_curColor.Left.Pose!.Value));
+
+            if (_depthMesh == null)
+            {
+                _depthMesh = new TriangleMesh(geo, new TextureMaterial(new Texture2D()
+                {
+                    MipLevelCount = 0,
+                }));
+
+                scene.AddChild(_depthMesh);
+            }
+            else
+                _depthMesh.Geometry = geo;
+
+            var tex = ((TextureMaterial)_depthMesh.Materials[0]).Texture;
+
+            tex!.LoadData(new TextureData
+            {
+                Width = _curColor.Width,
+                Height = _curColor.Height,
+                Format = TextureFormat.Rgb8,
+                Content = _curColor.Left.Data
+            });
+
+            _depthMesh.NotifyChanged(ChangeType.Geometry);
         }
 
         protected void UpdateImages()
@@ -163,32 +250,27 @@ namespace XrEditor.Plot
                     depthEye.ImageData!.AsSpan(),
                     _curDepth.Width,
                     _curDepth.Height,
-                    TextureFormat.GrayInt8);
+                    TextureFormat.Gray8);
 
             byte[] repData;
 
             if (_colorMode == ColorMode.Screen)
             {
                 repData = _reader.AlignColorToDepth(
-                     _curDepth.Left.ProjData!.AsSpan(),
-                     (int)_curDepth.Width,
-                     (int)_curDepth.Height,
-                     depthEye.View,
-                     depthEye.Proj,
-                     _curScreen!.Data!.AsSpan(),
-                     1280,
-                     1280,
-                     _curScreen.Pose!.Value,
-                     _reader.LeftCamera!,
-                     _fovScale,
-                     _center,
-                     true);
+                 _curDepth.Left.ProjData!.AsSpan(),
+                 (int)_curDepth.Width,
+                 (int)_curDepth.Height,
+                _curScreen!.Data!.AsSpan(),
+                 (int)_curColor.Width,
+                 (int)_curColor.Height,
+                 _reader.LeftCamera!.GetViewProj(_curScreen.Pose!.Value),
+                 true);
 
                 ColorImage.Image = Context.Require<IImageFactory>().CreateImage(
                     _curScreen.Data.AsSpan(),
                     1280,
                     1280,
-                    TextureFormat.Rgb24);
+                    TextureFormat.Rgb8);
             }
             else
             {
@@ -198,22 +280,17 @@ namespace XrEditor.Plot
                      _curDepth.Left.ProjData!.AsSpan(),
                      (int)_curDepth.Width,
                      (int)_curDepth.Height,
-                     depthEye.View,
-                     depthEye.Proj,
                      colorEye.Data!.AsSpan(),
                      (int)_curColor.Width,
                      (int)_curColor.Height,
-                      colorEye.Pose!.Value,
-                     _reader.LeftCamera!,
-                     _fovScale,
-                     _center,
+                     _reader.LeftCamera!.GetViewProj(colorEye.Pose!.Value),
                      true);
 
                 ColorImage.Image = Context.Require<IImageFactory>().CreateImage(
                      colorEye.Data.AsSpan(),
                      _curColor.Width,
                      _curColor.Height,
-                     TextureFormat.Rgb24);
+                     TextureFormat.Rgb8);
 
             }
 
@@ -221,7 +298,7 @@ namespace XrEditor.Plot
                    repData,
                    _curDepth.Width,
                    _curDepth.Height,
-                   TextureFormat.Rgb24);
+                   TextureFormat.Rgb8);
 
             Log.Info(this, "Depth: Min: {0} - Max: {1} - Size: {2}", depthEye.StatsProj.Min, depthEye.StatsProj.Max, (depthEye.StatsProj.Max - depthEye.StatsProj.Min));
         }
@@ -292,17 +369,6 @@ namespace XrEditor.Plot
             }
         }
 
-        public float FovScale
-        {
-            get => _fovScale;
-            set
-            {
-                _fovScale = value;
-                OnPropertyChanged(nameof(FovScale));
-                UpdateImages();
-            }
-        }
-
         public float DepthCutOff
         {
             get => _depthCutOff;
@@ -310,28 +376,6 @@ namespace XrEditor.Plot
             {
                 _depthCutOff = value;
                 OnPropertyChanged(nameof(DepthCutOff));
-                UpdateImages();
-            }
-        }
-
-        public float CenterX
-        {
-            get => _center.X;
-            set
-            {
-                _center.X = value;
-                OnPropertyChanged(nameof(CenterX));
-                UpdateImages();
-            }
-        }
-
-        public float CenterY
-        {
-            get => _center.Y;
-            set
-            {
-                _center.Y = value;
-                OnPropertyChanged(nameof(CenterY));
                 UpdateImages();
             }
         }
@@ -358,6 +402,8 @@ namespace XrEditor.Plot
 
             }
         }
+
+        public Command SelectCommand { get; }
 
         public Command ExportPointsCommand { get; }
 

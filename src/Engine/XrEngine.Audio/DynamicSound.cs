@@ -50,7 +50,6 @@ namespace XrEngine.Audio
             throw new NotSupportedException();
         }
 
-
         public void AddBuffer(int velocity, AlBuffer buffer)
         {
             _minVel = Math.Min(velocity, _minVel);

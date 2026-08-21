@@ -13,8 +13,6 @@ namespace XrEngine.Bullet
             var Y = Vector3.UnitY;
             var Z = Vector3.UnitZ;
 
-            var zero = 0.001f;
-
             var pelvisPos = new Vector3(0.0f, 0.9f, 0.0f);
             var spine1Pos = pelvisPos + new Vector3(0, 0.20f, 0);
             var spine2Pos = spine1Pos + new Vector3(0, 0.05f, 0); ;
@@ -37,14 +35,14 @@ namespace XrEngine.Bullet
             var lHand = Effector(lHandPos, "Hand");
 
             // Spine chain
-            pelvis.Left = spine1;
-            spine1.Left = spine2;
-            spine2.Right = headEff;
-            spine2.Left = lShoulder;
-            lShoulder.Left = lShoulderPitch;
-            lShoulderPitch.Left = lUpArm;
-            lUpArm.Left = lLowArm;
-            lLowArm.Left = lHand;
+            pelvis.Child = spine1;
+            spine1.Child = spine2;
+            spine2.Sibling = headEff;
+            spine2.Child = lShoulder;
+            lShoulder.Child = lShoulderPitch;
+            lShoulderPitch.Child = lUpArm;
+            lUpArm.Child = lLowArm;
+            lLowArm.Child = lHand;
 
             return pelvis;
         }
@@ -101,24 +99,24 @@ namespace XrEngine.Bullet
             var rHand = Effector(rHandPos, "Hand-R");
 
             // ----- Hierarchy
-            pelvis.Left = spine1;
-            spine1.Left = spine2;
-            spine2.Left = spine3;
-            spine3.Left = headEff;
+            pelvis.Child = spine1;
+            spine1.Child = spine2;
+            spine2.Child = spine3;
+            spine3.Child = headEff;
 
             // left
-            spine2.Right = lShoulder;
-            lShoulder.Left = lShoulderPitch;
-            lShoulderPitch.Left = lUpArm;
-            lUpArm.Left = lLowArm;
-            lLowArm.Left = lHand;
+            spine2.Sibling = lShoulder;
+            lShoulder.Child = lShoulderPitch;
+            lShoulderPitch.Child = lUpArm;
+            lUpArm.Child = lLowArm;
+            lLowArm.Child = lHand;
 
             // right
-            spine3.Right = rShoulder;       // use your second child slot name
-            rShoulder.Left = rShoulderPitch;
-            rShoulderPitch.Left = rUpArm;
-            rUpArm.Left = rLowArm;
-            rLowArm.Left = rHand;
+            spine3.Sibling = rShoulder;       // use your second child slot name
+            rShoulder.Child = rShoulderPitch;
+            rShoulderPitch.Child = rUpArm;
+            rUpArm.Child = rLowArm;
+            rLowArm.Child = rHand;
 
             return pelvis;
         }
@@ -222,50 +220,49 @@ namespace XrEngine.Bullet
             // ---------------------------------------------------------
 
             // Spine chain
-            pelvis.Left = spine1;
-            spine1.Left = spine2;
-            spine2.Left = spine3;
-            spine3.Left = chest;
+            pelvis.Child = spine1;
+            spine1.Child = spine2;
+            spine2.Child = spine3;
+            spine3.Child = chest;
 
             // Legs: attach to Spine1 as in your old code
-            spine1.Right = lHipSwing;
+            spine1.Sibling = lHipSwing;
 
             // Left leg chain
-            lHipSwing.Left = lHipFlex;
-            lHipFlex.Left = lUpperLeg;
-            lUpperLeg.Left = lLowerLeg;
+            lHipSwing.Child = lHipFlex;
+            lHipFlex.Child = lUpperLeg;
+            lUpperLeg.Child = lLowerLeg;
             // (optionally add a foot joint/effector later)
 
             // Right leg as sibling of left leg
-            lHipSwing.Right = rHipSwing;
-            rHipSwing.Left = rHipFlex;
-            rHipFlex.Left = rUpperLeg;
-            rUpperLeg.Left = rLowerLeg;
+            lHipSwing.Sibling = rHipSwing;
+            rHipSwing.Child = rHipFlex;
+            rHipFlex.Child = rUpperLeg;
+            rUpperLeg.Child = rLowerLeg;
 
             // Chest children: Head first
-            chest.Left = head;
-            head.Left = headEff;
+            chest.Child = head;
+            head.Child = headEff;
 
             // Left clavicle as sibling of head
-            head.Right = lClavicle;
-            lClavicle.Left = lShoulderYaw;
-            lShoulderYaw.Left = lShoulderPitch;
-            lShoulderPitch.Left = lUpperArm;
-            lUpperArm.Left = lLowerArm;
-            lLowerArm.Left = lHand;
+            head.Sibling = lClavicle;
+            lClavicle.Child = lShoulderYaw;
+            lShoulderYaw.Child = lShoulderPitch;
+            lShoulderPitch.Child = lUpperArm;
+            lUpperArm.Child = lLowerArm;
+            lLowerArm.Child = lHand;
 
             // Right clavicle as sibling of left clavicle
-            lClavicle.Right = rClavicle;
-            rClavicle.Left = rShoulderYaw;
-            rShoulderYaw.Left = rUpperArm;
+            lClavicle.Sibling = rClavicle;
+            rClavicle.Child = rShoulderYaw;
+            rShoulderYaw.Child = rUpperArm;
             //rShoulderYaw.Left = rShoulderPitch;
             //rShoulderPitch.Left = rUpperArm;
-            rUpperArm.Left = rLowerArm;
-            rLowerArm.Left = rHand;
+            rUpperArm.Child = rLowerArm;
+            rLowerArm.Child = rHand;
 
             return pelvis;
         }
-
 
         static IkNode Joint(Vector3 attach, Vector3 axis, float size, float min, float max, float rest, string name)
         {

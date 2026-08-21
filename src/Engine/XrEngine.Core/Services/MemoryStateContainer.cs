@@ -13,7 +13,6 @@
 
         private readonly StateContext _context;
 
-
         public MemoryStateContainer()
         {
             _context = new StateContext();
@@ -44,7 +43,6 @@
             return (IStateContainer)value!;
         }
 
-
         public object? Read(string key, object? curObj, Type type)
         {
             var value = _state[key];
@@ -70,7 +68,6 @@
 
             _state[key] = value;
         }
-
 
         public bool Contains(string key)
         {

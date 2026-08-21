@@ -56,12 +56,9 @@ namespace XrEngine
 
             Vertices = builder.Vertices.ToArray();
 
-
             ActiveComponents |= VertexComponent.Position | VertexComponent.Normal;
 
             this.ComputeIndices();
-
-            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public uint Subs { get; set; }

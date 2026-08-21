@@ -16,6 +16,7 @@ namespace XrEngine.Physics
         {
             MeshObjects = () => _host!.DescendantsOrSelf();
             Tolerance = 0.01f;
+            Usage = ColliderUsage.All;
         }
 
         protected override void Start(RenderContext ctx)
@@ -150,12 +151,12 @@ namespace XrEngine.Physics
             UseConvexMesh = container.Read<bool>(nameof(UseConvexMesh));
         }
 
-
         public Func<IEnumerable<Object3D>> MeshObjects { get; set; }
 
         public bool UseConvexMesh { get; set; }
 
         public float Tolerance { get; set; }
 
+        public ColliderUsage Usage { get; set; }
     }
 }

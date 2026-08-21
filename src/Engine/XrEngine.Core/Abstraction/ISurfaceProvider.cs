@@ -4,10 +4,10 @@ namespace XrEngine
 {
     public interface ISurfaceProvider
     {
-        SKSurface CreateSurface(Texture2D texture, nint handle = 0);
+        SKSurface CreateSurface(Texture2D texture);
 
-        void BeginDrawSurface();
+        void BeginDrawSurface(SKSurface surface, Texture2D texture);
 
-        void EndDrawSurface();
+        void EndDrawSurface(SKSurface surface, Texture2D texture);
     }
 }

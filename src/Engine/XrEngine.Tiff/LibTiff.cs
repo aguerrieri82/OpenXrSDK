@@ -184,7 +184,6 @@ namespace XrEngine.Tiff
             ComplexFloatingPoint = 6
         }
 
-
         struct GeoDirectoryHeader
         {
             public ushort Version;
@@ -312,7 +311,6 @@ namespace XrEngine.Tiff
             var sf = (SampleFormat)GetIntField(tiff, TiffTag.SampleFormat);
             var pm = (TiffPhotometric)GetIntField(tiff, TiffTag.Photometric);
 
-
             var result = new TextureData
             {
                 Width = (uint)w,
@@ -324,16 +322,16 @@ namespace XrEngine.Tiff
                 if (sf == SampleFormat.UnsignedInteger || sf == 0)
                 {
                     if (bps == 16)
-                        result.Format = TextureFormat.GrayInt16;
+                        result.Format = TextureFormat.Gray16;
                     else if (bps == 8)
-                        result.Format = TextureFormat.GrayInt8;
+                        result.Format = TextureFormat.Gray8;
                     else
                         throw new NotSupportedException();
                 }
                 else if (sf == SampleFormat.SignedInteger)
                 {
                     if (bps == 16)
-                        result.Format = TextureFormat.GrayRawSInt16;
+                        result.Format = TextureFormat.GrayInt16;
                     else
                         throw new NotSupportedException();
                 }
@@ -352,7 +350,7 @@ namespace XrEngine.Tiff
                 if (bps == 8)
                 {
                     bps *= 3;
-                    result.Format = TextureFormat.Rgb24;
+                    result.Format = TextureFormat.Rgb8;
                 }
                 else
                     throw new NotSupportedException();
@@ -364,7 +362,7 @@ namespace XrEngine.Tiff
             var lineSize = w * ps;
 
             var buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
-            result.Data = buffer;
+            result.Content = buffer;
 
             using var data = buffer.MemoryLock();
 
@@ -443,7 +441,6 @@ namespace XrEngine.Tiff
                 for (var y = 0; y < h; y++)
                     TIFFReadScanline(tiff, data.Data + (y * lineSize), y, 0);
             }
-
 
             return result;
         }

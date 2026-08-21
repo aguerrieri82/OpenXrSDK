@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 
-
 namespace XrWebLink.Android
 {
     [Service(Enabled = true,
@@ -83,7 +82,6 @@ namespace XrWebLink.Android
                     Log.Debug(TAG, ex.ToString());
                 }
             });
-
 
             return StartCommandResult.Sticky;
         }

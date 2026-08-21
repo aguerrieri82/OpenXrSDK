@@ -7,12 +7,23 @@ namespace XrEngine
     {
         bool _isInit;
 
+        public QuadCollider()
+        {
+            Usage = ColliderUsage.All;
+        }
+
+        public QuadCollider(Quad3 quad)
+            : this()
+        {
+            Quad = quad;
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             if (!_isInit)
                 Initialize();
 
-            var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host.WorldMatrixInverse);
 
             var plane = Quad.ToPlane();
 
@@ -64,6 +75,8 @@ namespace XrEngine
         public Quad3 Quad { get; set; }
 
         public bool PlaneMode { get; set; }
+
+        public ColliderUsage Usage { get; set; }
 
     }
 }

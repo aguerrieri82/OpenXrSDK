@@ -84,7 +84,7 @@ namespace XrEngine
 
             Vertices = list.ToArray();
 
-            NotifyChanged(ObjectChangeType.Geometry);
+            NotifyChanged(ChangeType.Geometry);
         }
 
         protected override void SetStateWork(IStateContainer container)

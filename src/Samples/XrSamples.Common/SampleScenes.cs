@@ -1,4 +1,18 @@
-﻿using CanvasUI;
+﻿#if GLES
+using XrEngine.Media;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+#if !__ANDROID__
+using XrEngine.Browser.Windows;
+using XrEngine.UI.Web;
+using XrEngine.Media;
+#else
+using XrEngine.Devices.Android;
+#endif
+
+using CanvasUI;
 using DrumsVR.Game;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
@@ -6,7 +20,6 @@ using PhysX;
 using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Audio;
@@ -20,41 +33,27 @@ using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
-using XrEngine.Video;
 using XrMath;
-using RoomDesigner.Ikea;
-using RoomDesigner.Game.Ikea;
-using XrEngine.Media;
 using XrEngine.Reconstruct;
-
-#if GLES
-using Silk.NET.OpenGLES;
-#else
-using Silk.NET.OpenGL;
-#endif
-
-#if !ANDROID
-using XrEngine.Browser.Win;
-using XrEngine.UI.Web;
-#endif
+using XrSamples.Components;
+using XrEngine.Lighting;
+using System.Diagnostics;
+using System.Xml.Linq;
+using XrEngine.Animation;
 
 namespace XrSamples
 {
-
-
     public static class SampleScenes
     {
         static readonly GltfLoaderOptions GltfOptions = new()
         {
             ConvertColorTextureSRgb = true,
-
         };
 
         static string GetAssetPath(string name)
         {
             return Context.Require<IAssetStore>().GetPath(name);
         }
-
 
         static EngineApp CreateBaseScene()
         {
@@ -67,6 +66,8 @@ namespace XrSamples
             scene.AddComponent<DebugGizmos>();
 
             scene.AddComponent<ShadowController>();
+
+            scene.AddComponent<ResolveController>();
 
             scene.AddChild(new SunLight()
             {
@@ -131,6 +132,77 @@ namespace XrSamples
             });
         }
 
+        public static XrEngineAppBuilder UseShadows(this XrEngineAppBuilder builder)
+        {
+            return builder
+                .SetGlOptions(opt =>
+                {
+                    opt.ShadowMap.UseShadowSampler = true;
+                    opt.ShadowMap.UseVirtualReceiver = true;
+                    opt.ShadowMap.FrustumMaxDistance = 4f;
+                    opt.ShadowMap.Mode = ShadowMapMode.PCF;
+                    opt.ShadowMap.Size = 1024;
+                })
+                .UseInputs<XrOculusTouchController>(a => a
+                           .AddAction(b => b.Right!.Thumbstick))
+                .ConfigureApp(e =>
+                {
+                    var scene = e.App.ActiveScene!;
+
+                    var sun = scene.Descendants<SunLight>().FirstOrDefault();
+
+                    if (sun == null)
+                        return;
+
+                    var azimuth = 0.0f;
+                    var tilt = 0.0f;
+
+                    const float azimuthSpeed = 0.055f;
+                    const float tiltSpeed = 0.035f;
+                    const float maxTilt = MathF.PI * 0.49f;
+
+                    sun.IsVisible = true;
+                    sun.CastShadows = true;
+
+                    var view = scene.AddChild(new SunLightView(sun)
+                    {
+                        UseRoof = false
+                    });
+
+                    view.WorldPosition = new Vector3(0, 2f, 0);
+
+                    scene.AddBehavior((_, ctx) =>
+                    {
+                        var thumb = e.Inputs!.Right!.Thumbstick;
+
+                        if (thumb!.IsActive && thumb.IsChanged)
+                        {
+                            var v = thumb.Value;
+
+                            if (MathF.Abs(v.X) > MathF.Abs(v.Y))
+                            {
+                                azimuth += v.X * azimuthSpeed;
+                            }
+                            else
+                            {
+                                tilt += v.Y * tiltSpeed;
+                                tilt = Math.Clamp(tilt, 0.0f, maxTilt);
+                            }
+
+                            var sinTilt = MathF.Sin(tilt);
+                            var cosTilt = MathF.Cos(tilt);
+
+                            sun.Direction = Vector3.Normalize(new Vector3(
+                                MathF.Sin(azimuth) * sinTilt,
+                               -cosTilt,
+                                MathF.Cos(azimuth) * sinTilt
+                            ));
+                        }
+
+                    });
+                });
+        }
+
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
@@ -146,7 +218,7 @@ namespace XrSamples
 
                 obj.AddBehavior((_, _) =>
                 {
-                    var click = inputs.Right!.Button!.AClick!;
+                    var click = inputs.Right.Button.AClick;
                     if (click.IsChanged && click.Value)
                     {
                         var scene = obj.Scene!;
@@ -164,14 +236,16 @@ namespace XrSamples
                 grid.IsVisible = false;
         });
 
-        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
+        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot, bool forceOverlay = false, bool noOverlay = false)
         {
-            var panel = new Window3D();
-
-            panel.Size = new Size2(0.8f, 0.5f);
-            panel.DpiScale = 1.6f;
-            panel.Content = uiRoot;
-            panel.WorldPosition = new Vector3(0, 1, 0);
+            var panel = new Window3D
+            {
+                Name = "UI Panel",
+                Size = new Size2(0.8f, 0.5f),
+                DpiScale = 1.6f,
+                Content = uiRoot,
+                WorldPosition = new Vector3(0, 1, 0),
+            };
 
             return builder
                 .UseClickMoveFront(panel, 0.5f)
@@ -179,9 +253,8 @@ namespace XrSamples
                 {
                     e.App.ActiveScene!.AddChild(panel);
 
-                    if (RuntimeInformation.RuntimeIdentifier.StartsWith("android"))
+                    if (!noOverlay && (XrPlatform.IsAndroid || forceOverlay))
                         panel.CreateOverlay(e.XrApp);
-
                 });
         }
 
@@ -219,7 +292,7 @@ namespace XrSamples
 
                 depth.AddBehavior((_, _) =>
                 {
-                    var sp = depth.Scene!.App!.Renderer!.Feature<IShadowMapProvider>()!;
+                    var sp = depth.Scene!.App!.Renderer.Feature<IShadowMapProvider>()!;
 
                     if (sp.Options.Mode == ShadowMapMode.VSM)
                     {
@@ -228,9 +301,8 @@ namespace XrSamples
                         if (texView.Texture == null)
                         {
                             texView.Texture = sp.ShadowMap;
-                            depthView.NotifyChanged(ObjectChangeType.Render);
+                            depthView.NotifyChanged(ChangeType.Render);
                         }
-
                     }
                     else
                     {
@@ -240,21 +312,17 @@ namespace XrSamples
                         if (depthView.Texture == null)
                         {
                             depthView.Texture = sp.ShadowMap;
-                            depthView.NotifyChanged(ObjectChangeType.Render);
+                            depthView.NotifyChanged(ChangeType.Render);
                         }
 
                         if (depthView.Camera == null)
                         {
                             depthView.Camera = sp.LightCamera;
-                            depthView.NotifyChanged(ObjectChangeType.Render);
+                            depthView.NotifyChanged(ChangeType.Render);
                         }
                     }
-
-
-
                 });
             }
-
 
             builder.ConfigureApp(e =>
             {
@@ -273,7 +341,6 @@ namespace XrSamples
             return builder;
         }
 
-
         public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
         {
             return builder.AddPanel(new T());
@@ -287,19 +354,27 @@ namespace XrSamples
                    .UseRightController()
                    .AddRightPointer()
                    .UseInputs<XrOculusTouchController>(a => a
+                       .AddAction(b => b.Right!.Thumbstick)
                        .AddAction(b => b.Right!.Haptic)
                        .AddAction(b => b.Left!.Haptic))
                    .UseRayCollider()
                    .UseGrabbers();
 
-            if (!IsEditor && usePt)
+            if (IsEditor)
+            {
+                //usePt = false;
+                Log.Error(builder, "Passtrhout not ADDED in editor");
+            }
+
+            if (usePt)
                 builder.AddPassthrough();
+
             return builder;
         }
 
         public static XrEngineAppBuilder CreateChromeBrowser(this XrEngineAppBuilder builder)
         {
-#if !ANDROID
+#if !__ANDROID__
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -330,7 +405,6 @@ namespace XrSamples
 
         }
 
-
         [Sample("Throw")]
         public static XrEngineAppBuilder CreateThrow(this XrEngineAppBuilder builder)
         {
@@ -347,7 +421,6 @@ namespace XrSamples
                 LastFrame = 710,
                 Loop = true
             });
-
 
             var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
             cube.Transform.SetScale(0.1f);
@@ -395,7 +468,6 @@ namespace XrSamples
               .ConfigureApp(app => settings.Apply(cube));
         }
 
-
         [Sample("Display")]
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
@@ -419,7 +491,6 @@ namespace XrSamples
                           .UseClickMoveFront(display, 0.5f)
                           .ConfigureSampleApp();
         }
-
 
         [Sample("Ping Pong")]
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
@@ -448,7 +519,6 @@ namespace XrSamples
             racket.Transform.Reset();
             racket.Transform.Position = new Vector3(0, 1, 0);
 
-
             //Audio
             var audio = scene.Component<AudioSystem>();
             var sound = new DynamicSound();
@@ -466,7 +536,6 @@ namespace XrSamples
             rigidBody.Type = PhysicsActorType.Kinematic;
             rigidBody.MaterialInfo = new PhysicsMaterialInfo();
 
-
             //Ball generator
             var bg = scene!.AddComponent(new BallGenerator(sound, 0f));
             bg.PhysicSettings = settings.Ball;
@@ -479,7 +548,6 @@ namespace XrSamples
             {
                 ballRigid.DynamicActor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
             };
-
 
             //Add racket
             scene!.AddChild(racket);
@@ -497,6 +565,7 @@ namespace XrSamples
                        opt.ShadowMap.LightBleed = 1;
                        opt.ShadowMap.BlurRadius = 2;
                        opt.ShadowMap.Mode = ShadowMapMode.PCF;
+                       opt.ShadowMap.UseFrustumIntersect = true;
                    })
                    //.AddFloorShadow()
                    .UsePhysics(new PhysicsOptions
@@ -588,7 +657,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var options = new TextureLoadOptions() { Format = TextureFormat.SRgba32 };
+            var options = new TextureLoadOptions() { IsSrgb = true };
 
             var left = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_left.jpg", options);
             var right = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_right.jpg", options);
@@ -602,14 +671,23 @@ namespace XrSamples
                 Border = 0.1f,
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend,
+                Mode = FishReflectionMode.Eye
             };
 
             var mesh = new TriangleMesh(new Quad3D(), mat);
-
             mesh.Name = "mesh";
-
             scene.AddChild(mesh);
+            /*
 
+
+            var mesh2 = new TriangleMesh(new FishEyeHemisphere(), new TextureMaterial
+            {
+                Texture = left,
+                CullFront = true
+            });
+
+            scene.AddChild(mesh2);
+            */
 
             return builder
                 .UseApp(app)
@@ -642,10 +720,11 @@ namespace XrSamples
                                 {
                                     var pos = window.Pose.Value.Position;
 
+                                    /*
                                     pos.X += 0.16f;
                                     pos.Z += 0.05f;
                                     pos.Y -= 0.05f;
-
+                                    */
                                     mesh.Transform.Position = pos;
                                     mesh.Transform.Orientation = window.Pose.Value.Orientation;
 
@@ -704,22 +783,32 @@ namespace XrSamples
             s2u.X = 0.408f;
             s2u.Y = 0.804f;
 
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
+            ICameraManager? manager = null;
+
+#if __ANDROID__
+            manager = Context.Require<AndroidUsbCameraManager>();
+#endif
+            var controller = scene.AddComponent(new CameraController(manager));
+
             var videoTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
             };
 
+            controller.GetTexture = _ => videoTex;
+
+            /*
             if (OperatingSystem.IsAndroid())
                 videoTex.Type = TextureType.External;
+            */
 
             var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
@@ -729,26 +818,27 @@ namespace XrSamples
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend,
                 TextureCenter = [c1u, c2u],
-                TextureRadius = [s1u, s2u]
+                TextureRadius = [s1u, s2u],
+                //IsExternal = true
             };
-
-            var mat2 = new TextureMaterial(videoTex);
 
             var mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(0, 1f, 0);
 
+            /*
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
-                Source = new Uri(GetAssetPath("Fish/bandicam 2025-01-21 00-44-12-973.mp4")),
+                Source = new Uri(GetAssetPath("Fish/0eb494e4-2537-4650-8718-9d6798c76898.mp4")),
                 //Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
                 //Source = new Uri("rtsp://admin:123@192.168.1.148:8554/live"),
                 //Source = new Uri("rtsp://192.168.1.89:554/videodevice"),
                 //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
-                //Reader = new RtspVideoReader()
+                Reader = new RtspVideoReader()
             });
+            */
 
             mesh.Name = "mesh";
 
@@ -771,7 +861,7 @@ namespace XrSamples
                         if (window == null)
                             return;
 
-                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace, e.XrApp.FramePredictedDisplayTime);
+                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace);
                         if (loc.IsValid)
                         {
                             var offset = mesh.GetProp<float>("Offset");
@@ -829,8 +919,6 @@ namespace XrSamples
                     });
                 });
         }
-
-
 
         public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
         {
@@ -915,7 +1003,6 @@ namespace XrSamples
                 }
             }
 
-
             var door = GltfLoader.LoadFile(GetAssetPath("Door.glb"), GltfOptions);
             door.Name = "Door";
             door.AddComponent(new GeometryScale
@@ -932,7 +1019,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
         [Sample("Bed")]
         public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
         {
@@ -945,14 +1031,6 @@ namespace XrSamples
             mesh.AddComponent<PyMeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"),
-                new GltfLoaderOptions { PbrType = typeof(PbrV1Material) });
-
-            mesh2.Name = "Bed 2";
-            mesh2.WorldPosition = new Vector3(3, 0, 0);
-            mesh2.AddComponent<PyMeshCollider>();
-            mesh2.AddComponent<BoundsGrabbable>();
-
             foreach (var material in mesh.Materials!)
             {
                 material.CastShadows = true;
@@ -960,16 +1038,98 @@ namespace XrSamples
             }
 
             scene.AddChild(mesh);
-            scene.AddChild(mesh2);
-
 
             return builder
                 .UseApp(app)
                 //.UseSceneModel(false, false)
-                .UseDefaultHDR()
-                .AddFloorShadow(4, true)
+                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
+                .AddFloorShadow(4, false)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
+        }
+
+        [Sample("Light Field")]
+        public static XrEngineAppBuilder CreateLightField(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+
+            scene.AddChild(new SpotLight()
+            {
+                WorldPosition = new Vector3(0, 0.63f, 1.84f),
+                Direction = new Vector3(0, -0.2f, -1),
+                Range = 4,
+                Intensity = 5,
+                InnerConeAngle = (14f).ToRadians(),
+                OuterConeAngle = (20f).ToRadians(),
+            });
+
+            scene.AddChild(new AreaLight()
+            {
+                WorldPosition = new(0f, 1.31f, 1.6700001f),
+                PlaneSize = new(1f, 0.8f),
+                PlaneNormal = new(0.0348995f, 0f, -0.99939084f),
+                Range = 4f,
+                Direction = new(0f, -0.5344989f, -0.8451692f),
+                Specular = "#00000000",
+                Intensity = 5f
+            });
+
+            var voxelSize = 0.05f;
+            var roomSize = new Vector3(5, 2, 5);
+
+            var grid = new VoxelGridDesc
+            {
+                Origin = new Vector3(-roomSize.X / 2, 0f, -roomSize.Z / 2),
+                VoxelSize = voxelSize,
+                Size = new Vector3I(
+                    (int)MathF.Round(roomSize.X / voxelSize),
+                    (int)MathF.Round(roomSize.Y / voxelSize),
+                    (int)MathF.Round(roomSize.Z / voxelSize))
+            };
+
+            var mesh = scene.AddChild((TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions));
+            mesh.AddComponent<LightFieldReceiver>();
+            mesh.Name = "Bed";
+
+            XrEngine.MeshOptimizer.Optimize(mesh.Geometry!);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .UseFloorTeleport(scene)
+                .ConfigureApp(cfg =>
+                {
+                    foreach (var light in scene.Descendants<Light>())
+                    {
+                        light.IsVisible = true;
+                        light.AddComponent(new LightFieldEmitter() { IsEnabled = false });
+                    }
+
+                    scene.AddComponent<LightFieldProvider>();
+
+                    var lightField = scene.AddComponent(new LightFieldDebug(grid, XrPlatform.IsAndroid)
+                    {
+                        StorePath = Path.Combine(XrPlatform.Current!.SharedPath)
+                    });
+
+                    if (XrPlatform.IsAndroid)
+                    {
+                        lightField.Import();
+                    }
+
+                    scene.AddBehavior((_, _) =>
+                    {
+                        var click = cfg.Inputs!.Right!.Button!.AClick!;
+
+                        if (click.IsChanged && click.Value)
+                        {
+                            var provider = Context.Require<IXrMotionVectorProvider>();
+                            provider.IsActive = !provider.IsActive;
+                        }
+                    });
+                })
+                .ConfigureSampleApp(false);
         }
 
         [Sample("Cucina")]
@@ -994,7 +1154,6 @@ namespace XrSamples
 
                 if (item.Name != "Obj_PolyFaceMesh_51")
                     item.IsVisible = true;
-
 
                 for (var i = 0; i < item.Materials.Count; i++)
                 {
@@ -1064,7 +1223,6 @@ namespace XrSamples
                 .UseApp(app)
                 .UseDefaultHDR()
                 //.UseSceneModel(true, false)
-                .RemovePlaneGrid()
                 .ConfigureApp(cfg =>
                 {
                     scene.FindByName<Light>("point-light-1")!.IsVisible = true;
@@ -1078,77 +1236,124 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .UseRayCollider("Mouse")
-                .AddFloorShadow(4, true)
+                .AddFloorShadow(4, false)
                 .AddPassthrough()
 
-            .ConfigureApp(app =>
+            .ConfigureApp(e =>
             {
-                var scene = (RoomScene)app.App.ActiveScene!;
+                var scene = (RoomScene)e.App.ActiveScene!;
 
                 scene.AddChild<EnvironmentView>();
                 scene.AddComponent<ShadowController>();
-
+                scene.AddComponent<ResolveController>();
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-
-                Task.Run(async () =>
-                {
-                    var service = new IkeaKitchenService();
-                    service.CachePath = "d:\\Projects\\Ikea";
-                    service.Authorize("eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNjA0MjlUMDkyNTE5WiIsImV4cCI6IjIwMjYwNDMwVDA5MjUxOVoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.504f6e6434506b6354634838345365496a4d5276576c6b663272444c384c52366556394c4175796850346b3d");
-
-                    var catalog = new IkeaKitchenCatalog(service);
-                    var solver = new BmaLoader(catalog);
-
-                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), true);
-
-                    await catalog.InitAsync(proj);
-
-                    var kitchen = solver.Load(proj);
-
-                    var prod = solver.LoadProduct("ASL-42460167-IT")!;
-                    prod.Transform.SetScale(0.001f);
-                    prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
-
-                    scene.AddChild(kitchen);
-
-                }).Wait();
-
-                var ui = scene.UiPanel!;
-
-#if !ANDROID
-                var webView = new ChromeWebBrowserView
-                {
-                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
-                    ZoomLevel = 0,
-                    RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
-                };
-
-                ui.AddComponent<SurfaceController>();
-                ui.AddComponent(webView);
-
-                Context.Require<RoomDesignerApp>().SetUIBrowser(webView.Browser);
-#endif
             });
 
             return builder;
         }
 
+        [Sample("Tone Control")]
+        public static XrEngineAppBuilder CreateToneControl(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
 
-        [Sample("CreateDrums")]
+            var scene = app.ActiveScene!;
+
+            var dir = scene.Descendants<SunLight>().First();
+            dir.Direction = -Vector3.UnitZ;
+            dir.Intensity = 3.2f;
+
+            foreach (var light in scene.Descendants<PointLight>())
+            {
+                light.IsVisible = false;
+                light.AddComponent<LightViewer>();
+            }
+
+            var spot = scene.AddChild(new SpotLight());
+            spot.IsVisible = false;
+            spot.AddComponent<LightViewer>();
+
+            var tc = scene.AddComponent(new ToneControl());
+
+            var mat1 = new TextureMaterial();
+            var mat2 = new PbrMaterial()
+            {
+                Metalness = 0
+            };
+
+            var mat3 = new ColorMaterial(new Color(0.5f, 0.5f, 0.5f));
+            var mat4 = new PbrMaterial()
+            {
+                Color = mat3.Color,
+                Metalness = 0
+            };
+
+            var quod1 = scene.AddChild(new TriangleMesh(Quad3D.Default, mat1));
+            quod1.Materials.Add(mat2);
+
+            var quod2 = scene.AddChild(new TriangleMesh(Quad3D.Default, mat3));
+            quod2.Materials.Add(mat4);
+            quod2.WorldPosition = new Vector3(1, 0, 0);
+
+            void LoadTexture(bool isSrgb)
+            {
+                var fileName = "D:\\Projects\\XrEditor\\Cache\\Download\\493AE6FA342EE91A1979CB965B081079.jpg";
+
+                mat1.Texture = AssetLoader.Instance.Load<Texture2D>(fileName, new TextureLoadOptions
+                {
+                    IsSrgb = isSrgb,
+                    UseCache = false,
+                    MimeType = "image/jpeg"
+                });
+
+                mat1.Texture.MipLevelCount = 10;
+                mat1.Texture.MinFilter = ScaleFilter.LinearMipmapLinear;
+
+                mat2.ColorMap = mat1.Texture;
+
+                mat1.IsEnabled = !tc.ShowPbr;
+                mat2.IsEnabled = tc.ShowPbr;
+
+                mat3.IsEnabled = !tc.ShowPbr;
+                mat4.IsEnabled = tc.ShowPbr;
+
+                var color = new Color(0.5f, 0.5f, 0.5f)
+                {
+                    IsSrgb = isSrgb
+                };
+
+                mat4.Color = color;
+                mat3.Color = color;
+
+                foreach (var mesh in scene.Descendants<TriangleMesh>())
+                {
+                    foreach (var material in mesh.Materials)
+                        material.NotifyChanged();
+                }
+
+            }
+
+            tc.Changed = () =>
+            {
+                LoadTexture(tc.TexSRgb);
+            };
+
+            LoadTexture(true);
+
+            return builder
+                .UseApp(app)
+                //.UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Drums")]
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
-#if WINDOWS
-            //Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
-            Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
-            Context.Implement<IAudioDecoder>(() => new XrEngine.Media.Windows.MfAudioDecoder());
-#else
-            Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());
-#endif
             builder.Configure(DrumsVRApp.Build)
                 .UseRayCollider("Mouse")
                 .AddPassthrough()
@@ -1163,34 +1368,14 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent(new XrInputPlayer(new AIPosePredictor("d:\\pose_prediction_model")));
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-
-
-                var ui = scene.UiPanel!;
-
-#if !__ANDROID__
-                var webView = new ChromeWebBrowserView
-                {
-                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
-                    ZoomLevel = 0,
-                    RequestHandler = new FsWebRequestHandler("main", drumApp.Settings.UiBaseUri)
-                };
-
-                ui.AddComponent<SurfaceController>();
-                ui.AddComponent(webView);
-
-                drumApp.SetUIBrowser(webView.Browser);
-#endif
             });
-
 
             return builder;
         }
 
-
         [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -1202,18 +1387,294 @@ namespace XrSamples
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
-            mesh.UseEnvDepth(true);
-
+            mesh.CastShadows(true);
 
             scene.AddChild(mesh);
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentDepth()
-                .UseDefaultHDR()
+                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
+                .UseEnvironmentMesh(100)
+                .UseShadows()
                 .ConfigureSampleApp();
         }
 
+
+        public static XrEngineAppBuilder CreateGltfTest(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/AnimatedMorphSphere.glb"), GltfOptions, GetAssetPath);
+            mesh.Name = "mesh";
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/Pisa.hdr")
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Skin")]
+        public static XrEngineAppBuilder CreateSkin(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("Models/CesiumMan.glb"), GltfOptions, GetAssetPath);
+            mesh.Name = "mesh";
+
+            scene.AddChild(mesh);
+
+            mesh.Animate()
+                .Name("Jump")
+                .Target(a => a.WorldPosition)
+                .Relative()
+                .FromFunction(ComputeFunctions.Jump(
+                    0,
+                    Vector3.Normalize(new Vector3(0, 2, 1)),
+                    intensity: 5))
+                .Add();
+
+            var control = mesh.Animate("Jump", new JumpOptions
+            {
+                
+            });
+
+            void ConfigureIk(Joint3D root)
+            {
+                static JointDof Dof(float min, float max, float rest = 0)
+                {
+                    const float DegToRad = MathF.PI / 180f;
+
+                    return new JointDof
+                    {
+                        Enabled = true,
+                        Min = min * DegToRad,
+                        Max = max * DegToRad,
+                        Rest = rest * DegToRad
+                    };
+                }
+
+                static void Set3(Joint3D joint, float x, float y, float z)
+                {
+                    joint.DofX = Dof(-x, x);
+                    joint.DofY = Dof(-y, y);
+                    joint.DofZ = Dof(-z, z);
+                }
+
+                static void Set1(Joint3D joint, char axis, float min, float max)
+                {
+                    switch (axis)
+                    {
+                        case 'X': 
+                            joint.DofX = Dof(min, max);
+                            break;
+                        case 'Y': 
+                            joint.DofY = Dof(min, max); 
+                            break;
+                        case 'Z': 
+                            joint.DofZ = Dof(min, max);
+                            break;
+                    }
+                }
+
+                void Visit(Joint3D joint)
+                {
+                    joint.DofX = default;
+                    joint.DofY = default;
+                    joint.DofZ = default;
+                    joint.IsEffector = false;
+
+                    var name = joint.Name ?? "";
+
+                    if (name.Contains("torso_joint"))
+                    {
+                        Set3(joint, 25, 35, 25);
+                    }
+                    else if (name.Contains("neck_joint"))
+                    {
+                        Set3(joint, 40, 60, 40);
+                        joint.IsEffector = name == "Skeleton_neck_joint_2";
+                    }
+                    else if (name.Contains("arm_joint_L__4") ||
+                             name == "Skeleton_arm_joint_R")
+                    {
+                        Set3(joint, 120, 120, 120);
+                    }
+                    else if (name.Contains("arm_joint_L__3") ||
+                             name.Contains("arm_joint_R__2"))
+                    {
+                        Set1(joint, 'X', 0, 150);
+                    }
+                    else if (name.Contains("arm_joint_L__2") ||
+                             name.Contains("arm_joint_R__3"))
+                    {
+                        Set3(joint, 60, 60, 60);
+                        joint.IsEffector = true;
+                    }
+                    else if (name.Contains("leg_joint_L_1") ||
+                             name.Contains("leg_joint_R_1"))
+                    {
+                        Set3(joint, 100, 60, 60);
+                    }
+                    else if (name.Contains("leg_joint_L_2") ||
+                             name.Contains("leg_joint_R_2"))
+                    {
+                        Set1(joint, 'X', 0, 150);
+                    }
+                    else if (name.Contains("leg_joint_L_3") ||
+                             name.Contains("leg_joint_R_3"))
+                    {
+                        Set3(joint, 45, 30, 30);
+                    }
+                    else if (name.Contains("leg_joint_L_5") ||
+                             name.Contains("leg_joint_R_5"))
+                    {
+                        joint.IsEffector = true;
+
+                    }
+
+                    foreach (var child in joint.Children.OfType<Joint3D>())
+                        Visit(child);
+                }
+
+                Visit(root);
+            }
+
+
+            var ikRoot = mesh.FindByName<Joint3D>("Skeleton_torso_joint_1")!;
+            var updater = ikRoot.AddComponent(new IkSkeletonUpdater());
+            ConfigureIk(ikRoot);
+
+            updater.Build();
+
+            foreach (var effector in updater.Solver!.Effectors)
+            {
+                var target = mesh.AddChild(new TriangleMesh(new Sphere3D(0.05f, 10), new PbrMaterial() { Color = "#ff0000" })
+                {
+                    Name = effector.Name
+                });
+
+                target.WorldPosition = mesh.FindByName<Joint3D>(effector.Name!)!.WorldPosition;
+
+                updater.SetTarget(effector, target);
+            }
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr")
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Depth Snapeshot")]
+        public static XrEngineAppBuilder CreateDepthSnapeshot(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var group = scene.AddChild(new Group3D());
+            group.Name = "Depth Frames";
+            group.IsVisible = false;
+
+            var mode = DepthSnapeshotMode.Read;
+
+            var snapeshot = group.AddComponent(new DepthCapture(mode)
+            {
+                SplatMode = false,
+                GridSize = 320,
+                UseDepthOcclusion = true,
+                Optimize = true,
+                ComputeIndices = true,
+                UseMeshCache = true
+            });
+
+            if (mode == DepthSnapeshotMode.Read)
+            {
+                var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
+                //var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_080632_705");
+                snapeshot.Load(path);
+            }
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentDepth()
+                .UseDefaultHDR()
+                .UseFloorTeleport(scene)
+                .ConfigureSampleApp(false)
+                .ConfigureApp(a =>
+                {
+
+                    snapeshot.ConfigureInput(a.Inputs!);
+
+                    if (mode != DepthSnapeshotMode.Read)
+                        return;
+
+                    Task.Run(async () =>
+                    {
+                        await EngineApp.RenderThread;
+
+                        //await snapeshot.GenerateMeshAsync();
+                    });
+
+                    group.AddBehavior((_, ctx) =>
+                    {
+                        var thumb = a.Inputs!.Right!.Thumbstick;
+                        if (thumb!.IsActive)
+                        {
+                            var val = thumb.Value.X;
+                            if (Math.Abs(val) > 0.4f)
+                            {
+                                snapeshot.Mesh?.Transform.SetPositionY(snapeshot.Mesh.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
+                            }
+                        }
+                    });
+                });
+        }
+
+        [Sample("Snapeshot View")]
+        public static XrEngineAppBuilder CreateDepthSnapeshotView(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var path = Path.Combine(XrPlatform.Current!.SharedPath, "DepthSnapshots", "20260619_094000_765");
+
+            var mesh = AssetLoader.Instance.Load<TriangleMesh>(Path.Combine(path, "reconstruct_final.obj"));
+
+            var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(path, "reconstruct_final.jpg"), new TextureLoadOptions
+            {
+                IsSrgb = true
+            });
+
+            mesh.Materials.Add(new TextureMaterial(tex));
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .UseFloorTeleport(scene)
+                .ConfigureSampleApp(false)
+                .ConfigureApp(a =>
+                {
+                    scene.AddBehavior((_, ctx) =>
+                    {
+                        var thumb = a.Inputs!.Right!.Thumbstick;
+                        if (thumb!.IsActive)
+                        {
+                            var val = thumb.Value.X;
+                            if (Math.Abs(val) > 0.4f)
+                                mesh.Transform.SetPositionY(mesh.Transform.Position.Y + val * 0.5f * (float)ctx.DeltaTime);
+                        }
+                    });
+                });
+        }
 
         [Sample("Tac")]
         public static XrEngineAppBuilder CreateTac(this XrEngineAppBuilder builder)
@@ -1226,7 +1687,7 @@ namespace XrSamples
             var mesh1 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Skin.obj"), typeof(TriangleMesh), null);
             var mesh2 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Bone.obj"), typeof(TriangleMesh), null);
 
-            var mat1 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+            var mat1 = (PbrMaterial)MaterialFactory.CreatePbr(Color.White);
 
             mat1.ClipVolume = new Bounds3()
             {
@@ -1236,7 +1697,7 @@ namespace XrSamples
 
             mesh1.Materials.Add(mat1);
 
-            var mat2 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+            var mat2 = (PbrMaterial)MaterialFactory.CreatePbr(Color.White);
 
             mat2.ClipVolume = new Bounds3()
             {
@@ -1294,7 +1755,7 @@ namespace XrSamples
             {
                 if (!isInit && window.ActiveTexture != null)
                 {
-                    mat.Texture = window.ActiveTexture;
+                    mat.MainLeftTexture = window.ActiveTexture;
                     var size = new Vector2(window.ActiveTexture.Width, window.ActiveTexture.Height);
                     var viewSize = new Vector2(scene.ActiveCamera!.ViewSize.Width, scene.ActiveCamera.ViewSize.Height);
                     var relSize = 2 * size / viewSize;
@@ -1307,9 +1768,8 @@ namespace XrSamples
                     panel.Text.Text = b.Frame.ToString();
             });
 
-
             var points = new PointMesh();
-            var depth = points.AddComponent(new DepthScanner
+            var depth = points.AddComponent(new DepthPointScanner
             {
                 SavePath = Path.Join(XrPlatform.Current!.PersistentPath, "Scanner"),
             });
@@ -1333,7 +1793,6 @@ namespace XrSamples
                   depth.HideInput = a.Inputs!.Right.Button!.AClick;
               });
         }
-
 
         public static XrEngineAppBuilder CreateHeightMap(this XrEngineAppBuilder builder)
         {
@@ -1376,7 +1835,6 @@ namespace XrSamples
 
             var plane = new TriangleMesh(quod, (Material)mat);
 
-
             scene.AddChild(plane);
 
             return builder
@@ -1415,7 +1873,6 @@ namespace XrSamples
                 Height = 0f
             });
             player.Name = "Player";
-
 
             scene.AddChild(floor);
             scene.AddChild(player);
@@ -1457,7 +1914,6 @@ namespace XrSamples
                 Name = "left"
             };
 
-
             var sphere3 = new TriangleMesh(Sphere3D.Default,
                 (Material)MaterialFactory.CreatePbr(new Color(1f, 1, 0, 1)))
             {
@@ -1486,7 +1942,6 @@ namespace XrSamples
             {
                 Name = "Preview"
             };
-
 
             sphere1.Transform.SetScale(0.05f);
             sphere2.Transform.SetScale(0.05f);
@@ -1527,7 +1982,7 @@ namespace XrSamples
                         if (XrApp.Current?.IsStarted == false)
                             return;
 
-                        var head = XrApp.Current!.LocateSpace(XrApp.Current.Head, XrApp.Current.Stage, XrApp.Current.FramePredictedDisplayTime).Pose;
+                        var head = XrApp.Current!.SpacesTracker.GetLastLocation(XrApp.Current.Head)!.Pose;
                         var ofs = new Vector3(0, 1.4f, 0);
 
                         var leftPos = (left.Value.Position - head.Position) + ofs;
@@ -1571,8 +2026,86 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
+            //XrReconstructReader.Current.Open("D:\\Projects\\XrEditor\\Capture");
+
             var scene = app.ActiveScene!;
-            scene.AddComponent(new XrReconstructPlayer());
+            //var player = scene.AddComponent(new XrReconstructPlayer());
+
+            var group = scene.AddChild(new Group3D());
+
+            var snap = group.AddComponent(new DepthCapture(DepthSnapeshotMode.Read)
+            {
+                SplatMode = false,
+                Clip = false,
+                GridSize = 320
+            });
+
+            //snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_094000_765");
+            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/Neutral.hdr")
+                .ConfigureSampleApp();
+        }
+
+        public static XrEngineAppBuilder CreatePoseTest(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var left = new Pose3
+            {
+                Position = new Vector3(-0.0320870019f, -0.0172204766f, -0.0633444414f),
+                Orientation = new Quaternion(-0.995334148f, -0.00154464366f, -0.00174995663f, 0.0964596644f)
+            };
+
+            var right = new Pose3
+            {
+                Position = new Vector3(0.0315504968f, -0.017489884f, -0.0631345809f),
+                Orientation = new Quaternion(-0.995401025f, 0.00226922776f, 0.00283159781f, 0.0957266465f)
+            };
+
+            Pose3 GetLensPose(Pose3 curPose)
+            {
+                var realPos = curPose.Position;
+                realPos.X = -realPos.X;
+
+                var rawRot = curPose.Orientation;
+
+                var rot = rawRot;
+                rot.Y = -rot.Y;
+                rot.Z = -rot.Z;
+                rot = Quaternion.Normalize(rot);
+
+                var worldRot = Quaternion.Inverse(rot);
+                var sensorFix = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+
+                return new Pose3
+                {
+                    Position = realPos,
+                    Orientation = Quaternion.Normalize(worldRot * sensorFix)
+                };
+            }
+
+            var headeset = new Group3D() { Name = "Headset" };
+
+            headeset.AddChild(new PoseView(left, "Left", "#ff00ff"));
+            headeset.AddChild(new PoseView(right, "Right", "#ffff00"));
+            headeset.AddChild(new PoseView(new Pose3(), "Origin", "#ffffff"));
+
+            scene.AddChild(headeset);
+
+            var headeset2 = new Group3D() { Name = "Headset2" };
+
+            headeset2.AddChild(new PoseView(GetLensPose(left), "Left", "#ff00ff"));
+            headeset2.AddChild(new PoseView(GetLensPose(right), "Right", "#ffff00"));
+            headeset2.AddChild(new PoseView(new Pose3(), "Origin", "#ffffff"));
+
+            scene.AddChild(headeset2);
+
+            scene.AddChild(headeset);
 
             return builder
                 .UseApp(app)
@@ -1580,47 +2113,208 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        [Sample("Usb Camera")]
+        public static XrEngineAppBuilder CreateUsbCamera(this XrEngineAppBuilder builder)
+        {
+            ICameraManager? manager = null;
+
+#if __ANDROID__
+            manager = Context.Require<AndroidUsbCameraManager>();
+#endif
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var texture = new Texture2D
+            {
+                Format = TextureFormat.Rgba8,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+            };
+
+            var main = new TriangleMesh(Quad3D.Default, new TextureMaterial(texture)
+            {
+            });
+
+            main.Name = "Usb";
+            main.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
+
+            scene.AddChild(main);
+
+            var cameraState = 0;
+
+            ICameraDevice? camera = null;
+
+            scene.AddBehavior(async (_, _) =>
+            {
+                var button = XrEngineApp.Current?.Inputs?.Right?.Button?.BClick;
+
+                var aPressed = button != null && button.IsChanged && button.Value;
+
+                if (cameraState == 0 && texture.Handle != 0)
+                {
+                    var cameras = manager!.GetCameras();
+
+                    if (cameras == null || cameras.Count == 0)
+                        return;
+
+                    cameraState = 1;
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            camera = await manager.OpenCameraAsync(cameras[0].Id!);
+
+                            var formats = camera.GetSupportedFormats();
+
+                            var curFormat = formats
+                               .Where(a => a.ImageFormat == ImageFormat.Rgb32)
+                               .OrderByDescending(a => a.Width * a.Height)
+                               .ThenByDescending(a => a.FrameRate)
+                               .FirstOrDefault();
+
+                            var ratio = (float)curFormat.Width / curFormat.Height;
+                            var height = 0.5f;
+                            var width = height * ratio;
+
+                            await EngineApp.MainThread;
+
+                            main.Transform.Scale = new Vector3(width, height, 0.01f);
+
+                            await camera.StartCaptureAsync(curFormat, texture);
+
+                            cameraState = 2;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("Usb", ex);
+                        }
+
+                    });
+                }
+
+                if (cameraState == 2)
+                    camera?.UpdateTexture();
+            });
+
+            return builder
+                .UseApp(app)
+                .UseClickMoveFront(main)
+                .ConfigureSampleApp();
+        }
+
         [Sample("Capture")]
         public static XrEngineAppBuilder CreateCapture(this XrEngineAppBuilder builder)
         {
+            #region HELPERS
 
-            static Matrix4x4 ComputeQuadMatrix(Matrix4x4 headMatrix, CameraParams cam, float distanceMeters)
+            static Rect2 CalcSensorCropRegion(
+                float sensorWidth,
+                float sensorHeight,
+                float currentWidth,
+                float currentHeight)
             {
-                if (cam.Intrinsic == null || cam.SensorSize == null ||
-                    !cam.Position.HasValue || !cam.Rotation.HasValue)
+                var scaleX = currentWidth / sensorWidth;
+                var scaleY = currentHeight / sensorHeight;
+
+                var maxScale = MathF.Max(scaleX, scaleY);
+
+                scaleX /= maxScale;
+                scaleY /= maxScale;
+
+                return new Rect2
                 {
-                    return Matrix4x4.Identity;
-                }
+                    X = sensorWidth * (1.0f - scaleX) * 0.5f,
+                    Y = sensorHeight * (1.0f - scaleY) * 0.5f,
+                    Width = sensorWidth * scaleX,
+                    Height = sensorHeight * scaleY
+                };
+            }
 
-                var fx = cam.Intrinsic[0];
-                var fy = cam.Intrinsic[1];
-                var w = cam.SensorSize.Value.Width;
-                var h = cam.SensorSize.Value.Height;
+            static Matrix4x4 ComputeQuadMatrixV2(
+                Matrix4x4 headMatrix,
+                CameraParams cam,
+                float distanceMeters)
+            {
 
-                var scaleX = distanceMeters * (w / fx);
-                var scaleY = distanceMeters * (h / fy);
+                var fx = cam.Fx;
+                var fy = cam.Fy;
+                var cx = cam.Cx;
+                var cy = cam.Cy;
 
-                var matScale = Matrix4x4.CreateScale(scaleX, scaleY, 1.0f);
+                var sensorW = cam.SensorSize!.Value.Width;
+                var sensorH = cam.SensorSize.Value.Height;
 
-                var matTransLocal = Matrix4x4.CreateTranslation(0f, 0f, -distanceMeters);
+                var currentW = cam.CurrentSize.Width;
+                var currentH = cam.CurrentSize.Height;
 
-                var quadToSensor = matScale * matTransLocal;
+                var crop = CalcSensorCropRegion(
+                    sensorW,
+                    sensorH,
+                    currentW,
+                    currentH);
+
+                var x0 = distanceMeters * ((crop.X - cx) / fx);
+                var x1 = distanceMeters * ((crop.X + crop.Width - cx) / fx);
+
+                var y0 = distanceMeters * ((crop.Y - cy) / fy);
+                var y1 = distanceMeters * ((crop.Y + crop.Height - cy) / fy);
+
+                var centerX = (x0 + x1) * 0.5f;
+                var centerY = (y0 + y1) * 0.5f;
+
+                var scaleX = x1 - x0;
+                var scaleY = y1 - y0;
+
+                var quadToSensor =
+                    Matrix4x4.CreateScale(scaleX, scaleY, 1.0f) *
+                    Matrix4x4.CreateTranslation(centerX, centerY, -distanceMeters);
 
                 var sensorToHead = cam.GetLensPose().ToMatrix();
 
                 return quadToSensor * sensorToHead * headMatrix;
             }
 
+            static Matrix4x4 ComputeQuadMatrixScaledFrom1m(
+                Matrix4x4 headMatrix,
+                Matrix4x4 eyeMatrix,
+                CameraParams cam,
+                float distanceMeters)
+            {
+                const float referenceDistance = 3.0f;
+
+                var quadAt1m =
+                    ComputeQuadMatrixV2(headMatrix, cam, referenceDistance);
+
+                var scale =
+                    distanceMeters / referenceDistance;
+
+                var eyePos = eyeMatrix.Translation;
+
+                var aroundEye =
+                    Matrix4x4.CreateTranslation(-eyePos) *
+                    Matrix4x4.CreateScale(scale) *
+                    Matrix4x4.CreateTranslation(eyePos);
+
+                return quadAt1m * aroundEye;
+            }
+
+            #endregion
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            CameraParams centerParams = new();
+            CameraParams leftParams = new();
+            CameraParams rightParams = new();
 
             var leftTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -1630,7 +2324,7 @@ namespace XrSamples
 
             var rightTex = new Texture2D
             {
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
@@ -1638,13 +2332,26 @@ namespace XrSamples
                 Type = TextureType.External
             };
 
-            var display = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex));
+            var mainLeft = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
+            {
+                FixedEye = 0,
+                UseDepth = false
+            });
 
-            display.Name = "camera_display";
-            display.Transform.Scale = new Vector3(1.08f, 1.08f, 0.01f);
-            display.AddComponent<MeshCollider>();
+            mainLeft.Name = "MainLeft";
+            mainLeft.Transform.Scale = new Vector3(0.7f, 0.7f, 0.01f);
 
-            scene.AddChild(display);
+            var right = new TriangleMesh(Quad3D.Default, new EyeTextureMaterial(leftTex, rightTex)
+            {
+                FixedEye = 1,
+                UseDepth = false
+            });
+
+            right.Name = "Right";
+            right.Transform.Scale = mainLeft.Transform.Scale;
+
+            scene.AddChild(mainLeft);
+            scene.AddChild(right);
 
             var cameraState = 0;
 
@@ -1653,7 +2360,9 @@ namespace XrSamples
             ICameraDevice? cameraLeft = null;
             ICameraDevice? cameraRight = null;
 
-            scene.AddBehavior((_, _) =>
+            var leftPos = Vector3.Zero;
+
+            scene.AddBehavior(async (_, _) =>
             {
                 var button = XrEngineApp.Current?.Inputs?.Right?.Button?.BClick;
 
@@ -1662,15 +2371,20 @@ namespace XrSamples
                 if (aPressed)
                     mustTrack = !mustTrack;
 
-                if (cameraState == 0 && leftTex.Handle != 0)
+                if (cameraState == 0)
                 {
+                    rightTex.Generate();
+                    leftTex.Generate();
+
                     cameraState = 1;
 
                     _ = Task.Run(async () =>
                     {
-                        var manager = Context.Require<ICameraManager>();
+                        var manager = Context.Require<ILocalCameraManger>();
 
                         var cameras = manager.GetCameras();
+
+                        Log.Info("", "CAMERAS: {0}", string.Join(',', cameras.Select(a => a.Id)));
 
                         var infoLeft = cameras.First(a => a.Source == 0 && a.Position == 0);
                         var infoRight = cameras.First(a => a.Source == 0 && a.Position == 1);
@@ -1682,15 +2396,13 @@ namespace XrSamples
 
                         var curFormat = formats.Last();
 
-                        await cameraLeft.StartCaptureAsync(curFormat, leftTex);
-                        await cameraRight.StartCaptureAsync(curFormat, rightTex);
+                        await Task.WhenAll(cameraLeft.StartCaptureAsync(curFormat, leftTex),
+                                           cameraRight.StartCaptureAsync(curFormat, rightTex));
 
                         cameraState = 2;
 
-                        var leftParams = cameraLeft.GetParams();
-                        var rightParams = cameraRight.GetParams();
-
-                        centerParams = leftParams;
+                        leftParams = cameraLeft.GetParams();
+                        rightParams = cameraRight.GetParams();
 
                     });
                 }
@@ -1700,11 +2412,25 @@ namespace XrSamples
                     cameraLeft?.UpdateTexture();
                     cameraRight?.UpdateTexture();
 
-                    var pose = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                    if (cameraLeft!.LastTimestamp == 0 || cameraRight!.LastTimestamp == 0)
+                        return;
+
+                    var headLeftTime = XrApp.Current!.LocateSpace(XrApp.Current.Head,
                         XrApp.Current.ReferenceSpace, cameraLeft!.LastTimestamp).Pose;
 
+                    var headRightTime = XrApp.Current!.LocateSpace(XrApp.Current.Head,
+                        XrApp.Current.ReferenceSpace, cameraRight!.LastTimestamp).Pose;
+
                     if (mustTrack)
-                        display.WorldMatrix = ComputeQuadMatrix(pose.ToMatrix(), centerParams, 2f);
+                    {
+                        var thumb = XrEngineApp.Current?.Inputs?.Right?.Thumbstick!.Value;
+
+                        Debug.Assert(scene.ActiveCamera?.Eyes != null);
+
+                        mainLeft.WorldMatrix = ComputeQuadMatrixScaledFrom1m(headLeftTime.ToMatrix(), scene.ActiveCamera.Eyes[0].World, leftParams, 2f + (thumb!.Value.Y * 2f));
+                        right.WorldMatrix = ComputeQuadMatrixScaledFrom1m(headRightTime.ToMatrix(), scene.ActiveCamera.Eyes[1].World, rightParams, 2f + (thumb!.Value.Y * 2f));
+
+                    }
                 }
             });
 
@@ -1712,8 +2438,6 @@ namespace XrSamples
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
-
-
 
         [Sample("Reconstruct Capture")]
         public static XrEngineAppBuilder CreateReconstructCapture(this XrEngineAppBuilder builder)
@@ -1754,6 +2478,7 @@ namespace XrSamples
                 if (!isRoomCaptured)
                 {
                     var model = scene.FindByName<TriangleMesh>("Mesh");
+
                     if (model != null && model.Component<XrAnchorUpdate>().HasPose)
                     {
                         model.Geometry!.EnsureIndices();
@@ -1796,8 +2521,6 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-
-
         [Sample("Midi")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
         {
@@ -1829,14 +2552,12 @@ namespace XrSamples
                     Log.Info(typeof(SampleScenes), $"MIDI Message: {msg}");
             };
 
-
             return builder
                 .UseApp(app)
                 //.UseEnvironmentDepth()
                 //.UseDefaultHDR()
                 .ConfigureSampleApp();
         }
-
 
         [Sample("Car")]
         public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
@@ -1873,7 +2594,6 @@ namespace XrSamples
             leather.Color = "#FF6400FF";
             leather.DoubleSided = true;
             leather.Color *= 2f;
-
 
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
@@ -2009,7 +2729,6 @@ namespace XrSamples
             splitter.Attach(mirror);
             splitter.ExecuteSplit();
 
-
             model.AddMirror(car.GroupByName(scale, "reflect_mirror_int.003", "plasticInt_mirror_int_body-mirror"),
                 new Ray3(new Vector3(-50, 640, -172), new Vector3(0, 0, 1)));
             model.AddMirror(car.GroupByName(scale, "reflect_mirrors.003", "glassClear_mirrors.003", "plastic_mirrors.003", "mirror_left"),
@@ -2095,7 +2814,6 @@ namespace XrSamples
                 });
         }
 
-
         [Sample("Cube")]
         public static XrEngineAppBuilder CreateCube(this XrEngineAppBuilder builder)
         {
@@ -2150,7 +2868,6 @@ namespace XrSamples
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
-
 
         [Sample("Animated Cubes")]
 

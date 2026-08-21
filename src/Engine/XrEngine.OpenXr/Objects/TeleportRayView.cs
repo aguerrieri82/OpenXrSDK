@@ -19,10 +19,9 @@ namespace XrEngine.OpenXr
 
             Materials.Add(_material);
             //Materials.Add(new WireframeMaterial());
+            Flags |= EngineObjectFlags.NoFrustumCulling;
             Build();
         }
-
-
 
         public void Update(IEnumerable<Vector3> points, bool isActive)
         {
@@ -31,7 +30,7 @@ namespace XrEngine.OpenXr
             _material.Points = points.ToArray();
 
             if (oldCount != _material.Points.Length)
-                _material.NotifyChanged(ObjectChangeType.Material);
+                _material.NotifyChanged(ChangeType.Render);
 
             /*
             for (var i = 0; i < _vertices.Length; i++)
@@ -64,7 +63,7 @@ namespace XrEngine.OpenXr
             for (var i = 0; i < Segments; i++)
                 path[i] = new Vector2(0, i);
 
-            var pathPoly = new Poly2D() { Points = path };
+            var pathPoly = new Poly2D() { Points = path, IsClosed = false };
 
             var circle = new Circle2D()
             {

@@ -15,36 +15,19 @@ using static XrEngine.Filament.FilamentLib;
 using System.Diagnostics;
 using OpenXr.Framework.Oculus;
 using Common.Interop;
-
+using OpenXr.Framework.Angle;
+using StructureType = Silk.NET.OpenXR.StructureType;
 
 namespace XrEngine.OpenXr
 {
     public unsafe static class XrExtensions
     {
-        public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint colorTex, uint depthTex);
+        public delegate IGlRenderTargetFB GlRenderTargetFactory(GL gl, uint colorTex, uint depthTex);
 
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
-            canvas.Mode = CanvasViewMode.RenderTarget;
+            canvas.AddComponent(new XrQuodAttached(app));
 
-            var layer = new XrTextureQuadLayer(canvas.BindToQuad(), (image, size, predTime) =>
-            {
-                if (image == null)
-                    return canvas.NeedDraw;
-
-                //TODO handle vulkan
-                var glImage = (SwapchainImageOpenGLKHR*)image;
-
-                canvas.SetRenderTarget((nint)glImage->Image, size.Width, size.Height);
-                canvas.Draw();
-
-                return true;
-
-            }, canvas.PixelSize);
-
-            layer.Priority = 5;
-
-            app.Layers.Add(layer);
         }
 
         public static GetQuadDelegate BindToQuad(this TriangleMesh mesh)
@@ -53,7 +36,6 @@ namespace XrEngine.OpenXr
             {
                 var result = new Quad3
                 {
-                    //IsVisible = mesh.IsVisible && mesh.Parent != null,
                     Size = new Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
                     Pose = new Pose3
                     {
@@ -66,17 +48,21 @@ namespace XrEngine.OpenXr
             };
         }
 
-        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app)
+        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, XrEngineAppOptions options)
         {
-            if (app.Renderer is OpenGLRender || app.Renderer == null)
-                return xrApp.BindEngineAppGL(app);
+            if (app.Renderer is OpenGLRender openGl)
+            {
+                if (openGl.Options.UseResolve)
+                    return xrApp.BindEngineAppGLResolve(app);
+                else
+                    return xrApp.BindEngineAppGL(app, options.ProjDepthMode, options.Driver == GraphicDriver.Angle);
+            }
 
             if (app.Renderer is FilamentRender)
                 return xrApp.BindEngineAppFl(app);
 
             throw new NotSupportedException();
         }
-
 
         public static FilamentRender BindEngineAppFl(this XrApp xrApp, EngineApp app)
         {
@@ -86,7 +72,7 @@ namespace XrEngine.OpenXr
             for (var i = 0; i < 2; i++)
                 headViews[i].Type = StructureType.View;
 
-            void RenderView(ref RenderViewInfo info)
+            void RenderView(ref RenderViewsInfo info)
             {
                 nint colorImagePtr;
                 nint depthImagePtr;
@@ -101,7 +87,7 @@ namespace XrEngine.OpenXr
                     {
                         colorImagePtr = (nint)((SwapchainImageOpenGLKHR*)colorImages[imgIndex])->Image;
                         depthImagePtr = depthImages == null ? 0 : (nint)((SwapchainImageOpenGLKHR*)depthImages[imgIndex])->Image;
-                        format = ((GLEnum)(int)xrApp.RenderOptions.ColorFormat) switch
+                        format = ((GLEnum)xrApp.RenderOptions.ColorFormat) switch
                         {
                             GLEnum.Srgb8Alpha8 => FlTextureInternalFormat.SRGB8_A8,
                             GLEnum.Rgba8 => FlTextureInternalFormat.RGBA8,
@@ -112,7 +98,7 @@ namespace XrEngine.OpenXr
                     {
                         colorImagePtr = (nint)((SwapchainImageVulkanKHR*)colorImages[imgIndex])->Image;
                         depthImagePtr = depthImages == null ? 0 : (nint)((SwapchainImageVulkanKHR*)depthImages[imgIndex])->Image;
-                        format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.ColorFormat) switch
+                        format = ((Silk.NET.Vulkan.Format)xrApp.RenderOptions.ColorFormat) switch
                         {
                             Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FlTextureInternalFormat.SRGB8_A8,
                             Silk.NET.Vulkan.Format.R8G8B8A8Unorm => FlTextureInternalFormat.RGBA8,
@@ -141,7 +127,7 @@ namespace XrEngine.OpenXr
                         var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
                         camera.Projection = transform.Projection;
-                        camera.WorldMatrix = transform.Transform;
+                        camera.WorldMatrix = transform.World;
                         camera.ViewSize = rect.Size;
 
                         var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
@@ -185,12 +171,11 @@ namespace XrEngine.OpenXr
                     camera.WorldMatrix = (Matrix4x4.CreateFromQuaternion(headLoc.Pose.Orientation) *
                                           Matrix4x4.CreateTranslation(headLoc.Pose.Position));
 
-
                     for (var i = 0; i < info.ProjViews.Length; i++)
                     {
                         var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
 
-                        camera.Eyes[i].World = transform.Transform;
+                        camera.Eyes[i].World = transform.World;
                         camera.Eyes[i].Projection = transform.Projection;
 
                         var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
@@ -206,15 +191,16 @@ namespace XrEngine.OpenXr
                 }
             }
 
-            xrApp.Layers.AddProjection(RenderView);
+            xrApp.Layers.AddProjection(RenderView, xrApp.RenderOptions.UseProjectionDepth);
 
             return renderer;
         }
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, XrProjDepthMode depthMode, bool useAngle)
         {
-            var pool = new GlFrameBufferPool(OpenGLRender.Current!.GL,
+            var pool = new GlRenderTargetPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
+            pool.Name = "Main";
 
             xrApp.SessionChanged += (s, e) =>
             {
@@ -222,15 +208,92 @@ namespace XrEngine.OpenXr
                     pool.Clear();
             };
 
+            GlDepthExportPass? depthExportPass = null;
+
+            GlDepthCopyPass? depthCopyPass = null;
+
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
-                pool.GetRenderTarget(colorTex, xrApp.RenderOptions.SampleCount));
+            {
+                var sampleCount = xrApp.RenderOptions.SampleCount;
+                var isMultiView = xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView;
+
+                var renderer = OpenGLRender.Current;
+
+                var isHandleDepth = depthTex != 0 && sampleCount > 1;
+
+                if (isHandleDepth)
+                {
+                    if (depthMode == XrProjDepthMode.DepthPass)
+                    {
+                        depthExportPass ??= renderer.EnsurePass(() => new GlDepthExportPass(renderer, isMultiView));
+
+                        depthExportPass.Configure(depthTex);
+                    }
+
+                    else if (depthMode == XrProjDepthMode.DepthCopy)
+                    {
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, imageMode: false));
+
+                        depthCopyPass.Configure(depthTex);
+
+                        renderer.UpdateContext.UseCopyDepth = true;
+                    }
+                    else if (depthMode == XrProjDepthMode.DepthCopyImage)
+                    {
+                        depthCopyPass ??= renderer.EnsurePass(() => new GlDepthCopyPass(renderer, isMultiView, imageMode: true));
+
+                        renderer.UpdateContext.CopyDepthImage = (Texture2D?)depthCopyPass
+                            .Configure(depthTex)?
+                            .ToEngineTexture();
+                    }
+
+                    depthTex = 0;
+                }
+
+                var renderTarget = pool.GetRenderTarget(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+
+                if (depthMode == XrProjDepthMode.DepthCopy && isHandleDepth)
+                {
+                    renderTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1, TextureFormat.Gray16);
+
+                    renderTarget.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
+
+                    renderer.State.SetWriteColor(true);
+                    renderer.GL.Disable(EnableCap.Blend, 1);
+                    renderer.GL.ClearBuffer(BufferKind.Color, 1, [0f]);
+                }
+
+                return renderTarget;
+            }, useAngle);
+
         }
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)
+        public static OpenGLRender BindEngineAppGLResolve(this XrApp xrApp, EngineApp app)
+        {
+            var swap = new GlResolveRenderTarget(OpenGLRender.Current!.GL,
+                xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView,
+                XrEngineApp.Current!.Options.SampleCount
+            );
+
+            xrApp.SessionChanged += (s, e) =>
+            {
+                if (xrApp.State == XrAppState.Stopped)
+                    swap.Clear();
+            };
+
+            return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
+            {
+                swap.Select(colorTex, depthTex);
+                return swap;
+            }, false);
+        }
+
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool useAngle)
         {
             OpenGLRender renderer;
 
-            if (app.Renderer == null)
+
+            if (!app.HasRenderer)
             {
                 var driver = xrApp.Plugin<IXrGraphicDriver>();
 
@@ -246,54 +309,125 @@ namespace XrEngine.OpenXr
             else
                 renderer = (OpenGLRender)app.Renderer;
 
+            AngleVulkanContext? vulkanCtx = null;
 
-            void RenderView(ref RenderViewInfo info)
+            (uint Color, uint Depth) GetImages(ref RenderViewsInfo info, int swapIndex)
+            {
+                if (!useAngle)
+                {
+                    return (
+                        ((SwapchainImageOpenGLKHR*)info.ColorImages[swapIndex])->Image,
+                        info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[swapIndex])->Image);
+                }
+
+                vulkanCtx ??= Context.Require<AngleVulkanContext>();
+
+                var colorImg = vulkanCtx.AttachVulkanImage(info.ColorImages[swapIndex], info.Color[0]); 
+
+                if (info.DepthImages == null || info.Depth == null)
+                    return (colorImg.Texture, 0);
+
+                var depthImg = vulkanCtx.AttachVulkanImage(info.DepthImages[swapIndex], info.Depth[0]);
+
+                return (colorImg.Texture, depthImg.Texture);
+            }
+
+            IGlRenderTargetFB SetupRenderTarget(ref RenderViewsInfo info, PerspectiveCamera camera, int swapIndex)
+            {
+                var images = GetImages(ref info, swapIndex);
+
+                var renderTarget = targetFactory(renderer.GL, images.Color, images.Depth);
+
+                camera.SetProp(OpenGLRender.Props.RenderTarget[swapIndex], renderTarget);
+
+                renderer.SetRenderTarget(renderTarget);
+
+                if (XrDevice.IsMetaQuest)
+                {
+                    info.RenderedSize =  info.Layer.GetRecommendedResolution(info.DisplayTime);
+
+                    if (info.RenderedSize != null)
+                    {
+                        info.RenderedSize = info.Layer.AdjustRenderSize(info.RenderedSize.Value);
+                        renderTarget.RenderSize = new Size2I((uint)info.RenderedSize.Value.Width, (uint)info.RenderedSize.Value.Height);
+                    }
+                    else
+                        renderTarget.RenderSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
+                }
+
+                var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(
+                    ref info.ProjViews[swapIndex], StructureType.CompositionLayerDepthInfoKhr);
+
+                if (depth != null)
+                {
+                    depth->NearZ = camera.Near;
+                    depth->FarZ = camera.Far;
+                }
+
+                return renderTarget;
+            }
+
+            void UpdateClipRegion(ref RenderViewsInfo info, IGlRenderTargetFB renderTarget, int viewIndex)
+            {
+                if (info.Layer.UseSimmetricFov)
+                {
+                    if (renderTarget.ClipRegions == null || renderTarget.ClipRegions.Length != 2)
+                        renderTarget.ClipRegions = new Rect2I[2];
+
+                    var w = renderTarget.RenderSize.Width;
+                    var h = renderTarget.RenderSize.Height;
+
+                    var cropW = (uint)MathF.Round(w / (info.CropScale.X / 1.0f));
+                    var x = viewIndex == 0 ? w - cropW : 0;
+
+                    renderTarget.ClipRegions[viewIndex] = new Rect2I((int)x, 0, cropW, h);
+                }
+                else
+                    renderTarget.ClipRegions = null;
+            }
+
+            void RenderView(ref RenderViewsInfo info)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
                 camera.Eyes ??= new CameraEye[2];
                 camera.IsStereo = true;
+                camera.IsMultiView = info.Mode == XrRenderMode.MultiView;
                 camera.Transform.Version++;
 
                 var eyes = camera.Eyes;
+                var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();
 
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
-                    var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
+                    XrCameraTransform transform;
 
-                    eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
+                    if (info.Layer.UseSimmetricFov)
+                        transform = XrCameraTransform.FromView(info.ProjViews[i].Pose.ToPose3(), info.SharedFov, camera.Near, camera.Far);
+                    else
+                        transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
+
+                    eyes[i].World = transform.World * referenceFrame;
                     eyes[i].Projection = transform.Projection;
-                    Matrix4x4.Invert(eyes[i].World, out eyes[i].View);
+                    eyes[i].View = eyes[i].World.Invert();
                     eyes[i].ViewProj = eyes[i].View * eyes[i].Projection;
+                    eyes[i].ViewProjInv = eyes[i].ViewProj.Invert();
                 }
 
+      
                 if (info.Mode == XrRenderMode.SingleEye)
                 {
                     app.BeginFrame();
 
                     for (var i = 0; i < info.ColorImages.Length; i++)
                     {
-                        var rect = info.ProjViews[i].SubImage.ImageRect.Convert().To<Rect2I>();
-
-                        var glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[i])->Image;
-                        var glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[i])->Image;
-
-                        var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
-
-                        renderer.SetRenderTarget(renderTarget);
+                        var rt = SetupRenderTarget(ref info, camera, i);
 
                         camera.Projection = eyes[i].Projection;
                         camera.WorldMatrix = eyes[i].World;
                         camera.ActiveEye = i;
-                        camera.ViewSize = rect.Size;
 
-                        var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[i], StructureType.CompositionLayerDepthInfoKhr);
-
-                        if (depth != null)
-                        {
-                            depth->NearZ = camera.Near;
-                            depth->FarZ = camera.Far;
-                        }
+                        UpdateClipRegion(ref info, rt, i);
 
                         app.RenderScene();
                     }
@@ -302,45 +436,42 @@ namespace XrEngine.OpenXr
                 }
                 else if (info.Mode == XrRenderMode.MultiView)
                 {
-                    var rect = info.ProjViews[0].SubImage.ImageRect.Convert().To<Rect2I>();
-
-                    var glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[0])->Image;
-                    var glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[0])->Image;
-
-                    var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
-
-                    renderer.SetRenderTarget(renderTarget);
+                    var rt = SetupRenderTarget(ref info, camera, 0);
 
                     camera.Projection = eyes[0].Projection;
                     camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
-                    camera.ViewSize = rect.Size;
                     camera.ActiveEye = -1;
 
-                    var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[0], StructureType.CompositionLayerDepthInfoKhr);
-
-                    if (depth != null)
-                    {
-                        depth->NearZ = camera.Near;
-                        depth->FarZ = camera.Far;
-                    }
+                    UpdateClipRegion(ref info, rt, 0);
+                    UpdateClipRegion(ref info, rt, 1);
 
                     app.RenderFrame();
                 }
             }
 
-            if (renderer.HasPass<GlMotionVectorPass>())
+            var useDepth = xrApp.RenderOptions.UseProjectionDepth;
+
+            if (renderer.Options.MotionVectorMode == MotionVectorMode.Pass)
             {
-                var provider = new GlMotionVectorProvider(app, renderer);
-                provider.IsActive = true;
-                Context.Implement<IMotionVectorProvider>(provider);
+                var motionVectorPass = renderer.EnsurePass(() => new GlMotionVectorPass(
+                            renderer, xrApp,
+                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView));
+
+                var provider = new GlMotionVectorProviderPass(app, renderer, motionVectorPass);
+
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
+            }
+            else if (renderer.Options.MotionVectorMode == MotionVectorMode.Shared)
+            {
+                var provider = new GlMotionVectorProviderShared(app, renderer);
+
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
             }
             else
-                xrApp.Layers.AddProjection(RenderView);
+                xrApp.Layers.AddProjection(RenderView, useDepth);
 
             return renderer;
         }
-
 
         public static IEnumerable<Quad3> GetWallsPlanes(this OculusSceneView self)
         {

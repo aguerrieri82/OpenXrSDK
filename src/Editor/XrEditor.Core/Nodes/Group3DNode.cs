@@ -16,10 +16,10 @@ namespace XrEditor.Nodes
         {
             var node = Context.Require<NodeManager>().CreateNode(change.Target!);
 
-            if ((change.Type & ObjectChangeType.ChildAdd) == ObjectChangeType.ChildAdd)
+            if ((change.Type & ChangeType.ChildAdd) == ChangeType.ChildAdd)
                 ChildAdded?.Invoke(this, node);
 
-            if ((change.Type & ObjectChangeType.ChildRemove) == ObjectChangeType.ChildRemove)
+            if ((change.Type & ChangeType.ChildRemove) == ChangeType.ChildRemove)
                 ChildRemoved?.Invoke(this, node);
 
             base.OnObjectChanged(obj, change);
@@ -30,10 +30,12 @@ namespace XrEditor.Nodes
             get
             {
                 var factory = Context.Require<NodeManager>();
-                return _value.Children.Select(a => factory.CreateNode(a)).SetParent(this);
+
+                return _value.Children
+                       .Select(a => factory.CreateNode(a))
+                       .SetParent(this);
             }
         }
-
 
         public event ChildNodeDelegate? ChildAdded;
 

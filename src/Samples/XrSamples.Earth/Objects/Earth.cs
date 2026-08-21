@@ -18,15 +18,13 @@ namespace XrSamples.Earth
             SubLevels = 6;
             Orbit = Orbit.Earth();
 
-
             Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
             Albedo.WrapS = WrapMode.Repeat;
             Albedo.WrapT = WrapMode.Repeat;
-            Albedo.Format = TextureFormat.SBgra32;
+            Albedo.Format = TextureFormat.SBgra8;
             Albedo.MinFilter = ScaleFilter.LinearMipmapLinear;
             Albedo.MipLevelCount = 20;
 
-            
             HeightMap = new HeightMapSettings
             {
                 Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png"),
@@ -43,7 +41,7 @@ namespace XrSamples.Earth
             HeightMap.Texture.MagFilter = ScaleFilter.Linear;
             HeightMap.Texture.MipLevelCount = 20;
             HeightMap.Texture.MinFilter = ScaleFilter.LinearMipmapLinear;
-          
+
             Create();
 
         }

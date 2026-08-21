@@ -3,9 +3,9 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties where T : EngineObject
+    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager where T : EngineObject
     {
-        protected bool _autoGenProps;
+        protected PropertiesGenerationMode _autoGenProps;
         protected bool _keepChangeListener;
 
         protected event EventHandler? _nodeChanged;
@@ -20,7 +20,7 @@ namespace XrEditor.Nodes
 
         public void EditorProperties(IList<PropertyView> curProps)
         {
-            var binder = new Binder<T>(_value);
+            var binder = new Binder<T>(_value, a => EngineApp.Current.Dispatcher.Post(a));
             EditorProperties(binder, curProps);
         }
 
@@ -33,13 +33,14 @@ namespace XrEditor.Nodes
             OnNodeChanged();
         }
 
-        protected virtual void OnNodeChanged()
+        protected virtual async void OnNodeChanged()
         {
             if (_nodeChanged == null)
                 return;
 
-            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
-                _nodeChanged?.Invoke(this, EventArgs.Empty));
+            await UiThread;
+
+            _nodeChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public virtual void Actions(IList<ActionView> result)
@@ -47,7 +48,7 @@ namespace XrEditor.Nodes
 
         }
 
-        bool IEditorProperties.AutoGenerate
+        PropertiesGenerationMode IEditorProperties.AutoGenerate
         {
             get => _autoGenProps;
             set => _autoGenProps = value;

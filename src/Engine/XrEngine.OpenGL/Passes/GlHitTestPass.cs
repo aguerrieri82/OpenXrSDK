@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using XrMath;
 
-
 namespace XrEngine.OpenGL
 {
     public class GlHitTestPass : GlBaseSingleMaterialPass, IViewHitTest
@@ -22,10 +21,15 @@ namespace XrEngine.OpenGL
         public GlHitTestPass(OpenGLRender renderer)
             : base(renderer)
         {
-            _passTarget = new GlRenderPassTarget(renderer.GL);
-            _passTarget.DepthFormat = TextureFormat.Depth32Float;
+            _passTarget = new GlRenderPassTarget(renderer.GL)
+            {
+                DepthFormat = TextureFormat.Depth24,
+                ColorFormat = TextureFormat.RgUInt32,
+                Name = "HitTest"
+            };
 
-            _passTarget.AddExtra(TextureFormat.RgbFloat32, FramebufferAttachment.ColorAttachment1, true);
+            _passTarget.AddExtra(TextureFormat.RgbFloat16, FramebufferAttachment.ColorAttachment1, true);
+
         }
 
         public unsafe HitTestResult HitTest(uint x, uint y)
@@ -35,26 +39,30 @@ namespace XrEngine.OpenGL
             if (x >= _lastSize.Width || y >= _lastSize.Height)
                 return result;
 
-            uint objId = 0;
-            var normal = Vector3.Zero;
-            float depth = 1;
+            var depth = 1f;
+
+            var ids = new uint[2];
+            var normal = Vector4.Zero;
             var txY = _lastSize.Height - y;
 
-            _passTarget.FrameBuffer!.Bind();
+            _renderer.State.BindBuffer(BufferTargetARB.PixelPackBuffer, 0, true);
 
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, &objId);
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment1);
+            _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment0);
+
+            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.RGInteger, PixelType.UnsignedInt, ids);
+
+            _passTarget.FrameBuffer!.BindRead(ReadBufferMode.ColorAttachment1);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgb, PixelType.Float, &normal);
             _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.DepthComponent, PixelType.Float, &depth);
 
-            if (objId <= 0 || objId >= _objects.Count)
+            if (ids[0] <= 0 || ids[0] >= _objects.Count)
                 return result;
 
-            result.Object = _objects[(int)objId];
-            result.Normal = normal;
+            result.Object = _objects[(int)ids[0]];
+            result.Normal = new Vector3(normal.X, normal.Y, normal.Z);
             result.Depth = depth;
             result.Pos = ToView(x, y, result.Depth).Project(_lastViewProjInv);
+            result.Index = ids[1];
 
             return result;
         }
@@ -64,25 +72,39 @@ namespace XrEngine.OpenGL
             return _passTarget.RenderTarget;
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            var effect = (HitTestEffect)_programInstance!.Material;
+            var effect = (HitTestEffect)instance.Material;
+
+            var hasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
+            var isChanged = hasSkin != effect.HasSkin;
 
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
+            effect.HasSkin = hasSkin;
 
-            _renderer.ConfigureCaps(effect);
+            var result = base.UpdateProgram(instance, updateContext, drawMaterial);
+            
+            if (result == UpdateProgramResult.Skip)
+                return UpdateProgramResult.Skip;
 
-            return base.UpdateProgram(updateContext, drawMaterial);
+            return isChanged ? UpdateProgramResult.Changed : result;
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Object3D model)
         {
             var objId = (uint)_objects.Count;
-            var effect = (HitTestEffect)_programInstance!.Material;
+            var effect = (HitTestEffect)instance!.Material;
             effect.DrawId = objId;
             return UpdateProgramResult.Changed;
+        }
+
+        protected override bool CanDraw(DrawContent draw)
+        {
+            if (draw.Object is SplatMesh)
+                return false;
+            return base.CanDraw(draw);
         }
 
         protected override void Draw(DrawContent draw)
@@ -100,12 +122,14 @@ namespace XrEngine.OpenGL
             );
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            if (_renderer.RenderTarget is not GlDefaultRenderTarget)
+            if ((_renderer.RenderTarget!.Flags & GlRenderTargetFlags.Main) == 0)
                 return false;
 
-            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
+            var camera = ctx.PassCamera!;
+
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height);
 
             if (_passTarget.RenderTarget == null)
                 return false;
@@ -113,10 +137,12 @@ namespace XrEngine.OpenGL
             _lastSize = camera.ViewSize;
 
             _passTarget.RenderTarget.Begin(camera);
+            _passTarget.FrameBuffer!.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
 
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetWriteColor(true);
+            _renderer.State.Commit();
 
             _gl.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
 
@@ -126,12 +152,12 @@ namespace XrEngine.OpenGL
 
             _lastViewProjInv = camera.ViewProjectionInverse;
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            _passTarget.RenderTarget!.End(false);
+            _passTarget.RenderTarget!.End(discardDepth: false);
         }
 
         protected override ShaderMaterial CreateMaterial()

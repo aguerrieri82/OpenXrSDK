@@ -38,13 +38,18 @@
             if (!IsEnabled || !_handleNotifications)
                 return;
 
-            if (sender is Group3D group && change.IsAny(ObjectChangeType.Scene))
+            if (sender is Group3D group && change.IsAny(ChangeType.Scene))
             {
                 foreach (var child in group.DescendantsOrSelf())
                     NotifyChangedWork(child, change.Type);
             }
             else
                 NotifyChangedWork(sender, change);
+        }
+
+        public void Invalidate()
+        {
+            _version++;
         }
 
         protected virtual void NotifyChangedWork(Object3D sender, ObjectChange change)

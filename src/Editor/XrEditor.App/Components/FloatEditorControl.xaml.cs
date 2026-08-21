@@ -31,7 +31,6 @@ namespace XrEditor.Components
         public static readonly DependencyProperty TextValueProperty =
           DependencyProperty.Register("TextValue", typeof(string), typeof(FloatEditorControl), new PropertyMetadata(""));
 
-
         static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             ((FloatEditorControl)d).OnValueChanged();
@@ -101,7 +100,6 @@ namespace XrEditor.Components
             Value = _downValue + (int)(pos.X - _downPos.X) * SmallStep;
         }
 
-
         private void OnTextMouseUp(object sender, MouseButtonEventArgs e)
         {
             var upPos = e.GetPosition(this);
@@ -125,8 +123,6 @@ namespace XrEditor.Components
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
-
 
         public float Value
         {
@@ -175,7 +171,6 @@ namespace XrEditor.Components
             get { return (string)GetValue(TextValueProperty); }
             protected set { SetValue(TextValueProperty, value); }
         }
-
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

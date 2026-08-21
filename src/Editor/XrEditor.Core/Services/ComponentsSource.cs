@@ -1,6 +1,6 @@
 ﻿using XrEngine;
 
-namespace XrEditor
+namespace XrEditor.Services
 {
     public class ComponentsSource : BaseItemsSource<TypeInfo, TypeInfo>
     {

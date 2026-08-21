@@ -3,7 +3,8 @@
     public enum Layer3DChangeType
     {
         Added,
-        Removed
+        Removed,
+        Updated
     }
 
     public class Layer3DChange
@@ -21,6 +22,7 @@
 
     public interface ILayer3D : IObjectChangeListener
     {
+        void Invalidate();
 
         void Attach(LayerManager manager);
 
@@ -37,7 +39,6 @@
         string Name { get; set; }
 
         bool IsEnabled { get; set; }
-
 
         event Action<ILayer3D, Layer3DChange>? Changed;
     }

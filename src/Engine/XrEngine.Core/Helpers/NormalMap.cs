@@ -8,7 +8,7 @@ namespace XrEngine
     {
         public static Texture2D FromHeightMap(Texture2D map, float strength)
         {
-            if (map.Data == null || map.Data!.Count == 0 || map.Data[0].Data == null)
+            if (map.Data == null || map.Data!.Count == 0 || map.Data[0].Content == null)
                 throw new InvalidOperationException("Texture data is empty");
             return FromHeightMap(map.Data[0], strength);
         }
@@ -36,7 +36,6 @@ namespace XrEngine
             fixed (byte* srcData = blurred.Bytes)
             {
                 var dstData = res.Lock();
-
 
                 for (var y = 1; y < height - 1; y++)
                 {
@@ -71,10 +70,10 @@ namespace XrEngine
 
             return Texture2D.FromData([new TextureData
             {
-                Data = res,
+                Content = res,
                 Width = (uint)width,
                 Height = (uint)height,
-                Format = TextureFormat.Rgba32,
+                Format = TextureFormat.Rgba8,
             }]);
         }
     }

@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenXr
 {
@@ -6,21 +7,42 @@ namespace XrEngine.OpenXr
     {
         OpenGL,
         FilamentOpenGL,
-        FilamentVulkan
+        FilamentVulkan,
+        Angle
     }
 
+    public enum XrProjDepthMode
+    {
+        None,
+        DepthPass,
+        DepthCopy,
+        DepthCopyImage
+    }
 
     public class XrEngineAppOptions
     {
+        public XrEngineAppOptions()
+        {
+            XrPlugins = [];
+        }
+
         public GraphicDriver Driver { get; set; }
 
         public XrRenderMode RenderMode { get; set; }
+
+        public XrProjDepthMode ProjDepthMode { get; set; }
+
+        public float ProjDepthScale { get; set; }
 
         public float ResolutionScale { get; set; }
 
         public uint SampleCount { get; set; }
 
+        public bool UseIntermediate { get; set; }
+
         public object? DriverOptions { get; set; }
+
+        public List<IXrPlugin> XrPlugins { get; }
     }
 
     public class XrEngineApp
@@ -44,11 +66,22 @@ namespace XrEngine.OpenXr
             _app = app;
             _app.Renderer = renderEngine;
 
-            _xrApp = _platform.CreateXrApp(xrDriver);
+            _xrApp = _platform.CreateXrApp([xrDriver, ..Options.XrPlugins]);
 
-            _xrApp.RenderOptions.SampleCount = _options.SampleCount;
+            _xrApp.RenderOptions.SampleCount = _options.UseIntermediate ? 1 : _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
-            _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
+            _xrApp.RenderOptions.ColorScale = _options.ResolutionScale;
+            _xrApp.RenderOptions.UseProjectionDepth = _options.ProjDepthMode != XrProjDepthMode.None;
+
+            if (_xrApp.RenderOptions.SampleCount > 1)
+            {
+                _xrApp.RenderOptions.ProjectionDepthScale = _options.ProjDepthScale;
+
+                if (_options.Driver == GraphicDriver.OpenGL)
+                {
+                    _xrApp.RenderOptions.DepthFormat = (int)GLEnum.DepthComponent16;
+                }
+            }
         }
 
         public T GetInputs<T>()
@@ -59,6 +92,7 @@ namespace XrEngine.OpenXr
         public void EnterXr()
         {
             _xrApp?.Start();
+
         }
 
         public void ExitXr()
@@ -72,8 +106,10 @@ namespace XrEngine.OpenXr
 
         public IXrBasicInteractionProfile? Inputs { get; internal set; }
 
-        public static XrEngineApp? Current { get; private set; }
-    }
+        public XrEngineAppOptions Options => _options;
 
+        public static XrEngineApp? Current { get; private set; }
+
+    }
 
 }

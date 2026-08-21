@@ -22,12 +22,10 @@ namespace XrEngine.OpenXr
             yield return Y;
         }
 
-
         public Bounds2? Bounds { get; set; }
 
         public float Y { get; set; }
     }
-
 
     public class SceneTeleportTarget : BaseComponent<Scene3D>, ITeleportTarget
     {
@@ -56,7 +54,6 @@ namespace XrEngine.OpenXr
         }
     }
 
-
     public class InputTeleport : Behavior<Object3D>, IDrawGizmos
     {
         readonly TeleportRayView _rayView;
@@ -78,7 +75,6 @@ namespace XrEngine.OpenXr
             SmoothFactor = 0.08f;
             Exponent = 2;
         }
-
 
         protected override void Start(RenderContext ctx)
         {
@@ -146,7 +142,6 @@ namespace XrEngine.OpenXr
                 }
             }
 
-
             if (_isTeleportStart || IsSimulation)
             {
                 _rayView.Update(Sample(_rayView.Segments), _lastIntValid);
@@ -155,7 +150,6 @@ namespace XrEngine.OpenXr
             else
                 _rayView.IsVisible = false;
         }
-
 
         protected virtual void Teleport(Vector3 position)
         {
@@ -231,7 +225,7 @@ namespace XrEngine.OpenXr
 
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!_isTeleportStart && !IsSimulation)
                 return;
@@ -280,7 +274,6 @@ namespace XrEngine.OpenXr
         public Vector2 MaxRange { get; set; }
 
         public float MinY { get; set; }
-
 
         [Range(0, 1, 0.01f)]
         public float SmoothFactor { get; set; }

@@ -1,7 +1,19 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 
 namespace XrEngine
 {
+
+    [Flags]
+    public enum TypeMode
+    {
+        Self = 1,
+        Bases = 2,
+        Subclasses = 4,
+        Full = Self | Bases | Subclasses,
+        SubclassesOrSelf = Self | Subclasses,
+    }
+
     public static class StateContainerExtensions
     {
         public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
@@ -58,7 +70,6 @@ namespace XrEngine
             }
         }
 
-
         public static void WriteTypeName(this IStateContainer container, object? obj)
         {
             if (obj != null)
@@ -94,30 +105,102 @@ namespace XrEngine
             }
         }
 
-        public static void WriteObject<T>(this IStateContainer container, object obj)
+        public static void WriteObject<T>(this IStateContainer container, T obj, TypeMode mode = TypeMode.Self)
         {
-            container.WriteObject(obj, typeof(T));
+            if ((mode & TypeMode.Subclasses) != 0)
+            {
+                var curType = obj!.GetType();
+
+                while (curType != typeof(T))
+                {
+                    container.WriteObject(obj!, curType!);
+
+                    curType = curType!.BaseType;
+                }
+            }
+
+            if ((mode & TypeMode.Self) != 0)
+                container.WriteObject(obj!, typeof(T));
+
+            if ((mode & TypeMode.Bases) != 0)
+                throw new NotImplementedException();
         }
 
         public static void WriteObject(this IStateContainer container, object obj, Type objType)
         {
             var sm = objType.GetCustomAttribute<StateManagerAttribute>();
+
+            var isNone = sm != null && sm.Mode == StateManagerMode.None;
+
+            if (isNone)
+                return;
+
             var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
+
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+
                 if (isExplicit && saveState == null)
                     continue;
+
                 if (saveState != null && !saveState.IsSave)
                     continue;
+
                 if (prop.CanWrite && prop.CanRead)
                     container.Write(prop.Name, prop.GetValue(obj));
             }
         }
 
-        public static void ReadObject<T>(this IStateContainer container, T obj)
+        public static void ReadObject<T>(this IStateContainer container, T obj, TypeMode mode = TypeMode.Self)
         {
-            ReadObject(container, obj!, typeof(T));
+            Debug.Assert(obj != null);
+
+            if ((mode & TypeMode.Self) != 0)
+                container.ReadObject(obj, typeof(T));
+
+            if ((mode & TypeMode.Subclasses) != 0)
+            {
+                var curType = obj.GetType()!;
+
+                while (curType != typeof(T))
+                {
+                    container.ReadObject(obj, curType);
+
+                    curType = curType.BaseType!;
+                }
+            }
+
+            if ((mode & TypeMode.Bases) != 0)
+                throw new NotImplementedException();
+        }
+
+        public static void ReadObject(this IStateContainer container, object obj, Type objType)
+        {
+            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
+
+            var isNone = sm != null && sm.Mode == StateManagerMode.None;
+            if (isNone)
+                return;
+
+            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
+
+            foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            {
+                var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+
+                if (isExplicit && saveState == null)
+                    continue;
+
+                if (saveState != null && !saveState.IsSave)
+                    continue;
+
+                if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
+                {
+                    var value = container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType);
+                    prop.SetValue(obj, value);
+                }
+            }
         }
 
         public static T? ReadObject<T>(this IStateContainer container, string key, T? curObj) where T : class, IStateObject
@@ -133,25 +216,6 @@ namespace XrEngine
 
             }
             return container.Read<T>(key);
-        }
-
-
-        public static void ReadObject(this IStateContainer container, object obj, Type objType)
-        {
-            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
-            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
-
-            foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
-            {
-                var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
-
-                if (isExplicit && saveState == null)
-                    continue;
-                if (saveState != null && !saveState.IsSave)
-                    continue;
-                if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
-                    prop.SetValue(obj, container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType));
-            }
         }
 
         public static void WriteTypedObject(this IStateContainer container, string key, IStateManager value)
@@ -201,7 +265,5 @@ namespace XrEngine
         {
             return self.Context.Is(flag);
         }
-
-
     }
 }

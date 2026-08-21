@@ -2,8 +2,9 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using SkiaSharp;
 #endif
+
+using System.Diagnostics;
 
 
 namespace XrEngine.OpenGL
@@ -32,6 +33,9 @@ namespace XrEngine.OpenGL
 
         public long Version { get; protected set; }
 
+        public abstract IGlVertexArray VertexArray { get; }
+
+        public abstract GlVertexSourceHandle Clone();
 
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
@@ -42,6 +46,7 @@ namespace XrEngine.OpenGL
 
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
+
     }
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
@@ -49,24 +54,105 @@ namespace XrEngine.OpenGL
         readonly GlVertexArray<TVert, TInd> _vertices;
         readonly PrimitiveType _primitive;
         readonly IVertexSource<TVert, TInd> _source;
+        readonly GL _gl;
         EngineObject? _sourceObject;
+        VertexComponent _lastComponents;
+
+        public GlVertexSourceHandler(GlVertexSourceHandler<TVert, TInd> source)
+        {
+            _source = source._source;
+
+            _vertices = new GlVertexArray<TVert, TInd>(source._gl, source._vertices.VBuf, source._vertices.IBuf, source._vertices.MainLayout);
+
+            _primitive = source._primitive;
+
+            if (source._vertices.Attributes != null)
+            {
+                foreach (var attr in source._vertices.Attributes)
+                    _vertices.AddAttributes(attr.Buffer!, attr.Layout!, attr.ElementType!);
+            }
+
+            _gl = source._gl;
+
+            Version = source.Version;
+        }
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
         {
-            var lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
-
-            if (!_layouts.TryGetValue(lKey, out var layout))
-            {
-                layout = GlVertexLayout.FromType<TVert>(source.ActiveComponents);
-                _layouts[lKey] = layout;
-            }
-
             _source = source;
-            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout);
+
+            UpdateMainLayout(out var mainLayout);
+
+            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, mainLayout!);
 
             _primitive = GlPrimitive(_source.Primitive);
 
+            _source.NotifyBuffers(_vertices.VBuf, _vertices.IBuf);
+
+            _gl = gl;
+
+            foreach (var attrs in _source.Host.Components<IVertexAttributes>())
+            {
+                var attrLen = attrs.BufferCount;
+
+                for (var i = 0; i < attrLen; i++)
+                {
+                    var attrBuffer = attrs.GetBuffer(i);
+
+                    var elementType = attrBuffer.ElementType ?? attrBuffer.Data.GetType().GetElementType()!;
+
+                    var glBuffer = GlBuffer.Create(_gl, BufferTargetARB.ArrayBuffer, elementType);
+
+                    var layout = CreateLayout(elementType, attrBuffer.BaseLocation, attrBuffer.Component);
+
+                    _vertices.AddAttributes(glBuffer, layout, elementType);
+                }
+            }
+
             Version = -1;
+        }
+
+        public override GlVertexSourceHandle Clone()
+        {
+            return (GlVertexSourceHandle)Activator.CreateInstance(GetType(), this)!;
+        }
+
+        protected GlVertexLayout CreateLayout(Type type, uint baseLocation = 0, VertexComponent component = VertexComponent.None)
+        {
+            var lKey = string.Concat(type.FullName, _source.ActiveComponents);
+
+            if (!_layouts.TryGetValue(lKey, out var layout))
+            {
+                layout = GlVertexLayout.FromType(type, _source.ActiveComponents, baseLocation);
+
+                if (component != VertexComponent.None)
+                {
+                    Debug.Assert(layout.Attributes != null);
+
+                    for (var j = 0; j < layout.Attributes.Length; j++)
+                        layout.Attributes[j].Component = component;
+                }
+
+                _layouts[lKey] = layout;
+            }
+
+            return layout;
+        }
+
+
+        protected bool UpdateMainLayout(out GlVertexLayout? layout)
+        {
+            if (_lastComponents == _source.ActiveComponents)
+            {
+                layout = null;
+                return false;
+            }
+
+            layout = CreateLayout(typeof(TVert));
+
+            _lastComponents = _source.ActiveComponents;
+
+            return true;
         }
 
         static PrimitiveType GlPrimitive(DrawPrimitive drawPrimitive)
@@ -101,17 +187,36 @@ namespace XrEngine.OpenGL
 
         public override void Draw(DrawPrimitive? forcePrimitive = null)
         {
-            _vertices.Draw(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive);
+            if (_source.InstanceCount > 1)
+            {
+                DrawInstances(_source.InstanceCount, forcePrimitive);
+            }
+            else
+                _vertices.Draw(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive);
         }
 
         public override void Update()
         {
+            if ((_source.Host.Flags & EngineObjectFlags.NoLogs) == 0)
+                _vertices.EnableDebug = true;
 
-            _vertices.Update(_source.Vertices, _source.Indices);
+            if (UpdateMainLayout(out var layout))
+                _vertices.UpdateMainLayouts(layout!);
 
-            _sourceObject = _source.Object;
+            _vertices.UpdateMain(_source.Vertices, _source.Indices);
 
-            Version = _source.Object.Version;
+            _sourceObject = _source.Host;
+
+            foreach (var attrs in _source.Host.Components<IVertexAttributes>())
+            {
+                for (int i = 0; i < attrs.BufferCount; i++)
+                {
+                    var attrBuffer = attrs.GetBuffer(i);
+                    _vertices.UpdateAttributes(attrBuffer.Data, i);
+                }
+            }
+      
+            Version = _sourceObject.Version;
 
             _source.NotifyLoaded();
         }
@@ -123,10 +228,13 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public override IGlVertexArray VertexArray => _vertices;
+
         public override IVertexSource Source => _source;
 
-        public override bool NeedUpdate => _source.Object != null && (_source.Object.Version != Version || Version == -1 || _sourceObject != _source.Object);
+        public override bool NeedUpdate => _source.Host != null && 
+                            (_source.Host.Version != Version || Version == -1 || _sourceObject != _source.Host);
 
-        public override GlVertexLayout Layout => _vertices.Layout;
+        public override GlVertexLayout Layout => _vertices.MainLayout;
     }
 }

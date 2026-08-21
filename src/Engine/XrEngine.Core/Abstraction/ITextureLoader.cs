@@ -2,13 +2,14 @@
 {
     public class TextureLoadOptions : IAssetLoaderOptions
     {
+        public bool IsSrgb { get; set; }
+
         public TextureFormat? Format { get; set; }
 
         public string? MimeType { get; set; }
 
         public bool UseCache { get; set; } = true;
     }
-
 
     public interface ITextureLoader
     {

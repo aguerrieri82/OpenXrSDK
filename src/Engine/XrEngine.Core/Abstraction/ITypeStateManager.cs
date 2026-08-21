@@ -9,7 +9,6 @@
         bool CanHandle(Type type);
     }
 
-
     public interface ITypeStateManager<T> : ITypeStateManager
     {
         void Write(string key, T obj, IStateContainer container);

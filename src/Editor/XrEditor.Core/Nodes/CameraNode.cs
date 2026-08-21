@@ -7,18 +7,18 @@ namespace XrEditor.Nodes
     {
         public CameraNode(T value) : base(value)
         {
-            _autoGenProps = false;
+            _autoGenProps = PropertiesGenerationMode.None;
         }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             // base.EditorProperties(binder, curProps);
 
-            binder.PropertyChanged += (_, prop, _, _) =>
+            binder.PropertyChanged += async (_, prop, _, _) =>
             {
-                _value.NotifyChanged(ObjectChangeType.Render);
-                if (prop.Name == nameof(PerspectiveCamera.FovDegree) || prop.Name == nameof(Camera.Near) || prop.Name == nameof(Camera.Far))
-                    ((PerspectiveCamera)(object)_value).UpdateProjection();
+                await EngineApp.MainThread;
+
+                _value.NotifyChanged(ChangeType.Render);
             };
 
             curProps.Add(new PropertyView
@@ -26,7 +26,6 @@ namespace XrEditor.Nodes
                 Label = "Background Color",
                 Editor = new ColorEditor(binder.Prop(a => a.BackgroundColor))
             });
-
 
             curProps.Add(new PropertyView
             {

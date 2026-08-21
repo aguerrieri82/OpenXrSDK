@@ -19,6 +19,15 @@
 
         Task<ICameraDevice> OpenCameraAsync(string id);
 
+    }
+
+    public interface ILocalCameraManger : ICameraManager
+    {
+
+    }
+
+    public interface IUsbCameraManger : ICameraManager
+    {
 
     }
 }

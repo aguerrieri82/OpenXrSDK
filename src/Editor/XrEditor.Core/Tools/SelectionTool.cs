@@ -18,6 +18,7 @@ namespace XrEditor
         public SelectionTool()
         {
             Context.Implement<IOutlineSource>(this);
+            Context.Implement<IObjectPicker>(this);
 
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
@@ -59,22 +60,24 @@ namespace XrEditor
             return _lastOutline.Count > 0;
         }
 
-        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
 
             if (_selectionLayer != null)
             {
+                await EngineApp.MainThread;
+
                 _selectionLayer.BeginUpdate();
                 _selectionLayer.Clear();
 
                 var outlineMeshes = _lastSelection
                     .Select(a => a.Value)
+                    .Union(_lastSelection.Select(a => a.Parent?.Value).OfType<TriangleMesh>())
                     .OfType<Object3D>()
                     .Where(a => a is not Scene3D)
                     .SelectMany(a => a.DescendantsOrSelf())
                     .OfType<TriangleMesh>();
-
 
                 _lastOutline = outlineMeshes.ToHashSet();
 
@@ -82,6 +85,8 @@ namespace XrEditor
                     _selectionLayer.Add(item);
 
                 _selectionLayer.EndUpdate();
+
+                await UiThread;
             }
         }
         protected override void OnPointerDown(Pointer2Event ev)
@@ -100,6 +105,7 @@ namespace XrEditor
                 {
                     _selection.Set(_nodes.CreateNode(_currentPick));
                     Log.Info(this, _lastCollision?.Point.ToString() ?? "");
+                    //Log.Info(this, _lastCollision?.TriangleId.ToString() ?? "");
                 }
 
             }
@@ -107,7 +113,7 @@ namespace XrEditor
             base.OnPointerUp(ev);
         }
 
-        public override void DrawGizmos(Canvas3D canvas)
+        public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             canvas.Save();
 
@@ -156,8 +162,6 @@ namespace XrEditor
             }
 
             canvas.Restore();
-
-            base.DrawGizmos(canvas);
         }
 
     }

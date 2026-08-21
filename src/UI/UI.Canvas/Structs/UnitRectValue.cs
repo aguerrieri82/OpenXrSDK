@@ -1,5 +1,4 @@
 ﻿
-
 namespace CanvasUI
 {
     public struct UnitRectValue
@@ -46,12 +45,10 @@ namespace CanvasUI
             return Top.ToPixel(ctx, reference) + Bottom.ToPixel(ctx, reference);
         }
 
-
         public static implicit operator UnitRectValue(float value)
         {
             return All(value);
         }
-
 
         public float Value
         {

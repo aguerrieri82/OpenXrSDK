@@ -11,10 +11,6 @@ namespace OpenXr.Framework
 
         }
 
-        public virtual void ConfigureSwapchain(ref SwapchainCreateInfo info)
-        {
-        }
-
         public virtual void HandleEvent(ref EventDataBuffer buffer)
         {
 
@@ -45,14 +41,27 @@ namespace OpenXr.Framework
 
         }
 
+        public virtual void OnFrameEnd()
+        {
+
+        }
+
         public virtual void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
 
         }
 
-        public virtual IDisposable? Configure<T>(ref T data) where T : struct
+        public virtual IDisposable? Configure<T>(ref T data) where T : unmanaged
         {
             return null;
+        }
+
+        public virtual void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
+        {
+        }
+
+        public virtual void CreateInstance(ref InstanceCreateInfo info)
+        {
         }
 
         public XrApp App => _app ?? throw new ArgumentNullException();

@@ -28,7 +28,6 @@ namespace CanvasUI
                 _content.Host = this;
         }
 
-
         protected override Size2 ArrangeWork(Rect2 finalRect)
         {
             if (_content != null)

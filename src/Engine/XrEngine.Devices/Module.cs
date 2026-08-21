@@ -1,7 +1,5 @@
 ﻿using XrEngine;
 
-#pragma warning disable CA1416 
-
 [assembly: Module(typeof(XrEngine.Devices.Module))]
 
 namespace XrEngine.Devices
@@ -10,8 +8,8 @@ namespace XrEngine.Devices
     {
         public void Load()
         {
-#if ANDROID
-
+#if __ANDROID__
+            Context.Implement<ILocalCameraManger>(() => new Android.AndroidCamera2Manager());
             Context.Implement<ICameraManager>(() => new Android.AndroidCamera2Manager());
             Context.Implement<IBleManager>(() => new Android.AndroidBleManager());
             Context.Implement<IMidiManager>(() => new Android.AndroidMidiManager());

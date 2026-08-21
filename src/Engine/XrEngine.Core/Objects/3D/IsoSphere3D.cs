@@ -94,7 +94,6 @@ namespace XrEngine
             Indices = indicesLevels[^1].ToArray();
             Vertices = new VertexData[vertices.Count];
 
-
             for (var i = 0; i < vertices.Count; i++)
             {
                 var normal = vertices[i].Normalize();
@@ -121,14 +120,12 @@ namespace XrEngine
 
             this.EnsureCCW();
 
-
             ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0;
         }
 
         public uint Levels { get; set; }
 
         public float Radius { get; set; }
-
 
         public static readonly IsoSphere3D Default = new(1f, 3);
     }

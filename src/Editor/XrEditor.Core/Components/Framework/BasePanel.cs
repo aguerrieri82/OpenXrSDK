@@ -9,15 +9,15 @@ namespace XrEditor
     {
         protected readonly PanelManager _panelManager;
         protected readonly IUserInteraction _ui;
-        protected readonly IMainDispatcher _mainDispatcher;
         protected Guid _panelId;
         protected IPanelContainer? _container;
         protected bool _isActive;
+        protected bool _isClosing;
 
         public BasePanel()
         {
             _ui = Context.Require<IUserInteraction>();
-            _mainDispatcher = Context.Require<IMainDispatcher>();
+
             _panelManager = Context.Require<PanelManager>();
 
             var panelAttr = GetType().GetCustomAttribute<PanelAttribute>();

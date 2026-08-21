@@ -22,7 +22,6 @@ namespace XrEngine.Devices.Windows
             _address = address;
         }
 
-
         public async Task ConnectAsync()
         {
             _device = await BluetoothLEDevice.FromBluetoothAddressAsync(_address.Value);
@@ -132,7 +131,6 @@ namespace XrEngine.Devices.Windows
             return buffer.Value.ToArray();
         }
 
-
         public async Task WriteCharacteristicAsync(BleCharacteristicInfo characteristicInfo, byte[] data)
         {
             var cts = GetCharacteristicInternal(characteristicInfo);
@@ -169,7 +167,6 @@ namespace XrEngine.Devices.Windows
         {
             return _characteristics[characteristicInfo.Service!.Id].Characteristics.Single(a => a.Uuid == characteristicInfo.Id);
         }
-
 
         public bool IsConnected => _device != null && _device.ConnectionStatus == BluetoothConnectionStatus.Connected;
     }

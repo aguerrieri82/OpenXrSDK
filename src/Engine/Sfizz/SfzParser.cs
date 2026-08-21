@@ -9,7 +9,7 @@ namespace Sfizz
         readonly Dictionary<string, Token[]> _includes = [];
         readonly Dictionary<string, string> _defines = [];
         readonly HashSet<string> _samples = [];
-        private string _rootFile;
+        private string? _rootFile;
         string? _basePath;
         private readonly List<Section> _sections = [];
         private Section? _curSection;
@@ -44,7 +44,6 @@ namespace Sfizz
 
             public string? FileName;
         }
-
 
         public class Section
         {
@@ -98,7 +97,6 @@ namespace Sfizz
                     i++;
                     continue;
                 }
-
 
                 switch (state)
                 {
@@ -290,7 +288,6 @@ namespace Sfizz
                         break;
                 }
 
-
                 if (c == '\n')
                 {
                     line++;
@@ -348,7 +345,6 @@ namespace Sfizz
             }
         }
 
-
         public void Parse(string fileName)
         {
             var fullPath = Path.GetFullPath(fileName);
@@ -358,7 +354,6 @@ namespace Sfizz
                 _rootFile = fileName;
                 _basePath = Path.GetDirectoryName(fileName);
             }
-
 
             if (!_includes.TryGetValue(fullPath, out var tokens))
             {
@@ -384,7 +379,6 @@ namespace Sfizz
 
                 return tokens[i++];
             }
-
 
             string ReadValueUntil(Func<Token, bool> cond)
             {

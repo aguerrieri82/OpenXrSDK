@@ -45,7 +45,6 @@ namespace OpenXr.Framework
             GC.SuppressFinalize(this);
         }
 
-
         public virtual ActionSuggestedBinding Initialize()
         {
             var result = new ActionSuggestedBinding
@@ -97,6 +96,11 @@ namespace OpenXr.Framework
             };
         }
 
+        public string GetInteractionProfile()
+        {
+            return _app.GetCurrentInteractionProfile(_path);
+        }
+
         public DateTime LastChangeTime => _lastChangeTime;
 
         public bool IsActive => _isActive && (_isSimulated || _action.Handle != 0);
@@ -113,7 +117,6 @@ namespace OpenXr.Framework
 
         object IXrInput.Value => _value!;
     }
-
 
     public class XrFloatInput : XrInput<float>
     {

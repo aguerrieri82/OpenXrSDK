@@ -40,7 +40,6 @@ namespace CanvasUI
             public UiTextWrap Wrap;
         }
 
-
         public static void ExtractLayoutParams(UiStyle style, ref LayoutParams result)
         {
             result.Font = style.GetFont();
@@ -112,7 +111,6 @@ namespace CanvasUI
                         curLine.Append(c);
                         break;
                 }
-
 
                 if (isWhite || lp.Wrap == UiTextWrap.BreakWord)
                 {

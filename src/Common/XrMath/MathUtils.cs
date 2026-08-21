@@ -34,7 +34,7 @@ namespace XrMath
         public static Quaternion QuatFromForwardUp(Vector3 forward, Vector3 up)
         {
             var lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
-            Matrix4x4.Invert(lookAt, out var rotMatrix);
+            var rotMatrix = lookAt.Invert();
             return Quaternion.CreateFromRotationMatrix(rotMatrix);
         }
 
@@ -68,7 +68,6 @@ namespace XrMath
 
             return result;
         }
-
 
         public static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent, float epsilon = MathExtensions.EPSILON)
         {
@@ -129,5 +128,20 @@ namespace XrMath
             var s = t * t * (3f - 2f * t);
             return from + (to - from) * s;
         }
+
+        public static void BuildBasis(
+            in Vector3 n,
+            out Vector3 tangent,
+            out Vector3 bitangent)
+        {
+            var helper =
+                MathF.Abs(Vector3.Dot(n, Vector3.UnitY)) < 0.999f
+                    ? Vector3.UnitY
+                    : Vector3.UnitX;
+
+            tangent = Vector3.Normalize(Vector3.Cross(helper, n));
+            bitangent = Vector3.Normalize(Vector3.Cross(n, tangent));
+        }
+
     }
 }

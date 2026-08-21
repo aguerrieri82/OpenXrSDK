@@ -18,7 +18,7 @@ namespace XrSamples.Android.Activities
 
         private WebView? _webView;
 
-        protected unsafe override void OnCreate(Bundle? savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
@@ -28,7 +28,6 @@ namespace XrSamples.Android.Activities
 
             ConfigureWebView();
         }
-
 
         void ConfigureWebView()
         {
@@ -45,7 +44,6 @@ namespace XrSamples.Android.Activities
 
             _webView!.LoadUrl("https://roomdesigner.eusoft.net/");
         }
-
 
         private void StartApp()
         {

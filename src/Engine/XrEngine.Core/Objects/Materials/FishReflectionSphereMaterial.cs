@@ -19,7 +19,7 @@ namespace XrEngine
 
         static FishReflectionSphereMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "fish_reflection_sphere.frag",
                 SourcePaths = ["D:\\Development\\Personal\\Git\\XrSDK\\src\\Engine\\XrEngine.Core\\Shaders\\"],
@@ -97,7 +97,7 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            if (OperatingSystem.IsAndroid())
+            if (OperatingSystem.IsAndroid() && IsExternal)
             {
                 bld.AddExtension("GL_OES_EGL_image_external_essl3");
                 bld.AddFeature("EXTERNAL");
@@ -112,6 +112,10 @@ namespace XrEngine
             if (DebugMode)
                 bld.AddFeature("DEBUG");
 
+            bld.AddFeature($"MODE {(int)Mode}");
+
+            bld.PrepareTexture(LeftMainTexture ?? RightTexture);
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ((PerspectiveCamera)ctx.PassCamera!);
@@ -119,10 +123,13 @@ namespace XrEngine
                 up.SetUniform("uSphereCenter", SphereCenter);
                 up.SetUniform("uSphereRadius", SphereRadius);
 
-                if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
-                    up.SetUniform("uTexture", RightTexture!, 0);
+                if (Mode == FishReflectionMode.Eye)
+                {
+                    up.LoadTextureFixSrgb(ctx, LeftMainTexture!, 0);
+                    up.LoadTextureFixSrgb(ctx, RightTexture!, 1);
+                }
                 else
-                    up.SetUniform("uTexture", LeftMainTexture!, 0);
+                    up.LoadTextureFixSrgb(ctx, LeftMainTexture!, 0);
 
                 up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
                 up.SetUniform("uTexCenter", TextureCenter);
@@ -134,7 +141,6 @@ namespace XrEngine
             });
         }
 
-
         public override void Dispose()
         {
             LeftMainTexture?.Dispose();
@@ -144,6 +150,8 @@ namespace XrEngine
             base.Dispose();
         }
 
+        public bool IsExternal { get; set; }
+
         public FishReflectionMode Mode { get; set; }
 
         public Texture2D? LeftMainTexture { get; set; }
@@ -151,7 +159,6 @@ namespace XrEngine
         public Texture2D? RightTexture { get; set; }
 
         public bool DebugMode { get; set; }
-
 
         [Range(0, 10, 0.1f)]
         public float SphereRadius { get; set; }
@@ -170,13 +177,11 @@ namespace XrEngine
 
         public Vector2[] TextureRadius { get; set; }
 
-
         public Vector2 TextureCenterLeft
         {
             get => TextureCenter[0];
             set => TextureCenter[0] = value;
         }
-
 
         public Vector2 TextureCenterRight
         {
@@ -184,13 +189,11 @@ namespace XrEngine
             set => TextureCenter[1] = value;
         }
 
-
         public Vector2 TextureRadiusLeft
         {
             get => TextureRadius[0];
             set => TextureRadius[0] = value;
         }
-
 
         public Vector2 TextureRadiusRight
         {

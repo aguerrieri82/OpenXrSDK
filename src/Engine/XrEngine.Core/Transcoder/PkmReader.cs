@@ -38,11 +38,11 @@ namespace XrEngine
 
             result.Width = Invert(header.encodedWidth);
             result.Height = Invert(header.encodedHeight);
-            result.Data = MemoryBuffer.Create<byte>((uint)(seekStream.Length - seekStream.Position));
+            result.Content = MemoryBuffer.Create<byte>((uint)(seekStream.Length - seekStream.Position));
             result.Compression = TextureCompressionFormat.Etc2;
-            result.Format = TextureFormat.SRgb24;
+            result.Format = TextureFormat.SRgb8;
 
-            seekStream.ReadExactly(result.Data.AsSpan());
+            seekStream.ReadExactly(result.Content.AsSpan());
 
             return [result];
         }

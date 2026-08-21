@@ -6,7 +6,7 @@ using XrMath;
 
 namespace XrEditor
 {
-    public abstract class PickTool : BasePointerTool, IDrawGizmos, IRayPointer
+    public abstract class PickTool : BasePointerTool, IDrawGizmos, IRayPointer, IObjectPicker
     {
         protected Object3D? _currentPick;
         protected Color? _oldColor;
@@ -15,6 +15,8 @@ namespace XrEditor
         protected bool _isPicking;
         protected IViewHitTest? _hitTest;
         protected readonly ConcurrentBag<Collision> _collisions = [];
+        protected TaskCompletionSource<Collision?>? _pickTask;
+        private Func<Collision, bool>? _pickSelector;
 
         public PickTool()
         {
@@ -36,23 +38,36 @@ namespace XrEditor
             return result;
         }
 
-        protected void UpdateRay(Pointer2Event ev)
+        protected void UpdateRay(Pointer2Event ev, bool clearButtons)
         {
             _lastRay.Ray = ToRay(ev);
-            _lastRay.Buttons = ev.Buttons;
+
+            if (clearButtons)
+                _lastRay.Buttons = Pointer2Button.None;
+            else
+                _lastRay.Buttons = ev.Buttons;
+
             _lastRay.IsActive = true;
         }
 
-        protected override void OnPointerDown(Pointer2Event ev)
+        protected override async void OnPointerDown(Pointer2Event ev)
         {
-            UpdateRay(ev);
-            base.OnPointerDown(ev);
+            UpdateRay(ev, false);
+
+            if (_pickTask != null && _lastCollision != null)
+            {
+                if (_pickSelector != null && _pickSelector(_lastCollision))
+                {
+                    await EngineApp.MainThread;
+                    _pickTask.SetResult(_lastCollision);
+                    _pickTask = null;
+                }
+            }
         }
 
         protected override void OnPointerUp(Pointer2Event ev)
         {
-            UpdateRay(ev);
-            base.OnPointerUp(ev);
+            UpdateRay(ev, true);
         }
 
         protected override async void OnPointerMove(Pointer2Event ev)
@@ -60,7 +75,7 @@ namespace XrEditor
             if (_sceneView?.Scene == null)
                 return;
 
-            UpdateRay(ev);
+            UpdateRay(ev, false);
 
             if (_isPicking)
                 return;
@@ -71,39 +86,41 @@ namespace XrEditor
 
             Object3D? newPick = null;
 
-            await AppDispatcher.ExecuteAsync(() =>
-            {
-                if (_hitTest != null)
-                {
-                    var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
-                    if (result.Object == null)
-                        _lastCollision = null;
-                    else
-                    {
-                        _lastCollision = new Collision
-                        {
-                            Object = result.Object,
-                            Normal = result.Normal,
-                            Point = result.Pos,
-                            LocalPoint = result.Object!.ToLocal(result.Pos),
-                        };
-                    }
+            await EngineApp.MainThread;
 
-                }
+            if (_hitTest != null)
+            {
+                var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+
+                if (result.Object == null)
+                    _lastCollision = null;
                 else
                 {
-                    _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
-
-                    _lastCollision = _collisions.OrderBy(a => a.Distance)
-                                                .FirstOrDefault();
+                    _lastCollision = new Collision
+                    {
+                        Object = result.Object,
+                        Normal = result.Normal,
+                        Point = result.Pos,
+                        TriangleId = result.Index,
+                        LocalPoint = result.Object!.ToLocal(result.Pos),
+                    };
                 }
+            }
+            else
+            {
+                _collisions.Clear();
 
-                newPick = _lastCollision?.Object;
+                _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
 
-                _isPicking = false;
+                _lastCollision = _collisions.OrderBy(a => a.Distance)
+                                            .FirstOrDefault();
+            }
 
-            }).ConfigureAwait(false);
+            await UiThread;
 
+            newPick = _lastCollision?.Object;
+
+            _isPicking = false;
 
             if (newPick != null && !CanPick(newPick))
                 newPick = null;
@@ -130,7 +147,7 @@ namespace XrEditor
             if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is BasicMaterial mat && _oldColor != null)
             {
                 mat.Color = _oldColor.Value;
-                mat.NotifyChanged(ObjectChangeType.Render);
+                mat.NotifyChanged(ChangeType.Render);
             }
         }
 
@@ -140,11 +157,11 @@ namespace XrEditor
             {
                 _oldColor = mat.Color;
                 mat.Color = new Color(0, 1, 0, 1);
-                mat.NotifyChanged(ObjectChangeType.Render);
+                mat.NotifyChanged(ChangeType.Render);
             }
         }
 
-        public virtual void DrawGizmos(Canvas3D canvas)
+        public virtual void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
 
         }
@@ -159,6 +176,13 @@ namespace XrEditor
         {
             if (_sceneView?.ActiveTool == this)
                 _sceneView.ActiveTool = null;
+        }
+
+        public Task<Collision> PickAsync(Func<Collision, bool> selector)
+        {
+            _pickSelector = selector;
+            _pickTask ??= new TaskCompletionSource<Collision?>();
+            return _pickTask.Task!;
         }
 
         public bool IsCaptured => _sceneView?.ActiveTool == this;

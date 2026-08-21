@@ -10,7 +10,7 @@
         Quad
     }
 
-    public interface IVertexSource : ILayer3DItem
+    public interface IVertexSource : ILayer3DItem, IGpuObject
     {
         DrawPrimitive Primitive { get; }
 
@@ -18,11 +18,12 @@
 
         VertexComponent ActiveComponents { get; }
 
-        EngineObject Object { get; }
+        EngineObject Host { get; }
 
         int RenderPriority { get; }
 
-        void NotifyLoaded();
+        int InstanceCount => 1;
+
     }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource
@@ -32,5 +33,10 @@
         TIndices[] Indices { get; }
 
         TVertices[] Vertices { get; }
+
+        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices)
+        {
+
+        }
     }
 }

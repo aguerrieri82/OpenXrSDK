@@ -7,10 +7,10 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
+using XrEngine.Devices.Android;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
-using XrInteraction;
-
 
 namespace XrSamples.Android.Activities
 {
@@ -30,18 +30,17 @@ namespace XrSamples.Android.Activities
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
         private GameSettings? _settings;
-
+        private AndroidUsbCameraManager? _usbCameraManager;
 
         public GameActivity()
         {
             _permissions.Add("horizonos.permission.HEADSET_CAMERA");
 
-            XrEngine.Context.Implement<IMainActivity>(this);
         }
 
         protected override void OnLoad()
         {
-            _settings = GameSettings.Helmet();
+            _settings = GameSettings.Graffiti();
 
             var settingsJson = Intent?.GetStringExtra("Settings");
 
@@ -55,18 +54,33 @@ namespace XrSamples.Android.Activities
 
             _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
 
+            _usbCameraManager = new AndroidUsbCameraManager(this);
+
             base.OnLoad();
+        }
+
+        protected override void OnStart()
+        {
+            base.OnStart();
+            _usbCameraManager?.Start();
+        }
+
+        protected override void OnStop()
+        {
+            _usbCameraManager?.Stop();
+            base.OnStop();
+        }
+
+        protected override void OnDestroy()
+        {
+            _usbCameraManager?.Dispose();
+            _usbCameraManager = null;
+
+            base.OnDestroy();
         }
 
         protected override void OnXrAppStarted(XrApp app)
         {
-            /*
-            if (_engine?.App.Renderer is OpenGLRender openGL)
-                openGL.EnableDebug();
-            */
-
-            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 0);
-
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
             if (_webViewLayer != null)
@@ -80,38 +94,80 @@ namespace XrSamples.Android.Activities
 
         protected override void BuildApp(XrEngineAppBuilder builder)
         {
-
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
             builder.Options.Driver = _settings!.Driver;
 
             if (_settings.Driver == GraphicDriver.OpenGL)
-                builder.UseOpenGL(opt =>
+                builder.UseOpenGL();
+            else if (_settings.Driver == GraphicDriver.Angle)
+                builder.UseAngle();
+
+            if (_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle)
+                builder.SetGlOptions(opt =>
                 {
                     opt.UseDepthPass = _settings.EnableDepthPass;
-                    opt.UseOcclusionQuery = false;
+
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
+
+                    opt.Compression.Use = _settings.TextureCompression;
+                    opt.Compression.BlockSize = 4;
+                    opt.Compression.Quality = 60;
+
+                    opt.UseAsyncShaderCompile = true;
+                    opt.UseShaderCache = true;
+                    opt.UseShaderPreprocessor = true;
+
+                    opt.ToneMap = ToneMapMode.Neutral;
+
+                    opt.FloatPrecision = ShaderPrecision.High;
+                    opt.SamplerPrecision = ShaderPrecision.Medium;
+                    opt.IntPrecision = ShaderPrecision.High;
+
+                    opt.InvalidateDepth = false;
+
+                    if (!XrDevice.IsMetaQuest)
+                    {
+                        opt.UseAsyncShaderCompile = false;
+                        opt.UsePrimitiveBoundingBox = false;
+                    }
                 });
             else
                 ImageLight.UseCache = false;
 
-            if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
+            builder.SetXrOptions(opt =>
+            {
+                if (!XrDevice.IsMetaQuest)
+                    opt.BlendMode = EnvironmentBlendMode.Opaque;
+            });
+
+            builder.UseOculus(opt =>
+            {
+            });
+
+            if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(1f, (uint)_settings.Msaa);
+            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
+                  // .AddProfileOverlay()
+                   .RemovePlaneGrid();
 
-            builder.RemovePlaneGrid()
-                   .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+            //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+
+            if (XrDevice.IsMetaQuest && _settings.DepthScale > 0)
+                builder.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale);
 
             if (_settings.UseSpaceWarp)
-                builder.UseSpaceWarp();
+                builder.UseSpaceWarp(MotionVectorMode.Shared);
 
-            if (_settings.UsePbrV2)
-                MaterialFactory.DefaultPbr = typeof(PbrV2Material);
-            else
-                MaterialFactory.DefaultPbr = typeof(PbrV1Material);
+       //     builder.EnableDebug(sync: false);
+
+#if DEBUG
+            GlDebug.TrackBuffers = false;
+            builder.EnableDebug(sync: true);
+#endif
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 

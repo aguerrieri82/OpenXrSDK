@@ -13,17 +13,19 @@ namespace XrEngine.OpenGL
     public class GlSimpleReflectionTargetPass : GlBaseSingleMaterialPass, IGlDynamicRenderPass<ReflectionTarget>
     {
         private readonly GlRenderPassTarget _passTarget;
-
         private PlanarReflection? _reflection;
-        private Camera? _oldCamera;
 
         public GlSimpleReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
+
+            _flags = GlRenderPassFlags.CustomCamera;
+
             _passTarget = new GlRenderPassTarget(renderer.GL)
             {
                 IsMultiView = PlanarReflection.IsMultiView,
-                UseMultiViewTarget = useMultiviewTarget
+                UseMultiViewTarget = useMultiviewTarget,
+                Name = "Simple Reflection"
             };
         }
 
@@ -52,47 +54,43 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        protected override UpdateProgramResult UpdateProgram(GlProgramInstance instance, UpdateShaderContext updateContext, Material drawMaterial)
         {
-            Debug.Assert(_reflection != null && _programInstance != null);
+            Debug.Assert(_reflection != null);
 
             if (!_reflection.PrepareMaterial(drawMaterial))
                 return UpdateProgramResult.Skip;
 
             if (_reflection.UseClipPlane)
             {
-                if (_programInstance.ExtraExtensions == null)
+                if (instance.ExtraExtensions == null)
                 {
-                    _programInstance.ExtraFeatures = ["USE_CLIP_PLANE"];
-                    _programInstance.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
-                    _programInstance.Invalidate();
+                    instance.ExtraFeatures = ["USE_CLIP_PLANE"];
+                    instance.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
+                    instance.Invalidate();
                 }
 
-                var upRes = base.UpdateProgram(updateContext, drawMaterial);
+                var upRes = base.UpdateProgram(instance, updateContext, drawMaterial);
 
-                _programInstance.Program!.Use();
-
-                _renderer.ConfigureCaps(_programInstance.Material);
+                instance.Program!.Use();
 
                 var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
-                _programInstance.Program!.SetUniform("uClipPlane", newPlane);
+                instance.Program!.SetUniform("uClipPlane", newPlane);
 
                 return UpdateProgramResult.Changed;
             }
             else
             {
-                if (_programInstance.ExtraFeatures != null)
+                if (instance.ExtraFeatures != null)
                 {
-                    _programInstance.ExtraFeatures = null;
-                    _programInstance.ExtraExtensions = null;
-                    _programInstance.Invalidate();
+                    instance.ExtraFeatures = null;
+                    instance.ExtraExtensions = null;
+                    instance.Invalidate();
                 }
 
-                var upRes = base.UpdateProgram(updateContext, drawMaterial);
+                var upRes = base.UpdateProgram(instance, updateContext, drawMaterial);
 
-                _programInstance.Program!.Use();
-
-                _renderer.ConfigureCaps(_programInstance.Material);
+                instance.Program!.Use();
 
                 return UpdateProgramResult.Changed;
             }
@@ -117,20 +115,22 @@ namespace XrEngine.OpenGL
             return _passTarget.RenderTarget;
         }
 
-        protected override bool BeginRender(Camera camera)
+        protected override bool BeginRender(GlUpdateContext ctx)
         {
-            if (camera.Scene == null || _reflection == null)
+            if (ctx.Scene == null || _reflection == null)
                 return false;
 
-            if (!_reflection.Host!.IsVisible || !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes))
+            if (!_reflection.Host!.IsVisible ||
+                !_reflection.Host.WorldBounds.IntersectFrustum(ctx.FrustumPlanes
+                 .AsSpan(0, ctx.FrustumPlanesCount)))
+            {
                 return false;
+            }
 
-            _oldCamera = _renderer.UpdateContext.PassCamera!;
+            _reflection.Update(ctx.MainCamera!, _passTarget.BoundEye);
 
-            _reflection.Update(_oldCamera, _passTarget.BoundEye);
-
-            _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
-            _renderer.UpdateContext.ContextVersion++;
+            ctx.PassCamera = _reflection.ReflectionCamera;
+            ctx.ContextVersion++;
 
             _passTarget.Configure(_reflection.Texture!);
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
@@ -139,19 +139,18 @@ namespace XrEngine.OpenGL
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetClearColor(_reflection.ReflectionCamera.BackgroundColor);
+            _renderer.State.Commit();
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            return base.BeginRender(camera);
+            return base.BeginRender(ctx);
         }
 
-        protected override void EndRender()
+        protected override void EndRender(GlUpdateContext ctx)
         {
-            _passTarget.RenderTarget!.End(true);
+            _passTarget.RenderTarget!.End(discardDepth: true);
 
-            _renderer.UpdateContext.PassCamera = _oldCamera;
-
-            base.EndRender();
+            base.EndRender(ctx);
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -172,9 +171,12 @@ namespace XrEngine.OpenGL
 
         public void SetOptions(ReflectionTarget options)
         {
+            Debug.Assert(!_useInstanceDraw);
+
             _reflection = options.PlanarReflection;
             _passTarget.BoundEye = options.BoundEye;
-            _programInstance = CreateProgram(_reflection.MaterialOverride!);
+
+            _progInstBase = GetProgramInstance(_reflection.MaterialOverride!);
         }
     }
 }

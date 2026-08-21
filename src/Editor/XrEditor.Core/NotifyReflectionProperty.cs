@@ -14,21 +14,25 @@ namespace XrEditor
             _host = host ?? obj;
         }
 
-        protected override void OnChanged()
+        protected override async void OnChanged()
         {
             base.OnChanged();
 
             if (_host is EngineObject obj)
             {
-                EngineApp.Current!.Dispatcher.ExecuteAsync(() =>
+                await EngineApp.MainThread;
+
+                obj.NotifyChanged(new ObjectChange
                 {
-                    obj.NotifyChanged(new ObjectChange
-                    {
-                        Type = ObjectChangeType.Property,
-                        Target = obj,
-                        Properties = [Name!]
-                    });
+                    Type = ChangeType.Property,
+                    Target = obj,
+                    Properties = [Name!]
                 });
+            }
+
+            if (_host is INotifyPropertyChangedReceiver recv)
+            {
+                recv.OnPropertyChanged(Name!, Value);
             }
         }
     }

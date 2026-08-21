@@ -1,0 +1,4 @@
+﻿<resources>
+	<usb-device class="239" subclass="2" protocol="1" />
+	<usb-device class="14" />
+</resources>

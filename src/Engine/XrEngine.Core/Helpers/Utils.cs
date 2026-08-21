@@ -6,6 +6,20 @@ namespace XrEngine
 {
     public static class Utils
     {
+        public static uint ComputeMaxMipLevel(int width, int height, int minSize)
+        {
+            var size = Math.Max(width, height);
+            uint level = 0;
+
+            while (size > minSize)
+            {
+                size >>= 1;
+                level++;
+            }
+
+            return level;
+        }
+
         public static Guid HashGuid(string text)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(text));
@@ -35,7 +49,7 @@ namespace XrEngine
             return true;
         }
 
-        public unsafe static bool ArrayEquals(int[] a, int[] b)
+        public static bool ArrayEquals(int[] a, int[] b)
         {
             var len = a.Length;
             if (len != b.Length)
@@ -45,6 +59,22 @@ namespace XrEngine
                 if (a[i] != b[i])
                     return false;
             return true;
+        }
+
+        public static T CreateInstance<T>(Type actualType)
+        {
+            var ctor = actualType.GetConstructors()
+                .FirstOrDefault(c => c.GetParameters().All(p => p.IsOptional));
+
+            if (ctor == null)
+                return Activator.CreateInstance<T>();
+
+            var args = ctor.GetParameters()
+                .Select(p => p.DefaultValue)
+                .ToArray();
+
+            var instance = ctor.Invoke(args);
+            return (T)instance;
         }
     }
 }

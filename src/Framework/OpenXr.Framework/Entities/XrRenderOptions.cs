@@ -13,29 +13,40 @@ namespace OpenXr.Framework
     {
         public XrRenderOptions()
         {
-            ResolutionScale = 1;
+            ColorScale = 1;
             SampleCount = 1;
             RenderMode = XrRenderMode.SingleEye;
-            GpuLevel = PerfSettingsLevelEXT.SustainedHighExt;
-            CpuLevel = PerfSettingsLevelEXT.SustainedHighExt;
+            GpuLevel = PerfSettingsLevelEXT.BoostExt;
+            CpuLevel = PerfSettingsLevelEXT.BoostExt;
+            UseProjectionDepth = true;
+            ProjectionDepthScale = 1f;
+            BlendMode = EnvironmentBlendMode.Opaque;
+            UseQuodDepthCull = false;
         }
 
         public Extent2Di Size { get; set; }
-
-        public float ResolutionScale { get; set; }
 
         public EnvironmentBlendMode BlendMode { get; set; }
 
         public uint SampleCount { get; set; }
 
-        public long ColorFormat { get; set; }
+        public int ColorFormat { get; set; }
 
-        public long DepthFormat { get; set; }
+        public int DepthFormat { get; set; }
 
         public XrRenderMode RenderMode { get; set; }
 
         public PerfSettingsLevelEXT CpuLevel { get; set; }
 
         public PerfSettingsLevelEXT GpuLevel { get; set; }
+
+        public bool UseProjectionDepth { get; set; }
+
+        public float ProjectionDepthScale { get; set; }
+
+        public float ColorScale { get; set; }
+
+        [Obsolete]
+        public bool UseQuodDepthCull { get; set; }
     }
 }

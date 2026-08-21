@@ -3,7 +3,6 @@
 namespace PhysX.Framework
 {
 
-
     public unsafe class PhysicsConstraint : PhysicsObject<PxConstraint>
     {
         public PhysicsConstraint(PxConstraint* handle, PhysicsSystem system) : base(handle, system)

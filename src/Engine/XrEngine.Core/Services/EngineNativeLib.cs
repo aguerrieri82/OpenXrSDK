@@ -2,43 +2,101 @@
 
 namespace XrEngine
 {
+
     public static class EngineNativeLib
     {
-        [DllImport("xrengine-native", CallingConvention = CallingConvention.Cdecl)]
+        public enum BcFormat
+        {
+            Bc1 = 1,
+            Bc2 = 2,
+            Bc3 = 3,
+            Bc4 = 4,
+            Bc5 = 5,
+            Bc6H = 6,
+            Bc7 = 7
+        }
+
+        const string LibName = "xrengine-native";
+
+        [DllImport(LibName)]
         public static extern void ImageFlipY(nint src, nint dst, uint width, uint height, uint rowSize);
 
-        [DllImport("xrengine-native")]
+        [DllImport(LibName)]
         public static extern void ImageCopyChannel(nint src, nint dst, uint width, uint height, uint srcRowSize, uint dstRowSize, uint srcOfs, uint dstOfs, uint cSize);
 
-        [DllImport("xrengine-native", EntryPoint = "CopyMemory2")]
+        [DllImport(LibName, EntryPoint = "CopyMemory2")]
         public static extern void CopyMemory(nint src, nint dst, uint size);
 
-        [DllImport("xrengine-native")]
+        [DllImport(LibName)]
         public static extern int CompareMemory(nint src, nint dst, uint size);
 
-        [DllImport("xrengine-native")]
+        [DllImport(LibName)]
         public static extern ulong Now();
 
-
-        [DllImport("xrengine-native")]
+        [DllImport(LibName)]
         public static extern void SleepUntil(ulong time);
 
-        [DllImport("xrengine-native")]
+        [DllImport(LibName)]
         public static extern void SleepFor(ulong time);
 
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public unsafe static extern bool ConvertRgba16ToRgba32F(
+            ushort* src,
+            float* dst,
+            uint width,
+            uint height,
+            uint srcRowBytes);
 
-        [DllImport("xrengine-native")]
-        public static unsafe extern void ImagePack(uint srcWidth, uint srcHeight, byte* srcData, uint dstWidth, uint dstHeight, byte* dstData, uint pixelSize);
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public unsafe static extern bool ConvertRgb32FToRgba16F(
+            float* src,
+            Half* dst,
+            uint srcFloatCount);
 
+        [DllImport(LibName)]
+        public static unsafe extern void ImagePack(
+            uint srcWidth, uint srcHeight, byte* srcData,
+            uint dstWidth, uint dstHeight, byte* dstData,
+            uint pixelSize);
 
-        [DllImport("xrengine-native")]
-        public static unsafe extern void RgbToBgr(uint width, uint height, byte* srcData, byte* dstData, uint pixelSizeByte);
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static unsafe extern bool ImagePackToRgba8(
+            byte* src,
+            byte* dst,
+            uint width,
+            uint height,
+            uint srcChannels,
+            uint srcRowAlignment);
 
+        [DllImport(LibName)]
+        public static unsafe extern void ConvertRgbToBgr(uint width, uint height, byte* srcData, byte* dstData, uint pixelSizeByte);
 
-        [DllImport("xrengine-native")]
+        [DllImport(LibName)]
         public static unsafe extern void ImageResizeBilinearU8(
                 uint srcW, uint srcH, byte* src,
                 uint dstW, uint dstH, byte* dst,
                 uint channels);
+
+        [DllImport(LibName)]
+        public static extern int RdcTriggerCapture();
+
+        [DllImport(LibName)]
+        public static extern int RdcStartFrameCapture();
+
+        [DllImport(LibName)]
+        public static extern int RdcEndFrameCapture(bool launchReplay);
+
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool RdcIsAttached();
+
+
+        [DllImport(LibName)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern unsafe bool ImageDecodeBC(byte* src, int width, int height, BcFormat format, byte* dst);
+
     }
 }

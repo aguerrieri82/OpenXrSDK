@@ -10,7 +10,8 @@
     "ConsoleNative": {
       "commandName": "Project",
       "environmentVariables": {
-        "XR_LOADER_DEBUG": "warn"
+        "XR_LOADER_DEBUG": "warn",
+        "LIBUSB_DEBUG": "4"
       },
       "nativeDebugging": true
     }

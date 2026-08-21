@@ -12,6 +12,10 @@ namespace OpenAl.Framework
                 throw new InvalidOperationException($"{err} - {msg}");
         }
 
+        public static int SampleSizeBytes(this AlAudioFormat self)
+        {
+            return (self.BitsPerSample / 8) * self.Channels;
+        }
 
         public static float SampleToTimeByte(this AlAudioFormat self, int sample)
         {
@@ -39,7 +43,7 @@ namespace OpenAl.Framework
             return (int)(time * self.SampleRate);
         }
 
-        public static float Duration(this AudioData self)
+        public static float Duration(this AlAudioData self)
         {
             return self.Format.SampleToTimeByte(self.Buffer.Length - 1);
         }
@@ -55,7 +59,7 @@ namespace OpenAl.Framework
             return *buffer;
         }
 
-        public unsafe static float[] ToFloat(this AudioData self)
+        public unsafe static float[] ToFloat(this AlAudioData self)
         {
             var result = new float[self.Buffer.Length / (self.Format.BitsPerSample / 8)];
 

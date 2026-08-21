@@ -1,4 +1,6 @@
 ﻿using XrEngine;
+using XrEngine.Animation;
+using XrEngine.Objects;
 using XrEngine.Physics;
 
 namespace XrEditor.Nodes
@@ -7,7 +9,7 @@ namespace XrEditor.Nodes
     {
         public bool CanHandle(object value)
         {
-            return value is EngineObject || value is IComponent;
+            return value is EngineObject || value is IComponent || value is IAnimation;
         }
 
         public INode CreateNode(object value)
@@ -23,7 +25,13 @@ namespace XrEditor.Nodes
                     if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
 
-                    else if (obj is PbrV2Material)
+                    else if (obj is Joint3D)
+                        nodeType = typeof(Joint3DNode);
+
+                    else if (obj is SplatMesh)
+                        nodeType = typeof(SplatMeshNode);
+
+                    else if (obj is PbrMaterial)
                         nodeType = typeof(PbrMaterialNode);
 
                     else if (obj is Geometry3D)
@@ -31,6 +39,9 @@ namespace XrEditor.Nodes
 
                     else if (obj is Texture2D)
                         nodeType = typeof(Texture2DNode);
+
+                    else if (obj is Shader)
+                        nodeType = typeof(ShaderNode<>).MakeGenericType(obj.GetType());
 
                     else if (obj is Light)
                         nodeType = typeof(LightNode<>).MakeGenericType(obj.GetType());
@@ -46,7 +57,6 @@ namespace XrEditor.Nodes
 
                     else if (obj is Object3D)
                         nodeType = typeof(Object3DNode<>).MakeGenericType(obj.GetType());
-
                     else
                         nodeType = typeof(EngineObjectNode<>).MakeGenericType(obj.GetType());
 
@@ -54,15 +64,15 @@ namespace XrEditor.Nodes
 
                     if (obj is Object3D obj3d && obj3d.Parent != null)
                         ((IEditableNode)node).SetParent(CreateNode(obj3d.Parent));
+
+                    if (node != null)
+                        obj.SetProp("Node", node);
                 }
 
                 if (node != null)
-                {
-                    obj.SetProp("Node", node);
                     return node;
-                }
             }
-            if (value is IComponent comp)
+            else if (value is IComponent comp)
             {
                 if (value is RigidBody)
                     nodeType = typeof(RigidBodyNode);
@@ -70,11 +80,16 @@ namespace XrEditor.Nodes
                 else if (value is IPlayer)
                     nodeType = typeof(PlayerNode<>).MakeGenericType(comp.GetType());
 
+                else if (value is AnimationsHost)
+                    nodeType = typeof(AnimationHostNode);
+
                 else
                     nodeType = typeof(ComponentNode<>).MakeGenericType(comp.GetType());
 
                 return (INode)Activator.CreateInstance(nodeType, comp)!;
             }
+            else if (value is IAnimation anim)
+                return new AnimationNode(anim);
 
             throw new NotSupportedException();
         }

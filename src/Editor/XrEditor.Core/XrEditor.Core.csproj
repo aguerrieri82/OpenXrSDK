@@ -3,20 +3,25 @@
 	<PropertyGroup>
 		<RootNamespace>XrEditor</RootNamespace>
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion);</TargetFrameworks>
+		<CreateHardLinksForCopyLocalIfPossible>false</CreateHardLinksForCopyLocalIfPossible>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="Assets/**/*" 
+				 UseLink="True"
+				 CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL.Wpf\XrEngine.OpenGL.Wpf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Dnd\XrSamples.Dnd.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Earth\XrSamples.Earth.csproj" />
+		<ProjectReference Include="..\..\Samples\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
 		<ProjectReference Include="..\..\UI\UI.Binding\UI.Binding.csproj" />
 	</ItemGroup>
 </Project>

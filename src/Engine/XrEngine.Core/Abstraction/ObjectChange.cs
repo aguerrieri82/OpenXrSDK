@@ -3,7 +3,7 @@
 namespace XrEngine
 {
     [Flags]
-    public enum ObjectChangeType
+    public enum ChangeType
     {
         Unspecified = 0,
         Visibility = 1,
@@ -18,6 +18,7 @@ namespace XrEngine
         Add = 0x400,
         Remove = 0x800,
         Enabled = 0x1000,
+        Content = 0x4000,
         Material = 0x2000 | Render,
         SceneAdd = Parent | Add | Scene,
         SceneRemove = Parent | Remove | Scene,
@@ -29,6 +30,7 @@ namespace XrEngine
         MateriaAdd = Add | Material,
         MateriaRemove = Remove | Material,
         MaterialEnabled = Enabled | Material,
+        MaterialContent = Content | Material,
     }
 
     public struct ObjectChangeSet
@@ -74,14 +76,14 @@ namespace XrEngine
 
     public struct ObjectChange
     {
-        public ObjectChange(ObjectChangeType type, object? target = null, IList<string>? properties = null)
+        public ObjectChange(ChangeType type, object? target = null, IList<string>? properties = null)
         {
             Type = type;
             Target = target;
             Properties = properties;
         }
 
-        public readonly bool IsAny(params ObjectChangeType[] types)
+        public readonly bool IsAny(params ChangeType[] types)
         {
             foreach (var t in types)
                 if ((Type & t) == t)
@@ -101,13 +103,12 @@ namespace XrEngine
             }
         }
 
-        public static implicit operator ObjectChange(ObjectChangeType type)
+        public static implicit operator ObjectChange(ChangeType type)
         {
             return new ObjectChange(type);
         }
 
-
-        public ObjectChangeType Type;
+        public ChangeType Type;
 
         public object? Target;
 

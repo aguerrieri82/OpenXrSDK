@@ -10,22 +10,27 @@ namespace XrEngine.OpenXr
 {
     public class OculusHandView : Group3D
     {
-        protected XrHandInputMesh? _input;
+        protected XrHandInputOculus? _input;
         protected bool _isInit;
+        protected OculusHandMesh? _hand;
 
         public OculusHandView()
         {
             CreateRigidBody = false;
+            ShowHand = true;
         }
 
         protected override void Start(RenderContext ctx)
         {
+            if (!XrDevice.IsMetaQuest)
+                return;
+
             if (XrApp.Current == null)
                 throw new ArgumentNullException();
 
             Name ??= "Hand " + HandType;
 
-            _input = XrApp.Current?.AddHand<XrHandInputMesh>(HandType);
+            _input = XrApp.Current.AddHand<XrHandInputOculus>(HandType);
 
             base.Start(ctx);
         }
@@ -56,70 +61,87 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null)
                 return;
 
-
             if (!_isInit && _input != null && _input.IsActive)
             {
                 _input.LoadMesh();
 
-                var capMaterial = (Material)MaterialFactory.CreatePbr(new Color(150 / 255f, 79 / 255f, 72 / 255f));
-                var capMaterial2 = (Material)MaterialFactory.CreatePbr(new Color(100 / 255f, 79 / 255f, 72 / 255f));
-
-                foreach (var capsule in _input.Mesh!.Capsules!)
+                if (ShowCapsule)
                 {
-                    var dir = (capsule.Points.Element1.ToVector3() - capsule.Points.Element0.ToVector3());
+                    var capMaterial = (Material)MaterialFactory.CreatePbr(new Color(150 / 255f, 79 / 255f, 72 / 255f));
+                    var capMaterial2 = (Material)MaterialFactory.CreatePbr(new Color(100 / 255f, 79 / 255f, 72 / 255f));
 
-                    var len = dir.Length();
-
-                    var isTip = ((int)capsule.Joint + 1) % 5 == 0;
-
-                    var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
-
-                    capMesh.AddComponent(new CapsuleCollider()
+                    foreach (var capsule in _input.Mesh!.Capsules!)
                     {
-                        Height = len,
-                        Radius = capsule.Radius,
-                        Mode = CapsuleColliderMode.Top
-                    });
+                        var dir = (capsule.Points.Element1.ToVector3() - capsule.Points.Element0.ToVector3());
 
-                    if (CreateRigidBody)
-                    {
-                        var rigidBody = capMesh.AddComponent<RigidBody>();
-                        rigidBody.Type = PhysicsActorType.Kinematic;
-                        rigidBody.MaterialInfo = new PhysicsMaterialInfo
+                        var len = dir.Length();
+
+                        var isTip = ((int)capsule.Joint + 1) % 5 == 0;
+
+                        var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
+
+                        capMesh.AddComponent(new CapsuleCollider()
                         {
-                            StaticFriction = 10,
-                            Restitution = 0,
-                            DynamicFriction = 10
-                        };
-                    }
+                            Height = len,
+                            Radius = capsule.Radius,
+                            Mode = CapsuleColliderMode.Top
+                        });
 
-                    AddChild(capMesh);
+                        if (CreateRigidBody)
+                        {
+                            var rigidBody = capMesh.AddComponent<RigidBody>();
+                            rigidBody.Type = PhysicsActorType.Kinematic;
+                            rigidBody.MaterialInfo = new PhysicsMaterialInfo
+                            {
+                                StaticFriction = 10,
+                                Restitution = 0,
+                                DynamicFriction = 10
+                            };
+                        }
+
+                        AddChild(capMesh);
+                    }
                 }
+
+                if (ShowHand)
+                {
+                    _hand = new OculusHandMesh(_input.Mesh!);
+                    AddChild(_hand);
+                }
+
                 _isInit = true;
             }
 
             if (_isInit && _input != null && _input.IsActive)
             {
-                for (var i = 0; i < _input.Capsules.Length; i++)
+                if (ShowCapsule)
                 {
-                    var capsule = _input.Capsules[i];
+                    for (var i = 0; i < _input.Capsules.Length; i++)
+                    {
+                        var capsule = _input.Capsules[i];
 
-                    var mesh = Children[i];
+                        var mesh = Children[i];
 
-                    var p0 = capsule.Points.Element0.ToVector3();
-                    var p1 = capsule.Points.Element1.ToVector3();
+                        var p0 = capsule.Points.Element0.ToVector3();
+                        var p1 = capsule.Points.Element1.ToVector3();
 
-                    var dir = (p1 - p0);
+                        var dir = (p1 - p0);
 
-                    var h = dir.Length() / _input.Scale;
+                        var h = dir.Length() / _input.Scale;
 
-                    var orientation = MathUtils.QuatFromForwardUp(dir.Normalize(), new Vector3(0, 1, 0));
+                        var orientation = MathUtils.QuatFromForwardUp(dir.Normalize(), new Vector3(0, 1, 0));
 
-                    var start = p0 + Vector3.Transform(new Vector3(0, 0, -h / 2), orientation);
+                        var start = p0 + Vector3.Transform(new Vector3(0, 0, -h / 2), orientation);
 
-                    mesh.Transform.Position = start;
-                    mesh.Transform.Orientation = orientation;
-                    mesh.Transform.SetScale(_input.Scale);
+                        mesh.Transform.Position = start;
+                        mesh.Transform.Orientation = orientation;
+                        mesh.Transform.SetScale(_input.Scale);
+                    }
+                }
+
+                if (ShowHand)
+                {
+                    _hand!.Update(_input.Joints!);
                 }
             }
 
@@ -129,10 +151,14 @@ namespace XrEngine.OpenXr
             base.UpdateSelf(ctx);
         }
 
+        public bool ShowHand { get; set; }
+
+        public bool ShowCapsule { get; set; }
+
         public bool CreateRigidBody { get; set; }
 
         public HandEXT HandType { get; set; }
 
-        public XrHandInputMesh HandInput => _input ?? throw new ArgumentNullException();
+        public XrHandInputOculus HandInput => _input ?? throw new ArgumentNullException();
     }
 }

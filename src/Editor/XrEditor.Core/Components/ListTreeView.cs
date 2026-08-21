@@ -1,8 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using XrEditor.Abstraction;
-using XrEngine;
-
 
 namespace XrEditor
 {
@@ -20,7 +18,6 @@ namespace XrEditor
         protected bool _isSelected;
         protected bool _isLeaf;
         protected IEditorUIElement? _uiElement;
-
 
         public ListTreeNodeView(ListTreeView host, ListTreeNodeView? parent)
         {
@@ -71,7 +68,6 @@ namespace XrEditor
                 _host.EndUpdate();
             }
         }
-
 
         public void Clear()
         {
@@ -190,7 +186,6 @@ namespace XrEditor
             return Visit(this);
         }
 
-
         protected ListTreeNodeView? LastDescendant(bool includeSelf = false)
         {
             if (_children == null || _children.Count == 0)
@@ -242,6 +237,8 @@ namespace XrEditor
 
         protected virtual void OnSelectionChanged()
         {
+            Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
+
             if (_isSelected)
                 _host._selectedItems.Add(this);
             else
@@ -255,23 +252,35 @@ namespace XrEditor
             IsExpanded = !IsExpanded;
         }
 
-
         public bool IsSelected
         {
             get => _isSelected;
             set
             {
-                if (_isSelected == value)
-                    return;
-
-                Log.Debug(this, "Sel: {0} ({1})", value, this.Header);
-
-                _isSelected = value;
-
-                OnSelectionChanged();
-
-                OnPropertyChanged(nameof(IsSelected));
+                SetSelectedCore(value, notifySelectionChanged: true);
             }
+        }
+
+        internal void SetSelectedCore(bool value, bool notifySelectionChanged)
+        {
+            if (_isSelected == value)
+                return;
+
+            _isSelected = value;
+
+            //Log.Debug(this, "[Sel] IsSelected: {0} ({1})", value, Header);
+
+            Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
+
+            if (_isSelected)
+                _host._selectedItems.Add(this);
+            else
+                _host._selectedItems.Remove(this);
+
+            if (notifySelectionChanged)
+                SelectionChanged?.Invoke(this);
+
+            OnPropertyChanged(nameof(IsSelected));
         }
 
         public bool IsExpanded
@@ -350,7 +359,6 @@ namespace XrEditor
 
         public double Margin => _level * 16;
     }
-
 
     public class ListTreeView : BaseView, IEditorUIElementHost
     {

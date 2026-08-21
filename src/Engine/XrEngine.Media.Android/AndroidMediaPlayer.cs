@@ -26,7 +26,6 @@ namespace XrEngine.Media
 
         }
 
-
         public void Open(string path)
         {
             _isPrepared = false;

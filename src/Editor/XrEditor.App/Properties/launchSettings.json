@@ -1,16 +1,20 @@
 {
-  "profiles": {
-    "Editor": {
-      "commandName": "Project",
-      "nativeDebugging": false
-    },
-    "Native": {
-      "commandName": "Project",
-      "nativeDebugging": true,
-      "environmentVariables": {
-        "ALSOFT_LOGLEVEL": "3",
-        "ALSOFT_LOGFILE": "d:\\al.txt"
-      }
+    "profiles": {
+        "Editor": {
+            "commandName": "Project",
+            "nativeDebugging": false,
+            "environmentVariables": {
+                "ANGLE_DUMP_SPIRV": "1"
+            }
+        },
+        "Native": {
+            "commandName": "Project",
+            "nativeDebugging": true,
+            "environmentVariables": {
+
+                "ALSOFT_LOGLEVEL": "3",
+                "ALSOFT_LOGFILE": "d:\\al.txt"
+            }
+        }
     }
-  }
 }

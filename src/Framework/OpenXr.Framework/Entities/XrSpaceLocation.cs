@@ -20,6 +20,5 @@ namespace OpenXr.Framework
         public bool IsValid => (Flags & SpaceLocationFlags.OrientationValidBit) != 0 &&
                        (Flags & SpaceLocationFlags.PositionValidBit) != 0;
 
-
     }
 }

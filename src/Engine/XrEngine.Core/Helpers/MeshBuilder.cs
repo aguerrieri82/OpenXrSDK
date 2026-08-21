@@ -41,8 +41,7 @@ namespace XrEngine
             if (!normal.IsFinite())
                 return this;
 
-
-            AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA },
+            AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA, },
                         new VertexData { Pos = b, Normal = normal, UV = uvB },
                         new VertexData { Pos = c, Normal = normal, UV = uvC });
 
@@ -53,6 +52,43 @@ namespace XrEngine
         {
             Vertices.AddRange(vertices);
             return this;
+        }
+
+        public MeshBuilder AddQuad(Rect2 rect, float z = 0, bool uvFromRect = false)
+        {
+            var uvRect = uvFromRect
+                ? rect
+                : new Rect2(0f, 0f, 1f, 1f);
+
+            return AddQuad(rect, uvRect, z);
+        }
+
+        public MeshBuilder AddQuad(Rect2 rect, Rect2 uvRect, float z = 0)
+        {
+            var x0 = rect.X;
+            var y0 = rect.Y;
+            var x1 = rect.X + rect.Width;
+            var y1 = rect.Y + rect.Height;
+
+            var u0 = uvRect.X;
+            var v0 = uvRect.Y;
+            var u1 = uvRect.X + uvRect.Width;
+            var v1 = uvRect.Y + uvRect.Height;
+
+            var uvA = new Vector2(u0, 1f - v0);
+            var uvB = new Vector2(u1, 1f - v0);
+            var uvC = new Vector2(u1, 1f - v1);
+            var uvD = new Vector2(u0, 1f - v1);
+
+            return AddFace(
+                new Vector3(x0, y0, z),
+                new Vector3(x1, y0, z),
+                new Vector3(x1, y1, z),
+                new Vector3(x0, y1, z),
+                uvA,
+                uvB,
+                uvC,
+                uvD);
         }
 
         public MeshBuilder AddFace(Vector3 a, Vector3 b, Vector3 c, Vector3 d, bool reverse = false)
@@ -85,7 +121,6 @@ namespace XrEngine
                 var v2 = center + new Vector3(MathF.Cos(a2), MathF.Sin(a2), 0) * radius;
 
                 Vector2 uv0, uv1, uv2;
-
 
                 if (uvMode == UVMode.Size)
                 {
@@ -134,7 +169,6 @@ namespace XrEngine
                 var v3 = new Vector3(v1.X, v1.Y, v1.Z + height);
                 var v4 = new Vector3(v2.X, v2.Y, v2.Z + height);
 
-
                 if (uvMode == UVMode.Normalized)
                 {
                     u1 = a1 / (MathF.PI * 2);
@@ -152,7 +186,6 @@ namespace XrEngine
                     new Vector2(u2, vv2),
                     new Vector2(u1, vv2));
             }
-
 
             Colliders.Add(new CapsuleCollider
             {
@@ -186,7 +219,6 @@ namespace XrEngine
         public MeshBuilder AddRevolve(ICurve2D curve, float subs, UVMode uvMode, bool reverse = false, float startAngle = 0f, float endAngle = MathF.PI * 2)
         {
             var step = (endAngle - startAngle) / subs;
-
 
             var samples = curve
                 .Sample(0.001f, 1000)
@@ -240,7 +272,6 @@ namespace XrEngine
                         uv2 = new Vector2(u1, r1 * a2);
                         uv3 = new Vector2(u2, r2 * a2);
                     }
-
 
                     if (vr0.IsSimilar(vr2))
                     {
@@ -405,7 +436,6 @@ namespace XrEngine
             return ExtrudePoly(points, length, Vector3.UnitZ, uvMode, addCaps);
         }
 
-
         public MeshBuilder ExtrudePoly(Vector2[] points, float length, Vector3 axis, UVMode uvMode, bool addCaps)
         {
             var ofs = axis * length;
@@ -450,11 +480,26 @@ namespace XrEngine
             return LoftPoly(profile, new Poly2D(path), uvMode);
         }
 
-        public MeshBuilder LoftPoly(Poly2 profile, ICurve2D path, UVMode uvMode, float tolerance = 0.001f, int maxPoints = 1000)
+        public MeshBuilder LoftPoly(
+             Poly2 profile,
+             ICurve2D path,
+             UVMode uvMode,
+             float tolerance = 0.001f,
+             int maxPoints = 1000)
         {
             var pathPoints = path
                 .Sample(tolerance, maxPoints)
                 .ToArray();
+
+            if (pathPoints.Length < 2)
+                return this;
+
+            var isPathClosed =
+                Vector2.DistanceSquared(pathPoints[0].Position, pathPoints[^1].Position) < 1e-8f;
+
+            var pathCount = isPathClosed
+                ? pathPoints.Length - 1
+                : pathPoints.Length;
 
             Vector3 ToVector3(Vector2 p)
             {
@@ -466,13 +511,41 @@ namespace XrEngine
                 return (ToVector3(p.Position), ToVector3(p.Tangent));
             }
 
+            Vector3 GetSmoothedTangent(int i)
+            {
+                if (isPathClosed)
+                {
+                    var prev = (i - 1 + pathCount) % pathCount;
+                    var next = (i + 1) % pathCount;
+
+                    var pPrev = ToVector3(pathPoints[prev].Position);
+                    var pNext = ToVector3(pathPoints[next].Position);
+
+                    return Vector3.Normalize(pNext - pPrev);
+                }
+
+                var (_, t) = Convert(pathPoints[i]);
+
+                if (i > 0)
+                {
+                    var (_, tPrev) = Convert(pathPoints[i - 1]);
+                    t = (t + tPrev) / 2;
+                }
+
+                return Vector3.Normalize(t);
+            }
+
             Matrix4x4 Transform(Vector3 position, Vector3 tangent)
             {
                 tangent = Vector3.Normalize(tangent);
+
                 var up = new Vector3(0, 1, 0);
                 var right = Vector3.Cross(up, tangent);
+
                 if (right.LengthSquared() < 1e-6)
                     right = Vector3.UnitX;
+                else
+                    right = Vector3.Normalize(right);
 
                 up = Vector3.Cross(tangent, right);
 
@@ -486,19 +559,22 @@ namespace XrEngine
 
             var profLen = profile.Length();
 
-            for (var j = 0; j < pathPoints.Length - 1; j++)
+            var pathSegments = isPathClosed
+                ? pathCount
+                : pathCount - 1;
+
+            for (var j = 0; j < pathSegments; j++)
             {
-                (var p0, var t0) = Convert(pathPoints[j]);
-                (var p1, var t1) = Convert(pathPoints[j + 1]);
+                var j0 = j;
+                var j1 = isPathClosed
+                    ? (j + 1) % pathCount
+                    : j + 1;
 
-                t1 = (t0 + t1) / 2;
+                var p0 = ToVector3(pathPoints[j0].Position);
+                var p1 = ToVector3(pathPoints[j1].Position);
 
-                if (j > 0)
-                {
-                    (var p2, var t2) = Convert(pathPoints[j - 1]);
-                    t0 = (t0 + t2) / 2;
-                }
-
+                var t0 = GetSmoothedTangent(j0);
+                var t1 = GetSmoothedTangent(j1);
 
                 var len = profile.Points.Length;
                 if (!profile.IsClosed)
@@ -508,6 +584,7 @@ namespace XrEngine
                 var matrix1 = Transform(p1, t1);
 
                 var curLen = 0f;
+
                 for (var i = 0; i < len; i++)
                 {
                     var a = profile.Points[i];
@@ -522,25 +599,36 @@ namespace XrEngine
                     var b1 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix1);
 
                     Vector2 uva0, uvb0, uva1, uvb1;
+
                     if (uvMode == UVMode.Normalized)
                     {
-                        uva0 = new Vector2(curLen / profLen, pathPoints[j].Time);
-                        uva1 = new Vector2(curLen / profLen, pathPoints[j + 1].Time);
-                        uvb1 = new Vector2((curLen + ab) / profLen, pathPoints[j + 1].Time);
-                        uvb0 = new Vector2((curLen + ab) / profLen, pathPoints[j].Time);
+                        var v0 = pathPoints[j0].Time;
+                        var v1 = isPathClosed && j1 == 0
+                            ? 1f
+                            : pathPoints[j1].Time;
+
+                        uva0 = new Vector2(curLen / profLen, v0);
+                        uva1 = new Vector2(curLen / profLen, v1);
+                        uvb1 = new Vector2((curLen + ab) / profLen, v1);
+                        uvb0 = new Vector2((curLen + ab) / profLen, v0);
                     }
                     else
                     {
-                        uva0 = new Vector2(curLen, pathPoints[j].Length);
-                        uva1 = new Vector2(curLen, pathPoints[j + 1].Length);
-                        uvb1 = new Vector2((curLen + ab), pathPoints[j + 1].Length);
-                        uvb0 = new Vector2((curLen + ab), pathPoints[j].Length);
+                        var v0 = pathPoints[j0].Length;
+                        var v1 = isPathClosed && j1 == 0
+                            ? pathPoints[^1].Length
+                            : pathPoints[j1].Length;
+
+                        uva0 = new Vector2(curLen, v0);
+                        uva1 = new Vector2(curLen, v1);
+                        uvb1 = new Vector2(curLen + ab, v1);
+                        uvb0 = new Vector2(curLen + ab, v0);
                     }
 
-
-                    AddFace(a0, a1, b1, b0,
+                    AddFace(
+                        a0, a1, b1, b0,
                         uva0, uva1, uvb1, uvb0,
-                        true);
+                        false);
 
                     curLen += ab;
                 }
@@ -562,14 +650,18 @@ namespace XrEngine
             return this;
         }
 
-        public Geometry3D ToGeometry()
+        public Geometry3D ToGeometry(Geometry3D? result = null, bool computeIndices = true)
         {
-            var geo = new Geometry3D();
-            geo.Vertices = Vertices.ToArray();
-            geo.ActiveComponents |= VertexComponent.UV0;
-            geo.ComputeIndices();
-            geo.ComputeNormals();
-            return geo;
+            result ??= new Geometry3D();
+            result.Vertices = Vertices.ToArray();
+            result.Indices = [];
+            result.ActiveComponents |= VertexComponent.UV0;
+
+            if (computeIndices)
+                result.ComputeIndices();
+
+            result.ComputeNormals();
+            return result;
         }
 
         public void AddColliders(Object3D obj)

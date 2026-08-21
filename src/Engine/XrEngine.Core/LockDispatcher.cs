@@ -22,6 +22,14 @@
                 return Task.FromResult(action());
         }
 
+        public void Post(Action action)
+        {
+            lock (_lock)
+                action();
+        }
+
+        public Thread Thread => Thread.CurrentThread;
+
         public object Lock => _lock;
     }
 }

@@ -7,13 +7,13 @@ namespace XrEngine
     {
         public SphereCollider()
         {
+            Usage = ColliderUsage.All;
         }
 
         public void Initialize()
         {
 
         }
-
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
@@ -62,5 +62,7 @@ namespace XrEngine
         public float Radius { get; set; }
 
         public Vector3 Center { get; set; }
+
+        public ColliderUsage Usage { get; set; }
     }
 }

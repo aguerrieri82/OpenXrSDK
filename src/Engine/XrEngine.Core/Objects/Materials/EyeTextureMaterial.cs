@@ -4,9 +4,16 @@
     {
         public static readonly Shader SHADER;
 
+        public enum CameraEye
+        {
+            None = -1,
+            Left = 0,
+            Right = 1
+        }
+
         static EyeTextureMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "texture_stereo.frag",
                 IsLit = false
@@ -16,6 +23,8 @@
             : base()
         {
             _shader = SHADER;
+            FixedEye = -1;
+            DebugEye = CameraEye.None;
         }
 
         public EyeTextureMaterial(Texture2D left, Texture2D right)
@@ -23,18 +32,7 @@
         {
             LeftTexture = left;
             RightTexture = right;
-        }
-
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.WriteObject<EyeTextureMaterial>(this);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            container.ReadObject<EyeTextureMaterial>(this);
+            DebugEye = CameraEye.None;
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
@@ -45,20 +43,26 @@
                 bld.AddFeature("EXTERNAL");
             }
 
+            if (FixedEye != -1)
+                bld.AddFeature($"FIXED_EYE {FixedEye}");
+
+            bld.PrepareTexture(LeftTexture);
+            bld.PrepareTexture(RightTexture);
+
             bld.ExecuteAction((ctx, up) =>
             {
-                if (LeftTexture == null || RightTexture == null)
-                    return;
+                if (FixedEye != 1 && LeftTexture != null)
+                    up.LoadTextureFixSrgb(ctx, LeftTexture, 0);
 
-                up.LoadTexture(LeftTexture, 0);
+                if (FixedEye != 0 && RightTexture != null)
+                    up.LoadTextureFixSrgb(ctx, RightTexture, 1);
 
-                up.LoadTexture(RightTexture, 1);
-
-                up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
-
+                if (DebugEye != CameraEye.None)
+                    up.SetUniform("uActiveEye", (uint)DebugEye);
+                else
+                    up.SetUniform("uActiveEye", (uint)((PerspectiveCamera)ctx.PassCamera!).ActiveEye);
             });
         }
-
 
         public override void Dispose()
         {
@@ -72,5 +76,9 @@
         public Texture2D? LeftTexture { get; set; }
 
         public Texture2D? RightTexture { get; set; }
+
+        public int FixedEye { get; set; }
+
+        public CameraEye DebugEye { get; set; }
     }
 }

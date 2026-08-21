@@ -12,7 +12,7 @@ namespace XrEditor.Services
             RegisterHandler(new GenericNodeHandler());
         }
 
-        public INode CreateNode(object value)
+        public INode CreateNode(object value, INode? parent = null)
         {
             if (value is INode node)
                 return node;
@@ -22,7 +22,12 @@ namespace XrEditor.Services
 
             var handler = _handlers.First(a => a.CanHandle(value));
             if (handler != null)
-                return handler.CreateNode(value);
+            {
+                var result = handler.CreateNode(value);
+                if (parent != null && result is IEditableNode edit)
+                    edit.SetParent(parent);
+                return result;
+            }
 
             throw new NotSupportedException();
         }

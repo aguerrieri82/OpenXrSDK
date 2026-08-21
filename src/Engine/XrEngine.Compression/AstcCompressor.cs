@@ -25,7 +25,6 @@ namespace XrEngine.Compression
         /** @brief The exhaustive, highest quality, search preset. */
         const float ASTCENC_PRE_EXHAUSTIVE = 100.0f;
 
-
         /**
          * @brief Enable normal map compression.
          *
@@ -107,7 +106,6 @@ namespace XrEngine.Compression
          */
         const uint ASTCENC_FLG_MAP_RGBM = 1 << 6;
 
-
         enum astcenc_profile
         {
             /** @brief The LDR sRGB color profile. */
@@ -138,7 +136,6 @@ namespace XrEngine.Compression
             ASTCENC_SWZ_Z = 6
         };
 
-
         struct astcenc_swizzle
         {
             /** @brief The red component selector. */
@@ -151,7 +148,6 @@ namespace XrEngine.Compression
             public astcenc_swz a;
         };
 
-
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct astcenc_params
         {
@@ -162,6 +158,7 @@ namespace XrEngine.Compression
             public float quality;
             public uint flags;
             public byte thread_count;
+            public sbyte thread_priority;
             public astcenc_swizzle swizzle;
         }
 
@@ -175,14 +172,12 @@ namespace XrEngine.Compression
             ASTCENC_TYPE_F32 = 2
         };
 
-
         [DllImport("astcencoder-native")]
-        static extern int Encode(nint data, int width, int height, astcenc_type dataType, ref astcenc_params parameters, nint dst, ref int dstSize);
+        static extern int Encode(nint data, int width, int height, int depth, astcenc_type dataType, ref astcenc_params parameters, nint dst, ref int dstSize);
 
         #endregion
 
-
-        public static TextureData Encode(TextureData data, bool isNormalMap, float quality, uint blockSize)
+        public static TextureData Encode(TextureData data, bool isNormalMap, float quality, uint blockSize, int threadPriority = 0)
         {
             uint flags = 0;
             if (isNormalMap)
@@ -190,6 +185,9 @@ namespace XrEngine.Compression
 
             astcenc_profile profile;
             astcenc_type type;
+
+            if (data.Format.GetChannels() != 4)
+                throw new NotSupportedException();
 
             if (data.Format.IsInt8())
             {
@@ -201,12 +199,21 @@ namespace XrEngine.Compression
             }
             else if (data.Format.IsFloat16())
             {
+                /*
+                if (isNormalMap)
+                    profile = astcenc_profile.ASTCENC_PRF_LDR;
+                else
+                    profile = astcenc_profile.ASTCENC_PRF_HDR;
+                */
                 profile = astcenc_profile.ASTCENC_PRF_HDR;
                 type = astcenc_type.ASTCENC_TYPE_F16;
             }
             else if (data.Format.IsFloat32())
             {
-                profile = astcenc_profile.ASTCENC_PRF_HDR;
+                if (isNormalMap)
+                    profile = astcenc_profile.ASTCENC_PRF_LDR;
+                else
+                    profile = astcenc_profile.ASTCENC_PRF_HDR;
                 type = astcenc_type.ASTCENC_TYPE_F32;
             }
             else
@@ -214,74 +221,61 @@ namespace XrEngine.Compression
 
             astcenc_swizzle swizzle;
 
-            if (data.Format == TextureFormat.Rgb24 ||
-                data.Format == TextureFormat.SRgb24 ||
-                data.Format == TextureFormat.RgbFloat16 ||
-                data.Format == TextureFormat.RgbFloat32)
-            {
-                swizzle.r = astcenc_swz.ASTCENC_SWZ_R;
-                swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
-                swizzle.b = astcenc_swz.ASTCENC_SWZ_B;
-                swizzle.a = astcenc_swz.ASTCENC_SWZ_0;
-            }
-            else if (data.Format == TextureFormat.Bgra32 || data.Format == TextureFormat.SBgra32)
+            if (data.Format.IsBgr())
             {
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_B;
                 swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
                 swizzle.b = astcenc_swz.ASTCENC_SWZ_R;
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
-
-            else if (data.Format == TextureFormat.Rgba32 ||
-                data.Format == TextureFormat.SRgba32 ||
-                data.Format == TextureFormat.RgbaFloat32 ||
-                data.Format == TextureFormat.RgbaFloat16)
+            else
             {
                 swizzle.r = astcenc_swz.ASTCENC_SWZ_R;
                 swizzle.g = astcenc_swz.ASTCENC_SWZ_G;
                 swizzle.b = astcenc_swz.ASTCENC_SWZ_B;
                 swizzle.a = astcenc_swz.ASTCENC_SWZ_A;
             }
-            else
-                throw new NotSupportedException();
+
+            if (isNormalMap)
+                swizzle.a = astcenc_swz.ASTCENC_SWZ_1;
 
             var pars = new astcenc_params
             {
                 block_x = blockSize,
                 block_y = blockSize,
-                block_z = 1,
+                block_z = data.Depth <= 1 ? 1 : blockSize,
                 flags = flags,
                 profile = profile,
                 quality = quality,
                 swizzle = swizzle,
-                thread_count = 8
+                thread_count = 8,
+                thread_priority = (sbyte)threadPriority
             };
 
-
-            using var srcPtr = data.Data!.MemoryLock();
+            using var srcPtr = data.Content!.MemoryLock();
 
             var dstSize = 0;
 
-            var result = Encode(srcPtr, (int)data.Width, (int)data.Height, type, ref pars, IntPtr.Zero, ref dstSize);
+            var result = Encode(srcPtr, (int)data.Width, (int)data.Height, (int)data.Depth, type, ref pars, IntPtr.Zero, ref dstSize);
             if (result != 0)
                 throw new InvalidOperationException();
 
             var newData = data.Clone();
-            newData.Data = MemoryBuffer.Create<byte>((uint)dstSize);
+            newData.Content = MemoryBuffer.Create<byte>((uint)dstSize);
             newData.Compression = TextureCompressionFormat.Astc;
             newData.BlockSize = blockSize;
 
-            using var dstPtr = newData.Data!.MemoryLock();
+            using var dstPtr = newData.Content!.MemoryLock();
 
-            result = Encode(srcPtr, (int)data.Width, (int)data.Height, type, ref pars, dstPtr, ref dstSize);
+            result = Encode(srcPtr, (int)data.Width, (int)data.Height, (int)data.Depth, type, ref pars, dstPtr, ref dstSize);
             if (result != 0)
                 throw new InvalidOperationException();
 
-            if (newData.Format == TextureFormat.Bgra32)
-                newData.Format = TextureFormat.Rgba32;
+            if (newData.Format == TextureFormat.Bgra8)
+                newData.Format = TextureFormat.Rgba8;
 
-            if (newData.Format == TextureFormat.SBgra32)
-                newData.Format = TextureFormat.SRgba32;
+            if (newData.Format == TextureFormat.SBgra8)
+                newData.Format = TextureFormat.SRgba8;
 
             return newData;
         }

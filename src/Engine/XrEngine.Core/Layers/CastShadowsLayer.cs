@@ -23,7 +23,7 @@ namespace XrEngine
                 _contentVersion++;
             }
 
-            if (change.Type == ObjectChangeType.Transform)
+            if (change.Type == ChangeType.Transform)
                 return false;
 
             return base.AffectChange(change);

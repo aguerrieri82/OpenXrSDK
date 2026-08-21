@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace OpenXr.Framework.OpenGL
 {
     public interface IOpenGLDevice

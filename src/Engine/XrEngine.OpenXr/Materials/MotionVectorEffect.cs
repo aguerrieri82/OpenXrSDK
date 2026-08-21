@@ -1,0 +1,131 @@
+﻿using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using XrMath;
+
+namespace XrEngine.OpenXr
+{
+    public class MotionVectorEffect : ShaderMaterial
+    {
+        readonly Dictionary<Object3D, Matrix4x4> _models = [];
+        readonly Dictionary<Object3D, Matrix4x4[]> _skins = [];
+        public class MotionVectorShader : Shader, IShaderHandler
+        {
+
+            public MotionVectorShader()
+            {
+            }
+
+            public bool NeedUpdateShader(UpdateShaderContext ctx)
+            {
+                return false;
+            }
+
+            public void UpdateShader(ShaderUpdateBuilder bld)
+            {
+                var stage = bld.Context.Stage;
+
+                if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
+                    return;
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    var camera = ctx.PassCamera;
+
+                    Debug.Assert(camera?.Eyes != null);
+
+                    up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
+
+                    up.SetUniform($"uMatrices.prev.viewProj[0]", PrevViewProj[0]);
+                    up.SetUniform($"uMatrices.prev.viewProj[1]", PrevViewProj[1]);
+
+                    up.SetUniform($"uMatrices.current.viewProj[0]", camera.Eyes[0].ViewProj);
+                    up.SetUniform($"uMatrices.current.viewProj[1]", camera.Eyes[1].ViewProj);
+                });
+
+            }
+
+            public Matrix4x4[] PrevViewProj = new Matrix4x4[2];
+        }
+
+        MotionVectorEffect()
+            : base()
+        {
+            _shader = new MotionVectorShader
+            {
+                FragmentSourceName = "motion_vectors.frag",
+                VertexSourceName = "motion_vectors.vert",
+                Resolver = str => Embedded.GetString<Module>(str)
+            };
+
+            Skin = SkinMode.Dynamic;
+        }
+
+        public void EndPass(Camera camera)
+        {
+            Debug.Assert(camera.Eyes != null);
+
+            var shader = (MotionVectorShader)_shader!;
+
+            shader.PrevViewProj[0] = camera.Eyes[0].ViewProj;
+            shader.PrevViewProj[1] = camera.Eyes[1].ViewProj;
+        }
+
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            #warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
+
+            var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
+
+            if (mesh != null)
+            {
+                bld.LoadBufferArray(ctx =>
+                {
+                    if (!_skins.TryGetValue(ctx.Model!, out var matrices))
+                        return null;
+
+                    return matrices;
+
+                }, 17, BufferStore.Model, BufferUsage.SSbo);
+            }
+
+            bld.ExecuteAction((ctx, up) =>
+            {
+                var camera = ctx.PassCamera;
+                var model = ctx.Model;
+
+                if (model == null || camera == null)
+                    return;
+
+                var world = model.WorldMatrix;
+
+                if (!world.IsValid())
+                    world = Matrix4x4.Identity;
+
+                if (_models.TryGetValue(model, out var prevModel))
+                    up.SetUniform("uMatrices.prev.model", prevModel);
+
+                up.SetUniform("uMatrices.current.model", world);
+
+                if (camera.ActiveEye == 1 || camera.ActiveEye == -1)
+                {
+                    _models[model] = world;
+
+                    Debug.Assert(mesh != null);
+
+                    if (!_skins.TryGetValue(model, out var matrices))
+                    {
+                        matrices = new Matrix4x4[mesh.SkinMatrices.Length];
+
+                        _skins[model] = matrices;
+                    }
+
+                    Array.Copy(mesh.SkinMatrices, matrices, matrices.Length);
+                }
+            });
+        }
+
+        public static readonly MotionVectorEffect Instance = new MotionVectorEffect();
+
+    }
+}

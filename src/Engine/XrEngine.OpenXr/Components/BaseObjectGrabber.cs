@@ -27,7 +27,6 @@ namespace XrEngine.OpenXr
         private bool _isVibrating;
         protected bool _grabStarted;
 
-
         public BaseObjectGrabber(XrHaptic? vibrate = null, string? baseName = "")
         {
             Vibrate = vibrate;
@@ -95,7 +94,6 @@ namespace XrEngine.OpenXr
         protected virtual void MoveGrabbing(Pose3 grabPoint)
         {
             Debug.Assert(_grabObject != null);
-
 
             _grabObject.WorldPosition = Offset.Position + grabPoint.Position;
             _grabObject.WorldOrientation = Offset.Orientation * _startOrientation.AddDelta(grabPoint.Orientation.Subtract(_startInputOrientation));

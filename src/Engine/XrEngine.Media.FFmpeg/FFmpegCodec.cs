@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using static FFmpeg.AutoGen.ffmpeg;
 
-
 namespace XrEngine.Media.FFmpeg
 {
     public unsafe class FFmpegCodec : IVideoCodec
@@ -64,7 +63,6 @@ namespace XrEngine.Media.FFmpeg
                 throw new ApplicationException(av_strerror(result));
             return result;
         }
-
 
         public void Dispose()
         {
@@ -156,7 +154,6 @@ namespace XrEngine.Media.FFmpeg
                 _outFormat.Width, _outFormat.Height, AVPixelFormat.AV_PIX_FMT_RGBA,
                 SWS_BILINEAR, null, null, null);
 
-
             if (_outFormat.ImageFormat != ImageFormat.Rgb32)
                 throw new NotSupportedException();
         }
@@ -177,7 +174,6 @@ namespace XrEngine.Media.FFmpeg
                     _pPacket->data = ((byte*)src.Pointer.ToPointer()) + src.Offset;
                     _pPacket->size = src.Size;
                 }
-
 
                 try
                 {

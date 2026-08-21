@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:comp="clr-namespace:XrEditor.Components"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:AnimationEditor}">
+
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
+
+            <ContentPresenter Content="{Binding Player}"/>
+            
+            <ItemsControl ItemsSource="{Binding Properties}">
+                <ItemsControl.ItemTemplate>
+                    <ItemContainerTemplate>
+                        <ContentPresenter Margin="0,10,0,0" Content="{Binding}"/>
+                    </ItemContainerTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </DataTemplate>
+
+</ResourceDictionary>

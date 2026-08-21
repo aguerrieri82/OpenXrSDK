@@ -1,0 +1,148 @@
+﻿#include "./uniforms_comp.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+
+// New model:
+//
+// uDryPaint:
+//   rgb = visible / resolved paint color
+//   a   = deposited visible paint density
+//
+// uWetPaint:
+//   rgb = wetColor * wetDensity
+//   a   = wetDensity
+//
+// Assumed invariants:
+//   dry.a >= 0
+//   wet.a >= 0
+//   wet.a <= dry.a
+//   dry.rgb is already valid straight color
+//   wet is only material state, not extra visible density
+
+
+layout(rgba16f, binding = 0) readonly uniform highp image2D uWetPaint;
+layout(rgba16f, binding = 1) readonly uniform highp image2D uDryPaint;
+
+
+// Base color texture.
+// rgb = straight base color
+// a   = coverage
+layout(rgba8, binding = 3) writeonly uniform highp image2D uResolvedColor;
+
+#if COLOR_ONLY != 1
+
+    // PBR ORM-like texture.
+    // r = unused / fixed 1.0
+    // g = roughness
+    // b = metallic
+    // a = coverage
+    layout(rgba8, binding = 4) writeonly uniform highp image2D uResolvedRoughness;
+
+    // Normal map.
+    // rgb = encoded tangent-space normal
+    // a   = coverage
+    layout(rgba8, binding = 5) writeonly uniform highp image2D uResolvedNormal;
+
+#endif
+
+float WetFactorFromDensity(float d)
+{
+    // Model clamp, not safety:
+    // wet.a >= 1 means full wet material response.
+    return min(d, 1.0);
+}
+
+
+ivec2 ClampPixel(ivec2 p)
+{
+    return clamp(p, ivec2(0), CanvasSize - ivec2(1));
+}
+
+
+float VisibleDensityAt(ivec2 p)
+{
+    vec4 dry = imageLoad(uDryPaint, ClampPixel(p));
+    return dry.a;
+}
+
+
+vec3 ResolveNormal(ivec2 p)
+{
+    float hL = VisibleDensityAt(p + ivec2(-1,  0));
+    float hR = VisibleDensityAt(p + ivec2( 1,  0));
+    float hD = VisibleDensityAt(p + ivec2( 0, -1));
+    float hU = VisibleDensityAt(p + ivec2( 0,  1));
+
+    float dx = hR - hL;
+    float dy = hU - hD;
+
+    return normalize(vec3(
+        -dx * NormalScale,
+        -dy * NormalScale,
+         1.0
+    ));
+}
+
+
+void main()
+{
+    ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+
+    if (any(greaterThanEqual(p, CanvasSize)))
+        return;
+
+    vec4 dry = imageLoad(uDryPaint, p);
+
+    // Dry is the only visible paint source.
+    float coverage = DensityToCoverage(dry.a);
+
+    imageStore(
+        uResolvedColor,
+        p,
+        vec4(
+            dry.rgb,
+            coverage
+        )
+    );
+
+#if COLOR_ONLY != 1
+    
+    vec4 wet = imageLoad(uWetPaint, p);
+
+    // Wet affects only material state.
+    float wetFactor = WetFactorFromDensity(wet.a);
+
+    float roughness = mix(
+        DryRoughness,
+        WetRoughness,
+        wetFactor
+    );
+
+    vec3 normal = ResolveNormal(p);
+    vec3 encodedNormal = normal * 0.5 + 0.5;
+
+    imageStore(
+        uResolvedRoughness,
+        p,
+        vec4(
+            1.0,
+            roughness,
+            Metallic,
+            coverage
+        )
+    );
+
+    imageStore(
+        uResolvedNormal,
+        p,
+        vec4(
+            encodedNormal,
+            coverage
+        )
+    );
+#endif
+
+
+
+}

@@ -13,7 +13,6 @@ namespace XrEngine.Components
         TriangleMesh? _splittedMesh;
         Geometry3D? _startGeo;
 
-
         public MeshSplitter()
         {
         }
@@ -49,8 +48,10 @@ namespace XrEngine.Components
 
             if (_splittedMesh == null)
             {
-                _splittedMesh = new TriangleMesh();
-                _splittedMesh.Name = SplittedName;
+                _splittedMesh = new TriangleMesh
+                {
+                    Name = SplittedName
+                };
 
                 foreach (var material in _host.Materials)
                     _splittedMesh.Materials.Add(material);
@@ -97,7 +98,7 @@ namespace XrEngine.Components
                 Position = Origin
             }.ToMatrix();
 
-            Matrix4x4.Invert(_boundsTransform, out var reverse);
+            var reverse = _boundsTransform.Invert();
 
             foreach (var triangle in _startGeo.Triangles())
             {
@@ -114,14 +115,14 @@ namespace XrEngine.Components
             }
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             if (!ShowGizmos)
                 return;
 
             canvas.Save();
 
-            Matrix4x4.Invert(_boundsTransform, out var reverse);
+            var reverse = _boundsTransform.Invert();
 
             canvas.State.Color = "#00A000";
             canvas.State.Transform = _host!.WorldMatrix;
@@ -135,7 +136,6 @@ namespace XrEngine.Components
 
             canvas.Restore();
         }
-
 
         public bool ShowGizmos { get; set; }
 

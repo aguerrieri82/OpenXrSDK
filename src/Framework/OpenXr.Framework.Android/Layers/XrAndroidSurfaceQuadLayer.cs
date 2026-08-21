@@ -13,6 +13,7 @@ namespace OpenXr.Framework.Android
         protected Extent2Di _size;
         protected SemaphoreSlim _surfaceLock = new(1, 1);
         protected NativeStruct<CompositionLayerImageLayoutFB> _layerFlags;
+        protected Swapchain _swapchain;
 
         protected XrAndroidSurfaceQuadLayer(GetQuadDelegate getQuad)
             : base(getQuad)
@@ -31,9 +32,9 @@ namespace OpenXr.Framework.Android
             extensions.Add(KhrAndroidSurfaceSwapchain.ExtensionName);
             extensions.Add("XR_FB_android_surface_swapchain_create");
 
-            var driver = app.Plugin<IXrGraphicDriver>().SwapChainImageType.StructureType;
+            var flags = app.Plugin<IXrGraphicDriver>().Flags;
 
-            if (driver == StructureType.SwapchainImageVulkanKhr)
+            if ((flags & XrGraphicDriverFlags.FlipAndroidSurfaceY) != 0)
             {
                 extensions.Add("XR_FB_composition_layer_image_layout");
 
@@ -55,13 +56,12 @@ namespace OpenXr.Framework.Android
             _surfaceLock.Wait();
         }
 
-
         public override void OnEndFrame()
         {
             _surfaceLock.Release();
         }
 
-        public unsafe override void Create()
+        public override void Create()
         {
             _xrApp!.Xr.TryGetInstanceExtension<KhrAndroidSurfaceSwapchain>(null, _xrApp!.Instance, out _androidSurface);
 
@@ -76,6 +76,7 @@ namespace OpenXr.Framework.Android
             {
                 Type = StructureType.AndroidSurfaceSwapchainCreateInfoFB,
                 CreateFlags = AndroidSurfaceSwapchainFlagsFB.None,
+                Next = null
             };
 
             //info.Next = &fbInfo;
@@ -90,7 +91,7 @@ namespace OpenXr.Framework.Android
                     ref surfaceHandle),
                 "CreateSwapchainAndroidSurface");
 
-            _surface = Surface.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;
+            _surface = Java.Lang.Object.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;
 
             _header.ValueRef.SubImage.Swapchain = _swapchain;
             _header.ValueRef.SubImage.ImageArrayIndex = 0;

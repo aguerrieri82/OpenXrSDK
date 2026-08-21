@@ -14,7 +14,6 @@ namespace PhysX.Framework
         public PxContactSet contacts;
     }
 
-
     public unsafe class ContactModifyCallback : IDisposable
     {
         PxContactModifyCallback* _handler;
@@ -34,7 +33,6 @@ namespace PhysX.Framework
             ((nint*)_handler->vtable_)[0] = Marshal.GetFunctionPointerForDelegate((OnContactModifyDelegate)OnContactModify);
             ((nint*)_handler->vtable_)[1] = Marshal.GetFunctionPointerForDelegate((VoidDelegate)Distructor);
         }
-
 
         protected static void OnContactModify(nint thisRef, PxContactModifyPair2* pairs, uint count)
         {

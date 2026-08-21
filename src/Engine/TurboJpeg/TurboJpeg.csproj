@@ -4,14 +4,12 @@
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<NativeLibrary Include="$(NativeLibsDir)turbo-jpeg\**\*" />
-	</ItemGroup>
-	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="$(NativeLibsDir)turbo-jpeg\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)turbo-jpeg\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="$(NativeLibsDir)turbo-jpeg\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)turbo-jpeg\win-x64\*.dll" 
+				 CopyToOutputDirectory="PreserveNewest" 
+				 UseLink="True"
+			     Visible="False"
+				 Link="%(Filename)%(Extension)" />	
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

@@ -37,15 +37,16 @@ namespace XrEngine.Materials
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            bld.AddFeature("UNIFORM_EXP");
+            bld.PrepareTexture(Texture);
 
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uCube", Texture!, 0);
+                if (Texture != null)
+                    up.LoadTextureFixSrgb(ctx, Texture!, 0);
+
                 up.SetUniform("uCubeRotation", Matrix3x3.CreateRotationY(Rotation));
             });
         }
-
 
         public TextureCube? Texture { get; set; }
 

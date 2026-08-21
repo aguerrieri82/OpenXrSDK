@@ -1,8 +1,9 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
+using XrEngine.Helpers;
 using XrMath;
 
 
@@ -14,21 +15,27 @@ namespace XrEngine
 
     public class ShaderUpdate
     {
-        public List<UpdateUniformAction>? Actions;
+        public readonly List<UpdateUniformAction> Actions = [];
 
         public List<UpdateBufferAction>? BufferUpdates;
 
-        public List<string>? Features;
+        public SortedSet<string>? Features;
 
-        public List<string>? Extensions;
+        public SortedSet<string>? DynamicFeatures;
+
+        public HashSet<string>? Extensions;
+
+        public Dictionary<string, Func<string>>? Slots;
 
         public long ShaderVersion;
 
-        public string? LightsHash;
+        public ulong LightsHash;
 
-        public string? FeaturesHash;
+        public ulong FeaturesHash;
 
         public IShaderHandler?[]? ShaderHandlers;
+
+
     }
 
     public enum UpdateShaderStage
@@ -39,6 +46,19 @@ namespace XrEngine
         Model
     }
 
+    public struct RenderDriverBugs
+    {
+        /// <summary>
+        /// Workaround for an NVIDIA Vulkan multiview clipping bug observed with per-view <c>gl_ClipDistance</c>.
+        /// If a primitive is completely rejected by clip distance in view 0, the corresponding primitive may also be
+        /// incorrectly discarded from view 1 even when view 1's clip distances would keep it visible.
+        /// 
+        /// When this workaround is enabled, view 0 does not use the per-view clip distances and its excluded region is
+        /// masked by a depth-prefill pass instead. View 1 continues to use normal clip-distance rejection.
+        /// </summary>
+        public bool NvMultiViewClipBug;
+    }
+
     public class UpdateShaderContext
     {
         public UpdateShaderContext()
@@ -46,47 +66,83 @@ namespace XrEngine
             FrustumPlanes = new Plane[6];
         }
 
+        public RenderDriverBugs Bugs;
+
         public UpdateShaderStage Stage;
 
         public Camera? MainCamera;
 
         public Camera? PassCamera;
 
+        public Scene3D? Scene;
+
+        public Object3D? Model;
+
+        public ShaderMaterial? Material;
+
         public Shader? Shader;
 
         public IList<Light>? Lights;
 
-        public Object3D? Model;
+        public long ImageLightVersion;
+
+        public long Frame;
+
+        public float Time;
+
+        public float DeltaTime;
 
         public IRenderEngine? RenderEngine;
+
+        public IRenderPass? Pass;
 
         public VertexComponent ActiveComponents;
 
         public IBufferProvider? BufferProvider;
 
-        public IBuffer? CurrentBuffer;
+        public ISimpleBuffer? CurrentBuffer;
 
-        public string? LightsHash;
+        public ulong LightsHash;
 
-        public readonly Plane[] FrustumPlanes;
+        public Plane[] FrustumPlanes;
+
+        public int FrustumPlanesCount;
 
         public IShadowMapProvider? ShadowMapProvider;
 
         public IBloomProvider? BloomProvider;
 
-        public Texture2D? DepthMap;
-
-        public ShaderUpdate? LastGlobalUpdate;
-
-        public IRenderPass? Pass;
+        public IMotionVectorProvider? MotionVectorProvider;
 
         public IDepthCullProvider? DepthCullProvider;
 
+        public ShaderUpdate? LastGlobalUpdate;
+
         public long ContextVersion;
 
-        public long Frame;
-
         public bool UseInstanceDraw;
+
+        public bool UseMotionVectors;
+
+        public bool IsSrgbTarget;
+
+        public bool IsSrgbAutoEncode;
+
+        public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
+
+        public bool UseSharedSsbo;
+
+        public bool UseAngle;
+
+        public bool UseCopyDepth;
+
+        public bool UsePrimitiveBoundingBox;
+
+        public Texture2D? CopyDepthImage;
+
+        public Rect2I[]? ClipRegions;
+
+        public bool IsMultiView;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList
@@ -99,10 +155,7 @@ namespace XrEngine
         {
             _result = new ShaderUpdate()
             {
-                Features = [],
-                Actions = [],
                 BufferUpdates = [],
-                Extensions = []
             };
 
             Context = context;
@@ -110,7 +163,7 @@ namespace XrEngine
 
         readonly void Update<TValue>(UpdateAction<TValue> action, Action<IUniformProvider, TValue> doUpdate)
         {
-            _result.Actions!.Add((ctx, up) => doUpdate(up, action(ctx)));
+            _result.Actions.Add((ctx, up) => doUpdate(up, action(ctx)));
         }
 
         public readonly void SetUniform(string name, UpdateAction<int> value, bool optional = false)
@@ -125,36 +178,87 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, BufferStore store) where T : struct
+        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot,
+            BufferStore store,
+            BufferUsage usage = BufferUsage.Uniforms,
+            string? uniformName = null) where T : struct
         {
-            IBuffer<T>? buffer = null;
+            ISimpleBuffer<T>? buffer = null;
 
-            _result.BufferUpdates!.Add((ctx) =>
+            _result.BufferUpdates ??= [];
+
+            _result.BufferUpdates.Add((ctx) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+                if (store == BufferStore.Model || buffer == null)
+                {
+                    var curBuffer = ctx.BufferProvider?.GetBuffer<T>(slot, store, usage, uniformName);
+#if DEBUG
+                    if (buffer != null && curBuffer != buffer && store != BufferStore.Model)
+                        XrEngine.Log.Warn(typeof(ShaderUpdateBuilder), "Buffer changed");
+#endif
+                    buffer = curBuffer;
+                }
 
+                Debug.Assert(buffer != null);
+
+#if GL_WRAPPER
+                buffer.Update(() =>
+                {
+                    ctx.CurrentBuffer = buffer;
+                    var curValue = value(ctx);
+                    ctx.CurrentBuffer = null;
+                    return curValue;
+                });
+#else
                 ctx.CurrentBuffer = buffer;
 
                 var curValue = value(ctx);
-
                 if (curValue != null)
                     buffer.Update(curValue.Value);
 
                 ctx.CurrentBuffer = null;
+#endif
             });
 
-            _result.Actions!.Add((ctx, up) =>
+            _result.Actions.Add((ctx, up) =>
             {
-                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+#warning DANGER, THIS WORKS FOR MODEL STURE ONLY IF BufferUpdates IS RUNNING BEFORE THIS CALL
+                if (buffer == null)
+                    return;
+                up.LoadBuffer(buffer, slot);
+            });
+        }
+
+        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
+        {
+            ISimpleBuffer<T>? buffer = null;
+
+            _result.BufferUpdates ??= [];
+
+            _result.BufferUpdates.Add((ctx) =>
+            {
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
+
+                ctx.CurrentBuffer = buffer;
+
+                var curValue = value(ctx);
+                if (curValue != null && buffer is IBuffer<T> fullBuff)
+                    fullBuff.UpdateRange(curValue, 0);
+
+                ctx.CurrentBuffer = null;
+            });
+
+            _result.Actions.Add((ctx, up) =>
+            {
+                buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
                 up.LoadBuffer(buffer, slot);
             });
         }
 
-
         public readonly void ExecuteAction(UpdateUniformAction action)
         {
-            _result.Actions!.Add(action);
+            _result.Actions.Add(action);
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)
@@ -203,7 +307,6 @@ namespace XrEngine
             Log(name, value);
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
-
 
         public readonly void SetUniformConstStruct(string name, object obj, bool optional = false)
         {
@@ -269,19 +372,46 @@ namespace XrEngine
 
         public readonly void AddFeature(string name)
         {
-            _result.Features!.Add(name);
+            if (Context.Stage == UpdateShaderStage.Model)
+                throw new InvalidOperationException("Cannot add a material feature at model stage");
+
+            _result.Features ??= [];
+            _result.Features.Add(name);
+        }
+
+        public readonly void AddFeature(string name, Func<UpdateShaderContext, bool> getValue, bool isDynamic = true)
+        {
+            if (!isDynamic)
+            {
+                if (getValue(Context))
+                    AddFeature(name);
+                return;
+            }
+
+            _result.DynamicFeatures ??= [];
+            _result.DynamicFeatures.Add(name);
+
+            ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform(name, getValue(ctx));
+            });
         }
 
         public readonly void AddExtension(string name)
         {
-            _result.Extensions!.Add(name);
+            _result.Extensions ??= [];
+            _result.Extensions.Add(name);
+        }
+
+        internal void SetSlot(string name, Func<string> value)
+        {
+            _result.Slots ??= [];
+            _result.Slots[name] = value;
         }
 
         public readonly void ComputeHash(string shaderId)
         {
-            _result.FeaturesHash = _result.Features!.Count == 0 ?
-                shaderId :
-                string.Concat(shaderId, ":", Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(string.Join(',', _result.Features)))));
+            _result.FeaturesHash = HashBuilder.Instance.Compute(shaderId, _result.Features);
         }
 
         readonly void Log(string name, object value)
@@ -289,6 +419,7 @@ namespace XrEngine
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
         }
 
+    
         public StringBuilder Logs { get; } = new StringBuilder();
 
         public UpdateShaderContext Context { get; }

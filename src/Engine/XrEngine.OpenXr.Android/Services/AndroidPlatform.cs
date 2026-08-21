@@ -6,25 +6,31 @@ using Silk.NET.OpenGL;
 
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Vulkan;
+using OpenXr.Framework.Angle;
 using OpenXr.Framework;
 using XrEngine.Filament;
 using XrEngine.OpenGL;
-using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
+using Silk.NET.OpenGLES.Extensions.EXT;
 
 namespace XrEngine.OpenXr.Android
 {
-    public class AndroidPlatform : IXrEnginePlatform
+    public class AndroidPlatform : IXrEnginePlatform, IGlContextProvider
     {
+        [ThreadStatic]
+        internal static IGlContext? _currentGlContext;
+
+#if GLES
+        ExtClipControl? _clipControl;
+#endif
+
         readonly Context2 _context;
         private readonly DeviceInfo _info;
         VulkanDevice? _vkDevice;
 
         public AndroidPlatform(Context2 context)
         {
-            PbrV1Material.LinearOutput = false;
-
             Context.Implement<IAssetStore>(new MergedAssetStore(
                 new AndroidAssetStore(context, ""),
                 new LocalAssetStore(Path.Combine(SharedPath, "Assets"))));
@@ -32,6 +38,7 @@ namespace XrEngine.OpenXr.Android
             Context.Implement<ILogger>(new AndroidLogger("XrApp"));
             Context.Implement<IProgressLogger>(new AndroidProgressLogger());
             Context.Implement<ITimeLogger>(NullTimeLogger.Instance);
+            Context.Implement<IGlContextProvider>(this);
 
             _context = context;
 
@@ -42,12 +49,10 @@ namespace XrEngine.OpenXr.Android
             };
         }
 
-        public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
+        public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
-            return new XrApp(Context.Require<ILogger>(),
-                new OculusXrPlugin(),
-                xrDriver,
-                new AndroidXrPlugin(_context));
+
+            return new XrApp(Context.Require<ILogger>(), [..plugins, new AndroidXrPlugin(_context)]);
         }
 
         public unsafe void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
@@ -99,16 +104,62 @@ namespace XrEngine.OpenXr.Android
                     xrDriver = glDriver;
                 }
             }
+            else if (options.Driver == GraphicDriver.Angle)
+            {
+                var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
+
+                var ctx = new AngleVulkanContext();
+
+                ctx.Initialize([], []);
+
+                Context.Implement(ctx);
+
+                var angleDriver = new XrAngleGraphicDriver(ctx);
+
+                renderEngine = new OpenGLRender(ctx.Gl!, glOptions);
+
+                if (_clipControl == null && !ctx.Gl!.TryGetExtension(out _clipControl))
+                    throw new NotSupportedException();
+
+                _clipControl!.ClipControl(EXT.UpperLeftExt, EXT.NegativeOneToOneExt);
+
+                xrDriver = angleDriver;
+
+                _currentGlContext = new AngleGlContext(ctx);
+            }
             else
             {
                 var glDriver = new AndroidXrOpenGLESGraphicDriver();
 
                 var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 
-                renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);
+                var gl = glDriver.GetApi<GL>();
+
+#if GL_WRAPPER
+
+                renderEngine = new OpenGLRender(new OpenGLWrapper.GlSwitchWrapper(gl), glOptions);
+#else
+                renderEngine = new OpenGLRender(gl, glOptions);
+#endif
 
                 xrDriver = glDriver;
+
+                _currentGlContext = new AndroidGlContext(glDriver.Context, gl);
             }
+        }
+
+        public IGlContext CreateShared()
+        {
+            if (_currentGlContext is AndroidGlContext androidGl)
+                return androidGl.CreateShared(AndroidXrOpenGLESGraphicDriver.DEBUG_MODE);
+
+            if (_currentGlContext is AngleGlContext angleGl)
+            {
+                var shared = ((AngleVulkanContext)angleGl.AngleContext).CreateSharedContext();
+                return new AngleGlContext(shared);
+            }
+
+            throw new InvalidOperationException();
         }
 
         public string Name => "Android";
@@ -120,5 +171,7 @@ namespace XrEngine.OpenXr.Android
         public string SharedPath => global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
 
         public DeviceInfo Device => _info;
+
+        IGlContext? IGlContextProvider.Current => _currentGlContext;
     }
 }

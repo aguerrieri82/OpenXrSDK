@@ -29,7 +29,6 @@ namespace UI.Binding
             _converters.Add(converter);
         }
 
-
         public static IValueConverter<TSrc, TDst> Get<TSrc, TDst>()
         {
             var result = _converters.OfType<IValueConverter<TSrc, TDst>>().FirstOrDefault();

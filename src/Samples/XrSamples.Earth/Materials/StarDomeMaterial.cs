@@ -8,7 +8,7 @@ namespace XrSamples.Earth
 
         static StarDomeMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
                 FragmentSourceName = "star_dome.frag",
                 IsLit = false,
@@ -45,17 +45,19 @@ namespace XrSamples.Earth
             if (ShowGrid)
             {
                 bld.AddFeature("SHOW_GRID");
-                bld.LoadTexture(ctx => Grid, 1);
+                bld.LoadTextureFixSrgb(ctx => Grid, 1);
             }
             if (ShowConstellations)
             {
                 bld.AddFeature("SHOW_CONST");
-                bld.LoadTexture(ctx => Constellations, 2);
+                bld.LoadTextureFixSrgb(ctx => Constellations, 2);
             }
+
+            bld.PrepareTexture(Stars);
 
             bld.ExecuteAction((ctx, up) =>
             {
-                up.LoadTexture(Stars, 0);
+                up.LoadTextureFixSrgb(ctx, Stars, 0);
                 up.SetUniform("uExposure", Exposure);
                 up.SetUniform("uOffset", Offset);
                 up.SetUniform("uTransparency", Transparency);

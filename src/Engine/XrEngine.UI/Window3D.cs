@@ -8,17 +8,18 @@ namespace XrEngine.UI
     public class Window3D : CanvasView3D, IUiWindow
     {
         protected RayPointerStatus _lastStatus;
-        protected MeshCollider _collider;
+        protected QuadCollider _collider;
         protected Vector2 _lastPosition;
 
         public Window3D()
         {
-            _collider = this.AddComponent<MeshCollider>();
+            _collider = this.AddComponent<QuadCollider>();
             _lastPosition.X = float.NaN;
         }
 
         protected override void Start(RenderContext ctx)
         {
+
             Pointers ??= Scene?
                 .Components<IComponent>()
                 .OfType<IRayPointer>()
@@ -75,7 +76,6 @@ namespace XrEngine.UI
             }
         }
 
-
         private void DispatchPointerEvent(Vector2 surfacePos, Pointer2Button buttons, UiEventType type, IRayPointer pointer)
         {
             if (Content == null)
@@ -131,7 +131,7 @@ namespace XrEngine.UI
             (Content as UIRoot)?.SetViewport(0, 0, _pixelSize.Width / _dpiScale, _pixelSize.Height / _dpiScale);
         }
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
         {
             if (Content != null && Content.IsDirty)
             {

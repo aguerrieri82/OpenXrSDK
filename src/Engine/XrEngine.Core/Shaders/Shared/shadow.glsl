@@ -9,6 +9,16 @@
 uniform float uShadowBias;
 uniform float uLightBleed;
 
+const vec2 PCF_OFFSETS[8] = vec2[8](
+    vec2(-0.707, -0.707),
+    vec2( 0.707, -0.707),
+    vec2(-0.707,  0.707),
+    vec2( 0.707,  0.707),
+    vec2(-1.0,  0.0),
+    vec2( 1.0,  0.0),
+    vec2( 0.0, -1.0),
+    vec2( 0.0,  1.0));
+
 #ifdef USE_SHADOW_MAP 
 
     #ifdef USE_SHADOW_SAMPLER
@@ -20,7 +30,7 @@ uniform float uLightBleed;
     float getShadowBias(vec3 normal, vec3  lightDir) 
     {
         #if SHADOW_BIAS == 1
-            return max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+            return max(0.002 * (1.0 - dot(normal, lightDir)), 0.005);  
         #elif SHADOW_BIAS == 2
             return uShadowBias;
         #else
@@ -43,6 +53,10 @@ uniform float uLightBleed;
                 vec3 projCoords = posLightSpace.xyz / posLightSpace.w;
 
                 projCoords = projCoords * 0.5 + 0.5;
+
+                #ifdef ANGLE
+                    projCoords.y = 1.0 - projCoords.y;
+                #endif
 
                 float bias = getShadowBias(normal, lightDir);
 
@@ -73,6 +87,10 @@ uniform float uLightBleed;
 
             projCoords = projCoords * 0.5 + 0.5;
 
+            #ifdef ANGLE
+                projCoords.y = 1.0 - projCoords.y;
+            #endif
+
             float bias = getShadowBias(normal, lightDir);
 
             float currentDepth = projCoords.z - bias;
@@ -80,33 +98,40 @@ uniform float uLightBleed;
             if (currentDepth > 1.0)
                 return 0.0;
 
-            #ifdef USE_SHADOW_SAMPLER
+            #if SHADOW_MAP_MODE == MODE_PCF    
 
-                float shadow  = 1.0 - texture(uShadowMap, vec3(projCoords.xy, currentDepth));
+                float shadow = 0.0;
+                vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap, 0));
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    #ifdef USE_SHADOW_SAMPLER
+                        float lit = texture(
+                            uShadowMap,
+                            vec3(projCoords.xy + PCF_OFFSETS[i] * texelSize, currentDepth)
+                        );
+
+                        shadow += 1.0 - lit;
+                    #else
+                        float pcfDepth = texture(uShadowMap, projCoords.xy + PCF_OFFSETS[i] * texelSize).r;
+                        shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
+                    #endif
+
+                }
+
+                shadow *= 1.0 / 8.0;
 
             #else
-
-                #if SHADOW_MAP_MODE == MODE_PCF    
-
-                    float shadow = 0.0;
-                    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap, 0));
-                    for (float x = -1.0; x <= 1.0; ++x)
-                    {
-                        for (float y = -1.0; y <= 1.0; ++y)
-                        {
-                            float pcfDepth = texture(uShadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-                            shadow += currentDepth > pcfDepth ? 1.0 : 0.0;        
-                        }    
-                    }
-
-                    shadow /= 9.0;
-
-                #else
             
+                #ifdef USE_SHADOW_SAMPLER
+
+                    float shadow  = 1.0 - texture(uShadowMap, vec3(projCoords.xy, currentDepth));
+                        
+                #else
+
                     float closestDepth = texture(uShadowMap, projCoords.xy).r; 
 
                     float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;  
-
                 #endif
 
             #endif

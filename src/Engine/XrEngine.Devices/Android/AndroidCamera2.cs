@@ -1,19 +1,18 @@
 ﻿
-
 #if ANDROID28_0_OR_GREATER
 
 using Android.Graphics;
 using Android.Hardware.Camera2;
 using Android.Hardware.Camera2.Params;
 using Android.Media;
+using Android.Opengl;
 using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Common.Interop;
 using Java.Util.Concurrent;
-using System;
-using System.Diagnostics.Metrics;
+
 using System.Runtime.Versioning;
 using XrEngine.Media;
 using XrMath;
@@ -107,10 +106,11 @@ namespace XrEngine.Devices.Android
                 CaptureRequest request,
                 TotalCaptureResult result)
             {
+
                 _host.LastFrame = result.FrameNumber;
+
             }
         }
-
 
         protected string _deviceId;
         protected CameraManager _manager;
@@ -120,6 +120,7 @@ namespace XrEngine.Devices.Android
         protected IExecutorService? _executor;
         protected ImageReaderA? _reader;
         protected CameraCaptureSession? _session;
+        private VideoFormat _format;
         protected HandlerThread? _backgroundThread;
         protected Handler? _backgroundHandler;
         protected int? _imageSize;
@@ -127,7 +128,9 @@ namespace XrEngine.Devices.Android
         protected CameraCharacteristics? _chars;
         protected Surface? _outSurface = null;
         protected Surface? _texSurface = null;
-        private CameraConfiguration _configuration;
+        protected CameraConfiguration? _configuration;
+        protected int[] _oldBinding = new int[1];
+        private Texture2D? _outTexture;
 
         public AndroidCamera2(string deviceId, CameraManager manager)
         {
@@ -176,18 +179,19 @@ namespace XrEngine.Devices.Android
 
         public async Task OpenAsync()
         {
+            if (_device != null)
+                return;
+
             _backgroundThread = new HandlerThread("CameraBackground");
             _backgroundThread.Start();
             _backgroundHandler = new Handler(_backgroundThread.Looper!);
 
             _openSource = new TaskCompletionSource<CameraDevice>();
-            _manager.OpenCamera(_deviceId, new CameraDeviceState(this), new Handler(Looper.MainLooper!));
+            _manager.OpenCamera(_deviceId, new CameraDeviceState(this), _backgroundHandler);
             _device = await _openSource.Task;
 
             _chars = _manager.GetCameraCharacteristics(_deviceId);
-
         }
-
 
         public CameraParams GetParams()
         {
@@ -202,9 +206,21 @@ namespace XrEngine.Devices.Android
 
             var isManualSupported = capabilities?.Contains((int)RequestAvailableCapabilities.ManualSensor);
 
+            var aeModes = (int[]?)_chars.Get(CameraCharacteristics.ControlAeAvailableModes);
+
             var isoRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.SensorInfoSensitivityRange)!;
 
             var timeRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.SensorInfoExposureTimeRange)!;
+
+            var hasAeOff = aeModes?.Contains((int)ControlAEMode.Off) == true;
+
+            var aeLockAvailable = _chars.Get(CameraCharacteristics.ControlAeLockAvailable);
+
+            var awbLockAvailable = _chars.Get(CameraCharacteristics.ControlAwbLockAvailable);
+
+            var compensationRange = (global::Android.Util.Range?)_chars.Get(CameraCharacteristics.ControlAeCompensationRange);
+
+            var compensationStep = _chars.Get(CameraCharacteristics.ControlAeCompensationStep);
 
             return new CameraParams
             {
@@ -212,6 +228,7 @@ namespace XrEngine.Devices.Android
                 Position = new System.Numerics.Vector3(trans[0], trans[1], trans[2]),
                 Intrinsic = calib,
                 SensorSize = new Size2I((uint)sensorSize.Width, (uint)sensorSize.Height),
+                CurrentSize = new Size2I((uint)_format.Width, (uint)_format.Height),
                 SensitivityISO = new CameraParamsRange<int>
                 {
                     Min = (int)(isoRange?.Lower ?? 0),
@@ -227,31 +244,54 @@ namespace XrEngine.Devices.Android
 
         public async Task StartCaptureAsync(VideoFormat format, Texture2D? outTexture = null, NativeSurface? outSurface = null)
         {
-            Debug.Assert(_device != null);
+            if (_device == null)
+                throw new Exception("Device closed");
+
+            if (_session != null)
+                StopCapture();
 
             _executor = Executors.NewSingleThreadExecutor()!;
 
-            _reader = ImageReaderA.NewInstance(format.Width, format.Height, ToAndroid(format.ImageFormat), 2);
-            _reader.SetOnImageAvailableListener(new ImageAvailableListener(this), _backgroundHandler);
+            List<OutputConfiguration> outs = [];
 
-            List<OutputConfiguration> outs = [new OutputConfiguration(_reader.Surface!)];
+            if (NewImage != null)
+            {
+                _reader = ImageReaderA.NewInstance(format.Width, format.Height, ToAndroid(format.ImageFormat), 2);
+                _reader.SetOnImageAvailableListener(new ImageAvailableListener(this), _backgroundHandler);
+                outs.Add(new OutputConfiguration(_reader.Surface!));
+            }
 
             _outSurface = outSurface?.Native as Surface;
 
             if (_outSurface != null)
                 outs.Add(new OutputConfiguration(_outSurface));
 
+            _outTexture = outTexture;
+
             if (outTexture != null)
             {
-                var glText = outTexture!.Handle;
+                var glText = outTexture.Handle;
+
+                if (glText == 0)
+                    throw new InvalidOperationException("Texture is empty");
+
+                if (outTexture.Type != TextureType.External)
+                    throw new InvalidOperationException("Texture must be external");
 
                 _surfaceTex = new SurfaceTexture((int)glText);
                 _surfaceTex.SetDefaultBufferSize(format.Width, format.Height);
 
                 _texSurface = new Surface(_surfaceTex);
 
+                //_texSurface IS CREATED as Rgba32 in GL ALWAYS but contains Srgb
+                outTexture.ForceSrgb = true;
+                outTexture.Format = TextureFormat.Rgba8;
+                //
+
                 outTexture.Width = (uint)format.Width;
                 outTexture.Height = (uint)format.Height;
+
+                outTexture.NotifyChanged();
 
                 outs.Add(new OutputConfiguration(_texSurface));
             }
@@ -268,6 +308,7 @@ namespace XrEngine.Devices.Android
 
             _session = await _sessionSource.Task;
 
+            _format = format;
 
             Rebuild();
         }
@@ -276,10 +317,11 @@ namespace XrEngine.Devices.Android
         {
             Debug.Assert(_session != null);
             Debug.Assert(_device != null);
-            Debug.Assert(_reader != null);
 
             var captureRequest = _device.CreateCaptureRequest(CameraTemplate.Record);
-            captureRequest.AddTarget(_reader.Surface!);
+
+            if (_reader != null)
+                captureRequest.AddTarget(_reader.Surface!);
 
             if (_texSurface != null)
                 captureRequest.AddTarget(_texSurface);
@@ -311,9 +353,8 @@ namespace XrEngine.Devices.Android
                 }
             }
 
-            _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), new Handler(_backgroundHandler!.Looper));
+            _session.SetRepeatingRequest(captureRequest.Build(), new CaptureCallbackListener(this), _backgroundHandler);
         }
-
 
         public void Configure(CameraConfiguration configuration)
         {
@@ -323,12 +364,16 @@ namespace XrEngine.Devices.Android
 
         public void StopCapture()
         {
+            _session?.Close();
+            _session?.Dispose();
+            _session = null;
+
             _executor?.Shutdown();
+            _executor?.Dispose();
             _executor = null;
 
-            _session?.Close();
-            _session = null;
             _imageSize = null;
+
         }
 
         public void Close()
@@ -336,8 +381,10 @@ namespace XrEngine.Devices.Android
             StopCapture();
 
             _device?.Close();
+            _device?.Dispose();
             _device = null;
 
+            _surfaceTex?.Dispose();
             _surfaceTex?.Dispose();
             _surfaceTex = null;
 
@@ -351,7 +398,10 @@ namespace XrEngine.Devices.Android
             {
             }
 
+            _backgroundThread?.Dispose();
             _backgroundThread = null;
+
+            _backgroundHandler?.Dispose();
             _backgroundHandler = null;
         }
 
@@ -375,9 +425,21 @@ namespace XrEngine.Devices.Android
 
         public void UpdateTexture()
         {
-            _surfaceTex?.UpdateTexImage();
-            LastTimestamp = _surfaceTex?.Timestamp ?? 0;
+            GLES20.GlGetIntegerv(GLES11Ext.GlTextureBindingExternalOes, _oldBinding, 0);
 
+            _surfaceTex?.UpdateTexImage();
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(33) &&
+                _surfaceTex?.DataSpace == (int)global::Android.Hardware.DataSpaceType.SrgbLinear &&
+                _outTexture!.ForceSrgb)
+            {
+                _outTexture!.ForceSrgb = false;
+                _outTexture.NotifyChanged();
+            }
+
+            GLES20.GlBindTexture(GLES11Ext.GlTextureExternalOes, _oldBinding[0]);
+
+            LastTimestamp = _surfaceTex?.Timestamp ?? 0;
         }
 
         public void Dispose()
@@ -385,8 +447,6 @@ namespace XrEngine.Devices.Android
             Close();
             GC.SuppressFinalize(this);
         }
-
-
 
         unsafe void GetImageData(Image image, IMemoryBuffer<byte> buffer)
         {
@@ -447,7 +507,6 @@ namespace XrEngine.Devices.Android
             };
         }
 
-
         public event Action<CaptureImage>? NewImage;
 
         public CameraDeviceCaps Caps => CameraDeviceCaps.RenderOnTexture;
@@ -457,6 +516,10 @@ namespace XrEngine.Devices.Android
         public long LastFrame { get; private set; }
 
         public long LastTimestamp { get; private set; }
+
+        public bool IsOpen => _device != null;
+
+        public bool IsCapturing => _session != null;
     }
 }
 

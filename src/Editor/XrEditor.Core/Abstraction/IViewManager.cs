@@ -1,6 +1,5 @@
 ﻿using XrEngine;
 
-
 namespace XrEditor
 {
     public interface IViewManager

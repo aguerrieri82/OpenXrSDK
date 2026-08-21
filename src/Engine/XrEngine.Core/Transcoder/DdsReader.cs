@@ -150,7 +150,6 @@ namespace XrEngine
             D3D10_RESOURCE_DIMENSION_TEXTURE3D = 4,
         }
 
-
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct DDS_FILE
         {
@@ -220,11 +219,11 @@ namespace XrEngine
                     case DXGI_FORMAT.DXGI_FORMAT_BC3_TYPELESS:
                     case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM:
                         comp = TextureCompressionFormat.Bc3;
-                        format = TextureFormat.Rgb24;
+                        format = TextureFormat.Rgb8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
                         comp = TextureCompressionFormat.Bc3;
-                        format = TextureFormat.SRgb24;
+                        format = TextureFormat.SRgb8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT:
                         comp = TextureCompressionFormat.Uncompressed;
@@ -236,15 +235,15 @@ namespace XrEngine
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
                         comp = TextureCompressionFormat.Uncompressed;
-                        format = TextureFormat.SRgba32;
+                        format = TextureFormat.SRgba8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
                         comp = TextureCompressionFormat.Bc1;
-                        format = TextureFormat.SRgb24;
+                        format = TextureFormat.SRgb8;
                         break;
                     case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
                         comp = TextureCompressionFormat.Bc7;
-                        format = TextureFormat.Rgb24;
+                        format = TextureFormat.Rgb8;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -261,10 +260,10 @@ namespace XrEngine
                     switch (file.header.ddspf.dwRGBBitCount)
                     {
                         case 32:
-                            format = TextureFormat.Rgba32;
+                            format = TextureFormat.Rgba8;
                             break;
                         case 24:
-                            format = TextureFormat.Rgb24;
+                            format = TextureFormat.Rgb8;
                             break;
                         default:
                             throw new NotSupportedException();
@@ -278,7 +277,7 @@ namespace XrEngine
                         case TextureCompressionFormat.Bc3:
                         case TextureCompressionFormat.Bc7:
                         case TextureCompressionFormat.Bc1:
-                            format = TextureFormat.Rgb24;
+                            format = TextureFormat.Rgb8;
                             break;
                         default:
                             throw new NotSupportedException();
@@ -286,7 +285,7 @@ namespace XrEngine
                 }
             }
 
-            return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, 1, comp, format);
+            return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, 1, (uint)file.header.dwMipMapCount, 1, comp, format);
         }
 
         protected override bool CanHandleExtension(string extension)

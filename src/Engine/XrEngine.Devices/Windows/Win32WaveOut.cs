@@ -38,7 +38,6 @@ namespace XrEngine.Devices.Windows
         [DllImport("winmm.dll")]
         private static extern int waveOutGetVolume(IntPtr hWaveOut, out uint dwVolume);
 
-
         private delegate void WaveOutProcDelegate(IntPtr hWaveOut, uint uMsg, IntPtr dwInstance, IntPtr dwParam1, IntPtr dwParam2);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -148,7 +147,6 @@ namespace XrEngine.Devices.Windows
                     _buffers.Add(aBuffer);
             }
 
-
             aBuffer.Header.ValueRef.dwFlags &= ~(WaveHeaderFlags.Done);
 
             aBuffer.Event.Reset();
@@ -257,8 +255,6 @@ namespace XrEngine.Devices.Windows
                 aBuffer?.Event.Set();
             }
         }
-
-
 
         public void Close()
         {

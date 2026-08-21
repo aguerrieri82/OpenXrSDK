@@ -15,7 +15,7 @@ namespace XrEditor
 
         public UIProgressLogger()
         {
-            MaxLines = 500;
+            MaxLines = 5000;
         }
 
         public void Init(RichTextBox textBox, ProgressBar progressBar)
@@ -68,7 +68,6 @@ namespace XrEditor
                 _lastMessageTime = msg.Date;
             }
 
-
             _textBox.ScrollToEnd();
         }
 
@@ -85,7 +84,6 @@ namespace XrEditor
             if (current == 0 && total == 0)
                 _progressBar.Maximum = 1;
         }
-
 
         public int MaxLines { get; set; }
     }

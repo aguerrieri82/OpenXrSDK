@@ -9,7 +9,7 @@
 
         protected override bool AffectChange(ObjectChange change)
         {
-            return change.IsAny(ObjectChangeType.Scene);
+            return change.IsAny(ChangeType.Scene);
         }
     }
 }

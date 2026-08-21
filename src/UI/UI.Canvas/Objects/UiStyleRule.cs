@@ -22,7 +22,6 @@
         public List<UiSelectorValue> Values { get; } = [];
     }
 
-
     public class UiStyleRule
     {
         public List<UiStyleSelector>? Selectors { get; } = [];

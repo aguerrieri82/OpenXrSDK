@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+		<SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<ApplicationId>net.eusoft.xrengine</ApplicationId>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<TrimMode>full</TrimMode>
+		<UseOpenGL>true</UseOpenGL>
+	</PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<UseMonoRuntime>true</UseMonoRuntime>
+		<DebugSymbols>true</DebugSymbols>
+		<AndroidStripNativeLibraries>false</AndroidStripNativeLibraries>
+	</PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<PublishTrimmed>false</PublishTrimmed>
+		<EnableLLVM>false</EnableLLVM>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<DebugSymbols>false</DebugSymbols>
+		<AndroidManagedSymbols>false</AndroidManagedSymbols>
+		<UseMonoRuntime>true</UseMonoRuntime>
+		<PublishReadyToRun>false</PublishReadyToRun>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Engine\XrEngine.Devices\XrEngine.Devices.csproj" />
+	</ItemGroup>
+</Project>

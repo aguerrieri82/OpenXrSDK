@@ -22,7 +22,6 @@ namespace XrEngine
         public PlanarReflection()
             : this(1024)
         {
-
         }
 
         public PlanarReflection(uint textureSize, PlanarReflectionMode mode = PlanarReflectionMode.ColorOnly)
@@ -52,6 +51,9 @@ namespace XrEngine
 
             Offset = 0.01f;
             FovDegree = 45;
+            Strength = 1f;
+            BlurLevel = 0;
+            ShadingRate = 2;
         }
 
         public virtual bool PrepareMaterial(Material material)
@@ -60,6 +62,9 @@ namespace XrEngine
                 return false;
 
             MaterialOverride.UseClipDistance = UseClipPlane;
+
+            if (material is ShaderMaterial mat)
+                MaterialOverride.HasSkin = mat.HasSkin;
 
             if (material is IPbrMaterial pbr)
             {
@@ -75,7 +80,7 @@ namespace XrEngine
                     tex.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
 
                     if (texChanged)
-                        tex.NotifyChanged(ObjectChangeType.Render);
+                        tex.NotifyChanged(ChangeType.Render);
                 }
                 else if (MaterialOverride is BasicMaterial bsc)
                 {
@@ -91,7 +96,7 @@ namespace XrEngine
                     bsc.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
 
                     if (texChanged)
-                        bsc.NotifyChanged(ObjectChangeType.Render);
+                        bsc.NotifyChanged(ChangeType.Render);
 
                 }
 
@@ -115,7 +120,6 @@ namespace XrEngine
                 return;
 
             _refCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
-            _refCamera.UpdateProjection();
 
             var newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
 
@@ -132,8 +136,11 @@ namespace XrEngine
             {
                 _refCamera.Eyes[0].Projection = proj;
                 _refCamera.Eyes[0].ViewProj = _refCamera.Eyes[0].View * proj;
+                _refCamera.Eyes[0].ViewProjInv = _refCamera.Eyes[0].ViewProj.Invert();
+
                 _refCamera.Eyes[1].Projection = proj;
                 _refCamera.Eyes[1].ViewProj = _refCamera.Eyes[1].View * proj;
+                _refCamera.Eyes[1].ViewProjInv = _refCamera.Eyes[1].ViewProj.Invert();
             }
         }
 
@@ -169,21 +176,17 @@ namespace XrEngine
                 Texture = new Texture2D
                 {
                     MagFilter = ScaleFilter.Linear,
-                    MinFilter = ScaleFilter.Linear,
+                    MinFilter = ScaleFilter.LinearMipmapLinear,
                     WrapS = Wrap,
                     WrapT = Wrap,
                     BorderColor = Color.White,
                     Depth = IsMultiView ? 2u : 1u,
-                    MipLevelCount = 1
-                };
-
-                Texture.LoadData(new TextureData
-                {
+                    MipLevelCount = 10,
                     Width = (uint)curSize.Width,
                     Height = (uint)curSize.Height,
-                    Depth = IsMultiView ? 2u : 1u,
-                    Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
-                }, false);
+                    Format = UseSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
+                    Name = "Planar Reflection"
+                };
             }
 
             _refCamera.SetFov(FovDegree, Texture.Width, Texture.Height);
@@ -213,12 +216,11 @@ namespace XrEngine
                         Vector3.Reflect(up, normal)
                     );
 
-                    Matrix4x4.Invert(refView, out var world);
-
-                    _refCamera.Eyes[i].World = world;
+                    _refCamera.Eyes[i].World = refView.Invert();
                     _refCamera.Eyes[i].Projection = _refCamera.Projection;
                     _refCamera.Eyes[i].View = refView;
                     _refCamera.Eyes[i].ViewProj = refView * _refCamera.Projection;
+                    _refCamera.Eyes[i].ViewProjInv = _refCamera.Eyes[i].ViewProj.Invert();
                 }
 
                 _refCamera.WorldMatrix = _refCamera.Eyes[0].World.InterpolateWorldMatrix(_refCamera.Eyes[1].World, 0.5f);
@@ -243,11 +245,9 @@ namespace XrEngine
             _host.UpdateBounds();
 
             if (DynamicFov)
-                _refCamera.FovDegree = (mainCamera as PerspectiveCamera)?.GetFov() ?? 0;
+                _refCamera.FovDegree = ((PerspectiveCamera)mainCamera).FovDegree;
             else
                 _refCamera.FovDegree = FovDegree;
-
-            _refCamera.UpdateProjection();
 
             _clipBounds = _host.WorldBounds!.Points.Select(_refCamera.Project).ComputeBounds();
 
@@ -258,9 +258,9 @@ namespace XrEngine
                 _lightIntensity = _host.Scene.Descendants<Light>().Visible().Select(a => a.Intensity).Sum();
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
-            return;
+            /*
             var bounds = _host!.WorldBounds;
             var pos = bounds.Center;
             canvas.Save();
@@ -268,7 +268,32 @@ namespace XrEngine
             canvas.DrawPlane(_plane, pos, 1, 2, 0.1f);
             canvas.DrawLine(pos, pos + _plane.Normal);
             canvas.Restore();
+            */
+        }
 
+        protected void NotifyMaterials()
+        {
+            if (_host is TriangleMesh mesh)
+            {
+                foreach (var mat in mesh.Materials)
+                    mat.NotifyChanged(ChangeType.Render);
+            }
+        }
+
+        protected override void OnEnabled()
+        {
+            NotifyMaterials();
+        }
+
+        protected override void OnDisabled()
+        {
+            NotifyMaterials();
+        }
+
+        [Action]
+        public void Apply()
+        {
+            NotifyMaterials();
         }
 
         [Range(-1, 1, 0.001f)]
@@ -307,5 +332,11 @@ namespace XrEngine
 
         public static bool IsMultiView { get; set; }
 
+        [Range(0, 1, 0.01f)]
+        public float Strength { get; set; }
+
+        public int BlurLevel { get; set; }
+
+        public int ShadingRate { get; set; }
     }
 }

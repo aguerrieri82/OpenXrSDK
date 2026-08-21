@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace XrMath
 {
@@ -7,6 +8,7 @@ namespace XrMath
     {
         public Color()
         {
+            IsSrgb = true;
         }
 
         public Color(float[] array)
@@ -17,6 +19,7 @@ namespace XrMath
 
             if (array.Length == 4)
                 A = array[3];
+            IsSrgb = true;
         }
 
         public Color(float r, float g, float b, float a = 1f)
@@ -25,6 +28,7 @@ namespace XrMath
             G = g;
             B = b;
             A = a;
+            IsSrgb = true;
         }
 
         public static Color Rgb(float value)
@@ -106,7 +110,7 @@ namespace XrMath
             return [R, G, B, A];
         }
 
-        public unsafe void ToBytes(byte* dst)
+        public readonly unsafe void ToBytes(byte* dst)
         {
             dst[0] = (byte)(R * 255);
             dst[1] = (byte)(G * 255);
@@ -140,10 +144,14 @@ namespace XrMath
             return new Color(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), A);
         }
 
-
         public static Color operator *(Color a, float v)
         {
             return new Color(a.R * v, a.G * v, a.B * v, a.A * v);
+        }
+
+        public Span<float> AsSpan()
+        {
+            return MemoryMarshal.CreateSpan(ref R, 4);
         }
 
         public float R;
@@ -154,12 +162,13 @@ namespace XrMath
 
         public float A;
 
+        public bool IsSrgb;
+
         public static Color Black => new(0f, 0f, 0f);
 
         public static Color White => new(1f, 1f, 1f);
 
         public static Color Transparent => new(0f, 0f, 0f, 0f);
-
 
     }
 }

@@ -7,13 +7,11 @@ namespace XrEngine
     {
         private float _length;
 
-
         public Poly2D()
         {
             Points = [];
             Invalidate();
         }
-
 
         public Poly2D(Poly2 poly)
         {
@@ -55,7 +53,7 @@ namespace XrEngine
 
                 curLen += Vector2.Distance(p1, p2);
 
-                if (!IsClosed && i == pCount - 1)
+                if (IsClosed && i == pCount - 1)
                 {
                     yield return new CurvePoint
                     {
@@ -66,7 +64,6 @@ namespace XrEngine
                     };
 
                 }
-
 
             }
         }
@@ -104,6 +101,9 @@ namespace XrEngine
 
         bool ICurve2D.IsClosed => IsClosed;
 
+        /// <summary>
+        /// Last point = First point
+        /// </summary>
         public bool IsClosed { get; set; }
 
         public Vector2[] Points { get; set; }

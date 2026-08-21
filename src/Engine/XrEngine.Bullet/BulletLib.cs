@@ -27,8 +27,6 @@ namespace XrEngine.Bullet
             IK_DLS_SVD
         };
 
-
-
         [DllImport("bullet-native")]
         public static extern IkContext IkCreate(uint nodeCount, uint targetCount);
 

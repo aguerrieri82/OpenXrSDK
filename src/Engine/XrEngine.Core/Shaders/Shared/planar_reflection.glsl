@@ -3,7 +3,7 @@
 #ifdef PLANAR_REFLECTION
 
 	#ifdef PLANAR_REFLECTION_MV
-		layout(binding=7) uniform mediump sampler2DArray reflectionTexture;
+		layout(binding=7) uniform sampler2DArray reflectionTexture;
 		uniform mat4 uReflectMatrix[2];
 	#else
 		layout(binding=7) uniform sampler2D reflectionTexture;
@@ -24,11 +24,15 @@
 		
 		projCoords = projCoords * 0.5 + 0.5;
 
+		#ifdef ANGLE
+            projCoords.y = 1.0 - projCoords.y;
+        #endif
+
 		return projCoords.xy;
 	}
 	
 
-	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo)
+	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo, float factor, float level)
 	{
 
 		#ifdef PLANAR_REFLECTION_MV
@@ -44,18 +48,30 @@
 			vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
 		
 			projCoords = projCoords * 0.5 + 0.5;
+			
+			#ifdef ANGLE
+				projCoords.y = 1.0 - projCoords.y;
+			#endif
 
-		#ifdef PLANAR_REFLECTION_MV
-			vec4 reflectionColor = texture(reflectionTexture, vec3(projCoords.xy, gl_ViewID_OVR));
-		#else
-			vec4 reflectionColor = texture(reflectionTexture, projCoords.xy);
-		#endif
-		#ifdef PURE_REFLECTION
-			return reflectionColor.rgb;
-		#endif	
+			#ifdef PLANAR_REFLECTION_MV
+				vec4 reflectionColor = textureLod(
+					reflectionTexture,
+					vec3(projCoords.xy, float(gl_ViewID_OVR)),
+					level
+				);
+			#else
+				vec4 reflectionColor = textureLod(
+					reflectionTexture,
+					projCoords.xy,
+					level
+				);
+			#endif
+			#ifdef PURE_REFLECTION
+				return reflectionColor.rgb;
+			#endif	
 			float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
 
-			float refFactor = clamp(fresnelFactor * (1.0 - roughness), 0.0, 1.0);
+			float refFactor = clamp(fresnelFactor * (1.0 - roughness) * factor, 0.0, 1.0);
 
 			refFactor = min(reflectionColor.a, refFactor);
 

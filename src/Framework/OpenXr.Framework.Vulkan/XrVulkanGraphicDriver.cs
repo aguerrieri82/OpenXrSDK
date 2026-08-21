@@ -17,7 +17,6 @@ namespace OpenXr.Framework.Vulkan
             Format.R8G8B8A8Srgb,
             Format.R8G8B8A8Unorm];
 
-
         public XrVulkanGraphicDriver(IVulkanDevice device)
         {
             _device = device;
@@ -41,9 +40,9 @@ namespace OpenXr.Framework.Vulkan
 
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
-            result.DepthFormat = (long)Format.D24UnormS8Uint;
-            //result.MotionVectorFormat = (long)Format.R16G16B16A16Sfloat;
+            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
+            if (result.DepthFormat == 0)
+                result.DepthFormat = (int)Format.D24UnormS8Uint;
         }
 
         public GraphicsBinding CreateBinding()
@@ -71,22 +70,25 @@ namespace OpenXr.Framework.Vulkan
 
             _app!.CheckResult(_vulkanExt.GetVulkanGraphicsDevice(_app.Instance, _app.SystemId, new VkHandle(_device.Instance.Handle), &physicalDevice), "GetVulkanGraphicsDeviceKHR");
 
-            var binding = new GraphicsBinding();
-
-            binding.VulkanKhr = new GraphicsBindingVulkanKHR()
+            var binding = new GraphicsBinding
             {
-                Type = StructureType.GraphicsBindingVulkanKhr,
-                Device = new VkHandle(_device.LogicalDevice.Handle),
-                Instance = new VkHandle(_device.Instance.Handle),
-                PhysicalDevice = physicalDevice,
-                QueueFamilyIndex = _device.QueueFamilyIndex,
-                QueueIndex = _device.QueueIndex,
+                VulkanKhr = new GraphicsBindingVulkanKHR()
+                {
+                    Type = StructureType.GraphicsBindingVulkanKhr,
+                    Device = new VkHandle(_device.LogicalDevice.Handle),
+                    Instance = new VkHandle(_device.Instance.Handle),
+                    PhysicalDevice = physicalDevice,
+                    QueueFamilyIndex = _device.QueueFamilyIndex,
+                    QueueIndex = _device.QueueIndex,
+                }
             };
 
             return binding;
         }
 
         public XrDynamicType SwapChainImageType => _swapChainType;
+
+        public XrGraphicDriverFlags Flags => XrGraphicDriverFlags.FlipAndroidSurfaceY | XrGraphicDriverFlags.Vulkan;
 
         public void Dispose()
         {

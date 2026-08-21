@@ -21,13 +21,14 @@ namespace XrSamples
         {
             var mesh = scene.FindByName<TriangleMesh>("mesh")!;
             var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
-            var player = mesh.Component<VideoTexturePlayer>();
+            mesh.TryComponent<VideoTexturePlayer>(out var player);
 
             mat.SphereRadius = Radius;
             mat.Border = Border;
             mesh.SetProp("Offset", Offset);
             mesh.SetProp("SphereY", SphereY);
-            player.IsPlaying = IsPlaying;
+
+            player?.IsPlaying = IsPlaying;
 
             if (_filePath != null)
             {

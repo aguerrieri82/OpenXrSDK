@@ -3270,7 +3270,6 @@ namespace CanvasUI
 
             var style = new SKFontStyle(SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
 
-
             var font = SKResources.Font(typeface,
                                        ActualStyle.FontSize.ToPixel(this, UiValueReference.ParentFontSize));
 
@@ -3300,7 +3299,7 @@ namespace CanvasUI
             var font = GetFont();
 
             var text = new string((char)(int)IconName, 1);
-            canvas.DrawText(text, _contentRect.X, _contentRect.Y + _contentRect.Height, font, paint);
+            canvas.DrawText(text, _contentRect.X, _contentRect.Y + _contentRect.Height, SKTextAlign.Left, font, paint);
         }
 
         [UiProperty(IconName.Icon10k, UiPropertyFlags.Layout)]

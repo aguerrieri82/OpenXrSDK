@@ -1,7 +1,8 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
-using System.Reflection;
-
+using XrEngine.OpenGL;
+using XrEngine.Services;
+using XrInteraction;
 
 namespace XrEngine.OpenXr.Android
 {
@@ -11,6 +12,7 @@ namespace XrEngine.OpenXr.Android
 
         public XrEngineActivity()
         {
+
             AppDomain.CurrentDomain.UnhandledException += (sender, arg) =>
             {
                 if (arg.ExceptionObject is Exception ex)
@@ -21,10 +23,16 @@ namespace XrEngine.OpenXr.Android
             {
                 Log.Error(sender!, ex.Exception);
             };
+
+            GlDebug.Logger = (object sender, string message, object?[] args) =>
+                Log.Debug(sender, message, args);
+
+            Context.Implement<IMainActivity>(this);
         }
 
         protected abstract void BuildApp(XrEngineAppBuilder builder);
 
+        /*
         protected void Preload(Assembly entry)
         {
             var references = new HashSet<string>();
@@ -59,7 +67,12 @@ namespace XrEngine.OpenXr.Android
 
             global::Android.Util.Log.Debug(nameof(XrEngineActivity), $"End preload");
         }
+        */
 
+        protected override void ConfigureMainLoop()
+        {
+            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_engine!.App.Dispatcher));
+        }
 
         protected override XrApp CreateApp()
         {

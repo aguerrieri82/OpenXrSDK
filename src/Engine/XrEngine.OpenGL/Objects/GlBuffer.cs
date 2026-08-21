@@ -2,37 +2,78 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-
 #endif
 
+using System.Diagnostics;
+using Common.Interop;
 
 namespace XrEngine.OpenGL
 {
-
     public static class GlBuffer
     {
-        public static IBuffer Create(GL gl, BufferTargetARB target, Type contentType)
+        public static IGlBuffer Create(GL gl, BufferTargetARB target, Type contentType)
         {
             var type = typeof(GlBuffer<>).MakeGenericType(contentType);
-            return (IBuffer)Activator.CreateInstance(type, gl, target)!;
+            return (IGlBuffer)Activator.CreateInstance(type, gl, target)!;
         }
+
+        public static GlBufferUpdateTracker? Tracker;
+    }
+
+    public unsafe class GlBufferMap<T> : IBufferLock
+    {
+        readonly GlBuffer<T> _buffer;
+        readonly T* _data;
+
+        public GlBufferMap(GlBuffer<T> buffer, MapBufferAccessMask accessMask)
+        {
+            _buffer = buffer;
+            _data = _buffer.MapRange(0, _buffer.SizeBytes, accessMask);
+        }
+
+        public void Dispose()
+        {
+            _buffer.Unmap();
+        }
+
+        public T* Data => _data;
+
+        public Span<T> Span => new(_data, (int)_buffer.SizeBytes / sizeof(T));
+
+        void* IBufferLock.Data => _data;
     }
 
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
+        protected BufferUsageARB _usage;
         protected uint _capacityBytes;
         protected uint _sizeBytes;
-        protected BufferUsageARB _usage;
-        protected int _updateCount;
+        protected int _beginUpdateCount;
+        protected long _updateCount;
+        private BufferStorageMask _storageMask;
+        protected readonly uint _elementSize;
+        protected BufferAllocateFlags _allocateFlags = BufferAllocateFlags.Mutable;
+        protected bool _isMapped;
+
+#if GLES
+        private Silk.NET.OpenGLES.Extensions.EXT.ExtBufferStorage? _storageExt;
+#endif
 
         public GlBuffer(GL gl, BufferTargetARB target)
-             : base(gl)
+            : base(gl)
         {
             _target = target;
-            Hash = -1;
+            _usage = BufferUsageARB.StaticDraw;
+
+            GlBuffer.Tracker ??= new GlBufferUpdateTracker(gl);
+
             Version = -1;
-            Slot = 0;
+            ActiveSlot = 0;
+            IsMutable = true;
+
+            _elementSize = (uint)MarshalCache.SizeOf(typeof(T));
+
             Create();
         }
 
@@ -45,210 +86,522 @@ namespace XrEngine.OpenGL
         protected void Create()
         {
             _handle = _gl.GenBuffer();
-
-            _usage = _target switch
-            {
-                BufferTargetARB.UniformBuffer => BufferUsageARB.StreamDraw,
-                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.DynamicDraw,
-                _ => BufferUsageARB.StaticDraw
-            };
+            SetLabel(typeof(T).Name);
+            CreateVersion++;
         }
 
-        public unsafe void Update(void* data, uint sizeBytes, bool wait)
+        public unsafe void Update(void* data, uint sizeBytes)
         {
             BeginUpdate();
 
-            if (_capacityBytes != sizeBytes || _target == BufferTargetARB.UniformBuffer)
+            try
             {
-                _gl.BufferData(_target, sizeBytes, null, _usage);
-                _gl.BufferSubData(_target, 0, sizeBytes, data);
-                _capacityBytes = sizeBytes;
+                var promote =
+                    _updateCount > 50 &&
+                    _usage == BufferUsageARB.StaticDraw &&
+                    IsMutable;
+
+                if (promote)
+                {
+                    _usage = BufferUsageARB.DynamicDraw;
+
+                    _capacityBytes = Math.Max(_capacityBytes, sizeBytes);
+
+                    _gl.BufferData(_target, _capacityBytes, null, _usage);
+                }
+                else
+                    EnsureCapacity(sizeBytes, preserve: false);
+
+                if (sizeBytes > 0)
+                    _gl.BufferSubData(_target, 0, sizeBytes, data);
+
+                _sizeBytes = sizeBytes;
+
+                _updateCount++;
             }
-            else
+            finally
             {
-                var pDst = Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
-                EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
-                Unmap();
+                EndUpdate();
             }
+        }
 
-            _sizeBytes = sizeBytes;
+        public unsafe void UpdateRange(void* data, uint sizeBytes, int offsetBytes, bool preserve)
+        {
+            Debug.Assert(offsetBytes >= 0);
 
-            EndUpdate();
+            if (sizeBytes == 0)
+                return;
+
+            if (data == null)
+                return;
+
+            if (GlDebug.TrackBuffers)
+                _gl.ClearError();
+
+            var writeEndBytes = (uint)offsetBytes + sizeBytes;
+
+            BeginUpdate();
+
+            try
+            {
+                var destructiveResize = !preserve && writeEndBytes > _capacityBytes;
+
+                var promote =
+                    _updateCount > 50 &&
+                    _usage == BufferUsageARB.StaticDraw &&
+                    !preserve &&
+                    IsMutable;
+
+                if (promote)
+                {
+                    _usage = BufferUsageARB.DynamicDraw;
+                    _capacityBytes = Math.Max(_capacityBytes, writeEndBytes);
+                    _gl.BufferData(_target, _capacityBytes, null, _usage);
+                }
+                else
+                    EnsureCapacity(writeEndBytes, preserve);
+
+                _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
+
+                if (promote || destructiveResize)
+                    _sizeBytes = writeEndBytes;
+                else
+                    _sizeBytes = Math.Max(_sizeBytes, writeEndBytes);
+
+                if (GlDebug.TrackBuffers)
+                {
+                    GlBuffer.Tracker!.Update(this, _target, data, sizeBytes, offsetBytes);
+
+                    _gl.CheckError();
+
+                    var active = _gl.GetActiveBufferBinding(_target);
+                    if (active != _handle)
+                        Log.Error(this, "Inconsistent BUF cache for {0}: Real Active {1} - Expected {2}", _target, active, _handle);
+                }
+
+                _updateCount++;
+            }
+            finally
+            {
+                EndUpdate();
+            }
         }
 
         public void BeginUpdate()
         {
-            if (_updateCount == 0)
+            if (_beginUpdateCount == 0)
                 Bind();
-            _updateCount++;
+
+            _beginUpdateCount++;
         }
 
         public void EndUpdate()
         {
-            _updateCount--;
-            if (_updateCount == 0)
+            Debug.Assert(_beginUpdateCount > 0);
+
+            _beginUpdateCount--;
+
+            if (_beginUpdateCount == 0)
                 Unbind();
         }
 
-        public unsafe void Resize(uint newSizeBytes, bool preserve)
+        public unsafe void Allocate(uint sizeInByte, BufferAllocateFlags flags = BufferAllocateFlags.Mutable)
         {
-            if (_sizeBytes == newSizeBytes)
-                return;
+            IsMutable = (flags & BufferAllocateFlags.Mutable) != 0;
+            _allocateFlags = flags;
 
-            if (_sizeBytes == 0 || !preserve)
-                _gl.BufferData(_target, newSizeBytes, null, _usage);
-            else
+            if (_capacityBytes == sizeInByte)
             {
-                var newData = new byte[newSizeBytes];
-
-                var oldDataPtr = Map(MapBufferAccessMask.ReadBit);
-                var copySize = (int)Math.Min(_sizeBytes, newSizeBytes);
-
-                var oldSpan = new Span<byte>(oldDataPtr, copySize);
-                oldSpan.CopyTo(newData);
-                Unmap();
-
-                _gl.BufferData(_target, newSizeBytes, newData, _usage);
+                _sizeBytes = sizeInByte;
+                return;
             }
 
-            _capacityBytes = newSizeBytes;
-            _sizeBytes = Math.Min(_capacityBytes, _sizeBytes);
-        }
-
-        public unsafe void UpdateRange(void* data, uint sizeBytes, int offsetBytes, bool wait)
-        {
             BeginUpdate();
 
-            var newSizeBytes = sizeBytes + (uint)offsetBytes;
+            try
+            {
+                if (!IsMutable)
+                {
+                    if (_capacityBytes != 0)
+                    {
+                        ResizeStorage(sizeInByte, preserve: false);
+                        return;
+                    }
 
-            if (newSizeBytes > _capacityBytes || _capacityBytes == 0)
-                Resize(newSizeBytes, true);
+                    AllocateImmutableStorage(sizeInByte, flags);
+                }
+                else
+                {
+                    _gl.BufferData(_target, sizeInByte, null, _usage);
+                }
 
-            _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
+                _capacityBytes = sizeInByte;
+                _sizeBytes = sizeInByte;
+            }
+            finally
+            {
+                EndUpdate();
+            }
+        }
+
+        public void Resize(uint newSizeBytes, bool preserve)
+        {
+            if (_capacityBytes == newSizeBytes)
+            {
+                if (_sizeBytes > newSizeBytes)
+                    _sizeBytes = newSizeBytes;
+
+                return;
+            }
+
+            BeginUpdate();
+
+            try
+            {
+                ResizeStorage(newSizeBytes, preserve);
+            }
+            finally
+            {
+                EndUpdate();
+            }
+        }
+
+        private void EnsureCapacity(uint requiredBytes, bool preserve)
+        {
+            if (requiredBytes <= _capacityBytes)
+                return;
+
+            ResizeStorage(requiredBytes, preserve);
+        }
+
+        private unsafe void ReallocateStorage(uint newCapacityBytes)
+        {
+            if (IsMutable)
+            {
+                _gl.BufferData(_target, newCapacityBytes, null, _usage);
+            }
+            else
+            {
+                if (_capacityBytes > 0)
+                    Recreate();
+
+                Bind();
+
+                AllocateImmutableStorage(newCapacityBytes, _allocateFlags);
+            }
+        }
+
+        private unsafe void ResizeStorage(uint newCapacityBytes, bool preserve)
+        {
+            var copySizeBytes = Math.Min(_sizeBytes, newCapacityBytes);
+
+            if (!preserve || copySizeBytes == 0)
+            {
+                ReallocateStorage(newCapacityBytes);
+
+                _capacityBytes = newCapacityBytes;
+                _sizeBytes = newCapacityBytes;
+
+                return;
+            }
+
+            var useCpuCopy = !IsMutable;
+
+#if GLES
+            useCpuCopy = true;
+#endif
+
+            //useCpuCopy = true;
+
+            if (useCpuCopy)
+            {
+                if (_isMapped)
+                    Unmap();
+
+                var data = new T[ArrayLength];
+
+                ReadArray(ref data);
+
+                ReallocateStorage(newCapacityBytes);
+
+                fixed (T* pData = data)
+                    _gl.BufferSubData(_target, 0, copySizeBytes, pData);
+            }
+            else
+            {
+                var oldHandle = _handle;
+
+                Create();
+
+                var glState = GlState.Current;
+
+                glState.RemoveBufferRef(oldHandle);
+
+                glState.BindBuffer(BufferTargetARB.CopyWriteBuffer, _handle);
+
+                _gl.BufferData(
+                    BufferTargetARB.CopyWriteBuffer,
+                    newCapacityBytes,
+                    null,
+                    _usage);
+
+                glState.BindBuffer(BufferTargetARB.CopyReadBuffer, oldHandle);
+
+                _gl.CopyBufferSubData(
+                    CopyBufferSubDataTarget.CopyReadBuffer,
+                    CopyBufferSubDataTarget.CopyWriteBuffer,
+                    0,
+                    0,
+                    copySizeBytes);
+
+                glState.BindBuffer(BufferTargetARB.CopyReadBuffer, 0);
+                glState.BindBuffer(BufferTargetARB.CopyWriteBuffer, 0);
+
+                _gl.DeleteBuffer(oldHandle);
+            }
+
+            _capacityBytes = newCapacityBytes;
+            _sizeBytes = copySizeBytes;
+        }
+
+        private unsafe void AllocateImmutableStorage(uint sizeBytes, BufferAllocateFlags flags)
+        {
+            _storageMask =
+                BufferStorageMask.DynamicStorageBit |
+                BufferStorageMask.MapReadBitExt;
+
+            if ((flags & BufferAllocateFlags.Persistent) != 0)
+            {
+                _storageMask |=
+                    BufferStorageMask.MapPersistentBit |
+                    BufferStorageMask.MapCoherentBit;
+
+                if ((flags & BufferAllocateFlags.PersistentWrite) != 0)
+                    _storageMask |= BufferStorageMask.MapWriteBit;
+            }
+
+#if GLES
+            if (_storageExt == null && !_gl.TryGetExtension(out _storageExt))
+                throw new NotSupportedException("GL_EXT_buffer_storage not supported");
+
+            _storageExt!.BufferStorage(
+                (BufferStorageTarget)_target,
+                sizeBytes,
+                null,
+                _storageMask);
+#else
+            _gl.BufferStorage(
+                (GLEnum)_target,
+                sizeBytes,
+                null,
+                _storageMask);
+#endif
+        }
+
+        public unsafe T* MapRange(uint offsetInBytes, uint sizeBytes, MapBufferAccessMask access)
+        {
+            if (_isMapped)
+                throw new InvalidOperationException("Buffer is already mapped.");
+
+            if (sizeBytes == 0)
+                throw new InvalidOperationException("Cannot map an empty buffer.");
+
+            BeginUpdate();
+
+            var ptr = _gl.MapBufferRange(
+                _target,
+                (nint)offsetInBytes,
+                sizeBytes,
+                access);
 
             EndUpdate();
-        }
 
-        unsafe byte* IBuffer.Lock(BufferAccessMode mode)
-        {
-            var mask = mode switch
-            {
-                BufferAccessMode.Read => MapBufferAccessMask.ReadBit,
-                BufferAccessMode.Write => MapBufferAccessMask.WriteBit,
-                BufferAccessMode.Replace => MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit,
-                BufferAccessMode.ReadWrite => MapBufferAccessMask.ReadBit | MapBufferAccessMask.WriteBit,
-                _ => throw new NotSupportedException()
-            };
-
-            return (byte*)Map(mask);
-        }
-
-        void IBuffer.Unlock()
-        {
-            Unmap();
-        }
-
-        public unsafe void Allocate(uint sizeInByte)
-        {
-            Bind();
-
-            _gl.BufferData(_target, sizeInByte, null, _usage);
-
-            _capacityBytes = sizeInByte;
-            _sizeBytes = sizeInByte;
-        }
-
-        public unsafe T* Map(MapBufferAccessMask access)
-        {
-            BeginUpdate();
-
-            var ptr = _gl.MapBufferRange(_target, 0, _sizeBytes, access);
-            if (ptr == null)
-                throw new InvalidOperationException("MapBufferRange return NULL");
+            _isMapped = true;
 
             return (T*)ptr;
         }
 
         public void Unmap()
         {
+            if (!_isMapped)
+                throw new InvalidOperationException("Buffer is not mapped.");
+
+            BeginUpdate();
+
             _gl.UnmapBuffer(_target);
+
+            _isMapped = false;
 
             EndUpdate();
         }
 
+        public GlBufferMap<T> Map(MapBufferAccessMask access)
+        {
+            return new GlBufferMap<T>(this, access);
+        }
+
+        IBufferLock IBuffer.Lock(BufferAccessMode mode)
+        {
+            var access = mode switch
+            {
+                BufferAccessMode.Read => MapBufferAccessMask.ReadBit,
+
+                BufferAccessMode.Write => MapBufferAccessMask.WriteBit,
+
+                BufferAccessMode.Replace => MapBufferAccessMask.WriteBit |
+                                            MapBufferAccessMask.InvalidateBufferBit,
+
+                BufferAccessMode.ReadWrite => MapBufferAccessMask.ReadBit |
+                                              MapBufferAccessMask.WriteBit,
+
+                _ => throw new NotSupportedException()
+            };
+
+            return Map(access);
+        }
+
+        public void Read(ref T result)
+        {
+            using var map = Map(MapBufferAccessMask.ReadBit);
+            result = map.Span[0];
+        }
+
+        public void ReadArray(ref T[] result)
+        {
+            var arrayLength = ArrayLength;
+
+            if (result == null || result.Length != arrayLength)
+                result = new T[arrayLength];
+
+            if (arrayLength == 0)
+                return;
+
+            using var map = Map(MapBufferAccessMask.ReadBit);
+
+            map.Span.CopyTo(result);
+        }
 
         public unsafe void Update(T value)
         {
-            if (value is IDynamicBuffer dynamic)
+            if (value is IDynamicBuffer dynamicBufferSource)
             {
-                using var dynBuffer = dynamic.GetBuffer();
-                Update((void*)dynBuffer.Data, dynBuffer.Size, false);
+                using var dynamicBuffer = dynamicBufferSource.GetBuffer();
+
+                Update((void*)dynamicBuffer.Data, dynamicBuffer.Size);
+
+                return;
             }
-            else
-            {
-                Update(&value, (uint)sizeof(T), true);
-            }
+
+            IsMutable = false;
+
+            Update(&value, _elementSize);
         }
 
-        public unsafe void UpdateRange(ReadOnlySpan<T> value, int dstIndex = 0)
+        public unsafe void UpdateRange(
+            ReadOnlySpan<T> value,
+            int dstIndex = 0,
+            bool preserve = true)
         {
+            Debug.Assert(dstIndex >= 0);
+
             if (value.Length == 0)
                 return;
 
-            var sizeBytes = (uint)(value.Length * sizeof(T));
+            var sizeBytes = (uint)(value.Length * _elementSize);
 
-            fixed (T* pData = &value[0])
-                UpdateRange(pData, sizeBytes, dstIndex * sizeof(T), true);
+            var offsetBytes = (int)(dstIndex * _elementSize);
+
+            fixed (T* pData = value)
+                UpdateRange(pData, sizeBytes, offsetBytes, preserve);
         }
 
-        void IBuffer.Update(object value)
+        void ISimpleBuffer.Update(object value)
         {
-            if (value is T tValue)
-                Update(tValue);
-            else
+            if (value is not T typedValue)
                 throw new NotSupportedException();
+
+            Update(typedValue);
         }
 
-        unsafe void IBuffer.UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0)
+        unsafe void IBuffer.UpdateRange(
+            ReadOnlySpan<byte> value,
+            int dstIndex,
+            bool preserve)
         {
-            fixed (byte* pData = &value[0])
-                UpdateRange(pData, (uint)value.Length, dstIndex * sizeof(T), true);
+            Debug.Assert(dstIndex >= 0);
+
+            if (value.Length == 0)
+                return;
+
+            var offsetBytes = (int)(dstIndex * _elementSize);
+
+            fixed (byte* pData = value)
+                UpdateRange(pData, (uint)value.Length, offsetBytes, preserve);
         }
 
         public void Bind()
         {
-            GlState.Current!.BindBuffer(_target, _handle);
+            GlState.Current.BindBuffer(_target, _handle);
         }
 
         public void Unbind()
         {
-            GlState.Current!.BindBuffer(_target, 0);
+            GlState.Current.BindBuffer(_target, 0);
+        }
+
+        protected void Recreate()
+        {
+            Destroy();
+            Create();
+        }
+
+        protected void Destroy()
+        {
+            if (_isMapped)
+                Unmap();
+
+            _gl.DeleteBuffer(_handle);
+
+            GlState.Current.RemoveBufferRef(_handle);
+
+            _handle = 0;
         }
 
         public override void Dispose()
         {
             if (_handle != 0)
             {
-                Unbind();
-                _gl.DeleteBuffer(_handle);
+                Destroy();
+
+                GlDebug.Log(
+                    this,
+                    "Buffer {0} ({1}) deleted",
+                    _handle,
+                    Target);
             }
 
             base.Dispose();
         }
 
+        public void Load(int slot)
+        {
+            GlState.Current?.LoadBuffer(this, slot);
+        }
 
-        public long Hash { get; set; }
+        public long CreateVersion { get; set; }
+
+        public bool IsMutable { get; set; }
 
         public long Version { get; set; }
 
-        public int Slot { get; set; }
+        public int ActiveSlot { get; set; }
 
         public BufferTargetARB Target => _target;
 
-        public unsafe uint ArrayLength
+        public uint ArrayLength
         {
-            get => (uint)(_sizeBytes / sizeof(T));
-            set => SizeBytes = (uint)(value * sizeof(T));
+            get => (_sizeBytes / _elementSize);
+            set => SizeBytes = value * _elementSize;
         }
 
         public uint SizeBytes
@@ -257,7 +610,11 @@ namespace XrEngine.OpenGL
             set
             {
                 if (value > _capacityBytes)
-                    throw new InvalidOperationException();
+                {
+                    throw new InvalidOperationException(
+                        $"Logical buffer size {value} exceeds capacity {_capacityBytes}.");
+                }
+
                 _sizeBytes = value;
             }
         }

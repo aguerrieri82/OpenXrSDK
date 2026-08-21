@@ -5,9 +5,9 @@ namespace XrEditor
 {
     public class Vector3Editor : BaseEditor<Vector3, Vector3>
     {
-        private int _suspendUpdate;
-        private IValueScale _scale;
-        private bool _isLocked;
+        protected int _suspendUpdate;
+        protected IValueScale _scale;
+        protected bool _isLocked;
 
         public Vector3Editor()
             : this(null, new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.01f })
@@ -64,6 +64,12 @@ namespace XrEditor
             };
         }
 
+        public override void SetAttributes(IEnumerable<Attribute> attributes)
+        {
+            X.SetAttributes(attributes);
+            Y.SetAttributes(attributes);
+            Z.SetAttributes(attributes);
+        }
 
         protected override void OnEditValueChanged(Vector3 newValue)
         {

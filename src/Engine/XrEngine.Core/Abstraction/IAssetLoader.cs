@@ -5,6 +5,11 @@
         bool UseCache { get; }
     }
 
+    public class BasicLoaderOptions : IAssetLoaderOptions
+    {
+        public bool UseCache { get; set; }
+    }
+
     public interface IAssetLoader
     {
         bool CanHandle(Uri uri, out Type assetType);

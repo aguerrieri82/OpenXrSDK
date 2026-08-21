@@ -25,6 +25,14 @@ namespace XrEngine
             _curState.Transform = Matrix4x4.Identity;
             _curState.Color = Color.White;
             _lineMesh.Material.Alpha = AlphaMode.Blend;
+            _lineMesh.Material.UseDepth = false;
+            _lineMesh.Material.WriteDepth = false;
+
+        }
+
+        public void DrawLine(Line3 line)
+        {
+            DrawLine(line.From, line.To);
         }
 
         public void DrawLine(Vector3 from, Vector3 to)
@@ -148,7 +156,70 @@ namespace XrEngine
         public void Flush()
         {
             _lineMesh.Vertices = _data.ToArray(); ;
-            _lineMesh.NotifyChanged(ObjectChangeType.Geometry);
+            _lineMesh.NotifyChanged(ChangeType.Geometry);
+        }
+
+        public void DrawSphere(Vector3 center, float radius, Vector3 cameraPos, int segments = 30)
+        {
+            // Horizontal equator: XZ plane, normal +Y.
+            DrawCircle(
+                new Pose3
+                {
+                    Position = center,
+                    Orientation = Quaternion.CreateFromAxisAngle(
+                        Vector3.UnitX,
+                        -MathF.PI * 0.5f)
+                },
+                radius, segments);
+
+            // Perpendicular meridian: YZ plane, normal +X.
+            DrawCircle(
+                new Pose3
+                {
+                    Position = center,
+                    Orientation = Quaternion.CreateFromAxisAngle(
+                        Vector3.UnitY,
+                        MathF.PI * 0.5f)
+                },
+                radius, segments);
+
+            // Apparent sphere border: plane perpendicular to the camera direction.
+            var toCamera = cameraPos - center;
+
+            if (toCamera.LengthSquared() > 0.000001f)
+            {
+                var normal = Vector3.Normalize(toCamera);
+
+                // Rotation from local +Z, the DrawCircle plane normal, to the camera direction.
+                var dot = Vector3.Dot(Vector3.UnitZ, normal);
+                Quaternion orientation;
+
+                if (dot < -0.999999f)
+                {
+                    orientation = Quaternion.CreateFromAxisAngle(
+                        Vector3.UnitY,
+                        MathF.PI);
+                }
+                else
+                {
+                    var axis = Vector3.Cross(Vector3.UnitZ, normal);
+
+                    orientation = Quaternion.Normalize(
+                        new Quaternion(
+                            axis.X,
+                            axis.Y,
+                            axis.Z,
+                            1.0f + dot));
+                }
+
+                DrawCircle(
+                    new Pose3
+                    {
+                        Position = center,
+                        Orientation = orientation
+                    },
+                    radius, segments);
+            }
         }
 
         public void DrawCircle(Pose3 pose, float radius, int segments = 30)

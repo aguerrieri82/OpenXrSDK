@@ -1,7 +1,6 @@
 ﻿using SkiaSharp;
 using XrMath;
 
-
 namespace CanvasUI
 {
     public abstract class UiElement : UiObject, IDrawGizmos, IUiLayoutItem
@@ -241,7 +240,6 @@ namespace CanvasUI
 
         public event UiEventHandler<UiRoutedEvent>? LostFocus;
 
-
         #endregion
 
         #region PROPS
@@ -347,7 +345,6 @@ namespace CanvasUI
             }
             return value;
         }
-
 
         #endregion
 

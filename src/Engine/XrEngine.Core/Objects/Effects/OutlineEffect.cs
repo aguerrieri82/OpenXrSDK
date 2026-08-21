@@ -1,80 +1,56 @@
-﻿using System.Numerics;
+﻿
 using XrMath;
 
 namespace XrEngine
 {
-    public class OutlineEffect : ShaderMaterial, IColorSource
+    public class OutlineEffect : DynamicMaterial
     {
-        public static readonly Shader SHADER;
-
-        static OutlineEffect()
-        {
-            SHADER = new Shader
-            {
-                FragmentSourceName = "outline.frag",
-                VertexSourceName = "fullscreen.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = false,
-                Priority = -1
-            };
-        }
-
-
         public OutlineEffect()
-            : base()
+            : base("fullscreen.vert", "outline.frag")
         {
-            _shader = SHADER;
             UseDepth = false;
             WriteDepth = false;
-            Alpha = AlphaMode.Blend;
-            Color = new Color(1, 1, 0, 0.7f);
-            Size = 5;
-        }
-
-        public OutlineEffect(Color color, float size)
-            : this()
-        {
-            Color = color;
-            Size = size;
-        }
-
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.WriteObject<OutlineEffect>(this);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            container.ReadObject(this);
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var depthTex = bld.Context.DepthMap;
-
-            if (depthTex != null && depthTex.SampleCount > 1)
+            if (IsMultiView)
             {
-                bld.AddExtension("GL_OES_texture_storage_multisample_2d_array");
-                bld.AddFeature("MULTISAMPLE");
+                bld.AddExtension("GL_OVR_multiview2");
+                bld.AddFeature("MULTI_VIEW");
+            }
+
+            bld.AddFeature($"COLOR_LOCATON {ColorLocation}");
+            bld.AddFeature($"MASK_LOCATON {MaskLocation}");
+            bld.AddFeature($"OUTLINE_SIZE {OutlineSize}");
+
+            if (Texture == null)
+            {
+                bld.AddFeature($"FB_MODE");
+                bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
             }
 
             bld.ExecuteAction((ctx, up) =>
             {
-                if (ctx.DepthMap == null)
-                    return;
-                up.SetUniform("uTexSize", new Vector2(1.0f / ctx.DepthMap.Width, 1.0f / ctx.DepthMap.Height));
-                up.SetUniform("uDepth", ctx.DepthMap!, 10);
-                up.SetUniform("uSize", Size);
                 up.SetUniform("uColor", Color);
-            }); ;
+
+                if (Texture != null)
+                    up.LoadTexture(Texture, 0);
+            });
         }
 
+        public uint ColorLocation { get; set; }
 
+        public uint MaskLocation { get; set; }
 
-        public float Size { get; set; }
+        public bool IsMultiView { get; set; }
+
+        public float OutlineSize { get; set; }
 
         public Color Color { get; set; }
+
+        public Texture? Texture { get; set; }
+
+        public bool UseFbNonCoherent { get; set; }
     }
 }

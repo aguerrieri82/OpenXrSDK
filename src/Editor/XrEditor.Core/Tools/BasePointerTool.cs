@@ -3,21 +3,17 @@ using XrEngine;
 using XrInteraction;
 using XrMath;
 
-
 namespace XrEditor
 {
-
 
     public abstract class BasePointerTool : IEditorTool
     {
         protected SceneView? _sceneView;
         protected bool _isActive;
-        protected readonly IMainDispatcher _main;
 
         public BasePointerTool()
         {
             _isActive = true;
-            _main = Context.Require<IMainDispatcher>();
         }
 
         public virtual void Attach(SceneView view)
@@ -28,9 +24,7 @@ namespace XrEditor
             _sceneView.RenderSurface.PointerMove += OnPointerMove;
             _sceneView.RenderSurface.WheelMove += OnWheelMove;
 
-
         }
-
 
         protected Vector3 ToView(Pointer2Event ev, float z = -1f)
         {
@@ -93,7 +87,7 @@ namespace XrEditor
 
         }
 
-        protected IDispatcher AppDispatcher => _sceneView?.Scene?.App?.Dispatcher ?? throw new NullReferenceException();
+        protected DispatcherSwitch UiThread => Context.Require<IMainDispatcher>().Switch;
 
         public bool IsActive => _isActive;
     }

@@ -10,9 +10,9 @@ namespace XrEditor
         {
             var source = new TaskCompletionSource();
 
-            void OnTimer(object? state)
+            async void OnTimer(object? state)
             {
-                Context.Require<IMainDispatcher>().ExecuteAsync(() => source.SetResult());
+                _ = Context.Require<IMainDispatcher>().ExecuteAsync(source.SetResult);
                 _timer?.Dispose();
                 _timer = null;
             }

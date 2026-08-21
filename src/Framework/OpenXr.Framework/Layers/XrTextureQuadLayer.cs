@@ -1,17 +1,25 @@
-﻿using Common.Interop;
-using Silk.NET.OpenXR;
+﻿using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrMath;
 
 namespace OpenXr.Framework
 {
-    public unsafe delegate bool RenderQuadDelegate(SwapchainImageBaseHeader* image, Size2I size, long predTime);
+    public unsafe delegate bool RenderQuadDelegate(QuadRenderData data, SwapchainImageBaseHeader* image, long predTime);
+
+    public class QuadRenderData
+    {
+        public XrSwapchain? Swapchain;
+
+        public int Eye;
+    }
 
     public class XrTextureQuadLayer : XrBaseQuadLayer
     {
         protected RenderQuadDelegate _renderQuad;
         protected Size2I _size;
-        protected NativeArray<SwapchainImageBaseHeader>? _images;
+        protected XrSwapchain? _swapchain;
+        protected QuadRenderData _data;
+
 
         public XrTextureQuadLayer(GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size)
             : base(getQuad)
@@ -19,55 +27,88 @@ namespace OpenXr.Framework
             _renderQuad = renderQuad;
             _size = size;
 
+            _data = new QuadRenderData
+            {
+                Eye = -1
+            };
         }
 
-        public unsafe override void Create()
+        public void ConfigureStereo(XrSwapchain swapchain, int eye)
+        {
+            _swapchain = swapchain;
+            _data.Eye = eye;
+            _data.Swapchain = swapchain;
+        }
+
+        public override void Create()
         {
             Debug.Assert(_xrApp != null);
 
             var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
-            _swapchain = _xrApp!.CreateSwapChain(extent, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
+            if (Format == 0)
+                Format = _xrApp.RenderOptions.ColorFormat;
 
-            _images = _xrApp.EnumerateSwapchainImages(_swapchain);
+            _swapchain ??= new XrSwapchain(_xrApp, 1);
+
+            _data.Swapchain = _swapchain;
+
+            if (!_swapchain.IsCreated)
+            {
+                _swapchain.Create(extent,
+                    Format,
+                    _data.Eye != -1 ? 2u : 1u,
+                    SwapchainUsageFlags.SampledBit |
+                    SwapchainUsageFlags.ColorAttachmentBit |
+                    SwapchainUsageFlags.InputAttachmentBitKhr |
+                    SwapchainUsageFlags.TransferSrcBit |
+                    SwapchainUsageFlags.TransferDstBit,
+                    SwapchainTarget.Quad);
+            }
 
             _header.ValueRef.SubImage.Swapchain = _swapchain;
-            _header.ValueRef.SubImage.ImageArrayIndex = 0;
+            _header.ValueRef.SubImage.ImageArrayIndex = _data.Eye == -1 ? 0 : (uint)_data.Eye;
             _header.ValueRef.SubImage.ImageRect.Extent = extent;
-            _header.ValueRef.EyeVisibility = EyeVisibility.Both;
+            _header.ValueRef.EyeVisibility = _data.Eye == -1 ? EyeVisibility.Both : (_data.Eye == 0 ? EyeVisibility.Left : EyeVisibility.Right);
             _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
-
-            base.Create();
         }
 
 
         protected unsafe override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {
-            Debug.Assert(_xrApp != null);
-            Debug.Assert(_images != null);
+            Debug.Assert(_xrApp != null && _swapchain != null);
 
             if (!base.Update(ref layer, ref views, predTime))
                 return false;
 
-            if (!_renderQuad(null, new Size2I(), 0))
-                return true;
+#warning TODO: COPY THE OLD FRAME INSTEAD!
 
-            var index = _xrApp.AcquireSwapchainImage(_swapchain);
+            /*
+            if (!_renderQuad(null, new Size2I(), 0, _eye))
+                return false;
+            */
 
-            _xrApp.WaitSwapchainImage(_swapchain);
+            var image = _swapchain.AcquireImageAndWait();
 
             try
             {
-                return _renderQuad(_images.ItemPointer((int)index), _size, predTime);
+                return _renderQuad(_data, image, predTime);
             }
             finally
             {
-                _xrApp.ReleaseSwapchainImage(_swapchain);
+                _swapchain.Release();
             }
         }
 
+        public override void Destroy()
+        {
+            _swapchain?.Dispose();
+            _swapchain = null;
+            base.Destroy();
+        }
 
         public Size2I Size => _size;
 
+        public int Format { get; set; }
     }
 }

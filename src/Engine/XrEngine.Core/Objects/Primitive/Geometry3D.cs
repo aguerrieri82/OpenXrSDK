@@ -11,7 +11,6 @@ namespace XrEngine
         protected VertexData[] _vertices;
         protected uint[] _indices;
 
-
         public Geometry3D()
         {
             _boundsDirty = true;
@@ -64,7 +63,7 @@ namespace XrEngine
             }
         }
 
-        public unsafe override void GetState(IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
             base.GetState(container);
             if (this is IGeneratedContent gen)
@@ -77,71 +76,22 @@ namespace XrEngine
             }
         }
 
-        public void ApplyTransform(Matrix4x4 matrix)
-        {
-            Matrix4x4.Invert(matrix, out var inverse);
 
-            var normalMatrix = Matrix4x4.Transpose(inverse);
-
-            for (var i = 0; i < Vertices.Length; i++)
-            {
-                Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
-                Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
-            }
-
-            NotifyChanged(ObjectChangeType.Geometry);
-        }
-
-        public void Rebuild()
-        {
-            if (Indices.Length == 0)
-                return;
-
-            var vertices = new VertexData[Indices.Length];
-
-            for (var i = 0; i < Indices.Length; i++)
-                vertices[i] = Vertices![Indices[i]];
-
-            Vertices = vertices;
-            Indices = [];
-
-            NotifyChanged(ObjectChangeType.Geometry);
-        }
-
-        public void UpdateBounds()
+        public virtual void UpdateBounds()
         {
             _bounds = this.ComputeBounds(Matrix4x4.Identity);
             _boundsDirty = false;
-        }
 
-        public unsafe void Serialize(Stream stream)
-        {
-            using var writer = new BinaryWriter(stream);
+            foreach (var host in _hosts.OfType<TriangleMesh>())
+                host.InvalidateLocalBounds();
 
-            writer.Write("GEOM");
-            writer.Write((int)ActiveComponents);
-            writer.Write(Vertices.Length);
-
-            fixed (VertexData* pVertex = &Vertices[0])
-                writer.Write(new Span<byte>(pVertex, Vertices.Length * sizeof(VertexData)));
-
-            writer.Write(Indices.Length);
-
-            if (Indices.Length > 0)
+            if (_components != null)
             {
-                fixed (uint* pIndex = &Indices[0])
-                    writer.Write(new Span<byte>(pIndex, Vertices.Length * sizeof(uint)));
+                foreach (var item in _components.OfType<IGeometryComponent>())
+                    item.UpdateBounds();
             }
-            writer.Flush();
         }
 
-        public void ScaleUV(Vector2 scale)
-        {
-            for (var i = 0; i < _vertices.Length; i++)
-                _vertices[i].UV *= scale;
-
-            NotifyChanged(ObjectChangeType.Geometry);
-        }
 
         public Bounds3 Bounds
         {
@@ -155,13 +105,13 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Geometry))
+            if (change.IsAny(ChangeType.Geometry))
                 _boundsDirty = true;
 
             base.OnChanged(change);
         }
 
-        public void NotifyLoaded()
+        public virtual void NotifyLoaded()
         {
             if (!this.Is(EngineObjectFlags.GpuOnly))
                 return;
@@ -171,11 +121,18 @@ namespace XrEngine
 
             _indices = [];
             _vertices = [];
+
+            if (_components != null)
+            {
+                foreach (var item in _components.OfType<IGeometryComponent>())
+                    item.NotifyLoaded();
+            }
+
         }
 
         public Geometry3D Clone()
         {
-            var result = new Geometry3D();
+            var result = Utils.CreateInstance<Geometry3D>(GetType());
             result.Vertices = new VertexData[_vertices.Length];
             Array.Copy(_vertices, result.Vertices, _vertices.Length);
             result.Indices = new uint[_indices.Length];
@@ -184,7 +141,19 @@ namespace XrEngine
             result._bounds = _bounds;
             result._boundsDirty = _boundsDirty;
 
+            CloneWork(result);
+
             return result;
+        }
+
+        public void InvalidateBounds()
+        {
+            _boundsDirty = true;
+        }
+
+        protected virtual void CloneWork(Geometry3D result)
+        {
+
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;

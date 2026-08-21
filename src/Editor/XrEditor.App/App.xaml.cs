@@ -1,7 +1,7 @@
 ﻿using OpenXr.Framework;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using XrEditor.Abstraction;
 using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
@@ -14,23 +14,43 @@ namespace XrEditor
 {
     public partial class App : Application
     {
-        private readonly MainView _main;
+        private MainView? _main;
         private readonly WpfViewManager _viewManager;
+        private readonly MainDispatcher _mainDispatcher;
 
         public App()
         {
+            var test = Environment.GetEnvironmentVariable("VK_LAYER_PATH");
+
+            DispatcherUnhandledException += (sender, e) =>
+            {
+                Log.Warn(sender, e.Exception.Message);
+                MessageBox.Show(e.Exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                e.Handled = true;
+            };
+
+            MsBuildPatcher.PatchVisualStudioLinks();
+
             Gpu.EnableNvAPi();
 
-            _viewManager = new WpfViewManager();
+            if (!EngineNativeLib.RdcIsAttached())
+            {
+                using var profiles = new NvidiaProfiles();
+                profiles.DisableOpenGlThreadedOptimization();
+                profiles.SetOpenGlPresentMethod(NvidiaProfiles.OpenGlPresentMethod.Native);
+            }
 
-            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor", EditorDebug.UseEs);
+            _viewManager = new WpfViewManager();
+            _mainDispatcher = new MainDispatcher();
+
+            XrPlatform.Current = new EditorPlatform(EditorDebug.PersistentPath, EditorDebug.UseEs);
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeManager>();
             Context.Implement<SelectionManager>();
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IViewManager>(_viewManager);
-            Context.Implement<IMainDispatcher>(new MainDispatcher());
+            Context.Implement<IMainDispatcher>(_mainDispatcher);
             Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(EditorDebug.AssetsPath));
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
@@ -44,26 +64,21 @@ namespace XrEditor
             ModuleManager.Ref<PlotPanel>();
             ModuleManager.Ref<LoopEditorPanel>();
 
-            _main = new MainView(EditorDebug.Driver);
-
-
             MainWindow = new Window
             {
                 Title = "Xr Editor",
-                Content = _main
             };
-
-            _main.Host = new WpfWindow(MainWindow);
-            _main.LoadState();
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            DispatcherUnhandledException += (sender, e) =>
+            _main = new MainView(EditorDebug.Driver)
             {
-                Log.Warn(sender, e.Exception.Message);
-                e.Handled = true; // Prevent crash
+                Host = new WpfWindow(MainWindow)
             };
+            _main.LoadState();
+
+            MainWindow.Content = _main;
 
             foreach (var res in _viewManager.Resources)
                 Resources.MergedDictionaries.Add(res);
@@ -71,16 +86,30 @@ namespace XrEditor
             MainWindow.Style = Resources["CustomWindowStyle"] as Style;
             MainWindow.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/XrEditor.ico", UriKind.RelativeOrAbsolute));
             MainWindow.Show();
+
             base.OnStartup(e);
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        protected override async void OnExit(ExitEventArgs e)
         {
-            _main.SaveState();
+            _mainDispatcher.IsActive = false;
 
-            _ = Context.Require<PanelManager>().CloseAllAsync();
+            _main!.SaveState();
+
+            try
+            {
+                await Context.Require<PanelManager>().CloseAllAsync()
+                    .WaitAsync(TimeSpan.FromSeconds(1));
+            }
+            catch
+            {
+            }
+
+            ServiceManager.Instance.Shutdown();
 
             ModuleManager.Instance.Shutdown();
+
+            Process.GetCurrentProcess().Kill();
 
             base.OnExit(e);
         }

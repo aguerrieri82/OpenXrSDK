@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-
 namespace PhysX.Framework
 {
 
@@ -40,6 +39,11 @@ namespace PhysX.Framework
         public float GetVisualizationParameter(PxVisualizationParameter parameter)
         {
             return _handle->GetVisualizationParameter(parameter);
+        }
+
+        public PhysicsWriteLock LockWrite()
+        {
+            return new PhysicsWriteLock(_handle);
         }
 
         public override void Dispose()

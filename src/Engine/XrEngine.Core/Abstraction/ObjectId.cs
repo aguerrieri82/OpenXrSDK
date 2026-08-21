@@ -10,7 +10,6 @@ namespace XrEngine
             return new ObjectId() { Value = Guid.NewGuid() };
         }
 
-
         public override readonly int GetHashCode()
         {
             return Value.GetHashCode();

@@ -9,7 +9,7 @@ namespace XrMath
             return Pose.GetHashCode() ^ Size.GetHashCode();
         }
 
-        public readonly override bool Equals(object obj)
+        public readonly override bool Equals(object? obj)
         {
             if (obj is Quad3 other)
                 return other.Size == Size && other.Pose == Pose;

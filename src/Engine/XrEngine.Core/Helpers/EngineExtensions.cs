@@ -1,17 +1,19 @@
 ﻿using SkiaSharp;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using XrEngine.Helpers;
+using XrEngine.Objects;
 using XrMath;
+using static XrEngine.ShaderUpdateBuilder;
 
 namespace XrEngine
 {
     public struct ObjectFeature<T> where T : notnull
     {
-
         public Object3D Object;
 
         public T Feature;
@@ -20,10 +22,20 @@ namespace XrEngine
     public static class EngineExtensions
     {
 
-
-
         #region EngineObject
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Is(this EngineObject self, EngineObjectFlags flags)
+        {
+            return (self.Flags & flags) == flags;
+        }
+
+
+        public static bool TryFeature<T>(this EngineObject self, [NotNullWhen(true)] out T? result) where T : class
+        {
+            result = self.Feature<T>();
+            return result != null;
+        }
 
         public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
         {
@@ -37,6 +49,13 @@ namespace XrEngine
         {
             var result = new LambdaBehavior<T>(action);
             self.AddComponent(result);
+            return result;
+        }
+
+        public static T EnsureComponent<T>(this EngineObject self) where T : IComponent, new()
+        {
+            if (!self.TryComponent<T>(out var result))
+                result = self.AddComponent<T>();
             return result;
         }
 
@@ -93,12 +112,10 @@ namespace XrEngine
 
         #region OBJECT3D
 
-
         public static void Remove(this Object3D self)
         {
             self.Parent?.RemoveChild(self);
         }
-
 
         public static void PropagateTransform(this Object3D self)
         {
@@ -157,7 +174,19 @@ namespace XrEngine
                 if (mat.UseEnvDepth != value)
                 {
                     mat.UseEnvDepth = value;
-                    mat.NotifyChanged(ObjectChangeType.Render);
+                    mat.NotifyChanged(ChangeType.Render);
+                }
+            }
+        }
+
+        public static void CastShadows(this Object3D self, bool value)
+        {
+            foreach (var mat in self.MaterialsDeep<IShadowMaterial>())
+            {
+                if (mat.CastShadows != value)
+                {
+                    mat.CastShadows = value;
+                    mat.NotifyChanged(ChangeType.Render);
                 }
             }
         }
@@ -169,7 +198,6 @@ namespace XrEngine
                 .SelectMany(a => a.Materials)
                 .OfType<T>();
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToLocal(this Object3D self, Vector3 worldPoint)
@@ -198,7 +226,6 @@ namespace XrEngine
             else
                 self.WorldPosition = pose.Position;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 GetWorldPose(this Object3D self, bool fromOrigin = false)
@@ -265,6 +292,7 @@ namespace XrEngine
             while (stack.Count > 0)
             {
                 var cur = stack.Pop();
+
                 yield return cur;
 
                 if (cur is Group3D g && g.Children is not null)
@@ -295,50 +323,31 @@ namespace XrEngine
             }
         }
 
+        public static IEnumerable<Object3D> AncestorsOrSelf(this Object3D self)
+        {
+            return new Object3D[] { self }.Concat(self.Ancestors());
+        }
+
         public static T? FindAncestor<T>(this Object3D self) where T : Group3D
         {
             return self.Ancestors().OfType<T>().FirstOrDefault();
         }
 
-        public static bool Feature<T>(this Object3D self, [NotNullWhen(true)] out T? result) where T : class
-        {
-            result = self.Feature<T>();
-            return result != null;
-        }
-
 
         public static T? FeatureDeep<T>(this Object3D self) where T : class
         {
-            var result = self.Feature<T>();
-
-            if (result != null)
-                return result;
-
-            if (self is Group3D group)
-            {
-                foreach (var child in group.Children)
-                {
-                    result = child.FeatureDeep<T>();
-                    if (result != null)
-                        return result;
-                }
-            }
-
-            return null;
+            return self
+                .DescendantsOrSelfWithFeature<T>()
+                .FirstOrDefault()
+                .Feature;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Is(this EngineObject self, EngineObjectFlags flags)
-        {
-            return (self.Flags & flags) == flags;
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T> Visible<T>(this IEnumerable<T> self) where T : Object3D
         {
             return self.Where(a => a.IsVisible);
         }
-
 
         #endregion
 
@@ -393,7 +402,12 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null, bool isParallel = false)
+        public static void RayCollisions(this Scene3D self,
+            Ray3 ray,
+            ConcurrentBag<Collision> result,
+            IEnumerable<ICollider3D>? colliders = null,
+            bool isParallel = false,
+            bool excludeMesh = false)
         {
             IEnumerable<ICollider3D> GetColliders()
             {
@@ -401,15 +415,21 @@ namespace XrEngine
                 {
                     foreach (var collider in obj.Components<ICollider3D>())
                     {
-                        if (collider != null && collider.IsEnabled)
+                        if (collider != null &&
+                            collider.IsEnabled &&
+                            (collider.Usage & ColliderUsage.Collisions) != 0 &&
+                            ((Object3D)collider.Host!).IsVisible)
+                        {
                             yield return collider;
+                        }
                     }
                 }
             }
 
             colliders ??= GetColliders();
 
-            result.Clear();
+            if (excludeMesh)
+                colliders = colliders.Where(a => a is not MeshCollider);
 
             if (isParallel)
             {
@@ -430,7 +450,6 @@ namespace XrEngine
                 }
             }
         }
-
 
         public static void ContainsPoint(this Scene3D self, Vector3 worldPoint, ConcurrentBag<Object3D> result, IEnumerable<ICollider3D>? colliders = null, float tollerance = 0)
         {
@@ -455,7 +474,6 @@ namespace XrEngine
 
             });
         }
-
 
         #endregion
 
@@ -487,13 +505,14 @@ namespace XrEngine
 
         public static T? FindByName<T>(this Group3D self, string name) where T : Object3D
         {
-            return self.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
+            return self.Descendants<T>()
+                       .FirstOrDefault(a => a.Name == name);
         }
 
 
-        public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D self) where T : class
+        public static IEnumerable<ObjectFeature<T>> Features<T>(this IEnumerable<Object3D> self) where T : class
         {
-            foreach (var item in self.Descendants())
+            foreach (var item in self)
             {
                 var feat = item.Feature<T>();
                 if (feat != null)
@@ -505,15 +524,23 @@ namespace XrEngine
             }
         }
 
+        public static IEnumerable<ObjectFeature<T>> DescendantsOrSelfWithFeature<T>(this Object3D self) where T : class
+        {
+            return self.DescendantsOrSelf().Features<T>();
+        }
+
+        public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D self) where T : class
+        {
+            return self.Descendants().Features<T>();
+        }
+
         public static IEnumerable<Object3D> Descendants(this Group3D self)
         {
             return self.Descendants<Object3D>();
         }
 
-
         public static IEnumerable<T> Descendants<T>(this Group3D self) where T : Object3D
         {
-
             var stack = new Stack<Object3D>();
 
             for (var i = self.Children.Count - 1; i >= 0; i--)
@@ -547,7 +574,95 @@ namespace XrEngine
 
         #region GEOMETRY
 
-        public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
+        public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, in T value);
+
+        public delegate void SkinAssignDelegate<T>(ref SkinData vertexData, in T value);
+
+
+        public static unsafe void Serialize(this Geometry3D self, Stream stream)
+        {
+            var vertices = self.Vertices;
+            var indices = self.Indices;
+
+            using var writer = new BinaryWriter(stream);
+
+            writer.Write("GEOM");
+            writer.Write((int)self.ActiveComponents);
+            writer.Write(vertices.Length);
+
+            fixed (VertexData* pVertex = &vertices[0])
+                writer.Write(new Span<byte>(pVertex, vertices.Length * sizeof(VertexData)));
+
+            writer.Write(indices.Length);
+
+            if (indices.Length > 0)
+            {
+                fixed (uint* pIndex = &indices[0])
+                    writer.Write(new Span<byte>(pIndex, indices.Length * sizeof(uint)));
+            }
+
+            writer.Flush();
+        }
+
+        public static void ScaleUV(this Geometry3D self, Vector2 scale)
+        {
+            var vertices = self.Vertices;
+
+            for (var i = 0; i < vertices.Length; i++)
+                vertices[i].UV *= scale;
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+        public static void ApplyTransform(this Geometry3D self, Matrix4x4 matrix)
+        {
+            var inverse = matrix.Invert();
+
+            var normalMatrix = Matrix4x4.Transpose(inverse);
+
+            var vertices = self.Vertices;
+
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i].Pos = vertices[i].Pos.Transform(matrix);
+                vertices[i].Normal = vertices[i].Normal.Transform(normalMatrix).Normalize();
+            }
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+        public static void Rebuild(this Geometry3D self)
+        {
+            var vertices = self.Vertices;
+            var indices = self.Indices;
+
+            if (indices.Length == 0)
+                return;
+
+            var newVertices = new VertexData[indices.Length];
+
+            for (var i = 0; i < indices.Length; i++)
+                newVertices[i] = vertices[indices[i]];
+
+            self.Vertices = vertices;
+            self.Indices = [];
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+
+        public static void FlipYUV(this Geometry3D self)
+        {
+            var span = self.Vertices.AsSpan();
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                ref var ver = ref span[i];
+                ver.UV.Y = 1 - ver.UV.Y;
+            }
+
+            self.NotifyChanged(ChangeType.Geometry);
+        }
 
         public static void Rebuild(this Geometry3D self, IEnumerable<Triangle3> triangles)
         {
@@ -559,8 +674,11 @@ namespace XrEngine
                 vertex.Add(self.Vertices[index]);
 
             self.Vertices = vertex.ToArray();
+            self.Indices = [];
+
             self.ComputeIndices();
-            self.NotifyChanged(ObjectChangeType.Geometry);
+
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static Geometry3D TransformToLine(this Geometry3D self)
@@ -568,8 +686,11 @@ namespace XrEngine
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
 
-            var res = new Geometry3D();
-            res.Primitive = DrawPrimitive.Line;
+            var res = new Geometry3D
+            {
+                Primitive = DrawPrimitive.Line
+            };
+
             if (self.Indices.Length > 0)
             {
                 var srcI = 0;
@@ -578,7 +699,7 @@ namespace XrEngine
                 var newSpan = newIndices.AsSpan();
                 var srcSpan = self.Indices.AsSpan();
 
-                while (srcI < self.Indices!.Length)
+                while (srcI < self.Indices.Length)
                 {
                     newSpan[dstI + 0] = srcSpan[srcI + 0];
                     newSpan[dstI + 1] = srcSpan[srcI + 1];
@@ -632,6 +753,7 @@ namespace XrEngine
 
         public static void ComputeNormals(this Geometry3D self)
         {
+
             if (self.Primitive != DrawPrimitive.Triangle)
                 throw new NotSupportedException();
 
@@ -680,7 +802,7 @@ namespace XrEngine
                 }
             }
             self.ActiveComponents |= VertexComponent.Normal;
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void ToTriangles(this Geometry3D self)
@@ -705,7 +827,7 @@ namespace XrEngine
 
             self.Indices = newIndices.ToArray();
             self.Primitive = DrawPrimitive.Triangle;
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void EnsureIndices(this Geometry3D self)
@@ -716,7 +838,7 @@ namespace XrEngine
                 for (var i = 0; i < self.Vertices.Length; i++)
                     self.Indices[i] = (uint)i;
             }
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void SmoothNormals(this Geometry3D self)
@@ -760,12 +882,11 @@ namespace XrEngine
 
                     avg /= count;
 
-
                     foreach (var index in group)
                         self.Vertices[index].Normal = avg;
                 }
             }
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static IEnumerable<Triangle3> Triangles(this Geometry3D self)
@@ -907,7 +1028,27 @@ namespace XrEngine
             }
 
             self.ActiveComponents |= VertexComponent.Tangent;
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
+        }
+
+
+        public static void SetSkinData<T>(this Geometry3D self, SkinAssignDelegate<T> selector, T[] array)
+        {
+            var skinGeo = self.EnsureComponent<SkinnedGeometry>();
+
+            skinGeo.Skin ??= new SkinData[array.Length];
+
+            if (skinGeo.Skin.Length < array.Length)
+            {
+                var newArray = skinGeo.Skin;
+                Array.Resize(ref newArray, array.Length);
+                skinGeo.Skin = newArray;
+            }
+
+            for (var i = 0; i < array.Length; i++)
+                selector(ref skinGeo.Skin[i], array[i]);
+
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static void SetVertexData<T>(this Geometry3D self, VertexAssignDelegate<T> selector, T[] array)
@@ -925,17 +1066,31 @@ namespace XrEngine
             for (var i = 0; i < array.Length; i++)
                 selector(ref self.Vertices[i], array[i]);
 
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform)
         {
             if (self.Vertices != null)
-                return self.ExtractPositions().ComputeBounds(transform);
+            {
+                var builder = new Bounds3Builder();
 
-            return new Bounds3();
+                if (transform.IsIdentity)
+                {
+                    foreach (var v in self.Vertices)
+                        builder.Add(v.Pos);
+                }
+                else
+                {
+                    foreach (var v in self.Vertices)
+                        builder.Add(v.Pos.Transform(transform));
+                }
+
+                return builder.Result;
+            }
+
+            return Bounds3.Zero;
         }
-
 
         public static void EnsureCCW(this Geometry3D self)
         {
@@ -979,34 +1134,64 @@ namespace XrEngine
 
         public static void ComputeIndices(this Geometry3D self, int decimals = 5)
         {
+            var sourceVertices = self.Vertices!;
+            var sourceIndices = self.Indices;
 
-            var hasesh = new Dictionary<Vector512<float>, uint>();
-            var newVertices = new List<VertexData>(self.Vertices.Length);
+            var map = new Dictionary<Vector256<float>, uint>();
+            var newVertices = new List<VertexData>(sourceVertices.Length);
+            map.EnsureCapacity(sourceVertices.Length);
 
-            Vector512<float> Hash(in VertexData vert)
+            Vector256<float> Hash(in VertexData vert)
             {
-                var pos2 = vert.Pos.Round(decimals);
-                return Vector512.Create(pos2.X, pos2.Y, pos2.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
+                var pos = vert.Pos.Round(decimals);
+
+                return Vector256.Create(
+                    pos.X,
+                    pos.Y,
+                    pos.Z,
+                    vert.Normal.X,
+                    vert.Normal.Y,
+                    vert.Normal.Z,
+                    vert.UV.X,
+                    vert.UV.Y);
             }
 
-            foreach (ref var vert in self.Vertices.AsSpan())
+            uint GetIndex(in VertexData vert)
             {
                 var hash = Hash(vert);
-                if (!hasesh.ContainsKey(hash))
-                {
-                    hasesh[hash] = (uint)newVertices.Count;
-                    newVertices.Add(vert);
-                }
+
+                if (map.TryGetValue(hash, out var index))
+                    return index;
+
+                index = (uint)newVertices.Count;
+                map.Add(hash, index);
+                newVertices.Add(vert);
+
+                return index;
             }
 
-            var indices = new uint[self.Vertices.Length];
-            for (var i = 0; i < indices.Length; i++)
-                indices[i] = hasesh[Hash(self.Vertices[i])];
+            if (sourceIndices != null && sourceIndices.Length > 0 && sourceIndices.Length != sourceVertices.Length)
+            {
+                var newIndices = new uint[sourceIndices.Length];
 
-            self.Indices = indices;
+                for (var i = 0; i < sourceIndices.Length; i++)
+                    newIndices[i] = GetIndex(sourceVertices[(int)sourceIndices[i]]);
+
+                self.Indices = newIndices;
+            }
+            else
+            {
+                var newIndices = new uint[sourceVertices.Length];
+
+                for (var i = 0; i < sourceVertices.Length; i++)
+                    newIndices[i] = GetIndex(sourceVertices[i]);
+
+                self.Indices = newIndices;
+            }
+
             self.Vertices = newVertices.ToArray();
 
-            self.NotifyChanged(ObjectChangeType.Geometry);
+            self.NotifyChanged(ChangeType.Geometry);
         }
 
         #endregion
@@ -1087,158 +1272,129 @@ namespace XrEngine
                 yield return vertex.Project(viewProjInv);
         }
 
-        public static Vector3[] FrustumPoints(this Camera self)
+        public static Vector3[] FrustumPoints(this Camera self, float? farPlane = null)
         {
-            var viewProjInvLeft = self.ViewProjectionInverse;
+            static void Fill(Camera self, Matrix4x4 viewProjInv, Vector3[] corners, int offset, float? farPlane)
+            {
+                var n0 = new Vector3(-1, -1, 0).Project(viewProjInv);
+                var n1 = new Vector3(1, -1, 0).Project(viewProjInv);
+                var n2 = new Vector3(-1, 1, 0).Project(viewProjInv);
+                var n3 = new Vector3(1, 1, 0).Project(viewProjInv);
+
+                var f0 = new Vector3(-1, -1, 1).Project(viewProjInv);
+                var f1 = new Vector3(1, -1, 1).Project(viewProjInv);
+                var f2 = new Vector3(-1, 1, 1).Project(viewProjInv);
+                var f3 = new Vector3(1, 1, 1).Project(viewProjInv);
+
+                if (farPlane.HasValue)
+                {
+                    var t = (farPlane.Value - self.Near) / (self.Far - self.Near);
+
+                    f0 = n0 + (f0 - n0) * t;
+                    f1 = n1 + (f1 - n1) * t;
+                    f2 = n2 + (f2 - n2) * t;
+                    f3 = n3 + (f3 - n3) * t;
+                }
+
+                corners[offset + 0] = n0;
+                corners[offset + 1] = n1;
+                corners[offset + 2] = n2;
+                corners[offset + 3] = n3;
+
+                corners[offset + 4] = f0;
+                corners[offset + 5] = f1;
+                corners[offset + 6] = f2;
+                corners[offset + 7] = f3;
+            }
 
             var isStereo = self.Eyes != null && self.Eyes.Length > 1;
 
             var corners = new Vector3[isStereo ? 16 : 8];
 
-            corners[0] = new Vector3(-1, -1, 0).Project(viewProjInvLeft);
-            corners[1] = new Vector3(1, -1, 0).Project(viewProjInvLeft);
-            corners[2] = new Vector3(-1, 1, 0).Project(viewProjInvLeft);
-            corners[3] = new Vector3(1, 1, 0).Project(viewProjInvLeft);
-
-            corners[4] = new Vector3(-1, -1, 1).Project(viewProjInvLeft);
-            corners[5] = new Vector3(1, -1, 1).Project(viewProjInvLeft);
-            corners[6] = new Vector3(-1, 1, 1).Project(viewProjInvLeft);
-            corners[7] = new Vector3(1, 1, 1).Project(viewProjInvLeft);
+            Fill(self, isStereo ? self.Eyes![0].ViewProjInv : self.ViewProjectionInverse, corners, 0, farPlane);
 
             if (isStereo)
-            {
-                Matrix4x4.Invert(self.Eyes![1].ViewProj, out var viewProjInvRight);
-
-                corners[8] = new Vector3(-1, -1, 0).Project(viewProjInvRight);
-                corners[9] = new Vector3(1, -1, 0).Project(viewProjInvRight);
-                corners[10] = new Vector3(-1, 1, 0).Project(viewProjInvRight);
-                corners[11] = new Vector3(1, 1, 0).Project(viewProjInvRight);
-
-                corners[12] = new Vector3(-1, -1, 1).Project(viewProjInvRight);
-                corners[13] = new Vector3(1, -1, 1).Project(viewProjInvRight);
-                corners[14] = new Vector3(-1, 1, 1).Project(viewProjInvRight);
-                corners[15] = new Vector3(1, 1, 1).Project(viewProjInvRight);
-            }
+                Fill(self, self.Eyes![1].ViewProjInv, corners, 8, farPlane);
 
             return corners;
         }
 
-        public static IList<Plane> FrustumPlanes(this Camera self, Plane[] planes)
+        public static void FrustumPlanes(this Matrix4x4 viewProj, Span<Plane> planes)
         {
-            var viewProjLeft = self.ViewProjection;
-            var viewProjRight = viewProjLeft;
+            if (planes.Length < 6)
+                throw new ArgumentException("Plane buffer must contain at least 6 elements.", nameof(planes));
 
-            if (self.Eyes != null && self.Eyes.Length > 1 && self.IsStereo)
-                viewProjRight = self.Eyes[1].ViewProj;
-
-            // Left plane
             planes[0] = new Plane(
-                viewProjLeft.M14 + viewProjLeft.M11,
-                viewProjLeft.M24 + viewProjLeft.M21,
-                viewProjLeft.M34 + viewProjLeft.M31,
-                viewProjLeft.M44 + viewProjLeft.M41
-            );
+                viewProj.M14 + viewProj.M11,
+                viewProj.M24 + viewProj.M21,
+                viewProj.M34 + viewProj.M31,
+                viewProj.M44 + viewProj.M41
+            ).Normalize();
 
-            // Right plane
             planes[1] = new Plane(
-                viewProjRight.M14 - viewProjRight.M11,
-                viewProjRight.M24 - viewProjRight.M21,
-                viewProjRight.M34 - viewProjRight.M31,
-                viewProjRight.M44 - viewProjRight.M41
-            );
+                viewProj.M14 - viewProj.M11,
+                viewProj.M24 - viewProj.M21,
+                viewProj.M34 - viewProj.M31,
+                viewProj.M44 - viewProj.M41
+            ).Normalize();
 
-            // Top plane
             planes[2] = new Plane(
-                viewProjLeft.M14 - viewProjLeft.M12,
-                viewProjLeft.M24 - viewProjLeft.M22,
-                viewProjLeft.M34 - viewProjLeft.M32,
-                viewProjLeft.M44 - viewProjLeft.M42
-            );
+                viewProj.M14 - viewProj.M12,
+                viewProj.M24 - viewProj.M22,
+                viewProj.M34 - viewProj.M32,
+                viewProj.M44 - viewProj.M42
+            ).Normalize();
 
-            // Bottom plane
             planes[3] = new Plane(
-                viewProjLeft.M14 + viewProjLeft.M12,
-                viewProjLeft.M24 + viewProjLeft.M22,
-                viewProjLeft.M34 + viewProjLeft.M32,
-                viewProjLeft.M44 + viewProjLeft.M42
-            );
+                viewProj.M14 + viewProj.M12,
+                viewProj.M24 + viewProj.M22,
+                viewProj.M34 + viewProj.M32,
+                viewProj.M44 + viewProj.M42
+            ).Normalize();
 
-            // Near plane
             planes[4] = new Plane(
-                viewProjLeft.M13,
-                viewProjLeft.M23,
-                viewProjLeft.M33,
-                viewProjLeft.M43
-            );
+                viewProj.M13,
+                viewProj.M23,
+                viewProj.M33,
+                viewProj.M43
+            ).Normalize();
 
-            // Far plane
             planes[5] = new Plane(
-                viewProjLeft.M14 - viewProjLeft.M13,
-                viewProjLeft.M24 - viewProjLeft.M23,
-                viewProjLeft.M34 - viewProjLeft.M33,
-                viewProjLeft.M44 - viewProjLeft.M43
-            );
+                viewProj.M14 - viewProj.M13,
+                viewProj.M24 - viewProj.M23,
+                viewProj.M34 - viewProj.M33,
+                viewProj.M44 - viewProj.M43
+            ).Normalize();
+        }
 
-            for (var i = 0; i < 6; i++)
-                planes[i] = Plane.Normalize(planes[i]);
+        public static Plane[] FrustumPlanes(
+            this Camera self,
+            Plane[]? planes,
+            out int count,
+            bool fullStereo = true)
+        {
+            var stereo =
+                fullStereo &&
+                self.IsStereo &&
+                self.Eyes?.Length > 1;
+
+            count = stereo ? 12 : 6;
+
+            if (planes == null || planes.Length < count)
+                Array.Resize(ref planes, count);
+
+            if (stereo)
+            {
+                Debug.Assert(self.Eyes != null);
+
+                self.Eyes[0].ViewProj.FrustumPlanes(planes.AsSpan(0, 6));
+                self.Eyes[1].ViewProj.FrustumPlanes(planes.AsSpan(6, 6));
+            }
+            else
+                self.ViewProjection.FrustumPlanes(planes.AsSpan(0, 6));
 
             return planes;
         }
-
-
-        /*
-        public static IEnumerable<Line3> FrustumLines(this Camera camera)
-        {
-            var minZ = 0;
-            var maxZ = 1;
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(-1, -1, minZ)),
-                To = camera.Unproject(new Vector3(-1, -1, maxZ)),
-            };
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(-1, 1, minZ)),
-                To = camera.Unproject(new Vector3(-1, 1, maxZ)),
-            };
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(1, 1, minZ)),
-                To = camera.Unproject(new Vector3(1, 1, maxZ)),
-            };
-            yield return new Line3
-            {
-                From = camera.Unproject(new Vector3(1, -1, minZ)),
-                To = camera.Unproject(new Vector3(1, -1, maxZ)),
-            };
-
-        }
-
-        public static bool CanSee(this Camera camera, Bounds3 bounds)
-        {
-            var boundsPoints = camera.Project(bounds.Points).ToArray();
-
-            var projBounds = boundsPoints.ComputeBounds(Matrix4x4.Identity);
-
-            var cameraBounds = new Bounds3()
-            {
-                Max = new Vector3(1.1f, 1.1f, 1.1f),
-                Min = new Vector3(-1.1f, -1.1f, -1.1f)
-            };
-
-
-            if (projBounds.Intersects(cameraBounds))
-                return true;
-
-            foreach (var line in camera.FrustumLines())
-            {
-                if (bounds.Intersects(line, out var _))
-                    return true;
-            }
-
-            return false;
-        }
-        */
 
         #endregion
 
@@ -1255,8 +1411,6 @@ namespace XrEngine
         {
             self.Scale = new Vector3(x, y, z);
         }
-
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetScale(this Transform3D self, float value)
@@ -1313,7 +1467,7 @@ namespace XrEngine
                 if (material.Color != color)
                 {
                     material.Color = color;
-                    ((Material)material).NotifyChanged(ObjectChangeType.Render);
+                    ((Material)material).NotifyChanged(ChangeType.Render);
                 }
             }
 
@@ -1326,7 +1480,7 @@ namespace XrEngine
             if ((Vector4)src.Color != (Vector4)color)
             {
                 ((IColorSource)self).Color = color;
-                self.NotifyChanged(ObjectChangeType.Render);
+                self.NotifyChanged(ChangeType.Render);
                 return true;
             }
             return false;
@@ -1335,7 +1489,6 @@ namespace XrEngine
         #endregion
 
         #region MISC
-
 
         public static Poly2 ToPoly2(this ICurve2D curve, int numPoints, bool isClosed)
         {
@@ -1376,7 +1529,6 @@ namespace XrEngine
                 self[i].Update(ctx);
         }
 
-
         public static void Update<T>(this IEnumerable<T> self, RenderContext ctx, bool safeMode) where T : IRenderUpdate
         {
             if (safeMode)
@@ -1398,6 +1550,147 @@ namespace XrEngine
             return (T)self.Load(new Uri(fileUri, UriKind.Absolute), typeof(T), null, options);
         }
 
+        public static string? ImageMimeToExtension(string? mimeType)
+        {
+            if (string.IsNullOrWhiteSpace(mimeType))
+                return null;
+
+            return mimeType.Trim().ToLowerInvariant() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/jpg" => ".jpg",
+                "image/png" => ".png",
+                "image/gif" => ".gif",
+                "image/webp" => ".webp",
+                "image/bmp" => ".bmp",
+                "image/x-bmp" => ".bmp",
+                "image/tiff" => ".tiff",
+                "image/svg+xml" => ".svg",
+                "image/x-icon" => ".ico",
+                "image/vnd.microsoft.icon" => ".ico",
+                "image/avif" => ".avif",
+                "image/heic" => ".heic",
+                "image/heif" => ".heif",
+                "image/ktx2" => ".ktx2",
+                _ => null
+            };
+        }
+
+        public static Uri GetMimeUri(this AssetLoader self, string mimeType)
+        {
+            return new Uri($"stream://mime/{mimeType}.{ImageMimeToExtension(mimeType)}");
+        }
+
+        #endregion
+
+        #region TEXTURE2D
+
+        public static void Generate(this Texture2D texture, bool warmUp = false)
+        {
+            var render = EngineApp.Current.Renderer;
+            render.LoadTexture(texture);
+        }
+
+        public static void PrepareTexture(this ShaderUpdateBuilder builder, Texture? texture)
+        {
+            if (texture == null)
+                return;
+
+            if (texture.Format.IsSrgb())
+                builder.AddFeature("TEXTURE_IS_SRGB");
+
+            if (texture.ForceSrgb)
+                builder.AddFeature("TEXTURE_FORCE_SRGB");
+        }
+
+        public static void LoadTextureFixSrgb(this ShaderUpdateBuilder builder, UpdateAction<Texture2D> value, int slot)
+        {
+            builder.ExecuteAction((ctx, up) => up.LoadTextureFixSrgb(ctx, value(ctx), slot));
+        }
+
+        public static void LoadTextureFixSrgb(this IUniformProvider uniform, UpdateShaderContext ctx, Texture texture, int slot)
+        {
+            //DO NOT MERGE LoadTexture, LoadSampler MUST BE AFTER in the other branch
+
+            var isSrgb = texture.Format.IsSrgb();
+
+            var isDecodeEnabled = !ctx.NeedSrgbEncode;
+
+            if (isSrgb && texture.Sampler != null)
+            {
+                if (texture.Sampler.DecodeSrgb != isDecodeEnabled)
+                {
+                    texture.Sampler.DecodeSrgb = isDecodeEnabled;
+                    texture.Sampler.Invalidate();
+                }
+            }
+
+            uniform.LoadTexture(texture, slot);
+
+            if (!isDecodeEnabled && isSrgb && texture.Sampler == null)
+            {
+                var sampler = TextureSamplerFactory.DisableSrgbDecode(texture);
+
+                uniform.LoadSampler(sampler, slot);
+            }
+
+        }
+
+        public static void Update(this TextureSampler sampler, Texture texture)
+        {
+            var changed = false;
+
+            if (sampler.MinFilter != texture.MinFilter)
+            {
+                sampler.MinFilter = texture.MinFilter;
+                changed = true;
+            }
+
+            if (sampler.MagFilter != texture.MagFilter)
+            {
+                sampler.MagFilter = texture.MagFilter;
+                changed = true;
+            }
+
+            if (sampler.WrapS != texture.WrapS)
+            {
+                sampler.WrapS = texture.WrapS;
+                changed = true;
+            }
+
+            if (texture is Texture2D tex2d)
+            {
+                if (sampler.MaxAnisotropy != tex2d.MaxAnisotropy)
+                {
+                    sampler.MaxAnisotropy = tex2d.MaxAnisotropy;
+                    changed = true;
+                }
+
+                if (sampler.WrapT != tex2d.WrapT)
+                {
+                    sampler.WrapT = tex2d.WrapT;
+                    changed = true;
+                }
+
+                if (sampler.BorderColor != tex2d.BorderColor)
+                {
+                    sampler.BorderColor = tex2d.BorderColor;
+                    changed = true;
+                }
+            }
+
+            if (texture is Texture3D tex3d)
+            {
+                if (sampler.WrapR != tex3d.WrapR)
+                {
+                    sampler.WrapR = tex3d.WrapR;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                sampler.Invalidate();
+        }
 
         #endregion
     }

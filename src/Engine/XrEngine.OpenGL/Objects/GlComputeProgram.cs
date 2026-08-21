@@ -6,13 +6,11 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace XrEngine.OpenGL
 {
     public partial class GlComputeProgram : GlBaseProgram
     {
         readonly string _cSource;
-
 
         public GlComputeProgram(GL gl, string cSource, Func<string, string> resolver)
             : base(gl, resolver)
@@ -21,9 +19,9 @@ namespace XrEngine.OpenGL
         }
 
         [MemberNotNull(nameof(Computer))]
-        public override void Build()
+        public override bool Build(string? cachePath = null, Func<ulong, bool>? validateHash = null)
         {
-            Log.Debug(this, "Building program {0}...", _handle);
+            GlDebug.Log(this, "Building program {0}...", _handle);
 
             var cSource = PatchShader(_cSource, ShaderType.ComputeShader);
 
@@ -31,12 +29,11 @@ namespace XrEngine.OpenGL
 
             Create(Computer);
 
-            _values.Clear();
-            _locations.Clear();
-            for (var i = 0; i < _boundBuffers.Length; i++)
-                _boundBuffers[i] = 0;
+            ClearCache();
 
-            Log.Debug(this, "Program built");
+            GlDebug.Log(this, "Program built");
+
+            return true;
         }
 
         public override void Dispose()

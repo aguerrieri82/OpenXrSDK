@@ -7,7 +7,7 @@
     <app:BoolToVisibility x:Key="BoolToVisibility"/>
 
     <DataTemplate DataType="{x:Type local:PropertiesEditor}">
-        <ScrollViewer Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+        <ScrollViewer Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <ScrollViewer.Resources>
                 <DataTemplate DataType="{x:Type local:IconView}">
                     <i:Icon Kind="{Binding Name}" Size="32" Color="{Binding Color}"/>

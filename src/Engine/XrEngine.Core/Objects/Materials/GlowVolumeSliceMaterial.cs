@@ -8,16 +8,14 @@ namespace XrEngine
 
         static GlowVolumeSliceMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new StandardShader
             {
-
                 FragmentSourceName = "glow_vol_slice.frag",
                 GeometrySourceName = "Shared/cube_volume.geom",
                 VertexSourceName = "pass.vert",
                 IsLit = false
             };
         }
-
 
         public GlowVolumeSliceMaterial()
             : base()
