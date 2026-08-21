@@ -7,7 +7,7 @@ namespace XrEngine
 {
     public class ImageReader : BaseTextureLoader
     {
-        static readonly string[] Extensions = [".bmp"];
+        static readonly string[] Extensions = [".bmp", ".webp"];
 
         ImageReader()
         {

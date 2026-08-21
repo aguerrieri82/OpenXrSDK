@@ -8,17 +8,13 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Angle;
 using Silk.NET.Windowing;
 using XrEngine;
-using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrMath;
 using XrSamples.Dnd;
 using XrEngine.Components;
 using OpenXr.Framework;
-using Silk.NET.OpenXR;
 using Silk.NET.Maths;
-using CefSharp.DevTools.Media;
-using Windows.ApplicationModel.Appointments.DataProvider;
 using System.Diagnostics;
 
 namespace XrSamples
@@ -55,7 +51,7 @@ namespace XrSamples
 
             AngleVulkanContext? angle = null;
 
-            bool useAngle = true;
+            bool useAngle = false;
 
             void CreateApp()
             {
@@ -86,7 +82,7 @@ namespace XrSamples
                         Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
                     })
                     .SetRenderQuality(1f, 1)
-                    .CreateDnd()
+                    .CreateGltfTest()
                     .Build()
                     .App;
 

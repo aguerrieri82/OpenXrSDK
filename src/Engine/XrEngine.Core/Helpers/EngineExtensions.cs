@@ -1571,6 +1571,7 @@ namespace XrEngine
                 "image/avif" => ".avif",
                 "image/heic" => ".heic",
                 "image/heif" => ".heif",
+                "image/ktx2" => ".ktx2",
                 _ => null
             };
         }

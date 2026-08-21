@@ -50,12 +50,18 @@ namespace XrEngine.Gltf
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
+            "KHR_texture_basisu",
             "KHR_materials_pbrSpecularGlossiness" };
 
 
         #region STRUCTS
 
         struct EXT_texture_webp
+        {
+            public int? source;
+        }
+
+        struct KHR_texture_basisu
         {
             public int? source;
         }
@@ -251,7 +257,9 @@ namespace XrEngine.Gltf
 
             var webP = TryLoadExtension<EXT_texture_webp>(texture.Extensions);
 
-            texture.Source ??= webP?.source;
+            var basisu = TryLoadExtension<KHR_texture_basisu>(texture.Extensions);
+
+            texture.Source ??= webP?.source ?? basisu?.source;
 
             var imageInfo = _model!.Images[texture.Source!.Value];
 
