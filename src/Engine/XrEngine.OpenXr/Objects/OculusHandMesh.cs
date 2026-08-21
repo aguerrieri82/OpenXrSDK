@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr
 
             Materials.Add(new DepthOnlyMaterial()
             {
-                SkinMode = SkinMode.Static,
+                Skin = SkinMode.Static,
                 HasSkin = true,
             });
 
@@ -31,7 +31,7 @@ namespace XrEngine.OpenXr
             {
                 Color = new Color(1, 1, 1, 0.15f),
                 WriteDepth = false,
-                SkinMode = SkinMode.Static,
+                Skin = SkinMode.Static,
                 HasSkin = true,
                 Alpha = AlphaMode.Blend,
                 FadeStart = -0.051f,
@@ -46,7 +46,7 @@ namespace XrEngine.OpenXr
                 WriteDepth = false,
                 CullFront = true,
                 Priority = 2,
-                SkinMode = SkinMode.Static,
+                Skin = SkinMode.Static,
                 HasSkin = true,
                 Alpha = AlphaMode.Blend,
                 NormalScale = 0.003f,

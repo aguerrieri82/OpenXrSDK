@@ -41,6 +41,8 @@ namespace XrEngine
         public bool IsAndroid;
         public bool IsGlEs;
         public int MaxVertexTextureUnits;
+
+        public bool ScalarBlockLayout { get; set; }
     }
 
     public interface IRenderEngine : IDisposable

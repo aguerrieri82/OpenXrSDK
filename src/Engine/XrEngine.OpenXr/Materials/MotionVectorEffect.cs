@@ -58,7 +58,7 @@ namespace XrEngine.OpenXr
                 Resolver = str => Embedded.GetString<Module>(str)
             };
 
-            SkinMode = SkinMode.Dynamic;
+            Skin = SkinMode.Dynamic;
         }
 
         public void EndPass(Camera camera)

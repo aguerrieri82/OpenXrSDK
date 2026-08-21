@@ -12,7 +12,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = true;
+        public static readonly bool EnableVSync = false;
 
         public static readonly int VSyncScale = 1;
 

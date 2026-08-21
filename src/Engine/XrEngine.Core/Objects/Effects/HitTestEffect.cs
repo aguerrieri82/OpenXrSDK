@@ -2,8 +2,6 @@
 {
     public class HitTestEffect : ShaderMaterial
     {
-        protected ChangeTracker _tracker = new();
-
         public static readonly StandardShader SHADER;
 
         static HitTestEffect()
@@ -19,7 +17,7 @@
             : base()
         {
             _shader = SHADER;
-            SkinMode = SkinMode.Dynamic;
+            Skin = SkinMode.Dynamic;
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)

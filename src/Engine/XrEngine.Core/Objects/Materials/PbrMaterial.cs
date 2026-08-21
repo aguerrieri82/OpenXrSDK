@@ -459,9 +459,6 @@ namespace XrEngine
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
-            if (HasSkin)
-                bld.AddFeature("HAS_SKIN");
-
             if (UseInstanceDraw && bld.Context.UseInstanceDraw)
                 bld.AddFeature("USE_INSTANCE");
 

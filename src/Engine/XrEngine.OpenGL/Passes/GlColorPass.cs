@@ -143,7 +143,6 @@ namespace XrEngine.OpenGL
             return progInst.UpdateProgram(ctx, forceSync);
         }
 
-
         protected void SetBounds(UpdateShaderContext ctx)
         {
 
@@ -272,6 +271,8 @@ namespace XrEngine.OpenGL
 
                     ctx.Model = matContent.SingleModel;
 
+                    Debug.Assert(ctx.Model != null || !ctx.Material!.HasMorph);
+
                     var progChanged = UpdateProgram(ctx, progInst);
 
                     if (!progInst.IsReady)
@@ -280,6 +281,7 @@ namespace XrEngine.OpenGL
                         ctx.Stage = UpdateShaderStage.Shader;
                         progInst.Global.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
                         ctx.Stage = UpdateShaderStage.Material;
+                        ctx.Material = progInst.Material;
                         progChanged = UpdateProgram(ctx, progInst);
                     }
 

@@ -36,7 +36,7 @@ struct MaterialData
 	float planarLevel;
 };
 
-#ifndef VERTEX_SHADER
+#if !defined(VERTEX_SHADER) || defined(HAS_TEX_TRANSFORM)
 
 	#ifdef USE_MATERIAL_SSBO
 

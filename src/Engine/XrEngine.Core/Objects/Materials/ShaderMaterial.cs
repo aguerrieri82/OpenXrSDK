@@ -1,13 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using XrEngine.Components;
 using XrEngine.Objects.Materials.Shaders;
 
 namespace XrEngine
 {
-    public enum SkinMode
-    {
-        Static,
-        Dynamic
-    }
 
     public class ShaderMaterial : Material, IShaderHandler
     {
@@ -15,11 +11,14 @@ namespace XrEngine
         protected Shader _shader;
         protected long _lastLightVersion = -1;
 
+        protected internal readonly ChangeTracker _tracker = new();
+
         protected ShaderMaterial()
         {
             WriteDepth = true;
             UseDepth = true;
             WriteColor = true;
+            Morph = MorphMode.AllTargets;
         }
 
         public ShaderMaterial(Shader shader)
@@ -47,8 +46,11 @@ namespace XrEngine
             base.Reload();
         }
 
+ 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
+            if (HasMorph)
+                return MorphVertexShader.NeedUpdateShader(ctx);
             return false;
         }
 
@@ -66,14 +68,14 @@ namespace XrEngine
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             SkinVertexShader.UpdateShader(bld, true);
-
         }
 
         protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            bld.AddFeature("HAS_SKIN", ctx => HasSkin, SkinMode == SkinMode.Dynamic);
+            bld.AddFeature("HAS_SKIN", ctx => HasSkin, Skin == SkinMode.Dynamic);
 
-            MorphVertexShader.UpdateShader(bld);
+            if (HasMorph)
+                MorphVertexShader.UpdateShader(bld);
         }
 
         public Func<string, string?>? Resolver { get; set; }

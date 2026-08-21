@@ -25,7 +25,7 @@ namespace XrEngine
 
         public HashSet<string>? Extensions;
 
-        public Dictionary<string, string>? Slots;
+        public Dictionary<string, Func<string>>? Slots;
 
         public long ShaderVersion;
 
@@ -403,7 +403,7 @@ namespace XrEngine
             _result.Extensions.Add(name);
         }
 
-        internal void SetSlot(string name, string value)
+        internal void SetSlot(string name, Func<string> value)
         {
             _result.Slots ??= [];
             _result.Slots[name] = value;

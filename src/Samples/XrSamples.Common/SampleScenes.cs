@@ -1406,7 +1406,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/MorphStressTest.glb"), GltfOptions, GetAssetPath);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/FaceAnim.glb"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
 
             scene.AddChild(mesh);

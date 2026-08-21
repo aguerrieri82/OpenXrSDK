@@ -947,7 +947,7 @@ namespace XrEngine.Gltf
                 if (primitive.Material != null)
                 {
                     var mat = ProcessMaterial(primitive.Material.Value);
-                    mat.SkinMode = SkinMode.Static;
+                    mat.Skin = SkinMode.Static;
                     mat.HasSkin = node?.Skin != null;
                     mat.HasMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
@@ -1124,40 +1124,35 @@ namespace XrEngine.Gltf
                 var times = ConvertBuffer<float>(sampler.Input);
                 var values = ConvertBuffer(sampler.Output);
 
+                if (values.Length % times.Length != 0)
+                    throw new InvalidOperationException();
+
                 var ratio = values.Length / times.Length;
+                var valueType = values.GetType().GetElementType()!;
 
                 var gltfSampler = new GltfSampler
                 {
-                    Interpolation = sampler.Interpolation
-                };
-
-                if (ratio == 1)
-                {
-                    gltfSampler.Values = times.Select((v, i) => new GltfSamplerValue
+                    Interpolation = sampler.Interpolation,
+                    Values = [.. times.Select((time, i) =>
                     {
-                        Time = v,
-                        Value = values.GetValue(i)!
-                    }).ToArray();
-                }
-                else
-                {
-                    var valueType = values.GetType().GetElementType()!;
+                        object value;
 
-                    gltfSampler.Values = times.Select((v, i) =>
-                    {
-                        var valueArray = Array.CreateInstance(valueType, ratio);
-
-                        for (var j = 0; j < ratio; j++)
-                            valueArray.SetValue(values.GetValue((i * ratio) + j)!, j);
+                        if (ratio == 1)
+                            value = values.GetValue(i)!;
+                        else
+                        {
+                            var array = Array.CreateInstance(valueType, ratio);
+                            Array.Copy(values, i * ratio, array, 0, ratio);
+                            value = array;
+                        }
 
                         return new GltfSamplerValue
                         {
-                            Time = v,
-                            Value = valueArray
+                            Time = time,
+                            Value = value
                         };
-
-                    }).ToArray();
-                }
+                    })]
+                };
 
                 samplers.Add(gltfSampler);
             }
@@ -1179,7 +1174,8 @@ namespace XrEngine.Gltf
                 var sampler = samplers[channel.Sampler];
                 var obj3d = _nodes[channel.Target.Node.Value];
                 var path = channel.Target.Path;
- 
+
+                Debug.Assert(sampler.Values != null);
 
                 TimeFunctionDelegate timeFunc;
 
@@ -1194,12 +1190,12 @@ namespace XrEngine.Gltf
                 {
                     group.Add(new StepAnimation<Vector3>()
                     {
-                        Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<Vector3>
                         {
                             Time = a.Time,
                             Value = (Vector3)a.Value,
                             TimeFunction = timeFunc
-                        }).ToArray(),
+                        })],
                         IterationCount = 1,
                         Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Scale = t.Value
@@ -1209,12 +1205,12 @@ namespace XrEngine.Gltf
                 {
                     group.Add(new StepAnimation<Vector3>()
                     {
-                        Steps = sampler.Values!.Select(a => new AnimationStep<Vector3>
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<Vector3>
                         {
                             Time = a.Time,
                             Value = (Vector3)a.Value,
                             TimeFunction = timeFunc
-                        }).ToArray(),
+                        })],
                         IterationCount = 1,
                         Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Position = t.Value
@@ -1224,12 +1220,12 @@ namespace XrEngine.Gltf
                 {
                     group.Add(new StepAnimation<Quaternion>()
                     {
-                        Steps = sampler.Values!.Select(a => new AnimationStep<Quaternion>
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<Quaternion>
                         {
                             Time = a.Time,
                             Value = ((Vector4)a.Value).ToQuaternion(),
                             TimeFunction = timeFunc
-                        }).ToArray(),
+                        })],
                         IterationCount = 1,
                         Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Orientation = t.Value
@@ -1239,12 +1235,13 @@ namespace XrEngine.Gltf
                 {
                     group.Add(new StepAnimation<float[]>()
                     {
-                        Steps = sampler.Values!.Select(a => new AnimationStep<float[]>
+                        Steps = [.. sampler.Values.Select(a => new AnimationStep<float[]>
                         {
                             Time = a.Time,
                             Value = (float[])a.Value,
                             TimeFunction = timeFunc
-                        }).ToArray(),
+                        })],
+
                         IterationCount = 1,
                         Name = anim.Name,
                         SetTarget = t =>

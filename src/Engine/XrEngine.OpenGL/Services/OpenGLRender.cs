@@ -154,6 +154,8 @@ namespace XrEngine.OpenGL
             _features.TessellationShader = _extensions.Contains("GL_EXT_tessellation_shader") ||
                                            _extensions.Contains("GL_OES_tessellation_shader");
 
+            _features.ScalarBlockLayout = _extensions.Contains("GL_EXT_scalar_block_layout");
+
             _features.ShaderFramebufferFetch = _extensions.Contains("GL_EXT_shader_framebuffer_fetch");
 
             _features.Multiview2 = _extensions.Contains("GL_OVR_multiview2");

@@ -96,6 +96,8 @@ namespace XrEngine.OpenGL
 
         public bool UpdateProgram(UpdateShaderContext ctx, bool forceSync = false)
         {
+            Debug.Assert(ctx.Material == Material);
+
             if (_createTask != null)
             {
                 if (!_createTask.IsCompleted)
@@ -273,11 +275,10 @@ namespace XrEngine.OpenGL
                     program.AddDynamicFeature(feature);
             }
 
-
             if (_materialUpdate.Slots != null)
             {
                 foreach (var entry in _materialUpdate.Slots)
-                    program.SetSlot(entry.Key, entry.Value);
+                    program.SetSlot(entry.Key, entry.Value());
             }
 
             if (Global.ShaderUpdate?.Extensions != null)

@@ -29,25 +29,21 @@ namespace XrEngine
 
     public class MorphedGeometry : BaseComponent<Geometry3D>, IGeometryComponent, IVertexAttributes
     {
+        long _morphVersion;
+        long _textureDataVersion;
+        Texture2D? _texture;
 
-        public Texture2D CreateTexture()
+        public MorphedGeometry()
         {
-            var data = UpdateTextureData();
-
-            return new Texture2D
-            {
-                Data = [data],
-                Width = data.Width,
-                Height = data.Height,
-                Format = TextureFormat.RgbFloat16,
-                MagFilter = ScaleFilter.Nearest,
-                MinFilter = ScaleFilter.Nearest,
-                MipLevelCount = 0
-            };
+            StorageType = MorphStorageType.Texture;
         }
+
 
         public unsafe void UpdateBuffer(IBuffer<Vector3> buffer)
         {
+            if (StorageType != MorphStorageType.Ssbo)
+                throw new InvalidOperationException();
+
             Debug.Assert(Targets != null);
 
             var count = Targets.Sum(t => t.Components.Sum(c => c.Values.Length));
@@ -66,11 +62,7 @@ namespace XrEngine
                     {
                         var size = component.Values.Length * sizeof(Vector3);
 
-                        Buffer.MemoryCopy(
-                            pSrc,
-                            pDst,
-                            size,
-                            size);
+                        Buffer.MemoryCopy(pSrc, pDst, size, size);
 
                         pDst += component.Values.Length;
                     }
@@ -78,7 +70,35 @@ namespace XrEngine
             }
         }
 
-        public unsafe TextureData UpdateTextureData()
+        public Texture2D UpdateTexture()
+        {
+            if (StorageType != MorphStorageType.Texture)
+                throw new InvalidOperationException();
+
+            if (_texture == null || _textureDataVersion != _morphVersion)
+            {
+                var data = UpdateTextureData();
+
+                _texture ??= new Texture2D
+                {
+                    Width = data.Width,
+                    Height = data.Height,
+                    Format = TextureFormat.RgbFloat16,
+                    MagFilter = ScaleFilter.Nearest,
+                    MinFilter = ScaleFilter.Nearest,
+                    WrapS = WrapMode.ClampToEdge,
+                    WrapT = WrapMode.ClampToEdge,
+                    MipLevelCount = 0
+                };
+
+                _texture.Data = [data];
+                _textureDataVersion = _morphVersion;
+            }
+
+            return _texture;
+        }
+
+        protected unsafe TextureData UpdateTextureData()
         {
             Debug.Assert(Targets != null);
 
@@ -168,6 +188,7 @@ namespace XrEngine
             throw new InvalidOperationException();
         }
 
+   
         public MorphTarget[]? Targets { get; set; }
 
         public MorphStorageType StorageType { get; set; }

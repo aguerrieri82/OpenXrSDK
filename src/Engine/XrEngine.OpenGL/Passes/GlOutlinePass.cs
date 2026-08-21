@@ -192,7 +192,7 @@ namespace XrEngine.OpenGL
                 Color = Color.White,
                 WriteDepth = false,
                 UseDepth = false,
-                SkinMode = SkinMode.Dynamic
+                Skin = SkinMode.Dynamic
             };
         }
 

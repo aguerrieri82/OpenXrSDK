@@ -27,6 +27,19 @@ namespace XrEngine
         Always = 0x0207
     }
 
+    public enum SkinMode
+    {
+        Static,
+        Dynamic
+    }
+
+    public enum MorphMode
+    {
+        NotEmptyTargets,
+        AllTargets,
+        DynamicTargets,
+    }
+
     public abstract partial class Material : EngineObject, IHosted, IMaterial
     {
         protected HashSet<EngineObject> _hosts = [];
@@ -139,7 +152,9 @@ namespace XrEngine
 
         public AlphaMode Alpha { get; set; }
 
-        public SkinMode SkinMode { get; set; }
+        public SkinMode Skin { get; set; }
+
+        public MorphMode Morph { get; set; }
 
         public bool HasSkin { get; set; }
 
