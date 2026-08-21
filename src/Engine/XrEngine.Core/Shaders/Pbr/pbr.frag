@@ -509,7 +509,6 @@ bool pointInsideVolume(vec3 p, vec3 minV, vec3 maxV)
 void main()
 {
 
-
 #if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
 	if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
 	{
@@ -524,7 +523,7 @@ void main()
 #endif
 
 	//FragmentProperties frag = [custom_code];
-#slot FRAGMENT_LOADER
+	#slot FRAGMENT_LOADER
 
 	vec3 N = frag.normal;
 	vec3 V = frag.viewDir;
@@ -567,9 +566,10 @@ void main()
 #ifdef USE_OCCLUSION_MAP
 	float ao = mix(1.0, frag.occlusion, uMaterial.occlusionStrength);
 	
-#if PBR_OCCLUSION_AFFECTS_DIRECT
-	directLighting *= ao;
-#endif
+	#if PBR_OCCLUSION_AFFECTS_DIRECT
+		directLighting *= ao;
+	#endif
+
 	ambientLighting *= ao;
 #endif
 
@@ -582,16 +582,17 @@ void main()
 #if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
 	float shadow = calculateShadow(fPosLightSpace, N, shadowLightDir);
 
-#ifdef TRANSPARENT
-	vec3 color3 = shadow * uMaterial.shadowColor.rgb;
-	a = shadow * uMaterial.shadowColor.a;
-#else
-	vec3 shadowFactor = vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
+	#ifdef TRANSPARENT
+		vec3 color3 = shadow * uMaterial.shadowColor.rgb;
+		a = shadow * uMaterial.shadowColor.a;
+	#else
+		vec3 shadowFactor = vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
 
-	vec3 color3 =
-		directLighting * shadowFactor +
-		ambientLighting * mix(vec3(1.0), shadowFactor, uIblShadowStrength);
-#endif
+		vec3 color3 =
+			directLighting * shadowFactor +
+			ambientLighting * mix(vec3(1.0), shadowFactor, uIblShadowStrength);
+	#endif
+
 #else
 	vec3 color3 = directLighting + ambientLighting;
 #endif
@@ -615,19 +616,21 @@ void main()
 #endif
 
 #ifdef USE_EMISSIVE
+
     vec3 emissive = uMaterial.emissive.rgb;
 
-#ifdef USE_EMISSIVE_MAP
-        emissive *= frag.emissive.rgb * frag.emissive.a;
+	#ifdef USE_EMISSIVE_MAP
+		emissive *= frag.emissive.rgb * frag.emissive.a;
+	#endif
+	
+	color3 += emissive;
+
 #endif
 
-    color3 += emissive;
-#endif
+	doPostRgb(color3);
 
-doPostRgb(color3);
-
-#if defined(SRGB_ENCODE) 
-    color3.rgb = linearTosRGB(color3.rgb);
+#ifdef SRGB_ENCODE
+	color3.rgb = linearTosRGB(color3.rgb);
 #endif
 
 #ifdef USE_DEPTH_NOISE
@@ -658,4 +661,5 @@ doPostRgb(color3);
 	color.rgb =	evaluateLightFieldRadiance(frag.position, frag.normal) * uMaterial.occlusionStrength;
 	color.a = 1.0;
 #endif
+
 }
