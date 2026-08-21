@@ -14,5 +14,7 @@
 
         public const int VertexTransform = 7;
 
+        public const int Iridescence = 8;
+
     }
 }

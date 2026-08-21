@@ -19,6 +19,8 @@ namespace XrMath
 
             if (array.Length == 4)
                 A = array[3];
+            else
+                A = 1f;
             IsSrgb = true;
         }
 

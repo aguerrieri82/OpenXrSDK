@@ -482,9 +482,39 @@ namespace XrEngine.Gltf
                     if (volume.Value.thicknessTexture.TexCoord != 0)
                         throw new NotSupportedException();
 
-                    var texId = volume.Value.thicknessTexture.Index;
-                    result.ThicknessMap = ProcessTextureTask(texId, volume.Value.thicknessTexture.Extensions).Result;
+                    var texInfo = volume.Value.thicknessTexture;
+                    result.ThicknessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
                 }
+            }
+
+            if (irid != null)
+            {
+                result.IridescenceFactor = irid.Value.iridescenceFactor;
+                result.IridescenceThicknessMax = irid.Value.iridescenceThicknessMaximum;
+                result.IridescenceThicknessMin = irid.Value.iridescenceThicknessMinimum;
+                result.IridescenceIor = irid.Value.iridescenceIor;
+
+                if (result.IridescenceThicknessMax == 0)
+                    result.IridescenceThicknessMax = 400f;
+
+                if (result.IridescenceThicknessMin == 0)
+                    result.IridescenceThicknessMin = 100f;
+
+                if (result.IridescenceIor == 0)
+                    result.IridescenceIor = 1.3f;
+
+                if (irid.Value.iridescenceThicknessTexture != null)
+                {
+                    var texInfo = irid.Value.iridescenceThicknessTexture;
+                    result.IridescenceThicknessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                }
+
+                if (irid.Value.iridescenceTexture != null)
+                {
+                    var texInfo = irid.Value.iridescenceTexture;
+                    result.IridescenceMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                }
+       
             }
 
             AssignAsset(result, "mat", matId);

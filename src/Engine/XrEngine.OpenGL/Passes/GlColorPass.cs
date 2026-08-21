@@ -206,7 +206,7 @@ namespace XrEngine.OpenGL
             {
                 var ctx = _renderer.UpdateContext;
 
-                var downsample = 2u;
+                var downsample = (uint)_renderer.Options.RefractionDownsampleFactor;
 
                 var colorSize = ctx.PassCamera!.ViewSize;
 

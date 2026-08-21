@@ -29,5 +29,8 @@
 
         public const int ThicknessMap = 13;
 
+        public const int IridescenceMap = 14;
+
+        public const int IridescenceThicknessMap = 15;
     }
 }

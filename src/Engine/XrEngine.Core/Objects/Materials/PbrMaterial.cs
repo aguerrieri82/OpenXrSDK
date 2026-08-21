@@ -1,5 +1,6 @@
 ﻿
 
+using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -656,6 +657,47 @@ namespace XrEngine
                 bld.SetUniform("uLightFieldOfs", ctx => LightFieldOfs);
             }
 
+            if (HasIridescence)
+            {
+                bld.AddFeature("USE_IRIDESCENCE");
+
+                if (IridescenceThicknessMap != null)
+                {
+                    bld.AddFeature("USE_IRIDESCENCE_THICKNESS_MAP");
+                }
+                if (IridescenceMap != null)
+                {
+                    bld.AddFeature("USE_IRIDESCENCE_MAP");
+                }
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (IridescenceMap != null)
+                        up.LoadTexture(IridescenceMap, TextureSlots.IridescenceMap);
+                    if (IridescenceThicknessMap != null)
+                        up.LoadTexture(IridescenceThicknessMap, TextureSlots.IridescenceThicknessMap);
+                });
+
+                bld.LoadBuffer(ctx =>
+                {
+                    var curVer = _contentVersion + _version;
+
+                    if (ctx.CurrentBuffer == null || curVer == ctx.CurrentBuffer.Version)
+                        return null;
+
+                    ctx.CurrentBuffer!.Version = curVer;
+
+                    return (IridescenceUniforms?)new IridescenceUniforms
+                    {
+                        Factor = IridescenceFactor,
+                        Ior =  IridescenceIor,
+                        ThicknessMaximum = IridescenceThicknessMax,
+                        ThicknessMinimum = IridescenceThicknessMin
+
+                    };
+                }, UniformsSlots.Iridescence, BufferStore.Material);
+            }
+
             if (HasRefraction)
             {
                 bld.AddFeature("USE_REFRACTION");
@@ -807,19 +849,48 @@ namespace XrEngine
 
         public Matrix4x4? ColorMapProjection { get; set; }
 
+        [Category("Volume")]
         public float Ior { get; set; }
 
+        [Category("Volume")]
+        [Range(0, 0.1f, 0.001f)]
         public float Thickness { get; set; }
 
+        [Category("Volume")]
+        [Range(0, 1, 0.01f)]
         public float AttenuationDistance { get; set; }
 
+        [Category("Volume")]
         public Color AttenuationColor { get; set; }
 
+        [Category("Volume")]
+        [Range(0, 1, 0.01f)]
         public float TransmissionFactor { get; set; }
 
+        [Category("Volume")]
         public Texture2D ThicknessMap { get; set; }
 
+        [Category("Iridescence")]
+        public float IridescenceFactor { get; set; }
+
+        [Category("Iridescence")]
+        public float IridescenceIor { get; set; }
+
+        [Category("Iridescence")]
+        public float IridescenceThicknessMin { get; set; }
+
+        [Category("Iridescence")]
+        public float IridescenceThicknessMax { get; set; }
+
+        [Category("Iridescence")]
+        public Texture2D? IridescenceThicknessMap { get; set; }
+
+        [Category("Iridescence")]
+        public Texture2D? IridescenceMap { get; set; }
+
         public bool HasRefraction => Thickness > 0;
+
+        public bool HasIridescence => IridescenceFactor > 0;
 
         public static bool ForceIblTransform { get; set; }
 

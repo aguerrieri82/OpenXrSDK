@@ -70,6 +70,7 @@ namespace XrEngine.OpenGL
             UseRayCollider = true;
             UseDefaultIntermediate = true;
             UsePrimitiveBoundingBox = true;
+            RefractionDownsampleFactor = 1;
             ContactShadow = new()
             {
                 Use = false,
@@ -178,6 +179,6 @@ namespace XrEngine.OpenGL
 
         public bool UseRefraction { get; set; }
 
-
+        public int RefractionDownsampleFactor { get; set; }
     }
 }
