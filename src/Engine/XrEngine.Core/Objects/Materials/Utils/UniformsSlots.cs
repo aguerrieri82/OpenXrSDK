@@ -10,5 +10,8 @@
         public const int MultiView = 10;
 
         public const int Morph = 6;
+
+        public const int VertexTransform = 7;
+
     }
 }

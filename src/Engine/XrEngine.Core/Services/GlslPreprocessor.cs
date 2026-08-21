@@ -478,7 +478,7 @@ public sealed class GlslPreprocessor
             GlslScopeTracker scope)
         {
             if (_slots == null || !_slots.TryGetValue(name, out var source))
-                throw new GlslPreprocessorException(fileName, lineNumber, $"Slot '{name}' has no replacement.");
+                source = "";
 
             if (!_activeSlots.Add(name))
                 throw new GlslPreprocessorException(fileName, lineNumber, $"Recursive slot expansion detected for '{name}'.");
