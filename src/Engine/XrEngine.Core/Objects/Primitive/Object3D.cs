@@ -376,6 +376,11 @@ namespace XrEngine
                 parts.Add(Name ?? GetType().Name);
         }
 
+        public override Object3D Clone(ObjectCloneFlags flags = ObjectCloneFlags.None)
+        {
+            return (Object3D)base.Clone(flags);
+        }
+
         protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
             var obj3d = (Object3D)newObj;

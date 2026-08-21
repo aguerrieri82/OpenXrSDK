@@ -1,4 +1,5 @@
-﻿
+﻿#include "[XrEngine.Core]Pbr/pbr_defaults.glsl"
+
 uniform vec4 uCanColor;
 
 FragmentProperties LoadFragmentPropertiesCanColor(vec3 canColor)

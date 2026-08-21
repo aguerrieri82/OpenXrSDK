@@ -2,7 +2,7 @@
 #include "Shared/position.glsl"
 #include "Shared/vertex_post.glsl"
 
-#ifdef HAS_SKIN
+#ifdef USE_SKIN
     #include "Shared/skin.glsl"
 #endif
 
@@ -66,6 +66,8 @@ out vec2 fUv;
     #include "shared/motion_vectors.glsl"
 #endif
 
+#slot VS_INCLUDES
+
 void main()
 {
     mat4 worldMatrix = uModel.worldMatrix;
@@ -97,13 +99,15 @@ void main()
         );
     #endif
 
-    #ifdef HAS_SKIN
+    #ifdef USE_SKIN
         skinTransform(position, normal);
     #endif
 
     #ifdef NORMAL_SCALE
         position += normalize(normal) * NORMAL_SCALE;
     #endif
+
+    #slot VERTEX_LOCAL_TRANSFORMS
 
     vec4 pos = worldMatrix * vec4(position, 1.0);
     vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));

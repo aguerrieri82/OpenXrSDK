@@ -50,7 +50,7 @@ namespace XrEngine.OpenXr
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.AddFeature("USE_CAMERA_POS");
-            bld.AddFeature("HAS_SKIN");
+            bld.AddFeature("USE_SKIN");
 
             bld.LoadBuffer<Uniforms>(ctx =>
             {

@@ -16,7 +16,7 @@ namespace XrEngine.OpenGL
 {
     public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
     {
-        static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions
+        static readonly JsonSerializerOptions JSON_OPTIONS = new()
         {
             IncludeFields = true,
             WriteIndented = true,
@@ -40,6 +40,7 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly Dictionary<string, string> _slots = [];
+        protected Dictionary<ShaderType, HashSet<string>>? _includes;
         protected readonly int[] _boundBuffers = new int[32];
         protected readonly bool _cacheUniforms;
 
@@ -564,6 +565,17 @@ namespace XrEngine.OpenGL
             _slots[name] = value;
         }
 
+        public void Include(string inc, ShaderType shaderType)
+        {
+            _includes ??= [];
+            if (!_includes.TryGetValue(shaderType, out var list))
+            {
+                list = new HashSet<string>();
+                _includes[shaderType] = list;
+            }
+            list.Add(inc);
+        }
+
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
             var builder = new StringBuilder();
@@ -606,10 +618,17 @@ namespace XrEngine.OpenGL
             {
                 foreach (var feature in _mergedFetaures)
                     builder.Append("#define ").Append(feature).Append('\n');
-            }
 
-            if (shaderType == ShaderType.VertexShader)
-                builder.Append("#define V_SHADER\n");
+                if (_includes != null && _includes.TryGetValue(shaderType, out var includes))
+                {
+                    builder.AppendLine();
+
+                    foreach (var inc in includes)
+                        builder.Append("#include \"").Append(inc).Append('\"').AppendLine();
+
+                    builder.AppendLine();
+                }
+            }
 
             PatchShader(shaderType, builder);
 
@@ -623,7 +642,15 @@ namespace XrEngine.OpenGL
                     .Select(a => new GlslRuntimeDefine(a, a))
                     .ToArray();
 
-                var source = preProc.Process(sourceName, _mergedFetaures, runDefine, _slots);
+                if (_includes == null || !_includes.TryGetValue(shaderType, out var includes))
+                    includes = null;
+
+                var source = preProc.Process(
+                    sourceName, 
+                    _mergedFetaures, 
+                    runDefine, 
+                    _slots,
+                    includes);
 
                 builder.Append(source);
             }

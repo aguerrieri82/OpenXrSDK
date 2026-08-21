@@ -129,11 +129,11 @@ namespace XrEngine
             }
         }
 
-        public new Geometry3D Clone(ObjectCloneFlags flags = ObjectCloneFlags.None)
+        public override Geometry3D Clone(ObjectCloneFlags flags = ObjectCloneFlags.None)
         {
             return (Geometry3D)base.Clone(flags);
         }
-
+ 
         protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
             var geo = (Geometry3D)newObj;

@@ -4,7 +4,7 @@
     {
         public static void UpdateShader(ShaderUpdateBuilder bld, bool isDynamic = false)
         {
-            if (!isDynamic && (bld.Context.Material == null || !bld.Context.Material!.HasSkin))
+            if (!isDynamic && (bld.Context.Material == null || !bld.Context.Material!.UseSkin))
                 return;
 
             bld.LoadBufferArray(ctx =>

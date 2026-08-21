@@ -281,6 +281,12 @@ namespace XrEngine.OpenGL
                     program.SetSlot(entry.Key, entry.Value());
             }
 
+            if (_materialUpdate.IncludesFs != null)
+            {
+                foreach (var inc in _materialUpdate.IncludesFs)
+                    program.Include(inc, ShaderType.FragmentShader);
+            }
+
             if (Global.ShaderUpdate?.Extensions != null)
             {
                 foreach (var ext in Global.ShaderUpdate.Extensions)

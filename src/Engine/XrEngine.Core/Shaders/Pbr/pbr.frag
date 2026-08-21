@@ -95,10 +95,6 @@ struct FragmentProperties
 	vec4 emissive;
 };
 
-// Compile-time injected material/fragment loader.
-// Replace this include with a generated variant when needed.
-#include "[fragment_defaults.glsl]"
-
 float saturate(float v)
 {
 	return clamp(v, 0.0, 1.0);
@@ -431,6 +427,8 @@ bool pointInsideVolume(vec3 p, vec3 minV, vec3 maxV)
 		   all(lessThanEqual(p, maxV));
 }
 
+#slot FS_INCLUDES
+
 void main()
 {
 #if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
@@ -446,7 +444,8 @@ void main()
 		discard;
 #endif
 
-	FragmentProperties frag = LOAD_FRAGMENT_PROPS;
+	//FragmentProperties frag = [custom_code];
+	#slot FRAGMENT_LOADER
 
 	vec3 N = frag.normal;
 	vec3 V = frag.viewDir;

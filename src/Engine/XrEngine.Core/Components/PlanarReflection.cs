@@ -64,7 +64,7 @@ namespace XrEngine
             MaterialOverride.UseClipDistance = UseClipPlane;
 
             if (material is ShaderMaterial mat)
-                MaterialOverride.HasSkin = mat.HasSkin;
+                MaterialOverride.UseSkin = mat.UseSkin;
 
             if (material is IPbrMaterial pbr)
             {

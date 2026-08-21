@@ -19,6 +19,8 @@ namespace XrEngine
 
         public List<UpdateBufferAction>? BufferUpdates;
 
+        public HashSet<string>? IncludesFs;
+
         public SortedSet<string>? Features;
 
         public SortedSet<string>? DynamicFeatures;
@@ -403,10 +405,10 @@ namespace XrEngine
             _result.Extensions.Add(name);
         }
 
-        internal void SetSlot(string name, Func<string> value)
+        public void SetSlot(string name, Func<string> getCode)
         {
             _result.Slots ??= [];
-            _result.Slots[name] = value;
+            _result.Slots[name] = getCode;
         }
 
         public readonly void ComputeHash(string shaderId)

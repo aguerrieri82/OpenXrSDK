@@ -5,20 +5,15 @@ namespace XrSamples.Graffiti
 {
     public class CanMaterial : PbrMaterial
     {
-        public CanMaterial()
-        {
-
-            FragmentDefaultLoader = $"LoadFragmentPropertiesCanColor(uCanColor.rgb)";
-
-            FragmentDefaultShader = Embedded.GetString("Pbr/pbr_defaults.glsl") +
-                                    Embedded.GetString<Can>("can_pbr.glsl");
-
-        }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            bld.SetUniform("uCanColor", (_) => CanColor);
             base.UpdateShaderMaterial(bld);
+
+            bld.SetSlot("FS_INCLUDES", () => "#include \"[XrSamples.Graffiti]can_pbr.glsl\"");
+            bld.SetSlot("FRAGMENT_LOADER", () => "FragmentProperties frag = LoadFragmentPropertiesCanColor(uCanColor.rgb);");
+
+            bld.SetUniform("uCanColor", (_) => CanColor);
         }
 
         public Color CanColor { get; set; }

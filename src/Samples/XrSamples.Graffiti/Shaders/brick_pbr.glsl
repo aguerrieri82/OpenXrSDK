@@ -1,4 +1,7 @@
-﻿layout(std140, binding = 15) uniform BrickUniforms
+﻿#include "[XrEngine.Core]Pbr/pbr_defaults.glsl"
+
+
+layout(std140, binding = 15) uniform BrickUniforms
 {
     vec2  uWallSize;
     float uNoiseScale;

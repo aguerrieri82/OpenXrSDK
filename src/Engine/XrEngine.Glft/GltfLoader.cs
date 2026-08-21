@@ -956,8 +956,8 @@ namespace XrEngine.Gltf
                 {
                     var mat = ProcessMaterial(primitive.Material.Value);
                     mat.Skin = SkinMode.Static;
-                    mat.HasSkin = node?.Skin != null;
-                    mat.HasMorph = weights != null && weights.Length > 0;
+                    mat.UseSkin = node?.Skin != null;
+                    mat.UseMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
                 }
 

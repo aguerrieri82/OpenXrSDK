@@ -437,25 +437,14 @@ namespace XrEngine
             ForceIblTransform = false;
             LightFieldOfs = 1.5f;
             UseLightField = UseLightFieldMode.Full;
-            Resolver = str =>
-            {
-                if (str.Contains("[fragment_defaults.glsl]"))
-                {
-                    if (!string.IsNullOrWhiteSpace(FragmentDefaultShader))
-                        return FragmentDefaultShader;
-
-                    return Embedded.GetString("Pbr/pbr_defaults.glsl");
-                }
-
-                return null;
-            };
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             PlanarReflection? planar = null;
 
-            bld.AddFeature($"LOAD_FRAGMENT_PROPS {FragmentDefaultLoader ?? "LoadFragmentProperties()"}");
+            bld.SetSlot("FS_INCLUDES", () => "#include \"./pbr_defaults.glsl\"");
+            bld.SetSlot("FRAGMENT_LOADER", () => "FragmentProperties frag = LoadFragmentProperties();");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
@@ -763,10 +752,6 @@ namespace XrEngine
         public UseLightFieldMode UseLightField { get; set; }
 
         public bool UseInstanceDraw { get; set; }
-
-        public string? FragmentDefaultShader { get; set; }
-
-        public string? FragmentDefaultLoader { get; set; }
 
         public Matrix3x3? UV0Transform { get; set; }
 

@@ -154,7 +154,7 @@ namespace XrEngine.OpenGL
 
             Debug.Assert(ctx.Material != null && ctx.Model != null && ctx.PassCamera != null);
 
-            if (ctx.Material.HasSkin)
+            if (ctx.Material.UseSkin)
                 return;
 
             ctx.UsePrimitiveBoundingBox = true;
@@ -271,7 +271,7 @@ namespace XrEngine.OpenGL
 
                     ctx.Model = matContent.SingleModel;
 
-                    Debug.Assert(ctx.Model != null || !ctx.Material!.HasMorph);
+                    Debug.Assert(ctx.Model != null || !ctx.Material!.UseMorph);
 
                     var progChanged = UpdateProgram(ctx, progInst);
 

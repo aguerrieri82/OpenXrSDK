@@ -6,14 +6,13 @@ namespace XrSamples.Graffiti
 {
     public class BrickMaterial : PbrMaterial
     {
-        public BrickMaterial()
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            base.UpdateShaderMaterial(bld);
 
-            FragmentDefaultLoader = $"LoadFragmentPropertiesBrick()";
-
-            FragmentDefaultShader = Embedded.GetString("Pbr/pbr_defaults.glsl") +
-                                    Embedded.GetString<BrickMaterial>("brick_pbr.glsl");
-
+            bld.SetSlot("FS_INCLUDES", () => "#include \"[XrSamples.Graffiti]brick_pbr.glsl\"");
+            bld.SetSlot("FRAGMENT_LOADER", () => "FragmentProperties frag = LoadFragmentPropertiesBrick();");
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)

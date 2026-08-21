@@ -109,11 +109,11 @@ namespace XrEngine.OpenGL
         {
             var effect = instance.Material;
 
-            var hasSkin = drawMaterial is ShaderMaterial mat && mat.HasSkin;
-            var isChanged = hasSkin != effect.HasSkin;
+            var hasSkin = drawMaterial is ShaderMaterial mat && mat.UseSkin;
+            var isChanged = hasSkin != effect.UseSkin;
 
             effect.DoubleSided = drawMaterial.DoubleSided;
-            effect.HasSkin = hasSkin;
+            effect.UseSkin = hasSkin;
 
             var result = base.UpdateProgram(instance, updateContext, drawMaterial);
 

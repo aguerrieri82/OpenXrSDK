@@ -54,7 +54,8 @@ public sealed class GlslPreprocessor
     public int MaxIncludeDepth { get; set; } = 64;
 
     public string Process(string sourceName, IReadOnlyList<string>? defines = null,
-        IReadOnlyList<GlslRuntimeDefine>? runtimeDefines = null, IReadOnlyDictionary<string, string>? slots = null)
+    IReadOnlyList<GlslRuntimeDefine>? runtimeDefines = null, IReadOnlyDictionary<string, string>? slots = null,
+    IReadOnlySet<string>? includeFiles = null)
     {
         if (sourceName == null)
             throw new ArgumentNullException(nameof(sourceName));
@@ -73,7 +74,25 @@ public sealed class GlslPreprocessor
             }
         }
 
-        return context.Complete(context.ProcessFile(sourceName, 0));
+        var result = new StringBuilder();
+
+        if (includeFiles != null)
+        {
+            var basePath = Path.GetDirectoryName(sourceName) ?? string.Empty;
+
+            foreach (var includeFile in includeFiles)
+            {
+                if (string.IsNullOrWhiteSpace(includeFile))
+                    continue;
+
+                var includePath = NormalizePath(Path.Join(basePath, includeFile));
+                result.Append(context.ProcessFile(includePath, 1));
+            }
+        }
+
+        result.Append(context.ProcessFile(sourceName, 0));
+
+        return context.Complete(result.ToString());
     }
 
     private static string NormalizePath(string path)

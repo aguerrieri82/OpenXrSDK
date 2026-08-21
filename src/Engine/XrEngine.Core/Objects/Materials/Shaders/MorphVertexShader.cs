@@ -59,9 +59,9 @@ namespace XrEngine.Objects.Materials.Shaders
 
             var material = ctx.Material!;
 
-            return material._tracker.IsChanged(() => material.HasMorph) ||
+            return material._tracker.IsChanged(() => material.UseMorph) ||
                    material._tracker.IsChanged(() => material.Morph) ||
-                   (material.HasMorph &&
+                   (material.UseMorph &&
                    material.Morph == MorphMode.NotEmptyTargets &&
                    material._tracker.IsChanged(() => InnerWeightMask()));
         }

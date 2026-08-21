@@ -160,8 +160,6 @@ namespace XrEngine
 
         protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
-            base.CloneWork(newObj, flags);
-
             var mesh = (TriangleMesh)newObj;
 
             var curGeo = _originalGeometry ?? _geometry;
@@ -182,6 +180,8 @@ namespace XrEngine
 
                 mesh._materials.Add(newMat);
             }
+
+            base.CloneWork(newObj, flags);
         }
 
         [Action]
