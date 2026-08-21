@@ -24,6 +24,14 @@ const float Epsilon = 0.00001;
 
 const vec3 Fdielectric = vec3(0.04);
 
+#if ALPHA_MODE != ALPHA_OPAQUE && ALPHA_MODE != ALPHA_MASK && defined(USE_ALPHA_SPECULAR)
+	#define ALPHA_SPECULAR
+#endif
+
+#ifdef ALPHA_SPECULAR
+	float specularStrength;
+#endif
+
 #define DEBUG_UV         1
 #define DEBUG_NORMAL     2
 #define DEBUG_TANGENT    3
@@ -221,6 +229,12 @@ vec3 evaluateDirectLight(
 	#endif
 
 	vec3 specularBRDF = F * specularTerm;
+
+	#ifdef ALPHA_SPECULAR
+		vec3 specularLighting = specularBRDF * radiance * NoL;
+		specularStrength += max(specularLighting.r, max(specularLighting.g, specularLighting.b));
+	#endif
+
 	vec3 brdf = diffuseBRDF + specularBRDF;
 
 	#ifdef USE_IRIDESCENCE
@@ -462,6 +476,10 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 		vec2 specularBRDF = texture(specularBRDF_LUT, vec2(NoV, frag.roughness)).rg;
 		vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
 
+		#ifdef ALPHA_SPECULAR
+			specularStrength += max(specularIBL.r, max(specularIBL.g, specularIBL.b));
+		#endif
+
 		ambientLighting = diffuseIBL + specularIBL;
 
 		#ifdef USE_IRIDESCENCE
@@ -559,6 +577,10 @@ void main()
 		frag.albedo);
 #endif
 
+	#ifdef ALPHA_SPECULAR
+		specularStrength = 0.0;
+	#endif
+
 	vec3 shadowLightDir;
 	vec3 directLighting = evaluatePunctualLighting(frag, shadowLightDir);
 	vec3 ambientLighting = evaluateAmbientLighting(frag, R, NoV);
@@ -635,6 +657,10 @@ void main()
 
 #ifdef USE_DEPTH_NOISE
 	color3 = addNoise(color3);
+#endif
+
+#ifdef ALPHA_SPECULAR
+	a = mix(a, 1.0, saturate(specularStrength * uMaterial.alphaSpecularScale));
 #endif
 
 	color = vec4(color3 * uCamera.exposure, a);

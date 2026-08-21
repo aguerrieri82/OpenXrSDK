@@ -34,6 +34,7 @@ struct MaterialData
 	vec4 emissive;
 	float planarFactor;
 	float planarLevel;
+	float alphaSpecularScale;
 };
 
 #if !defined(VERTEX_SHADER) || defined(HAS_TEX_TRANSFORM)

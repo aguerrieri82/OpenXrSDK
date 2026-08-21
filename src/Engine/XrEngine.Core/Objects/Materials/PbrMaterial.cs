@@ -72,6 +72,9 @@ namespace XrEngine
 
             [FieldOffset(148)]
             public float PlanarReflectionLevel;
+
+            [FieldOffset(152)]
+            public float AlphaSpecularScale;
         }
 
         #endregion
@@ -173,6 +176,7 @@ namespace XrEngine
             {
                 UseDepthCulling = true;
                 UseMotionVectors = true;
+
             }
 
             public override bool NeedUpdateShader(UpdateShaderContext ctx)
@@ -439,6 +443,7 @@ namespace XrEngine
             ForceIblTransform = false;
             LightFieldOfs = 1.5f;
             UseLightField = UseLightFieldMode.Full;
+            AlphaSpecularScale = 0.5f;
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
@@ -488,6 +493,7 @@ namespace XrEngine
                     OcclusionStrength = OcclusionStrength,
                     NormalScale = NormalScale,
                     AlphaCutoff = AlphaCutoff,
+                    AlphaSpecularScale = AlphaSpecularScale,
                     EmissiveColor = EmissiveColor,
                     TexTransform = (ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity).ToVector4x3(),
                     PlanarReflectionStrength = planar?.Strength ?? 0,
@@ -747,6 +753,9 @@ namespace XrEngine
                 }, UniformsSlots.Volume, BufferStore.Material);
             }
 
+            if (AlphaSpecularScale > 0)
+                bld.AddFeature("USE_ALPHA_SPECULAR");
+
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
 
@@ -829,6 +838,9 @@ namespace XrEngine
 
         public float AlphaCutoff { get; set; }
 
+        [Range(0, 2, 0.01f)]
+        public float AlphaSpecularScale { get; set; }
+
         public float NormalScale { get; set; }
 
         public bool UseEnvDepth { get; set; }
@@ -868,7 +880,7 @@ namespace XrEngine
         public float TransmissionFactor { get; set; }
 
         [Category("Volume")]
-        public Texture2D ThicknessMap { get; set; }
+        public Texture2D? ThicknessMap { get; set; }
 
         [Category("Iridescence")]
         public float IridescenceFactor { get; set; }
