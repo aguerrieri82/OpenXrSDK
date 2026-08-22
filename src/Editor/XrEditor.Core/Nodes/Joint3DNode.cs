@@ -1,6 +1,4 @@
-﻿using XrEditor.Services;
-using XrEngine;
-using XrEngine.Objects;
+﻿using XrEngine;
 
 namespace XrEditor.Nodes
 {

@@ -133,7 +133,6 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-
         public GlShader? Vertex { get; set; }
 
         public GlShader? Fragment { get; set; }

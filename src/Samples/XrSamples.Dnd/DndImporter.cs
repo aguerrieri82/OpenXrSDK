@@ -1,10 +1,8 @@
-﻿using Amazon.Runtime.Internal.Compression;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using XrEngine;
-using XrEngine.Compression;
 using XrMath;
 
 #pragma warning disable 8618

@@ -46,7 +46,6 @@ namespace XrEngine.OpenGL
 
         protected ulong _sourceHash;
 
-
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
             _glOptions = OpenGLRender.Current?.Options ?? throw new InvalidOperationException("No active OpenGLRender");
@@ -646,9 +645,9 @@ namespace XrEngine.OpenGL
                     includes = null;
 
                 var source = preProc.Process(
-                    sourceName, 
-                    _mergedFetaures, 
-                    runDefine, 
+                    sourceName,
+                    _mergedFetaures,
+                    runDefine,
                     _slots,
                     includes);
 

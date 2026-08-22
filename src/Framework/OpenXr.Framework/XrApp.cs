@@ -15,7 +15,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using XrMath;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
@@ -79,7 +78,7 @@ namespace OpenXr.Framework
         protected readonly Dictionary<string, XrHaptic> _haptics = [];
         protected readonly List<string> _extensions = [];
         protected readonly List<string> _apiLayers = [];
-        protected Dictionary<string, IList<string>> _interactionProfiles =[];
+        protected Dictionary<string, IList<string>> _interactionProfiles = [];
         protected readonly IXrPlugin[] _plugins;
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
@@ -105,7 +104,6 @@ namespace OpenXr.Framework
 
         public delegate void ConfigureStruct<T>(ref T data) where T : unmanaged;
 
-
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
         {
@@ -128,7 +126,7 @@ namespace OpenXr.Framework
             _extensions.Add(KhrVisibilityMask.ExtensionName);
             _extensions.Add(ExtDebugUtils.ExtensionName);
             _extensions.Add("XR_EXT_hand_interaction");
-            
+
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
 #if !__ANDROID__
@@ -364,7 +362,7 @@ namespace OpenXr.Framework
             if (_win32Time == null && !_xr!.TryGetInstanceExtension(null, _instance, out _win32Time))
                 throw new NotSupportedException();
 
-            long winTime = Stopwatch.GetTimestamp();
+            var winTime = Stopwatch.GetTimestamp();
             long result = 0;
             CheckResult(_win32Time!.ConvertWin32PerformanceCounterToTime(_instance, ref winTime, ref result), "ConvertWin32PerformanceCounterToTime");
             return result;
@@ -1563,7 +1561,7 @@ namespace OpenXr.Framework
 
             var buffer = new byte[512];
 
-            uint bufferSize = (uint)buffer.Length;
+            var bufferSize = (uint)buffer.Length;
 
             CheckResult(_xr!.PathToString(_instance, path, ref bufferSize, buffer), "PathToString");
 
@@ -1751,7 +1749,6 @@ namespace OpenXr.Framework
 
             return PathToString(state.InteractionProfile);
         }
-
 
         protected virtual void OnInteractionProfileChanged()
         {

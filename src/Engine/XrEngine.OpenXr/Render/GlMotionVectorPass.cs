@@ -8,7 +8,6 @@ using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
-using Silk.NET.Vulkan;
 using OpenXr.Framework.Angle;
 
 namespace XrEngine.OpenXr

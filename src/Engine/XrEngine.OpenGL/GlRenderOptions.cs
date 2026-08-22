@@ -175,7 +175,7 @@ namespace XrEngine.OpenGL
 
         public bool UseDefaultIntermediate { get; set; }
 
-        public bool UsePrimitiveBoundingBox { get;  set; }
+        public bool UsePrimitiveBoundingBox { get; set; }
 
         public bool UseRefraction { get; set; }
 

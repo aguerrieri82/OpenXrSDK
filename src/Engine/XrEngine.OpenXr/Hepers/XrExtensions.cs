@@ -292,7 +292,6 @@ namespace XrEngine.OpenXr
         {
             OpenGLRender renderer;
 
-
             if (!app.HasRenderer)
             {
                 var driver = xrApp.Plugin<IXrGraphicDriver>();
@@ -322,7 +321,7 @@ namespace XrEngine.OpenXr
 
                 vulkanCtx ??= Context.Require<AngleVulkanContext>();
 
-                var colorImg = vulkanCtx.AttachVulkanImage(info.ColorImages[swapIndex], info.Color[0]); 
+                var colorImg = vulkanCtx.AttachVulkanImage(info.ColorImages[swapIndex], info.Color[0]);
 
                 if (info.DepthImages == null || info.Depth == null)
                     return (colorImg.Texture, 0);
@@ -344,7 +343,7 @@ namespace XrEngine.OpenXr
 
                 if (XrDevice.IsMetaQuest)
                 {
-                    info.RenderedSize =  info.Layer.GetRecommendedResolution(info.DisplayTime);
+                    info.RenderedSize = info.Layer.GetRecommendedResolution(info.DisplayTime);
 
                     if (info.RenderedSize != null)
                     {
@@ -414,7 +413,6 @@ namespace XrEngine.OpenXr
                     eyes[i].ViewProjInv = eyes[i].ViewProj.Invert();
                 }
 
-      
                 if (info.Mode == XrRenderMode.SingleEye)
                 {
                     app.BeginFrame();

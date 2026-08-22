@@ -282,7 +282,6 @@ namespace XrEngine
             GeneratePath(parts);
             return string.Join("/", parts);
         }
-     
 
         public virtual void GeneratePath(List<string> parts)
         {
@@ -336,7 +335,6 @@ namespace XrEngine
             newObj.Flags = Flags;
             newObj.Tag = Tag;
         }
-
 
         public EngineObjectFlags Flags { get; set; }
 

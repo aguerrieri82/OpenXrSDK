@@ -13,7 +13,6 @@ namespace XrEngine
         protected Bounds3 _localBounds;
         internal bool _localBoundsDirty;
 
-
         public TriangleMesh()
         {
             _materials = [];
@@ -247,8 +246,6 @@ namespace XrEngine
         #region IVertexSource
 
         EngineObject IVertexSource.Host => _geometry!;
-
-
 
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 

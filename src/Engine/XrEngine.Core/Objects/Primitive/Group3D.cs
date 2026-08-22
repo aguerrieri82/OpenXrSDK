@@ -20,7 +20,7 @@ namespace XrEngine
             newGrp.BoundUpdateMode = BoundUpdateMode;
 
             foreach (var child in _children)
-                newGrp.AddChild((Object3D)child.Clone(flags));
+                newGrp.AddChild(child.Clone(flags));
 
             base.CloneWork(newObj, flags);
         }

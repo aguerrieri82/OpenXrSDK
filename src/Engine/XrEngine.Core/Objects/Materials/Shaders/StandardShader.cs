@@ -215,7 +215,6 @@ namespace XrEngine
 
         public static readonly StandardShader Instance = new();
 
-
         public bool UseMotionVectors { get; set; }
 
         public Type InstanceBufferType => typeof(ModelUniforms);

@@ -57,7 +57,6 @@ namespace XrEngine.Gltf
             "KHR_materials_iridescence",
             "KHR_materials_pbrSpecularGlossiness" };
 
-
         #region STRUCTS
 
         struct KHR_materials_ior
@@ -170,7 +169,6 @@ namespace XrEngine.Gltf
             public InterpolationEnum Interpolation;
 
         }
-
 
         #endregion
 
@@ -514,7 +512,7 @@ namespace XrEngine.Gltf
                     var texInfo = irid.Value.iridescenceTexture;
                     result.IridescenceMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
                 }
-       
+
             }
 
             AssignAsset(result, "mat", matId);
@@ -567,11 +565,11 @@ namespace XrEngine.Gltf
             {
                 if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
                     type = typeof(Vector4);
-                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                     type = typeof(Vector4US);
-                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
                     type = typeof(Vector4UB);
-                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
                     type = typeof(Vector4I);
                 else
                     throw new NotImplementedException();
@@ -868,7 +866,7 @@ namespace XrEngine.Gltf
                             result.Indices = ConvertBuffer<ushort>(acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
-                        
+
                         else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
                             result.Indices = ConvertBuffer<uint>(acc);
 
@@ -1061,7 +1059,6 @@ namespace XrEngine.Gltf
                     curMesh.Materials.Add(mat);
                 }
 
-
                 if (group == null)
                 {
                     _meshes[gltMesh] = curMesh;
@@ -1115,7 +1112,7 @@ namespace XrEngine.Gltf
 
             if (node.Mesh != null)
             {
-                Object3D nodeMesh = ProcessMesh(node.Mesh.Value, node);
+                var nodeMesh = ProcessMesh(node.Mesh.Value, node);
 
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
@@ -1209,7 +1206,7 @@ namespace XrEngine.Gltf
 
             Debug.Assert(matrices != null && matrices.Length == skinObj.Joints.Count);
 
-            for (var i = 0; i < skinObj.Joints.Count;i++)
+            for (var i = 0; i < skinObj.Joints.Count; i++)
                 skinObj.Joints[i].InverseBindMatrix = matrices[i];
 
             _skins[skinId] = skinObj;
@@ -1264,7 +1261,6 @@ namespace XrEngine.Gltf
 
                 samplers.Add(gltfSampler);
             }
-
 
             var group = new AnimationGroup()
             {
@@ -1385,7 +1381,6 @@ namespace XrEngine.Gltf
             foreach (var nodeId in glScene.Nodes)
                 ProcessNode(nodeId, scene, false);
 
-
             return scene;
         }
 
@@ -1443,7 +1438,6 @@ namespace XrEngine.Gltf
                 else
                     break;
             }
-
 
             ProcessAnimations(curRoot);
 

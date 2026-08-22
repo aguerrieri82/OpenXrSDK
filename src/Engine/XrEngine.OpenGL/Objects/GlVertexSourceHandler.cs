@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 
-
 namespace XrEngine.OpenGL
 {
     public abstract class GlVertexSourceHandle : IDisposable
@@ -139,7 +138,6 @@ namespace XrEngine.OpenGL
             return layout;
         }
 
-
         protected bool UpdateMainLayout(out GlVertexLayout? layout)
         {
             if (_lastComponents == _source.ActiveComponents)
@@ -209,13 +207,13 @@ namespace XrEngine.OpenGL
 
             foreach (var attrs in _source.Host.Components<IVertexAttributes>())
             {
-                for (int i = 0; i < attrs.BufferCount; i++)
+                for (var i = 0; i < attrs.BufferCount; i++)
                 {
                     var attrBuffer = attrs.GetBuffer(i);
                     _vertices.UpdateAttributes(attrBuffer.Data, i);
                 }
             }
-      
+
             Version = _sourceObject.Version;
 
             _source.NotifyLoaded();
@@ -232,7 +230,7 @@ namespace XrEngine.OpenGL
 
         public override IVertexSource Source => _source;
 
-        public override bool NeedUpdate => _source.Host != null && 
+        public override bool NeedUpdate => _source.Host != null &&
                             (_source.Host.Version != Version || Version == -1 || _sourceObject != _source.Host);
 
         public override GlVertexLayout Layout => _vertices.MainLayout;

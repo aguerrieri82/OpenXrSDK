@@ -13,9 +13,9 @@
             return vertSrc != null &&
                    vertSrc.Materials.
                         OfType<ShaderMaterial>().
-                        Any(a => (a.Alpha == AlphaMode.Opaque || 
-                                  a.Alpha == AlphaMode.BlendMain || 
-                                  a.Alpha == AlphaMode.Mask) && 
+                        Any(a => (a.Alpha == AlphaMode.Opaque ||
+                                  a.Alpha == AlphaMode.BlendMain ||
+                                  a.Alpha == AlphaMode.Mask) &&
                                  (a is not IRefractionMaterial refMat || !refMat.HasRefraction));
         }
 

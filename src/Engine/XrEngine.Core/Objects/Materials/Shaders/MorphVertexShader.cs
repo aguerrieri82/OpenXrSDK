@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using XrEngine.Components;
 
@@ -125,7 +123,6 @@ namespace XrEngine
                 foreach (var component in morphGeo.Targets[targetIndex].Components)
                     bld.AddFeature($"MORPH_{targetIndex}_{component.Component}");
             }
-
 
             bld.SetSlot(ShaderSlots.ApplyMorph, () => GenerateSource(morphGeo, targetCount, mode, weightMask));
 

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XrEngine.Devices;
-
-namespace XrEngine.Devices
-{ 
+﻿namespace XrEngine.Devices
+{
     public class CameraRefractionSource : BaseComponent<Scene3D>, IScreenRefractionSource
     {
         private CameraController? _controller;
@@ -36,7 +31,7 @@ namespace XrEngine.Devices
         public int Priority => -1;
 
         public string LeftMainId { get; }
-        
+
         public string? RightId { get; }
 
     }

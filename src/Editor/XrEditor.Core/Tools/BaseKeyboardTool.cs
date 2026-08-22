@@ -1,7 +1,5 @@
-﻿using System.Numerics;
-using XrEngine;
+﻿using XrEngine;
 using XrInteraction;
-using XrMath;
 
 namespace XrEditor
 {

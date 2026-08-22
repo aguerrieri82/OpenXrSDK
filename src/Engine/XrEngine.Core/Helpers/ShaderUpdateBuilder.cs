@@ -423,7 +423,7 @@ namespace XrEngine
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
         }
 
-    
+
         public StringBuilder Logs { get; } = new StringBuilder();
 
         public UpdateShaderContext Context { get; }

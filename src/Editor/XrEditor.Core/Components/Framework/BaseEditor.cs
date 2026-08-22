@@ -142,7 +142,6 @@ namespace XrEditor
             set => Binding = (IProperty<TValue>?)value;
         }
 
-
         public object? Host { get; set; }
 
         public event Action<IPropertyEditor>? ValueChanged;

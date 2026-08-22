@@ -31,7 +31,7 @@ namespace XrSamples.Graffiti
             _brush = _host.Scene!.Descendants<SprayBrush>().First();
 
             Debug.Assert(_brush.Geometry != null);
-            
+
             _intersets = new Vector3[_brush.Geometry.Vertices.Length];
             _rays = new Ray3[_brush.Geometry.Vertices.Length];
             _originalGeo = _brush.Geometry.Clone();

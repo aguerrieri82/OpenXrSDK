@@ -3,7 +3,6 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
-using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -76,7 +75,7 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(XrApp.Current != null);
 
-            var refFrame = XrApp.Current.ReferenceFrame.ToMatrix(); 
+            var refFrame = XrApp.Current.ReferenceFrame.ToMatrix();
 
             for (var i = 0; i < _skinMatrices.Length; i++)
             {

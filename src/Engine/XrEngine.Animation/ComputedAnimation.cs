@@ -1,11 +1,10 @@
 ﻿namespace XrEngine.Animation
 {
 
-
     public static class ComputedAnimation
     {
         public static ComputedAnimation<TValue> Create<TValue>(
-            ComputeFunctionDelegate<TValue> getValue, 
+            ComputeFunctionDelegate<TValue> getValue,
             float duration = 1)
         {
             return new ComputedAnimation<TValue>(new DelegateComputeFunction<TValue>(getValue, duration));

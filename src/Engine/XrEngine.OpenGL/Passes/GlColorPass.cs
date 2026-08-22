@@ -8,7 +8,6 @@ using XrEngine.Helpers;
 using System.Numerics;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Silk.NET.Core.Native;
 
 namespace XrEngine.OpenGL
 {
@@ -66,7 +65,7 @@ namespace XrEngine.OpenGL
                 _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
 
                 if (ctx.Bugs.NvMultiViewClipBug &&
-                    ctx.ClipRegions != null && 
+                    ctx.ClipRegions != null &&
                     ctx.ClipRegions.Length > 1 &&
                     ctx.IsMultiView)
                 {
@@ -172,11 +171,10 @@ namespace XrEngine.OpenGL
             }
 
             _bounds.PrimitiveBoundingBox(
-                min.X, min.Y, min.Z, min.W, 
+                min.X, min.Y, min.Z, min.W,
                 max.X, max.Y, max.Z, max.W);
 #endif
         }
-
 
         protected virtual void ConfigureCaps(ShaderMaterial material)
         {
@@ -197,7 +195,6 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ClipDistance3, enableClipRegions);
             glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
-
 
         [MemberNotNull(nameof(_colorCopyEffect))]
         protected void PrepareColorCopy()
@@ -234,7 +231,7 @@ namespace XrEngine.OpenGL
 
             if (!_renderer.Features.ShaderFramebufferFetch)
             {
-                var color = (_renderer.RenderTarget?.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture()) ?? 
+                var color = (_renderer.RenderTarget?.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture()) ??
                     throw new NotSupportedException();
 
                 _colorCopyEffect.SourceTexture = (Texture2D)color;

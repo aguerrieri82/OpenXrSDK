@@ -11,7 +11,7 @@ namespace XrSamples.Graffiti
             base.UpdateShaderMaterial(bld);
 
             bld.SetFsIncludes("[XrSamples.Graffiti]can_pbr.glsl");
-            bld.SetSlot(ShaderSlots.FragmentLoader, 
+            bld.SetSlot(ShaderSlots.FragmentLoader,
                 () => "FragmentProperties frag = LoadFragmentPropertiesCanColor(uCanColor.rgb);");
 
             bld.SetUniform("uCanColor", (_) => CanColor);

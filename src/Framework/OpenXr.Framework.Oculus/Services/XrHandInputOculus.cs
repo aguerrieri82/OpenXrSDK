@@ -1,12 +1,10 @@
-﻿using Common.Interop;
-using Silk.NET.OpenXR;
+﻿using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus
 {
-
 
     public enum XrHandAimFinger
     {
@@ -23,7 +21,6 @@ namespace OpenXr.Framework.Oculus
         public bool IsPinching;
     }
 
-
     public class XrHandInputOculus : XrHandInput
     {
         private readonly OculusXrPlugin _oculus;
@@ -35,7 +32,6 @@ namespace OpenXr.Framework.Oculus
         private bool _isAimValid;
         private Pose3 _aimPose;
         protected readonly XrHandAimState[] _aimStates = new XrHandAimState[4];
-
 
         public XrHandInputOculus(XrApp app) : base(app)
         {
@@ -158,7 +154,6 @@ namespace OpenXr.Framework.Oculus
             _mesh = _oculus.GetHandMesh(_tracker);
             _mesh.Type = _handType;
         }
-
 
         public bool UseUnextrapolatedPoses { get; set; }
 

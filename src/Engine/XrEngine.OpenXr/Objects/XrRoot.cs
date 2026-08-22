@@ -148,11 +148,10 @@ namespace XrEngine.OpenXr
                 model.Name = "Controller";
 
                 model.Descendants<Joint3D>()
-                    .First(a=> a.Name!.EndsWith("oculus_controller_world"))
+                    .First(a => a.Name!.EndsWith("oculus_controller_world"))
                     .Transform.Orientation = Quaternion.Identity;
 
                 group.AddChild(model);
-
 
             }
 

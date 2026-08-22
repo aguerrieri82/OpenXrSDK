@@ -7,7 +7,6 @@
             return new AnimationBuilder<THost>(self);
         }
 
-
         public static IAnimationControl Animate<TOptions>(this Object3D self, string animationName, TOptions options)
         {
             var manager = self.Scene!.EnsureComponent<AnimationManager>();
@@ -25,7 +24,7 @@
             var control = manager.Create(anim, self);
 
             control.Play();
-            
+
             return control;
         }
 

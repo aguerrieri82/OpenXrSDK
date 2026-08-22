@@ -35,7 +35,7 @@ namespace XrSamples
             {
                 SampleName = "DnD",
                 Msaa = 1,
-                Scale = 0.5f, 
+                Scale = 0.5f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,

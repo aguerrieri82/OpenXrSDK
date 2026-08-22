@@ -177,7 +177,6 @@ namespace XrEngine
 
         public bool UseMorph { get; set; }
 
-
         public int ShadingRate { get; set; }
 
         public string? Name { get; set; }

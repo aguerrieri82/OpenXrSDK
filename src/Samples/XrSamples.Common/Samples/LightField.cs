@@ -1,11 +1,11 @@
 using OpenXr.Framework.Oculus;
 using System.Numerics;
+using System.Xml.Linq;
 using XrEngine;
 using XrEngine.Gltf;
+using XrEngine.Lighting;
 using XrEngine.OpenXr;
 using XrMath;
-using XrEngine.Lighting;
-using System.Xml.Linq;
 
 namespace XrSamples
 {

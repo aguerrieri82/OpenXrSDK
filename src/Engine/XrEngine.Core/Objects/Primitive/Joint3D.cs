@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
@@ -12,7 +8,7 @@ namespace XrEngine
 
         [ValueType(ValueType.Radiant)]
         public float Min { get; set; }
-        
+
         [ValueType(ValueType.Radiant)]
         public float Max { get; set; }
 
@@ -65,7 +61,7 @@ namespace XrEngine
 
             canvas.Save();
 
-            canvas.State.Color = _isSelected? "#ffff00" : "#ffffff";
+            canvas.State.Color = _isSelected ? "#ffff00" : "#ffffff";
 
             canvas.DrawLine(start, p0);
             canvas.DrawLine(start, p1);

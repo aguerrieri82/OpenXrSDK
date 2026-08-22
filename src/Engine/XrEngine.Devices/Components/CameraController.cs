@@ -69,7 +69,6 @@ namespace XrEngine.Devices
             return status;
         }
 
-
         static Rect2 CalcSensorCropRegion(
             float sensorWidth,
             float sensorHeight,

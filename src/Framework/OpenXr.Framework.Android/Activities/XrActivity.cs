@@ -42,7 +42,7 @@ namespace OpenXr.Framework.Android
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            
+
             Window!.AddFlags(global::Android.Views.WindowManagerFlags.KeepScreenOn);
 
             OnLoad();

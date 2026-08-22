@@ -85,7 +85,7 @@ namespace XrEngine.OpenGL
             effect.UseSkin = hasSkin;
 
             var result = base.UpdateProgram(instance, updateContext, drawMaterial);
-            
+
             if (result == UpdateProgramResult.Skip)
                 return UpdateProgramResult.Skip;
 

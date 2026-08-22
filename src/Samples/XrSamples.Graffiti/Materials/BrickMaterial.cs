@@ -23,7 +23,7 @@ namespace XrSamples.Graffiti
                     return null;
 
                 return BrickUniforms.CreateDefault(geo);
-           
+
             }, 15, BufferStore.Material);
 
             base.UpdateShaderModel(bld);

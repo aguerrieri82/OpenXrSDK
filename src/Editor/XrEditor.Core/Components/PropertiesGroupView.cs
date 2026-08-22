@@ -221,7 +221,6 @@ namespace XrEditor
             foreach (var item in _properties)
                 item.Dispose();
 
-
             GC.SuppressFinalize(this);
         }
 

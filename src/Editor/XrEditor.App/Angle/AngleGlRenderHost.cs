@@ -3,7 +3,6 @@
 using Silk.NET.OpenGLES.Extensions.EXT;
 using ExtClipControl = Silk.NET.OpenGLES.Extensions.EXT.ExtClipControl;
 #else
-using Silk.NET.OpenGL;
 #endif
 
 using OpenXr.Framework.Angle;

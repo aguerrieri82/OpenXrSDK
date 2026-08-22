@@ -16,7 +16,6 @@ namespace XrEngine.OpenGL
         private IGlRenderTargetFB? _renderTarget;
         private readonly bool _imageMode;
 
-
         public GlDepthCopyPass(OpenGLRender renderer, bool multiView, bool imageMode)
             : base(renderer)
         {
@@ -29,7 +28,6 @@ namespace XrEngine.OpenGL
             _effect = new DepthCopyFromColorEffect();
 
             _imageMode = imageMode;
-
 
             _flags = GlRenderPassFlags.CustomCamera;
 

@@ -425,8 +425,6 @@ public unsafe class NvidiaProfiles : IDisposable
         public NvDrsSettingValue CurrentValue;
     }
 
-
-
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate nint NvapiQueryInterface(uint id);
 

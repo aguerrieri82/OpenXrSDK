@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using XrMath;
 
 namespace XrEngine
@@ -80,7 +77,6 @@ namespace XrEngine
             }
 
         }
-
 
         public void UpdateBounds()
         {

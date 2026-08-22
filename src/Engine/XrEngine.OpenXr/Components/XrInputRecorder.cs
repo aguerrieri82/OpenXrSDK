@@ -1,6 +1,4 @@
 ﻿using OpenXr.Framework;
-using Silk.NET.OpenXR;
-using System.Text.Json;
 
 namespace XrEngine.OpenXr
 {

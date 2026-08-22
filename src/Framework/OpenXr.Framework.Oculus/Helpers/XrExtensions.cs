@@ -46,8 +46,6 @@ namespace OpenXr.Framework
                 await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
         }
 
-
-
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {
             var result = new List<XrAnchor>();

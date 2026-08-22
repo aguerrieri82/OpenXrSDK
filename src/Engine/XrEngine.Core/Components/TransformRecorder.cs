@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 
 namespace XrEngine.Components
 {
@@ -20,7 +17,7 @@ namespace XrEngine.Components
 
         protected override bool CreateFrame(TransformRecordFrame frame)
         {
-            if (RemoveDuplicated && _session!.Frames!.Count > 0 && 
+            if (RemoveDuplicated && _session!.Frames!.Count > 0 &&
                 _session.Frames[^1].WorldMatrix == _host.WorldMatrix)
                 return false;
 

@@ -76,7 +76,6 @@ namespace XrEngine
             }
         }
 
-
         public virtual void UpdateBounds()
         {
             _bounds = this.ComputeBounds(Matrix4x4.Identity);
@@ -91,7 +90,6 @@ namespace XrEngine
                     item.UpdateBounds();
             }
         }
-
 
         public Bounds3 Bounds
         {
@@ -133,17 +131,17 @@ namespace XrEngine
         {
             return (Geometry3D)base.Clone(flags);
         }
- 
+
         protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
             var geo = (Geometry3D)newObj;
 
             geo.Vertices = new VertexData[_vertices.Length];
             Array.Copy(_vertices, geo.Vertices, _vertices.Length);
-           
+
             geo.Indices = new uint[_indices.Length];
             Array.Copy(_indices, geo.Indices, _indices.Length);
-            
+
             geo.ActiveComponents = ActiveComponents;
             geo._bounds = _bounds;
             geo._boundsDirty = _boundsDirty;

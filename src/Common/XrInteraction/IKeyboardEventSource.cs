@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrInteraction
+﻿namespace XrInteraction
 {
     public enum KeyCode
     {
@@ -42,15 +38,12 @@ namespace XrInteraction
         Pa1 = 170, DbeEnterDialogConversionMode = 170, OemClear = 171, DeadCharProcessed = 172
     }
 
-
-
     public struct KeyboardEvent
     {
         public KeyCode Key;
     }
 
     public delegate void KeyboardEventDelegate(KeyboardEvent ev);
-
 
     public interface IKeyboardEventSource
     {

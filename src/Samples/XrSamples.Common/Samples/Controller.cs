@@ -2,7 +2,6 @@ using System.Numerics;
 using XrEngine;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
-using System.Xml.Linq;
 
 namespace XrSamples
 {

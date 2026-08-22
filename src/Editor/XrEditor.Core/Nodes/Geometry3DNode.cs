@@ -1,7 +1,6 @@
 ﻿using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
-using XrEngine.Objects;
 
 namespace XrEditor.Nodes
 {
@@ -25,7 +24,6 @@ namespace XrEditor.Nodes
             if (_value is IGeneratedContent generated)
                 generated.Build();
         }
-
 
         public override IconView? Icon => new()
         {

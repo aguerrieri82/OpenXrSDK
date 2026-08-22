@@ -27,7 +27,6 @@ namespace XrEngine
             WriteColor = false;
         }
 
-
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (IsMultiView)
@@ -70,7 +69,7 @@ namespace XrEngine
                 _tracker.IsChanged(() => DownsampleFactor) ||
                 _tracker.IsChanged(() => IsMultiView);
         }
-        
+
         public bool IsMultiView { get; set; }
 
         public Texture2D? SourceTexture { get; set; }

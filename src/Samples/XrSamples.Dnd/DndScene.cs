@@ -3,7 +3,6 @@ using OpenXr.Framework;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
-using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
@@ -39,7 +38,6 @@ namespace XrSamples.Dnd
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
 
-
             _player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
             _player.Transform.SetScale(0.3f, 1.0f, 0.3f);
             _player.Transform.LocalPivot = new Vector3(0, -0.5f, 0);
@@ -55,7 +53,7 @@ namespace XrSamples.Dnd
             AddChild(_player);
 
 #if __ANDROID__
-            
+
             _scene!.AddComponent<StatsEmitter>();
 
             var cameraPlayer = _scene!.ActiveCamera!.AddComponent<XrCameraPlayer>();

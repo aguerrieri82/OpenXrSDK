@@ -1,21 +1,19 @@
 ﻿#if GLES
 #else
-using Silk.NET.OpenGL;
 #endif
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
 using OpenXr.Framework.Angle;
+using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using System.Diagnostics;
 using XrEngine;
+using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrMath;
-using XrSamples.Dnd;
-using XrEngine.Components;
-using OpenXr.Framework;
-using Silk.NET.Maths;
-using System.Diagnostics;
 
 namespace XrSamples
 {
@@ -28,7 +26,6 @@ namespace XrSamples
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
-
 
         public static Task Run(IServiceProvider services)
         {
@@ -51,7 +48,7 @@ namespace XrSamples
 
             AngleVulkanContext? angle = null;
 
-            bool useAngle = false;
+            var useAngle = false;
 
             void CreateApp()
             {
@@ -89,7 +86,6 @@ namespace XrSamples
                 if (useAngle)
                     Context.TryRequire(out angle);
             }
-
 
             var options = WindowOptions.Default;
 
@@ -168,7 +164,7 @@ namespace XrSamples
                         angle.SwapBuffers();
                     else
                         view.SwapBuffers();
- 
+
                     if ((DateTime.Now - lastEmitTime).TotalSeconds > 1)
                     {
                         Log.Info(typeof(WindowSceneApp), "{0} FPS", app.Stats.Fps);

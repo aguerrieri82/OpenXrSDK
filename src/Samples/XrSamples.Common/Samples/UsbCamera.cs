@@ -1,10 +1,8 @@
-using XrEngine.Media;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Devices;
-
+using XrEngine.Media;
 using XrEngine.OpenXr;
-
 
 namespace XrSamples
 {

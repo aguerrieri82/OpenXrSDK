@@ -14,18 +14,17 @@ using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework.Oculus
 {
-    
+
     public class FoavetionInfo
     {
         public bool Use { get; set; }
 
-        public bool IsDynamic { get; set; } 
+        public bool IsDynamic { get; set; }
 
         public FoveationLevelFB Level { get; set; }
 
         public float Offset { get; set; }
     }
-
 
     public class OculusXrPluginOptions
     {
@@ -128,7 +127,6 @@ namespace OpenXr.Framework.Oculus
 
         PauseSimultaneousHandsAndControllersTrackingMETADelegate? PauseSimultaneousHandsAndControllersTracking;
 
-
         #endregion
 
         protected class ActiveQuery
@@ -191,7 +189,6 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBHandTrackingMesh.ExtensionName);
             extensions.Add(FBColorSpace.ExtensionName);
 
-
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
             extensions.Add("XR_META_spatial_entity_mesh");
@@ -214,7 +211,7 @@ namespace OpenXr.Framework.Oculus
         public unsafe override void OnInstanceCreated()
         {
             Debug.Assert(_app != null);
-            
+
             _app.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
@@ -237,12 +234,12 @@ namespace OpenXr.Framework.Oculus
 
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
             RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
- 
+
             if (!_app.IsMetaSimulator)
             {
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
                 SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
-      
+
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
                 GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
 
@@ -820,7 +817,7 @@ namespace OpenXr.Framework.Oculus
         {
             if (_options.Foavetion == null || !_options.Foavetion.Use)
                 return;
-            
+
             if (_app.IsMetaSimulator)
                 return;
 
@@ -996,8 +993,7 @@ namespace OpenXr.Framework.Oculus
         public unsafe XrHandMesh GetHandMesh(HandTrackerEXT tracker)
         {
 
-
-var mesh = new HandTrackingMeshFB
+            var mesh = new HandTrackingMeshFB
             {
                 Type = StructureType.HandTrackingMeshFB
             };
@@ -1116,7 +1112,6 @@ var mesh = new HandTrackingMeshFB
                 {
                     _handsDataSources = new(_options.HandDataSources.Length, typeof(HandTrackingDataSourceEXT));
                     _handsDataSources.CopyFrom(_options.HandDataSources);
-
 
                     _handDataSourceInfo.Value = new HandTrackingDataSourceInfoEXT
                     {

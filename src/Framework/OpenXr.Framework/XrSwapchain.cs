@@ -15,7 +15,6 @@ namespace OpenXr.Framework
         protected NativeArray<SwapchainImageBaseHeader>? _images;
         protected SwapchainCreateInfo _info;
 
-
         public XrSwapchain(XrApp xrApp, int usageCount = 1)
         {
             _xrApp = xrApp;

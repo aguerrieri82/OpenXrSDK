@@ -8,7 +8,6 @@ using OpenXr.Framework;
 using OpenXr.Framework.Angle;
 using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
-using Silk.NET.Vulkan;
 using System.Diagnostics;
 using XrEngine.OpenGL;
 using XrEngine.UI;

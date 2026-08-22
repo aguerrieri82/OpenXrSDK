@@ -66,7 +66,7 @@ namespace XrEngine.OpenXr
             _app = app;
             _app.Renderer = renderEngine;
 
-            _xrApp = _platform.CreateXrApp([xrDriver, ..Options.XrPlugins]);
+            _xrApp = _platform.CreateXrApp([xrDriver, .. Options.XrPlugins]);
 
             _xrApp.RenderOptions.SampleCount = _options.UseIntermediate ? 1 : _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;

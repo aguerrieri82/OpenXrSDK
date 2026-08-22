@@ -1,5 +1,4 @@
 ﻿
-
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -696,7 +695,7 @@ namespace XrEngine
                     return (IridescenceUniforms?)new IridescenceUniforms
                     {
                         Factor = IridescenceFactor,
-                        Ior =  IridescenceIor,
+                        Ior = IridescenceIor,
                         ThicknessMaximum = IridescenceThicknessMax,
                         ThicknessMinimum = IridescenceThicknessMin
 

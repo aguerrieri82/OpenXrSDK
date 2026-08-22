@@ -93,7 +93,6 @@ namespace XrEngine
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool RdcIsAttached();
 
-
         [DllImport(LibName)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern unsafe bool ImageDecodeBC(byte* src, int width, int height, BcFormat format, byte* dst);

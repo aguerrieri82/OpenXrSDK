@@ -94,10 +94,9 @@ namespace XrEditor
                 var onlySelf = editorProps.AutoGenerate == PropertiesGenerationMode.OnlySelf;
 
                 PropertyView.CreateProperties(node.Value,
-                    onlySelf ? node.Value.GetType() : null, 
+                    onlySelf ? node.Value.GetType() : null,
                     _props, node as INotifyPropertyChanged);
             }
-        
 
             var propsCats = _props.GroupBy(a => a.Category);
 

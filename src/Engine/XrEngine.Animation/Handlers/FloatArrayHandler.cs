@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public class FloatArrayHandler : IAnimationValueHandler<float[]>
     {

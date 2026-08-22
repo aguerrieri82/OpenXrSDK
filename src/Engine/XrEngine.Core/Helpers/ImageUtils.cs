@@ -458,7 +458,6 @@ namespace XrEngine
             return result;
         }
 
-
         public static unsafe TextureData DecodeBC(TextureData data)
         {
             var (bcFormat, blockSize) = data.Compression switch
@@ -481,7 +480,7 @@ namespace XrEngine
 
             for (var z = 0; z < depth; z++)
             {
-                if (!EngineNativeLib.ImageDecodeBC(pSrc.Data + z * compressedSliceSize, 
+                if (!EngineNativeLib.ImageDecodeBC(pSrc.Data + z * compressedSliceSize,
                     (int)data.Width, (int)data.Height, bcFormat, pDst.Data + z * decodedSliceSize))
                     throw new InvalidOperationException("BC decode failed.");
             }

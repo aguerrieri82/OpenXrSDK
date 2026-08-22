@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -73,7 +72,7 @@ namespace XrEngine.OpenXr
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            #warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
+#warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
 
             var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
 

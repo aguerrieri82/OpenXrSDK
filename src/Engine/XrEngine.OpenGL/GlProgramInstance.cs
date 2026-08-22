@@ -256,7 +256,6 @@ namespace XrEngine.OpenGL
                     program.AddExtension(ext);
             }
 
-
             if (_materialUpdate!.Extensions != null)
             {
                 foreach (var ext in _materialUpdate.Extensions)

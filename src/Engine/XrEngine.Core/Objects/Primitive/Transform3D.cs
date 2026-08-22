@@ -97,7 +97,7 @@ namespace XrEngine
 
                 _orientation = value;
                 _rotation = _orientation.ToEuler();
-                
+
                 NotifyChanged();
             }
         }
@@ -189,14 +189,13 @@ namespace XrEngine
             _host?.NotifyChanged(ChangeType.Transform);
         }
 
-
         public Matrix4x4 Matrix
         {
             get
             {
                 if (_isDirty)
                     Update();
-                return  _matrix;
+                return _matrix;
             }
             set
             {

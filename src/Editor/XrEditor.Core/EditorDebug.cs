@@ -2,7 +2,6 @@
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrSamples;
-using XrSamples.Dnd;
 
 namespace XrEditor
 {

@@ -1,11 +1,8 @@
 ﻿using System.Numerics;
-using XrEngine;
 using XrMath;
 
 namespace XrEngine
 {
-
-
 
     [StateManager(StateManagerMode.Manual)]
     public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName, IWorldLocatable, IAnimable
@@ -40,7 +37,6 @@ namespace XrEngine
             _creationTime = -1;
             IsVisible = true;
         }
-
 
         public virtual void UpdateWorldMatrix(bool force = false)
         {

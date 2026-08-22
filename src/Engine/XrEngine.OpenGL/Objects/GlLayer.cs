@@ -338,7 +338,7 @@ namespace XrEngine.OpenGL
                                               verContentList.Any(a => a.Contents.Count > 1);
 
 
-            var isSingleDraw = verContentList.Count == 1 && 
+            var isSingleDraw = verContentList.Count == 1 &&
                                            verContentList.First().Contents.Count == 1;
 
             if (isSingleDraw)
@@ -399,7 +399,7 @@ namespace XrEngine.OpenGL
 
                 shaderContent.IsDirty = false;
 
-                shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ? 
+                shaderContent.MaxPriority = shaderContent.Contents.Count == 0 ?
                     0 : shaderContent.Contents.Max(a => a.Value.Material!.Priority);
             }
 

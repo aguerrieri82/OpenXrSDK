@@ -1,10 +1,10 @@
 using OpenXr.Framework;
+using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Devices;
 using XrEngine.OpenXr;
 using XrMath;
-using System.Diagnostics;
 
 namespace XrSamples
 {

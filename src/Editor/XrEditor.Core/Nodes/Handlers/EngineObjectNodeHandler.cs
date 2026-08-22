@@ -1,6 +1,5 @@
 ﻿using XrEngine;
 using XrEngine.Animation;
-using XrEngine.Objects;
 using XrEngine.Physics;
 
 namespace XrEditor.Nodes

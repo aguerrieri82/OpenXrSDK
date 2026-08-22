@@ -3,6 +3,7 @@ using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
+using System.Xml.Linq;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Components;
@@ -12,7 +13,6 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
 using XrMath;
-using System.Xml.Linq;
 
 namespace XrSamples
 {
@@ -78,7 +78,7 @@ namespace XrSamples
             return app;
         }
 
-        public static XrEngineAppBuilder UseEnvironmentHDR(this XrEngineAppBuilder builder, string assetPath, bool showEnv = false) 
+        public static XrEngineAppBuilder UseEnvironmentHDR(this XrEngineAppBuilder builder, string assetPath, bool showEnv = false)
         {
             return builder
             .ConfigureApp(e =>

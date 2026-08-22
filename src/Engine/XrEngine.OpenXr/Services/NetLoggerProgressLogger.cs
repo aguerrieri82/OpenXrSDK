@@ -7,7 +7,7 @@ namespace XrEngine.OpenXr
     {
         public class LogScope : IDisposable
         {
-            NetLoggerProgressLogger _self;
+            readonly NetLoggerProgressLogger _self;
 
             public LogScope(NetLoggerProgressLogger self, object? state)
             {
@@ -25,7 +25,6 @@ namespace XrEngine.OpenXr
 
         protected IProgressLogger _logger;
         protected object? _scope;
-
 
         public NetLoggerProgressLogger()
         {

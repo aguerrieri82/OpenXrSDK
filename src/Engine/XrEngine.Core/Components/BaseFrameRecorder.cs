@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Text;
+﻿using System.ComponentModel;
 using System.Text.Json;
 
 namespace XrEngine
@@ -12,15 +8,13 @@ namespace XrEngine
         public double Time;
     }
 
-
-    public class RecordSession<TFrame> 
+    public class RecordSession<TFrame>
     {
         public IList<TFrame>? Frames;
     }
 
-
     public abstract class BaseFrameRecorder<TFrame, TObj> : Behavior<TObj>, INotifyPropertyChanged
-        where TObj : Object3D 
+        where TObj : Object3D
         where TFrame : RecordFrame, new()
     {
         static readonly JsonSerializerOptions JSON_OPTIONS = new()
@@ -73,19 +67,16 @@ namespace XrEngine
             File.WriteAllText(Path.Join(path, OutFile), json);
         }
 
-
         protected void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
 
         public int FrameCount
         {
             get => _session?.Frames?.Count ?? 0;
             set { }
         }
-
 
         [ValueType(ValueType.FileName)]
         public string? OutFile { get; set; }

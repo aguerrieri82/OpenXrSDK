@@ -1,9 +1,5 @@
-﻿using CanvasUI;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
-using System.Text;
 using XrEditor.Services;
 using XrEngine;
 
@@ -38,7 +34,6 @@ namespace XrEditor
             _items.Clear();
 
             var factory = Context.Require<NodeManager>();
-
 
             foreach (var value in (IEnumerable)newValue)
             {

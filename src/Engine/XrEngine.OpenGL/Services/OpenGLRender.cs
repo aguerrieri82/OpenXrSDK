@@ -13,7 +13,6 @@ using XrEngine.Helpers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-
 namespace XrEngine.OpenGL
 {
 
@@ -27,7 +26,7 @@ namespace XrEngine.OpenGL
         }
 
         [ThreadStatic]
-        internal static  OpenGLRender? _current;
+        internal static OpenGLRender? _current;
 
         protected Scene3D? _lastScene;
         protected long _lastLightLayerVersion;
@@ -116,8 +115,6 @@ namespace XrEngine.OpenGL
 
             ConfigureDriver();
 
-
-
             if (isDummy)
                 return;
 
@@ -132,8 +129,6 @@ namespace XrEngine.OpenGL
             _textureFilter = new GlTextureFilter(this);
 
             ConfigureCaps();
-
-
 
             PbrMaterial.SHADER.ToneMap = _options.ToneMap;
         }
@@ -187,7 +182,6 @@ namespace XrEngine.OpenGL
             _gl.GetInteger(GetPName.MaxTextureSize, out var maxTextureSize);
             _features.MaxTextureSize = new Size2I((uint)maxTextureSize, (uint)maxTextureSize);
 
-
             _features.GpuName = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Renderer)) ?? "";
 
             _features.IsNvidia = _features.GpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase);
@@ -224,7 +218,6 @@ namespace XrEngine.OpenGL
         }
 
         #region STATE
-
 
         protected internal void ResetState()
         {
@@ -726,8 +719,8 @@ namespace XrEngine.OpenGL
 #else
                 var grInterface = GRGlInterface.CreateOpenGl(name =>
                 {
-                     _gl.Context.TryGetProcAddress(name, out var result);
-                     return result;
+                    _gl.Context.TryGetProcAddress(name, out var result);
+                    return result;
                 });
 
 #endif
@@ -986,7 +979,6 @@ namespace XrEngine.OpenGL
         }
 
         #endregion
-
 
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
 

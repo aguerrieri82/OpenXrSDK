@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Components
+﻿namespace XrEngine.Components
 {
     public class MeshMorph : BaseComponent<TriangleMesh>, IMorphedMesh
     {

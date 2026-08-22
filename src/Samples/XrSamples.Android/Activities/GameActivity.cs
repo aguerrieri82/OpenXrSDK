@@ -3,7 +3,6 @@ using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
-using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
@@ -151,7 +150,7 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
-                  // .AddProfileOverlay()
+                   // .AddProfileOverlay()
                    .RemovePlaneGrid();
 
             //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
@@ -162,7 +161,7 @@ namespace XrSamples.Android.Activities
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp(MotionVectorMode.Shared);
 
-       //     builder.EnableDebug(sync: false);
+            //     builder.EnableDebug(sync: false);
 
 #if DEBUG
             GlDebug.TrackBuffers = false;

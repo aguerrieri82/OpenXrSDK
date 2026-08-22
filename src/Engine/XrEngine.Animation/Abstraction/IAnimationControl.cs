@@ -9,7 +9,7 @@
         Stopped
     }
 
-    public interface IAnimationControl 
+    public interface IAnimationControl
     {
         IAnimation Animation { get; }
 

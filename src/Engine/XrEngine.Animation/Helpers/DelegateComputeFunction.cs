@@ -1,13 +1,10 @@
-﻿using System;
-
-namespace XrEngine.Animation
+﻿namespace XrEngine.Animation
 {
     public delegate TValue ComputeFunctionDelegate<TValue>(float t);
 
     public delegate TValue ComputeFunctionOptionsDelegate<TValue, TOptions>(float t, TOptions options);
 
     public delegate float ComputeFunctionDurationDelegate<TOptions>(TOptions options);
-
 
     public readonly struct DelegateComputeFunction<TValue> : IComputeFunction<TValue>
     {
@@ -27,7 +24,6 @@ namespace XrEngine.Animation
 
         public float Duration => _duration;
     }
-
 
     public struct DelegateComputeFunction<TValue, TOptions> : IComputeFunction<TValue, TOptions>
     {

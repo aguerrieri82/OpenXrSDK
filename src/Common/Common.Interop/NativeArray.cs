@@ -51,7 +51,6 @@ namespace Common.Interop
             return (T*)(_buffer + _itemSize * index);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ref T ItemAt<T>(int index) where T : unmanaged
         {

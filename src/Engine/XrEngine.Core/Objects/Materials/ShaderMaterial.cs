@@ -44,7 +44,6 @@ namespace XrEngine
             base.Reload();
         }
 
- 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             if (UseMorph)

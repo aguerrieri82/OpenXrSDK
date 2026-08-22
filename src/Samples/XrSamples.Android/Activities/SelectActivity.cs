@@ -4,8 +4,6 @@ using Android.Content.PM;
 using System.Text.Json;
 using XrEngine.OpenXr;
 
-#pragma warning disable CA1416
-
 namespace XrSamples.Android.Activities
 {
 
