@@ -108,7 +108,7 @@ namespace XrSamples
 
                 await EngineApp.MainThread;
 
-                var camera = app.ActiveScene!.PerspectiveCamera();
+                var camera = app.ActiveScene!.PerspectiveCamera;
 
                 var viewRect = new Rect2I
                 {

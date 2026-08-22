@@ -100,7 +100,7 @@ namespace XrEditor.Services
                 _mesh.Materials.Add(_textureMaterial);
                 _mesh.Geometry = Quad3D.Default;
 
-                _scene.PerspectiveCamera().LookAt(new Vector3(0, 0, 1.3f), Vector3.Zero, Vector3.UnitY);
+                _scene.PerspectiveCamera.LookAt(new Vector3(0, 0, 1.3f), Vector3.Zero, Vector3.UnitY);
 
                 _app.ActiveScene!.Clear();
                 _app.ActiveScene!.AddChild(_mesh);
@@ -123,7 +123,7 @@ namespace XrEditor.Services
             var diagonal = geometry.Bounds.Size.Length();
             var distance = diagonal / (2 * MathF.Tan((45f / 180f * MathF.PI) / 2));
             var pos = geometry.Bounds.Center + distance * new Vector3(1, 1, 1).Normalize();
-            _scene.PerspectiveCamera().LookAt(pos, geometry.Bounds.Center, Vector3.UnitY);
+            _scene.PerspectiveCamera.LookAt(pos, geometry.Bounds.Center, Vector3.UnitY);
 
             _app.ActiveScene!.Clear();
             _app.ActiveScene!.AddChild(_mesh);
