@@ -28,6 +28,15 @@ namespace XrEditor.Nodes
                 if (_value.OcclusionMap != null)
                     yield return factory.CreateNode(_value.OcclusionMap);
 
+                if (_value.IridescenceMap != null)
+                    yield return factory.CreateNode(_value.IridescenceMap);
+
+                if (_value.IridescenceThicknessMap != null)
+                    yield return factory.CreateNode(_value.IridescenceThicknessMap);
+
+                if (_value.ThicknessMap != null)
+                    yield return factory.CreateNode(_value.ThicknessMap);
+
                 foreach (var child in base.Children)
                     yield return child;
             }

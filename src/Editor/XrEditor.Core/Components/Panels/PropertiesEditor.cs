@@ -52,8 +52,6 @@ namespace XrEditor
                 NodePreview = null;
         }
 
-        public bool NodePreviewVisible => NodePreview != null;
-
         protected PropertiesGroupView? CreateProps(INode node)
         {
             if (node is not IEditorProperties editorProps)
@@ -102,19 +100,22 @@ namespace XrEditor
 
             foreach (var cat in propsCats)
             {
+                var sortedCat = cat.OrderBy(a => a.Label);
+
                 if (string.IsNullOrEmpty(cat.Key))
-                    result.Properties = cat.ToArray();
+                    result.Properties = [.. sortedCat];
                 else
                 {
                     var catGrp = new PropertiesGroupView(PropertiesGroupType.Inner)
                     {
                         Header = cat.Key,
-                        Properties = cat.ToArray(),
+                        Properties = [.. sortedCat],
                         Node = node,
+                        Parent = result,
+                        IsCollapsed = cat.First().DefaultCollapsed
                     };
-                    result.Groups ??= new List<PropertiesGroupView>();
+                    result.Groups ??= [];
                     result.Groups.Add(catGrp);
-
                 }
             }
 
@@ -213,8 +214,10 @@ namespace XrEditor
                 ToolBar = new ToolbarView();
                 ToolBar.AddButton("icon_add", async () =>
                 {
-                    var picker = new ItemPickerView();
-                    picker.ItemsSource = new ComponentsSource(obj);
+                    var picker = new ItemPickerView
+                    {
+                        ItemsSource = new ComponentsSource(obj)
+                    };
 
                     var selItem = await picker.ShowAsync("Add component");
 
@@ -333,6 +336,9 @@ namespace XrEditor
                 OnPropertyChanged(nameof(NodePreviewVisible));
             }
         }
+
+        public bool NodePreviewVisible => NodePreview != null;
+
 
         public PropertiesEditorMode Mode { get; }
 

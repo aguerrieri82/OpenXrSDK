@@ -52,6 +52,8 @@ namespace UI.Binding
                 notify.NotifyPropertyChanged(this);
         }
 
+        public IEnumerable<Attribute> Attributes => _property.GetCustomAttributes();
+
         public Type Type => _property.PropertyType;
 
         public string? Name => _property.Name;

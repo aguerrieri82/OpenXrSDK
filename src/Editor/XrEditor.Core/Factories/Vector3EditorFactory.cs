@@ -4,14 +4,14 @@ using ValueType = XrEngine.ValueType;
 
 namespace XrEditor
 {
-    public class Vector3EditorFactory : IPropertyEditorFactory
+    public readonly struct Vector3EditorFactory : IPropertyEditorFactory
     {
-        public bool CanHandle(Type type)
+        public readonly bool CanHandle(Type type)
         {
             return type == typeof(Vector3);
         }
 
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
+        public readonly IPropertyEditor? CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
         {
             var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
 

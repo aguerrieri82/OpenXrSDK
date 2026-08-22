@@ -10,7 +10,6 @@ namespace XrEditor
 
     public class PropertyView : BaseView, IDisposable
     {
-
         public PropertyView()
         {
 
@@ -21,8 +20,35 @@ namespace XrEditor
             CreateProperties(obj, objType, null, result, propertyChanged);
         }
 
-        public static void CreateProperties(object obj, Type? objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged, string? category = null)
+        public static void CreateProperties(
+            object obj, 
+            Type? objType, 
+            object? host, 
+            IList<PropertyView> result, 
+            INotifyPropertyChanged? propertyChanged, 
+            string? category = null,
+            bool collapsed = false)
         {
+            string? GetCategory(MemberInfo member)
+            {
+                var curCategory = category;
+
+                if (string.IsNullOrWhiteSpace(curCategory))
+                {
+                    var catAttr = member.GetCustomAttribute<CategoryAttribute>();
+                    if (catAttr != null)
+                        curCategory = catAttr.Category;
+                    else
+                    {
+                        var curType = objType ?? obj.GetType();
+                        var sameType = curType == member.DeclaringType;
+                        curCategory = sameType ? null : member.DeclaringType?.Name;
+                    }
+                }
+
+                return curCategory;
+            }
+
             var binding = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
 
             if (objType == null)
@@ -63,21 +89,11 @@ namespace XrEditor
                 if (propertyChanged != null)
                     editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
-                var curCategory = category;
-
-                if (string.IsNullOrWhiteSpace(curCategory))
-                {
-                    var catAttr = field.GetCustomAttribute<CategoryAttribute>();
-                    if (catAttr != null)
-                        curCategory = catAttr.Category;
-                    else
-                        curCategory = host != null ? obj.GetType().Name : null;
-                }
-
                 var propView = new PropertyView
                 {
                     Label = field.Name,
-                    Category = curCategory,
+                    Category = GetCategory(field),
+                    DefaultCollapsed = collapsed,
                     Editor = editor,
                 };
 
@@ -91,7 +107,8 @@ namespace XrEditor
 
                 var editableAttr = prop.GetCustomAttribute<EditableAttribute>();
 
-                if (!prop.CanWrite && editableAttr == null)
+                if ((!prop.CanWrite && editableAttr == null) || 
+                    (editableAttr != null && !editableAttr.IsEditable))
                     continue;
 
                 var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes(), obj);
@@ -106,7 +123,7 @@ namespace XrEditor
                             value = Activator.CreateInstance(prop.PropertyType);
 
                         if (value != null)
-                            CreateProperties(value, null, host ?? obj, result, propertyChanged, prop.Name);
+                            CreateProperties(value, null, host ?? obj, result, propertyChanged, prop.Name, true);
                     }
 
                     continue;
@@ -119,21 +136,11 @@ namespace XrEditor
                 if (propertyChanged != null)
                     editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
-                var curCategory = category;
-
-                if (string.IsNullOrWhiteSpace(curCategory))
-                {
-                    var catAttr = prop.GetCustomAttribute<CategoryAttribute>();
-                    if (catAttr != null)
-                        curCategory = catAttr.Category;
-                    else
-                        curCategory = host != null ? obj.GetType().Name : null;
-                }
-
                 var propView = new PropertyView
                 {
                     Label = prop.Name,
-                    Category = curCategory,
+                    Category = GetCategory(prop),
+                    DefaultCollapsed = collapsed,
                     Editor = editor,
                 };
 
@@ -154,6 +161,8 @@ namespace XrEditor
         public string? Category { get; set; }
 
         public bool ReadOnly { get; set; }
+
+        public bool DefaultCollapsed { get; set; }
 
         public IPropertyEditor? Editor { get; set; }
 

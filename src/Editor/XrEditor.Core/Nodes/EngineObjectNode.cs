@@ -3,11 +3,11 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager where T : EngineObject
+    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager 
+        where T : EngineObject
     {
         protected PropertiesGenerationMode _autoGenProps;
         protected bool _keepChangeListener;
-
         protected event EventHandler? _nodeChanged;
 
         public EngineObjectNode(T value)
@@ -20,7 +20,14 @@ namespace XrEditor.Nodes
 
         public void EditorProperties(IList<PropertyView> curProps)
         {
-            var binder = new Binder<T>(_value, a => EngineApp.Current.Dispatcher.Post(a));
+            var binder = new Binder<T>(_value, a =>
+            {
+                if (EngineApp.Current.Dispatcher.Thread == Thread.CurrentThread)
+                    a();
+                else
+                    EngineApp.Current.Dispatcher.Post(a);
+            });
+
             EditorProperties(binder, curProps);
         }
 

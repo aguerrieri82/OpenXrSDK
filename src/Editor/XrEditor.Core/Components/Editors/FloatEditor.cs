@@ -1,4 +1,5 @@
-﻿using UI.Binding;
+﻿using Silk.NET.Direct3D11;
+using UI.Binding;
 using XrEngine;
 using ValueType = XrEngine.ValueType;
 
@@ -16,10 +17,11 @@ namespace XrEditor
         public FloatEditor(IProperty<float> binding, IValueScale scale)
         {
             _scale = scale;
+
             Binding = binding;
         }
 
-        public FloatEditor(IProperty<float> binding, float min, float max, float step = 1f)
+        public FloatEditor(IProperty<float> binding, float min = 0, float max = 0, float step = 1f)
         {
             _scale = new ValueScale()
             {
@@ -32,13 +34,13 @@ namespace XrEditor
             Binding = binding;
         }
 
+
         public override void SetAttributes(IEnumerable<Attribute> attributes)
         {
             var range = attributes.OfType<RangeAttribute>().FirstOrDefault();
 
             var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
 
-            var result = new FloatEditor();
             if (valueType == ValueType.Radiant)
                 Scale = RadDegreeScale.Instance;
             else
@@ -76,17 +78,6 @@ namespace XrEditor
                 EditValue = _scale.ScaleToValue(value);
                 OnPropertyChanged(nameof(ScaleValue));
             }
-        }
-
-        public FloatEditor(IProperty<float> binding, float min, float max)
-        {
-            Binding = binding;
-
-            _scale = new ValueScale
-            {
-                ScaleMin = min,
-                ScaleMax = max
-            };
         }
 
         public IValueScale Scale

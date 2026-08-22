@@ -3,7 +3,6 @@ using System.Reflection;
 
 namespace XrEditor.Services
 {
-
     public class PanelInfo
     {
         public PanelInfo(Func<IPanel> factory, Guid panelId)

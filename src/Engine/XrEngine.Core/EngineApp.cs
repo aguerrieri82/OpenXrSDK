@@ -1,4 +1,5 @@
 ﻿
+using System.Diagnostics;
 using XrMath;
 
 namespace XrEngine
@@ -181,6 +182,17 @@ namespace XrEngine
         public void CaptureFrames(int count)
         {
             _captureCount = count;
+        }
+
+
+        [Conditional("DEBUG")]
+        public static void VerifyMainThread(object caller)
+        {
+            if (caller is Object3D obj3d && obj3d.Scene == null)
+                return;
+            if (caller is Geometry3D geo3d && !geo3d.Hosts.OfType<Object3D>().Any(a => a.Scene != null))
+                return;
+            Debug.Assert(_current?.Dispatcher.Thread == Thread.CurrentThread);
         }
 
         public RenderContext RenderContext => _context;

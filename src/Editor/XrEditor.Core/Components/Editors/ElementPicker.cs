@@ -80,17 +80,4 @@ namespace XrEditor
             return new ElementPicker(binding!.Convert(new CastConverter<T, EngineObject?>()));
         }
     }
-
-    public struct EngineObjectEditorFactory : IPropertyEditorFactory
-    {
-        public bool CanHandle(Type type)
-        {
-            return typeof(EngineObject).IsAssignableFrom(type);
-        }
-
-        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes, object? host)
-        {
-            return new ElementPicker();
-        }
-    }
 }

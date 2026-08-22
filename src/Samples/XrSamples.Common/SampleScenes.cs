@@ -65,7 +65,8 @@ namespace XrSamples
             {
                 Far = 100f,
                 Near = 0.01f,
-                BackgroundColor = new Color(0, 0, 0, 0),
+                FovDegree = 45,
+                BackgroundColor = Color.Transparent,
                 Exposure = 1
             };
 

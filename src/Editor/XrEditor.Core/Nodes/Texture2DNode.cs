@@ -9,21 +9,11 @@ namespace XrEditor.Nodes
         public Texture2DNode(Texture2D value)
             : base(value)
         {
-
-        }
-
-        protected override void EditorProperties(Binder<Texture2D> binder, IList<PropertyView> curProps)
-        {
-
-            base.EditorProperties(binder, curProps);
-            PropertyView.CreateProperties(_value, typeof(Texture), curProps);
-            PropertyView.CreateProperties(_value, typeof(Texture2D), curProps);
-
+            _autoGenProps = PropertiesGenerationMode.All;
         }
 
         public async Task<NativeImage?> CreatePreviewAsync()
         {
-
             try
             {
                 var preview = Context.Require<RenderPreviewCreator>();
@@ -55,7 +45,8 @@ namespace XrEditor.Nodes
             });
         }
 
-        public override string DisplayName => _value.Name ?? base.DisplayName;
+        public override string DisplayName => 
+            string.IsNullOrWhiteSpace(_value.Name) ? base.DisplayName : _value.Name;
 
         public override IconView? Icon => new()
         {

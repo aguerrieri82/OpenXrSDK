@@ -5,12 +5,14 @@
         private readonly Func<T> _getter;
         private readonly Action<T> _setter;
         private T _lastValue;
+        private readonly IEnumerable<Attribute>? _attributes;
 
-        public SimpleProperty(Func<T> getter, Action<T> setter, string name)
+        public SimpleProperty(Func<T> getter, Action<T> setter, string name, IEnumerable<Attribute>? attributes = null)
         {
             _getter = getter;
             _setter = setter;
             _lastValue = getter();
+            _attributes = attributes;
             Name = name;
         }
 
@@ -34,6 +36,8 @@
                 Changed?.Invoke(this, EventArgs.Empty);
             }
         }
+
+        public readonly IEnumerable<Attribute> Attributes => _attributes ?? [];
 
         public string Name { get; }
 

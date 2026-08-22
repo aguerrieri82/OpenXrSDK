@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace UI.Binding
 {
@@ -10,6 +11,8 @@ namespace UI.Binding
         {
             return new Binder<T>(value);
         }
+
+
     }
 
     public class Binder<T>
@@ -24,16 +27,18 @@ namespace UI.Binding
 
         public IProperty<TVal> Prop<TVal>(Expression<Func<T, TVal>> exp)
         {
-            var getter = exp.Compile();
 
-            if (exp is not LambdaExpression lambda)
-                throw new Exception();
+
+            var getter = exp.Compile();
 
             var body = exp.Body;
             var param = Expression.Parameter(typeof(TVal), "v");
             var assign = Expression.Assign(body, param);
-            var setExp = Expression.Lambda<Action<T, TVal>>(assign, lambda.Parameters[0], param);
+            var setExp = Expression.Lambda<Action<T, TVal>>(assign, exp.Parameters[0], param);
             var setter = setExp.Compile();
+
+            var attributes = (body as MemberExpression)?.Member.GetCustomAttributes();
+
             var name = body.ToString();
             name = name.Substring(name.IndexOf('.') + 1);
 
@@ -44,7 +49,7 @@ namespace UI.Binding
                 else
                     setter(Value, v);
 
-            }, name!);
+            }, name, attributes);
 
             result.Changed += (s, e) =>
             {

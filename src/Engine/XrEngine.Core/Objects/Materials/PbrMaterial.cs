@@ -33,6 +33,15 @@ namespace XrEngine
 
     public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial, IRefractionMaterial
     {
+        #region CATEGORIES
+
+        const string Surface = nameof(Surface);
+        const string Textures = nameof(Textures);
+        const string Rendering = nameof(Rendering);
+        const string Volume = nameof(Volume);
+        const string Iridescence = nameof(Iridescence);
+
+        #endregion
 
         #region MaterialUniforms
 
@@ -800,103 +809,131 @@ namespace XrEngine
 
         bool ITessellationMaterial.DebugTessellation => HeightMap?.DebugTessellation ?? false;
 
+        [Category(Rendering)]
         public HeightMapSettings? HeightMap { get; set; }
 
+        [Category(Rendering)]
         public Bounds3? ClipVolume { get; set; }
 
+        [Category(Textures)]
         public Texture2D? OcclusionMap { get; set; }
 
+        [Category(Textures)]
         public Texture2D? ColorMap { get; set; }
 
+        [Category(Textures)]
         public uint ColorMapUVSet { get; set; }
 
+        [Category(Textures)]
         public Texture2D? MetallicRoughnessMap { get; set; }
 
+        [Category(Textures)]
         public Texture2D? SpecularMap { get; set; }
 
+        [Category(Textures)]
         public Texture2D? NormalMap { get; set; }
 
+        [Category(Textures)]
         public Texture2D? EmissiveMap { get; set; }
 
+        [Category(Textures)]
         public NormalMapFormat NormalMapFormat { get; set; }
 
+        [Category(Surface)]
         public bool ReceiveShadows { get; set; }
 
+        [Category(Surface)]
         public Color ShadowColor { get; set; }
 
+        [Category(Surface)]
         public Color Color { get; set; }
 
+        [Category(Surface)]
         [Range(0, 1, 0.01f)]
         public float Metalness { get; set; }
 
+        [Category(Surface)]
         [Range(0, 1, 0.01f)]
         public float Roughness { get; set; }
 
+        [Category(Surface)]
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }
 
+        [Category(Rendering)]
         public float AlphaCutoff { get; set; }
 
+        [Category(Rendering)]
         [Range(0, 2, 0.01f)]
         public float AlphaSpecularScale { get; set; }
 
+        [Category(Surface)]
         public float NormalScale { get; set; }
 
+        [Category(Rendering)]
         public bool UseEnvDepth { get; set; }
 
+        [Category(Surface)]
         public Color EmissiveColor { get; set; }
 
+        [Category(Rendering)]
         public bool Simplified { get; set; }
 
+        [Category(Rendering)]
         public PbrV2Debug Debug { get; set; }
 
+        [Category(Rendering)]
         public float LightFieldOfs { get; set; }
 
+        [Category(Rendering)]
         public UseLightFieldMode UseLightField { get; set; }
 
+        [Category(Rendering)]
         public bool UseInstanceDraw { get; set; }
 
+        [Category(Textures)]
         public Matrix3x3? UV0Transform { get; set; }
 
+        [Category(Textures)]
         public Matrix4x4? ColorMapProjection { get; set; }
 
-        [Category("Volume")]
+        [Category(Volume)]
         public float Ior { get; set; }
 
-        [Category("Volume")]
+        [Category(Volume)]
         [Range(0, 0.1f, 0.001f)]
         public float Thickness { get; set; }
 
-        [Category("Volume")]
+        [Category(Volume)]
         [Range(0, 1, 0.01f)]
         public float AttenuationDistance { get; set; }
 
-        [Category("Volume")]
+        [Category(Volume)]
         public Color AttenuationColor { get; set; }
 
-        [Category("Volume")]
+        [Category(Volume)]
         [Range(0, 1, 0.01f)]
         public float TransmissionFactor { get; set; }
 
-        [Category("Volume")]
+        [Category(Volume)]
         public Texture2D? ThicknessMap { get; set; }
 
-        [Category("Iridescence")]
+        [Category(Iridescence)]
         public float IridescenceFactor { get; set; }
 
-        [Category("Iridescence")]
+        [Category(Iridescence)]
         public float IridescenceIor { get; set; }
 
-        [Category("Iridescence")]
+        [Category(Iridescence)]
         public float IridescenceThicknessMin { get; set; }
 
-        [Category("Iridescence")]
+        [Category(Iridescence)]
         public float IridescenceThicknessMax { get; set; }
 
-        [Category("Iridescence")]
+        [Category(Iridescence)]
         public Texture2D? IridescenceThicknessMap { get; set; }
 
-        [Category("Iridescence")]
+        [Category(Iridescence)]
         public Texture2D? IridescenceMap { get; set; }
 
         public bool HasRefraction => Thickness > 0;

@@ -117,7 +117,7 @@ namespace XrEditor.Services
         {
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();
-            _mesh.Materials.Add(material.Clone(ObjectCloneFlags.None));
+            _mesh.Materials.Add(material.Clone(ObjectCloneFlags.CloneComponents));
             _mesh.NotifyChanged(ChangeType.Render);
 
             var diagonal = geometry.Bounds.Size.Length();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace XrEngine
 {
@@ -75,7 +76,6 @@ namespace XrEngine
     [StateManager(StateManagerMode.Manual)]
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject, ICloneable
     {
-        //protected Dictionary<int, object?>? _props;
         protected object?[]? _props;
         protected List<IComponent>? _components;
         protected ObjectId _id;
@@ -158,6 +158,8 @@ namespace XrEngine
 
         public virtual T AddComponent<T>(T component) where T : IComponent
         {
+            EngineApp.VerifyMainThread(this);
+
             if (component.Host == this)
                 return component;
 
@@ -178,6 +180,8 @@ namespace XrEngine
 
         public virtual void RemoveComponent(IComponent component)
         {
+            EngineApp.VerifyMainThread(this);
+
             if (component.Host != this)
                 return;
 
@@ -322,16 +326,17 @@ namespace XrEngine
 
         protected virtual void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
-            if (_components != null)
+            if (_components != null && _components.Count > 0 && (flags & ObjectCloneFlags.CloneComponents) != 0)
             {
                 foreach (var comp in _components)
                 {
-                    if ((flags & ObjectCloneFlags.CloneComponents) != 0 && comp is ICloneable cloneable)
+                    if (comp is ICloneable cloneable)
                         newObj.AddComponent((IComponent)cloneable.Clone());
                     else
-                        newObj.AddComponent(comp);
+                        Log.Warn(this, "{0} is not clonable", comp.GetType().FullName);
                 }
             }
+
             newObj.Flags = Flags;
             newObj.Tag = Tag;
         }

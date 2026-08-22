@@ -183,7 +183,7 @@ namespace XrEngine
             base.CloneWork(newObj, flags);
         }
 
-        [Action]
+        [Action("Export")]
         public void DoExport()
         {
             Export.Export();
@@ -231,8 +231,10 @@ namespace XrEngine
 
         public IList<Material> Materials => _materials;
 
+        [Editable(false)]
         public IBuffer<VertexData>? VBuf { get; internal set; }
 
+        [Editable(false)]
         public IBuffer<uint>? IBuf { get; internal set; }
 
         public int RenderPriority { get; set; }

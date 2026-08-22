@@ -234,6 +234,8 @@ namespace XrEditor
 
         public ICommand ToggleCollapseCommand { get; }
 
+        public PropertiesGroupView? Parent { get; internal set; }
+
         public INode? Node { get; set; }
     }
 }

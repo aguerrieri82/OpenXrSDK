@@ -2,12 +2,13 @@
 
 namespace XrEngine
 {
-    public abstract class BaseComponent<T> : IComponent<T>, IStateManager where T : EngineObject
+    public abstract class BaseComponent<THost> : IComponent<THost>, IStateManager, ICloneable 
+        where THost : EngineObject
     {
         protected bool _isEnabled;
 
         [AllowNull]
-        protected T _host;
+        protected THost _host;
         protected ObjectId _id;
         protected int _suspendCount;
 
@@ -37,7 +38,7 @@ namespace XrEngine
 
         }
 
-        void IComponent<T>.Attach(T host)
+        void IComponent<THost>.Attach(THost host)
         {
             _host = host;
             OnAttach();
@@ -93,7 +94,25 @@ namespace XrEngine
             }
         }
 
-        public T? Host => _host;
+        public object Clone()
+        {
+            var newObj = (BaseComponent<THost>)MemberwiseClone();
+            
+            newObj._host = null;
+            newObj._id = Guid.Empty;
+            newObj._suspendCount = 0;
+
+            CloneWork(newObj);
+
+            return newObj;
+        }
+
+        protected virtual void CloneWork(BaseComponent<THost> dst)
+        {
+
+        }
+
+        public THost? Host => _host;
 
         public ObjectId Id => _id;
     }
