@@ -35,7 +35,6 @@
             if (change.IsAny(ChangeType.Material))
             {
                 _version++;
-
                 return true;
             }
 

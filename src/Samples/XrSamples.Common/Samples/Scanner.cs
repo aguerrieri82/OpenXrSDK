@@ -17,14 +17,18 @@ namespace XrSamples
 
             var panel = new TextPanel();
 
-            var window = new Window3D();
+            var window = new Window3D
+            {
+                Size = new Size2(0.05f, 0.02f),
+                DpiScale = 1.1f,
+                Content = panel
+            };
 
-            window.Size = new Size2(0.05f, 0.02f);
-            window.DpiScale = 1.1f;
-            window.Content = panel;
+            var mat = new TextureClipMaterial
+            {
+                Alpha = AlphaMode.Blend
+            };
 
-            var mat = new TextureClipMaterial();
-            mat.Alpha = AlphaMode.Blend;
             window.Materials.Clear();
             window.Materials.Add(mat);
 

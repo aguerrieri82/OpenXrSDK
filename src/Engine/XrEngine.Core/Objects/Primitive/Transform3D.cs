@@ -68,6 +68,8 @@ namespace XrEngine
             Version++;
         }
 
+
+        [Range(0.001f, 10, 0.1f)]
         public Vector3 Scale
         {
             get => _scale;
@@ -102,6 +104,8 @@ namespace XrEngine
             }
         }
 
+
+        [Range(0.001f, 10, 0.01f)]
         public Vector3 Position
         {
             get => _position;
@@ -115,6 +119,7 @@ namespace XrEngine
             }
         }
 
+        [Range(0.001f, 10, 0.01f)]
         public Vector3 LocalPivot
         {
             get => _localPivot;
@@ -127,6 +132,7 @@ namespace XrEngine
             }
         }
 
+        [ValueType(ValueType.Radiant)]
         public Vector3 Rotation
         {
             get => _rotation;

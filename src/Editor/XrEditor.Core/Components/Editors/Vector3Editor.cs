@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using UI.Binding;
 
 namespace XrEditor
@@ -10,23 +11,22 @@ namespace XrEditor
         protected bool _isLocked;
 
         public Vector3Editor()
-            : this(null, new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.01f })
+            : this(null)
         {
         }
 
         public Vector3Editor(IProperty<Vector3> binding, float min, float max)
             : this(binding, new ValueScale() { ScaleMin = min, ScaleMax = max })
         {
-
         }
 
-        public Vector3Editor(IProperty<Vector3>? binding, IValueScale scale)
+        public Vector3Editor(IProperty<Vector3>? binding, IValueScale? scale = null)
         {
-            _scale = scale;
+            X = new FloatEditor();
+            Y = new FloatEditor();
+            Z = new FloatEditor();
 
-            X = new FloatEditor() { Scale = _scale };
-            Y = new FloatEditor() { Scale = _scale };
-            Z = new FloatEditor() { Scale = _scale };
+            Scale = scale ?? new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.01f };
 
             Binding = binding;
 
@@ -99,6 +99,7 @@ namespace XrEditor
         public IValueScale Scale
         {
             get => _scale;
+            [MemberNotNull(nameof(_scale))]
             set
             {
                 _scale = value;

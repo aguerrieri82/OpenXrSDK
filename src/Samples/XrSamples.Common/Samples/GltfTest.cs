@@ -5,14 +5,19 @@ namespace XrSamples
 {
     public static partial class SampleScenes
     {
+        [Sample("Iridescent")]
         public static XrEngineAppBuilder CreateGltfTest(this XrEngineAppBuilder builder)
+        {
+            return CreateGltfTest(builder, "Models/IridescentDishWithOlives.glb");
+        }
+
+        public static XrEngineAppBuilder CreateGltfTest(this XrEngineAppBuilder builder, string assetPath)
         {
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/DragonAttenuation.glb"), GltfOptions, GetAssetPath);
-            mesh.Name = "mesh";
+            var mesh = GltfLoader.LoadFile(GetAssetPath(assetPath), GltfOptions, GetAssetPath);
 
             scene.AddChild(mesh);
 

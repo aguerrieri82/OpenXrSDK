@@ -752,7 +752,7 @@ namespace XrEngine
                     return (VolumeUniforms?)new VolumeUniforms
                     {
                         AttenuationColor = AttenuationColor.ToVector3(),
-                        AttenuationDistance = AttenuationDistance,
+                        AttenuationDistance = AttenuationDistance == 0 ? float.PositiveInfinity : AttenuationDistance,
                         TransmissionFactor = TransmissionFactor,
                         Ior = Ior,
                         Thickness = Thickness,

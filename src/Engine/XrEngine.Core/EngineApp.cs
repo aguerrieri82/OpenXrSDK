@@ -192,6 +192,8 @@ namespace XrEngine
                 return;
             if (caller is Geometry3D geo3d && !geo3d.Hosts.OfType<Object3D>().Any(a => a.Scene != null))
                 return;
+            if (caller is Texture tex)
+                return;
             Debug.Assert(_current?.Dispatcher.Thread == Thread.CurrentThread);
         }
 

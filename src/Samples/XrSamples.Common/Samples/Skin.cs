@@ -31,10 +31,6 @@ namespace XrSamples
                     intensity: 5))
                 .Add();
 
-            var control = mesh.Animate("Jump", new JumpOptions
-            {
-
-            });
 
             void ConfigureIk(Joint3D root)
             {
@@ -143,9 +139,17 @@ namespace XrSamples
 
             updater.Build();
 
+            var effectorMat = new ColorMaterial()
+            {
+                Color = "#ff0000",
+                WriteDepth = false,
+                UseDepth = false,
+                Priority = 1
+            };
+
             foreach (var effector in updater.Solver!.Effectors)
             {
-                var target = mesh.AddChild(new TriangleMesh(new Sphere3D(0.05f, 10), new PbrMaterial() { Color = "#ff0000" })
+                var target = mesh.AddChild(new TriangleMesh(new Sphere3D(0.02f, 20), effectorMat)
                 {
                     Name = effector.Name
                 });

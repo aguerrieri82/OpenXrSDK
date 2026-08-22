@@ -472,9 +472,6 @@ namespace XrEngine.Gltf
                 result.AttenuationColor = volume.Value.attenuationColor == null ? Color.White :
                                           new Color(volume.Value.attenuationColor);
 
-                if (result.AttenuationDistance == 0)
-                    result.AttenuationDistance = float.PositiveInfinity;
-
                 if (volume.Value.thicknessTexture != null)
                 {
                     if (volume.Value.thicknessTexture.TexCoord != 0)
@@ -1264,7 +1261,8 @@ namespace XrEngine.Gltf
 
             var group = new AnimationGroup()
             {
-                IterationCount = 1
+                IterationCount = 1,
+                Name = anim.Name,
             };
 
             foreach (var channel in anim.Channels)
@@ -1301,7 +1299,6 @@ namespace XrEngine.Gltf
                             TimeFunction = timeFunc
                         })],
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Scale = t.Value
                     });
                 }
@@ -1316,7 +1313,6 @@ namespace XrEngine.Gltf
                             TimeFunction = timeFunc
                         })],
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Position = t.Value
                     });
                 }
@@ -1331,12 +1327,13 @@ namespace XrEngine.Gltf
                             TimeFunction = timeFunc
                         })],
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Orientation = t.Value
                     });
                 }
                 else if (path == "weights")
                 {
+                    MeshMorph[]? morphMeshes = null;
+
                     group.Add(new StepAnimation<float[]>()
                     {
                         Steps = [.. sampler.Values.Select(a => new AnimationStep<float[]>
@@ -1347,10 +1344,10 @@ namespace XrEngine.Gltf
                         })],
 
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t =>
                         {
-                            foreach (var meshMorph in obj3d.ComponentsDeep<MeshMorph>())
+                            morphMeshes ??= [.. obj3d.ComponentsDeep<MeshMorph>()];
+                            foreach (var meshMorph in morphMeshes)
                                 meshMorph.Weights = t.Value;
                         }
                     });
@@ -1413,6 +1410,8 @@ namespace XrEngine.Gltf
             LoadModel(filePath, options);
             var result = LoadScene();
             ExecuteLoadTasks();
+            if (string.IsNullOrWhiteSpace(result.Name))
+                result.Name = Path.GetFileNameWithoutExtension(filePath);
             return result;
         }
 

@@ -22,9 +22,14 @@ namespace XrEditor
             {
                 await EngineApp.MainThread;
 
+                var change = ChangeType.Property;
+
+                if (obj is Material)
+                    change |= ChangeType.Material;
+
                 obj.NotifyChanged(new ObjectChange
                 {
-                    Type = ChangeType.Property,
+                    Type = change,
                     Target = obj,
                     Properties = [Name!]
                 });

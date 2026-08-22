@@ -102,6 +102,22 @@ namespace XrEngine
             return format.IsFloat16() || format.IsFloat32() || format == TextureFormat.Rgb9e5Float;
         }
 
+        public static bool CanGenerateMipmaps(this TextureFormat self, bool gles)
+        {
+            if (!gles)
+                return self != TextureFormat.Unknown;
+
+            return self is
+                TextureFormat.Rgb8 or
+                TextureFormat.Rgba8 or
+                TextureFormat.Rg8 or
+                TextureFormat.Gray8 or
+                TextureFormat.RgbaFloat16 or
+                TextureFormat.RgFloat16 or
+                TextureFormat.GrayFloat16 or
+                TextureFormat.SRgba8;
+        }
+
         public static bool IsSrgb(this TextureFormat format)
         {
             return format == TextureFormat.SRgb8 ||
