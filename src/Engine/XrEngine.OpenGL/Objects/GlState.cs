@@ -356,6 +356,13 @@ namespace XrEngine.OpenGL
                         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
                         _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Min);
                     }
+                    else if (value == AlphaMode.TransmissionBlend)
+                    {
+                        _gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.Src1Color,
+                            BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
+                        _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
+;
+                    }
                     else if (value == AlphaMode.Max)
                     {
                         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);

@@ -35,6 +35,7 @@ struct MaterialData
 	float planarFactor;
 	float planarLevel;
 	float alphaSpecularScale;
+	float transmission;
 };
 
 #if !defined(VERTEX_SHADER) || defined(HAS_TEX_TRANSFORM)

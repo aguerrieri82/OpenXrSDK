@@ -29,6 +29,7 @@ namespace XrEngine.Gltf
 
         GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
+        KHR_lights_punctual? _lightsRoot;
 
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<Image, TextureData> _images = [];
@@ -46,18 +47,68 @@ namespace XrEngine.Gltf
         string? _basePath;
         string? _filePath;
         private MethodInfo? _convertBufGen;
+
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
             "KHR_texture_basisu",
+            "KHR_materials_clearcoat",
             "KHR_materials_ior",
             "KHR_materials_transmission",
             "KHR_materials_volume",
+            "KHR_lights_punctual",
+            "KHR_materials_sheen",
             "KHR_materials_iridescence",
             "KHR_materials_pbrSpecularGlossiness" };
 
         #region STRUCTS
+
+        public struct KHR_lights_punctual
+        {
+            public KHRLight[]? lights;
+            public int? light;
+        }
+
+        public struct KHRLight
+        {
+            public const string Directional = "directional";
+            public const string Point = "point";
+            public const string Spot = "spot";
+
+            public string? name;
+            public float[]? color;
+            public float? intensity;
+            public string type;
+            public float? range;
+            public KHRLightSpot? spot;
+        }
+
+        public struct KHRLightSpot
+        {
+            public float? innerConeAngle;
+            public float? outerConeAngle;
+        }
+
+        struct KHR_materials_clearcoat
+        {
+            public float clearcoatFactor;
+            public TextureInfo? clearcoatTexture;
+
+            public float clearcoatRoughnessFactor;
+            public TextureInfo? clearcoatRoughnessTexture;
+
+            public MaterialNormalTextureInfo? clearcoatNormalTexture;
+        }
+
+        struct KHR_materials_sheen
+        {
+            public float[]? sheenColorFactor;
+            public TextureInfo? sheenColorTexture;
+
+            public float sheenRoughnessFactor;
+            public TextureInfo? sheenRoughnessTexture;
+        }
 
         struct KHR_materials_ior
         {
@@ -129,17 +180,6 @@ namespace XrEngine.Gltf
             public float rotation;
 
             public int texCoord;
-        }
-
-        struct KHR_materials_sheen
-        {
-            public float[]? sheenColorFactor;
-
-            public TextureInfo? sheenColorTexture;
-
-            public float sheenRoughnessFactor;
-
-            public TextureInfo? sheenRoughnessTexture;
         }
 
         public struct LoadTask<T>
@@ -458,12 +498,6 @@ namespace XrEngine.Gltf
             result.EmissiveColor = new Color(gltMat.EmissiveFactor);
             result.Ior = ior?.ior ?? 1.5f;
 
-            if (trans != null)
-            {
-                result.TransmissionFactor = trans.Value.transmissionFactor;
-                if (trans.Value.transmissionTexture != null)
-                    throw new NotSupportedException();
-            }
 
             if (volume != null)
             {
@@ -479,6 +513,24 @@ namespace XrEngine.Gltf
 
                     var texInfo = volume.Value.thicknessTexture;
                     result.ThicknessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                }
+            }
+
+
+            if (trans != null)
+            {
+                result.Transmission = trans.Value.transmissionFactor;
+
+                if (trans.Value.transmissionTexture != null)
+                {
+                    var texInfo = trans.Value.transmissionTexture;
+                    result.TransmissionMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                }
+
+                if (volume == null)
+                {
+                    result.Alpha = AlphaMode.TransmissionBlend;
+                    result.DualSourceBlend = true;
                 }
             }
 
@@ -1099,6 +1151,8 @@ namespace XrEngine.Gltf
 
             CheckExtensions(node.Extensions);
 
+            var puntual = TryLoadExtension<KHR_lights_punctual>(node.Extensions);
+
             Group3D? nodeGrp = null;
 
             if (isJoint || (node.Children != null && node.Children.Length > 0))
@@ -1107,7 +1161,18 @@ namespace XrEngine.Gltf
                 nodeObj = nodeGrp;
             }
 
-            if (node.Mesh != null)
+            if (puntual?.light != null)
+            {
+                _lightsRoot ??= TryLoadExtension<KHR_lights_punctual>(_model.Extensions);
+                
+                Debug.Assert(_lightsRoot?.lights != null);
+
+                var light = _lightsRoot.Value.lights[puntual.Value.light.Value];
+
+                nodeObj = ProcessLight(light);
+            }
+
+            else if (node.Mesh != null)
             {
                 var nodeMesh = ProcessMesh(node.Mesh.Value, node);
 
@@ -1148,7 +1213,7 @@ namespace XrEngine.Gltf
 
             if (!transformSet)
             {
-                if (node.Rotation != null)
+                if (node.Rotation != null) 
                     nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
 
                 if (node.Scale != null)
@@ -1165,6 +1230,11 @@ namespace XrEngine.Gltf
 
             //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
+            if (nodeObj is DirectionalLight dir)
+                dir.Direction = nodeObj.Forward;
+            else if (nodeObj is SpotLight spot)
+                spot.Direction = nodeObj.Forward;
+
             curGrp?.AddChild(nodeObj);
 
             GenerateId(nodeObj, "node", nodeId);
@@ -1172,6 +1242,50 @@ namespace XrEngine.Gltf
             _nodes[nodeId] = nodeObj;
 
             return nodeObj;
+        }
+
+        private Light ProcessLight(KHRLight light)
+        {
+            if (light.type == KHRLight.Spot)
+            {
+                Debug.Assert(light.spot != null);
+
+                var spot = new SpotLight
+                {
+                    InnerConeAngle = light.spot.Value.innerConeAngle ?? 0f,
+                    OuterConeAngle = light.spot.Value.outerConeAngle ?? MathF.PI / 4f,
+                    Range = light.range ?? float.PositiveInfinity,
+                    Intensity = light.intensity ?? 1f,
+                    Name = light.name,
+                    Color = light.color != null ? new Color(light.color) : Color.White
+                };
+
+                return spot;
+            }
+            else if (light.type == KHRLight.Directional)
+            {
+                var dir = new DirectionalLight
+                {
+                    Intensity = light.intensity ?? 1f,
+                    Name = light.name,
+                    Color = light.color != null ? new Color(light.color) : Color.White
+                };
+                return dir;
+
+            }
+            else if (light.type == KHRLight.Point)
+            {
+                var point = new PointLight
+                {
+                    Range = light.range ?? float.PositiveInfinity,
+                    Intensity = light.intensity ?? 1f,
+                    Name = light.name,
+                    Color = light.color != null ? new Color(light.color) : Color.White
+                };
+                return point;
+            }
+
+            throw new NotSupportedException();
         }
 
         protected GltfSkin ProcessSkin(int skinId)

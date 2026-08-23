@@ -8,7 +8,7 @@ using XrMath.Entities;
 
 namespace XrEngine
 {
-    public enum PbrV2Debug
+    public enum PbrDebug
     {
         None = 0,
         Uv = 1,
@@ -19,8 +19,8 @@ namespace XrEngine
         Roughness = 6,
         Irradiance = 7,
         FieldDir = 8,
-        FieldRad = 9
-
+        FieldRad = 9,
+        Transmission = 10
     }
 
     public enum UseLightFieldMode
@@ -83,6 +83,9 @@ namespace XrEngine
 
             [FieldOffset(152)]
             public float AlphaSpecularScale;
+
+            [FieldOffset(156)]
+            public float Transmission;
         }
 
         #endregion
@@ -459,7 +462,7 @@ namespace XrEngine
             PlanarReflection? planar = null;
 
             bld.SetFsIncludes("pbr_defaults.glsl");
-            bld.SetFragmentLoader("FragmentProperties frag = LoadFragmentProperties();");
+            bld.SetFragmentLoader("frag = LoadFragmentProperties();");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
@@ -505,7 +508,8 @@ namespace XrEngine
                     EmissiveColor = EmissiveColor,
                     TexTransform = (ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity).ToVector4x3(),
                     PlanarReflectionStrength = planar?.Strength ?? 0,
-                    PlanarReflectionLevel = planar?.BlurLevel ?? 0
+                    PlanarReflectionLevel = planar?.BlurLevel ?? 0,
+                    Transmission = Transmission,
                 };
 
             },
@@ -676,13 +680,10 @@ namespace XrEngine
                 bld.AddFeature("USE_IRIDESCENCE");
 
                 if (IridescenceThicknessMap != null)
-                {
                     bld.AddFeature("USE_IRIDESCENCE_THICKNESS_MAP");
-                }
+
                 if (IridescenceMap != null)
-                {
                     bld.AddFeature("USE_IRIDESCENCE_MAP");
-                }
 
                 bld.ExecuteAction((ctx, up) =>
                 {
@@ -712,6 +713,32 @@ namespace XrEngine
                 }, UniformsSlots.Iridescence, BufferStore.Material);
             }
 
+            if (Transmission > 0)
+            {
+                bld.AddFeature("USE_TRANSMISSION");
+
+                if (TransmissionMap != null)
+                    bld.AddFeature("USE_TRANSMISSION_MAP");
+
+                if (EngineApp.Current.Renderer.Features.ShaderFramebufferFetch)
+                {
+                    bld.AddFeature("FB_FETCH");
+                    Alpha = AlphaMode.Opaque;
+                }
+                else
+                {
+#if GLES
+                    bld.AddExtension("GL_EXT_blend_func_extended");
+#endif
+                }
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (TransmissionMap != null)
+                        up.LoadTexture(TransmissionMap, TextureSlots.TransmissionMap);
+                });
+            }
+
             if (HasRefraction)
             {
                 bld.AddFeature("USE_REFRACTION");
@@ -736,6 +763,7 @@ namespace XrEngine
                 {
                     if (ctx.VolumeForeground != null)
                         up.LoadTexture(ctx.VolumeForeground, TextureSlots.VolumeForeground);
+
                     if (ThicknessMap != null)
                         up.LoadTexture(ThicknessMap, TextureSlots.ThicknessMap);
                 });
@@ -753,10 +781,8 @@ namespace XrEngine
                     {
                         AttenuationColor = AttenuationColor.ToVector3(),
                         AttenuationDistance = AttenuationDistance == 0 ? float.PositiveInfinity : AttenuationDistance,
-                        TransmissionFactor = TransmissionFactor,
                         Ior = Ior,
                         Thickness = Thickness,
-
                     };
                 }, UniformsSlots.Volume, BufferStore.Material);
             }
@@ -880,7 +906,7 @@ namespace XrEngine
         public bool Simplified { get; set; }
 
         [Category(Rendering)]
-        public PbrV2Debug Debug { get; set; }
+        public PbrDebug Debug { get; set; }
 
         [Category(Rendering)]
         public float LightFieldOfs { get; set; }
@@ -897,6 +923,14 @@ namespace XrEngine
         [Category(Textures)]
         public Matrix4x4? ColorMapProjection { get; set; }
 
+
+        [Category(Surface)]
+        [Range(0, 1, 0.01f)]
+        public float Transmission { get; set; }
+
+        [Category(Textures)]
+        public Texture2D? TransmissionMap { get; set; }
+
         [Category(Volume)]
         public float Ior { get; set; }
 
@@ -910,10 +944,6 @@ namespace XrEngine
 
         [Category(Volume)]
         public Color AttenuationColor { get; set; }
-
-        [Category(Volume)]
-        [Range(0, 1, 0.01f)]
-        public float TransmissionFactor { get; set; }
 
         [Category(Volume)]
         public Texture2D? ThicknessMap { get; set; }

@@ -5,6 +5,9 @@ layout(binding=2) uniform sampler2D metalroughnessTexture;
 layout(binding=3) uniform sampler2D occlusionTexture;
 layout(binding=9) uniform sampler2D emissiveTexture;
 
+#ifdef USE_TRANSMISSION_MAP
+    layout(binding=7) uniform sampler2D transmissionTexture;
+#endif
 
 vec4 LoadBaseColor()
 {
@@ -187,6 +190,14 @@ FragmentProperties LoadFragmentProperties()
 	frag.normal = LoadFragmentNormal();
 	frag.occlusion = LoadOcclusion();
 	frag.viewDir = normalize(fCameraPos - fPos);
+
+	#ifdef USE_TRANSMISSION
+		frag.transmission = uMaterial.transmission;
+
+		#ifdef USE_TRANSMISSION_MAP
+			frag.transmission *= texture(transmissionTexture, fUv).r;
+		#endif
+	#endif
 
 	return frag;
 }

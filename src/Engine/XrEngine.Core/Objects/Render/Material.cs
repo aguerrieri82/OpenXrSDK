@@ -13,6 +13,7 @@ namespace XrEngine
         Max = Blend | 0x40,
         Punch = Blend | 0x80,
         Over = Blend | 0x100,
+        TransmissionBlend = Blend | 0x200,
     }
 
     public enum StencilFunction
@@ -166,6 +167,8 @@ namespace XrEngine
         public Vector2 PolygonOffset { get; set; }
 
         public StencilFunction StencilFunction { get; set; }
+
+        public bool DualSourceBlend { get; set; }
 
         public AlphaMode Alpha { get; set; }
 

@@ -27,6 +27,8 @@
         public const int VolumeBackground = 11;
         public const int VolumeForeground = 12;
 
+        public const int TransmissionMap = 7;
+
         public const int ThicknessMap = 13;
 
         public const int IridescenceMap = 14;

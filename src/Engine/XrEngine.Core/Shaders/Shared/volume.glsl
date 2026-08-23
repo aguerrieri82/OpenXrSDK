@@ -3,7 +3,6 @@ struct VolumeData
     float ior;
     float thickness;
     float attenuationDistance;
-    float transmissionFactor;
     vec3 attenuationColor;
     mat3 backgroundUvTransform[2];
 };
@@ -32,7 +31,7 @@ layout(std140, binding = 5) uniform VolumeUniforms
 #endif
 
 #ifdef USE_THICKNESS_MAP
-layout(binding=13) uniform sampler2D thicknessTexture;
+    layout(binding=13) uniform sampler2D thicknessTexture;
 #endif
 
 float applyVolumeIorToRoughness(float roughness)

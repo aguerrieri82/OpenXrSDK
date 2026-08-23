@@ -168,6 +168,8 @@ namespace XrEngine.OpenGL
             _features.DisjointTimerQuery = _extensions.Contains("GL_EXT_disjoint_timer_query");
 
             _features.MultisampledRenderToTexture = _extensions.Contains("GL_EXT_multisampled_render_to_texture");
+             
+            _features.HasDualSourceBlend = _extensions.Contains("GL_EXT_blend_func_extended");
 
             _gl.GetInteger(GetPName.MaxVertexShaderStorageBlocks, out _features.MaxVertexSsboBlocks);
 

@@ -14,9 +14,6 @@ public struct VolumeUniforms
     [FieldOffset(8)]
     public float AttenuationDistance;
 
-    [FieldOffset(12)]
-    public float TransmissionFactor;
-
     [FieldOffset(16)]
     public Vector3 AttenuationColor;
 

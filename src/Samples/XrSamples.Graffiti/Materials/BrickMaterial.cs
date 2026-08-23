@@ -12,7 +12,7 @@ namespace XrSamples.Graffiti
             base.UpdateShaderMaterial(bld);
 
             bld.SetFsIncludes("[XrSamples.Graffiti]brick_pbr.glsl");
-            bld.SetFragmentLoader("FragmentProperties frag = LoadFragmentPropertiesBrick();");
+            bld.SetFragmentLoader("frag = LoadFragmentPropertiesBrick();");
         }
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)

@@ -28,6 +28,16 @@ const vec3 Fdielectric = vec3(0.04);
 	#define ALPHA_SPECULAR
 #endif
 
+#if defined(USE_TRANSMISSION) && !defined(USE_REFRACTION) && ALPHA_MODE != ALPHA_OPAQUE && ALPHA_MODE != ALPHA_MASK
+	#define ALPHA_TRANSMISSION
+
+	#ifdef FB_FETCH
+		#define FB_FETCH_TRANSMISSION
+	#else
+		#define DUAL_SOURCE_TRANSMISSION
+	#endif
+#endif
+
 #ifdef ALPHA_SPECULAR
 	float specularStrength;
 #endif
@@ -41,6 +51,7 @@ const vec3 Fdielectric = vec3(0.04);
 #define DEBUG_IRRADIANCE 7
 #define DEBUG_FIELD_DIR  8
 #define DEBUG_FIELD_RAD  9
+#define DEBUG_TRANSMISSION 10
 
 #ifndef PBR_MIN_ROUGHNESS
 	#define PBR_MIN_ROUGHNESS 0.045
@@ -57,6 +68,7 @@ const vec3 Fdielectric = vec3(0.04);
 #ifndef ALBEDO_UV_SET
 	#define ALBEDO_UV_SET 0
 #endif
+
 
 
 in vec3 fNormal;
@@ -81,11 +93,19 @@ in vec3 fCameraPos;
 	in vec4 fProjCoord;
 #endif
 
-layout(location=0) out vec4 color;
+#ifdef FB_FETCH_TRANSMISSION
+	layout(location=0) inout vec4 color;
+#elif defined(DUAL_SOURCE_TRANSMISSION)
+	layout(location=0, index=0) out vec4 color;
+	layout(location=0, index=1) out vec4 transmissionBlend;
+#else
+	layout(location=0) out vec4 color;
+#endif
 
 layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
+
 
 
 #ifdef HAS_CLIP_VOLUME
@@ -110,7 +130,11 @@ struct FragmentProperties
 	vec3 viewDir;
 
 	vec4 emissive;
+
+	float transmission;	
 };
+
+FragmentProperties frag;
 
 #ifdef USE_IRIDESCENCE
 	float iridescenceFactor;
@@ -193,8 +217,8 @@ vec3 evaluateDirectLight(
 		return vec3(0.0);
 
 #ifdef SIMPLIFIED
-	#ifdef USE_REFRACTION
-		return vec3(0.0);
+	#if defined(USE_TRANSMISSION)
+		return albedo * radiance * NoL * (1.0 - frag.transmission);
 	#else
 		return albedo * radiance * NoL;
 	#endif
@@ -224,8 +248,8 @@ vec3 evaluateDirectLight(
 		vec3 diffuseBRDF = kd * albedo;
 	#endif
 
-	#ifdef USE_REFRACTION
-		diffuseBRDF *= 1.0 - uVolume.transmissionFactor;
+	#if defined(USE_TRANSMISSION)
+		diffuseBRDF *= 1.0 - frag.transmission;
 	#endif
 
 	vec3 specularBRDF = F * specularTerm;
@@ -245,8 +269,8 @@ vec3 evaluateDirectLight(
 			vec3 iridescenceDiffuseBRDF = albedo;
 		#endif
 
-		#ifdef USE_REFRACTION
-			iridescenceDiffuseBRDF *= 1.0 - uVolume.transmissionFactor;
+		#if defined(USE_TRANSMISSION)
+			iridescenceDiffuseBRDF *= 1.0 - frag.transmission;
 		#endif
 
 		vec3 iridescenceSpecularBRDF = vec3(specularTerm);
@@ -442,11 +466,11 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 
 #ifdef SIMPLIFIED
 
-	#ifdef USE_REFRACTION
-		ambientLighting = vec3(0.0);
-	#else
-		vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIblIntensity * uIblColor;
-		ambientLighting = frag.albedo * irradiance;
+	vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIblIntensity * uIblColor;
+	ambientLighting = frag.albedo * irradiance;
+
+	#if defined(USE_TRANSMISSION)
+		ambientLighting *= 1.0 - frag.transmission;
 	#endif
 
 #else
@@ -463,8 +487,8 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 		vec3 kd = (vec3(1.0) - F) * (1.0 - frag.metalness);
 		vec3 diffuseIBL = kd * frag.albedo * irradiance;
 
-		#ifdef USE_REFRACTION
-			diffuseIBL *= 1.0 - uVolume.transmissionFactor;
+		#if defined(USE_TRANSMISSION)
+			diffuseIBL *= 1.0 - frag.transmission;
 		#endif
 
 		vec3 specularVec = iblDirection(reflectionDir);
@@ -485,8 +509,8 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 		#ifdef USE_IRIDESCENCE
 			vec3 iridescenceDiffuseIBL = frag.albedo * irradiance;
 
-			#ifdef USE_REFRACTION
-				iridescenceDiffuseIBL *= 1.0 - uVolume.transmissionFactor;
+			#if defined(USE_TRANSMISSION)
+				iridescenceDiffuseIBL *= 1.0 - frag.transmission;
 			#endif
 
 			vec3 iridescenceDielectricIBL = rgbMix(iridescenceDiffuseIBL, specularIrradiance, iridescenceFresnelDielectric);
@@ -619,7 +643,7 @@ void main()
 	vec3 color3 = directLighting + ambientLighting;
 #endif
 
-#ifdef USE_REFRACTION
+#if defined(USE_REFRACTION) && defined(USE_TRANSMISSION)
 	float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
 	vec3 F = fresnelSchlick(vec3(dielectricF0), NoV);
 	vec3 transmissionWeight = vec3(1.0) - F;
@@ -630,7 +654,7 @@ void main()
 	#endif
 
 	vec4 volume = sampleVolume(frag.position, N, V, getViewProj(), frag.uv0, frag.roughness);
-	color3 += volume.rgb * volume.a * frag.albedo * transmissionWeight * (1.0 - frag.metalness) * uVolume.transmissionFactor;
+	color3 += volume.rgb * volume.a * frag.albedo * transmissionWeight * (1.0 - frag.metalness) * frag.transmission;
 #endif
 
 #ifdef PLANAR_REFLECTION
@@ -659,11 +683,28 @@ void main()
 	color3 = addNoise(color3);
 #endif
 
+#ifdef ALPHA_TRANSMISSION
+	a *= 1.0 - frag.transmission;
+#endif
+
 #ifdef ALPHA_SPECULAR
 	a = mix(a, 1.0, saturate(specularStrength * uMaterial.alphaSpecularScale));
 #endif
 
-	color = vec4(color3 * uCamera.exposure, a);
+	vec3 outRgb = color3 * uCamera.exposure;
+
+#ifdef FB_FETCH_TRANSMISSION
+	vec4 dst = color;
+	vec3 transmissionColor = frag.albedo * (1.0 - a);
+	color = vec4(
+		outRgb * a + dst.rgb * transmissionColor,
+		a + dst.a * (1.0 - a));
+#elif defined(DUAL_SOURCE_TRANSMISSION)
+	color = vec4(outRgb, a);
+	transmissionBlend = vec4(frag.albedo * (1.0 - a), 0.0);
+#else
+	color = vec4(outRgb, a);
+#endif
 
 #if DEBUG == DEBUG_UV
 	color = vec4(fUv.x, fUv.y, 0.0, 1.0);
@@ -677,6 +718,8 @@ void main()
 	color = vec4(vec3(frag.metalness), 1.0);
 #elif DEBUG == DEBUG_ROUGHNESS
 	color = vec4(vec3(frag.roughness), 1.0);
+#elif DEBUG == DEBUG_TRANSMISSION
+	color = vec4(vec3(frag.transmission), 1.0);
 #elif DEBUG == DEBUG_IRRADIANCE
 	color = vec4(texture(irradianceTexture, N).rgb * uIblIntensity * uIblColor, 1.0);
 #elif DEBUG == DEBUG_FIELD_DIR
@@ -686,6 +729,10 @@ void main()
 #elif DEBUG == DEBUG_FIELD_RAD
 	color.rgb =	evaluateLightFieldRadiance(frag.position, frag.normal) * uMaterial.occlusionStrength;
 	color.a = 1.0;
+#endif
+
+#if DEBUG != 0 && defined(DUAL_SOURCE_TRANSMISSION)
+	transmissionBlend = vec4(0.0);
 #endif
 
 }
