@@ -1127,12 +1127,39 @@ namespace XrEngine.Gltf
         protected Camera ProcessCamera(int cameraId)
         {
             var camera = _model!.Cameras[cameraId];
-            var cameraObj = new PerspectiveCamera();
-
+            
             CheckExtensions(camera.Extensions);
-            LoadLog("Camera not supported!");
 
-            return cameraObj;
+            if (camera.Type == "perspective")
+            {
+                CheckExtensions(camera.Perspective.Extensions);
+
+                var cameraObj = new PerspectiveCamera
+                {
+                    Far = camera.Perspective.Zfar ?? float.PositiveInfinity,
+                    Near = camera.Perspective.Znear,
+                    FovDegree = camera.Perspective.Yfov.ToDegrees()
+                };
+
+                if (camera.Perspective.AspectRatio.HasValue)
+                    cameraObj.ViewSize = new Size2I((uint)(camera.Perspective.AspectRatio.Value * 1000), 1000);
+
+                return cameraObj;
+
+            }
+            else
+            {
+                CheckExtensions(camera.Orthographic.Extensions);
+                var cameraObj = new OrtoCamera
+                {
+                    Far = camera.Orthographic.Zfar,
+                    Near = camera.Orthographic.Znear
+                };
+                cameraObj.SetViewArea(-camera.Orthographic.Xmag, camera.Orthographic.Xmag, -camera.Orthographic.Ymag, camera.Orthographic.Ymag);
+
+                return cameraObj;
+            }
+
         }
 
         protected Object3D ProcessNode(int nodeId, Group3D? curGrp, bool isJoint)

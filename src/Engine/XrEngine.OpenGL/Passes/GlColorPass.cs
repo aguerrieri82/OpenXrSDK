@@ -265,9 +265,6 @@ namespace XrEngine.OpenGL
             {
                 PrepareColorCopy();
 
-#if DEBUG
-                _colorCopyTex.Clear(Color.Transparent);
-#endif
                 var layerBounds = layer.GetScreenBounds(ctx.PassCamera!, ctx.IsMultiView, ctx.UseAngle);
                 var layerRect = layerBounds.ToRect2I(10);
 

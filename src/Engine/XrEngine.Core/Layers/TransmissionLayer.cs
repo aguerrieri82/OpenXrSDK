@@ -11,7 +11,7 @@
         {
             return obj.Materials.
                    OfType<ITransmissionMaterial>().
-                   Any(a => a.HasTransmission);
+                   Any(a => a.HasTransmission && a.TransmissionMode == TransmissionMode.Texture);
         }
 
         protected override bool AffectChange(ObjectChange change)
@@ -27,7 +27,5 @@
 
             return false;
         }
-
     }
-
 }
