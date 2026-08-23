@@ -1232,6 +1232,17 @@ namespace XrEngine
                 };
             }
 
+
+            public bool TryWorldToScreen(in Vector3 worldPos, int eye, bool flipY, out Vector2 screenPos)
+            {
+                var viewProj = self.Eyes != null ?
+                        self.Eyes[Math.Max(self.ActiveEye, eye)].ViewProj :
+                        self.ViewProjection;
+
+                return MathUtils.TryGetScreenPoint(worldPos, viewProj, self.ViewSize, flipY, out screenPos);
+            }
+
+            [Obsolete]
             public Vector2 WorldToScreen(Vector3 world)
             {
                 var size = new Vector2(self.ViewSize.Width, self.ViewSize.Height);

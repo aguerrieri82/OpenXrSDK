@@ -8,13 +8,15 @@ using XrEngine.Helpers;
 using System.Numerics;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
         protected DepthClipEffect? _depthClipEffect;
-        private ColorCopyDownsampleEffect _colorCopyEffect;
+        protected ColorCopyDownsampleEffect _colorCopyEffect;
+        protected GlTexture? _colorCopyTex;
         protected readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
@@ -196,7 +198,7 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
-        [MemberNotNull(nameof(_colorCopyEffect))]
+        [MemberNotNull(nameof(_colorCopyEffect), nameof(_colorCopyTex))]
         protected void PrepareColorCopy()
         {
             if (_colorCopyEffect == null)
@@ -236,6 +238,8 @@ namespace XrEngine.OpenGL
 
                 _colorCopyEffect.SourceTexture = (Texture2D)color;
             }
+
+            _colorCopyTex ??= _colorCopyEffect.DestTexture!.ToGlTexture();
         }
 
         public override void RenderLayer(GlLayer layer)
@@ -244,30 +248,44 @@ namespace XrEngine.OpenGL
 
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
+
+            if (layer.IsEmpty)
+                return;
+
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
             var ctx = _renderer.UpdateContext;
 
             var useDepthPass = _renderer.Options.UseDepthPass;
-
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
             uint globalProgChangesCount = 0;
 
-            if (layer.Type == GlLayerType.Refraction)
+            if (layer.Type == GlLayerType.Transmission)
             {
                 PrepareColorCopy();
+
+#if DEBUG
+                _colorCopyTex.Clear(Color.Transparent);
+#endif
+                var layerBounds = layer.GetScreenBounds(ctx.PassCamera!, ctx.IsMultiView, ctx.UseAngle);
+                var layerRect = layerBounds.ToRect2I(10);
+
+                _renderer.SetScissor(layerRect);
+
                 UseEffect(_colorCopyEffect);
                 DrawQuad();
 
                 _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
-                _colorCopyEffect.DestTexture!.ToGlTexture().GenerateMipmap();
+                GlImageProc.GenerateBlurredMipmaps(_colorCopyTex, layerRect, 2);
 
-                ctx.VolumeForeground = _colorCopyEffect.DestTexture;
+                _renderer.SetScissor(layerRect);
+
+                ctx.TransmissionForeground = _colorCopyEffect.DestTexture;
             }
             else
-                ctx.VolumeForeground = null;
+                ctx.TransmissionForeground = null;
 
             foreach (var shader in layer.Content.SortedContent!)
             {
@@ -376,6 +394,10 @@ namespace XrEngine.OpenGL
 
                 ctx.Material = null;
             }
+
+
+            if (layer.Type == GlLayerType.Transmission)
+                _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
 
             _renderer.State.BindVertexArray(0);
 

@@ -31,7 +31,7 @@ namespace XrEngine
         Full
     }
 
-    public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial, IRefractionMaterial
+    public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial, ITransmissionMaterial
     {
         #region CATEGORIES
 
@@ -484,7 +484,6 @@ namespace XrEngine
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
 
-            bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
             bld.LoadBuffer<MaterialUniforms>(ctx =>
             {
@@ -717,19 +716,32 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_TRANSMISSION");
 
+                bld.AddFeature($"TRANSMISSION_MODE {(int)TransmissionMode}");
+
                 if (TransmissionMap != null)
                     bld.AddFeature("USE_TRANSMISSION_MAP");
 
-                if (EngineApp.Current.Renderer.Features.ShaderFramebufferFetch)
+                if (TransmissionMode == TransmissionMode.FrameBufferFetch)
                 {
-                    bld.AddFeature("FB_FETCH");
                     Alpha = AlphaMode.Opaque;
                 }
-                else
+                else if (TransmissionMode == TransmissionMode.DualAlpha)
                 {
+                    Alpha = AlphaMode.TransmissionBlend;
 #if GLES
                     bld.AddExtension("GL_EXT_blend_func_extended");
 #endif
+                }
+                else if (TransmissionMode == TransmissionMode.Texture)
+                {
+                    if (!HasRefraction)
+                    {
+                        bld.ExecuteAction((ctx, up) =>
+                        {
+                            if (ctx.TransmissionForeground != null)
+                                up.LoadTexture(ctx.TransmissionForeground, TextureSlots.VolumeForeground);
+                        });
+                    }
                 }
 
                 bld.ExecuteAction((ctx, up) =>
@@ -761,8 +773,8 @@ namespace XrEngine
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    if (ctx.VolumeForeground != null)
-                        up.LoadTexture(ctx.VolumeForeground, TextureSlots.VolumeForeground);
+                    if (ctx.TransmissionForeground != null)
+                        up.LoadTexture(ctx.TransmissionForeground, TextureSlots.VolumeForeground);
 
                     if (ThicknessMap != null)
                         up.LoadTexture(ThicknessMap, TextureSlots.ThicknessMap);
@@ -786,6 +798,9 @@ namespace XrEngine
                     };
                 }, UniformsSlots.Volume, BufferStore.Material);
             }
+
+
+            bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
             if (AlphaSpecularScale > 0)
                 bld.AddFeature("USE_ALPHA_SPECULAR");
@@ -928,6 +943,9 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float Transmission { get; set; }
 
+        [Category(Surface)]
+        public TransmissionMode TransmissionMode { get; set; }
+
         [Category(Textures)]
         public Texture2D? TransmissionMap { get; set; }
 
@@ -966,7 +984,9 @@ namespace XrEngine
         [Category(Iridescence)]
         public Texture2D? IridescenceMap { get; set; }
 
-        public bool HasRefraction => Thickness > 0;
+        public bool HasTransmission => Transmission > 0 || Thickness > 0;
+
+        public bool HasRefraction => Thickness > 0 && Ior != 1;
 
         public bool HasIridescence => IridescenceFactor > 0;
 

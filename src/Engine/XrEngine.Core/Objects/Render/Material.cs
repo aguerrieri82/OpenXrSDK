@@ -168,7 +168,6 @@ namespace XrEngine
 
         public StencilFunction StencilFunction { get; set; }
 
-        public bool DualSourceBlend { get; set; }
 
         public AlphaMode Alpha { get; set; }
 

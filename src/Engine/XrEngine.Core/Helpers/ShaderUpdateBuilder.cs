@@ -132,7 +132,7 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
-        public Texture2D? VolumeForeground;
+        public Texture2D? TransmissionForeground;
 
         public bool UseSharedSsbo;
 

@@ -149,12 +149,8 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             var padding = (int)_renderer.Options.Outline.Size + 2;
-            _bounds.Min -= new Vector2(padding, padding);
-            _bounds.Max += new Vector2(padding, padding);
 
-            _renderer.State.EnableFeature(EnableCap.ScissorTest, true);
-
-            _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
+            _renderer.SetScissor(_bounds, padding);
 
             _outlineMat.Texture = _passTarget.Color!.ToEngineTexture();
 
@@ -204,28 +200,6 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        bool TryGetScreenPoint(in Vector3 worldPos, in Matrix4x4 viewProj, out Vector2 screenPos)
-        {
-            var clipPos = Vector4.Transform(new Vector4(worldPos, 1), viewProj);
-
-            if (clipPos.W <= 0.001f)
-            {
-                screenPos = Vector2.Zero;
-                return false;
-            }
-
-            var ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
-
-            screenPos = new Vector2(
-                (ndc.X + 1.0f) * 0.5f * _frameSize.Width,
-                (ndc.Y + 1.0f) * 0.5f * _frameSize.Height
-            );
-
-            if (_renderer.Features.IsAngle)
-                screenPos.Y = _frameSize.Height - screenPos.Y;
-
-            return true;
-        }
 
         protected override void Draw(DrawContent draw)
         {
@@ -241,11 +215,7 @@ namespace XrEngine.OpenGL
             {
                 for (var eye = 0; eye < eyes; eye++)
                 {
-                    var viewProj = camera!.Eyes != null ?
-                        camera.Eyes[Math.Max(camera.ActiveEye, eye)].ViewProj :
-                        camera.ViewProjection;
-
-                    if (!TryGetScreenPoint(corner, viewProj, out var screen))
+                    if (!camera.TryWorldToScreen(corner, eye, _renderer.Features.IsAngle, out var screen))
                     {
                         objectClipping = true;
                         break;

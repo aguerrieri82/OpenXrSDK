@@ -69,7 +69,7 @@ namespace XrEditor
                   opt.ToneMap = ToneMapMode.Neutral;
                   opt.UseProfiler = false;
                   opt.UseDefaultIntermediate = true;
-                  opt.UseRefraction = true;
+                  opt.UseTransmission = true;
 
                   GlDebug.TrackBuffers = false;
 
@@ -91,7 +91,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(2f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGltfTest("Models/LightsPunctualLamp.glb")
+              .CreateGltfTest("Models/DragonAttenuation.glb")
               .Build();
     }
 }

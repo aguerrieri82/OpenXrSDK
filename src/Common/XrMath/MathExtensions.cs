@@ -1433,6 +1433,17 @@ namespace XrMath
                     Max = self.Center + halfSize
                 };
             }
+
+            public Rect2I ToRect2I()
+            {
+                return new Rect2I((int)self.Min.X, (int)self.Min.Y, (uint)self.Size.X, (uint)self.Size.Y);
+            }
+
+            public Rect2I ToRect2I(int padding)
+            {
+                return new Rect2I((int)self.Min.X - padding, (int)self.Min.Y - padding, 
+                    (uint)(self.Size.X + (padding * 2)), (uint)(self.Size.Y + (padding * 2)));
+            }
         }
 
         #endregion

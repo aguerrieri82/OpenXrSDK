@@ -177,7 +177,7 @@ namespace XrEngine.OpenGL
 
         public bool UsePrimitiveBoundingBox { get; set; }
 
-        public bool UseRefraction { get; set; }
+        public bool UseTransmission { get; set; }
 
         public int RefractionDownsampleFactor { get; set; }
     }

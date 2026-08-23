@@ -143,5 +143,30 @@ namespace XrMath
             bitangent = Vector3.Normalize(Vector3.Cross(n, tangent));
         }
 
+
+
+        public static bool TryGetScreenPoint(in Vector3 worldPos, in Matrix4x4 viewProj, Size2I viewSize, bool flipY, out Vector2 screenPos)
+        {
+            var clipPos = Vector4.Transform(new Vector4(worldPos, 1), viewProj);
+
+            if (clipPos.W <= 0.001f)
+            {
+                screenPos = Vector2.Zero;
+                return false;
+            }
+
+            var ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
+
+            screenPos = new Vector2(
+                (ndc.X + 1.0f) * 0.5f * viewSize.Width,
+                (ndc.Y + 1.0f) * 0.5f * viewSize.Height
+            );
+
+            if (flipY)
+                screenPos.Y = viewSize.Height - screenPos.Y;
+
+            return true;
+        }
+
     }
 }

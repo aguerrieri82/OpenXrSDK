@@ -527,11 +527,8 @@ namespace XrEngine.Gltf
                     result.TransmissionMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
                 }
 
-                if (volume == null)
-                {
-                    result.Alpha = AlphaMode.TransmissionBlend;
-                    result.DualSourceBlend = true;
-                }
+                result.TransmissionMode = TransmissionMode.Texture;
+                result.Alpha = AlphaMode.Opaque;
             }
 
             if (irid != null)

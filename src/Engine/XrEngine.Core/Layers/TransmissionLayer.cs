@@ -1,17 +1,17 @@
 ﻿namespace XrEngine
 {
-    public class RefractionLayer : BaseAutoLayer<TriangleMesh>
+    public class TransmissionLayer : BaseAutoLayer<TriangleMesh>
     {
-        public RefractionLayer()
+        public TransmissionLayer()
         {
-            Name = "Refraction";
+            Name = "Transmission";
         }
 
         protected override bool BelongsToLayer(TriangleMesh obj)
         {
             return obj.Materials.
-                   OfType<IRefractionMaterial>().
-                   Any(a => a.HasRefraction);
+                   OfType<ITransmissionMaterial>().
+                   Any(a => a.HasTransmission);
         }
 
         protected override bool AffectChange(ObjectChange change)

@@ -498,10 +498,10 @@ namespace XrEngine.OpenGL
                     AddLayer(scene, GlLayerType.Volume, volume);
                 }
 
-                if (_options.UseRefraction)
+                if (_options.UseTransmission)
                 {
-                    var refraction = scene.EnsureLayer<RefractionLayer>();
-                    AddLayer(scene, GlLayerType.Refraction, refraction);
+                    var transmission = scene.EnsureLayer<TransmissionLayer>();
+                    AddLayer(scene, GlLayerType.Transmission, transmission);
                 }
 
                 if (_options.UseRayCollider)

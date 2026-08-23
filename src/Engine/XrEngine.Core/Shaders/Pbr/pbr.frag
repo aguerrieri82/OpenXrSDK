@@ -1,11 +1,21 @@
 #include "uniforms.glsl"
+
+#define TM_NONE        0
+#define TM_FB_FETCH    1
+#define TM_DUAL_SOURCE 2
+#define TM_TEXTURE     3
+
+#ifndef TRANSMISSION_MODE
+	#define TRANSMISSION_MODE TM_NONE
+#endif
+
 #include "../Shared/shadow.glsl"
 #include "../Shared/env_depth.glsl"
 #include "../Shared/planar_reflection.glsl"
 #include "../Shared/consts.glsl"
 #include "../Shared/fragment_post.glsl"
 
-#ifdef USE_REFRACTION
+#if defined(USE_REFRACTION) || TRANSMISSION_MODE == TM_TEXTURE
 	#include "../Shared/position.glsl"
 	#include "../Shared/volume.glsl"
 #endif
@@ -26,16 +36,6 @@ const vec3 Fdielectric = vec3(0.04);
 
 #if ALPHA_MODE != ALPHA_OPAQUE && ALPHA_MODE != ALPHA_MASK && defined(USE_ALPHA_SPECULAR)
 	#define ALPHA_SPECULAR
-#endif
-
-#if defined(USE_TRANSMISSION) && !defined(USE_REFRACTION) && ALPHA_MODE != ALPHA_OPAQUE && ALPHA_MODE != ALPHA_MASK
-	#define ALPHA_TRANSMISSION
-
-	#ifdef FB_FETCH
-		#define FB_FETCH_TRANSMISSION
-	#else
-		#define DUAL_SOURCE_TRANSMISSION
-	#endif
 #endif
 
 #ifdef ALPHA_SPECULAR
@@ -93,9 +93,9 @@ in vec3 fCameraPos;
 	in vec4 fProjCoord;
 #endif
 
-#ifdef FB_FETCH_TRANSMISSION
+#if TRANSMISSION_MODE == TM_FB_FETCH
 	layout(location=0) inout vec4 color;
-#elif defined(DUAL_SOURCE_TRANSMISSION)
+#elif TRANSMISSION_MODE == TM_DUAL_SOURCE
 	layout(location=0, index=0) out vec4 color;
 	layout(location=0, index=1) out vec4 transmissionBlend;
 #else
@@ -285,6 +285,79 @@ vec3 evaluateDirectLight(
 }
 
 
+#ifdef USE_TRANSMISSION
+
+float visibilityGGXTransmission(float NoL, float NoV, float roughness)
+{
+	float r = max(roughness, PBR_MIN_ROUGHNESS);
+	float alpha = r * r;
+	float alpha2 = alpha * alpha;
+
+	float GGXV = NoL * sqrt(NoV * NoV * (1.0 - alpha2) + alpha2);
+	float GGXL = NoV * sqrt(NoL * NoL * (1.0 - alpha2) + alpha2);
+	float GGX = GGXV + GGXL;
+
+	return GGX > Epsilon ? 0.5 / GGX : 0.0;
+}
+
+vec3 evaluateDirectTransmission(
+	vec3 albedo,
+	float metalness,
+	float roughness,
+	vec3 N,
+	vec3 V,
+	vec3 L,
+	vec3 radiance)
+{
+	float NoV = saturate(dot(N, V));
+	float NoL = dot(N, L);
+
+	if (NoV <= 0.0 || NoL >= 0.0 || frag.transmission <= 0.0)
+		return vec3(0.0);
+
+	vec3 Lt = normalize(L - 2.0 * N * dot(N, L));
+	float NoLt = saturate(dot(N, Lt));
+
+	vec3 H = normalize(Lt + V);
+	float NoH = saturate(dot(N, H));
+	float VoH = saturate(dot(V, H));
+
+	float transmissionRoughness = roughness;
+
+	#ifdef USE_REFRACTION
+		float roughnessScale = clamp(uVolume.ior * 2.0 - 2.0, 0.0, 1.0);
+		transmissionRoughness *= sqrt(roughnessScale);
+		float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
+		vec3 F = fresnelSchlick(vec3(dielectricF0), VoH);
+	#else
+		vec3 F = fresnelSchlick(Fdielectric, VoH);
+	#endif
+
+	float D = distributionGGX(NoH, transmissionRoughness);
+	float Vis = visibilityGGXTransmission(NoLt, NoV, transmissionRoughness);
+
+	vec3 transmissionWeight =
+		(vec3(1.0) - F) *
+		(1.0 - metalness) *
+		frag.transmission;
+
+	#ifdef USE_IRIDESCENCE
+		float iridescenceBaseWeight =
+			1.0 - max(iridescenceFresnelDielectric.r,
+				max(iridescenceFresnelDielectric.g, iridescenceFresnelDielectric.b));
+
+		transmissionWeight = mix(
+			transmissionWeight,
+			vec3(iridescenceBaseWeight) * (1.0 - metalness) * frag.transmission,
+			iridescenceFactor);
+	#endif
+
+	return albedo * transmissionWeight * D * Vis * radiance;
+}
+
+#endif
+
+
 #ifdef USE_LIGHT_FIELD
 	#include "../Shared/light_field.glsl"
 #endif
@@ -430,19 +503,36 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 		if (attenuation <= Epsilon)
 			continue;
 
-		if (dot(frag.normal, L) <= 0.0)
-			continue;
+		float NoL = dot(frag.normal, L);
 
-		vec3 radiance = uLights.lights[i].radiance * attenuation;
+		if (NoL > 0.0)
+		{
+			vec3 radiance = uLights.lights[i].radiance * attenuation;
+			directLighting += evaluateDirectLight(
+				frag.albedo,
+				frag.metalness,
+				frag.roughness,
+				frag.normal,
+				frag.viewDir,
+				L,
+				radiance);
+		}
+		#ifdef USE_TRANSMISSION
 
-		directLighting += evaluateDirectLight(
-			frag.albedo,
-			frag.metalness,
-			frag.roughness,
-			frag.normal,
-			frag.viewDir,
-			L,
-			radiance);
+		else 
+		{
+			vec3 radiance = uLights.lights[i].radiance * attenuation;
+			directLighting += evaluateDirectTransmission(
+				frag.albedo,
+				frag.metalness,
+				frag.roughness,
+				frag.normal,
+				frag.viewDir,
+				L,
+				radiance);
+		}
+
+		#endif
 	}
 #endif
 
@@ -643,9 +733,14 @@ void main()
 	vec3 color3 = directLighting + ambientLighting;
 #endif
 
-#if defined(USE_REFRACTION) && defined(USE_TRANSMISSION)
-	float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
-	vec3 F = fresnelSchlick(vec3(dielectricF0), NoV);
+#if TRANSMISSION_MODE == TM_TEXTURE
+	#ifdef USE_REFRACTION
+		float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
+		vec3 F = fresnelSchlick(vec3(dielectricF0), NoV);
+	#else
+		vec3 F = fresnelSchlick(Fdielectric, NoV);
+	#endif
+
 	vec3 transmissionWeight = vec3(1.0) - F;
 
 	#ifdef USE_IRIDESCENCE
@@ -653,7 +748,14 @@ void main()
 		transmissionWeight = mix(transmissionWeight, vec3(iridescenceBaseWeight), iridescenceFactor);
 	#endif
 
-	vec4 volume = sampleVolume(frag.position, N, V, getViewProj(), frag.uv0, frag.roughness);
+	#ifdef USE_REFRACTION
+		vec4 volume = sampleVolume(frag.position, N, V, getViewProj(), frag.uv0, frag.roughness);
+	#else
+		vec2 volumeUv = computeVolumeUv(frag.position, vec3(0.0), getViewProj());
+		float volumeLod = float(textureQueryLevels(volumeForeground) - 1) * frag.roughness;
+		vec4 volume = sampleVolumeForeground(volumeUv, volumeLod);
+	#endif
+
 	color3 += volume.rgb * volume.a * frag.albedo * transmissionWeight * (1.0 - frag.metalness) * frag.transmission;
 #endif
 
@@ -683,7 +785,7 @@ void main()
 	color3 = addNoise(color3);
 #endif
 
-#ifdef ALPHA_TRANSMISSION
+#if TRANSMISSION_MODE == TM_FB_FETCH || TRANSMISSION_MODE == TM_DUAL_SOURCE
 	a *= 1.0 - frag.transmission;
 #endif
 
@@ -693,13 +795,13 @@ void main()
 
 	vec3 outRgb = color3 * uCamera.exposure;
 
-#ifdef FB_FETCH_TRANSMISSION
+#if TRANSMISSION_MODE == TM_FB_FETCH
 	vec4 dst = color;
 	vec3 transmissionColor = frag.albedo * (1.0 - a);
 	color = vec4(
 		outRgb * a + dst.rgb * transmissionColor,
 		a + dst.a * (1.0 - a));
-#elif defined(DUAL_SOURCE_TRANSMISSION)
+#elif TRANSMISSION_MODE == TM_DUAL_SOURCE
 	color = vec4(outRgb, a);
 	transmissionBlend = vec4(frag.albedo * (1.0 - a), 0.0);
 #else
@@ -731,7 +833,7 @@ void main()
 	color.a = 1.0;
 #endif
 
-#if DEBUG != 0 && defined(DUAL_SOURCE_TRANSMISSION)
+#if DEBUG != 0 && TRANSMISSION_MODE == TM_DUAL_SOURCE
 	transmissionBlend = vec4(0.0);
 #endif
 

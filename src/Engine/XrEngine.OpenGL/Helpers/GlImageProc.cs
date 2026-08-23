@@ -86,6 +86,7 @@ namespace XrEngine.OpenGL
         static uint _emptyVertexArray;
         static GlTextureFrameBuffer? _frameBuffer;
         static GlTextureFrameBuffer? _texReadFb;
+        static GlMultiViewFrameBuffer? _mvFrameBuffer;
 
         public static GlSimpleProgram LoadProgram(GL gl, string fragmentSource, string vertexSource)
         {
@@ -236,6 +237,101 @@ namespace XrEngine.OpenGL
             PrepareFrameBuffer(src.GL, dst);
 
             DrawQuad(src.GL);
+        }
+
+
+        public static void GenerateBlurredMipmaps(GlTexture texture, Rect2I activeRegion, int blurLevel = 2)
+        {
+            var gl = texture.GL;
+            var glState = GlState.Current!;
+            var maxLevel = texture.MaxLevel;
+
+            if (maxLevel == 0)
+                return;
+
+            var isMultiView = texture.Target == TextureTarget.Texture2DArray && texture.Depth == 2;
+
+            string[] features = isMultiView ? [$"BLUR_LEVEL {blurLevel}", "MULTI_VIEW"] : new[] { $"BLUR_LEVEL {blurLevel}" };
+            string[] extensions = isMultiView ? ["GL_OVR_multiview2"] : [];
+
+            LoadProgram(gl, "Image/blur_mip.frag", features, extensions);
+
+            var oldBaseLevel = texture.BaseLevel;
+            var oldMaxLevel = texture.MaxLevel;
+            var oldFrameBuffer = glState.GetActiveFrameBuffer(FramebufferTarget.DrawFramebuffer);
+            var oldView = glState.View;
+            var oldProgram = glState.ActiveProgram;
+
+            glState.SetWriteDepth(false);
+            glState.SetUseDepth(false);
+            glState.SetWriteColor(true);
+            glState.SetAlphaMode(AlphaMode.Opaque);
+            glState.EnableFeature(EnableCap.CullFace, false);
+            glState.EnableFeature(EnableCap.StencilTest, false);
+            glState.EnableFeature(EnableCap.ScissorTest, true);
+            glState.Commit();
+
+            glState.LoadTexture(texture, 0);
+
+            if (isMultiView)
+            {
+                _mvFrameBuffer ??= new GlMultiViewFrameBuffer(gl);
+                _mvFrameBuffer.Configure(texture, null, 1);
+            }
+
+            for (uint level = 1; level <= maxLevel; level++)
+            {
+                var srcLevel = level - 1;
+
+                gl.TexParameter(texture.Target, TextureParameterName.TextureBaseLevel, (int)srcLevel);
+                gl.TexParameter(texture.Target, TextureParameterName.TextureMaxLevel, (int)srcLevel);
+
+                texture.BaseLevel = srcLevel;
+                texture.MaxLevel = srcLevel;
+
+                var width = Math.Max(1u, texture.Width >> (int)level);
+                var height = Math.Max(1u, texture.Height >> (int)level);
+                var region = ScaleMipRegion(activeRegion, level);
+
+                glState.SetView(new Rect2I(0, 0, width, height));
+                gl.Scissor(region.X, region.Y, region.Width, region.Height);
+
+                if (isMultiView)
+                {
+                    _mvFrameBuffer!.Attach(texture, FramebufferAttachment.ColorAttachment0, true, (int)level);
+                    _mvFrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
+                }
+                else
+                    PrepareFrameBuffer(gl, texture, level);
+
+                DrawQuad(gl);
+            }
+
+            gl.TexParameter(texture.Target, TextureParameterName.TextureBaseLevel, (int)oldBaseLevel);
+            gl.TexParameter(texture.Target, TextureParameterName.TextureMaxLevel, (int)oldMaxLevel);
+
+            texture.BaseLevel = oldBaseLevel;
+            texture.MaxLevel = oldMaxLevel;
+
+            glState.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, oldFrameBuffer);
+
+            if (oldView.HasValue)
+                glState.SetView(oldView.Value);
+
+            if (oldProgram.HasValue)
+                glState.SetActiveProgram(oldProgram.Value);
+        }
+
+        static Rect2I ScaleMipRegion(Rect2I region, uint level)
+        {
+            var scale = 1 << (int)level;
+
+            var x0 = region.X / scale;
+            var y0 = region.Y / scale;
+            var x1 = (region.X + (int)region.Width + scale - 1) / scale;
+            var y1 = (region.Y + (int)region.Height + scale - 1) / scale;
+
+            return new Rect2I(x0, y0, (uint)(x1 - x0), (uint)(y1 - y0));
         }
 
         public unsafe static IList<TextureData>? Read(this GlTexture src,

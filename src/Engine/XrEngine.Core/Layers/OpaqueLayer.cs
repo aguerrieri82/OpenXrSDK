@@ -16,7 +16,7 @@
                         Any(a => (a.Alpha == AlphaMode.Opaque ||
                                   a.Alpha == AlphaMode.BlendMain ||
                                   a.Alpha == AlphaMode.Mask) &&
-                                 (a is not IRefractionMaterial refMat || !refMat.HasRefraction));
+                                 (a is not ITransmissionMaterial refMat || !refMat.HasTransmission));
         }
 
         protected override void NotifyChangedWork(Object3D sender, ObjectChange change)

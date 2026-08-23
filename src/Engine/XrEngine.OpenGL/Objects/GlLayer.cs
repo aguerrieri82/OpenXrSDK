@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using Common.Interop;
+using System.Numerics;
+
 
 
 
@@ -37,6 +39,9 @@ namespace XrEngine.OpenGL
         protected int _lastDrawId;
         protected bool _isContentDirty;
         protected List<Action<RealGL>> _renderActions = [];
+        private bool _boundsDirty;
+        private Bounds3 _bounds;
+        private bool _isEmpty;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -170,32 +175,25 @@ namespace XrEngine.OpenGL
             }
         }
 
-        protected List<Material> ListObjects(Object3D obj3d)
+        protected IEnumerable<Object3D> EnumObjects()
         {
-            var result = new List<Material>();
-
-            foreach (var shaderEntry in _content.Contents.ToArray())
+            foreach (var shaderEntry in _content.Contents)
             {
                 var shaderContent = shaderEntry.Value;
 
-                foreach (var materialEntry in shaderContent.Contents.ToArray())
+                foreach (var materialEntry in shaderContent.Contents)
                 {
                     var materialContent = materialEntry.Value;
 
-                    foreach (var vertexEntry in materialContent.Contents.ToArray())
+                    foreach (var vertexEntry in materialContent.Contents)
                     {
                         var vertexContent = vertexEntry.Value;
 
                         foreach (var draw in vertexContent.Contents)
-                        {
-                            if (draw.Object == obj3d)
-                                result.Add(materialContent.Material!);
-
-                        }
+                            yield return draw.Object!;
                     }
                 }
             }
-            return result;
         }
 
         protected void AddContent(Object3D obj3d, bool incremental)
@@ -318,7 +316,7 @@ namespace XrEngine.OpenGL
                 });
             }
 
-            _isContentDirty = true;
+            InvalidateContent();
 
             //Rebuild();
         }
@@ -383,6 +381,55 @@ namespace XrEngine.OpenGL
             _lastCamera = camera;
 
             _isContentDirty = false;
+
+        }
+
+        public Bounds2 GetScreenBounds(Camera camera, bool isMultiView, bool flipY)
+        {
+            var result = new Bounds2
+            {
+                Min = new(float.PositiveInfinity),
+                Max = new(float.NegativeInfinity)
+            };
+
+            var objectClipping = false;
+
+            var eyes = isMultiView ? 2 : 1;
+
+            foreach (var corner in Bounds.Points)
+            {
+                for (var eye = 0; eye < eyes; eye++)
+                {
+                    if (!camera.TryWorldToScreen(corner, eye, flipY, out var screen))
+                    {
+                        objectClipping = true;
+                        break;
+                    }
+
+                    result.Min = Vector2.Min(result.Min, screen);
+                    result.Max = Vector2.Max(result.Max, screen);
+                }
+            }
+
+            if (objectClipping)
+            {
+                result.Min = Vector2.Zero;
+                result.Max = new Vector2(camera.ViewSize.Width, camera.ViewSize.Height);
+            }
+
+            return result;
+        }
+
+        protected void UpdateBounds()
+        {
+            var builder = new Bounds3Builder();
+
+            foreach (var obj in EnumObjects().Where(a => a.IsVisible))
+                builder.Add(obj.WorldBounds);
+
+            _bounds = builder.Result;
+
+            _boundsDirty = false;
         }
 
         protected void SortMaterials()
@@ -559,6 +606,8 @@ namespace XrEngine.OpenGL
             var totHidden = 0;
             var totDraw = 0;
 
+            _isEmpty = true;
+
             foreach (var shader in _content.Contents.Values)
             {
                 foreach (var material in shader.Contents.Values)
@@ -584,6 +633,8 @@ namespace XrEngine.OpenGL
 
                                 if (draw.IsHidden)
                                     totHidden++;
+                                else
+                                    _isEmpty = false;
                             }
 
                             if (!draw.IsHidden)
@@ -612,18 +663,29 @@ namespace XrEngine.OpenGL
         public void InvalidateContent()
         {
             _isContentDirty = true;
+            _boundsDirty = true; 
         }
 
         internal void Invalidate(ShaderContent value)
         {
             value.IsDirty = true;
-            _isContentDirty = true;
+            InvalidateContent();
         }
 
         public void Execute(RealGL gl)
         {
             foreach (var action in _renderActions)
                 action(gl);
+        }
+
+        public Bounds3 Bounds
+        {
+            get
+            {
+                if (_boundsDirty)
+                    UpdateBounds();
+                return _bounds;
+            }
         }
 
         public List<Action<RealGL>> RenderActions => _renderActions;
@@ -642,7 +704,7 @@ namespace XrEngine.OpenGL
 
         public Scene3D Scene => _scene;
 
-        public bool IsEmpty => _content.Contents.Count == 0;
+        public bool IsEmpty => _isEmpty;
 
         public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }
