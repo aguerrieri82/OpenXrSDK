@@ -23,6 +23,10 @@
         public static readonly ResourceSlot SheenColor = new(nameof(SheenColor));
         public static readonly ResourceSlot SheenRoughness = new(nameof(SheenRoughness));
 
+        public static readonly ResourceSlot ClearCoat = new(nameof(ClearCoat));
+        public static readonly ResourceSlot ClearCoatNormal = new(nameof(ClearCoatNormal));
+        public static readonly ResourceSlot ClearCoatRoughness = new(nameof(ClearCoatRoughness));
+
         public static readonly ResourceSlot VolumeBackground = new(4, nameof(VolumeBackground));
         public static readonly ResourceSlot VolumeForeground = new(5, nameof(VolumeForeground));
         public static readonly ResourceSlot EnvDepth = new(6, nameof(EnvDepth));
@@ -32,7 +36,7 @@
         public static readonly ResourceSlot IblGgxEnv = new(10, nameof(IblGgxEnv));
 
         public static readonly ResourceSlot IblCharlieEnv = new(12, nameof(IblCharlieEnv));
-        public static readonly ResourceSlot IblCharlieLut = new(13, nameof(IblCharlieLut));
+        public static readonly ResourceSlot CharlieLut = new(13, nameof(CharlieLut));
 
 
         public static readonly SlotMask Reserved = ResourceSlot.FillMask(typeof(TextureSlots));

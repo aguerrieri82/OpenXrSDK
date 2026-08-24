@@ -106,7 +106,7 @@ vec3 evalIridescence(float outsideIor, float filmIor, float cosTheta1, float thi
     float opd = 2.0 * filmIor * thickness * cosTheta2;
     vec3 phi = vec3(phi21) + phi23;
 
-    vec3 R123 = clamp(R12 * R23, vec3(1e-5), vec3(0.9999));
+    vec3 R123 = min(R12 * R23, vec3(0.9999));
     vec3 r123 = sqrt(R123);
     vec3 Rs = iridescenceSquare(T121) * R23 / (vec3(1.0) - R123);
 

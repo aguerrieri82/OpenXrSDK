@@ -15,7 +15,6 @@ layout(std140, binding = 5) uniform VolumeUniforms
 };
 
 #ifdef MULTIVIEW
-
     layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2DArray volumeForeground;
 
 #ifdef VOLUME_BACKGROUND

@@ -440,7 +440,9 @@ namespace XrEngine.Gltf
             var trans = TryLoadExtension<KHR_materials_transmission>(gltMat.Extensions);
             var irid = TryLoadExtension<KHR_materials_iridescence>(gltMat.Extensions);
             var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
-    
+            var coat = TryLoadExtension<KHR_materials_clearcoat>(gltMat.Extensions);
+            
+
             result ??= _options.MaterialFactory(matId);
 
             result.Name = gltMat.Name;
@@ -513,10 +515,10 @@ namespace XrEngine.Gltf
                         throw new NotSupportedException();
 
                     var texInfo = volume.Value.thicknessTexture;
-                    result.ThicknessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ThicknessMap = DecodeTextureBaseTask(texInfo).Result;
                 }
             }
-
 
             if (trans != null)
             {
@@ -525,7 +527,8 @@ namespace XrEngine.Gltf
                 if (trans.Value.transmissionTexture != null)
                 {
                     var texInfo = trans.Value.transmissionTexture;
-                    result.TransmissionMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.TransmissionMap = DecodeTextureBaseTask(texInfo).Result;
                 }
 
                 result.TransmissionMode = TransmissionMode.Texture;
@@ -551,15 +554,42 @@ namespace XrEngine.Gltf
                 if (irid.Value.iridescenceThicknessTexture != null)
                 {
                     var texInfo = irid.Value.iridescenceThicknessTexture;
-                    result.IridescenceThicknessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.IridescenceThicknessMap = DecodeTextureBaseTask(texInfo).Result;
                 }
 
                 if (irid.Value.iridescenceTexture != null)
                 {
                     var texInfo = irid.Value.iridescenceTexture;
-                    result.IridescenceMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.IridescenceMap = DecodeTextureBaseTask(texInfo).Result;
                 }
 
+            }
+
+            if (coat != null)
+            {
+                if (coat.Value.clearcoatNormalTexture != null)
+                {
+                    var texInfo = coat.Value.clearcoatNormalTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ClearCoatNormalMap = DecodeTextureNormalTask(texInfo).Result;
+                }
+                if (coat.Value.clearcoatTexture != null)
+                {
+                    var texInfo = coat.Value.clearcoatTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ClearCoatMap = DecodeTextureBaseTask(texInfo).Result;
+                }
+                if (coat.Value.clearcoatRoughnessTexture != null)
+                {
+                    var texInfo = coat.Value.clearcoatRoughnessTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ClearCoatRoughnessMap = DecodeTextureBaseTask(texInfo).Result;
+                }
+
+                result.ClearCoatFactor = coat.Value.clearcoatFactor;
+                result.ClearCoatRoughnessFactor = coat.Value.clearcoatRoughnessFactor;
             }
 
             if (sheen != null)
@@ -572,13 +602,15 @@ namespace XrEngine.Gltf
                 if (sheen.Value.sheenRoughnessTexture != null)
                 {
                     var texInfo = sheen.Value.sheenRoughnessTexture;
-                    result.SheenRoughnessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.SheenRoughnessMap = DecodeTextureBaseTask(texInfo).Result;
                 }
 
                 if (sheen.Value.sheenColorTexture != null)
                 {
                     var texInfo = sheen.Value.sheenColorTexture;
-                    result.SheenColorMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.SheenColorMap = DecodeTextureBaseTask(texInfo).Result;
                 }
             }
 

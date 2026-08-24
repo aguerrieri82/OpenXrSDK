@@ -37,6 +37,8 @@ struct MaterialData
 	float transmission;
 	vec3 sheenColor;
 	float sheenRoughness;
+	float clearCoatFactor;
+	float clearCoatRoughnessFactor;
 };
 
 #if !defined(VERTEX_SHADER) 

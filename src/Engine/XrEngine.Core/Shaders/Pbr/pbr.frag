@@ -29,12 +29,17 @@
 #endif
 
 #ifdef USE_IRIDESCENCE
-	#include "../Shared/iridescence.glsl"
+	#include "iridescence.glsl"
 #endif
 
 #ifdef USE_SHEEN
-	#include "../Shared/sheen.glsl"
+	#include "sheen.glsl"
 #endif
+
+#ifdef USE_CLEARCOAT
+	#include "clearcoat.glsl"
+#endif
+
 
 #if !defined(HAS_CLIP_VOLUME) && !defined(HAS_COLORMAP_PROJ) && ALPHA_MODE != ALPHA_MASK
 	layout(early_fragment_tests) in;
@@ -91,7 +96,7 @@ in vec3 fCameraPos;
 #endif
 
 
-#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (OCCLUSION_UV_SET == 1)
+#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (NORMAL_UV_SET == 1) || (METALROUGHNESS_UV_SET == 1) || (SPECULAR_UV_SET == 1) || (OCCLUSION_UV_SET == 1) || (EMISSIVE_UV_SET == 1) || (TRANSMISSION_UV_SET == 1) || (SHEEN_COLOR_UV_SET == 1) || (SHEEN_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_UV_SET == 1) || (CLEARCOAT_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_NORMAL_UV_SET == 1)
 	in vec2 fUv2;
 #endif
 
@@ -144,6 +149,10 @@ struct FragmentProperties
 
 	vec3 sheenColor;
 	float sheenRoughness;
+
+	float clearCoat;
+	float clearCoatRoughness;
+	vec3 clearCoatNormal;
 };
 
 FragmentProperties frag;
@@ -396,9 +405,10 @@ vec3 evaluateDirectTransmission(
 	#include "../Shared/light_field.glsl"
 #endif
 
-vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
+vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir, out vec3 clearCoatLighting)
 {
 	vec3 directLighting = vec3(0.0);
+	clearCoatLighting = vec3(0.0);
 	shadowLightDir = vec3(0.0, 1.0, 0.0);
 
 #ifdef USE_LIGHT_FIELD
@@ -537,11 +547,11 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 		if (attenuation <= Epsilon)
 			continue;
 
+		vec3 radiance = uLights.lights[i].radiance * attenuation;
 		float NoL = dot(frag.normal, L);
 
 		if (NoL > 0.0)
 		{
-			vec3 radiance = uLights.lights[i].radiance * attenuation;
 			directLighting += evaluateDirectLight(
 				frag.albedo,
 				frag.metalness,
@@ -551,11 +561,11 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 				L,
 				radiance);
 		}
+
 		#ifdef USE_TRANSMISSION
 
 		else 
 		{
-			vec3 radiance = uLights.lights[i].radiance * attenuation;
 			directLighting += evaluateDirectTransmission(
 				frag.albedo,
 				frag.metalness,
@@ -565,6 +575,25 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir)
 				L,
 				radiance);
 		}
+
+		#endif
+
+		#ifdef USE_CLEARCOAT
+
+			vec3 coatLighting = evaluateClearCoatDirect(
+				frag.clearCoatRoughness,
+				frag.clearCoatNormal,
+				frag.viewDir,
+				L,
+				radiance);
+
+			clearCoatLighting += coatLighting;
+
+			#ifdef ALPHA_SPECULAR
+				float coatWeight = clearCoatWeight(frag.clearCoat, frag.clearCoatNormal, frag.viewDir);
+				vec3 clearCoatSpecularLighting = coatLighting * coatWeight;
+				specularStrength += max(clearCoatSpecularLighting.r, max(clearCoatSpecularLighting.g, clearCoatSpecularLighting.b));
+			#endif
 
 		#endif
 	}
@@ -582,9 +611,10 @@ vec3 iblDirection(vec3 v)
 #endif
 }
 
-vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float NoV)
+vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float NoV, out vec3 clearCoatLighting)
 {
 	vec3 ambientLighting = vec3(0.0);
+	clearCoatLighting = vec3(0.0);
 
 #ifdef USE_IBL
 
@@ -660,6 +690,22 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 				specularStrength += max(sheenIBL.r, max(sheenIBL.g, sheenIBL.b));
 			#endif
 		#endif
+
+		#ifdef USE_CLEARCOAT
+			vec3 clearCoatVec = iblDirection(reflect(-frag.viewDir, frag.clearCoatNormal));
+
+			clearCoatLighting = textureLod(
+				specularTexture,
+				clearCoatVec,
+				frag.clearCoatRoughness * uSpecularTextureLevels).rgb * uIblIntensity;
+
+			#ifdef ALPHA_SPECULAR
+				float coatWeight = clearCoatWeight(frag.clearCoat, frag.clearCoatNormal, frag.viewDir);
+				vec3 clearCoatSpecularLighting = clearCoatLighting * coatWeight;
+				specularStrength += max(clearCoatSpecularLighting.r, max(clearCoatSpecularLighting.g, clearCoatSpecularLighting.b));
+			#endif
+		#endif
+
 	#endif
 #endif
 
@@ -749,17 +795,28 @@ void main()
 	#endif
 
 	vec3 shadowLightDir;
-	vec3 directLighting = evaluatePunctualLighting(frag, shadowLightDir);
-	vec3 ambientLighting = evaluateAmbientLighting(frag, R, NoV);
+	vec3 clearCoatDirectLighting;
+	vec3 clearCoatAmbientLighting;
+
+	vec3 directLighting = evaluatePunctualLighting(frag, shadowLightDir, clearCoatDirectLighting);
+	vec3 ambientLighting = evaluateAmbientLighting(frag, R, NoV, clearCoatAmbientLighting);
 
 #ifdef USE_OCCLUSION_MAP
 	float ao = mix(1.0, frag.occlusion, uMaterial.occlusionStrength);
 	
 	#if PBR_OCCLUSION_AFFECTS_DIRECT
 		directLighting *= ao;
+
+		#ifdef USE_CLEARCOAT
+			clearCoatDirectLighting *= ao;
+		#endif
 	#endif
 
 	ambientLighting *= ao;
+
+	#ifdef USE_CLEARCOAT
+		clearCoatAmbientLighting *= ao;
+	#endif
 #endif
 
 #if ALPHA_MODE == ALPHA_OPAQUE
@@ -774,16 +831,31 @@ void main()
 	#ifdef TRANSPARENT
 		vec3 color3 = shadow * uMaterial.shadowColor.rgb;
 		a = shadow * uMaterial.shadowColor.a;
+
+		#ifdef USE_CLEARCOAT
+			vec3 clearCoatLighting = clearCoatDirectLighting + clearCoatAmbientLighting;
+		#endif
 	#else
 		vec3 shadowFactor = vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
+		vec3 iblShadowFactor = mix(vec3(1.0), shadowFactor, uIblShadowStrength);
 
 		vec3 color3 =
 			directLighting * shadowFactor +
-			ambientLighting * mix(vec3(1.0), shadowFactor, uIblShadowStrength);
+			ambientLighting * iblShadowFactor;
+
+		#ifdef USE_CLEARCOAT
+			vec3 clearCoatLighting =
+				clearCoatDirectLighting * shadowFactor +
+				clearCoatAmbientLighting * iblShadowFactor;
+		#endif
 	#endif
 
 #else
 	vec3 color3 = directLighting + ambientLighting;
+
+	#ifdef USE_CLEARCOAT
+		vec3 clearCoatLighting = clearCoatDirectLighting + clearCoatAmbientLighting;
+	#endif
 #endif
 
 #if TRANSMISSION_MODE == TM_TEXTURE
@@ -826,6 +898,11 @@ void main()
 	
 	color3 += emissive;
 
+#endif
+
+#ifdef USE_CLEARCOAT
+	float coatWeight = clearCoatWeight(frag.clearCoat, frag.clearCoatNormal, V);
+	color3 = mix(color3, clearCoatLighting, coatWeight);
 #endif
 
 	doPostRgb(color3);

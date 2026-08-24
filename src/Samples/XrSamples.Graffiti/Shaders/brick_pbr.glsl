@@ -206,9 +206,9 @@ vec3 LoadBrickAlbedo(vec2 wallPos)
     return max(color, vec3(0.0));
 }
 
-FragmentProperties LoadFragmentPropertiesBrick()
+FragmentProperties loadFragmentPropertiesBrick()
 {
-    FragmentProperties frag = LoadFragmentProperties();
+    FragmentProperties frag = loadFragmentProperties();
 
     vec2 wallUv = vec2(fUv.x, 1.0 - fUv.y);
     vec2 wallPos = (wallUv - vec2(0.5)) * uWallSize;

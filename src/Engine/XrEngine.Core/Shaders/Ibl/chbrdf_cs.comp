@@ -6,7 +6,7 @@ precision highp int;
 #define CHARLIE_LUT
 
 #include "ibl_common.glsl"
-#include "../Shared/sheen.glsl"
+#include "../Pbr/sheen.glsl"
 
 const uint NumSamples = SAMPLE_COUNT;
 const float BrdfEpsilon = 0.001;

@@ -19,7 +19,7 @@
 #endif
 
 #ifdef USE_TRANSMISSION_MAP
-    layout(binding=TRANSMISSIONMAP_SLOT) uniform sampler2D transmissionTexture;
+	layout(binding=TRANSMISSIONMAP_SLOT) uniform sampler2D transmissionTexture;
 #endif
 
 #ifdef USE_SHEEN_COLOR_MAP
@@ -29,7 +29,20 @@
 #ifdef USE_SHEEN_ROUGHNESS_MAP
 	layout(binding=SHEENROUGHNESS_SLOT) uniform sampler2D sheenRoughnessTexture;
 #endif
-vec4 LoadBaseColor()
+
+#ifdef USE_CLEARCOAT_MAP
+	layout(binding=CLEARCOAT_SLOT) uniform sampler2D clearCoatTexture;
+#endif
+
+#ifdef USE_CLEARCOAT_ROUGHNESS_MAP
+	layout(binding=CLEARCOATROUGHNESS_SLOT) uniform sampler2D clearCoatRoughnessTexture;
+#endif
+
+#ifdef USE_CLEARCOAT_NORMAL_MAP
+	layout(binding=CLEARCOATNORMAL_SLOT) uniform sampler2D clearCoatNormalTexture;
+#endif
+
+vec4 loadBaseColor()
 {
 	#ifdef USE_ALBEDO_MAP
 
@@ -72,7 +85,8 @@ vec4 LoadBaseColor()
 
 	#endif
 }
-vec3 LoadFragmentNormal()
+
+vec3 loadFragmentNormal()
 {
 	vec3 N;
 
@@ -143,20 +157,40 @@ vec3 LoadFragmentNormal()
 	return N;
 }
 
-void LoadMetalRoughness(out float metalness, out float roughness)
+void loadMetalRoughness(out float metalness, out float roughness)
 {
 	#ifndef SIMPLIFIED
 
 		#ifdef USE_METALROUGHNESS_MAP
 
-			vec4 mr = texture(metalroughnessTexture, fUv);
-			metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
-			roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
+			#if METALROUGHNESS_UV_SET == 1
+				vec2 mrUv = fUv2;
+			#else
+				vec2 mrUv = fUv;
+			#endif
+
+			#ifdef METALROUGHNESS_UV_TRANSFORM
+				mrUv = (uTexTransform[METALROUGHNESS_UV_TRANSFORM] * vec3(mrUv, 1.0)).xy;
+			#endif
+
+			vec4 mr = texture(metalroughnessTexture, mrUv);
+			metalness = mr.b * uMaterial.metalness;
+			roughness = mr.g * uMaterial.roughness;
 
 		#elif defined(USE_SPECULAR_MAP)
 
-			vec4 sp = texture(metalroughnessTexture, fUv);
-			roughness = clamp((1.0 - sp.r) * uMaterial.roughness, 0.0, 1.0);
+			#if SPECULAR_UV_SET == 1
+				vec2 spUv = fUv2;
+			#else
+				vec2 spUv = fUv;
+			#endif
+
+			#ifdef SPECULAR_UV_TRANSFORM
+				spUv = (uTexTransform[SPECULAR_UV_TRANSFORM] * vec3(spUv, 1.0)).xy;
+			#endif
+
+			vec4 sp = texture(metalroughnessTexture, spUv);
+			roughness = (1.0 - sp.r) * uMaterial.roughness;
 			metalness = uMaterial.metalness;
 
 		#else
@@ -174,7 +208,7 @@ void LoadMetalRoughness(out float metalness, out float roughness)
 	#endif
 }
 
-float LoadOcclusion()
+float loadOcclusion()
 {
 	#ifdef USE_OCCLUSION_MAP
 
@@ -195,11 +229,22 @@ float LoadOcclusion()
 	#endif
 }
 
-
-vec4 LoadEmissive()
+vec4 loadEmissive()
 {
 	#ifdef USE_EMISSIVE_MAP
-		return texture(emissiveTexture, fUv);
+
+		#if EMISSIVE_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef EMISSIVE_UV_TRANSFORM
+			uv = (uTexTransform[EMISSIVE_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		return texture(emissiveTexture, uv);
+
 	#else
 		return vec4(0.0);
 	#endif
@@ -207,50 +252,204 @@ vec4 LoadEmissive()
 
 #ifdef USE_SHEEN
 
-vec3 LoadSheenColor()
+vec3 loadSheenColor()
 {
 	vec3 color = uMaterial.sheenColor;
 
 	#ifdef USE_SHEEN_COLOR_MAP
-		vec3 texColor = texture(sheenColorTexture, fUv).rgb;
+
+		#if SHEEN_COLOR_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef SHEEN_COLOR_UV_TRANSFORM
+			uv = (uTexTransform[SHEEN_COLOR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		vec3 texColor = texture(sheenColorTexture, uv).rgb;
 
 		#if !defined(TEXTURE_IS_SRGB)
 			texColor = sRGBToLinear(texColor);
 		#endif
 
 		color *= texColor;
+
 	#endif
 
 	return color;
 }
 
-float LoadSheenRoughness()
+float loadSheenRoughness()
 {
 	float roughness = uMaterial.sheenRoughness;
 
 	#ifdef USE_SHEEN_ROUGHNESS_MAP
-		roughness *= texture(sheenRoughnessTexture, fUv).a;
+
+		#if SHEEN_ROUGHNESS_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef SHEEN_ROUGHNESS_UV_TRANSFORM
+			uv = (uTexTransform[SHEEN_ROUGHNESS_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		roughness *= texture(sheenRoughnessTexture, uv).a;
+
 	#endif
 
-	return clamp(roughness, 0.0, 1.0);
+	return roughness;
 }
 
 #endif
 
-FragmentProperties LoadFragmentProperties()
+#ifdef USE_CLEARCOAT
+
+float loadClearCoat()
+{
+	float clearCoat = uMaterial.clearCoatFactor;
+
+	#ifdef USE_CLEARCOAT_MAP
+
+		#if CLEARCOAT_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef CLEARCOAT_UV_TRANSFORM
+			uv = (uTexTransform[CLEARCOAT_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		clearCoat *= texture(clearCoatTexture, uv).r;
+
+	#endif
+
+	return clearCoat;
+}
+
+float loadClearCoatRoughness()
+{
+	float roughness = uMaterial.clearCoatRoughnessFactor;
+
+	#ifdef USE_CLEARCOAT_ROUGHNESS_MAP
+
+		#if CLEARCOAT_ROUGHNESS_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef CLEARCOAT_ROUGHNESS_UV_TRANSFORM
+			uv = (uTexTransform[CLEARCOAT_ROUGHNESS_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		roughness *= texture(clearCoatRoughnessTexture, uv).g;
+
+	#endif
+
+	return roughness;
+}
+
+vec3 loadClearCoatNormal()
+{
+	vec3 N;
+
+	#if defined(USE_CLEARCOAT_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
+
+		#if CLEARCOAT_NORMAL_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef CLEARCOAT_NORMAL_UV_TRANSFORM
+			uv = (uTexTransform[CLEARCOAT_NORMAL_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		N = 2.0 * texture(clearCoatNormalTexture, uv).rgb - 1.0;
+
+		mat3 TBN = fTangentBasis;
+
+		N *= vec3(uMaterial.clearCoatNormalScale, uMaterial.clearCoatNormalScale, 1.0);
+
+		#ifdef DOUBLE_SIDED
+
+			if (!gl_FrontFacing)
+			{
+				TBN[0] = -TBN[0];
+				TBN[1] = -TBN[1];
+				TBN[2] = -TBN[2];
+			}
+
+		#endif
+
+		N = normalize(TBN * N);
+
+	#else
+
+		#ifdef HAS_TANGENTS
+			N = normalize(fTangentBasis[2]);
+		#else
+			N = normalize(fNormal);
+		#endif
+
+		#ifdef DOUBLE_SIDED
+			if (!gl_FrontFacing)
+				N = -N;
+		#endif
+
+	#endif
+
+	return N;
+}
+
+#endif
+
+#ifdef USE_TRANSMISSION
+
+float loadTransmission()
+{
+	float transmission = uMaterial.transmission;
+
+	#ifdef USE_TRANSMISSION_MAP
+
+		#if TRANSMISSION_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef TRANSMISSION_UV_TRANSFORM
+			uv = (uTexTransform[TRANSMISSION_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		transmission *= texture(transmissionTexture, uv).r;
+
+	#endif
+
+	return transmission;
+}
+
+#endif
+
+FragmentProperties loadFragmentProperties()
 {
 	FragmentProperties frag;
 
 	frag.position = fPos;
 	frag.uv0 = fUv;
 
-	#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1)
+	#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (NORMAL_UV_SET == 1) || (METALROUGHNESS_UV_SET == 1) || (SPECULAR_UV_SET == 1) || (OCCLUSION_UV_SET == 1) || (EMISSIVE_UV_SET == 1) || (TRANSMISSION_UV_SET == 1) || (SHEEN_COLOR_UV_SET == 1) || (SHEEN_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_UV_SET == 1) || (CLEARCOAT_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_NORMAL_UV_SET == 1)
 		frag.uv1 = fUv2;
 	#else
 		frag.uv1 = fUv;
 	#endif
 
-	frag.baseColor = LoadBaseColor();
+	frag.baseColor = loadBaseColor();
 
 	#if ALPHA_MODE == ALPHA_MASK 
 		if (frag.baseColor.a < uMaterial.alphaCutoff)
@@ -260,25 +459,27 @@ FragmentProperties LoadFragmentProperties()
 
 	frag.albedo = frag.baseColor.rgb;
 
-	frag.emissive = LoadEmissive();
+	frag.emissive = loadEmissive();
 
-	LoadMetalRoughness(frag.metalness, frag.roughness);
+	loadMetalRoughness(frag.metalness, frag.roughness);
 
-	frag.normal = LoadFragmentNormal();
-	frag.occlusion = LoadOcclusion();
+	frag.normal = loadFragmentNormal();
+	frag.occlusion = loadOcclusion();
 	frag.viewDir = normalize(fCameraPos - fPos);
 
 	#ifdef USE_SHEEN
-		frag.sheenColor = LoadSheenColor();
-		frag.sheenRoughness = LoadSheenRoughness();
+		frag.sheenColor = loadSheenColor();
+		frag.sheenRoughness = loadSheenRoughness();
+	#endif
+
+	#ifdef USE_CLEARCOAT
+		frag.clearCoat = loadClearCoat();
+		frag.clearCoatRoughness = loadClearCoatRoughness();
+		frag.clearCoatNormal = loadClearCoatNormal();
 	#endif
 
 	#ifdef USE_TRANSMISSION
-		frag.transmission = uMaterial.transmission;
-
-		#ifdef USE_TRANSMISSION_MAP
-			frag.transmission *= texture(transmissionTexture, fUv).r;
-		#endif
+		frag.transmission = loadTransmission();
 	#endif
 
 	return frag;

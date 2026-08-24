@@ -12,7 +12,7 @@ namespace XrSamples.Graffiti
 
             bld.SetFsIncludes("[XrSamples.Graffiti]can_pbr.glsl");
             bld.SetSlot(ShaderSlots.FragmentLoader,
-                () => "frag = LoadFragmentPropertiesCanColor(uCanColor.rgb);");
+                () => "frag = loadFragmentPropertiesCanColor(uCanColor.rgb);");
 
             bld.SetUniform("uCanColor", (_) => CanColor);
         }

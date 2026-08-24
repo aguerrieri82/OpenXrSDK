@@ -2,19 +2,15 @@ const float PI = 3.141592;
 const float TwoPI = 2.0 * PI;
 const float Epsilon = 0.00001;
 
-float radicalInverse_VdC(uint bits)
+
+float radicalInverseVdC(uint bits)
 {
-	bits = (bits << 16u) | (bits >> 16u);
-	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-	return float(bits) * 2.3283064365386963e-10;
+	return float(bitfieldReverse(bits)) * 2.3283064365386963e-10;
 }
 
 vec2 sampleHammersley(uint i, uint count)
 {
-	return vec2(float(i) / float(count), radicalInverse_VdC(i));
+	return vec2(float(i) / float(count), radicalInverseVdC(i));
 }
 
 vec3 sampleHemisphere(float u1, float u2)

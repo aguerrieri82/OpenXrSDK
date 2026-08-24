@@ -42,12 +42,15 @@ namespace XrEngine
         const string Iridescence = nameof(Iridescence);
         const string Sheen = nameof(Sheen);
 
+        const string ClearCoat = nameof(ClearCoat);
+        
+
 
         #endregion
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 112)]
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -91,6 +94,13 @@ namespace XrEngine
 
             [FieldOffset(108)]
             public float SheenRoughness;
+
+            [FieldOffset(112)]
+            public float ClearCoatFactor;
+
+            [FieldOffset(116)]
+            public float ClearCoatRoughnessFactor;
+
         }
 
         #endregion
@@ -460,12 +470,10 @@ namespace XrEngine
                 System.Diagnostics.Debug.Assert(tex.Transform == null || tex.Transform.Value.IsIdentity);
             }
 
-
-
             PlanarReflection? planar = null;
 
             bld.SetFsIncludes("pbr_defaults.glsl");
-            bld.SetFragmentLoader("frag = LoadFragmentProperties();");
+            bld.SetFragmentLoader("frag = loadFragmentProperties();");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
@@ -512,7 +520,9 @@ namespace XrEngine
                     PlanarReflectionLevel = planar?.BlurLevel ?? 0,
                     Transmission = Transmission,
                     SheenColor = SheenColor.ToVector3(),
-                    SheenRoughness = SheenRoughness
+                    SheenRoughness = SheenRoughness,
+                    ClearCoatFactor = ClearCoatFactor,
+                    ClearCoatRoughnessFactor = ClearCoatRoughnessFactor,
                 };
 
             },
@@ -627,18 +637,18 @@ namespace XrEngine
 
             if (MetallicRoughnessMap != null)
             {
-                AssertNotTransform(MetallicRoughnessMap);
-
                 bld.AddFeature("USE_METALROUGHNESS_MAP");
                 bld.LoadTexture(() => MetallicRoughnessMap, TextureSlots.MetallicRoughness);
+
+                bld.TryAddUvTransform(MetallicRoughnessMap, "METALROUGHNESS_UV_TRANSFORM");
             }
 
             else if (SpecularMap != null)
             {
-                AssertNotTransform(SpecularMap);
-
                 bld.AddFeature("USE_SPECULAR_MAP");
                 bld.LoadTexture(() => SpecularMap, TextureSlots.MetallicRoughness);
+
+                bld.TryAddUvTransform(SpecularMap, "SPECULAR_UV_TRANSFORM");
             }
 
             if (NormalMap != null && NormalScale != 0)
@@ -690,32 +700,75 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_SHEEN");
 
-                bld.LoadTexture(() => SheenColorMap, TextureSlots.SheenColor);
+                if (SheenColorMap != null)
+                {
+                    AssertNotTransform(SheenColorMap);
+                    bld.AddFeature("USE_SHEEN_COLOR_MAP");
+                    bld.LoadTexture(() => SheenColorMap, TextureSlots.SheenColor);
+                }
 
-                bld.LoadTexture(() => SheenRoughnessMap, TextureSlots.SheenRoughness);
+                if (SheenRoughnessMap != null)
+                {
+                    AssertNotTransform(SheenRoughnessMap);
+                    bld.AddFeature("USE_SHEEN_ROUGHNESS_MAP");
+                    bld.LoadTexture(() => SheenRoughnessMap, TextureSlots.SheenRoughness);
+                }
 
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
                 if (imgLight != null)
                 {
                     bld.LoadTexture(() => imgLight.Textures.CharlieEnv, TextureSlots.IblCharlieEnv);
-                    bld.LoadTexture(() => imgLight.Textures.CharlieLUT, TextureSlots.IblCharlieLut);
+                    bld.LoadTexture(() => imgLight.Textures.CharlieLUT, TextureSlots.CharlieLut);
                 }
             }
+
+            if (HasClearCoat)
+            {
+                bld.AddFeature("USE_CLEARCOAT");
+
+                if (ClearCoatNormalMap != null)
+                {
+                    bld.AddFeature("USE_CLEARCOAT_NORMAL_MAP");
+                    bld.TryAddUvTransform(ClearCoatNormalMap, "CLEARCOAT_NORMAL_UV_TRANSFORM");
+                    bld.LoadTexture(() => ClearCoatNormalMap, TextureSlots.ClearCoatNormal);
+                }
+
+                if (ClearCoatRoughnessMap != null)
+                {
+                    bld.AddFeature("USE_CLEARCOAT_ROUGHNESS_MAP");
+                    bld.TryAddUvTransform(ClearCoatRoughnessMap, "CLEARCOAT_ROUGHNESS_UV_TRANSFORM");
+                    bld.LoadTexture(() => ClearCoatRoughnessMap, TextureSlots.ClearCoatRoughness);
+                }
+
+                if (ClearCoatMap != null)
+                {
+                    bld.AddFeature("USE_CLEARCOAT_MAP");
+                    bld.TryAddUvTransform(ClearCoatMap, "CLEARCOAT_UV_TRANSFORM");
+                    bld.LoadTexture(() => ClearCoatMap, TextureSlots.ClearCoat);
+                }
+            }
+
 
             if (HasIridescence)
             {
                 bld.AddFeature("USE_IRIDESCENCE");
 
                 if (IridescenceThicknessMap != null)
+                {
+                    AssertNotTransform(IridescenceThicknessMap);
+
                     bld.AddFeature("USE_IRIDESCENCE_THICKNESS_MAP");
-
+                    bld.LoadTexture(() => IridescenceThicknessMap, TextureSlots.IridescenceThicknessMap);
+                }
+          
                 if (IridescenceMap != null)
+                {
+                    AssertNotTransform(IridescenceMap);
+
                     bld.AddFeature("USE_IRIDESCENCE_MAP");
-
-                bld.LoadTexture(() => IridescenceMap, TextureSlots.IridescenceMap);
-
-                bld.LoadTexture(() => IridescenceThicknessMap, TextureSlots.IridescenceThicknessMap);
+                    bld.LoadTexture(() => IridescenceMap, TextureSlots.IridescenceMap);
+                }
 
                 bld.LoadBuffer(ctx =>
                 {
@@ -744,8 +797,13 @@ namespace XrEngine
                 bld.AddFeature($"TRANSMISSION_MODE {(int)TransmissionMode}");
 
                 if (TransmissionMap != null)
-                    bld.AddFeature("USE_TRANSMISSION_MAP");
+                {
+                    AssertNotTransform(TransmissionMap);
 
+                    bld.AddFeature("USE_TRANSMISSION_MAP");
+                    bld.LoadTexture(() => TransmissionMap, TextureSlots.TransmissionMap);
+                }
+   
                 if (TransmissionMode == TransmissionMode.FrameBufferFetch)
                 {
                     Alpha = AlphaMode.Opaque;
@@ -762,8 +820,6 @@ namespace XrEngine
                     if (!HasRefraction)
                         bld.LoadTexture(ctx => ctx.TransmissionForeground, TextureSlots.VolumeForeground);
                 }
-
-                bld.LoadTexture(() => TransmissionMap, TextureSlots.TransmissionMap);
             }
 
             if (HasRefraction)
@@ -773,7 +829,6 @@ namespace XrEngine
                 var refSrc = bld.Context.Scene?.Feature<IScreenRefractionSource>();
                 if (refSrc != null)
                 {
-
                     bld.AddFeature("VOLUME_BACKGROUND");
 
                     bld.LoadTexture(ctx=> 
@@ -781,11 +836,14 @@ namespace XrEngine
                 }
 
                 if (ThicknessMap != null)
+                {
+                    AssertNotTransform(ThicknessMap);
+
                     bld.AddFeature("USE_THICKNESS_MAP");
+                    bld.LoadTexture(() => ThicknessMap, TextureSlots.ThicknessMap);
+                }
 
                 bld.LoadTexture(ctx => ctx.TransmissionForeground, TextureSlots.VolumeForeground);
-
-                bld.LoadTexture(() => ThicknessMap, TextureSlots.ThicknessMap);
 
                 bld.LoadBuffer(ctx =>
                 {
@@ -1006,6 +1064,24 @@ namespace XrEngine
         [Category(Sheen)]
         public Texture2D? SheenRoughnessMap { get; set; }
 
+
+        [Category(ClearCoat)]
+        public Texture2D? ClearCoatNormalMap { get; set; }
+
+        [Category(ClearCoat)]
+        public Texture2D? ClearCoatRoughnessMap { get; set; }
+
+        [Category(ClearCoat)]
+        public Texture2D? ClearCoatMap { get; set; }
+
+        [Category(ClearCoat)]
+        public float ClearCoatFactor { get; set; }
+
+        [Category(ClearCoat)]
+        public float ClearCoatRoughnessFactor { get; set; }
+
+
+        public bool HasClearCoat => ClearCoatFactor > 0;
 
         public bool HasTransmission => Transmission > 0 || Thickness > 0;
 
