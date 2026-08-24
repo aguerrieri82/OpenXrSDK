@@ -405,7 +405,7 @@ namespace XrEngine.OpenGL
 
                         options.SampleCount = 1024;
                         options.Resolution = 256;
-                        options.Mode = IblProcessMode.GGX | IblProcessMode.Lambertian;
+                        options.Mode = IblProcessMode.All;
 
                         imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
                         imgLight.Panorama.NotifyLoaded();
@@ -796,6 +796,16 @@ namespace XrEngine.OpenGL
                 result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(ggx);
                 result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(ggxLut);
             }
+
+            if ((options.Mode & IblProcessMode.Charlie) == IblProcessMode.Charlie)
+            {
+                var charlie = processor.ApplyFilter(GlIblProcessor.Distribution.Charlie);
+                var charlieLut = processor.ApplyFilter(GlIblProcessor.Distribution.CharlieLut);
+
+                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(charlie);
+                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(charlieLut);
+            }
+
 
             Log.Debug(this, "Processing IBL Panorama OK");
 

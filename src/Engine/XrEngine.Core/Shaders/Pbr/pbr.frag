@@ -32,6 +32,10 @@
 	#include "../Shared/iridescence.glsl"
 #endif
 
+#ifdef USE_SHEEN
+	#include "../Shared/sheen.glsl"
+#endif
+
 #if !defined(HAS_CLIP_VOLUME) && !defined(HAS_COLORMAP_PROJ) && ALPHA_MODE != ALPHA_MASK
 	layout(early_fragment_tests) in;
 #endif
@@ -87,7 +91,7 @@ in vec3 fCameraPos;
 #endif
 
 
-#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1)
+#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (OCCLUSION_UV_SET == 1)
 	in vec2 fUv2;
 #endif
 
@@ -137,6 +141,9 @@ struct FragmentProperties
 	vec4 emissive;
 
 	float transmission;	
+
+	vec3 sheenColor;
+	float sheenRoughness;
 };
 
 FragmentProperties frag;
@@ -283,6 +290,28 @@ vec3 evaluateDirectLight(
 		vec3 iridescenceMetalBRDF = iridescenceSpecularBRDF * iridescenceFresnelMetal;
 		vec3 iridescenceBRDF = mix(iridescenceDielectricBRDF, iridescenceMetalBRDF, metalness);
 		brdf = mix(brdf, iridescenceBRDF, iridescenceFactor);
+	#endif
+
+	#ifdef USE_SHEEN
+
+		float sheenSpecularStrength;
+		float sheenScaling;
+		vec3 sheen = evaluateSheenDirect(
+			frag.sheenColor,
+			frag.sheenRoughness,
+			NoV,
+			NoL,
+			NoH,
+			radiance,
+			sheenSpecularStrength,
+			sheenScaling);
+
+		brdf = brdf * sheenScaling + sheen;
+
+		#ifdef ALPHA_SPECULAR
+			vec3 sheenLighting = sheen * radiance * NoL;
+			specularStrength += max(sheenLighting.r, max(sheenLighting.g, sheenLighting.b));
+		#endif
 	#endif
 
 	return brdf * radiance * NoL;
@@ -612,6 +641,24 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 			vec3 iridescenceMetalIBL = specularIrradiance * iridescenceFresnelMetal;
 			vec3 iridescenceIBL = mix(iridescenceDielectricIBL, iridescenceMetalIBL, frag.metalness);
 			ambientLighting = mix(ambientLighting, iridescenceIBL, iridescenceFactor);
+		#endif
+
+		#ifdef USE_SHEEN
+			float sheenScaling;
+			vec3 sheenIBL = evaluateSheenIBL(
+				frag.sheenColor,
+				frag.sheenRoughness,
+				NoV,
+				specularVec,
+				uSpecularTextureLevels,
+				uIblIntensity,
+				sheenScaling);
+
+			ambientLighting = ambientLighting * sheenScaling + sheenIBL;
+
+			#ifdef ALPHA_SPECULAR
+				specularStrength += max(sheenIBL.r, max(sheenIBL.g, sheenIBL.b));
+			#endif
 		#endif
 	#endif
 #endif

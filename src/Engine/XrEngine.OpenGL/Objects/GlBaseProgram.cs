@@ -319,9 +319,6 @@ namespace XrEngine.OpenGL
 
         public void LoadImage(Texture2D tex2d, int slot, BufferAccessMode accessMode = BufferAccessMode.ReadWrite)
         {
-            if (slot == -1)
-                throw new InvalidOperationException();
-
             if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
                 glText = tex2d.ToGlTexture();
 
@@ -345,12 +342,8 @@ namespace XrEngine.OpenGL
             _gl.BindImageTexture((uint)slot, glText.Handle, 0, layered, 0, glMode, glText.InternalFormat);
         }
 
-
         public void LoadTexture(Texture value, int slot, bool forceBinding = false)
         {
-            if (slot == -1)
-                throw new InvalidOperationException();
-
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
             if (tex2d.Type == TextureType.Buffer)

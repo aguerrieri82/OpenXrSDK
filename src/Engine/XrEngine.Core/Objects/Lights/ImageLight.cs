@@ -78,11 +78,14 @@ namespace XrEngine
 
                 var cacheValid = LoadCacheTexture<TextureCube>("lamb.pvr", a => Textures.LambertianEnv = a) &&
                                  LoadCacheTexture<TextureCube>("ggx.pvr", a => Textures.GGXEnv = a) &&
-                                 LoadCacheTexture<TextureCube>("env.pvr", a => Textures.Env = a) &&
-                                 LoadCacheTexture<Texture2D>("ggx_lut.pvr", a => Textures.GGXLUT = a);
+                                 LoadCacheTexture<Texture2D>("ggx_lut.pvr", a => Textures.GGXLUT = a) &&
+                                 LoadCacheTexture<TextureCube>("charlie.pvr", a => Textures.CharlieEnv = a) &&
+                                 LoadCacheTexture<Texture2D>("charlie_lut.pvr", a => Textures.CharlieLUT = a) &&
+                                 LoadCacheTexture<TextureCube>("env.pvr", a => Textures.Env = a);
                 if (cacheValid)
                 {
                     Textures.GGXLUT!.NeverCompress = true;
+                    Textures.CharlieLUT!.NeverCompress = true;
                     Textures.MipCount = Textures.GGXEnv!.MipLevelCount;
 
                     Panorama = new Texture2D();
@@ -112,9 +115,12 @@ namespace XrEngine
                 SaveCacheTexture("lamb.pvr", Textures!.LambertianEnv);
                 SaveCacheTexture("ggx.pvr", Textures!.GGXEnv);
                 SaveCacheTexture("ggx_lut.pvr", Textures!.GGXLUT);
+                SaveCacheTexture("charlie.pvr", Textures!.CharlieEnv);
+                SaveCacheTexture("charlie_lut.pvr", Textures!.CharlieLUT);
                 SaveCacheTexture("env.pvr", Textures!.Env);
             }
-            Textures.GGXLUT!.NeverCompress = true;
+            Textures.GGXLUT?.NeverCompress = true;
+            Textures.CharlieLUT?.NeverCompress = true;
         }
 
         public override void Dispose()
@@ -137,6 +143,6 @@ namespace XrEngine
 
         public Matrix3x3 LightTransform { get; set; }
 
-        public static bool UseCache { get; set; } = true;
+        public static bool UseCache { get; set; } = false;
     }
 }

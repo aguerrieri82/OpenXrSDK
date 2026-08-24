@@ -40,12 +40,14 @@ namespace XrEngine
         const string Rendering = nameof(Rendering);
         const string Volume = nameof(Volume);
         const string Iridescence = nameof(Iridescence);
+        const string Sheen = nameof(Sheen);
+
 
         #endregion
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 160)]
+        [StructLayout(LayoutKind.Explicit, Size = 112)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -57,35 +59,38 @@ namespace XrEngine
             [FieldOffset(20)]
             public float Roughness;
 
-            [FieldOffset(32)]
-            public Vector4x3 TexTransform;
-
-            [FieldOffset(80)]
+            [FieldOffset(24)]
             public float OcclusionStrength;
 
-            [FieldOffset(96)]
+            [FieldOffset(32)]
             public Vector4 ShadowColor;
 
-            [FieldOffset(112)]
+            [FieldOffset(48)]
             public float NormalScale;
 
-            [FieldOffset(116)]
+            [FieldOffset(52)]
             public float AlphaCutoff;
 
-            [FieldOffset(128)]
+            [FieldOffset(64)]
             public Vector4 EmissiveColor;
 
-            [FieldOffset(144)]
+            [FieldOffset(80)]
             public float PlanarReflectionStrength;
 
-            [FieldOffset(148)]
+            [FieldOffset(84)]
             public float PlanarReflectionLevel;
 
-            [FieldOffset(152)]
+            [FieldOffset(88)]
             public float AlphaSpecularScale;
 
-            [FieldOffset(156)]
+            [FieldOffset(92)]
             public float Transmission;
+
+            [FieldOffset(96)]
+            public Vector3 SheenColor;
+
+            [FieldOffset(108)]
+            public float SheenRoughness;
         }
 
         #endregion
@@ -450,6 +455,13 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
+            void AssertNotTransform(Texture2D tex)
+            {
+                System.Diagnostics.Debug.Assert(tex.Transform == null || tex.Transform.Value.IsIdentity);
+            }
+
+
+
             PlanarReflection? planar = null;
 
             bld.SetFsIncludes("pbr_defaults.glsl");
@@ -496,10 +508,11 @@ namespace XrEngine
                     AlphaCutoff = AlphaCutoff,
                     AlphaSpecularScale = AlphaSpecularScale,
                     EmissiveColor = EmissiveColor,
-                    TexTransform = (ColorMap?.Transform ?? UV0Transform ?? Matrix3x3.Identity).ToVector4x3(),
                     PlanarReflectionStrength = planar?.Strength ?? 0,
                     PlanarReflectionLevel = planar?.BlurLevel ?? 0,
                     Transmission = Transmission,
+                    SheenColor = SheenColor.ToVector3(),
+                    SheenRoughness = SheenRoughness
                 };
 
             },
@@ -599,11 +612,6 @@ namespace XrEngine
                 });
             }
 
-            var uv0Transform = ColorMap?.Transform ?? UV0Transform;
-
-            if (uv0Transform != null)
-                bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
-
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
@@ -613,16 +621,22 @@ namespace XrEngine
                 bld.LoadTexture(() => ColorMap, TextureSlots.Albedo);
 
                 bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
+
+                bld.TryAddUvTransform(ColorMap, "ALBEDO_UV_TRANSFORM");
             }
 
             if (MetallicRoughnessMap != null)
             {
+                AssertNotTransform(MetallicRoughnessMap);
+
                 bld.AddFeature("USE_METALROUGHNESS_MAP");
                 bld.LoadTexture(() => MetallicRoughnessMap, TextureSlots.MetallicRoughness);
             }
 
             else if (SpecularMap != null)
             {
+                AssertNotTransform(SpecularMap);
+
                 bld.AddFeature("USE_SPECULAR_MAP");
                 bld.LoadTexture(() => SpecularMap, TextureSlots.MetallicRoughness);
             }
@@ -635,16 +649,24 @@ namespace XrEngine
                     bld.AddFeature("NORMAL_MAP_BC3");
 
                 bld.LoadTexture(() => NormalMap, TextureSlots.Normal);
+
+                bld.TryAddUvTransform(NormalMap, "NORMAL_UV_TRANSFORM");
             }
 
             if (OcclusionMap != null)
             {
                 bld.AddFeature("USE_OCCLUSION_MAP");
+                bld.AddFeature($"OCCLUSION_UV_SET {OcclusionMapUVSet}");
+
+                bld.TryAddUvTransform(OcclusionMap, "OCCLUSION_UV_TRANSFORM");
+
                 bld.LoadTexture(() => OcclusionMap, TextureSlots.Occlusion);
             }
 
             if (EmissiveMap != null)
             {
+                AssertNotTransform(EmissiveMap);
+
                 bld.AddFeature("USE_EMISSIVE_MAP");
                 bld.LoadTexture(() => EmissiveMap, TextureSlots.Emissive);
             }
@@ -662,6 +684,23 @@ namespace XrEngine
                 });
 
                 bld.SetUniform("uLightFieldOfs", ctx => LightFieldOfs);
+            }
+
+            if (HasSheen)
+            {
+                bld.AddFeature("USE_SHEEN");
+
+                bld.LoadTexture(() => SheenColorMap, TextureSlots.SheenColor);
+
+                bld.LoadTexture(() => SheenRoughnessMap, TextureSlots.SheenRoughness);
+
+                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
+
+                if (imgLight != null)
+                {
+                    bld.LoadTexture(() => imgLight.Textures.CharlieEnv, TextureSlots.IblCharlieEnv);
+                    bld.LoadTexture(() => imgLight.Textures.CharlieLUT, TextureSlots.IblCharlieLut);
+                }
             }
 
             if (HasIridescence)
@@ -834,6 +873,9 @@ namespace XrEngine
         public uint ColorMapUVSet { get; set; }
 
         [Category(Textures)]
+        public uint OcclusionMapUVSet { get; set; }
+
+        [Category(Textures)]
         public Texture2D? MetallicRoughnessMap { get; set; }
 
         [Category(Textures)]
@@ -952,11 +994,26 @@ namespace XrEngine
         [Category(Iridescence)]
         public Texture2D? IridescenceMap { get; set; }
 
+        [Category(Sheen)]
+        public Color SheenColor { get; set; }
+
+        [Category(Sheen)]
+        public float SheenRoughness { get; set; }
+
+        [Category(Sheen)]
+        public Texture2D? SheenColorMap { get; set; }
+
+        [Category(Sheen)]
+        public Texture2D? SheenRoughnessMap { get; set; }
+
+
         public bool HasTransmission => Transmission > 0 || Thickness > 0;
 
         public bool HasRefraction => Thickness > 0 && Ior != 1;
 
         public bool HasIridescence => IridescenceFactor > 0;
+
+        public bool HasSheen => SheenColor != Color.Transparent;
 
         public static bool ForceIblTransform { get; set; }
 

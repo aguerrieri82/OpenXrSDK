@@ -98,7 +98,7 @@ namespace XrEngine
 
                     return null;
 
-                }, BufferSlots.MorphSSbo, BufferStore.Model, BufferUsage.SSbo);
+                }, BufferSlots.Morph, BufferStore.Model, BufferUsage.SSbo);
             }
             else if (storage == MorphStorageType.Texture)
             {

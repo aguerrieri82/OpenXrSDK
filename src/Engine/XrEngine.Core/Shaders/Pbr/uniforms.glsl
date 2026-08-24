@@ -26,7 +26,6 @@ struct MaterialData
 	vec4 color;
 	float metalness;
 	float roughness;
-	mat3 texTransform;
 	float occlusionStrength;
 	vec4 shadowColor;
 	float normalScale;
@@ -36,9 +35,11 @@ struct MaterialData
 	float planarLevel;
 	float alphaSpecularScale;
 	float transmission;
+	vec3 sheenColor;
+	float sheenRoughness;
 };
 
-#if !defined(VERTEX_SHADER) || defined(HAS_TEX_TRANSFORM)
+#if !defined(VERTEX_SHADER) 
 
 	#ifdef USE_MATERIAL_SSBO
 
@@ -70,3 +71,5 @@ layout(std140, binding = 4) uniform Ibl
     vec3 uIblColor;    
     mat3 uIblTransform; 
 };
+
+uniform mat3 uTexTransform[5];

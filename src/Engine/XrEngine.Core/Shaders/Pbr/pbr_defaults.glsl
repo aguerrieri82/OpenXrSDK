@@ -22,6 +22,13 @@
     layout(binding=TRANSMISSIONMAP_SLOT) uniform sampler2D transmissionTexture;
 #endif
 
+#ifdef USE_SHEEN_COLOR_MAP
+	layout(binding=SHEENCOLOR_SLOT) uniform sampler2D sheenColorTexture;
+#endif
+
+#ifdef USE_SHEEN_ROUGHNESS_MAP
+	layout(binding=SHEENROUGHNESS_SLOT) uniform sampler2D sheenRoughnessTexture;
+#endif
 vec4 LoadBaseColor()
 {
 	#ifdef USE_ALBEDO_MAP
@@ -39,6 +46,10 @@ vec4 LoadBaseColor()
 				vec2 albUv = fUv2;
 			#else
 				vec2 albUv = fUv;
+			#endif
+
+			#ifdef ALBEDO_UV_TRANSFORM
+				albUv = (uTexTransform[ALBEDO_UV_TRANSFORM] * vec3(albUv, 1.0)).xy;
 			#endif
 
 		#endif
@@ -61,16 +72,25 @@ vec4 LoadBaseColor()
 
 	#endif
 }
-
 vec3 LoadFragmentNormal()
 {
 	vec3 N;
 
 	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
 
+		#if NORMAL_UV_SET == 1
+			vec2 normalUv = fUv2;
+		#else
+			vec2 normalUv = fUv;
+		#endif
+
+		#ifdef NORMAL_UV_TRANSFORM
+			normalUv = (uTexTransform[NORMAL_UV_TRANSFORM] * vec3(normalUv, 1.0)).xy;
+		#endif
+
 		#ifdef NORMAL_MAP_BC3
 
-			vec4 packedNormal = texture(normalTexture, fUv);
+			vec4 packedNormal = texture(normalTexture, normalUv);
 
 			packedNormal.x = packedNormal.w * packedNormal.x;
 			vec2 normalXY = packedNormal.xy * 2.0 - 1.0;
@@ -84,7 +104,7 @@ vec3 LoadFragmentNormal()
 
 		#else
 
-			N = 2.0 * texture(normalTexture, fUv).rgb - 1.0;
+			N = 2.0 * texture(normalTexture, normalUv).rgb - 1.0;
 
 		#endif
 
@@ -157,7 +177,19 @@ void LoadMetalRoughness(out float metalness, out float roughness)
 float LoadOcclusion()
 {
 	#ifdef USE_OCCLUSION_MAP
-		return texture(occlusionTexture, fUv).r;
+
+		#if OCCLUSION_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef OCCLUSION_UV_TRANSFORM
+			uv = (uTexTransform[OCCLUSION_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		return texture(occlusionTexture, uv).r;
+
 	#else
 		return 1.0;
 	#endif
@@ -172,6 +204,38 @@ vec4 LoadEmissive()
 		return vec4(0.0);
 	#endif
 }
+
+#ifdef USE_SHEEN
+
+vec3 LoadSheenColor()
+{
+	vec3 color = uMaterial.sheenColor;
+
+	#ifdef USE_SHEEN_COLOR_MAP
+		vec3 texColor = texture(sheenColorTexture, fUv).rgb;
+
+		#if !defined(TEXTURE_IS_SRGB)
+			texColor = sRGBToLinear(texColor);
+		#endif
+
+		color *= texColor;
+	#endif
+
+	return color;
+}
+
+float LoadSheenRoughness()
+{
+	float roughness = uMaterial.sheenRoughness;
+
+	#ifdef USE_SHEEN_ROUGHNESS_MAP
+		roughness *= texture(sheenRoughnessTexture, fUv).a;
+	#endif
+
+	return clamp(roughness, 0.0, 1.0);
+}
+
+#endif
 
 FragmentProperties LoadFragmentProperties()
 {
@@ -203,6 +267,11 @@ FragmentProperties LoadFragmentProperties()
 	frag.normal = LoadFragmentNormal();
 	frag.occlusion = LoadOcclusion();
 	frag.viewDir = normalize(fCameraPos - fPos);
+
+	#ifdef USE_SHEEN
+		frag.sheenColor = LoadSheenColor();
+		frag.sheenRoughness = LoadSheenRoughness();
+	#endif
 
 	#ifdef USE_TRANSMISSION
 		frag.transmission = uMaterial.transmission;

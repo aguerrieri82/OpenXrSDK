@@ -6,8 +6,8 @@
         Lambertian = 0x1,
         GGX = 0x2,
         Charlie = 0x4,
-        Sheen = 0x8,
-        All = Lambertian | GGX | Charlie | Sheen
+
+        All = Lambertian | GGX | Charlie 
     }
 
     public class PanoramaProcessorOptions
@@ -20,7 +20,7 @@
                 SampleCount = 1024,
                 LodBias = 0f,
                 MipLevelCount = 10,
-                Mode = IblProcessMode.Lambertian | IblProcessMode.GGX | IblProcessMode.Charlie | IblProcessMode.Sheen,
+                Mode = IblProcessMode.All,
                 ShaderResolver = str => Embedded.GetString(str),
             };
         }

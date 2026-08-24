@@ -152,6 +152,7 @@ namespace XrEngine
     public struct ShaderUpdateBuilder : IFeatureList
     {
         private SlotMask _textureSlots;
+        private SlotMask _uvTransSlots;
 
         private readonly ShaderUpdate _result;
 
@@ -167,6 +168,7 @@ namespace XrEngine
             Context = context;
 
             _textureSlots = new(context.RenderEngine!.Features.MaxTextureUnits);
+            _uvTransSlots = new(5);
         }
 
         readonly void Update<TValue>(UpdateAction<TValue> action, Action<IUniformProvider, TValue> doUpdate)
@@ -438,6 +440,20 @@ namespace XrEngine
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
         }
 
+        public void TryAddUvTransform(Texture2D tex, string name)
+        {
+            if (tex.Transform != null && !tex.Transform.Value.IsIdentity)
+            {
+                var uvIndex = _uvTransSlots.Allocate(SlotMask.Empty);
+
+                AddFeature($"{name} {uvIndex}");
+                ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform($"uTexTransform[{uvIndex}]", tex.Transform.Value);
+                });
+            }
+        }
+
         public int GetTextureSlot(ResourceSlot slot)
         {
             if (slot.Slot == -1 || _textureSlots.Has(slot.Slot))
@@ -456,7 +472,6 @@ namespace XrEngine
 
             return result;
         }
-
 
         public StringBuilder Logs { get; } = new StringBuilder();
 

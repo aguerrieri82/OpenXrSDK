@@ -439,7 +439,8 @@ namespace XrEngine.Gltf
             var volume = TryLoadExtension<KHR_materials_volume>(gltMat.Extensions);
             var trans = TryLoadExtension<KHR_materials_transmission>(gltMat.Extensions);
             var irid = TryLoadExtension<KHR_materials_iridescence>(gltMat.Extensions);
-
+            var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
+    
             result ??= _options.MaterialFactory(matId);
 
             result.Name = gltMat.Name;
@@ -486,6 +487,7 @@ namespace XrEngine.Gltf
             {
                 result.OcclusionMap = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
+                result.OcclusionMapUVSet = (uint)gltMat.OcclusionTexture.TexCoord;
                 ApplyMips(result.OcclusionMap);
             }
 
@@ -497,7 +499,6 @@ namespace XrEngine.Gltf
 
             result.EmissiveColor = new Color(gltMat.EmissiveFactor);
             result.Ior = ior?.ior ?? 1.5f;
-
 
             if (volume != null)
             {
@@ -559,6 +560,26 @@ namespace XrEngine.Gltf
                     result.IridescenceMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
                 }
 
+            }
+
+            if (sheen != null)
+            {
+                result.SheenColor = sheen.Value.sheenColorFactor == null ? 
+                    Color.Transparent : new Color(sheen.Value.sheenColorFactor);
+
+                result.SheenRoughness = sheen.Value.sheenRoughnessFactor;
+
+                if (sheen.Value.sheenRoughnessTexture != null)
+                {
+                    var texInfo = sheen.Value.sheenRoughnessTexture;
+                    result.SheenRoughnessMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                }
+
+                if (sheen.Value.sheenColorTexture != null)
+                {
+                    var texInfo = sheen.Value.sheenColorTexture;
+                    result.SheenColorMap = ProcessTextureTask(texInfo.Index, texInfo.Extensions).Result;
+                }
             }
 
             AssignAsset(result, "mat", matId);

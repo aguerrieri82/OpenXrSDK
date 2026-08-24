@@ -30,14 +30,14 @@ void main(void)
 	for(uint i=0u; i<NumSamples; ++i)
 	{
 		vec2 u = sampleHammersley(i, NumSamples);
-		vec3 Lh = tangentToWorld(sampleGGX(u.x, u.y, roughness), N, S, T);
+		vec3 Lh = tangentToWorld(sampleCharlie(u.x, u.y, roughness), N, S, T);
 		vec3 Li = 2.0 * dot(Lo, Lh) * Lh - Lo;
 		float cosLi = dot(N, Li);
 
 		if(cosLi > 0.0)
 		{
 			float cosLh = max(dot(N, Lh), 0.0);
-			float pdf = ndfGGX(cosLh, roughness) * 0.25;
+			float pdf = ndfCharlie(cosLh, roughness) * 0.25;
 			float ws = 1.0 / (float(NumSamples) * pdf);
 			float mipLevel = max(0.5 * log2(ws / wt) + 1.0, 0.0);
 
