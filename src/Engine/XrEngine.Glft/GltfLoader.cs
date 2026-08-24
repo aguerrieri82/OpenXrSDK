@@ -574,6 +574,7 @@ namespace XrEngine.Gltf
                     var texInfo = coat.Value.clearcoatNormalTexture;
                     Debug.Assert(texInfo.TexCoord == 0);
                     result.ClearCoatNormalMap = DecodeTextureNormalTask(texInfo).Result;
+                    result.ClearCoatNormalScale = texInfo.Scale;
                 }
                 if (coat.Value.clearcoatTexture != null)
                 {

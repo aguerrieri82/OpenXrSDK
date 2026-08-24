@@ -5,6 +5,13 @@
 #define TM_DUAL_SOURCE 2
 #define TM_TEXTURE     3
 
+
+#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP)) && defined(HAS_TANGENTS) 
+	#define HAS_TANGENT_BASIS
+	in mat3 fTangentBasis;
+#endif
+
+
 #ifndef TRANSMISSION_MODE
 	#define TRANSMISSION_MODE TM_NONE
 #endif
@@ -90,10 +97,6 @@ in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
 in vec3 fCameraPos;
-
-#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-	in mat3 fTangentBasis;
-#endif
 
 
 #if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (NORMAL_UV_SET == 1) || (METALROUGHNESS_UV_SET == 1) || (SPECULAR_UV_SET == 1) || (OCCLUSION_UV_SET == 1) || (EMISSIVE_UV_SET == 1) || (TRANSMISSION_UV_SET == 1) || (SHEEN_COLOR_UV_SET == 1) || (SHEEN_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_UV_SET == 1) || (CLEARCOAT_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_NORMAL_UV_SET == 1)

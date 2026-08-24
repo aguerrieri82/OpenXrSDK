@@ -39,6 +39,7 @@ struct MaterialData
 	float sheenRoughness;
 	float clearCoatFactor;
 	float clearCoatRoughnessFactor;
+	float clearCoatNormalScale;
 };
 
 #if !defined(VERTEX_SHADER) 

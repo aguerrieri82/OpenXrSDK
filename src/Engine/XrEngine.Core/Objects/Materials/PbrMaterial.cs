@@ -101,6 +101,9 @@ namespace XrEngine
             [FieldOffset(116)]
             public float ClearCoatRoughnessFactor;
 
+            [FieldOffset(120)]
+            public float ClearCoatNormalScale;
+
         }
 
         #endregion
@@ -523,6 +526,7 @@ namespace XrEngine
                     SheenRoughness = SheenRoughness,
                     ClearCoatFactor = ClearCoatFactor,
                     ClearCoatRoughnessFactor = ClearCoatRoughnessFactor,
+                    ClearCoatNormalScale = ClearCoatNormalScale
                 };
 
             },
@@ -1079,6 +1083,9 @@ namespace XrEngine
 
         [Category(ClearCoat)]
         public float ClearCoatRoughnessFactor { get; set; }
+
+        [Category(ClearCoat)]
+        public float ClearCoatNormalScale { get; set; }
 
 
         public bool HasClearCoat => ClearCoatFactor > 0;

@@ -141,7 +141,7 @@ vec3 loadFragmentNormal()
 
 	#else
 
-		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+		#if defined(HAS_TANGENT_BASIS)
 			N = fTangentBasis[2];
 		#else
 			N = normalize(fNormal);
@@ -373,7 +373,7 @@ vec3 loadClearCoatNormal()
 		N = 2.0 * texture(clearCoatNormalTexture, uv).rgb - 1.0;
 
 		mat3 TBN = fTangentBasis;
-
+		
 		N *= vec3(uMaterial.clearCoatNormalScale, uMaterial.clearCoatNormalScale, 1.0);
 
 		#ifdef DOUBLE_SIDED
@@ -391,7 +391,7 @@ vec3 loadClearCoatNormal()
 
 	#else
 
-		#ifdef HAS_TANGENTS
+		#if defined(HAS_TANGENT_BASIS)
 			N = normalize(fTangentBasis[2]);
 		#else
 			N = normalize(fNormal);

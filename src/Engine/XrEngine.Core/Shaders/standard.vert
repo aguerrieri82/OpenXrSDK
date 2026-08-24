@@ -15,6 +15,9 @@
     out vec2 fPlanarUv;
 #endif
  
+#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP)) && defined(HAS_TANGENTS) 
+    #define USE_TANGENTS
+#endif
 
 layout(location=0) in vec3 aPosition;
 layout(location=1) in vec3 aNormal;
@@ -41,7 +44,7 @@ out vec2 fUv;
     out vec3 fCameraPos; 
 #endif
 
-#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
+#ifdef USE_TANGENTS
     out mat3 fTangentBasis;
 #endif
 
@@ -140,7 +143,7 @@ void main()
 	    fPosLightSpace = uCamera.lightSpaceMatrix * pos;
 	#endif
 
-    #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+    #ifdef USE_TANGENTS
         vec3 T = normalize(vec3(worldMatrix * vec4(tangent.xyz, 0.0)));
 	    vec3 B = cross(N, T) * tangent.w;
 
