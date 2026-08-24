@@ -43,6 +43,7 @@ namespace XrEngine.Gltf
         readonly Dictionary<int, Object3D> _nodes = [];
 
         readonly Dictionary<int, GltfSkin> _skins = [];
+        MaterialVariantsHost? _variants;
 
         string? _basePath;
         string? _filePath;
@@ -60,9 +61,30 @@ namespace XrEngine.Gltf
             "KHR_lights_punctual",
             "KHR_materials_sheen",
             "KHR_materials_iridescence",
+            "KHR_materials_variants",
             "KHR_materials_pbrSpecularGlossiness" };
 
         #region STRUCTS
+
+        public struct KHR_materials_variants
+        {
+            public struct Variant
+            {
+                public string? name { get; set; }
+            }
+
+            public struct Mapping
+            {
+                public int material { get; set; }
+
+                public int[]? variants { get; set; }
+            }
+
+            public Variant[]? variants { get; set; }
+
+            public Mapping[]? mappings { get; set; }
+
+        }
 
         public struct KHR_lights_punctual
         {
@@ -1157,6 +1179,31 @@ namespace XrEngine.Gltf
                     mat.UseSkin = node?.Skin != null;
                     mat.UseMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
+
+      
+                }
+
+                var matVar = TryLoadExtension<KHR_materials_variants>(primitive.Extensions);
+
+                if (matVar?.mappings != null)
+                {
+                    Debug.Assert(_variants != null);
+
+                    foreach (var map in matVar.Value.mappings)
+                    {
+                        var mat = ProcessMaterial(map.material, node);
+            
+                        if (!curMesh.Materials.Contains(mat))
+                        {
+                            mat.IsEnabled = false;
+                            curMesh.Materials.Add(mat);
+                        }
+     
+                        Debug.Assert(map.variants != null);
+
+                        foreach (var varIdx in map.variants)
+                            _variants.Variants[varIdx].Bind(curMesh, mat);
+                    }
                 }
 
                 if (group == null)
@@ -1554,6 +1601,23 @@ namespace XrEngine.Gltf
             animHost.AddAnimation(group);
         }
 
+        protected void ProcessVariants()
+        {
+            var matVars = TryLoadExtension<KHR_materials_variants>(_model!.Extensions);
+
+            if (matVars == null)
+                return;
+
+            _variants = new MaterialVariantsHost();
+
+            _variants.Variants.AddRange(matVars.Value.variants!
+                .Select(a => new MaterialVariant
+                {
+                    Name = a.name
+                })
+            );
+        }
+
         protected void ProcessAnimations(Object3D root)
         {
             if (_model?.Animations == null)
@@ -1617,6 +1681,8 @@ namespace XrEngine.Gltf
                     ProcessSkin(i);
             }
 
+            ProcessVariants();
+
             foreach (var scene in _model!.Scenes)
                 root.AddChild(ProcessScene(scene));
 
@@ -1631,6 +1697,9 @@ namespace XrEngine.Gltf
             }
 
             ProcessAnimations(curRoot);
+
+            if (_variants != null)
+                curRoot.AddComponent(_variants);
 
             Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
 

@@ -56,7 +56,7 @@ namespace XrEngine.OpenGL
             void AddFilter(string shader, Distribution distribution)
             {
                 var prog = new GlComputeProgram(_gl, shader, shaderResolver);
-                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 4 : 1)}u");
+                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
             }
@@ -92,6 +92,7 @@ namespace XrEngine.OpenGL
 
             _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
         }
+
         public uint ApplyFilter(Distribution distribution)
         {
             var program = _filterProg![distribution];

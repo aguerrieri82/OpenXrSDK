@@ -92,8 +92,8 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(2f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGltfTest("Models/ClearCoatTest.glb")
-              //.CreateRoomManager()
+              .CreateGltfTest("Models/DragonAttenuation.glb")
+              //   .CreateChess()
               .Build();
     }
 }
