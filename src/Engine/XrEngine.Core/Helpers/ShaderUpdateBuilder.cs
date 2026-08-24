@@ -149,8 +149,10 @@ namespace XrEngine
         public bool IsMultiView;
     }
 
-    public readonly struct ShaderUpdateBuilder : IFeatureList
+    public struct ShaderUpdateBuilder : IFeatureList
     {
+        private SlotMask _textureSlots;
+
         private readonly ShaderUpdate _result;
 
         public delegate TValue UpdateAction<TValue>(UpdateShaderContext ctx);
@@ -163,6 +165,8 @@ namespace XrEngine
             };
 
             Context = context;
+
+            _textureSlots = new(context.RenderEngine!.Features.MaxTextureUnits);
         }
 
         readonly void Update<TValue>(UpdateAction<TValue> action, Action<IUniformProvider, TValue> doUpdate)
@@ -289,11 +293,22 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadTexture(UpdateAction<Texture2D> value, int slot = 0)
+        public void LoadTexture(Func<Texture2D?> value, ResourceSlot slot)
         {
-            Update(value, (up, v) => up.LoadTexture(v, slot));
+            LoadTexture(ctx => value(), slot);
         }
 
+        public void LoadTexture(UpdateAction<Texture2D?> value, ResourceSlot slot)
+        {
+            var curSlot = GetTextureSlot(slot);
+
+            Update(value, (up, v) =>
+            {
+                if (v != null)
+                    up.LoadTexture(v, curSlot);
+            });
+        }
+  
         public readonly void SetUniform(string name, UpdateAction<Texture2D> value, int slot = 0, bool optional = false)
         {
             Log(name, slot);
@@ -421,6 +436,25 @@ namespace XrEngine
         readonly void Log(string name, object value)
         {
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
+        }
+
+        public int GetTextureSlot(ResourceSlot slot)
+        {
+            if (slot.Slot == -1 || _textureSlots.Has(slot.Slot))
+                return AllocateSlot(slot.Name!, ref _textureSlots, TextureSlots.Reserved);
+
+            _textureSlots.Add(slot.Slot);
+
+            return slot.Slot;
+        }
+
+        public readonly int AllocateSlot(string name, ref SlotMask mask, SlotMask reserved)
+        {
+            var result = mask.Allocate(reserved);
+
+            AddFeature($"{name} {result}");
+
+            return result;
         }
 
 

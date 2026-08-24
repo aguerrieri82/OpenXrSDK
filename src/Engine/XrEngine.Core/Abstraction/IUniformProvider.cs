@@ -11,11 +11,12 @@ namespace XrEngine
         SharedSsbo
     }
 
+
     public interface IUniformProvider
     {
-        void LoadTexture(Texture value, int slot = 0, bool forceBinding = false);
+        void LoadTexture(Texture value, int slot, bool forceBinding = false);
 
-        void LoadImage(Texture2D copyDepthImage, int slot = 0, BufferAccessMode accessMode = BufferAccessMode.ReadWrite);
+        void LoadImage(Texture2D copyDepthImage, int slot, BufferAccessMode accessMode = BufferAccessMode.ReadWrite);
 
         void SetUniform(string name, bool value, bool optional = false);
 

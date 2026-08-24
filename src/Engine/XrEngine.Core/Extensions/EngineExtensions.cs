@@ -1557,16 +1557,21 @@ namespace XrEngine
                     self.AddFeature("TEXTURE_FORCE_SRGB");
             }
 
-            public void LoadTextureFixSrgb(UpdateAction<Texture2D> value, int slot)
+            public void LoadTextureFixSrgb(Func<Texture2D?> value, ResourceSlot slot)
             {
-                self.ExecuteAction((ctx, up) => up.LoadTextureFixSrgb(ctx, value(ctx), slot));
+                var curSlot = self.GetTextureSlot(slot);
+
+                self.ExecuteAction((ctx, up) => up.LoadTextureFixSrgb(ctx, value(), slot));
             }
         }
 
         extension(IUniformProvider self)
         {
-            public void LoadTextureFixSrgb(UpdateShaderContext ctx, Texture texture, int slot)
+            public void LoadTextureFixSrgb(UpdateShaderContext ctx, Texture? texture, int slot)
             {
+                if (texture == null) 
+                    return;
+                
                 //DO NOT MERGE LoadTexture, LoadSampler MUST BE AFTER in the other branch
 
                 var isSrgb = texture.Format.IsSrgb();

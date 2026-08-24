@@ -1,12 +1,25 @@
+#ifdef USE_ALBEDO_MAP
+	layout(binding=ALBEDO_SLOT) uniform sampler2D albedoTexture;
+#endif
 
-layout(binding=0) uniform sampler2D albedoTexture;
-layout(binding=1) uniform sampler2D normalTexture;
-layout(binding=2) uniform sampler2D metalroughnessTexture;
-layout(binding=3) uniform sampler2D occlusionTexture;
-layout(binding=9) uniform sampler2D emissiveTexture;
+#ifdef USE_NORMAL_MAP
+	layout(binding=NORMAL_SLOT) uniform sampler2D normalTexture;
+#endif
+
+#if defined(USE_METALROUGHNESS_MAP) || defined(USE_SPECULAR_MAP)
+	layout(binding=METALLICROUGHNESS_SLOT) uniform sampler2D metalroughnessTexture;
+#endif
+
+#ifdef USE_OCCLUSION_MAP
+	layout(binding=OCCLUSION_SLOT) uniform sampler2D occlusionTexture;
+#endif
+
+#ifdef USE_EMISSIVE_MAP
+	layout(binding=EMISSIVE_SLOT) uniform sampler2D emissiveTexture;
+#endif
 
 #ifdef USE_TRANSMISSION_MAP
-    layout(binding=7) uniform sampler2D transmissionTexture;
+    layout(binding=TRANSMISSIONMAP_SLOT) uniform sampler2D transmissionTexture;
 #endif
 
 vec4 LoadBaseColor()

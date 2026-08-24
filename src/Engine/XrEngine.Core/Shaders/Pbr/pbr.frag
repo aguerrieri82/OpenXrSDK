@@ -9,17 +9,24 @@
 	#define TRANSMISSION_MODE TM_NONE
 #endif
 
-#include "../Shared/shadow.glsl"
-#include "../Shared/env_depth.glsl"
-#include "../Shared/planar_reflection.glsl"
-#include "../Shared/consts.glsl"
+#ifdef HAS_ENV_DEPTH
+	#include "../Shared/env_depth.glsl"
+#endif
+
+#ifdef PLANAR_REFLECTION
+	#include "../Shared/planar_reflection.glsl"
+#endif
+
+#ifdef USE_SHADOW_MAP
+	#include "../Shared/shadow.glsl"
+#endif
+
 #include "../Shared/fragment_post.glsl"
 
 #if defined(USE_REFRACTION) || TRANSMISSION_MODE == TM_TEXTURE
 	#include "../Shared/position.glsl"
 	#include "../Shared/volume.glsl"
 #endif
-
 
 #ifdef USE_IRIDESCENCE
 	#include "../Shared/iridescence.glsl"
@@ -70,7 +77,6 @@ const vec3 Fdielectric = vec3(0.04);
 #endif
 
 
-
 in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
@@ -102,10 +108,9 @@ in vec3 fCameraPos;
 	layout(location=0) out vec4 color;
 #endif
 
-layout(binding=4) uniform samplerCube specularTexture;
-layout(binding=5) uniform samplerCube irradianceTexture;
-layout(binding=6) uniform sampler2D specularBRDF_LUT;
-
+layout(binding=IBLGGXENV_SLOT) uniform samplerCube specularTexture;
+layout(binding=IBLLAMBERTIANENV_SLOT) uniform samplerCube irradianceTexture;
+layout(binding=IBLGGXLUT_SLOT) uniform sampler2D specularBRDF_LUT;
 
 
 #ifdef HAS_CLIP_VOLUME

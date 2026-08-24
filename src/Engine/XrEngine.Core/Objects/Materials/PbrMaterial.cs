@@ -250,12 +250,11 @@ namespace XrEngine
                 if (envDepth != null)
                 {
                     bld.AddFeature("HAS_ENV_DEPTH");
+
+                    bld.LoadTexture(() => envDepth.Acquire(_depthCamera), TextureSlots.EnvDepth);
+
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        var texture = envDepth.Acquire(_depthCamera);
-                        if (texture != null)
-                            up.LoadTexture(texture, TextureSlots.EnvDepth);
-
                         up.SetUniform("envDepthBias", envDepth.Bias);
 
                         if (_depthCamera.Eyes != null)
@@ -359,17 +358,9 @@ namespace XrEngine
                         };
                     }, UniformsSlots.Ibl, BufferStore.Shader);
 
-                    bld.ExecuteAction((ctx, up) =>
-                    {
-                        if (imgLight.Textures?.GGXEnv != null)
-                            up.LoadTexture(imgLight.Textures.GGXEnv, TextureSlots.IblGgxEnv);
-
-                        if (imgLight.Textures?.LambertianEnv != null)
-                            up.LoadTexture(imgLight.Textures.LambertianEnv, TextureSlots.IblLambertianEnv);
-
-                        if (imgLight.Textures?.GGXLUT != null)
-                            up.LoadTexture(imgLight.Textures.GGXLUT, TextureSlots.IblGgxLut);
-                    });
+                    bld.LoadTexture(() => imgLight.Textures.GGXEnv, TextureSlots.IblGgxEnv);
+                    bld.LoadTexture(() => imgLight.Textures.LambertianEnv, TextureSlots.IblLambertianEnv);
+                    bld.LoadTexture(() => imgLight.Textures.GGXLUT, TextureSlots.IblGgxLut);
                 }
 
                 if (UseLightField)
@@ -531,11 +522,10 @@ namespace XrEngine
                     if (PlanarReflection.IsMultiView)
                         bld.AddFeature("PLANAR_REFLECTION_MV");
 
+                    bld.LoadTexture(() => planar.Texture, TextureSlots.PlanarReflection);
+
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        if (planar.Texture != null)
-                            up.LoadTexture(planar.Texture, TextureSlots.PlanarReflection);
-
                         if (PlanarReflection.IsMultiView)
                         {
                             if (planar.ReflectionCamera.Eyes != null)
@@ -596,13 +586,13 @@ namespace XrEngine
                     });
                 }
 
+                bld.LoadTexture(() => HeightMap?.Texture, TextureSlots.HeightMap);
+
                 bld.ExecuteAction((ctx, up) =>
                 {
                     if (HeightMap != null)
-                    {
-                        up.LoadTexture(HeightMap.Texture!, TextureSlots.HeightMap);
                         up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Texture.Width, HeightMap.Texture.Height));
-                    }
+
                     up.SetUniform("uHeightNormalStrength", HeightMap!.NormalStrength);
                     up.SetUniform("uHeightScale", HeightMap.ScaleFactor);
                     up.SetUniform("uTargetTriSize", HeightMap.TargetTriSize);
@@ -620,7 +610,7 @@ namespace XrEngine
 
                 bld.PrepareTexture(ColorMap);
 
-                bld.LoadTexture(ctx => ColorMap, TextureSlots.Albedo);
+                bld.LoadTexture(() => ColorMap, TextureSlots.Albedo);
 
                 bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
             }
@@ -628,13 +618,13 @@ namespace XrEngine
             if (MetallicRoughnessMap != null)
             {
                 bld.AddFeature("USE_METALROUGHNESS_MAP");
-                bld.LoadTexture(ctx => MetallicRoughnessMap, TextureSlots.MetallicRoughness);
+                bld.LoadTexture(() => MetallicRoughnessMap, TextureSlots.MetallicRoughness);
             }
 
             else if (SpecularMap != null)
             {
                 bld.AddFeature("USE_SPECULAR_MAP");
-                bld.LoadTexture(ctx => SpecularMap, TextureSlots.Specular);
+                bld.LoadTexture(() => SpecularMap, TextureSlots.MetallicRoughness);
             }
 
             if (NormalMap != null && NormalScale != 0)
@@ -644,19 +634,19 @@ namespace XrEngine
                 if (NormalMapFormat == NormalMapFormat.UnityBc3)
                     bld.AddFeature("NORMAL_MAP_BC3");
 
-                bld.LoadTexture(ctx => NormalMap, TextureSlots.Normal);
+                bld.LoadTexture(() => NormalMap, TextureSlots.Normal);
             }
 
             if (OcclusionMap != null)
             {
                 bld.AddFeature("USE_OCCLUSION_MAP");
-                bld.LoadTexture(ctx => OcclusionMap, TextureSlots.Occlusion);
+                bld.LoadTexture(() => OcclusionMap, TextureSlots.Occlusion);
             }
 
             if (EmissiveMap != null)
             {
                 bld.AddFeature("USE_EMISSIVE_MAP");
-                bld.LoadTexture(ctx => EmissiveMap, TextureSlots.Emissive);
+                bld.LoadTexture(() => EmissiveMap, TextureSlots.Emissive);
             }
 
             if (UseLightField != UseLightFieldMode.None && ((PbrShader)_shader!).UseLightField)
@@ -684,13 +674,9 @@ namespace XrEngine
                 if (IridescenceMap != null)
                     bld.AddFeature("USE_IRIDESCENCE_MAP");
 
-                bld.ExecuteAction((ctx, up) =>
-                {
-                    if (IridescenceMap != null)
-                        up.LoadTexture(IridescenceMap, TextureSlots.IridescenceMap);
-                    if (IridescenceThicknessMap != null)
-                        up.LoadTexture(IridescenceThicknessMap, TextureSlots.IridescenceThicknessMap);
-                });
+                bld.LoadTexture(() => IridescenceMap, TextureSlots.IridescenceMap);
+
+                bld.LoadTexture(() => IridescenceThicknessMap, TextureSlots.IridescenceThicknessMap);
 
                 bld.LoadBuffer(ctx =>
                 {
@@ -735,20 +721,10 @@ namespace XrEngine
                 else if (TransmissionMode == TransmissionMode.Texture)
                 {
                     if (!HasRefraction)
-                    {
-                        bld.ExecuteAction((ctx, up) =>
-                        {
-                            if (ctx.TransmissionForeground != null)
-                                up.LoadTexture(ctx.TransmissionForeground, TextureSlots.VolumeForeground);
-                        });
-                    }
+                        bld.LoadTexture(ctx => ctx.TransmissionForeground, TextureSlots.VolumeForeground);
                 }
 
-                bld.ExecuteAction((ctx, up) =>
-                {
-                    if (TransmissionMap != null)
-                        up.LoadTexture(TransmissionMap, TextureSlots.TransmissionMap);
-                });
+                bld.LoadTexture(() => TransmissionMap, TextureSlots.TransmissionMap);
             }
 
             if (HasRefraction)
@@ -760,25 +736,17 @@ namespace XrEngine
                 {
 
                     bld.AddFeature("VOLUME_BACKGROUND");
-                    bld.ExecuteAction((ctx, up) =>
-                    {
-                        var texture = refSrc.GetRefractionTextures((PerspectiveCamera)ctx.PassCamera!)[0];
-                        if (texture != null)
-                            up.LoadTexture(texture, TextureSlots.VolumeBackground);
-                    });
+
+                    bld.LoadTexture(ctx=> 
+                        refSrc.GetRefractionTextures((PerspectiveCamera)ctx.PassCamera!)[0], TextureSlots.VolumeBackground);
                 }
 
                 if (ThicknessMap != null)
                     bld.AddFeature("USE_THICKNESS_MAP");
 
-                bld.ExecuteAction((ctx, up) =>
-                {
-                    if (ctx.TransmissionForeground != null)
-                        up.LoadTexture(ctx.TransmissionForeground, TextureSlots.VolumeForeground);
+                bld.LoadTexture(ctx => ctx.TransmissionForeground, TextureSlots.VolumeForeground);
 
-                    if (ThicknessMap != null)
-                        up.LoadTexture(ThicknessMap, TextureSlots.ThicknessMap);
-                });
+                bld.LoadTexture(() => ThicknessMap, TextureSlots.ThicknessMap);
 
                 bld.LoadBuffer(ctx =>
                 {

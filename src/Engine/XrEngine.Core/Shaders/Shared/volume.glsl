@@ -1,3 +1,5 @@
+#include "consts.glsl"
+
 struct VolumeData
 {
     float ior;
@@ -14,24 +16,24 @@ layout(std140, binding = 5) uniform VolumeUniforms
 
 #ifdef MULTIVIEW
 
-    layout(binding=12) uniform sampler2DArray volumeForeground;
+    layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2DArray volumeForeground;
 
 #ifdef VOLUME_BACKGROUND
-    layout(binding=11) uniform sampler2DArray volumeBackground;
+    layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2DArray volumeBackground;
 #endif
 
 #else
 
-    layout(binding=12) uniform sampler2D volumeForeground;
+    layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2D volumeForeground;
 
 #ifdef VOLUME_BACKGROUND
-    layout(binding=11) uniform sampler2D volumeBackground;
+    layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2D volumeBackground;
 #endif
 
 #endif
 
 #ifdef USE_THICKNESS_MAP
-    layout(binding=13) uniform sampler2D thicknessTexture;
+    layout(binding=THICKNESSMAP_SLOT) uniform sampler2D thicknessTexture;
 #endif
 
 float applyVolumeIorToRoughness(float roughness)

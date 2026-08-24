@@ -2,37 +2,41 @@
 {
     public static class TextureSlots
     {
-        public const int Albedo = 0;
-        public const int Normal = 1;
-        public const int MetallicRoughness = 2;
-        public const int Specular = 2;
-        public const int Occlusion = 3;
-        public const int Emissive = 9;
+        public static readonly ResourceSlot Texture1 = new(nameof(Texture1));
 
-        public const int IblGgxEnv = 4;
-        public const int IblLambertianEnv = 5;
-        public const int IblGgxLut = 6;
+        public static readonly ResourceSlot Albedo = new(nameof(Albedo));
+        public static readonly ResourceSlot Normal = new(nameof(Normal));
+        public static readonly ResourceSlot MetallicRoughness = new(nameof(MetallicRoughness));
+        public static readonly ResourceSlot Specular = new(nameof(Specular));
+        public static readonly ResourceSlot Occlusion = new(nameof(Occlusion));
+        public static readonly ResourceSlot Emissive = new(nameof(Emissive));
 
-        public const int PlanarReflection = 7;
+        public static readonly ResourceSlot IblGgxEnv = new(10, nameof(IblGgxEnv));
+        public static readonly ResourceSlot IblLambertianEnv = new(9, nameof(IblLambertianEnv));
+        public static readonly ResourceSlot IblGgxLut = new(8, nameof(IblGgxLut));
 
-        public const int EnvDepth = 8;
-        public const int HeightMap = 8;
+        public static readonly ResourceSlot PlanarReflection = new(nameof(PlanarReflection));
 
-        public const int Morph = 9;
+        public static readonly ResourceSlot EnvDepth = new(6, nameof(EnvDepth));
+        public static readonly ResourceSlot HeightMap = new(nameof(HeightMap));
 
-        public const int ProjDepth = 10;
+        public static readonly ResourceSlot Morph = new(nameof(Morph));
 
-        public const int ShadowMap = 14;
+        public static readonly ResourceSlot ProjDepth = new(nameof(ProjDepth));
 
-        public const int VolumeBackground = 11;
-        public const int VolumeForeground = 12;
+        public static readonly ResourceSlot ShadowMap = new(7, nameof(ShadowMap));
 
-        public const int TransmissionMap = 7;
+        public static readonly ResourceSlot VolumeBackground = new(4, nameof(VolumeBackground));
+        public static readonly ResourceSlot VolumeForeground = new(5, nameof(VolumeForeground));
 
-        public const int ThicknessMap = 13;
+        public static readonly ResourceSlot TransmissionMap = new(nameof(TransmissionMap));
 
-        public const int IridescenceMap = 14;
+        public static readonly ResourceSlot ThicknessMap = new(nameof(ThicknessMap));
 
-        public const int IridescenceThicknessMap = 15;
+        public static readonly ResourceSlot IridescenceMap = new(nameof(IridescenceMap));
+
+        public static readonly ResourceSlot IridescenceThicknessMap = new(nameof(IridescenceThicknessMap));
+
+        public static readonly SlotMask Reserved = ResourceSlot.FillMask(typeof(TextureSlots));
     }
 }

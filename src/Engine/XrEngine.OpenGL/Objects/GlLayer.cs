@@ -641,6 +641,7 @@ namespace XrEngine.OpenGL
                             {
                                 allVertexHidden = false;
                                 allMatHidden = false;
+                                _isEmpty = false;
                             }
                         }
                         vertex.IsHidden = allVertexHidden;
