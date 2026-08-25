@@ -788,7 +788,7 @@ namespace XrEngine
                     AssertNotTransform(IridescenceThicknessMap);
 
                     bld.AddFeature("USE_IRIDESCENCE_THICKNESS_MAP");
-                    bld.LoadTexture(() => IridescenceThicknessMap, TextureSlots.IridescenceThicknessMap);
+                    bld.LoadTexture(() => IridescenceThicknessMap, TextureSlots.IridescenceThickness);
                 }
           
                 if (IridescenceMap != null)
@@ -796,7 +796,7 @@ namespace XrEngine
                     AssertNotTransform(IridescenceMap);
 
                     bld.AddFeature("USE_IRIDESCENCE_MAP");
-                    bld.LoadTexture(() => IridescenceMap, TextureSlots.IridescenceMap);
+                    bld.LoadTexture(() => IridescenceMap, TextureSlots.Iridescence);
                 }
 
                 bld.LoadBuffer(ctx =>
@@ -830,7 +830,7 @@ namespace XrEngine
                     AssertNotTransform(TransmissionMap);
 
                     bld.AddFeature("USE_TRANSMISSION_MAP");
-                    bld.LoadTexture(() => TransmissionMap, TextureSlots.TransmissionMap);
+                    bld.LoadTexture(() => TransmissionMap, TextureSlots.Transmission);
                 }
    
                 if (TransmissionMode == TransmissionMode.FrameBufferFetch)
@@ -869,7 +869,7 @@ namespace XrEngine
                     AssertNotTransform(ThicknessMap);
 
                     bld.AddFeature("USE_THICKNESS_MAP");
-                    bld.LoadTexture(() => ThicknessMap, TextureSlots.ThicknessMap);
+                    bld.LoadTexture(() => ThicknessMap, TextureSlots.Thickness);
                 }
 
                 bld.LoadTexture(ctx => ctx.TransmissionForeground, TextureSlots.VolumeForeground);

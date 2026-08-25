@@ -12,11 +12,11 @@ layout(std140, binding = 8) uniform IridescenceUniforms
 };
 
 #ifdef USE_IRIDESCENCE_MAP
-    layout(binding=14) uniform sampler2D iridescenceTexture;
+    layout(binding=IRIDESCENCE_SLOT) uniform sampler2D iridescenceTexture;
 #endif
 
 #ifdef USE_IRIDESCENCE_THICKNESS_MAP
-    layout(binding=15) uniform sampler2D iridescenceThicknessTexture;
+    layout(binding=IRIDESCENCETHICKNESS_SLOT) uniform sampler2D iridescenceThicknessTexture;
 #endif
 
 const float iridescencePi = 3.141592653589793;

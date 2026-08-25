@@ -15,10 +15,10 @@
         public static readonly ResourceSlot HeightMap = new(nameof(HeightMap));
         public static readonly ResourceSlot Morph = new(nameof(Morph));
         public static readonly ResourceSlot ProjDepth = new(nameof(ProjDepth));
-        public static readonly ResourceSlot TransmissionMap = new(nameof(TransmissionMap));
-        public static readonly ResourceSlot ThicknessMap = new(nameof(ThicknessMap));
-        public static readonly ResourceSlot IridescenceMap = new(nameof(IridescenceMap));
-        public static readonly ResourceSlot IridescenceThicknessMap = new(nameof(IridescenceThicknessMap));
+        public static readonly ResourceSlot Transmission = new(nameof(Transmission));
+        public static readonly ResourceSlot Thickness = new(nameof(Thickness));
+        public static readonly ResourceSlot Iridescence = new(nameof(Iridescence));
+        public static readonly ResourceSlot IridescenceThickness = new(nameof(IridescenceThickness));
 
         public static readonly ResourceSlot SheenColor = new(nameof(SheenColor));
         public static readonly ResourceSlot SheenRoughness = new(nameof(SheenRoughness));

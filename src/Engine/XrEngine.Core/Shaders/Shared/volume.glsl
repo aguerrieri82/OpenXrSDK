@@ -32,7 +32,7 @@ layout(std140, binding = 5) uniform VolumeUniforms
 #endif
 
 #ifdef USE_THICKNESS_MAP
-    layout(binding=THICKNESSMAP_SLOT) uniform sampler2D thicknessTexture;
+    layout(binding=THICKNESS_SLOT) uniform sampler2D thicknessTexture;
 #endif
 
 float applyVolumeIorToRoughness(float roughness)

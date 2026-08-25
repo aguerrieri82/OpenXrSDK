@@ -32,7 +32,7 @@
 #endif
 
 #ifdef USE_TRANSMISSION_MAP
-	layout(binding=TRANSMISSIONMAP_SLOT) uniform sampler2D transmissionTexture;
+	layout(binding=TRANSMISSION_SLOT) uniform sampler2D transmissionTexture;
 #endif
 
 #ifdef USE_SHEEN_COLOR_MAP
@@ -116,7 +116,6 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 		#endif
 
 		#ifdef NORMAL_MAP_BC3
-
 			vec4 packedNormal = texture(normalTexture, normalUv);
 
 			packedNormal.x = packedNormal.w * packedNormal.x;
@@ -128,11 +127,8 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 
 			N.xy = normalXY;
 			N.z = normalZ;
-
 		#else
-
 			N = 2.0 * texture(normalTexture, normalUv).rgb - 1.0;
-
 		#endif
 
 		mat3 TBN = fTangentBasis;
@@ -140,14 +136,12 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
 
 		#ifdef DOUBLE_SIDED
-
 			if (!gl_FrontFacing)
 			{
 				TBN[0] = -TBN[0]; // Flip tangent.
 				TBN[1] = -TBN[1]; // Flip bitangent.
 				TBN[2] = -TBN[2]; // Flip normal.
 			}
-
 		#endif
 
 		normalGeo = normalize(TBN[2]);
@@ -156,7 +150,7 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 	#else
 
 		#if defined(HAS_TANGENT_BASIS)
-			N = fTangentBasis[2];
+			N = normalize(fTangentBasis[2]);
 		#else
 			N = normalize(fNormal);
 		#endif
