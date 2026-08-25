@@ -292,7 +292,7 @@ namespace XrSamples.Dnd
                                 else
                                     pbr.Roughness = 1.0f;
 
-                                pbr.SpecularMap = (Texture2D)tex;
+                                pbr.SpecularGlossinessMap = (Texture2D)tex;
                                 pbr.Metalness = 0f;
                             }
                             else if (isRough)

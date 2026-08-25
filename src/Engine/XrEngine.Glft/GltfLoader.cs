@@ -62,6 +62,8 @@ namespace XrEngine.Gltf
             "KHR_materials_sheen",
             "KHR_materials_iridescence",
             "KHR_materials_variants",
+            "KHR_materials_emissive_strength",
+            "KHR_materials_specular",
             "KHR_materials_pbrSpecularGlossiness" };
 
         #region STRUCTS
@@ -86,31 +88,46 @@ namespace XrEngine.Gltf
 
         }
 
+        public struct KHR_materials_specular
+        {
+            public float? specularFactor;
+            public TextureInfo? specularTexture;
+            public float[]? specularColorFactor;
+            public TextureInfo? specularColorTexture;
+        }
+
         public struct KHR_lights_punctual
         {
-            public KHRLight[]? lights;
+            public struct Light
+            {
+                public const string Directional = "directional";
+                public const string Point = "point";
+                public const string Spot = "spot";
+
+                public string? name;
+                public float[]? color;
+                public float? intensity;
+                public string type;
+                public float? range;
+                public Spot? spot;
+            }
+
+            public struct Spot
+            {
+                public float? innerConeAngle;
+                public float? outerConeAngle;
+            }
+
+
+            public Light[]? lights;
             public int? light;
         }
 
-        public struct KHRLight
+        public struct KHR_materials_emissive_strength
         {
-            public const string Directional = "directional";
-            public const string Point = "point";
-            public const string Spot = "spot";
-
-            public string? name;
-            public float[]? color;
-            public float? intensity;
-            public string type;
-            public float? range;
-            public KHRLightSpot? spot;
+            public float emissiveStrength;
         }
 
-        public struct KHRLightSpot
-        {
-            public float? innerConeAngle;
-            public float? outerConeAngle;
-        }
 
         struct KHR_materials_clearcoat
         {
@@ -463,7 +480,8 @@ namespace XrEngine.Gltf
             var irid = TryLoadExtension<KHR_materials_iridescence>(gltMat.Extensions);
             var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
             var coat = TryLoadExtension<KHR_materials_clearcoat>(gltMat.Extensions);
-            
+            var emiStr = TryLoadExtension<KHR_materials_emissive_strength>(gltMat.Extensions); 
+            var spec = TryLoadExtension<KHR_materials_specular>(gltMat.Extensions); 
 
             result ??= _options.MaterialFactory(matId);
 
@@ -522,6 +540,10 @@ namespace XrEngine.Gltf
             }
 
             result.EmissiveColor = new Color(gltMat.EmissiveFactor);
+
+            if (emiStr != null)
+                result.EmissiveColor = result.EmissiveColor.Multiply(emiStr.Value.emissiveStrength);
+
             result.Ior = ior?.ior ?? 1.5f;
 
             if (volume != null)
@@ -637,6 +659,27 @@ namespace XrEngine.Gltf
                 }
             }
 
+            if (spec != null)
+            {
+                result.UseSpecular = true;
+                result.Specular = spec.Value.specularFactor ?? 1f;
+                result.SpecularColor = spec.Value.specularColorFactor == null ? Color.White : new Color(spec.Value.specularColorFactor);
+
+                if (spec.Value.specularTexture != null)
+                {
+                    var texInfo = spec.Value.specularTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.SpecularMap = DecodeTextureBaseTask(texInfo).Result;
+                }
+
+                if (spec.Value.specularColorTexture != null)
+                {
+                    var texInfo = spec.Value.specularColorTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.SpecularColorMap = DecodeTextureBaseTask(texInfo).Result;
+                }
+            }
+ 
             AssignAsset(result, "mat", matId);
 
             _mats[gltMat] = result;
@@ -1369,9 +1412,9 @@ namespace XrEngine.Gltf
             return nodeObj;
         }
 
-        private Light ProcessLight(KHRLight light)
+        private Light ProcessLight(KHR_lights_punctual.Light light)
         {
-            if (light.type == KHRLight.Spot)
+            if (light.type == KHR_lights_punctual.Light.Spot)
             {
                 Debug.Assert(light.spot != null);
 
@@ -1387,7 +1430,7 @@ namespace XrEngine.Gltf
 
                 return spot;
             }
-            else if (light.type == KHRLight.Directional)
+            else if (light.type == KHR_lights_punctual.Light.Directional)
             {
                 var dir = new DirectionalLight
                 {
@@ -1398,7 +1441,7 @@ namespace XrEngine.Gltf
                 return dir;
 
             }
-            else if (light.type == KHRLight.Point)
+            else if (light.type == KHR_lights_punctual.Light.Point)
             {
                 var point = new PointLight
                 {

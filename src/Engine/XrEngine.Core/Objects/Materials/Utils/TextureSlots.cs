@@ -7,7 +7,7 @@
         public static readonly ResourceSlot Albedo = new(nameof(Albedo));
         public static readonly ResourceSlot Normal = new(nameof(Normal));
         public static readonly ResourceSlot MetallicRoughness = new(nameof(MetallicRoughness));
-        public static readonly ResourceSlot Specular = new(nameof(Specular));
+        public static readonly ResourceSlot SpecularGlossiness = new(nameof(SpecularGlossiness));
         public static readonly ResourceSlot Occlusion = new(nameof(Occlusion));
         public static readonly ResourceSlot Emissive = new(nameof(Emissive));
 
@@ -26,6 +26,9 @@
         public static readonly ResourceSlot ClearCoat = new(nameof(ClearCoat));
         public static readonly ResourceSlot ClearCoatNormal = new(nameof(ClearCoatNormal));
         public static readonly ResourceSlot ClearCoatRoughness = new(nameof(ClearCoatRoughness));
+
+        public static readonly ResourceSlot Specular = new(nameof(Specular));
+        public static readonly ResourceSlot SpecularColor = new(nameof(SpecularColor));
 
         public static readonly ResourceSlot VolumeBackground = new(4, nameof(VolumeBackground));
         public static readonly ResourceSlot VolumeForeground = new(5, nameof(VolumeForeground));

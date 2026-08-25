@@ -23,7 +23,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("res://asset/Envs/StudioTomoco.hdr")
+                .UseEnvironmentHDR("res://asset/Envs/aerodynamics_workshop_4k.hdr")
                 .ConfigureSampleApp();
         }
     }

@@ -50,7 +50,7 @@ namespace XrEngine
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit, Size = 144)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -104,6 +104,11 @@ namespace XrEngine
             [FieldOffset(120)]
             public float ClearCoatNormalScale;
 
+            [FieldOffset(124)]
+            public float Specular;
+
+            [FieldOffset(128)]
+            public Vector3 SpecularColor;
         }
 
         #endregion
@@ -526,7 +531,9 @@ namespace XrEngine
                     SheenRoughness = SheenRoughness,
                     ClearCoatFactor = ClearCoatFactor,
                     ClearCoatRoughnessFactor = ClearCoatRoughnessFactor,
-                    ClearCoatNormalScale = ClearCoatNormalScale
+                    ClearCoatNormalScale = ClearCoatNormalScale,
+                    Specular = Specular,
+                    SpecularColor = SpecularColor.ToVector3()
                 };
 
             },
@@ -646,13 +653,12 @@ namespace XrEngine
 
                 bld.TryAddUvTransform(MetallicRoughnessMap, "METALROUGHNESS_UV_TRANSFORM");
             }
-
-            else if (SpecularMap != null)
+            else if (SpecularGlossinessMap != null)
             {
-                bld.AddFeature("USE_SPECULAR_MAP");
-                bld.LoadTexture(() => SpecularMap, TextureSlots.MetallicRoughness);
+                bld.AddFeature("USE_SPECULARGLOSSINESS_MAP");
+                bld.LoadTexture(() => SpecularGlossinessMap, TextureSlots.SpecularGlossiness);
 
-                bld.TryAddUvTransform(SpecularMap, "SPECULAR_UV_TRANSFORM");
+                bld.TryAddUvTransform(SpecularGlossinessMap, "SPECULARGLOSSINESS_UV_TRANSFORM");
             }
 
             if (NormalMap != null && NormalScale != 0)
@@ -724,6 +730,25 @@ namespace XrEngine
                 {
                     bld.LoadTexture(() => imgLight.Textures.CharlieEnv, TextureSlots.IblCharlieEnv);
                     bld.LoadTexture(() => imgLight.Textures.CharlieLUT, TextureSlots.CharlieLut);
+                }
+            }
+
+            if (UseSpecular)
+            {
+                bld.AddFeature("USE_SPECULAR");
+
+                if (SpecularColorMap != null)
+                {
+                    bld.TryAddUvTransform(SpecularColorMap, "SPECULAR_COLOR_UV_TRANSFORM");
+                    bld.AddFeature("USE_SPECULAR_COLOR_MAP");
+                    bld.LoadTexture(() => SpecularColorMap, TextureSlots.SpecularColor);
+                }
+
+                if (SpecularMap != null)
+                {
+                    bld.TryAddUvTransform(SpecularMap, "SPECULAR_UV_TRANSFORM");
+                    bld.AddFeature("USE_SPECULAR_MAP");
+                    bld.LoadTexture(() => SpecularMap, TextureSlots.Specular);
                 }
             }
 
@@ -941,6 +966,9 @@ namespace XrEngine
         public Texture2D? MetallicRoughnessMap { get; set; }
 
         [Category(Textures)]
+        public Texture2D? SpecularGlossinessMap { get; set; }
+
+        [Category(Textures)]
         public Texture2D? SpecularMap { get; set; }
 
         [Category(Textures)]
@@ -1009,6 +1037,18 @@ namespace XrEngine
 
         [Category(Textures)]
         public Matrix4x4? ColorMapProjection { get; set; }
+
+        [Category(Surface)]
+        public bool UseSpecular { get; set; }
+
+        [Category(Surface)]
+        public float Specular { get; set; }
+
+        [Category(Surface)]
+        public Color SpecularColor { get; set; }
+
+        [Category(Textures)]
+        public Texture2D? SpecularColorMap { get; set; }
 
 
         [Category(Surface)]
@@ -1086,7 +1126,6 @@ namespace XrEngine
 
         [Category(ClearCoat)]
         public float ClearCoatNormalScale { get; set; }
-
 
         public bool HasClearCoat => ClearCoatFactor > 0;
 

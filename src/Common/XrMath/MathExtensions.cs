@@ -1192,6 +1192,11 @@ namespace XrMath
 
         extension(in Color self)
         {
+            public Color Multiply(float rgbFactor, float aFactor = 1)
+            {
+                return new Color(self.R * rgbFactor, self.G * rgbFactor, self.B * rgbFactor, self.A * aFactor);
+            }
+
             public Vector3 ToVector3()
             {
                 return new Vector3(self.R, self.G, self.B);

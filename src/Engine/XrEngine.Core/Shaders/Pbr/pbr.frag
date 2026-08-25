@@ -99,7 +99,7 @@ in vec2 fUv;
 in vec3 fCameraPos;
 
 
-#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (NORMAL_UV_SET == 1) || (METALROUGHNESS_UV_SET == 1) || (SPECULAR_UV_SET == 1) || (OCCLUSION_UV_SET == 1) || (EMISSIVE_UV_SET == 1) || (TRANSMISSION_UV_SET == 1) || (SHEEN_COLOR_UV_SET == 1) || (SHEEN_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_UV_SET == 1) || (CLEARCOAT_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_NORMAL_UV_SET == 1)
+#if defined(HAS_UV2) 
 	in vec2 fUv2;
 #endif
 
@@ -120,7 +120,7 @@ in vec3 fCameraPos;
 	layout(location=0) out vec4 color;
 #endif
 
-layout(binding=IBLGGXENV_SLOT) uniform samplerCube specularTexture;
+layout(binding=IBLGGXENV_SLOT) uniform samplerCube specularEnvTexture;
 layout(binding=IBLLAMBERTIANENV_SLOT) uniform samplerCube irradianceTexture;
 layout(binding=IBLGGXLUT_SLOT) uniform sampler2D specularBRDF_LUT;
 
@@ -139,6 +139,7 @@ struct FragmentProperties
 	vec4 baseColor;
 	vec3 albedo;
 	vec3 normal;
+	vec3 normalGeo;
 
 	float metalness;
 	float roughness;
@@ -156,6 +157,9 @@ struct FragmentProperties
 	float clearCoat;
 	float clearCoatRoughness;
 	vec3 clearCoatNormal;
+
+	float specular;
+	vec3 specularColor;
 };
 
 FragmentProperties frag;
@@ -179,6 +183,21 @@ vec3 saturate(vec3 v)
 float square(float v)
 {
 	return v * v;
+}
+
+vec3 getDielectricF0()
+{
+	#ifdef USE_REFRACTION
+		vec3 F0 = vec3(square((uVolume.ior - 1.0) / (uVolume.ior + 1.0)));
+	#else
+		vec3 F0 = Fdielectric;
+	#endif
+
+	#ifdef USE_SPECULAR
+		F0 = min(F0 * frag.specularColor, vec3(1.0));
+	#endif
+
+	return F0;
 }
 
 
@@ -230,15 +249,27 @@ vec3 evaluateDirectLight(
 	float metalness,
 	float roughness,
 	vec3 N,
+	vec3 Ng,
 	vec3 V,
 	vec3 L,
 	vec3 radiance)
 {
-	float NoL = saturate(dot(N, L));
-	float NoV = saturate(dot(N, V));
 
+#ifdef USE_NORMAL_MAP
+	float GoV = dot(Ng, V);
+	float GoL = dot(Ng, L);
+
+	if (GoV <= 0.0 || GoL <= 0.0)
+		return vec3(0.0);
+#endif
+
+	float NoV = abs(dot(N, V)) + Epsilon;
+	float NoL = saturate(dot(N, L));
+
+#ifndef USE_NORMAL_MAP
 	if (NoL <= 0.0 || NoV <= 0.0)
 		return vec3(0.0);
+#endif
 
 #ifdef SIMPLIFIED
 	#if defined(USE_TRANSMISSION)
@@ -252,19 +283,28 @@ vec3 evaluateDirectLight(
 	float NoH = saturate(dot(N, H));
 	float VoH = saturate(dot(V, H));
 
-	#ifdef USE_REFRACTION
-		float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
-		vec3 F0 = mix(vec3(dielectricF0), albedo, metalness);
-	#else
-		vec3 F0 = mix(Fdielectric, albedo, metalness);
-	#endif
+	#ifdef USE_SPECULAR
+		vec3 dielectricF = fresnelSchlick(getDielectricF0(), VoH) * frag.specular;
+		vec3 metalF = fresnelSchlick(albedo, VoH);
+		vec3 F = mix(dielectricF, metalF, metalness);
 
-	vec3 F = fresnelSchlick(F0, VoH);
+		float dielectricFMax = max(dielectricF.r, max(dielectricF.g, dielectricF.b));
+		vec3 kd = vec3(1.0 - dielectricFMax) * (1.0 - metalness);
+	#else
+		#ifdef USE_REFRACTION
+			float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
+			vec3 F0 = mix(vec3(dielectricF0), albedo, metalness);
+		#else
+			vec3 F0 = mix(Fdielectric, albedo, metalness);
+		#endif
+
+		vec3 F = fresnelSchlick(F0, VoH);
+		vec3 kd = (vec3(1.0) - F) * (1.0 - metalness);
+	#endif
 
 	float D = distributionGGX(NoH, roughness);
 	float G = geometrySmith(NoL, NoV, roughness);
 	float specularTerm = (D * G) / max(Epsilon, 4.0 * NoL * NoV);
-	vec3 kd = (vec3(1.0) - F) * (1.0 - metalness);
 
 	#if PBR_USE_PHYSICAL_DIRECT_DIFFUSE
 		vec3 diffuseBRDF = kd * albedo * (1.0 / PI);
@@ -373,10 +413,17 @@ vec3 evaluateDirectTransmission(
 	#ifdef USE_REFRACTION
 		float roughnessScale = clamp(uVolume.ior * 2.0 - 2.0, 0.0, 1.0);
 		transmissionRoughness *= sqrt(roughnessScale);
-		float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
-		vec3 F = fresnelSchlick(vec3(dielectricF0), VoH);
+	#endif
+
+	#ifdef USE_SPECULAR
+		vec3 F = fresnelSchlick(getDielectricF0(), VoH) * frag.specular;
 	#else
-		vec3 F = fresnelSchlick(Fdielectric, VoH);
+		#ifdef USE_REFRACTION
+			float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
+			vec3 F = fresnelSchlick(vec3(dielectricF0), VoH);
+		#else
+			vec3 F = fresnelSchlick(Fdielectric, VoH);
+		#endif
 	#endif
 
 	float D = distributionGGX(NoH, transmissionRoughness);
@@ -551,7 +598,7 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir, 
 			continue;
 
 		vec3 radiance = uLights.lights[i].radiance * attenuation;
-		float NoL = dot(frag.normal, L);
+		float NoL = dot(frag.normalGeo, L);
 
 		if (NoL > 0.0)
 		{
@@ -560,6 +607,7 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir, 
 				frag.metalness,
 				frag.roughness,
 				frag.normal,
+				frag.normalGeo,
 				frag.viewDir,
 				L,
 				radiance);
@@ -608,7 +656,7 @@ vec3 evaluatePunctualLighting(FragmentProperties frag, out vec3 shadowLightDir, 
 vec3 iblDirection(vec3 v)
 {
 #ifdef USE_IBL_TRANSFORM
-	return v * uIblTransform;
+	return v * uIbl.transform;
 #else
 	return v;
 #endif
@@ -623,7 +671,7 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 
 #ifdef SIMPLIFIED
 
-	vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIblIntensity * uIblColor;
+	vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIbl.intensity * uIbl.color;
 	ambientLighting = frag.albedo * irradiance;
 
 	#if defined(USE_TRANSMISSION)
@@ -632,16 +680,23 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 
 #else
 
-	#ifdef USE_REFRACTION
-		float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
-		vec3 F0 = mix(vec3(dielectricF0), frag.albedo, frag.metalness);
+	#ifdef USE_SPECULAR
+		vec3 dielectricF0 = getDielectricF0();
+		vec3 dielectricF = fresnelSchlickRoughness(dielectricF0, NoV, frag.roughness) * frag.specular;
+		float dielectricFMax = max(dielectricF.r, max(dielectricF.g, dielectricF.b));
+		vec3 kd = vec3(1.0 - dielectricFMax) * (1.0 - frag.metalness);
 	#else
-		vec3 F0 = mix(Fdielectric, frag.albedo, frag.metalness);
-	#endif
+		#ifdef USE_REFRACTION
+			float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
+			vec3 F0 = mix(vec3(dielectricF0), frag.albedo, frag.metalness);
+		#else
+			vec3 F0 = mix(Fdielectric, frag.albedo, frag.metalness);
+		#endif
 		vec3 F = fresnelSchlickRoughness(F0, NoV, frag.roughness);
-
-		vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIblIntensity * uIblColor;
 		vec3 kd = (vec3(1.0) - F) * (1.0 - frag.metalness);
+	#endif
+
+		vec3 irradiance = texture(irradianceTexture, iblDirection(frag.normal)).rgb * uIbl.intensity * uIbl.color;
 		vec3 diffuseIBL = kd * frag.albedo * irradiance;
 
 		#if defined(USE_TRANSMISSION)
@@ -650,12 +705,19 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 
 		vec3 specularVec = iblDirection(reflectionDir);
 		vec3 specularIrradiance = textureLod(
-			specularTexture,
+			specularEnvTexture,
 			specularVec,
-			frag.roughness * uSpecularTextureLevels).rgb * uIblIntensity;
+			frag.roughness * uIbl.specularTexLevels).rgb * uIbl.intensity;
 
 		vec2 specularBRDF = texture(specularBRDF_LUT, vec2(NoV, frag.roughness)).rg;
-		vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+
+		#ifdef USE_SPECULAR
+			vec3 dielectricSpecularIBL = (dielectricF0 * specularBRDF.x + specularBRDF.y) * frag.specular * specularIrradiance;
+			vec3 metalSpecularIBL = (frag.albedo * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+			vec3 specularIBL = mix(dielectricSpecularIBL, metalSpecularIBL, frag.metalness);
+		#else
+			vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+		#endif
 
 		#ifdef ALPHA_SPECULAR
 			specularStrength += max(specularIBL.r, max(specularIBL.g, specularIBL.b));
@@ -683,8 +745,8 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 				frag.sheenRoughness,
 				NoV,
 				specularVec,
-				uSpecularTextureLevels,
-				uIblIntensity,
+				uIbl.specularTexLevels,
+				uIbl.intensity,
 				sheenScaling);
 
 			ambientLighting = ambientLighting * sheenScaling + sheenIBL;
@@ -698,9 +760,9 @@ vec3 evaluateAmbientLighting(FragmentProperties frag, vec3 reflectionDir, float 
 			vec3 clearCoatVec = iblDirection(reflect(-frag.viewDir, frag.clearCoatNormal));
 
 			clearCoatLighting = textureLod(
-				specularTexture,
+				specularEnvTexture,
 				clearCoatVec,
-				frag.clearCoatRoughness * uSpecularTextureLevels).rgb * uIblIntensity;
+				frag.clearCoatRoughness * uIbl.specularTexLevels).rgb * uIbl.intensity;
 
 			#ifdef ALPHA_SPECULAR
 				float coatWeight = clearCoatWeight(frag.clearCoat, frag.clearCoatNormal, frag.viewDir);
@@ -772,18 +834,14 @@ void main()
 	if (iridescenceThickness == 0.0)
 		iridescenceFactor = 0.0;
 
-	#ifdef USE_REFRACTION
-		float iridescenceBaseF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
-	#else
-		float iridescenceBaseF0 = Fdielectric.x;
-	#endif
+	vec3 iridescenceBaseF0 = getDielectricF0();
 
 	iridescenceFresnelDielectric = evalIridescence(
 		1.0,
 		uIridescence.ior,
 		NoV,
 		iridescenceThickness,
-		vec3(iridescenceBaseF0));
+		iridescenceBaseF0);
 
 	iridescenceFresnelMetal = evalIridescence(
 		1.0,
@@ -840,7 +898,7 @@ void main()
 		#endif
 	#else
 		vec3 shadowFactor = vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
-		vec3 iblShadowFactor = mix(vec3(1.0), shadowFactor, uIblShadowStrength);
+		vec3 iblShadowFactor = mix(vec3(1.0), shadowFactor, uIbl.shadowStrength);
 
 		vec3 color3 =
 			directLighting * shadowFactor +
@@ -862,11 +920,15 @@ void main()
 #endif
 
 #if TRANSMISSION_MODE == TM_TEXTURE
-	#ifdef USE_REFRACTION
-		float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
-		vec3 F = fresnelSchlick(vec3(dielectricF0), NoV);
+	#ifdef USE_SPECULAR
+		vec3 F = fresnelSchlick(getDielectricF0(), NoV) * frag.specular;
 	#else
-		vec3 F = fresnelSchlick(Fdielectric, NoV);
+		#ifdef USE_REFRACTION
+			float dielectricF0 = square((uVolume.ior - 1.0) / (uVolume.ior + 1.0));
+			vec3 F = fresnelSchlick(vec3(dielectricF0), NoV);
+		#else
+			vec3 F = fresnelSchlick(Fdielectric, NoV);
+		#endif
 	#endif
 
 	vec3 transmissionWeight = vec3(1.0) - F;
@@ -956,7 +1018,7 @@ void main()
 #elif DEBUG == DEBUG_TRANSMISSION
 	color = vec4(vec3(frag.transmission), 1.0);
 #elif DEBUG == DEBUG_IRRADIANCE
-	color = vec4(texture(irradianceTexture, N).rgb * uIblIntensity * uIblColor, 1.0);
+	color = vec4(texture(irradianceTexture, N).rgb * uIbl.intensity * uIbl.color, 1.0);
 #elif DEBUG == DEBUG_FIELD_DIR
 	color.rgb =	evaluateLightFieldDirection(frag.position, frag.normal);
 	color.a = 1.0;

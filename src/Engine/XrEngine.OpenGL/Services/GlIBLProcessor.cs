@@ -32,6 +32,7 @@ namespace XrEngine.OpenGL
             EnvFormat = InternalFormat.Rgba16f;
             LutFormat = InternalFormat.Rgba16f;
             Resolution = 512;
+            IrradianceSampleMul = 32;
         }
 
         public void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
@@ -56,7 +57,7 @@ namespace XrEngine.OpenGL
             void AddFilter(string shader, Distribution distribution)
             {
                 var prog = new GlComputeProgram(_gl, shader, shaderResolver);
-                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
+                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? IrradianceSampleMul : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
             }
@@ -256,5 +257,7 @@ namespace XrEngine.OpenGL
         public uint MipLevelCount { get; set; }
 
         public uint SampleCount { get; set; }
+
+        public uint IrradianceSampleMul { get; set; }
     }
 }

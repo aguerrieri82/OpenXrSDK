@@ -6,8 +6,21 @@
 	layout(binding=NORMAL_SLOT) uniform sampler2D normalTexture;
 #endif
 
-#if defined(USE_METALROUGHNESS_MAP) || defined(USE_SPECULAR_MAP)
+#if defined(USE_METALROUGHNESS_MAP)
 	layout(binding=METALLICROUGHNESS_SLOT) uniform sampler2D metalroughnessTexture;
+#endif
+
+#if defined(USE_SPECULARGLOSSINESS_MAP)
+	layout(binding=SPECULARGLOSSINESS_SLOT) uniform sampler2D specularGlossinessTexture;
+#endif
+
+
+#ifdef USE_SPECULAR_MAP
+	layout(binding=SPECULAR_SLOT) uniform sampler2D specularTexture;
+#endif
+
+#ifdef USE_SPECULAR_COLOR_MAP
+	layout(binding=SPECULARCOLOR_SLOT) uniform sampler2D specularColorTexture;
 #endif
 
 #ifdef USE_OCCLUSION_MAP
@@ -86,7 +99,7 @@ vec4 loadBaseColor()
 	#endif
 }
 
-vec3 loadFragmentNormal()
+vec3 loadFragmentNormal(out vec3 normalGeo)
 {
 	vec3 N;
 
@@ -137,6 +150,7 @@ vec3 loadFragmentNormal()
 
 		#endif
 
+		normalGeo = normalize(TBN[2]);
 		N = normalize(TBN * N);
 
 	#else
@@ -151,6 +165,8 @@ vec3 loadFragmentNormal()
 			if (!gl_FrontFacing)
 				N = -N;
 		#endif
+
+		normalGeo = N;
 
 	#endif
 
@@ -177,20 +193,20 @@ void loadMetalRoughness(out float metalness, out float roughness)
 			metalness = mr.b * uMaterial.metalness;
 			roughness = mr.g * uMaterial.roughness;
 
-		#elif defined(USE_SPECULAR_MAP)
+		#elif defined(USE_SPECULARGLOSSINESS_MAP)
 
-			#if SPECULAR_UV_SET == 1
+			#if SPECULAR_GLOSSINESS_UV_SET == 1
 				vec2 spUv = fUv2;
 			#else
 				vec2 spUv = fUv;
 			#endif
 
-			#ifdef SPECULAR_UV_TRANSFORM
-				spUv = (uTexTransform[SPECULAR_UV_TRANSFORM] * vec3(spUv, 1.0)).xy;
+			#ifdef SPECULARGLOSSINESS_UV_TRANSFORM
+				spUv = (uTexTransform[SPECULARGLOSSINESS_UV_TRANSFORM] * vec3(spUv, 1.0)).xy;
 			#endif
 
-			vec4 sp = texture(metalroughnessTexture, spUv);
-			roughness = (1.0 - sp.r) * uMaterial.roughness;
+			vec4 sp = texture(specularGlossinessTexture, spUv);
+			roughness = (1.0 - sp.a) * uMaterial.roughness;
 			metalness = uMaterial.metalness;
 
 		#else
@@ -249,6 +265,63 @@ vec4 loadEmissive()
 		return vec4(0.0);
 	#endif
 }
+
+
+#ifdef USE_SPECULAR
+
+float loadSpecular()
+{
+	float specular = uMaterial.specular;
+
+	#ifdef USE_SPECULAR_MAP
+
+		#if SPECULAR_FACTOR_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef SPECULAR_FACTOR_UV_TRANSFORM
+			uv = (uTexTransform[SPECULAR_FACTOR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		specular *= texture(specularTexture, uv).a;
+
+	#endif
+
+	return specular;
+}
+
+vec3 loadSpecularColor()
+{
+	vec3 color = uMaterial.specularColor;
+
+	#ifdef USE_SPECULAR_COLOR_MAP
+
+		#if SPECULAR_COLOR_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef SPECULAR_COLOR_UV_TRANSFORM
+			uv = (uTexTransform[SPECULAR_COLOR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		vec3 texColor = texture(specularColorTexture, uv).rgb;
+
+		#if !defined(TEXTURE_IS_SRGB)
+			texColor = sRGBToLinear(texColor);
+		#endif
+
+		color *= texColor;
+
+	#endif
+
+	return color;
+}
+
+#endif
 
 #ifdef USE_SHEEN
 
@@ -443,7 +516,7 @@ FragmentProperties loadFragmentProperties()
 	frag.position = fPos;
 	frag.uv0 = fUv;
 
-	#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1) || (NORMAL_UV_SET == 1) || (METALROUGHNESS_UV_SET == 1) || (SPECULAR_UV_SET == 1) || (OCCLUSION_UV_SET == 1) || (EMISSIVE_UV_SET == 1) || (TRANSMISSION_UV_SET == 1) || (SHEEN_COLOR_UV_SET == 1) || (SHEEN_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_UV_SET == 1) || (CLEARCOAT_ROUGHNESS_UV_SET == 1) || (CLEARCOAT_NORMAL_UV_SET == 1)
+	#if defined(HAS_UV2) 
 		frag.uv1 = fUv2;
 	#else
 		frag.uv1 = fUv;
@@ -463,7 +536,7 @@ FragmentProperties loadFragmentProperties()
 
 	loadMetalRoughness(frag.metalness, frag.roughness);
 
-	frag.normal = loadFragmentNormal();
+	frag.normal = loadFragmentNormal(frag.normalGeo);
 	frag.occlusion = loadOcclusion();
 	frag.viewDir = normalize(fCameraPos - fPos);
 
@@ -480,6 +553,11 @@ FragmentProperties loadFragmentProperties()
 
 	#ifdef USE_TRANSMISSION
 		frag.transmission = loadTransmission();
+	#endif
+	
+	#ifdef USE_SPECULAR
+		frag.specular = loadSpecular();
+		frag.specularColor = loadSpecularColor();
 	#endif
 
 	return frag;

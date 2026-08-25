@@ -769,6 +769,7 @@ namespace XrEngine.OpenGL
             processor.Resolution = options.Resolution;
             processor.MipLevelCount = options.MipLevelCount;
             processor.SampleCount = options.SampleCount;
+            processor.IrradianceSampleMul = options.IrradianceSampleMul;
 
             processor.Initialize(data, options.ShaderResolver!);
 
@@ -784,7 +785,6 @@ namespace XrEngine.OpenGL
             if ((options.Mode & IblProcessMode.Lambertian) == IblProcessMode.Lambertian)
             {
                 var texId = processor.ApplyFilter(GlIblProcessor.Distribution.Irradiance);
-
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
 

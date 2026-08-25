@@ -40,6 +40,8 @@ struct MaterialData
 	float clearCoatFactor;
 	float clearCoatRoughnessFactor;
 	float clearCoatNormalScale;
+	float specular;
+	vec3 specularColor;
 };
 
 #if !defined(VERTEX_SHADER) 
@@ -68,11 +70,11 @@ struct MaterialData
 
 layout(std140, binding = 4) uniform Ibl
 {
-    float uSpecularTextureLevels; 
-    float uIblIntensity;          
-    float uIblShadowStrength;    
-    vec3 uIblColor;    
-    mat3 uIblTransform; 
-};
+    float specularTexLevels; 
+    float intensity;          
+    float shadowStrength;    
+    vec3 color;    
+    mat3 transform; 
+} uIbl;
 
 uniform mat3 uTexTransform[5];
