@@ -1,6 +1,6 @@
 
 #define BLUR_MIP_MAX_LEVELS 6
-#define BLUR_MIP_MAX_LAYOUTS 8
+#define BLUR_MIP_MAX_LAYOUTS 4
 
 struct BlurMipLayout
 {

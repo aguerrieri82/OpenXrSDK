@@ -132,7 +132,7 @@ namespace XrEngine.OpenGL
             ctx.PassCamera = _reflection.ReflectionCamera;
             ctx.ContextVersion++;
 
-            _passTarget.Configure(_reflection.Texture!);
+            _passTarget.Configure(_reflection.ActiveTexture!);
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);

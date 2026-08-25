@@ -73,8 +73,8 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                if (planar.Texture != null)
-                    up.LoadTexture(planar.Texture, TextureSlots.PlanarReflection);
+                if (planar.ActiveTexture != null)
+                    up.LoadTexture(planar.ActiveTexture, TextureSlots.PlanarReflection);
 
                 if (PlanarReflection.IsMultiView)
                 {

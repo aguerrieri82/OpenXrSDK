@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using XrEngine.Helpers;
 using XrMath;
 using XrMath.Entities;
 
@@ -527,7 +528,7 @@ namespace XrEngine
                     AlphaSpecularScale = AlphaSpecularScale,
                     EmissiveColor = EmissiveColor,
                     PlanarReflectionStrength = planar?.Strength ?? 0,
-                    PlanarReflectionLevel = planar?.BlurLevel ?? 0,
+                    PlanarReflectionLevel = planar?.Roughness ?? 0,
                     Transmission = Transmission,
                     SheenColor = SheenColor.ToVector3(),
                     SheenRoughness = SheenRoughness,
@@ -558,10 +559,21 @@ namespace XrEngine
                     if (PlanarReflection.IsMultiView)
                         bld.AddFeature("PLANAR_REFLECTION_MV");
 
-                    bld.LoadTexture(() => planar.Texture, TextureSlots.PlanarReflection);
+                    var slot = bld.GetTextureSlot(TextureSlots.PlanarReflection);
+
+                    if (planar.BlurLevel > 0)
+                        bld.AddFeature("PLANAR_REFLECTION_BLUR");
 
                     bld.ExecuteAction((ctx, up) =>
                     {
+                        if (planar.ActiveTexture != null)
+                        {
+                            up.LoadTexture(planar.ActiveTexture, slot);
+
+                            var layout = (ITextureLayout?)planar.ActiveTexture.GetProp(EngineProps.Layout);
+                            layout?.Update(ctx, up, planar.ActiveTexture, 1);
+                        }
+
                         if (PlanarReflection.IsMultiView)
                         {
                             if (planar.ReflectionCamera.Eyes != null)
@@ -647,8 +659,6 @@ namespace XrEngine
 
                 bld.TryAddUvTransform(ColorMap, "ALBEDO_UV_TRANSFORM", UV0Transform);
             }
-
-            MetallicRoughnessMap = null;
 
             if (MetallicRoughnessMap != null)
             {
@@ -904,7 +914,11 @@ namespace XrEngine
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    System.Diagnostics.Debug.Assert(ctx.Model != null);
+                    if (ctx.Model == null)
+                    {
+                        Log.Warn(this, "Model is null for volume texture");
+                        return;
+                    }
 
                     var pack = ctx.RenderEngine!.Feature<IBlurMipPack>();
 

@@ -1,4 +1,6 @@
 ﻿#include "consts.glsl"
+#include "blur_mip.glsl"
+
 
 #ifdef PLANAR_REFLECTION_MV
 	layout(binding=PLANARREFLECTION_SLOT) uniform sampler2DArray reflectionTexture;
@@ -39,40 +41,38 @@ vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float 
 		mat4 refMatrix = uReflectMatrix;
 	#endif
 
-		vec3 reflectPosWorld = fragPos + Lr * 100.0; // Extend the reflection ray
+	vec3 reflectPosWorld = fragPos + Lr * 100.0; // Extend the reflection ray
+
 		 
-		vec4 reflectPosClip = refMatrix * vec4(reflectPosWorld, 1.0);
+	vec4 reflectPosClip = refMatrix * vec4(reflectPosWorld, 1.0);
 		 
-		vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
+	vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
 		
-		projCoords = projCoords * 0.5 + 0.5;
+	projCoords = projCoords * 0.5 + 0.5;
 			
-		#ifdef ANGLE
-			projCoords.y = 1.0 - projCoords.y;
-		#endif
+	#ifdef ANGLE
+		projCoords.y = 1.0 - projCoords.y;
+	#endif
 
+	#ifdef PLANAR_REFLECTION_BLUR
+		vec4 reflectionColor = sampleBlurMip(reflectionTexture, projCoords.xy, 1, level);
+	#else
 		#ifdef PLANAR_REFLECTION_MV
-			vec4 reflectionColor = textureLod(
-				reflectionTexture,
-				vec3(projCoords.xy, float(gl_ViewID_OVR)),
-				level
-			);
+			vec4 reflectionColor = texture(reflectionTexture, vec3(projCoords.xy, float(gl_ViewID_OVR)));
 		#else
-			vec4 reflectionColor = textureLod(
-				reflectionTexture,
-				projCoords.xy,
-				level
-			);
+			vec4 reflectionColor = texture(reflectionTexture, projCoords.xy);
 		#endif
-		#ifdef PURE_REFLECTION
-			return reflectionColor.rgb;
-		#endif	
-		float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
+	#endif
 
-		float refFactor = clamp(fresnelFactor * (1.0 - roughness) * factor, 0.0, 1.0);
+	#ifdef PURE_REFLECTION
+		return reflectionColor.rgb;
+	#endif	
+	float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
 
-		refFactor = min(reflectionColor.a, refFactor);
+	float refFactor = clamp(fresnelFactor * (1.0 - roughness) * factor, 0.0, 1.0);
 
-		return mix(color, reflectionColor.rgb, refFactor);
+	refFactor = min(reflectionColor.a, refFactor);
+
+	return mix(color, reflectionColor.rgb, refFactor);
 }
 

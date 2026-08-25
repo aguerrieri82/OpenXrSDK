@@ -176,12 +176,12 @@ namespace XrEngine
                 Texture = new Texture2D
                 {
                     MagFilter = ScaleFilter.Linear,
-                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    MinFilter = ScaleFilter.Linear,
                     WrapS = Wrap,
                     WrapT = Wrap,
                     BorderColor = Color.White,
                     Depth = IsMultiView ? 2u : 1u,
-                    MipLevelCount = 10,
+                    MipLevelCount = 0,
                     Width = (uint)curSize.Width,
                     Height = (uint)curSize.Height,
                     Format = UseSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
@@ -302,7 +302,9 @@ namespace XrEngine
         [Range(1, 180, 1)]
         public float FovDegree { get; set; }
 
-        public Texture2D? Texture { get; set; }
+        public Texture2D? ActiveTexture { get; set; }
+
+        public Texture2D? Texture { get; internal set; }
 
         public ShaderMaterial? MaterialOverride { get; set; }
 
@@ -338,5 +340,8 @@ namespace XrEngine
         public int BlurLevel { get; set; }
 
         public int ShadingRate { get; set; }
+
+        public float Roughness => ActiveTexture == null ? 0 :
+                            Math.Clamp(BlurLevel / MathF.Log2(Math.Max(ActiveTexture.Width, ActiveTexture.Height)), 0, 1);
     }
 }

@@ -53,7 +53,10 @@ namespace XrEngine.OpenGL
         protected DateTime _lastProfileOutTime;
         protected RenderEngineFeatures _features;
 
+        protected GlBlurMipPack? _blurMipPack;
+
         private bool _passesDirty;
+
 
         public static class Props
         {
@@ -998,23 +1001,22 @@ namespace XrEngine.OpenGL
 
         TextureLayout IBlurMipPack.Generate(Texture2D source, Rect2I sourceRect, float? roughness = null)
         {
-            var pack = new GlBlurMipPack(_gl, new GlBlurMipOptions
+            _blurMipPack ??= new GlBlurMipPack(_gl, new GlBlurMipOptions
             {
 
             });
 
             if (roughness != null)
-                pack.Generate(source.ToGlTexture(), sourceRect, roughness.Value);
+                _blurMipPack.Generate(source.ToGlTexture(), sourceRect, roughness.Value);
             else
-                pack.Generate(source.ToGlTexture(), sourceRect);
+                _blurMipPack.Generate(source.ToGlTexture(), sourceRect);
 
             return new TextureLayout
             {
-                Layout = pack.Layout,
-                Texture = (Texture2D)pack.Texture.ToEngineTexture()
+                Layout = _blurMipPack.Layout,
+                Texture = (Texture2D)_blurMipPack.Texture.ToEngineTexture()
             };
         }
-
 
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
 

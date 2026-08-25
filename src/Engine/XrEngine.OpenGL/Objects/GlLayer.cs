@@ -280,8 +280,6 @@ namespace XrEngine.OpenGL
 
                     materialContent.Contents[vrtSrc.Host] = vertexContent;
 
-                    if (incremental)
-                        Update(materialContent);
                 }
 
                 vertexContent.ContentVersion++;
@@ -306,7 +304,6 @@ namespace XrEngine.OpenGL
                     draw = () => vertexContent!.VertexHandler!.Draw(primitive);
                 }
 
-
                 vertexContent.Contents.Add(new DrawContent
                 {
                     Draw = draw,
@@ -314,6 +311,10 @@ namespace XrEngine.OpenGL
                     Object = obj3d,
                     ProgramInstance = materialContent.ProgramInstance
                 });
+
+
+                if (incremental)
+                    Update(materialContent);
             }
 
             InvalidateContent();

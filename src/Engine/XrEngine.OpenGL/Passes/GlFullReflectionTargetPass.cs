@@ -6,6 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Numerics;
+using XrEngine.Helpers;
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -18,7 +19,6 @@ namespace XrEngine.OpenGL
         private PlanarReflection? _reflection;
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
-        private GlSwapTexture? _swap;
         private bool _wasSrgb;
 
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
@@ -100,17 +100,7 @@ namespace XrEngine.OpenGL
 
             _reflection.Update(mainCamera, _passTarget.BoundEye);
 
-            if (_swap != null && _swap.Main?.Handle == 0)
-            {
-                _swap.Dispose();
-                _swap = null;
-            }
-
             Debug.Assert(_reflection.Texture != null);
-
-            _swap ??= new GlSwapTexture();
-
-            _swap.Configure(_reflection.Texture.ToGlTexture());
 
             var clipSize = _reflection.ClipBounds.Size.ToVector2() *
                            _reflection.ReflectionCamera.ViewSize.ToVector2() / 2;
@@ -124,7 +114,7 @@ namespace XrEngine.OpenGL
             ctx.PassCamera = _reflection.ReflectionCamera;
             ctx.ContextVersion++;
 
-            _passTarget.Configure(_swap.Active!);
+            _passTarget.Configure(_reflection.Texture.ToGlTexture());
 
             _passTarget.RenderTarget!.ShadingRate = _reflection.ShadingRate;
 
@@ -180,8 +170,6 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender(GlUpdateContext ctx)
         {
-            Debug.Assert(_swap?.Active != null);
-
             _passTarget.RenderTarget!.End(discardDepth: true);
 
             if (_imageLight != null)
@@ -190,12 +178,20 @@ namespace XrEngine.OpenGL
                 _imageLight.Invalidate();
             }
 
-            _swap.Active.GenerateMipmap();
+            var texture = _reflection?.Texture!;
 
             if (_reflection!.BlurLevel > 0)
-                _swap.Blur(2, _reflection!.BlurLevel);
+            {
+                var roughness = _reflection.Roughness;
 
-            _reflection.Texture = (Texture2D)_swap.Active.ToEngineTexture();
+                var result = ((IBlurMipPack)_renderer).Generate(texture, 
+                    new Rect2I(0, 0, texture.Width, texture.Height), roughness);
+
+                _reflection.ActiveTexture = result.Texture;
+                _reflection.ActiveTexture.SetProp(EngineProps.Layout, result.Layout);
+            }
+            else
+                _reflection.ActiveTexture = texture;
 
             if (_wasSrgb != ctx.IsSrgbTarget)
             {
@@ -212,7 +208,6 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             _passTarget.Dispose();
-            _swap?.Dispose();
             base.Dispose();
         }
 
