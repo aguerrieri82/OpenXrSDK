@@ -1,0 +1,153 @@
+layout(local_size_x=8, local_size_y=8, local_size_z=1) in;
+
+precision highp float;
+precision highp int;
+
+#ifdef MULTI_VIEW
+	precision highp sampler2DArray;
+	precision highp image2DArray;
+
+	uniform sampler2DArray uSourceTexture;
+	layout(binding=0, rgba8) writeonly uniform image2DArray uTargetTexture;
+#elif defined(MULTI_SAMPLE)
+	precision highp sampler2DMS;
+	precision highp image2D;
+
+	uniform sampler2DMS uSourceTexture;
+	layout(binding=0, rgba8) writeonly uniform image2D uTargetTexture;
+	uniform int uSampleCount;
+#else
+	precision highp sampler2D;
+	precision highp image2D;
+
+	uniform sampler2D uSourceTexture;
+	layout(binding=0, rgba8) writeonly uniform image2D uTargetTexture;
+#endif
+
+const int MaxTaps = 12;
+
+const vec2 TapOffsets[MaxTaps] = vec2[]
+(
+	vec2(-0.70710678, -0.70710678),
+	vec2( 0.70710678, -0.70710678),
+	vec2(-0.70710678,  0.70710678),
+	vec2( 0.70710678,  0.70710678),
+
+	vec2(-1.0,  0.0),
+	vec2( 1.0,  0.0),
+	vec2( 0.0, -1.0),
+	vec2( 0.0,  1.0),
+
+	vec2(-0.35355339, -0.35355339),
+	vec2( 0.35355339, -0.35355339),
+	vec2(-0.35355339,  0.35355339),
+	vec2( 0.35355339,  0.35355339)
+);
+
+uniform vec4 uSourceRect;
+uniform vec4 uTargetRect;
+
+uniform float uRadius;
+uniform int uTapCount;
+
+#ifdef MULTI_SAMPLE
+
+vec4 resolveSource(ivec2 pos)
+{
+	ivec2 minPos = ivec2(uSourceRect.xy);
+	ivec2 maxPos = ivec2(uSourceRect.xy + uSourceRect.zw) - 1;
+
+	pos = clamp(pos, minPos, maxPos);
+
+	vec4 value = vec4(0.0);
+
+	for(int i=0; i<uSampleCount; ++i)
+		value += texelFetch(uSourceTexture, pos, i);
+
+	return value / float(uSampleCount);
+}
+
+vec4 sampleSource(vec2 pos)
+{
+	vec2 texelPos = pos - 0.5;
+	ivec2 p = ivec2(floor(texelPos));
+	vec2 f = fract(texelPos);
+
+	vec4 c00 = resolveSource(p);
+	vec4 c10 = resolveSource(p + ivec2(1, 0));
+	vec4 c01 = resolveSource(p + ivec2(0, 1));
+	vec4 c11 = resolveSource(p + ivec2(1, 1));
+
+	return mix(mix(c00, c10, f.x), mix(c01, c11, f.x), f.y);
+}
+
+#else
+
+vec4 sampleSource(vec2 pos)
+{
+#ifdef MULTI_VIEW
+	vec2 size = vec2(textureSize(uSourceTexture, 0).xy);
+	return textureLod(uSourceTexture, vec3(pos / size, float(gl_GlobalInvocationID.z)), 0.0);
+#else
+	vec2 size = vec2(textureSize(uSourceTexture, 0));
+	return textureLod(uSourceTexture, pos / size, 0.0);
+#endif
+}
+
+#endif
+
+void storeTarget(ivec2 pos, vec4 value)
+{
+#ifdef MULTI_VIEW
+	imageStore(uTargetTexture, ivec3(pos, int(gl_GlobalInvocationID.z)), value);
+#else
+	imageStore(uTargetTexture, pos, value);
+#endif
+}
+
+void main()
+{
+	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 targetSize = ivec2(uTargetRect.zw);
+
+	if(any(greaterThanEqual(p, targetSize)))
+		return;
+
+	vec2 uv = (vec2(p) + 0.5) / uTargetRect.zw;
+	vec2 sourcePos = uSourceRect.xy + uv * uSourceRect.zw;
+
+	vec2 sourceMin = uSourceRect.xy + 0.5;
+	vec2 sourceMax = uSourceRect.xy + uSourceRect.zw - 0.5;
+
+	vec4 value;
+
+	if(uTapCount <= 1 || uRadius <= 0.0)
+	{
+		vec2 samplePos = clamp(sourcePos, sourceMin, sourceMax);
+
+#ifdef MULTI_SAMPLE
+		value = resolveSource(ivec2(samplePos));
+#else
+		value = sampleSource(samplePos);
+#endif
+	}
+	else
+	{
+		value = vec4(0.0);
+
+		for(int i=0; i<MaxTaps; ++i)
+		{
+			if(i >= uTapCount)
+				break;
+
+			vec2 samplePos = sourcePos + TapOffsets[i] * uRadius;
+			samplePos = clamp(samplePos, sourceMin, sourceMax);
+
+			value += sampleSource(samplePos);
+		}
+
+		value /= float(uTapCount);
+	}
+
+	storeTarget(ivec2(uTargetRect.xy) + p, value);
+}

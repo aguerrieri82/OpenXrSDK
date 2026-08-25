@@ -126,6 +126,8 @@ namespace XrEngine
 
         public Matrix3x3? Transform { get; set; }
 
+        public uint DefaultUvSet { get; set; }
+
         public Color BorderColor { get; set; }
 
         public uint Depth { get; set; }

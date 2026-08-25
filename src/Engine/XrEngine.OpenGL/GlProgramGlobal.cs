@@ -18,10 +18,11 @@ namespace XrEngine.OpenGL
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
+                return ctx.Pass is GlColorPass && (
+                       _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
                        _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
                        _tracker.IsChanged(() => ctx.UseCopyDepth) ||
-                       _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox);
+                       _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox));
 
             }
 

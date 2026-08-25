@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using XrEngine.Helpers;
 using XrMath;
+using static MeshOptimizer.MeshOptimizerLib;
 using static XrEngine.ShaderUpdateBuilder;
 
 namespace XrEngine
@@ -1230,6 +1231,38 @@ namespace XrEngine
                     Origin = self.WorldPosition,
                     Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
                 };
+            }
+            public Rect2I WorldToScreen(in Bounds3 bounds, int eye, bool flipY)
+            {
+                var scrBounds = new Bounds2
+                {
+                    Min = new Vector2(float.PositiveInfinity, float.PositiveInfinity),
+                    Max = new Vector2(float.NegativeInfinity, float.NegativeInfinity)
+                };
+
+                var eyes = eye == -1 ? 2 : 1;
+                var baseEye = eye == -1 ? 0 : eye;
+
+                foreach (var corner in bounds.Points)
+                {
+                    for (var curEye = 0; curEye < eyes; curEye++)
+                    {
+                        if (!self.TryWorldToScreen(corner, baseEye + curEye, flipY, out var screen))
+                            return new Rect2I(self.ViewSize);
+
+                        scrBounds.Min = Vector2.Min(scrBounds.Min, screen);
+                        scrBounds.Max = Vector2.Max(scrBounds.Max, screen);
+                    }
+                }
+
+                var rect = scrBounds.ToRect2I();
+
+                var x0 = Math.Clamp(rect.X, 0, (int)self.ViewSize.Width);
+                var y0 = Math.Clamp(rect.Y, 0, (int)self.ViewSize.Height);
+                var x1 = Math.Clamp(rect.X + rect.Width, 0, self.ViewSize.Width);
+                var y1 = Math.Clamp(rect.Y + rect.Height, 0, self.ViewSize.Height);
+
+                return new Rect2I(x0, y0, (uint)(x1 - x0), (uint)(y1 - y0));
             }
 
 

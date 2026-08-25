@@ -46,6 +46,7 @@ namespace XrEngine.OpenGL
             WriteStencil = null;
             StencilFunc = null;
             StencilRef = null;
+            ScissorRect = null;
             FrameBufferTargets.Clear();
             BufferTargets.Clear();
             Features.Clear();
@@ -123,6 +124,14 @@ namespace XrEngine.OpenGL
 
             if (ActiveShadingRate != null)
                 SetShadingRate(ActiveShadingRate.Value, true);
+
+            if (ScissorRect != null)
+            {
+                if (IsFeatureEnabled(EnableCap.ScissorTest))
+                    SetScissor(ScissorRect.Value);
+                else
+                    ScissorRect = null;
+            }
 
             for (var i = 0; i < SamplerSlots.Length; i++)
                 BindSampler(SamplerSlots[i], i, true);
@@ -301,6 +310,23 @@ namespace XrEngine.OpenGL
             Features[cap] = value;
         }
 
+        public void SetScissor(Rect2I rect, bool force = false)
+        {
+            EnableFeature(EnableCap.ScissorTest, true, force);
+
+            if (ScissorRect == null || !rect.Equals(ScissorRect) || force)
+            {
+                _gl.Scissor(rect.X, rect.Y, rect.Width, rect.Height);
+                ScissorRect = rect;
+            }
+    
+        }
+
+        public void ClearScissor(bool force = false)
+        {
+            EnableFeature(EnableCap.ScissorTest, false, force);
+        }
+
         public void SetUseDepth(bool value, bool force = false)
         {
             if (value != UseDepth || force)
@@ -358,7 +384,7 @@ namespace XrEngine.OpenGL
                     }
                     else if (value == AlphaMode.TransmissionBlend)
                     {
-                        _gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.Src1Color,
+                        _gl.BlendFuncSeparate(BlendingFactor.One, BlendingFactor.Src1Color,
                             BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
 ;
@@ -713,6 +739,13 @@ namespace XrEngine.OpenGL
             Commit();
         }
 
+        public uint GetActiveTexture(TextureTarget target, int slot)
+        {
+            if (!TexturesSlots.TryGetValue(target, out var values))
+                return 0;
+            return values[slot];
+        }
+
         public float? ClearDepth;
 
         public Color? ClearColor;
@@ -749,6 +782,8 @@ namespace XrEngine.OpenGL
 
         public int? ActiveShadingRate;
 
+        public Rect2I? ScissorRect;
+
         public readonly Dictionary<EnableCap, bool> Features = [];
 
         public readonly Dictionary<TextureTarget, uint[]> TexturesSlots = [];
@@ -774,5 +809,6 @@ namespace XrEngine.OpenGL
         public const int MAX_BUFFER_SLOTS = 64;
 
         public bool EnableDebug = false;
+
     }
 }

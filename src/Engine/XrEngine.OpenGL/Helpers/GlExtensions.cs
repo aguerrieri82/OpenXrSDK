@@ -640,16 +640,10 @@ namespace XrEngine.OpenGL
                 return self.Passes<T>().Any();
             }
 
-            public void SetScissor(Rect2I rect)
-            {
-                self.State.EnableFeature(EnableCap.ScissorTest, true);
-
-                self.GL.Scissor(rect.X, rect.Y, rect.Width, rect.Height);
-            }
-
+     
             public void SetScissor(Bounds2 bounds, int padding = 0)
             {
-                self.SetScissor(bounds.ToRect2I(padding));
+                self.State.SetScissor(bounds.ToRect2I(padding));
             }
         }
 

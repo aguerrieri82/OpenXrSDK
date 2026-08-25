@@ -10,6 +10,10 @@ namespace XrEngine
         {
             var curValue = getter();
             var isChanged = !_oldValues.TryGetValue(key!, out var oldValue) || !Equals(oldValue, curValue);
+#if DEBUG
+            if (isChanged)
+                Log.Debug(this, "{0} changed", key);
+#endif
             _oldValues[key!] = curValue;
             return isChanged;
         }

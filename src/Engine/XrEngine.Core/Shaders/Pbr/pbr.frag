@@ -167,18 +167,9 @@ struct LightingProperties
 	float NoV;
 	vec3 reflectionDir;
 	vec3 dielectricF0;
-
-#ifndef USE_SPECULAR
 	vec3 dielectricF0Mixed;
-#endif
-
-#if defined(USE_TRANSMISSION) && defined(USE_REFRACTION)
 	float transmissionRoughnessScale;
-#endif
-
-#ifdef USE_CLEARCOAT
 	float clearCoatSurfaceWeight;
-#endif
 };
 
 FragmentProperties frag;
@@ -882,7 +873,7 @@ void main()
 	#endif
 #endif
 
-#if TRANSMISSION_MODE == TM_TEXTURE
+#if TRANSMISSION_MODE != TM_NONE
 	#ifdef USE_SPECULAR
 		vec3 F = fresnelSchlick(lighting.dielectricF0, lighting.NoV) * frag.specular;
 	#else
@@ -896,15 +887,17 @@ void main()
 		transmissionWeight = mix(transmissionWeight, vec3(iridescenceBaseWeight), iridescenceFactor);
 	#endif
 
+	vec3 transmissionColor = frag.albedo * transmissionWeight * (1.0 - frag.metalness) * frag.transmission;
+#endif
+
+#if TRANSMISSION_MODE == TM_TEXTURE
+
 	#ifdef USE_REFRACTION
 		vec4 volume = sampleVolume(frag.position, N, V, getViewProj(), frag.uv0, frag.roughness);
 	#else
 		vec2 volumeUv = computeVolumeUv(frag.position, vec3(0.0), getViewProj());
-		float volumeLod = float(textureQueryLevels(volumeForeground) - 1) * frag.roughness;
-		vec4 volume = sampleVolumeForeground(volumeUv, volumeLod);
+		vec4 volume = sampleVolumeSource(volumeUv, frag.roughness);
 	#endif
-
-	color3 += volume.rgb * volume.a * frag.albedo * transmissionWeight * (1.0 - frag.metalness) * frag.transmission;
 #endif
 
 #ifdef PLANAR_REFLECTION
@@ -937,25 +930,24 @@ void main()
 	color3 = addNoise(color3);
 #endif
 
-#if TRANSMISSION_MODE == TM_FB_FETCH || TRANSMISSION_MODE == TM_DUAL_SOURCE
-	a *= 1.0 - frag.transmission;
-#endif
-
 #ifdef ALPHA_SPECULAR
 	a = mix(a, 1.0, saturate(specularStrength * uMaterial.alphaSpecularScale));
 #endif
 
 	vec3 outRgb = color3 * uCamera.exposure;
 
+#if TRANSMISSION_MODE == TM_TEXTURE
+	outRgb += volume.rgb * volume.a * transmissionColor;
+#endif
+
 #if TRANSMISSION_MODE == TM_FB_FETCH
 	vec4 dst = color;
-	vec3 transmissionColor = frag.albedo * (1.0 - a);
 	color = vec4(
-		outRgb * a + dst.rgb * transmissionColor,
+		outRgb + dst.rgb *	,
 		a + dst.a * (1.0 - a));
 #elif TRANSMISSION_MODE == TM_DUAL_SOURCE
 	color = vec4(outRgb, a);
-	transmissionBlend = vec4(frag.albedo * (1.0 - a), 0.0);
+	transmissionBlend = vec4(transmissionColor, 0.0);
 #else
 	color = vec4(outRgb, a);
 #endif

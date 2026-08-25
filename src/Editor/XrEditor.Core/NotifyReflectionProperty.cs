@@ -31,7 +31,7 @@ namespace XrEditor
                 {
                     Type = change,
                     Target = obj,
-                    Properties = [Name!]
+                    Properties = new string[] { Name! }
                 });
             }
 

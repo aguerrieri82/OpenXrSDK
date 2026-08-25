@@ -15,8 +15,6 @@ namespace XrEngine.OpenGL
     public class GlColorPass : GlBaseRenderPass
     {
         protected DepthClipEffect? _depthClipEffect;
-        protected ColorCopyDownsampleEffect _colorCopyEffect;
-        protected GlTexture? _colorCopyTex;
         protected readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
@@ -198,48 +196,16 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
-        [MemberNotNull(nameof(_colorCopyEffect), nameof(_colorCopyTex))]
-        protected void PrepareColorCopy()
+
+        public override Texture2D QueryTexture(QueryTextureType type)
         {
-            if (_colorCopyEffect == null)
+            if (type == QueryTextureType.Color)
             {
-                var ctx = _renderer.UpdateContext;
-
-                var downsample = (uint)_renderer.Options.RefractionDownsampleFactor;
-
-                var colorSize = ctx.PassCamera!.ViewSize;
-
-                _colorCopyEffect = new ColorCopyDownsampleEffect
-                {
-                    DownsampleFactor = (int)downsample,
-                    IsMultiView = ctx.IsMultiView,
-                    ShadingRate = (int)downsample,
-                    DestTexture = new Texture2D
-                    {
-                        Depth = ctx.IsMultiView ? 2u : 1u,
-                        Height = colorSize.Height / downsample,
-                        Width = colorSize.Width / downsample,
-                        MipLevelCount = 10,
-                        MinFilter = ScaleFilter.LinearMipmapLinear,
-                        MagFilter = ScaleFilter.Linear,
-                        WrapS = WrapMode.ClampToEdge,
-                        WrapT = WrapMode.ClampToEdge,
-                        Format = TextureFormat.Rgba8,
-                        NeverCompress = true,
-                        Name = "Refraction Foreground"
-                    }
-                };
+                return (Texture2D?)_renderer.RenderTarget!.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture() ??
+                    throw new InvalidOperationException();
             }
-
-            if (!_renderer.Features.ShaderFramebufferFetch)
-            {
-                var color = (_renderer.RenderTarget?.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture()) ??
-                    throw new NotSupportedException();
-
-                _colorCopyEffect.SourceTexture = (Texture2D)color;
-            }
-
-            _colorCopyTex ??= _colorCopyEffect.DestTexture!.ToGlTexture();
+         
+            return base.QueryTexture(type);
         }
 
         public override void RenderLayer(GlLayer layer)
@@ -261,28 +227,6 @@ namespace XrEngine.OpenGL
 
             uint globalProgChangesCount = 0;
 
-            if (layer.Type == GlLayerType.Transmission)
-            {
-                PrepareColorCopy();
-
-                var layerBounds = layer.GetScreenBounds(ctx.PassCamera!, ctx.IsMultiView, ctx.UseAngle);
-                var layerRect = layerBounds.ToRect2I(10);
-
-                _renderer.SetScissor(layerRect);
-
-                UseEffect(_colorCopyEffect);
-                DrawQuad();
-
-                _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
-
-                GlImageProc.GenerateBlurredMipmaps(_colorCopyTex, layerRect, 2);
-
-                _renderer.SetScissor(layerRect);
-
-                ctx.TransmissionForeground = _colorCopyEffect.DestTexture;
-            }
-            else
-                ctx.TransmissionForeground = null;
 
             foreach (var shader in layer.Content.SortedContent!)
             {

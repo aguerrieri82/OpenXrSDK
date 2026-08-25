@@ -24,7 +24,7 @@ namespace XrEngine
         public ResourceSlot(int slot, string name)
         {
             Slot = slot;
-            Name = $"{name.ToUpper()}_SLOT";
+            SlotName = $"{name.ToUpper()}_SLOT";
         }
 
         public ResourceSlot(int slot)
@@ -41,7 +41,7 @@ namespace XrEngine
         {
 #if DEBUG
             if (r.Slot == -1)
-                throw new InvalidOperationException($"Resource slot '{r.Name}' is not resolved");
+                throw new InvalidOperationException($"Resource slot '{r.SlotName}' is not resolved");
 #endif
             return r.Slot;
         }
@@ -58,7 +58,7 @@ namespace XrEngine
 
         public readonly int Slot;
 
-        public readonly string? Name;
+        public readonly string? SlotName;
 
         public static IEnumerable<ResourceSlot> Enumerate(Type source)
         {

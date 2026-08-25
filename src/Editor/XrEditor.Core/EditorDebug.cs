@@ -16,7 +16,7 @@ namespace XrEditor
 
         public static readonly int VSyncScale = 3;
 
-        public static readonly bool EnablePreview = true;
+        public static readonly bool EnablePreview = false;
 
 #if GLES
         public static readonly bool UseEs = true;
@@ -92,8 +92,8 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(2f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGltfTest("Models/MetalRoughSpheres.glb")
-             // .CreateDnd()
+              .CreateGltfTest("Models/IridescentDishWithOlives.glb")
+            // .CreateRoomManager()
               .Build();
     }
 }

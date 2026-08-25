@@ -632,18 +632,18 @@ namespace XrEngine.OpenGL
 
                 foreach (var slot in ResourceSlot.Enumerate(typeof(TextureSlots)))
                 {
-                    if (slot.Slot == -1 || slot.Name == null)
+                    if (slot.Slot == -1 || slot.SlotName == null)
                         continue;
 
-                    builder.Append("#ifndef ").Append(slot.Name).Append('\n');
-                    builder.Append("#define ").Append(slot.Name).Append(' ').Append(slot.Slot).Append('\n');
+                    builder.Append("#ifndef ").Append(slot.SlotName).Append('\n');
+                    builder.Append("#define ").Append(slot.SlotName).Append(' ').Append(slot.Slot).Append('\n');
                     builder.Append("#endif\n");
                 }
             }
             else
             {
                 foreach (var slot in ResourceSlot.Enumerate(typeof(TextureSlots)).Where(a=> a.Slot != -1))
-                    _mergedFetaures.Add($"{slot.Name} {slot.Slot}");
+                    _mergedFetaures.Add($"{slot.SlotName} {slot.Slot}");
             }
 
             PatchShader(shaderType, builder);

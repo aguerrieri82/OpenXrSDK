@@ -269,14 +269,14 @@ float loadSpecular()
 
 	#ifdef USE_SPECULAR_MAP
 
-		#if SPECULAR_FACTOR_UV_SET == 1
+		#if SPECULAR_UV_SET == 1
 			vec2 uv = fUv2;
 		#else
 			vec2 uv = fUv;
 		#endif
 
-		#ifdef SPECULAR_FACTOR_UV_TRANSFORM
-			uv = (uTexTransform[SPECULAR_FACTOR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#ifdef SPECULAR_UV_TRANSFORM
+			uv = (uTexTransform[SPECULAR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
 		#endif
 
 		specular *= texture(specularTexture, uv).a;

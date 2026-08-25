@@ -1,4 +1,5 @@
 #include "consts.glsl"
+#include "blur_mip.glsl"
 
 struct VolumeData
 {
@@ -17,17 +18,16 @@ layout(std140, binding = 5) uniform VolumeUniforms
 #ifdef MULTIVIEW
     layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2DArray volumeForeground;
 
-#ifdef VOLUME_BACKGROUND
-    layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2DArray volumeBackground;
-#endif
-
+    #ifdef VOLUME_BACKGROUND
+        layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2DArray volumeBackground;
+    #endif
 #else
 
     layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2D volumeForeground;
 
-#ifdef VOLUME_BACKGROUND
-    layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2D volumeBackground;
-#endif
+    #ifdef VOLUME_BACKGROUND
+        layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2D volumeBackground;
+    #endif
 
 #endif
 
@@ -40,19 +40,6 @@ float applyVolumeIorToRoughness(float roughness)
     return roughness * (uVolume.ior * 2.0 - 2.0);
 }
 
-float volumeForegroundLod(float roughness)
-{
-    return float(textureQueryLevels(volumeForeground) - 1) * applyVolumeIorToRoughness(roughness);
-}
-
-vec4 sampleVolumeForeground(vec2 uv, float lod)
-{
-#ifdef MULTIVIEW
-    return textureLod(volumeForeground, vec3(uv, float(ACTIVE_EYE)), lod);
-#else
-    return textureLod(volumeForeground, uv, lod);
-#endif
-}
 
 #ifdef VOLUME_BACKGROUND
 
@@ -85,7 +72,7 @@ vec4 sampleVolumeBackground(vec2 uv, float lod)
 
 vec4 sampleVolumeSource(vec2 uv, float roughness)
 {
-    vec4 color = sampleVolumeForeground(uv, volumeForegroundLod(roughness));
+    vec4 color = sampleBlurMip(volumeForeground, uv, 0, roughness);
 
 #ifdef VOLUME_BACKGROUND
     if (color.a < 1.0)

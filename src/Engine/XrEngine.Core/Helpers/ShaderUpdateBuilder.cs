@@ -132,8 +132,6 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
-        public Texture2D? TransmissionForeground;
-
         public bool UseSharedSsbo;
 
         public bool UseAngle;
@@ -424,7 +422,7 @@ namespace XrEngine
             _result.Extensions.Add(name);
         }
 
-        public void SetSlot(string name, Func<string> getCode)
+        public readonly void SetSlot(string name, Func<string> getCode)
         {
             _result.Slots ??= [];
             _result.Slots[name] = getCode;
@@ -440,16 +438,19 @@ namespace XrEngine
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
         }
 
-        public void TryAddUvTransform(Texture2D tex, string name)
+        public void TryAddUvTransform(Texture2D tex, string name, params Matrix3x3?[] defTransform)
         {
-            if (tex.Transform != null && !tex.Transform.Value.IsIdentity)
+            var trans = tex.Transform ?? (tex.DefaultUvSet < defTransform.Length ? defTransform[tex.DefaultUvSet] : null);
+
+            if (trans != null && !trans.Value.IsIdentity)
             {
                 var uvIndex = _uvTransSlots.Allocate(SlotMask.Empty);
 
                 AddFeature($"{name} {uvIndex}");
+
                 ExecuteAction((ctx, up) =>
                 {
-                    up.SetUniform($"uTexTransform[{uvIndex}]", tex.Transform.Value);
+                    up.SetUniform($"uTexTransform[{uvIndex}]", trans.Value);
                 });
             }
         }
@@ -457,7 +458,7 @@ namespace XrEngine
         public int GetTextureSlot(ResourceSlot slot)
         {
             if (slot.Slot == -1 || _textureSlots.Has(slot.Slot))
-                return AllocateSlot(slot.Name!, ref _textureSlots, TextureSlots.Reserved);
+                return AllocateSlot(slot.SlotName!, ref _textureSlots, TextureSlots.Reserved);
 
             _textureSlots.Add(slot.Slot);
 

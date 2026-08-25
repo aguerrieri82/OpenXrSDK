@@ -43,8 +43,8 @@ namespace XrSamples.Earth
 
             var mat = (IPbrMaterial)Materials[0];
 
-            mat.ColorMapUVSet = 1;
             mat.ColorMap = tex;
+            mat.ColorMap.DefaultUvSet = 1;
 
             var p0 = ToUv(NorthEast);
             var p1 = ToUv(NorthWest);

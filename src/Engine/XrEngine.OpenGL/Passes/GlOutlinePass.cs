@@ -86,7 +86,6 @@ namespace XrEngine.OpenGL
             _frameSize = new Size2I((uint)(camera.ViewSize.Width / _downsampleFactor), (uint)(camera.ViewSize.Height / _downsampleFactor));
 
             _passTarget.Configure(_frameSize.Width, _frameSize.Height);
-
             _passTarget.RenderTarget!.Begin(camera);
 
             _renderer.State.SetClearColor(Color.Transparent);

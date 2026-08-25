@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 namespace XrEngine.OpenGL
 {
 
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IBlurMipPack
     {
         protected class LayersCache
         {
@@ -57,6 +57,7 @@ namespace XrEngine.OpenGL
 
         public static class Props
         {
+
             public static readonly DynamicProp GlResId = new(nameof(GlResId));
 
             public static readonly DynamicProp GlQuery = new(nameof(GlQuery));
@@ -990,7 +991,30 @@ namespace XrEngine.OpenGL
             _glState.SetShadingRate(Math.Max(1, Math.Max(material.ShadingRate, _target!.ShadingRate)));
         }
 
+
         #endregion
+
+
+
+        TextureLayout IBlurMipPack.Generate(Texture2D source, Rect2I sourceRect, float? roughness = null)
+        {
+            var pack = new GlBlurMipPack(_gl, new GlBlurMipOptions
+            {
+
+            });
+
+            if (roughness != null)
+                pack.Generate(source.ToGlTexture(), sourceRect, roughness.Value);
+            else
+                pack.Generate(source.ToGlTexture(), sourceRect);
+
+            return new TextureLayout
+            {
+                Layout = pack.Layout,
+                Texture = (Texture2D)pack.Texture.ToEngineTexture()
+            };
+        }
+
 
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
 
