@@ -24,24 +24,32 @@ layout(std140, binding=1) uniform Lights
 struct MaterialData
 {
 	vec4 color;
+	vec4 shadowColor;
+	vec4 emissive;
+
+	vec3 sheenColor;
+	float sheenRoughness;
+
+	vec3 specularColor;
+	float specular;
+
+	vec3 attenuationColor;
+	float attenuationDistance;
+
 	float metalness;
 	float roughness;
 	float occlusionStrength;
-	vec4 shadowColor;
 	float normalScale;
 	float alphaCutoff;
-	vec4 emissive;
 	float planarFactor;
 	float planarLevel;
 	float alphaSpecularScale;
 	float transmission;
-	vec3 sheenColor;
-	float sheenRoughness;
 	float clearCoatFactor;
 	float clearCoatRoughnessFactor;
 	float clearCoatNormalScale;
-	float specular;
-	vec3 specularColor;
+	float ior;
+	float thickness;
 };
 
 #if !defined(VERTEX_SHADER) 

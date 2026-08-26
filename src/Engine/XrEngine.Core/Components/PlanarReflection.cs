@@ -52,7 +52,7 @@ namespace XrEngine
             Offset = 0.01f;
             FovDegree = 45;
             Strength = 1f;
-            BlurLevel = 0;
+            Roughness = 0;
             ShadingRate = 2;
         }
 
@@ -337,11 +337,9 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float Strength { get; set; }
 
-        public int BlurLevel { get; set; }
+        [Range(0, 1, 0.01f)]
+        public float Roughness { get; set; }
 
         public int ShadingRate { get; set; }
-
-        public float Roughness => ActiveTexture == null ? 0 :
-                            Math.Clamp(BlurLevel / MathF.Log2(Math.Max(ActiveTexture.Width, ActiveTexture.Height)), 0, 1);
     }
 }

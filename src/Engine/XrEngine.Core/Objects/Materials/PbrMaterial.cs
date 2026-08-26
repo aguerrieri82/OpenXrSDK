@@ -44,74 +44,84 @@ namespace XrEngine
         const string Sheen = nameof(Sheen);
 
         const string ClearCoat = nameof(ClearCoat);
-        
+
 
 
         #endregion
 
         #region MaterialUniforms
-
-        [StructLayout(LayoutKind.Explicit, Size = 144)]
+        [StructLayout(LayoutKind.Explicit, Size = 160)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
             public Vector4 Color;
 
             [FieldOffset(16)]
-            public float Metalness;
-
-            [FieldOffset(20)]
-            public float Roughness;
-
-            [FieldOffset(24)]
-            public float OcclusionStrength;
-
-            [FieldOffset(32)]
             public Vector4 ShadowColor;
 
-            [FieldOffset(48)]
-            public float NormalScale;
-
-            [FieldOffset(52)]
-            public float AlphaCutoff;
-
-            [FieldOffset(64)]
+            [FieldOffset(32)]
             public Vector4 EmissiveColor;
 
-            [FieldOffset(80)]
-            public float PlanarReflectionStrength;
-
-            [FieldOffset(84)]
-            public float PlanarReflectionLevel;
-
-            [FieldOffset(88)]
-            public float AlphaSpecularScale;
-
-            [FieldOffset(92)]
-            public float Transmission;
-
-            [FieldOffset(96)]
+            [FieldOffset(48)]
             public Vector3 SheenColor;
 
-            [FieldOffset(108)]
+            [FieldOffset(60)]
             public float SheenRoughness;
 
-            [FieldOffset(112)]
-            public float ClearCoatFactor;
+            [FieldOffset(64)]
+            public Vector3 SpecularColor;
 
-            [FieldOffset(116)]
-            public float ClearCoatRoughnessFactor;
-
-            [FieldOffset(120)]
-            public float ClearCoatNormalScale;
-
-            [FieldOffset(124)]
+            [FieldOffset(76)]
             public float Specular;
 
-            [FieldOffset(128)]
-            public Vector3 SpecularColor;
-        }
+            [FieldOffset(80)]
+            public Vector3 AttenuationColor;
 
+            [FieldOffset(92)]
+            public float AttenuationDistance;
+
+            [FieldOffset(96)]
+            public float Metalness;
+
+            [FieldOffset(100)]
+            public float Roughness;
+
+            [FieldOffset(104)]
+            public float OcclusionStrength;
+
+            [FieldOffset(108)]
+            public float NormalScale;
+
+            [FieldOffset(112)]
+            public float AlphaCutoff;
+
+            [FieldOffset(116)]
+            public float PlanarReflectionStrength;
+
+            [FieldOffset(120)]
+            public float PlanarReflectionRoughness;
+
+            [FieldOffset(124)]
+            public float AlphaSpecularScale;
+
+            [FieldOffset(128)]
+            public float Transmission;
+
+            [FieldOffset(132)]
+            public float ClearCoatFactor;
+
+            [FieldOffset(136)]
+            public float ClearCoatRoughnessFactor;
+
+            [FieldOffset(140)]
+            public float ClearCoatNormalScale;
+
+            [FieldOffset(144)]
+            public float Ior;
+
+            [FieldOffset(148)]
+            public float Thickness;
+        }
         #endregion
 
         #region LightListUniforms
@@ -528,7 +538,7 @@ namespace XrEngine
                     AlphaSpecularScale = AlphaSpecularScale,
                     EmissiveColor = EmissiveColor,
                     PlanarReflectionStrength = planar?.Strength ?? 0,
-                    PlanarReflectionLevel = planar?.Roughness ?? 0,
+                    PlanarReflectionRoughness = planar?.Roughness ?? 0,
                     Transmission = Transmission,
                     SheenColor = SheenColor.ToVector3(),
                     SheenRoughness = SheenRoughness,
@@ -536,7 +546,11 @@ namespace XrEngine
                     ClearCoatRoughnessFactor = ClearCoatRoughnessFactor,
                     ClearCoatNormalScale = ClearCoatNormalScale,
                     Specular = Specular,
-                    SpecularColor = SpecularColor.ToVector3()
+                    SpecularColor = SpecularColor.ToVector3(),
+                    AttenuationColor = AttenuationColor.ToVector3(),
+                    AttenuationDistance = AttenuationDistance == 0 ? float.PositiveInfinity : AttenuationDistance,
+                    Ior = Ior,
+                    Thickness = Thickness,
                 };
 
             },
@@ -561,8 +575,8 @@ namespace XrEngine
 
                     var slot = bld.GetTextureSlot(TextureSlots.PlanarReflection);
 
-                    if (planar.BlurLevel > 0)
-                        bld.AddFeature("PLANAR_REFLECTION_BLUR");
+                    if (planar.Roughness > 0)
+                        bld.AddFeature("PLANAR_REFLECTION_ROUGHNESS");
 
                     bld.ExecuteAction((ctx, up) =>
                     {
@@ -859,15 +873,15 @@ namespace XrEngine
                 }
                 else if (TransmissionMode == TransmissionMode.Texture)
                 {
-                    if (!HasRefraction)
+                    if (!HasVolume)
                         useForeground = true;
 
                 }
             }
 
-            if (HasRefraction)
+            if (HasVolume)
             {
-                bld.AddFeature("USE_REFRACTION");
+                bld.AddFeature("USE_VOLUME");
 
                 var refSrc = bld.Context.Scene?.Feature<IScreenRefractionSource>();
                 if (refSrc != null)
@@ -888,24 +902,6 @@ namespace XrEngine
 
                 if (TransmissionMode == TransmissionMode.Texture)
                     useForeground = true;
-    
-                bld.LoadBuffer(ctx =>
-                {
-                    var curVer = _contentVersion + _version;
-
-                    if (ctx.CurrentBuffer == null || curVer == ctx.CurrentBuffer.Version)
-                        return null;
-
-                    ctx.CurrentBuffer!.Version = curVer;
-
-                    return (VolumeUniforms?)new VolumeUniforms
-                    {
-                        AttenuationColor = AttenuationColor.ToVector3(),
-                        AttenuationDistance = AttenuationDistance == 0 ? float.PositiveInfinity : AttenuationDistance,
-                        Ior = Ior,
-                        Thickness = Thickness,
-                    };
-                }, UniformsSlots.Volume, BufferStore.Material);
             }
 
             if (useForeground)
@@ -936,6 +932,8 @@ namespace XrEngine
                 });
             }
 
+            if (Ior != 0)
+                bld.AddFeature("HAS_IOR");
 
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
@@ -1107,7 +1105,7 @@ namespace XrEngine
         [Category(Textures)]
         public Texture2D? TransmissionMap { get; set; }
 
-        [Category(Volume)]
+        [Category(Surface)]
         public float Ior { get; set; }
 
         [Category(Volume)]
@@ -1177,7 +1175,7 @@ namespace XrEngine
 
         public bool HasTransmission => Transmission > 0;
 
-        public bool HasRefraction => Transmission > 0 && Thickness > 0 && Ior != 1;
+        public bool HasVolume => HasTransmission && Thickness > 0;
 
         public bool HasIridescence => IridescenceFactor > 0;
 

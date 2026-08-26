@@ -55,6 +55,11 @@
 	layout(binding=CLEARCOATNORMAL_SLOT) uniform sampler2D clearCoatNormalTexture;
 #endif
 
+
+#ifdef USE_THICKNESS_MAP
+	layout(binding=THICKNESS_SLOT) uniform sampler2D thicknessTexture;
+#endif
+
 vec4 loadBaseColor()
 {
 	#ifdef USE_ALBEDO_MAP
@@ -259,6 +264,33 @@ vec4 loadEmissive()
 		return vec4(0.0);
 	#endif
 }
+
+#ifdef USE_VOLUME
+
+float loadThickness()
+{
+	float thickness = uMaterial.thickness;
+
+	#ifdef USE_THICKNESS_MAP
+
+		#if THICKNESS_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef THICKNESS_UV_TRANSFORM
+			uv = (uTexTransform[THICKNESS_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		thickness *= texture(thicknessTexture, uv).g;
+
+	#endif
+
+	return thickness;
+}
+
+#endif
 
 
 #ifdef USE_SPECULAR
@@ -552,6 +584,10 @@ FragmentProperties loadFragmentProperties()
 	#ifdef USE_SPECULAR
 		frag.specular = loadSpecular();
 		frag.specularColor = loadSpecularColor();
+	#endif
+
+	#ifdef USE_VOLUME
+		frag.thickness = loadThickness();
 	#endif
 
 	return frag;

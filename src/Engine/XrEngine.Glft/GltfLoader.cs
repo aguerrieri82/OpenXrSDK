@@ -616,7 +616,6 @@ namespace XrEngine.Gltf
                     result.IridescenceMap = DecodeTextureBaseTask(texInfo).Result;
                     ApplyMips(result.IridescenceMap);
                 }
-
             }
 
             if (coat != null)

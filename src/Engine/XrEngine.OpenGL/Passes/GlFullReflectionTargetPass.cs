@@ -180,12 +180,10 @@ namespace XrEngine.OpenGL
 
             var texture = _reflection?.Texture!;
 
-            if (_reflection!.BlurLevel > 0)
+            if (_reflection!.Roughness > 0)
             {
-                var roughness = _reflection.Roughness;
-
                 var result = ((IBlurMipPack)_renderer).Generate(texture, 
-                    new Rect2I(0, 0, texture.Width, texture.Height), roughness);
+                    new Rect2I(0, 0, texture.Width, texture.Height), _reflection!.Roughness);
 
                 _reflection.ActiveTexture = result.Texture;
                 _reflection.ActiveTexture.SetProp(EngineProps.Layout, result.Layout);

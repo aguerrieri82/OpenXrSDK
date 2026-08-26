@@ -54,7 +54,7 @@ vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float 
 		projCoords.y = 1.0 - projCoords.y;
 	#endif
 
-	#ifdef PLANAR_REFLECTION_BLUR
+	#ifdef PLANAR_REFLECTION_ROUGHNESS
 		vec4 reflectionColor = sampleBlurMip(reflectionTexture, projCoords.xy, 1, level);
 	#else
 		#ifdef PLANAR_REFLECTION_MV

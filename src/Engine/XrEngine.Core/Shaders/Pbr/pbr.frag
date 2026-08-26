@@ -30,9 +30,9 @@
 
 #include "../Shared/fragment_post.glsl"
 
-#if defined(USE_REFRACTION) || TRANSMISSION_MODE == TM_TEXTURE
+#if defined(USE_VOLUME) || TRANSMISSION_MODE == TM_TEXTURE
 	#include "../Shared/position.glsl"
-	#include "../Shared/volume.glsl"
+	#include "volume.glsl"
 #endif
 
 #ifdef USE_IRIDESCENCE
@@ -160,6 +160,8 @@ struct FragmentProperties
 
 	float specular;
 	vec3 specularColor;
+
+	float thickness;
 };
 
 struct LightingProperties
@@ -203,8 +205,8 @@ float max3(vec3 v)
 
 vec3 getDielectricF0()
 {
-	#ifdef USE_REFRACTION
-		vec3 F0 = vec3(square((uVolume.ior - 1.0) / (uVolume.ior + 1.0)));
+	#ifdef HAS_IOR
+		vec3 F0 = vec3(square((uMaterial.ior - 1.0) / (uMaterial.ior + 1.0)));
 	#else
 		vec3 F0 = Fdielectric;
 	#endif
@@ -391,7 +393,7 @@ vec3 evaluateDirectTransmission(vec3 L, vec3 radiance)
 
 	float transmissionRoughness = frag.roughness;
 
-	#ifdef USE_REFRACTION
+	#ifdef HAS_IOR
 		transmissionRoughness *= lighting.transmissionRoughnessScale;
 	#endif
 
@@ -775,8 +777,8 @@ void main()
 	lighting.dielectricF0Mixed = mix(lighting.dielectricF0, frag.albedo, frag.metalness);
 #endif
 
-#if defined(USE_TRANSMISSION) && defined(USE_REFRACTION)
-	lighting.transmissionRoughnessScale = sqrt(clamp(uVolume.ior * 2.0 - 2.0, 0.0, 1.0));
+#ifdef HAS_IOR
+	lighting.transmissionRoughnessScale = sqrt(clamp(uMaterial.ior * 2.0 - 2.0, 0.0, 1.0));
 #endif
 
 #ifdef USE_CLEARCOAT
@@ -892,12 +894,12 @@ void main()
 
 #if TRANSMISSION_MODE == TM_TEXTURE
 
-	#ifdef USE_REFRACTION
-		vec4 volume = sampleVolume(frag.position, N, V, getViewProj(), frag.uv0, frag.roughness);
+	#ifdef USE_VOLUME
+		vec4 volume = sampleVolume(frag.position, N, V, frag.thickness, frag.roughness);
 	#else
-		vec2 volumeUv = computeVolumeUv(frag.position, vec3(0.0), getViewProj());
-		vec4 volume = sampleVolumeSource(volumeUv, frag.roughness);
+		vec4 volume = sampleVolume(frag.position, frag.roughness);
 	#endif
+
 #endif
 
 #ifdef PLANAR_REFLECTION
