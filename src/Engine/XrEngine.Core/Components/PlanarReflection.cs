@@ -34,9 +34,15 @@ namespace XrEngine
                 Name = "ReflectionCamera"
             };
 
-            AdjustIbl = true;
-
+            AdjustIbl = false;
             TextureSize = textureSize;
+            Offset = 0.01f;
+            FovDegree = 45;
+            Strength = 1f;
+            Roughness = 0;
+            ShadingRate = 2;
+            Quality = 1f;
+            DynamicResolution = true;
 
             if (_mode == PlanarReflectionMode.ColorOnly)
             {
@@ -50,12 +56,6 @@ namespace XrEngine
                 MaterialOverride = new BasicMaterial();
             }
 
-            Offset = 0.01f;
-            FovDegree = 45;
-            Strength = 1f;
-            Roughness = 0;
-            ShadingRate = 2;
-            Quality = 1f;
         }
 
         public virtual bool PrepareMaterial(Material material)

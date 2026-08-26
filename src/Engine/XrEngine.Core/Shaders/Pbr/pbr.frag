@@ -406,10 +406,7 @@ vec3 evaluateDirectTransmission(vec3 L, vec3 radiance)
 	float D = distributionGGX(NoH, transmissionRoughness);
 	float Vis = visibilityGGXTransmission(NoLt, lighting.NoV, transmissionRoughness);
 
-	vec3 transmissionWeight =
-		(vec3(1.0) - F) *
-		(1.0 - frag.metalness) *
-		frag.transmission;
+	vec3 transmissionWeight = (vec3(1.0) - F) * (1.0 - frag.metalness) * frag.transmission;
 
 	#ifdef USE_IRIDESCENCE
 		float iridescenceBaseWeight = 1.0 - max3(iridescenceFresnelDielectric);
@@ -650,6 +647,7 @@ vec3 evaluateAmbientLighting(out vec3 clearCoatLighting)
 		#endif
 
 		vec3 specularVec = iblDirection(lighting.reflectionDir);
+
 		vec3 specularIrradiance = textureLod(
 			specularEnvTexture,
 			specularVec,
@@ -903,7 +901,9 @@ void main()
 #endif
 
 #ifdef PLANAR_REFLECTION
-	color3 = planarReflection(color3, frag.position, lighting.reflectionDir, frag.roughness, lighting.NoV, uMaterial.planarFactor, uMaterial.planarLevel);
+	color3 = planarReflection(color3, 
+		frag.position, lighting.reflectionDir, lighting.dielectricF0Mixed, 
+		frag.roughness, lighting.NoV, uMaterial.planarFactor, uMaterial.planarRoughness);
 #endif
 
 #ifdef USE_EMISSIVE

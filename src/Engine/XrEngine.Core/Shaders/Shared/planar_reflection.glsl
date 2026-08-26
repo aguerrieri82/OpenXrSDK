@@ -33,7 +33,7 @@ vec2 planarUV(vec4 pos)
 }
 	
 
-vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo, float factor, float level)
+vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, vec3 F0, float fragRoughness, float cosLo, float factor, float roughness)
 {
 
 	#ifdef PLANAR_REFLECTION_MV
@@ -56,7 +56,7 @@ vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float 
 	#endif
 
 	#ifdef PLANAR_REFLECTION_ROUGHNESS
-		vec4 reflectionColor = sampleBlurMip(reflectionTexture, projCoords.xy, 1, level);
+		vec4 reflectionColor = sampleBlurMip(reflectionTexture, projCoords.xy, 1, roughness);
 	#else
 		#ifdef PLANAR_REFLECTION_MV
 			vec4 reflectionColor = texture(reflectionTexture, vec3(projCoords.xy, float(gl_ViewID_OVR)));
@@ -68,11 +68,11 @@ vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float 
 	#ifdef PURE_REFLECTION
 		return reflectionColor.rgb;
 	#endif	
-	float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
 
-	float refFactor = clamp(fresnelFactor * (1.0 - roughness) * factor, 0.0, 1.0);
+	vec3 fresnelFactor = F0 + (1.0 - F0) * pow(1.0 - cosLo, 5.0);
 
-	refFactor = min(reflectionColor.a, refFactor);
+	vec3 refFactor = clamp(fresnelFactor * factor, 0.0, 1.0);
+	refFactor = min(vec3(reflectionColor.a), refFactor);
 
 	return mix(color, reflectionColor.rgb, refFactor);
 }

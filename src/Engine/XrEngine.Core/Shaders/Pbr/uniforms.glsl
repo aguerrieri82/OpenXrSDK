@@ -42,7 +42,7 @@ struct MaterialData
 	float normalScale;
 	float alphaCutoff;
 	float planarFactor;
-	float planarLevel;
+	float planarRoughness;
 	float alphaSpecularScale;
 	float transmission;
 
