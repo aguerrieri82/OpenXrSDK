@@ -45,11 +45,14 @@ struct MaterialData
 	float planarLevel;
 	float alphaSpecularScale;
 	float transmission;
+
 	float clearCoatFactor;
 	float clearCoatRoughnessFactor;
 	float clearCoatNormalScale;
+
 	float ior;
 	float thickness;
+
 };
 
 #if !defined(VERTEX_SHADER) 

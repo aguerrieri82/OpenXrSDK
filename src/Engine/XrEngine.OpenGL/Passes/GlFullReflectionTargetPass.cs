@@ -52,7 +52,7 @@ namespace XrEngine.OpenGL
             if (draw.ProgramInstance!.Material.Shader!.IsEffect)
                 return false;
 
-            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
+            var target = draw.Object?.Components<IPlanarReflectionTarget>().FirstOrDefault();
             if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
                 return false;
 
@@ -116,9 +116,12 @@ namespace XrEngine.OpenGL
 
             _passTarget.Configure(_reflection.Texture.ToGlTexture());
 
-            _passTarget.RenderTarget!.ShadingRate = _reflection.ShadingRate;
+            var target = _passTarget.RenderTarget!;
 
-            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
+            target.RenderSize = _reflection.RenderSize;
+            target.ShadingRate = _reflection.ShadingRate;
+
+            target.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
@@ -183,7 +186,7 @@ namespace XrEngine.OpenGL
             if (_reflection!.Roughness > 0)
             {
                 var result = ((IBlurMipPack)_renderer).Generate(texture, 
-                    new Rect2I(0, 0, texture.Width, texture.Height), _reflection!.Roughness);
+                    new Rect2I(0, 0, _reflection.RenderSize.Width, _reflection.RenderSize.Height), _reflection!.Roughness);
 
                 _reflection.ActiveTexture = result.Texture;
                 _reflection.ActiveTexture.SetProp(EngineProps.Layout, result.Layout);

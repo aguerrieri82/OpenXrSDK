@@ -7,9 +7,11 @@ namespace XrEngine
     {
         public PlaneGrid()
         {
+            AddComponent(PlanarReflectionTarget<PlaneGrid>.ExcludeAll());
         }
 
         public PlaneGrid(float size, float subs, float axisSize)
+            : this()
         {
             Size = size;
             Subs = subs;

@@ -92,7 +92,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(2f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              //.CreateGltfTest("Models/IridescentDishWithOlives.glb")
+              //.CreateGltfTest("Models/ToyCar.glb")
               .CreateRoomManager()
               .Build();
     }

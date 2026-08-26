@@ -1,6 +1,7 @@
 ﻿#include "consts.glsl"
 #include "blur_mip.glsl"
 
+uniform float uReflectScale;
 
 #ifdef PLANAR_REFLECTION_MV
 	layout(binding=PLANARREFLECTION_SLOT) uniform sampler2DArray reflectionTexture;
@@ -28,7 +29,7 @@ vec2 planarUV(vec4 pos)
         projCoords.y = 1.0 - projCoords.y;
     #endif
 
-	return projCoords.xy;
+	return projCoords.xy * uReflectScale;
 }
 	
 
@@ -48,7 +49,7 @@ vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float 
 		 
 	vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
 		
-	projCoords = projCoords * 0.5 + 0.5;
+	projCoords = (projCoords * 0.5 + 0.5) * uReflectScale;
 			
 	#ifdef ANGLE
 		projCoords.y = 1.0 - projCoords.y;

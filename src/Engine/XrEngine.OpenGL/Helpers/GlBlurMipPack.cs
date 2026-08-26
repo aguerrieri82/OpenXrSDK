@@ -314,9 +314,9 @@ namespace XrEngine.OpenGL
             var textureSize = BuildPack(builder, config.AllocationBlock);
 
             return new Plan(
-                builder.Regions.ToArray(),
-                builder.SampleLevels.ToArray(),
-                builder.Jobs.ToArray(),
+                [.. builder.Regions],
+                [.. builder.SampleLevels],
+                [.. builder.Jobs],
                 textureSize);
         }
 

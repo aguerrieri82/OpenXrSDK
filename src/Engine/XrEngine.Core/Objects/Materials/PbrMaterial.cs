@@ -121,6 +121,9 @@ namespace XrEngine
 
             [FieldOffset(148)]
             public float Thickness;
+
+            [FieldOffset(152)]
+            public float PlanarReflectionScale;
         }
         #endregion
 
@@ -587,6 +590,8 @@ namespace XrEngine
                             var layout = (ITextureLayout?)planar.ActiveTexture.GetProp(EngineProps.Layout);
                             layout?.Update(ctx, up, planar.ActiveTexture, 1);
                         }
+
+                        up.SetUniform("uReflectScale", (float)planar.RenderSize.Width / planar.Texture!.Width);
 
                         if (PlanarReflection.IsMultiView)
                         {
