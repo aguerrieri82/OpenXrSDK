@@ -120,6 +120,7 @@ The standard PBR lighting path supports:
 - Image-based lighting (IBL)
 - Directional lights
 - Point lights
+- Spot lights
 
 #### Materials
 
@@ -253,7 +254,7 @@ ANGLE uses the Vulkan OpenXR graphics binding while exposing the engine's OpenGL
 | Wavefront OBJ (`.obj`) | ✅ | ✅ | Native engine reader/writer for mesh geometry, normals and UVs |
 | Quixel / Megascans material JSON | ✅ | — | Native material importer that maps Quixel PBR textures into engine materials |
 
-glTF import covers scene hierarchy, meshes, metallic/roughness PBR materials, skins, morph targets and animations.
+glTF import covers scene hierarchy, meshes, cameras, punctual lights, metallic/roughness PBR materials, skins, morph targets, animations, material variants and node visibility.
 
 ##### glTF extensions
 
@@ -262,11 +263,20 @@ glTF import covers scene hierarchy, meshes, metallic/roughness PBR materials, sk
 | `KHR_texture_transform` | ✅ | Texture UV transforms |
 | `KHR_draco_mesh_compression` | ✅ | Draco mesh decoding through `Draco.Native` |
 | `EXT_texture_webp` | ✅ | WebP texture sources decoded through SkiaSharp |
-| `KHR_texture_basisu` | ◐ | Texture source routing is implemented, but the current KTX2 reader does not decode BasisLZ supercompression |
+| `KHR_texture_basisu` | ✅ | BasisU/KTX2 texture sources, including supercompression |
+| `KHR_lights_punctual` | ✅ | Directional, point and spot lights |
+| `KHR_materials_clearcoat` | ✅ | Clearcoat factor, roughness and normal textures |
 | `KHR_materials_ior` | ✅ | Index of refraction |
-| `KHR_materials_transmission` | ◐ | Transmission factor. Transmission texture not yet supported |
+| `KHR_materials_transmission` | ✅ | Transmission factor and texture |
 | `KHR_materials_volume` | ✅ | Thickness and attenuation, including thickness texture |
+| `KHR_materials_sheen` | ✅ | Sheen color and roughness factors and textures |
 | `KHR_materials_iridescence` | ✅ | Factor, IOR, thickness range and textures |
+| `KHR_materials_emissive_strength` | ✅ | Emissive intensity scaling |
+| `KHR_materials_specular` | ✅ | Specular factor/color and textures |
+| `KHR_materials_dispersion` | ✅ | Chromatic dispersion |
+| `KHR_materials_anisotropy` | ✅ | Anisotropy strength, rotation and texture |
+| `KHR_materials_variants` | ✅ | Material variants and primitive mappings |
+| `KHR_node_visibility` | ✅ | Per-node visibility |
 | `KHR_materials_pbrSpecularGlossiness` | ◐ | Recognized by the loader, but material conversion is incomplete |
 
 #### Images and textures
@@ -282,7 +292,7 @@ glTF import covers scene hierarchy, meshes, metallic/roughness PBR materials, sk
 | TIFF (`.tif`) | ✅ | — | libtiff bridge |
 | DDS (`.dds`) | ✅ | — | Native parser for BC1/BC3/BC7 and selected uncompressed/float formats |
 | KTX (`.ktx`) | ✅ | — | Native parser with the current ETC2 subset |
-| KTX2 (`.ktx2`) | ✅ | — | Native parser with the current uncompressed subset and no supercompression |
+| KTX2 (`.ktx2`) | ✅ | — | Native parser with supercompression support |
 | PKM (`.pkm`) | ✅ | — | Native ETC2 reader |
 | PVR (`.pvr`) | ✅ | ✅ | Native reader/writer for ETC1/ETC2, ASTC and selected uncompressed/float formats |
 

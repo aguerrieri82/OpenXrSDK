@@ -54,7 +54,7 @@ namespace XrSamples
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.5f,
-                Driver = GraphicDriver.OpenGL,
+                Driver = GraphicDriver.Angle,
                 IsMultiView = false,
                 UseSpaceWarp = false,
                 EnableDepthPass = false,
