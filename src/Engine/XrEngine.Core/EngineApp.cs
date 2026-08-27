@@ -184,7 +184,6 @@ namespace XrEngine
             _captureCount = count;
         }
 
-
         [Conditional("DEBUG")]
         public static void VerifyMainThread(object caller)
         {

@@ -199,7 +199,6 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-
         protected override void Draw(DrawContent draw)
         {
             var camera = _renderer.UpdateContext.PassCamera!;

@@ -31,7 +31,6 @@ namespace XrSamples
                     intensity: 5))
                 .Add();
 
-
             void ConfigureIk(Joint3D root)
             {
                 static JointDof Dof(float min, float max, float rest = 0)

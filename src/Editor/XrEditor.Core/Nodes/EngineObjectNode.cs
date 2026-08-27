@@ -3,7 +3,7 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager 
+    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties, IPresetManager
         where T : EngineObject
     {
         protected PropertiesGenerationMode _autoGenProps;

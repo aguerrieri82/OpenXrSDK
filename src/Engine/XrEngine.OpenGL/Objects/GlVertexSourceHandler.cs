@@ -249,8 +249,6 @@ namespace XrEngine.OpenGL
         public override GlVertexLayout Layout => _vertices.MainLayout;
     }
 
-
-
     public class GlCompressedVertexSourceHandler<TVert, TInd, TCompVert, TCompInd> : GlVertexSourceHandle
         where TVert : unmanaged
         where TInd : unmanaged

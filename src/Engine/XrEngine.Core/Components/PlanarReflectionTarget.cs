@@ -1,7 +1,6 @@
 ﻿namespace XrEngine
 {
 
-
     public interface IPlanarReflectionTarget : IComponent
     {
         Func<PlanarReflection, bool>? IncludeReflection { get; }

@@ -71,7 +71,7 @@ namespace XrEngine
             if (model is ICompressedVertexSource cmp)
                 worldMatrix = cmp.VerticesRemap * worldMatrix;
 
-            * (ModelUniforms*)destData = new ModelUniforms
+            *(ModelUniforms*)destData = new ModelUniforms
             {
                 NormalMatrix = model.NormalMatrix,
                 WorldMatrix = worldMatrix,

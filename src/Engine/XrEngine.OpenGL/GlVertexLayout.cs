@@ -128,7 +128,7 @@ namespace XrEngine.OpenGL
                             item.IsIntegerStore = true;
                             item.Count = 4;
                         }
-                        else if (field.FieldType.IsGenericType )
+                        else if (field.FieldType.IsGenericType)
                         {
                             var genType = field.FieldType.GetGenericTypeDefinition();
                             var elmentType = field.FieldType.GetGenericArguments()[0];

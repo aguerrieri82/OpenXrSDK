@@ -12,7 +12,6 @@ namespace UI.Binding
             return new Binder<T>(value);
         }
 
-
     }
 
     public class Binder<T>
@@ -27,7 +26,6 @@ namespace UI.Binding
 
         public IProperty<TVal> Prop<TVal>(Expression<Func<T, TVal>> exp)
         {
-
 
             var getter = exp.Compile();
 

@@ -68,7 +68,6 @@ namespace XrEngine
             Version++;
         }
 
-
         [Range(0.001f, 10, 0.1f)]
         public Vector3 Scale
         {
@@ -103,7 +102,6 @@ namespace XrEngine
                 NotifyChanged();
             }
         }
-
 
         [Range(0.001f, 10, 0.01f)]
         public Vector3 Position

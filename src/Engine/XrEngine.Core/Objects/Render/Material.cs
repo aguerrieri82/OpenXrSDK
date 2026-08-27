@@ -168,7 +168,6 @@ namespace XrEngine
 
         public StencilFunction StencilFunction { get; set; }
 
-
         public AlphaMode Alpha { get; set; }
 
         public SkinMode Skin { get; set; }

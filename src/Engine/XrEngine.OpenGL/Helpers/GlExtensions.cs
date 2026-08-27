@@ -13,9 +13,6 @@ using System.Diagnostics;
 using XrEngine.Compression;
 using Common.Interop;
 using XrMath;
-using System.Numerics;
-using static MeshOptimizer.MeshOptimizerLib;
-
 
 namespace XrEngine.OpenGL
 {
@@ -26,7 +23,6 @@ namespace XrEngine.OpenGL
 
         static ExtShaderFramebufferFetchNonCoherent? _fbFetchExt;
         static ExtFragmentShadingRate? _fsRateExt;
-
 
         #region EngineObject
 
@@ -640,7 +636,6 @@ namespace XrEngine.OpenGL
                 return self.Passes<T>().Any();
             }
 
-     
             public void SetScissor(Bounds2 bounds, int padding = 0)
             {
                 self.State.SetScissor(bounds.ToRect2I(padding));

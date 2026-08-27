@@ -36,9 +36,6 @@ namespace XrEngine.OpenGL
         public float MinTerminalRadius;
     }
 
-
-
-
     [StructLayout(LayoutKind.Explicit, Size = 112)]
     public struct GlBlurMipLayout : ITextureLayout
     {

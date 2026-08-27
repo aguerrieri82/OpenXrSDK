@@ -308,7 +308,7 @@ namespace XrEngine
                     up.LoadTexture(v, curSlot);
             });
         }
-  
+
         public readonly void SetUniform(string name, UpdateAction<Texture2D> value, int slot = 0, bool optional = false)
         {
             Log(name, slot);

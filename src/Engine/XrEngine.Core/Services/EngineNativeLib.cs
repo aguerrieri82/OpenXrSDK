@@ -179,14 +179,11 @@ namespace XrEngine
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern unsafe bool ImageDecodeBC(byte* src, int width, int height, BcFormat format, byte* dst);
 
-
         [DllImport(LibName)]
         public static extern unsafe bool BasisTranscodeKtx2(void* data, uint size, BasisTextureFormat format, out BasisTexture result);
 
-
         [DllImport(LibName)]
         public static extern void BasisFreeTexture(ref BasisTexture texture);
-
 
         [DllImport(LibName)]
         public static extern unsafe void CompressVertices(void* src, void* dst, int count, VertexComponent activeComponents, Bounds3 bounds);

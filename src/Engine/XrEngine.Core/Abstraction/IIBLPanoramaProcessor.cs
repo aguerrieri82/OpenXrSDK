@@ -7,7 +7,7 @@
         Lambertian = 0x1,
         GGX = 0x2,
         Charlie = 0x4,
-        All = Lambertian | GGX | Charlie 
+        All = Lambertian | GGX | Charlie
     }
 
     public class PanoramaProcessorOptions

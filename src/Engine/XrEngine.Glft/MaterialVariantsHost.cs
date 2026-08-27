@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Gltf
+﻿namespace XrEngine.Gltf
 {
     public class MaterialVariant
     {
@@ -39,7 +35,7 @@ namespace XrEngine.Gltf
         {
             for (var i = 0; i < _variants.Count; i++)
             {
-                bool isActive = i == _activeVariant;
+                var isActive = i == _activeVariant;
                 foreach (var item in _variants[i].Bindings)
                     item.Material.IsEnabled = isActive;
             }
@@ -56,7 +52,6 @@ namespace XrEngine.Gltf
                 SelectVariant();
             }
         }
-
 
         public List<MaterialVariant> Variants => _variants;
     }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Reflection;
-using System.Resources;
-using System.Text;
+﻿using System.Reflection;
 
 namespace XrEngine
 {
@@ -37,7 +32,7 @@ namespace XrEngine
         {
         }
 
-        public static implicit operator int (ResourceSlot r)
+        public static implicit operator int(ResourceSlot r)
         {
 #if DEBUG
             if (r.Slot == -1)

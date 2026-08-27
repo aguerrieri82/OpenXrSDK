@@ -43,7 +43,6 @@
         public static readonly ResourceSlot IblCharlieEnv = new(12, nameof(IblCharlieEnv));
         public static readonly ResourceSlot CharlieLut = new(13, nameof(CharlieLut));
 
-
         public static readonly SlotMask Reserved = ResourceSlot.FillMask(typeof(TextureSlots));
     }
 }

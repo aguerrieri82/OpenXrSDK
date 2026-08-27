@@ -12,7 +12,6 @@ namespace XrEngine
     {
         Texture2D? ColorMap { get; set; }
 
-
         Texture2D? MetallicRoughnessMap { get; set; }
 
         Texture2D? NormalMap { get; set; }

@@ -339,7 +339,6 @@ namespace XrEditor
 
         public bool NodePreviewVisible => NodePreview != null;
 
-
         public PropertiesEditorMode Mode { get; }
 
         public override string? Title { get; }

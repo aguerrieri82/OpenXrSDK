@@ -1,5 +1,4 @@
-﻿using Silk.NET.Direct3D11;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 using ValueType = XrEngine.ValueType;
 
@@ -33,7 +32,6 @@ namespace XrEditor
 
             Binding = binding;
         }
-
 
         public override void SetAttributes(IEnumerable<Attribute> attributes)
         {

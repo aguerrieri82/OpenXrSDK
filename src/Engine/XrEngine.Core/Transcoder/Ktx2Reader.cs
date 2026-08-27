@@ -74,7 +74,7 @@ namespace XrEngine
                         : BasisTextureFormat.Rgba32;
 
                     var result = new List<TextureData>();
-                    
+
                     lock (this)
                     {
                         BasisTranscodeKtx2(pData, (uint)data.Length, targetFormat, out var basisTexture);
@@ -106,7 +106,7 @@ namespace XrEngine
 
                     return result;
                 }
-                    
+
             }
 
             if (header.supercompressionScheme != CompressionScheme.None ||

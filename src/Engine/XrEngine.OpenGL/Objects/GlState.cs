@@ -319,7 +319,7 @@ namespace XrEngine.OpenGL
                 _gl.Scissor(rect.X, rect.Y, rect.Width, rect.Height);
                 ScissorRect = rect;
             }
-    
+
         }
 
         public void ClearScissor(bool force = false)
@@ -387,7 +387,7 @@ namespace XrEngine.OpenGL
                         _gl.BlendFuncSeparate(BlendingFactor.One, BlendingFactor.Src1Color,
                             BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
                         _gl.BlendEquation(BlendEquationModeEXT.FuncAdd);
-;
+                        ;
                     }
                     else if (value == AlphaMode.Max)
                     {

@@ -1446,7 +1446,7 @@ namespace XrMath
 
             public Rect2I ToRect2I(int padding)
             {
-                return new Rect2I((int)self.Min.X - padding, (int)self.Min.Y - padding, 
+                return new Rect2I((int)self.Min.X - padding, (int)self.Min.Y - padding,
                     (uint)(self.Size.X + (padding * 2)), (uint)(self.Size.Y + (padding * 2)));
             }
         }

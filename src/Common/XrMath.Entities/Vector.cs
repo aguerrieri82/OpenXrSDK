@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrMath
+﻿namespace XrMath
 {
     public struct Vector3<T> where T : unmanaged
     {
@@ -45,6 +41,5 @@ namespace XrMath
         public T X;
         public T Y;
     }
-
 
 }

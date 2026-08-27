@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
         private bool _boundsDirty;
         private Bounds3 _bounds;
         private bool _isEmpty;
-        private object _shaderContent;
+        private readonly object _shaderContent;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -668,7 +668,7 @@ namespace XrEngine.OpenGL
         public void InvalidateContent()
         {
             _isContentDirty = true;
-            _boundsDirty = true; 
+            _boundsDirty = true;
         }
 
         internal void Invalidate(ShaderContent value)

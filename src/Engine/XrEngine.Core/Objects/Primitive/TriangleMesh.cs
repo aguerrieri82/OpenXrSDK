@@ -15,7 +15,6 @@ namespace XrEngine
         Always
     }
 
-
     public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds, ICompressedVertexSource
     {
         protected readonly ObservableCollection<Material> _materials;
@@ -124,7 +123,6 @@ namespace XrEngine
                 foreach (var item in e.NewItems.Cast<Material>())
                     item.Attach(this);
 
-
                 NotifyChanged(new ObjectChange(ChangeType.MateriaAdd, e.NewItems));
             }
         }
@@ -219,7 +217,7 @@ namespace XrEngine
             var oldVertComp = CompVertexType;
             var oldIndexComp = CompIndexType;
 
-            bool compressIndices = true;
+            var compressIndices = true;
 
             if (CompressionMode == MeshCompressionMode.Always)
             {
@@ -227,7 +225,7 @@ namespace XrEngine
             }
             else if (CompressionMode == MeshCompressionMode.Never || _geometry.Vertices.Length < 128)
             {
-                CompVertexType = null; 
+                CompVertexType = null;
                 CompIndexType = null;
                 compressIndices = false;
             }
@@ -276,7 +274,7 @@ namespace XrEngine
                 var bounds = LocalBounds;
                 var size = bounds.Max - bounds.Min;
 
-                _geometry.VerticesRemap = Matrix4x4.CreateScale(size) * 
+                _geometry.VerticesRemap = Matrix4x4.CreateScale(size) *
                                           Matrix4x4.CreateTranslation(bounds.Min);
 
                 EngineNativeLib.CompressVertices(pSrc, pDst, count, _geometry.ActiveComponents, bounds);
@@ -374,7 +372,6 @@ namespace XrEngine
         IReadOnlyList<Material> IVertexSource.Materials => _materials;
 
         Matrix4x4 ICompressedVertexSource.VerticesRemap => _geometry?.VerticesRemap ?? Matrix4x4.Identity;
-
 
         #endregion
     }

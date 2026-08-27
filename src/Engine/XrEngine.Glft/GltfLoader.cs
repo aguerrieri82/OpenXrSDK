@@ -138,7 +138,6 @@ namespace XrEngine.Gltf
                 public float? outerConeAngle;
             }
 
-
             public Light[]? lights;
             public int? light;
         }
@@ -147,7 +146,6 @@ namespace XrEngine.Gltf
         {
             public float emissiveStrength;
         }
-
 
         struct KHR_materials_clearcoat
         {
@@ -509,7 +507,6 @@ namespace XrEngine.Gltf
             var spec = TryLoadExtension<KHR_materials_specular>(gltMat.Extensions);
             var disp = TryLoadExtension<KHR_materials_dispersion>(gltMat.Extensions);
             var anis = TryLoadExtension<KHR_materials_anisotropy>(gltMat.Extensions);
-            
 
             result ??= _options.MaterialFactory(matId);
 
@@ -1272,7 +1269,6 @@ namespace XrEngine.Gltf
                     mat.UseMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
 
-      
                 }
 
                 var matVar = TryLoadExtension<KHR_materials_variants>(primitive.Extensions);
@@ -1284,13 +1280,13 @@ namespace XrEngine.Gltf
                     foreach (var map in matVar.Value.mappings)
                     {
                         var mat = ProcessMaterial(map.material, node);
-            
+
                         if (!curMesh.Materials.Contains(mat))
                         {
                             mat.IsEnabled = false;
                             curMesh.Materials.Add(mat);
                         }
-     
+
                         Debug.Assert(map.variants != null);
 
                         foreach (var varIdx in map.variants)
@@ -1320,7 +1316,7 @@ namespace XrEngine.Gltf
         protected Camera ProcessCamera(int cameraId)
         {
             var camera = _model!.Cameras[cameraId];
-            
+
             CheckExtensions(camera.Extensions);
 
             if (camera.Type == "perspective")
@@ -1370,7 +1366,7 @@ namespace XrEngine.Gltf
 
             var puntual = TryLoadExtension<KHR_lights_punctual>(node.Extensions);
 
-            var vis = TryLoadExtension<KHR_node_visibility>(node.Extensions); 
+            var vis = TryLoadExtension<KHR_node_visibility>(node.Extensions);
 
             Group3D? nodeGrp = null;
 
@@ -1383,7 +1379,7 @@ namespace XrEngine.Gltf
             if (puntual?.light != null)
             {
                 _lightsRoot ??= TryLoadExtension<KHR_lights_punctual>(_model.Extensions);
-                
+
                 Debug.Assert(_lightsRoot?.lights != null);
 
                 var light = _lightsRoot.Value.lights[puntual.Value.light.Value];
@@ -1432,7 +1428,7 @@ namespace XrEngine.Gltf
 
             if (!transformSet)
             {
-                if (node.Rotation != null) 
+                if (node.Rotation != null)
                     nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
 
                 if (node.Scale != null)

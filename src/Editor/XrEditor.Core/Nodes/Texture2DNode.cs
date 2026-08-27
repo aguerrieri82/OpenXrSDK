@@ -1,5 +1,4 @@
-﻿using UI.Binding;
-using XrEditor.Services;
+﻿using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor.Nodes
@@ -45,7 +44,7 @@ namespace XrEditor.Nodes
             });
         }
 
-        public override string DisplayName => 
+        public override string DisplayName =>
             string.IsNullOrWhiteSpace(_value.Name) ? base.DisplayName : _value.Name;
 
         public override IconView? Icon => new()

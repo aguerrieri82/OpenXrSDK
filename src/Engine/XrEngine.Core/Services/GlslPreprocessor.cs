@@ -69,8 +69,8 @@ public sealed class GlslPreprocessor
             throw new ArgumentNullException(nameof(sourceName));
 
         sourceName = NormalizePath(sourceName);
-        var context = new Context(this, 
-            sourceName, 
+        var context = new Context(this,
+            sourceName,
             options?.RuntimeDefines,
             options?.Slots,
             options?.AllowRedefine ?? false);
@@ -125,10 +125,10 @@ public sealed class GlslPreprocessor
         private int _nextFileId = 1;
         private int _version = 100;
 
-        private bool _allowRedefine;
+        private readonly bool _allowRedefine;
 
-        public Context(GlslPreprocessor owner, 
-            string sourceName, 
+        public Context(GlslPreprocessor owner,
+            string sourceName,
             IReadOnlyList<GlslRuntimeDefine>? runtimeDefines,
             IReadOnlyDictionary<string, string>? slots,
             bool allowRedefine)

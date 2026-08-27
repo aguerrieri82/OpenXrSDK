@@ -143,8 +143,6 @@ namespace XrMath
             bitangent = Vector3.Normalize(Vector3.Cross(n, tangent));
         }
 
-
-
         public static bool TryGetScreenPoint(in Vector3 worldPos, in Matrix4x4 viewProj, Size2I viewSize, bool flipY, out Vector2 screenPos)
         {
             var clipPos = Vector4.Transform(new Vector4(worldPos, 1), viewProj);

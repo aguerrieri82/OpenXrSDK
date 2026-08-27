@@ -57,7 +57,6 @@ namespace XrEngine.OpenGL
 
         private bool _passesDirty;
 
-
         public static class Props
         {
 
@@ -172,7 +171,7 @@ namespace XrEngine.OpenGL
             _features.DisjointTimerQuery = _extensions.Contains("GL_EXT_disjoint_timer_query");
 
             _features.MultisampledRenderToTexture = _extensions.Contains("GL_EXT_multisampled_render_to_texture");
-             
+
             _features.HasDualSourceBlend = _extensions.Contains("GL_EXT_blend_func_extended");
 
             _gl.GetInteger(GetPName.MaxVertexShaderStorageBlocks, out _features.MaxVertexSsboBlocks);
@@ -810,7 +809,6 @@ namespace XrEngine.OpenGL
                 result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(charlieLut);
             }
 
-
             Log.Debug(this, "Processing IBL Panorama OK");
 
             return result;
@@ -994,10 +992,7 @@ namespace XrEngine.OpenGL
             _glState.SetShadingRate(Math.Max(1, Math.Max(material.ShadingRate, _target!.ShadingRate)));
         }
 
-
         #endregion
-
-
 
         TextureLayout IBlurMipPack.Generate(Texture2D source, Rect2I sourceRect, float? roughness = null)
         {

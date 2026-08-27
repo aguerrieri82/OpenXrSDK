@@ -185,7 +185,7 @@ namespace XrEngine.OpenGL
 
             if (_reflection!.Roughness > 0)
             {
-                var result = ((IBlurMipPack)_renderer).Generate(texture, 
+                var result = ((IBlurMipPack)_renderer).Generate(texture,
                     new Rect2I(0, 0, _reflection.RenderSize.Width, _reflection.RenderSize.Height), _reflection!.Roughness);
 
                 _reflection.ActiveTexture = result.Texture;

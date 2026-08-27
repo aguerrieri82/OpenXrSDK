@@ -11,7 +11,6 @@ namespace XrEngine
         SharedSsbo
     }
 
-
     public interface IUniformProvider
     {
         void LoadTexture(Texture value, int slot, bool forceBinding = false);

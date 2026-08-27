@@ -21,11 +21,11 @@ namespace XrEditor
         }
 
         public static void CreateProperties(
-            object obj, 
-            Type? objType, 
-            object? host, 
-            IList<PropertyView> result, 
-            INotifyPropertyChanged? propertyChanged, 
+            object obj,
+            Type? objType,
+            object? host,
+            IList<PropertyView> result,
+            INotifyPropertyChanged? propertyChanged,
             string? category = null,
             bool collapsed = false)
         {
@@ -107,7 +107,7 @@ namespace XrEditor
 
                 var editableAttr = prop.GetCustomAttribute<EditableAttribute>();
 
-                if ((!prop.CanWrite && editableAttr == null) || 
+                if ((!prop.CanWrite && editableAttr == null) ||
                     (editableAttr != null && !editableAttr.IsEditable))
                     continue;
 

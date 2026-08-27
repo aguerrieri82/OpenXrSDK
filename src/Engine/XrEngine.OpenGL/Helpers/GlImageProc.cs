@@ -239,7 +239,6 @@ namespace XrEngine.OpenGL
             DrawQuad(src.GL);
         }
 
-
         public static void GenerateBlurredMipmaps(GlTexture texture, Rect2I activeRegion, int blurLevel = 2)
         {
             var gl = texture.GL;
@@ -251,7 +250,7 @@ namespace XrEngine.OpenGL
 
             var isMultiView = texture.Target == TextureTarget.Texture2DArray && texture.Depth == 2;
 
-            string[] features = isMultiView ? [$"BLUR_LEVEL {blurLevel}", "MULTI_VIEW"] : new[] { $"BLUR_LEVEL {blurLevel}" };
+            var features = isMultiView ? [$"BLUR_LEVEL {blurLevel}", "MULTI_VIEW"] : new[] { $"BLUR_LEVEL {blurLevel}" };
             string[] extensions = isMultiView ? ["GL_OVR_multiview2"] : [];
 
             LoadProgram(gl, "Image/blur_mip.frag", features, extensions);

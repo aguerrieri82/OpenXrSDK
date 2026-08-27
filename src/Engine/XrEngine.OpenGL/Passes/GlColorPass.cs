@@ -7,8 +7,6 @@ using Silk.NET.OpenGL;
 using XrEngine.Helpers;
 using System.Numerics;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -196,7 +194,6 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
-
         public override Texture2D QueryTexture(QueryTextureType type)
         {
             if (type == QueryTextureType.Color)
@@ -204,7 +201,7 @@ namespace XrEngine.OpenGL
                 return (Texture2D?)_renderer.RenderTarget!.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture() ??
                     throw new InvalidOperationException();
             }
-         
+
             return base.QueryTexture(type);
         }
 
@@ -226,7 +223,6 @@ namespace XrEngine.OpenGL
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
             uint globalProgChangesCount = 0;
-
 
             foreach (var shader in layer.Content.SortedContent!)
             {
@@ -335,7 +331,6 @@ namespace XrEngine.OpenGL
 
                 ctx.Material = null;
             }
-
 
             if (layer.Type == GlLayerType.Transmission)
                 _renderer.State.EnableFeature(EnableCap.ScissorTest, false);

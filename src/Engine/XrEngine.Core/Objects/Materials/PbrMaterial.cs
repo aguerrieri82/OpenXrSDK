@@ -45,12 +45,10 @@ namespace XrEngine
 
         const string ClearCoat = nameof(ClearCoat);
 
-
-
         #endregion
 
         #region MaterialUniforms
-       
+
         [StructLayout(LayoutKind.Explicit, Size = 176)]
         public struct MaterialUniforms
         {
@@ -526,7 +524,6 @@ namespace XrEngine
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
 
-
             bld.LoadBuffer<MaterialUniforms>(ctx =>
             {
                 var curVersion = ContentVersion + Version;
@@ -835,7 +832,6 @@ namespace XrEngine
                 }
             }
 
-
             if (HasIridescence)
             {
                 bld.AddFeature("USE_IRIDESCENCE");
@@ -847,7 +843,7 @@ namespace XrEngine
                     bld.AddFeature("USE_IRIDESCENCE_THICKNESS_MAP");
                     bld.LoadTexture(() => IridescenceThicknessMap, TextureSlots.IridescenceThickness);
                 }
-          
+
                 if (IridescenceMap != null)
                 {
                     AssertNotTransform(IridescenceMap);
@@ -876,7 +872,7 @@ namespace XrEngine
                 }, UniformsSlots.Iridescence, BufferStore.Material);
             }
 
-            bool useForeground = false;
+            var useForeground = false;
 
             if (Transmission > 0)
             {
@@ -891,7 +887,7 @@ namespace XrEngine
                     bld.AddFeature("USE_TRANSMISSION_MAP");
                     bld.LoadTexture(() => TransmissionMap, TextureSlots.Transmission);
                 }
-   
+
                 if (TransmissionMode == TransmissionMode.DualAlpha)
                 {
 #if GLES
@@ -915,7 +911,7 @@ namespace XrEngine
                 {
                     bld.AddFeature("VOLUME_BACKGROUND");
 
-                    bld.LoadTexture(ctx=> 
+                    bld.LoadTexture(ctx =>
                         refSrc.GetRefractionTextures((PerspectiveCamera)ctx.PassCamera!)[0], TextureSlots.VolumeBackground);
                 }
 
@@ -947,7 +943,7 @@ namespace XrEngine
 
                     var color = ctx.Pass!.QueryTexture(QueryTextureType.Color);
 
-                    var modelRect = ctx.PassCamera!.WorldToScreen(ctx.Model.WorldBounds, 
+                    var modelRect = ctx.PassCamera!.WorldToScreen(ctx.Model.WorldBounds,
                         ctx.IsMultiView ? -1 : ctx.PassCamera!.ActiveEye, ctx.UseAngle);
 
                     if (modelRect.Width > 0 && modelRect.Height > 0)
@@ -1028,7 +1024,6 @@ namespace XrEngine
 
         [Category(Textures)]
         public Texture2D? ColorMap { get; set; }
-
 
         [Category(Textures)]
         public Texture2D? MetallicRoughnessMap { get; set; }
@@ -1121,7 +1116,6 @@ namespace XrEngine
         [Category(Textures)]
         public Texture2D? SpecularColorMap { get; set; }
 
-
         [Category(Surface)]
         [Range(0, 1, 0.01f)]
         public float Transmission { get; set; }
@@ -1187,7 +1181,6 @@ namespace XrEngine
         [Category(Sheen)]
         public Texture2D? SheenRoughnessMap { get; set; }
 
-
         [Category(ClearCoat)]
         public Texture2D? ClearCoatNormalMap { get; set; }
 
@@ -1215,7 +1208,6 @@ namespace XrEngine
 
         [Category(Textures)]
         public Texture2D AnisotropyMap { get; set; }
-
 
         public override bool IsSingleDraw => UseMorph || (HasTransmission && TransmissionMode == TransmissionMode.Texture);
 

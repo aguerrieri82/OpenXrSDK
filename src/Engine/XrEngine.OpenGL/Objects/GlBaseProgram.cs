@@ -46,7 +46,6 @@ namespace XrEngine.OpenGL
 
         protected ulong _sourceHash;
 
-
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
             _glOptions = OpenGLRender.Current?.Options ?? throw new InvalidOperationException("No active OpenGLRender");
@@ -642,7 +641,7 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                foreach (var slot in ResourceSlot.Enumerate(typeof(TextureSlots)).Where(a=> a.Slot != -1))
+                foreach (var slot in ResourceSlot.Enumerate(typeof(TextureSlots)).Where(a => a.Slot != -1))
                     _mergedFetaures.Add($"{slot.SlotName} {slot.Slot}");
             }
 

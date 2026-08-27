@@ -7,8 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using XrEngine.Helpers;
 using XrMath;
-using static MeshOptimizer.MeshOptimizerLib;
-using static XrEngine.ShaderUpdateBuilder;
 
 namespace XrEngine
 {
@@ -1265,7 +1263,6 @@ namespace XrEngine
                 return new Rect2I(x0, y0, (uint)(x1 - x0), (uint)(y1 - y0));
             }
 
-
             public bool TryWorldToScreen(in Vector3 worldPos, int eye, bool flipY, out Vector2 screenPos)
             {
                 var viewProj = self.Eyes != null ?
@@ -1602,9 +1599,9 @@ namespace XrEngine
         {
             public void LoadTextureFixSrgb(UpdateShaderContext ctx, Texture? texture, int slot)
             {
-                if (texture == null) 
+                if (texture == null)
                     return;
-                
+
                 //DO NOT MERGE LoadTexture, LoadSampler MUST BE AFTER in the other branch
 
                 var isSrgb = texture.Format.IsSrgb();

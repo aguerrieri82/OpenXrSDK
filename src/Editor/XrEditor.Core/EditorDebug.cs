@@ -2,7 +2,6 @@
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrSamples;
-using XrSamples.Dnd;
 
 namespace XrEditor
 {
@@ -40,7 +39,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-             // .UseMultiView()
+              // .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {

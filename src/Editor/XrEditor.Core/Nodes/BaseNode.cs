@@ -117,7 +117,6 @@ namespace XrEditor.Nodes
             }
         }
 
-
         public T Value => _value;
 
         object INode.Value => _value;

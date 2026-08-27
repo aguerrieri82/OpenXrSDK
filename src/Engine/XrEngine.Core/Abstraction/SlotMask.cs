@@ -71,7 +71,6 @@ namespace XrEngine
 
         public static implicit operator SlotMask(ulong value) => new() { Value = value };
 
-
         public ulong Value;
 
         public readonly int Max;
