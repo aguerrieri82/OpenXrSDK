@@ -1216,6 +1216,9 @@ namespace XrEngine
         [Category(Textures)]
         public Texture2D AnisotropyMap { get; set; }
 
+
+        public override bool IsSingleDraw => UseMorph || (HasTransmission && TransmissionMode == TransmissionMode.Texture);
+
         public bool HasAnisotropy => Anisotropy > 0;
 
         public bool HasClearCoat => ClearCoatFactor > 0;

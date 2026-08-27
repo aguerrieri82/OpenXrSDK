@@ -1,11 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Numerics;
 using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine
 {
-    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds
+    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds, ICompressedVertexSource
     {
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
@@ -20,6 +22,7 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
             InstanceCount = 1;
+            CompVertexType = typeof(CompVertexData);
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -195,6 +198,103 @@ namespace XrEngine
             IBuf = indices;
         }
 
+        unsafe void ICompressedVertexSource.CompressVertices(void* pSrc, void* pDst, int count)
+        {
+            Debug.Assert(_geometry != null);
+
+            if (CompVertexType == typeof(CompVertexData))
+            {
+                var src = (VertexData*)pSrc;
+                var dst = (CompVertexData*)pDst;
+
+                var min = LocalBounds.Min;
+                var size = LocalBounds.Max - min;
+                var invSize = new Vector3(
+                    size.X != 0 ? 1f / size.X : 0,
+                    size.Y != 0 ? 1f / size.Y : 0,
+                    size.Z != 0 ? 1f / size.Z : 0);
+
+                _geometry.VerticesRemap = Matrix4x4.CreateScale(size) * Matrix4x4.CreateTranslation(min);
+
+                var activeComponents = _geometry.ActiveComponents;
+
+                for (var i = 0; i < count; i++)
+                {
+                    if ((activeComponents & VertexComponent.Position) != 0)
+                    {
+                        var pos = (src[i].Pos - min) * invSize;
+
+                        dst[i].Pos = new Vector3<ushort>(
+                            (ushort)MathF.Round(Math.Clamp(pos.X, 0, 1) * ushort.MaxValue),
+                            (ushort)MathF.Round(Math.Clamp(pos.Y, 0, 1) * ushort.MaxValue),
+                            (ushort)MathF.Round(Math.Clamp(pos.Z, 0, 1) * ushort.MaxValue));
+                    }
+
+                    if ((activeComponents & VertexComponent.Normal) != 0)
+                    {
+                        dst[i].Normal = new Vector3<short>(
+                            (short)MathF.Round(src[i].Normal.X * short.MaxValue),
+                            (short)MathF.Round(src[i].Normal.Y * short.MaxValue),
+                            (short)MathF.Round(src[i].Normal.Z * short.MaxValue));
+                    }
+
+                    if ((activeComponents & VertexComponent.UV0) != 0)
+                    {
+                        dst[i].UV = new Vector2<Half>(
+                            (Half)src[i].UV.X,
+                            (Half)src[i].UV.Y);
+                    }
+
+                    if ((activeComponents & VertexComponent.UV1) != 0)
+                    {
+                        dst[i].UV1 = new Vector2<Half>(
+                            (Half)src[i].UV1.X,
+                            (Half)src[i].UV1.Y);
+                    }
+
+                    if ((activeComponents & VertexComponent.Tangent) != 0)
+                    {
+                        dst[i].Tangent = new Vector4<short>(
+                            (short)MathF.Round(src[i].Tangent.X * short.MaxValue),
+                            (short)MathF.Round(src[i].Tangent.Y * short.MaxValue),
+                            (short)MathF.Round(src[i].Tangent.Z * short.MaxValue),
+                            (short)MathF.Round(src[i].Tangent.W * short.MaxValue));
+                    }
+                }
+
+                return;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        unsafe void ICompressedVertexSource.CompressIndices(void* pSrc, void* pDst, int count)
+        {
+            var src = (uint*)pSrc;
+
+            if (CompIndexType == typeof(ushort))
+            {
+                var dst = (ushort*)pDst;
+
+                for (var i = 0; i < count; i++)
+                    dst[i] = (ushort)src[i];
+
+                return;
+            }
+
+            if (CompIndexType == typeof(byte))
+            {
+                var dst = (byte*)pDst;
+
+                for (var i = 0; i < count; i++)
+                    dst[i] = (byte)src[i];
+
+                return;
+            }
+
+            throw new NotSupportedException();
+        }
+
         public Bounds3 LocalBounds
         {
             get
@@ -245,6 +345,10 @@ namespace XrEngine
 
         public int InstanceCount { get; set; }
 
+        public Type? CompVertexType { get; set; }
+
+        public Type? CompIndexType { get; set; }
+
         #region IVertexSource
 
         EngineObject IVertexSource.Host => _geometry!;
@@ -258,6 +362,9 @@ namespace XrEngine
         VertexData[] IVertexSource<VertexData, uint>.Vertices => _geometry?.Vertices ?? [];
 
         IReadOnlyList<Material> IVertexSource.Materials => _materials;
+
+        Matrix4x4 ICompressedVertexSource.VerticesRemap => _geometry?.VerticesRemap ?? Matrix4x4.Identity;
+
 
         #endregion
     }

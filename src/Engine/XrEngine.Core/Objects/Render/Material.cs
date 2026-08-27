@@ -183,6 +183,8 @@ namespace XrEngine
 
         public string? Name { get; set; }
 
+        public virtual bool IsSingleDraw => false;
+
         public int Priority { get; set; }
 
         [Notify(ChangeType.MaterialEnabled)]

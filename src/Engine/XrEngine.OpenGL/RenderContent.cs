@@ -33,11 +33,12 @@
 
         public VertexComponent ActiveComponent;
 
+        public long SingleDrawId;
+
         public readonly override int GetHashCode()
         {
-            return MateriaId.GetHashCode() ^ ActiveComponent.GetHashCode();
+            return MateriaId.GetHashCode() ^ ActiveComponent.GetHashCode() ^ SingleDrawId.GetHashCode();
         }
-
     }
 
     public class ShaderContent
@@ -51,6 +52,8 @@
         public bool IsDirty;
 
         public int MaxPriority;
+
+        public long SingleDrawCount;
     }
 
     public class MaterialContent

@@ -128,6 +128,32 @@ namespace XrEngine.OpenGL
                             item.IsIntegerStore = true;
                             item.Count = 4;
                         }
+                        else if (field.FieldType.IsGenericType )
+                        {
+                            var genType = field.FieldType.GetGenericTypeDefinition();
+                            var elmentType = field.FieldType.GetGenericArguments()[0];
+
+                            if (genType == typeof(Vector2<>))
+                                item.Count = 2;
+                            else if (genType == typeof(Vector3<>))
+                                item.Count = 3;
+                            else if (genType == typeof(Vector4<>))
+                                item.Count = 4;
+                            else
+                                throw new NotSupportedException();
+
+                            if (elmentType == typeof(float))
+                                item.Type = VertexAttribPointerType.Float;
+                            else if (elmentType == typeof(short))
+                                item.Type = VertexAttribPointerType.Short;
+                            else if (elmentType == typeof(ushort))
+                                item.Type = VertexAttribPointerType.UnsignedShort;
+                            else if (elmentType == typeof(Half))
+                                item.Type = VertexAttribPointerType.HalfFloat;
+                            else
+                                throw new NotSupportedException();
+
+                        }
                         else
                             throw new NotImplementedException($"Unsupported vertex attribute type '{field.FieldType}'.");
 

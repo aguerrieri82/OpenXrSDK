@@ -16,6 +16,7 @@ namespace XrEngine
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
             Primitive = DrawPrimitive.Triangle;
+            VerticesRemap = Matrix4x4.Identity;
             _indices = [];
             _vertices = [];
 
@@ -171,5 +172,7 @@ namespace XrEngine
         }
 
         public DrawPrimitive Primitive { get; set; }
+
+        public Matrix4x4 VerticesRemap { get; set; }
     }
 }

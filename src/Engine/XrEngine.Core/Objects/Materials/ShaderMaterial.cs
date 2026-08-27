@@ -76,5 +76,6 @@ namespace XrEngine
         }
 
         public Func<string, string?>? Resolver { get; set; }
+
     }
 }

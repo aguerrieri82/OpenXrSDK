@@ -42,6 +42,7 @@ namespace XrEngine.OpenGL
         private bool _boundsDirty;
         private Bounds3 _bounds;
         private bool _isEmpty;
+        private object _shaderContent;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -241,14 +242,16 @@ namespace XrEngine.OpenGL
                 var materialKey = new ShaderMaterialKey
                 {
                     ActiveComponent = vrtSrc.ActiveComponents,
-                    MateriaId = material.Id
+                    MateriaId = material.Id,
+                    SingleDrawId = material.IsSingleDraw ? (++shaderContent.SingleDrawCount) : 0
                 };
 
                 if (!shaderContent.Contents.TryGetValue(materialKey, out var materialContent))
                 {
-                    var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3d);
-
-                    instance.UseWorker = _render.Options.UseAsyncShaderCompile && !EngineNativeLib.RdcIsAttached();
+                    var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3d)
+                    {
+                        UseWorker = _render.Options.UseAsyncShaderCompile && !EngineNativeLib.RdcIsAttached()
+                    };
 
                     ConfigureProgramInstance(instance);
 

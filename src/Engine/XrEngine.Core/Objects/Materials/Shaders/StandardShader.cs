@@ -28,12 +28,10 @@ namespace XrEngine
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
+
             bld.LoadBuffer(ctx =>
             {
                 Debug.Assert(ctx.Model != null);
-
-                //Get the word matrix trigger the update
-                var modelWord = ctx.Model.WorldMatrix;
 
                 var curVersion = ctx.Model.Transform.Version;
 
@@ -44,11 +42,16 @@ namespace XrEngine
 
                 ctx.CurrentBuffer!.Version = curVersion;
 
+                var worldMatrix = ctx.Model.WorldMatrix;
+
+                if (ctx.Model is ICompressedVertexSource cmp)
+                    worldMatrix = cmp.VerticesRemap * worldMatrix;
+
                 return (ModelUniforms?)new ModelUniforms
                 {
                     NormalMatrix = ctx.Model.NormalMatrix,
-                    PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? modelWord,
-                    WorldMatrix = modelWord
+                    PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? worldMatrix,
+                    WorldMatrix = worldMatrix,
                 };
 
             }, UniformsSlots.Model, BufferStore.Model,
@@ -57,18 +60,22 @@ namespace XrEngine
 
         bool IInstanceShader.NeedUpdate(Object3D model, long curVersion)
         {
-            //Get the word matrix trigger the update;
-            var wordMatrix = model.WorldMatrix;
+            model.EnsureTransformUpdate();
             return model.Transform.Version != curVersion;
         }
 
         unsafe long IInstanceShader.Update(UpdateShaderContext ctx, byte* destData, Object3D model, int drawId)
         {
-            *(ModelUniforms*)destData = new ModelUniforms
+            var worldMatrix = model.WorldMatrix;
+
+            if (model is ICompressedVertexSource cmp)
+                worldMatrix = cmp.VerticesRemap * worldMatrix;
+
+            * (ModelUniforms*)destData = new ModelUniforms
             {
                 NormalMatrix = model.NormalMatrix,
-                WorldMatrix = model.WorldMatrix,
-                PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? model.WorldMatrix,
+                WorldMatrix = worldMatrix,
+                PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? worldMatrix,
                 DrawId = drawId
             };
 

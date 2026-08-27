@@ -239,6 +239,12 @@ namespace XrEngine
             _transform.SetState(container.Enter("Transform"));
         }
 
+        public void EnsureTransformUpdate()
+        {
+            if (_worldDirty)
+                UpdateWorldMatrix();
+        }
+
         public bool IsVisible
         {
             get
