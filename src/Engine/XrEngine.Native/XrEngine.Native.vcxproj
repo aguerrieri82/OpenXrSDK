@@ -311,6 +311,7 @@
   <ItemGroup>
     <ClInclude Include="Api.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Structs.h" />
     <ClInclude Include="XrMath.h" />
     <ClInclude Include="MeshVoxelizer.h" />
     <ClInclude Include="pch.h" />

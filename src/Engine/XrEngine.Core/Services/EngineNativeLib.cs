@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using XrMath;
 
 namespace XrEngine
 {
@@ -185,6 +186,16 @@ namespace XrEngine
 
         [DllImport(LibName)]
         public static extern void BasisFreeTexture(ref BasisTexture texture);
+
+
+        [DllImport(LibName)]
+        public static extern unsafe void CompressVertices(void* src, void* dst, int count, VertexComponent activeComponents, Bounds3 bounds);
+
+        [DllImport(LibName)]
+        public static extern unsafe void CompressIndices16(void* src, void* dst, int count);
+
+        [DllImport(LibName)]
+        public static extern unsafe void CompressIndices8(void* src, void* dst, int count);
 
     }
 }

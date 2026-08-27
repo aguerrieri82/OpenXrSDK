@@ -1,43 +1,6 @@
 #pragma once
 
 
-enum class BCFormat : int32_t
-{
-    BC1 = 1,
-    BC2 = 2,
-    BC3 = 3,
-    BC4 = 4,
-    BC5 = 5,
-    BC6H = 6,
-    BC7 = 7
-};
-
-
-struct BasisImage
-{
-    void* Data;
-    uint32_t Size;
-    uint32_t Width;
-    uint32_t Height;
-    uint32_t Level;
-    uint32_t Layer;
-    uint32_t Face;
-};
-
-struct BasisTexture
-{
-    void* Memory;
-    BasisImage* Images;
-    uint32_t ImageCount;
-    uint32_t Width;
-    uint32_t Height;
-    uint32_t Levels;
-    uint32_t Layers;
-    uint32_t Faces;
-    uint32_t IsSrgb;
-    uint32_t HasAlpha;
-};
-
 extern "C" {
 
 	EXPORT void APIENTRY CopyMemory2(uint8_t* src, uint8_t* dst, uint32_t size);
@@ -49,6 +12,13 @@ extern "C" {
 	EXPORT void APIENTRY SleepFor(uint64_t timeNs);
 
 	EXPORT uint64_t APIENTRY Now();
+
+
+    EXPORT void APIENTRY CompressVertices(const VertexData* src, CompVertexData* dst, int count, VertexComponent activeComponents, Bounds3 bounds);
+    
+    EXPORT void APIENTRY CompressIndices16(const uint32_t* src, uint16_t* dst, int count);
+    
+    EXPORT void APIENTRY CompressIndices8(const uint32_t* src, uint8_t* dst, int count);
 }
 
 

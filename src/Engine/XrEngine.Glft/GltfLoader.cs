@@ -1254,11 +1254,11 @@ namespace XrEngine.Gltf
 
                 Load(curMesh, () =>
                 {
-                    var geo = ProcessPrimitive(primitive, curMesh.Geometry);
+                    ProcessPrimitive(primitive, curMesh.Geometry);
 
-                    AssignAsset(geo, gltMesh.Name, "geo", meshId, pIndex);
+                    AssignAsset(curMesh.Geometry, gltMesh.Name, "geo", meshId, pIndex);
 
-                    curMesh.Geometry = geo;
+                    curMesh.NotifyChanged(ChangeType.Geometry);
 
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name,
                         curMesh.Geometry.Vertices.Length * MarshalCache.SizeOf(typeof(VertexData)));

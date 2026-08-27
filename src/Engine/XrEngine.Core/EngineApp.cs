@@ -196,6 +196,7 @@ namespace XrEngine
                 return;
             if (caller is Texture tex)
                 return;
+
             Debug.Assert(_current?.Dispatcher.Thread == Thread.CurrentThread);
         }
 

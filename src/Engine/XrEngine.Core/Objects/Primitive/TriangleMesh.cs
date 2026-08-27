@@ -7,6 +7,15 @@ using XrMath;
 
 namespace XrEngine
 {
+
+    public enum MeshCompressionMode
+    {
+        Auto,
+        Never,
+        Always
+    }
+
+
     public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds, ICompressedVertexSource
     {
         protected readonly ObservableCollection<Material> _materials;
@@ -22,7 +31,7 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
             InstanceCount = 1;
-            CompVertexType = typeof(CompVertexData);
+
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -115,6 +124,7 @@ namespace XrEngine
                 foreach (var item in e.NewItems.Cast<Material>())
                     item.Attach(this);
 
+
                 NotifyChanged(new ObjectChange(ChangeType.MateriaAdd, e.NewItems));
             }
         }
@@ -132,6 +142,9 @@ namespace XrEngine
                 foreach (var material in _materials)
                     material.Attach(this);
             }
+
+            if (change.IsAny(ChangeType.Material, ChangeType.Geometry))
+                UpdateCompression();
 
             base.OnChanged(change);
         }
@@ -198,70 +211,75 @@ namespace XrEngine
             IBuf = indices;
         }
 
+        protected void UpdateCompression()
+        {
+            if (_geometry == null)
+                return;
+
+            var oldVertComp = CompVertexType;
+            var oldIndexComp = CompIndexType;
+
+            bool compressIndices = true;
+
+            if (CompressionMode == MeshCompressionMode.Always)
+            {
+                CompVertexType = typeof(CompVertexData);
+            }
+            else if (CompressionMode == MeshCompressionMode.Never || _geometry.Vertices.Length < 128)
+            {
+                CompVertexType = null; 
+                CompIndexType = null;
+                compressIndices = false;
+            }
+            else
+            {
+                if (Materials.Any(a => a.IsEnabled && (a.UseMorph || a.UseSkin)))
+                    CompVertexType = null;
+                else
+                    CompVertexType = typeof(CompVertexData);
+            }
+
+            if (compressIndices)
+            {
+                if (_geometry.Indices.Length > 0 && _geometry.Vertices.Length <= byte.MaxValue + 1)
+                    CompIndexType = typeof(byte);
+                else if (_geometry.Indices.Length > 0 && _geometry.Vertices.Length <= ushort.MaxValue + 1)
+                    CompIndexType = typeof(ushort);
+                else
+                    CompIndexType = null;
+            }
+
+            if (oldIndexComp != CompIndexType || oldVertComp != CompVertexType)
+            {
+                if (_geometry.IsGpuLoaded)
+                    throw new InvalidOperationException();
+                _geometry.Invalidate();
+            }
+        }
+
         unsafe void ICompressedVertexSource.CompressVertices(void* pSrc, void* pDst, int count)
         {
             Debug.Assert(_geometry != null);
 
+            _geometry.EnsureId();
+
+            Log.Debug(this, "Compress Mesh '{0}', geo '{1}'", (Name ?? GetType().Name), _geometry.Id);
+
+#if DEBUG
+            if (Materials.Any(a => a.UseMorph || a.UseSkin))
+                throw new NotSupportedException();
+#endif
+
             if (CompVertexType == typeof(CompVertexData))
             {
-                var src = (VertexData*)pSrc;
-                var dst = (CompVertexData*)pDst;
 
-                var min = LocalBounds.Min;
-                var size = LocalBounds.Max - min;
-                var invSize = new Vector3(
-                    size.X != 0 ? 1f / size.X : 0,
-                    size.Y != 0 ? 1f / size.Y : 0,
-                    size.Z != 0 ? 1f / size.Z : 0);
+                var bounds = LocalBounds;
+                var size = bounds.Max - bounds.Min;
 
-                _geometry.VerticesRemap = Matrix4x4.CreateScale(size) * Matrix4x4.CreateTranslation(min);
+                _geometry.VerticesRemap = Matrix4x4.CreateScale(size) * 
+                                          Matrix4x4.CreateTranslation(bounds.Min);
 
-                var activeComponents = _geometry.ActiveComponents;
-
-                for (var i = 0; i < count; i++)
-                {
-                    if ((activeComponents & VertexComponent.Position) != 0)
-                    {
-                        var pos = (src[i].Pos - min) * invSize;
-
-                        dst[i].Pos = new Vector3<ushort>(
-                            (ushort)MathF.Round(Math.Clamp(pos.X, 0, 1) * ushort.MaxValue),
-                            (ushort)MathF.Round(Math.Clamp(pos.Y, 0, 1) * ushort.MaxValue),
-                            (ushort)MathF.Round(Math.Clamp(pos.Z, 0, 1) * ushort.MaxValue));
-                    }
-
-                    if ((activeComponents & VertexComponent.Normal) != 0)
-                    {
-                        dst[i].Normal = new Vector3<short>(
-                            (short)MathF.Round(src[i].Normal.X * short.MaxValue),
-                            (short)MathF.Round(src[i].Normal.Y * short.MaxValue),
-                            (short)MathF.Round(src[i].Normal.Z * short.MaxValue));
-                    }
-
-                    if ((activeComponents & VertexComponent.UV0) != 0)
-                    {
-                        dst[i].UV = new Vector2<Half>(
-                            (Half)src[i].UV.X,
-                            (Half)src[i].UV.Y);
-                    }
-
-                    if ((activeComponents & VertexComponent.UV1) != 0)
-                    {
-                        dst[i].UV1 = new Vector2<Half>(
-                            (Half)src[i].UV1.X,
-                            (Half)src[i].UV1.Y);
-                    }
-
-                    if ((activeComponents & VertexComponent.Tangent) != 0)
-                    {
-                        dst[i].Tangent = new Vector4<short>(
-                            (short)MathF.Round(src[i].Tangent.X * short.MaxValue),
-                            (short)MathF.Round(src[i].Tangent.Y * short.MaxValue),
-                            (short)MathF.Round(src[i].Tangent.Z * short.MaxValue),
-                            (short)MathF.Round(src[i].Tangent.W * short.MaxValue));
-                    }
-                }
-
+                EngineNativeLib.CompressVertices(pSrc, pDst, count, _geometry.ActiveComponents, bounds);
                 return;
             }
 
@@ -270,25 +288,15 @@ namespace XrEngine
 
         unsafe void ICompressedVertexSource.CompressIndices(void* pSrc, void* pDst, int count)
         {
-            var src = (uint*)pSrc;
-
             if (CompIndexType == typeof(ushort))
             {
-                var dst = (ushort*)pDst;
-
-                for (var i = 0; i < count; i++)
-                    dst[i] = (ushort)src[i];
-
+                EngineNativeLib.CompressIndices16(pSrc, pDst, count);
                 return;
             }
 
             if (CompIndexType == typeof(byte))
             {
-                var dst = (byte*)pDst;
-
-                for (var i = 0; i < count; i++)
-                    dst[i] = (byte)src[i];
-
+                EngineNativeLib.CompressIndices8(pSrc, pDst, count);
                 return;
             }
 
@@ -313,13 +321,13 @@ namespace XrEngine
                 if (_geometry == value)
                     return;
 
-                if (_geometry != null)
-                    _geometry.Detach(this);
+                _geometry?.Detach(this);
 
                 _geometry = value;
 
-                if (_geometry != null)
-                    _geometry.Attach(this);
+                _geometry?.Attach(this);
+
+                UpdateCompression();
 
                 InvalidateLocalBounds();
 
@@ -348,6 +356,8 @@ namespace XrEngine
         public Type? CompVertexType { get; set; }
 
         public Type? CompIndexType { get; set; }
+
+        public MeshCompressionMode CompressionMode { get; set; }
 
         #region IVertexSource
 

@@ -79,6 +79,7 @@ namespace XrEngine
 
         public EnvironmentView()
         {
+            CompressionMode = MeshCompressionMode.Never;
             Geometry = CubeGeometry;
             Materials.Add(new EnvViewMaterial() { });
         }

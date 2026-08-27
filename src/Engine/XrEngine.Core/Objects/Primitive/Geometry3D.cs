@@ -10,6 +10,7 @@ namespace XrEngine
         protected HashSet<EngineObject> _hosts = [];
         protected VertexData[] _vertices;
         protected uint[] _indices;
+        private bool _isGpuLoaded;
 
         public Geometry3D()
         {
@@ -112,6 +113,8 @@ namespace XrEngine
 
         public virtual void NotifyLoaded()
         {
+            _isGpuLoaded = true;
+
             if (!this.Is(EngineObjectFlags.GpuOnly))
                 return;
 
@@ -171,8 +174,11 @@ namespace XrEngine
             set => _vertices = value;
         }
 
+        public bool IsGpuLoaded => _isGpuLoaded;
+
         public DrawPrimitive Primitive { get; set; }
 
         public Matrix4x4 VerticesRemap { get; set; }
+
     }
 }

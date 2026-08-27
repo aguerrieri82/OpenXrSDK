@@ -24,6 +24,9 @@
 	#define HAS_SSE2 0
 #endif
 
+#ifdef _MSC_VER
+	#include <immintrin.h>
+#endif
 
 #include <iostream>
 #include <complex>
@@ -37,6 +40,7 @@
 
 #include "Config.h"
 #include "XrMath.h"
+#include "Structs.h"
 #include "renderdoc_app.h"
 #include "MeshVoxelizer.h"
 #include "VoxelLightBaker.h"
