@@ -1,4 +1,5 @@
 ﻿using System.Web;
+using XrEngine.Animation;
 
 namespace XrEngine.Gltf
 {
@@ -15,7 +16,7 @@ namespace XrEngine.Gltf
 
         GltfAssetLoader() { }
 
-        protected string GetFilePath(Uri uri)
+        protected static string GetFilePath(Uri uri)
         {
             if (uri.Scheme == "res" && uri.Host == "asset")
                 return Context.Require<IAssetStore>().GetPath(uri.LocalPath);
@@ -42,9 +43,24 @@ namespace XrEngine.Gltf
                     assetType = MaterialFactory.DefaultPbr;
                     return true;
                 }
-                if (seg == "/mesh")
+                if (seg == "/mesh" || seg == "/node")
                 {
                     assetType = typeof(Object3D);
+                    return true;
+                }
+                if (seg == "/scene")
+                {
+                    assetType = typeof(Group3D);
+                    return true;
+                }
+                if (seg == "/light")
+                {
+                    assetType = typeof(Light);
+                    return true;
+                }
+                if (seg == "/anim")
+                {
+                    assetType = typeof(AnimationGroup);
                     return true;
                 }
             }
@@ -103,7 +119,7 @@ namespace XrEngine.Gltf
                         break;
                     case "geo":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
+                        var pIndex = int.Parse(uri.Segments[2].TrimEnd('/'));
                         var mesh = cache.Loader!.Model!.Meshes[meshId];
                         result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj);
                         break;
@@ -126,7 +142,7 @@ namespace XrEngine.Gltf
                 result.AddComponent(new AssetSource
                 {
                     Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
-                            GltfAssetLoader.Instance,
+                            Instance,
                             Path.GetFileName(uri.ToString())!,
                             typeof(Group3D),
                             uri,

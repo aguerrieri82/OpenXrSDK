@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.Animation
 {
-    public abstract class BaseValueAnimation<TValue> : IAnimation
+    public abstract class BaseValueAnimation<TValue> : EngineObject, IAnimation
     {
         static ValueHandlerRegistry? _registry;
 

@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using XrEngine.Animation;
 using XrEngine.Components;
+using XrEngine.Helpers;
 using XrMath;
 using static glTFLoader.Schema.AnimationSampler;
 using static glTFLoader.Schema.Material;
@@ -27,27 +28,30 @@ namespace XrEngine.Gltf
             PropertyNameCaseInsensitive = true
         };
 
+        static MethodInfo? _convertBufGen;
+
         GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
         KHR_lights_punctual? _lightsRoot;
 
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<Image, TextureData> _images = [];
-        readonly ConcurrentDictionary<Image, LoadTask<Texture2D>> _textures = [];
+        readonly ConcurrentDictionary<ulong, LoadTask<Texture2D>> _textures = [];
         readonly Dictionary<Mesh, Object3D> _meshes = [];
         readonly List<Task> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
-
         readonly Dictionary<int, Object3D> _nodes = [];
-
+        readonly Dictionary<Object3D, int> _objects = [];
         readonly Dictionary<int, GltfSkin> _skins = [];
+        readonly HashSet<Object3D> _animTargets = [];
+        HashSet<int>? _animNodeIds;
+        HashSet<int>? _jointNodesIds;
         MaterialVariantsHost? _variants;
-
         string? _basePath;
         string? _filePath;
-        private MethodInfo? _convertBufGen;
+
 
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
@@ -305,6 +309,31 @@ namespace XrEngine.Gltf
             return null;
         }
 
+        protected ulong TextureCacheKey(int imageId, Sampler? sampler)
+        {
+            var hash = HashBuilder.Instance;
+
+            hash.Reset();
+            hash.Add(imageId);
+
+            if (sampler != null)
+            {
+                hash.Add((int)sampler.WrapS);
+                hash.Add((int)sampler.WrapT);
+                hash.Add((int)(sampler.MagFilter ?? Sampler.MagFilterEnum.LINEAR));
+                hash.Add((int)(sampler.MinFilter ?? Sampler.MinFilterEnum.LINEAR));
+            }
+            else
+            {
+                hash.Add((int)WrapMode.Repeat);
+                hash.Add((int)WrapMode.Repeat);
+                hash.Add((int)ScaleFilter.Linear);
+                hash.Add((int)ScaleFilter.Linear);
+            }
+
+            return hash.Value();
+        }
+
         protected TextureData ProcessImage(int imgId, bool useSrgb = false)
         {
             var img = _model!.Images[imgId];
@@ -381,7 +410,9 @@ namespace XrEngine.Gltf
 
         public LoadTask<Texture2D> ProcessTextureTask(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
         {
-            var texture = _model!.Textures[texId];
+            Debug.Assert(_model != null);
+
+            var texture = _model.Textures[texId];
 
             CheckExtensions(texture.Extensions);
 
@@ -391,13 +422,27 @@ namespace XrEngine.Gltf
 
             var source = basisu?.source ?? webP?.source ?? texture.Source;
 
-            var imageInfo = _model!.Images[source!.Value];
+            var imageInfo = _model.Images[source!.Value];
 
-            return _textures.GetOrAdd(imageInfo, img =>
+            Sampler? sampler = null;
+
+            if (texture.Sampler != null)
             {
-                Debug.Assert(result == null);
+                sampler = _model.Samplers[texture.Sampler.Value];
+                CheckExtensions(sampler.Extensions);
+            }
 
-                var texResult = new Texture2D();
+            var cacheKey = TextureCacheKey(source.Value, sampler);
+
+            if (result != null)
+            {
+                if (_textures.TryRemove(cacheKey, out var curCacheTask))
+                    Debug.Assert(curCacheTask.Result == result);
+            }
+   
+            return _textures.GetOrAdd(cacheKey, img =>
+            {
+                var texResult = result ?? new Texture2D();
 
                 texResult.Flags |= EngineObjectFlags.Readonly;
 
@@ -409,15 +454,14 @@ namespace XrEngine.Gltf
                 {
                     var data = ProcessImage(source.Value, useSrgb);
 
+                    AssignAsset(texResult, "img", source.Value);
+
                     texResult.LoadData([data]);
 
                     var hasMinFilter = false;
 
-                    if (texture.Sampler != null)
+                    if (sampler != null)
                     {
-                        var sampler = _model!.Samplers[texture.Sampler.Value];
-                        CheckExtensions(sampler.Extensions);
-
                         texResult.WrapS = (WrapMode)sampler.WrapS;
                         texResult.WrapT = (WrapMode)sampler.WrapT;
 
@@ -1217,7 +1261,7 @@ namespace XrEngine.Gltf
 
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
-            var pIndex = 0;
+            var primId = 0;
 
             foreach (var primitive in gltMesh.Primitives)
             {
@@ -1228,7 +1272,7 @@ namespace XrEngine.Gltf
 
                 if (node?.Skin != null)
                 {
-                    var skin = _skins[node.Skin.Value];
+                    var skin = ProcessSkin(node.Skin.Value);
 
                     curMesh.AddComponent(new MeshSkin()
                     {
@@ -1253,7 +1297,7 @@ namespace XrEngine.Gltf
                 {
                     ProcessPrimitive(primitive, curMesh.Geometry);
 
-                    AssignAsset(curMesh.Geometry, gltMesh.Name, "geo", meshId, pIndex);
+                    AssignAsset(curMesh.Geometry, "geo", meshId, primId);
 
                     curMesh.NotifyChanged(ChangeType.Geometry);
 
@@ -1268,7 +1312,6 @@ namespace XrEngine.Gltf
                     mat.UseSkin = node?.Skin != null;
                     mat.UseMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
-
                 }
 
                 var matVar = TryLoadExtension<KHR_materials_variants>(primitive.Extensions);
@@ -1296,21 +1339,25 @@ namespace XrEngine.Gltf
 
                 if (group == null)
                 {
+                    AssignAsset(curMesh, "mesh", meshId);
+
                     _meshes[gltMesh] = curMesh;
-                    GenerateId(curMesh, "mesh", meshId);
+
                     return curMesh;
                 }
 
                 group.AddChild(curMesh);
+
+                primId++;
             }
 
-            pIndex++;
+            Debug.Assert(group != null);
 
-            _meshes[gltMesh] = group!;
+            _meshes[gltMesh] = group;
 
-            GenerateId(group!, "mesh", meshId);
+            AssignAsset(group, "mesh", meshId);
 
-            return group!;
+            return group;
         }
 
         protected Camera ProcessCamera(int cameraId)
@@ -1348,19 +1395,45 @@ namespace XrEngine.Gltf
 
                 return cameraObj;
             }
-
         }
 
-        protected Object3D ProcessNode(int nodeId, Group3D? curGrp, bool isJoint)
+        protected Object3D Flattern(Object3D obj3d, int nodeId)
         {
+            Object3D curObj = obj3d;
+
+            while (true)
+            {
+                if (curObj is Group3D grp &&
+                    grp.Children.Count == 1 &&
+                    grp.Transform.Matrix.IsIdentity &&
+                    !_animNodeIds!.Contains(nodeId) &&
+                    !_animTargets.Contains(curObj))
+                {
+                    curObj = grp.Children[0];
+
+                    if (!_objects.TryGetValue(curObj, out nodeId))
+                        nodeId = -1;
+                }
+                else
+                    break;
+            }
+
+            return curObj;
+        }
+
+        protected Object3D ProcessNode(int nodeId, Group3D? curGrp)
+        {
+            Debug.Assert(_model != null);
+
             if (_nodes.TryGetValue(nodeId, out var nodeObj))
             {
                 if (nodeObj.Parent == null)
                     curGrp?.AddChild(nodeObj);
+
                 return nodeObj;
             }
 
-            var node = _model!.Nodes[nodeId];
+            var node = _model.Nodes[nodeId];
 
             CheckExtensions(node.Extensions);
 
@@ -1369,6 +1442,8 @@ namespace XrEngine.Gltf
             var vis = TryLoadExtension<KHR_node_visibility>(node.Extensions);
 
             Group3D? nodeGrp = null;
+
+            var isJoint = _jointNodesIds!.Contains(nodeId);
 
             if (isJoint || (node.Children != null && node.Children.Length > 0))
             {
@@ -1382,9 +1457,13 @@ namespace XrEngine.Gltf
 
                 Debug.Assert(_lightsRoot?.lights != null);
 
-                var light = _lightsRoot.Value.lights[puntual.Value.light.Value];
+                var lightId = puntual.Value.light.Value;
+
+                var light = _lightsRoot.Value.lights[lightId];
 
                 nodeObj = ProcessLight(light);
+
+                AssignAsset(nodeObj, "light", lightId);
             }
 
             else if (node.Mesh != null)
@@ -1410,7 +1489,7 @@ namespace XrEngine.Gltf
             if (nodeGrp != null && node.Children != null)
             {
                 foreach (var childNode in node.Children)
-                    ProcessNode(childNode, nodeGrp, isJoint);
+                    ProcessNode(childNode, nodeGrp);
             }
 
             nodeObj!.Name = node.Name;
@@ -1440,10 +1519,10 @@ namespace XrEngine.Gltf
 
             nodeObj.Transform.Update();
 
-            if (nodeGrp != null && nodeGrp.Children.Count == 1 && nodeGrp.WorldMatrix.IsIdentity)
-                nodeObj = nodeGrp.Children[0];
+            if (!isJoint)
+                nodeObj = Flattern(nodeObj, nodeId);
 
-            //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
+            AssignAsset(nodeObj, "node", nodeId);
 
             if (nodeObj is DirectionalLight dir)
                 dir.Direction = nodeObj.Forward;
@@ -1455,9 +1534,9 @@ namespace XrEngine.Gltf
 
             curGrp?.AddChild(nodeObj);
 
-            GenerateId(nodeObj, "node", nodeId);
-
             _nodes[nodeId] = nodeObj;
+
+            _objects.TryAdd(nodeObj, nodeId);
 
             return nodeObj;
         }
@@ -1508,11 +1587,16 @@ namespace XrEngine.Gltf
 
         protected GltfSkin ProcessSkin(int skinId)
         {
-            var skin = _model!.Skins[skinId];
+            if (_skins.TryGetValue(skinId, out var skinObj))
+                return skinObj;
+
+            Debug.Assert(_model != null);
+
+            var skin = _model.Skins[skinId];
 
             CheckExtensions(skin.Extensions);
 
-            var skinObj = new GltfSkin
+            skinObj = new GltfSkin
             {
                 Joints = [],
                 Id = Guid.NewGuid()
@@ -1528,7 +1612,7 @@ namespace XrEngine.Gltf
 
             foreach (var joint in skin.Joints)
             {
-                var jointObj = (Joint3D)ProcessNode(joint, null, true);
+                var jointObj = (Joint3D)ProcessNode(joint, null);
 
                 skinObj.Joints.Add(jointObj);
             }
@@ -1543,8 +1627,10 @@ namespace XrEngine.Gltf
             return skinObj;
         }
 
-        protected void ProcessAnimation(glTFLoader.Schema.Animation anim, Object3D root)
+        protected AnimationGroup ProcessAnimation(int animId)
         {
+            var anim = _model!.Animations[animId];
+
             Debug.Assert(_model != null);
 
             CheckExtensions(anim.Extensions);
@@ -1597,6 +1683,8 @@ namespace XrEngine.Gltf
                 Name = anim.Name,
             };
 
+            AssignAsset(group, "anim", animId);
+
             foreach (var channel in anim.Channels)
             {
                 CheckExtensions(channel.Extensions);
@@ -1608,6 +1696,8 @@ namespace XrEngine.Gltf
                 var sampler = samplers[channel.Sampler];
                 var obj3d = _nodes[channel.Target.Node.Value];
                 var path = channel.Target.Path;
+
+                _animTargets.Add(obj3d);
 
                 Debug.Assert(sampler.Values != null);
 
@@ -1688,10 +1778,7 @@ namespace XrEngine.Gltf
                     throw new NotSupportedException();
             }
 
-            if (!root.TryComponent<AnimationsHost>(out var animHost))
-                animHost = root.AddComponent<AnimationsHost>();
-
-            animHost.AddAnimation(group);
+            return group;
         }
 
         protected void ProcessVariants()
@@ -1711,21 +1798,35 @@ namespace XrEngine.Gltf
             );
         }
 
-        protected void ProcessAnimations(Object3D root)
+        protected List<AnimationGroup> ProcessAnimations()
         {
-            if (_model?.Animations == null)
-                return;
+            Debug.Assert(_model != null);
 
+            if (_model.Animations == null)
+                return [];
+
+            var result = new List<AnimationGroup>();
+
+            int animId = 0;
             foreach (var anim in _model.Animations)
-                ProcessAnimation(anim, root);
+            {
+                result.Add(ProcessAnimation(animId));
+                animId++;
+            }
+
+            return result;
         }
 
-        protected Group3D ProcessScene(Scene glScene)
+        protected Group3D ProcessScene(int sceneId)
         {
+            var glScene = _model!.Scenes[sceneId];
+
             var scene = new Group3D();
+            
+            AssignAsset(scene, "scene", sceneId);
 
             foreach (var nodeId in glScene.Nodes)
-                ProcessNode(nodeId, scene, false);
+                ProcessNode(nodeId, scene);
 
             return scene;
         }
@@ -1740,6 +1841,10 @@ namespace XrEngine.Gltf
             _textures.Clear();
             _skins.Clear();
             _nodes.Clear();
+            _jointNodesIds?.Clear();
+            _animNodeIds?.Clear();
+            _animTargets.Clear();
+            _objects.Clear();
 
             GC.SuppressFinalize(this);
         }
@@ -1757,51 +1862,65 @@ namespace XrEngine.Gltf
         public Object3D Load(string filePath, GltfLoaderOptions options)
         {
             LoadModel(filePath, options);
+            
             var result = LoadScene();
+            
             ExecuteLoadTasks();
+
             if (string.IsNullOrWhiteSpace(result.Name))
                 result.Name = Path.GetFileNameWithoutExtension(filePath);
+
             return result;
         }
 
         public Object3D LoadScene()
         {
-            var root = new Group3D();
+            Debug.Assert(_model != null);
 
-            if (_model!.Skins != null)
-            {
-                for (var i = 0; i < _model.Skins.Length; i++)
-                    ProcessSkin(i);
-            }
+            var root = new Group3D();
 
             ProcessVariants();
 
-            foreach (var scene in _model!.Scenes)
-                root.AddChild(ProcessScene(scene));
+            _jointNodesIds =_model.Skins?.SelectMany(a => a.Joints).ToHashSet() ?? [];
 
-            Object3D curRoot = root;
+            _animNodeIds = _model.Animations?
+                .SelectMany(a => a.Channels)
+                .Where(a => a.Target.Node != null)
+                .Select(a => a.Target.Node!.Value)
+                .ToHashSet() ?? [];
 
-            while (true)
+            int sceneId = 0;
+
+            foreach (var scene in _model.Scenes)
             {
-                if (curRoot is Group3D grp && grp.Children.Count == 1 && grp.WorldMatrix.IsIdentity)
-                    curRoot = grp.Children[0];
-                else
-                    break;
+                root.AddChild(ProcessScene(sceneId));
+                sceneId++;
             }
 
-            ProcessAnimations(curRoot);
+            var animations = ProcessAnimations();
+
+            var curRoot = Flattern(root, -1);
+
+            if (animations.Count > 0)
+            {
+                if (!curRoot.TryComponent<AnimationsHost>(out var animHost))
+                    animHost = curRoot.AddComponent<AnimationsHost>();
+
+                foreach (var anim in animations)
+                    animHost.AddAnimation(anim);
+            }
 
             if (_variants != null)
                 curRoot.AddComponent(_variants);
 
-            Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
+            Log.Info(this, "GLFT scene loaded '{0}'", _filePath);
 
             return curRoot;
         }
 
         public void ExecuteLoadTasks()
         {
-            Task.WaitAll(_tasks.ToArray());
+            Task.WaitAll([.. _tasks]);
 
             _tasks.Clear();
         }
@@ -1816,17 +1935,19 @@ namespace XrEngine.Gltf
 
         protected void AssignAsset<T>(T obj, string name, params object[] parts) where T : EngineObject
         {
+            obj.EnsureId();
+
             obj.AddComponent(new AssetSource
             {
                 Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
                     GltfAssetLoader.Instance,
                     name,
                     typeof(T),
-                    new Uri("res://gltf/" + string.Join('/', parts) + "?src=" + _filePath),
+                    new Uri($"res://gltf/{name}/{string.Join('/', parts)}?src={_filePath}"),
                     _options)
             });
 
-            GenerateId(obj, parts);
+            //GenerateId(obj, parts);
         }
 
         public static Object3D LoadFile(string filePath)

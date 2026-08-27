@@ -6,7 +6,7 @@
         Sequential
     }
 
-    public class AnimationGroup : IAnimation
+    public class AnimationGroup : EngineObject, IAnimation
     {
         #region Control
 
