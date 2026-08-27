@@ -49,3 +49,6 @@
 [submodule "third-party/bcdec"]
 	path = third-party/bcdec
 	url = https://github.com/iOrange/bcdec.git
+[submodule "third-party/basis_universal"]
+	path = third-party/basis_universal
+	url = https://github.com/BinomialLLC/basis_universal.git

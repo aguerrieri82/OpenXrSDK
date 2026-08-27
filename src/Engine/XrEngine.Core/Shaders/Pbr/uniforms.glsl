@@ -53,6 +53,10 @@ struct MaterialData
 	float ior;
 	float thickness;
 
+	float dispersion;
+
+	float anisotropy;
+	float anisotropyRotation;
 };
 
 #if !defined(VERTEX_SHADER) 

@@ -64,9 +64,29 @@ namespace XrEngine.Gltf
             "KHR_materials_variants",
             "KHR_materials_emissive_strength",
             "KHR_materials_specular",
+            "KHR_materials_dispersion",
+            "KHR_node_visibility",
+            "KHR_materials_anisotropy",
             "KHR_materials_pbrSpecularGlossiness" };
 
         #region STRUCTS
+
+        public struct KHR_materials_anisotropy
+        {
+            public float anisotropyStrength;
+            public float anisotropyRotation;
+            public TextureInfo? anisotropyTexture;
+        }
+
+        public struct KHR_node_visibility
+        {
+            public bool visible;
+        }
+
+        public struct KHR_materials_dispersion
+        {
+            public float dispersion;
+        }
 
         public struct KHR_materials_variants
         {
@@ -371,9 +391,9 @@ namespace XrEngine.Gltf
 
             var basisu = TryLoadExtension<KHR_texture_basisu>(texture.Extensions);
 
-            texture.Source ??= webP?.source ?? basisu?.source;
+            var source = basisu?.source ?? webP?.source ?? texture.Source;
 
-            var imageInfo = _model!.Images[texture.Source!.Value];
+            var imageInfo = _model!.Images[source!.Value];
 
             return _textures.GetOrAdd(imageInfo, img =>
             {
@@ -389,7 +409,7 @@ namespace XrEngine.Gltf
 
                 return Load(texResult, () =>
                 {
-                    var data = ProcessImage(texture.Source!.Value, useSrgb);
+                    var data = ProcessImage(source.Value, useSrgb);
 
                     texResult.LoadData([data]);
 
@@ -487,6 +507,9 @@ namespace XrEngine.Gltf
             var coat = TryLoadExtension<KHR_materials_clearcoat>(gltMat.Extensions);
             var emiStr = TryLoadExtension<KHR_materials_emissive_strength>(gltMat.Extensions);
             var spec = TryLoadExtension<KHR_materials_specular>(gltMat.Extensions);
+            var disp = TryLoadExtension<KHR_materials_dispersion>(gltMat.Extensions);
+            var anis = TryLoadExtension<KHR_materials_anisotropy>(gltMat.Extensions);
+            
 
             result ??= _options.MaterialFactory(matId);
 
@@ -691,6 +714,20 @@ namespace XrEngine.Gltf
                     ApplyMips(result.SpecularColorMap);
                 }
             }
+
+            if (anis != null)
+            {
+                result.Anisotropy = anis.Value.anisotropyStrength;
+                result.AnisotropyRotation = anis.Value.anisotropyRotation;
+                if (anis.Value.anisotropyTexture != null)
+                {
+                    var texInfo = anis.Value.anisotropyTexture;
+                    result.AnisotropyMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.AnisotropyMap);
+                }
+            }
+
+            result.Dispersion = disp?.dispersion ?? 0;
 
             AssignAsset(result, "mat", matId);
 
@@ -1333,6 +1370,8 @@ namespace XrEngine.Gltf
 
             var puntual = TryLoadExtension<KHR_lights_punctual>(node.Extensions);
 
+            var vis = TryLoadExtension<KHR_node_visibility>(node.Extensions); 
+
             Group3D? nodeGrp = null;
 
             if (isJoint || (node.Children != null && node.Children.Length > 0))
@@ -1414,6 +1453,9 @@ namespace XrEngine.Gltf
                 dir.Direction = nodeObj.Forward;
             else if (nodeObj is SpotLight spot)
                 spot.Direction = nodeObj.Forward;
+
+            if (vis != null && !vis.Value.visible)
+                nodeObj.IsVisible = false;
 
             curGrp?.AddChild(nodeObj);
 

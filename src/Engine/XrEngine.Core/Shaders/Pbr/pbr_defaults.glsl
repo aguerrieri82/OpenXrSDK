@@ -60,6 +60,11 @@
 	layout(binding=THICKNESS_SLOT) uniform sampler2D thicknessTexture;
 #endif
 
+#ifdef USE_ANISOTROPY_MAP
+	layout(binding=ANISOTROPY_SLOT) uniform sampler2D anisotropyTexture;
+#endif
+
+
 vec4 loadBaseColor()
 {
 	#ifdef USE_ALBEDO_MAP
@@ -264,6 +269,34 @@ vec4 loadEmissive()
 		return vec4(0.0);
 	#endif
 }
+
+#ifdef USE_ANISOTROPY
+
+vec3 loadAnisotropy()
+{
+	#ifdef USE_ANISOTROPY_MAP
+
+		#if ANISOTROPY_UV_SET == 1
+			vec2 uv = fUv2;
+		#else
+			vec2 uv = fUv;
+		#endif
+
+		#ifdef ANISOTROPY_UV_TRANSFORM
+			uv = (uTexTransform[ANISOTROPY_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		vec3 value = texture(anisotropyTexture, uv).rgb;
+		value.rg = value.rg * 2.0 - 1.0;
+		value.b *= uMaterial.anisotropy;
+		return value;
+
+	#else
+		return vec3(1.0, 0.0, uMaterial.anisotropy);
+	#endif
+}
+
+#endif
 
 #ifdef USE_VOLUME
 
@@ -588,6 +621,14 @@ FragmentProperties loadFragmentProperties()
 
 	#ifdef USE_VOLUME
 		frag.thickness = loadThickness();
+	#endif
+
+	#ifdef USE_DISPERSION
+		frag.dispersion = uMaterial.dispersion;
+	#endif
+
+	#ifdef USE_ANISOTROPY
+		frag.anisotropy = loadAnisotropy();
 	#endif
 
 	return frag;

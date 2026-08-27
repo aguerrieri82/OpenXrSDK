@@ -192,6 +192,8 @@ namespace XrEngine
                 return;
             if (caller is Geometry3D geo3d && !geo3d.Hosts.OfType<Object3D>().Any(a => a.Scene != null))
                 return;
+            if (caller is Material mat && !mat.Hosts.OfType<Object3D>().Any(a => a.Scene != null))
+                return;
             if (caller is Texture tex)
                 return;
             Debug.Assert(_current?.Dispatcher.Thread == Thread.CurrentThread);
@@ -220,13 +222,13 @@ namespace XrEngine
             set => _renderer = value;
         }
 
-        public IReferenceTime? ReferenceTime { get; set; }
-
         public static EngineApp Current
         {
             set => _current = value;
             get => _current ?? throw new NotSupportedException();
         }
+
+        public IReferenceTime? ReferenceTime { get; set; }
 
         public static bool IsCreated => _current != null;
 

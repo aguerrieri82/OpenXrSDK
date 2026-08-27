@@ -69,7 +69,7 @@ vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, vec3 F0, float fragRoug
 		return reflectionColor.rgb;
 	#endif	
 
-	vec3 fresnelFactor = F0 + (1.0 - F0) * pow(1.0 - cosLo, 5.0);
+	vec3 fresnelFactor = F0 + (1.0 - F0) * pow5(1.0 - cosLo);
 
 	vec3 refFactor = clamp(fresnelFactor * factor, 0.0, 1.0);
 	refFactor = min(vec3(reflectionColor.a), refFactor);

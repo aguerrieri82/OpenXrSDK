@@ -50,7 +50,8 @@ namespace XrEngine
         #endregion
 
         #region MaterialUniforms
-        [StructLayout(LayoutKind.Explicit, Size = 160)]
+       
+        [StructLayout(LayoutKind.Explicit, Size = 176)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -123,8 +124,14 @@ namespace XrEngine
             public float Thickness;
 
             [FieldOffset(152)]
-            public float PlanarReflectionScale;
+            public float Dispersion;
+            [FieldOffset(156)]
+            public float Anisotropy;
+
+            [FieldOffset(160)]
+            public float AnisotropyRotation;
         }
+
         #endregion
 
         #region LightListUniforms
@@ -554,6 +561,9 @@ namespace XrEngine
                     AttenuationDistance = AttenuationDistance == 0 ? float.PositiveInfinity : AttenuationDistance,
                     Ior = Ior,
                     Thickness = Thickness,
+                    Dispersion = Dispersion,
+                    Anisotropy = Anisotropy,
+                    AnisotropyRotation = AnisotropyRotation
                 };
 
             },
@@ -787,6 +797,18 @@ namespace XrEngine
                 }
             }
 
+            if (HasAnisotropy)
+            {
+                bld.AddFeature("USE_ANISOTROPY");
+
+                if (AnisotropyMap != null)
+                {
+                    bld.AddFeature("USE_ANISOTROPY_MAP");
+                    bld.TryAddUvTransform(AnisotropyMap, "ANISOTROPY_UV_TRANSFORM", UV0Transform);
+                    bld.LoadTexture(() => AnisotropyMap, TextureSlots.Anisotropy);
+                }
+            }
+
             if (HasClearCoat)
             {
                 bld.AddFeature("USE_CLEARCOAT");
@@ -928,14 +950,19 @@ namespace XrEngine
                     var modelRect = ctx.PassCamera!.WorldToScreen(ctx.Model.WorldBounds, 
                         ctx.IsMultiView ? -1 : ctx.PassCamera!.ActiveEye, ctx.UseAngle);
 
-                    var result = pack!.Generate(color, modelRect, MetallicRoughnessMap != null ? null : Roughness);
+                    if (modelRect.Width > 0 && modelRect.Height > 0)
+                    {
+                        var result = pack!.Generate(color, modelRect, MetallicRoughnessMap != null ? null : Roughness);
 
-                    result.Layout.Update(ctx, up, result.Texture, 0);
+                        result.Layout.Update(ctx, up, result.Texture, 0);
 
-                    up.LoadTexture(result.Texture, slot);
-
+                        up.LoadTexture(result.Texture, slot);
+                    }
                 });
             }
+
+            if (Dispersion > 0)
+                bld.AddFeature("USE_DISPERSION");
 
             if (Ior != 0)
                 bld.AddFeature("HAS_IOR");
@@ -1086,6 +1113,9 @@ namespace XrEngine
         public float Specular { get; set; }
 
         [Category(Surface)]
+        public float Dispersion { get; set; }
+
+        [Category(Surface)]
         public Color SpecularColor { get; set; }
 
         [Category(Textures)]
@@ -1175,6 +1205,18 @@ namespace XrEngine
 
         [Category(ClearCoat)]
         public float ClearCoatNormalScale { get; set; }
+
+        [Category(Surface)]
+        public float Anisotropy { get; set; }
+
+        [Category(Surface)]
+        [ValueType(ValueType.Radiant)]
+        public float AnisotropyRotation { get; set; }
+
+        [Category(Textures)]
+        public Texture2D AnisotropyMap { get; set; }
+
+        public bool HasAnisotropy => Anisotropy > 0;
 
         public bool HasClearCoat => ClearCoatFactor > 0;
 

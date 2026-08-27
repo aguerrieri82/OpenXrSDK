@@ -20,6 +20,8 @@
         public static readonly ResourceSlot Iridescence = new(nameof(Iridescence));
         public static readonly ResourceSlot IridescenceThickness = new(nameof(IridescenceThickness));
 
+        public static readonly ResourceSlot Anisotropy = new(nameof(Anisotropy));
+
         public static readonly ResourceSlot SheenColor = new(nameof(SheenColor));
         public static readonly ResourceSlot SheenRoughness = new(nameof(SheenRoughness));
 

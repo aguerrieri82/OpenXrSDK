@@ -56,6 +56,12 @@
     <ClCompile Include="LightFieldApi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\third-party\basis_universal\transcoder\basisu_transcoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third-party\basis_universal\zstd\zstddeclib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="android-build.cmd" />

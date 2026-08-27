@@ -12,6 +12,32 @@ enum class BCFormat : int32_t
     BC7 = 7
 };
 
+
+struct BasisImage
+{
+    void* Data;
+    uint32_t Size;
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t Level;
+    uint32_t Layer;
+    uint32_t Face;
+};
+
+struct BasisTexture
+{
+    void* Memory;
+    BasisImage* Images;
+    uint32_t ImageCount;
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t Levels;
+    uint32_t Layers;
+    uint32_t Faces;
+    uint32_t IsSrgb;
+    uint32_t HasAlpha;
+};
+
 extern "C" {
 
 	EXPORT void APIENTRY CopyMemory2(uint8_t* src, uint8_t* dst, uint32_t size);
@@ -79,6 +105,10 @@ extern "C" {
 
 
     EXPORT bool APIENTRY ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, uint8_t* dst);
+
+    EXPORT bool APIENTRY BasisTranscodeKtx2(const void* data, uint32_t size, int format, BasisTexture* result);
+
+    EXPORT void APIENTRY BasisFreeTexture(BasisTexture* texture);
 }
 
 

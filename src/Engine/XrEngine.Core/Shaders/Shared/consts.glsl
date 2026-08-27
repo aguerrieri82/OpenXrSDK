@@ -7,3 +7,11 @@
 #define ALPHA_MAX         (ALPHA_BLEND | 0x40)
 #define ALPHA_PUNCH       (ALPHA_BLEND | 0x80)
 #define ALPHA_OVER        (ALPHA_BLEND | 0x100)
+
+float _pow5(float x)
+{
+	float x2 = x * x;
+	return x2 * x2 * x;
+}
+
+#define pow5(x) pow(x, 5.0)

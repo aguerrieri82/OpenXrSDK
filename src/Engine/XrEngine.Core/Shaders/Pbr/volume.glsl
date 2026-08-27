@@ -66,11 +66,28 @@ vec4 sampleVolume(vec3 position, float roughness)
 
 vec4 sampleVolume(vec3 position, vec3 normal, vec3 viewDir, float thickness, float roughness)
 {
+#ifdef USE_DISPERSION
+	float halfSpread = (uMaterial.ior - 1.0) * 0.025 * uMaterial.dispersion;
+	vec3 iors = vec3(uMaterial.ior - halfSpread, uMaterial.ior, uMaterial.ior + halfSpread);
+
+	vec3 rayR = refract(-viewDir, normal, 1.0 / iors.r) * thickness;
+	vec3 rayG = refract(-viewDir, normal, 1.0 / iors.g) * thickness;
+	vec3 rayB = refract(-viewDir, normal, 1.0 / iors.b) * thickness;
+
+	vec4 colorR = sampleVolumeSource(computeVolumeUv(position, rayR), roughness);
+	vec4 colorG = sampleVolumeSource(computeVolumeUv(position, rayG), roughness);
+	vec4 colorB = sampleVolumeSource(computeVolumeUv(position, rayB), roughness);
+
+	vec4 color = vec4(colorR.r, colorG.g, colorB.b, colorG.a);
+
+	color.rgb *= pow(uMaterial.attenuationColor, vec3(length(rayG) / uMaterial.attenuationDistance));
+#else
 	vec3 ray = refract(-viewDir, normal, 1.0 / uMaterial.ior) * thickness;
 
 	vec4 color = sampleVolumeSource(computeVolumeUv(position, ray), roughness);
 
 	color.rgb *= pow(uMaterial.attenuationColor, vec3(length(ray) / uMaterial.attenuationDistance));
+#endif
 
 	return color;
 }

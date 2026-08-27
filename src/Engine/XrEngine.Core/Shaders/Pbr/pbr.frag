@@ -6,7 +6,7 @@
 #define TM_TEXTURE     3
 
 
-#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP)) && defined(HAS_TANGENTS) 
+#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY)) && defined(HAS_TANGENTS) 
 	#define HAS_TANGENT_BASIS
 	in mat3 fTangentBasis;
 #endif
@@ -45,6 +45,10 @@
 
 #ifdef USE_CLEARCOAT
 	#include "clearcoat.glsl"
+#endif
+
+#ifdef USE_ANISOTROPY
+	#include "anisotropy.glsl"
 #endif
 
 
@@ -162,6 +166,10 @@ struct FragmentProperties
 	vec3 specularColor;
 
 	float thickness;
+
+	float dispersion;
+
+	vec3 anisotropy;
 };
 
 struct LightingProperties
@@ -172,6 +180,8 @@ struct LightingProperties
 	vec3 dielectricF0Mixed;
 	float transmissionRoughnessScale;
 	float clearCoatSurfaceWeight;
+	vec3 anisotropicT;
+	vec3 anisotropicB;
 };
 
 FragmentProperties frag;
@@ -243,17 +253,13 @@ float geometrySmith(float NoL, float NoV, float roughness)
 
 vec3 fresnelSchlick(vec3 F0, float cosTheta)
 {
-	float x = 1.0 - saturate(cosTheta);
-	float x2 = x * x;
-	float f = x * x2 * x2;
+	float f = pow5(1.0 - saturate(cosTheta));
 	return F0 + (vec3(1.0) - F0) * f;
 }
 
 vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 {
-	float x = 1.0 - saturate(cosTheta);
-	float x2 = x * x;
-	float f = x * x2 * x2;
+	float f = pow5(1.0 - saturate(cosTheta));
 	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * f;
 }
 
@@ -294,9 +300,42 @@ vec3 evaluateDirectLight(vec3 L, vec3 radiance)
 		vec3 kd = (vec3(1.0) - F) * (1.0 - frag.metalness);
 	#endif
 
-	float D = distributionGGX(NoH, frag.roughness);
-	float G = geometrySmith(NoL, lighting.NoV, frag.roughness);
-	float specularTerm = (D * G) / max(Epsilon, 4.0 * NoL * lighting.NoV);
+	float specularTerm;
+
+	#ifdef USE_ANISOTROPY
+
+		if (frag.anisotropy.b > 0.0)
+		{
+			float ToV = dot(lighting.anisotropicT, frag.viewDir);
+			float BoV = dot(lighting.anisotropicB, frag.viewDir);
+			float ToL = dot(lighting.anisotropicT, L);
+			float BoL = dot(lighting.anisotropicB, L);
+			float ToH = dot(lighting.anisotropicT, H);
+			float BoH = dot(lighting.anisotropicB, H);
+
+			float alphaRoughness = square(max(frag.roughness, PBR_MIN_ROUGHNESS));
+			float at = mix(alphaRoughness, 1.0, frag.anisotropy.b * frag.anisotropy.b);
+			float ab = alphaRoughness;
+
+			float D = distributionGGXAnisotropic(NoH, ToH, BoH, at, ab);
+			float Vis = visibilityGGXAnisotropic(NoL, lighting.NoV, BoV, ToV, ToL, BoL, at, ab);
+
+			specularTerm = D * Vis;
+		}
+		else
+		{
+			float D = distributionGGX(NoH, frag.roughness);
+			float G = geometrySmith(NoL, lighting.NoV, frag.roughness);
+			specularTerm = (D * G) / max(Epsilon, 4.0 * NoL * lighting.NoV);
+		}
+
+	#else
+
+		float D = distributionGGX(NoH, frag.roughness);
+		float G = geometrySmith(NoL, lighting.NoV, frag.roughness);
+		specularTerm = (D * G) / max(Epsilon, 4.0 * NoL * lighting.NoV);
+
+	#endif
 
 	#if PBR_USE_PHYSICAL_DIRECT_DIFFUSE
 		vec3 diffuseBRDF = kd * frag.albedo * (1.0 / PI);
@@ -646,7 +685,22 @@ vec3 evaluateAmbientLighting(out vec3 clearCoatLighting)
 			diffuseIBL *= 1.0 - frag.transmission;
 		#endif
 
-		vec3 specularVec = iblDirection(lighting.reflectionDir);
+		vec3 reflectionVec = iblDirection(lighting.reflectionDir);
+		vec3 specularVec = reflectionVec;
+
+		#ifdef USE_ANISOTROPY
+			if (frag.anisotropy.b > 0.0)
+			{
+				vec3 anisotropicReflection = getAnisotropicReflection(
+					frag.normal,
+					lighting.anisotropicB,
+					frag.viewDir,
+					frag.roughness,
+					frag.anisotropy.b);
+
+				specularVec = iblDirection(anisotropicReflection);
+			}
+		#endif
 
 		vec3 specularIrradiance = textureLod(
 			specularEnvTexture,
@@ -688,7 +742,7 @@ vec3 evaluateAmbientLighting(out vec3 clearCoatLighting)
 				frag.sheenColor,
 				frag.sheenRoughness,
 				lighting.NoV,
-				specularVec,
+				reflectionVec,
 				uIbl.specularTexLevels,
 				uIbl.intensity,
 				sheenScaling);
@@ -769,6 +823,13 @@ void main()
 
 	lighting.NoV = max(abs(dot(N, V)), Epsilon);
 	lighting.reflectionDir = reflect(-V, N);
+
+#ifdef USE_ANISOTROPY
+	vec2 anisotropyDirection = getAnisotropyDirection(frag.anisotropy.rg, uMaterial.anisotropyRotation);
+	lighting.anisotropicT = normalize(fTangentBasis * vec3(anisotropyDirection, 0.0));
+	lighting.anisotropicB = normalize(cross(frag.normalGeo, lighting.anisotropicT));
+#endif
+
 	lighting.dielectricF0 = getDielectricF0();
 	
 #ifndef USE_SPECULAR

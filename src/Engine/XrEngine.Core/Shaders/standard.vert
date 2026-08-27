@@ -15,7 +15,7 @@
     out vec2 fPlanarUv;
 #endif
  
-#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP)) && defined(HAS_TANGENTS) 
+#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY)) && defined(HAS_TANGENTS) 
     #define USE_TANGENTS
 #endif
 

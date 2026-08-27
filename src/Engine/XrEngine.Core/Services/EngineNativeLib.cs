@@ -16,6 +16,87 @@ namespace XrEngine
             Bc7 = 7
         }
 
+        public enum BasisTextureFormat
+        {
+            Etc1Rgb = 0,
+            Etc2Rgba = 1,
+            Bc1Rgb = 2,
+            Bc3Rgba = 3,
+            Bc4R = 4,
+            Bc5Rg = 5,
+            Bc7Rgba = 6,
+
+            Pvrtc1_4Rgb = 8,
+            Pvrtc1_4Rgba = 9,
+
+            AstcLdr4x4Rgba = 10,
+
+            AtcRgb = 11,
+            AtcRgba = 12,
+
+            Rgba32 = 13,
+            Rgb565 = 14,
+            Bgr565 = 15,
+            Rgba4444 = 16,
+
+            Fxt1Rgb = 17,
+            Pvrtc2_4Rgb = 18,
+            Pvrtc2_4Rgba = 19,
+
+            Etc2EacR11 = 20,
+            Etc2EacRg11 = 21,
+
+            Bc6H = 22,
+            AstcHdr4x4Rgba = 23,
+
+            RgbHalf = 24,
+            RgbaHalf = 25,
+            Rgb9E5 = 26,
+
+            AstcHdr6x6Rgba = 27,
+
+            AstcLdr5x4Rgba = 28,
+            AstcLdr5x5Rgba = 29,
+            AstcLdr6x5Rgba = 30,
+            AstcLdr6x6Rgba = 31,
+            AstcLdr8x5Rgba = 32,
+            AstcLdr8x6Rgba = 33,
+            AstcLdr10x5Rgba = 34,
+            AstcLdr10x6Rgba = 35,
+            AstcLdr8x8Rgba = 36,
+            AstcLdr10x8Rgba = 37,
+            AstcLdr10x10Rgba = 38,
+            AstcLdr12x10Rgba = 39,
+            AstcLdr12x12Rgba = 40
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public unsafe struct BasisImage
+        {
+            public void* Data;
+            public uint Size;
+            public uint Width;
+            public uint Height;
+            public uint Level;
+            public uint Layer;
+            public uint Face;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public unsafe struct BasisTexture
+        {
+            public void* Memory;
+            public BasisImage* Images;
+            public uint ImageCount;
+            public uint Width;
+            public uint Height;
+            public uint Levels;
+            public uint Layers;
+            public uint Faces;
+            public uint IsSrgb;
+            public uint HasAlpha;
+        }
+
         const string LibName = "xrengine-native";
 
         [DllImport(LibName)]
@@ -96,6 +177,14 @@ namespace XrEngine
         [DllImport(LibName)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern unsafe bool ImageDecodeBC(byte* src, int width, int height, BcFormat format, byte* dst);
+
+
+        [DllImport(LibName)]
+        public static extern unsafe bool BasisTranscodeKtx2(void* data, uint size, BasisTextureFormat format, out BasisTexture result);
+
+
+        [DllImport(LibName)]
+        public static extern void BasisFreeTexture(ref BasisTexture texture);
 
     }
 }

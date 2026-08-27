@@ -1,7 +1,10 @@
 ﻿#pragma warning disable CS0649
 
+using Common.Interop;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using static XrEngine.EngineNativeLib;
 
 namespace XrEngine
 {
@@ -27,8 +30,8 @@ namespace XrEngine
             public uint dfdByteLength;
             public uint kvdByteOffset;
             public uint kvdByteLength;
-            public uint sgdByteOffset;
-            public uint sgdByteLength;
+            public ulong sgdByteOffset;
+            public ulong sgdByteLength;
         }
 
         public enum CompressionScheme : uint
@@ -41,6 +44,7 @@ namespace XrEngine
 
         public enum VkFormat : uint
         {
+            VK_FORMAT_UNDEFINED = 0,
             VK_FORMAT_R8G8B8_USCALED = 25,
             VK_FORMAT_R8G8B8A8_USCALED = 39,
             VK_FORMAT_R16G16B16A16_SFLOAT = 97,
@@ -57,6 +61,53 @@ namespace XrEngine
             var magic = Encoding.ASCII.GetString(new Span<byte>(header.identifier, 12));
             if (!magic.Contains("KTX 20"))
                 throw new NotSupportedException();
+
+            if (header.vkFormat == VkFormat.VK_FORMAT_UNDEFINED)
+            {
+                seekStream.Position = 0;
+                var data = new byte[seekStream.Length];
+                seekStream.ReadExactly(data);
+                fixed (void* pData = data)
+                {
+                    var targetFormat = OperatingSystem.IsAndroid()
+                        ? BasisTextureFormat.AstcLdr4x4Rgba
+                        : BasisTextureFormat.Rgba32;
+
+                    var result = new List<TextureData>();
+                    
+                    lock (this)
+                    {
+                        BasisTranscodeKtx2(pData, (uint)data.Length, targetFormat, out var basisTexture);
+
+                        Debug.Assert(basisTexture.ImageCount > 0);
+
+                        for (var i = 0; i < basisTexture.ImageCount; i++)
+                        {
+                            var image = basisTexture.Images[i];
+
+                            result.Add(new TextureData
+                            {
+                                Width = image.Width,
+                                Height = image.Height,
+                                Depth = 1,
+                                MipLevel = image.Level,
+                                Layer = image.Layer,
+                                Format = TextureFormat.Rgba8,
+                                Compression = targetFormat == BasisTextureFormat.AstcLdr4x4Rgba
+                                    ? TextureCompressionFormat.Astc
+                                    : TextureCompressionFormat.Uncompressed,
+                                Content = MemoryBuffer.Create(new Span<byte>(image.Data, (int)image.Size)),
+                                BlockSize = 16
+                            });
+                        }
+
+                        BasisFreeTexture(ref basisTexture);
+                    }
+
+                    return result;
+                }
+                    
+            }
 
             if (header.supercompressionScheme != CompressionScheme.None ||
                 header.pixelDepth != 0 ||
@@ -85,7 +136,7 @@ namespace XrEngine
             if (header.sgdByteOffset == 0)
                 seekStream.Position = header.kvdByteOffset + header.kvdByteLength;
             else
-                seekStream.Position = header.sgdByteOffset;
+                seekStream.Position = (int)header.sgdByteOffset;
 
             return ReadData(seekStream, header.pixelWidth, header.pixelHeight, 1, header.levelCount, header.faceCount, comp, format);
         }
