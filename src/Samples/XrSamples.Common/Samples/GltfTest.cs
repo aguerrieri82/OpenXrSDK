@@ -23,7 +23,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("res://asset/Envs/aerodynamics_workshop_4k.hdr")
+                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
                 .ConfigureSampleApp();
         }
     }

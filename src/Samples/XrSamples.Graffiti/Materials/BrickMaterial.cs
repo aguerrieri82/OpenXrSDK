@@ -17,12 +17,13 @@ namespace XrSamples.Graffiti
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            bld.LoadBuffer<BrickUniforms>(ctx =>
+            bld.LoadBuffer<BrickUniforms>((ctx, ref update) =>
             {
                 if (((TriangleMesh)ctx.Model!).Geometry is not BrickGeometry geo)
-                    return null;
+                    return false;
 
-                return BrickUniforms.CreateDefault(geo);
+                update.Value = BrickUniforms.CreateDefault(geo);
+                return true;
 
             }, 15, BufferStore.Material);
 

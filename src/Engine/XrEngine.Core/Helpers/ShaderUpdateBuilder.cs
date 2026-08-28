@@ -147,12 +147,20 @@ namespace XrEngine
         public bool IsMultiView;
     }
 
+    public struct BufferUpdate<T> where T : unmanaged
+    {
+        public T Value;
+    }
+
     public struct ShaderUpdateBuilder : IFeatureList
     {
         private SlotMask _textureSlots;
         private SlotMask _uvTransSlots;
 
         private readonly ShaderUpdate _result;
+
+        public delegate bool BufferUpdateAction<TValue>(UpdateShaderContext ctx, ref BufferUpdate<TValue> value)
+            where TValue : unmanaged;
 
         public delegate TValue UpdateAction<TValue>(UpdateShaderContext ctx);
 
@@ -186,12 +194,14 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot,
+        public readonly void LoadBuffer<T>(BufferUpdateAction<T> getValue, int slot,
             BufferStore store,
             BufferUsage usage = BufferUsage.Uniforms,
-            string? uniformName = null) where T : struct
+            string? uniformName = null) where T : unmanaged
         {
+
             ISimpleBuffer<T>? buffer = null;
+            BufferUpdate<T> update = new();
 
             _result.BufferUpdates ??= [];
 
@@ -209,35 +219,27 @@ namespace XrEngine
 
                 Debug.Assert(buffer != null);
 
-#if GL_WRAPPER
-                buffer.Update(() =>
-                {
-                    ctx.CurrentBuffer = buffer;
-                    var curValue = value(ctx);
-                    ctx.CurrentBuffer = null;
-                    return curValue;
-                });
-#else
                 ctx.CurrentBuffer = buffer;
 
-                var curValue = value(ctx);
-                if (curValue != null)
-                    buffer.Update(curValue.Value);
+                if (getValue(ctx, ref update))
+                    buffer.Update(update.Value);
 
                 ctx.CurrentBuffer = null;
-#endif
             });
 
             _result.Actions.Add((ctx, up) =>
             {
-#warning DANGER, THIS WORKS FOR MODEL STURE ONLY IF BufferUpdates IS RUNNING BEFORE THIS CALL
+#warning DANGER, THIS WORKS FOR MODEL STORE ONLY IF BufferUpdates IS RUNNING BEFORE THIS CALL
                 if (buffer == null)
                     return;
                 up.LoadBuffer(buffer, slot);
             });
         }
 
-        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
+        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, 
+            int slot, BufferStore store, 
+            BufferUsage usage = BufferUsage.Uniforms, Func<UpdateShaderContext, bool>? canLoad = null) 
+            where T : unmanaged
         {
             ISimpleBuffer<T>? buffer = null;
 
@@ -245,6 +247,9 @@ namespace XrEngine
 
             _result.BufferUpdates.Add((ctx) =>
             {
+                if (canLoad != null && !canLoad(ctx))
+                    return;
+
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
                 ctx.CurrentBuffer = buffer;
@@ -258,7 +263,13 @@ namespace XrEngine
 
             _result.Actions.Add((ctx, up) =>
             {
+                if (canLoad != null && !canLoad(ctx))
+                    return;
+
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
+                
+                if (buffer.SizeBytes == 0)
+                    return;
 
                 up.LoadBuffer(buffer, slot);
             });

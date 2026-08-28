@@ -141,6 +141,7 @@ namespace XrEngine.OpenGL
         }
 
         public GlBufferRange<T> GetBufferRange<T>(int bufferId, BufferStore store, string uniformName)
+            where T : unmanaged
         {
             var rangeBuffers = store == BufferStore.Material ? _materialBufferRanges : _modelBufferRanges;
 
@@ -157,6 +158,7 @@ namespace XrEngine.OpenGL
         }
 
         public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = null)
+            where T : unmanaged
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
@@ -165,11 +167,24 @@ namespace XrEngine.OpenGL
 
             if (buffer == null)
             {
-                var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
+                if (usage == BufferUsage.SharedSsbo)
+                {
+                    uniformName ??= $"buf{bufferId}";
 
-                buffer = new GlBuffer<T>(_gl, target);
+                    var range = GetBufferRange<T>(bufferId, store, uniformName);
 
-                _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
+                    var rangeBuf = range.Reserve(Shader);
+
+                    return rangeBuf;
+                }
+                else
+                {
+                    var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
+
+                    buffer = new GlBuffer<T>(_gl, target);
+
+                    _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
+                }
             }
             return buffer;
         }

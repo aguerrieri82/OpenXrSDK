@@ -16,11 +16,11 @@ namespace XrEngine
 
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader)
             {
-                bld.LoadBuffer((ctx) =>
+                bld.LoadBuffer<CameraUniforms>((ctx, ref update) =>
                 {
                     Debug.Assert(ctx.PassCamera != null);
 
-                    var result = new CameraUniforms
+                    update.Value = new CameraUniforms
                     {
                         ViewProj = ctx.PassCamera.ViewProjection,
                         Position = ctx.PassCamera.WorldPosition,
@@ -28,7 +28,7 @@ namespace XrEngine
                         FarPlane = ctx.PassCamera.Far,
                     };
 
-                    return (CameraUniforms?)result;
+                    return true;
 
                 }, UniformsSlots.Camera, BufferStore.Shader);
             }

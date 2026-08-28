@@ -27,6 +27,8 @@
 
     public interface ISimpleBuffer
     {
+        uint SizeBytes { get; }
+
         void Update(object value);
 
         long Version { get; set; }
@@ -36,7 +38,7 @@
 
     public interface ISimpleBuffer<T> : ISimpleBuffer
     {
-        void Update(T value);
+        void Update(in T value);
     }
 
     public interface IBuffer : ISimpleBuffer
@@ -50,8 +52,6 @@
         void Allocate(uint sizeInByte, BufferAllocateFlags flags = BufferAllocateFlags.Mutable);
 
         IBufferLock Lock(BufferAccessMode mode);
-
-        uint SizeBytes { get; }
     }
 
     public interface IBuffer<T> : IBuffer, ISimpleBuffer<T>

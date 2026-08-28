@@ -53,6 +53,7 @@ namespace XrEngine.OpenGL
             SamplerPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
+            UseSharedSsbo = false;
             UseOcclusionQuery = false;
             UseDepthPass = false;
             SortByCameraDistance = true;
@@ -167,6 +168,8 @@ namespace XrEngine.OpenGL
 
         public bool UseShaderCache { get; set; }
 
+        public bool UseSharedSsbo { get; set; }
+
         public bool UseShaderPreprocessor { get; set; }
 
         public bool UseRayCollider { get; set; }
@@ -180,5 +183,6 @@ namespace XrEngine.OpenGL
         public bool UseTransmission { get; set; }
 
         public int RefractionDownsampleFactor { get; set; }
+
     }
 }

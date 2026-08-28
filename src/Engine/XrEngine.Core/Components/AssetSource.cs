@@ -11,6 +11,7 @@
             Asset = asset;
         }
 
+        [Editable]
         public IAsset? Asset { get; set; }
     }
 }

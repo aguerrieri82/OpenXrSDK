@@ -86,7 +86,7 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_MORPH_SSBO");
 
-                bld.LoadBuffer<Vector3>(ctx =>
+                bld.LoadBuffer<Vector3>((ctx, ref update) =>
                 {
                     var buffer = (IBuffer<Vector3>)ctx.CurrentBuffer!;
 
@@ -96,7 +96,7 @@ namespace XrEngine
                         buffer.Version = morphGeo.Host.Version;
                     }
 
-                    return null;
+                    return false; //this is correct as FALSE
 
                 }, BufferSlots.Morph, BufferStore.Model, BufferUsage.SSbo);
             }
@@ -190,12 +190,12 @@ namespace XrEngine
                 offsetsInitialized = true;
             }
 
-            bld.LoadBuffer<MorphUniforms>(ctx =>
+            bld.LoadBuffer<MorphUniforms>((ctx, ref update) =>
             {
                 var curVer = morphGeo.Host!.Version + morphMesh.MorphVersion;
 
                 if (ctx.CurrentBuffer!.Version == curVer)
-                    return null;
+                    return false;
 
                 if (!offsetsInitialized)
                     InitOffsets();
@@ -205,7 +205,9 @@ namespace XrEngine
 
                 ctx.CurrentBuffer.Version = curVer;
 
-                return unif;
+                update.Value = unif;
+
+                return true;
 
             }, UniformsSlots.Morph, BufferStore.Model, BufferUsage.Uniforms);
         }

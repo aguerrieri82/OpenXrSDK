@@ -28,8 +28,7 @@ namespace XrEngine
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
-            bld.LoadBuffer(ctx =>
+            bld.LoadBuffer<ModelUniforms>((ctx, ref update) =>
             {
                 Debug.Assert(ctx.Model != null);
 
@@ -38,7 +37,7 @@ namespace XrEngine
                 var motVectActive = ctx.UseMotionVectors && ctx.MotionVectorProvider?.IsActive == true;
 
                 if (curVersion == ctx.CurrentBuffer!.Version && !motVectActive)
-                    return null;
+                    return false;
 
                 ctx.CurrentBuffer!.Version = curVersion;
 
@@ -47,12 +46,14 @@ namespace XrEngine
                 if (ctx.Model is ICompressedVertexSource cmp)
                     worldMatrix = cmp.VerticesRemap * worldMatrix;
 
-                return (ModelUniforms?)new ModelUniforms
+                update.Value = new ModelUniforms
                 {
                     NormalMatrix = ctx.Model.NormalMatrix,
                     PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? worldMatrix,
                     WorldMatrix = worldMatrix,
                 };
+
+                return true;    
 
             }, UniformsSlots.Model, BufferStore.Model,
                bld.Context.UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
@@ -145,11 +146,11 @@ namespace XrEngine
                 });
             }
 
-            bld.LoadBuffer((ctx) =>
+            bld.LoadBuffer<CameraUniforms>((ctx, ref update) =>
             {
                 Debug.Assert(ctx.PassCamera != null);
 
-                var result = new CameraUniforms
+                update.Value = new CameraUniforms
                 {
                     ViewProj = ctx.PassCamera.ViewProjection,
                     Position = ctx.PassCamera.WorldPosition,
@@ -171,9 +172,9 @@ namespace XrEngine
 
                 var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
                 if (light != null)
-                    result.LightSpaceMatrix = light.Value;
+                    update.Value.LightSpaceMatrix = light.Value;
 
-                return (CameraUniforms?)result;
+                return true;
 
             }, UniformsSlots.Camera, BufferStore.Shader);
 

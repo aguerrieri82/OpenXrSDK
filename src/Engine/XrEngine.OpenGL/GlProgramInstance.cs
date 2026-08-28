@@ -310,14 +310,17 @@ namespace XrEngine.OpenGL
             return program;
         }
 
-        public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = "")
+        public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = null)
+            where T: unmanaged
         {
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store, usage);
 
             if (usage == BufferUsage.SharedSsbo)
             {
-                Debug.Assert(uniformName != null && (_lastModel != null || store == BufferStore.Material));
+                uniformName ??= $"buf{bufferId}";
+
+                Debug.Assert(_lastModel != null || store == BufferStore.Material);
 
                 var range = Global.GetBufferRange<T>(bufferId, store, uniformName);
 

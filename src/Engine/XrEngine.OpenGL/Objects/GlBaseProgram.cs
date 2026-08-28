@@ -456,6 +456,7 @@ namespace XrEngine.OpenGL
         }
 
         public void LoadBuffer<T>(ISimpleBuffer<T> buffer, int slot = 0, BufferUsage usage = BufferUsage.Default)
+            where T : unmanaged
         {
             if (buffer is GlBufferRangeSlot<T> rangeBuf)
             {

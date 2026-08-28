@@ -14,6 +14,7 @@ using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrMath;
+using XrSamples.Dnd;
 
 namespace XrSamples
 {
@@ -68,6 +69,7 @@ namespace XrSamples
 
                     .SetGlOptions(opt =>
                     {
+                        opt.UseSharedSsbo = false;
                         opt.UseAsyncShaderCompile = false;
                         opt.UseShaderCache = true;
                         opt.SampleCount = 2;
@@ -79,7 +81,7 @@ namespace XrSamples
                         Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
                     })
                     .SetRenderQuality(1f, 1)
-                    .CreateGltfTest()
+                    .CreateDnd()
                     .Build()
                     .App;
 
@@ -182,7 +184,7 @@ namespace XrSamples
 
             while (!view.IsClosing)
             {
-                Debug.Assert(useAngle && view.GLContext == null);
+                Debug.Assert(useAngle || view.GLContext != null);
 
                 if (!useAngle && view.GLContext!.IsCurrent)
                     view.ClearContext();

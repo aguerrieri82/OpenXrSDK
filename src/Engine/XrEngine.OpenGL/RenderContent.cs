@@ -24,7 +24,10 @@
 
         public bool InstanceChanged;
 
+        public bool UseFrustumCulling;
+
         public DepthObjectData DepthData;
+
     }
 
     public struct ShaderMaterialKey

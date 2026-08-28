@@ -51,7 +51,8 @@ namespace XrEngine
 
         void SetUniform(string name, Vector3[] value, bool optional = false);
 
-        void LoadBuffer<T>(ISimpleBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default);
+        void LoadBuffer<T>(ISimpleBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default)
+            where T : unmanaged;
 
         void LoadSampler(TextureSampler value, int slot = 0);
 

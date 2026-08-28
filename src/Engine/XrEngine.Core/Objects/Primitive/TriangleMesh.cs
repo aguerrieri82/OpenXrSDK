@@ -30,7 +30,7 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
             InstanceCount = 1;
-
+            CompressionMode = MeshCompressionMode.Auto;
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)

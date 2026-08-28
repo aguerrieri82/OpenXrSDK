@@ -448,13 +448,13 @@ namespace XrEngine.Gltf
 
                 texResult.Name = texture.Name ?? (imageInfo.Name ?? imageInfo.Uri ?? "");
 
-                AssignAsset(texResult, "tex", texId);
+                AssignAsset(texResult, texture.Name ?? imageInfo.Name, "tex", texId);
 
                 return Load(texResult, () =>
                 {
                     var data = ProcessImage(source.Value, useSrgb);
 
-                    AssignAsset(texResult, "img", source.Value);
+                    AssignAsset(texResult, imageInfo.Name, "img", source.Value);
 
                     texResult.LoadData([data]);
 
@@ -540,6 +540,9 @@ namespace XrEngine.Gltf
                 return (PbrMaterial)mat;
 
             CheckExtensions(gltMat.Extensions);
+
+            if (gltMat.Name == "_1_-_Default")
+                Console.Write("");
 
             var ior = TryLoadExtension<KHR_materials_ior>(gltMat.Extensions);
             var volume = TryLoadExtension<KHR_materials_volume>(gltMat.Extensions);
@@ -770,7 +773,7 @@ namespace XrEngine.Gltf
 
             result.Dispersion = disp?.dispersion ?? 0;
 
-            AssignAsset(result, "mat", matId);
+            AssignAsset(result, gltMat.Name, "mat", matId);
 
             _mats[gltMat] = result;
 
@@ -1245,6 +1248,16 @@ namespace XrEngine.Gltf
             return result;
         }
 
+        public Geometry3D ProcessGeometry(int meshId, int primId, Geometry3D? result = null)
+        {
+            var mesh = _model!.Meshes[meshId];
+            var primitive = mesh.Primitives[primId];
+
+            result = ProcessPrimitive(primitive, result);
+
+            return result;
+        }
+
         public Object3D ProcessMesh(int meshId, Node? node, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
@@ -1297,7 +1310,7 @@ namespace XrEngine.Gltf
                 {
                     ProcessPrimitive(primitive, curMesh.Geometry);
 
-                    AssignAsset(curMesh.Geometry, "geo", meshId, primId);
+                    AssignAsset(curMesh.Geometry, gltMesh.Name, "geo", meshId, primId);
 
                     curMesh.NotifyChanged(ChangeType.Geometry);
 
@@ -1339,7 +1352,7 @@ namespace XrEngine.Gltf
 
                 if (group == null)
                 {
-                    AssignAsset(curMesh, "mesh", meshId);
+                    AssignAsset(curMesh, gltMesh.Name, "mesh", meshId);
 
                     _meshes[gltMesh] = curMesh;
 
@@ -1355,7 +1368,7 @@ namespace XrEngine.Gltf
 
             _meshes[gltMesh] = group;
 
-            AssignAsset(group, "mesh", meshId);
+            AssignAsset(group, gltMesh.Name, "mesh", meshId);
 
             return group;
         }
@@ -1420,6 +1433,13 @@ namespace XrEngine.Gltf
 
             return curObj;
         }
+        
+        public Object3D ProcessNode(int nodeId)
+        {
+            ProcessVariants();
+
+            return ProcessNode(nodeId, null);
+        }
 
         protected Object3D ProcessNode(int nodeId, Group3D? curGrp)
         {
@@ -1463,7 +1483,7 @@ namespace XrEngine.Gltf
 
                 nodeObj = ProcessLight(light);
 
-                AssignAsset(nodeObj, "light", lightId);
+                AssignAsset(nodeObj, light.name, "light", lightId);
             }
 
             else if (node.Mesh != null)
@@ -1522,7 +1542,7 @@ namespace XrEngine.Gltf
             if (!isJoint)
                 nodeObj = Flattern(nodeObj, nodeId);
 
-            AssignAsset(nodeObj, "node", nodeId);
+            AssignAsset(nodeObj, node.Name, "node", nodeId);
 
             if (nodeObj is DirectionalLight dir)
                 dir.Direction = nodeObj.Forward;
@@ -1541,7 +1561,19 @@ namespace XrEngine.Gltf
             return nodeObj;
         }
 
-        private Light ProcessLight(KHR_lights_punctual.Light light)
+
+        public Light ProcessLight(int lightId, Light? result = null)
+        {
+            _lightsRoot ??= TryLoadExtension<KHR_lights_punctual>(_model!.Extensions);
+
+            Debug.Assert(_lightsRoot?.lights != null);
+
+            result = ProcessLight(_lightsRoot.Value.lights[lightId], result);
+
+            return result;
+        }
+
+        private Light ProcessLight(KHR_lights_punctual.Light light, Light? result = null)
         {
             if (light.type == KHR_lights_punctual.Light.Spot)
             {
@@ -1627,7 +1659,7 @@ namespace XrEngine.Gltf
             return skinObj;
         }
 
-        protected AnimationGroup ProcessAnimation(int animId)
+        public AnimationGroup ProcessAnimation(int animId)
         {
             var anim = _model!.Animations[animId];
 
@@ -1683,7 +1715,7 @@ namespace XrEngine.Gltf
                 Name = anim.Name,
             };
 
-            AssignAsset(group, "anim", animId);
+            AssignAsset(group, anim.Name, "anim", animId);
 
             foreach (var channel in anim.Channels)
             {
@@ -1783,6 +1815,9 @@ namespace XrEngine.Gltf
 
         protected void ProcessVariants()
         {
+            if (_variants != null)
+                return;
+
             var matVars = TryLoadExtension<KHR_materials_variants>(_model!.Extensions);
 
             if (matVars == null)
@@ -1817,13 +1852,13 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        protected Group3D ProcessScene(int sceneId)
+        public Group3D ProcessScene(int sceneId)
         {
             var glScene = _model!.Scenes[sceneId];
 
             var scene = new Group3D();
             
-            AssignAsset(scene, "scene", sceneId);
+            AssignAsset(scene, scene.Name, "scene", sceneId);
 
             foreach (var nodeId in glScene.Nodes)
                 ProcessNode(nodeId, scene);
@@ -1845,6 +1880,7 @@ namespace XrEngine.Gltf
             _animNodeIds?.Clear();
             _animTargets.Clear();
             _objects.Clear();
+            _variants = null;
 
             GC.SuppressFinalize(this);
         }
@@ -1857,6 +1893,14 @@ namespace XrEngine.Gltf
             _basePath = Path.GetDirectoryName(filePath)!;
             _filePath = filePath;
             _model = glTFLoader.Interface.LoadModel(filePath);
+
+            _animNodeIds = _model.Animations?
+              .SelectMany(a => a.Channels)
+              .Where(a => a.Target.Node != null)
+              .Select(a => a.Target.Node!.Value)
+              .ToHashSet() ?? [];
+
+            _jointNodesIds = _model.Skins?.SelectMany(a => a.Joints).ToHashSet() ?? [];
         }
 
         public Object3D Load(string filePath, GltfLoaderOptions options)
@@ -1880,14 +1924,6 @@ namespace XrEngine.Gltf
             var root = new Group3D();
 
             ProcessVariants();
-
-            _jointNodesIds =_model.Skins?.SelectMany(a => a.Joints).ToHashSet() ?? [];
-
-            _animNodeIds = _model.Animations?
-                .SelectMany(a => a.Channels)
-                .Where(a => a.Target.Node != null)
-                .Select(a => a.Target.Node!.Value)
-                .ToHashSet() ?? [];
 
             int sceneId = 0;
 
@@ -1933,7 +1969,7 @@ namespace XrEngine.Gltf
             //obj.Id = new Guid(hash);
         }
 
-        protected void AssignAsset<T>(T obj, string name, params object[] parts) where T : EngineObject
+        protected void AssignAsset<T>(T obj, string? name, params object[] parts) where T : EngineObject
         {
             obj.EnsureId();
 
@@ -1941,9 +1977,9 @@ namespace XrEngine.Gltf
             {
                 Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
                     GltfAssetLoader.Instance,
-                    name,
+                    name ?? "",
                     typeof(T),
-                    new Uri($"res://gltf/{name}/{string.Join('/', parts)}?src={_filePath}"),
+                    new Uri($"res://gltf/{string.Join('/', parts)}?src={_filePath}"),
                     _options)
             });
 

@@ -52,9 +52,9 @@ namespace XrEngine.OpenXr
             bld.AddFeature("USE_CAMERA_POS");
             bld.AddFeature("USE_SKIN");
 
-            bld.LoadBuffer<Uniforms>(ctx =>
+            bld.LoadBuffer<Uniforms>((ctx, ref update) =>
             {
-                return new Uniforms
+                update.Value = new Uniforms
                 {
                     Color = Color,
                     FillAlpha = FillAlpha,
@@ -63,6 +63,9 @@ namespace XrEngine.OpenXr
                     RimPower = RimPower,
                     RimStart = RimStart,
                 };
+
+                return true;
+
             }, 16, BufferStore.Material);
         }
 

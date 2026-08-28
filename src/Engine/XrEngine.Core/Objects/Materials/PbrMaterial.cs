@@ -307,18 +307,18 @@ namespace XrEngine
                     });
                 }
 
-                bld.LoadBuffer((ctx) =>
+                bld.LoadBuffer<LightListUniforms>((ctx, ref update) =>
                 {
                     var curVer = (bld.Context.Lights?
                             .Where(a => a is not ImageLight)
                             .Sum(a => a.Version + a.ContentVersion) ?? -1);
 
                     if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Version == curVer)
-                        return null;
+                        return false;
 
                     ctx.CurrentBuffer!.Version = curVer;
 
-                    var result = new LightListUniforms();
+                    update.Value = new LightListUniforms();
 
                     var count = 0;
 
@@ -326,7 +326,7 @@ namespace XrEngine
                     {
                         if (light is PointLight point)
                         {
-                            result.Lights[count] = new LightUniforms
+                            update.Value.Lights[count] = new LightUniforms
                             {
                                 Type = 0,
                                 Color = ((Vector3)point.Color) * point.Intensity,
@@ -338,7 +338,7 @@ namespace XrEngine
                         }
                         else if (light is DirectionalLight directional)
                         {
-                            result.Lights[count] = new LightUniforms
+                            update.Value.Lights[count] = new LightUniforms
                             {
                                 Type = 1,
                                 Color = ((Vector3)directional.Color) * directional.Intensity,
@@ -349,7 +349,7 @@ namespace XrEngine
                         }
                         else if (light is SpotLight spot)
                         {
-                            result.Lights[count] = new LightUniforms
+                            update.Value.Lights[count] = new LightUniforms
                             {
                                 Type = 2,
                                 Range = spot.Range,
@@ -366,9 +366,9 @@ namespace XrEngine
                             throw new InvalidOperationException("Max lights reached");
                     }
 
-                    result.Count = (uint)count;
+                    update.Value.Count = (uint)count;
 
-                    return (LightListUniforms?)result;
+                    return true;
 
                 }, UniformsSlots.Lights, BufferStore.Shader);
 
@@ -379,18 +379,18 @@ namespace XrEngine
                     if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
 
-                    bld.LoadBuffer(ctx =>
+                    bld.LoadBuffer<IblUniforms>((ctx, ref update) =>
                     {
                         var version = imgLight.Version + imgLight.ContentVersion;
 
                         if (ctx.CurrentBuffer == null || version == ctx.CurrentBuffer.Version)
-                            return null;
+                            return false;
 
                         ctx.CurrentBuffer!.Version = version;
 
                         var transform = (imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY)).ToVector4x3();
 
-                        return (IblUniforms?)new IblUniforms
+                        update.Value = new IblUniforms
                         {
                             SpecularTextureLevels = imgLight.Textures.MipCount,
                             Intensity = imgLight.Intensity,
@@ -398,6 +398,9 @@ namespace XrEngine
                             ShadowStrength = imgLight.ShadowStrength,
                             Transform = transform
                         };
+
+                        return true;
+
                     }, UniformsSlots.Ibl, BufferStore.Shader);
 
                     bld.LoadTexture(() => imgLight.Textures.GGXEnv, TextureSlots.IblGgxEnv);
@@ -524,16 +527,16 @@ namespace XrEngine
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
 
-            bld.LoadBuffer<MaterialUniforms>(ctx =>
+            bld.LoadBuffer<MaterialUniforms>((ctx, ref update) =>
             {
                 var curVersion = ContentVersion + Version;
 
                 if (ctx.CurrentBuffer == null || curVersion == ctx.CurrentBuffer.Version)
-                    return null;
+                    return false;
 
                 ctx.CurrentBuffer.Version = curVersion;
 
-                return new MaterialUniforms
+                update.Value = new MaterialUniforms
                 {
                     Color = Color,
                     Metalness = Metalness,
@@ -563,6 +566,7 @@ namespace XrEngine
                     AnisotropyRotation = AnisotropyRotation
                 };
 
+                return true;
             },
             UniformsSlots.Material,
             BufferStore.Material,
@@ -852,23 +856,25 @@ namespace XrEngine
                     bld.LoadTexture(() => IridescenceMap, TextureSlots.Iridescence);
                 }
 
-                bld.LoadBuffer(ctx =>
+                bld.LoadBuffer<IridescenceUniforms>((ctx, ref update) =>
                 {
                     var curVer = _contentVersion + _version;
 
                     if (ctx.CurrentBuffer == null || curVer == ctx.CurrentBuffer.Version)
-                        return null;
+                        return false;
 
                     ctx.CurrentBuffer!.Version = curVer;
 
-                    return (IridescenceUniforms?)new IridescenceUniforms
+                    update.Value = new IridescenceUniforms
                     {
                         Factor = IridescenceFactor,
                         Ior = IridescenceIor,
                         ThicknessMaximum = IridescenceThicknessMax,
                         ThicknessMinimum = IridescenceThicknessMin
-
                     };
+
+                    return true;
+
                 }, UniformsSlots.Iridescence, BufferStore.Material);
             }
 

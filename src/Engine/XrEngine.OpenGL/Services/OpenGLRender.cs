@@ -209,6 +209,8 @@ namespace XrEngine.OpenGL
 
             _updateCtx.UseAngle = _features.IsAngle;
 
+            _updateCtx.UseSharedSsbo = _options.UseSharedSsbo;
+
             if (_features.MaxVertexSsboBlocks == 0)
             {
                 _options.UseInstanceDraw = false;

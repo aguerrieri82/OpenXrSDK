@@ -47,6 +47,7 @@ namespace XrEngine.OpenGL
         #region GlBuffer<T>
 
         extension<T>(GlBuffer<T> self)
+            where T : unmanaged
         {
             public unsafe void Update(IMemoryBuffer<byte> data)
             {

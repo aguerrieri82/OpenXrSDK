@@ -28,6 +28,14 @@ namespace XrEngine.OpenGL
 
     public class GlLayer : IDisposable, IGlLayer
     {
+        protected struct VisibilityContent
+        {
+            public MaterialContent Material;
+            public VertexContent Vertex;
+            public DrawContent Draw;
+        }
+
+        protected VisibilityContent[] _visibilityContent = [];
         protected readonly OpenGLRender _render;
         protected readonly RenderContent _content;
         protected readonly Scene3D _scene;
@@ -37,12 +45,11 @@ namespace XrEngine.OpenGL
         protected long _lastFrame;
         protected Camera? _lastCamera;
         protected int _lastDrawId;
-        protected bool _isContentDirty;
+        protected bool _contentDirty;
         protected List<Action<RealGL>> _renderActions = [];
         private bool _boundsDirty;
         private Bounds3 _bounds;
         private bool _isEmpty;
-        private readonly object _shaderContent;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -99,7 +106,6 @@ namespace XrEngine.OpenGL
 
             foreach (var obj3D in objects)
                 AddContent(obj3D, false);
-
 
             foreach (var shader in _content.Contents.Values)
             {
@@ -312,6 +318,7 @@ namespace XrEngine.OpenGL
                     Draw = draw,
                     DrawId = _lastDrawId++,
                     Object = obj3d,
+                    UseFrustumCulling = obj3d is TriangleMesh mesh && (mesh.Flags & EngineObjectFlags.NoFrustumCulling) == 0,
                     ProgramInstance = materialContent.ProgramInstance
                 });
 
@@ -321,6 +328,8 @@ namespace XrEngine.OpenGL
             }
 
             InvalidateContent();
+
+
 
             //Rebuild();
         }
@@ -360,14 +369,12 @@ namespace XrEngine.OpenGL
             var camera = ctx.PassCamera!;
 
             var frameChanged = ctx.Frame != _lastFrame;
-            var cameraChanged = camera == _lastCamera;
+            var cameraChanged = _lastCamera == null || camera.ViewProjection != _lastCamera.ViewProjection;
 
             if (!frameChanged && !cameraChanged)
                 return;
 
-            //Update();
-
-            if (_isContentDirty)
+            if (_contentDirty)
                 SortMaterials();
 
             if (_render.Options.FrustumCulling)
@@ -376,7 +383,8 @@ namespace XrEngine.OpenGL
                 ctx.FrustumPlanesCount = count;
             }
 
-            ComputeVisibility();
+            if (cameraChanged || frameChanged)
+                ComputeVisibility();
 
             if (frameChanged)
                 UpdateVertexHandlers();
@@ -384,7 +392,7 @@ namespace XrEngine.OpenGL
             _lastFrame = ctx.Frame;
             _lastCamera = camera;
 
-            _isContentDirty = false;
+            _contentDirty = false;
 
         }
 
@@ -457,7 +465,6 @@ namespace XrEngine.OpenGL
             _content.SortedContent = _content.Contents
                 .OrderBy(a => a.Value.MaxPriority)
                 .ToArray();
-
         }
 
         protected void UpdateVertexHandlers()
@@ -605,10 +612,15 @@ namespace XrEngine.OpenGL
 
         protected int ComputeVisibility()
         {
+            if (_content.Contents.Count == 0)
+                return 0;
+
             var ctx = _render.UpdateContext;
+         
+            var frustumCulling = _render.Options.FrustumCulling;
+            var frustumPlanes = ctx.FrustumPlanes.AsSpan(0, ctx.FrustumPlanesCount);
 
             var totHidden = 0;
-            var totDraw = 0;
 
             _isEmpty = true;
 
@@ -616,6 +628,7 @@ namespace XrEngine.OpenGL
             {
                 foreach (var material in shader.Contents.Values)
                 {
+                    var materialEnabled = material.ProgramInstance!.Material!.IsEnabled;
                     var allMatHidden = true;
 
                     foreach (var vertex in material.Contents.Values)
@@ -624,21 +637,16 @@ namespace XrEngine.OpenGL
 
                         foreach (var draw in vertex.Contents)
                         {
-                            totDraw++;
+                            var obj = draw.Object!;
 
-                            var progInst = material.ProgramInstance!;
+                            draw.IsHidden = !materialEnabled || !obj.IsVisible;
 
-                            draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
-
-                            if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh && (mesh.Flags & EngineObjectFlags.NoFrustumCulling) == 0)
+                            if (!draw.IsHidden && frustumCulling && draw.UseFrustumCulling)
                             {
-                                draw.IsHidden = !mesh.WorldBounds
-                                            .IntersectFrustum(ctx.FrustumPlanes.AsSpan(0, ctx.FrustumPlanesCount));
+                                draw.IsHidden = !draw.Object!.WorldBounds.IntersectFrustum(frustumPlanes);
 
                                 if (draw.IsHidden)
                                     totHidden++;
-                                else
-                                    _isEmpty = false;
                             }
 
                             if (!draw.IsHidden)
@@ -648,14 +656,122 @@ namespace XrEngine.OpenGL
                                 _isEmpty = false;
                             }
                         }
+
                         vertex.IsHidden = allVertexHidden;
                     }
+
                     material.IsHidden = allMatHidden;
                 }
             }
 
             return totHidden;
         }
+
+        /*
+        protected void UpdateVisibilityContent()
+        {
+            var content = new List<VisibilityContent>();
+
+            foreach (var shader in _content.Contents.Values)
+            {
+                foreach (var material in shader.Contents.Values)
+                {
+                    foreach (var vertex in material.Contents.Values)
+                    {
+                        foreach (var draw in vertex.Contents)
+                        {
+                            content.Add(new VisibilityContent
+                            {
+                                Material = material,
+                                Vertex = vertex,
+                                Draw = draw
+                            });
+                        }
+                    }
+                }
+            }
+
+            _visibilityContent = content.ToArray();
+        }
+
+
+        protected int ComputeVisibilityV2()
+        {
+            var ctx = _render.UpdateContext;
+            var frustumPlanes = ctx.FrustumPlanes.AsSpan(0, ctx.FrustumPlanesCount);
+
+            var totHidden = 0;
+
+            MaterialContent? curMaterial = null;
+            VertexContent? curVertex = null;
+
+            var materialEnabled = false;
+            var allMatHidden = true;
+            var allVertexHidden = true;
+
+            _isEmpty = true;
+
+            for (var i = 0; i < _visibilityContent.Length; i++)
+            {
+                ref var entry = ref _visibilityContent[i];
+
+                if (!ReferenceEquals(curMaterial, entry.Material))
+                {
+                    if (curVertex != null)
+                        curVertex.IsHidden = allVertexHidden;
+
+                    if (curMaterial != null)
+                        curMaterial.IsHidden = allMatHidden;
+
+                    curMaterial = entry.Material;
+                    curVertex = null;
+
+                    materialEnabled = curMaterial.ProgramInstance!.Material!.IsEnabled;
+                    allMatHidden = true;
+                }
+
+                if (!ReferenceEquals(curVertex, entry.Vertex))
+                {
+                    if (curVertex != null)
+                        curVertex.IsHidden = allVertexHidden;
+
+                    curVertex = entry.Vertex;
+                    allVertexHidden = true;
+                }
+
+                var draw = entry.Draw;
+                var obj = draw.Object!;
+
+                var hidden = !materialEnabled || !obj.IsVisible;
+
+                if (!hidden && draw.UseFrustumCulling)
+                {
+                    hidden = !obj.WorldBounds.IntersectFrustum(frustumPlanes);
+
+                    if (hidden)
+                        totHidden++;
+                }
+
+                draw.IsHidden = hidden;
+
+                if (!hidden)
+                {
+                    allVertexHidden = false;
+                    allMatHidden = false;
+                    _isEmpty = false;
+                }
+            }
+
+            if (curVertex != null)
+                curVertex.IsHidden = allVertexHidden;
+
+            if (curMaterial != null)
+                curMaterial.IsHidden = allMatHidden;
+
+            return totHidden;
+        }
+        */
+
 
         public void Dispose()
         {
@@ -667,7 +783,7 @@ namespace XrEngine.OpenGL
 
         public void InvalidateContent()
         {
-            _isContentDirty = true;
+            _contentDirty = true;
             _boundsDirty = true;
         }
 
