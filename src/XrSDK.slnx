@@ -18,7 +18,8 @@
     <File Path="../third-party/build-oboe.cmd" />
     <File Path="../third-party/build-openal.cmd" />
     <File Path="../third-party/build-turbo-jpeg.cmd" />
-    <File Path="../third-party/physx-rs/physx-sys/src/CMakeLists.txt" />
+    <File Path="../third-party/px-build-android.bat" />
+    <File Path="../third-party/px-build-win.bat" />
     <File Path="../third-party/vars.cmd" />
     <Project Path="Engine/XrEngine.Generator/XrEngine.Generator.csproj" Id="16d4ad08-8bbd-46b6-9118-b23d2431ea39">
       <BuildType Solution="ReleaseStore|*" Project="Release" />

@@ -1012,7 +1012,7 @@ VehicleWorld* VehicleWorldCreate(const VehicleWorldDesc* desc)
 
 void VehicleWorldDestroy(VehicleWorld* world)
 {
-	delete world;
+	delete world; 
 }
 
 Vehicle* VehicleCreateSimple(VehicleWorld* world, PxRigidDynamic* actor, const VehicleSimpleDesc* desc)

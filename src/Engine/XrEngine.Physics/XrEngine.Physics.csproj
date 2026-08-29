@@ -13,11 +13,12 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\physics-native.dll" CopyToOutputDirectory="PreserveNewest" Link="physics-native.dll" Visible="False" UseLink="True" />
-		<Content Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\PhysX*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
+		<_Content Include="$(NativeLibsDir)physx-141\bin\win-x64\mt\release\PhysX*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)physics-native\android-arm64\*.so" />
+		<_AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)physx-141\bin\android-arm64\release\*.so" />
 	</ItemGroup>
 
 	<ItemGroup>

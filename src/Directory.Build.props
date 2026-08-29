@@ -153,23 +153,25 @@
 		</Copy>
 
 	</Target>
-	
+
 	<Target
 		Name="RunAndroidBuildScript"
 		BeforeTargets="Build"
 		Condition="Exists('$(ProjectDir)android-build.cmd')"
 		Inputs="
-			@(ClCompile);
-			@(ClInclude);
+			@(ClCompile->'%(FullPath)');
+			@(ClInclude->'%(FullPath)');
 			$(ProjectDir)android-build.cmd;
 			$(ProjectDir)Android.mk;
 			$(ProjectDir)Application.mk;
-			$(SolutionDir)..\third-party\vars.cmd" 
-		Outputs="@(AndroidBuildOutput)">
+			$(SolutionDir)..\third-party\vars.cmd"
+		Outputs="$(IntDir)android-build.stamp">
 
 		<Exec
 			Command="call &quot;$(ProjectDir)android-build.cmd&quot;"
 			WorkingDirectory="$(ProjectDir)" />
+
+		<Touch Files="$(IntDir)android-build.stamp" AlwaysCreate="true" />
 	</Target>
 
 
