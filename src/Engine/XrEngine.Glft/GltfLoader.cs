@@ -743,7 +743,7 @@ namespace XrEngine.Gltf
            
                 result.Specular = spec.Value.specularFactor ?? 1f;
                 result.SpecularColor = spec.Value.specularColorFactor == null ? Color.White : new Color(spec.Value.specularColorFactor);
-                result.UseSpecular = result.Specular > 0;
+                result.UseSpecular = true;
 
                 if (spec.Value.specularTexture != null)
                 {
