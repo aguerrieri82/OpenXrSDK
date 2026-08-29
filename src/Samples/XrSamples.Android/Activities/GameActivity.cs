@@ -4,6 +4,7 @@ using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Text.Json;
 using XrEngine;
 using XrEngine.Devices.Android;
@@ -96,7 +97,11 @@ namespace XrSamples.Android.Activities
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
-            builder.Options.Driver = _settings!.Driver;
+            Debug.Assert(_settings != null);
+
+            var useAngle = _settings.Driver == GraphicDriver.Angle;
+
+            builder.Options.Driver = _settings.Driver;
 
             if (_settings.Driver == GraphicDriver.OpenGL)
                 builder.UseOpenGL();
@@ -115,6 +120,7 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
+                    opt.UseSharedSsbo = true;
                     opt.UseAsyncShaderCompile = true;
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
@@ -142,6 +148,7 @@ namespace XrSamples.Android.Activities
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
             });
 
+    
             builder.UseOculus(opt =>
             {
             });
@@ -161,7 +168,11 @@ namespace XrSamples.Android.Activities
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp(MotionVectorMode.Shared);
 
-            //     builder.EnableDebug(sync: false);
+
+            TriangleMesh.EnableCompression = true;
+
+
+            //builder.EnableDebug(sync: false);
 
 #if DEBUG
             GlDebug.TrackBuffers = false;

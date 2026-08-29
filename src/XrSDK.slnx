@@ -249,6 +249,9 @@
       <Platform Solution="*|x64" Project="x64" />
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Physics.Native/XrEngine.Physics.Native.vcxproj" Id="b89df183-9e56-4253-b4f2-944586229972">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+    </Project>
     <Project Path="Engine/XrEngine.Physics/XrEngine.Physics.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />

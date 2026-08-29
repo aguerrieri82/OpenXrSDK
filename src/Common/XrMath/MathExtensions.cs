@@ -1028,6 +1028,16 @@ namespace XrMath
                 };
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Ray3 Transform(in Pose3 pose)
+            {
+                return new Ray3
+                {
+                    Origin = pose.Transform(self.Origin),
+                    Direction = self.Direction.Transform(pose.Orientation).Normalize()
+                };
+            }
+
             public Pose3 ToPose()
             {
                 return new Pose3

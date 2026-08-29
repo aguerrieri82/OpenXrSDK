@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine
 {
@@ -56,6 +57,15 @@ namespace XrEngine
             if (PlanarReflection.IsMultiView)
                 bld.AddFeature("PLANAR_REFLECTION_MV");
 
+           
+
+            bld.LoadTexture(() =>
+            {
+                var planar = bld.Context.Model?.Components<PlanarReflection>().FirstOrDefault();
+                return planar?.ActiveTexture;
+
+            }, TextureSlots.PlanarReflection);
+
             if (bld.Context.UseInstanceDraw && _hosts.Count == 1)
             {
                 bld.Context.Model = (Object3D)_hosts.First();
@@ -73,8 +83,7 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                if (planar.ActiveTexture != null)
-                    up.LoadTexture(planar.ActiveTexture, TextureSlots.PlanarReflection);
+                up.SetUniform("uReflectScale", (float)planar.RenderSize.Width / planar.Texture!.Width);
 
                 if (PlanarReflection.IsMultiView)
                 {

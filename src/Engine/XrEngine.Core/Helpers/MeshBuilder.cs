@@ -351,6 +351,11 @@ namespace XrEngine
 
         public MeshBuilder AddCube(Vector3 center, Vector3 size)
         {
+            return AddCube(size, new Pose3 { Position = center, Orientation = Quaternion.Identity });
+        }
+
+        public MeshBuilder AddCube(Vector3 size, Pose3 pose)
+        {
             var halfSize = size / 2;
 
             var vertices = VertexData.FromPosNormalUV(
@@ -401,14 +406,15 @@ namespace XrEngine
             foreach (var idx in indices)
             {
                 var vrt = vertices[idx];
-                vrt.Pos += center;
+                vrt.Pos = pose.Transform(vrt.Pos);
+                vrt.Normal = vrt.Normal.Transform(pose.Orientation);
                 Vertices.Add(vrt);
             }
 
-            Colliders.Add(new BoxCollider
+            Colliders.Add(new BoxColliderV2
             {
-                Center = center,
                 Size = size,
+                Pose = pose
             });
 
             return this;

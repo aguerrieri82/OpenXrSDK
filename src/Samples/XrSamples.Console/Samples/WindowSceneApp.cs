@@ -92,7 +92,7 @@ namespace XrSamples
             var options = WindowOptions.Default;
 
             options.Samples = 1;
-            //options.WindowState = WindowState.Fullscreen;
+          //  options.WindowState = WindowState.Fullscreen;
             options.Size = new Vector2D<int>(1600, 1000);
             if (useAngle)
                 options.API = GraphicsAPI.None;

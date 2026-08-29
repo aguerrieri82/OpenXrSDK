@@ -126,6 +126,11 @@ namespace PhysX.Framework
             }
         }
 
+        public void SetFlag(PxShapeFlag flag, bool enabled)
+        {
+            _handle->SetFlagMut(flag, enabled);
+        }
+
         public PxShapeFlags Flags
         {
             get => _handle->GetFlags();

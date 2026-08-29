@@ -1,13 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-
+		<NativeFolder>Debug</NativeFolder>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Framework\PhysX.Framework\PhysX.Framework.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
+
+
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\physics-native.dll" CopyToOutputDirectory="PreserveNewest" Link="physics-native.dll" Visible="False" UseLink="True" />
+		<Content Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\PhysX*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)physics-native\android-arm64\*.so" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\XrEngine.Physics.Native\XrEngine.Physics.Native.vcxproj" />
+	</ItemGroup>
+
 
 
 </Project>

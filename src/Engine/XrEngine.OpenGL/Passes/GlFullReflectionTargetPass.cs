@@ -61,7 +61,6 @@ namespace XrEngine.OpenGL
 
         protected override bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst, bool forceSync = false)
         {
-
             if (!_reflection!.UseClipPlane)
                 return base.UpdateProgram(updateContext, progInst);
 
@@ -72,7 +71,7 @@ namespace XrEngine.OpenGL
                 progInst.Invalidate();
             }
 
-            var upRes = base.UpdateProgram(updateContext, progInst, forceSync);
+            var upRes = base.UpdateProgram(updateContext, progInst, true);
 
             var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
 

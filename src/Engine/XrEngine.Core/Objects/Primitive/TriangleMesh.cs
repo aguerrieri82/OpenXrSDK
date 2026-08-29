@@ -30,7 +30,7 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
             InstanceCount = 1;
-            CompressionMode = MeshCompressionMode.Auto;
+            CompressionMode = EnableCompression ? MeshCompressionMode.Auto : MeshCompressionMode.Never;
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -356,6 +356,9 @@ namespace XrEngine
         public Type? CompIndexType { get; set; }
 
         public MeshCompressionMode CompressionMode { get; set; }
+
+
+        public static bool EnableCompression = true;
 
         #region IVertexSource
 

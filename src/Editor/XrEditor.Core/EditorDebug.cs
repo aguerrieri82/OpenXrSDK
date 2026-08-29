@@ -55,6 +55,7 @@ namespace XrEditor
                   opt.UseAsyncShaderCompile = true;
                   opt.UseShaderCache = true;
                   opt.UseShaderPreprocessor = true;
+                  opt.UseSharedSsbo = true;
 
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;
@@ -93,7 +94,7 @@ namespace XrEditor
               .SetRenderQuality(2f, 1, useIntermediate: false)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
               //.CreateGltfTest("Models/BoomBox.glb")
-              .CreateDnd()
+              .CreateCar()
               .Build();
     }
 }

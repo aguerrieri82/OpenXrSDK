@@ -28,13 +28,13 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Update(in T value)
+        public unsafe void Update(in T value)
         {
             if (_sizeBytes == 0)
                 _sizeBytes = (uint)MarshalCache.SizeOf(typeof(T));
 
-            if (_range.UsePermanentMap)
-                _range.BufferData[_index] = value;
+            if (_range._usePermanentMap)
+                _range._bufferData[_index] = value;
             else
                 _range.Buffer.UpdateRange([value], _index);
         }
@@ -102,14 +102,14 @@ namespace XrEngine.OpenGL
 
         private readonly Dictionary<object, GlBufferRangeSlot<T>> _slotsByOwner = [];
         private readonly Stack<int> _freeSlots = new();
-        private readonly bool _usePermanentMap;
+        internal readonly  bool _usePermanentMap;
 
         private GlBufferRangeSlot<T>?[] _slots = [];
         private int _nextSlot;
         private bool _isDisposed;
-        private unsafe T* _bufferData;
+        internal unsafe T* _bufferData;
 
-        public GlBufferRange(GL gl, string uniformName, int slot, bool usePermanentMap = true)
+        public GlBufferRange(GL gl, string uniformName, int slot, bool usePermanentMap = false)
         {
             _gl = gl;
             _buffer = new GlBuffer<T>(_gl, BufferTargetARB.ShaderStorageBuffer);
@@ -215,9 +215,10 @@ namespace XrEngine.OpenGL
         {
             get
             {
+#if DEBUG
                 if (!_usePermanentMap)
                     throw new InvalidOperationException("Permanent mapping is disabled.");
-
+#endif
                 return new Span<T>(_bufferData, _slots.Length);
             }
         }

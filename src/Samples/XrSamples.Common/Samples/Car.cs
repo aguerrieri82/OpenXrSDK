@@ -51,7 +51,7 @@ namespace XrSamples
 
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
-
+            car.WorldPosition = new Vector3(0, 0.4f, 0);
             var bodyMeshes = new HashSet<TriangleMesh>();
 
             //Fix model
@@ -100,7 +100,7 @@ namespace XrSamples
             var scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
 
             //Simulation
-            var model = new CarModel
+            var model = new CarModelV2
             {
                 WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
                 WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
@@ -223,7 +223,11 @@ namespace XrSamples
             ramp.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                MaterialInfo = staticMat
+                MaterialInfo = staticMat,
+                Configure = rb =>
+                {
+        
+                }
             });
 
             //Wall
