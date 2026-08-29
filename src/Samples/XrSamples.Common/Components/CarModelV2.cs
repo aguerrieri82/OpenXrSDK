@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
+using XrInteraction;
 using XrMath;
 using IDrawGizmos = XrEngine.IDrawGizmos;
 
@@ -16,13 +17,7 @@ namespace XrSamples
 {
     public unsafe class CarModelV2 : Behavior<Group3D>, IDrawGizmos
     {
-        private Group3D? _chassis;
         private readonly Group3D _attachedGroup;
-
-        private Joint? _steeringWheelJoint;
-        private TriangleMesh? _mainTube;
-        private TriangleMesh? _steeringWheelTube;
-        private readonly IPbrMaterial _tubeMaterial;
 
         private PhysicsManager? _manager;
         private RigidBody? _carRigidBody;
@@ -32,13 +27,17 @@ namespace XrSamples
         private VehicleNative.VehicleState _vehicleState;
 
         private readonly Pose3[] _wheelVisualOffsets = new Pose3[4];
-        private Pose3 _bodyToFrame;
         private Pose3 _bodyToAttached;
         private Pose3 _seatPosDiff;
 
         private float _steeringAngle;
         private float _carBodyDensity;
         private float _wheelFriction;
+
+        private bool _keyUp;
+        private bool _keyDown;
+        private bool _keyLeft;
+        private bool _keyRight;
 
         private TriangleMesh? _gearBox;
         private TriangleMesh? _gearLever;
@@ -52,11 +51,9 @@ namespace XrSamples
             SuspensionTravel = 0.12f;
             SuspensionStiffness = 20000;
             SuspensionDamping = 2500;
-            FrameTubeSize = 0.05f;
             PosIterations = 50;
             SteeringRatio = 12;
             SteeringLimitRad = 0.9f;
-            UseSteeringPhysics = true;
             WheelFriction = 0.8f;
             WheelMass = 20;
 
@@ -67,10 +64,6 @@ namespace XrSamples
             MaxMotorRpm = 7000;
             DriveType = VehicleNative.VehicleDriveType.Rear;
 
-            _tubeMaterial = MaterialFactory.CreatePbr("#00ff0080");
-            _tubeMaterial.Metalness = 1;
-            _tubeMaterial.Alpha = AlphaMode.Blend;
-
             _attachedGroup = new Group3D
             {
                 Name = "attached"
@@ -80,6 +73,77 @@ namespace XrSamples
             _carSound = new CarSound();
 
             UpdatePriority = 1;
+
+            if (Context.TryRequire<IKeyboardEventSource>(out var keySource))
+            {
+                keySource.KeyDown += OnKeyDown;
+                keySource.KeyUp += OnKeyUp;
+            }
+        }
+
+        private void OnKeyDown(KeyboardEvent ev)
+        {
+            switch (ev.Key)
+            {
+                case KeyCode.Up:
+                    _keyUp = true;
+                    break;
+                case KeyCode.Down:
+                    _keyDown = true;
+                    break;
+                case KeyCode.Left:
+                    _keyLeft = true;
+                    break;
+                case KeyCode.Right:
+                    _keyRight = true;
+                    break;
+            }
+        }
+
+        private void OnKeyUp(KeyboardEvent ev)
+        {
+            switch (ev.Key)
+            {
+                case KeyCode.Up:
+                    _keyUp = false;
+                    break;
+                case KeyCode.Down:
+                    _keyDown = false;
+                    break;
+                case KeyCode.Left:
+                    _keyLeft = false;
+                    break;
+                case KeyCode.Right:
+                    _keyRight = false;
+                    break;
+            }
+
+            var key = ev.Key.ToString();
+
+            if (key == "R")
+            {
+                Gear = "R";
+                return;
+            }
+
+            if (key == "N")
+            {
+                Gear = "N";
+                return;
+            }
+
+            if (key.Length == 2 && key[0] == 'D' && key[1] >= '1' && key[1] <= '5')
+            {
+                Gear = key[1].ToString();
+                return;
+            }
+
+            if (key.StartsWith("NumPad", StringComparison.Ordinal) &&
+                key.Length == 7 &&
+                key[6] >= '1' && key[6] <= '5')
+            {
+                Gear = key[6].ToString();
+            }
         }
 
         protected override void OnAttach()
@@ -91,7 +155,6 @@ namespace XrSamples
         public void Create()
         {
             AttachWheels();
-            CreateChassis();
             AttachSteering();
             AttachBody();
             CreateGearBox();
@@ -99,7 +162,6 @@ namespace XrSamples
             CarBody!.AddComponent(_carSound);
 
             var bodyPose = CarBody.GetWorldPose();
-            _bodyToFrame = bodyPose.Difference(_mainTube!.GetWorldPose());
             _bodyToAttached = bodyPose.Difference(_attachedGroup.GetWorldPose());
             _seatPosDiff = bodyPose.Difference(_host.GetWorldPose().Multiply(SeatLocalPose));
 
@@ -118,40 +180,34 @@ namespace XrSamples
             if (CarBodyCollisionMeshes != null)
                 collider.MeshObjects = () => CarBodyCollisionMeshes;
 
-            var collider2 = new BoxColliderV2()
-            {
-                Size = new Vector3(0.1f),
-                Pose = Pose3.Identity
-            };
-
             CarBody.AddComponent(collider);
 
             _carRigidBody = CarBody.AddComponent(new RigidBody
-{
-    Type = PhysicsActorType.Dynamic,
-    AutoTeleport = false,
-    Density = CarBodyDensity,
-    CollideGroup = RigidBodyGroup.Group1,
-    LinearDamping = 0.05f,
-    AngularDamping = 0.1f,
-    PositionMode = PositionMode.Origin,
-    SimulationDisabled = true,
-    DebugVisible = false,
-    Configure = rb =>
-    {
-        rb.Actor.SetFlag(PxActorFlag.DisableGravity, true);
+            {
+                Type = PhysicsActorType.Dynamic,
+                AutoTeleport = false,
+                Density = CarBodyDensity,
+                CollideGroup = RigidBodyGroup.Group1,
+                LinearDamping = 0.05f,
+                AngularDamping = 0.1f,
+                PositionMode = PositionMode.Origin,
+                SimulationDisabled = false,
+                DebugVisible = false,
+                Configure = rb =>
+                {
+                    rb.Actor.SetFlag(PxActorFlag.DisableGravity, true);
 
-        rb.DynamicActor.MaxLinearVelocity = 100;
-        rb.DynamicActor.MaxAngularVelocity = 20;
-        rb.DynamicActor.MaxDepenetrationVelocity = 1f;
+                    rb.DynamicActor.MaxLinearVelocity = 100;
+                    rb.DynamicActor.MaxAngularVelocity = 20;
+                    rb.DynamicActor.MaxDepenetrationVelocity = 1f;
 
-        rb.DynamicActor.SolverIterations = new SolverIterations
-        {
-            MinPos = PosIterations,
-            MinVel = 5
-        };
-    }
-});
+                    rb.DynamicActor.SolverIterations = new SolverIterations
+                    {
+                        MinPos = PosIterations,
+                        MinVel = 5
+                    };
+                }
+            });
 
             _carRigidBody.Contact += OnContact;
         }
@@ -180,111 +236,20 @@ namespace XrSamples
                 UseConvexMesh = false
             });
 
-            if (UseSteeringPhysics)
+            var rotate = new InputRotateAxis
             {
-                var worldPose = SteeringWheel.GetWorldPose().Multiply(SteeringLocalPose);
-                var dir = -Vector3.UnitZ.Transform(worldPose.Orientation);
-
-                _steeringWheelTube = AddSteeringTube(worldPose.Position, worldPose.Position + dir * 1f);
-                _attachedGroup.AddChild(_steeringWheelTube, true);
-
-                SteeringWheel.AddComponent<ForceTarget>();
-
-                _steeringWheelJoint = AddRotation(SteeringWheel, _steeringWheelTube, worldPose.Position, Vector3.UnitZ);
-                _steeringWheelJoint.Pose0 = SteeringLocalPose;
-
-                var options = (D6JointOptions)_steeringWheelJoint.Options!;
-                options.MotionSwing2 = PxD6Motion.Limited;
-                options.SwingLimit = new PxJointLimitCone
+                RotationAxis = new Ray3
                 {
-                    zAngle = MathF.PI * 2,
-                    stiffness = 1000,
-                    damping = 100,
-                    bounceThreshold = 100
-                };
-                options.DriveSwing = null;
-            }
-            else
-            {
-                var rotate = new InputRotateAxis
-                {
-                    RotationAxis = new Ray3
-                    {
-                        Origin = SteeringLocalPose.Position,
-                        Direction = -Vector3.UnitZ.Transform(SteeringLocalPose.Orientation).Normalize()
-                    },
-                    MinAngle = -SteeringLimitRad * SteeringRatio,
-                    MaxAngle = SteeringLimitRad * SteeringRatio,
-                    MaxDistance = 0.30f
-                };
-
-                SteeringWheel.AddComponent(rotate);
-                _attachedGroup.AddChild(SteeringWheel, true);
-            }
-        }
-
-        protected void CreateChassis()
-        {
-            _chassis = new Group3D
-            {
-                Name = "chassis"
+                    Origin = SteeringLocalPose.Position,
+                    Direction = -Vector3.UnitZ.Transform(SteeringLocalPose.Orientation).Normalize()
+                },
+                MinAngle = -SteeringLimitRad * SteeringRatio,
+                MaxAngle = SteeringLimitRad * SteeringRatio,
+                MaxDistance = 0.30f
             };
 
-            _host.AddChild(_chassis);
-
-            Debug.Assert(WheelFL != null && WheelFR != null && WheelBL != null && WheelBR != null);
-
-            var p1 = WheelFL.WorldBounds.Center;
-            var p2 = WheelFR.WorldBounds.Center;
-            var l1 = new Line3(p1, p2);
-
-            var p3 = l1.PointAt(WheelFL.WorldBounds.Size.X / 2);
-            var p4 = l1.PointAt(l1.Length() - WheelFL.WorldBounds.Size.X / 2);
-            var p5 = l1.Center();
-
-            var p6 = WheelBL.WorldBounds.Center;
-            var p7 = WheelBR.WorldBounds.Center;
-            var l2 = new Line3(p6, p7);
-            var p8 = l2.Center();
-
-            var l3 = new Line3(p5, p8).Expand(-FrameTubeSize / 2f, -FrameTubeSize / 2f);
-            p5 = l3.From;
-            p8 = l3.To;
-
-            var frameOrigin = (p5 + p8) * 0.5f;
-            var builder = new MeshBuilder();
-
-            AddFrameTube(ref builder, p1 - frameOrigin, p3 - frameOrigin);
-            AddFrameTube(ref builder, p2 - frameOrigin, p4 - frameOrigin);
-            AddFrameTube(ref builder, p3 - frameOrigin, p4 - frameOrigin);
-            AddFrameTube(ref builder, p6 - frameOrigin, p7 - frameOrigin);
-            AddFrameTube(ref builder, p5 - frameOrigin, p8 - frameOrigin);
-
-            _mainTube = new TriangleMesh(builder.ToGeometry(), (Material)_tubeMaterial)
-            {
-                Name = "frame",
-                WorldPosition = frameOrigin
-            };
-
-            _chassis.AddChild(_mainTube, true);
-        }
-
-        void AddFrameTube(ref MeshBuilder builder, Vector3 p1, Vector3 p2)
-        {
-            var line = new Line3(p1, p2);
-            var orientation = Vector3.UnitZ.RotationTowards(line.Direction());
-            var matrix = Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(line.Center());
-
-            var part = new MeshBuilder();
-            part.AddCube(Vector3.Zero, new Vector3(FrameTubeSize, FrameTubeSize, line.Length()));
-
-            foreach (var source in part.Vertices)
-            {
-                var vertex = source;
-                vertex.Pos = Vector3.Transform(vertex.Pos, matrix);
-                vertex.Normal = Vector3.TransformNormal(vertex.Normal, matrix).Normalize();
-                builder.Vertices.Add(vertex);
-            }
+            SteeringWheel.AddComponent(rotate);
+            _attachedGroup.AddChild(SteeringWheel, true);
         }
 
         Object3D[] Wheels()
@@ -417,11 +382,7 @@ namespace XrSamples
         {
             var bodyPose = CarBody!.GetWorldPose();
 
-            _mainTube!.SetWorldPoseIfChanged(bodyPose.Multiply(_bodyToFrame));
             _attachedGroup.SetWorldPoseIfChanged(bodyPose.Multiply(_bodyToAttached));
-
-            if (UseSteeringPhysics && _steeringWheelTube?.TryComponent<RigidBody>(out var rb) == true && rb.IsCreated)
-                rb.DynamicActor.KinematicTarget = _steeringWheelTube.GetWorldPose();
         }
 
         void SyncWheels()
@@ -444,20 +405,33 @@ namespace XrSamples
 
         protected void SyncSteering()
         {
-            float wheelAngle;
-
-            if (UseSteeringPhysics)
-                wheelAngle = _steeringWheelJoint!.D6Joint.SwingZAngle * 0.5f;
-            else
-                wheelAngle = SteeringWheel!.Component<InputRotateAxis>().Angle / SteeringRatio;
-
-            SteeringAngle = wheelAngle;
+            SteeringAngle = SteeringWheel!.Component<InputRotateAxis>().Angle / SteeringRatio;
         }
 
         protected void SyncInput()
         {
             if (ShowHideBodyInput != null && ShowHideBodyInput.IsActive && ShowHideBodyInput.IsChanged && ShowHideBodyInput.Value)
                 CarBody!.IsVisible = !CarBody.IsVisible;
+        }
+
+        protected void SyncKeys(float deltaTime)
+        {
+            AccInputSim = Math.Clamp(AccInputSim + (_keyUp ? deltaTime : -deltaTime), 0f, 1f);
+            BrakeInputSim = Math.Clamp(BrakeInputSim + (_keyDown ? deltaTime : -deltaTime), 0f, 1f);
+
+            if (_keyLeft != _keyRight)
+            {
+                var steerDir = _keyLeft ? 1f : -1f;
+                SteeringAngle = Math.Clamp(SteeringAngle + steerDir * deltaTime, -SteeringLimitRad, SteeringLimitRad);
+            }
+            else
+            {
+                var steerStep = deltaTime;
+                if (MathF.Abs(SteeringAngle) <= steerStep)
+                    SteeringAngle = 0;
+                else
+                    SteeringAngle -= MathF.Sign(SteeringAngle) * steerStep;
+            }
         }
 
         protected void SyncGear()
@@ -495,17 +469,18 @@ namespace XrSamples
             if (_vehicle == 0)
                 return;
 
-            var throttle = AccInput != null && AccInput.IsActive ? AccInput.Value : AccInputSim / 1000f;
+            var throttle = AccInput != null && AccInput.IsActive ? AccInput.Value : AccInputSim;
+            var brake = BrakeInputSim;
             var reverse = BackInput != null && BackInput.IsActive && BackInput.Value;
 
             var input = new VehicleNative.VehicleInput
             {
                 Throttle = Math.Clamp(throttle, 0, 1),
-                Brake = 0,
+                Brake = Math.Clamp(brake, 0, 1),
                 Steering = SteeringLimitRad > 0 ? Math.Clamp(SteeringAngle / SteeringLimitRad, -1, 1) : 0,
                 HandBrake = 0,
                 GearMode = VehicleNative.VehicleGearMode.Manual,
-                Gear =  reverse || _curGear == "R" ? -1 : (_curGear == "N" ? 0 : int.Parse(_curGear))
+                Gear = reverse || _curGear == "R" ? -1 : (_curGear == "N" ? 0 : int.Parse(_curGear))
             };
 
             VehicleNative.VehicleUpdate(_vehicle, deltaTime, ref input, ref _vehicleState);
@@ -515,6 +490,7 @@ namespace XrSamples
         {
             SyncSteering();
             SyncInput();
+            SyncKeys((float)_deltaTime);
             SyncGear();
 
             _manager ??= _host.Scene!.Component<PhysicsManager>();
@@ -562,97 +538,6 @@ namespace XrSamples
                 DestroyVehicle();
                 EnsureVehicle();
             });
-        }
-
-        TriangleMesh AddSteeringTube(Vector3 p1, Vector3 p2)
-        {
-            Debug.Assert(_chassis != null);
-
-            var line = new Line3(p1, p2);
-            var cube = new Cube3D(new Vector3(0.05f, 0.05f, line.Length()));
-
-            var mesh = new TriangleMesh(cube, (Material)_tubeMaterial)
-            {
-                WorldPosition = line.Center(),
-                Forward = -line.Direction(),
-                Name = "ts"
-            };
-
-            mesh.AddComponent<BoxCollider>();
-            mesh.AddComponent(new RigidBody
-            {
-                Type = PhysicsActorType.Kinematic,
-                CollideGroup = RigidBodyGroup.Group1
-            });
-
-            _chassis.AddChild(mesh);
-
-            return mesh;
-        }
-
-        Joint AddFixed(Object3D obj0, Object3D obj1, Vector3 point)
-        {
-            var manager = _host.Scene!.Component<PhysicsManager>();
-
-            var pose0 = new Pose3
-            {
-                Position = point,
-                Orientation = Quaternion.Identity
-            };
-
-            var pose1 = new Pose3
-            {
-                Position = point,
-                Orientation = Quaternion.Identity
-            };
-
-            pose0 = obj0.GetWorldPose().Inverse().Multiply(pose0);
-            pose1 = obj1.GetWorldPose().Inverse().Multiply(pose1);
-
-            var joint = manager.AddJoint(JointType.D6, obj0, pose0, obj1, pose1);
-
-            var drive = new PxD6JointDrive
-            {
-                forceLimit = 1000,
-                stiffness = 100000,
-                damping = 10
-            };
-
-            joint.Options = new D6JointOptions()
-            {
-                DriveX = drive,
-                DriveY = drive,
-                DriveZ = drive,
-                DriveSlerp = drive,
-                DriveSwing = drive,
-                DriveTwist = drive,
-            };
-
-            return joint;
-        }
-
-        Joint AddRotation(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis)
-        {
-            var joint = AddFixed(obj0, obj1, point);
-
-            var opt = (D6JointOptions)joint.Options!;
-
-            if (axis == Vector3.UnitX)
-            {
-                opt.MotionTwist = PxD6Motion.Free;
-            }
-            else if (axis == Vector3.UnitY)
-            {
-                opt.MotionSwing1 = PxD6Motion.Free;
-            }
-            else if (axis == Vector3.UnitZ)
-            {
-                opt.MotionSwing2 = PxD6Motion.Free;
-            }
-
-            opt.ConstraintFlags = PxConstraintFlags.CollisionEnabled;
-
-            return joint;
         }
 
         void CreateGearBox()
@@ -809,7 +694,7 @@ namespace XrSamples
                 Normal = worldPivot.Direction
             });
 
-            _attachedGroup.AddChild(obj, true);
+            _attachedGroup.AddChild(obj, false);
         }
 
         public void ConfigureInput(IXrBasicInteractionProfile input)
@@ -818,19 +703,15 @@ namespace XrSamples
             BackInput = input.Right!.Button!.AClick;
             ShowHideBodyInput = input.Right!.Button!.BClick;
 
-            if (!UseSteeringPhysics)
-            {
-                var rotate = SteeringWheel!.Component<InputRotateAxis>();
-                rotate.ConfigureInput(input);
-            }
+            var rotate = SteeringWheel!.Component<InputRotateAxis>();
+            rotate.ConfigureInput(input);
 
             foreach (var item in _attachedGroup.Children)
             {
-                if (item.TryComponent<InputRotatePivot>(out var rotate))
-                    rotate.ConfigureInput(input);
+                if (item.TryComponent<InputRotatePivot>(out var rotatePivot))
+                    rotatePivot.ConfigureInput(input);
             }
         }
-
 
         [Range(-1, 1, 0.01f)]
         [Category("Control")]
@@ -841,7 +722,7 @@ namespace XrSamples
             {
                 _steeringAngle = value;
 
-                if (!UseSteeringPhysics && SteeringWheel != null)
+                if (SteeringWheel != null)
                     SteeringWheel.Component<InputRotateAxis>().Angle = value * SteeringRatio;
             }
         }
@@ -871,9 +752,13 @@ namespace XrSamples
         [Range(0.1f, 100, 0.1f)]
         public float WheelMass { get; set; }
 
-        [Range(0, 100, 0.5f)]
+        [Range(0, 1, 0.01f)]
         [Category("Control")]
         public float AccInputSim { get; set; }
+
+        [Range(0, 1, 0.01f)]
+        [Category("Control")]
+        public float BrakeInputSim { get; set; }
 
         [Category("Control")]
         public string Gear
@@ -881,8 +766,6 @@ namespace XrSamples
             get => _curGear;
             set => _curGear = value;
         }
-
-        public bool UseSteeringPhysics { get; set; }
 
         public Pose3 SteeringLocalPose { get; set; }
 
@@ -897,9 +780,6 @@ namespace XrSamples
         public XrBoolInput? BackInput { get; set; }
 
         public XrBoolInput? ShowHideBodyInput { get; set; }
-
-        [Range(0.01f, 0.3f, 0.005f)]
-        public float FrameTubeSize { get; set; }
 
         [Range(0.01f, 0.5f, 0.005f)]
         public float SuspensionTravel { get; set; }

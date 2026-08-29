@@ -1148,7 +1148,7 @@ namespace XrSamples
                 Normal = worldPivot.Direction
             });
 
-            _attachedGroup.AddChild(obj, true);
+            _attachedGroup.AddChild(obj, false);
         }
 
         public void ConfigureInput(IXrBasicInteractionProfile input)

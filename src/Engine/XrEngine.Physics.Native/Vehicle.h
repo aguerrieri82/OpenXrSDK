@@ -127,10 +127,7 @@ extern "C"
 	
 	EXPORT void APIENTRY VehicleWorldDestroy(VehicleWorld* world);
 
-	EXPORT Vehicle* APIENTRY VehicleCreateSimple(
-		VehicleWorld* world,
-		physx::PxRigidDynamic* actor,
-		const VehicleSimpleDesc* desc);
+	EXPORT Vehicle* APIENTRY VehicleCreateSimple(VehicleWorld* world, physx::PxRigidDynamic* actor, const VehicleSimpleDesc* desc);
 
 	EXPORT void APIENTRY VehicleDestroy(Vehicle* vehicle);
 	

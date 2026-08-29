@@ -483,8 +483,8 @@ namespace XrEngine
         {
             Shader = SHADER;
             Color = Color.White;
-            Roughness = 1.0f;
-            Metalness = 1.0f;
+            Roughness = 0.5f;
+            Metalness = 0;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
             UseInstanceDraw = true;
@@ -1213,7 +1213,7 @@ namespace XrEngine
         public float AnisotropyRotation { get; set; }
 
         [Category(Textures)]
-        public Texture2D AnisotropyMap { get; set; }
+        public Texture2D? AnisotropyMap { get; set; }
 
         public override bool IsSingleDraw => UseMorph || (HasTransmission && TransmissionMode == TransmissionMode.Texture);
 

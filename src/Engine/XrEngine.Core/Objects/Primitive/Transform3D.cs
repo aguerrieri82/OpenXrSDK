@@ -152,7 +152,10 @@ namespace XrEngine
             _position = other.Position;
             _orientation = other.Orientation;
             _rotation = _orientation.ToEuler();
+            
             NotifyChanged();
+
+            Version++;
         }
 
         public void Set(Matrix4x4 matrix)
@@ -165,8 +168,7 @@ namespace XrEngine
             _rotation = _orientation.ToEuler();
             _matrix = matrix;
 
-            _host?.NotifyChanged(ChangeType.Transform);
-            Version++;
+            NotifyChanged();
         }
 
         public void Reset()

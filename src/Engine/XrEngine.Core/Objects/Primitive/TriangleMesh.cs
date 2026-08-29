@@ -250,7 +250,13 @@ namespace XrEngine
             if (oldIndexComp != CompIndexType || oldVertComp != CompVertexType)
             {
                 if (_geometry.IsGpuLoaded)
-                    throw new InvalidOperationException();
+                {
+                    CompIndexType = oldIndexComp;
+                    CompVertexType = oldVertComp;
+                    Log.Warn(this, "Canno re-upload compressed geometry");
+                    return;
+                }
+           
                 _geometry.Invalidate();
             }
         }

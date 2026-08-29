@@ -68,12 +68,14 @@ namespace XrEditor
                   opt.ContactShadow.IsMultiView = false;
 
                   opt.UseResolve = false;
-                  opt.ToneMap = ToneMapMode.Neutral;
+                  opt.ToneMap = ToneMapMode.Aces;
                   opt.UseProfiler = false;
                   opt.UseDefaultIntermediate = true;
                   opt.UseTransmission = true;
 
                   GlDebug.TrackBuffers = false;
+
+                  TriangleMesh.EnableCompression = false;
 
                   if (Driver == GraphicDriver.Angle)
                   {

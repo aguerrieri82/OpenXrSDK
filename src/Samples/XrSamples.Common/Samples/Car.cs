@@ -100,7 +100,7 @@ namespace XrSamples
             var scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
 
             //Simulation
-            var model = new CarModelV2
+            var model = new CarModelV2  
             {
                 WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
                 WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
@@ -109,7 +109,6 @@ namespace XrSamples
                 CarBody = car.GroupByName("body.003"),
                 SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
-                UseSteeringPhysics = false,
                 GearBoxPose = new Pose3()
                 {
                     Position = new Vector3(-0.1f, 0.61f, 0.1f),
@@ -160,6 +159,7 @@ namespace XrSamples
                 Bounds = new Vector3(300, 150, 230),
                 Origin = new Vector3(940.2f, 470, -390)
             };
+
             splitter.ExecuteSplit();
 
             mirror = car.FindByName<TriangleMesh>("plastic_mirrors.003")!;

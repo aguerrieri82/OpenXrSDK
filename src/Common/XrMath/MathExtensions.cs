@@ -578,11 +578,7 @@ namespace XrMath
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Pose3 Difference(in Pose3 other)
             {
-                return new Pose3
-                {
-                    Orientation = Quaternion.Inverse(self.Orientation) * other.Orientation,
-                    Position = other.Position - self.Position
-                };
+                return self.Inverse().Multiply(other);
             }
 
             public string ToCodeString()

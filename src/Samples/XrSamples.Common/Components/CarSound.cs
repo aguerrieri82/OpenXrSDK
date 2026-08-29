@@ -30,7 +30,7 @@ namespace XrSamples
                 Channels = 1,
                 SampleRate = 44100
             };
-            FrequencyFactor = 200f / 12000f;
+            FrequencyFactor = 200f / 8000f;
             LowPassAlpha = 0.08f;
             GearRatios = [3.5f, 2.1f, 1.5f, 1.0f, 0.8f];
             Gear = 1;

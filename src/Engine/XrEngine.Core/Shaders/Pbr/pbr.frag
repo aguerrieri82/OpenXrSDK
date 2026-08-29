@@ -983,7 +983,9 @@ void main()
 	color3 = mix(color3, clearCoatLighting, lighting.clearCoatSurfaceWeight);
 #endif
 
-	doPostRgb(color3);
+color3 *= uCamera.exposure;
+
+doPostRgb(color3);
 
 #ifdef SRGB_ENCODE
 	color3.rgb = linearTosRGB(color3.rgb);
@@ -997,7 +999,7 @@ void main()
 	a = mix(a, 1.0, saturate(specularStrength * uMaterial.alphaSpecularScale));
 #endif
 
-	vec3 outRgb = color3 * uCamera.exposure;
+vec3 outRgb = color3;
 
 #if TRANSMISSION_MODE == TM_TEXTURE
 	outRgb += volume.rgb * volume.a * transmissionColor;
@@ -1006,7 +1008,7 @@ void main()
 #if TRANSMISSION_MODE == TM_FB_FETCH
 	vec4 dst = color;
 	color = vec4(
-		outRgb + dst.rgb *	,
+		outRgb + dst.rgb * transmissionColor,
 		a + dst.a * (1.0 - a));
 #elif TRANSMISSION_MODE == TM_DUAL_SOURCE
 	color = vec4(outRgb, a);

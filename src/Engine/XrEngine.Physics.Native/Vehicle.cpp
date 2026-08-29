@@ -97,6 +97,7 @@ namespace
 	struct VehicleRuntime
 	{
 		vehicle2::PxVehicleAxleDescription Axles;
+
 		vehicle2::PxVehicleCommandState Commands;
 		vehicle2::PxVehicleEngineDriveTransmissionCommandState TransmissionCommands;
 
@@ -160,6 +161,7 @@ namespace
 		void SetToDefault()
 		{
 			Axles = {};
+
 			Commands = {};
 			TransmissionCommands = {};
 
@@ -174,21 +176,21 @@ namespace
 				BrakeResponseStates[i] = 0.0f;
 				SteerResponseStates[i] = 0.0f;
 
-				WheelRigidBodyStates[i] = {};
-				WheelLocalPoses[i] = {};
+				WheelRigidBodyStates[i].setToDefault();
+				WheelLocalPoses[i].setToDefault();
 
-				ActuationStates[i] = {};
-				RoadGeometryStates[i] = {};
-				SuspensionStates[i] = {};
-				SuspensionComplianceStates[i] = {};
-				SuspensionForces[i] = {};
-				TireGripStates[i] = {};
-				TireDirectionStates[i] = {};
-				TireSpeedStates[i] = {};
-				TireSlipStates[i] = {};
-				TireCamberStates[i] = {};
-				TireStickyStates[i] = {};
-				TireForces[i] = {};
+				ActuationStates[i].setToDefault();
+				RoadGeometryStates[i].setToDefault();
+				SuspensionStates[i].setToDefault();
+				SuspensionComplianceStates[i].setToDefault();
+				SuspensionForces[i].setToDefault();
+				TireGripStates[i].setToDefault();
+				TireDirectionStates[i].setToDefault();
+				TireSpeedStates[i].setToDefault();
+				TireSlipStates[i].setToDefault();
+				TireCamberStates[i].setToDefault();
+				TireStickyStates[i].setToDefault();
+				TireForces[i].setToDefault();
 
 				MaterialFrictionParams[i] = {};
 				SuspensionLimitParams[i] = {};
@@ -202,22 +204,23 @@ namespace
 			SuspensionStateCalculationParams = {};
 			RigidBodyParams = {};
 			RigidBodyState = {};
+			RigidBodyState.setToDefault();
 
 			EngineParams = {};
 			GearboxParams = {};
 			AutoboxParams = {};
 			ClutchParams = {};
 			ClutchCommandResponseParams = {};
-			DifferentialParams = {};
+			DifferentialParams.setToDefault();
 
-			ThrottleResponseState = {};
-			EngineState = {};
-			GearboxState = {};
-			AutoboxState = {};
-			ClutchCommandResponseState = {};
-			ClutchState = {};
-			DifferentialState = {};
-			WheelConstraintGroupState = {};
+			ThrottleResponseState.setToDefault();
+			EngineState.setToDefault();
+			GearboxState.setToDefault();
+			AutoboxState.setToDefault();
+			ClutchCommandResponseState.setToDefault();
+			ClutchState.setToDefault();
+			DifferentialState.setToDefault();
+			WheelConstraintGroupState.setToDefault();
 
 			RoadQueryParams.roadGeometryQueryType = vehicle2::PxVehiclePhysXRoadGeometryQueryType::eNONE;
 			RoadQueryParams.filterData = PxQueryFilterData();
@@ -244,13 +247,27 @@ namespace
 		PxU32 id,
 		const VehicleWheelDesc& wheel,
 		const VehicleAxleSimpleDesc& axle,
-		float sprungMass)
+		float sprungMass,
+		float gravityMagnitude,
+		const PxTransform& cMassLocalPose)
 	{
 		auto& suspension = runtime.SuspensionParams[id];
-		suspension.suspensionTravelDir = PxVec3(0.0f, -1.0f, 0.0f);
+
+		// Vehicle2 reads rigidBodyState.pose as actorGlobalPose * cMassLocalPose, so all
+		// suspension geometry must be expressed in that mass/COM frame. wheel.Position
+		// is supplied by our API in the actor/model local frame.
+		const PxTransform wheelPoseMass = cMassLocalPose.transformInv(PxTransform(ToPx(wheel.Position)));
+		suspension.suspensionTravelDir = cMassLocalPose.q.rotateInv(PxVec3(0.0f, -1.0f, 0.0f));
 		suspension.suspensionTravelDist = axle.SuspensionTravel;
-		suspension.suspensionAttachment = PxTransform(
-			ToPx(wheel.Position) - suspension.suspensionTravelDir * axle.SuspensionTravel);
+
+		// VehicleWheelDesc::Position is the modelled wheel centre at the desired static ride pose.
+		// PxVehicleSuspensionParams::suspensionAttachment is instead the wheel pose at MAX COMPRESSION.
+		const float equilibriumJounce = sprungMass * gravityMagnitude / axle.SuspensionStiffness;
+		const float staticJounce = PxClamp(equilibriumJounce, 0.0f, axle.SuspensionTravel);
+
+		suspension.suspensionAttachment = wheelPoseMass;
+		suspension.suspensionAttachment.p -=
+			suspension.suspensionTravelDir * (axle.SuspensionTravel - staticJounce);
 		suspension.wheelAttachment = PxTransform(PxIdentity);
 
 		auto& force = runtime.SuspensionForceParams[id];
@@ -303,11 +320,13 @@ struct VehicleWorld
 	VehicleWorld(PxPhysics* physics, PxScene* scene, PxMaterial* material)
 		: Physics(physics), Scene(scene), DefaultMaterial(material)
 	{
-		SimulationContext = {};
+		SimulationContext.setToDefault();
 
-		SimulationContext.frame.lngAxis = vehicle2::PxVehicleAxes::eNegZ;
-		SimulationContext.frame.latAxis = vehicle2::PxVehicleAxes::ePosX;
+		SimulationContext.frame.lngAxis = vehicle2::PxVehicleAxes::ePosZ;
+		SimulationContext.frame.latAxis = vehicle2::PxVehicleAxes::eNegX;
 		SimulationContext.frame.vrtAxis = vehicle2::PxVehicleAxes::ePosY;
+
+		PX_ASSERT(SimulationContext.frame.isValid());
 
 		SimulationContext.scale.scale = 1.0f;
 		SimulationContext.gravity = Scene->getGravity();
@@ -810,7 +829,7 @@ static void SimulateVehicle(Vehicle& vehicle, float dt)
 	EndVehicleUpdate(vehicle, dt);
 }
 
-static void ConfigureSimpleVehicle(Vehicle& vehicle)
+static bool ConfigureSimpleVehicle(Vehicle& vehicle)
 {
 	auto& runtime = vehicle.Runtime;
 	const auto& desc = vehicle.Desc;
@@ -851,10 +870,14 @@ static void ConfigureSimpleVehicle(Vehicle& vehicle)
 	const float frontAxleSprungMass = bodyMass * rearDistance / axleDistance;
 	const float rearAxleSprungMass = bodyMass * frontDistance / axleDistance;
 
-	ConfigureSuspension(runtime, WheelFL, desc.FrontAxle.LeftWheel, desc.FrontAxle, frontAxleSprungMass * 0.5f);
-	ConfigureSuspension(runtime, WheelFR, desc.FrontAxle.RightWheel, desc.FrontAxle, frontAxleSprungMass * 0.5f);
-	ConfigureSuspension(runtime, WheelRL, desc.RearAxle.LeftWheel, desc.RearAxle, rearAxleSprungMass * 0.5f);
-	ConfigureSuspension(runtime, WheelRR, desc.RearAxle.RightWheel, desc.RearAxle, rearAxleSprungMass * 0.5f);
+	const float gravityMagnitude = vehicle.World->SimulationContext.gravity.magnitude();
+
+	const PxTransform cMassLocalPose = vehicle.Actor->getCMassLocalPose();
+
+	ConfigureSuspension(runtime, WheelFL, desc.FrontAxle.LeftWheel, desc.FrontAxle, frontAxleSprungMass * 0.5f, gravityMagnitude, cMassLocalPose);
+	ConfigureSuspension(runtime, WheelFR, desc.FrontAxle.RightWheel, desc.FrontAxle, frontAxleSprungMass * 0.5f, gravityMagnitude, cMassLocalPose);
+	ConfigureSuspension(runtime, WheelRL, desc.RearAxle.LeftWheel, desc.RearAxle, rearAxleSprungMass * 0.5f, gravityMagnitude, cMassLocalPose);
+	ConfigureSuspension(runtime, WheelRR, desc.RearAxle.RightWheel, desc.RearAxle, rearAxleSprungMass * 0.5f, gravityMagnitude, cMassLocalPose);
 
 	ConfigureTire(runtime, WheelFL, frontAxleSprungMass * 0.5f, desc.FrontAxle.TireFriction);
 	ConfigureTire(runtime, WheelFR, frontAxleSprungMass * 0.5f, desc.FrontAxle.TireFriction);
@@ -971,6 +994,7 @@ static void ConfigureSimpleVehicle(Vehicle& vehicle)
 	runtime.GearboxState.currentGear = runtime.GearboxParams.neutralGear;
 	runtime.GearboxState.targetGear = runtime.GearboxParams.neutralGear;
 	runtime.TransmissionCommands.targetGear = runtime.GearboxParams.neutralGear;
+	return true;
 }
 
 
@@ -1008,9 +1032,7 @@ Vehicle* VehicleCreateSimple(VehicleWorld* world, PxRigidDynamic* actor, const V
 	vehicle->Desc = *desc;
 	vehicle->InitialPose = FromPx(actor->getGlobalPose());
 
-	ConfigureSimpleVehicle(*vehicle);
-
-	if (!ConfigurePhysXVehicle(*vehicle))
+	if (!ConfigureSimpleVehicle(*vehicle) || !ConfigurePhysXVehicle(*vehicle))
 	{
 		delete vehicle;
 		return nullptr;
@@ -1084,10 +1106,12 @@ int32_t VehicleUpdate(Vehicle* vehicle, float deltaTime, const VehicleInput* inp
 
 	state->BodyPose = FromPx(bodyPose);
 
+	const PxTransform cMassLocalPose = vehicle->Actor->getCMassLocalPose();
+
 	for (PxU32 i = 0; i < WheelCount; i++)
 	{
 		const PxTransform localPose = runtime.WheelLocalPoses[i].localPose;
-		state->WheelPoses[i] = FromPx(bodyPose * localPose);
+		state->WheelPoses[i] = FromPx(bodyPose * cMassLocalPose * localPose);
 	}
 
 	state->SteeringAngle =
@@ -1124,12 +1148,14 @@ void VehicleSetPose(Vehicle* vehicle, const Pose3f* pose)
 	vehicle->Actor->setAngularVelocity(PxVec3(0.0f));
 
 	vehicle->Runtime.RigidBodyState = {};
+	vehicle->Runtime.RigidBodyState.setToDefault();
 	vehicle->Runtime.RigidBodyState.pose = ToPx(*pose);
 
 	for (PxU32 i = 0; i < WheelCount; i++)
 	{
-		vehicle->Runtime.WheelRigidBodyStates[i] = {};
-		vehicle->Runtime.WheelLocalPoses[i] = {};
+		vehicle->Runtime.WheelRigidBodyStates[i].setToDefault();
+		vehicle->Runtime.WheelLocalPoses[i].setToDefault();
+		vehicle->Runtime.SuspensionStates[i].setToDefault();
 	}
 }
 
@@ -1140,14 +1166,14 @@ void VehicleReset(Vehicle* vehicle)
 
 	VehicleSetPose(vehicle, &vehicle->InitialPose);
 
-	vehicle->Runtime.EngineState = {};
+	vehicle->Runtime.EngineState.setToDefault();
 	vehicle->Runtime.EngineState.rotationSpeed = vehicle->Runtime.EngineParams.idleOmega;
-	vehicle->Runtime.GearboxState = {};
-	vehicle->Runtime.AutoboxState = {};
-	vehicle->Runtime.ClutchCommandResponseState = {};
-	vehicle->Runtime.ClutchState = {};
-	vehicle->Runtime.DifferentialState = {};
-	vehicle->Runtime.WheelConstraintGroupState = {};
+	vehicle->Runtime.GearboxState.setToDefault();
+	vehicle->Runtime.AutoboxState.setToDefault();
+	vehicle->Runtime.ClutchCommandResponseState.setToDefault();
+	vehicle->Runtime.ClutchState.setToDefault();
+	vehicle->Runtime.DifferentialState.setToDefault();
+	vehicle->Runtime.WheelConstraintGroupState.setToDefault();
 
 	vehicle->Runtime.GearboxState.currentGear =
 		vehicle->Runtime.GearboxParams.neutralGear;

@@ -185,7 +185,7 @@ namespace XrEngine.OpenGL.Wpf
                     WGL_DEPTH_BITS_ARB, 24,
                     WGL_STENCIL_BITS_ARB, 8,
 
-                  //  WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, 1,
+                    //WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, 1,
 
                     0
             ];
