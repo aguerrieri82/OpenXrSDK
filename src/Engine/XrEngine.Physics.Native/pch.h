@@ -28,14 +28,18 @@
 #include "extensions/PxRigidActorExt.h"
 #include "extensions/PxRigidBodyExt.h"
 
-#ifdef __ANDROID__
-#include "vehicle2/PxVehicleAPI.h"
-#else
+#ifndef PHYSX_SDK_VERSION
+#define PHYSX_SDK_VERSION 590
+#endif
+
+#if PHYSX_SDK_VERSION >= 590
 #include "vehicle/PxVehicleAPI.h"
 
 // PhysX 5.9 folded Vehicle2 into the main physx namespace. Keep the existing
 // bridge source compatible with the current Windows SDK spelling.
 namespace vehicle2 = physx;
+#else
+#include "vehicle2/PxVehicleAPI.h"
 #endif
 
 #include "Vehicle.h"

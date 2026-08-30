@@ -14,7 +14,7 @@ LOCAL_PCH := ../pch.h
 LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)
 LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../libs/physx-141/bin/android-arm64/release
 
-LOCAL_CPPFLAGS += $(ANDROID_CPP_FLAGS) -ffast-math
+LOCAL_CPPFLAGS += $(ANDROID_CPP_FLAGS) -ffast-math -DPHYSX_SDK_VERSION=141
 
 LOCAL_LDLIBS += -lPhysX
 LOCAL_LDLIBS += -lPhysXCommon
