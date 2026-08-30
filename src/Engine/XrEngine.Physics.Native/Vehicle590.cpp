@@ -223,7 +223,8 @@ namespace
 			WheelConstraintGroupState.setToDefault();
 
 			RoadQueryParams.roadGeometryQueryType = vehicle2::PxVehiclePhysXRoadGeometryQueryType::eNONE;
-			RoadQueryParams.filterData = PxQueryFilterData();
+			RoadQueryParams.defaultFilterData = PxQueryFilterData();
+			RoadQueryParams.filterDataEntries = nullptr;
 			RoadQueryParams.filterCallback = nullptr;
 			PhysXActor.setToDefault();
 			PhysXSteerState.setToDefault();
@@ -258,7 +259,10 @@ namespace
 		// is supplied by our API in the actor/model local frame.
 		const PxTransform wheelPoseMass = cMassLocalPose.transformInv(PxTransform(ToPx(wheel.Position)));
 		suspension.suspensionTravelDir = cMassLocalPose.q.rotateInv(PxVec3(0.0f, -1.0f, 0.0f));
-		suspension.suspensionTravelDist = axle.SuspensionTravel;
+		// Leave a small query margin. PhysX 5.9's raycast vehicle query ignores
+		// an exact zero-distance hit, which otherwise makes tire grip disappear
+		// when a wheel is resting directly on the road.
+		suspension.suspensionTravelDist = axle.SuspensionTravel + 0.01f;
 
 		// VehicleWheelDesc::Position is the modelled wheel centre at the desired static ride pose.
 		// PxVehicleSuspensionParams::suspensionAttachment is instead the wheel pose at MAX COMPRESSION.
@@ -382,7 +386,11 @@ static bool ConfigurePhysXVehicle(Vehicle& vehicle)
 	runtime.PhysXConstraints.setToDefault();
 
 	runtime.RoadQueryParams.roadGeometryQueryType = vehicle2::PxVehiclePhysXRoadGeometryQueryType::eRAYCAST;
-	runtime.RoadQueryParams.filterData = PxQueryFilterData(PxFilterData(0, 0, 0, 0), PxQueryFlag::eSTATIC);
+	// Query both static terrain and movable support surfaces.  Vehicle2's tire
+	// grip is zero when the road query misses the contact actor.
+	runtime.RoadQueryParams.defaultFilterData = PxQueryFilterData(
+		PxFilterData(0, 0, 0, 0), PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC);
+	runtime.RoadQueryParams.filterDataEntries = nullptr;
 	runtime.RoadQueryParams.filterCallback = nullptr;
 
 	for (PxU32 i = 0; i < WheelCount; i++)
@@ -546,7 +554,9 @@ static void UpdateRoadGeometry(Vehicle& vehicle)
 		vehicle2::PxVehiclePhysXRoadGeometryQueryUpdate(
 			runtime.WheelParams[wheelId],
 			runtime.SuspensionParams[wheelId],
-			runtime.RoadQueryParams,
+			runtime.RoadQueryParams.roadGeometryQueryType,
+			runtime.RoadQueryParams.filterCallback,
+			runtime.RoadQueryParams.defaultFilterData,
 			runtime.MaterialFrictionParams[wheelId],
 			runtime.SteerResponseStates[wheelId],
 			runtime.RigidBodyState,
@@ -613,7 +623,8 @@ static void UpdateTires(Vehicle& vehicle, float dt)
 		vehicle2::PxVehicleTireDirsUpdate(
 			runtime.SuspensionParams[wheelId],
 			runtime.SteerResponseStates[wheelId],
-			runtime.RoadGeometryStates[wheelId],
+		runtime.RoadGeometryStates[wheelId].plane.n,
+		runtime.RoadGeometryStates[wheelId].hitState,
 			runtime.SuspensionComplianceStates[wheelId],
 			runtime.RigidBodyState,
 			context.frame,
@@ -641,7 +652,8 @@ static void UpdateTires(Vehicle& vehicle, float dt)
 		vehicle2::PxVehicleTireCamberAnglesUpdate(
 			runtime.SuspensionParams[wheelId],
 			runtime.SteerResponseStates[wheelId],
-			runtime.RoadGeometryStates[wheelId],
+			runtime.RoadGeometryStates[wheelId].plane.n,
+			runtime.RoadGeometryStates[wheelId].hitState,
 			runtime.SuspensionComplianceStates[wheelId],
 			runtime.RigidBodyState,
 			context.frame,
@@ -649,8 +661,9 @@ static void UpdateTires(Vehicle& vehicle, float dt)
 
 		vehicle2::PxVehicleTireGripUpdate(
 			runtime.TireForceParams[wheelId],
-			runtime.RoadGeometryStates[wheelId],
-			runtime.SuspensionStates[wheelId],
+			PxMax(runtime.RoadGeometryStates[wheelId].friction,
+				runtime.MaterialFrictionParams[wheelId].defaultFriction),
+			runtime.RoadGeometryStates[wheelId].hitState,
 			runtime.SuspensionForces[wheelId],
 			runtime.TireSlipStates[wheelId],
 			runtime.TireGripStates[wheelId]);
@@ -801,6 +814,7 @@ static void EndVehicleUpdate(Vehicle& vehicle, float dt)
 		context.physxActorWakeCounterThreshold,
 		context.physxActorWakeCounterResetValue,
 		&runtime.GearboxState,
+		nullptr,
 		*vehicle.Actor);
 }
 

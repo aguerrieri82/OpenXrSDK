@@ -87,6 +87,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <PHYSX_SDK_VERSION Condition="'$(PHYSX_SDK_VERSION)' == ''">141</PHYSX_SDK_VERSION>
+    <PHYSX_INCLUDE Condition="'$(PHYSX_SDK_VERSION)' == '590'">$(ProjectDir)..\..\..\third-party\physx-rs\physx-sys\physx\physx\include</PHYSX_INCLUDE>
+    <PHYSX_INCLUDE Condition="'$(PHYSX_SDK_VERSION)' != '590'">$(ProjectDir)..\..\..\libs\physx-141\include</PHYSX_INCLUDE>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
@@ -247,8 +252,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\third-party\physx-rs\physx-sys\physx\physx\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PHYSX_SDK_VERSION=590;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(PHYSX_INCLUDE)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PHYSX_SDK_VERSION=$(PHYSX_SDK_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
@@ -276,8 +281,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\third-party\physx-rs\physx-sys\physx\physx\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PHYSX_SDK_VERSION=590;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(PHYSX_INCLUDE)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PHYSX_SDK_VERSION=$(PHYSX_SDK_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -313,7 +318,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Vehicle.cpp" />
+    <ClCompile Include="Vehicle.cpp" Condition="'$(PHYSX_SDK_VERSION)' != '590'" />
+    <ClCompile Include="Vehicle590.cpp" Condition="'$(PHYSX_SDK_VERSION)' == '590'">
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch590.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="pch590.cpp" Condition="'$(PHYSX_SDK_VERSION)' == '590'">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch590.h</PrecompiledHeaderFile>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="android-build.cmd" />

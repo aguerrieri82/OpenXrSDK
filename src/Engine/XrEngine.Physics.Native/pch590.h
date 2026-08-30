@@ -28,25 +28,21 @@
 #include "extensions/PxRigidActorExt.h"
 #include "extensions/PxRigidBodyExt.h"
 
-#if PHYSX_SDK_VERSION >= 590
 #include "vehicle/PxVehicleAPI.h"
 namespace vehicle2 = physx;
-#else
-#include "vehicle2/PxVehicleAPI.h"
-#endif
 
 #include "Vehicle.h"
 
 
 #ifdef _WINDOWS
 
-#define PHYSX_LIB_PATH "..\\..\\..\\libs\\physx-141\\bin\\win-x64\\mt\\release\\"
+#define PHYSX_LIB_PATH "..\\..\\..\\third-party\\physx-rs\\physx-sys\\physx\\physx\\lib\\bin\\win.x86_64.vc143.md\\release\\"
 
 #pragma comment(lib, PHYSX_LIB_PATH "PhysX_64.lib")
 #pragma comment(lib, PHYSX_LIB_PATH "PhysXCommon_64.lib")
 #pragma comment(lib, PHYSX_LIB_PATH "PhysXFoundation_64.lib")
 #pragma comment(lib, PHYSX_LIB_PATH "PhysXExtensions_static_64.lib")
 #pragma comment(lib, PHYSX_LIB_PATH "PhysXCooking_64.lib") 
-#pragma comment(lib, PHYSX_LIB_PATH "PhysXVehicle2_static_64.lib")
+#pragma comment(lib, PHYSX_LIB_PATH "PhysXVehicle_static_64.lib")
 
 #endif

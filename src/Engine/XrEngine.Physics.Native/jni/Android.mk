@@ -7,8 +7,8 @@ LOCAL_MODULE := physics-native
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/..
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../libs/physx-141/include
 
-LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../*.cpp)
-
+LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../Vehicle.cpp)
+LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../pch.cpp)
 LOCAL_PCH := ../pch.h
 
 LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)

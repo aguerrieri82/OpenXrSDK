@@ -2,8 +2,7 @@
 setlocal
 
 set "PHYSX_ROOT=D:\Development\Personal\Git\XrSDK\third-party\physx-rs\physx-sys\physx\physx"
-set "BUILD_DIR=%PHYSX_ROOT%\compiler\win64-release"
-set "OUTPUT_DIR=%PHYSX_ROOT%\bin-win64"
+set "BUILD_DIR=%PHYSX_ROOT%\compiler\win64-release-5.9"
 
 set "PM_CMakeModules_PATH=D:\packman-repo\chk\CMakeModules\1.28.trunk.32494385"
 set "PM_PhysXDevice_PATH=D:\packman-repo\chk\PhysXDevice\18.12.7.4"
@@ -15,21 +14,13 @@ set "PM_PATHS=%PM_CMakeModules_PATH%;D:\packman-repo\chk\clang-physxmetadata\4.0
 call "C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
 if errorlevel 1 exit /b 1
 
-if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
-
 cmake ^
-  -S "%PHYSX_ROOT%\source\compiler\cmake" ^
+  -S "%PHYSX_ROOT%" ^
   -B "%BUILD_DIR%" ^
-  -G "NMake Makefiles" ^
+  -G "Ninja" ^
   -DCMAKE_BUILD_TYPE=release ^
-  -DCMAKE_PREFIX_PATH="%PM_PATHS%" ^
-  -DCMAKEMODULES_PATH="%PM_CMakeModules_PATH%" ^
-  -DTARGET_BUILD_PLATFORM=windows ^
-  -DPX_OUTPUT_ARCH=x64 ^
-  -DPHYSX_ROOT_DIR="%PHYSX_ROOT%" ^
-  -DPX_OUTPUT_LIB_DIR="%OUTPUT_DIR%" ^
-  -DPX_OUTPUT_BIN_DIR="%OUTPUT_DIR%" ^
   -DPX_GENERATE_STATIC_LIBRARIES=OFF ^
+  -DPX_GENERATE_GPU_PROJECTS=OFF ^
   -DPX_BUILDSNIPPETS=OFF ^
   -DPX_BUILDPVDRUNTIME=OFF ^
   -DNV_USE_STATIC_WINCRT=OFF ^
