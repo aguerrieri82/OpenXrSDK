@@ -8,7 +8,7 @@
 
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\physics-native.dll" CopyToOutputDirectory="PreserveNewest" Link="physics-native.dll" Visible="False" UseLink="True" />
+		<Content Include="$(NativeLibsDir)$(PhysXNativeFolder)\physics-native.dll" CopyToOutputDirectory="PreserveNewest" Link="physics-native.dll" Visible="False" UseLink="True" />
 		<_Content Include="$(NativeLibsDir)$(PhysXLibFolder)\PhysX*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
 	</ItemGroup>
 

@@ -36,9 +36,11 @@
 	<PropertyGroup Condition="'$(PhysXRuntimeVersion)' == '590'">
 		<NativeFolder>$(Configuration)-590</NativeFolder>
 		<PhysXLibFolder>physx-590\bin\win-x64\release</PhysXLibFolder>
+		<PhysXNativeFolder>physics-native\win-x64\590</PhysXNativeFolder>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(PhysXRuntimeVersion)' != '590'">
 		<PhysXLibFolder>physx-141\bin\win-x64\mt\release</PhysXLibFolder>
+		<PhysXNativeFolder>physics-native\win-x64\141</PhysXNativeFolder>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
