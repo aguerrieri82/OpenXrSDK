@@ -18,6 +18,8 @@
 		<OpenGL></OpenGL>
 		<AndroidPlatform>30</AndroidPlatform>
 		<IsAndroid>false</IsAndroid>
+		<!-- Runtime ABI selector: 141 keeps the legacy binaries; 590 selects the PhysX 5.9 binaries. -->
+		<PhysXRuntimeVersion Condition="'$(PhysXRuntimeVersion)' == ''">141</PhysXRuntimeVersion>
 		<NativeFolder>$(Configuration)</NativeFolder>
 		<NativePlatform>x64</NativePlatform>
 		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
@@ -29,6 +31,14 @@
 		<UseAngle>false</UseAngle>
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(PhysXRuntimeVersion)' == '590'">
+		<NativeFolder>$(Configuration)-590</NativeFolder>
+		<PhysXLibFolder>physx-590\bin\win-x64\release</PhysXLibFolder>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(PhysXRuntimeVersion)' != '590'">
+		<PhysXLibFolder>physx-141\bin\win-x64\mt\release</PhysXLibFolder>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
