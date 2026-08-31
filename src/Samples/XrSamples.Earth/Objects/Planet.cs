@@ -34,7 +34,7 @@ namespace XrSamples.Earth
             mat.ColorMap = Albedo;
 
             if (mat is IHeightMaterial heightMat)
-                heightMat.HeightMap = HeightMap;
+                heightMat.DisplacmentMap = HeightMap;
 
             if (RoughnessMap != null)
             {
@@ -118,8 +118,8 @@ namespace XrSamples.Earth
             _transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, AxisTilt) *
                                      Quaternion.CreateFromAxisAngle(Vector3.UnitY, Rotation + RotationOffset);
 
-            if (_sphere!.Materials[0] is IHeightMaterial hm && hm.HeightMap != null)
-                hm.HeightMap!.SphereWorldCenter = WorldPosition;
+            if (_sphere!.Materials[0] is IHeightMaterial hm && hm.DisplacmentMap != null)
+                hm.DisplacmentMap!.SphereWorldCenter = WorldPosition;
 
             foreach (var tile in Children.OfType<GeoTile>())
                 tile.SphereWorldCenter = WorldPosition;
@@ -143,7 +143,7 @@ namespace XrSamples.Earth
 
         public Texture2D? RoughnessMap { get; set; }
 
-        public HeightMapSettings? HeightMap { get; set; }
+        public DisplacmentMapSettings? HeightMap { get; set; }
 
         public Orbit? Orbit { get; set; }
 

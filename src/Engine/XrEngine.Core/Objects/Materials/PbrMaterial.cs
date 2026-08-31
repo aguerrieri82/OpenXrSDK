@@ -128,6 +128,12 @@ namespace XrEngine
 
             [FieldOffset(160)]
             public float AnisotropyRotation;
+
+            [FieldOffset(164)]
+            public float DetailsNormalScale;
+
+            [FieldOffset(168)]
+            public float HeightScale;
         }
 
         #endregion
@@ -487,6 +493,7 @@ namespace XrEngine
             Metalness = 0;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
+            HeigthScale = 1;
             UseInstanceDraw = true;
             ForceIblTransform = false;
             LightFieldOfs = 1.5f;
@@ -544,6 +551,7 @@ namespace XrEngine
                     ShadowColor = ShadowColor,
                     OcclusionStrength = OcclusionStrength,
                     NormalScale = NormalScale,
+                    DetailsNormalScale = DetailsNormalScale,
                     AlphaCutoff = AlphaCutoff,
                     AlphaSpecularScale = AlphaSpecularScale,
                     EmissiveColor = EmissiveColor,
@@ -563,7 +571,8 @@ namespace XrEngine
                     Thickness = Thickness,
                     Dispersion = Dispersion,
                     Anisotropy = Anisotropy,
-                    AnisotropyRotation = AnisotropyRotation
+                    AnisotropyRotation = AnisotropyRotation,
+                    HeightScale = HeigthScale
                 };
 
                 return true;
@@ -641,39 +650,51 @@ namespace XrEngine
                 });
             }
 
-            if (HeightMap?.Texture != null)
+
+            if (HeightMap != null)
             {
                 bld.AddFeature("USE_HEIGHT_MAP");
 
-                if (HeightMap.NormalMode == HeightNormalMode.Sobel)
+                bld.AddFeature($"HEIGHT_UV_SET {HeightMap.DefaultUvSet}");
+
+                bld.TryAddUvTransform(HeightMap, "HEIGHT_UV_TRANSFORM", UV0Transform);
+
+                bld.LoadTexture(() => HeightMap, TextureSlots.Height);
+            }
+
+            if (DisplacmentMap?.Texture != null)
+            {
+                bld.AddFeature("USE_DISPLACMENT_MAP");
+
+                if (DisplacmentMap.NormalMode == HeightNormalMode.Sobel)
                     bld.AddFeature("NORMAL_SOBEL");
 
-                else if (HeightMap.NormalMode == HeightNormalMode.Geometry)
+                else if (DisplacmentMap.NormalMode == HeightNormalMode.Geometry)
                     bld.AddFeature("NORMAL_GEO");
 
-                if (HeightMap.MaskValue != null)
-                    bld.AddFeature($"HEIGHT_MASK_VALUE {HeightMap.MaskValue}.0");
+                if (DisplacmentMap.MaskValue != null)
+                    bld.AddFeature($"HEIGHT_MASK_VALUE {DisplacmentMap.MaskValue}.0");
 
-                if (HeightMap.SphereRadius > 0)
+                if (DisplacmentMap.SphereRadius > 0)
                 {
                     bld.AddFeature("IS_SPHERE");
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        up.SetUniform("uSphereRadius", HeightMap.SphereRadius);
-                        up.SetUniform("uSphereCenter", HeightMap.SphereWorldCenter);
+                        up.SetUniform("uSphereRadius", DisplacmentMap.SphereRadius);
+                        up.SetUniform("uSphereCenter", DisplacmentMap.SphereWorldCenter);
                     });
                 }
 
-                bld.LoadTexture(() => HeightMap?.Texture, TextureSlots.HeightMap);
+                bld.LoadTexture(() => DisplacmentMap?.Texture, TextureSlots.HeightMap);
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    if (HeightMap != null)
-                        up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Texture.Width, HeightMap.Texture.Height));
+                    if (DisplacmentMap != null)
+                        up.SetUniform("uHeightTexSize", new Vector2(DisplacmentMap.Texture.Width, DisplacmentMap.Texture.Height));
 
-                    up.SetUniform("uHeightNormalStrength", HeightMap!.NormalStrength);
-                    up.SetUniform("uHeightScale", HeightMap.ScaleFactor);
-                    up.SetUniform("uTargetTriSize", HeightMap.TargetTriSize);
+                    up.SetUniform("uHeightNormalStrength", DisplacmentMap!.NormalStrength);
+                    up.SetUniform("uHeightScale", DisplacmentMap.ScaleFactor);
+                    up.SetUniform("uTargetTriSize", DisplacmentMap.TargetTriSize);
                 });
             }
 
@@ -715,6 +736,18 @@ namespace XrEngine
                 bld.LoadTexture(() => NormalMap, TextureSlots.Normal);
 
                 bld.TryAddUvTransform(NormalMap, "NORMAL_UV_TRANSFORM", UV0Transform);
+            }
+
+            if (DetailsNormalMap != null && DetailsNormalScale != 0)
+            {
+                bld.AddFeature("USE_DETAILS_NORMAL_MAP");
+
+                if (DetailsNormalMapFormat == NormalMapFormat.UnityBc3)
+                    bld.AddFeature("DETAILS_NORMAL_MAP_BC3");
+
+                bld.LoadTexture(() => DetailsNormalMap, TextureSlots.DetailsNormal);
+
+                bld.TryAddUvTransform(DetailsNormalMap, "DETAILSNORMAL_UV_TRANSFORM", UV0Transform);
             }
 
             if (OcclusionMap != null)
@@ -1012,15 +1045,15 @@ namespace XrEngine
         }
 
         TessellationMode ITessellationMaterial.TessellationMode =>
-            HeightMap?.Texture != null ? (HeightMap.NormalMode == HeightNormalMode.Geometry ?
+            DisplacmentMap?.Texture != null ? (DisplacmentMap.NormalMode == HeightNormalMode.Geometry ?
                                             TessellationMode.Geometry :
                                             TessellationMode.Normal)
                                         : TessellationMode.None;
 
-        bool ITessellationMaterial.DebugTessellation => HeightMap?.DebugTessellation ?? false;
+        bool ITessellationMaterial.DebugTessellation => DisplacmentMap?.DebugTessellation ?? false;
 
         [Category(Rendering)]
-        public HeightMapSettings? HeightMap { get; set; }
+        public DisplacmentMapSettings? DisplacmentMap { get; set; }
 
         [Category(Rendering)]
         public Bounds3? ClipVolume { get; set; }
@@ -1044,10 +1077,16 @@ namespace XrEngine
         public Texture2D? NormalMap { get; set; }
 
         [Category(Textures)]
+        public Texture2D? DetailsNormalMap { get; set; }
+
+        [Category(Textures)]
         public Texture2D? EmissiveMap { get; set; }
 
         [Category(Textures)]
         public NormalMapFormat NormalMapFormat { get; set; }
+
+        [Category(Textures)]
+        public NormalMapFormat DetailsNormalMapFormat { get; set; }
 
         [Category(Surface)]
         public bool ReceiveShadows { get; set; }
@@ -1079,6 +1118,9 @@ namespace XrEngine
 
         [Category(Surface)]
         public float NormalScale { get; set; }
+
+        [Category(Surface)]
+        public float DetailsNormalScale { get; set; }
 
         [Category(Rendering)]
         public bool UseEnvDepth { get; set; }
@@ -1121,6 +1163,12 @@ namespace XrEngine
 
         [Category(Textures)]
         public Texture2D? SpecularColorMap { get; set; }
+
+        [Category(Textures)]
+        public Texture2D? HeightMap { get; set; }
+
+        [Category(Textures)]
+        public float HeigthScale { get; set; }
 
         [Category(Surface)]
         [Range(0, 1, 0.01f)]

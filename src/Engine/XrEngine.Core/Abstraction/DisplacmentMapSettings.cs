@@ -9,7 +9,7 @@ namespace XrEngine
         Geometry
     }
 
-    public class HeightMapSettings : TessellationSettings
+    public class DisplacmentMapSettings : TessellationSettings
     {
         public float ScaleFactor { get; set; }
 

@@ -23,7 +23,7 @@ namespace XrSamples
 
             if (mat is IHeightMaterial hm)
             {
-                hm.HeightMap = new HeightMapSettings
+                hm.DisplacmentMap = new DisplacmentMapSettings
                 {
                     Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/waves.png"),
                     ScaleFactor = 0.3f,
@@ -33,10 +33,10 @@ namespace XrSamples
                     NormalMode = HeightNormalMode.Sobel
                 };
 
-                hm.HeightMap.Texture.WrapS = WrapMode.Repeat;
-                hm.HeightMap.Texture.WrapT = WrapMode.Repeat;
-                hm.HeightMap.Texture.MagFilter = ScaleFilter.Linear;
-                hm.HeightMap.Texture.MinFilter = ScaleFilter.Linear;
+                hm.DisplacmentMap.Texture.WrapS = WrapMode.Repeat;
+                hm.DisplacmentMap.Texture.WrapT = WrapMode.Repeat;
+                hm.DisplacmentMap.Texture.MagFilter = ScaleFilter.Linear;
+                hm.DisplacmentMap.Texture.MinFilter = ScaleFilter.Linear;
 
                 //mat.NormalMap = NormalMap.FromHeightMap(hm.HeightMap, 1f);
                 //mat.NormalMap.SaveAs("d:\\heightmap.png");

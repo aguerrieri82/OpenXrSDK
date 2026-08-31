@@ -1999,6 +1999,10 @@ namespace OpenXr.Framework
 
         public string? RuntimeName => _runtimeName;
 
+        public string? LeftIntProfile => _leftIntProfile;
+
+        public string? RightIntProfile => _rightIntProfile;
+
         public bool IsMetaSimulator => _runtimeName == "Meta XR Simulator";
     }
 }

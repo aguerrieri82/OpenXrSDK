@@ -1,6 +1,8 @@
-﻿using Silk.NET.OpenXR;
+﻿using Common.Interop;
+using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus
@@ -21,10 +23,12 @@ namespace OpenXr.Framework.Oculus
         public bool IsPinching;
     }
 
-    public class XrHandInputOculus : XrHandInput
+    public unsafe class XrHandInputOculus : XrHandInput
     {
         private readonly OculusXrPlugin _oculus;
         private XrHandMesh? _mesh;
+        private HandTrackingDataSourceEXT* _dataSources;
+        private NativeStruct<HandTrackingDataSourceInfoEXT> _dataSourceInfo;
         private HandTrackingDataSourceEXT _dataSource;
         private HandTrackingCapsulesStateFB.CapsulesBuffer _capsules;
         private readonly HandJointVelocityEXT[] _velocities;
@@ -37,6 +41,23 @@ namespace OpenXr.Framework.Oculus
         {
             _oculus = _app.Plugin<OculusXrPlugin>();
             _velocities = new HandJointVelocityEXT[XR_HAND_JOINT_COUNT_EXT];
+        }
+
+
+        protected override void Configure(ref HandTrackerCreateInfoEXT info)
+        {
+            _dataSources = (HandTrackingDataSourceEXT*)NativeMemory.Alloc(2, sizeof(int));
+            _dataSources[0] = HandTrackingDataSourceEXT.UnobstructedExt;
+            _dataSources[1] = HandTrackingDataSourceEXT.ControllerExt;
+
+            _dataSourceInfo.Value = new HandTrackingDataSourceInfoEXT
+            {
+                Type = StructureType.HandTrackingDataSourceInfoExt,
+                RequestedDataSourceCount = 2,
+                RequestedDataSources = _dataSources
+            };
+
+            StructChain.AddNextStruct(ref info, _dataSourceInfo.Pointer);
         }
 
         public unsafe override HandJointLocationEXT[] LocateHandJoints(Space space, long time)
@@ -153,6 +174,17 @@ namespace OpenXr.Framework.Oculus
         {
             _mesh = _oculus.GetHandMesh(_tracker);
             _mesh.Type = _handType;
+        }
+
+        public override void Dispose()
+        {
+            if (_dataSources != null)
+            {
+                NativeMemory.Free(_dataSources);
+                _dataSources = null;
+            }
+            _dataSourceInfo.Dispose();
+            base.Dispose();
         }
 
         public bool UseUnextrapolatedPoses { get; set; }

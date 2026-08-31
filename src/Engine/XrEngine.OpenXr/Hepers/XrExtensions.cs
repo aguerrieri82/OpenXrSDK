@@ -17,6 +17,7 @@ using OpenXr.Framework.Oculus;
 using Common.Interop;
 using OpenXr.Framework.Angle;
 using StructureType = Silk.NET.OpenXR.StructureType;
+using System.Reflection.Metadata.Ecma335;
 
 namespace XrEngine.OpenXr
 {
@@ -178,7 +179,7 @@ namespace XrEngine.OpenXr
                         camera.Eyes[i].World = transform.World;
                         camera.Eyes[i].Projection = transform.Projection;
 
-                        var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
+                        var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[i].Next;
                         if (depth != null)
                         {
                             depth->NearZ = camera.Near;
@@ -346,21 +347,9 @@ namespace XrEngine.OpenXr
                     info.RenderedSize = info.Layer.GetRecommendedResolution(info.DisplayTime);
 
                     if (info.RenderedSize != null)
-                    {
-                        info.RenderedSize = info.Layer.AdjustRenderSize(info.RenderedSize.Value);
                         renderTarget.RenderSize = new Size2I((uint)info.RenderedSize.Value.Width, (uint)info.RenderedSize.Value.Height);
-                    }
                     else
                         renderTarget.RenderSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
-                }
-
-                var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(
-                    ref info.ProjViews[swapIndex], StructureType.CompositionLayerDepthInfoKhr);
-
-                if (depth != null)
-                {
-                    depth->NearZ = camera.Near;
-                    depth->FarZ = camera.Far;
                 }
 
                 return renderTarget;
@@ -376,8 +365,8 @@ namespace XrEngine.OpenXr
                     var w = renderTarget.RenderSize.Width;
                     var h = renderTarget.RenderSize.Height;
 
-                    var cropW = (uint)MathF.Round(w / (info.CropScale.X / 1.0f));
-                    var x = viewIndex == 0 ? w - cropW : 0;
+                    var cropW = (uint)MathF.Round(w / info.CropScale.X);
+                    var x = viewIndex == 0 ? 0 : w - cropW;
 
                     renderTarget.ClipRegions[viewIndex] = new Rect2I((int)x, 0, cropW, h);
                 }
@@ -411,6 +400,15 @@ namespace XrEngine.OpenXr
                     eyes[i].View = eyes[i].World.Invert();
                     eyes[i].ViewProj = eyes[i].View * eyes[i].Projection;
                     eyes[i].ViewProjInv = eyes[i].ViewProj.Invert();
+
+                    var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(
+                        ref info.ProjViews[i], StructureType.CompositionLayerDepthInfoKhr);
+
+                    if (depth != null)
+                    {
+                        depth->NearZ = camera.Near;
+                        depth->FarZ = camera.Far;
+                    }
                 }
 
                 if (info.Mode == XrRenderMode.SingleEye)

@@ -61,7 +61,7 @@ namespace XrSamples.Dnd
 
             _ = cameraPlayer.LoadAsync();
 
-            cameraPlayer.SetPlayState(PlayerState.Play);
+            //cameraPlayer.SetPlayState(PlayerState.Play);
 #endif
         }
 

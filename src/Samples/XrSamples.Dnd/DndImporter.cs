@@ -205,7 +205,6 @@ namespace XrSamples.Dnd
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
-
                     AddTask(() => pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0])!);
                     AddTask(() => pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1])!);
                     AddTask(() => pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2])!);
@@ -223,6 +222,21 @@ namespace XrSamples.Dnd
                 }
                 else
                 {
+                    pbr.Metalness = 0.0f;
+
+                    if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                    {
+                        pbr.Roughness = impMat.cbs[0].values[5][3];
+                    }
+                    else if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                    {
+                        pbr.Roughness = impMat.cbs[0].values[4][2];
+                    }
+                    else
+                    {
+                        pbr.Roughness = 1.0f;
+                    }
+
                     foreach (var impTex in impMat.textures)
                     {
                         AddTask(() =>
@@ -230,7 +244,9 @@ namespace XrSamples.Dnd
                             var tex = ProcessTexture(impTex);
                             if (tex == null)
                                 return;
+
                             var name = impTex.name.ToLower();
+                            
                             var isDif = name.EndsWith("dif") ||
                                         name.EndsWith("diff") ||
                                         name.Contains("albedo") ||
@@ -245,6 +261,7 @@ namespace XrSamples.Dnd
 
                             var isSpec = name.EndsWith("smt") ||
                                           name.EndsWith("smooth") ||
+                                          name.Contains("smoothnes") ||
                                           name.Contains("specular");
 
                             var isAO = name.EndsWith("ao") ||
@@ -254,8 +271,20 @@ namespace XrSamples.Dnd
                                           name.EndsWith("-r") ||
                                           name.EndsWith("_rgh");
 
+
+                            var isHeight = name.Contains("height") ||
+                                           name.EndsWith("-hgt");
+
                             var isMetal = name.EndsWith("_mtl") ||
                               name.EndsWith("-m");
+
+                            if (name == "Stone_Porous_A_AO".ToLower())
+                                Console.WriteLine("");
+
+                            if (name.Contains("iron"))
+                            {
+                                pbr.Metalness = impMat.cbs[0].values[5][2];
+                            }
 
                             if (isDif)
                                 pbr.ColorMap = (Texture2D)tex;
@@ -263,7 +292,29 @@ namespace XrSamples.Dnd
                             else if (isNormal)
                             {
                                 if (pbr.NormalMap != null)
+                                {
+                                    pbr.DetailsNormalMap = (Texture2D)tex;
+                                    pbr.DetailsNormalMapFormat = NormalMapFormat.UnityBc3;
+                                    pbr.DetailsNormalScale = 1.0f;
+
+                                    if (impMat.ps.name == "Standard")
+                                    {
+                                        pbr.DetailsNormalScale = impMat.cbs[0].values[8][1];
+                                    }
+                                    else if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                                    {
+                                        pbr.DetailsNormalScale = impMat.cbs[0].values[8][0];
+                                    }
+                                    else if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                                    {
+                                        Debugger.Break();
+                                    }
+                                    else
+                                        Debugger.Break();
+
                                     return;
+                                }
+                          
 
                                 pbr.NormalMap = (Texture2D)tex;
                                 pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
@@ -283,27 +334,25 @@ namespace XrSamples.Dnd
                                 else
                                     Debugger.Break();
                             }
-                            else if (isSpec)
+                            else if (isSpec || isRough)
                             {
-                                if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
-                                {
-                                    pbr.Roughness = impMat.cbs[0].values[6][0];
-                                }
-                                else
-                                    pbr.Roughness = 1.0f;
-
                                 pbr.SpecularGlossinessMap = (Texture2D)tex;
-                                pbr.Metalness = 0f;
-                            }
-                            else if (isRough)
-                            {
-                                pbr.MetallicRoughnessMap = (Texture2D)tex;
-                                pbr.Roughness = 0.5f;
-                                pbr.Metalness = 0f;
                             }
                             else if (isAO)
                             {
                                 pbr.OcclusionMap = (Texture2D)tex;
+                                if (impMat.ps.name == "Standard")
+                                {
+                                    pbr.OcclusionStrength = impMat.cbs[0].values[9][1];
+                                }
+                                else if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                                {
+                                    pbr.OcclusionStrength = impMat.cbs[0].values[6][0];
+                                }
+                                else   if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                                {
+                                    pbr.OcclusionStrength = impMat.cbs[0].values[4][3];
+                                }
                             }
                             else
                             {
@@ -501,6 +550,7 @@ namespace XrSamples.Dnd
                         for (var i = 0; i < tex.Data!.Count; i++)
                         {
                             var comp = tex.Data[i].Compression;
+
                             if (comp == TextureCompressionFormat.Bc3 ||
                                 comp == TextureCompressionFormat.Bc1 ||
                                 comp == TextureCompressionFormat.Bc7)
@@ -509,21 +559,19 @@ namespace XrSamples.Dnd
                                 if (i == 0)
                                 {
                                     tex.Compression = TextureCompressionFormat.Uncompressed;
+                                    tex.Format = tex.Data[0].Format;
 
-                                    if (tex.Format == TextureFormat.SRgb8)
-                                        tex.Format = TextureFormat.SRgba8;
-                                    else if (tex.Format == TextureFormat.Rgb8)
-                                        tex.Format = TextureFormat.Rgba8;
                                 }
                             }
                         }
-                    }
 
-                    tex.WrapS = WrapMode.Repeat;
-                    tex.WrapT = WrapMode.Repeat;
-                    tex.Name = name;
-                    if (tex.Data!.Count > 1)
-                        tex.MinFilter = ScaleFilter.LinearMipmapLinear;
+
+                        tex.WrapS = WrapMode.Repeat;
+                        tex.WrapT = WrapMode.Repeat;
+                        tex.Name = name;
+                        if (tex.Data!.Count > 1)
+                            tex.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    }
                     return tex;
                 }
                 catch
@@ -537,24 +585,15 @@ namespace XrSamples.Dnd
 
         Object3D ProcessDraw(ImpDraw draw)
         {
+            if (draw.id == 4196)
+                Console.Write("");
+
             var mat = ProcessMaterial(draw.matId);
 
             var name = mat.GetProp<string>("ps_name");
             var rebuildNormals = name == "Dungeon Alchemist/likeCharlie/TreeLeaves";
 
             var mesh = ProcessMesh(draw.meshId, rebuildNormals);
-
-            if (draw.matId == "f54acfc201032560348210eaa944d71c__")
-            {
-                if (patch == null)
-                {
-                    var size = mesh.Geometry!.Bounds.Size;
-                    patch = new QuadPatch3D(new Vector2(size.X, size.Y));
-                }
-
-                mesh.Geometry = patch;
-                //Debugger.Break();
-            }
 
             var word = MathUtils.CreateMatrix(draw.world);
             if (FlipZ)

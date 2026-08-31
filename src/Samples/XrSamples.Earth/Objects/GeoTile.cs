@@ -183,7 +183,7 @@ namespace XrSamples.Earth
 
             if (pbr is IHeightMaterial hm)
             {
-                hm.HeightMap = new HeightMapSettings()
+                hm.DisplacmentMap = new DisplacmentMapSettings()
                 {
                     Texture = HeightMap,
                     ScaleFactor = Unit(0.001f),
@@ -216,8 +216,8 @@ namespace XrSamples.Earth
         {
             if (Materials.Count > 0 && Materials[0] is IHeightMaterial hm)
             {
-                hm.HeightMap!.SphereWorldCenter = SphereWorldCenter;
-                hm.HeightMap!.SphereRadius = SphereRadius;
+                hm.DisplacmentMap!.SphereWorldCenter = SphereWorldCenter;
+                hm.DisplacmentMap!.SphereRadius = SphereRadius;
             }
 
             base.Update(ctx);

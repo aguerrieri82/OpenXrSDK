@@ -9,14 +9,19 @@ namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
+        private static OculusXrPlugin? _oculus;
 
         public unsafe static Extent2Di? GetRecommendedResolution<T>(this XrBaseLayer<T> layer, long predictedDisplayTime = 0) where T : unmanaged
         {
             if (predictedDisplayTime == 0)
                 predictedDisplayTime = layer.App.FramePredictedDisplayTime;
 
-            return layer.App.Plugin<OculusXrPlugin>()
-                   .GetRecommendedLayerResolution(layer.Header, predictedDisplayTime);
+            _oculus ??= layer.App.Plugin<OculusXrPlugin>();
+
+            if (!_oculus.Options.UseDynamicResolution)
+                return null;
+
+            return _oculus.GetRecommendedLayerResolution(layer.Header, predictedDisplayTime);
         }
 
         public unsafe static UuidEXT[] GetWalls(this RoomLayoutFB layout)

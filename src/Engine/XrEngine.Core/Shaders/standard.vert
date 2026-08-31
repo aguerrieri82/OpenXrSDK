@@ -52,7 +52,7 @@ out vec2 fUv;
     out vec4 fPosLightSpace;
 #endif
 
-#ifdef USE_HEIGHT_MAP
+#ifdef USE_DISPLACMENT_MAP
     out vec3 fOrigin;
 #endif
 

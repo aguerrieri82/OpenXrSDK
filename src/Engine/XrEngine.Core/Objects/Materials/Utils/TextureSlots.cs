@@ -6,6 +6,8 @@
 
         public static readonly ResourceSlot Albedo = new(nameof(Albedo));
         public static readonly ResourceSlot Normal = new(nameof(Normal));
+        public static readonly ResourceSlot Height = new(nameof(Height));
+        public static readonly ResourceSlot DetailsNormal = new(nameof(DetailsNormal));
         public static readonly ResourceSlot MetallicRoughness = new(nameof(MetallicRoughness));
         public static readonly ResourceSlot SpecularGlossiness = new(nameof(SpecularGlossiness));
         public static readonly ResourceSlot Occlusion = new(nameof(Occlusion));

@@ -49,7 +49,9 @@ namespace OpenXr.Framework.Oculus
 
         public HandTrackingDataSourceEXT[]? HandDataSources { get; set; }
 
-        public bool HandTrackingUnextrapolated { get; internal set; }
+        public bool HandTrackingUnextrapolated { get; set; }
+
+        public bool UseDynamicResolution { get; set; }
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -246,7 +248,7 @@ namespace OpenXr.Framework.Oculus
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrResumeSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrResumeSimultaneousHandsAndControllersTrackingMETA ");
                 ResumeSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<ResumeSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
 
-                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "XrSimultaneousHandsAndControllersTrackingResumeInfoMETA", &func), "Bind XrSimultaneousHandsAndControllersTrackingResumeInfoMETA ");
+                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrPauseSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrPauseSimultaneousHandsAndControllersTrackingMETA ");
                 PauseSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<PauseSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
             }
         }

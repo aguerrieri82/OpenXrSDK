@@ -57,6 +57,10 @@ struct MaterialData
 
 	float anisotropy;
 	float anisotropyRotation;
+
+	float detailsNormalScale;
+
+	float heightScale;
 };
 
 #if !defined(VERTEX_SHADER) 

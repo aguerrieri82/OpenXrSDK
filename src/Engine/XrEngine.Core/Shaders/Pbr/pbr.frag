@@ -6,7 +6,7 @@
 #define TM_TEXTURE     3
 
 
-#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY)) && defined(HAS_TANGENTS) 
+#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY) || defined(USE_HEIGHT_MAP)) && defined(HAS_TANGENTS) 
 	#define HAS_TANGENT_BASIS
 	in mat3 fTangentBasis;
 #endif
@@ -96,6 +96,10 @@ const vec3 Fdielectric = vec3(0.04);
 	#define ALBEDO_UV_SET 0
 #endif
 
+#ifndef HEIGHT_UV_SET
+	#define HEIGHT_UV_SET 0
+#endif
+
 
 in vec3 fNormal;
 in vec3 fPos;
@@ -105,6 +109,13 @@ in vec3 fCameraPos;
 
 #if defined(HAS_UV2) 
 	in vec2 fUv2;
+#endif
+
+vec2 uv0;
+vec2 uv1;
+
+#ifdef USE_HEIGHT_MAP
+	layout(binding=HEIGHT_SLOT) uniform sampler2D heightTexture;
 #endif
 
 #ifdef USE_SHADOW_MAP
@@ -781,7 +792,7 @@ float rand(vec2 co)
 
 vec3 addNoise(vec3 color3)
 {
-	vec2 seed = vec2(fCameraPos.xy + fUv + vec2(gl_FragCoord));
+	vec2 seed = vec2(fCameraPos.xy + uv0 + vec2(gl_FragCoord));
 	float noise = rand(seed);
 	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) /
 		(uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
@@ -797,10 +808,46 @@ bool pointInsideVolume(vec3 p, vec3 minV, vec3 maxV)
 		   all(lessThanEqual(p, maxV));
 }
 
+#if defined(USE_HEIGHT_MAP) && defined(HAS_TANGENT_BASIS)
+
+void applyHeightMap()
+{
+	#if HEIGHT_UV_SET == 1
+		vec2 uv = uv1;
+	#else
+		vec2 uv = uv0;
+	#endif
+
+	#ifdef HEIGHT_UV_TRANSFORM
+		uv = (uTexTransform[HEIGHT_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+	#endif
+
+	float height = texture(heightTexture, uv).g;
+	vec3 viewDir = normalize(transpose(fTangentBasis) * (fCameraPos - fPos));
+
+	float offset = (height - 0.5) * uMaterial.heightScale;
+	vec2 parallax = offset * viewDir.xy / (viewDir.z + 0.42);
+
+	uv0 += parallax;
+	uv1 += parallax;
+}
+
+#endif
+
 #slot FS_INCLUDES
 
 void main()
 {
+
+	uv0 = fUv;
+
+	#if defined(HAS_UV2)
+		uv1 = fUv2;
+	#endif
+
+	#if defined(USE_HEIGHT_MAP) && defined(HAS_TANGENT_BASIS)
+		applyHeightMap();
+	#endif
 
 #if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
 	if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
@@ -1018,7 +1065,7 @@ vec3 outRgb = color3;
 #endif
 
 #if DEBUG == DEBUG_UV
-	color = vec4(fUv.x, fUv.y, 0.0, 1.0);
+	color = vec4(uv0.x, uv0.y, 0.0, 1.0);
 #elif DEBUG == DEBUG_NORMAL
 	color = vec4(N * 0.5 + 0.5, 1.0);
 #elif DEBUG == DEBUG_TANGENT

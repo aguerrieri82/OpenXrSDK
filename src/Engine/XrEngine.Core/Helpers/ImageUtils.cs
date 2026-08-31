@@ -502,7 +502,12 @@ namespace XrEngine
             }
 
             result.Content = newData;
-            result.Format = TextureFormat.Rgba8;
+            
+            if (data.Format.IsSrgb())
+                result.Format = TextureFormat.SRgba8;
+            else
+                result.Format = TextureFormat.Rgba8;
+
             result.Compression = TextureCompressionFormat.Uncompressed;
 
             return result;

@@ -64,6 +64,10 @@
 	layout(binding=ANISOTROPY_SLOT) uniform sampler2D anisotropyTexture;
 #endif
 
+#ifdef USE_DETAILS_NORMAL_MAP
+	layout(binding=DETAILSNORMAL_SLOT) uniform sampler2D detailsNormalTexture;
+#endif
+
 
 vec4 loadBaseColor()
 {
@@ -79,9 +83,9 @@ vec4 loadBaseColor()
 		#else
 
 			#if ALBEDO_UV_SET == 1
-				vec2 albUv = fUv2;
+				vec2 albUv = uv1;
 			#else
-				vec2 albUv = fUv;
+				vec2 albUv = uv0;
 			#endif
 
 			#ifdef ALBEDO_UV_TRANSFORM
@@ -116,9 +120,9 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
 
 		#if NORMAL_UV_SET == 1
-			vec2 normalUv = fUv2;
+			vec2 normalUv = uv1;
 		#else
-			vec2 normalUv = fUv;
+			vec2 normalUv = uv0;
 		#endif
 
 		#ifdef NORMAL_UV_TRANSFORM
@@ -141,9 +145,44 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 			N = 2.0 * texture(normalTexture, normalUv).rgb - 1.0;
 		#endif
 
-		mat3 TBN = fTangentBasis;
-
 		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
+
+		#ifdef USE_DETAILS_NORMAL_MAP
+
+			#if DETAILSNORMAL_UV_SET == 1
+				vec2 detailsNormalUv = uv1;
+			#else
+				vec2 detailsNormalUv = uv0;
+			#endif
+
+			#ifdef DETAILSNORMAL_UV_TRANSFORM
+				detailsNormalUv = (uTexTransform[DETAILSNORMAL_UV_TRANSFORM] * vec3(detailsNormalUv, 1.0)).xy;
+			#endif
+
+			vec3 detailN;
+
+			#ifdef DETAILS_NORMAL_MAP_BC3
+				vec4 packedDetailNormal = texture(detailsNormalTexture, detailsNormalUv);
+
+				packedDetailNormal.x = packedDetailNormal.w * packedDetailNormal.x;
+				vec2 detailNormalXY = packedDetailNormal.xy * 2.0 - 1.0;
+				float detailLenSq = dot(detailNormalXY, detailNormalXY);
+				detailLenSq = min(detailLenSq, 1.0);
+				float detailNormalZ = sqrt(1.0 - detailLenSq);
+
+				detailN.xy = detailNormalXY;
+				detailN.z = detailNormalZ;
+			#else
+				detailN = 2.0 * texture(detailsNormalTexture, detailsNormalUv).rgb - 1.0;
+			#endif
+
+			detailN *= vec3(uMaterial.detailsNormalScale, uMaterial.detailsNormalScale, 1.0);
+
+			N = normalize(vec3(N.xy + detailN.xy, N.z * detailN.z));
+
+		#endif
+
+		mat3 TBN = fTangentBasis;
 
 		#ifdef DOUBLE_SIDED
 			if (!gl_FrontFacing)
@@ -184,9 +223,9 @@ void loadMetalRoughness(out float metalness, out float roughness)
 		#ifdef USE_METALROUGHNESS_MAP
 
 			#if METALROUGHNESS_UV_SET == 1
-				vec2 mrUv = fUv2;
+				vec2 mrUv = uv1;
 			#else
-				vec2 mrUv = fUv;
+				vec2 mrUv = uv0;
 			#endif
 
 			#ifdef METALROUGHNESS_UV_TRANSFORM
@@ -200,9 +239,9 @@ void loadMetalRoughness(out float metalness, out float roughness)
 		#elif defined(USE_SPECULARGLOSSINESS_MAP)
 
 			#if SPECULAR_GLOSSINESS_UV_SET == 1
-				vec2 spUv = fUv2;
+				vec2 spUv = uv1;
 			#else
-				vec2 spUv = fUv;
+				vec2 spUv = uv0;
 			#endif
 
 			#ifdef SPECULARGLOSSINESS_UV_TRANSFORM
@@ -210,7 +249,7 @@ void loadMetalRoughness(out float metalness, out float roughness)
 			#endif
 
 			vec4 sp = texture(specularGlossinessTexture, spUv);
-			roughness = (1.0 - sp.a) * uMaterial.roughness;
+			roughness = (1.0 - sp.r) * uMaterial.roughness;
 			metalness = uMaterial.metalness;
 
 		#else
@@ -233,9 +272,9 @@ float loadOcclusion()
 	#ifdef USE_OCCLUSION_MAP
 
 		#if OCCLUSION_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef OCCLUSION_UV_TRANSFORM
@@ -254,9 +293,9 @@ vec4 loadEmissive()
 	#ifdef USE_EMISSIVE_MAP
 
 		#if EMISSIVE_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef EMISSIVE_UV_TRANSFORM
@@ -277,9 +316,9 @@ vec3 loadAnisotropy()
 	#ifdef USE_ANISOTROPY_MAP
 
 		#if ANISOTROPY_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef ANISOTROPY_UV_TRANSFORM
@@ -307,9 +346,9 @@ float loadThickness()
 	#ifdef USE_THICKNESS_MAP
 
 		#if THICKNESS_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef THICKNESS_UV_TRANSFORM
@@ -335,9 +374,9 @@ float loadSpecular()
 	#ifdef USE_SPECULAR_MAP
 
 		#if SPECULAR_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef SPECULAR_UV_TRANSFORM
@@ -358,9 +397,9 @@ vec3 loadSpecularColor()
 	#ifdef USE_SPECULAR_COLOR_MAP
 
 		#if SPECULAR_COLOR_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef SPECULAR_COLOR_UV_TRANSFORM
@@ -391,9 +430,9 @@ vec3 loadSheenColor()
 	#ifdef USE_SHEEN_COLOR_MAP
 
 		#if SHEEN_COLOR_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef SHEEN_COLOR_UV_TRANSFORM
@@ -420,9 +459,9 @@ float loadSheenRoughness()
 	#ifdef USE_SHEEN_ROUGHNESS_MAP
 
 		#if SHEEN_ROUGHNESS_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef SHEEN_ROUGHNESS_UV_TRANSFORM
@@ -447,9 +486,9 @@ float loadClearCoat()
 	#ifdef USE_CLEARCOAT_MAP
 
 		#if CLEARCOAT_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef CLEARCOAT_UV_TRANSFORM
@@ -470,9 +509,9 @@ float loadClearCoatRoughness()
 	#ifdef USE_CLEARCOAT_ROUGHNESS_MAP
 
 		#if CLEARCOAT_ROUGHNESS_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef CLEARCOAT_ROUGHNESS_UV_TRANSFORM
@@ -493,9 +532,9 @@ vec3 loadClearCoatNormal()
 	#if defined(USE_CLEARCOAT_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
 
 		#if CLEARCOAT_NORMAL_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef CLEARCOAT_NORMAL_UV_TRANSFORM
@@ -550,9 +589,9 @@ float loadTransmission()
 	#ifdef USE_TRANSMISSION_MAP
 
 		#if TRANSMISSION_UV_SET == 1
-			vec2 uv = fUv2;
+			vec2 uv = uv1;
 		#else
-			vec2 uv = fUv;
+			vec2 uv = uv0;
 		#endif
 
 		#ifdef TRANSMISSION_UV_TRANSFORM
@@ -572,14 +611,17 @@ FragmentProperties loadFragmentProperties()
 {
 	FragmentProperties frag;
 
-	frag.position = fPos;
-	frag.uv0 = fUv;
+	uv0 = fUv;
 
-	#if defined(HAS_UV2) 
-		frag.uv1 = fUv2;
+	#if defined(HAS_UV2)
+		uv1 = fUv2;
 	#else
-		frag.uv1 = fUv;
+		uv1 = fUv;
 	#endif
+
+	frag.position = fPos;
+	frag.uv0 = uv0;
+	frag.uv1 = uv1;
 
 	frag.baseColor = loadBaseColor();
 

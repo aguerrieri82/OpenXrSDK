@@ -1,4 +1,4 @@
-using Android.Content;
+    using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
@@ -120,7 +120,7 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
-                    opt.UseSharedSsbo = true;
+                    opt.UseSharedSsbo = false;
                     opt.UseAsyncShaderCompile = true;
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
@@ -132,6 +132,7 @@ namespace XrSamples.Android.Activities
                     opt.IntPrecision = ShaderPrecision.High;
 
                     opt.InvalidateDepth = false;
+                    opt.UsePrimitiveBoundingBox = false;
 
                     if (!XrDevice.IsMetaQuest)
                     {
@@ -142,15 +143,17 @@ namespace XrSamples.Android.Activities
             else
                 ImageLight.UseCache = false;
 
+            TriangleMesh.EnableCompression = true;
+
             builder.SetXrOptions(opt =>
             {
                 if (!XrDevice.IsMetaQuest)
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
             });
 
-    
             builder.UseOculus(opt =>
             {
+                opt.UseDynamicResolution = false;
             });
 
             if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
@@ -160,7 +163,7 @@ namespace XrSamples.Android.Activities
                    // .AddProfileOverlay()
                    .RemovePlaneGrid();
 
-            //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+            //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));Add
 
             if (XrDevice.IsMetaQuest && _settings.DepthScale > 0)
                 builder.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale);
@@ -168,8 +171,6 @@ namespace XrSamples.Android.Activities
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp(MotionVectorMode.Shared);
 
-
-            TriangleMesh.EnableCompression = true;
 
 
             //builder.EnableDebug(sync: false);

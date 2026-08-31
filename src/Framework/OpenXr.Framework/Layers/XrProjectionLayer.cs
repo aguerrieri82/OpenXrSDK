@@ -363,7 +363,7 @@ namespace OpenXr.Framework
                     if (UseSimmetricFov)
                     {
                         var cropW = (int)MathF.Round(renderSize.Width / info.CropScale.X);
-                        var x = i == 0 ? renderSize.Width - cropW : 0;
+                        var x = i == 0 ? 0 : renderSize.Width - cropW;
 
                         view.SubImage.ImageRect.Offset.X = colorOffset + x;
                         view.SubImage.ImageRect.Offset.Y = 0;
@@ -379,7 +379,7 @@ namespace OpenXr.Framework
 
                     if (_useDepth)
                     {
-                        var depth = (CompositionLayerDepthInfoKHR*)view.Next;
+                        var depth = _depthInfo.ItemPointer(i);
                         var depthSize = _depthSwaps![0].Size;
                         var depthOffset = 0;
 
@@ -389,7 +389,7 @@ namespace OpenXr.Framework
                         if (UseSimmetricFov)
                         {
                             var cropW = (int)MathF.Round(depthSize.Width / info.CropScale.X);
-                            var x = i == 0 ? depthSize.Width - cropW : 0;
+                            var x = i == 0 ? 0 : depthSize.Width - cropW;
 
                             depth->SubImage.ImageRect.Offset.X = depthOffset + x;
                             depth->SubImage.ImageRect.Offset.Y = 0;
