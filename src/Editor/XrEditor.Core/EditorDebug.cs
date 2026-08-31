@@ -86,17 +86,22 @@ namespace XrEditor
               {
 
               })
+                .SetXrOptions(opt =>
+                {
+                    opt.UseSimmetricFov = false;
+                })
               .SetAppOptions(opt =>
               {
                   opt.Driver = Driver;
+     
               })
               //.UseSpaceWarp()
               //.AddProfileOverlay()
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(2f, 1, useIntermediate: false)
-              .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              //.CreateGltfTest("Models/BoomBox.glb")
-              .CreateDnd()
+              //.UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
+              .CreateGltfTest("Models/IridescentDishWithOlives.glb")
+              //.CreateRoomManager()
               .Build();
     }
 }

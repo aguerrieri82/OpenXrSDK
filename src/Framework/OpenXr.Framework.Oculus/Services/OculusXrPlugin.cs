@@ -52,6 +52,7 @@ namespace OpenXr.Framework.Oculus
         public bool HandTrackingUnextrapolated { get; set; }
 
         public bool UseDynamicResolution { get; set; }
+
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -237,7 +238,7 @@ namespace OpenXr.Framework.Oculus
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
             RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
 
-            if (!_app.IsMetaSimulator)
+            if (!_app.IsMetaSimulator && !_app.IsMetaLink)
             {
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
                 SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
@@ -820,7 +821,7 @@ namespace OpenXr.Framework.Oculus
             if (_options.Foavetion == null || !_options.Foavetion.Use)
                 return;
 
-            if (_app.IsMetaSimulator)
+            if (_app!.IsMetaSimulator)
                 return;
 
             UpdateFoveation(_options.Foavetion.IsDynamic, _options.Foavetion.Level, _options.Foavetion.Offset);
@@ -828,6 +829,9 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe void UpdateFoveation(bool isDynamic, FoveationLevelFB level, float offset)
         {
+            if (_foveation == null)
+                return;
+
             var create = new FoveationProfileCreateInfoFB()
             {
                 Type = StructureType.FoveationProfileCreateInfoFB
@@ -845,7 +849,7 @@ namespace OpenXr.Framework.Oculus
 
             var profile = new FoveationProfileFB();
 
-            _app!.CheckResult(_foveation!.CreateFoveationProfileFB(_app!.Session, in create, ref profile), "CreateFoveationProfileFB");
+            _app!.CheckResult(_foveation.CreateFoveationProfileFB(_app!.Session, in create, ref profile), "CreateFoveationProfileFB");
 
             var update = new SwapchainStateFoveationFB
             {
@@ -866,12 +870,12 @@ namespace OpenXr.Framework.Oculus
                 }
             }
 
-            _app!.CheckResult(_foveation!.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
+            _app!.CheckResult(_foveation.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
         }
 
         public override unsafe void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
-            if (_options.Foavetion == null || !_options.Foavetion.Use)
+            if (_options.Foavetion == null || !_options.Foavetion.Use || _foveation == null)
                 return;
 
             if (target != SwapchainTarget.Projection)
@@ -986,10 +990,10 @@ namespace OpenXr.Framework.Oculus
 
         public void SetHandTrackingFrequencyHint(HandTrackingFrequencyHintMETA frequencyHint)
         {
-            if (_app!.IsMetaSimulator)
+            if (SetHandTrackingFrequencyHintMETA == null)
                 return;
 
-            _app!.CheckResult(SetHandTrackingFrequencyHintMETA!(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
+            _app!.CheckResult(SetHandTrackingFrequencyHintMETA(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
         }
 
         public unsafe XrHandMesh GetHandMesh(HandTrackerEXT tracker)

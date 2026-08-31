@@ -983,6 +983,13 @@ namespace XrEngine.OpenGL
 
             _updateCtx.ClipRegions = renderTarget.ClipRegions;
             _updateCtx.IsMultiView = renderTarget is GlMultiViewRenderTarget;
+            _updateCtx.CanSampleColor = true;
+
+            if (renderTarget is IGlRenderTargetFB targetFb)
+            {
+                if (targetFb.FrameBuffer.SampleCount > 1 && _features.IsAndroid)
+                    _updateCtx.CanSampleColor = false;
+            }
 
             _glState.SetShadingRate(Math.Max(1, _target!.ShadingRate));
         }

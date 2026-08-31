@@ -132,11 +132,15 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
+        public bool CanSampleColor;
+
         public bool UseSharedSsbo;
 
         public bool UseAngle;
 
         public bool UseCopyDepth;
+
+        public bool UseManualDepthTest;
 
         public bool UsePrimitiveBoundingBox;
 

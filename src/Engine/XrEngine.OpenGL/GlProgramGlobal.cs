@@ -22,6 +22,7 @@ namespace XrEngine.OpenGL
                        _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
                        _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
                        _tracker.IsChanged(() => ctx.UseCopyDepth) ||
+                       _tracker.IsChanged(() => ctx.UseManualDepthTest) ||
                        _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox));
 
             }
@@ -53,6 +54,9 @@ namespace XrEngine.OpenGL
                 if (bld.Context.UseCopyDepth)
                     bld.AddFeature("COPY_DEPTH");
 
+                if (bld.Context.UseManualDepthTest)
+                    bld.AddFeature("MANUAL_DEPTH_TEST");
+
                 if (bld.Context.CopyDepthImage != null && bld.Context.CopyDepthImage.Tag == null)
                 {
                     bld.AddFeature("COPY_DEPTH_IMG");
@@ -64,7 +68,8 @@ namespace XrEngine.OpenGL
                         if (ctx.CopyDepthImage == null)
                             return;
 
-                        up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, BufferAccessMode.Write);
+                        up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, ctx.UseManualDepthTest ?
+                            BufferAccessMode.Read : BufferAccessMode.Write);
 
                         var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
                         var scale = size / ctx.PassCamera!.ViewSize.ToVector2();

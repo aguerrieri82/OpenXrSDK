@@ -1890,7 +1890,11 @@ namespace OpenXr.Framework
             Debug.Assert(viewInfo.BlendModes != null);
 
             if (!viewInfo.BlendModes.Contains(result.BlendMode))
-                throw new NotSupportedException();
+            {
+                _logger.LogWarning("xxx");
+                result.BlendMode = EnvironmentBlendMode.Opaque;
+            }
+       
 
             result.Size = viewInfo.RecommendedImageRect;
             result.Size = new Extent2Di
@@ -2004,5 +2008,7 @@ namespace OpenXr.Framework
         public string? RightIntProfile => _rightIntProfile;
 
         public bool IsMetaSimulator => _runtimeName == "Meta XR Simulator";
+
+        public bool IsMetaLink => _runtimeName == "Oculus";
     }
 }

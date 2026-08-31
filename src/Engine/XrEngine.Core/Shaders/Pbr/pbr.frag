@@ -52,6 +52,7 @@
 #endif
 
 
+
 #if !defined(HAS_CLIP_VOLUME) && !defined(HAS_COLORMAP_PROJ) && ALPHA_MODE != ALPHA_MASK
 	layout(early_fragment_tests) in;
 #endif
@@ -838,6 +839,9 @@ void applyHeightMap()
 
 void main()
 {
+	#ifdef MANUAL_DEPTH_TEST
+		manualDepthTest();
+	#endif
 
 	uv0 = fUv;
 
@@ -1050,7 +1054,9 @@ vec3 outRgb = color3;
 
 #if TRANSMISSION_MODE == TM_TEXTURE
 	outRgb += volume.rgb * volume.a * transmissionColor;
+
 #endif
+
 
 #if TRANSMISSION_MODE == TM_FB_FETCH
 	vec4 dst = color;
@@ -1063,6 +1069,7 @@ vec3 outRgb = color3;
 #else
 	color = vec4(outRgb, a);
 #endif
+
 
 #if DEBUG == DEBUG_UV
 	color = vec4(uv0.x, uv0.y, 0.0, 1.0);

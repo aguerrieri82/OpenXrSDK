@@ -970,6 +970,12 @@ namespace XrEngine
             {
                 var slot = bld.GetTextureSlot(TextureSlots.VolumeForeground);
 
+                if (!bld.Context.CanSampleColor)
+                {
+                    WriteDepth = false;
+                    UseDepth = false;
+                }
+
                 bld.ExecuteAction((ctx, up) =>
                 {
                     if (ctx.Model == null)

@@ -395,15 +395,16 @@ namespace XrEngine.OpenGL
 
 #warning DISABLED WITH RDC
 
-            /*
-            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
-                return;
-            */
+     
             var colorSpan = color.ToArray();
 
             GlUtils.GetPixelFormat(_internalFormat.ToTextureFormat(), out var pixelFormat, out var pixelType);
 
 #if GLES
+
+         if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
+             return;
+
             if (_clearExt == null)
                 _gl.TryGetExtension(out _clearExt);
 

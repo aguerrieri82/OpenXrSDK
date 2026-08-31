@@ -656,7 +656,7 @@ namespace XrEngine
                 for (var i = 0; i < indices.Length; i++)
                     newVertices[i] = vertices[indices[i]];
 
-                self.Vertices = vertices;
+                self.Vertices = newVertices;
                 self.Indices = [];
 
                 self.NotifyChanged(ChangeType.Geometry);

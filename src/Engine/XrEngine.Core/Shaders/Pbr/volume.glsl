@@ -4,7 +4,7 @@
 uniform mat3 uBackgroundUvTransform[2];
 #endif
 
-#ifdef MULTIVIEW
+#ifdef MULTI_VIEW
 	layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2DArray volumeForeground;
 
 	#ifdef VOLUME_BACKGROUND

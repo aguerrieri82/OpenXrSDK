@@ -5,8 +5,8 @@ using Silk.NET.OpenGL;
 #endif
 
 using XrEngine.Helpers;
-using System.Numerics;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
@@ -217,12 +217,17 @@ namespace XrEngine.OpenGL
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
-            var ctx = _renderer.UpdateContext;
-
             var useDepthPass = _renderer.Options.UseDepthPass;
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
             uint globalProgChangesCount = 0;
+
+            var ctx = _renderer.UpdateContext;
+
+            ctx.UseManualDepthTest = layer.Type == GlLayerType.Transmission && !ctx.CanSampleColor;
+            
+            if (ctx.UseManualDepthTest)
+                _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
             foreach (var shader in layer.Content.SortedContent!)
             {

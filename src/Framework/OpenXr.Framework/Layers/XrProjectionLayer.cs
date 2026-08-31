@@ -107,6 +107,8 @@ namespace OpenXr.Framework
         {
             Debug.Assert(_xrApp != null);
 
+            UseSimmetricFov = _xrApp.RenderOptions.UseSimmetricFov;
+
             if (UseSimmetricFov)
             {
                 var views = new View[2];

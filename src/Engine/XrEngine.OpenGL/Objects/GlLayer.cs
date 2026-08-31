@@ -182,22 +182,25 @@ namespace XrEngine.OpenGL
             }
         }
 
-        protected IEnumerable<Object3D> EnumObjects()
+        protected IEnumerable<Object3D> Objects
         {
-            foreach (var shaderEntry in _content.Contents)
+            get
             {
-                var shaderContent = shaderEntry.Value;
-
-                foreach (var materialEntry in shaderContent.Contents)
+                foreach (var shaderEntry in _content.Contents)
                 {
-                    var materialContent = materialEntry.Value;
+                    var shaderContent = shaderEntry.Value;
 
-                    foreach (var vertexEntry in materialContent.Contents)
+                    foreach (var materialEntry in shaderContent.Contents)
                     {
-                        var vertexContent = vertexEntry.Value;
+                        var materialContent = materialEntry.Value;
 
-                        foreach (var draw in vertexContent.Contents)
-                            yield return draw.Object!;
+                        foreach (var vertexEntry in materialContent.Contents)
+                        {
+                            var vertexContent = vertexEntry.Value;
+
+                            foreach (var draw in vertexContent.Contents)
+                                yield return draw.Object!;
+                        }
                     }
                 }
             }
@@ -436,7 +439,7 @@ namespace XrEngine.OpenGL
         {
             var builder = new Bounds3Builder();
 
-            foreach (var obj in EnumObjects().Where(a => a.IsVisible))
+            foreach (var obj in Objects.Where(a => a.IsVisible))
                 builder.Add(obj.WorldBounds);
 
             _bounds = builder.Result;

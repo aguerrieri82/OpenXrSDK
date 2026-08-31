@@ -33,8 +33,8 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "DnD",
-                Msaa = 2,
+                SampleName = "Iridescent",
+                Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,

@@ -77,6 +77,9 @@ namespace XrEngine.OpenXr
                 return;
 
             if (XrPlatform.IsEditor)
+                return;
+
+            if (XrPlatform.IsEditor)
                 asLayer = true;
 
             if (asLayer)

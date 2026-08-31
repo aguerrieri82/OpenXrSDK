@@ -133,7 +133,7 @@ namespace XrSamples.Android.Activities
 
                     opt.InvalidateDepth = false;
                     opt.UsePrimitiveBoundingBox = false;
-
+                
                     if (!XrDevice.IsMetaQuest)
                     {
                         opt.UseAsyncShaderCompile = false;
@@ -149,6 +149,8 @@ namespace XrSamples.Android.Activities
             {
                 if (!XrDevice.IsMetaQuest)
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
+
+                opt.UseSimmetricFov = true;
             });
 
             builder.UseOculus(opt =>

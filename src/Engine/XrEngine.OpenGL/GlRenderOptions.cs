@@ -72,6 +72,7 @@ namespace XrEngine.OpenGL
             UseDefaultIntermediate = true;
             UsePrimitiveBoundingBox = true;
             RefractionDownsampleFactor = 1;
+            UseTransmission = true;
             ContactShadow = new()
             {
                 Use = false,

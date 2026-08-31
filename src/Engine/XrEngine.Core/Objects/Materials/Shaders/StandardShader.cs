@@ -42,14 +42,18 @@ namespace XrEngine
                 ctx.CurrentBuffer!.Version = curVersion;
 
                 var worldMatrix = ctx.Model.WorldMatrix;
+                var prevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? worldMatrix;
 
                 if (ctx.Model is ICompressedVertexSource cmp)
+                {
                     worldMatrix = cmp.VerticesRemap * worldMatrix;
+                    prevWorldMatrix = cmp.VerticesRemap * prevWorldMatrix;
+                }
 
                 update.Value = new ModelUniforms
                 {
                     NormalMatrix = ctx.Model.NormalMatrix,
-                    PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? worldMatrix,
+                    PrevWorldMatrix = prevWorldMatrix,
                     WorldMatrix = worldMatrix,
                 };
 
@@ -68,15 +72,19 @@ namespace XrEngine
         unsafe long IInstanceShader.Update(UpdateShaderContext ctx, byte* destData, Object3D model, int drawId)
         {
             var worldMatrix = model.WorldMatrix;
+            var prevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? worldMatrix;
 
             if (model is ICompressedVertexSource cmp)
+            {
                 worldMatrix = cmp.VerticesRemap * worldMatrix;
+                prevWorldMatrix = cmp.VerticesRemap * prevWorldMatrix;
+            }
 
             *(ModelUniforms*)destData = new ModelUniforms
             {
                 NormalMatrix = model.NormalMatrix,
                 WorldMatrix = worldMatrix,
-                PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? worldMatrix,
+                PrevWorldMatrix = prevWorldMatrix,
                 DrawId = drawId
             };
 
@@ -197,7 +205,9 @@ namespace XrEngine
                         var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
 
                         up.SetUniform("uMotionImageScale", scale);
-                        up.LoadImage(texture, ImagesSlots.MotionVectors, BufferAccessMode.Write);
+
+                        up.LoadImage(texture, ImagesSlots.MotionVectors, ctx.UseManualDepthTest ?
+                            BufferAccessMode.Read : BufferAccessMode.Write);
                     }
 
                     var matrices = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.PassCamera!);
