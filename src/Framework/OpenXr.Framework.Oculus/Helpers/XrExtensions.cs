@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace OpenXr.Framework
@@ -10,6 +11,15 @@ namespace OpenXr.Framework
     public static class XrExtensions
     {
         private static OculusXrPlugin? _oculus;
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static XrSpaceWarpProjectionLayer AddProjectionSpaceWarp(this XrLayerManager manager, RenderViewDelegate renderView, IXrMotionVectorProvider provider)
+        {
+            var layer = new XrSpaceWarpProjectionLayer(renderView, provider);
+            manager.List.Add(layer);
+            return layer;
+        }
 
         public unsafe static Extent2Di? GetRecommendedResolution<T>(this XrBaseLayer<T> layer, long predictedDisplayTime = 0) where T : unmanaged
         {

@@ -97,7 +97,7 @@ namespace XrEngine
 
             var shadowMode = shadowOpt?.Mode ?? ShadowMapMode.None;
 
-            if (bld.Context.ClipRegions != null)
+            if (bld.Context.ClipRegions != null && bld.Context.ClipMode == ShaderClipMode.VertexClipCull )
             {
                 bld.AddExtension("GL_EXT_clip_cull_distance");
 

@@ -125,7 +125,7 @@ namespace XrSamples.Android.Activities
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
 
-                    opt.ToneMap = ToneMapMode.Neutral;
+                    opt.ToneMap = ToneMapMode.Aces;
 
                     opt.FloatPrecision = ShaderPrecision.High;
                     opt.SamplerPrecision = ShaderPrecision.Medium;
@@ -133,7 +133,10 @@ namespace XrSamples.Android.Activities
 
                     opt.InvalidateDepth = false;
                     opt.UsePrimitiveBoundingBox = false;
-                
+
+                    opt.UseFxAA = _settings.Msaa == 1 && _settings.IsMultiView;
+                    opt.UseRayCollider = false;
+
                     if (!XrDevice.IsMetaQuest)
                     {
                         opt.UseAsyncShaderCompile = false;
@@ -150,7 +153,7 @@ namespace XrSamples.Android.Activities
                 if (!XrDevice.IsMetaQuest)
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
 
-                opt.UseSimmetricFov = true;
+                opt.UseSimmetricFov = false;
             });
 
             builder.UseOculus(opt =>
@@ -162,7 +165,7 @@ namespace XrSamples.Android.Activities
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
-                   // .AddProfileOverlay()
+                  // .AddProfileOverlay()
                    .RemovePlaneGrid();
 
             //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));Add
@@ -172,10 +175,6 @@ namespace XrSamples.Android.Activities
 
             if (_settings.UseSpaceWarp)
                 builder.UseSpaceWarp(MotionVectorMode.Shared);
-
-
-
-            //builder.EnableDebug(sync: false);
 
 #if DEBUG
             GlDebug.TrackBuffers = false;

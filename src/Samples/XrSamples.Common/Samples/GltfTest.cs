@@ -6,9 +6,15 @@ namespace XrSamples
     public static partial class SampleScenes
     {
         [Sample("Iridescent")]
-        public static XrEngineAppBuilder CreateGltfTest(this XrEngineAppBuilder builder)
+        public static XrEngineAppBuilder CreateGltfIridescent(this XrEngineAppBuilder builder)
         {
             return CreateGltfTest(builder, "Models/IridescentDishWithOlives.glb");
+        }
+
+        [Sample("Dragon")]
+        public static XrEngineAppBuilder CreateGltfDragon(this XrEngineAppBuilder builder)
+        {
+            return CreateGltfTest(builder, "Models/DragonAttenuation.glb");
         }
 
         public static XrEngineAppBuilder CreateGltfTest(this XrEngineAppBuilder builder, string assetPath)

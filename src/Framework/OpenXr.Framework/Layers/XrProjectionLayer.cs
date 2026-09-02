@@ -140,13 +140,16 @@ namespace OpenXr.Framework
             var depthSize = new Extent2Di((int)(colorSize.Width * options.ProjectionDepthScale),
                                           (int)(colorSize.Height * options.ProjectionDepthScale));
 
+            var colorArraySize = options.RenderMode == XrRenderMode.MultiView ? (UseIntermediate ? 4 : 2u) : 1;
+            var depthArraySize = options.RenderMode == XrRenderMode.MultiView ? 2u : 1;
+
             for (var i = 0; i < _colorSwaps.Length; i++)
             {
                 var colorSwap = new XrSwapchain(_xrApp);
 
                 colorSwap.Create(colorSize,
                             options.ColorFormat,
-                            options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                            colorArraySize,
                             SwapchainUsageFlags.ColorAttachmentBit |
                             SwapchainUsageFlags.SampledBit |
                             SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
@@ -159,7 +162,7 @@ namespace OpenXr.Framework
 
                     depthSwap.Create(depthSize,
                            options.DepthFormat,
-                           options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                           depthArraySize,
                            SwapchainUsageFlags.DepthStencilAttachmentBit |
                            SwapchainUsageFlags.SampledBit |
                            SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
@@ -228,6 +231,8 @@ namespace OpenXr.Framework
                 layer.Views = _projViews.ItemPointer(0);
                 layer.ViewCount = (uint)views.Length;
 
+                var colorBaseIndex = _colorSwaps[0].ArraySize == 4 ? 2u : 0;
+
                 for (var i = 0; i < views.Length; i++)
                 {
                     ref var projView = ref layer.Views[i];
@@ -244,7 +249,7 @@ namespace OpenXr.Framework
                     projView.SubImage.Swapchain = colorSwap;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                        projView.SubImage.ImageArrayIndex = (uint)i;
+                        projView.SubImage.ImageArrayIndex = colorBaseIndex + (uint)i;
                     else
                         projView.SubImage.ImageArrayIndex = 0;
 
@@ -448,10 +453,7 @@ namespace OpenXr.Framework
 
         public bool UseSimmetricFov { get; set; }
 
-        public bool UseDepth
-        {
-            get => _useDepth;
-            set => _useDepth = value;
-        }
+        public bool UseIntermediate { get; set; }
+
     }
 }

@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 using XrEngine.Helpers;
 using System.Diagnostics;
 using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -62,18 +63,48 @@ namespace XrEngine.OpenGL
 
                 _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
 
-                if (ctx.Bugs.NvMultiViewClipBug &&
-                    ctx.ClipRegions != null &&
-                    ctx.ClipRegions.Length > 1 &&
-                    ctx.IsMultiView)
-                {
-                    _depthClipEffect ??= new DepthClipEffect();
-                    UseEffect(_depthClipEffect);
-                    DrawVirtual(6);
-                }
+                ApplyClip(ctx);
             }
 
             return true;
+        }
+
+        protected void ApplyClip(GlUpdateContext ctx)
+        {
+            if (ctx.ClipRegions == null || ctx.ClipRegions.Length == 0)
+                return;
+
+            if (ctx.ClipMode == ShaderClipMode.Depth &&
+                          ctx.ClipRegions.Length > 1 &&
+                          ctx.IsMultiView)
+            {
+                _depthClipEffect ??= new DepthClipEffect();
+                UseEffect(_depthClipEffect);
+                DrawVirtual(6);
+                return;
+            }
+            
+            if (ctx.ClipMode == ShaderClipMode.DepthClear)
+            {
+                var depthTex = _renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment)!;
+                
+                Debug.Assert(depthTex != null);
+
+                for (var i = 0; i < ctx.ClipRegions.Length; i++)
+                {
+                    var clip = ctx.ClipRegions[i];
+
+                    Rect2I region;
+                    if (clip.X == 0)
+                        region = new Rect2I((int)clip.Width, 0, (depthTex.Width - clip.Width), depthTex.Height);
+                    else
+                        region = new Rect2I(0, 0, (uint)clip.X, depthTex.Height);
+
+                    if (region.Width > 0)
+                        depthTex.Clear(Color.Black, region, i);
+                }
+
+            }
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()

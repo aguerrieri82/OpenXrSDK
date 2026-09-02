@@ -40,7 +40,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              // .UseMultiView()
+              .UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -48,7 +48,7 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
-                  opt.SampleCount = 4;
+
                   opt.FloatPrecision = ShaderPrecision.High;
                   opt.IntPrecision = ShaderPrecision.High;
 
@@ -70,8 +70,11 @@ namespace XrEditor
                   opt.UseResolve = false;
                   opt.ToneMap = ToneMapMode.Aces;
                   opt.UseProfiler = false;
-                  opt.UseDefaultIntermediate = true;
                   opt.UseTransmission = true;
+
+                  opt.UseFxAA = false;
+                  opt.UseDefaultIntermediate = true;
+                  opt.SampleCount = 1;
 
                   GlDebug.TrackBuffers = false;
 
@@ -80,28 +83,25 @@ namespace XrEditor
                   if (Driver == GraphicDriver.Angle)
                   {
                   }
-
               })
               .UseOculus(opt =>
               {
-
               })
-                .SetXrOptions(opt =>
-                {
-                    opt.UseSimmetricFov = false;
-                })
+              .SetXrOptions(opt =>
+              {
+                  opt.UseSimmetricFov = true;
+              })
               .SetAppOptions(opt =>
               {
                   opt.Driver = Driver;
-     
               })
               //.UseSpaceWarp()
               //.AddProfileOverlay()
               .EnableDebugNotRelease(sync: true)
-              .SetRenderQuality(2f, 1, useIntermediate: false)
+              .SetRenderQuality(1f, 1, useIntermediate: false)
               //.UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGltfTest("Models/IridescentDishWithOlives.glb")
-              //.CreateRoomManager()
+              //.CreateGltfTest("Models/IridescentDishWithOlives.glb")
+              .CreateDnd()
               .Build();
     }
 }

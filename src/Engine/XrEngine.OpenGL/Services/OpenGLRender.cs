@@ -354,6 +354,14 @@ namespace XrEngine.OpenGL
             if (_options.UseResolve)
                 _renderPasses.Add(new GlResolvePass(this));
 
+            if (_options.UseFxAA)
+            {
+                _renderPasses.Add(new GlPostProcessPass(this)
+                {
+                    UseFxAA = _options.UseFxAA
+                });
+            }
+
             _passesDirty = true;
         }
 
@@ -588,6 +596,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Time = (float)ctx.Time;
             _updateCtx.Scene = ctx.Scene;
             _updateCtx.DeltaTime = (float)ctx.DeltaTime;
+            _updateCtx.ClipMode = ShaderClipMode.DepthClear;
 
             _updateCtx.ContextVersion++;
 

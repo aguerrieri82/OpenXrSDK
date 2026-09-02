@@ -1,8 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
+using Silk.NET.OpenGLES.Extensions.OES;
 #else
 using Silk.NET.OpenGL;
+
+
 #endif
 
 using XrMath;
@@ -15,6 +18,8 @@ namespace XrEngine.OpenGL
 
 #if GLES
         static ExtClearTexture? _clearExt;
+
+        static OesTextureView? _textureViewExt;
 #endif
 
         protected uint _width;
@@ -26,6 +31,7 @@ namespace XrEngine.OpenGL
         protected uint _depth;
         protected bool _isAttached;
         private int _updateCount;
+
 
         public GlTexture(GL gl)
             : base(gl)
@@ -392,18 +398,12 @@ namespace XrEngine.OpenGL
 
         public void Clear(Color color, int level = 0)
         {
-
-#warning DISABLED WITH RDC
-
-     
             var colorSpan = color.ToArray();
 
             GlUtils.GetPixelFormat(_internalFormat.ToTextureFormat(), out var pixelFormat, out var pixelType);
-
 #if GLES
-
-         if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
-             return;
+            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
+                return;
 
             if (_clearExt == null)
                 _gl.TryGetExtension(out _clearExt);
@@ -412,6 +412,91 @@ namespace XrEngine.OpenGL
 #else
             _gl.ClearTexImage(_handle, level, pixelFormat, pixelType, colorSpan.AsSpan());
 #endif
+        }
+
+        public void Clear(Color color, Rect2I region, int layer, int level = 0)
+        {
+            GlUtils.GetPixelFormat(_internalFormat.ToTextureFormat(), out var pixelFormat, out var pixelType);
+
+#if GLES
+
+            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
+                return;
+        
+            if (_clearExt == null)
+            {
+                if (!_gl.TryGetExtension(out _clearExt))
+                    throw new NotSupportedException();
+            }
+#endif
+
+            Span<uint> buffer = stackalloc uint[4];
+
+            if (pixelFormat == PixelFormat.DepthComponent)
+            {
+                switch (pixelType)
+                {
+                    case PixelType.UnsignedShort:
+                        buffer[0] = (ushort)(Math.Clamp(color.R, 0, 1) * ushort.MaxValue);
+                        break;
+
+                    case PixelType.UnsignedInt:
+                        buffer[0] = (uint)(Math.Clamp(color.R, 0, 1) * uint.MaxValue);
+                        break;
+
+                    case PixelType.Float:
+                        buffer[0] = BitConverter.SingleToUInt32Bits(color.R);
+                        break;
+                }
+            }
+            else if (pixelFormat == PixelFormat.DepthStencil)
+            {
+                switch (pixelType)
+                {
+                    case PixelType.UnsignedInt248Oes:
+                        buffer[0] = ((uint)(Math.Clamp(color.R, 0, 1) * 0xFFFFFF) << 8) |
+                                    (uint)(Math.Clamp(color.G, 0, 1) * 0xFF);
+                        break;
+
+                    case PixelType.Float32UnsignedInt248Rev:
+                        buffer[0] = BitConverter.SingleToUInt32Bits(color.R);
+                        buffer[1] = (uint)(Math.Clamp(color.G, 0, 1) * 0xFF);
+                        break;
+                }
+            }
+            else
+            {
+                var values = color.ToArray();
+                buffer[0] = BitConverter.SingleToUInt32Bits(values[0]);
+                buffer[1] = BitConverter.SingleToUInt32Bits(values[1]);
+                buffer[2] = BitConverter.SingleToUInt32Bits(values[2]);
+                buffer[3] = BitConverter.SingleToUInt32Bits(values[3]);
+            }
+
+#if GLES
+            _clearExt!.ClearTexSubImage(_handle, level, region.X, region.Y, layer, region.Width, region.Height, 1, pixelFormat, pixelType, buffer);
+#else
+            _gl.ClearTexSubImage(_handle, level, region.X, region.Y, layer, region.Width, region.Height, 1, pixelFormat, pixelType, buffer);
+#endif
+        }
+
+
+        public GlTexture CreateView(uint minLayer, uint numLayers, uint minLevel = 0, uint numLevels = 1)
+        {
+            var newTexture = _gl.GenTexture();
+#if GLES
+            if (_textureViewExt == null)
+            {
+                if (!_gl.TryGetExtension(out _textureViewExt))
+                    throw new NotSupportedException();
+            }
+
+            _textureViewExt!.TextureView(newTexture, Target, _handle, (SizedInternalFormat)_internalFormat, minLevel, numLevels, minLayer, numLayers);
+#else
+            _gl.TextureView(newTexture, Target, _handle, (SizedInternalFormat)_internalFormat, minLevel, numLevels, minLayer, numLayers);
+#endif
+
+            return Attach(_gl, newTexture);
         }
 
         public void OverrideSize(uint width, uint height)

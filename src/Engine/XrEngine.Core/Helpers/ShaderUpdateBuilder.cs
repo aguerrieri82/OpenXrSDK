@@ -48,6 +48,14 @@ namespace XrEngine
         Model
     }
 
+    public enum ShaderClipMode
+    {
+        None,
+        Depth,
+        DepthClear,
+        VertexClipCull,
+    }
+
     public struct RenderDriverBugs
     {
         /// <summary>
@@ -131,6 +139,8 @@ namespace XrEngine
         public bool IsSrgbAutoEncode;
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
+
+        public ShaderClipMode ClipMode;
 
         public bool CanSampleColor;
 
