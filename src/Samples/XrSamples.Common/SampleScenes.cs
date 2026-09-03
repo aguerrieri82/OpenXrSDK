@@ -24,9 +24,6 @@ namespace XrSamples
         static readonly GltfLoaderOptions GltfOptions = new()
         {
             ConvertColorTextureSRgb = true,
-#if __ANDROID__
-            TransmissionBkOnly = true
-#endif
         };
 
         static string GetAssetPath(string name)

@@ -3,6 +3,7 @@ using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrSamples;
 using XrSamples.Dnd;
+using XrSamples.Graffiti;
 
 namespace XrEditor
 {
@@ -82,6 +83,8 @@ namespace XrEditor
                   if (Driver == GraphicDriver.Angle)
                   {
                   }
+
+                  TypeUtils.Load<XrEngine.Media.Windows.Module>();
               })
               .UseOculus(opt =>
               {
@@ -93,12 +96,13 @@ namespace XrEditor
               .SetAppOptions(opt =>
               {
                   opt.Driver = Driver;
+
               })
               //.UseSpaceWarp()
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, 1)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGltfDragon()
+              .CreateGraffiti()
               //.CreateDnd()
               .Build();
     }

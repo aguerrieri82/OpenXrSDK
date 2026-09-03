@@ -42,7 +42,8 @@ namespace XrSamples.Graffiti
                     }
                 }
             }
-
+            
+            CompressionMode = MeshCompressionMode.Never;
             Geometry = builder.ToGeometry();
             Materials.Add(new WireframeMaterial() { Color = new Color(0, 1, 0), DoubleSided = true });
             IsVisible = false;

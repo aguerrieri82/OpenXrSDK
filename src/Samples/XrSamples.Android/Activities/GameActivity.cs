@@ -134,7 +134,7 @@ namespace XrSamples.Android.Activities
                     opt.InvalidateDepth = false;
                     opt.UsePrimitiveBoundingBox = false;
 
-                    opt.UseFxAA = true;
+                    opt.UseFxAA = false;
                     opt.UseRayCollider = false;
 
                     if (_settings.Msaa > 1)
@@ -156,7 +156,7 @@ namespace XrSamples.Android.Activities
                 if (!XrDevice.IsMetaQuest)
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
 
-                opt.UseSimmetricFov = true;
+                opt.UseSimmetricFov = false;
             });
 
             builder.UseOculus(opt =>

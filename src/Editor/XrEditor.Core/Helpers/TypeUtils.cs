@@ -55,5 +55,10 @@ namespace XrEditor
         {
             return GetTypes(typeof(T));
         }
+
+        public static void Load<T>()
+        {
+            
+        }
     }
 }

@@ -30,13 +30,12 @@ namespace XrEngine.OpenGL
         {
             _buffer = buffer;
             _data = _buffer.MapRange(0, _buffer.SizeBytes, accessMask);
-            if (_data == null)
-                throw new InvalidOperationException("MapRange failed");
         }
 
         public void Dispose()
         {
             _buffer.Unmap();
+            GC.SuppressFinalize(this);
         }
 
         public T* Data => _data;

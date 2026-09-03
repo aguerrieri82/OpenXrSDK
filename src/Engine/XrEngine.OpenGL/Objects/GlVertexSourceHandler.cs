@@ -430,7 +430,7 @@ namespace XrEngine.OpenGL
             _vertices.VBuf.Unmap();
             _vertices.VBuf.ArrayLength = (uint)vertexCount;
 
-            if (_source.Indices == null)
+            if (_source.Indices == null || _source.Indices.Length == 0)
                 return;
 
             var indexCount = _source.Indices.Length;

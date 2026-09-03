@@ -26,6 +26,8 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
+            GltfOptions.TransmissionBkOnly = false;
+
             var mesh = GltfLoader.LoadFile(GetAssetPath(assetPath), GltfOptions, GetAssetPath);
 
             scene.AddChild(mesh);

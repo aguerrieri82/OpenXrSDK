@@ -52,33 +52,14 @@ uniform int uTapCount;
 
 #ifdef MULTI_SAMPLE
 
-vec4 resolveSource(ivec2 pos)
+vec4 sampleSource(vec2 pos)
 {
 	ivec2 minPos = ivec2(uSourceRect.xy);
 	ivec2 maxPos = ivec2(uSourceRect.xy + uSourceRect.zw) - 1;
 
-	pos = clamp(pos, minPos, maxPos);
+	ivec2 p = clamp(ivec2(pos), minPos, maxPos);
 
-	vec4 value = vec4(0.0);
-
-	for(int i=0; i<uSampleCount; ++i)
-		value += texelFetch(uSourceTexture, pos, i);
-
-	return value / float(uSampleCount);
-}
-
-vec4 sampleSource(vec2 pos)
-{
-	vec2 texelPos = pos - 0.5;
-	ivec2 p = ivec2(floor(texelPos));
-	vec2 f = fract(texelPos);
-
-	vec4 c00 = resolveSource(p);
-	vec4 c10 = resolveSource(p + ivec2(1, 0));
-	vec4 c01 = resolveSource(p + ivec2(0, 1));
-	vec4 c11 = resolveSource(p + ivec2(1, 1));
-
-	return mix(mix(c00, c10, f.x), mix(c01, c11, f.x), f.y);
+	return texelFetch(uSourceTexture, p, 0);
 }
 
 #else

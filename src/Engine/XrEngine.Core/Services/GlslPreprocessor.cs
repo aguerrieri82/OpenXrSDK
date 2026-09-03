@@ -265,7 +265,13 @@ public sealed class GlslPreprocessor
                             if (active)
                             {
                                 var includeName = ParseInclude(argument, fileId, logicalLine.LineNumber, fileName);
-                                var includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
+
+                                string includePath;
+
+                                if (includeName.StartsWith('['))
+                                    includePath = includeName;
+                                else
+                                    includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
 
                                 result.Append(ProcessFile(includePath, includeDepth + 1));
                             }

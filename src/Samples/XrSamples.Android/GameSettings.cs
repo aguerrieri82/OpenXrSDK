@@ -31,7 +31,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Dragon",
+                SampleName = "Graffiti",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,
