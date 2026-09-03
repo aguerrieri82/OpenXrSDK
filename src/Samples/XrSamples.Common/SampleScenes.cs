@@ -1,12 +1,15 @@
 using CanvasUI;
+
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using RoomDesigner.Game;
+using System.Diagnostics;
 using System.Numerics;
 using System.Xml.Linq;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Components;
+using XrEngine.Devices;
 using XrEngine.Gltf;
 using XrEngine.Objects;
 using XrEngine.OpenXr;
@@ -21,6 +24,9 @@ namespace XrSamples
         static readonly GltfLoaderOptions GltfOptions = new()
         {
             ConvertColorTextureSRgb = true,
+#if __ANDROID__
+            TransmissionBkOnly = true
+#endif
         };
 
         static string GetAssetPath(string name)
@@ -204,8 +210,24 @@ namespace XrSamples
         public static XrEngineAppBuilder RemovePlaneGrid(this XrEngineAppBuilder builder) => builder.ConfigureApp(e =>
         {
             var grid = e.App.ActiveScene!.Descendants<PlaneGrid>().FirstOrDefault();
-            if (grid != null)
-                grid.IsVisible = false;
+            grid?.IsVisible = false;
+        });
+
+
+        public static XrEngineAppBuilder UseCameraRefraction(this XrEngineAppBuilder builder, bool isStereo = false) => builder.ConfigureApp(e =>
+        {
+            #if __ANDROID__
+                var scene = e.App.ActiveScene!;
+            
+                var controller = scene.AddComponent<CameraController>();
+                
+                scene.AddComponent(new CameraRefractionSource(OculusCameras.Left, isStereo ? OculusCameras.Right : null));
+
+                controller.StartCamera(OculusCameras.Left);
+
+                if (isStereo)
+                    controller.StartCamera(OculusCameras.Right);
+            #endif
         });
 
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot, bool forceOverlay = false, bool noOverlay = false)

@@ -25,21 +25,8 @@ namespace XrEngine
         int RenderPriority { get; }
 
         int InstanceCount => 1;
-
     }
 
-    public interface ICompressedVertexSource : IVertexSource
-    {
-        Matrix4x4 VerticesRemap { get; }
-
-        Type? CompVertexType { get; }
-
-        Type? CompIndexType { get; }
-
-        unsafe void CompressVertices(void* pSrc, void* pDst, int count);
-
-        unsafe void CompressIndices(void* pSrc, void* pDst, int count);
-    }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource
         where TVertices : unmanaged
@@ -49,9 +36,6 @@ namespace XrEngine
 
         TVertices[] Vertices { get; }
 
-        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices)
-        {
-
-        }
+        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices) { }
     }
 }

@@ -37,8 +37,26 @@ namespace XrEngine.OpenGL
 
         public abstract GlVertexSourceHandle Clone();
 
+        protected static PrimitiveType GlPrimitive(DrawPrimitive drawPrimitive)
+        {
+            return drawPrimitive switch
+            {
+                DrawPrimitive.Triangle => PrimitiveType.Triangles,
+                DrawPrimitive.Line => PrimitiveType.Lines,
+                DrawPrimitive.LineLoop => PrimitiveType.LineLoop,
+                DrawPrimitive.Point => PrimitiveType.Points,
+                DrawPrimitive.Patch => PrimitiveType.Patches,
+                DrawPrimitive.Quad => PrimitiveType.Quads,
+
+                _ => throw new NotSupportedException()
+            };
+        }
+
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
+            if (obj is IVirtualVertexSource virtSource)
+                return new GlVirtualVertexSourceHandler(gl, virtSource);
+
             var srcInterface = obj.GetType().GetInterfaces()
                 .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IVertexSource<,>));
 
@@ -59,6 +77,72 @@ namespace XrEngine.OpenGL
             return (GlVertexSourceHandle)Activator.CreateInstance(srcType, [gl, obj])!;
         }
 
+    }
+
+    public class GlVirtualVertexSourceHandler : GlVertexSourceHandle
+    {
+        private readonly IVirtualVertexSource _source;
+        private static readonly GlVertexLayout _emptyLayout = new();
+
+        [ThreadStatic]
+        private static uint _emptyVa;
+
+        private readonly GL _gl;
+
+        public GlVirtualVertexSourceHandler(GL gl, IVirtualVertexSource source)
+        {
+            _source = source;
+            _gl = gl;
+
+            _emptyLayout.Attributes ??= [];
+
+            if (_emptyVa == 0)
+                _emptyVa = _gl.GenVertexArray();
+        }
+
+        public override GlVertexSourceHandle Clone()
+        {
+            return new GlVirtualVertexSourceHandler(_gl, _source);
+        }
+
+        public override void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
+        public override void Draw(DrawPrimitive? forcePrimitive = null)
+        {
+            var primitive = GlPrimitive(forcePrimitive ?? _source.Primitive);
+            _gl.DrawArrays(primitive, 0, _source.VerticesCount);
+        }
+
+        public override void DrawInstances(int count, DrawPrimitive? forcePrimitive = null)
+        {
+            var primitive = GlPrimitive(forcePrimitive ?? _source.Primitive);
+            _gl.DrawArraysInstanced(primitive, 0, _source.VerticesCount, (uint)_source.InstanceCount);
+        }
+
+        public override void Bind()
+        {
+            GlState.Current.BindVertexArray(_emptyVa);
+        }
+
+        public override void Unbind()
+        {
+            GlState.Current.BindVertexArray(0);
+        }
+
+        public override void Update()
+        {
+        }
+
+        public override GlVertexLayout Layout => _emptyLayout;
+
+        public override bool NeedUpdate => false;
+
+        public override IVertexSource Source => _source;
+
+        public override IGlVertexArray VertexArray => throw new NotSupportedException();
     }
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
@@ -411,20 +495,6 @@ namespace XrEngine.OpenGL
             return true;
         }
 
-        static PrimitiveType GlPrimitive(DrawPrimitive drawPrimitive)
-        {
-            return drawPrimitive switch
-            {
-                DrawPrimitive.Triangle => PrimitiveType.Triangles,
-                DrawPrimitive.Line => PrimitiveType.Lines,
-                DrawPrimitive.LineLoop => PrimitiveType.LineLoop,
-                DrawPrimitive.Point => PrimitiveType.Points,
-                DrawPrimitive.Patch => PrimitiveType.Patches,
-                DrawPrimitive.Quad => PrimitiveType.Quads,
-
-                _ => throw new NotSupportedException()
-            };
-        }
 
         public override void Bind()
         {

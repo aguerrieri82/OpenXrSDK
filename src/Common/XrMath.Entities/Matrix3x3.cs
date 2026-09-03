@@ -26,6 +26,25 @@ namespace XrMath
 
         }
 
+        public readonly Matrix3x3 Invert()
+        {
+            var d =
+                M11 * (M22 * M33 - M23 * M32) -
+                M12 * (M21 * M33 - M23 * M31) +
+                M13 * (M21 * M32 - M22 * M31);
+
+            return new Matrix3x3(
+                (M22 * M33 - M23 * M32) / d,
+                (M13 * M32 - M12 * M33) / d,
+                (M12 * M23 - M13 * M22) / d,
+                (M23 * M31 - M21 * M33) / d,
+                (M11 * M33 - M13 * M31) / d,
+                (M13 * M21 - M11 * M23) / d,
+                (M21 * M32 - M22 * M31) / d,
+                (M12 * M31 - M11 * M32) / d,
+                (M11 * M22 - M12 * M21) / d);
+        }
+
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public readonly Vector4x3 ToVector4x3()
         {

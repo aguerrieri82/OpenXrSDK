@@ -1,44 +1,78 @@
 #include "../Shared/blur_mip.glsl"
 
 #ifdef VOLUME_BACKGROUND
-uniform mat3 uBackgroundUvTransform[2];
+	uniform mat3 uBackgroundUvTransform[2];
+
+	#ifdef VOLUME_BACKGROUND_EXTERNAL
+		#define VOLUME_BACKGROUND_SAMPLER samplerExternalOES
+	#else
+		#define VOLUME_BACKGROUND_SAMPLER sampler2D
+	#endif
+
+	layout(binding=VOLUMEBACKGROUND_SLOT) uniform VOLUME_BACKGROUND_SAMPLER volumeBackground;
+
+	#ifdef VOLUME_BACKGROUND_STEREO
+		layout(binding=VOLUMEBACKGROUNDRIGHT_SLOT) uniform VOLUME_BACKGROUND_SAMPLER volumeBackgroundRight;
+	#endif
 #endif
 
-#ifdef MULTI_VIEW
-	layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2DArray volumeForeground;
-
-	#ifdef VOLUME_BACKGROUND
-		layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2DArray volumeBackground;
-	#endif
-#else
-	layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2D volumeForeground;
-
-	#ifdef VOLUME_BACKGROUND
-		layout(binding=VOLUMEBACKGROUND_SLOT) uniform sampler2D volumeBackground;
+#ifdef VOLUME_FOREGROUND
+	#ifdef MULTI_VIEW
+		layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2DArray volumeForeground;
+	#else
+		layout(binding=VOLUMEFOREGROUND_SLOT) uniform sampler2D volumeForeground;
 	#endif
 #endif
 
 
 #ifdef VOLUME_BACKGROUND
 
-vec4 sampleVolumeBackground(vec2 uv, float roughness)
-{
-	float lod = float(textureQueryLevels(volumeBackground) - 1) * roughness * (uMaterial.ior * 2.0 - 2.0);
+	#ifdef VOLUME_BACKGROUND_EXTERNAL
 
-#ifdef MULTIVIEW
-	vec2 texUv = (uBackgroundUvTransform[ACTIVE_EYE] * vec3(uv, 1.0)).xy;
-	return textureLod(volumeBackground, vec3(texUv, float(ACTIVE_EYE)), lod);
-#else
-	vec2 texUv = (uBackgroundUvTransform[0] * vec3(uv, 1.0)).xy;
-	return textureLod(volumeBackground, texUv, lod);
-#endif
-}
+	vec4 sampleVolumeBackground(vec2 uv, float roughness)
+	{
+		vec3 tuv = vec3(uv, 1.0) * uBackgroundUvTransform[ACTIVE_EYE];
+		vec2 texUv = tuv.xy / tuv.z;
+
+		#ifdef VOLUME_BACKGROUND_STEREO
+			if (ACTIVE_EYE == 1u)
+				return texture(volumeBackgroundRight, texUv);
+		#endif
+
+		return texture(volumeBackground, texUv);
+	}
+
+	#else
+
+	vec4 sampleVolumeBackground(vec2 uv, float roughness)
+	{
+		vec3 tuv = vec3(uv, 1.0) * uBackgroundUvTransform[ACTIVE_EYE];
+		vec2 texUv = tuv.xy / tuv.z;
+
+		#ifdef VOLUME_BACKGROUND_STEREO
+			if (ACTIVE_EYE == 1u)
+			{
+				float lod = float(textureQueryLevels(volumeBackgroundRight) - 1) * roughness * (uMaterial.ior * 2.0 - 2.0);
+				return textureLod(volumeBackgroundRight, texUv, lod);
+			}
+		#endif
+
+		float lod = float(textureQueryLevels(volumeBackground) - 1) * roughness * (uMaterial.ior * 2.0 - 2.0);
+		return textureLod(volumeBackground, texUv, lod);
+	}
+
+	#endif
 
 #endif
+
 
 vec4 sampleVolumeSource(vec2 uv, float roughness)
 {
+#ifdef VOLUME_FOREGROUND
 	vec4 color = sampleBlurMip(volumeForeground, uv, 0, roughness);
+#else
+	vec4 color = vec4(0.0);
+#endif
 
 #ifdef VOLUME_BACKGROUND
 	if (color.a < 1.0)

@@ -35,6 +35,8 @@
         public static readonly ResourceSlot SpecularColor = new(nameof(SpecularColor));
 
         public static readonly ResourceSlot VolumeBackground = new(4, nameof(VolumeBackground));
+        public static readonly ResourceSlot VolumeBackgroundRight = new(11, nameof(VolumeBackgroundRight));
+        
         public static readonly ResourceSlot VolumeForeground = new(5, nameof(VolumeForeground));
         public static readonly ResourceSlot EnvDepth = new(6, nameof(EnvDepth));
         public static readonly ResourceSlot ShadowMap = new(7, nameof(ShadowMap));

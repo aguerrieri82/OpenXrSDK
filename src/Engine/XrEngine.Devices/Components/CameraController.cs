@@ -32,6 +32,8 @@ namespace XrEngine.Devices
 
     public class CameraController : AsyncBehavior<Scene3D>, IDisposable
     {
+        readonly SemaphoreSlim _cameraStartLock = new(1, 1);
+        readonly Dictionary<string, Func<Task>> _cameraStartRequest = [];
         private ICameraManager? _manager;
         private ICameraPoseProvider? _poseProvider;
         private readonly Dictionary<string, CameraStatus> _cameras = [];
@@ -58,7 +60,7 @@ namespace XrEngine.Devices
 
         protected CameraStatus GetStatus(string cameraId)
         {
-            if (!_cameras!.TryGetValue(cameraId, out var status))
+            if (!_cameras.TryGetValue(cameraId, out var status))
             {
                 status = new CameraStatus()
                 {
@@ -92,48 +94,77 @@ namespace XrEngine.Devices
             };
         }
 
-        public Matrix3x3 GetUvTransform(string cameraId, Matrix4x4 eyeProjection)
+        public Matrix3x3 GetUvTransform(string cameraId, Matrix4x4 eyeView, Matrix4x4 eyeProjection)
         {
-            var cam = GetStatus(cameraId).Params!;
+            static Matrix3x3 QuadToUv(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+            {
+                var dx1 = p1.X - p2.X;
+                var dx2 = p3.X - p2.X;
+                var dx3 = p0.X - p1.X + p2.X - p3.X;
+                var dy1 = p1.Y - p2.Y;
+                var dy2 = p3.Y - p2.Y;
+                var dy3 = p0.Y - p1.Y + p2.Y - p3.Y;
 
-            var sensorW = cam.SensorSize!.Value.Width;
-            var sensorH = cam.SensorSize.Value.Height;
+                var d = dx1 * dy2 - dx2 * dy1;
+                var g = (dx3 * dy2 - dx2 * dy3) / d;
+                var h = (dx1 * dy3 - dx3 * dy1) / d;
+
+                var m = new Matrix3x3(
+                    p1.X - p0.X + g * p1.X, p3.X - p0.X + h * p3.X, p0.X,
+                    p1.Y - p0.Y + g * p1.Y, p3.Y - p0.Y + h * p3.Y, p0.Y,
+                    g, h, 1);
+
+                return m.Invert();
+            }
+
+            var status = GetStatus(cameraId);
+            var cam = status.Params!;
+
+            if (status.Pose == null)
+                return Matrix3x3.Identity;
+
+            const float distance = 3f;
 
             var crop = CalcSensorCropRegion(
-                sensorW,
-                sensorH,
+                cam.SensorSize!.Value.Width,
+                cam.SensorSize.Value.Height,
                 cam.CurrentSize.Width,
                 cam.CurrentSize.Height);
 
-            // Camera image bounds on the z = -1 image plane.
-            var x0 = (crop.X - cam.Cx) / cam.Fx;
-            var x1 = (crop.X + crop.Width - cam.Cx) / cam.Fx;
+            var x0 = distance * ((crop.X - cam.Cx) / cam.Fx);
+            var x1 = distance * ((crop.X + crop.Width - cam.Cx) / cam.Fx);
+            var y0 = distance * ((crop.Y - cam.Cy) / cam.Fy);
+            var y1 = distance * ((crop.Y + crop.Height - cam.Cy) / cam.Fy);
 
-            var y0 = (crop.Y - cam.Cy) / cam.Fy;
-            var y1 = (crop.Y + crop.Height - cam.Cy) / cam.Fy;
+            var transform = status.Pose.Value.ToMatrix() * eyeView * eyeProjection;
 
-            static Vector2 Project(float x, float y, in Matrix4x4 projection)
+            Vector2 Project(float x, float y)
             {
-                var p = Vector4.Transform(new Vector4(x, y, -1f, 1f), projection);
-                var ndc = new Vector2(p.X, p.Y) / p.W;
-
-                return ndc * 0.5f + new Vector2(0.5f);
+                var p = Vector4.Transform(new Vector4(x, y, -distance, 1), transform);
+                return new Vector2(
+                    p.X / p.W * 0.5f + 0.5f,
+                    p.Y / p.W * 0.5f + 0.5f);
             }
 
-            var s0 = Project(x0, y0, eyeProjection);
-            var s1 = Project(x1, y1, eyeProjection);
+            var p0 = Project(x0, y1); // uv 0,0
+            var p1 = Project(x1, y1); // uv 1,0
+            var p2 = Project(x1, y0); // uv 1,1
+            var p3 = Project(x0, y0); // uv 0,1
 
-            // screenUv -> cameraUv
-            //
-            // screen = s0 + cameraUv * (s1 - s0)
-            //
-            // cameraUv = screen * scale + offset
+            return QuadToUv(p0, p1, p2, p3);
+        }
 
-            var scale = Vector2.One / (s1 - s0);
-            var offset = -s0 * scale;
-
-            return Matrix3x3.CreateScale(scale.X, scale.Y) *
-                   Matrix3x3.CreateTranslation(offset.X, offset.Y);
+        public void StartCamera(string cameraId, Size2? resolution = null, float? fps = null)
+        {
+            _cameraStartLock.Wait();
+            try
+            {
+                _cameraStartRequest[cameraId] = () => StartCameraAsync(cameraId, resolution, fps);
+            }
+            finally
+            {
+                _cameraStartLock.Release();
+            }
         }
 
         public async Task<bool> StartCameraAsync(string cameraId, Size2? resolution = null, float? fps = null)
@@ -189,7 +220,7 @@ namespace XrEngine.Devices
                         MinFilter = ScaleFilter.Linear,
                         Type = TextureType.External,
                         Width = (uint)format.Width,
-                        Height = (uint)format.Height
+                        Height = (uint)format.Height,
                     };
                 }
 
@@ -233,6 +264,23 @@ namespace XrEngine.Devices
 
         protected override async Task UpdateAsync(RenderContext ctx)
         {
+            if (_cameraStartRequest.Count > 0)
+            {
+                await _cameraStartLock.WaitAsync();
+
+                try
+                {
+                    foreach (var req in _cameraStartRequest)
+                        await req.Value();
+
+                    _cameraStartRequest.Clear();
+                }
+                finally
+                {
+                    _cameraStartLock.Release();
+                }
+            }
+
             foreach (var camera in _cameras.Values)
             {
                 if (camera.IsActive && camera.Device != null)

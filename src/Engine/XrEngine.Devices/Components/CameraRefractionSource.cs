@@ -17,12 +17,12 @@
             var result = new Texture2D?[camera.Eyes!.Length];
 
             result[0] = _controller.GetCameraStatus(LeftMainId).Texture;
-            result[0]?.Transform = _controller.GetUvTransform(LeftMainId, camera.Eyes[0].Projection);
+            result[0]?.Transform = _controller.GetUvTransform(LeftMainId, camera.Eyes[0].View, camera.Eyes[0].Projection);
 
             if (result.Length > 1 && !string.IsNullOrWhiteSpace(RightId))
             {
                 result[1] = _controller.GetCameraStatus(RightId).Texture;
-                result[1]?.Transform = _controller.GetUvTransform(RightId, camera.Eyes[1].Projection);
+                result[1]?.Transform = _controller.GetUvTransform(RightId, camera.Eyes[1].View, camera.Eyes[1].Projection);
             }
 
             return result;
@@ -34,5 +34,15 @@
 
         public string? RightId { get; }
 
+        public ScreenRefractionFlags Flags
+        {
+            get
+            {
+                var result = ScreenRefractionFlags.Transform | ScreenRefractionFlags.External;
+                if (RightId != null)
+                    result |= ScreenRefractionFlags.Stereo;
+                return result;
+            }
+        }
     }
 }

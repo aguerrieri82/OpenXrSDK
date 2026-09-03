@@ -649,7 +649,9 @@ namespace XrEngine.Gltf
                 if (result.Thickness == 0 && result.Roughness == 0)
                     result.TransmissionMode = TransmissionMode.DualAlpha;
                 else
-                    result.TransmissionMode = TransmissionMode.Texture;
+                    result.TransmissionMode = _options.TransmissionBkOnly ? 
+                        TransmissionMode.TextureBackground : 
+                        TransmissionMode.Texture;
             }
 
             if (irid != null)

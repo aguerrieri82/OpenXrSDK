@@ -4,7 +4,7 @@
 #define TM_FB_FETCH    1
 #define TM_DUAL_SOURCE 2
 #define TM_TEXTURE     3
-
+#define TM_TEXTURE_BK  4
 
 #if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY) || defined(USE_HEIGHT_MAP)) && defined(HAS_TANGENTS) 
 	#define HAS_TANGENT_BASIS
@@ -30,7 +30,7 @@
 
 #include "../Shared/fragment_post.glsl"
 
-#if defined(USE_VOLUME) || TRANSMISSION_MODE == TM_TEXTURE
+#if defined(USE_VOLUME) || TRANSMISSION_MODE == TM_TEXTURE || TRANSMISSION_MODE == TM_TEXTURE_BK
 	#include "../Shared/position.glsl"
 	#include "volume.glsl"
 #endif
@@ -1002,7 +1002,7 @@ void main()
 	vec3 transmissionColor = frag.albedo * transmissionWeight * (1.0 - frag.metalness) * frag.transmission;
 #endif
 
-#if TRANSMISSION_MODE == TM_TEXTURE
+#if TRANSMISSION_MODE == TM_TEXTURE || TRANSMISSION_MODE == TM_TEXTURE_BK
 
 	#ifdef USE_VOLUME
 		vec4 volume = sampleVolume(frag.position, N, V, frag.thickness, frag.roughness);
@@ -1052,7 +1052,7 @@ doPostRgb(color3);
 
 vec3 outRgb = color3;
 
-#if TRANSMISSION_MODE == TM_TEXTURE
+#if TRANSMISSION_MODE == TM_TEXTURE || TRANSMISSION_MODE == TM_TEXTURE_BK
 	outRgb += volume.rgb * volume.a * transmissionColor;
 
 #endif

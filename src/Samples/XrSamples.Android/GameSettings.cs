@@ -31,8 +31,8 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Helmet",
-                Msaa = 2,
+                SampleName = "Dragon",
+                Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,

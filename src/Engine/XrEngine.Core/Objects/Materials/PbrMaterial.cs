@@ -937,7 +937,6 @@ namespace XrEngine
                 {
                     if (!HasVolume)
                         useForeground = true;
-
                 }
             }
 
@@ -946,12 +945,49 @@ namespace XrEngine
                 bld.AddFeature("USE_VOLUME");
 
                 var refSrc = bld.Context.Scene?.Feature<IScreenRefractionSource>();
+
                 if (refSrc != null)
                 {
+                    var flags = refSrc.Flags;
+                    var stereo = (flags & ScreenRefractionFlags.Stereo) != 0;
+                    var external = (flags & ScreenRefractionFlags.External) != 0;
+                    var transform = (flags & ScreenRefractionFlags.Transform) != 0;
+
+                    var leftSlot = bld.GetTextureSlot(TextureSlots.VolumeBackground);
+                    var rightSlot = stereo ? bld.GetTextureSlot(TextureSlots.VolumeBackgroundRight) : -1;
+
                     bld.AddFeature("VOLUME_BACKGROUND");
 
-                    bld.LoadTexture(ctx =>
-                        refSrc.GetRefractionTextures((PerspectiveCamera)ctx.PassCamera!)[0], TextureSlots.VolumeBackground);
+                    if (stereo)
+                        bld.AddFeature("VOLUME_BACKGROUND_STEREO");
+
+                    if (external)
+                    {
+                        bld.AddExtension("GL_OES_EGL_image_external_essl3");
+                        bld.AddFeature("VOLUME_BACKGROUND_EXTERNAL");
+                    }
+
+                    if (transform)
+                        bld.AddFeature("VOLUME_BACKGROUND_TRANSFORM");
+
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        var textures = refSrc.GetRefractionTextures((PerspectiveCamera)ctx.PassCamera!);
+
+                        if (textures[0] != null)
+                            up.LoadTexture(textures[0]!, leftSlot);
+
+                        if (stereo && textures[1] != null)
+                            up.LoadTexture(textures[1]!, rightSlot);
+
+                        if (transform)
+                        {
+                            var leftTransform = textures[0]?.Transform;
+                            var rightTransform = stereo ? textures[1]?.Transform : leftTransform;
+                            up.SetUniform("uBackgroundUvTransform[0]", leftTransform ?? Matrix3x3.Identity);
+                            up.SetUniform("uBackgroundUvTransform[1]", rightTransform ?? Matrix3x3.Identity);
+                        }
+                    });
                 }
 
                 if (ThicknessMap != null)
@@ -968,6 +1004,8 @@ namespace XrEngine
 
             if (useForeground)
             {
+                bld.AddFeature("VOLUME_FOREGROUND");
+
                 var slot = bld.GetTextureSlot(TextureSlots.VolumeForeground);
 
                 if (!bld.Context.CanSampleColor)
@@ -1187,7 +1225,8 @@ namespace XrEngine
             set
             {
                 _transmissionMode = value;
-                Alpha = value == TransmissionMode.Texture ? AlphaMode.Opaque : AlphaMode.TransmissionBlend;
+                Alpha = value == TransmissionMode.Texture || 
+                        value == TransmissionMode.TextureBackground ? AlphaMode.Opaque : AlphaMode.TransmissionBlend;
             }
         }
 
@@ -1269,7 +1308,8 @@ namespace XrEngine
         [Category(Textures)]
         public Texture2D? AnisotropyMap { get; set; }
 
-        public override bool IsSingleDraw => UseMorph || (HasTransmission && TransmissionMode == TransmissionMode.Texture);
+        public override bool IsSingleDraw => UseMorph || (HasTransmission && 
+            (TransmissionMode == TransmissionMode.Texture || TransmissionMode == TransmissionMode.TextureBackground));
 
         public bool HasAnisotropy => Anisotropy > 0;
 

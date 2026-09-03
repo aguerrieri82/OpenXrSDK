@@ -6,7 +6,8 @@
         None = 0,
         FrameBufferFetch = 1,
         DualAlpha = 2,
-        Texture = 3
+        Texture = 3,
+        TextureBackground = 4
     }
 
     public interface ITransmissionMaterial : IMaterial
