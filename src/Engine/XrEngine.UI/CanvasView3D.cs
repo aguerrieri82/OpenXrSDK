@@ -13,7 +13,7 @@ namespace XrEngine.UI
     }
 
     [UpdateMode(IsParallel = false)]
-    public abstract class CanvasView3D : TriangleMesh, IQuodTexture
+    public abstract class CanvasView3D : TriangleMesh
     {
         static readonly DynamicProp SurfaceProp = new("Surface");
 
@@ -51,12 +51,12 @@ namespace XrEngine.UI
             if (!_targets.TryGetValue(imageId, out var texture))
             {
                 texture = _scene!.App!.Renderer.AttachTexture(imageId);
-
-                if (!EnableDepthCull)
-                    CreateSurface(texture);
+                
+                CreateSurface(texture);
 
                 _targets[imageId] = texture;
             }
+            
             _activeTexture = texture;
             _activeEye = activeEye;
         }
@@ -75,8 +75,7 @@ namespace XrEngine.UI
 
         public void Draw(RenderContext? ctx)
         {
-            var drawTexture = EnableDepthCull && _mode == CanvasViewMode.RenderTarget ?
-                _defLeftTexture : _activeTexture;
+            var drawTexture = _activeTexture;
 
             if ((NeedDraw || _lastDrawTexture == null) && (_activeEye <= 0 || IsStereo))
             {
@@ -91,14 +90,9 @@ namespace XrEngine.UI
                 _lastDrawTexture = drawTexture;
             }
 
-            else if (_lastDrawTexture != null && _lastDrawTexture != _activeTexture && !EnableDepthCull)
+            else if (_lastDrawTexture != null && _lastDrawTexture != _activeTexture)
                 _scene!.App!.Renderer.CopyTexture(_lastDrawTexture, _activeTexture!);
 
-            if (EnableDepthCull && Mode == CanvasViewMode.RenderTarget)
-            {
-                if (Context.TryRequire<IQuodDepthCull>(out var depthCull))
-                    depthCull.Cull(this);
-            }
         }
 
         protected void Draw(Texture2D? texture, RenderContext? ctx, int activeEye)
@@ -305,20 +299,6 @@ namespace XrEngine.UI
                 UpdateMode();
             }
         }
-
-        public Texture2D? DrawTexture => _defLeftTexture;
-
-        public int ActiveEye => _activeEye;
-
-        public float DepthBias { get; set; }
-
-        [Obsolete]
-        public bool EnableDepthCull { get; set; }
-
-        public bool UseMips { get; set; }
-
-        public abstract bool NeedDraw { get; }
-
         public Size2I PixelSize
         {
             get
@@ -329,7 +309,16 @@ namespace XrEngine.UI
             }
         }
 
+        public Texture2D? DrawTexture => _defLeftTexture;
+
+        public int ActiveEye => _activeEye;
+
         public Texture2D? ActiveTexture => _activeTexture;
 
+        public float DepthBias { get; set; }
+
+        public bool UseMips { get; set; }
+
+        public abstract bool NeedDraw { get; }
     }
 }

@@ -19,7 +19,6 @@ namespace OpenXr.Framework.Oculus
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));
             _motionProvider = provider;
-            _useDepth = true;
         }
 
         public override void Create()

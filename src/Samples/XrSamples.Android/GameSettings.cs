@@ -25,8 +25,6 @@ namespace XrSamples
 
         public float Scale { get; set; }
 
-        public bool UseResolve { get; set; }
-
         public float DepthScale { get; set; }
 
         public static GameSettings Graffiti()
@@ -39,11 +37,10 @@ namespace XrSamples
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
-                UseSpaceWarp = false,
+                UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = true,
                 TextureCompression = true,
-                UseResolve = false
             };
         }
 

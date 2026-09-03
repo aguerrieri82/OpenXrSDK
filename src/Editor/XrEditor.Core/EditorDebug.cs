@@ -66,8 +66,7 @@ namespace XrEditor
 
                   opt.ContactShadow.Use = false;
                   opt.ContactShadow.IsMultiView = false;
-
-                  opt.UseResolve = false;
+                  
                   opt.ToneMap = ToneMapMode.Aces;
                   opt.UseProfiler = false;
                   opt.UseTransmission = true;
@@ -96,10 +95,9 @@ namespace XrEditor
                   opt.Driver = Driver;
               })
               //.UseSpaceWarp()
-              //.AddProfileOverlay()
               .EnableDebugNotRelease(sync: true)
-              .SetRenderQuality(1f, 1, useIntermediate: false)
-              //.UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
+              .SetRenderQuality(1f, 1)
+              .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
               //.CreateGltfTest("Models/IridescentDishWithOlives.glb")
               .CreateDnd()
               .Build();

@@ -639,9 +639,6 @@ public unsafe class GlDxRenderHost : ImageRenderHost, INativeContext,
 
         _render = new OpenGLRender(_gl!, glOptions);
 
-        if (glOptions.UseResolve)
-            ColorFormat = TextureFormat.RgbaFloat16;
-
         return _render;
     }
 

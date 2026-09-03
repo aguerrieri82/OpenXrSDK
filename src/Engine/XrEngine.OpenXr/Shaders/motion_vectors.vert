@@ -5,7 +5,6 @@ uniform bool uHasSkin;
 uniform uint uActiveEye;
 
 #ifdef MULTI_VIEW
-
     layout(num_views=2) in;
 	#define EYE gl_ViewID_OVR
 
@@ -40,10 +39,8 @@ out vec4 prevClipPos;
 
 void skinTransformCurPos(inout vec3 pos)
 {
-    SkinVertex skinVertex = uSkinVertices[gl_VertexID];
-
-    uvec4 joints = skinVertex.jointIndices;
-    vec4 weights = skinVertex.jointWeights;
+    ivec4 joints = aJointIndices;
+    vec4 weights = aJointWeights;
 
     mat4 skin =
         weights.x * uSkinMatrices[joints.x] +
@@ -56,10 +53,8 @@ void skinTransformCurPos(inout vec3 pos)
 
 void skinTransformPrevPos(inout vec3 pos)
 {
-    SkinVertex skinVertex = uSkinVertices[gl_VertexID];
-
-    uvec4 joints = skinVertex.jointIndices;
-    vec4 weights = skinVertex.jointWeights;
+    ivec4 joints = aJointIndices;
+    vec4 weights = aJointWeights;
 
     mat4 skin =
         weights.x * uPrevSkinMatrices[joints.x] +
@@ -69,7 +64,6 @@ void skinTransformPrevPos(inout vec3 pos)
 
     pos = (skin * vec4(pos, 1.0)).xyz;
 }
-
 
 void main()
 {

@@ -88,7 +88,7 @@ namespace XrEngine.OpenGL
                     {
                         colorTex = motionTex.ToGlTexture().Handle;
 
-                        motionTex.Tag = 1;
+                        motionTex.Tag = ctx.MotionVectorProvider;
 
                         _effect.Channel = "b";
                         _effect.HighPrecision = true;
@@ -115,6 +115,5 @@ namespace XrEngine.OpenGL
             _pool.Dispose();
             base.Dispose();
         }
-
     }
 }

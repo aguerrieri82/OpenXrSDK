@@ -68,7 +68,6 @@ namespace XrEngine.OpenGL
 
             public static readonly DynamicProp BufferRangeSlot = new(nameof(BufferRangeSlot));
 
-            public static readonly DynamicProp[] RenderTarget = [new("RenderTargetEye0"), new("RenderTargetEye1")];
 
         }
 
@@ -94,7 +93,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
             _options = options;
 
-            if (options.UseDefaultIntermediate)
+            if (options.UseDefaultIntermediate || options.NeedPostProcess)
             {
                 _defaultTarget = new GlDefaultRenderTarget(gl,
                     !options.UseDepthPass && !options.ContactShadow.Use,
@@ -354,7 +353,7 @@ namespace XrEngine.OpenGL
             if (_options.UseResolve)
                 _renderPasses.Add(new GlResolvePass(this));
 
-            if (_options.UseFxAA)
+            if (_options.NeedPostProcess)
             {
                 _renderPasses.Add(new GlPostProcessPass(this)
                 {
@@ -596,7 +595,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Time = (float)ctx.Time;
             _updateCtx.Scene = ctx.Scene;
             _updateCtx.DeltaTime = (float)ctx.DeltaTime;
-            _updateCtx.ClipMode = ShaderClipMode.DepthClear;
+            _updateCtx.ClipMode = _options.ClipMode;
 
             _updateCtx.ContextVersion++;
 

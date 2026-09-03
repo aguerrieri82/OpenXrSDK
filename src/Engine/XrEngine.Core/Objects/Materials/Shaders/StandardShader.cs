@@ -192,7 +192,7 @@ namespace XrEngine
             {
                 bld.AddFeature("MOTION_VECTORS");
 
-                if (bld.Context.CopyDepthImage?.Tag != null)
+                if (bld.Context.CopyDepthImage?.Tag is IMotionVectorProvider)
                     bld.AddFeature("MOTION_VECTORS_DEPTH");
 
                 bld.ExecuteAction((ctx, up) =>
@@ -221,11 +221,43 @@ namespace XrEngine
                     }
                 });
             }
+
+            if (bld.Context.UseCopyDepth)
+                bld.AddFeature("COPY_DEPTH");
+
+            if (bld.Context.UseManualDepthTest)
+                bld.AddFeature("MANUAL_DEPTH_TEST");
+
+            if (bld.Context.UsePrimitiveBoundingBox)
+                bld.AddExtension("GL_EXT_primitive_bounding_box");
+
+            if (bld.Context.CopyDepthImage != null && bld.Context.CopyDepthImage.Tag == null)
+            {
+                bld.AddFeature("COPY_DEPTH_IMG");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    Debug.Assert(ctx.CopyDepthImage?.Tag == null);
+
+                    if (ctx.CopyDepthImage == null)
+                        return;
+
+                    up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, ctx.UseManualDepthTest ?
+                        BufferAccessMode.Read : BufferAccessMode.Write);
+
+                    var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
+                    var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+
+                    up.SetUniform("uDepthImageScale", scale);
+                });
+            }
         }
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             return _tracker.IsChanged(() => ctx.UseMotionVectors) ||
+                   _tracker.IsChanged(() => ctx.UseManualDepthTest) ||
+                   _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox) ||
                    _tracker.IsChanged(() => ctx.CopyDepthImage?.Tag) ||
                    _tracker.IsChanged(() => ctx.ClipRegions != null && ctx.ClipRegions.Length > 0) ||
                    _tracker.IsChanged(() => ctx.MotionVectorProvider?.IsActive ?? false);

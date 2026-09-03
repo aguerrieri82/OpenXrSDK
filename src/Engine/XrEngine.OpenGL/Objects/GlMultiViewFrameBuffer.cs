@@ -98,16 +98,20 @@ namespace XrEngine.OpenGL
             EndUpdate();
         }
 
-        public override void Attach(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int layer = 0)
+        public override void Attach(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw, int level = 0)
         {
             Bind();
 
             if (attachment is not GlTexture glTex)
                 throw new NotSupportedException();
 
-            if (_sampleCount > 1 && (attachment is GlTexture tex))
+            var baseViewIndex = glTex.IsView && glTex.ParentTexture == glTex ? glTex.ViewMinLayer : 0;
+
+            baseViewIndex += BaseViewIndex;
+
+            if (_sampleCount > 1)
             {
-                Debug.Assert(tex.Target == TextureTarget.Texture2DArray);
+                Debug.Assert(glTex.Target == TextureTarget.Texture2DArray);
 
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
@@ -116,20 +120,20 @@ namespace XrEngine.OpenGL
                     FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    (uint)layer,
+                    (uint)level,
                     _sampleCount,
-                    BaseViewIndex, NumViews);
+                    baseViewIndex, NumViews);
             }
             else
             {
                 if (FramebufferTextureMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
 
-                FramebufferTextureMultiviewOVR!(
+                FramebufferTextureMultiviewOVR(
                     FramebufferTarget.Framebuffer,
                     slot,
                     glTex,
-                    (uint)layer, BaseViewIndex, NumViews);
+                    (uint)level, baseViewIndex, NumViews);
             }
 
             _isDirty = true;

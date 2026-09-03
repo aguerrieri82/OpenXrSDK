@@ -51,6 +51,8 @@ namespace XrEngine
     public enum ShaderClipMode
     {
         None,
+
+        [Obsolete]
         Depth,
         DepthClear,
         VertexClipCull,

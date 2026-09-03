@@ -14,8 +14,6 @@ namespace XrEngine.OpenXr
 
             Context.Implement<ICameraPoseProvider>(() => new OculusCameraPoseProvider());
 
-            Context.Implement<IQuodDepthCull>(() => new QuodDepthCullProvider());
-
             Context.Implement<IDepthPointProvider>(() => new GlDepthPointProvider(OpenGLRender.Current!.GL));
 
             Embedded.Register(typeof(Module).Assembly);

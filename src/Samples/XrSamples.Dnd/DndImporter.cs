@@ -581,9 +581,7 @@ namespace XrSamples.Dnd
             });
         }
 
-        Geometry3D? patch;
-
-        Object3D ProcessDraw(ImpDraw draw)
+        TriangleMesh ProcessDraw(ImpDraw draw)
         {
             if (draw.id == 4196)
                 Console.Write("");

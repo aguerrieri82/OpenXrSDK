@@ -4,6 +4,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
+
 namespace XrEngine.OpenGL
 {
     public class GlPostProcessPass : GlBaseRenderPass
@@ -21,57 +23,80 @@ namespace XrEngine.OpenGL
 
         public override void Render(GlUpdateContext ctx)
         {
-            if (!IsEnabled)
+            if (!IsEnabled || (!UseFxAA))
                 return;
 
             var curTarget = _renderer.RenderTarget;
 
-            if (curTarget is not IGlRenderTargetFB fbTarget)
+            if (curTarget is not IGlRenderTargetFB sourceTarget)
                 throw new NotSupportedException();
 
-            var color = fbTarget.FrameBuffer.Color!;
+            var color = sourceTarget.FrameBuffer.Color!;
+
+            var realColor = color.IsView ? color.ParentTexture! : color;
 
             _effect.UseFxAA = UseFxAA;
-            _effect.Texture = color.ToEngineTexture();
-
-            IGlRenderTargetFB? renderTarget = null;
+ 
+            IGlRenderTargetFB? passTarget = null;
 
             if (curTarget is GlDefaultRenderTarget glDefaultRender)
             {
                 _effect.IsMultiView = false;
+                _effect.Texture = color.ToEngineTexture();
                 glDefaultRender.BindResolve();
             }
             else
             {
                 if (!_isInit)
                 {
-                    bool isMultiview = fbTarget.FrameBuffer is GlMultiViewFrameBuffer;
+                    bool isMultiview = sourceTarget.FrameBuffer is GlMultiViewFrameBuffer;
 
                     _pool = new GlRenderTargetPool(_renderer.GL, isMultiview);
+                    _pool.Name = "Post Process";
+
                     _effect.IsMultiView = isMultiview;
+
 
                     _isInit = true;
                 }
 
-                if (color.Depth == 1)
-                    return;
+                Debug.Assert(color.Depth > 1);
 
-                if (!_views.TryGetValue(color.Handle, out var viewTexture))
+                if (!_views.TryGetValue(realColor.Handle, out var viewTexture))
                 {
-                    viewTexture = _effect.IsMultiView ? color.CreateView(2, 2) : color.CreateView(1, 1);
-                    _views[color.Handle] = viewTexture;
+                    viewTexture = _effect.IsMultiView ? realColor.CreateView(2, 2) : color.CreateView(1, 1);
+                    _views[realColor.Handle] = viewTexture;
                 }
 
-                renderTarget = _pool!.GetRenderTarget(viewTexture!.Handle, 0, fbTarget.FrameBuffer.SampleCount);
+                _effect.Texture = color.ToEngineTexture();
+                _effect.BaseSourceIndex = color.IsView && color.ParentTexture == color ? color.ViewMinLayer : 0;
+
+                passTarget = _pool!.GetRenderTarget(viewTexture!.Handle, 0, sourceTarget.FrameBuffer.SampleCount, createDepth: false);
             }
 
-            renderTarget?.Begin(ctx.MainCamera!);
+            passTarget?.Begin(ctx.MainCamera!);
 
             UseEffect(_effect);
 
             DrawQuad();
 
-            renderTarget?.End(false);
+            passTarget?.End(false);
+      
+            if (color.Depth == 4)
+                realColor.CopyTo(realColor, 0, 2, 0, 2);
+        }
+
+        public override void Dispose()
+        {
+            foreach (var view in _views)
+                view.Value.Dispose();
+            
+            _views.Clear();
+            
+            _pool?.Dispose();
+            _pool = null;
+
+            base.Dispose();
         }
 
         public bool UseFxAA { get; set; }

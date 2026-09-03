@@ -8,6 +8,7 @@ namespace XrEngine.OpenXr
     {
         readonly Dictionary<Object3D, Matrix4x4> _models = [];
         readonly Dictionary<Object3D, Matrix4x4[]> _skins = [];
+
         public class MotionVectorShader : Shader, IShaderHandler
         {
 
@@ -74,9 +75,9 @@ namespace XrEngine.OpenXr
         {
 #warning SKINNED NOT SUPPORTED CANT USE SINGLE PASS MATERIAL NEITHER UNFORM, WITHOUT ALLOC TONS OF BUFFERS 
 
-            var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
+            var skinMesh = bld.Context.Model?.Feature<ISkinnedMesh>();
 
-            if (mesh != null)
+            if (skinMesh != null)
             {
                 bld.LoadBufferArray(ctx =>
                 {
@@ -110,16 +111,17 @@ namespace XrEngine.OpenXr
                 {
                     _models[model] = world;
 
-                    Debug.Assert(mesh != null);
-
-                    if (!_skins.TryGetValue(model, out var matrices))
+                    if (skinMesh != null)
                     {
-                        matrices = new Matrix4x4[mesh.SkinMatrices.Length];
+                        if (!_skins.TryGetValue(model, out var matrices))
+                        {
+                            matrices = new Matrix4x4[skinMesh.SkinMatrices.Length];
 
-                        _skins[model] = matrices;
+                            _skins[model] = matrices;
+                        }
+
+                        Array.Copy(skinMesh.SkinMatrices, matrices, matrices.Length);
                     }
-
-                    Array.Copy(mesh.SkinMatrices, matrices, matrices.Length);
                 }
             });
         }

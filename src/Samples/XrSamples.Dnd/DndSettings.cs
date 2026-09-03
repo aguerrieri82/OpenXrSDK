@@ -3,6 +3,7 @@ using CanvasUI;
 using System.Numerics;
 using UI.Binding;
 using XrEngine;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrMath;
 using CheckBox = CanvasUI.CheckBox;
@@ -18,6 +19,7 @@ namespace XrSamples.Dnd
             ImageInt = 1f;
             PointRange = 50f;
             MapTransform = Matrix4x4.Identity;
+            UseFxAA = true;
         }
 
         public override void Apply(Scene3D scene)
@@ -28,6 +30,8 @@ namespace XrSamples.Dnd
 
             //var envView = myScene.Children.OfType<EnvironmentView>().First();
             //envView.IsVisible = ShowSKy;
+
+            OpenGLRender.Current!.Pass<GlPostProcessPass>()!.UseFxAA = UseFxAA;   
 
             if (ShowSKy)
                 scene.ActiveCamera!.BackgroundColor = "#7C93DB";
@@ -60,6 +64,8 @@ namespace XrSamples.Dnd
         public float ImageInt { get; set; }
 
         public Matrix4x4 MapTransform { get; set; }
+
+        public bool UseFxAA { get; set; }   
     }
 
     public class DndSettingsPanel : UIRoot
@@ -92,6 +98,7 @@ namespace XrSamples.Dnd
                 .AddInputRange("Zoom", 0.05f, 1f, binder.Prop(a => a.Zoom))
                 .AddInput("Disable Move", new CheckBox(), binder.Prop(a => a.DisableMove))
                 .AddInput("Show Sky", new CheckBox(), binder.Prop(a => a.ShowSKy))
+                .AddInput("FxAA", new CheckBox(), binder.Prop(a => a.UseFxAA))
                 .AddInputRange("Image Light", 0f, 2f, binder.Prop(a => a.ImageInt))
                 .AddInputRange("Point Light", 0, 15f, binder.Prop(a => a.PointInt))
                 .AddInputRange("Point Light Range", 1, 50f, binder.Prop(a => a.PointRange))

@@ -1,9 +1,16 @@
 ﻿
 #ifdef MULTI_VIEW
     layout(binding = 0) uniform sampler2DArray uSource;
+
+    #ifndef BASE_INDEX
+        #define BASE_INDEX 0u
+    #endif
+
 #else
     layout(binding = 0) uniform sampler2D uSource;
 #endif
+
+
 
 in vec2 fUv;
 
@@ -12,7 +19,7 @@ layout(location = 0) out vec4 oColor;
 vec4 SampleSource(vec2 uv)
 {
 #ifdef MULTI_VIEW
-    return texture(uSource, vec3(uv, float(gl_ViewID_OVR)));
+    return texture(uSource, vec3(uv, float(BASE_INDEX + gl_ViewID_OVR)));
 #else
     return texture(uSource, uv);
 #endif

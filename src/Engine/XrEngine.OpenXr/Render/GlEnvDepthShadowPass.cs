@@ -26,7 +26,7 @@ namespace XrEngine.OpenXr
                 renderer.GL,
                 UseGrid ? "env_depth_shadow.vert" : "[XrEngine.Core]fullscreen.vert",
                 UseGrid ? "env_depth_shadow_grid.frag" : "env_depth_shadow.frag",
-                str => Embedded.GetString<GlQuodCullPass>(str));
+                str => Embedded.GetString<GlEnvDepthShadowPass>(str));
 
             _program.AddFeature("USE_SHADOW_MAP");
         }

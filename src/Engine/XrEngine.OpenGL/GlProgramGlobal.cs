@@ -4,10 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-using System.Numerics;
-using XrMath;
-
 namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
@@ -20,21 +16,13 @@ namespace XrEngine.OpenGL
             {
                 return ctx.Pass is GlColorPass && (
                        _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
-                       _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
-                       _tracker.IsChanged(() => ctx.UseCopyDepth) ||
-                       _tracker.IsChanged(() => ctx.UseManualDepthTest) ||
-                       _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox));
-
+                       _tracker.IsChanged(() => ctx.IsSrgbTarget));
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-
                 if (bld.Context.Bugs.NvMultiViewClipBug)
                     bld.AddFeature("NV_MULTI_VIEW_CLIP_BUG");
-
-                if (bld.Context.UsePrimitiveBoundingBox)
-                    bld.AddExtension("GL_EXT_primitive_bounding_box");
 
                 if (bld.Context.UseAngle)
                     bld.AddFeature("ANGLE");
@@ -50,33 +38,6 @@ namespace XrEngine.OpenGL
 
                 if (OpenGLRender.Current!.Options.UseHighQualitySrgb)
                     bld.AddFeature("HIGH_QUALITY_SRGB");
-
-                if (bld.Context.UseCopyDepth)
-                    bld.AddFeature("COPY_DEPTH");
-
-                if (bld.Context.UseManualDepthTest)
-                    bld.AddFeature("MANUAL_DEPTH_TEST");
-
-                if (bld.Context.CopyDepthImage != null && bld.Context.CopyDepthImage.Tag == null)
-                {
-                    bld.AddFeature("COPY_DEPTH_IMG");
-
-                    bld.ExecuteAction((ctx, up) =>
-                    {
-                        Debug.Assert(ctx.CopyDepthImage?.Tag == null);
-
-                        if (ctx.CopyDepthImage == null)
-                            return;
-
-                        up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, ctx.UseManualDepthTest ?
-                            BufferAccessMode.Read : BufferAccessMode.Write);
-
-                        var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
-                        var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
-
-                        up.SetUniform("uDepthImageScale", scale);
-                    });
-                }
             }
         }
 

@@ -3,6 +3,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
+
     public enum ShaderPrecision
     {
         Low,
@@ -64,7 +65,6 @@ namespace XrEngine.OpenGL
             UseInstanceDraw = true;
             CacheUniforms = true;
             ToneMap = ToneMapMode.Neutral;
-            UseResolve = false;
             UseAsyncShaderCompile = true;
             UseShaderCache = true;
             UseShaderPreprocessor = true;
@@ -72,6 +72,7 @@ namespace XrEngine.OpenGL
             UseDefaultIntermediate = true;
             UsePrimitiveBoundingBox = true;
             UseTransmission = true;
+            ClipMode = ShaderClipMode.DepthClear;
 
             ContactShadow = new()
             {
@@ -84,6 +85,7 @@ namespace XrEngine.OpenGL
                 FadeDistance = 0.12f,
                 ApplyStrength = 1.0f
             };
+
             Compression = new GlCompressionOptions
             {
                 Use = false,
@@ -92,6 +94,7 @@ namespace XrEngine.OpenGL
                 Format = TextureCompressionFormat.Astc,
                 Quality = 60,
             };
+
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.PCF,
@@ -105,6 +108,7 @@ namespace XrEngine.OpenGL
                 UseShadowSampler = true,
                 Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
+
             Outline = new GlOutlineOptions()
             {
                 Use = false,
@@ -135,6 +139,8 @@ namespace XrEngine.OpenGL
 
         public MotionVectorMode MotionVectorMode { get; set; }
 
+        public ShaderClipMode ClipMode { get; set; }    
+
         public bool RequireTextureCompression { get; set; }
 
         public bool FrustumCulling { get; set; }
@@ -161,6 +167,7 @@ namespace XrEngine.OpenGL
 
         public bool UseInstanceDraw { get; set; }
 
+        [Obsolete]
         public bool UseResolve { get; set; }
 
         public bool UseHighQualitySrgb { get; set; }
@@ -184,5 +191,7 @@ namespace XrEngine.OpenGL
         public bool UseTransmission { get; set; }
 
         public bool UseFxAA { get; set; }
+
+        public bool NeedPostProcess => UseFxAA;
     }
 }

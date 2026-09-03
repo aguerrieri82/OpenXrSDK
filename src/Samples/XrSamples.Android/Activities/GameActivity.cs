@@ -120,7 +120,7 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
-                    opt.UseSharedSsbo = false;
+                    opt.UseSharedSsbo = true;
                     opt.UseAsyncShaderCompile = true;
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
@@ -134,7 +134,7 @@ namespace XrSamples.Android.Activities
                     opt.InvalidateDepth = false;
                     opt.UsePrimitiveBoundingBox = false;
 
-                    opt.UseFxAA = _settings.Msaa == 1 && _settings.IsMultiView;
+                    opt.UseFxAA = true;
                     opt.UseRayCollider = false;
 
                     if (!XrDevice.IsMetaQuest)
@@ -164,11 +164,9 @@ namespace XrSamples.Android.Activities
             if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa, _settings.UseResolve)
+            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa)
                   // .AddProfileOverlay()
                    .RemovePlaneGrid();
-
-            //.AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));Add
 
             if (XrDevice.IsMetaQuest && _settings.DepthScale > 0)
                 builder.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale);

@@ -45,28 +45,16 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_host != null);
 
-            _host.EnableDepthCull = _app.RenderOptions.UseQuodDepthCull && (
-                     _app.RenderOptions.SampleCount <= 1 ||
-                     !XrPlatform.IsAndroid ||
-                     _app.RenderOptions.RenderMode != XrRenderMode.MultiView);
+            var useAngle = OpenGLRender.Current!.Features.IsAngle;
 
-            if (_host.EnableDepthCull || _host.IsStereo)
+            var layer = new XrTextureQuadLayer(_host.BindToQuad(), RenderQuod, _host.PixelSize)
             {
-                _layers = _app.Layers.AddStereoQuod(_host.BindToQuad(), RenderQuod, _host.PixelSize, XrLayerPriority.UiQuods);
-            }
-            else
-            {
-                var useAngle = OpenGLRender.Current!.Features.IsAngle;
+                Priority = XrLayerPriority.UiQuods,
+            };
 
-                var layer = new XrTextureQuadLayer(_host.BindToQuad(), RenderQuod, _host.PixelSize)
-                {
-                    Priority = XrLayerPriority.UiQuods,
-                };
+            _app.Layers.Add(layer);
 
-                _app.Layers.Add(layer);
-
-                _layers = [layer];
-            }
+            _layers = [layer];
         }
 
         protected override void Update(RenderContext ctx)
@@ -86,7 +74,7 @@ namespace XrEngine.OpenXr
             Debug.Assert(_host != null);
 
             if (image == null)
-                return _host.EnableDepthCull || _host.NeedDraw;
+                return _host.NeedDraw;
 
             uint glImage;
 

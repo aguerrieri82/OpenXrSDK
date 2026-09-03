@@ -85,7 +85,12 @@ namespace XrEngine.OpenXr
             effect.DoubleSided = drawMaterial.DoubleSided;
 
             if (drawMaterial is ShaderMaterial mat)
+            {
+                if (mat.UseSkin)
+                    return UpdateProgramResult.Skip;
+
                 effect.UseSkin = mat.UseSkin;
+            }
 
             return base.UpdateProgram(instance, updateContext, drawMaterial);
         }
