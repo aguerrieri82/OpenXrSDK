@@ -51,8 +51,6 @@ namespace XrEngine
     public enum ShaderClipMode
     {
         None,
-
-        [Obsolete]
         Depth,
         DepthClear,
         VertexClipCull,
@@ -161,6 +159,8 @@ namespace XrEngine
         public Rect2I[]? ClipRegions;
 
         public bool IsMultiView;
+
+        public bool IsMultiSample;
     }
 
     public struct BufferUpdate<T> where T : unmanaged

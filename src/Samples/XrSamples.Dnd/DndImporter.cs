@@ -278,13 +278,24 @@ namespace XrSamples.Dnd
                             var isMetal = name.EndsWith("_mtl") ||
                               name.EndsWith("-m");
 
-                            if (name == "Stone_Porous_A_AO".ToLower())
-                                Console.WriteLine("");
-
                             if (name.Contains("iron"))
                             {
                                 pbr.Metalness = impMat.cbs[0].values[5][2];
+                                pbr.Roughness = 0.2f;
                             }
+
+                            else if (name.Contains("glass"))
+                            {
+                                pbr.Alpha = AlphaMode.Blend;
+                                pbr.Color = new Color(1, 1, 1, 0.7f);
+                                pbr.Metalness = 0.5f;
+                            }
+
+                            else if (name.Contains("porcelain"))
+                            {
+                                pbr.Roughness = 0.1f;
+                            }
+                            
 
                             if (isDif)
                                 pbr.ColorMap = (Texture2D)tex;

@@ -31,13 +31,13 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "DnD",
-                Msaa = 1,
+                SampleName = "Helmet",
+                Msaa = 2,
                 Scale = 1f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
-                UseSpaceWarp = true,
+                UseSpaceWarp = false,
                 EnableDepthPass = false,
                 FrustumCulling = true,
                 TextureCompression = true,

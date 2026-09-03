@@ -17,6 +17,8 @@ namespace XrEngine.OpenXr
             Materials.Add(new EnvDepthMaterial());
 
             Flags |= EngineObjectFlags.NoFrustumCulling;
+
+            CompressionMode = MeshCompressionMode.Never;
         }
 
         public unsafe TriangleMesh? Freeze(Matrix4x4 colorViewProj, int eye = 0)

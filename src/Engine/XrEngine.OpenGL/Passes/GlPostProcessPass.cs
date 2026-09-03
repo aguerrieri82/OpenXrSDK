@@ -56,7 +56,6 @@ namespace XrEngine.OpenGL
 
                     _effect.IsMultiView = isMultiview;
 
-
                     _isInit = true;
                 }
 

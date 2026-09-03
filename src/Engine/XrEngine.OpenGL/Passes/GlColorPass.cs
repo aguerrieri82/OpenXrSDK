@@ -74,9 +74,9 @@ namespace XrEngine.OpenGL
             if (ctx.ClipRegions == null || ctx.ClipRegions.Length == 0)
                 return;
 
-            if (ctx.ClipMode == ShaderClipMode.Depth &&
-                          ctx.ClipRegions.Length > 1 &&
-                          ctx.IsMultiView)
+            if ((ctx.ClipMode == ShaderClipMode.Depth ||
+                (!ctx.CanSampleColor && ctx.ClipMode == ShaderClipMode.DepthClear)) &&
+                ctx.IsMultiView)
             {
                 _depthClipEffect ??= new DepthClipEffect();
                 UseEffect(_depthClipEffect);
@@ -103,7 +103,6 @@ namespace XrEngine.OpenGL
                     if (region.Width > 0)
                         depthTex.Clear(Color.Black, region, i);
                 }
-
             }
         }
 

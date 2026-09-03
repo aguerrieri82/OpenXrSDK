@@ -365,6 +365,11 @@ namespace XrEngine.OpenGL
 #endif
         }
 
+        protected void ClearPbo()
+        {
+            OpenGLRender.Current!.State.BindBuffer(BufferTargetARB.PixelUnpackBuffer, 0);
+        }
+
         public unsafe void UploadRegion(TextureRegion region)
         {
             if (region.Data == null)
@@ -375,6 +380,8 @@ namespace XrEngine.OpenGL
 
             if (_isCompressed)
                 throw new NotSupportedException("Use full compressed uploads for compressed textures");
+
+            ClearPbo();
 
             BeginUpdate();
 
@@ -643,7 +650,7 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
-                //GlState.Current.ResetTextures();
+               // GlState.Current.ResetTextures();
 
                 if (!_isAttached)
                 {
@@ -749,6 +756,8 @@ namespace XrEngine.OpenGL
             if (!_isAllocated)
                 AllocateStorage(width, height, depth, format);
 
+            ClearPbo();
+
             var use3D = Target != TextureTarget.TextureCubeMap && _depth > 1;
 
             foreach (var entry in data)
@@ -813,6 +822,7 @@ namespace XrEngine.OpenGL
             if (use3D && !_isAllocated)
                 AllocateCompressedArrayStorage(width, height, depth);
 
+            ClearPbo();
 
             foreach (var entry in data)
             {

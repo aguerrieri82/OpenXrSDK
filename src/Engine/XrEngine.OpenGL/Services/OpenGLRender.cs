@@ -995,7 +995,8 @@ namespace XrEngine.OpenGL
 
             if (renderTarget is IGlRenderTargetFB targetFb)
             {
-                if (targetFb.FrameBuffer.SampleCount > 1 && _features.IsAndroid)
+                _updateCtx.IsMultiSample = targetFb.FrameBuffer.SampleCount > 1;
+                if (_updateCtx.IsMultiSample && _features.IsAndroid)
                     _updateCtx.CanSampleColor = false;
             }
 

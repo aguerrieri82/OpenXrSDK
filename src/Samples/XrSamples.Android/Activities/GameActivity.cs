@@ -120,7 +120,7 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
-                    opt.UseSharedSsbo = true;
+                    opt.UseSharedSsbo = false;
                     opt.UseAsyncShaderCompile = true;
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
@@ -136,6 +136,9 @@ namespace XrSamples.Android.Activities
 
                     opt.UseFxAA = true;
                     opt.UseRayCollider = false;
+
+                    if (_settings.Msaa > 1)
+                        opt.UseFxAA = false;
 
                     if (!XrDevice.IsMetaQuest)
                     {
@@ -153,7 +156,7 @@ namespace XrSamples.Android.Activities
                 if (!XrDevice.IsMetaQuest)
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
 
-                opt.UseSimmetricFov = false;
+                opt.UseSimmetricFov = true;
             });
 
             builder.UseOculus(opt =>

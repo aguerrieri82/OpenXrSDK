@@ -31,7 +31,8 @@ namespace XrSamples.Dnd
             //var envView = myScene.Children.OfType<EnvironmentView>().First();
             //envView.IsVisible = ShowSKy;
 
-            OpenGLRender.Current!.Pass<GlPostProcessPass>()!.UseFxAA = UseFxAA;   
+            if (OpenGLRender.Current!.HasPass<GlPostProcessPass>())
+                OpenGLRender.Current!.Pass<GlPostProcessPass>()!.UseFxAA = UseFxAA;
 
             if (ShowSKy)
                 scene.ActiveCamera!.BackgroundColor = "#7C93DB";
