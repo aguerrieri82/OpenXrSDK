@@ -421,7 +421,7 @@ namespace XrSamples
 
             if (_keyLeft != _keyRight)
             {
-                var steerDir = _keyLeft ? 1f : -1f;
+                var steerDir = _keyLeft ? -1f : 1f;
                 SteeringAngle = Math.Clamp(SteeringAngle + steerDir * deltaTime, -SteeringLimitRad, SteeringLimitRad);
             }
             else
@@ -470,14 +470,14 @@ namespace XrSamples
                 return;
 
             var throttle = AccInput != null && AccInput.IsActive ? AccInput.Value : AccInputSim;
-            var brake = BrakeInputSim;
+            var brake = BreakInput != null && BreakInput.IsActive ? BreakInput.Value : BrakeInputSim; ;
             var reverse = BackInput != null && BackInput.IsActive && BackInput.Value;
 
             var input = new VehicleNative.VehicleInput
             {
                 Throttle = Math.Clamp(throttle, 0, 1),
                 Brake = Math.Clamp(brake, 0, 1),
-                Steering = SteeringLimitRad > 0 ? Math.Clamp(SteeringAngle / SteeringLimitRad, -1, 1) : 0,
+                Steering = SteeringLimitRad > 0 ? Math.Clamp(-SteeringAngle / SteeringLimitRad, -1, 1) : 0,
                 HandBrake = 0,
                 GearMode = VehicleNative.VehicleGearMode.Manual,
                 Gear = reverse || _curGear == "R" ? -1 : (_curGear == "N" ? 0 : int.Parse(_curGear))
@@ -488,6 +488,9 @@ namespace XrSamples
 
         protected override void Update(RenderContext ctx)
         {
+            if (ctx.Frame < 50)
+                return;
+
             SyncSteering();
             SyncInput();
             SyncKeys((float)_deltaTime);
@@ -700,6 +703,7 @@ namespace XrSamples
         public void ConfigureInput(IXrBasicInteractionProfile input)
         {
             AccInput = input.Right!.TriggerValue;
+            BreakInput = input.Left!.TriggerValue;
             BackInput = input.Right!.Button!.AClick;
             ShowHideBodyInput = input.Right!.Button!.BClick;
 
@@ -722,8 +726,7 @@ namespace XrSamples
             {
                 _steeringAngle = value;
 
-                if (SteeringWheel != null)
-                    SteeringWheel.Component<InputRotateAxis>().Angle = value * SteeringRatio;
+                SteeringWheel?.Component<InputRotateAxis>().Angle = value * SteeringRatio;
             }
         }
 
@@ -776,6 +779,8 @@ namespace XrSamples
         public Pose3 SeatLocalPose { get; set; }
 
         public XrFloatInput? AccInput { get; set; }
+
+        public XrFloatInput? BreakInput { get; set; }
 
         public XrBoolInput? BackInput { get; set; }
 

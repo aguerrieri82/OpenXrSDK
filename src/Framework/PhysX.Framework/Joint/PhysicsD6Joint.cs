@@ -5,6 +5,8 @@ namespace PhysX.Framework
 {
     public unsafe class PhysicsD6Joint : PhysicsJoint
     {
+        private float _projectionAngularTolerance;
+        private float _projectionLinearTolerance;
 
         public PhysicsD6Joint(PxD6Joint* handle, PhysicsSystem system)
             : base((PxJoint*)handle, system)
@@ -68,14 +70,14 @@ namespace PhysX.Framework
 
         public float ProjectionAngularTolerance
         {
-            get => D6Joint.GetProjectionAngularTolerance();
-            set => D6Joint.SetProjectionAngularToleranceMut(value);
+            get => _projectionAngularTolerance;
+            set => _projectionAngularTolerance = value;
         }
 
         public float ProjectionLinearTolerance
         {
-            get => D6Joint.GetProjectionLinearTolerance();
-            set => D6Joint.SetProjectionLinearToleranceMut(value);
+            get => _projectionLinearTolerance;
+            set => _projectionLinearTolerance = value;
         }
 
         public Pose3 DrivePosition
@@ -122,8 +124,12 @@ namespace PhysX.Framework
 
         public PxD6JointDrive DriveSwing
         {
-            get => D6Joint.GetDrive(PxD6Drive.Swing);
-            set => D6Joint.SetDriveMut(PxD6Drive.Swing, &value);
+            get => D6Joint.GetDrive(PxD6Drive.Swing1);
+            set
+            {
+                D6Joint.SetDriveMut(PxD6Drive.Swing1, &value);
+                D6Joint.SetDriveMut(PxD6Drive.Swing2, &value);
+            }
         }
 
         public PxD6JointDrive DriveTwist

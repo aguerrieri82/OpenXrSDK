@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
-		<NativeFolder>Debug</NativeFolder>
+		<NativeFolder>Release</NativeFolder>
 	</PropertyGroup> 
 
 	<ItemGroup>

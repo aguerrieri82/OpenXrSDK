@@ -72,7 +72,7 @@ namespace PhysX.Framework
 
             if (_handle != null)
             {
-                _handle->ReleaseMut();
+                NativeMethods.PxRefCounted_release_mut((PxRefCounted*)_handle);
                 _handle = null;
             }
 

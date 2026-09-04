@@ -1,6 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
-PHYSX_LIB_PATH := $(LOCAL_PATH)/../../../../libs/physx-141/bin/android-arm64/release
+PHYSX_ROOT := $(LOCAL_PATH)/../../../../libs/physx-590
+PHYSX_LIB_PATH := $(PHYSX_ROOT)/bin/android-arm64/release
 
 
 include $(CLEAR_VARS)
@@ -29,8 +30,8 @@ LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXExtensions_static_64.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := PhysXVehicle2_static
-LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXVehicle2_static_64.a
+LOCAL_MODULE := PhysXVehicle_static
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXVehicle_static_64.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 
@@ -39,18 +40,18 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := physics-native
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/..
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../libs/physx-141/include
+LOCAL_C_INCLUDES += $(PHYSX_ROOT)/include
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../Vehicle.cpp)
 LOCAL_SRC_FILES += $(wildcard $(LOCAL_PATH)/../pch.cpp)
 
 LOCAL_PCH := ../pch.h
 
-LOCAL_CPPFLAGS += $(ANDROID_CPP_FLAGS) -ffast-math -DPHYSX_SDK_VERSION=141
+LOCAL_CPPFLAGS += $(ANDROID_CPP_FLAGS) -ffast-math
 
 LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)
 
 LOCAL_SHARED_LIBRARIES := PhysX PhysXCommon PhysXFoundation PhysXCooking
-LOCAL_STATIC_LIBRARIES := PhysXExtensions_static PhysXVehicle2_static
+LOCAL_STATIC_LIBRARIES := PhysXExtensions_static PhysXVehicle_static
 
 include $(BUILD_SHARED_LIBRARY)

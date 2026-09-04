@@ -159,7 +159,7 @@
 	<Target
 		Name="RunAndroidBuildScript"
 		BeforeTargets="Build"
-		Condition="Exists('$(ProjectDir)android-build.cmd')"
+		Condition="Exists('$(ProjectDir)android-build.cmd') and '$(SkipAutomaticAndroidBuild)' != 'true'"
 		Inputs="
 			@(ClCompile->'%(FullPath)');
 			@(ClInclude->'%(FullPath)');

@@ -740,9 +740,8 @@ namespace XrEngine.Gltf
                 }
             }
 
-            if (spec != null)
+            if (spec != null && !_options.DisableSpecualar)
             {
-           
                 result.Specular = spec.Value.specularFactor ?? 1f;
                 result.SpecularColor = spec.Value.specularColorFactor == null ? Color.White : new Color(spec.Value.specularColorFactor);
                 result.UseSpecular = true;

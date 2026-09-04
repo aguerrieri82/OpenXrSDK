@@ -55,7 +55,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Car",
+               SampleName = "Car",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,

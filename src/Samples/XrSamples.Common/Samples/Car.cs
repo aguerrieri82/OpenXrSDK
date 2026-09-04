@@ -49,9 +49,13 @@ namespace XrSamples
             leather.DoubleSided = true;
             leather.Color *= 2f;
 
-            var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
+            var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), new GltfLoaderOptions
+            {
+                ConvertColorTextureSRgb = true,
+                DisableSpecualar = true,    
+            }, GetAssetPath);
             car.Name = "car";
-            car.WorldPosition = new Vector3(0, 0.4f, 0);
+            car.WorldPosition = new Vector3(0, 0.01f, 0);
             var bodyMeshes = new HashSet<TriangleMesh>();
 
             //Fix model
@@ -116,7 +120,7 @@ namespace XrSamples
                 },
                 SeatLocalPose = new Pose3
                 {
-                    Position = new Vector3(-0.4f, 1.1f, 0.2f),
+                    Position = new Vector3(-0.4f, 1.1f, 0.1f),
                     Orientation = Quaternion.Identity
                 },
                 SteeringLocalPose = new Pose3
