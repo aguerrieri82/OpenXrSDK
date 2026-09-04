@@ -405,3 +405,11 @@ Makefile
 /libs/physics-native/android-arm64/libPhysXFoundation_64.so
 /libs/physics-native/android-arm64/libPhysX_64.so
 /libs/physx-590/include
+/libs/xrengine-physx-native/android-arm64/libPhysX.so
+/libs/xrengine-physx-native/android-arm64/libPhysXCommon.so
+/libs/xrengine-physx-native/android-arm64/libPhysXCommon_64.so
+/libs/xrengine-physx-native/android-arm64/libPhysXCooking.so
+/libs/xrengine-physx-native/android-arm64/libPhysXCooking_64.so
+/libs/xrengine-physx-native/android-arm64/libPhysXFoundation.so
+/libs/xrengine-physx-native/android-arm64/libPhysXFoundation_64.so
+/libs/xrengine-physx-native/android-arm64/libPhysX_64.so
