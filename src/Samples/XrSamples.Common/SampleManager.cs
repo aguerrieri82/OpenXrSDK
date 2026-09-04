@@ -66,6 +66,11 @@ namespace XrSamples
             };
             yield return new HDRInfo
             {
+                Name = "Workshop",
+                Uri = "res://asset/Envs/aerodynamics_workshop_4k"
+            };
+            yield return new HDRInfo
+            {
                 Name = "Cannon Exterior",
                 Uri = "res://asset/Envs/Cannon_Exterior.hdr"
             };

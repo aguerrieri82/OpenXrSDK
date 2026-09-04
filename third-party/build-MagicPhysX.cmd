@@ -1,5 +1,6 @@
 call vars.cmd
 
+
 SET CUR_DIR=%CD%
 
 cd physx-rs\physx-sys\src

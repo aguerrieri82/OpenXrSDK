@@ -1,85 +1,238 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
-	xmlns:tools="http://schemas.android.com/tools"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="12dp">
 
 	<ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
 		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingEnd="16dp">
 
 			<TextView
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="MSI samples"/>
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Rendering"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+			<TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Render Engine" />
 
 			<Spinner
-			   android:id="@+id/msaa"
-			   android:layout_width="match_parent"
-			   android:layout_height="wrap_content" />
+                android:id="@+id/engine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
 			<TextView
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="Render Engine"/>
+                android:id="@+id/msaa_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MSAA"
+                android:paddingTop="8dp" />
+
+			<SeekBar
+                android:id="@+id/msaa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+			<TextView
+                android:id="@+id/render_scale_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Render Scale"
+                android:paddingTop="8dp" />
+
+			<SeekBar
+                android:id="@+id/render_scale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+			<TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tone Map"
+                android:paddingTop="8dp" />
 
 			<Spinner
-			   android:id="@+id/engine"
-			   android:layout_width="match_parent"
-			   android:layout_height="wrap_content" />
+                android:id="@+id/tone_map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
 			<TextView
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="HDRI"/>
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HDRI"
+                android:paddingTop="8dp" />
 
 			<Spinner
-			   android:id="@+id/hdri"
-			   android:layout_width="match_parent"
-			   android:layout_height="wrap_content" />
+                android:id="@+id/hdri"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
 			<CheckBox
-				android:id="@+id/multi_view"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="Mutiview"/>
+                android:id="@+id/multi_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Multiview" />
 
 			<CheckBox
-				android:id="@+id/depth"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="Depth Pass"/>
+                android:id="@+id/depth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Depth Pass" />
 
 			<CheckBox
-				android:id="@+id/compression"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="Use Compression"/>
+                android:id="@+id/compression"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Texture Compression" />
+
 			<CheckBox
-				android:id="@+id/space_warp"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="Use Space Warp"/>
+                android:id="@+id/mesh_compression"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mesh Compression" />
+
+			<CheckBox
+                android:id="@+id/fxaa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FXAA" />
+
+			<CheckBox
+                android:id="@+id/shared_ssbo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Shared SSBO" />
+
+			<CheckBox
+                android:id="@+id/async_shader_compile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Async Shader Compile" />
+
+			<CheckBox
+                android:id="@+id/primitive_bounding_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Primitive Bounding Box" />
+
+			<CheckBox
+                android:id="@+id/ray_collider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ray Collider" />
+
+			<CheckBox
+                android:id="@+id/profile_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Profile Overlay" />
 
 			<TextView
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="Select a sample"/>
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="OpenXR"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp" />
 
-			<ListView
-				  android:id="@+id/listView"
-				  android:layout_width="match_parent"
-				  android:layout_height="340px"
-				  android:choiceMode="singleChoice" />
+			<CheckBox
+                android:id="@+id/symmetric_fov"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Symmetric FOV" />
+
+			<CheckBox
+                android:id="@+id/dynamic_resolution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dynamic Resolution" />
+
+			<TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Projection Depth"
+                android:paddingTop="8dp" />
+
+			<Spinner
+                android:id="@+id/proj_depth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+			<TextView
+                android:id="@+id/depth_scale_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Depth Scale"
+                android:paddingTop="8dp" />
+
+			<SeekBar
+                android:id="@+id/depth_scale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+			<TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Space Warp"
+                android:paddingTop="8dp" />
+
+			<Spinner
+                android:id="@+id/space_warp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
 		</LinearLayout>
 	</ScrollView>
-</RelativeLayout>
+
+	<View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#404040" />
+
+	<LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingStart="16dp">
+
+		<TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Samples"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+		<TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select a sample to start"
+            android:paddingBottom="8dp" />
+
+		<ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:choiceMode="singleChoice" />
+
+	</LinearLayout>
+
+</LinearLayout>

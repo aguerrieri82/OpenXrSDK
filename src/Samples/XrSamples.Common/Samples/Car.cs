@@ -262,6 +262,7 @@ namespace XrSamples
                 .ConfigureApp(a =>
                 {
                     a.XrApp.UseLocalSpace = true;
+
                     model.ConfigureInput(a.Inputs!);
 
                     //Point light

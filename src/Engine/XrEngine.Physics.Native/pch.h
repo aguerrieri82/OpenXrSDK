@@ -40,7 +40,7 @@ namespace vehicle2 = physx;
 
 #ifdef _WINDOWS
 
-#define PHYSX_LIB_PATH "..\\..\\..\\libs\\physx-141\\bin\\win-x64\\mt\\release\\"
+#define PHYSX_LIB_PATH "..\\..\\..\\libs\\physx-141\\bin\\win64-mt\\release\\"
 
 #pragma comment(lib, PHYSX_LIB_PATH "PhysX_64.lib")
 #pragma comment(lib, PHYSX_LIB_PATH "PhysXCommon_64.lib")

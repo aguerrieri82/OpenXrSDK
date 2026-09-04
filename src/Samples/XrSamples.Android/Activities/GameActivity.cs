@@ -1,4 +1,4 @@
-    using Android.Content;
+using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
@@ -15,16 +15,22 @@ using XrEngine.OpenXr.Android;
 namespace XrSamples.Android.Activities
 {
 
-    [IntentFilter(["android.intent.action.VIEW"],
-        Categories = ["com.oculus.intent.category.VR", "android.intent.category.DEFAULT"])]
+    [IntentFilter(["android.intent.action.MAIN"],
+        Categories =
+        [
+            "android.intent.category.DEFAULT",
+            "com.oculus.intent.category.VR"
+        ])]
     [Activity(
-    Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
-    LaunchMode = LaunchMode.SingleTask,
-    Exported = true,
-    MainLauncher = false,
-    HardwareAccelerated = true,
-    ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
-    ScreenOrientation = ScreenOrientation.Landscape)]
+        Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
+        LaunchMode = LaunchMode.SingleTask,
+        Exported = true,
+        MainLauncher = false,
+        HardwareAccelerated = true,
+        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation |
+                               ConfigChanges.KeyboardHidden | ConfigChanges.Keyboard | ConfigChanges.Navigation |
+                               ConfigChanges.UiMode,
+        ScreenOrientation = ScreenOrientation.Landscape)]
     public class GameActivity : XrEngineActivity
     {
         private WebView? _webView;
@@ -35,7 +41,6 @@ namespace XrSamples.Android.Activities
         public GameActivity()
         {
             _permissions.Add("horizonos.permission.HEADSET_CAMERA");
-
         }
 
         protected override void OnLoad()
@@ -44,15 +49,16 @@ namespace XrSamples.Android.Activities
 
             var settingsJson = Intent?.GetStringExtra("Settings");
 
-            if (settingsJson == null)
+            if (settingsJson == null && string.IsNullOrWhiteSpace(_settings.SampleName))
             {
                 var intent = new Intent(this, typeof(SelectActivity));
                 StartActivity(intent);
-                Finish();
+                FinishAndRemoveTask();
                 return;
             }
 
-            _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
+            if (settingsJson != null)
+                _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
 
             _usbCameraManager = new AndroidUsbCameraManager(this);
 
@@ -120,22 +126,22 @@ namespace XrSamples.Android.Activities
                     opt.Compression.BlockSize = 4;
                     opt.Compression.Quality = 60;
 
-                    opt.UseSharedSsbo = false;
-                    opt.UseAsyncShaderCompile = true;
+                    opt.UseSharedSsbo = _settings.UseSharedSsbo;
+                    opt.UseAsyncShaderCompile = _settings.UseAsyncShaderCompile;
                     opt.UseShaderCache = true;
                     opt.UseShaderPreprocessor = true;
 
-                    opt.ToneMap = ToneMapMode.Aces;
+                    opt.ToneMap = _settings.ToneMap;
 
                     opt.FloatPrecision = ShaderPrecision.High;
                     opt.SamplerPrecision = ShaderPrecision.Medium;
                     opt.IntPrecision = ShaderPrecision.High;
 
                     opt.InvalidateDepth = false;
-                    opt.UsePrimitiveBoundingBox = false;
+                    opt.UsePrimitiveBoundingBox = _settings.UsePrimitiveBoundingBox;
 
-                    opt.UseFxAA = false;
-                    opt.UseRayCollider = false;
+                    opt.UseFxAA = _settings.UseFxAA;
+                    opt.UseRayCollider = _settings.UseRayCollider;
 
                     if (_settings.Msaa > 1)
                         opt.UseFxAA = false;
@@ -149,33 +155,35 @@ namespace XrSamples.Android.Activities
             else
                 ImageLight.UseCache = false;
 
-            TriangleMesh.EnableCompression = true;
+            TriangleMesh.EnableCompression = _settings.UseMeshCompression;
 
             builder.SetXrOptions(opt =>
             {
                 if (!XrDevice.IsMetaQuest)
                     opt.BlendMode = EnvironmentBlendMode.Opaque;
 
-                opt.UseSimmetricFov = false;
+                opt.UseSimmetricFov = _settings.UseSimmetricFov;
             });
 
             builder.UseOculus(opt =>
             {
-                opt.UseDynamicResolution = false;
+                opt.UseDynamicResolution = _settings.UseDynamicResolution;
             });
 
             if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
                 builder.UseMultiView();
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa)
-                  // .AddProfileOverlay()
                    .RemovePlaneGrid();
 
-            if (XrDevice.IsMetaQuest && _settings.DepthScale > 0)
-                builder.UseProjDepth(XrProjDepthMode.DepthCopyImage, _settings.DepthScale);
+            if (_settings.UseProfileOverlay) 
+                builder.AddProfileOverlay();
 
-            if (_settings.UseSpaceWarp)
-                builder.UseSpaceWarp(MotionVectorMode.Shared);
+            if (XrDevice.IsMetaQuest && _settings.ProjDepthMode != XrProjDepthMode.None)
+                builder.UseProjDepth(_settings.ProjDepthMode, _settings.DepthScale);
+
+            if (_settings.MotionVectorMode != MotionVectorMode.None)
+                builder.UseSpaceWarp(_settings.MotionVectorMode);
 
 #if DEBUG
             GlDebug.TrackBuffers = false;
@@ -188,7 +196,6 @@ namespace XrSamples.Android.Activities
             var sample = manager.GetSample(_settings.SampleName!);
 
             sample.Build!(builder);
-
         }
     }
 }

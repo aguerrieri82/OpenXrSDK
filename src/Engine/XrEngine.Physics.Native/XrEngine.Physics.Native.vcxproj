@@ -255,7 +255,7 @@
       <AdditionalIncludeDirectories>$(PHYSX_INCLUDE)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PHYSX_SDK_VERSION=$(PHYSX_SDK_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -284,7 +284,7 @@
       <AdditionalIncludeDirectories>$(PHYSX_INCLUDE)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PHYSX_SDK_VERSION=$(PHYSX_SDK_VERSION);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions512</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>

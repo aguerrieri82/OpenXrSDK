@@ -1,5 +1,39 @@
 LOCAL_PATH := $(call my-dir)
 
+PHYSX_LIB_PATH := $(LOCAL_PATH)/../../../../libs/physx-141/bin/android-arm64/release
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysX
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysX_64.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysXCommon
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXCommon_64.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysXFoundation
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXFoundation_64.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysXCooking
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXCooking_64.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysXExtensions_static
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXExtensions_static_64.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := PhysXVehicle2_static
+LOCAL_SRC_FILES := $(PHYSX_LIB_PATH)/libPhysXVehicle2_static_64.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := physics-native
@@ -8,19 +42,15 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/..
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../libs/physx-141/include
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../Vehicle.cpp)
-LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../pch.cpp)
-LOCAL_PCH := ../pch.h
+LOCAL_SRC_FILES += $(wildcard $(LOCAL_PATH)/../pch.cpp)
 
-LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)
-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../libs/physx-141/bin/android-arm64/release
+LOCAL_PCH := ../pch.h
 
 LOCAL_CPPFLAGS += $(ANDROID_CPP_FLAGS) -ffast-math -DPHYSX_SDK_VERSION=141
 
-LOCAL_LDLIBS += -lPhysX
-LOCAL_LDLIBS += -lPhysXCommon
-LOCAL_LDLIBS += -lPhysXFoundation
-LOCAL_LDLIBS += -lPhysXCooking
-LOCAL_LDLIBS += -lPhysXExtensions_static
-LOCAL_LDLIBS += -lPhysXVehicle2_static
+LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)
+
+LOCAL_SHARED_LIBRARIES := PhysX PhysXCommon PhysXFoundation PhysXCooking
+LOCAL_STATIC_LIBRARIES := PhysXExtensions_static PhysXVehicle2_static
 
 include $(BUILD_SHARED_LIBRARY)

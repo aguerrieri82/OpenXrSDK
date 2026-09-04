@@ -41,7 +41,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+             //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -102,7 +102,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, 1)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGraffiti()
+              .CreateCar()
               //.CreateDnd()
               .Build();
     }
