@@ -404,3 +404,4 @@ Makefile
 /libs/physics-native/android-arm64/libPhysXFoundation.so
 /libs/physics-native/android-arm64/libPhysXFoundation_64.so
 /libs/physics-native/android-arm64/libPhysX_64.so
+/libs/physx-590/include
