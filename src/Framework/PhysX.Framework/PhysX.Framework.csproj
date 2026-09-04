@@ -12,7 +12,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		
-		<Content Include="$(NativeLibsDir)physxnative\win-x64\*.dll" 
+		<Content Include="$(NativeLibsDir)physxnative\win-x64\*" 
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
 				 Visible="False"

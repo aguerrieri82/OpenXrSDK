@@ -31,6 +31,10 @@ for %%F in (
     PhysXCommon_64.lib
     PhysXFoundation_64.lib
     PhysXCooking_64.lib
+    PhysX_64.pdb
+    PhysXCommon_64.pdb
+    PhysXFoundation_64.pdb
+    PhysXCooking_64.pdb
     PhysXExtensions_static_64.lib
     PhysXPvdSDK_static_64.lib
     PhysXVehicle_static_64.lib
@@ -64,19 +68,27 @@ if %ANDROID_SDK_READY% == 1 (
     if errorlevel 1 goto BUILD_FAILED
 )
 
-rem Generate the PhysX 5.9 C/C++ and Rust bindings from the checked-out headers.
-echo Building physx-rs and generating PhysX 5.9 bindings...
-cargo build --release --manifest-path physx-rs\Cargo.toml
-if errorlevel 1 goto BUILD_FAILED
-
+rem Reuse generated bindings when available; a fresh checkout generates them once.
 set PHYSX_CARGO_OUT=
 for /d %%D in (physx-rs\target\release\build\physx-sys-*) do (
     if exist "%%~fD\out\bindings\physx_generated.hpp" set PHYSX_CARGO_OUT=%%~fD\out
 )
 
 if not defined PHYSX_CARGO_OUT (
-    echo Unable to find the generated PhysX bindings from cargo build.
-    goto BUILD_FAILED
+    echo Building physx-rs and generating PhysX 5.9 bindings...
+    cargo build --release --manifest-path physx-rs\Cargo.toml
+    if errorlevel 1 goto BUILD_FAILED
+
+    for /d %%D in (physx-rs\target\release\build\physx-sys-*) do (
+        if exist "%%~fD\out\bindings\physx_generated.hpp" set PHYSX_CARGO_OUT=%%~fD\out
+    )
+
+    if not defined PHYSX_CARGO_OUT (
+        echo Unable to find the generated PhysX bindings from cargo build.
+        goto BUILD_FAILED
+    )
+) else (
+    echo PhysX 5.9 bindings already exist; skipping physx-rs build.
 )
 
 rem Regenerate the managed C# declarations from the current physx-sys output.
@@ -100,12 +112,18 @@ if errorlevel 1 goto BUILD_FAILED
 if not exist %WIN_PACKAGE% md %WIN_PACKAGE%
 copy /Y %WIN_BUILD%\physxnative.dll %WIN_PACKAGE%\physxnative.dll >nul
 if errorlevel 1 goto BUILD_FAILED
+copy /Y %WIN_BUILD%\physxnative.pdb %WIN_PACKAGE%\physxnative.pdb >nul
+if errorlevel 1 goto BUILD_FAILED
 
 for %%F in (
     PhysX_64.dll
     PhysXCommon_64.dll
     PhysXFoundation_64.dll
     PhysXCooking_64.dll
+    PhysX_64.pdb
+    PhysXCommon_64.pdb
+    PhysXFoundation_64.pdb
+    PhysXCooking_64.pdb
 ) do (
     copy /Y %WIN_SDK%\%%F %WIN_PACKAGE%\%%F >nul
     if errorlevel 1 goto BUILD_FAILED
