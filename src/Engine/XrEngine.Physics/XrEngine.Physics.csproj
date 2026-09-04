@@ -12,15 +12,15 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content 
-			Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\physics-native.dll" 
+			Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\xrengine-physx-native.dll" 
 			CopyToOutputDirectory="PreserveNewest" 
-			Link="physics-native.dll" 
+			Link="xrengine-physx-native.dll" 
 			Visible="False" 
 			UseLink="True" />
 	</ItemGroup>
 
 	<ItemGroup  Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)physics-native\android-arm64\*.so" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)xrengine-physx-native\android-arm64\*.so" />
 	</ItemGroup>
 
 	<ItemGroup>

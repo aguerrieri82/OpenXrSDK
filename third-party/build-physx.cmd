@@ -13,8 +13,8 @@ set ROOT=%CD%\..
 set PHYSX_PACKAGE=%ROOT%\libs\physx-590
 set WIN_SDK=%PHYSX_PACKAGE%\bin\win64-mt\release
 set ANDROID_SDK=%PHYSX_PACKAGE%\bin\android-arm64\release
-set WIN_PACKAGE=%ROOT%\libs\physxnative\win-x64
-set ANDROID_PACKAGE=%ROOT%\libs\physxnative\android-arm64
+set WIN_PACKAGE=%ROOT%\libs\physx-native\win-x64
+set ANDROID_PACKAGE=%ROOT%\libs\physx-native\android-arm64
 set NATIVE_SOURCE=%CD%\physx-rs\physx-sys\src
 set WIN_BUILD=%NATIVE_SOURCE%\out-win64
 set ANDROID_BUILD=%NATIVE_SOURCE%\out-android-arm64
@@ -97,7 +97,7 @@ cargo check --manifest-path MagicPhysX\src\libmagicphysx\Cargo.toml
 if errorlevel 1 goto BUILD_FAILED
 
 rem Build and package the Windows wrapper with the shared PhysX runtime DLLs.
-echo Building physxnative.dll...
+echo Building physx-native.dll...
 if not exist %WIN_BUILD% md %WIN_BUILD%
 cmake -S %NATIVE_SOURCE% -B %WIN_BUILD% -G Ninja ^
     -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
@@ -110,9 +110,9 @@ cmake --build %WIN_BUILD%
 if errorlevel 1 goto BUILD_FAILED
 
 if not exist %WIN_PACKAGE% md %WIN_PACKAGE%
-copy /Y %WIN_BUILD%\physxnative.dll %WIN_PACKAGE%\physxnative.dll >nul
+copy /Y %WIN_BUILD%\physx-native.dll %WIN_PACKAGE%\physx-native.dll >nul
 if errorlevel 1 goto BUILD_FAILED
-copy /Y %WIN_BUILD%\physxnative.pdb %WIN_PACKAGE%\physxnative.pdb >nul
+copy /Y %WIN_BUILD%\physx-native.pdb %WIN_PACKAGE%\physx-native.pdb >nul
 if errorlevel 1 goto BUILD_FAILED
 
 for %%F in (
@@ -137,7 +137,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File physx-rs\physx-sys\generate-
 if errorlevel 1 goto BUILD_FAILED
 
 rem Build and package the Android wrapper with the shared PhysX runtime libraries.
-echo Building libphysxnative.so...
+echo Building libphysx-native.so...
 if not exist %ANDROID_BUILD% md %ANDROID_BUILD%
 cmake -S %NATIVE_SOURCE% -B %ANDROID_BUILD% -G Ninja ^
     -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%build\cmake\android.toolchain.cmake ^
@@ -156,7 +156,7 @@ cmake --build %ANDROID_BUILD%
 if errorlevel 1 goto BUILD_FAILED
 
 if not exist %ANDROID_PACKAGE% md %ANDROID_PACKAGE%
-copy /Y %ANDROID_BUILD%\libphysxnative.so %ANDROID_PACKAGE%\libphysxnative.so >nul
+copy /Y %ANDROID_BUILD%\libphysx-native.so %ANDROID_PACKAGE%\libphysx-native.so >nul
 if errorlevel 1 goto BUILD_FAILED
 
 for %%F in (

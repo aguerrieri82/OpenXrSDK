@@ -5,7 +5,7 @@ using XrMath;
 
 public static class VehicleNative
 {
-    private const string LibName = "physics-native";
+    private const string LibName = "xrengine-physx-native";
 
     public enum VehicleGearMode
     {

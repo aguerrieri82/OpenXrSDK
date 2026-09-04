@@ -393,17 +393,9 @@ Makefile
 
 
 /third-party/google/
-/libs/physx-141/bin/win-x64/PhysXGpu_64.dll
-/libs/_physx-141/include
+
 /src/Engine/XrEngine.Physics.Native/libs/
-/libs/physics-native/android-arm64/libPhysX.so
-/libs/physics-native/android-arm64/libPhysXCommon.so
-/libs/physics-native/android-arm64/libPhysXCommon_64.so
-/libs/physics-native/android-arm64/libPhysXCooking.so
-/libs/physics-native/android-arm64/libPhysXCooking_64.so
-/libs/physics-native/android-arm64/libPhysXFoundation.so
-/libs/physics-native/android-arm64/libPhysXFoundation_64.so
-/libs/physics-native/android-arm64/libPhysX_64.so
+
 /libs/physx-590/include
 /libs/xrengine-physx-native/android-arm64/libPhysX.so
 /libs/xrengine-physx-native/android-arm64/libPhysXCommon.so

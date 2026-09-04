@@ -12,7 +12,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		
-		<Content Include="$(NativeLibsDir)physxnative\win-x64\*" 
+		<Content Include="$(NativeLibsDir)physx-native\win-x64\*" 
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
 				 Visible="False"
@@ -21,6 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)physxnative\android-arm64\*.so" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)physx-native\android-arm64\*.so" />
 	</ItemGroup>
 </Project>

@@ -37,7 +37,7 @@ include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := physics-native
+LOCAL_MODULE := xrengine-physx-native
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/..
 LOCAL_C_INCLUDES += $(PHYSX_ROOT)/include

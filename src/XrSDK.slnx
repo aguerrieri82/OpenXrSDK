@@ -13,13 +13,11 @@
     <File Path="../third-party/build-etcpak.cmd" />
     <File Path="../third-party/build-filament.cmd" />
     <File Path="../third-party/build-libtiff.cmd" />
-    <File Path="../third-party/build-MagicPhysX.cmd" />
     <File Path="../third-party/build-meshoptimizer.cmd" />
     <File Path="../third-party/build-oboe.cmd" />
     <File Path="../third-party/build-openal.cmd" />
+    <File Path="../third-party/build-physx.cmd" />
     <File Path="../third-party/build-turbo-jpeg.cmd" />
-    <File Path="../third-party/px-build-android.bat" />
-    <File Path="../third-party/px-build-win.bat" />
     <File Path="../third-party/vars.cmd" />
     <Project Path="Engine/XrEngine.Generator/XrEngine.Generator.csproj" Id="16d4ad08-8bbd-46b6-9118-b23d2431ea39">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -252,6 +250,7 @@
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Physics.Native/XrEngine.Physics.Native.vcxproj" Id="b89df183-9e56-4253-b4f2-944586229972">
+      <BuildType Solution="Debug|Any CPU" Project="Release" />
       <BuildType Solution="ReleaseStore|*" Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.Physics/XrEngine.Physics.csproj">
