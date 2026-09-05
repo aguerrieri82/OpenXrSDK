@@ -55,7 +55,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Ping Pong",
+               // SampleName = "Ping Pong",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,

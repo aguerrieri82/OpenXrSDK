@@ -482,7 +482,18 @@ namespace XrEngine
             }
         }
 
-        public int GetTextureSlot(ResourceSlot slot)
+        public int GetTextureSlots(ResourceSlot baseSlot, int count)
+        {
+            if (baseSlot.Slot == -1 || _textureSlots.Has(baseSlot.Slot))
+                return AllocateSlot(baseSlot.SlotName!, ref _textureSlots, TextureSlots.Reserved);
+
+            for (var i = 0; i < count; i++)
+                _textureSlots.Add(baseSlot.Slot + i);
+
+            return baseSlot.Slot;
+        }
+
+        public int GetTextureSlot(ResourceSlot slot, int count = 1)
         {
             if (slot.Slot == -1 || _textureSlots.Has(slot.Slot))
                 return AllocateSlot(slot.SlotName!, ref _textureSlots, TextureSlots.Reserved);
@@ -492,9 +503,9 @@ namespace XrEngine
             return slot.Slot;
         }
 
-        public readonly int AllocateSlot(string name, ref SlotMask mask, SlotMask reserved)
+        public readonly int AllocateSlot(string name, ref SlotMask mask, SlotMask reserved, int count = 1)
         {
-            var result = mask.Allocate(reserved);
+            var result = count == 1 ? mask.Allocate(reserved) : mask.Allocate(count, reserved);
 
             AddFeature($"{name} {result}");
 

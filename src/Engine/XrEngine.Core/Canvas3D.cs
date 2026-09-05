@@ -237,6 +237,18 @@ namespace XrEngine
                 DrawLine(circlePoints[i], circlePoints[(i + 1) % segments]);
         }
 
+
+        public bool UseDepth
+        {
+            get => _lineMesh.Material.UseDepth;
+            set
+            {
+                _lineMesh.Material.UseDepth = value;
+                _lineMesh.Material.WriteDepth = value;
+                _lineMesh.Material.Invalidate();
+            }
+        }
+
         public ref Canvas3DState State => ref _curState;
 
         public Object3D Content => _lineMesh;

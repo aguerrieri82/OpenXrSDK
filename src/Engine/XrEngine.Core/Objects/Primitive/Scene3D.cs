@@ -197,6 +197,12 @@
 
         public RenderUpdateManager UpdateManager => _updateManager;
 
+        public bool GizmosUseDepth
+        {
+            get => _gizmos.UseDepth;
+            set => _gizmos.UseDepth = value;
+        }
+
         public static Scene3D? Current { get; internal set; }
     }
 }

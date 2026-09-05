@@ -62,8 +62,8 @@ namespace XrEngine.Lighting
 
                 foreach (var tex in Textures)
                 {
-                    up.LoadTexture(tex, i + 10);
-                    up.SetUniform($"uLightField[{i}]", i + 10);
+                    up.LoadTexture(tex, i + TextureSlots.LightFieldBase.Slot);
+                    up.SetUniform($"uLightField[{i}]", i + TextureSlots.LightFieldBase.Slot);
                     i++;
                 }
 
@@ -102,6 +102,7 @@ namespace XrEngine.Lighting
 
         public float VoxelSize { get; set; }
 
+        [Editable(false)]
         public IList<Texture3D>? Textures { get; set; }
     }
 }

@@ -426,6 +426,8 @@ namespace XrEngine
                         if (lightField.UseAllFaces)
                             bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
 
+                        var baseSlot = bld.GetTextureSlots(TextureSlots.LightFieldBase, 12);
+
                         bld.ExecuteAction((ctx, up) =>
                         {
                             lightField = _lightFieldProvider.GetLightField();
@@ -437,7 +439,7 @@ namespace XrEngine
 
                             foreach (var tex in lightField.Textures)
                             {
-                                up.LoadTexture(tex, i + 10);
+                                up.LoadTexture(tex, i + baseSlot);
                                 //up.SetUniform($"uLightField[{i}]", i + 10);
                                 i++;
                             }

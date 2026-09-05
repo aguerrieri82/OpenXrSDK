@@ -524,7 +524,7 @@ namespace XrEngine.Lighting
         public Vector3 RayOrigin { get; set; }
 
         [Category("Trace")]
-        [Range(-1, 1, 0.01f)]
+        [ValueType(ValueType.Direction)]
         public Vector3 RayDir { get; set; }
 
         [Category("Trace")]

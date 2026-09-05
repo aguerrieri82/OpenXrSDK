@@ -15,6 +15,36 @@ namespace XrEngine
             return (Value & (1UL << slot)) != 0;
         }
 
+
+        public int Allocate(int count, SlotMask reserved)
+        {
+            var max = Max == 0 ? 64 : Max;
+
+            if (count <= 0 || count > max)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            var range = count == 64 ? ulong.MaxValue : (1UL << count) - 1;
+
+            for (var pass = 0; pass < 2; pass++)
+            {
+                for (var slot = 0; slot <= max - count; slot++)
+                {
+                    var mask = range << slot;
+
+                    if ((Value & mask) != 0)
+                        continue;
+
+                    if (pass == 0 && (reserved.Value & mask) != 0)
+                        continue;
+
+                    Value |= mask;
+                    return slot;
+                }
+            }
+
+            throw new InvalidOperationException($"No {count} consecutive slots available");
+        }
+
         public int Allocate(SlotMask reserved)
         {
             var free = ~Value;
