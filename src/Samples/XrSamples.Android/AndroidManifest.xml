@@ -26,10 +26,12 @@
 	<uses-feature android:name="oculus.software.vr.app.hybrid"/>
 	<uses-feature android:name="oculus.software.overlay_keyboard"  />
 	<uses-feature android:name="oculus.software.handtracking" />
+	
 	<uses-feature android:name="___com.oculus.software.body_tracking" />
 	
 	<uses-feature android:name="com.oculus.feature.PASSTHROUGH" />
 	<uses-feature android:name="com.oculus.feature.CONTEXTUAL_BOUNDARYLESS_APP" android:required="true" />
+	<uses-feature android:name="___com.oculus.experimental.enabled" android:required="false" />
 
 	<uses-feature android:name="android.hardware.camera2.any" android:required="true"/>
 	<uses-feature android:name="android.hardware.vr.headtracking" android:required="true" />

@@ -160,7 +160,7 @@ namespace XrEngine.OpenGL
         public GlProfiler(GL gl)
         {
             _gl = gl;
-            MaxStats = 36 * 1;
+            MaxStats = 36 * 2;
             IsEnabled = true;
 
             Context.Implement<IGpuProfiler>(this);
@@ -262,9 +262,22 @@ namespace XrEngine.OpenGL
                 sb.AppendLine(" us");
             }
 
+            sb.Append("Frame N°".PadRight(maxNameLen))
+              .Append(" │ ")
+              .AppendLine(EngineApp.Current.Stats.Frame
+                    .ToString("N0", CultureInfo.InvariantCulture)
+                    .PadLeft(10));
+
+
             sb.Append("─────────────────────────────────────");
 
             return sb.ToString();
+        }
+
+        public void ClearStats()
+        {
+            _stats.Clear();
+            _averages.Clear();
         }
 
         public void Clear()

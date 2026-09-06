@@ -189,13 +189,13 @@
 
         public EngineApp? App => _app;
 
+        public RenderUpdateManager UpdateManager => _updateManager;
+
         public bool UpdateParallel
         {
             get => _updateManager.IsParallel;
             set => _updateManager.IsParallel = value;
         }
-
-        public RenderUpdateManager UpdateManager => _updateManager;
 
         public bool GizmosUseDepth
         {

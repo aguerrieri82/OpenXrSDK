@@ -2009,6 +2009,6 @@ namespace OpenXr.Framework
 
         public bool IsMetaSimulator => _runtimeName == "Meta XR Simulator";
 
-        public bool IsMetaLink => _runtimeName == "Oculus";
+        public bool IsMetaLink => _runtimeName == "Oculus" && OperatingSystem.IsWindows();
     }
 }

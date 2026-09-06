@@ -45,9 +45,18 @@ namespace XrSamples.Android.Activities
 
         protected override void OnLoad()
         {
-            _settings = GameSettings.Graffiti();
+            _settings = GameSettings.DnD();
 
             var settingsJson = Intent?.GetStringExtra("Settings");
+
+            if (settingsJson == null && _settings.IsBenchmark)
+            {
+                var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
+                var settingsPath = Path.Combine(external, "XrSamples", "GameSettings.json");
+
+                if (File.Exists(settingsPath))
+                    settingsJson = File.ReadAllText(settingsPath);
+            }
 
             if (settingsJson == null && string.IsNullOrWhiteSpace(_settings.SampleName))
             {
@@ -142,6 +151,8 @@ namespace XrSamples.Android.Activities
 
                     opt.UseFxAA = _settings.UseFxAA;
                     opt.UseRayCollider = _settings.UseRayCollider;
+
+                    opt.UseProfiler = true;
 
                     if (_settings.Msaa > 1)
                         opt.UseFxAA = false;

@@ -51,11 +51,13 @@ namespace XrSamples
 
         public bool UseAsyncShaderCompile { get; set; }
 
-        public static GameSettings Graffiti()
+        public bool IsBenchmark { get;  set; }
+
+        public static GameSettings DnD()
         {
             return new GameSettings
             {
-               // SampleName = "Ping Pong",
+                SampleName = "DnD",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,
@@ -75,7 +77,8 @@ namespace XrSamples
                 UseSharedSsbo = false,
                 UseMeshCompression = true,
                 UseProfileOverlay = false,
-                UseAsyncShaderCompile = true
+                UseAsyncShaderCompile = true,
+                IsBenchmark = false
             };
         }
 

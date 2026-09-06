@@ -641,7 +641,7 @@ namespace XrEngine.OpenGL
 
             _profiler.Collect();
 
-            if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 10)
+            if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 1)
             {
                 Log.Debug(this, _profiler.GetStatsLog());
                 _lastProfileOutTime = DateTime.Now;

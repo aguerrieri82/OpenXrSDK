@@ -38,6 +38,8 @@ namespace OpenXr.Framework.Oculus
                 Offset = 0,
             };
             UseHandsWideMotion = true;
+            UseBothHandAndControllers = true;
+            HandTrackingFrequency = HandTrackingFrequencyHintMETA.HighMeta;
             ColorSpace = ColorSpaceFB.Rec709FB;
         }
 
@@ -53,6 +55,9 @@ namespace OpenXr.Framework.Oculus
 
         public bool UseDynamicResolution { get; set; }
 
+        public bool UseBothHandAndControllers { get; set; }
+
+        public HandTrackingFrequencyHintMETA HandTrackingFrequency { get; set; }
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -262,6 +267,15 @@ namespace OpenXr.Framework.Oculus
         public override void OnSessionBegin()
         {
             UpdateFoveation();
+
+            if (!_app!.IsMetaLink)
+            {
+                if (_options.UseBothHandAndControllers)
+                    SetHandsAndControllersTracking(true);
+
+                SetHandTrackingFrequencyHint(_options.HandTrackingFrequency);
+            }
+
         }
 
         public void SetColorSpace(ColorSpaceFB colorSpace)
@@ -300,6 +314,7 @@ namespace OpenXr.Framework.Oculus
 
             return Encoding.UTF8.GetString(buffer).Trim('\0').Split(',');
         }
+
 
         public async Task<XrAnchorInfo> CreateAnchorAsync(Pose3 pose, Space refSpace)
         {
@@ -1088,12 +1103,18 @@ namespace OpenXr.Framework.Oculus
         {
             if (isActive)
             {
-                var info = new SimultaneousHandsAndControllersTrackingResumeInfoMETA();
+                var info = new SimultaneousHandsAndControllersTrackingResumeInfoMETA()
+                {
+                    Type = StructureType.SimultaneousHandsAndControllersTrackingResumeInfoMeta
+                };
                 _app!.CheckResult(ResumeSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "ResumeSimultaneousHandsAndControllersTracking");
             }
             else
             {
-                var info = new SimultaneousHandsAndControllersTrackingPauseInfoMETA();
+                var info = new SimultaneousHandsAndControllersTrackingPauseInfoMETA()
+                {
+                    Type = StructureType.SimultaneousHandsAndControllersTrackingPauseInfoMeta
+                };
                 _app!.CheckResult(PauseSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "PauseSimultaneousHandsAndControllersTracking");
             }
         }

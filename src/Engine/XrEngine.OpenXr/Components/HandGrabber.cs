@@ -1,6 +1,7 @@
 ﻿using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
+using OpenXr.Framework.Oculus;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -13,6 +14,7 @@ namespace XrEngine.OpenXr
 
         public HandGrabber()
         {
+            UseAim = false;
         }
 
         protected static Sphere GetSphere(Object3D obj)
@@ -32,7 +34,15 @@ namespace XrEngine.OpenXr
             var result = new ObjectGrab();
             result.IsValid = _host.HandInput.IsActive;
 
-            if (!_isInit || !result.IsValid || !_host.ShowCapsule)
+            if (UseAim)
+            {
+                result.IsValid &= _host.HandInput.IsAimValid;
+                result.IsGrabbing = _host.HandInput.AimStates[(int)XrHandAimFinger.Index].IsPinching;
+                result.Pose = _host.HandInput.Aim;
+                return result;
+            }
+
+            if (!_isInit || !result.IsValid || !_host.UseCapsule)
                 return result;
 
             var thumbObj = _host.Children[_thumbIndex];
@@ -87,5 +97,7 @@ namespace XrEngine.OpenXr
             }
             base.Update(ctx);
         }
+
+        public bool UseAim { get; set; }
     }
 }

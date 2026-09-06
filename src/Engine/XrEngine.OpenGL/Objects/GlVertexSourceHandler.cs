@@ -225,6 +225,10 @@ namespace XrEngine.OpenGL
         unsafe void UpdateMain()
         {
             var vertexCount = _source.Vertices.Length;
+
+            if (vertexCount == 0)
+                return;
+
             var vertexSize = (uint)(vertexCount * sizeof(TBufferVert));
 
             if (_vertices.VBuf.SizeBytes != vertexSize)

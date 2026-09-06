@@ -5,6 +5,12 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using XrSamples;
 
+if (args.Length > 0 && args[0].Equals("android-benchmark", StringComparison.OrdinalIgnoreCase))
+{
+    await AndroidBenchmark.RunAsync(args.ElementAtOrDefault(1));
+    return;
+}
+
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((ctx, logging) =>
     {

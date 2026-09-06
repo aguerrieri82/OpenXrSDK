@@ -36,7 +36,7 @@ namespace XrSamples.Android.Activities
         private const string PreferencesName = "XrSamples";
         private const string SettingsKey = "GameSettings";
 
-        private GameSettings _settings = GameSettings.Graffiti();
+        private GameSettings _settings = GameSettings.DnD();
         private IList<AppSample>? _samples;
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -271,11 +271,11 @@ namespace XrSamples.Android.Activities
 
             try
             {
-                _settings = JsonSerializer.Deserialize<GameSettings>(json) ?? GameSettings.Graffiti();
+                _settings = JsonSerializer.Deserialize<GameSettings>(json) ?? GameSettings.DnD();
             }
             catch
             {
-                _settings = GameSettings.Graffiti();
+                _settings = GameSettings.DnD();
             }
         }
 
