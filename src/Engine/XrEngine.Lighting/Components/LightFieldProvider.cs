@@ -306,23 +306,40 @@ namespace XrEngine.Lighting
                 using var fs = File.OpenRead(file);
                 var data = reader.LoadTexture(fs);
 
+                if (textures.Count == 0)
+                {
+                    _grid.Size = new Vector3I((int)data[0].Width, (int)data[0].Height, (int)data[0].Depth);
+
+                    if (_grid.VoxelSize == 0)
+                        _grid.VoxelSize = VoxelSize;
+
+                    _fieldData.Origin = _grid.Origin;
+                    _fieldData.Size = _grid.Size;
+                    _fieldData.VoxelSize = _grid.VoxelSize;
+                }
+
                 TextureFormat format;
                 var type = TextureType.Unspecified;
+                var face = (VoxelFace)(textures.Count / 2);
+                var textureType = "Color";
 
                 if ((textures.Count % 2) == 0)
                     format = TextureFormat.Rgb9e5Float;
                 else
                 {
+                    textureType = "Direction";
                     type = TextureType.NormalMap;
                     format = TextureFormat.RgbFloat16;
                 }
 
                 var tex = new Texture3D()
                 {
+                    Name = $"LightField {face} {textureType}",
                     Format = format,
                     MipLevelCount = 0,
                     MinFilter = ScaleFilter.Nearest,
                     MagFilter = ScaleFilter.Linear,
+                    NeverCompress = true,
                     Type = type
                 };
 

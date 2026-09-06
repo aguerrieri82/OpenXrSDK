@@ -57,7 +57,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "DnD",
+               SampleName = "Water Flood",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,

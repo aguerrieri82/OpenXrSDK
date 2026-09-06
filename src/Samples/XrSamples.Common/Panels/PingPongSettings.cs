@@ -35,9 +35,11 @@ namespace XrSamples
             EnableCCD = true;
             ShowTerrain = false;
 
-            BallMaterial = new MaterialSettings();
-            BallMaterial.Roughness = 0.4f;
-            BallMaterial.Metallic = 0.1f;
+            BallMaterial = new MaterialSettings
+            {
+                Roughness = 0.4f,
+                Metallic = 0.1f
+            };
 
             Ball.LengthToleranceScale = 1;
             Ball.ContactOffset = 0.01f;

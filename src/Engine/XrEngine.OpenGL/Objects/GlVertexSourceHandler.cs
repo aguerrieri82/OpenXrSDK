@@ -226,31 +226,37 @@ namespace XrEngine.OpenGL
         {
             var vertexCount = _source.Vertices.Length;
 
-            if (vertexCount == 0)
-                return;
-
-            var vertexSize = (uint)(vertexCount * sizeof(TBufferVert));
-
-            if (_vertices.VBuf.SizeBytes != vertexSize)
-                _vertices.VBuf.Allocate(vertexSize);
-
-            var pVertices = _vertices.VBuf.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
-
-            fixed (TVert* pSrc = _source.Vertices)
+            if (vertexCount > 0)
             {
-                if (_compSource?.CompVertexType != null)
-                    _compSource.CompressVertices(pSrc, pVertices.Data, vertexCount);
-                else
-                    Buffer.MemoryCopy(pSrc, pVertices.Data, vertexSize, vertexCount * sizeof(TVert));
+                var vertexSize = (uint)(vertexCount * sizeof(TBufferVert));
+
+                if (_vertices.VBuf.SizeBytes != vertexSize)
+                    _vertices.VBuf.Allocate(vertexSize);
+
+                var pVertices = _vertices.VBuf.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+
+                fixed (TVert* pSrc = _source.Vertices)
+                {
+                    if (_compSource?.CompVertexType != null)
+                        _compSource.CompressVertices(pSrc, pVertices.Data, vertexCount);
+                    else
+                        Buffer.MemoryCopy(pSrc, pVertices.Data, vertexSize, vertexCount * sizeof(TVert));
+                }
+
+                _vertices.VBuf.Unmap();
             }
 
-            _vertices.VBuf.Unmap();
             _vertices.VBuf.ArrayLength = (uint)vertexCount;
 
-            if (_source.Indices == null || _source.Indices.Length == 0)
+            var indexCount = _source.Indices?.Length ?? 0;
+            var indexBufferChanged = _vertices.SetIndexBufferEnabled(indexCount > 0);
+
+            if (_compSource == null && indexBufferChanged)
+                _source.NotifyBuffers((IBuffer<TVert>)_vertices.VBuf, (IBuffer<TInd>?)_vertices.IBuf);
+
+            if (indexCount == 0)
                 return;
 
-            var indexCount = _source.Indices.Length;
             var indexSize = (uint)(indexCount * sizeof(TBufferInd));
 
             if (_vertices.IBuf!.SizeBytes != indexSize)
@@ -258,7 +264,7 @@ namespace XrEngine.OpenGL
 
             var pIndices = _vertices.IBuf.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
 
-            fixed (TInd* pSrc = _source.Indices)
+            fixed (TInd* pSrc = _source.Indices!)
             {
                 if (_compSource?.CompIndexType != null)
                     _compSource.CompressIndices(pSrc, pIndices.Data, indexCount);

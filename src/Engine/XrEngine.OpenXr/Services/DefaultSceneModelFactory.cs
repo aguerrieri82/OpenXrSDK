@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr
     {
         readonly Dictionary<SceneModelType, SceneModelOptions> _models = [];
 
-        protected DefaultSceneModelFactory()
+        public DefaultSceneModelFactory()
         {
 
         }

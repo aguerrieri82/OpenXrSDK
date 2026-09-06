@@ -106,11 +106,7 @@ void main()
 	{
 		vec2 samplePos = clamp(sourcePos, sourceMin, sourceMax);
 
-#ifdef MULTI_SAMPLE
-		value = resolveSource(ivec2(samplePos));
-#else
 		value = sampleSource(samplePos);
-#endif
 	}
 	else
 	{

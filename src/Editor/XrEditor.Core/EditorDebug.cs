@@ -102,7 +102,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, 1)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateLightField()
+              .CreateWaterFlood()
               //.CreateDnd()
               .Build();
     }

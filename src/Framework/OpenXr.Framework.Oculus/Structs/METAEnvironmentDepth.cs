@@ -7,26 +7,11 @@ using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework.Oculus
 {
-    public class METAEnvironmentDepth
+    public class METAEnvironmentDepth : BaseXrExtension
     {
         public METAEnvironmentDepth(XR xr, Instance instance)
+            : base(xr, instance)
         {
-            var fun = new PfnVoidFunction();
-
-            foreach (var prop in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
-            {
-                var propType = prop.FieldType;
-                if (!propType.IsSubclassOf(typeof(Delegate)))
-                    continue;
-
-                var name = "xr" + prop.Name;
-
-                var res = xr.GetInstanceProcAddr(instance, name, ref fun);
-                if (res != Result.Success)
-                    throw new NotSupportedException(name);
-
-                prop.SetValue(this, Marshal.GetDelegateForFunctionPointer(fun, propType));
-            }
         }
 
         public CreateEnvironmentDepthProviderMETADelegate CreateEnvironmentDepthProviderMETA;
@@ -82,12 +67,12 @@ namespace OpenXr.Framework.Oculus
             SwapchainImageBaseHeader* images);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public unsafe delegate Result GetEnvironmentDepthSwapchainStateMETADelegate(
+        public delegate Result GetEnvironmentDepthSwapchainStateMETADelegate(
                 EnvironmentDepthSwapchainMETA swapchain,
                 out EnvironmentDepthSwapchainStateMETA state);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public unsafe delegate Result SetEnvironmentDepthHandRemovalMETADelegate(
+        public delegate Result SetEnvironmentDepthHandRemovalMETADelegate(
             EnvironmentDepthProviderMETA environmentDepthProvider,
             ref EnvironmentDepthHandRemovalSetInfoMETA setInfo);
 

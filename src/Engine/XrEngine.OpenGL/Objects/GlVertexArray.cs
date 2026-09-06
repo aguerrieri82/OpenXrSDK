@@ -203,40 +203,33 @@ namespace XrEngine.OpenGL
 
             var hasIndices = indices != null && indices.Length > 0;
 
-            var rebuild = false;
+            var indexBufferChanged = SetIndexBufferEnabled(hasIndices);
 
             if (hasIndices)
             {
-                if (_iBuf == null)
-                {
-                    _iBuf = new GlBuffer<TIndexType>(
-                        _gl,
-                        indices!,
-                        BufferTargetARB.ElementArrayBuffer);
-
-                    rebuild = true;
-
-                }
-                else
-                    _iBuf.UpdateRange(indices!, 0, false);
-
+                _iBuf!.UpdateRange(indices!, 0, false);
                 _iBuf.ArrayLength = (uint)indices!.Length;
             }
+
+            if (!indexBufferChanged && (_vBufVersion != _vBuf.CreateVersion || (_iBuf != null && _iBuf.CreateVersion != _iBufVersion)))
+                Build();
+        }
+
+        public bool SetIndexBufferEnabled(bool enabled)
+        {
+            if (enabled == (_iBuf != null))
+                return false;
+
+            if (enabled)
+                _iBuf = new GlBuffer<TIndexType>(_gl, BufferTargetARB.ElementArrayBuffer);
             else
             {
-                if (_iBuf != null)
-                {
-                    _iBuf.Dispose();
-                    _iBuf = null;
-                    rebuild = true;
-                }
+                _iBuf!.Dispose();
+                _iBuf = null;
             }
 
-            if (!rebuild && (_vBufVersion != _vBuf.CreateVersion || (_iBuf != null && _iBuf.CreateVersion != _iBufVersion)))
-                rebuild = true;
-
-            if (rebuild)
-                Build();
+            Build();
+            return true;
         }
 
         public void Bind()
