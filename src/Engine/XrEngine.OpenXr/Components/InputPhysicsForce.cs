@@ -65,7 +65,7 @@ namespace XrEngine.Physics
             {
                 if (Handler.IsActive && Handler.Value)
                 {
-                    _host!.Scene!.ContainsPoint(Input.Value.Position, _checkObjects, null, Tollerance);
+                    _host.Scene!.ContainsPoint(Input.Value.Position, _checkObjects, null, Tollerance);
 
                     foreach (var obj in _checkObjects)
                     {
@@ -108,7 +108,7 @@ namespace XrEngine.Physics
 
                     _lastForce = new Line3() { From = startWorld, To = curWorlds };
 
-                    //_startDragLocal = _host!.ToLocal(curWorlds);
+                    //_startDragLocal = _host.ToLocal(curWorlds);
                 }
             }
             base.Update(ctx);

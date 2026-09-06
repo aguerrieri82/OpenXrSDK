@@ -30,7 +30,6 @@
             base.UpdateShaderModel(bld);
         }
 
-
         public uint DrawId { get; set; }
     }
 }

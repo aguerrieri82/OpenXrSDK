@@ -8,7 +8,6 @@ using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
-using Silk.NET.Vulkan;
 using OpenXr.Framework.Angle;
 
 namespace XrEngine.OpenXr
@@ -86,7 +85,12 @@ namespace XrEngine.OpenXr
             effect.DoubleSided = drawMaterial.DoubleSided;
 
             if (drawMaterial is ShaderMaterial mat)
-                effect.HasSkin = mat.HasSkin;
+            {
+                if (mat.UseSkin)
+                    return UpdateProgramResult.Skip;
+
+                effect.UseSkin = mat.UseSkin;
+            }
 
             return base.UpdateProgram(instance, updateContext, drawMaterial);
         }

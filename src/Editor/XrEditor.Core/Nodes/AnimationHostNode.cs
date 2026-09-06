@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XrEditor.Services;
+﻿using XrEditor.Services;
 using XrEngine;
 using XrEngine.Animation;
 
@@ -9,7 +6,7 @@ namespace XrEditor.Nodes
 {
     public class AnimationHostNode : ComponentNode<AnimationsHost>
     {
-        public AnimationHostNode(AnimationsHost value) 
+        public AnimationHostNode(AnimationsHost value)
             : base(value)
         {
         }

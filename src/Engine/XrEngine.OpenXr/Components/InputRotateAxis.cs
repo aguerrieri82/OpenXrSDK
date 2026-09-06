@@ -24,7 +24,7 @@ namespace XrEngine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-            _startOrientation = _host!.Transform.Orientation;
+            _startOrientation = _host.Transform.Orientation;
         }
 
         protected override void Update(RenderContext ctx)
@@ -49,8 +49,8 @@ namespace XrEngine.OpenXr
         {
             angle = MathF.Min(MaxAngle, MathF.Max(MinAngle, angle));
 
-            _host!.Transform.SetLocalPivot(RotationAxis.Origin, true);
-            _host!.Transform.Orientation = _startOrientation * Quaternion.CreateFromAxisAngle(RotationAxis.Direction, angle);
+            _host.Transform.SetLocalPivot(RotationAxis.Origin, true);
+            _host.Transform.Orientation = _startOrientation * Quaternion.CreateFromAxisAngle(RotationAxis.Direction, angle);
 
             _angle = angle;
             _left.StartAngle = angle;
@@ -63,7 +63,7 @@ namespace XrEngine.OpenXr
                 return null;
 
             var plane = RotationAxis.ToPlane();
-            var curPos = _host!.ToLocal(pose.Value.Position);
+            var curPos = _host.ToLocal(pose.Value.Position);
             var planePos = plane.Project(curPos);
             var curDir = (planePos - RotationAxis.Origin).Normalize();
 
@@ -74,7 +74,7 @@ namespace XrEngine.OpenXr
                 if (!click.Value)
                     return null;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (var collider in _host.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
@@ -98,7 +98,7 @@ namespace XrEngine.OpenXr
                 return null;
             }
 
-            var distance = Vector3.Distance(_host!.ToWorld(status.StartPos), pose.Value.Position);
+            var distance = Vector3.Distance(_host.ToWorld(status.StartPos), pose.Value.Position);
             if (distance > MaxDistance && MaxDistance > 0)
                 return null;
 
@@ -109,7 +109,7 @@ namespace XrEngine.OpenXr
         {
             canvas.Save();
 
-            canvas.State.Transform = _host!.WorldMatrix;
+            canvas.State.Transform = _host.WorldMatrix;
 
             canvas.State.Color = "#00FF00";
             canvas.DrawLine(RotationAxis.PointAt(-0.5f), RotationAxis.PointAt(0.5f));

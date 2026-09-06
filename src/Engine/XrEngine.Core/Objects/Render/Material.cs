@@ -13,6 +13,7 @@ namespace XrEngine
         Max = Blend | 0x40,
         Punch = Blend | 0x80,
         Over = Blend | 0x100,
+        TransmissionBlend = Blend | 0x200,
     }
 
     public enum StencilFunction
@@ -126,6 +127,23 @@ namespace XrEngine
             base.Invalidate(mode);
         }
 
+        public override Material Clone(ObjectCloneFlags flags = ObjectCloneFlags.None)
+        {
+            var newMat = (Material)MemberwiseClone();
+
+            newMat._hosts = [];
+
+            if (newMat._props != null)
+                newMat._props = [];
+
+            if (newMat._components != null)
+                newMat._components = [];
+
+            CloneWork(newMat, flags);
+
+            return newMat;
+        }
+
         public IReadOnlySet<EngineObject> Hosts => _hosts;
 
         public bool UseClipDistance { get; set; }
@@ -156,30 +174,20 @@ namespace XrEngine
 
         public MorphMode Morph { get; set; }
 
-        public bool HasSkin { get; set; }
+        public bool UseSkin { get; set; }
 
-        public bool HasMorph { get; set; }
-
-        public string? Name { get; set; }
+        public bool UseMorph { get; set; }
 
         public int ShadingRate { get; set; }
 
-        public int Priority { get; set; }
+        public string? Name { get; set; }
 
+        public virtual bool IsSingleDraw => false;
+
+        public int Priority { get; set; }
 
         [Notify(ChangeType.MaterialEnabled)]
         public partial bool IsEnabled { get; set; }
 
-        public virtual Material Clone()
-        {
-            var newMat = (Material)MemberwiseClone();
-
-            newMat._hosts = [];
-            if (newMat._props != null)
-                newMat._props = [];
-
-            return newMat;
-
-        }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OpenXr.Framework.Input
+﻿namespace OpenXr.Framework.Input
 {
     public static class XrProfiles
     {
@@ -14,15 +10,14 @@ namespace OpenXr.Framework.Input
         public const string Hand = "/interaction_profiles/ext/hand_interaction_ext";
     }
 
-        [AttributeUsage(AttributeTargets.Field)]
-        public class XrProfileAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field)]
+    public class XrProfileAttribute : Attribute
+    {
+        public XrProfileAttribute(params string[] profiles)
         {
-            public XrProfileAttribute(params string[] profiles)
-            {
-                Profiles = profiles;
-            }
-
-
-            public string[] Profiles { get; }
+            Profiles = profiles;
         }
+
+        public string[] Profiles { get; }
+    }
 }

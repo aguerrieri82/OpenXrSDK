@@ -3,20 +3,35 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
+        private static OculusXrPlugin? _oculus;
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static XrSpaceWarpProjectionLayer AddProjectionSpaceWarp(this XrLayerManager manager, RenderViewDelegate renderView, IXrMotionVectorProvider provider)
+        {
+            var layer = new XrSpaceWarpProjectionLayer(renderView, provider);
+            manager.List.Add(layer);
+            return layer;
+        }
 
         public unsafe static Extent2Di? GetRecommendedResolution<T>(this XrBaseLayer<T> layer, long predictedDisplayTime = 0) where T : unmanaged
         {
             if (predictedDisplayTime == 0)
                 predictedDisplayTime = layer.App.FramePredictedDisplayTime;
 
-            return layer.App.Plugin<OculusXrPlugin>()
-                   .GetRecommendedLayerResolution(layer.Header, predictedDisplayTime);
+            _oculus ??= layer.App.Plugin<OculusXrPlugin>();
+
+            if (!_oculus.Options.UseDynamicResolution)
+                return null;
+
+            return _oculus.GetRecommendedLayerResolution(layer.Header, predictedDisplayTime);
         }
 
         public unsafe static UuidEXT[] GetWalls(this RoomLayoutFB layout)
@@ -45,8 +60,6 @@ namespace OpenXr.Framework
             if (!xrOculus.GetSpaceComponentEnabled(space, SpaceComponentTypeFB.LocatableFB))
                 await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
         }
-
-
 
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {

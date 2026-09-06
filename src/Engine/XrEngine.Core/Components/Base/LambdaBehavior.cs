@@ -10,7 +10,7 @@
         }
         protected override void Update(RenderContext ctx)
         {
-            _update(_host!, ctx);
+            _update(_host, ctx);
         }
 
     }

@@ -115,13 +115,13 @@ namespace XrEngine.Browser.Windows
 
             if (EnableElevation)
             {
-                _host!.Geometry = new Geometry3D()
+                _host.Geometry = new Geometry3D()
                 {
                     ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0
                 };
 
-                _host!.Flags |= EngineObjectFlags.NoLogs;
-                _host!.Geometry!.Flags |= EngineObjectFlags.NoLogs;
+                _host.Flags |= EngineObjectFlags.NoLogs;
+                _host.Geometry!.Flags |= EngineObjectFlags.NoLogs;
 
             }
 
@@ -135,7 +135,7 @@ namespace XrEngine.Browser.Windows
                 MagFilter = ScaleFilter.Linear
             };
 
-            if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
+            if (_host.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
             {
                 _host.Materials.Clear();
 
@@ -161,7 +161,7 @@ namespace XrEngine.Browser.Windows
                     _host.Materials.Add(new TextureMaterial(_texture));
             }
 
-            _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
+            _input = _host.DescendantsOrSelfComponents<ISurfaceInput>().First();
 
         }
 

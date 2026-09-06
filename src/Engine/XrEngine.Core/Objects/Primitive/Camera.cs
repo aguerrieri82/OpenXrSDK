@@ -36,15 +36,14 @@ namespace XrEngine
         {
         }
 
-        public Camera(bool isInit)
+        public Camera(bool mustInit)
         {
-            if (isInit)
-            {
-                Near = 0.001f;
-                Far = 10;
-                Exposure = 1;
-                Flags |= EngineObjectFlags.DisableNotifyChangedScene;
-            }
+            if (!mustInit)
+                return;
+            Near = 0.001f;
+            Far = 10;
+            Exposure = 1;
+            Flags |= EngineObjectFlags.DisableNotifyChangedScene;
         }
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)
@@ -259,7 +258,7 @@ namespace XrEngine
 
         public Matrix4x4 ViewInverse => WorldMatrix;
 
-        [Range(0, 10, 0.1f)]
+        [Range(0, 10, 0.05f)]
         public float Exposure { get; set; }
 
         public CameraEye[]? Eyes { get; set; }

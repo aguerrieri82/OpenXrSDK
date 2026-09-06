@@ -41,8 +41,8 @@ namespace XrSamples.Graffiti
 
         protected override void Update(RenderContext ctx)
         {
-            _can ??= _host!.Descendants<Can>().First();
-            _canvas ??= _host!.Descendants<PaintCanvas>().First();
+            _can ??= _host.Descendants<Can>().First();
+            _canvas ??= _host.Descendants<PaintCanvas>().First();
 
             if (_canvas.UndoRequest)
                 Append(OpType.Undo, ctx.Time);

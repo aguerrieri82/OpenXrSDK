@@ -79,9 +79,11 @@ namespace OpenXr.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView, bool useDepthSwapchain)
+        public static XrProjectionLayer AddProjection(this XrLayerManager manager, RenderViewDelegate renderView, bool useDepthSwapchain)
         {
-            manager.List.Add(new XrProjectionLayer(renderView, useDepthSwapchain));
+            var layer = new XrProjectionLayer(renderView, useDepthSwapchain);
+            manager.List.Add(layer);
+            return layer;
         }
 
         public static void ScheduleCancel<T>(this TaskCompletionSource<T> completionSource, TimeSpan time)

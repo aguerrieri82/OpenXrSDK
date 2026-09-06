@@ -8,6 +8,8 @@
 
         string? Name { get; }
 
+        IEnumerable<Attribute> Attributes => [];
+
         event EventHandler Changed;
     }
 

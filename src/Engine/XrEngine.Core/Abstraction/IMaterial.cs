@@ -1,7 +1,7 @@
 ﻿
 namespace XrEngine
 {
-    public interface IMaterial : IName
+    public interface IMaterial : IName, ICloneable
     {
         void NotifyChanged(ObjectChange change);
 
@@ -30,7 +30,5 @@ namespace XrEngine
         long Version { get; }
 
         int Priority { get; set; }
-
-        Material Clone();
     }
 }

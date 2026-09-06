@@ -21,6 +21,8 @@
 
             Env?.Dispose();
             Env = null;
+
+            GC.SuppressFinalize(this);
         }
 
         public TextureCube? LambertianEnv;

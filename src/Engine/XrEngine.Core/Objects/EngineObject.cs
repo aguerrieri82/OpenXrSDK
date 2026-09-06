@@ -64,10 +64,17 @@ namespace XrEngine
         public int Id;
     }
 
-    [StateManager(StateManagerMode.Manual)]
-    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
+    public enum ObjectCloneFlags
     {
-        //protected Dictionary<int, object?>? _props;
+        None = 0x0,
+        CloneGeometry = 0x1,
+        CloneMaterials = 0x2,
+        CloneComponents = 0x4,
+    }
+
+    [StateManager(StateManagerMode.Manual)]
+    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject, ICloneable
+    {
         protected object?[]? _props;
         protected List<IComponent>? _components;
         protected ObjectId _id;
@@ -150,6 +157,8 @@ namespace XrEngine
 
         public virtual T AddComponent<T>(T component) where T : IComponent
         {
+            EngineApp.VerifyMainThread(this);
+
             if (component.Host == this)
                 return component;
 
@@ -170,6 +179,8 @@ namespace XrEngine
 
         public virtual void RemoveComponent(IComponent component)
         {
+            EngineApp.VerifyMainThread(this);
+
             if (component.Host != this)
                 return;
 
@@ -296,6 +307,37 @@ namespace XrEngine
 
             if ((mode & InvalidateMode.Content) == InvalidateMode.Content)
                 _contentVersion++;
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone(ObjectCloneFlags.None);
+        }
+
+        public virtual EngineObject Clone(ObjectCloneFlags flags)
+        {
+            var newObj = (EngineObject)Activator.CreateInstance(GetType())!;
+
+            CloneWork(newObj, flags);
+
+            return newObj;
+        }
+
+        protected virtual void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
+        {
+            if (_components != null && _components.Count > 0 && (flags & ObjectCloneFlags.CloneComponents) != 0)
+            {
+                foreach (var comp in _components)
+                {
+                    if (comp is ICloneable cloneable)
+                        newObj.AddComponent((IComponent)cloneable.Clone());
+                    else
+                        Log.Warn(this, "{0} is not clonable", comp.GetType().FullName);
+                }
+            }
+
+            newObj.Flags = Flags;
+            newObj.Tag = Tag;
         }
 
         public EngineObjectFlags Flags { get; set; }

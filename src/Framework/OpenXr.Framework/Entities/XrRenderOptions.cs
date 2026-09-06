@@ -22,6 +22,7 @@ namespace OpenXr.Framework
             ProjectionDepthScale = 1f;
             BlendMode = EnvironmentBlendMode.Opaque;
             UseQuodDepthCull = false;
+            UseSimmetricFov = true;
         }
 
         public Extent2Di Size { get; set; }
@@ -48,5 +49,7 @@ namespace OpenXr.Framework
 
         [Obsolete]
         public bool UseQuodDepthCull { get; set; }
+        
+        public bool UseSimmetricFov { get; set; }
     }
 }

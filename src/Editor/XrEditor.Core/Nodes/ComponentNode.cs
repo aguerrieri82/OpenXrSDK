@@ -1,6 +1,5 @@
 ﻿using UI.Binding;
 using XrEngine;
-using static XrEngine.OpenGL.OpenGLRender;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 
 namespace XrEditor.Nodes
@@ -33,12 +32,12 @@ namespace XrEditor.Nodes
             while (true)
             {
                 PropertyView.CreateProperties(_value, curType, curProps);
-                
+
                 curType = curType.BaseType;
 
                 if (curType == null ||
-                    curType == typeof(object) || 
-                    (curType.IsGenericType && 
+                    curType == typeof(object) ||
+                    (curType.IsGenericType &&
                         (curType.GetGenericTypeDefinition() == typeof(BaseComponent<>) ||
                          curType.GetGenericTypeDefinition() == typeof(Behavior<>) ||
                          curType.GetGenericTypeDefinition() == typeof(AsyncBehavior<>))))

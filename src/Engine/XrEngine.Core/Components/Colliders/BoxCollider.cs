@@ -37,7 +37,7 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
-            var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host.WorldMatrixInverse);
 
             var bounds = new Bounds3
             {
@@ -103,7 +103,7 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
-            var localPoint = _host!.ToLocal(worldPoint);
+            var localPoint = _host.ToLocal(worldPoint);
 
             var bounds = new Bounds3
             {

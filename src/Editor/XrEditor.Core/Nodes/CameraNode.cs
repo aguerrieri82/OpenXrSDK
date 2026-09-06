@@ -30,34 +30,33 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Exposure",
-                Editor = new FloatEditor(binder.Prop(a => a.Exposure), 0, 5, 0.1f)
+                Editor = new FloatEditor(binder.Prop(a => a.Exposure))
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Far",
-                Editor = new FloatEditor(binder.Prop(a => a.Far), 1, 180),
+                Editor = new FloatEditor(binder.Prop(a => a.Far)),
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Near",
-                Editor = new FloatEditor(binder.Prop(a => a.Near), 1, 180),
+                Editor = new FloatEditor(binder.Prop(a => a.Near)),
             });
 
             if (_value is PerspectiveCamera persp)
             {
-
                 curProps.Add(new PropertyView
                 {
-                    Label = "Fov",
-                    Editor = new FloatEditor(binder.Prop(a => (a as PerspectiveCamera)!.FovDegree), 0, 360, 1),
+                    Label = "FovDegree",
+                    Editor = new FloatEditor(binder.Prop(a => (a as PerspectiveCamera)!.FovDegree)),
                 });
 
                 curProps.Add(new PropertyView
                 {
                     Label = "ActiveEye",
-                    Editor = new TextEditor<int>(a => int.Parse(a), a => a.ToString())
+                    Editor = new TextEditor<int>(int.Parse, a => a.ToString())
                     {
                         Binding = binder.Prop(a => (a as PerspectiveCamera)!.ActiveEye)
                     }

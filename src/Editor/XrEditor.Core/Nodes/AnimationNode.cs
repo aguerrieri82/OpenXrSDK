@@ -1,12 +1,10 @@
-﻿
-using XrEngine;
-using XrEngine.Animation;
+﻿using XrEngine.Animation;
 
 namespace XrEditor.Nodes
 {
     public class AnimationNode : BaseNode<IAnimation>, IItemView
     {
-        public AnimationNode(IAnimation value) 
+        public AnimationNode(IAnimation value)
             : base(value)
         {
         }

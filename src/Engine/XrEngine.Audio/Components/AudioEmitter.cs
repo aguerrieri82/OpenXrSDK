@@ -44,12 +44,12 @@ namespace XrEngine.Audio
         {
             if (_pool == null)
             {
-                var system = _host!.Scene!.Component<AudioSystem>();
+                var system = _host.Scene!.Component<AudioSystem>();
                 _pool = new AlSourcePool(system.Device.Al);
             }
 
             _curSource = _pool.Get(buffer);
-            _curSource.Position = _host!.WorldPosition;
+            _curSource.Position = _host.WorldPosition;
             _curSource.Direction = direction;
 
             _curSource.Play();
@@ -188,7 +188,7 @@ namespace XrEngine.Audio
                     FillBuffer(buffer);
 
                     source.Direction = getDirection();
-                    source.Position = Position ?? _host!.WorldPosition;
+                    source.Position = Position ?? _host.WorldPosition;
 
                     source.QueueBuffer(buffer);
 

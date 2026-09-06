@@ -1,34 +1,9 @@
 ﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using XrEngine.Components;
 
-namespace XrEngine.Objects.Materials.Shaders
+namespace XrEngine
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MorphTarget
-    {
-        public float Weight;
-        public uint PositionOfs;
-        public uint NormalOfs;
-        public uint TangentOfs;
-    }
-
-    [InlineArray(MorphUniforms.MaxTargets)]
-    public struct MorphTargetArray
-    {
-        private MorphTarget _element0;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MorphUniforms
-    {
-        public const int MaxTargets = 60;
-
-        public MorphTargetArray Targets;
-    }
-
     public static class MorphVertexShader
     {
         public static void UpdateShader(ShaderUpdateBuilder bld)
@@ -59,9 +34,9 @@ namespace XrEngine.Objects.Materials.Shaders
 
             var material = ctx.Material!;
 
-            return material._tracker.IsChanged(() => material.HasMorph) ||
+            return material._tracker.IsChanged(() => material.UseMorph) ||
                    material._tracker.IsChanged(() => material.Morph) ||
-                   (material.HasMorph &&
+                   (material.UseMorph &&
                    material.Morph == MorphMode.NotEmptyTargets &&
                    material._tracker.IsChanged(() => InnerWeightMask()));
         }
@@ -111,7 +86,7 @@ namespace XrEngine.Objects.Materials.Shaders
             {
                 bld.AddFeature("USE_MORPH_SSBO");
 
-                bld.LoadBuffer<Vector3>(ctx =>
+                bld.LoadBuffer<Vector3>((ctx, ref update) =>
                 {
                     var buffer = (IBuffer<Vector3>)ctx.CurrentBuffer!;
 
@@ -121,9 +96,9 @@ namespace XrEngine.Objects.Materials.Shaders
                         buffer.Version = morphGeo.Host.Version;
                     }
 
-                    return null;
+                    return false; //this is correct as FALSE
 
-                }, BufferSlots.MorphSSbo, BufferStore.Model, BufferUsage.SSbo);
+                }, BufferSlots.Morph, BufferStore.Model, BufferUsage.SSbo);
             }
             else if (storage == MorphStorageType.Texture)
             {
@@ -149,13 +124,12 @@ namespace XrEngine.Objects.Materials.Shaders
                     bld.AddFeature($"MORPH_{targetIndex}_{component.Component}");
             }
 
-
-            bld.SetSlot("APPLY_MORPH", () => GenerateSource(morphGeo, targetCount, mode, weightMask));
+            bld.SetSlot(ShaderSlots.ApplyMorph, () => GenerateSource(morphGeo, targetCount, mode, weightMask));
 
             var unif = new MorphUniforms();
             var offsetsInitialized = false;
 
-            void SetOffset(ref MorphTarget target, VertexComponent component, uint offset)
+            void SetOffset(ref MorphTargetUniform target, VertexComponent component, uint offset)
             {
                 switch (component)
                 {
@@ -216,12 +190,12 @@ namespace XrEngine.Objects.Materials.Shaders
                 offsetsInitialized = true;
             }
 
-            bld.LoadBuffer<MorphUniforms>(ctx =>
+            bld.LoadBuffer<MorphUniforms>((ctx, ref update) =>
             {
                 var curVer = morphGeo.Host!.Version + morphMesh.MorphVersion;
 
                 if (ctx.CurrentBuffer!.Version == curVer)
-                    return null;
+                    return false;
 
                 if (!offsetsInitialized)
                     InitOffsets();
@@ -231,7 +205,9 @@ namespace XrEngine.Objects.Materials.Shaders
 
                 ctx.CurrentBuffer.Version = curVer;
 
-                return unif;
+                update.Value = unif;
+
+                return true;
 
             }, UniformsSlots.Morph, BufferStore.Model, BufferUsage.Uniforms);
         }

@@ -14,8 +14,7 @@
             return vertSrc != null &&
                    vertSrc.Materials.
                         OfType<ShaderMaterial>().
-                        Any(a => !(a.Alpha == AlphaMode.Opaque || a.Alpha == AlphaMode.BlendMain || a.Alpha == AlphaMode.Mask) ||
-                                  (a.Alpha == AlphaMode.Mask && a is not IVolumeMaterial));
+                        Any(a => !(a.Alpha == AlphaMode.Opaque || a.Alpha == AlphaMode.BlendMain || a.Alpha == AlphaMode.Mask));
         }
 
         protected override void NotifyChangedWork(Object3D sender, ObjectChange change)

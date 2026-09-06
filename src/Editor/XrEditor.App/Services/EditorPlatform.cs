@@ -5,10 +5,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Angle;
-using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
 using System.IO;
 using System.Net.NetworkInformation;

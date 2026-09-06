@@ -66,13 +66,15 @@ namespace XrEngine.Physics
             ToolMode = RigidBodyToolMode.KinematicTarget;
             TrackVelocityOnTool = true;
             UpdatePoseOnToolRelease = false;
+            DebugVisible = true;
+            SimulationDisabled = false;
         }
 
         public void Teleport(Vector3 worldPos)
         {
             Debug.Assert(_manager != null);
 
-            _host!.WorldPosition = worldPos;
+            _host.WorldPosition = worldPos;
             _lastPose = GetHostPose();
 
             _manager.Execute(() =>
@@ -165,8 +167,10 @@ namespace XrEngine.Physics
                 }
                 else if (collider is PyMeshCollider py)
                 {
-                    if (collider.Host is not TriangleMesh mesh)
-                        mesh = py.MeshObjects().OfType<TriangleMesh>().FirstOrDefault()!;
+                    var mesh = py.MeshObjects?.Invoke().OfType<TriangleMesh>().FirstOrDefault();
+
+                    if (mesh == null && collider.Host is TriangleMesh hostMesh)
+                        mesh = hostMesh;
 
                     var geo3d = mesh?.Geometry;
 
@@ -216,6 +220,12 @@ namespace XrEngine.Physics
                     result = _system.CreateBox(box.Size / 2 * scale);
                     pose.Position = box.Center * scale;
                 }
+                else if (collider is BoxColliderV2 box2)
+                {
+                    result = _system.CreateBox(box2.Size / 2 * scale);
+                    pose = box2.Pose;
+                    pose.Position *= scale;
+                }
             }
 
             return result;
@@ -248,7 +258,9 @@ namespace XrEngine.Physics
             {
                 shape.Tag = collider;
                 shape.LocalPose = pose;
-                shape.Flags |= PxShapeFlags.SceneQueryShape;
+                shape.SetFlag(PxShapeFlag.SceneQueryShape, true);
+                shape.SetFlag(PxShapeFlag.SimulationShape, !SimulationDisabled);
+                shape.SetFlag(PxShapeFlag.Visualization, DebugVisible);
             }
 
             return shape;
@@ -309,7 +321,7 @@ namespace XrEngine.Physics
 
             _host.Scene.TryComponent(out _manager);
 
-            _system = _manager?.System ?? 
+            _system = _manager?.System ??
                 throw new NotSupportedException("Add PhysicsManager to the scene");
 
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
@@ -367,7 +379,6 @@ namespace XrEngine.Physics
             _actor.NotifyContacts = _contactEvent != null;
             _actor.Contact += OnActorContact;
             _actor.Name = _host.Name ?? string.Empty;
-            _actor.ActorFlags = PxActorFlags.Visualization;
 
             UpdatePhysics();
 
@@ -405,9 +416,9 @@ namespace XrEngine.Physics
             if (Type != PhysicsActorType.Static)
             {
                 DynamicActor.ContactReportThreshold = ContactReportThreshold;
-                //TODO for some reason UpdateMassAndInertia fails
-                //var res = DynamicActor.UpdateMassAndInertia(Density);
+                DynamicActor.UpdateMassAndInertia(Density, SimulationDisabled);
                 DynamicActor.AngularDamping = AngularDamping;
+                DynamicActor.LinearDamping = LinearDamping;
                 DynamicActor.LockFlags = Lock;
                 DynamicActor.RetainAccelerations = RetainAccelerations;
             }
@@ -444,7 +455,7 @@ namespace XrEngine.Physics
 
         private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)
         {
-            _contactEvent?.Invoke(_host!, (Object3D)other.Tag!, otherIndex, data);
+            _contactEvent?.Invoke(_host, (Object3D)other.Tag!, otherIndex, data);
         }
 
         protected override void Update(RenderContext ctx)
@@ -579,6 +590,12 @@ namespace XrEngine.Physics
         }
 
         [Category("Advanced")]
+        public bool DebugVisible { get; set; }
+
+        [Category("Advanced")]
+        public bool SimulationDisabled { get; set; }
+
+        [Category("Advanced")]
         public float ContactReportThreshold { get; set; }
 
         [Category("Advanced")]
@@ -589,6 +606,9 @@ namespace XrEngine.Physics
 
         [Category("Advanced")]
         public bool EnableCCD { get; set; }
+
+        [Category("Advanced")]
+        public float LinearDamping { get; set; }
 
         [Category("Advanced")]
         public float AngularDamping { get; set; }

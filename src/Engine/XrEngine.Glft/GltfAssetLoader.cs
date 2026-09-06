@@ -1,4 +1,5 @@
 ﻿using System.Web;
+using XrEngine.Animation;
 
 namespace XrEngine.Gltf
 {
@@ -15,7 +16,7 @@ namespace XrEngine.Gltf
 
         GltfAssetLoader() { }
 
-        protected string GetFilePath(Uri uri)
+        protected static string GetFilePath(Uri uri)
         {
             if (uri.Scheme == "res" && uri.Host == "asset")
                 return Context.Require<IAssetStore>().GetPath(uri.LocalPath);
@@ -24,28 +25,34 @@ namespace XrEngine.Gltf
 
         public bool CanHandle(Uri uri, out Type assetType)
         {
-            if (uri.Scheme == "res" && uri.Host == "gltf")
+            if (uri.Scheme == "res" && uri.Host == "gltf" && uri.Segments.Length > 1)
             {
-                var seg = uri.Segments.FirstOrDefault();
-                if (seg == "/tex")
+                var seg = uri.Segments[1].TrimEnd('/');
+
+                switch (seg)
                 {
-                    assetType = typeof(Texture2D);
-                    return true;
-                }
-                if (seg == "/geo")
-                {
-                    assetType = typeof(Geometry3D);
-                    return true;
-                }
-                if (seg == "/mat")
-                {
-                    assetType = MaterialFactory.DefaultPbr;
-                    return true;
-                }
-                if (seg == "/mesh")
-                {
-                    assetType = typeof(Object3D);
-                    return true;
+                    case "tex":
+                        assetType = typeof(Texture2D);
+                        return true;
+                    case "geo":
+                        assetType = typeof(Geometry3D);
+                        return true;
+                    case "mat":
+                        assetType = MaterialFactory.DefaultPbr;
+                        return true;
+                    case "mesh":
+                    case "node":
+                        assetType = typeof(Object3D);
+                        return true;
+                    case "scene":
+                        assetType = typeof(Group3D);
+                        return true;
+                    case "light":
+                        assetType = typeof(Light);
+                        return true;
+                    case "anim":
+                        assetType = typeof(AnimationGroup);
+                        return true;
                 }
             }
 
@@ -73,13 +80,16 @@ namespace XrEngine.Gltf
 
             var lastEditTime = File.GetLastWriteTime(fsSrc);
 
-            if (!_cache.TryGetValue(fsSrc, out var cache) || lastEditTime > cache.LastEditTime)
+            if (!_cache.TryGetValue(fsSrc, out var cache) || lastEditTime != cache.LastEditTime)
             {
+                cache?.Loader?.Dispose();
+
                 cache = new GltfAssetCache
                 {
                     LastEditTime = lastEditTime,
                     Loader = new GltfLoader(a => Context.Require<IAssetStore>().GetPath(a))
                 };
+
                 cache.Loader.LoadModel(fsSrc, (GltfLoaderOptions?)options);
 
                 if (UseCache)
@@ -92,29 +102,49 @@ namespace XrEngine.Gltf
             {
                 var seg = uri.Segments[1].TrimEnd('/');
 
-                int meshId;
-
                 switch (seg)
                 {
                     case "tex":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        //TODO pass extensions
                         result = cache.Loader!.ProcessTextureTask(texId, null, (Texture2D?)destObj).Result;
                         break;
+
                     case "geo":
-                        meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
-                        var mesh = cache.Loader!.Model!.Meshes[meshId];
-                        result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj);
+                        var meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        var primId = int.Parse(uri.Segments[3].TrimEnd('/'));
+                        result = cache.Loader!.ProcessGeometry(meshId, primId, (Geometry3D?)destObj);
                         break;
+
                     case "mat":
                         var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMaterial(matId, (PbrMaterial?)destObj);
+                        result = cache.Loader!.ProcessMaterial(matId, null, (PbrMaterial?)destObj);
                         break;
+
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMesh(meshId, null, (TriangleMesh?)destObj);
+                        result = cache.Loader!.ProcessMesh(meshId, null, (Object3D?)destObj);
                         break;
+
+                    case "node":
+                        var nodeId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        result = cache.Loader!.ProcessNode(nodeId);
+                        break;
+
+                    case "scene":
+                        var sceneId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        result = cache.Loader!.ProcessScene(sceneId);
+                        break;
+
+                    case "light":
+                        var lightId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        result = cache.Loader!.ProcessLight(lightId, (Light?)destObj);
+                        break;
+
+                    case "anim":
+                        var animId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        result = cache.Loader!.ProcessAnimation(animId);
+                        break;
+
                     default:
                         throw new NotSupportedException();
                 }
@@ -126,11 +156,11 @@ namespace XrEngine.Gltf
                 result.AddComponent(new AssetSource
                 {
                     Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
-                            GltfAssetLoader.Instance,
-                            Path.GetFileName(uri.ToString())!,
-                            typeof(Group3D),
-                            uri,
-                            (GltfLoaderOptions?)options)
+                        Instance,
+                        Path.GetFileName(uri.ToString())!,
+                        typeof(Group3D),
+                        uri,
+                        (GltfLoaderOptions?)options)
                 });
             }
 

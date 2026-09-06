@@ -9,7 +9,7 @@
         [Action]
         public void Apply()
         {
-            foreach (var light in _host!.Children.OfType<DirectionalLight>())
+            foreach (var light in _host.Children.OfType<DirectionalLight>())
                 light.Invalidate();
         }
 

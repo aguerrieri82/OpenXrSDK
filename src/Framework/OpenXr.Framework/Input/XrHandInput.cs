@@ -26,11 +26,18 @@ namespace OpenXr.Framework
                 HandJointSet = HandJointSetEXT.DefaultExt
             };
 
+            Configure(ref info);
+
             using var cfg = _app.Configure(ref info);
 
             _app.CheckResult(_app._handTracking!.CreateHandTracker(_app.Session, in info, ref _tracker), "CreateHandTracker");
 
             _handType = hand;
+        }
+
+        protected virtual void Configure(ref HandTrackerCreateInfoEXT info)
+        {
+
         }
 
         public virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time)
@@ -75,7 +82,7 @@ namespace OpenXr.Framework
             _tracker.Handle = 0;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             Destroy();
             GC.SuppressFinalize(this);

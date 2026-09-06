@@ -103,7 +103,7 @@ namespace XrEngine.OpenGL
             if (draw.Object == _reflection.Host)
                 return false;
 
-            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
+            var target = draw.Object?.Components<IPlanarReflectionTarget>().FirstOrDefault();
             if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
                 return false;
 
@@ -132,7 +132,7 @@ namespace XrEngine.OpenGL
             ctx.PassCamera = _reflection.ReflectionCamera;
             ctx.ContextVersion++;
 
-            _passTarget.Configure(_reflection.Texture!);
+            _passTarget.Configure(_reflection.ActiveTexture!);
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);

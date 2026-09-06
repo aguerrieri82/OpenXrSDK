@@ -34,6 +34,7 @@ namespace XrEngine.OpenXr
             {
                 if (s.EndsWith(".vert"))
                     return Embedded.GetString<Object3D>(s);
+
                 return Embedded.GetString<GlDepthPointProvider>(s);
             });
 

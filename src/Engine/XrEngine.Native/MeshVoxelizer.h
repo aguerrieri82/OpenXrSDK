@@ -1,14 +1,5 @@
 #pragma once
 
-struct VertexData
-{
-	Vec3 Pos;
-	Vec3 Normal;
-	Vec2 UV;
-	Vec2 UV1;
-	Vec4 Tangent;
-};
-
 
 struct VoxelGridDesc
 {

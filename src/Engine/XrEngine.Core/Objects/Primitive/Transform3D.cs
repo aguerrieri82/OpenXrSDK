@@ -68,6 +68,7 @@ namespace XrEngine
             Version++;
         }
 
+        [Range(0.001f, 10, 0.1f)]
         public Vector3 Scale
         {
             get => _scale;
@@ -97,11 +98,12 @@ namespace XrEngine
 
                 _orientation = value;
                 _rotation = _orientation.ToEuler();
-                
+
                 NotifyChanged();
             }
         }
 
+        [Range(0.001f, 10, 0.01f)]
         public Vector3 Position
         {
             get => _position;
@@ -115,6 +117,7 @@ namespace XrEngine
             }
         }
 
+        [Range(0.001f, 10, 0.01f)]
         public Vector3 LocalPivot
         {
             get => _localPivot;
@@ -127,6 +130,7 @@ namespace XrEngine
             }
         }
 
+        [ValueType(ValueType.Radiant)]
         public Vector3 Rotation
         {
             get => _rotation;
@@ -148,7 +152,10 @@ namespace XrEngine
             _position = other.Position;
             _orientation = other.Orientation;
             _rotation = _orientation.ToEuler();
+            
             NotifyChanged();
+
+            Version++;
         }
 
         public void Set(Matrix4x4 matrix)
@@ -161,8 +168,7 @@ namespace XrEngine
             _rotation = _orientation.ToEuler();
             _matrix = matrix;
 
-            _host?.NotifyChanged(ChangeType.Transform);
-            Version++;
+            NotifyChanged();
         }
 
         public void Reset()
@@ -189,14 +195,13 @@ namespace XrEngine
             _host?.NotifyChanged(ChangeType.Transform);
         }
 
-
         public Matrix4x4 Matrix
         {
             get
             {
                 if (_isDirty)
                     Update();
-                return  _matrix;
+                return _matrix;
             }
             set
             {
@@ -216,7 +221,7 @@ namespace XrEngine
 
         public long Version { get; set; }
 
-        public Object3D Host => _host!;
+        public Object3D Host => _host;
 
         public const float POS_TOLLERANCE = 0.0001f;
         public const float SCALE_TOLLERANCE = 0.00001f;

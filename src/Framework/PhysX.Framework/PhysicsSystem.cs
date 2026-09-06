@@ -35,7 +35,7 @@ namespace PhysX.Framework
         {
             LengthTolerance = 1f;
             SpeedTolerance = 4;
-            DebugHost = "192.168.1.89";
+            DebugHost = "192.168.1.4";
             DebugPort = 5425;
             EnablePCM = true;
             EnableCCD = true;
@@ -64,7 +64,7 @@ namespace PhysX.Framework
 
     public unsafe class PhysicsSystem : IDisposable
     {
-        const uint VersionNumber = 0x05010200;
+        const uint VersionNumber = 0x05090000;
 
         protected static PxFoundation* _foundation;
         protected PxPvd* _pvd;
@@ -306,25 +306,23 @@ namespace PhysX.Framework
             switch (info.Type)
             {
                 case PhysicsActorType.Static:
-                    actor = (PxActor*)_physics->PhysPxCreateStatic1(&pxTrans, info.Shapes[0]);
+                    actor = (PxActor*)_physics->CreateRigidStaticMut(&pxTrans);
                     result = new PhysicsRigidStatic(actor, this);
                     break;
                 case PhysicsActorType.Dynamic:
                 case PhysicsActorType.Kinematic:
-                    actor = (PxActor*)_physics->PhysPxCreateDynamic1(&pxTrans, info.Shapes[0], info.Density);
+                    actor = (PxActor*)_physics->CreateRigidDynamicMut(&pxTrans);
                     result = new PhysicsRigidDynamic(actor, this);
                     break;
                 default:
                     throw new NotSupportedException($"{info.Type} not found");
             }
 
-            foreach (var shape in info.Shapes.Skip(1))
+            foreach (var shape in info.Shapes)
                 result.AddShape(shape);
 
-            /*
             if (info.Type != PhysicsActorType.Static)
                 ((PxRigidBody*)actor)->ExtUpdateMassAndInertia1(info.Density, null, true);
-            */
 
             _scene!.AddActor(result);
 

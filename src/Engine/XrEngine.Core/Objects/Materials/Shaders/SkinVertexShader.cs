@@ -1,18 +1,19 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     public static class SkinVertexShader
     {
         public static void UpdateShader(ShaderUpdateBuilder bld, bool isDynamic = false)
         {
-            if (!isDynamic && (bld.Context.Material == null || !bld.Context.Material!.HasSkin))
+            if (!isDynamic && (bld.Context.Material == null || !bld.Context.Material!.UseSkin))
                 return;
 
             bld.LoadBufferArray(ctx =>
             {
                 var mesh = bld.Context.Model?.Feature<ISkinnedMesh>();
 
-                if (mesh == null)
-                    return null;
+                Debug.Assert(mesh != null);
 
                 if (mesh.SkinMatricesVersion == ctx.CurrentBuffer!.Version)
                     return null;
@@ -21,7 +22,7 @@
 
                 return mesh.SkinMatrices;
 
-            }, BufferSlots.SkinMatrices, BufferStore.Model, BufferUsage.Uniforms);
+            }, BufferSlots.SkinMatrices, BufferStore.Model, BufferUsage.Uniforms, ctx => ctx.Material!.UseSkin);
         }
     }
 }

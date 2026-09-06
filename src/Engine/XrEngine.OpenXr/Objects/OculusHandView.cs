@@ -18,6 +18,7 @@ namespace XrEngine.OpenXr
         {
             CreateRigidBody = false;
             ShowHand = true;
+            UseCapsule = true;
         }
 
         protected override void Start(RenderContext ctx)
@@ -65,7 +66,7 @@ namespace XrEngine.OpenXr
             {
                 _input.LoadMesh();
 
-                if (ShowCapsule)
+                if (UseCapsule)
                 {
                     var capMaterial = (Material)MaterialFactory.CreatePbr(new Color(150 / 255f, 79 / 255f, 72 / 255f));
                     var capMaterial2 = (Material)MaterialFactory.CreatePbr(new Color(100 / 255f, 79 / 255f, 72 / 255f));
@@ -79,6 +80,8 @@ namespace XrEngine.OpenXr
                         var isTip = ((int)capsule.Joint + 1) % 5 == 0;
 
                         var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
+
+                        capMesh.IsVisible = ShowCapsule;
 
                         capMesh.AddComponent(new CapsuleCollider()
                         {
@@ -114,7 +117,7 @@ namespace XrEngine.OpenXr
 
             if (_isInit && _input != null && _input.IsActive)
             {
-                if (ShowCapsule)
+                if (UseCapsule)
                 {
                     for (var i = 0; i < _input.Capsules.Length; i++)
                     {
@@ -146,12 +149,27 @@ namespace XrEngine.OpenXr
             }
 
             if (_isInit)
-                IsVisible = _input != null && _input.IsActive;
+            {
+                var isVisible = _input != null && _input.IsActive;
+
+                if (isVisible && _input!.DataSource == HandTrackingDataSourceEXT.ControllerExt)
+                {
+                    var interactionProfile = HandType == HandEXT.LeftExt
+                        ? XrApp.Current.LeftIntProfile
+                        : XrApp.Current.RightIntProfile;
+
+                    isVisible = interactionProfile != null && !interactionProfile.Contains("hand", StringComparison.OrdinalIgnoreCase);
+                }
+
+                IsVisible = isVisible;
+            }
 
             base.UpdateSelf(ctx);
         }
 
         public bool ShowHand { get; set; }
+
+        public bool UseCapsule { get; set; }
 
         public bool ShowCapsule { get; set; }
 

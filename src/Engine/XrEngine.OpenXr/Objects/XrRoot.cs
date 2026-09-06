@@ -5,6 +5,7 @@ using System.Numerics;
 using XrEngine.Audio;
 using XrEngine.Gltf;
 using XrMath;
+using static XrEngine.Gltf.GltfLoader.KHR_lights_punctual;
 
 namespace XrEngine.OpenXr
 {
@@ -111,6 +112,9 @@ namespace XrEngine.OpenXr
 
             IXrInput? input = null;
 
+            bool isLeft = path.Contains("left");
+
+
             group.AddBehavior((_, ctx) =>
             {
                 input ??= _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
@@ -118,15 +122,16 @@ namespace XrEngine.OpenXr
                 if (input == null)
                     return;
 
+                var curProfile = isLeft ? _xrApp.LeftIntProfile : _xrApp.RightIntProfile;
+
                 if (input.IsChanged && input.IsActive)
                 {
                     var pose = (Pose3)input.Value;
                     group.WorldPosition = pose.Position;
                     group.WorldOrientation = pose.Orientation;
                 }
-                /*
-                if (model != null)
-                    model.IsVisible = input.IsActive;*/
+
+                model?.IsVisible = input.IsActive && (curProfile == null || !curProfile.Contains("hand"));
 
             });
 
@@ -148,11 +153,10 @@ namespace XrEngine.OpenXr
                 model.Name = "Controller";
 
                 model.Descendants<Joint3D>()
-                    .First(a=> a.Name!.EndsWith("oculus_controller_world"))
+                    .First(a => a.Name!.EndsWith("oculus_controller_world"))
                     .Transform.Orientation = Quaternion.Identity;
 
                 group.AddChild(model);
-
 
             }
 

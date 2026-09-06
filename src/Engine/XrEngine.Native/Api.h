@@ -1,17 +1,6 @@
 #pragma once
 
 
-enum class BCFormat : int32_t
-{
-    BC1 = 1,
-    BC2 = 2,
-    BC3 = 3,
-    BC4 = 4,
-    BC5 = 5,
-    BC6H = 6,
-    BC7 = 7
-};
-
 extern "C" {
 
 	EXPORT void APIENTRY CopyMemory2(uint8_t* src, uint8_t* dst, uint32_t size);
@@ -23,6 +12,13 @@ extern "C" {
 	EXPORT void APIENTRY SleepFor(uint64_t timeNs);
 
 	EXPORT uint64_t APIENTRY Now();
+
+
+    EXPORT void APIENTRY CompressVertices(const VertexData* src, CompVertexData* dst, int count, VertexComponent activeComponents, Bounds3 bounds);
+    
+    EXPORT void APIENTRY CompressIndices16(const uint32_t* src, uint16_t* dst, int count);
+    
+    EXPORT void APIENTRY CompressIndices8(const uint32_t* src, uint8_t* dst, int count);
 }
 
 
@@ -79,6 +75,10 @@ extern "C" {
 
 
     EXPORT bool APIENTRY ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, uint8_t* dst);
+
+    EXPORT bool APIENTRY BasisTranscodeKtx2(const void* data, uint32_t size, int format, BasisTexture* result);
+
+    EXPORT void APIENTRY BasisFreeTexture(BasisTexture* texture);
 }
 
 

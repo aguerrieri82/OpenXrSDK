@@ -16,7 +16,7 @@ namespace XrEngine.UI
         {
             var result = new Window3D();
 
-            _host!.AddChild(result);
+            _host.AddChild(result);
 
             result.Size = size;
             result.WorldPosition = position;

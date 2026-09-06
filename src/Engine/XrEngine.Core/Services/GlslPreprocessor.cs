@@ -14,10 +14,6 @@ public readonly struct GlslRuntimeDefine
         UniformName = string.IsNullOrWhiteSpace(uniformName) ? ToUniformName(symbol) : uniformName;
     }
 
-    public string Symbol { get; }
-
-    public string UniformName { get; }
-
     private static string ToUniformName(string symbol)
     {
         var result = new StringBuilder(symbol.Length + 1);
@@ -38,6 +34,20 @@ public readonly struct GlslRuntimeDefine
 
         return result.ToString();
     }
+
+    public string Symbol { get; }
+
+    public string UniformName { get; }
+
+}
+
+public sealed class GlslPreprocessorOptions
+{
+    public IReadOnlyList<string>? Defines;
+    public IReadOnlyList<GlslRuntimeDefine>? RuntimeDefines;
+    public IReadOnlyDictionary<string, string>? Slots;
+    public IReadOnlySet<string>? IncludeFiles;
+    public bool AllowRedefine;
 }
 
 public sealed class GlslPreprocessor
@@ -53,18 +63,21 @@ public sealed class GlslPreprocessor
 
     public int MaxIncludeDepth { get; set; } = 64;
 
-    public string Process(string sourceName, IReadOnlyList<string>? defines = null,
-        IReadOnlyList<GlslRuntimeDefine>? runtimeDefines = null, IReadOnlyDictionary<string, string>? slots = null)
+    public string Process(string sourceName, GlslPreprocessorOptions? options = null)
     {
         if (sourceName == null)
             throw new ArgumentNullException(nameof(sourceName));
 
         sourceName = NormalizePath(sourceName);
-        var context = new Context(this, sourceName, runtimeDefines, slots);
+        var context = new Context(this,
+            sourceName,
+            options?.RuntimeDefines,
+            options?.Slots,
+            options?.AllowRedefine ?? false);
 
-        if (defines != null)
+        if (options?.Defines != null)
         {
-            foreach (var define in defines)
+            foreach (var define in options.Defines)
             {
                 if (string.IsNullOrWhiteSpace(define))
                     continue;
@@ -73,7 +86,25 @@ public sealed class GlslPreprocessor
             }
         }
 
-        return context.Complete(context.ProcessFile(sourceName, 0));
+        var result = new StringBuilder();
+
+        if (options?.IncludeFiles != null)
+        {
+            var basePath = Path.GetDirectoryName(sourceName) ?? string.Empty;
+
+            foreach (var includeFile in options.IncludeFiles)
+            {
+                if (string.IsNullOrWhiteSpace(includeFile))
+                    continue;
+
+                var includePath = NormalizePath(Path.Join(basePath, includeFile));
+                result.Append(context.ProcessFile(includePath, 1));
+            }
+        }
+
+        result.Append(context.ProcessFile(sourceName, 0));
+
+        return context.Complete(result.ToString());
     }
 
     private static string NormalizePath(string path)
@@ -94,10 +125,17 @@ public sealed class GlslPreprocessor
         private int _nextFileId = 1;
         private int _version = 100;
 
-        public Context(GlslPreprocessor owner, string sourceName, IReadOnlyList<GlslRuntimeDefine>? runtimeDefines,
-            IReadOnlyDictionary<string, string>? slots)
+        private readonly bool _allowRedefine;
+
+        public Context(GlslPreprocessor owner,
+            string sourceName,
+            IReadOnlyList<GlslRuntimeDefine>? runtimeDefines,
+            IReadOnlyDictionary<string, string>? slots,
+            bool allowRedefine)
         {
             _owner = owner;
+            _allowRedefine = allowRedefine;
+
             _fileIds[sourceName] = 0;
 
             if (slots is { Count: > 0 })
@@ -213,6 +251,11 @@ public sealed class GlslPreprocessor
                                 Define(argument, fileName, logicalLine.LineNumber);
                             break;
 
+                        case "default":
+                            if (active)
+                                Default(argument, fileName, logicalLine.LineNumber);
+                            break;
+
                         case "undef":
                             if (active)
                                 Undef(argument, fileName, logicalLine.LineNumber);
@@ -222,7 +265,13 @@ public sealed class GlslPreprocessor
                             if (active)
                             {
                                 var includeName = ParseInclude(argument, fileId, logicalLine.LineNumber, fileName);
-                                var includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
+
+                                string includePath;
+
+                                if (includeName.StartsWith('['))
+                                    includePath = includeName;
+                                else
+                                    includePath = NormalizePath(Path.Join(Path.GetDirectoryName(fileName) ?? "", includeName));
 
                                 result.Append(ProcessFile(includePath, includeDepth + 1));
                             }
@@ -459,7 +508,7 @@ public sealed class GlslPreprocessor
             GlslScopeTracker scope)
         {
             if (_slots == null || !_slots.TryGetValue(name, out var source))
-                throw new GlslPreprocessorException(fileName, lineNumber, $"Slot '{name}' has no replacement.");
+                source = "";
 
             if (!_activeSlots.Add(name))
                 throw new GlslPreprocessorException(fileName, lineNumber, $"Recursive slot expansion detected for '{name}'.");
@@ -472,6 +521,19 @@ public sealed class GlslPreprocessor
             {
                 _activeSlots.Remove(name);
             }
+        }
+
+        private void Default(string definition, string fileName, int lineNumber)
+        {
+            var p = 0;
+            SkipHorizontalWhitespace(definition, ref p);
+
+            var name = ReadIdentifier(definition, ref p);
+            if (name.Length == 0)
+                throw new GlslPreprocessorException(fileName, lineNumber, "Invalid #default: macro name expected.");
+
+            if (!IsDefined(name))
+                Define(definition, fileName, lineNumber);
         }
 
         public void Define(string definition, string fileName, int lineNumber)
@@ -539,7 +601,7 @@ public sealed class GlslPreprocessor
             var body = p < definition.Length ? definition[p..] : string.Empty;
             var macro = new Macro(name, parameters, body);
 
-            if (_macros.TryGetValue(name, out var existing) && !MacroEquals(existing, macro))
+            if (_macros.TryGetValue(name, out var existing) && !MacroEquals(existing, macro) && !_allowRedefine)
                 throw new GlslPreprocessorException(fileName, lineNumber, $"Macro '{name}' redefined with a different value.");
 
             _macros[name] = macro;

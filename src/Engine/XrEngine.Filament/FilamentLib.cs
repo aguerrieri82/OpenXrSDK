@@ -328,7 +328,7 @@ namespace XrEngine.Filament
             public FlLightType Type;
             public float Intensity;
             public float FalloffRadius;
-            public Color Color;
+            public Vector4 Color;
             public Vector3 Direction;
             public Vector3 Position;
             [MarshalAs(UnmanagedType.U1)]
@@ -407,7 +407,7 @@ namespace XrEngine.Filament
             public TextureInfo MetallicRoughnessMap;
             public TextureInfo BaseColorMap;
             public TextureInfo EmissiveMap;
-            public Color Color;
+            public Vector4 Color;
             [MarshalAs(UnmanagedType.U1)]
             public bool ClearCoat;
             [MarshalAs(UnmanagedType.U1)]

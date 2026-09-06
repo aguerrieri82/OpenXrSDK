@@ -2,6 +2,6 @@
 {
     public interface IHeightMaterial : ITessellationMaterial
     {
-        public HeightMapSettings? HeightMap { get; set; }
+        public DisplacmentMapSettings? DisplacmentMap { get; set; }
     }
 }

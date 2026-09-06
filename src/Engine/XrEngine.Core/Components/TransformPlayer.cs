@@ -9,7 +9,7 @@
 
         protected override void ApplyFrame(TransformRecorder.TransformRecordFrame frame)
         {
-            _host.WorldMatrix = frame.WorldMatrix;  
+            _host.WorldMatrix = frame.WorldMatrix;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Numerics;
+
+namespace XrEngine
 {
     public enum DrawPrimitive
     {
@@ -23,8 +25,8 @@
         int RenderPriority { get; }
 
         int InstanceCount => 1;
-
     }
+
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource
         where TVertices : unmanaged
@@ -34,9 +36,6 @@
 
         TVertices[] Vertices { get; }
 
-        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices)
-        {
-
-        }
+        void NotifyBuffers(IBuffer<TVertices> vertices, IBuffer<TIndices>? indices) { }
     }
 }

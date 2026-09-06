@@ -31,12 +31,7 @@
             if (bld.Context.UseAngle)
                 bld.AddFeature("FLIP_Y");
 
-            bld.ExecuteAction((ctx, up) =>
-            {
-                if (Texture != null)
-                    up.LoadTextureFixSrgb(ctx, Texture, TextureSlots.Albedo);
-            });
-
+            bld.LoadTextureFixSrgb(() => (Texture2D?)Texture, 0);
         }
 
         [Notify(ChangeType.Render)]

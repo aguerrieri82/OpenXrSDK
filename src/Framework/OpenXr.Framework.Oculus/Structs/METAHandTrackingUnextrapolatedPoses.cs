@@ -1,7 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenXr.Framework.Oculus
 {
@@ -26,7 +23,6 @@ namespace OpenXr.Framework.Oculus
         public void* Next;
     }
 
-
     public unsafe struct HandTrackingUnextrapolatedPosesMETA
     {
         public HandTrackingUnextrapolatedPosesMETA()
@@ -35,7 +31,7 @@ namespace OpenXr.Framework.Oculus
         }
 
         public readonly StructureType Type;
-        
+
         public void* Next;
 
         public long CaptureTime;

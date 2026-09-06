@@ -9,7 +9,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlDefaultRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
+    public class GlDefaultRenderTarget : IGlRenderTargetFB
     {
         readonly GL _gl;
         private GlTexture? _color;
@@ -112,10 +112,7 @@ namespace XrEngine.OpenGL
             src.BindRead(ReadBufferMode.ColorAttachment0);
 
             if (dst == null)
-            {
-                GlState.Current.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
-                _gl.DrawBuffers(GlState.DRAW_BACK);
-            }
+                BindResolve();
             else
                 dst.BindDraw();
 
@@ -128,8 +125,13 @@ namespace XrEngine.OpenGL
 
             dst?.Unbind();
 
-            if (dst == null)
-                _isResolved = true;
+        }
+
+        public void BindResolve()
+        {
+            GlState.Current.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
+            _gl.DrawBuffers(GlState.DRAW_BACK);
+            _isResolved = true;
         }
 
         public void End(bool discardDepth)

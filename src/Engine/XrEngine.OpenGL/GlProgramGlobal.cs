@@ -4,10 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-using System.Numerics;
-using XrMath;
-
 namespace XrEngine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider, IDisposable
@@ -18,21 +14,15 @@ namespace XrEngine.OpenGL
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
-                       _tracker.IsChanged(() => ctx.IsSrgbTarget) ||
-                       _tracker.IsChanged(() => ctx.UseCopyDepth) ||
-                       _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox);
-
+                return ctx.Pass is GlColorPass && (
+                       _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
+                       _tracker.IsChanged(() => ctx.IsSrgbTarget));
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-
                 if (bld.Context.Bugs.NvMultiViewClipBug)
                     bld.AddFeature("NV_MULTI_VIEW_CLIP_BUG");
-
-                if (bld.Context.UsePrimitiveBoundingBox)
-                    bld.AddExtension("GL_EXT_primitive_bounding_box");
 
                 if (bld.Context.UseAngle)
                     bld.AddFeature("ANGLE");
@@ -48,29 +38,6 @@ namespace XrEngine.OpenGL
 
                 if (OpenGLRender.Current!.Options.UseHighQualitySrgb)
                     bld.AddFeature("HIGH_QUALITY_SRGB");
-
-                if (bld.Context.UseCopyDepth)
-                    bld.AddFeature("COPY_DEPTH");
-
-                if (bld.Context.CopyDepthImage != null && bld.Context.CopyDepthImage.Tag == null)
-                {
-                    bld.AddFeature("COPY_DEPTH_IMG");
-
-                    bld.ExecuteAction((ctx, up) =>
-                    {
-                        Debug.Assert(ctx.CopyDepthImage?.Tag == null);
-
-                        if (ctx.CopyDepthImage == null)
-                            return;
-
-                        up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, BufferAccessMode.Write);
-
-                        var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
-                        var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
-
-                        up.SetUniform("uDepthImageScale", scale);
-                    });
-                }
             }
         }
 
@@ -140,6 +107,7 @@ namespace XrEngine.OpenGL
         }
 
         public GlBufferRange<T> GetBufferRange<T>(int bufferId, BufferStore store, string uniformName)
+            where T : unmanaged
         {
             var rangeBuffers = store == BufferStore.Material ? _materialBufferRanges : _modelBufferRanges;
 
@@ -156,6 +124,7 @@ namespace XrEngine.OpenGL
         }
 
         public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = null)
+            where T : unmanaged
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
@@ -164,11 +133,24 @@ namespace XrEngine.OpenGL
 
             if (buffer == null)
             {
-                var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
+                if (usage == BufferUsage.SharedSsbo)
+                {
+                    uniformName ??= $"buf{bufferId}";
 
-                buffer = new GlBuffer<T>(_gl, target);
+                    var range = GetBufferRange<T>(bufferId, store, uniformName);
 
-                _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
+                    var rangeBuf = range.Reserve(Shader);
+
+                    return rangeBuf;
+                }
+                else
+                {
+                    var target = usage == BufferUsage.SSbo ? BufferTargetARB.ShaderStorageBuffer : BufferTargetARB.UniformBuffer;
+
+                    buffer = new GlBuffer<T>(_gl, target);
+
+                    _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
+                }
             }
             return buffer;
         }

@@ -1,9 +1,7 @@
 ﻿
 using System.Numerics;
 using XrEngine.Helpers;
-using XrEngine.Objects;
 using XrMath;
-
 
 namespace XrEngine
 {
@@ -59,7 +57,7 @@ namespace XrEngine
                 {
                     if (entry.Key >= _skinMatrices.Length)
                         continue;
-                    
+
                     var points = entry.Value.Points;
 
                     foreach (var p in points)
@@ -69,7 +67,6 @@ namespace XrEngine
 
             return builder.Result;
         }
-
 
         public Joint3D[]? Joints { get; set; }
 

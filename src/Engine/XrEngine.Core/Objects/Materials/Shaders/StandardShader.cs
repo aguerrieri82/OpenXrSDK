@@ -28,28 +28,36 @@ namespace XrEngine
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            bld.LoadBuffer(ctx =>
+            bld.LoadBuffer<ModelUniforms>((ctx, ref update) =>
             {
                 Debug.Assert(ctx.Model != null);
-
-                //Get the word matrix trigger the update
-                var modelWord = ctx.Model.WorldMatrix;
 
                 var curVersion = ctx.Model.Transform.Version;
 
                 var motVectActive = ctx.UseMotionVectors && ctx.MotionVectorProvider?.IsActive == true;
 
                 if (curVersion == ctx.CurrentBuffer!.Version && !motVectActive)
-                    return null;
+                    return false;
 
                 ctx.CurrentBuffer!.Version = curVersion;
 
-                return (ModelUniforms?)new ModelUniforms
+                var worldMatrix = ctx.Model.WorldMatrix;
+                var prevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? worldMatrix;
+
+                if (ctx.Model is ICompressedVertexSource cmp)
+                {
+                    worldMatrix = cmp.VerticesRemap * worldMatrix;
+                    prevWorldMatrix = cmp.VerticesRemap * prevWorldMatrix;
+                }
+
+                update.Value = new ModelUniforms
                 {
                     NormalMatrix = ctx.Model.NormalMatrix,
-                    PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.Model) ?? modelWord,
-                    WorldMatrix = modelWord
+                    PrevWorldMatrix = prevWorldMatrix,
+                    WorldMatrix = worldMatrix,
                 };
+
+                return true;    
 
             }, UniformsSlots.Model, BufferStore.Model,
                bld.Context.UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
@@ -57,18 +65,26 @@ namespace XrEngine
 
         bool IInstanceShader.NeedUpdate(Object3D model, long curVersion)
         {
-            //Get the word matrix trigger the update;
-            var wordMatrix = model.WorldMatrix;
+            model.EnsureTransformUpdate();
             return model.Transform.Version != curVersion;
         }
 
         unsafe long IInstanceShader.Update(UpdateShaderContext ctx, byte* destData, Object3D model, int drawId)
         {
+            var worldMatrix = model.WorldMatrix;
+            var prevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? worldMatrix;
+
+            if (model is ICompressedVertexSource cmp)
+            {
+                worldMatrix = cmp.VerticesRemap * worldMatrix;
+                prevWorldMatrix = cmp.VerticesRemap * prevWorldMatrix;
+            }
+
             *(ModelUniforms*)destData = new ModelUniforms
             {
                 NormalMatrix = model.NormalMatrix,
-                WorldMatrix = model.WorldMatrix,
-                PrevWorldMatrix = ctx.MotionVectorProvider?.GetPrevMatrix(model) ?? model.WorldMatrix,
+                WorldMatrix = worldMatrix,
+                PrevWorldMatrix = prevWorldMatrix,
                 DrawId = drawId
             };
 
@@ -81,7 +97,7 @@ namespace XrEngine
 
             var shadowMode = shadowOpt?.Mode ?? ShadowMapMode.None;
 
-            if (bld.Context.ClipRegions != null)
+            if (bld.Context.ClipRegions != null && bld.Context.ClipMode == ShaderClipMode.VertexClipCull )
             {
                 bld.AddExtension("GL_EXT_clip_cull_distance");
 
@@ -138,11 +154,11 @@ namespace XrEngine
                 });
             }
 
-            bld.LoadBuffer((ctx) =>
+            bld.LoadBuffer<CameraUniforms>((ctx, ref update) =>
             {
                 Debug.Assert(ctx.PassCamera != null);
 
-                var result = new CameraUniforms
+                update.Value = new CameraUniforms
                 {
                     ViewProj = ctx.PassCamera.ViewProjection,
                     Position = ctx.PassCamera.WorldPosition,
@@ -164,9 +180,9 @@ namespace XrEngine
 
                 var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
                 if (light != null)
-                    result.LightSpaceMatrix = light.Value;
+                    update.Value.LightSpaceMatrix = light.Value;
 
-                return (CameraUniforms?)result;
+                return true;
 
             }, UniformsSlots.Camera, BufferStore.Shader);
 
@@ -176,7 +192,7 @@ namespace XrEngine
             {
                 bld.AddFeature("MOTION_VECTORS");
 
-                if (bld.Context.CopyDepthImage?.Tag != null)
+                if (bld.Context.CopyDepthImage?.Tag is IMotionVectorProvider)
                     bld.AddFeature("MOTION_VECTORS_DEPTH");
 
                 bld.ExecuteAction((ctx, up) =>
@@ -189,7 +205,9 @@ namespace XrEngine
                         var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
 
                         up.SetUniform("uMotionImageScale", scale);
-                        up.LoadImage(texture, ImagesSlots.MotionVectors, BufferAccessMode.Write);
+
+                        up.LoadImage(texture, ImagesSlots.MotionVectors, ctx.UseManualDepthTest ?
+                            BufferAccessMode.Read : BufferAccessMode.Write);
                     }
 
                     var matrices = ctx.MotionVectorProvider?.GetPrevMatrix(ctx.PassCamera!);
@@ -203,18 +221,49 @@ namespace XrEngine
                     }
                 });
             }
+
+            if (bld.Context.UseCopyDepth)
+                bld.AddFeature("COPY_DEPTH");
+
+            if (bld.Context.UseManualDepthTest)
+                bld.AddFeature("MANUAL_DEPTH_TEST");
+
+            if (bld.Context.UsePrimitiveBoundingBox)
+                bld.AddExtension("GL_EXT_primitive_bounding_box");
+
+            if (bld.Context.CopyDepthImage != null && bld.Context.CopyDepthImage.Tag == null)
+            {
+                bld.AddFeature("COPY_DEPTH_IMG");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    Debug.Assert(ctx.CopyDepthImage?.Tag == null);
+
+                    if (ctx.CopyDepthImage == null)
+                        return;
+
+                    up.LoadImage(ctx.CopyDepthImage, ImagesSlots.Depth, ctx.UseManualDepthTest ?
+                        BufferAccessMode.Read : BufferAccessMode.Write);
+
+                    var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
+                    var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+
+                    up.SetUniform("uDepthImageScale", scale);
+                });
+            }
         }
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             return _tracker.IsChanged(() => ctx.UseMotionVectors) ||
+                   _tracker.IsChanged(() => ctx.UseManualDepthTest) ||
+                   _tracker.IsChanged(() => ctx.UsePrimitiveBoundingBox) ||
                    _tracker.IsChanged(() => ctx.CopyDepthImage?.Tag) ||
                    _tracker.IsChanged(() => ctx.ClipRegions != null && ctx.ClipRegions.Length > 0) ||
                    _tracker.IsChanged(() => ctx.MotionVectorProvider?.IsActive ?? false);
         }
 
         public static readonly StandardShader Instance = new();
-
 
         public bool UseMotionVectors { get; set; }
 

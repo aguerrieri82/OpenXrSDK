@@ -376,7 +376,7 @@ namespace XrEngine.Reconstruct
 
             var mesh = new TriangleMesh(geo);
 
-            using var vs = new GlVertexSourceHandler<VertexData, uint>(gl, mesh);
+            using var vs = new GlVertexSourceHandler<VertexData, uint, VertexData, uint>(gl, mesh);
 
             vs.Update();
 

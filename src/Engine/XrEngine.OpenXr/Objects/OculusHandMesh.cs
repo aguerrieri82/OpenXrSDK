@@ -3,7 +3,6 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
-using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -24,7 +23,7 @@ namespace XrEngine.OpenXr
             Materials.Add(new DepthOnlyMaterial()
             {
                 Skin = SkinMode.Static,
-                HasSkin = true,
+                UseSkin = true,
             });
 
             Materials.Add(new HandMaterial()
@@ -32,7 +31,7 @@ namespace XrEngine.OpenXr
                 Color = new Color(1, 1, 1, 0.15f),
                 WriteDepth = false,
                 Skin = SkinMode.Static,
-                HasSkin = true,
+                UseSkin = true,
                 Alpha = AlphaMode.Blend,
                 FadeStart = -0.051f,
                 FadeEnd = 0.015f,
@@ -47,7 +46,7 @@ namespace XrEngine.OpenXr
                 CullFront = true,
                 Priority = 2,
                 Skin = SkinMode.Static,
-                HasSkin = true,
+                UseSkin = true,
                 Alpha = AlphaMode.Blend,
                 NormalScale = 0.003f,
                 FadeStart = -0.051f,
@@ -76,7 +75,7 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(XrApp.Current != null);
 
-            var refFrame = XrApp.Current.ReferenceFrame.ToMatrix(); 
+            var refFrame = XrApp.Current.ReferenceFrame.ToMatrix();
 
             for (var i = 0; i < _skinMatrices.Length; i++)
             {

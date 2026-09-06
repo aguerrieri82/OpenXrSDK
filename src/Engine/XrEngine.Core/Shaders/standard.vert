@@ -2,7 +2,7 @@
 #include "Shared/position.glsl"
 #include "Shared/vertex_post.glsl"
 
-#ifdef HAS_SKIN
+#ifdef USE_SKIN
     #include "Shared/skin.glsl"
 #endif
 
@@ -15,6 +15,9 @@
     out vec2 fPlanarUv;
 #endif
  
+#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY)) && defined(HAS_TANGENTS) 
+    #define USE_TANGENTS
+#endif
 
 layout(location=0) in vec3 aPosition;
 layout(location=1) in vec3 aNormal;
@@ -41,7 +44,7 @@ out vec2 fUv;
     out vec3 fCameraPos; 
 #endif
 
-#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
+#ifdef USE_TANGENTS
     out mat3 fTangentBasis;
 #endif
 
@@ -49,7 +52,7 @@ out vec2 fUv;
     out vec4 fPosLightSpace;
 #endif
 
-#ifdef USE_HEIGHT_MAP
+#ifdef USE_DISPLACMENT_MAP
     out vec3 fOrigin;
 #endif
 
@@ -65,6 +68,8 @@ out vec2 fUv;
 #ifdef MOTION_VECTORS
     #include "shared/motion_vectors.glsl"
 #endif
+
+#slot VS_INCLUDES
 
 void main()
 {
@@ -97,13 +102,15 @@ void main()
         );
     #endif
 
-    #ifdef HAS_SKIN
+    #ifdef USE_SKIN
         skinTransform(position, normal);
     #endif
 
     #ifdef NORMAL_SCALE
         position += normalize(normal) * NORMAL_SCALE;
     #endif
+
+    #slot VERTEX_LOCAL_TRANSFORMS
 
     vec4 pos = worldMatrix * vec4(position, 1.0);
     vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
@@ -136,7 +143,7 @@ void main()
 	    fPosLightSpace = uCamera.lightSpaceMatrix * pos;
 	#endif
 
-    #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+    #ifdef USE_TANGENTS
         vec3 T = normalize(vec3(worldMatrix * vec4(tangent.xyz, 0.0)));
 	    vec3 B = cross(N, T) * tangent.w;
 

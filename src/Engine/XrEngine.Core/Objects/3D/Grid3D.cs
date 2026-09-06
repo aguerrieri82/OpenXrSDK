@@ -11,10 +11,11 @@ namespace XrEngine
             Build();
         }
 
-        protected override void CloneWork(Geometry3D result)
+        protected override void CloneWork(EngineObject result, ObjectCloneFlags flags)
         {
             var geo = (Grid3D)result;
             geo.Size = Size;
+            base.CloneWork(result, flags);
         }
 
         public void Build()

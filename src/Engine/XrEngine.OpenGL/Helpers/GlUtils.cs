@@ -100,8 +100,8 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgbFloat16 or
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
 
+                TextureFormat.Depth16 => PixelType.UnsignedShort,
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
-
                 TextureFormat.Depth32FloatStencil8 => PixelType.Float32UnsignedInt248Rev,
 
                 TextureFormat.Depth16 or

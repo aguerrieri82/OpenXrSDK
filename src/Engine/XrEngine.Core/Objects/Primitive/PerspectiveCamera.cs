@@ -13,9 +13,11 @@ namespace XrEngine
         {
         }
 
-        public PerspectiveCamera(bool isInit)
-            : base(isInit)
+        public PerspectiveCamera(bool mustInit)
+            : base(mustInit)
         {
+            if (mustInit)
+                FovDegree = 45;
         }
 
         public void SetFov(float left, float right, float top, float bottom)
@@ -33,17 +35,6 @@ namespace XrEngine
 
             FovDegree = fovDeg;
         }
-
-        /*
-        protected Vector2 GetFovDegrees()
-        {
-            return new Vector2
-            {
-                X = (2.0f * MathF.Atan(1.0f / _proj.M22)).ToDegrees(),
-                Y = (2.0f * MathF.Atan(1.0f / _proj.M11)).ToDegrees()
-            };
-        }
-        */
 
         protected override void BuildProjection()
         {
@@ -100,12 +91,11 @@ namespace XrEngine
             {
                 if (_fovDeg == value)
                     return;
-                _fovDeg = value;
 
+                _fovDeg = value;
                 _projDirty = true;
                 _viewProjDirty = true;
             }
         }
     }
-
 }

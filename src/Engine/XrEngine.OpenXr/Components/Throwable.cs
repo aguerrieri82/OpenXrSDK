@@ -112,7 +112,7 @@ namespace XrEngine.OpenXr
         {
             var localCoM = _body!.DynamicActor.CenterOfMassLocalPose.Position;
 
-            var worldCoM = _host!.ToWorld(localCoM);
+            var worldCoM = _host.ToWorld(localCoM);
 
             var radiusVector = worldCoM - worldPivot;
 

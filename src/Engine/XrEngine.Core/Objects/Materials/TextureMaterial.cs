@@ -73,8 +73,7 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 if (Texture != null)
-                    up.LoadTextureFixSrgb(ctx, Texture, TextureSlots.Albedo);
-
+                    up.LoadTextureFixSrgb(ctx, Texture, 0);
                 up.SetUniform("uColor", Color);
             });
         }

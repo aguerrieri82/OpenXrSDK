@@ -4,7 +4,10 @@
             "commandName": "Project",
             "nativeDebugging": false,
             "environmentVariables": {
-                "ANGLE_DUMP_SPIRV": "1"
+                "ANGLE_DUMP_SPIRV": "1",
+                "DOTNET_JitDisasmOnlyOptimized": "1",
+                "DOTNET_JitDisasm": "*BufferRangeSlot*:Update",
+                "DOTNET_JitStdOutFile": "d:\\jit.txt"
             }
         },
         "Native": {

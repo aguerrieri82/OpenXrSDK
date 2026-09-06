@@ -24,14 +24,20 @@ namespace PhysX.Framework
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         delegate void VoidDelegate(nint thisRef);
 
+        readonly OnContactModifyDelegate _onContactModify;
+        readonly VoidDelegate _destructor;
+
         public ContactModifyCallback()
         {
+            _onContactModify = OnContactModify;
+            _destructor = Distructor;
+
             _handler = (PxContactModifyCallback*)Marshal.AllocHGlobal(sizeof(PxSimulationEventCallback));
 
             _handler->vtable_ = (void*)Marshal.AllocHGlobal(2 * sizeof(nint));
 
-            ((nint*)_handler->vtable_)[0] = Marshal.GetFunctionPointerForDelegate((OnContactModifyDelegate)OnContactModify);
-            ((nint*)_handler->vtable_)[1] = Marshal.GetFunctionPointerForDelegate((VoidDelegate)Distructor);
+            ((nint*)_handler->vtable_)[0] = Marshal.GetFunctionPointerForDelegate(_onContactModify);
+            ((nint*)_handler->vtable_)[1] = Marshal.GetFunctionPointerForDelegate(_destructor);
         }
 
         protected static void OnContactModify(nint thisRef, PxContactModifyPair2* pairs, uint count)

@@ -8,6 +8,9 @@
 
         public PhysicsObject(T* handle, PhysicsSystem system)
         {
+            if (handle == null)
+                throw new InvalidOperationException($"Handle is null for {typeof(T).Name}");
+
             _handle = handle;
             _system = system;
             _system.RegisterObject(handle, this);

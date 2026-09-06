@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XR Android Benchmark Comparison</title>
+<style>
+:root { color-scheme: dark; --bg:#09101d; --panel:#101a2c; --panel2:#142138; --line:#2a3954; --text:#e8eef9; --muted:#91a0b9; --a:#35c8ff; --b:#ffad42; --good:#4ed69c; --warn:#ffbd59; --bad:#ff6b7a; }
+* { box-sizing:border-box; }
+body { margin:0; background:radial-gradient(circle at 50% -20%,#1c3154 0,var(--bg) 45%); color:var(--text); font:14px/1.45 Inter,Segoe UI,Arial,sans-serif; }
+.page { max-width:1500px; margin:auto; padding:28px; }
+h1 { margin:0; font-size:26px; letter-spacing:.02em; }
+.subtitle { color:var(--muted); margin:4px 0 24px; }
+.panel { background:linear-gradient(145deg,rgba(20,33,56,.96),rgba(13,23,40,.96)); border:1px solid var(--line); border-radius:14px; box-shadow:0 18px 45px #0005; padding:18px; margin-bottom:16px; }
+.controls { display:grid; grid-template-columns:1fr 1fr 240px 280px; gap:14px; }
+label { display:block; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+select { width:100%; color:var(--text); background:#0b1424; border:1px solid #344866; border-radius:8px; padding:10px 12px; outline:none; }
+select:focus { border-color:#6fcfff; box-shadow:0 0 0 3px #35c8ff22; }
+.status-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px; }
+.badge { border-radius:999px; padding:6px 11px; font-size:12px; font-weight:800; letter-spacing:.04em; }
+.same { color:#071b14; background:var(--good); }
+.different { color:#241400; background:var(--warn); }
+.invalid { color:#2a080d; background:var(--bad); }
+.muted { color:var(--muted); }
+.summary { display:grid; grid-template-columns:1.45fr repeat(4,1fr); gap:10px; }
+.verdict { border-left:4px solid var(--good); padding:13px 15px; background:#0c1727; border-radius:9px; }
+.verdict.warn { border-color:var(--warn); }
+.verdict.bad { border-color:var(--bad); }
+.verdict-title { font-size:17px; font-weight:900; }
+.metric { background:#0c1727; border:1px solid #253651; padding:12px; border-radius:9px; }
+.metric-name { color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:800; }
+.metric-value { font-size:21px; font-weight:850; margin-top:3px; font-variant-numeric:tabular-nums; }
+.metric-delta { color:var(--muted); font-size:12px; }
+.chart-head { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:8px; }
+.chart-head h2, .settings h2 { margin:0; font-size:17px; }
+.legend { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; }
+.legend label { display:flex; align-items:center; gap:6px; margin:0; color:var(--text); text-transform:none; letter-spacing:0; cursor:pointer; }
+.swatch { width:18px; height:3px; border-radius:2px; }
+.dash { background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 8px)!important; }
+.chart-wrap { position:relative; height:520px; }
+canvas { width:100%; height:100%; display:block; }
+.tooltip { position:absolute; display:none; pointer-events:none; min-width:230px; padding:10px 12px; border:1px solid #49617f; background:#07101eee; box-shadow:0 8px 30px #000a; border-radius:8px; font-size:12px; font-variant-numeric:tabular-nums; }
+.tooltip strong { display:block; margin-bottom:5px; }
+.tip-row { display:flex; justify-content:space-between; gap:18px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th,td { text-align:left; border-bottom:1px solid #263650; padding:8px 10px; vertical-align:top; }
+th { color:var(--muted); font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+td { font-family:Cascadia Code,Consolas,monospace; font-size:12px; word-break:break-word; }
+.a { color:var(--a); } .b { color:var(--b); }
+.empty { color:var(--muted); padding:16px 0; }
+@media (max-width:950px) { .controls,.summary,.grid2 { grid-template-columns:1fr; } .chart-wrap { height:420px; } .legend { justify-content:flex-start; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <h1>XR Android Benchmark Comparison</h1>
+  <div class="subtitle">Compare two settings runs across the complete camera movement.</div>
+
+  <section class="panel">
+    <div class="controls">
+      <div><label for="runA">Run A</label><select id="runA"></select></div>
+      <div><label for="runB">Run B</label><select id="runB"></select></div>
+      <div><label for="loop">Camera loop</label><select id="loop"></select></div>
+      <div><label for="indicator">Chart indicator</label><select id="indicator"></select></div>
+    </div>
+    <div class="status-row"><span id="settingsBadge" class="badge"></span><span id="environmentBadge" class="badge"></span><span id="runInfo" class="muted"></span></div>
+  </section>
+
+  <section class="panel summary" id="summary"></section>
+
+  <section class="panel">
+    <div class="chart-head">
+      <div><h2 id="chartTitle">Performance through camera movement</h2><div class="muted">X-axis is normalized loop progress.</div></div>
+      <div class="legend">
+        <label><input type="checkbox" data-series="runA" checked><i class="swatch" style="background:var(--a)"></i>Run A</label>
+        <label><input type="checkbox" data-series="runB" checked><i class="swatch" style="background:var(--b)"></i>Run B</label>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas><div id="tooltip" class="tooltip"></div></div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel settings"><h2>Parameter differences</h2><div id="settingsDiff"></div></section>
+    <section class="panel settings"><h2>Run details</h2><div id="runDetails"></div></section>
+  </div>
+</main>
+
+<script>
+const embeddedDataBase64 = '__BENCHMARK_DATA_BASE64__';
+const runs = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(embeddedDataBase64), c => c.charCodeAt(0))))
+  .sort((a,b) => String(a.startedAtUtc).localeCompare(String(b.startedAtUtc)));
+const $ = id => document.getElementById(id);
+const colors = { runA:'#35c8ff', runB:'#ffad42', budget:'#ff6b7a' };
+const storageKey = 'xrAndroidBenchmarkReport.v1';
+const preferredIndicators = ['cpuAndGpuMs','appGpuMs','engineFrameGpuMs','gpuUtilizationPercent','cpuUtilizationPercent','worstCpuUtilizationPercent','fps','displayRefreshHz','predictionMs','timeWarpGpuMs'];
+let chartState = null;
+let savedState = loadState();
+
+function loadState() { try { return JSON.parse(localStorage.getItem(storageKey))??{}; } catch { return {}; } }
+function saveState() {
+  const [a,b]=selectedRuns();
+  savedState={runAId:a?.runId,runBId:b?.runId,loop:$('loop').value,indicator:$('indicator').value,series:Object.fromEntries([...document.querySelectorAll('[data-series]')].map(input=>[input.dataset.series,input.checked]))};
+  try { localStorage.setItem(storageKey,JSON.stringify(savedState)); } catch {}
+}
+
+function sampleName(run) { return run?.parameters?.settings?.SampleName ?? run?.parameters?.settings?.sampleName ?? 'Unknown'; }
+function runLabel(run) {
+  const date = new Date(run.startedAtUtc);
+  const when = Number.isNaN(date.valueOf()) ? run.runId : date.toLocaleString();
+  return `${sampleName(run)} · ${String(run.combinationId).slice(0,8)} · ${when}`;
+}
+function addRunOptions(select) {
+  select.replaceChildren();
+  runs.forEach((run,index) => { const option = document.createElement('option'); option.value = index; option.textContent = runLabel(run); select.append(option); });
+}
+addRunOptions($('runA')); addRunOptions($('runB'));
+function restoreRun(select,id,fallback) { const index=runs.findIndex(run=>run.runId===id); select.value=index>=0?index:fallback; }
+restoreRun($('runA'),savedState.runAId,Math.max(0,runs.length-2));
+restoreRun($('runB'),savedState.runBId,Math.max(0,runs.length-1));
+document.querySelectorAll('[data-series]').forEach(input=>{if(typeof savedState.series?.[input.dataset.series]==='boolean')input.checked=savedState.series[input.dataset.series];});
+
+function selectedRuns() { return [runs[Number($('runA').value)], runs[Number($('runB').value)]]; }
+function completedLoops(run) { return (run?.loops ?? []).filter(loop => loop.completed && loop.finishedAtEpoch > loop.startedAtEpoch); }
+function updateLoopOptions() {
+  const [a,b] = selectedRuns();
+  const selected = $('loop').value || savedState.loop || 'average';
+  const numbers = [...new Set([...completedLoops(a),...completedLoops(b)].map(loop => loop.number))].sort((x,y) => x-y);
+  $('loop').replaceChildren(new Option('Average of measured loops','average'));
+  numbers.forEach(number => {
+    const warmup = completedLoops(a).find(x => x.number === number)?.warmup || completedLoops(b).find(x => x.number === number)?.warmup;
+    $('loop').append(new Option(`Loop ${number}${warmup ? ' · warm-up' : ''}`,String(number)));
+  });
+  $('loop').value = [...$('loop').options].some(option => option.value === selected) ? selected : 'average';
+}
+
+function loopsForView(run) {
+  const loops = completedLoops(run);
+  return $('loop').value === 'average' ? loops.filter(loop => !loop.warmup) : loops.filter(loop => loop.number === Number($('loop').value));
+}
+function indicatorLabel(name) { return name.replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/\b\w/g,letter=>letter.toUpperCase()).replace('Cpu','CPU').replace('Gpu','GPU').replace('Fps','FPS').replace('Asw','ASW').replace('Vsync','VSync').replace('Dpu','DPU').replace('Dvfs','DVFS').replace('P95','P95'); }
+function indicatorUnit(name) {
+  if(name.endsWith('Ms'))return 'ms'; if(name.endsWith('Percent'))return '%'; if(name.endsWith('MHz'))return 'MHz';
+  if(name.endsWith('TemperatureC'))return '°C'; if(name.endsWith('MemoryMb'))return 'MB'; if(name.endsWith('Hz')||name.endsWith('Fps')||name==='fps')return 'fps'; return '';
+}
+function questIndicatorValue(sample,name) {
+  const value=sample?.indicators?.[name];
+  return Number.isFinite(value)?value:null;
+}
+function sampleValue(sample,indicator) { return indicator==='engineFrameGpuMs' ? sample?.frameGpuMs : questIndicatorValue(sample,indicator); }
+function populateIndicators() {
+  const names=new Set(['engineFrameGpuMs']);
+  runs.flatMap(run=>run.loops??[]).flatMap(loop=>loop.questSamples??[]).forEach(sample=>{
+    Object.keys(sample.indicators??{}).forEach(name=>names.add(name));
+  });
+  const ordered=[...preferredIndicators.filter(name=>names.has(name)),...[...names].filter(name=>!preferredIndicators.includes(name)).sort((a,b)=>indicatorLabel(a).localeCompare(indicatorLabel(b)))];
+  $('indicator').replaceChildren(...ordered.map(name=>new Option(`${indicatorLabel(name)}${indicatorUnit(name)?` (${indicatorUnit(name)})`:''}`,name)));
+  $('indicator').value=ordered.includes(savedState.indicator)?savedState.indicator:(ordered.includes('cpuAndGpuMs')?'cpuAndGpuMs':ordered[0]);
+}
+populateIndicators();
+function pointsForLoop(loop, indicator) {
+  const source = indicator === 'engineFrameGpuMs' ? loop.engineSamples ?? [] : loop.questSamples ?? [];
+  const duration = loop.finishedAtEpoch - loop.startedAtEpoch;
+  if (!(duration > 0)) return [];
+  return source.filter(sample => Number.isFinite(sample.timestampEpoch) && Number.isFinite(sampleValue(sample,indicator)))
+    .map(sample => ({ x:100 * (sample.timestampEpoch-loop.startedAtEpoch)/duration, y:sampleValue(sample,indicator), sample }))
+    .filter(point => point.x >= 0 && point.x <= 100).sort((a,b) => a.x-b.x);
+}
+function interpolate(points,x) {
+  if (!points.length || x < points[0].x || x > points.at(-1).x) return null;
+  let high = points.findIndex(point => point.x >= x);
+  if (high <= 0) return points[0].y;
+  const left = points[high-1], right = points[high];
+  if (right.x === left.x) return right.y;
+  return left.y + (right.y-left.y) * ((x-left.x)/(right.x-left.x));
+}
+function curve(run,indicator) {
+  const loopPoints = loopsForView(run).map(loop => pointsForLoop(loop,indicator)).filter(points => points.length);
+  return Array.from({length:201},(_,index) => {
+    const x = index/2;
+    const values = loopPoints.map(points => interpolate(points,x)).filter(Number.isFinite);
+    return { x, y:values.length ? values.reduce((sum,value)=>sum+value,0)/values.length : null };
+  });
+}
+function valuesForView(run,kind) {
+  const indicator=kind==='engine'?'engineFrameGpuMs':'appGpuMs', collection=kind==='engine'?'engineSamples':'questSamples';
+  return loopsForView(run).flatMap(loop=>loop[collection]??[]).map(sample=>sampleValue(sample,indicator)).filter(Number.isFinite);
+}
+function stats(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a,b)=>a-b), middle = Math.floor(sorted.length/2);
+  return { average:values.reduce((a,b)=>a+b,0)/values.length, median:sorted.length%2 ? sorted[middle] : (sorted[middle-1]+sorted[middle])/2,
+    p95:sorted[Math.max(0,Math.ceil(sorted.length*.95)-1)], min:sorted[0], max:sorted.at(-1), count:sorted.length };
+}
+const ms = value => Number.isFinite(value) ? `${value.toFixed(3)} ms` : '--';
+const percent = value => Number.isFinite(value) ? `${value >= 0 ? '+' : ''}${value.toFixed(1)}%` : '--';
+function metric(name,a,b,lower=true,absoluteDelta=false) {
+  const difference = Number.isFinite(a) && Number.isFinite(b) ? b-a : null;
+  const delta = Number.isFinite(difference) && a !== 0 ? 100*difference/a : null;
+  const favorable = Number.isFinite(difference) && (lower ? difference < 0 : difference > 0);
+  const insignificant = absoluteDelta ? Math.abs(difference ?? 0)<.001 : Math.abs(delta ?? 0)<2;
+  const deltaText = absoluteDelta ? (Number.isFinite(difference) ? `${difference>=0?'+':''}${difference.toFixed(3)} ms` : '--') : percent(delta);
+  return `<div class="metric"><div class="metric-name">${name}</div><div class="metric-value"><span class="a">${ms(a)}</span> / <span class="b">${ms(b)}</span></div><div class="metric-delta" style="color:${insignificant?'var(--muted)':favorable?'var(--good)':'var(--bad)'}">B vs A ${deltaText}</div></div>`;
+}
+
+function comparableEnvironment(a,b) {
+  const fields = ['deviceSerial','deviceModel','appVersion','targetFps','applicationTargetFps','aswEnabled','aswType','gpuLevel'];
+  return fields.filter(field => a?.environment?.[field] != b?.environment?.[field]);
+}
+function renderStatus(a,b) {
+  const same = a.combinationId === b.combinationId;
+  const badge = $('settingsBadge');
+  badge.className = `badge ${same?'same':'different'}`;
+  badge.textContent = same ? 'SAME PARAMETERS · REPEATED RUN' : 'DIFFERENT PARAMETERS · COMPARISON';
+  const differences = comparableEnvironment(a,b), environment = $('environmentBadge');
+  environment.className = `badge ${differences.length?'invalid':'same'}`;
+  environment.textContent = differences.length ? `ENVIRONMENT DIFFERS · ${differences.join(', ')}` : 'MATCHING ENVIRONMENT';
+  $('runInfo').textContent = `${loopsForView(a).length} loop(s) in A · ${loopsForView(b).length} loop(s) in B`;
+}
+function fasterCoverage(aCurve,bCurve) {
+  let a=0,b=0,total=0;
+  for (let index=0;index<aCurve.length;index++) if (Number.isFinite(aCurve[index].y) && Number.isFinite(bCurve[index].y)) {
+    total++; if (aCurve[index].y < bCurve[index].y) a++; else if (bCurve[index].y < aCurve[index].y) b++;
+  }
+  return { a:total?100*a/total:0, b:total?100*b/total:0 };
+}
+function renderSummary(a,b,curves) {
+  const ea=stats(valuesForView(a,'engine')), eb=stats(valuesForView(b,'engine'));
+  const qa=stats(valuesForView(a,'quest')), qb=stats(valuesForView(b,'quest'));
+  const delta = ea && eb && ea.p95 ? 100*(eb.p95-ea.p95)/ea.p95 : null;
+  const coverage = fasterCoverage(curves.engineA,curves.engineB);
+  let title='INSUFFICIENT DATA', detail='Both selected runs need samples for this view.', css='warn';
+  if (Number.isFinite(delta)) {
+    if (Math.abs(delta)<2) { title='NO SIGNIFICANT DIFFERENCE'; detail=`Engine P95 differs by ${Math.abs(delta).toFixed(1)}%, within the 2% comparison threshold.`; }
+    else if (delta<0) { title='RUN B PERFORMED BETTER'; detail=`Engine P95 improved by ${Math.abs(delta).toFixed(1)}%. B is faster over ${coverage.b.toFixed(0)}% of comparable camera positions.`; css=''; }
+    else { const improvement=100*(eb.p95-ea.p95)/eb.p95; title='RUN A PERFORMED BETTER'; detail=`Engine P95 is ${improvement.toFixed(1)}% lower. A is faster over ${coverage.a.toFixed(0)}% of comparable camera positions.`; css=''; }
+  }
+  if (comparableEnvironment(a,b).length) { detail += ' Treat this result as non-comparable because the runtime environment differs.'; css='bad'; }
+  const budgetA = a.overall?.frameBudgetMs, budgetB = b.overall?.frameBudgetMs;
+  $('summary').innerHTML = `<div class="verdict ${css}"><div class="verdict-title">${title}</div><div class="muted">${detail}</div></div>`+
+    metric('Engine P95',ea?.p95,eb?.p95)+metric('Quest P95',qa?.p95,qb?.p95)+metric('Engine average',ea?.average,eb?.average)+
+    metric('P95 headroom',Number.isFinite(budgetA)&&ea?budgetA-ea.p95:null,Number.isFinite(budgetB)&&eb?budgetB-eb.p95:null,false,true);
+}
+
+function flatten(value,prefix='',target={}) {
+  if (value && typeof value==='object' && !Array.isArray(value)) Object.keys(value).sort().forEach(key => flatten(value[key],prefix?`${prefix}.${key}`:key,target));
+  else target[prefix]=value;
+  return target;
+}
+function comparisonParameters(run) {
+  const parameters=run.parameters??{};
+  return { settings:parameters.settings??{}, benchmark:{ gpuLevel:parameters.gpuLevel, disableDynamicFoveation:parameters.disableDynamicFoveation, disableProximitySensor:parameters.disableProximitySensor, compositorSkipRenderingMilliseconds:parameters.compositorSkipRenderingMilliseconds } };
+}
+function renderSettings(a,b) {
+  const left=flatten(comparisonParameters(a)), right=flatten(comparisonParameters(b)), keys=[...new Set([...Object.keys(left),...Object.keys(right)])];
+  const changed=keys.filter(key=>JSON.stringify(left[key])!==JSON.stringify(right[key]));
+  const host=$('settingsDiff'); host.replaceChildren();
+  if (!changed.length) { const text=document.createElement('div'); text.className='empty'; text.textContent='The effective game and benchmark parameters are identical.'; host.append(text); return; }
+  const table=document.createElement('table'), head=table.createTHead().insertRow(); ['Setting','Run A','Run B'].forEach(value=>{const th=document.createElement('th');th.textContent=value;head.append(th);});
+  const body=table.createTBody(); changed.forEach(key=>{const row=body.insertRow(); [key,left[key],right[key]].forEach((value,index)=>{const cell=row.insertCell();cell.textContent=value===undefined?'(missing)':JSON.stringify(value);if(index===1)cell.className='a';if(index===2)cell.className='b';});}); host.append(table);
+}
+function renderDetails(a,b) {
+  const rows=[['Run ID',a.runId,b.runId],['Started',a.startedAtUtc,b.startedAtUtc],['Combination',a.combinationId,b.combinationId],['Device',a.environment?.deviceModel,b.environment?.deviceModel],['App version',a.environment?.appVersion,b.environment?.appVersion],['Target FPS',a.environment?.targetFps,b.environment?.targetFps],['GPU level requested',a.parameters?.gpuLevel,b.parameters?.gpuLevel],['GPU level observed',a.environment?.gpuLevel,b.environment?.gpuLevel],['Dynamic foveation disabled',a.parameters?.disableDynamicFoveation,b.parameters?.disableDynamicFoveation],['Proximity sensor disabled',a.parameters?.disableProximitySensor,b.parameters?.disableProximitySensor],['TimeWarp disabled (ms)',a.parameters?.compositorSkipRenderingMilliseconds,b.parameters?.compositorSkipRenderingMilliseconds]];
+  const host=$('runDetails'); host.replaceChildren(); const table=document.createElement('table'), head=table.createTHead().insertRow();
+  ['Field','Run A','Run B'].forEach(value=>{const th=document.createElement('th');th.textContent=value;head.append(th);}); const body=table.createTBody();
+  rows.forEach(values=>{const row=body.insertRow();values.forEach((value,index)=>{const cell=row.insertCell();cell.textContent=value??'--';if(index===1)cell.className='a';if(index===2)cell.className='b';});}); host.append(table);
+}
+
+function formatIndicatorValue(value,unit) { return Number.isFinite(value)?`${value.toFixed(unit==='ms'?3:unit==='%'?1:2)}${unit?` ${unit}`:''}`:'--'; }
+function drawChart(curves,budget,indicator) {
+  const canvas=$('chart'), rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  canvas.width=Math.round(rect.width*dpr); canvas.height=Math.round(rect.height*dpr); const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const width=rect.width,height=rect.height,plot={left:68,right:24,top:20,bottom:46}; plot.width=width-plot.left-plot.right; plot.height=height-plot.top-plot.bottom;
+  const enabled=Object.fromEntries([...document.querySelectorAll('[data-series]')].map(input=>[input.dataset.series,input.checked]));
+  const values=Object.entries(curves).filter(([key])=>enabled[key]).flatMap(([,points])=>points.map(point=>point.y)).filter(Number.isFinite);
+  const unit=indicatorUnit(indicator), showBudget=unit==='ms'&&['cpuAndGpuMs','appGpuMs','engineFrameGpuMs'].includes(indicator);
+  if (showBudget&&Number.isFinite(budget)) values.push(budget); const yMax=Math.max(1,...values)*1.12;
+  const sx=x=>plot.left+plot.width*x/100, sy=y=>plot.top+plot.height*(1-y/yMax);
+  ctx.clearRect(0,0,width,height); ctx.font='12px Segoe UI'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){const y=yMax*i/5,py=sy(y);ctx.strokeStyle='#263650';ctx.beginPath();ctx.moveTo(plot.left,py);ctx.lineTo(width-plot.right,py);ctx.stroke();ctx.fillStyle='#91a0b9';ctx.textAlign='right';ctx.fillText(formatIndicatorValue(y,unit),plot.left-10,py+4);}
+  for(let i=0;i<=4;i++){const x=i*25,px=sx(x);ctx.strokeStyle='#1d2c44';ctx.beginPath();ctx.moveTo(px,plot.top);ctx.lineTo(px,height-plot.bottom);ctx.stroke();ctx.fillStyle='#91a0b9';ctx.textAlign='center';ctx.fillText(`${x}%`,px,height-17);}
+  if(showBudget&&Number.isFinite(budget)){ctx.strokeStyle=colors.budget;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(plot.left,sy(budget));ctx.lineTo(width-plot.right,sy(budget));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=colors.budget;ctx.textAlign='right';ctx.fillText(`budget ${budget.toFixed(3)} ms`,width-plot.right,sy(budget)-6);}
+  Object.entries(curves).forEach(([key,points])=>{if(!enabled[key])return;ctx.strokeStyle=colors[key];ctx.lineWidth=2.6;ctx.setLineDash([]);ctx.beginPath();let active=false;points.forEach(point=>{if(!Number.isFinite(point.y)){active=false;return;}const x=sx(point.x),y=sy(point.y);active?ctx.lineTo(x,y):ctx.moveTo(x,y);active=true;});ctx.stroke();});
+  chartState={curves,plot,sx,sy,width,height,unit};
+}
+function showTooltip(event) {
+  if(!chartState)return; const rect=$('chart').getBoundingClientRect(),mouseX=event.clientX-rect.left,x=Math.max(0,Math.min(100,100*(mouseX-chartState.plot.left)/chartState.plot.width)),index=Math.round(x*2);
+  const rows=[['Run A',chartState.curves.runA[index]?.y],['Run B',chartState.curves.runB[index]?.y]];
+  const tip=$('tooltip');tip.innerHTML=`<strong>Camera progress ${x.toFixed(1)}%</strong>`+rows.map(([name,value])=>`<div class="tip-row"><span>${name}</span><span>${formatIndicatorValue(value,chartState.unit)}</span></div>`).join('');tip.style.display='block';tip.style.left=`${Math.min(rect.width-245,Math.max(8,mouseX+14))}px`;tip.style.top=`${Math.max(8,event.clientY-rect.top-55)}px`;
+}
+function render() {
+  const [a,b]=selectedRuns(); if(!a||!b)return; updateLoopOptions();
+  const indicator=$('indicator').value, curves={runA:curve(a,indicator),runB:curve(b,indicator)};
+  const summaryCurves={engineA:curve(a,'engineFrameGpuMs'),engineB:curve(b,'engineFrameGpuMs')};
+  $('chartTitle').textContent=`${indicatorLabel(indicator)} through camera movement`;
+  renderStatus(a,b); renderSummary(a,b,summaryCurves); renderSettings(a,b); renderDetails(a,b);
+  const budget = Number.isFinite(a.overall?.frameBudgetMs) ? a.overall.frameBudgetMs : (a.environment?.targetFps ? 1000/a.environment.targetFps : null);
+  drawChart(curves,budget,indicator); saveState();
+}
+$('runA').addEventListener('change',render); $('runB').addEventListener('change',render); $('loop').addEventListener('change',render); $('indicator').addEventListener('change',render);
+document.querySelectorAll('[data-series]').forEach(input=>input.addEventListener('change',render));
+$('chart').addEventListener('mousemove',showTooltip); $('chart').addEventListener('mouseleave',()=>$('tooltip').style.display='none');
+window.addEventListener('resize',render); updateLoopOptions(); render();
+</script>
+</body>
+</html>

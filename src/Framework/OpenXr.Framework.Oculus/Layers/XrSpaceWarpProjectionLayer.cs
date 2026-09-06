@@ -19,7 +19,6 @@ namespace OpenXr.Framework.Oculus
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));
             _motionProvider = provider;
-            _useDepth = true;
         }
 
         public override void Create()
@@ -45,6 +44,8 @@ namespace OpenXr.Framework.Oculus
 
             if (size.Width == 0 || size.Height == 0)
                 size = _xrApp.RenderOptions.Size;
+
+            size = AdjustRenderSize(size);
 
             _spaceWarpSwap.Create(
                           size,
@@ -102,6 +103,7 @@ namespace OpenXr.Framework.Oculus
                     else
                         StructChain.RemoveNextStruct(ref projViews[i], _spaceWarpInfo.ItemPointer(i));
                 }
+
                 _lastSpaceWarpActive = isActive;
             }
 
@@ -130,28 +132,64 @@ namespace OpenXr.Framework.Oculus
 
         protected unsafe override void UpdateView(ref CompositionLayerProjectionView projView, int index)
         {
+            Debug.Assert(_spaceWarpSwap != null &&
+                         _depthSwaps != null);
+
             var info = _spaceWarpInfo.ItemPointer(index);
 
             info->Type = StructureType.CompositionLayerSpaceWarpInfoFB;
             info->Next = null;
 
-            var depthIx = _depthSwaps!.Length == 1 ? 0 : index;
+            var depthIx = _depthSwaps.Length == 1 ? 0 : index;
+            var depthSwap = _depthSwaps[depthIx];
+             
+            info->DepthSubImage.Swapchain = depthSwap;
+            info->DepthSubImage.ImageArrayIndex = _depthSwaps.Length == 1 ? (uint)index : 0u;
 
-            info->DepthSubImage.Swapchain = _depthSwaps[depthIx];
-            info->DepthSubImage.ImageArrayIndex = projView.SubImage.ImageArrayIndex;
-            info->DepthSubImage.ImageRect = new Rect2Di
+            if (UseSimmetricFov)
             {
-                Offset = new Offset2Di(0, 0),
-                Extent = _depthSwaps[depthIx].Size
-            };
+                var cropW = (int)MathF.Round(depthSwap.Size.Width / _sharedFovScale.X);
+                var cropH = (int)MathF.Round(depthSwap.Size.Height / _sharedFovScale.Y);
+                var x = index == 0 ? 0 : depthSwap.Size.Width - cropW;
 
-            info->MotionVectorSubImage.Swapchain = _spaceWarpSwap!;
+                info->DepthSubImage.ImageRect = new Rect2Di
+                {
+                    Offset = new Offset2Di(x, 0),
+                    Extent = new Extent2Di(cropW, cropH)
+                };
+            }
+            else
+            {
+                info->DepthSubImage.ImageRect = new Rect2Di
+                {
+                    Offset = new Offset2Di(0, 0),
+                    Extent = depthSwap.Size
+                };
+            }
+
+            info->MotionVectorSubImage.Swapchain = _spaceWarpSwap;
             info->MotionVectorSubImage.ImageArrayIndex = (uint)index;
-            info->MotionVectorSubImage.ImageRect = new Rect2Di
+
+            if (UseSimmetricFov)
             {
-                Offset = new Offset2Di { X = 0, Y = 0 },
-                Extent = _spaceWarpSwap!.Size
-            };
+                var cropW = (int)MathF.Round(_spaceWarpSwap.Size.Width / _sharedFovScale.X);
+                var cropH = (int)MathF.Round(_spaceWarpSwap.Size.Height / _sharedFovScale.Y);
+                var x = index == 0 ? 0 : _spaceWarpSwap.Size.Width - cropW;
+
+                info->MotionVectorSubImage.ImageRect = new Rect2Di
+                {
+                    Offset = new Offset2Di(x, 0),
+                    Extent = new Extent2Di(cropW, cropH)
+                };
+            }
+            else
+            {
+                info->MotionVectorSubImage.ImageRect = new Rect2Di
+                {
+                    Offset = new Offset2Di(0, 0),
+                    Extent = _spaceWarpSwap.Size
+                };
+            }
 
             info->MaxDepth = 1;
             info->MinDepth = 0;

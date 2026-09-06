@@ -68,7 +68,7 @@ namespace XrSamples.Graffiti
             {
                 _frame = new PaintFrame(new Vector2(width, height), new PbrMaterial { Color = new XrMath.Color(1, 0, 0) });
                 _frame.Name = "DrawFrame";
-                _host!.Scene!.AddChild(_frame);
+                _host.Scene!.AddChild(_frame);
             }
             else
             {
@@ -91,7 +91,7 @@ namespace XrSamples.Graffiti
             if (!controller.IsActive)
                 return;
 
-            _canvas ??= _host!.Descendants<PaintCanvas>().First();
+            _canvas ??= _host.Descendants<PaintCanvas>().First();
 
             var isChanged = _inputs!.Right!.SqueezeClick!.IsChanged;
             var isOn = _inputs!.Right!.SqueezeClick.Value;
@@ -104,7 +104,7 @@ namespace XrSamples.Graffiti
                     _point2 = controller.Value.Position;
                     _state = State.Point2;
 
-                    _host!.ActiveTool = GraffitiTool.CanvasDraw;
+                    _host.ActiveTool = GraffitiTool.CanvasDraw;
                 }
             }
 
@@ -121,11 +121,11 @@ namespace XrSamples.Graffiti
 
                     _canvas.SetCanvasSize(_frame!.Size, _frame.GetWorldPose(), _canvas.TexelSize);
 
-                    _host!.ActiveTool = GraffitiTool.None;
+                    _host.ActiveTool = GraffitiTool.None;
                 }
             }
 
-            if (thumb.IsChanged && _host!.ActiveTool == GraffitiTool.None)
+            if (thumb.IsChanged && _host.ActiveTool == GraffitiTool.None)
             {
                 var value = thumb.Value;
 

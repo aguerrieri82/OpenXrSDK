@@ -1,0 +1,45 @@
+layout(local_size_x=16, local_size_y=16, local_size_z=1) in;
+
+precision highp image2D;
+precision highp int;
+
+#define CHARLIE_LUT
+
+#include "ibl_common.glsl"
+#include "../Pbr/sheen.glsl"
+
+const uint NumSamples = SAMPLE_COUNT;
+const float BrdfEpsilon = 0.001;
+
+layout(binding=0, rgba16f) restrict writeonly uniform image2D LUT;
+
+void main(void)
+{
+	ivec2 outputSize = imageSize(LUT);
+	if(gl_GlobalInvocationID.x >= uint(outputSize.x) || gl_GlobalInvocationID.y >= uint(outputSize.y))
+		return;
+
+	float cosLo = float(gl_GlobalInvocationID.x) / float(outputSize.x);
+	float roughness = float(gl_GlobalInvocationID.y) / float(outputSize.y);
+	cosLo = max(cosLo, BrdfEpsilon);
+
+	vec3 Lo = vec3(sqrt(max(0.0, 1.0 - cosLo*cosLo)), 0.0, cosLo);
+	float DFG = 0.0;
+
+	for(uint i=0u; i<NumSamples; ++i)
+	{
+		vec2 u = sampleHammersley(i, NumSamples);
+		vec3 Lh = sampleCharlie(u.x, u.y, roughness);
+		float cosLoLh = max(dot(Lo, Lh), 0.0);
+		vec3 Li = 2.0 * cosLoLh * Lh - Lo;
+		float cosLi = max(Li.z, 0.0);
+		float cosLh = max(Lh.z, BrdfEpsilon);
+
+		if(cosLi > 0.0 && cosLoLh > 0.0)
+			DFG += visibilityCharlie(cosLi, cosLo, roughness) * cosLi * (4.0 * cosLoLh / cosLh);
+	}
+
+	DFG /= float(NumSamples);
+
+	imageStore(LUT, ivec2(gl_GlobalInvocationID), vec4(DFG, 0.0, 0.0, 0.0));
+}

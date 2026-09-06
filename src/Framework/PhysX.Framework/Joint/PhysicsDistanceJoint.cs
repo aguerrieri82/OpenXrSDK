@@ -4,6 +4,7 @@ namespace PhysX.Framework
 {
     public unsafe class PhysicsDistanceJoint : PhysicsJoint
     {
+        private float _contactDistance;
 
         public PhysicsDistanceJoint(PxDistanceJoint* handle, PhysicsSystem system)
             : base((PxJoint*)handle, system)
@@ -43,8 +44,8 @@ namespace PhysX.Framework
 
         public float ContactDistance
         {
-            get => DistanceJoint.GetContactDistance();
-            set => DistanceJoint.SetContactDistanceMut(value);
+            get => _contactDistance;
+            set => _contactDistance = value;
         }
 
         public PxDistanceJointFlags DistanceJointFlags

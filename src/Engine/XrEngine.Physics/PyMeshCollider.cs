@@ -14,14 +14,14 @@ namespace XrEngine.Physics
 
         public PyMeshCollider()
         {
-            MeshObjects = () => _host!.DescendantsOrSelf();
+            MeshObjects = () => _host.DescendantsOrSelf();
             Tolerance = 0.01f;
             Usage = ColliderUsage.All;
         }
 
         protected override void Start(RenderContext ctx)
         {
-            _manager = _host!.Scene!.Components<PhysicsManager>().FirstOrDefault();
+            _manager = _host.Scene!.Components<PhysicsManager>().FirstOrDefault();
             if (_manager == null)
                 throw new Exception("PhysicsManager not found in Scene");
             _system = _manager.System;

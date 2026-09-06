@@ -13,9 +13,9 @@ namespace XrEngine
 
     public interface IUniformProvider
     {
-        void LoadTexture(Texture value, int slot = 0, bool forceBinding = false);
+        void LoadTexture(Texture value, int slot, bool forceBinding = false);
 
-        void LoadImage(Texture2D copyDepthImage, int slot = 0, BufferAccessMode accessMode = BufferAccessMode.ReadWrite);
+        void LoadImage(Texture2D copyDepthImage, int slot, BufferAccessMode accessMode = BufferAccessMode.ReadWrite);
 
         void SetUniform(string name, bool value, bool optional = false);
 
@@ -51,7 +51,8 @@ namespace XrEngine
 
         void SetUniform(string name, Vector3[] value, bool optional = false);
 
-        void LoadBuffer<T>(ISimpleBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default);
+        void LoadBuffer<T>(ISimpleBuffer<T> value, int slot = 0, BufferUsage usage = BufferUsage.Default)
+            where T : unmanaged;
 
         void LoadSampler(TextureSampler value, int slot = 0);
 

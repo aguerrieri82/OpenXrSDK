@@ -20,7 +20,8 @@ namespace XrEngine.OpenGL
         public static GlBufferUpdateTracker? Tracker;
     }
 
-    public unsafe class GlBufferMap<T> : IBufferLock
+    public unsafe class GlBufferMap<T> : IBufferLock 
+        where T : unmanaged
     {
         readonly GlBuffer<T> _buffer;
         readonly T* _data;
@@ -34,6 +35,7 @@ namespace XrEngine.OpenGL
         public void Dispose()
         {
             _buffer.Unmap();
+            GC.SuppressFinalize(this);
         }
 
         public T* Data => _data;
@@ -43,7 +45,8 @@ namespace XrEngine.OpenGL
         void* IBufferLock.Data => _data;
     }
 
-    public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
+    public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T> 
+        where T : unmanaged
     {
         protected readonly BufferTargetARB _target;
         protected BufferUsageARB _usage;
@@ -481,20 +484,12 @@ namespace XrEngine.OpenGL
             map.Span.CopyTo(result);
         }
 
-        public unsafe void Update(T value)
+        public unsafe void Update(in T value)
         {
-            if (value is IDynamicBuffer dynamicBufferSource)
-            {
-                using var dynamicBuffer = dynamicBufferSource.GetBuffer();
-
-                Update((void*)dynamicBuffer.Data, dynamicBuffer.Size);
-
-                return;
-            }
-
             IsMutable = false;
 
-            Update(&value, _elementSize);
+            fixed (T* pValue = &value)
+                Update(pValue, _elementSize);
         }
 
         public unsafe void UpdateRange(

@@ -179,7 +179,6 @@ namespace XrEngine.OpenGL
         {
             var attr = _attributes![index];
 
-
             var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
             try
             {

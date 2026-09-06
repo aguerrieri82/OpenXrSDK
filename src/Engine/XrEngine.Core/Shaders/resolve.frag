@@ -66,6 +66,10 @@ void main()
         color.rgb = toneMapNeutral(color.rgb);
     #endif
 
+    #if TONE_MAP == 3
+        color.rgb = toneMapACES(color.rgb);
+    #endif
+
 #endif
 
 #ifdef SRGB

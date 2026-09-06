@@ -59,7 +59,7 @@ namespace XrSamples
             else
             {
                 var bounds = draw.Object!.WorldBounds;
-                var camera = _host!.Scene!.ActiveCamera!;
+                var camera = _host.Scene!.ActiveCamera!;
 
                 var minUV = Vector2.One;
                 var maxUV = Vector2.Zero;

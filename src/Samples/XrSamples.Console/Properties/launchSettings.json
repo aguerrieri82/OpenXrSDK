@@ -2,6 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
+      "commandLineArgs": "android-benchmark",
       "environmentVariables": {
         "XR_LOADER_DEBUG": "warn"
       },

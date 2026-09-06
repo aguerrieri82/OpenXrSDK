@@ -18,6 +18,7 @@
 		<OpenGL></OpenGL>
 		<AndroidPlatform>30</AndroidPlatform>
 		<IsAndroid>false</IsAndroid>
+		<PhysXRuntimeVersion Condition="'$(PhysXRuntimeVersion)' == ''">141</PhysXRuntimeVersion>
 		<NativeFolder>$(Configuration)</NativeFolder>
 		<NativePlatform>x64</NativePlatform>
 		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
@@ -30,6 +31,7 @@
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
 	</PropertyGroup>
+
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<DebugSymbols>true</DebugSymbols>
@@ -153,23 +155,25 @@
 		</Copy>
 
 	</Target>
-	
+
 	<Target
 		Name="RunAndroidBuildScript"
 		BeforeTargets="Build"
-		Condition="Exists('$(ProjectDir)android-build.cmd')"
+		Condition="Exists('$(ProjectDir)android-build.cmd') and '$(SkipAutomaticAndroidBuild)' != 'true'"
 		Inputs="
-			@(ClCompile);
-			@(ClInclude);
+			@(ClCompile->'%(FullPath)');
+			@(ClInclude->'%(FullPath)');
 			$(ProjectDir)android-build.cmd;
 			$(ProjectDir)Android.mk;
 			$(ProjectDir)Application.mk;
-			$(SolutionDir)..\third-party\vars.cmd" 
-		Outputs="@(AndroidBuildOutput)">
+			$(SolutionDir)..\third-party\vars.cmd"
+		Outputs="$(IntDir)android-build.stamp">
 
 		<Exec
 			Command="call &quot;$(ProjectDir)android-build.cmd&quot;"
 			WorkingDirectory="$(ProjectDir)" />
+
+		<Touch Files="$(IntDir)android-build.stamp" AlwaysCreate="true" />
 	</Target>
 
 

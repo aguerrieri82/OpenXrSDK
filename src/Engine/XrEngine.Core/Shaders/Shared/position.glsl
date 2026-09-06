@@ -104,7 +104,7 @@
 void computePos(vec4 pos) 
 {
 
-    #ifdef USE_HEIGHT_MAP
+    #ifdef USE_DISPLACMENT_MAP
 
         gl_Position = pos;
 

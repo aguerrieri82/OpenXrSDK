@@ -2,12 +2,13 @@
 {
     public static class BufferSlots
     {
-        public const int Instance = 9;
+        public static readonly ResourceSlot Instance = new(9, nameof(Instance));
+        public static readonly ResourceSlot TexCutStyles = new(10, nameof(TexCutStyles));
+        public static readonly ResourceSlot Skin = new(18, nameof(Skin));
+        public static readonly ResourceSlot Splats = new(18, nameof(Splats));
+        public static readonly ResourceSlot SkinMatrices = new(19, nameof(SkinMatrices));
+        public static readonly ResourceSlot Morph = new(20, nameof(Morph));
 
-        public const int TexCutStyles = 10;
-        public const int Skin = 18;
-        public const int SkinMatrices = 19;
-        public const int Splats = 18;
-        public const int MorphSSbo = 20;
+        public static readonly SlotMask Reserved = ResourceSlot.FillMask(typeof(BufferSlots));
     }
 }

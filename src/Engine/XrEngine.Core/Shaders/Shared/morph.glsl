@@ -15,7 +15,7 @@ layout(std140, binding = 6) uniform MorphUniformBuffer
 
     layout(std430, binding = 20) readonly buffer MorphDataBuffer
     {
-        float uMorphData[];
+        float morphData[];
     };
 
     void morphInit()
@@ -27,21 +27,21 @@ layout(std140, binding = 6) uniform MorphUniformBuffer
         uint index = (ofs + uint(gl_VertexID)) * 3u;
 
         return vec3(
-            uMorphData[index],
-            uMorphData[index + 1u],
-            uMorphData[index + 2u]
+            morphData[index],
+            morphData[index + 1u],
+            morphData[index + 2u]
         );
     }
 
 #elif defined(USE_MORPH_TEXTURE)
 
-    layout(binding = 9) uniform sampler2D uMorphTexture;
+    layout(binding = 9) uniform sampler2D morphTexture;
 
     ivec2 morphCoord;
 
     void morphInit()
     {
-        int width = textureSize(uMorphTexture, 0).x;
+        int width = textureSize(morphTexture, 0).x;
 
         morphCoord.x = gl_VertexID % width;
         morphCoord.y = gl_VertexID / width;
@@ -50,7 +50,7 @@ layout(std140, binding = 6) uniform MorphUniformBuffer
     vec3 morphFetch(uint baseRow)
     {
         return texelFetch(
-            uMorphTexture,
+            morphTexture,
             ivec2(morphCoord.x, int(baseRow) + morphCoord.y),
             0
         ).xyz;

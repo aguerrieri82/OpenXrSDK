@@ -159,6 +159,11 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
+        public virtual Texture2D QueryTexture(QueryTextureType type)
+        {
+            throw new NotSupportedException();
+        }
+
         public int Priority { get; protected set; }
 
         public GL Gl => _gl;

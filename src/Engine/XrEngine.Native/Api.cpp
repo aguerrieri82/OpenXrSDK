@@ -1,6 +1,34 @@
 #include "pch.h"
 
 
+
+
+#ifdef _MSC_VER
+    using half = uint16_t;
+
+    static inline void ToHalf2(const Vec2& src, half* dst)
+    {
+        __m128 v = _mm_setr_ps(src.X, src.Y, 0.0f, 0.0f);
+        __m128i h = _mm_cvtps_ph(v, 0);
+        *(uint32_t*)dst = (uint32_t)_mm_cvtsi128_si32(h);
+    }
+#endif
+
+#if HAS_NEON == 1 
+
+    using half = float16_t;
+
+    static inline void ToHalf2(const Vec2& src, half* dst)
+    {
+        float32x2_t v = { src.X, src.Y };
+        float16x4_t h = vcvt_f16_f32(vcombine_f32(v, vdup_n_f32(0.0f)));
+
+        vst1_lane_f16(dst, h, 0);
+        vst1_lane_f16(dst + 1, h, 1);
+    }
+#endif
+
+
 void CopyMemory2(uint8_t* src, uint8_t* dst, uint32_t size)
 {
 	memcpy(dst, src, size);
@@ -188,4 +216,73 @@ int RdcEndFrameCapture(bool launchReplay) {
 bool RdcIsAttached()
 {
     return GetRenderDoc() != nullptr;
+}
+
+
+void CompressVertices(const VertexData* src, CompVertexData* dst, int count, VertexComponent activeComponents, Bounds3 bounds)
+{
+    Vec3 size = bounds.Max - bounds.Min;
+    Vec3 invSize =
+    {
+        size.X != 0.0f ? 1.0f / size.X : 0.0f,
+        size.Y != 0.0f ? 1.0f / size.Y : 0.0f,
+        size.Z != 0.0f ? 1.0f / size.Z : 0.0f
+    };
+
+    if (activeComponents & VertexComponent::Position)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            Vec3 pos = (src[i].Pos - bounds.Min) * invSize;
+
+            dst[i].Pos[0] = (uint16_t)std::round(std::clamp(pos.X, 0.0f, 1.0f) * UINT16_MAX);
+            dst[i].Pos[1] = (uint16_t)std::round(std::clamp(pos.Y, 0.0f, 1.0f) * UINT16_MAX);
+            dst[i].Pos[2] = (uint16_t)std::round(std::clamp(pos.Z, 0.0f, 1.0f) * UINT16_MAX);
+        }
+    }
+
+    if (activeComponents & VertexComponent::Normal)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            dst[i].Normal[0] = (int16_t)std::round(src[i].Normal.X * INT16_MAX);
+            dst[i].Normal[1] = (int16_t)std::round(src[i].Normal.Y * INT16_MAX);
+            dst[i].Normal[2] = (int16_t)std::round(src[i].Normal.Z * INT16_MAX);
+        }
+    }
+
+    if (activeComponents & VertexComponent::UV0)
+    {
+        for (int i = 0; i < count; i++)
+            ToHalf2(src[i].UV, dst[i].UV);
+    }
+
+    if (activeComponents & VertexComponent::UV1)
+    {
+        for (int i = 0; i < count; i++)
+            ToHalf2(src[i].UV1, dst[i].UV1);
+    }
+
+    if (activeComponents & VertexComponent::Tangent)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            dst[i].Tangent[0] = (int16_t)std::round(src[i].Tangent.X * INT16_MAX);
+            dst[i].Tangent[1] = (int16_t)std::round(src[i].Tangent.Y * INT16_MAX);
+            dst[i].Tangent[2] = (int16_t)std::round(src[i].Tangent.Z * INT16_MAX);
+            dst[i].Tangent[3] = (int16_t)std::round(src[i].Tangent.W * INT16_MAX);
+        }
+    }
+}
+
+void CompressIndices16(const uint32_t* src, uint16_t* dst, int count)
+{
+    for (int i = 0; i < count; i++)
+        dst[i] = (uint16_t)src[i];
+}
+
+void CompressIndices8(const uint32_t* src, uint8_t* dst, int count)
+{
+    for (int i = 0; i < count; i++)
+        dst[i] = (uint8_t)src[i];
 }

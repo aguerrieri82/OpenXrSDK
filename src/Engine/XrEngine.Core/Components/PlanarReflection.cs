@@ -18,6 +18,7 @@ namespace XrEngine
         private readonly PlanarReflectionMode _mode;
         private readonly PerspectiveCamera _refCamera;
         private Bounds3 _clipBounds;
+        private Size2I _renderSize;
 
         public PlanarReflection()
             : this(1024)
@@ -33,9 +34,15 @@ namespace XrEngine
                 Name = "ReflectionCamera"
             };
 
-            AdjustIbl = true;
-
+            AdjustIbl = false;
             TextureSize = textureSize;
+            Offset = 0.01f;
+            FovDegree = 45;
+            Strength = 1f;
+            Roughness = 0;
+            ShadingRate = 2;
+            Quality = 1f;
+            DynamicResolution = true;
 
             if (_mode == PlanarReflectionMode.ColorOnly)
             {
@@ -49,11 +56,6 @@ namespace XrEngine
                 MaterialOverride = new BasicMaterial();
             }
 
-            Offset = 0.01f;
-            FovDegree = 45;
-            Strength = 1f;
-            BlurLevel = 0;
-            ShadingRate = 2;
         }
 
         public virtual bool PrepareMaterial(Material material)
@@ -64,7 +66,7 @@ namespace XrEngine
             MaterialOverride.UseClipDistance = UseClipPlane;
 
             if (material is ShaderMaterial mat)
-                MaterialOverride.HasSkin = mat.HasSkin;
+                MaterialOverride.UseSkin = mat.UseSkin;
 
             if (material is IPbrMaterial pbr)
             {
@@ -111,6 +113,7 @@ namespace XrEngine
         protected void AdjustFov()
         {
             var scaleRatio = 2.0f / MathF.Max(_clipBounds.Size.X, _clipBounds.Size.Y);
+
             if (scaleRatio < 1)
                 return;
 
@@ -121,7 +124,7 @@ namespace XrEngine
 
             _refCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
 
-            var newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
+            var newBounds = _host.WorldBounds.Points.Select(_refCamera.Project).ComputeBounds();
 
             var proj = _refCamera.Projection;
 
@@ -163,10 +166,10 @@ namespace XrEngine
 
             var ratio = mainCamera.ViewSize.Width / (float)mainCamera.ViewSize.Height;
 
-            var curSize = new Size2
+            var curSize = new Size2I
             {
                 Width = TextureSize,
-                Height = (int)(TextureSize / ratio)
+                Height = (uint)(TextureSize / ratio)
             };
 
             if (Texture == null || curSize.Width != Texture.Width || curSize.Height != Texture.Height)
@@ -176,14 +179,14 @@ namespace XrEngine
                 Texture = new Texture2D
                 {
                     MagFilter = ScaleFilter.Linear,
-                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    MinFilter = ScaleFilter.Linear,
                     WrapS = Wrap,
                     WrapT = Wrap,
                     BorderColor = Color.White,
                     Depth = IsMultiView ? 2u : 1u,
-                    MipLevelCount = 10,
-                    Width = (uint)curSize.Width,
-                    Height = (uint)curSize.Height,
+                    MipLevelCount = 0,
+                    Width = curSize.Width,
+                    Height = curSize.Height,
                     Format = UseSrgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8,
                     Name = "Planar Reflection"
                 };
@@ -249,19 +252,50 @@ namespace XrEngine
             else
                 _refCamera.FovDegree = FovDegree;
 
-            _clipBounds = _host.WorldBounds!.Points.Select(_refCamera.Project).ComputeBounds();
+            _clipBounds = _host.WorldBounds.Points.Select(_refCamera.Project).ComputeBounds();
 
             if (AutoAdjustFov)
                 AdjustFov();
 
             if (_host.Scene != null)
-                _lightIntensity = _host.Scene.Descendants<Light>().Visible().Select(a => a.Intensity).Sum();
+                _lightIntensity = _host.Scene.Descendants<Light>().Visible().Sum(a => a.Intensity);
+
+            if (DynamicResolution)
+            {
+                Bounds3 scaleClipBounds;
+
+                if (_refCamera.FovDegree == ((PerspectiveCamera)mainCamera).FovDegree)
+                    scaleClipBounds = _clipBounds;
+                else
+                    scaleClipBounds = _host.WorldBounds.Points.Select(mainCamera.Project).ComputeBounds();
+
+                var width = Math.Clamp(Math.Min(scaleClipBounds.Max.X, 1) - Math.Max(scaleClipBounds.Min.X, -1), 0, 2) * 0.5f;
+                var height = Math.Clamp(Math.Min(scaleClipBounds.Max.Y, 1) - Math.Max(scaleClipBounds.Min.Y, -1), 0, 2) * 0.5f;
+
+                var pixelWidth = width * mainCamera.ViewSize.Width;
+                var pixelHeight = height * mainCamera.ViewSize.Height;
+
+                var scaleX = pixelWidth / curSize.Width;
+                var scaleY = pixelHeight / curSize.Height;
+
+                var maxScale = Math.Max(scaleX, scaleY);
+                var areaScale = MathF.Sqrt(scaleX * scaleY);
+
+                var scale = Math.Min(1.0f, (maxScale + (areaScale - maxScale) * 0.25f) * Quality);
+
+                _renderSize = new Size2I(
+                    (uint)Math.Ceiling(curSize.Width * scale),
+                    (uint)Math.Ceiling(curSize.Height * scale));
+
+            }
+            else
+                _renderSize = curSize;
         }
 
         public void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
             /*
-            var bounds = _host!.WorldBounds;
+            var bounds = _host.WorldBounds;
             var pos = bounds.Center;
             canvas.Save();
             canvas.State.Color = "#00ff00";
@@ -302,11 +336,15 @@ namespace XrEngine
         [Range(1, 180, 1)]
         public float FovDegree { get; set; }
 
-        public Texture2D? Texture { get; set; }
+        public Texture2D? ActiveTexture { get; set; }
+
+        public Texture2D? Texture { get; internal set; }
 
         public ShaderMaterial? MaterialOverride { get; set; }
 
         public uint TextureSize { get; set; }
+
+        public Size2I RenderSize => _renderSize;
 
         public WrapMode Wrap { get; set; }
 
@@ -328,6 +366,9 @@ namespace XrEngine
 
         public PerspectiveCamera ReflectionCamera => _refCamera;
 
+        [Range(0, 1, 0.01f)]
+        public float Quality { get; set; }
+
         public bool DynamicFov { get; set; }
 
         public static bool IsMultiView { get; set; }
@@ -335,8 +376,11 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float Strength { get; set; }
 
-        public int BlurLevel { get; set; }
+        [Range(0, 1, 0.01f)]
+        public float Roughness { get; set; }
 
         public int ShadingRate { get; set; }
+
+        public bool DynamicResolution { get; set; }
     }
 }

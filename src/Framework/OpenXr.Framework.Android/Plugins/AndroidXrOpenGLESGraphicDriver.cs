@@ -1,5 +1,4 @@
-﻿using Android.Content;
-using Silk.NET.Core.Contexts;
+﻿using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;

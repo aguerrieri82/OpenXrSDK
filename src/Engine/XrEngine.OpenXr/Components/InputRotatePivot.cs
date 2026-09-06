@@ -37,7 +37,7 @@ namespace XrEngine.OpenXr
             if (!pose.IsActive || !click.IsActive || pose.Value.Orientation.W == 0)
                 return false;
 
-            var wordPivot = _host!.ToWorld(LocalPivot);
+            var wordPivot = _host.ToWorld(LocalPivot);
 
             var curDir = (pose.Value.Position - wordPivot).Normalize();
 
@@ -51,7 +51,7 @@ namespace XrEngine.OpenXr
 
             void Checkpoint(ref MoveStatus status2)
             {
-                status2.StartOrientation = _host!.WorldOrientation;
+                status2.StartOrientation = _host.WorldOrientation;
                 status2.StartDir = curDir;
                 status2.StartOrientationInput = pose.Value.Orientation;
                 status2.StartAngle = curAngleUnsigned * curSign;
@@ -63,7 +63,7 @@ namespace XrEngine.OpenXr
                 if (!click.Value)
                     return false;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (var collider in _host.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
@@ -95,14 +95,14 @@ namespace XrEngine.OpenXr
             var rollRot = MathF.Abs(deltaAng) < 0.0001f ? Quaternion.Identity :
                           Quaternion.CreateFromAxisAngle(curDir, deltaAng);
 
-            _host!.Transform.SetLocalPivot(LocalPivot, true);
+            _host.Transform.SetLocalPivot(LocalPivot, true);
 
             var newOri = rollRot *
                                 status.StartDir.RotationTowards(curDir, Normal) *
                                 status.StartOrientation;
 
             if (ValidateOrientation == null || ValidateOrientation(newOri))
-                _host!.WorldOrientation = newOri;
+                _host.WorldOrientation = newOri;
 
             return true;
         }
@@ -112,7 +112,7 @@ namespace XrEngine.OpenXr
             canvas.Save();
 
             /*
-            var ray = new Ray3() { Origin = Pivot, Direction = Normal }.Transform(_host!.WorldMatrix);
+            var ray = new Ray3() { Origin = Pivot, Direction = Normal }.Transform(_host.WorldMatrix);
 
             canvas.State.Color = "#00FF00";
             canvas.DrawLine(ray.PointAt(-0.1f), ray.PointAt(0.5f));
@@ -122,7 +122,7 @@ namespace XrEngine.OpenXr
        
             canvas.State.Color = "#0000FF";
                */
-            var wordPivot = _host!.ToWorld(LocalPivot);
+            var wordPivot = _host.ToWorld(LocalPivot);
 
             if (_left.IsMoving)
                 canvas.DrawLine(wordPivot, _left.LastPos);
@@ -145,9 +145,9 @@ namespace XrEngine.OpenXr
         [Action]
         public void StartMove()
         {
-            var wordPivot = _host!.ToWorld(LocalPivot);
+            var wordPivot = _host.ToWorld(LocalPivot);
 
-            var curPos = wordPivot + Vector3.UnitX.Transform(_host!.WorldOrientation).Normalize() * 0.3f;
+            var curPos = wordPivot + Vector3.UnitX.Transform(_host.WorldOrientation).Normalize() * 0.3f;
 
             var axis = (curPos - wordPivot).Normalize();
 
@@ -156,7 +156,7 @@ namespace XrEngine.OpenXr
             var curDir = Spherical.FromCartesian(direction);
 
             _left.IsMoving = true;
-            _left.StartOrientation = _host!.WorldOrientation;
+            _left.StartOrientation = _host.WorldOrientation;
             _left.LastPos = curPos;
         }
 

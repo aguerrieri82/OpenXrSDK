@@ -70,7 +70,8 @@ namespace XrEngine
 
             var task = new QueueTask()
             {
-                Action = () => action()!,
+                Action = () => 
+                    action()!,
                 Completion = new TaskCompletionSource<object?>()
             };
 

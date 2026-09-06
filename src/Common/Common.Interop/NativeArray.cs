@@ -11,7 +11,7 @@ namespace Common.Interop
 
         public NativeArray(int length, Type itemType)
         {
-            _itemSize = Marshal.SizeOf(itemType);
+            _itemSize = MarshalCache.SizeOf(itemType);
             _bufferSize = length * _itemSize;
             _buffer = MemoryManager.Allocate(_bufferSize, this);
         }
@@ -50,7 +50,6 @@ namespace Common.Interop
 
             return (T*)(_buffer + _itemSize * index);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ref T ItemAt<T>(int index) where T : unmanaged

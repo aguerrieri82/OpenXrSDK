@@ -365,14 +365,14 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
 
     private readonly HashSet<XrSwapchain> _swapAttached = [];
 
-    int _sampleCount;
+    readonly int _sampleCount;
 
     public AngleVulkanContext(int sampleCount = 1)
     {
         UseImageAcquire = true;
 
         _sampleCount = sampleCount;
-    
+
         nint eglLibrary = 0;
         nint glesLibrary = 0;
 
@@ -577,24 +577,24 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
         var usage = ImageUsageFlags.None;
         var flags = ImageCreateFlags.None;
 
-        if ((swapchain.Usage & SwapchainUsageFlags.ColorAttachmentBit) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.ColorAttachmentBit) != 0)
             usage |= ImageUsageFlags.ColorAttachmentBit;
-        if ((swapchain.Usage & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.DepthStencilAttachmentBit) != 0)
             usage |= ImageUsageFlags.DepthStencilAttachmentBit;
-        if ((swapchain.Usage & SwapchainUsageFlags.UnorderedAccessBit) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.UnorderedAccessBit) != 0)
             usage |= ImageUsageFlags.StorageBit;
-        if ((swapchain.Usage & SwapchainUsageFlags.SampledBit) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.SampledBit) != 0)
             usage |= ImageUsageFlags.SampledBit;
-        if ((swapchain.Usage & SwapchainUsageFlags.TransferSrcBit) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.TransferSrcBit) != 0)
             usage |= ImageUsageFlags.TransferSrcBit;
-        if ((swapchain.Usage & SwapchainUsageFlags.TransferDstBit) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.TransferDstBit) != 0)
             usage |= ImageUsageFlags.TransferDstBit;
-        if ((swapchain.Usage & SwapchainUsageFlags.InputAttachmentBitKhr) != 0) 
+        if ((swapchain.Usage & SwapchainUsageFlags.InputAttachmentBitKhr) != 0)
             usage |= ImageUsageFlags.InputAttachmentBit;
 
-        var vkInfo = (VulkanSwapchainCreateInfoMETA*)StructChain.FindNextStruct(ref swapchain.CreateInfo, 
+        var vkInfo = (VulkanSwapchainCreateInfoMETA*)StructChain.FindNextStruct(ref swapchain.CreateInfo,
                     Silk.NET.OpenXR.StructureType.VulkanSwapchainCreateInfoMeta);
-        
+
         if (vkInfo != null)
         {
             flags = (ImageCreateFlags)vkInfo->AdditionalCreateFlags;
@@ -752,7 +752,7 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             XrApp.Current!.Logger.LogWarning("Texture {tex} not aquired", texture);
             return;
         }
-  
+
         uint layout;
 
         _glReleaseTexturesAngle(1, &texture, &layout);

@@ -1,4 +1,5 @@
-﻿namespace XrEngine.OpenGL
+﻿
+namespace XrEngine.OpenGL
 {
     public interface IGlDynamicRenderPass<TOptions> : IGlRenderPass
     {
@@ -41,6 +42,11 @@
                 var pass = ConfigurePass(opt);
                 pass.Render(ctx);
             }
+        }
+
+        public Texture2D QueryTexture(QueryTextureType type)
+        {
+            throw new NotSupportedException();
         }
 
         public int Priority { get; set; }

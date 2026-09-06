@@ -5,15 +5,15 @@ using Silk.NET.OpenGL;
 #endif
 
 using XrEngine.Helpers;
-using System.Numerics;
 using System.Diagnostics;
+using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
     public class GlColorPass : GlBaseRenderPass
     {
         protected DepthClipEffect? _depthClipEffect;
-
         protected readonly ShaderMaterial _dummyMaterial;
 
 #if GLES
@@ -63,18 +63,47 @@ namespace XrEngine.OpenGL
 
                 _gl.Clear(ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
 
-                if (ctx.Bugs.NvMultiViewClipBug &&
-                    ctx.ClipRegions != null && 
-                    ctx.ClipRegions.Length > 1 &&
-                    ctx.IsMultiView)
-                {
-                    _depthClipEffect ??= new DepthClipEffect();
-                    UseEffect(_depthClipEffect);
-                    DrawVirtual(6);
-                }
+                ApplyClip(ctx);
             }
 
             return true;
+        }
+
+        protected void ApplyClip(GlUpdateContext ctx)
+        {
+            if (ctx.ClipRegions == null || ctx.ClipRegions.Length == 0)
+                return;
+
+            if ((ctx.ClipMode == ShaderClipMode.Depth ||
+                (!ctx.CanSampleColor && ctx.ClipMode == ShaderClipMode.DepthClear)) &&
+                ctx.IsMultiView)
+            {
+                _depthClipEffect ??= new DepthClipEffect();
+                UseEffect(_depthClipEffect);
+                DrawVirtual(6);
+                return;
+            }
+            
+            if (ctx.ClipMode == ShaderClipMode.DepthClear)
+            {
+                var depthTex = _renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment)!;
+                
+                Debug.Assert(depthTex != null);
+
+                for (var i = 0; i < ctx.ClipRegions.Length; i++)
+                {
+                    var clip = ctx.ClipRegions[i];
+
+                    Rect2I region;
+                    if (clip.X == 0)
+                        region = new Rect2I((int)clip.Width, 0, (depthTex.Width - clip.Width), depthTex.Height);
+                    else
+                        region = new Rect2I(0, 0, (uint)clip.X, depthTex.Height);
+
+                    if (region.Width > 0)
+                        depthTex.Clear(Color.Black, region, i);
+                }
+            }
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -154,7 +183,7 @@ namespace XrEngine.OpenGL
 
             Debug.Assert(ctx.Material != null && ctx.Model != null && ctx.PassCamera != null);
 
-            if (ctx.Material.HasSkin)
+            if (ctx.Material.UseSkin)
                 return;
 
             ctx.UsePrimitiveBoundingBox = true;
@@ -170,11 +199,10 @@ namespace XrEngine.OpenGL
             }
 
             _bounds.PrimitiveBoundingBox(
-                min.X, min.Y, min.Z, min.W, 
+                min.X, min.Y, min.Z, min.W,
                 max.X, max.Y, max.Z, max.W);
 #endif
         }
-
 
         protected virtual void ConfigureCaps(ShaderMaterial material)
         {
@@ -196,52 +224,40 @@ namespace XrEngine.OpenGL
             glState.EnableFeature(EnableCap.ClipDistance4, enableClipRegions);
         }
 
+        public override Texture2D QueryTexture(QueryTextureType type)
+        {
+            if (type == QueryTextureType.Color)
+            {
+                return (Texture2D?)_renderer.RenderTarget!.QueryTexture(FramebufferAttachment.ColorAttachment0)?.ToEngineTexture() ??
+                    throw new InvalidOperationException();
+            }
+
+            return base.QueryTexture(type);
+        }
+
         public override void RenderLayer(GlLayer layer)
         {
             GlUtils.EnsureRenderThread();
 
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
                 return;
-#if GL_WRAPPER
-            
-            var timer = Stopwatch.StartNew();
 
-            bool isRecording = false;
-
-            var wrapper = _gl as OpenGLWrapper.GlSwitchWrapper;
-
-            if (wrapper != null && layer.IsStatic)
-            {
-                if (layer.RenderActions.Count == 0 && _frame > 1000)
-                {
-                    _renderer.State.Reset();
-                    isRecording = true;
-                    wrapper.BeginRecord();
-                }
-                else if (layer.RenderActions.Count > 0)
-                {
-                    layer.Execute(wrapper.Enqueue.Instance);
-                    _renderer.State.Reset();
-
-                    if (layer.IsStatic && _frame % 100 == 0)
-                    {
-                        timer.Stop();
-                        Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
-                    }
-                    return;
-                }
-            }
-#endif
+            if (layer.IsEmpty)
+                return;
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
-            var ctx = _renderer.UpdateContext;
-
             var useDepthPass = _renderer.Options.UseDepthPass;
-
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
             uint globalProgChangesCount = 0;
+
+            var ctx = _renderer.UpdateContext;
+
+            ctx.UseManualDepthTest = layer.Type == GlLayerType.Transmission && !ctx.CanSampleColor;
+            
+            if (ctx.UseManualDepthTest)
+                _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 
             foreach (var shader in layer.Content.SortedContent!)
             {
@@ -271,7 +287,7 @@ namespace XrEngine.OpenGL
 
                     ctx.Model = matContent.SingleModel;
 
-                    Debug.Assert(ctx.Model != null || !ctx.Material!.HasMorph);
+                    Debug.Assert(ctx.Model != null || !ctx.Material!.UseMorph);
 
                     var progChanged = UpdateProgram(ctx, progInst);
 
@@ -351,6 +367,9 @@ namespace XrEngine.OpenGL
                 ctx.Material = null;
             }
 
+            if (layer.Type == GlLayerType.Transmission)
+                _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
+
             _renderer.State.BindVertexArray(0);
 
             _renderer.PopGroup();
@@ -358,16 +377,6 @@ namespace XrEngine.OpenGL
             if (globalProgChangesCount > 0)
                 Log.Debug(this, "Changes: {0}", globalProgChangesCount);
 
-#if GL_WRAPPER
-            if (wrapper != null && isRecording)
-                layer.RenderActions.AddRange(wrapper.EndRecord());
-
-            if (layer.IsStatic && _frame % 100 == 0)
-            {
-                timer.Stop();
-                Log.Warn(this, "STATIC TIME: {0}", timer.Elapsed.TotalMilliseconds);
-            }
-#endif
         }
 
         public bool WriteDepth { get; set; }

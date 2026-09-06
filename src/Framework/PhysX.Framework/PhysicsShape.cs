@@ -72,7 +72,7 @@ namespace PhysX.Framework
 
             if (_handle != null)
             {
-                _handle->ReleaseMut();
+                NativeMethods.PxRefCounted_release_mut((PxRefCounted*)_handle);
                 _handle = null;
             }
 
@@ -124,6 +124,11 @@ namespace PhysX.Framework
                     _handle->SetNameMut(pData);
                 _name = value;
             }
+        }
+
+        public void SetFlag(PxShapeFlag flag, bool enabled)
+        {
+            _handle->SetFlagMut(flag, enabled);
         }
 
         public PxShapeFlags Flags

@@ -15,7 +15,7 @@ namespace XrEngine.Compression
     public class TextureCompressor
     {
         readonly object _cacheLock = new();
-        readonly AsyncTaskDispatcher _dispatcher = new AsyncTaskDispatcher(3, ThreadPriority.Lowest);
+        readonly AsyncTaskDispatcher _dispatcher = new(3, ThreadPriority.Lowest);
         bool _cacheCleared;
 
         public static TextureCompressionInfo EncodeAstc(bool isNormalMap, float quality, uint blockSize, int threadPriority)

@@ -5,15 +5,15 @@ namespace XrEngine.Animation
     public class SinOptions
     {
         public Vector3 Axis { get; set; }
-        
+
         public float Amplitude { get; set; }
-        
+
         public float Frequency { get; set; }
-        
+
         public float Phase { get; set; }
-        
+
         public Vector3 Offset { get; set; }
-        
+
         public float? Duration { get; set; }
     }
 
@@ -23,12 +23,11 @@ namespace XrEngine.Animation
 
         [ValueType(ValueType.Direction)]
         public Vector3 Direction { get; set; }
-        
+
         public float Intensity { get; set; }
 
         public float Gravity { get; set; }
     }
-
 
     public static class ComputeFunctions
     {
@@ -55,7 +54,6 @@ namespace XrEngine.Animation
                 o => o.Duration ?? 1f / MathF.Abs(o.Frequency),
                 options);
         }
-
 
         public static IComputeFunction<Vector3, JumpOptions> Jump(
             float baseY,

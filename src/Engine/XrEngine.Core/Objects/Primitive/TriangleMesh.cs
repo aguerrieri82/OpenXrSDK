@@ -1,18 +1,27 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Numerics;
 using XrEngine.Objects;
 using XrMath;
 
 namespace XrEngine
 {
-    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds
+
+    public enum MeshCompressionMode
+    {
+        Auto,
+        Never,
+        Always
+    }
+
+    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds, ICompressedVertexSource
     {
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
         protected Geometry3D? _originalGeometry;
         protected Bounds3 _localBounds;
         internal bool _localBoundsDirty;
-
 
         public TriangleMesh()
         {
@@ -21,6 +30,7 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Automatic;
             Export = new(this);
             InstanceCount = 1;
+            CompressionMode = EnableCompression ? MeshCompressionMode.Auto : MeshCompressionMode.Never;
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -131,6 +141,9 @@ namespace XrEngine
                     material.Attach(this);
             }
 
+            if (change.IsAny(ChangeType.Material, ChangeType.Geometry))
+                UpdateCompression();
+
             base.OnChanged(change);
         }
 
@@ -158,16 +171,14 @@ namespace XrEngine
             base.Dispose();
         }
 
-        protected override void CloneWork(Object3D newObj, ObjectCloneFlags flags)
+        protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
-            base.CloneWork(newObj, flags);
-
             var mesh = (TriangleMesh)newObj;
 
             var curGeo = _originalGeometry ?? _geometry;
 
             if ((flags & ObjectCloneFlags.CloneGeometry) != 0)
-                mesh._geometry = curGeo?.Clone();
+                mesh._geometry = curGeo?.Clone(flags);
             else
                 mesh._geometry = curGeo;
 
@@ -176,15 +187,17 @@ namespace XrEngine
                 Material newMat;
 
                 if ((flags & ObjectCloneFlags.CloneMaterials) != 0)
-                    newMat = mat.Clone();
+                    newMat = mat.Clone(flags);
                 else
                     newMat = mat;
 
                 mesh._materials.Add(newMat);
             }
+
+            base.CloneWork(newObj, flags);
         }
 
-        [Action]
+        [Action("Export")]
         public void DoExport()
         {
             Export.Export();
@@ -194,6 +207,104 @@ namespace XrEngine
         {
             VBuf = vertices;
             IBuf = indices;
+        }
+
+        protected void UpdateCompression()
+        {
+            if (_geometry == null)
+                return;
+
+            var oldVertComp = CompVertexType;
+            var oldIndexComp = CompIndexType;
+
+            var compressIndices = true;
+
+            if (CompressionMode == MeshCompressionMode.Always)
+            {
+                CompVertexType = typeof(CompVertexData);
+            }
+            else if (CompressionMode == MeshCompressionMode.Never || _geometry.Vertices.Length < 128)
+            {
+                CompVertexType = null;
+                CompIndexType = null;
+                compressIndices = false;
+            }
+            else
+            {
+                if (Materials.Any(a => a.IsEnabled && (a.UseMorph || a.UseSkin)))
+                    CompVertexType = null;
+                else
+                    CompVertexType = typeof(CompVertexData);
+            }
+
+            if (compressIndices)
+            {
+                if (_geometry.Indices.Length > 0 && _geometry.Vertices.Length <= byte.MaxValue + 1)
+                    CompIndexType = typeof(byte);
+                else if (_geometry.Indices.Length > 0 && _geometry.Vertices.Length <= ushort.MaxValue + 1)
+                    CompIndexType = typeof(ushort);
+                else
+                    CompIndexType = null;
+            }
+
+            if (oldIndexComp != CompIndexType || oldVertComp != CompVertexType)
+            {
+                if (_geometry.IsGpuLoaded)
+                {
+                    CompIndexType = oldIndexComp;
+                    CompVertexType = oldVertComp;
+                    Log.Warn(this, "Canno re-upload compressed geometry");
+                    return;
+                }
+           
+                _geometry.Invalidate();
+            }
+        }
+
+        unsafe void ICompressedVertexSource.CompressVertices(void* pSrc, void* pDst, int count)
+        {
+            Debug.Assert(_geometry != null);
+
+            _geometry.EnsureId();
+
+            Log.Debug(this, "Compress Mesh '{0}', geo '{1}'", (Name ?? GetType().Name), _geometry.Id);
+
+#if DEBUG
+            if (Materials.Any(a => a.UseMorph || a.UseSkin))
+                throw new NotSupportedException();
+#endif
+
+            if (CompVertexType == typeof(CompVertexData))
+            {
+
+                var bounds = LocalBounds;
+                var size = bounds.Max - bounds.Min;
+
+                _geometry.VerticesRemap = Matrix4x4.CreateScale(size) *
+                                          Matrix4x4.CreateTranslation(bounds.Min);
+
+                EngineNativeLib.CompressVertices(pSrc, pDst, count, _geometry.ActiveComponents, bounds);
+                return;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        unsafe void ICompressedVertexSource.CompressIndices(void* pSrc, void* pDst, int count)
+        {
+            if (CompIndexType == typeof(ushort))
+            {
+                EngineNativeLib.CompressIndices16(pSrc, pDst, count);
+                return;
+            }
+
+            if (CompIndexType == typeof(byte))
+            {
+                EngineNativeLib.CompressIndices8(pSrc, pDst, count);
+                return;
+            }
+
+            throw new NotSupportedException();
         }
 
         public Bounds3 LocalBounds
@@ -214,13 +325,13 @@ namespace XrEngine
                 if (_geometry == value)
                     return;
 
-                if (_geometry != null)
-                    _geometry.Detach(this);
+                _geometry?.Detach(this);
 
                 _geometry = value;
 
-                if (_geometry != null)
-                    _geometry.Attach(this);
+                _geometry?.Attach(this);
+
+                UpdateCompression();
 
                 InvalidateLocalBounds();
 
@@ -232,8 +343,10 @@ namespace XrEngine
 
         public IList<Material> Materials => _materials;
 
+        [Editable(false)]
         public IBuffer<VertexData>? VBuf { get; internal set; }
 
+        [Editable(false)]
         public IBuffer<uint>? IBuf { get; internal set; }
 
         public int RenderPriority { get; set; }
@@ -244,11 +357,18 @@ namespace XrEngine
 
         public int InstanceCount { get; set; }
 
+        public Type? CompVertexType { get; set; }
+
+        public Type? CompIndexType { get; set; }
+
+        public MeshCompressionMode CompressionMode { get; set; }
+
+
+        public static bool EnableCompression = true;
+
         #region IVertexSource
 
         EngineObject IVertexSource.Host => _geometry!;
-
-
 
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 
@@ -259,6 +379,8 @@ namespace XrEngine
         VertexData[] IVertexSource<VertexData, uint>.Vertices => _geometry?.Vertices ?? [];
 
         IReadOnlyList<Material> IVertexSource.Materials => _materials;
+
+        Matrix4x4 ICompressedVertexSource.VerticesRemap => _geometry?.VerticesRemap ?? Matrix4x4.Identity;
 
         #endregion
     }

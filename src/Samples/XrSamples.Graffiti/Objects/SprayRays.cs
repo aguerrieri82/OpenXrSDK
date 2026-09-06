@@ -16,10 +16,14 @@ namespace XrSamples.Graffiti.Objects
                 vertices[(i * 2) + 1] = geometry.Vertices[i];
             }
 
-            var newGeo = new Geometry3D();
-            newGeo.Vertices = vertices;
-            newGeo.Primitive = DrawPrimitive.Line;
-            newGeo.ActiveComponents = VertexComponent.Position;
+            var newGeo = new Geometry3D
+            {
+                Vertices = vertices,
+                Primitive = DrawPrimitive.Line,
+                ActiveComponents = VertexComponent.Position
+            };
+
+            CompressionMode = MeshCompressionMode.Never;
             Geometry = newGeo;
         }
     }

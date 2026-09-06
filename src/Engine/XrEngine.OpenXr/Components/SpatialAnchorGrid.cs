@@ -105,7 +105,7 @@ namespace XrEngine.OpenXr
 
         protected void AddAnchor(Space space, Guid id, Pose3 worldPose, bool isCreated)
         {
-            var hostWorldPose = _host!.GetWorldPose();
+            var hostWorldPose = _host.GetWorldPose();
 
             _anchors.Add(new SpatialAnchor
             {
@@ -154,7 +154,7 @@ namespace XrEngine.OpenXr
                 }
             }
 
-            var hostWorldPose = _host!.GetWorldPose();
+            var hostWorldPose = _host.GetWorldPose();
 
             _changedAnchors.Clear();
 
@@ -181,7 +181,7 @@ namespace XrEngine.OpenXr
 
                 var newHostPose = anchor.CurrentWorldPose.Multiply(anchor.LocalPose.Inverse());
 
-                _host!.SetWorldPose(newHostPose);
+                _host.SetWorldPose(newHostPose);
             }
 
             _lastPose = head.Pose;

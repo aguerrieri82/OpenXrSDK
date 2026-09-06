@@ -55,7 +55,7 @@ namespace XrEngine.Animation
                     end.Value,
                     normalizedTime);
 
-                return _animation.ApplyValue(value, _host!);
+                return _animation.ApplyValue(value, _host);
             }
 
             protected void SetStep(int step)

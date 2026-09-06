@@ -25,7 +25,7 @@ namespace XrSamples.Earth
             Albedo.MinFilter = ScaleFilter.LinearMipmapLinear;
             Albedo.MipLevelCount = 20;
 
-            HeightMap = new HeightMapSettings
+            HeightMap = new DisplacmentMapSettings
             {
                 Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png"),
                 ScaleFactor = Unit(6.4f),

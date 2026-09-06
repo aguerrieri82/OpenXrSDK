@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
         private readonly GL _gl;
         private readonly bool _multiView;
         private readonly Dictionary<ulong, IGlRenderTargetFB> _targets = [];
-
+        private readonly Dictionary<uint, GlTexture> _views = [];
         private GlTexture? _intermediateColor;
 
 
@@ -111,8 +111,20 @@ namespace XrEngine.OpenGL
                     glDepth = GlTexture.Attach(_gl, depthTex, texSampleCount);
 
                 if (colorTex != 0)
+                {
                     glColor = GlTexture.Attach(_gl, colorTex, texSampleCount);
 
+                    if (_multiView && glColor.Depth == 4 && !glColor.IsView)
+                    {
+                        if (!_views.TryGetValue(colorTex, out var viewTexture))
+                        {
+                            viewTexture = glColor.CreateView(0, 2);
+                            _views[colorTex] = viewTexture;
+                        }
+
+                        glColor = viewTexture;
+                    }
+                }
                 else if (createColor)
                 {
                     Debug.Assert(glDepth != null);
@@ -152,6 +164,7 @@ namespace XrEngine.OpenGL
                         Debug.Assert(renderColor != null);
                         glDepth = CreateDepth(renderColor, 2, texSampleCount);
                     }
+
 
                     multiView.FrameBuffer.Configure(renderColor, glDepth, sampleCount);
 
@@ -228,6 +241,11 @@ namespace XrEngine.OpenGL
                 item.Value.Dispose();
 
             _targets.Clear();
+
+            foreach (var item in _views)
+                item.Value.Dispose();
+
+            _views.Clear();
 
             _intermediateColor?.Dispose();
             _intermediateColor = null;

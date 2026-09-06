@@ -25,7 +25,15 @@ void main()
     vec2 uv = fUv;
 
     #ifdef USE_TRANSFORM
-        uv = (vec3(uv, 1) * uUvTransform).xy;
+
+        vec3 tuv = vec3(uv, 1.0) * uUvTransform;
+        uv = tuv.xy / tuv.z;
+
+    #endif
+    
+    #ifdef CLAMP
+        if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))))
+            discard;
     #endif
 
     #ifdef CHECK_TEXTURE

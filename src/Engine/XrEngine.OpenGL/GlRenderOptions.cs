@@ -3,6 +3,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
+
     public enum ShaderPrecision
     {
         Low,
@@ -45,6 +46,7 @@ namespace XrEngine.OpenGL
 
     public class GlRenderOptions
     {
+
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
@@ -52,6 +54,7 @@ namespace XrEngine.OpenGL
             SamplerPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
+            UseSharedSsbo = false;
             UseOcclusionQuery = false;
             UseDepthPass = false;
             SortByCameraDistance = true;
@@ -62,13 +65,15 @@ namespace XrEngine.OpenGL
             UseInstanceDraw = true;
             CacheUniforms = true;
             ToneMap = ToneMapMode.Neutral;
-            UseResolve = false;
             UseAsyncShaderCompile = true;
             UseShaderCache = true;
             UseShaderPreprocessor = true;
             UseRayCollider = true;
             UseDefaultIntermediate = true;
             UsePrimitiveBoundingBox = true;
+            UseTransmission = true;
+            ClipMode = ShaderClipMode.DepthClear;
+
             ContactShadow = new()
             {
                 Use = false,
@@ -80,6 +85,7 @@ namespace XrEngine.OpenGL
                 FadeDistance = 0.12f,
                 ApplyStrength = 1.0f
             };
+
             Compression = new GlCompressionOptions
             {
                 Use = false,
@@ -88,6 +94,7 @@ namespace XrEngine.OpenGL
                 Format = TextureCompressionFormat.Astc,
                 Quality = 60,
             };
+
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.PCF,
@@ -101,6 +108,7 @@ namespace XrEngine.OpenGL
                 UseShadowSampler = true,
                 Expand = new Vector3(0.1f, 0.1f, 0.1f)
             };
+
             Outline = new GlOutlineOptions()
             {
                 Use = false,
@@ -131,6 +139,8 @@ namespace XrEngine.OpenGL
 
         public MotionVectorMode MotionVectorMode { get; set; }
 
+        public ShaderClipMode ClipMode { get; set; }    
+
         public bool RequireTextureCompression { get; set; }
 
         public bool FrustumCulling { get; set; }
@@ -157,6 +167,7 @@ namespace XrEngine.OpenGL
 
         public bool UseInstanceDraw { get; set; }
 
+        [Obsolete]
         public bool UseResolve { get; set; }
 
         public bool UseHighQualitySrgb { get; set; }
@@ -164,6 +175,8 @@ namespace XrEngine.OpenGL
         public bool UseAsyncShaderCompile { get; set; }
 
         public bool UseShaderCache { get; set; }
+
+        public bool UseSharedSsbo { get; set; }
 
         public bool UseShaderPreprocessor { get; set; }
 
@@ -173,7 +186,12 @@ namespace XrEngine.OpenGL
 
         public bool UseDefaultIntermediate { get; set; }
 
-        public bool UsePrimitiveBoundingBox { get;  set; }
+        public bool UsePrimitiveBoundingBox { get; set; }
 
+        public bool UseTransmission { get; set; }
+
+        public bool UseFxAA { get; set; }
+
+        public bool NeedPostProcess => UseFxAA;
     }
 }

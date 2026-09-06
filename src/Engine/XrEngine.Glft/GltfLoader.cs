@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using XrEngine.Animation;
 using XrEngine.Components;
+using XrEngine.Helpers;
 using XrMath;
 using static glTFLoader.Schema.AnimationSampler;
 using static glTFLoader.Schema.Material;
@@ -27,34 +28,167 @@ namespace XrEngine.Gltf
             PropertyNameCaseInsensitive = true
         };
 
+        static MethodInfo? _convertBufGen;
+
         GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
+        KHR_lights_punctual? _lightsRoot;
 
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<Image, TextureData> _images = [];
-        readonly ConcurrentDictionary<Image, LoadTask<Texture2D>> _textures = [];
+        readonly ConcurrentDictionary<ulong, LoadTask<Texture2D>> _textures = [];
         readonly Dictionary<Mesh, Object3D> _meshes = [];
         readonly List<Task> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
-
         readonly Dictionary<int, Object3D> _nodes = [];
-
+        readonly Dictionary<Object3D, int> _objects = [];
         readonly Dictionary<int, GltfSkin> _skins = [];
-
+        readonly HashSet<Object3D> _animTargets = [];
+        HashSet<int>? _animNodeIds;
+        HashSet<int>? _jointNodesIds;
+        MaterialVariantsHost? _variants;
         string? _basePath;
         string? _filePath;
-        private MethodInfo? _convertBufGen;
+
+
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
             "EXT_texture_webp",
             "KHR_texture_basisu",
+            "KHR_materials_clearcoat",
+            "KHR_materials_ior",
+            "KHR_materials_transmission",
+            "KHR_materials_volume",
+            "KHR_lights_punctual",
+            "KHR_materials_sheen",
+            "KHR_materials_iridescence",
+            "KHR_materials_variants",
+            "KHR_materials_emissive_strength",
+            "KHR_materials_specular",
+            "KHR_materials_dispersion",
+            "KHR_node_visibility",
+            "KHR_materials_anisotropy",
             "KHR_materials_pbrSpecularGlossiness" };
 
-
         #region STRUCTS
+
+        public struct KHR_materials_anisotropy
+        {
+            public float anisotropyStrength;
+            public float anisotropyRotation;
+            public TextureInfo? anisotropyTexture;
+        }
+
+        public struct KHR_node_visibility
+        {
+            public bool visible;
+        }
+
+        public struct KHR_materials_dispersion
+        {
+            public float dispersion;
+        }
+
+        public struct KHR_materials_variants
+        {
+            public struct Variant
+            {
+                public string? name { get; set; }
+            }
+
+            public struct Mapping
+            {
+                public int material { get; set; }
+
+                public int[]? variants { get; set; }
+            }
+
+            public Variant[]? variants { get; set; }
+
+            public Mapping[]? mappings { get; set; }
+
+        }
+
+        public struct KHR_materials_specular
+        {
+            public float? specularFactor;
+            public TextureInfo? specularTexture;
+            public float[]? specularColorFactor;
+            public TextureInfo? specularColorTexture;
+        }
+
+        public struct KHR_lights_punctual
+        {
+            public struct Light
+            {
+                public const string Directional = "directional";
+                public const string Point = "point";
+                public const string Spot = "spot";
+
+                public string? name;
+                public float[]? color;
+                public float? intensity;
+                public string type;
+                public float? range;
+                public Spot? spot;
+            }
+
+            public struct Spot
+            {
+                public float? innerConeAngle;
+                public float? outerConeAngle;
+            }
+
+            public Light[]? lights;
+            public int? light;
+        }
+
+        public struct KHR_materials_emissive_strength
+        {
+            public float emissiveStrength;
+        }
+
+        struct KHR_materials_clearcoat
+        {
+            public float clearcoatFactor;
+            public TextureInfo? clearcoatTexture;
+
+            public float clearcoatRoughnessFactor;
+            public TextureInfo? clearcoatRoughnessTexture;
+
+            public MaterialNormalTextureInfo? clearcoatNormalTexture;
+        }
+
+        struct KHR_materials_sheen
+        {
+            public float[]? sheenColorFactor;
+            public TextureInfo? sheenColorTexture;
+
+            public float sheenRoughnessFactor;
+            public TextureInfo? sheenRoughnessTexture;
+        }
+
+        struct KHR_materials_ior
+        {
+            public float ior;
+        }
+
+        struct KHR_materials_transmission
+        {
+            public float transmissionFactor;
+            public TextureInfo? transmissionTexture;
+        }
+
+        struct KHR_materials_volume
+        {
+            public float thicknessFactor;
+            public TextureInfo? thicknessTexture;
+            public float attenuationDistance;
+            public float[]? attenuationColor;
+        }
 
         struct EXT_texture_webp
         {
@@ -64,6 +198,18 @@ namespace XrEngine.Gltf
         struct KHR_texture_basisu
         {
             public int? source;
+        }
+
+        struct KHR_materials_iridescence
+        {
+            public float iridescenceFactor;
+            public TextureInfo? iridescenceTexture;
+
+            public float iridescenceIor;
+
+            public float iridescenceThicknessMinimum;
+            public float iridescenceThicknessMaximum;
+            public TextureInfo? iridescenceThicknessTexture;
         }
 
         struct KHR_draco_mesh_compression
@@ -97,17 +243,6 @@ namespace XrEngine.Gltf
             public int texCoord;
         }
 
-        struct KHR_materials_sheen
-        {
-            public float[]? sheenColorFactor;
-
-            public TextureInfo? sheenColorTexture;
-
-            public float sheenRoughnessFactor;
-
-            public TextureInfo? sheenRoughnessTexture;
-        }
-
         public struct LoadTask<T>
         {
             public T Result;
@@ -135,7 +270,6 @@ namespace XrEngine.Gltf
             public InterpolationEnum Interpolation;
 
         }
-
 
         #endregion
 
@@ -173,6 +307,31 @@ namespace XrEngine.Gltf
             if (ext != null && ext.TryGetValue(typeof(T).Name, out var extension))
                 return ((JsonElement)extension).Deserialize<T>(JSON_OPTIONS);
             return null;
+        }
+
+        protected ulong TextureCacheKey(int imageId, Sampler? sampler)
+        {
+            var hash = HashBuilder.Instance;
+
+            hash.Reset();
+            hash.Add(imageId);
+
+            if (sampler != null)
+            {
+                hash.Add((int)sampler.WrapS);
+                hash.Add((int)sampler.WrapT);
+                hash.Add((int)(sampler.MagFilter ?? Sampler.MagFilterEnum.LINEAR));
+                hash.Add((int)(sampler.MinFilter ?? Sampler.MinFilterEnum.LINEAR));
+            }
+            else
+            {
+                hash.Add((int)WrapMode.Repeat);
+                hash.Add((int)WrapMode.Repeat);
+                hash.Add((int)ScaleFilter.Linear);
+                hash.Add((int)ScaleFilter.Linear);
+            }
+
+            return hash.Value();
         }
 
         protected TextureData ProcessImage(int imgId, bool useSrgb = false)
@@ -251,7 +410,9 @@ namespace XrEngine.Gltf
 
         public LoadTask<Texture2D> ProcessTextureTask(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
         {
-            var texture = _model!.Textures[texId];
+            Debug.Assert(_model != null);
+
+            var texture = _model.Textures[texId];
 
             CheckExtensions(texture.Extensions);
 
@@ -259,35 +420,48 @@ namespace XrEngine.Gltf
 
             var basisu = TryLoadExtension<KHR_texture_basisu>(texture.Extensions);
 
-            texture.Source ??= webP?.source ?? basisu?.source;
+            var source = basisu?.source ?? webP?.source ?? texture.Source;
 
-            var imageInfo = _model!.Images[texture.Source!.Value];
+            var imageInfo = _model.Images[source!.Value];
 
-            return _textures.GetOrAdd(imageInfo, img =>
+            Sampler? sampler = null;
+
+            if (texture.Sampler != null)
             {
-                Debug.Assert(result == null);
+                sampler = _model.Samplers[texture.Sampler.Value];
+                CheckExtensions(sampler.Extensions);
+            }
 
-                var texResult = new Texture2D();
+            var cacheKey = TextureCacheKey(source.Value, sampler);
+
+            if (result != null)
+            {
+                if (_textures.TryRemove(cacheKey, out var curCacheTask))
+                    Debug.Assert(curCacheTask.Result == result);
+            }
+   
+            return _textures.GetOrAdd(cacheKey, img =>
+            {
+                var texResult = result ?? new Texture2D();
 
                 texResult.Flags |= EngineObjectFlags.Readonly;
 
                 texResult.Name = texture.Name ?? (imageInfo.Name ?? imageInfo.Uri ?? "");
 
-                AssignAsset(texResult, "tex", texId);
+                AssignAsset(texResult, texture.Name ?? imageInfo.Name, "tex", texId);
 
                 return Load(texResult, () =>
                 {
-                    var data = ProcessImage(texture.Source!.Value, useSrgb);
+                    var data = ProcessImage(source.Value, useSrgb);
+
+                    AssignAsset(texResult, imageInfo.Name, "img", source.Value);
 
                     texResult.LoadData([data]);
 
                     var hasMinFilter = false;
 
-                    if (texture.Sampler != null)
+                    if (sampler != null)
                     {
-                        var sampler = _model!.Samplers[texture.Sampler.Value];
-                        CheckExtensions(sampler.Extensions);
-
                         texResult.WrapS = (WrapMode)sampler.WrapS;
                         texResult.WrapT = (WrapMode)sampler.WrapT;
 
@@ -336,29 +510,50 @@ namespace XrEngine.Gltf
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTextureTask(info.Index, info.Extensions);
+            var result = ProcessTextureTask(info.Index, info.Extensions);
+            result.Result.DefaultUvSet = (uint)info.TexCoord;
+            return result;
         }
 
         protected LoadTask<Texture2D> DecodeTextureNormalTask(MaterialNormalTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTextureTask(info.Index, info.Extensions);
+            var result = ProcessTextureTask(info.Index, info.Extensions);
+            result.Result.DefaultUvSet = (uint)info.TexCoord;
+            return result;
         }
 
         protected LoadTask<Texture2D> DecodeTextureBaseTask(TextureInfo info, bool useSRgb = false)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
+            var result = ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
+            result.Result.DefaultUvSet = (uint)info.TexCoord;
+            return result;
         }
-
-        public PbrMaterial ProcessMaterial(int matId, PbrMaterial? result = null)
+        public PbrMaterial ProcessMaterial(int matId, Node? node = null, PbrMaterial? result = null)
         {
             var gltMat = _model!.Materials[matId];
 
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrMaterial)mat;
+
+            CheckExtensions(gltMat.Extensions);
+
+            if (gltMat.Name == "_1_-_Default")
+                Console.Write("");
+
+            var ior = TryLoadExtension<KHR_materials_ior>(gltMat.Extensions);
+            var volume = TryLoadExtension<KHR_materials_volume>(gltMat.Extensions);
+            var trans = TryLoadExtension<KHR_materials_transmission>(gltMat.Extensions);
+            var irid = TryLoadExtension<KHR_materials_iridescence>(gltMat.Extensions);
+            var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
+            var coat = TryLoadExtension<KHR_materials_clearcoat>(gltMat.Extensions);
+            var emiStr = TryLoadExtension<KHR_materials_emissive_strength>(gltMat.Extensions);
+            var spec = TryLoadExtension<KHR_materials_specular>(gltMat.Extensions);
+            var disp = TryLoadExtension<KHR_materials_dispersion>(gltMat.Extensions);
+            var anis = TryLoadExtension<KHR_materials_anisotropy>(gltMat.Extensions);
 
             result ??= _options.MaterialFactory(matId);
 
@@ -400,6 +595,7 @@ namespace XrEngine.Gltf
                 result.NormalMap = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
                 result.NormalMap.Type = TextureType.NormalMap;
                 result.NormalScale = gltMat.NormalTexture.Scale;
+                ApplyMips(result.NormalMap);
             }
 
             if (gltMat.OcclusionTexture != null)
@@ -417,7 +613,169 @@ namespace XrEngine.Gltf
 
             result.EmissiveColor = new Color(gltMat.EmissiveFactor);
 
-            AssignAsset(result, "mat", matId);
+            if (emiStr != null)
+                result.EmissiveColor = result.EmissiveColor.Multiply(emiStr.Value.emissiveStrength);
+
+            result.Ior = ior?.ior ?? 1.5f;
+
+            if (volume != null)
+            {
+                result.Thickness = volume.Value.thicknessFactor * (node?.Scale?[0] ?? 1);
+                result.AttenuationDistance = volume.Value.attenuationDistance;
+                result.AttenuationColor = volume.Value.attenuationColor == null ? Color.White :
+                                          new Color(volume.Value.attenuationColor);
+
+                if (volume.Value.thicknessTexture != null)
+                {
+                    var texInfo = volume.Value.thicknessTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ThicknessMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.ThicknessMap);
+                }
+            }
+
+            if (trans != null)
+            {
+                result.Transmission = trans.Value.transmissionFactor;
+
+                if (trans.Value.transmissionTexture != null)
+                {
+                    var texInfo = trans.Value.transmissionTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.TransmissionMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.TransmissionMap);
+                }
+
+                if (result.Thickness == 0 && result.Roughness == 0)
+                    result.TransmissionMode = TransmissionMode.DualAlpha;
+                else
+                    result.TransmissionMode = _options.TransmissionBkOnly ? 
+                        TransmissionMode.TextureBackground : 
+                        TransmissionMode.Texture;
+            }
+
+            if (irid != null)
+            {
+                result.IridescenceFactor = irid.Value.iridescenceFactor;
+                result.IridescenceThicknessMax = irid.Value.iridescenceThicknessMaximum;
+                result.IridescenceThicknessMin = irid.Value.iridescenceThicknessMinimum;
+                result.IridescenceIor = irid.Value.iridescenceIor;
+
+                if (result.IridescenceThicknessMax == 0)
+                    result.IridescenceThicknessMax = 400f;
+
+                if (result.IridescenceThicknessMin == 0)
+                    result.IridescenceThicknessMin = 100f;
+
+                if (result.IridescenceIor == 0)
+                    result.IridescenceIor = 1.3f;
+
+                if (irid.Value.iridescenceThicknessTexture != null)
+                {
+                    var texInfo = irid.Value.iridescenceThicknessTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.IridescenceThicknessMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.IridescenceThicknessMap);
+                }
+
+                if (irid.Value.iridescenceTexture != null)
+                {
+                    var texInfo = irid.Value.iridescenceTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.IridescenceMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.IridescenceMap);
+                }
+            }
+
+            if (coat != null)
+            {
+                if (coat.Value.clearcoatNormalTexture != null)
+                {
+                    var texInfo = coat.Value.clearcoatNormalTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ClearCoatNormalMap = DecodeTextureNormalTask(texInfo).Result;
+                    result.ClearCoatNormalScale = texInfo.Scale;
+                    ApplyMips(result.ClearCoatNormalMap);
+                }
+                if (coat.Value.clearcoatTexture != null)
+                {
+                    var texInfo = coat.Value.clearcoatTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ClearCoatMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.ClearCoatMap);
+                }
+                if (coat.Value.clearcoatRoughnessTexture != null)
+                {
+                    var texInfo = coat.Value.clearcoatRoughnessTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.ClearCoatRoughnessMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.ClearCoatRoughnessMap);
+                }
+
+                result.ClearCoatFactor = coat.Value.clearcoatFactor;
+                result.ClearCoatRoughnessFactor = coat.Value.clearcoatRoughnessFactor;
+            }
+
+            if (sheen != null)
+            {
+                result.SheenColor = sheen.Value.sheenColorFactor == null ?
+                    Color.Transparent : new Color(sheen.Value.sheenColorFactor);
+
+                result.SheenRoughness = sheen.Value.sheenRoughnessFactor;
+
+                if (sheen.Value.sheenRoughnessTexture != null)
+                {
+                    var texInfo = sheen.Value.sheenRoughnessTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.SheenRoughnessMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.SheenRoughnessMap);
+                }
+
+                if (sheen.Value.sheenColorTexture != null)
+                {
+                    var texInfo = sheen.Value.sheenColorTexture;
+                    Debug.Assert(texInfo.TexCoord == 0);
+                    result.SheenColorMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.SheenColorMap);
+                }
+            }
+
+            if (spec != null && !_options.DisableSpecualar)
+            {
+                result.Specular = spec.Value.specularFactor ?? 1f;
+                result.SpecularColor = spec.Value.specularColorFactor == null ? Color.White : new Color(spec.Value.specularColorFactor);
+                result.UseSpecular = true;
+
+                if (spec.Value.specularTexture != null)
+                {
+                    var texInfo = spec.Value.specularTexture;
+                    result.SpecularMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.SpecularMap);
+                }
+
+                if (spec.Value.specularColorTexture != null)
+                {
+                    var texInfo = spec.Value.specularColorTexture;
+                    result.SpecularColorMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.SpecularColorMap);
+                }
+            }
+
+            if (anis != null)
+            {
+                result.Anisotropy = anis.Value.anisotropyStrength;
+                result.AnisotropyRotation = anis.Value.anisotropyRotation;
+                if (anis.Value.anisotropyTexture != null)
+                {
+                    var texInfo = anis.Value.anisotropyTexture;
+                    result.AnisotropyMap = DecodeTextureBaseTask(texInfo).Result;
+                    ApplyMips(result.AnisotropyMap);
+                }
+            }
+
+            result.Dispersion = disp?.dispersion ?? 0;
+
+            AssignAsset(result, gltMat.Name, "mat", matId);
 
             _mats[gltMat] = result;
 
@@ -467,11 +825,11 @@ namespace XrEngine.Gltf
             {
                 if (accessor.ComponentType == Accessor.ComponentTypeEnum.FLOAT)
                     type = typeof(Vector4);
-                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                     type = typeof(Vector4US);
-                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_BYTE)
                     type = typeof(Vector4UB);
-                else if(accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
+                else if (accessor.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
                     type = typeof(Vector4I);
                 else
                     throw new NotImplementedException();
@@ -768,7 +1126,7 @@ namespace XrEngine.Gltf
                             result.Indices = ConvertBuffer<ushort>(acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
-                        
+
                         else if (acc.ComponentType == Accessor.ComponentTypeEnum.UNSIGNED_INT)
                             result.Indices = ConvertBuffer<uint>(acc);
 
@@ -892,6 +1250,16 @@ namespace XrEngine.Gltf
             return result;
         }
 
+        public Geometry3D ProcessGeometry(int meshId, int primId, Geometry3D? result = null)
+        {
+            var mesh = _model!.Meshes[meshId];
+            var primitive = mesh.Primitives[primId];
+
+            result = ProcessPrimitive(primitive, result);
+
+            return result;
+        }
+
         public Object3D ProcessMesh(int meshId, Node? node, Object3D? result = null)
         {
             var gltMesh = _model!.Meshes[meshId];
@@ -908,7 +1276,7 @@ namespace XrEngine.Gltf
 
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
-            var pIndex = 0;
+            var primId = 0;
 
             foreach (var primitive in gltMesh.Primitives)
             {
@@ -919,7 +1287,7 @@ namespace XrEngine.Gltf
 
                 if (node?.Skin != null)
                 {
-                    var skin = _skins[node.Skin.Value];
+                    var skin = ProcessSkin(node.Skin.Value);
 
                     curMesh.AddComponent(new MeshSkin()
                     {
@@ -942,11 +1310,11 @@ namespace XrEngine.Gltf
 
                 Load(curMesh, () =>
                 {
-                    var geo = ProcessPrimitive(primitive, curMesh.Geometry);
+                    ProcessPrimitive(primitive, curMesh.Geometry);
 
-                    AssignAsset(geo, gltMesh.Name, "geo", meshId, pIndex);
+                    AssignAsset(curMesh.Geometry, gltMesh.Name, "geo", meshId, primId);
 
-                    curMesh.Geometry = geo;
+                    curMesh.NotifyChanged(ChangeType.Geometry);
 
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name,
                         curMesh.Geometry.Vertices.Length * MarshalCache.SizeOf(typeof(VertexData)));
@@ -954,58 +1322,150 @@ namespace XrEngine.Gltf
 
                 if (primitive.Material != null)
                 {
-                    var mat = ProcessMaterial(primitive.Material.Value);
+                    var mat = ProcessMaterial(primitive.Material.Value, node);
                     mat.Skin = SkinMode.Static;
-                    mat.HasSkin = node?.Skin != null;
-                    mat.HasMorph = weights != null && weights.Length > 0;
+                    mat.UseSkin = node?.Skin != null;
+                    mat.UseMorph = weights != null && weights.Length > 0;
                     curMesh.Materials.Add(mat);
                 }
 
+                var matVar = TryLoadExtension<KHR_materials_variants>(primitive.Extensions);
+
+                if (matVar?.mappings != null)
+                {
+                    Debug.Assert(_variants != null);
+
+                    foreach (var map in matVar.Value.mappings)
+                    {
+                        var mat = ProcessMaterial(map.material, node);
+
+                        if (!curMesh.Materials.Contains(mat))
+                        {
+                            mat.IsEnabled = false;
+                            curMesh.Materials.Add(mat);
+                        }
+
+                        Debug.Assert(map.variants != null);
+
+                        foreach (var varIdx in map.variants)
+                            _variants.Variants[varIdx].Bind(curMesh, mat);
+                    }
+                }
 
                 if (group == null)
                 {
+                    AssignAsset(curMesh, gltMesh.Name, "mesh", meshId);
+
                     _meshes[gltMesh] = curMesh;
-                    GenerateId(curMesh, "mesh", meshId);
+
                     return curMesh;
                 }
 
                 group.AddChild(curMesh);
+
+                primId++;
             }
 
-            pIndex++;
+            Debug.Assert(group != null);
 
-            _meshes[gltMesh] = group!;
+            _meshes[gltMesh] = group;
 
-            GenerateId(group!, "mesh", meshId);
+            AssignAsset(group, gltMesh.Name, "mesh", meshId);
 
-            return group!;
+            return group;
         }
 
         protected Camera ProcessCamera(int cameraId)
         {
             var camera = _model!.Cameras[cameraId];
-            var cameraObj = new PerspectiveCamera();
 
             CheckExtensions(camera.Extensions);
-            LoadLog("Camera not supported!");
 
-            return cameraObj;
+            if (camera.Type == "perspective")
+            {
+                CheckExtensions(camera.Perspective.Extensions);
+
+                var cameraObj = new PerspectiveCamera
+                {
+                    Far = camera.Perspective.Zfar ?? float.PositiveInfinity,
+                    Near = camera.Perspective.Znear,
+                    FovDegree = camera.Perspective.Yfov.ToDegrees()
+                };
+
+                if (camera.Perspective.AspectRatio.HasValue)
+                    cameraObj.ViewSize = new Size2I((uint)(camera.Perspective.AspectRatio.Value * 1000), 1000);
+
+                return cameraObj;
+
+            }
+            else
+            {
+                CheckExtensions(camera.Orthographic.Extensions);
+                var cameraObj = new OrtoCamera
+                {
+                    Far = camera.Orthographic.Zfar,
+                    Near = camera.Orthographic.Znear
+                };
+                cameraObj.SetViewArea(-camera.Orthographic.Xmag, camera.Orthographic.Xmag, -camera.Orthographic.Ymag, camera.Orthographic.Ymag);
+
+                return cameraObj;
+            }
         }
 
-        protected Object3D ProcessNode(int nodeId, Group3D? curGrp, bool isJoint)
+        protected Object3D Flattern(Object3D obj3d, int nodeId)
         {
+            Object3D curObj = obj3d;
+
+            while (true)
+            {
+                if (curObj is Group3D grp &&
+                    grp.Children.Count == 1 &&
+                    grp.Transform.Matrix.IsIdentity &&
+                    !_animNodeIds!.Contains(nodeId) &&
+                    !_animTargets.Contains(curObj))
+                {
+                    curObj = grp.Children[0];
+
+                    if (!_objects.TryGetValue(curObj, out nodeId))
+                        nodeId = -1;
+                }
+                else
+                    break;
+            }
+
+            return curObj;
+        }
+        
+        public Object3D ProcessNode(int nodeId)
+        {
+            ProcessVariants();
+
+            return ProcessNode(nodeId, null);
+        }
+
+        protected Object3D ProcessNode(int nodeId, Group3D? curGrp)
+        {
+            Debug.Assert(_model != null);
+
             if (_nodes.TryGetValue(nodeId, out var nodeObj))
             {
                 if (nodeObj.Parent == null)
                     curGrp?.AddChild(nodeObj);
+
                 return nodeObj;
             }
 
-            var node = _model!.Nodes[nodeId];
+            var node = _model.Nodes[nodeId];
 
             CheckExtensions(node.Extensions);
 
+            var puntual = TryLoadExtension<KHR_lights_punctual>(node.Extensions);
+
+            var vis = TryLoadExtension<KHR_node_visibility>(node.Extensions);
+
             Group3D? nodeGrp = null;
+
+            var isJoint = _jointNodesIds!.Contains(nodeId);
 
             if (isJoint || (node.Children != null && node.Children.Length > 0))
             {
@@ -1013,9 +1473,24 @@ namespace XrEngine.Gltf
                 nodeObj = nodeGrp;
             }
 
-            if (node.Mesh != null)
+            if (puntual?.light != null)
             {
-                Object3D nodeMesh = ProcessMesh(node.Mesh.Value, node);
+                _lightsRoot ??= TryLoadExtension<KHR_lights_punctual>(_model.Extensions);
+
+                Debug.Assert(_lightsRoot?.lights != null);
+
+                var lightId = puntual.Value.light.Value;
+
+                var light = _lightsRoot.Value.lights[lightId];
+
+                nodeObj = ProcessLight(light);
+
+                AssignAsset(nodeObj, light.name, "light", lightId);
+            }
+
+            else if (node.Mesh != null)
+            {
+                var nodeMesh = ProcessMesh(node.Mesh.Value, node);
 
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
@@ -1036,7 +1511,7 @@ namespace XrEngine.Gltf
             if (nodeGrp != null && node.Children != null)
             {
                 foreach (var childNode in node.Children)
-                    ProcessNode(childNode, nodeGrp, isJoint);
+                    ProcessNode(childNode, nodeGrp);
             }
 
             nodeObj!.Name = node.Name;
@@ -1066,27 +1541,96 @@ namespace XrEngine.Gltf
 
             nodeObj.Transform.Update();
 
-            if (nodeGrp != null && nodeGrp.Children.Count == 1 && nodeGrp.WorldMatrix.IsIdentity)
-                nodeObj = nodeGrp.Children[0];
+            if (!isJoint)
+                nodeObj = Flattern(nodeObj, nodeId);
 
-            //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
+            AssignAsset(nodeObj, node.Name, "node", nodeId);
+
+            if (nodeObj is DirectionalLight dir)
+                dir.Direction = nodeObj.Forward;
+            else if (nodeObj is SpotLight spot)
+                spot.Direction = nodeObj.Forward;
+
+            if (vis != null && !vis.Value.visible)
+                nodeObj.IsVisible = false;
 
             curGrp?.AddChild(nodeObj);
 
-            GenerateId(nodeObj, "node", nodeId);
-
             _nodes[nodeId] = nodeObj;
+
+            _objects.TryAdd(nodeObj, nodeId);
 
             return nodeObj;
         }
 
+
+        public Light ProcessLight(int lightId, Light? result = null)
+        {
+            _lightsRoot ??= TryLoadExtension<KHR_lights_punctual>(_model!.Extensions);
+
+            Debug.Assert(_lightsRoot?.lights != null);
+
+            result = ProcessLight(_lightsRoot.Value.lights[lightId], result);
+
+            return result;
+        }
+
+        private Light ProcessLight(KHR_lights_punctual.Light light, Light? result = null)
+        {
+            if (light.type == KHR_lights_punctual.Light.Spot)
+            {
+                Debug.Assert(light.spot != null);
+
+                var spot = new SpotLight
+                {
+                    InnerConeAngle = light.spot.Value.innerConeAngle ?? 0f,
+                    OuterConeAngle = light.spot.Value.outerConeAngle ?? MathF.PI / 4f,
+                    Range = light.range ?? float.PositiveInfinity,
+                    Intensity = light.intensity ?? 1f,
+                    Name = light.name,
+                    Color = light.color != null ? new Color(light.color) : Color.White
+                };
+
+                return spot;
+            }
+            else if (light.type == KHR_lights_punctual.Light.Directional)
+            {
+                var dir = new DirectionalLight
+                {
+                    Intensity = light.intensity ?? 1f,
+                    Name = light.name,
+                    Color = light.color != null ? new Color(light.color) : Color.White
+                };
+                return dir;
+
+            }
+            else if (light.type == KHR_lights_punctual.Light.Point)
+            {
+                var point = new PointLight
+                {
+                    Range = light.range ?? float.PositiveInfinity,
+                    Intensity = light.intensity ?? 1f,
+                    Name = light.name,
+                    Color = light.color != null ? new Color(light.color) : Color.White
+                };
+                return point;
+            }
+
+            throw new NotSupportedException();
+        }
+
         protected GltfSkin ProcessSkin(int skinId)
         {
-            var skin = _model!.Skins[skinId];
+            if (_skins.TryGetValue(skinId, out var skinObj))
+                return skinObj;
+
+            Debug.Assert(_model != null);
+
+            var skin = _model.Skins[skinId];
 
             CheckExtensions(skin.Extensions);
 
-            var skinObj = new GltfSkin
+            skinObj = new GltfSkin
             {
                 Joints = [],
                 Id = Guid.NewGuid()
@@ -1102,14 +1646,14 @@ namespace XrEngine.Gltf
 
             foreach (var joint in skin.Joints)
             {
-                var jointObj = (Joint3D)ProcessNode(joint, null, true);
+                var jointObj = (Joint3D)ProcessNode(joint, null);
 
                 skinObj.Joints.Add(jointObj);
             }
 
             Debug.Assert(matrices != null && matrices.Length == skinObj.Joints.Count);
 
-            for (var i = 0; i < skinObj.Joints.Count;i++)
+            for (var i = 0; i < skinObj.Joints.Count; i++)
                 skinObj.Joints[i].InverseBindMatrix = matrices[i];
 
             _skins[skinId] = skinObj;
@@ -1117,8 +1661,10 @@ namespace XrEngine.Gltf
             return skinObj;
         }
 
-        protected void ProcessAnimation(glTFLoader.Schema.Animation anim, Object3D root)
+        public AnimationGroup ProcessAnimation(int animId)
         {
+            var anim = _model!.Animations[animId];
+
             Debug.Assert(_model != null);
 
             CheckExtensions(anim.Extensions);
@@ -1165,11 +1711,13 @@ namespace XrEngine.Gltf
                 samplers.Add(gltfSampler);
             }
 
-
             var group = new AnimationGroup()
             {
-                IterationCount = 1
+                IterationCount = 1,
+                Name = anim.Name,
             };
+
+            AssignAsset(group, anim.Name, "anim", animId);
 
             foreach (var channel in anim.Channels)
             {
@@ -1182,6 +1730,8 @@ namespace XrEngine.Gltf
                 var sampler = samplers[channel.Sampler];
                 var obj3d = _nodes[channel.Target.Node.Value];
                 var path = channel.Target.Path;
+
+                _animTargets.Add(obj3d);
 
                 Debug.Assert(sampler.Values != null);
 
@@ -1205,7 +1755,6 @@ namespace XrEngine.Gltf
                             TimeFunction = timeFunc
                         })],
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Scale = t.Value
                     });
                 }
@@ -1220,7 +1769,6 @@ namespace XrEngine.Gltf
                             TimeFunction = timeFunc
                         })],
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Position = t.Value
                     });
                 }
@@ -1235,12 +1783,13 @@ namespace XrEngine.Gltf
                             TimeFunction = timeFunc
                         })],
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t => obj3d.Transform.Orientation = t.Value
                     });
                 }
                 else if (path == "weights")
                 {
+                    MeshMorph[]? morphMeshes = null;
+
                     group.Add(new StepAnimation<float[]>()
                     {
                         Steps = [.. sampler.Values.Select(a => new AnimationStep<float[]>
@@ -1251,10 +1800,10 @@ namespace XrEngine.Gltf
                         })],
 
                         IterationCount = 1,
-                        Name = anim.Name,
                         SetTarget = t =>
                         {
-                            foreach (var meshMorph in obj3d.ComponentsDeep<MeshMorph>())
+                            morphMeshes ??= [.. obj3d.ComponentsDeep<MeshMorph>()];
+                            foreach (var meshMorph in morphMeshes)
                                 meshMorph.Weights = t.Value;
                         }
                     });
@@ -1263,28 +1812,58 @@ namespace XrEngine.Gltf
                     throw new NotSupportedException();
             }
 
-            if (!root.TryComponent<AnimationsHost>(out var animHost))
-                animHost = root.AddComponent<AnimationsHost>();
-
-            animHost.AddAnimation(group);
+            return group;
         }
 
-        protected void ProcessAnimations(Object3D root)
+        protected void ProcessVariants()
         {
-            if (_model?.Animations == null)
+            if (_variants != null)
                 return;
 
-            foreach (var anim in _model.Animations)
-                ProcessAnimation(anim, root);
+            var matVars = TryLoadExtension<KHR_materials_variants>(_model!.Extensions);
+
+            if (matVars == null)
+                return;
+
+            _variants = new MaterialVariantsHost();
+
+            _variants.Variants.AddRange(matVars.Value.variants!
+                .Select(a => new MaterialVariant
+                {
+                    Name = a.name
+                })
+            );
         }
 
-        protected Group3D ProcessScene(Scene glScene)
+        protected List<AnimationGroup> ProcessAnimations()
         {
+            Debug.Assert(_model != null);
+
+            if (_model.Animations == null)
+                return [];
+
+            var result = new List<AnimationGroup>();
+
+            int animId = 0;
+            foreach (var anim in _model.Animations)
+            {
+                result.Add(ProcessAnimation(animId));
+                animId++;
+            }
+
+            return result;
+        }
+
+        public Group3D ProcessScene(int sceneId)
+        {
+            var glScene = _model!.Scenes[sceneId];
+
             var scene = new Group3D();
+            
+            AssignAsset(scene, scene.Name, "scene", sceneId);
 
             foreach (var nodeId in glScene.Nodes)
-                ProcessNode(nodeId, scene, false);
-
+                ProcessNode(nodeId, scene);
 
             return scene;
         }
@@ -1299,6 +1878,11 @@ namespace XrEngine.Gltf
             _textures.Clear();
             _skins.Clear();
             _nodes.Clear();
+            _jointNodesIds?.Clear();
+            _animNodeIds?.Clear();
+            _animTargets.Clear();
+            _objects.Clear();
+            _variants = null;
 
             GC.SuppressFinalize(this);
         }
@@ -1311,50 +1895,70 @@ namespace XrEngine.Gltf
             _basePath = Path.GetDirectoryName(filePath)!;
             _filePath = filePath;
             _model = glTFLoader.Interface.LoadModel(filePath);
+
+            _animNodeIds = _model.Animations?
+              .SelectMany(a => a.Channels)
+              .Where(a => a.Target.Node != null)
+              .Select(a => a.Target.Node!.Value)
+              .ToHashSet() ?? [];
+
+            _jointNodesIds = _model.Skins?.SelectMany(a => a.Joints).ToHashSet() ?? [];
         }
 
         public Object3D Load(string filePath, GltfLoaderOptions options)
         {
             LoadModel(filePath, options);
+            
             var result = LoadScene();
+            
             ExecuteLoadTasks();
+
+            if (string.IsNullOrWhiteSpace(result.Name))
+                result.Name = Path.GetFileNameWithoutExtension(filePath);
+
             return result;
         }
 
         public Object3D LoadScene()
         {
+            Debug.Assert(_model != null);
+
             var root = new Group3D();
 
-            if (_model!.Skins != null)
+            ProcessVariants();
+
+            int sceneId = 0;
+
+            foreach (var scene in _model.Scenes)
             {
-                for (var i = 0; i < _model.Skins.Length; i++)
-                    ProcessSkin(i);
+                root.AddChild(ProcessScene(sceneId));
+                sceneId++;
             }
 
-            foreach (var scene in _model!.Scenes)
-                root.AddChild(ProcessScene(scene));
+            var animations = ProcessAnimations();
 
-            Object3D curRoot = root;
+            var curRoot = Flattern(root, -1);
 
-            while (true)
+            if (animations.Count > 0)
             {
-                if (curRoot is Group3D grp && grp.Children.Count == 1 && grp.WorldMatrix.IsIdentity)
-                    curRoot = grp.Children[0];
-                else
-                    break;
+                if (!curRoot.TryComponent<AnimationsHost>(out var animHost))
+                    animHost = curRoot.AddComponent<AnimationsHost>();
+
+                foreach (var anim in animations)
+                    animHost.AddAnimation(anim);
             }
 
+            if (_variants != null)
+                curRoot.AddComponent(_variants);
 
-            ProcessAnimations(curRoot);
-
-            Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
+            Log.Info(this, "GLFT scene loaded '{0}'", _filePath);
 
             return curRoot;
         }
 
         public void ExecuteLoadTasks()
         {
-            Task.WaitAll(_tasks.ToArray());
+            Task.WaitAll([.. _tasks]);
 
             _tasks.Clear();
         }
@@ -1367,19 +1971,21 @@ namespace XrEngine.Gltf
             //obj.Id = new Guid(hash);
         }
 
-        protected void AssignAsset<T>(T obj, string name, params object[] parts) where T : EngineObject
+        protected void AssignAsset<T>(T obj, string? name, params object[] parts) where T : EngineObject
         {
+            obj.EnsureId();
+
             obj.AddComponent(new AssetSource
             {
                 Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
                     GltfAssetLoader.Instance,
-                    name,
+                    name ?? "",
                     typeof(T),
-                    new Uri("res://gltf/" + string.Join('/', parts) + "?src=" + _filePath),
+                    new Uri($"res://gltf/{string.Join('/', parts)}?src={_filePath}"),
                     _options)
             });
 
-            GenerateId(obj, parts);
+            //GenerateId(obj, parts);
         }
 
         public static Object3D LoadFile(string filePath)

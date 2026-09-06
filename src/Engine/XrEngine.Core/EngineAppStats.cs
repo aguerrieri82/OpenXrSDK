@@ -47,7 +47,6 @@ namespace XrEngine
 
         public long LayerChanges;
 
-
         public long Frame => _frameCount;
 
         public int Fps { get; internal set; }

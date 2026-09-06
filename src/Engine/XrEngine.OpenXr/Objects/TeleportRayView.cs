@@ -20,6 +20,7 @@ namespace XrEngine.OpenXr
             Materials.Add(_material);
             //Materials.Add(new WireframeMaterial());
             Flags |= EngineObjectFlags.NoFrustumCulling;
+            CompressionMode = MeshCompressionMode.Never;
             Build();
         }
 

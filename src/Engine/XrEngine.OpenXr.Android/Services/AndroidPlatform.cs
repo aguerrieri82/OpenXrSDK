@@ -52,7 +52,7 @@ namespace XrEngine.OpenXr.Android
         public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
 
-            return new XrApp(Context.Require<ILogger>(), [..plugins, new AndroidXrPlugin(_context)]);
+            return new XrApp(Context.Require<ILogger>(), [.. plugins, new AndroidXrPlugin(_context)]);
         }
 
         public unsafe void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)

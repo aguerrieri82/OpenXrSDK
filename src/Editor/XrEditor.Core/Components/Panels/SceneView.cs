@@ -105,7 +105,6 @@ namespace XrEditor
                 Name = "Editor Scene"
             };
 
-
             _sceneCamera.AddComponent<TransformRecorder>();
             _sceneCamera.AddComponent<TransformPlayer>();
 
@@ -319,7 +318,6 @@ namespace XrEditor
                 _sceneDispatcher.ProcessQueue();
             }
         }
-
 
         protected virtual async void OnSceneChanged()
         {

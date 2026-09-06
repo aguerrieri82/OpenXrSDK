@@ -13,11 +13,10 @@ using XrEngine.Helpers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-
 namespace XrEngine.OpenGL
 {
 
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IBlurMipPack
     {
         protected class LayersCache
         {
@@ -27,7 +26,7 @@ namespace XrEngine.OpenGL
         }
 
         [ThreadStatic]
-        internal static  OpenGLRender? _current;
+        internal static OpenGLRender? _current;
 
         protected Scene3D? _lastScene;
         protected long _lastLightLayerVersion;
@@ -54,10 +53,13 @@ namespace XrEngine.OpenGL
         protected DateTime _lastProfileOutTime;
         protected RenderEngineFeatures _features;
 
+        protected GlBlurMipPack? _blurMipPack;
+
         private bool _passesDirty;
 
         public static class Props
         {
+
             public static readonly DynamicProp GlResId = new(nameof(GlResId));
 
             public static readonly DynamicProp GlQuery = new(nameof(GlQuery));
@@ -66,7 +68,6 @@ namespace XrEngine.OpenGL
 
             public static readonly DynamicProp BufferRangeSlot = new(nameof(BufferRangeSlot));
 
-            public static readonly DynamicProp[] RenderTarget = [new("RenderTargetEye0"), new("RenderTargetEye1")];
 
         }
 
@@ -92,7 +93,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
             _options = options;
 
-            if (options.UseDefaultIntermediate)
+            if (options.UseDefaultIntermediate || options.NeedPostProcess)
             {
                 _defaultTarget = new GlDefaultRenderTarget(gl,
                     !options.UseDepthPass && !options.ContactShadow.Use,
@@ -116,8 +117,6 @@ namespace XrEngine.OpenGL
 
             ConfigureDriver();
 
-
-
             if (isDummy)
                 return;
 
@@ -132,8 +131,6 @@ namespace XrEngine.OpenGL
             _textureFilter = new GlTextureFilter(this);
 
             ConfigureCaps();
-
-
 
             PbrMaterial.SHADER.ToneMap = _options.ToneMap;
         }
@@ -174,6 +171,8 @@ namespace XrEngine.OpenGL
 
             _features.MultisampledRenderToTexture = _extensions.Contains("GL_EXT_multisampled_render_to_texture");
 
+            _features.HasDualSourceBlend = _extensions.Contains("GL_EXT_blend_func_extended");
+
             _gl.GetInteger(GetPName.MaxVertexShaderStorageBlocks, out _features.MaxVertexSsboBlocks);
 
             _gl.GetInteger(GetPName.MaxFragmentShaderStorageBlocks, out _features.MaxFragmentSsboBlocks);
@@ -186,7 +185,6 @@ namespace XrEngine.OpenGL
 
             _gl.GetInteger(GetPName.MaxTextureSize, out var maxTextureSize);
             _features.MaxTextureSize = new Size2I((uint)maxTextureSize, (uint)maxTextureSize);
-
 
             _features.GpuName = Marshal.PtrToStringAnsi((nint)_gl.GetString(StringName.Renderer)) ?? "";
 
@@ -210,6 +208,8 @@ namespace XrEngine.OpenGL
 
             _updateCtx.UseAngle = _features.IsAngle;
 
+            _updateCtx.UseSharedSsbo = _options.UseSharedSsbo;
+
             if (_features.MaxVertexSsboBlocks == 0)
             {
                 _options.UseInstanceDraw = false;
@@ -224,7 +224,6 @@ namespace XrEngine.OpenGL
         }
 
         #region STATE
-
 
         protected internal void ResetState()
         {
@@ -354,6 +353,14 @@ namespace XrEngine.OpenGL
             if (_options.UseResolve)
                 _renderPasses.Add(new GlResolvePass(this));
 
+            if (_options.NeedPostProcess)
+            {
+                _renderPasses.Add(new GlPostProcessPass(this)
+                {
+                    UseFxAA = _options.UseFxAA
+                });
+            }
+
             _passesDirty = true;
         }
 
@@ -410,7 +417,7 @@ namespace XrEngine.OpenGL
 
                         options.SampleCount = 1024;
                         options.Resolution = 256;
-                        options.Mode = IblProcessMode.GGX | IblProcessMode.Lambertian;
+                        options.Mode = IblProcessMode.All;
 
                         imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
                         imgLight.Panorama.NotifyLoaded();
@@ -503,6 +510,12 @@ namespace XrEngine.OpenGL
                     AddLayer(scene, GlLayerType.Volume, volume);
                 }
 
+                if (_options.UseTransmission)
+                {
+                    var transmission = scene.EnsureLayer<TransmissionLayer>();
+                    AddLayer(scene, GlLayerType.Transmission, transmission);
+                }
+
                 if (_options.UseRayCollider)
                 {
                     var collider = scene.EnsureLayer<MeshColliderLayer>();
@@ -582,6 +595,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Time = (float)ctx.Time;
             _updateCtx.Scene = ctx.Scene;
             _updateCtx.DeltaTime = (float)ctx.DeltaTime;
+            _updateCtx.ClipMode = _options.ClipMode;
 
             _updateCtx.ContextVersion++;
 
@@ -627,7 +641,7 @@ namespace XrEngine.OpenGL
 
             _profiler.Collect();
 
-            if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 10)
+            if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 1)
             {
                 Log.Debug(this, _profiler.GetStatsLog());
                 _lastProfileOutTime = DateTime.Now;
@@ -720,8 +734,8 @@ namespace XrEngine.OpenGL
 #else
                 var grInterface = GRGlInterface.CreateOpenGl(name =>
                 {
-                     _gl.Context.TryGetProcAddress(name, out var result);
-                     return result;
+                    _gl.Context.TryGetProcAddress(name, out var result);
+                    return result;
                 });
 
 #endif
@@ -768,6 +782,7 @@ namespace XrEngine.OpenGL
             processor.Resolution = options.Resolution;
             processor.MipLevelCount = options.MipLevelCount;
             processor.SampleCount = options.SampleCount;
+            processor.IrradianceSampleMul = options.IrradianceSampleMul;
 
             processor.Initialize(data, options.ShaderResolver!);
 
@@ -783,7 +798,6 @@ namespace XrEngine.OpenGL
             if ((options.Mode & IblProcessMode.Lambertian) == IblProcessMode.Lambertian)
             {
                 var texId = processor.ApplyFilter(GlIblProcessor.Distribution.Irradiance);
-
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
 
@@ -794,6 +808,15 @@ namespace XrEngine.OpenGL
 
                 result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(ggx);
                 result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(ggxLut);
+            }
+
+            if ((options.Mode & IblProcessMode.Charlie) == IblProcessMode.Charlie)
+            {
+                var charlie = processor.ApplyFilter(GlIblProcessor.Distribution.Charlie);
+                var charlieLut = processor.ApplyFilter(GlIblProcessor.Distribution.CharlieLut);
+
+                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(charlie);
+                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(charlieLut);
             }
 
             Log.Debug(this, "Processing IBL Panorama OK");
@@ -968,6 +991,14 @@ namespace XrEngine.OpenGL
 
             _updateCtx.ClipRegions = renderTarget.ClipRegions;
             _updateCtx.IsMultiView = renderTarget is GlMultiViewRenderTarget;
+            _updateCtx.CanSampleColor = true;
+
+            if (renderTarget is IGlRenderTargetFB targetFb)
+            {
+                _updateCtx.IsMultiSample = targetFb.FrameBuffer.SampleCount > 1;
+                if (_updateCtx.IsMultiSample && _features.IsAndroid)
+                    _updateCtx.CanSampleColor = false;
+            }
 
             _glState.SetShadingRate(Math.Max(1, _target!.ShadingRate));
         }
@@ -981,6 +1012,24 @@ namespace XrEngine.OpenGL
 
         #endregion
 
+        TextureLayout IBlurMipPack.Generate(Texture2D source, Rect2I sourceRect, float? roughness = null)
+        {
+            _blurMipPack ??= new GlBlurMipPack(_gl, new GlBlurMipOptions
+            {
+
+            });
+
+            if (roughness != null)
+                _blurMipPack.Generate(source.ToGlTexture(), sourceRect, roughness.Value);
+            else
+                _blurMipPack.Generate(source.ToGlTexture(), sourceRect);
+
+            return new TextureLayout
+            {
+                Layout = _blurMipPack.Layout,
+                Texture = (Texture2D)_blurMipPack.Texture.ToEngineTexture()
+            };
+        }
 
         public IReadOnlyList<IGlLayer> Layers => _activeLayers;
 

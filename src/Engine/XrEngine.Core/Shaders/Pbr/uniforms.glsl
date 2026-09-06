@@ -24,19 +24,46 @@ layout(std140, binding=1) uniform Lights
 struct MaterialData
 {
 	vec4 color;
+	vec4 shadowColor;
+	vec4 emissive;
+
+	vec3 sheenColor;
+	float sheenRoughness;
+
+	vec3 specularColor;
+	float specular;
+
+	vec3 attenuationColor;
+	float attenuationDistance;
+
 	float metalness;
 	float roughness;
-	mat3 texTransform;
 	float occlusionStrength;
-	vec4 shadowColor;
 	float normalScale;
 	float alphaCutoff;
-	vec4 emissive;
 	float planarFactor;
-	float planarLevel;
+	float planarRoughness;
+	float alphaSpecularScale;
+	float transmission;
+
+	float clearCoatFactor;
+	float clearCoatRoughnessFactor;
+	float clearCoatNormalScale;
+
+	float ior;
+	float thickness;
+
+	float dispersion;
+
+	float anisotropy;
+	float anisotropyRotation;
+
+	float detailsNormalScale;
+
+	float heightScale;
 };
 
-#if !defined(VERTEX_SHADER) || defined(HAS_TEX_TRANSFORM)
+#if !defined(VERTEX_SHADER) 
 
 	#ifdef USE_MATERIAL_SSBO
 
@@ -62,9 +89,11 @@ struct MaterialData
 
 layout(std140, binding = 4) uniform Ibl
 {
-    float uSpecularTextureLevels; 
-    float uIblIntensity;          
-    float uIblShadowStrength;    
-    vec3 uIblColor;    
-    mat3 uIblTransform; 
-};
+    float specularTexLevels; 
+    float intensity;          
+    float shadowStrength;    
+    vec3 color;    
+    mat3 transform; 
+} uIbl;
+
+uniform mat3 uTexTransform[5];

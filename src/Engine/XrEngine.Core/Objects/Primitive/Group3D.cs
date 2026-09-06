@@ -13,7 +13,7 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Manual;
         }
 
-        protected override void CloneWork(Object3D newObj, ObjectCloneFlags flags)
+        protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
         {
             var newGrp = (Group3D)newObj;
 

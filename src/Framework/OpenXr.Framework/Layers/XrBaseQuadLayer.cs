@@ -32,7 +32,7 @@ namespace OpenXr.Framework
             Priority = XrLayerPriority.BaseQuods;
         }
 
-        protected override unsafe bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
+        protected override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {
             var quad = _getQuad();
             var pose = quad.Pose;

@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr
         protected Texture2D? _texture;
         protected readonly AngleVulkanContext? _context;
         protected GlMultiViewFrameBuffer _testFb;
-        private AngleVulkanContext _vulkanCtx;
+        private AngleVulkanContext? _vulkanCtx;
 
         public GlMotionVectorProviderShared(EngineApp app, OpenGLRender renderer)
         {

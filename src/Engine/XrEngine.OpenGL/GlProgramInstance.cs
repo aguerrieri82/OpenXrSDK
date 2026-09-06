@@ -256,7 +256,6 @@ namespace XrEngine.OpenGL
                     program.AddExtension(ext);
             }
 
-
             if (_materialUpdate!.Extensions != null)
             {
                 foreach (var ext in _materialUpdate.Extensions)
@@ -279,6 +278,12 @@ namespace XrEngine.OpenGL
             {
                 foreach (var entry in _materialUpdate.Slots)
                     program.SetSlot(entry.Key, entry.Value());
+            }
+
+            if (_materialUpdate.IncludesFs != null)
+            {
+                foreach (var inc in _materialUpdate.IncludesFs)
+                    program.Include(inc, ShaderType.FragmentShader);
             }
 
             if (Global.ShaderUpdate?.Extensions != null)
@@ -305,14 +310,17 @@ namespace XrEngine.OpenGL
             return program;
         }
 
-        public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = "")
+        public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = null)
+            where T: unmanaged
         {
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store, usage);
 
             if (usage == BufferUsage.SharedSsbo)
             {
-                Debug.Assert(uniformName != null && (_lastModel != null || store == BufferStore.Material));
+                uniformName ??= $"buf{bufferId}";
+
+                Debug.Assert(_lastModel != null || store == BufferStore.Material);
 
                 var range = Global.GetBufferRange<T>(bufferId, store, uniformName);
 

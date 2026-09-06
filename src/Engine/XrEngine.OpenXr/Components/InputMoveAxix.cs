@@ -25,7 +25,7 @@ namespace XrEngine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-            _startPosition = _host!.Transform.Position;
+            _startPosition = _host.Transform.Position;
         }
 
         protected override void Update(RenderContext ctx)
@@ -40,7 +40,7 @@ namespace XrEngine.OpenXr
             if (!Input.IsActive || !Click.IsActive)
                 return;
 
-            var curInverse = _status.IsMoving ? _status.WorldInverse : _host!.WorldMatrixInverse;
+            var curInverse = _status.IsMoving ? _status.WorldInverse : _host.WorldMatrixInverse;
             var curPos = Input.Value.Position.Transform(curInverse);
 
             _status.LastInputPos = curPos;
@@ -50,13 +50,13 @@ namespace XrEngine.OpenXr
                 if (!Click.Value)
                     return;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (var collider in _host.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(Input.Value.Position, 0.04f))
                     {
                         _status.IsMoving = true;
                         _status.StartInputPos = curPos;
-                        _status.StartPos = _host!.Transform.Position;
+                        _status.StartPos = _host.Transform.Position;
                         _status.WorldInverse = _host.WorldMatrixInverse;
                         break;
                     }
@@ -79,7 +79,7 @@ namespace XrEngine.OpenXr
 
             absLen = Math.Clamp(absLen, MinDistance, MaxDistance);
 
-            _host!.Transform.Position = _startPosition + Axis * absLen;
+            _host.Transform.Position = _startPosition + Axis * absLen;
         }
 
         public void ConfigureInput(IXrBasicInteractionProfile input)

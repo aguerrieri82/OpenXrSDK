@@ -14,18 +14,17 @@ using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework.Oculus
 {
-    
+
     public class FoavetionInfo
     {
         public bool Use { get; set; }
 
-        public bool IsDynamic { get; set; } 
+        public bool IsDynamic { get; set; }
 
         public FoveationLevelFB Level { get; set; }
 
         public float Offset { get; set; }
     }
-
 
     public class OculusXrPluginOptions
     {
@@ -39,6 +38,8 @@ namespace OpenXr.Framework.Oculus
                 Offset = 0,
             };
             UseHandsWideMotion = true;
+            UseBothHandAndControllers = true;
+            HandTrackingFrequency = HandTrackingFrequencyHintMETA.HighMeta;
             ColorSpace = ColorSpaceFB.Rec709FB;
         }
 
@@ -50,7 +51,13 @@ namespace OpenXr.Framework.Oculus
 
         public HandTrackingDataSourceEXT[]? HandDataSources { get; set; }
 
-        public bool HandTrackingUnextrapolated { get; internal set; }
+        public bool HandTrackingUnextrapolated { get; set; }
+
+        public bool UseDynamicResolution { get; set; }
+
+        public bool UseBothHandAndControllers { get; set; }
+
+        public HandTrackingFrequencyHintMETA HandTrackingFrequency { get; set; }
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -128,7 +135,6 @@ namespace OpenXr.Framework.Oculus
 
         PauseSimultaneousHandsAndControllersTrackingMETADelegate? PauseSimultaneousHandsAndControllersTracking;
 
-
         #endregion
 
         protected class ActiveQuery
@@ -191,7 +197,6 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBHandTrackingMesh.ExtensionName);
             extensions.Add(FBColorSpace.ExtensionName);
 
-
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
             extensions.Add("XR_META_spatial_entity_mesh");
@@ -214,7 +219,7 @@ namespace OpenXr.Framework.Oculus
         public unsafe override void OnInstanceCreated()
         {
             Debug.Assert(_app != null);
-            
+
             _app.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
@@ -237,19 +242,19 @@ namespace OpenXr.Framework.Oculus
 
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
             RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
- 
-            if (!_app.IsMetaSimulator)
+
+            if (!_app.IsMetaSimulator && !_app.IsMetaLink)
             {
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
                 SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
-      
+
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
                 GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
 
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrResumeSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrResumeSimultaneousHandsAndControllersTrackingMETA ");
                 ResumeSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<ResumeSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
 
-                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "XrSimultaneousHandsAndControllersTrackingResumeInfoMETA", &func), "Bind XrSimultaneousHandsAndControllersTrackingResumeInfoMETA ");
+                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrPauseSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrPauseSimultaneousHandsAndControllersTrackingMETA ");
                 PauseSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<PauseSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
             }
         }
@@ -262,6 +267,15 @@ namespace OpenXr.Framework.Oculus
         public override void OnSessionBegin()
         {
             UpdateFoveation();
+
+            if (!_app!.IsMetaLink)
+            {
+                if (_options.UseBothHandAndControllers)
+                    SetHandsAndControllersTracking(true);
+
+                SetHandTrackingFrequencyHint(_options.HandTrackingFrequency);
+            }
+
         }
 
         public void SetColorSpace(ColorSpaceFB colorSpace)
@@ -300,6 +314,7 @@ namespace OpenXr.Framework.Oculus
 
             return Encoding.UTF8.GetString(buffer).Trim('\0').Split(',');
         }
+
 
         public async Task<XrAnchorInfo> CreateAnchorAsync(Pose3 pose, Space refSpace)
         {
@@ -820,8 +835,8 @@ namespace OpenXr.Framework.Oculus
         {
             if (_options.Foavetion == null || !_options.Foavetion.Use)
                 return;
-            
-            if (_app.IsMetaSimulator)
+
+            if (_app!.IsMetaSimulator)
                 return;
 
             UpdateFoveation(_options.Foavetion.IsDynamic, _options.Foavetion.Level, _options.Foavetion.Offset);
@@ -829,6 +844,9 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe void UpdateFoveation(bool isDynamic, FoveationLevelFB level, float offset)
         {
+            if (_foveation == null)
+                return;
+
             var create = new FoveationProfileCreateInfoFB()
             {
                 Type = StructureType.FoveationProfileCreateInfoFB
@@ -846,7 +864,7 @@ namespace OpenXr.Framework.Oculus
 
             var profile = new FoveationProfileFB();
 
-            _app!.CheckResult(_foveation!.CreateFoveationProfileFB(_app!.Session, in create, ref profile), "CreateFoveationProfileFB");
+            _app!.CheckResult(_foveation.CreateFoveationProfileFB(_app!.Session, in create, ref profile), "CreateFoveationProfileFB");
 
             var update = new SwapchainStateFoveationFB
             {
@@ -867,12 +885,12 @@ namespace OpenXr.Framework.Oculus
                 }
             }
 
-            _app!.CheckResult(_foveation!.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
+            _app!.CheckResult(_foveation.DestroyFoveationProfileFB(profile), "DestroyFoveationProfileFB");
         }
 
         public override unsafe void Configure(ref SwapchainCreateInfo info, SwapchainTarget target)
         {
-            if (_options.Foavetion == null || !_options.Foavetion.Use)
+            if (_options.Foavetion == null || !_options.Foavetion.Use || _foveation == null)
                 return;
 
             if (target != SwapchainTarget.Projection)
@@ -987,17 +1005,16 @@ namespace OpenXr.Framework.Oculus
 
         public void SetHandTrackingFrequencyHint(HandTrackingFrequencyHintMETA frequencyHint)
         {
-            if (_app!.IsMetaSimulator)
+            if (SetHandTrackingFrequencyHintMETA == null)
                 return;
 
-            _app!.CheckResult(SetHandTrackingFrequencyHintMETA!(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
+            _app!.CheckResult(SetHandTrackingFrequencyHintMETA(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
         }
 
         public unsafe XrHandMesh GetHandMesh(HandTrackerEXT tracker)
         {
 
-
-var mesh = new HandTrackingMeshFB
+            var mesh = new HandTrackingMeshFB
             {
                 Type = StructureType.HandTrackingMeshFB
             };
@@ -1086,12 +1103,18 @@ var mesh = new HandTrackingMeshFB
         {
             if (isActive)
             {
-                var info = new SimultaneousHandsAndControllersTrackingResumeInfoMETA();
+                var info = new SimultaneousHandsAndControllersTrackingResumeInfoMETA()
+                {
+                    Type = StructureType.SimultaneousHandsAndControllersTrackingResumeInfoMeta
+                };
                 _app!.CheckResult(ResumeSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "ResumeSimultaneousHandsAndControllersTracking");
             }
             else
             {
-                var info = new SimultaneousHandsAndControllersTrackingPauseInfoMETA();
+                var info = new SimultaneousHandsAndControllersTrackingPauseInfoMETA()
+                {
+                    Type = StructureType.SimultaneousHandsAndControllersTrackingPauseInfoMeta
+                };
                 _app!.CheckResult(PauseSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "PauseSimultaneousHandsAndControllersTracking");
             }
         }
@@ -1116,7 +1139,6 @@ var mesh = new HandTrackingMeshFB
                 {
                     _handsDataSources = new(_options.HandDataSources.Length, typeof(HandTrackingDataSourceEXT));
                     _handsDataSources.CopyFrom(_options.HandDataSources);
-
 
                     _handDataSourceInfo.Value = new HandTrackingDataSourceInfoEXT
                     {

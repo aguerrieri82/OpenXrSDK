@@ -221,7 +221,6 @@ namespace XrEditor
             foreach (var item in _properties)
                 item.Dispose();
 
-
             GC.SuppressFinalize(this);
         }
 
@@ -234,6 +233,8 @@ namespace XrEditor
         public PropertiesGroupType GroupType { get; }
 
         public ICommand ToggleCollapseCommand { get; }
+
+        public PropertiesGroupView? Parent { get; internal set; }
 
         public INode? Node { get; set; }
     }

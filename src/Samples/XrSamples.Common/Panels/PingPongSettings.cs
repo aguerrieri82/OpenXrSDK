@@ -125,7 +125,7 @@ namespace XrSamples
                 system.Scene.SetFlag(PxSceneFlag.EnableCcd, EnableCCD);
             }
 
-            scene.PerspectiveCamera().Exposure = Exposure;
+            scene.PerspectiveCamera.Exposure = Exposure;
 
             var light = scene.Descendants<ImageLight>().FirstOrDefault();
             if (light != null)
@@ -181,7 +181,7 @@ namespace XrSamples
                 }
                 if (property.Name!.Contains("Exposure"))
                 {
-                    scene.PerspectiveCamera().Exposure = obj!.Exposure;
+                    scene.PerspectiveCamera.Exposure = obj!.Exposure;
                 }
                 if (property.Name!.Contains("Light"))
                 {

@@ -1,11 +1,5 @@
-﻿using CefSharp.DevTools.Media;
-using PureHDF.Selections;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.Animation;
-
 
 namespace XrEditor
 {
@@ -22,11 +16,11 @@ namespace XrEditor
             base.OnEditValueChanged(newValue);
 
             var result = new List<PropertyView>();
-            
+
             PropertyView.CreateProperties(newValue, null, result);
-            
+
             Properties = result.ToArray();
-            
+
             if (Player.EditValue is IDisposable disposable)
                 disposable.Dispose();
 

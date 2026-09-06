@@ -4,6 +4,7 @@
 #define BCDEC_BC4BC5_PRECISE
 
 #include "..\..\..\third-party\bcdec\bcdec.h"
+#include "basisu_transcoder.h"
 
 static inline size_t AlignUp(size_t value, size_t alignment)
 {
@@ -546,4 +547,122 @@ bool ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, u
     }
 
     return true;
+}
+
+bool BasisTranscodeKtx2(const void* data, uint32_t size, int format, BasisTexture* result)
+{
+    memset(result, 0, sizeof(BasisTexture));
+
+    static const bool initialized = []()
+        {
+            basist::basisu_transcoder_init();
+            return true;
+        }();
+
+    (void)initialized;
+
+    basist::ktx2_transcoder transcoder;
+    if (!transcoder.init(data, size))
+        return false;
+
+    auto target = (basist::transcoder_texture_format)format;
+
+    if (!basist::basis_is_format_supported(target, transcoder.get_basis_tex_format()))
+        return false;
+
+    if (!transcoder.start_transcoding())
+        return false;
+
+    uint32_t levels = transcoder.get_levels();
+    uint32_t layers = transcoder.get_layers();
+    uint32_t faces = transcoder.get_faces();
+
+    if (!layers)
+        layers = 1;
+
+    uint32_t imageCount = levels * layers * faces;
+    size_t descriptorsSize = sizeof(BasisImage) * imageCount;
+    size_t dataSize = 0;
+
+    for (uint32_t layer = 0; layer < layers; layer++)
+    {
+        for (uint32_t face = 0; face < faces; face++)
+        {
+            for (uint32_t level = 0; level < levels; level++)
+            {
+                basist::ktx2_image_level_info info;
+                if (!transcoder.get_image_level_info(info, level, layer, face))
+                    return false;
+
+                dataSize += basist::basis_compute_transcoded_image_size_in_bytes(target, info.m_orig_width, info.m_orig_height);
+            }
+        }
+    }
+
+    void* memory = malloc(descriptorsSize + dataSize);
+    if (!memory)
+        return false;
+
+    BasisImage* images = (BasisImage*)memory;
+    uint8_t* output = (uint8_t*)memory + descriptorsSize;
+
+    uint32_t imageIndex = 0;
+    uint32_t bytesPerBlockOrPixel = basist::basis_get_bytes_per_block_or_pixel(target);
+
+    for (uint32_t layer = 0; layer < layers; layer++)
+    {
+        for (uint32_t face = 0; face < faces; face++)
+        {
+            for (uint32_t level = 0; level < levels; level++)
+            {
+                basist::ktx2_image_level_info info;
+                if (!transcoder.get_image_level_info(info, level, layer, face))
+                {
+                    free(memory);
+                    return false;
+                }
+
+                uint32_t outputSize = basist::basis_compute_transcoded_image_size_in_bytes(target, info.m_orig_width, info.m_orig_height);
+                uint32_t outputBlocksOrPixels = outputSize / bytesPerBlockOrPixel;
+
+                if (!transcoder.transcode_image_level(level, layer, face, output, outputBlocksOrPixels, target))
+                {
+                    free(memory);
+                    return false;
+                }
+
+                BasisImage& image = images[imageIndex++];
+                image.Data = output;
+                image.Size = outputSize;
+                image.Width = info.m_orig_width;
+                image.Height = info.m_orig_height;
+                image.Level = level;
+                image.Layer = layer;
+                image.Face = face;
+
+                output += outputSize;
+            }
+        }
+    }
+
+    result->Memory = memory;
+    result->Images = images;
+    result->ImageCount = imageCount;
+    result->Width = transcoder.get_width();
+    result->Height = transcoder.get_height();
+    result->Levels = levels;
+    result->Layers = layers;
+    result->Faces = faces;
+    result->IsSrgb = transcoder.is_srgb();
+    result->HasAlpha = transcoder.get_has_alpha();
+
+    return true;
+}
+
+void BasisFreeTexture(BasisTexture* texture)
+{
+    if (texture->Memory)
+        free(texture->Memory);
+
+    memset(texture, 0, sizeof(BasisTexture));
 }

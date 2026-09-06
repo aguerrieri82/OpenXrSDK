@@ -48,6 +48,11 @@ namespace PhysX.Framework
             GC.SuppressFinalize(this);
         }
 
+        public void SetFlag(PxActorFlag flag, bool value)
+        {
+            Actor.SetActorFlagMut(flag, value);
+        }
+
         public PxActorFlags ActorFlags
         {
             set => Actor.SetActorFlagsMut(value);

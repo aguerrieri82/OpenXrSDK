@@ -12,7 +12,10 @@ namespace XrEngine.OpenGL
         {
             Irradiance,
             GGX,
-            GGXLut
+            GGXLut,
+            Charlie,
+            CharlieLut,
+            SheenLut
         }
 
         private readonly GL _gl;
@@ -29,9 +32,10 @@ namespace XrEngine.OpenGL
             EnvFormat = InternalFormat.Rgba16f;
             LutFormat = InternalFormat.Rgba16f;
             Resolution = 512;
+            IrradianceSampleMul = 32;
         }
 
-        public unsafe void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
+        public void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
         {
             Dispose();
 
@@ -53,7 +57,7 @@ namespace XrEngine.OpenGL
             void AddFilter(string shader, Distribution distribution)
             {
                 var prog = new GlComputeProgram(_gl, shader, shaderResolver);
-                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
+                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? IrradianceSampleMul : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
             }
@@ -61,6 +65,9 @@ namespace XrEngine.OpenGL
             AddFilter("Ibl/irmap_cs.comp", Distribution.Irradiance);
             AddFilter("Ibl/spbrdf_cs.comp", Distribution.GGXLut);
             AddFilter("Ibl/spmap_cs.comp", Distribution.GGX);
+            AddFilter("Ibl/chbrdf_cs.comp", Distribution.CharlieLut);
+            AddFilter("Ibl/chmap_cs.comp", Distribution.Charlie);
+
         }
 
         public void PanoramaToCubeMap()
@@ -80,7 +87,7 @@ namespace XrEngine.OpenGL
 
             _gl.DispatchCompute(steps, steps, 6);
 
-            _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
+            _gl.MemoryBarrier(MemoryBarrierMask.TextureUpdateBarrierBit);
 
             GlState.Current.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
 
@@ -90,27 +97,28 @@ namespace XrEngine.OpenGL
         public uint ApplyFilter(Distribution distribution)
         {
             var program = _filterProg![distribution];
-
-            GlState.Current.LoadTexture(_inputTexture!, 0);
-
-            var mipCount = distribution == Distribution.GGX ? MipLevelCount : 1;
+            var isLut = distribution == Distribution.GGXLut || distribution == Distribution.CharlieLut || distribution == Distribution.SheenLut;
+            var isMip = distribution == Distribution.GGX || distribution == Distribution.Charlie;
+            var mipCount = isMip ? MipLevelCount : 1;
 
             uint texId;
-            if (distribution == Distribution.GGXLut)
+            if (isLut)
                 texId = CreateLutTexture();
             else
                 texId = CreateCubeMap(mipCount > 1);
 
             program!.Use();
 
-            program.SetUniform("inputTexture", 0);
-
-            GlState.Current.LoadTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
+            if (!isLut)
+            {
+                program.SetUniform("inputTexture", 0);
+                GlState.Current.LoadTexture(_cubeMapId, TextureTarget.TextureCubeMap, 0);
+            }
 
             var res = Resolution;
             for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
             {
-                if (distribution == Distribution.GGX)
+                if (isMip)
                 {
                     if (mipLevel == 0)
                     {
@@ -125,22 +133,20 @@ namespace XrEngine.OpenGL
                     else
                     {
                         var r = mipLevel / ((float)mipCount - 1);
-                        program.SetUniform("roughness", mipLevel / ((float)mipCount - 1));
+                        program.SetUniform("roughness", r);
                     }
-
                 }
 
                 var steps = (res + 15) / 16;
 
                 _gl.BindImageTexture(0, texId, mipLevel, true, 0, BufferAccessARB.WriteOnly, InternalFormat.Rgba16f);
 
-                _gl.DispatchCompute(steps, steps, distribution == Distribution.GGXLut ? 1u : 6u);
-
-                _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit | MemoryBarrierMask.FramebufferBarrierBit);
+                _gl.DispatchCompute(steps, steps, isLut ? 1u : 6u);
 
                 res = res >> 1;
-
             }
+
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit | MemoryBarrierMask.TextureFetchBarrierBit);
 
             return texId;
         }
@@ -211,10 +217,7 @@ namespace XrEngine.OpenGL
             _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
 
             if (withMipmaps)
-            {
                 _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, (int)MipLevelCount - 1);
-                //_gl.GenerateMipmap(TextureTarget.TextureCubeMap);   
-            }
             else
                 _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, 0);
 
@@ -223,11 +226,6 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            /*
-            if (_cubeMapId != 0)
-                _gl.DeleteTexture(_cubeMapId);
-            */
-
             if (_frameBufferId != 0)
                 _gl.DeleteFramebuffer(_frameBufferId);
 
@@ -259,5 +257,7 @@ namespace XrEngine.OpenGL
         public uint MipLevelCount { get; set; }
 
         public uint SampleCount { get; set; }
+
+        public uint IrradianceSampleMul { get; set; }
     }
 }

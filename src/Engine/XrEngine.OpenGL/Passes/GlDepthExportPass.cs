@@ -17,8 +17,10 @@ namespace XrEngine.OpenGL
         public GlDepthExportPass(OpenGLRender renderer, bool multiView)
             : base(renderer)
         {
-            _pool = new GlRenderTargetPool(renderer.GL, multiView);
-            _pool.Name = "Depth Export";
+            _pool = new GlRenderTargetPool(renderer.GL, multiView)
+            {
+                Name = "Depth Export"
+            };
             _useInstanceDraw = true;
             _tracker = new();
         }

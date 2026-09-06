@@ -1,4 +1,6 @@
-﻿using XrEngine.OpenXr;
+﻿using XrEngine;
+using XrEngine.OpenGL;
+using XrEngine.OpenXr;
 
 namespace XrSamples
 {
@@ -17,7 +19,7 @@ namespace XrSamples
 
         public bool EnableDepthPass { get; set; }
 
-        public bool UseSpaceWarp { get; set; }
+        public MotionVectorMode MotionVectorMode { get; set; }
 
         public bool FrustumCulling { get; set; }
 
@@ -25,25 +27,58 @@ namespace XrSamples
 
         public float Scale { get; set; }
 
-        public bool UseResolve { get; set; }
-
         public float DepthScale { get; set; }
 
-        public static GameSettings Graffiti()
+        public XrProjDepthMode ProjDepthMode { get; set; }
+
+        public bool UseFxAA { get; set; }
+
+        public bool UseSimmetricFov { get; set; }
+
+        public bool UseDynamicResolution { get; set; }
+
+        public bool UseRayCollider { get; set; }
+
+        public bool UsePrimitiveBoundingBox { get; set; }
+
+        public ToneMapMode ToneMap { get; set; }
+
+        public bool UseSharedSsbo { get; set; }
+
+        public bool UseMeshCompression { get; set; }
+
+        public bool UseProfileOverlay { get; set; }
+
+        public bool UseAsyncShaderCompile { get; set; }
+
+        public bool IsBenchmark { get;  set; }
+
+        public static GameSettings DnD()
         {
             return new GameSettings
             {
                 SampleName = "DnD",
                 Msaa = 1,
-                Scale = 0.5f, 
+                Scale = 1f,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
-                UseSpaceWarp = false,
+                MotionVectorMode = MotionVectorMode.None,
                 EnableDepthPass = false,
                 FrustumCulling = true,
                 TextureCompression = true,
-                UseResolve = false
+                ProjDepthMode = XrProjDepthMode.DepthCopyImage,
+                UseFxAA = false,
+                UseSimmetricFov = false,
+                UseDynamicResolution = false,
+                UseRayCollider = false,
+                UsePrimitiveBoundingBox = false,
+                ToneMap = ToneMapMode.Aces,
+                UseSharedSsbo = false,
+                UseMeshCompression = true,
+                UseProfileOverlay = false,
+                UseAsyncShaderCompile = true,
+                IsBenchmark = false
             };
         }
 
@@ -54,11 +89,22 @@ namespace XrSamples
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.5f,
-                Driver = GraphicDriver.OpenGL,
+                Driver = GraphicDriver.Angle,
                 IsMultiView = false,
-                UseSpaceWarp = false,
+                MotionVectorMode = MotionVectorMode.None,
                 EnableDepthPass = false,
-                FrustumCulling = true
+                FrustumCulling = true,
+                ProjDepthMode = XrProjDepthMode.DepthCopyImage,
+                UseFxAA = false,
+                UseSimmetricFov = false,
+                UseDynamicResolution = false,
+                UseRayCollider = false,
+                UsePrimitiveBoundingBox = false,
+                ToneMap = ToneMapMode.Aces,
+                UseSharedSsbo = false,
+                UseMeshCompression = true,
+                UseProfileOverlay = false,
+                UseAsyncShaderCompile = true
             };
         }
     }

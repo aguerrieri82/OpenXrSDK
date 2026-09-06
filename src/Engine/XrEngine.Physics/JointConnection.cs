@@ -28,7 +28,7 @@ namespace XrEngine.Physics
             if (!Joint.IsCreated)
                 return;
 
-            _manager ??= _host!.Scene!.Component<PhysicsManager>();
+            _manager ??= _host.Scene!.Component<PhysicsManager>();
 
             if ((_manager.DebugGizmos & PhysicsDebugGizmos.Joints) == 0)
                 return;

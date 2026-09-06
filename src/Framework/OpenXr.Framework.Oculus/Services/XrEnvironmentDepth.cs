@@ -2,7 +2,6 @@
 using Silk.NET.OpenXR;
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace OpenXr.Framework.Oculus
 {
     public class XrEnvironmentDepth : IDisposable

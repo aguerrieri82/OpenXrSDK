@@ -1,81 +1,79 @@
-﻿
+﻿#include "consts.glsl"
+#include "blur_mip.glsl"
 
-#ifdef PLANAR_REFLECTION
+uniform float uReflectScale;
 
+#ifdef PLANAR_REFLECTION_MV
+	layout(binding=PLANARREFLECTION_SLOT) uniform sampler2DArray reflectionTexture;
+	uniform mat4 uReflectMatrix[2];
+#else
+	layout(binding=PLANARREFLECTION_SLOT) uniform sampler2D reflectionTexture;
+	uniform mat4 uReflectMatrix;
+#endif
+
+vec2 planarUV(vec4 pos)
+{
 	#ifdef PLANAR_REFLECTION_MV
-		layout(binding=7) uniform sampler2DArray reflectionTexture;
-		uniform mat4 uReflectMatrix[2];
+		mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
 	#else
-		layout(binding=7) uniform sampler2D reflectionTexture;
-		uniform mat4 uReflectMatrix;
+		mat4 refMatrix = uReflectMatrix;
 	#endif
 
-	vec2 planarUV(vec4 pos)
-	{
-		#ifdef PLANAR_REFLECTION_MV
-			mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
-		#else
-			mat4 refMatrix = uReflectMatrix;
-		#endif
-
-		vec4 reflectPosClip = refMatrix * pos;
+	vec4 reflectPosClip = refMatrix * pos;
 		 
-		vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
+	vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
 		
-		projCoords = projCoords * 0.5 + 0.5;
+	projCoords = projCoords * 0.5 + 0.5;
 
-		#ifdef ANGLE
-            projCoords.y = 1.0 - projCoords.y;
-        #endif
+	#ifdef ANGLE
+        projCoords.y = 1.0 - projCoords.y;
+    #endif
 
-		return projCoords.xy;
-	}
+	return projCoords.xy * uReflectScale;
+}
 	
 
-	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo, float factor, float level)
-	{
+vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, vec3 F0, float fragRoughness, float cosLo, float factor, float roughness)
+{
 
-		#ifdef PLANAR_REFLECTION_MV
-			mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
-		#else
-			mat4 refMatrix = uReflectMatrix;
-		#endif
+	#ifdef PLANAR_REFLECTION_MV
+		mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
+	#else
+		mat4 refMatrix = uReflectMatrix;
+	#endif
 
-			vec3 reflectPosWorld = fragPos + Lr * 100.0; // Extend the reflection ray
+	vec3 reflectPosWorld = fragPos + Lr * 100.0; // Extend the reflection ray
+
 		 
-			vec4 reflectPosClip = refMatrix * vec4(reflectPosWorld, 1.0);
+	vec4 reflectPosClip = refMatrix * vec4(reflectPosWorld, 1.0);
 		 
-			vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
+	vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
 		
-			projCoords = projCoords * 0.5 + 0.5;
+	projCoords = (projCoords * 0.5 + 0.5) * uReflectScale;
 			
-			#ifdef ANGLE
-				projCoords.y = 1.0 - projCoords.y;
-			#endif
+	#ifdef ANGLE
+		projCoords.y = 1.0 - projCoords.y;
+	#endif
 
-			#ifdef PLANAR_REFLECTION_MV
-				vec4 reflectionColor = textureLod(
-					reflectionTexture,
-					vec3(projCoords.xy, float(gl_ViewID_OVR)),
-					level
-				);
-			#else
-				vec4 reflectionColor = textureLod(
-					reflectionTexture,
-					projCoords.xy,
-					level
-				);
-			#endif
-			#ifdef PURE_REFLECTION
-				return reflectionColor.rgb;
-			#endif	
-			float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
+	#ifdef PLANAR_REFLECTION_ROUGHNESS
+		vec4 reflectionColor = sampleBlurMip(reflectionTexture, projCoords.xy, 1, roughness);
+	#else
+		#ifdef PLANAR_REFLECTION_MV
+			vec4 reflectionColor = texture(reflectionTexture, vec3(projCoords.xy, float(gl_ViewID_OVR)));
+		#else
+			vec4 reflectionColor = texture(reflectionTexture, projCoords.xy);
+		#endif
+	#endif
 
-			float refFactor = clamp(fresnelFactor * (1.0 - roughness) * factor, 0.0, 1.0);
+	#ifdef PURE_REFLECTION
+		return reflectionColor.rgb;
+	#endif	
 
-			refFactor = min(reflectionColor.a, refFactor);
+	vec3 fresnelFactor = F0 + (1.0 - F0) * pow5(1.0 - cosLo);
 
-			return mix(color, reflectionColor.rgb, refFactor);
-	}
+	vec3 refFactor = clamp(fresnelFactor * factor, 0.0, 1.0);
+	refFactor = min(vec3(reflectionColor.a), refFactor);
 
-#endif
+	return mix(color, reflectionColor.rgb, refFactor);
+}
+

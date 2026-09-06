@@ -1,21 +1,20 @@
 ﻿#if GLES
 #else
-using Silk.NET.OpenGL;
 #endif
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
 using OpenXr.Framework.Angle;
+using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using System.Diagnostics;
 using XrEngine;
+using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrMath;
 using XrSamples.Dnd;
-using XrEngine.Components;
-using OpenXr.Framework;
-using Silk.NET.Maths;
-using System.Diagnostics;
 
 namespace XrSamples
 {
@@ -28,7 +27,6 @@ namespace XrSamples
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
-
 
         public static Task Run(IServiceProvider services)
         {
@@ -51,7 +49,7 @@ namespace XrSamples
 
             AngleVulkanContext? angle = null;
 
-            bool useAngle = false;
+            var useAngle = false;
 
             void CreateApp()
             {
@@ -71,6 +69,7 @@ namespace XrSamples
 
                     .SetGlOptions(opt =>
                     {
+                        opt.UseSharedSsbo = false;
                         opt.UseAsyncShaderCompile = false;
                         opt.UseShaderCache = true;
                         opt.SampleCount = 2;
@@ -82,7 +81,7 @@ namespace XrSamples
                         Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(AssetsPath));
                     })
                     .SetRenderQuality(1f, 1)
-                    .CreateGltfTest()
+                    .CreateDnd()
                     .Build()
                     .App;
 
@@ -90,11 +89,10 @@ namespace XrSamples
                     Context.TryRequire(out angle);
             }
 
-
             var options = WindowOptions.Default;
 
             options.Samples = 1;
-            //options.WindowState = WindowState.Fullscreen;
+          //  options.WindowState = WindowState.Fullscreen;
             options.Size = new Vector2D<int>(1600, 1000);
             if (useAngle)
                 options.API = GraphicsAPI.None;
@@ -108,7 +106,7 @@ namespace XrSamples
 
                 await EngineApp.MainThread;
 
-                var camera = app.ActiveScene!.PerspectiveCamera();
+                var camera = app.ActiveScene!.PerspectiveCamera;
 
                 var viewRect = new Rect2I
                 {
@@ -168,7 +166,7 @@ namespace XrSamples
                         angle.SwapBuffers();
                     else
                         view.SwapBuffers();
- 
+
                     if ((DateTime.Now - lastEmitTime).TotalSeconds > 1)
                     {
                         Log.Info(typeof(WindowSceneApp), "{0} FPS", app.Stats.Fps);
@@ -186,7 +184,7 @@ namespace XrSamples
 
             while (!view.IsClosing)
             {
-                Debug.Assert(useAngle && view.GLContext == null);
+                Debug.Assert(useAngle || view.GLContext != null);
 
                 if (!useAngle && view.GLContext!.IsCurrent)
                     view.ClearContext();

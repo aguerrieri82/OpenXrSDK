@@ -11,6 +11,7 @@ namespace PhysX.Framework
         public byte* contactPatches;
         public byte* contactPoints;
         public float* contactImpulses;
+        public byte* frictionPatches;
         public uint requiredBufferSize;
         public byte contactCount;
         public byte patchCount;
@@ -45,19 +46,25 @@ namespace PhysX.Framework
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         delegate void OnContactDelegate(nint thisRef, PxContactPairHeader2 header, PxContactPair2* pairs, int count);
 
+        readonly NotHandledDelegate _notHandled;
+        readonly OnContactDelegate _onContact;
+
         public SimulationEventCallbacks()
         {
+            _notHandled = NotHandled;
+            _onContact = OnContact;
+
             _callbacks = (PxSimulationEventCallback*)Marshal.AllocHGlobal(sizeof(PxSimulationEventCallback));
 
             _callbacks->vtable_ = (void*)Marshal.AllocHGlobal(7 * sizeof(nint));
 
-            ((nint*)_callbacks->vtable_)[0] = Marshal.GetFunctionPointerForDelegate((NotHandledDelegate)NotHandled);
-            ((nint*)_callbacks->vtable_)[1] = Marshal.GetFunctionPointerForDelegate((NotHandledDelegate)NotHandled);
-            ((nint*)_callbacks->vtable_)[2] = Marshal.GetFunctionPointerForDelegate((NotHandledDelegate)NotHandled);
-            ((nint*)_callbacks->vtable_)[3] = Marshal.GetFunctionPointerForDelegate((OnContactDelegate)OnContact);
-            ((nint*)_callbacks->vtable_)[4] = Marshal.GetFunctionPointerForDelegate((NotHandledDelegate)NotHandled);
-            ((nint*)_callbacks->vtable_)[5] = Marshal.GetFunctionPointerForDelegate((NotHandledDelegate)NotHandled);
-            ((nint*)_callbacks->vtable_)[6] = Marshal.GetFunctionPointerForDelegate((NotHandledDelegate)NotHandled);
+            ((nint*)_callbacks->vtable_)[0] = Marshal.GetFunctionPointerForDelegate(_notHandled);
+            ((nint*)_callbacks->vtable_)[1] = Marshal.GetFunctionPointerForDelegate(_notHandled);
+            ((nint*)_callbacks->vtable_)[2] = Marshal.GetFunctionPointerForDelegate(_notHandled);
+            ((nint*)_callbacks->vtable_)[3] = Marshal.GetFunctionPointerForDelegate(_onContact);
+            ((nint*)_callbacks->vtable_)[4] = Marshal.GetFunctionPointerForDelegate(_notHandled);
+            ((nint*)_callbacks->vtable_)[5] = Marshal.GetFunctionPointerForDelegate(_notHandled);
+            ((nint*)_callbacks->vtable_)[6] = Marshal.GetFunctionPointerForDelegate(_notHandled);
         }
 
         protected static void NotHandled(nint thisRef, nint p1, nint p2, nint p3)

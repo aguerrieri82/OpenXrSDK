@@ -13,7 +13,6 @@ namespace XrEngine.OpenGL
     {
         readonly GL _gl;
 
-
         public GlDefaultDirectRenderTarget(GL gl)
         {
             _gl = gl;
@@ -27,11 +26,10 @@ namespace XrEngine.OpenGL
             GlState.Current.SetView(new Rect2I(camera.ViewSize));
 
             GlState.Current.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
-             _gl.DrawBuffers([DrawBufferMode.Back]);
+            _gl.DrawBuffers([DrawBufferMode.Back]);
 
             OpenGLRender.Current!.Begin(this);
         }
-
 
         public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {

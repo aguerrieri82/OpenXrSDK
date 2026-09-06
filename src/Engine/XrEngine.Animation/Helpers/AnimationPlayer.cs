@@ -7,7 +7,7 @@ namespace XrEngine.Animation
 
     public class AnimationPlayer : IPlayer, INotifyPropertyChanged, IDisposable
     {
-        protected readonly IAnimationManager _manager;
+        protected IAnimationManager? _manager;
         protected readonly IAnimation _animation;
         protected PlayerState _state;
         protected IAnimationControl? _control;
@@ -16,13 +16,6 @@ namespace XrEngine.Animation
 
         public AnimationPlayer(IAnimation animation, IAnimable? host)
         {
-            var scene = EngineApp.Current.ActiveScene ??
-                throw new NotSupportedException();
-
-            if (!scene.TryComponent<AnimationManager>(out var controller))
-                controller = scene.AddComponent<AnimationManager>();
-
-            _manager = controller;
             _animation = animation;
             _state = PlayerState.Stop;
             _lastFrame = -1;
@@ -40,6 +33,11 @@ namespace XrEngine.Animation
                 return;
 
             await EngineApp.MainThread;
+
+            var scene = EngineApp.Current.ActiveScene ??
+                throw new NotSupportedException();
+
+            _manager = scene.EnsureComponent<AnimationManager>();
 
             if (_control != null)
                 return;

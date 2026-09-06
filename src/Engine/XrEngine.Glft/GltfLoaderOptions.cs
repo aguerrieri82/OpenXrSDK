@@ -28,6 +28,10 @@
 
         public bool UseMips { get; set; }
 
+        public bool TransmissionBkOnly { get; set; }
+
+        public bool DisableSpecualar { get; set; }
+
         public static readonly GltfLoaderOptions Default = new();
     }
 }

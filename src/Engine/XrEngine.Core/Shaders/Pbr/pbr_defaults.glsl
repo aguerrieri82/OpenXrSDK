@@ -1,17 +1,75 @@
+#ifdef USE_ALBEDO_MAP
+	layout(binding=ALBEDO_SLOT) uniform sampler2D albedoTexture;
+#endif
 
-layout(binding=0) uniform sampler2D albedoTexture;
-layout(binding=1) uniform sampler2D normalTexture;
-layout(binding=2) uniform sampler2D metalroughnessTexture;
-layout(binding=3) uniform sampler2D occlusionTexture;
-layout(binding=9) uniform sampler2D emissiveTexture;
+#ifdef USE_NORMAL_MAP
+	layout(binding=NORMAL_SLOT) uniform sampler2D normalTexture;
+#endif
 
+#if defined(USE_METALROUGHNESS_MAP)
+	layout(binding=METALLICROUGHNESS_SLOT) uniform sampler2D metalroughnessTexture;
+#endif
 
-#ifndef LOAD_FRAGMENT_PROPS
-	#define LOAD_FRAGMENT_PROPS LoadFragmentProperties()
+#if defined(USE_SPECULARGLOSSINESS_MAP)
+	layout(binding=SPECULARGLOSSINESS_SLOT) uniform sampler2D specularGlossinessTexture;
 #endif
 
 
-vec4 LoadBaseColor()
+#ifdef USE_SPECULAR_MAP
+	layout(binding=SPECULAR_SLOT) uniform sampler2D specularTexture;
+#endif
+
+#ifdef USE_SPECULAR_COLOR_MAP
+	layout(binding=SPECULARCOLOR_SLOT) uniform sampler2D specularColorTexture;
+#endif
+
+#ifdef USE_OCCLUSION_MAP
+	layout(binding=OCCLUSION_SLOT) uniform sampler2D occlusionTexture;
+#endif
+
+#ifdef USE_EMISSIVE_MAP
+	layout(binding=EMISSIVE_SLOT) uniform sampler2D emissiveTexture;
+#endif
+
+#ifdef USE_TRANSMISSION_MAP
+	layout(binding=TRANSMISSION_SLOT) uniform sampler2D transmissionTexture;
+#endif
+
+#ifdef USE_SHEEN_COLOR_MAP
+	layout(binding=SHEENCOLOR_SLOT) uniform sampler2D sheenColorTexture;
+#endif
+
+#ifdef USE_SHEEN_ROUGHNESS_MAP
+	layout(binding=SHEENROUGHNESS_SLOT) uniform sampler2D sheenRoughnessTexture;
+#endif
+
+#ifdef USE_CLEARCOAT_MAP
+	layout(binding=CLEARCOAT_SLOT) uniform sampler2D clearCoatTexture;
+#endif
+
+#ifdef USE_CLEARCOAT_ROUGHNESS_MAP
+	layout(binding=CLEARCOATROUGHNESS_SLOT) uniform sampler2D clearCoatRoughnessTexture;
+#endif
+
+#ifdef USE_CLEARCOAT_NORMAL_MAP
+	layout(binding=CLEARCOATNORMAL_SLOT) uniform sampler2D clearCoatNormalTexture;
+#endif
+
+
+#ifdef USE_THICKNESS_MAP
+	layout(binding=THICKNESS_SLOT) uniform sampler2D thicknessTexture;
+#endif
+
+#ifdef USE_ANISOTROPY_MAP
+	layout(binding=ANISOTROPY_SLOT) uniform sampler2D anisotropyTexture;
+#endif
+
+#ifdef USE_DETAILS_NORMAL_MAP
+	layout(binding=DETAILSNORMAL_SLOT) uniform sampler2D detailsNormalTexture;
+#endif
+
+
+vec4 loadBaseColor()
 {
 	#ifdef USE_ALBEDO_MAP
 
@@ -25,9 +83,13 @@ vec4 LoadBaseColor()
 		#else
 
 			#if ALBEDO_UV_SET == 1
-				vec2 albUv = fUv2;
+				vec2 albUv = uv1;
 			#else
-				vec2 albUv = fUv;
+				vec2 albUv = uv0;
+			#endif
+
+			#ifdef ALBEDO_UV_TRANSFORM
+				albUv = (uTexTransform[ALBEDO_UV_TRANSFORM] * vec3(albUv, 1.0)).xy;
 			#endif
 
 		#endif
@@ -51,15 +113,24 @@ vec4 LoadBaseColor()
 	#endif
 }
 
-vec3 LoadFragmentNormal()
+vec3 loadFragmentNormal(out vec3 normalGeo)
 {
 	vec3 N;
 
 	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
 
-		#ifdef NORMAL_MAP_BC3
+		#if NORMAL_UV_SET == 1
+			vec2 normalUv = uv1;
+		#else
+			vec2 normalUv = uv0;
+		#endif
 
-			vec4 packedNormal = texture(normalTexture, fUv);
+		#ifdef NORMAL_UV_TRANSFORM
+			normalUv = (uTexTransform[NORMAL_UV_TRANSFORM] * vec3(normalUv, 1.0)).xy;
+		#endif
+
+		#ifdef NORMAL_MAP_BC3
+			vec4 packedNormal = texture(normalTexture, normalUv);
 
 			packedNormal.x = packedNormal.w * packedNormal.x;
 			vec2 normalXY = packedNormal.xy * 2.0 - 1.0;
@@ -70,34 +141,65 @@ vec3 LoadFragmentNormal()
 
 			N.xy = normalXY;
 			N.z = normalZ;
-
 		#else
+			N = 2.0 * texture(normalTexture, normalUv).rgb - 1.0;
+		#endif
 
-			N = 2.0 * texture(normalTexture, fUv).rgb - 1.0;
+		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
+
+		#ifdef USE_DETAILS_NORMAL_MAP
+
+			#if DETAILSNORMAL_UV_SET == 1
+				vec2 detailsNormalUv = uv1;
+			#else
+				vec2 detailsNormalUv = uv0;
+			#endif
+
+			#ifdef DETAILSNORMAL_UV_TRANSFORM
+				detailsNormalUv = (uTexTransform[DETAILSNORMAL_UV_TRANSFORM] * vec3(detailsNormalUv, 1.0)).xy;
+			#endif
+
+			vec3 detailN;
+
+			#ifdef DETAILS_NORMAL_MAP_BC3
+				vec4 packedDetailNormal = texture(detailsNormalTexture, detailsNormalUv);
+
+				packedDetailNormal.x = packedDetailNormal.w * packedDetailNormal.x;
+				vec2 detailNormalXY = packedDetailNormal.xy * 2.0 - 1.0;
+				float detailLenSq = dot(detailNormalXY, detailNormalXY);
+				detailLenSq = min(detailLenSq, 1.0);
+				float detailNormalZ = sqrt(1.0 - detailLenSq);
+
+				detailN.xy = detailNormalXY;
+				detailN.z = detailNormalZ;
+			#else
+				detailN = 2.0 * texture(detailsNormalTexture, detailsNormalUv).rgb - 1.0;
+			#endif
+
+			detailN *= vec3(uMaterial.detailsNormalScale, uMaterial.detailsNormalScale, 1.0);
+
+			N = normalize(vec3(N.xy + detailN.xy, N.z * detailN.z));
 
 		#endif
 
 		mat3 TBN = fTangentBasis;
 
-		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
-
 		#ifdef DOUBLE_SIDED
-
 			if (!gl_FrontFacing)
 			{
 				TBN[0] = -TBN[0]; // Flip tangent.
 				TBN[1] = -TBN[1]; // Flip bitangent.
 				TBN[2] = -TBN[2]; // Flip normal.
 			}
-
 		#endif
 
+		normalGeo = normalize(TBN[2]);
 		N = normalize(TBN * N);
 
 	#else
 
-		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-			N = fTangentBasis[2];
+		#if defined(HAS_TANGENT_BASIS)
+			N = normalize(fTangentBasis[2]);
 		#else
 			N = normalize(fNormal);
 		#endif
@@ -107,25 +209,47 @@ vec3 LoadFragmentNormal()
 				N = -N;
 		#endif
 
+		normalGeo = N;
+
 	#endif
 
 	return N;
 }
 
-void LoadMetalRoughness(out float metalness, out float roughness)
+void loadMetalRoughness(out float metalness, out float roughness)
 {
 	#ifndef SIMPLIFIED
 
 		#ifdef USE_METALROUGHNESS_MAP
 
-			vec4 mr = texture(metalroughnessTexture, fUv);
-			metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
-			roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
+			#if METALROUGHNESS_UV_SET == 1
+				vec2 mrUv = uv1;
+			#else
+				vec2 mrUv = uv0;
+			#endif
 
-		#elif defined(USE_SPECULAR_MAP)
+			#ifdef METALROUGHNESS_UV_TRANSFORM
+				mrUv = (uTexTransform[METALROUGHNESS_UV_TRANSFORM] * vec3(mrUv, 1.0)).xy;
+			#endif
 
-			vec4 sp = texture(metalroughnessTexture, fUv);
-			roughness = clamp((1.0 - sp.r) * uMaterial.roughness, 0.0, 1.0);
+			vec4 mr = texture(metalroughnessTexture, mrUv);
+			metalness = mr.b * uMaterial.metalness;
+			roughness = mr.g * uMaterial.roughness;
+
+		#elif defined(USE_SPECULARGLOSSINESS_MAP)
+
+			#if SPECULAR_GLOSSINESS_UV_SET == 1
+				vec2 spUv = uv1;
+			#else
+				vec2 spUv = uv0;
+			#endif
+
+			#ifdef SPECULARGLOSSINESS_UV_TRANSFORM
+				spUv = (uTexTransform[SPECULARGLOSSINESS_UV_TRANSFORM] * vec3(spUv, 1.0)).xy;
+			#endif
+
+			vec4 sp = texture(specularGlossinessTexture, spUv);
+			roughness = (1.0 - sp.r) * uMaterial.roughness;
 			metalness = uMaterial.metalness;
 
 		#else
@@ -143,39 +267,363 @@ void LoadMetalRoughness(out float metalness, out float roughness)
 	#endif
 }
 
-float LoadOcclusion()
+float loadOcclusion()
 {
 	#ifdef USE_OCCLUSION_MAP
-		return texture(occlusionTexture, fUv).r;
+
+		#if OCCLUSION_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef OCCLUSION_UV_TRANSFORM
+			uv = (uTexTransform[OCCLUSION_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		return texture(occlusionTexture, uv).r;
+
 	#else
 		return 1.0;
 	#endif
 }
 
-
-vec4 LoadEmissive()
+vec4 loadEmissive()
 {
 	#ifdef USE_EMISSIVE_MAP
-		return texture(emissiveTexture, fUv);
+
+		#if EMISSIVE_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef EMISSIVE_UV_TRANSFORM
+			uv = (uTexTransform[EMISSIVE_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		return texture(emissiveTexture, uv);
+
 	#else
 		return vec4(0.0);
 	#endif
 }
 
-FragmentProperties LoadFragmentProperties()
+#ifdef USE_ANISOTROPY
+
+vec3 loadAnisotropy()
+{
+	#ifdef USE_ANISOTROPY_MAP
+
+		#if ANISOTROPY_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef ANISOTROPY_UV_TRANSFORM
+			uv = (uTexTransform[ANISOTROPY_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		vec3 value = texture(anisotropyTexture, uv).rgb;
+		value.rg = value.rg * 2.0 - 1.0;
+		value.b *= uMaterial.anisotropy;
+		return value;
+
+	#else
+		return vec3(1.0, 0.0, uMaterial.anisotropy);
+	#endif
+}
+
+#endif
+
+#ifdef USE_VOLUME
+
+float loadThickness()
+{
+	float thickness = uMaterial.thickness;
+
+	#ifdef USE_THICKNESS_MAP
+
+		#if THICKNESS_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef THICKNESS_UV_TRANSFORM
+			uv = (uTexTransform[THICKNESS_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		thickness *= texture(thicknessTexture, uv).g;
+
+	#endif
+
+	return thickness;
+}
+
+#endif
+
+
+#ifdef USE_SPECULAR
+
+float loadSpecular()
+{
+	float specular = uMaterial.specular;
+
+	#ifdef USE_SPECULAR_MAP
+
+		#if SPECULAR_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef SPECULAR_UV_TRANSFORM
+			uv = (uTexTransform[SPECULAR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		specular *= texture(specularTexture, uv).a;
+
+	#endif
+
+	return specular;
+}
+
+vec3 loadSpecularColor()
+{
+	vec3 color = uMaterial.specularColor;
+
+	#ifdef USE_SPECULAR_COLOR_MAP
+
+		#if SPECULAR_COLOR_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef SPECULAR_COLOR_UV_TRANSFORM
+			uv = (uTexTransform[SPECULAR_COLOR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		vec3 texColor = texture(specularColorTexture, uv).rgb;
+
+		#if !defined(TEXTURE_IS_SRGB)
+			texColor = sRGBToLinear(texColor);
+		#endif
+
+		color *= texColor;
+
+	#endif
+
+	return color;
+}
+
+#endif
+
+#ifdef USE_SHEEN
+
+vec3 loadSheenColor()
+{
+	vec3 color = uMaterial.sheenColor;
+
+	#ifdef USE_SHEEN_COLOR_MAP
+
+		#if SHEEN_COLOR_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef SHEEN_COLOR_UV_TRANSFORM
+			uv = (uTexTransform[SHEEN_COLOR_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		vec3 texColor = texture(sheenColorTexture, uv).rgb;
+
+		#if !defined(TEXTURE_IS_SRGB)
+			texColor = sRGBToLinear(texColor);
+		#endif
+
+		color *= texColor;
+
+	#endif
+
+	return color;
+}
+
+float loadSheenRoughness()
+{
+	float roughness = uMaterial.sheenRoughness;
+
+	#ifdef USE_SHEEN_ROUGHNESS_MAP
+
+		#if SHEEN_ROUGHNESS_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef SHEEN_ROUGHNESS_UV_TRANSFORM
+			uv = (uTexTransform[SHEEN_ROUGHNESS_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		roughness *= texture(sheenRoughnessTexture, uv).a;
+
+	#endif
+
+	return roughness;
+}
+
+#endif
+
+#ifdef USE_CLEARCOAT
+
+float loadClearCoat()
+{
+	float clearCoat = uMaterial.clearCoatFactor;
+
+	#ifdef USE_CLEARCOAT_MAP
+
+		#if CLEARCOAT_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef CLEARCOAT_UV_TRANSFORM
+			uv = (uTexTransform[CLEARCOAT_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		clearCoat *= texture(clearCoatTexture, uv).r;
+
+	#endif
+
+	return clearCoat;
+}
+
+float loadClearCoatRoughness()
+{
+	float roughness = uMaterial.clearCoatRoughnessFactor;
+
+	#ifdef USE_CLEARCOAT_ROUGHNESS_MAP
+
+		#if CLEARCOAT_ROUGHNESS_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef CLEARCOAT_ROUGHNESS_UV_TRANSFORM
+			uv = (uTexTransform[CLEARCOAT_ROUGHNESS_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		roughness *= texture(clearCoatRoughnessTexture, uv).g;
+
+	#endif
+
+	return roughness;
+}
+
+vec3 loadClearCoatNormal()
+{
+	vec3 N;
+
+	#if defined(USE_CLEARCOAT_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
+
+		#if CLEARCOAT_NORMAL_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef CLEARCOAT_NORMAL_UV_TRANSFORM
+			uv = (uTexTransform[CLEARCOAT_NORMAL_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		N = 2.0 * texture(clearCoatNormalTexture, uv).rgb - 1.0;
+
+		mat3 TBN = fTangentBasis;
+		
+		N *= vec3(uMaterial.clearCoatNormalScale, uMaterial.clearCoatNormalScale, 1.0);
+
+		#ifdef DOUBLE_SIDED
+
+			if (!gl_FrontFacing)
+			{
+				TBN[0] = -TBN[0];
+				TBN[1] = -TBN[1];
+				TBN[2] = -TBN[2];
+			}
+
+		#endif
+
+		N = normalize(TBN * N);
+
+	#else
+
+		#if defined(HAS_TANGENT_BASIS)
+			N = normalize(fTangentBasis[2]);
+		#else
+			N = normalize(fNormal);
+		#endif
+
+		#ifdef DOUBLE_SIDED
+			if (!gl_FrontFacing)
+				N = -N;
+		#endif
+
+	#endif
+
+	return N;
+}
+
+#endif
+
+#ifdef USE_TRANSMISSION
+
+float loadTransmission()
+{
+	float transmission = uMaterial.transmission;
+
+	#ifdef USE_TRANSMISSION_MAP
+
+		#if TRANSMISSION_UV_SET == 1
+			vec2 uv = uv1;
+		#else
+			vec2 uv = uv0;
+		#endif
+
+		#ifdef TRANSMISSION_UV_TRANSFORM
+			uv = (uTexTransform[TRANSMISSION_UV_TRANSFORM] * vec3(uv, 1.0)).xy;
+		#endif
+
+		transmission *= texture(transmissionTexture, uv).r;
+
+	#endif
+
+	return transmission;
+}
+
+#endif
+
+FragmentProperties loadFragmentProperties()
 {
 	FragmentProperties frag;
 
-	frag.position = fPos;
-	frag.uv0 = fUv;
+	uv0 = fUv;
 
-	#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1)
-		frag.uv1 = fUv2;
+	#if defined(HAS_UV2)
+		uv1 = fUv2;
 	#else
-		frag.uv1 = fUv;
+		uv1 = fUv;
 	#endif
 
-	frag.baseColor = LoadBaseColor();
+	frag.position = fPos;
+	frag.uv0 = uv0;
+	frag.uv1 = uv1;
+
+	frag.baseColor = loadBaseColor();
 
 	#if ALPHA_MODE == ALPHA_MASK 
 		if (frag.baseColor.a < uMaterial.alphaCutoff)
@@ -185,13 +633,45 @@ FragmentProperties LoadFragmentProperties()
 
 	frag.albedo = frag.baseColor.rgb;
 
-	frag.emissive = LoadEmissive();
+	frag.emissive = loadEmissive();
 
-	LoadMetalRoughness(frag.metalness, frag.roughness);
+	loadMetalRoughness(frag.metalness, frag.roughness);
 
-	frag.normal = LoadFragmentNormal();
-	frag.occlusion = LoadOcclusion();
+	frag.normal = loadFragmentNormal(frag.normalGeo);
+	frag.occlusion = loadOcclusion();
 	frag.viewDir = normalize(fCameraPos - fPos);
+
+	#ifdef USE_SHEEN
+		frag.sheenColor = loadSheenColor();
+		frag.sheenRoughness = loadSheenRoughness();
+	#endif
+
+	#ifdef USE_CLEARCOAT
+		frag.clearCoat = loadClearCoat();
+		frag.clearCoatRoughness = loadClearCoatRoughness();
+		frag.clearCoatNormal = loadClearCoatNormal();
+	#endif
+
+	#ifdef USE_TRANSMISSION
+		frag.transmission = loadTransmission();
+	#endif
+	
+	#ifdef USE_SPECULAR
+		frag.specular = loadSpecular();
+		frag.specularColor = loadSpecularColor();
+	#endif
+
+	#ifdef USE_VOLUME
+		frag.thickness = loadThickness();
+	#endif
+
+	#ifdef USE_DISPERSION
+		frag.dispersion = uMaterial.dispersion;
+	#endif
+
+	#ifdef USE_ANISOTROPY
+		frag.anisotropy = loadAnisotropy();
+	#endif
 
 	return frag;
 }

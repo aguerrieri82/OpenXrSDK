@@ -40,10 +40,11 @@ namespace XrSamples.Graffiti
 
             builder.UseApp(app)
                   .UseRightController()
+                  .UseLeftController()
                   .UseInputs<XrOculusTouchController>(a => a
-                      .AddAction(b => b.Right!.Haptic)
-                      .AddAction(b => b.Right!.Thumbstick)
-                      .AddAction(b => b.Right!.ThumbstickClick))
+                      .AddAction(b => b.Right.Haptic)
+                      .AddAction(b => b.Right.Thumbstick)
+                      .AddAction(b => b.Right.ThumbstickClick))
                   .AddPassthrough()
                   .ConfigureApp(scene.Configure);
 

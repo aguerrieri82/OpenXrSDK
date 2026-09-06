@@ -4,19 +4,21 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
 using System.Runtime.CompilerServices;
 
 namespace XrEngine.OpenGL
 {
     public class GlBufferRangeSlot<T> : ISimpleBuffer<T>, IDisposable
+        where T : unmanaged
     {
         protected readonly int _index;
         protected readonly GlBufferRange<T> _range;
         protected readonly WeakReference<EngineObject> _owner;
-
         protected readonly GL _gl;
 
-        private bool _isDisposed;
+        protected uint _sizeBytes;
+        bool _isDisposed;
 
         internal GlBufferRangeSlot(GL gl, GlBufferRange<T> range, int index, EngineObject owner)
         {
@@ -26,10 +28,13 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Update(T value)
+        public unsafe void Update(in T value)
         {
-            if (_range.UsePermanentMap)
-                _range.BufferData[_index] = value;
+            if (_sizeBytes == 0)
+                _sizeBytes = (uint)MarshalCache.SizeOf(typeof(T));
+
+            if (_range._usePermanentMap)
+                _range._bufferData[_index] = value;
             else
                 _range.Buffer.UpdateRange([value], _index);
         }
@@ -71,6 +76,8 @@ namespace XrEngine.OpenGL
         public uint Handle => _range.Buffer.Handle;
 
         public long Version { get; set; }
+
+        public uint SizeBytes => _sizeBytes;
     }
 
     public interface IGlBufferRange : IDisposable
@@ -83,6 +90,7 @@ namespace XrEngine.OpenGL
     }
 
     public class GlBufferRange<T> : IGlBufferRange
+        where T : unmanaged
     {
         private const int AllocationChunkSize = 512;
 
@@ -94,14 +102,14 @@ namespace XrEngine.OpenGL
 
         private readonly Dictionary<object, GlBufferRangeSlot<T>> _slotsByOwner = [];
         private readonly Stack<int> _freeSlots = new();
-        private readonly bool _usePermanentMap;
+        internal readonly  bool _usePermanentMap;
 
         private GlBufferRangeSlot<T>?[] _slots = [];
         private int _nextSlot;
         private bool _isDisposed;
-        private unsafe T* _bufferData;
+        internal unsafe T* _bufferData;
 
-        public GlBufferRange(GL gl, string uniformName, int slot, bool usePermanentMap = true)
+        public GlBufferRange(GL gl, string uniformName, int slot, bool usePermanentMap = false)
         {
             _gl = gl;
             _buffer = new GlBuffer<T>(_gl, BufferTargetARB.ShaderStorageBuffer);
@@ -207,9 +215,10 @@ namespace XrEngine.OpenGL
         {
             get
             {
+#if DEBUG
                 if (!_usePermanentMap)
                     throw new InvalidOperationException("Permanent mapping is disabled.");
-
+#endif
                 return new Span<T>(_bufferData, _slots.Length);
             }
         }

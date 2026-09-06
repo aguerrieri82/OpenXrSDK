@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 namespace XrEngine.OpenGL
 {
     public unsafe class GlBufferRing<T> : IDisposable
+        where T : unmanaged
     {
         protected readonly GL _gl;
         protected readonly GlBuffer<T> _buffer;

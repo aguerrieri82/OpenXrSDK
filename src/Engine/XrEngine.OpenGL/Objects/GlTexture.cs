@@ -1,8 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
+using Silk.NET.OpenGLES.Extensions.OES;
 #else
 using Silk.NET.OpenGL;
+
+
 #endif
 
 using XrMath;
@@ -13,8 +16,15 @@ namespace XrEngine.OpenGL
     {
         static internal readonly Dictionary<uint, GlTexture> _attached = [];
 
+        const GetTextureParameter TextureViewMinLayer = (GetTextureParameter)0x82DD;
+
+        const GetTextureParameter TextureViewNumLayers = (GetTextureParameter)0x82DE;
+
+
 #if GLES
         static ExtClearTexture? _clearExt;
+
+        static OesTextureView? _textureViewExt;
 #endif
 
         protected uint _width;
@@ -22,10 +32,14 @@ namespace XrEngine.OpenGL
         protected bool _isCompressed;
         protected InternalFormat _internalFormat;
         protected bool _isAllocated;
+        private GlTexture? _parentTex;
         protected bool _isStorageImmutable;
         protected uint _depth;
+        internal uint _viewMinLayer;
+        internal uint _viewNumLayers;
         protected bool _isAttached;
         private int _updateCount;
+
 
         public GlTexture(GL gl)
             : base(gl)
@@ -42,12 +56,12 @@ namespace XrEngine.OpenGL
             Create();
         }
 
-        public GlTexture(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
+        public GlTexture(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0, GlTexture? parentTex = null)
             : base(gl)
         {
             SampleCount = sampleCount;
             AllowRecreate = false;
-            Attach(handle, target);
+            Attach(handle, target, parentTex);
         }
 
         public void Recreate()
@@ -80,7 +94,7 @@ namespace XrEngine.OpenGL
             Target = target;
         }
 
-        public void Attach(uint handle, TextureTarget target = 0)
+        public void Attach(uint handle, TextureTarget target = 0, GlTexture? parentTex = null)
         {
             if (_handle == handle)
                 return;
@@ -96,6 +110,7 @@ namespace XrEngine.OpenGL
             _handle = handle;
             _isAttached = true;
             _isAllocated = true;
+            _parentTex = parentTex;
 
             Target = target != 0 ? target : _gl.FindTextureTarget(handle);
 
@@ -117,6 +132,15 @@ namespace XrEngine.OpenGL
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureDepthExt, out int depth);
             _depth = Math.Max((uint)depth, 1);
+
+            if (parentTex != null)
+            {
+                _gl.GetTexParameter(Target, TextureViewMinLayer, out int viewMinLayer);
+                _viewMinLayer = (uint)viewMinLayer;
+
+                _gl.GetTexParameter(Target, TextureViewNumLayers, out int viewNumLayers);
+                _viewNumLayers = (uint)viewNumLayers;
+            }
 
             if (isMultiSample)
             {
@@ -202,24 +226,27 @@ namespace XrEngine.OpenGL
                 Log.Warn(this, "Verify returned 0 size");
         }
 
-        public void CopyTo(GlTexture dest, int level = 0, int depth = 0)
+        public void CopyTo(GlTexture dest, int srcDstLevel = 0, int srcLayer = 0, int dstLayer = 0, uint layersCount = 0)
         {
+            if (layersCount == 0)
+                layersCount = Math.Max(IsView ? _viewNumLayers : _depth, 1);
+
             _gl.CopyImageSubData(
                 _handle,
                 (CopyImageSubDataTarget)Target,
-                level,
+                srcDstLevel,
                 0,
                 0,
-                depth,
+                srcLayer,
                 dest.Handle,
                 (CopyImageSubDataTarget)dest.Target,
-                level,
+                srcDstLevel,
                 0,
                 0,
-                depth,
+                dstLayer,
                 _width,
                 _height,
-                Math.Max(_depth, 1));
+                layersCount);
         }
 
         public void Allocate(
@@ -338,6 +365,11 @@ namespace XrEngine.OpenGL
 #endif
         }
 
+        protected void ClearPbo()
+        {
+            OpenGLRender.Current!.State.BindBuffer(BufferTargetARB.PixelUnpackBuffer, 0);
+        }
+
         public unsafe void UploadRegion(TextureRegion region)
         {
             if (region.Data == null)
@@ -348,6 +380,8 @@ namespace XrEngine.OpenGL
 
             if (_isCompressed)
                 throw new NotSupportedException("Use full compressed uploads for compressed textures");
+
+            ClearPbo();
 
             BeginUpdate();
 
@@ -392,17 +426,13 @@ namespace XrEngine.OpenGL
 
         public void Clear(Color color, int level = 0)
         {
-
-#warning DISABLED WITH RDC
-
-            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
-                return;
-
             var colorSpan = color.ToArray();
 
             GlUtils.GetPixelFormat(_internalFormat.ToTextureFormat(), out var pixelFormat, out var pixelType);
-
 #if GLES
+            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
+                return;
+
             if (_clearExt == null)
                 _gl.TryGetExtension(out _clearExt);
 
@@ -410,6 +440,99 @@ namespace XrEngine.OpenGL
 #else
             _gl.ClearTexImage(_handle, level, pixelFormat, pixelType, colorSpan.AsSpan());
 #endif
+        }
+
+        public void Clear(Color color, Rect2I region, int layer, int level = 0)
+        {
+            GlUtils.GetPixelFormat(_internalFormat.ToTextureFormat(), out var pixelFormat, out var pixelType);
+
+#if GLES
+
+            if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
+                return;
+        
+            if (_clearExt == null)
+            {
+                if (!_gl.TryGetExtension(out _clearExt))
+                    throw new NotSupportedException();
+            }
+#endif
+
+            Span<uint> buffer = stackalloc uint[4];
+
+            if (pixelFormat == PixelFormat.DepthComponent)
+            {
+                switch (pixelType)
+                {
+                    case PixelType.UnsignedShort:
+                        buffer[0] = (ushort)(Math.Clamp(color.R, 0, 1) * ushort.MaxValue);
+                        break;
+
+                    case PixelType.UnsignedInt:
+                        buffer[0] = (uint)(Math.Clamp(color.R, 0, 1) * uint.MaxValue);
+                        break;
+
+                    case PixelType.Float:
+                        buffer[0] = BitConverter.SingleToUInt32Bits(color.R);
+                        break;
+                }
+            }
+            else if (pixelFormat == PixelFormat.DepthStencil)
+            {
+                switch (pixelType)
+                {
+                    case PixelType.UnsignedInt248Oes:
+                        buffer[0] = ((uint)(Math.Clamp(color.R, 0, 1) * 0xFFFFFF) << 8) |
+                                    (uint)(Math.Clamp(color.G, 0, 1) * 0xFF);
+                        break;
+
+                    case PixelType.Float32UnsignedInt248Rev:
+                        buffer[0] = BitConverter.SingleToUInt32Bits(color.R);
+                        buffer[1] = (uint)(Math.Clamp(color.G, 0, 1) * 0xFF);
+                        break;
+                }
+            }
+            else
+            {
+                var values = color.ToArray();
+                buffer[0] = BitConverter.SingleToUInt32Bits(values[0]);
+                buffer[1] = BitConverter.SingleToUInt32Bits(values[1]);
+                buffer[2] = BitConverter.SingleToUInt32Bits(values[2]);
+                buffer[3] = BitConverter.SingleToUInt32Bits(values[3]);
+            }
+
+#if GLES
+            _clearExt!.ClearTexSubImage(_handle, level, region.X, region.Y, layer, region.Width, region.Height, 1, pixelFormat, pixelType, buffer);
+#else
+            _gl.ClearTexSubImage(_handle, level, region.X, region.Y, layer, region.Width, region.Height, 1, pixelFormat, pixelType, buffer);
+#endif
+        }
+
+
+        public GlTexture CreateView(uint minLayer, uint numLayers, uint minLevel = 0, uint numLevels = 1)
+        {
+            var newTexture = _gl.GenTexture();
+#if GLES
+            if (_textureViewExt == null)
+            {
+                if (!_gl.TryGetExtension(out _textureViewExt))
+                    throw new NotSupportedException();
+            }
+
+            _textureViewExt!.TextureView(newTexture, Target, _handle, (SizedInternalFormat)_internalFormat, minLevel, numLevels, minLayer, numLayers);
+#else
+            _gl.TextureView(newTexture, Target, _handle, (SizedInternalFormat)_internalFormat, minLevel, numLevels, minLayer, numLayers);
+#endif
+
+            return Attach(_gl, newTexture, parentTex: this);
+        }
+
+        public GlTexture CreateVirtualView(uint minLayer, uint numLayers, uint minLevel = 0, uint numLevels = 1)
+        {
+            _viewMinLayer = minLayer;
+            _viewNumLayers = numLayers;
+            _parentTex = this;
+            return this;
         }
 
         public void OverrideSize(uint width, uint height)
@@ -527,7 +650,7 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
-                //GlState.Current.ResetTextures();
+               // GlState.Current.ResetTextures();
 
                 if (!_isAttached)
                 {
@@ -551,6 +674,8 @@ namespace XrEngine.OpenGL
             _height = 0;
             _isCompressed = false;
             _depth = 0;
+            _viewMinLayer = 0;
+            _viewNumLayers = 0;
             _internalFormat = 0;
         }
 
@@ -566,10 +691,11 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
+
+        public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0, GlTexture? parentTex = null)
         {
             if (!_attached.TryGetValue(handle, out var texture))
-                texture = new GlTexture(gl, handle, sampleCount, target);
+                texture = new GlTexture(gl, handle, sampleCount, target, parentTex);
 
             return texture;
         }
@@ -629,6 +755,8 @@ namespace XrEngine.OpenGL
         {
             if (!_isAllocated)
                 AllocateStorage(width, height, depth, format);
+
+            ClearPbo();
 
             var use3D = Target != TextureTarget.TextureCubeMap && _depth > 1;
 
@@ -694,6 +822,7 @@ namespace XrEngine.OpenGL
             if (use3D && !_isAllocated)
                 AllocateCompressedArrayStorage(width, height, depth);
 
+            ClearPbo();
 
             foreach (var entry in data)
             {
@@ -973,6 +1102,14 @@ namespace XrEngine.OpenGL
         public uint Height => _height;
 
         public uint Depth => _depth;
+
+        public bool IsView => _parentTex != null;
+
+        public GlTexture? ParentTexture => _parentTex;
+
+        public uint ViewMinLayer => _viewMinLayer;
+
+        public uint ViewNumLayers => _viewNumLayers;
 
         public bool IsAttached => _isAttached;
 

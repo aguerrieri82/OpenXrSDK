@@ -9,7 +9,7 @@
 		<Using Remove="Android.App" />
 		<Using Remove="Android" />
 	</ItemGroup>
-
+ 
 	<ItemGroup>
 	  <EmbeddedResource Include="Shaders\*" />
 	</ItemGroup>

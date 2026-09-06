@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
-using System.Text;
-using XrEngine;
+﻿using System.Numerics;
 using XrInteraction;
 
 namespace XrEditor
@@ -17,6 +12,7 @@ namespace XrEditor
         {
             MoveSpeed = 3f;
             RotateSpeed = 1.5f;
+            _isActive = false;
         }
 
         public override void Attach(SceneView view)

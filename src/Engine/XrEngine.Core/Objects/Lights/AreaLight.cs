@@ -13,16 +13,14 @@ namespace XrEngine
 
         public override void DrawGizmos(Canvas3D canvas, RenderContext ctx)
         {
-            const float ArrowLength = 70.0f;
-            const float ArrowTipLength = 12.0f;
-            const float ArrowTipWidth = 6.0f;
-
             var normal = Vector3.Normalize(PlaneNormal);
             var up = Vector3.Normalize(
                 PlaneUp - normal * Vector3.Dot(PlaneUp, normal));
+            var direction = Vector3.Normalize(Direction);
 
             if (normal.LengthSquared() < 0.000001f ||
-                up.LengthSquared() < 0.000001f)
+                up.LengthSquared() < 0.000001f ||
+                direction.LengthSquared() < 0.000001f)
             {
                 return;
             }
@@ -38,6 +36,12 @@ namespace XrEngine
             var p2 = WorldPosition + right * halfWidth + up * halfHeight;
             var p3 = WorldPosition - right * halfWidth + up * halfHeight;
 
+            var rangeOffset = direction * Range;
+            var p4 = p0 + rangeOffset;
+            var p5 = p1 + rangeOffset;
+            var p6 = p2 + rangeOffset;
+            var p7 = p3 + rangeOffset;
+
             canvas.Save();
             canvas.State.Color = "#ffff00";
 
@@ -49,102 +53,17 @@ namespace XrEngine
             canvas.DrawLine(p0, p2);
             canvas.DrawLine(p1, p3);
 
-            canvas.Restore();
+            canvas.DrawLine(p0, p4);
+            canvas.DrawLine(p1, p5);
+            canvas.DrawLine(p2, p6);
+            canvas.DrawLine(p3, p7);
 
-            var direction = Vector3.Normalize(Direction);
+            canvas.State.Color = "#ffff80";
 
-            if (direction.LengthSquared() < 0.000001f)
-                return;
-
-            var camera = ctx.Camera!;
-            var viewSize = camera.ViewSize.ToVector2();
-            var viewProjection = camera.ViewProjection;
-
-            var clip = Vector4.Transform(
-                new Vector4(WorldPosition, 1.0f),
-                viewProjection);
-
-            Vector3 ndc = new(
-                clip.X / clip.W,
-                clip.Y / clip.W,
-                clip.Z / clip.W);
-
-            Matrix4x4.Invert(
-                viewProjection,
-                out var inverseViewProjection);
-
-            var pixelWorld4 = Vector4.Transform(
-                new Vector4(
-                    ndc.X + 2.0f / viewSize.X,
-                    ndc.Y,
-                    ndc.Z,
-                    1.0f),
-                inverseViewProjection);
-
-            Vector3 pixelWorld = new(
-                pixelWorld4.X / pixelWorld4.W,
-                pixelWorld4.Y / pixelWorld4.W,
-                pixelWorld4.Z / pixelWorld4.W);
-
-            var scale = Vector3.Distance(
-                WorldPosition,
-                pixelWorld);
-
-            var toCamera = camera.WorldPosition - WorldPosition;
-
-            var arrowPlaneNormal =
-                toCamera - direction * Vector3.Dot(toCamera, direction);
-
-            if (arrowPlaneNormal.LengthSquared() < 0.000001f)
-                arrowPlaneNormal = normal;
-
-            arrowPlaneNormal = Vector3.Normalize(arrowPlaneNormal);
-
-            var arrowSide = Vector3.Normalize(
-                Vector3.Cross(arrowPlaneNormal, direction));
-
-            canvas.Save();
-
-            canvas.State.Color = "#ffff00";
-
-            canvas.State.Transform = new Matrix4x4(
-                direction.X * scale,
-                direction.Y * scale,
-                direction.Z * scale,
-                0.0f,
-
-                arrowSide.X * scale,
-                arrowSide.Y * scale,
-                arrowSide.Z * scale,
-                0.0f,
-
-                arrowPlaneNormal.X * scale,
-                arrowPlaneNormal.Y * scale,
-                arrowPlaneNormal.Z * scale,
-                0.0f,
-
-                WorldPosition.X,
-                WorldPosition.Y,
-                WorldPosition.Z,
-                1.0f);
-
-            canvas.DrawLine(
-                Vector3.Zero,
-                new Vector3(ArrowLength, 0.0f, 0.0f));
-
-            canvas.DrawLine(
-                new Vector3(ArrowLength, 0.0f, 0.0f),
-                new Vector3(
-                    ArrowLength - ArrowTipLength,
-                    ArrowTipWidth,
-                    0.0f));
-
-            canvas.DrawLine(
-                new Vector3(ArrowLength, 0.0f, 0.0f),
-                new Vector3(
-                    ArrowLength - ArrowTipLength,
-                    -ArrowTipWidth,
-                    0.0f));
+            canvas.DrawLine(p4, p5);
+            canvas.DrawLine(p5, p6);
+            canvas.DrawLine(p6, p7);
+            canvas.DrawLine(p7, p4);
 
             canvas.Restore();
         }

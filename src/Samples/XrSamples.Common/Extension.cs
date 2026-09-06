@@ -8,6 +8,7 @@ namespace XrSamples
     public static class Extension
     {
 
+
         public static IUiBuilder<T> AddInput<T, TValue>(this IUiBuilder<T> builder, string label, IInputElement<TValue> input, IProperty<TValue> binding) where T : UiContainer
         {
             input.Value = binding.Value;

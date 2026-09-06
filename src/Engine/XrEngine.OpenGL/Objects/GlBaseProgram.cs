@@ -16,7 +16,7 @@ namespace XrEngine.OpenGL
 {
     public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
     {
-        static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions
+        static readonly JsonSerializerOptions JSON_OPTIONS = new()
         {
             IncludeFields = true,
             WriteIndented = true,
@@ -40,11 +40,11 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly Dictionary<string, string> _slots = [];
+        protected Dictionary<ShaderType, HashSet<string>>? _includes;
         protected readonly int[] _boundBuffers = new int[32];
         protected readonly bool _cacheUniforms;
 
         protected ulong _sourceHash;
-
 
         public GlBaseProgram(GL gl, Func<string, string?> includeResolver) : base(gl)
         {
@@ -54,6 +54,7 @@ namespace XrEngine.OpenGL
             _cacheUniforms = _glOptions.CacheUniforms == true;
 
             _features.EnsureCapacity(64);
+
         }
 
         public byte[] GetBinary(out GLEnum format)
@@ -315,7 +316,7 @@ namespace XrEngine.OpenGL
                 glSamp.Update(value);
         }
 
-        public void LoadImage(Texture2D tex2d, int slot = 0, BufferAccessMode accessMode = BufferAccessMode.ReadWrite)
+        public void LoadImage(Texture2D tex2d, int slot, BufferAccessMode accessMode = BufferAccessMode.ReadWrite)
         {
             if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
                 glText = tex2d.ToGlTexture();
@@ -340,7 +341,7 @@ namespace XrEngine.OpenGL
             _gl.BindImageTexture((uint)slot, glText.Handle, 0, layered, 0, glMode, glText.InternalFormat);
         }
 
-        public void LoadTexture(Texture value, int slot = 0, bool forceBinding = false)
+        public void LoadTexture(Texture value, int slot, bool forceBinding = false)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
@@ -455,6 +456,7 @@ namespace XrEngine.OpenGL
         }
 
         public void LoadBuffer<T>(ISimpleBuffer<T> buffer, int slot = 0, BufferUsage usage = BufferUsage.Default)
+            where T : unmanaged
         {
             if (buffer is GlBufferRangeSlot<T> rangeBuf)
             {
@@ -564,6 +566,17 @@ namespace XrEngine.OpenGL
             _slots[name] = value;
         }
 
+        public void Include(string inc, ShaderType shaderType)
+        {
+            _includes ??= [];
+            if (!_includes.TryGetValue(shaderType, out var list))
+            {
+                list = new HashSet<string>();
+                _includes[shaderType] = list;
+            }
+            list.Add(inc);
+        }
+
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
             var builder = new StringBuilder();
@@ -606,10 +619,32 @@ namespace XrEngine.OpenGL
             {
                 foreach (var feature in _mergedFetaures)
                     builder.Append("#define ").Append(feature).Append('\n');
-            }
 
-            if (shaderType == ShaderType.VertexShader)
-                builder.Append("#define V_SHADER\n");
+                if (_includes != null && _includes.TryGetValue(shaderType, out var includes))
+                {
+                    builder.AppendLine();
+
+                    foreach (var inc in includes)
+                        builder.Append("#include \"").Append(inc).Append('\"').AppendLine();
+
+                    builder.AppendLine();
+                }
+
+                foreach (var slot in ResourceSlot.Enumerate(typeof(TextureSlots)))
+                {
+                    if (slot.Slot == -1 || slot.SlotName == null)
+                        continue;
+
+                    builder.Append("#ifndef ").Append(slot.SlotName).Append('\n');
+                    builder.Append("#define ").Append(slot.SlotName).Append(' ').Append(slot.Slot).Append('\n');
+                    builder.Append("#endif\n");
+                }
+            }
+            else
+            {
+                foreach (var slot in ResourceSlot.Enumerate(typeof(TextureSlots)).Where(a => a.Slot != -1))
+                    _mergedFetaures.Add($"{slot.SlotName} {slot.Slot}");
+            }
 
             PatchShader(shaderType, builder);
 
@@ -623,7 +658,17 @@ namespace XrEngine.OpenGL
                     .Select(a => new GlslRuntimeDefine(a, a))
                     .ToArray();
 
-                var source = preProc.Process(sourceName, _mergedFetaures, runDefine, _slots);
+                if (_includes == null || !_includes.TryGetValue(shaderType, out var includes))
+                    includes = null;
+
+                var source = preProc.Process(sourceName, new GlslPreprocessorOptions
+                {
+                    Defines = _mergedFetaures,
+                    RuntimeDefines = runDefine,
+                    Slots = _slots,
+                    IncludeFiles = includes,
+                    AllowRedefine = true
+                });
 
                 builder.Append(source);
             }

@@ -159,7 +159,6 @@ public abstract class ImageRenderHost : Image, IRenderSurface
         Focus();
     }
 
-
     public Vector2 Size
     {
         get

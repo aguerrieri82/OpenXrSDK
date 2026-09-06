@@ -18,7 +18,7 @@ namespace XrEngine.Lighting
         public Vector3I Cell;
         public int Face;
         public VoxelTriangleSide Side;
-        public Color BaseColor;
+        public Vector4 BaseColor;
         public Vector3 Normal;
         public float Roughness;
         public float Metallic;

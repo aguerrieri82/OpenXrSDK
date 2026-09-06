@@ -7,7 +7,7 @@ namespace XrSamples.Dnd
 
         public override void Release()
         {
-            ((Token)_host!).SendPosition();
+            ((Token)_host).SendPosition();
             base.Release();
         }
     }

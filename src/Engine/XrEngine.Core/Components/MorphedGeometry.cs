@@ -1,9 +1,6 @@
 ﻿using Common.Interop;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 
 namespace XrEngine
 {
@@ -29,7 +26,7 @@ namespace XrEngine
 
     public class MorphedGeometry : BaseComponent<Geometry3D>, IGeometryComponent, IVertexAttributes
     {
-        long _morphVersion;
+        readonly long _morphVersion;
         long _textureDataVersion;
         Texture2D? _texture;
 
@@ -37,7 +34,6 @@ namespace XrEngine
         {
             StorageType = MorphStorageType.Texture;
         }
-
 
         public unsafe void UpdateBuffer(IBuffer<Vector3> buffer)
         {
@@ -150,7 +146,6 @@ namespace XrEngine
             };
         }
 
-
         int IVertexAttributes.BufferCount
         {
             get
@@ -168,10 +163,10 @@ namespace XrEngine
         {
             Debug.Assert(Targets != null);
 
-            int i = 0;
+            var i = 0;
             foreach (var target in Targets)
             {
-                foreach (var  component in target.Components)
+                foreach (var component in target.Components)
                 {
                     if (index == i)
                         return new VertexAttributesBuffer
@@ -188,7 +183,6 @@ namespace XrEngine
             throw new InvalidOperationException();
         }
 
-   
         public MorphTarget[]? Targets { get; set; }
 
         public MorphStorageType StorageType { get; set; }

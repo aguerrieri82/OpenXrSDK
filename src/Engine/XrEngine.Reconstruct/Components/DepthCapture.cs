@@ -44,7 +44,7 @@ namespace XrEngine.Reconstruct
 
         public void OnSelected(Object3D obj, bool isSelected)
         {
-            _host!.Materials[1].IsEnabled = isSelected && ShowWireFrame;
+            _host.Materials[1].IsEnabled = isSelected && ShowWireFrame;
         }
 
         public Texture2D? Texture { get; set; }
@@ -1306,7 +1306,7 @@ namespace XrEngine.Reconstruct
                 }
 
                 _frames.Clear();
-                _host!.Clear();
+                _host.Clear();
             }
 
             var frameDirs = Directory.GetDirectories(path)
@@ -1423,7 +1423,7 @@ namespace XrEngine.Reconstruct
                 });
 
                 if (!SplatMode)
-                    _host!.AddChild(mesh);
+                    _host.AddChild(mesh);
             }
 
             _colorArrayTex = new Texture2D
@@ -1440,7 +1440,7 @@ namespace XrEngine.Reconstruct
             if (SplatMode)
             {
                 _splatMesh = new SplatMesh(splats.ToArray());
-                _host!.AddChild(_splatMesh);
+                _host.AddChild(_splatMesh);
             }
 
             Log.Info(this, "Done!");
@@ -1568,7 +1568,7 @@ namespace XrEngine.Reconstruct
         {
             if (_mode == DepthSnapeshotMode.Read)
             {
-                foreach (var mesh in _host!.Children.OfType<TriangleMesh>())
+                foreach (var mesh in _host.Children.OfType<TriangleMesh>())
                 {
                     if (!mesh.TryComponent<CaptureFrame>(out var frame))
                         continue;
@@ -1593,7 +1593,7 @@ namespace XrEngine.Reconstruct
                 if (frame != null)
                 {
                     _frames.Add(frame);
-                    _host!.AddChild(frame.Mesh!);
+                    _host.AddChild(frame.Mesh!);
                 }
             }
 

@@ -18,7 +18,7 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
-            var localPoint = _host!.ToLocal(worldPoint);
+            var localPoint = _host.ToLocal(worldPoint);
             var invPos = Pose.Inverse().Transform(localPoint);
 
             if (invPos.Y < -Height / 2 - tolerance || invPos.Y > Height / 2 + tolerance)
@@ -31,7 +31,7 @@ namespace XrEngine
 
         public float Distance(Vector3 worldPoint)
         {
-            var localPoint = _host!.ToLocal(worldPoint);
+            var localPoint = _host.ToLocal(worldPoint);
             var invPos = Pose.Inverse().Transform(localPoint);
 
             var dist = 0f;

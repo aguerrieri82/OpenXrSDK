@@ -17,3 +17,11 @@
 	#define APIENTRY
 
 #endif
+
+#ifdef _MSC_VER
+	using half = uint16_t;
+#endif
+
+#if HAS_NEON == 1 
+	using half = float16_t;
+#endif

@@ -1,6 +1,5 @@
 ﻿using XrEditor.Services;
 using XrEngine;
-using XrEngine.Physics;
 
 namespace XrEditor.Nodes
 {

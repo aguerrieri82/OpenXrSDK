@@ -38,7 +38,6 @@ namespace OpenXr.Framework
     {
         protected readonly RenderViewDelegate? _renderView;
 
-        protected bool _useDepth;
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
         protected NativeArray<CompositionLayerProjectionView> _projViews;
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
@@ -70,15 +69,16 @@ namespace OpenXr.Framework
             : this()
         {
             _renderView = renderView;
-            _useDepth = useDepth;
 
-            if (_useDepth)
+            UseDepth = useDepth;
+
+            if (UseDepth)
             {
                 _depthTest.Value = new CompositionLayerDepthTestFB
                 {
                     Type = StructureType.CompositionLayerDepthTestFB,
                     DepthMask = 1,
-                    CompareOp = CompareOpFB.LessOrEqualFB,
+                    CompareOp = CompareOpFB.AlwaysFB,
                     Next = null
                 };
 
@@ -107,6 +107,8 @@ namespace OpenXr.Framework
         {
             Debug.Assert(_xrApp != null);
 
+            UseSimmetricFov = _xrApp.RenderOptions.UseSimmetricFov;
+
             if (UseSimmetricFov)
             {
                 var views = new View[2];
@@ -130,7 +132,7 @@ namespace OpenXr.Framework
 
             _colorSwaps = new XrSwapchain[swpCount];
 
-            if (_useDepth)
+            if (UseDepth)
                 _depthSwaps = new XrSwapchain[swpCount];
 
             var colorSize = AdjustRenderSize(options.Size);
@@ -138,26 +140,29 @@ namespace OpenXr.Framework
             var depthSize = new Extent2Di((int)(colorSize.Width * options.ProjectionDepthScale),
                                           (int)(colorSize.Height * options.ProjectionDepthScale));
 
+            var colorArraySize = options.RenderMode == XrRenderMode.MultiView ? (UseIntermediate ? 4 : 2u) : 1;
+            var depthArraySize = options.RenderMode == XrRenderMode.MultiView ? 2u : 1;
+
             for (var i = 0; i < _colorSwaps.Length; i++)
             {
                 var colorSwap = new XrSwapchain(_xrApp);
 
                 colorSwap.Create(colorSize,
                             options.ColorFormat,
-                            options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                            colorArraySize,
                             SwapchainUsageFlags.ColorAttachmentBit |
                             SwapchainUsageFlags.SampledBit |
                             SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
 
                 _colorSwaps[i] = colorSwap;
 
-                if (_useDepth)
+                if (UseDepth)
                 {
                     var depthSwap = new XrSwapchain(_xrApp);
 
                     depthSwap.Create(depthSize,
                            options.DepthFormat,
-                           options.RenderMode == XrRenderMode.MultiView ? 2u : 1,
+                           depthArraySize,
                            SwapchainUsageFlags.DepthStencilAttachmentBit |
                            SwapchainUsageFlags.SampledBit |
                            SwapchainUsageFlags.InputAttachmentBitKhr, SwapchainTarget.Projection);
@@ -226,6 +231,7 @@ namespace OpenXr.Framework
                 layer.Views = _projViews.ItemPointer(0);
                 layer.ViewCount = (uint)views.Length;
 
+
                 for (var i = 0; i < views.Length; i++)
                 {
                     ref var projView = ref layer.Views[i];
@@ -237,16 +243,19 @@ namespace OpenXr.Framework
 
                     var colorSwap = _colorSwaps[swIndex];
 
+                    //var colorBaseIndex = colorSwap.ArraySize == 4 ? 2u : 0u;
+                    var colorBaseIndex = 0u;
+
                     projView.Type = StructureType.CompositionLayerProjectionView;
                     projView.Next = null;
                     projView.SubImage.Swapchain = colorSwap;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                        projView.SubImage.ImageArrayIndex = (uint)i;
+                        projView.SubImage.ImageArrayIndex = colorBaseIndex + (uint)i;
                     else
                         projView.SubImage.ImageArrayIndex = 0;
 
-                    if (_useDepth)
+                    if (UseDepth)
                     {
                         var depthSwap = _depthSwaps![swIndex];
 
@@ -287,13 +296,13 @@ namespace OpenXr.Framework
             Debug.Assert(_colorSwaps != null);
 
             _lastColorImages = new SwapchainImageBaseHeader*[_colorSwaps.Length];
-            _lastDepthImages = _useDepth ? new SwapchainImageBaseHeader*[_colorSwaps.Length] : null;
+            _lastDepthImages = UseDepth ? new SwapchainImageBaseHeader*[_colorSwaps.Length] : null;
 
             for (var i = 0; i < _lastColorImages.Length; i++)
             {
                 _lastColorImages[i] = _colorSwaps[i].AcquireImageAndWait();
 
-                if (_useDepth)
+                if (UseDepth)
                     _lastDepthImages![i] = _depthSwaps![i].AcquireImageAndWait();
             }
         }
@@ -363,7 +372,7 @@ namespace OpenXr.Framework
                     if (UseSimmetricFov)
                     {
                         var cropW = (int)MathF.Round(renderSize.Width / info.CropScale.X);
-                        var x = i == 0 ? renderSize.Width - cropW : 0;
+                        var x = i == 0 ? 0 : renderSize.Width - cropW;
 
                         view.SubImage.ImageRect.Offset.X = colorOffset + x;
                         view.SubImage.ImageRect.Offset.Y = 0;
@@ -377,9 +386,9 @@ namespace OpenXr.Framework
                         view.SubImage.ImageRect.Extent = renderSize;
                     }
 
-                    if (_useDepth)
+                    if (UseDepth)
                     {
-                        var depth = (CompositionLayerDepthInfoKHR*)view.Next;
+                        var depth = _depthInfo.ItemPointer(i);
                         var depthSize = _depthSwaps![0].Size;
                         var depthOffset = 0;
 
@@ -389,7 +398,7 @@ namespace OpenXr.Framework
                         if (UseSimmetricFov)
                         {
                             var cropW = (int)MathF.Round(depthSize.Width / info.CropScale.X);
-                            var x = i == 0 ? depthSize.Width - cropW : 0;
+                            var x = i == 0 ? 0 : depthSize.Width - cropW;
 
                             depth->SubImage.ImageRect.Offset.X = depthOffset + x;
                             depth->SubImage.ImageRect.Offset.Y = 0;
@@ -446,10 +455,9 @@ namespace OpenXr.Framework
 
         public bool UseSimmetricFov { get; set; }
 
-        public bool UseDepth
-        {
-            get => _useDepth;
-            set => _useDepth = value;
-        }
+        public bool UseIntermediate { get; set; }
+
+        public bool UseDepth { get; protected set; }
+
     }
 }

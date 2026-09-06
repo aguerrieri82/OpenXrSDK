@@ -53,14 +53,14 @@ namespace XrEditor
                 if (_binding == value)
                     return;
 
-                if (_binding != null)
-                    _binding.Changed -= OnBindValueChanged;
+                _binding?.Changed -= OnBindValueChanged;
 
                 _binding = value;
 
                 if (_binding != null)
                 {
                     _binding.Changed += OnBindValueChanged;
+                    SetAttributes(_binding.Attributes);
                     OnBindValueChanged(_binding.Value);
                 }
             }
@@ -141,7 +141,6 @@ namespace XrEditor
             get => Binding;
             set => Binding = (IProperty<TValue>?)value;
         }
-
 
         public object? Host { get; set; }
 

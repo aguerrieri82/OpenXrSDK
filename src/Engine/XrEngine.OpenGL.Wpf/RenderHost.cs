@@ -223,7 +223,6 @@ namespace XrEngine.OpenGL.Wpf
 
         public new event KeyboardEventDelegate? KeyDown;
 
-
         public IntPtr HWnd => _hwndSource!.Handle;
 
         public abstract bool SupportsDualRender { get; }

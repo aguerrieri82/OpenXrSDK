@@ -45,11 +45,11 @@ namespace XrSamples.Graffiti
                     bld.SetUniform("uPaintColor", _can.Color.ToVector3());
             });
 
-            bld.LoadBuffer((ctx) =>
+            bld.LoadBuffer<CameraUniforms>((ctx, ref update) =>
             {
                 Debug.Assert(ctx.PassCamera != null);
 
-                var result = new CameraUniforms
+                update.Value = new CameraUniforms
                 {
                     ViewProj = ctx.PassCamera.ViewProjection,
                     Position = ctx.PassCamera.WorldPosition,
@@ -72,11 +72,11 @@ namespace XrSamples.Graffiti
 
                 var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
                 if (light != null)
-                    result.LightSpaceMatrix = light.Value;
+                    update.Value.LightSpaceMatrix = light.Value;
 
-                return (CameraUniforms?)result;
+                return true;
 
-            }, 0, BufferStore.Shader);
+            }, UniformsSlots.Camera, BufferStore.Shader);
 
             base.UpdateShaderModel(bld);
         }

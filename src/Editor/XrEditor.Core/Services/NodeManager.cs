@@ -26,6 +26,7 @@ namespace XrEditor.Services
                 var result = handler.CreateNode(value);
                 if (parent != null && result is IEditableNode edit)
                     edit.SetParent(parent);
+
                 return result;
             }
 

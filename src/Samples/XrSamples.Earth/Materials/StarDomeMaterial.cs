@@ -45,12 +45,12 @@ namespace XrSamples.Earth
             if (ShowGrid)
             {
                 bld.AddFeature("SHOW_GRID");
-                bld.LoadTextureFixSrgb(ctx => Grid, 1);
+                bld.LoadTextureFixSrgb(() => Grid, 1);
             }
             if (ShowConstellations)
             {
                 bld.AddFeature("SHOW_CONST");
-                bld.LoadTextureFixSrgb(ctx => Constellations, 2);
+                bld.LoadTextureFixSrgb(() => Constellations, 2);
             }
 
             bld.PrepareTexture(Stars);

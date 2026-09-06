@@ -19,6 +19,8 @@ namespace XrEngine
 
         public List<UpdateBufferAction>? BufferUpdates;
 
+        public HashSet<string>? IncludesFs;
+
         public SortedSet<string>? Features;
 
         public SortedSet<string>? DynamicFeatures;
@@ -44,6 +46,14 @@ namespace XrEngine
         Shader,
         Material,
         Model
+    }
+
+    public enum ShaderClipMode
+    {
+        None,
+        Depth,
+        DepthClear,
+        VertexClipCull,
     }
 
     public struct RenderDriverBugs
@@ -130,11 +140,17 @@ namespace XrEngine
 
         public bool NeedSrgbEncode => IsSrgbTarget && !IsSrgbAutoEncode;
 
+        public ShaderClipMode ClipMode;
+
+        public bool CanSampleColor;
+
         public bool UseSharedSsbo;
 
         public bool UseAngle;
 
         public bool UseCopyDepth;
+
+        public bool UseManualDepthTest;
 
         public bool UsePrimitiveBoundingBox;
 
@@ -143,11 +159,24 @@ namespace XrEngine
         public Rect2I[]? ClipRegions;
 
         public bool IsMultiView;
+
+        public bool IsMultiSample;
     }
 
-    public readonly struct ShaderUpdateBuilder : IFeatureList
+    public struct BufferUpdate<T> where T : unmanaged
     {
+        public T Value;
+    }
+
+    public struct ShaderUpdateBuilder : IFeatureList
+    {
+        private SlotMask _textureSlots;
+        private SlotMask _uvTransSlots;
+
         private readonly ShaderUpdate _result;
+
+        public delegate bool BufferUpdateAction<TValue>(UpdateShaderContext ctx, ref BufferUpdate<TValue> value)
+            where TValue : unmanaged;
 
         public delegate TValue UpdateAction<TValue>(UpdateShaderContext ctx);
 
@@ -159,6 +188,9 @@ namespace XrEngine
             };
 
             Context = context;
+
+            _textureSlots = new(context.RenderEngine!.Features.MaxTextureUnits);
+            _uvTransSlots = new(5);
         }
 
         readonly void Update<TValue>(UpdateAction<TValue> action, Action<IUniformProvider, TValue> doUpdate)
@@ -178,12 +210,14 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot,
+        public readonly void LoadBuffer<T>(BufferUpdateAction<T> getValue, int slot,
             BufferStore store,
             BufferUsage usage = BufferUsage.Uniforms,
-            string? uniformName = null) where T : struct
+            string? uniformName = null) where T : unmanaged
         {
+
             ISimpleBuffer<T>? buffer = null;
+            BufferUpdate<T> update = new();
 
             _result.BufferUpdates ??= [];
 
@@ -201,35 +235,27 @@ namespace XrEngine
 
                 Debug.Assert(buffer != null);
 
-#if GL_WRAPPER
-                buffer.Update(() =>
-                {
-                    ctx.CurrentBuffer = buffer;
-                    var curValue = value(ctx);
-                    ctx.CurrentBuffer = null;
-                    return curValue;
-                });
-#else
                 ctx.CurrentBuffer = buffer;
 
-                var curValue = value(ctx);
-                if (curValue != null)
-                    buffer.Update(curValue.Value);
+                if (getValue(ctx, ref update))
+                    buffer.Update(update.Value);
 
                 ctx.CurrentBuffer = null;
-#endif
             });
 
             _result.Actions.Add((ctx, up) =>
             {
-#warning DANGER, THIS WORKS FOR MODEL STURE ONLY IF BufferUpdates IS RUNNING BEFORE THIS CALL
+#warning DANGER, THIS WORKS FOR MODEL STORE ONLY IF BufferUpdates IS RUNNING BEFORE THIS CALL
                 if (buffer == null)
                     return;
                 up.LoadBuffer(buffer, slot);
             });
         }
 
-        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, int slot, BufferStore store, BufferUsage usage = BufferUsage.Uniforms) where T : struct
+        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, 
+            int slot, BufferStore store, 
+            BufferUsage usage = BufferUsage.Uniforms, Func<UpdateShaderContext, bool>? canLoad = null) 
+            where T : unmanaged
         {
             ISimpleBuffer<T>? buffer = null;
 
@@ -237,6 +263,9 @@ namespace XrEngine
 
             _result.BufferUpdates.Add((ctx) =>
             {
+                if (canLoad != null && !canLoad(ctx))
+                    return;
+
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
 
                 ctx.CurrentBuffer = buffer;
@@ -250,7 +279,13 @@ namespace XrEngine
 
             _result.Actions.Add((ctx, up) =>
             {
+                if (canLoad != null && !canLoad(ctx))
+                    return;
+
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
+                
+                if (buffer.SizeBytes == 0)
+                    return;
 
                 up.LoadBuffer(buffer, slot);
             });
@@ -285,9 +320,20 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void LoadTexture(UpdateAction<Texture2D> value, int slot = 0)
+        public void LoadTexture(Func<Texture2D?> value, ResourceSlot slot)
         {
-            Update(value, (up, v) => up.LoadTexture(v, slot));
+            LoadTexture(ctx => value(), slot);
+        }
+
+        public void LoadTexture(UpdateAction<Texture2D?> value, ResourceSlot slot)
+        {
+            var curSlot = GetTextureSlot(slot);
+
+            Update(value, (up, v) =>
+            {
+                if (v != null)
+                    up.LoadTexture(v, curSlot);
+            });
         }
 
         public readonly void SetUniform(string name, UpdateAction<Texture2D> value, int slot = 0, bool optional = false)
@@ -403,10 +449,10 @@ namespace XrEngine
             _result.Extensions.Add(name);
         }
 
-        internal void SetSlot(string name, Func<string> value)
+        public readonly void SetSlot(string name, Func<string> getCode)
         {
             _result.Slots ??= [];
-            _result.Slots[name] = value;
+            _result.Slots[name] = getCode;
         }
 
         public readonly void ComputeHash(string shaderId)
@@ -419,7 +465,53 @@ namespace XrEngine
             //Logs.Append(name).Append(" = ").Append(value).AppendLine();
         }
 
-    
+        public void TryAddUvTransform(Texture2D tex, string name, params Matrix3x3?[] defTransform)
+        {
+            var trans = tex.Transform ?? (tex.DefaultUvSet < defTransform.Length ? defTransform[tex.DefaultUvSet] : null);
+
+            if (trans != null && !trans.Value.IsIdentity)
+            {
+                var uvIndex = _uvTransSlots.Allocate(SlotMask.Empty);
+
+                AddFeature($"{name} {uvIndex}");
+
+                ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform($"uTexTransform[{uvIndex}]", trans.Value);
+                });
+            }
+        }
+
+        public int GetTextureSlots(ResourceSlot baseSlot, int count)
+        {
+            if (baseSlot.Slot == -1 || _textureSlots.Has(baseSlot.Slot))
+                return AllocateSlot(baseSlot.SlotName!, ref _textureSlots, TextureSlots.Reserved);
+
+            for (var i = 0; i < count; i++)
+                _textureSlots.Add(baseSlot.Slot + i);
+
+            return baseSlot.Slot;
+        }
+
+        public int GetTextureSlot(ResourceSlot slot, int count = 1)
+        {
+            if (slot.Slot == -1 || _textureSlots.Has(slot.Slot))
+                return AllocateSlot(slot.SlotName!, ref _textureSlots, TextureSlots.Reserved);
+
+            _textureSlots.Add(slot.Slot);
+
+            return slot.Slot;
+        }
+
+        public readonly int AllocateSlot(string name, ref SlotMask mask, SlotMask reserved, int count = 1)
+        {
+            var result = count == 1 ? mask.Allocate(reserved) : mask.Allocate(count, reserved);
+
+            AddFeature($"{name} {result}");
+
+            return result;
+        }
+
         public StringBuilder Logs { get; } = new StringBuilder();
 
         public UpdateShaderContext Context { get; }

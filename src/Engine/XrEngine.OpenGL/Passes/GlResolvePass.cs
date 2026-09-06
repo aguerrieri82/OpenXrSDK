@@ -7,6 +7,7 @@ using System.Xml.Linq;
 
 namespace XrEngine.OpenGL
 {
+    [Obsolete]
     public class GlResolvePass : GlBaseRenderPass, IToneMapper
     {
         readonly ResolveEffect _resolve;
@@ -66,27 +67,6 @@ namespace XrEngine.OpenGL
                 }
                 else
                     throw new NotSupportedException();
-            }
-            else if (_renderer.RenderTarget is GlResolveRenderTarget res)
-            {
-                res.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1);
-
-                _resolve.IsMultiView = res.IsMultiView;
-
-                if (_resolve.Texture != null)
-                {
-                    _resolve.Texture = null;
-                    _resolve.NotifyChanged();
-                }
-
-                if (_resolve.UseFbNonCoherent)
-                    _gl.FbFetchNonCoherentExt.FramebufferFetchBarrier();
-
-                UseEffect(_resolve);
-
-                DrawQuad();
-
-                res.FrameBuffer.BindDraw(DrawBufferMode.ColorAttachment0);
             }
             else
             {

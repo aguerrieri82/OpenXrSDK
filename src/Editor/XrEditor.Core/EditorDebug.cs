@@ -3,6 +3,7 @@ using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrSamples;
 using XrSamples.Dnd;
+using XrSamples.Graffiti;
 
 namespace XrEditor
 {
@@ -14,7 +15,7 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = false;
 
-        public static readonly int VSyncScale = 1;
+        public static readonly int VSyncScale = 3;
 
         public static readonly bool EnablePreview = false;
 
@@ -40,7 +41,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-              .UseMultiView()
+             //.UseMultiView()
               //.UseStereo()
               .SetGlOptions(opt =>
               {
@@ -48,13 +49,14 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = true;
-                  opt.SampleCount = 4;
+
                   opt.FloatPrecision = ShaderPrecision.High;
                   opt.IntPrecision = ShaderPrecision.High;
 
                   opt.UseAsyncShaderCompile = true;
                   opt.UseShaderCache = true;
                   opt.UseShaderPreprocessor = true;
+                  opt.UseSharedSsbo = true;
 
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;
@@ -65,33 +67,43 @@ namespace XrEditor
 
                   opt.ContactShadow.Use = false;
                   opt.ContactShadow.IsMultiView = false;
-
-                  opt.UseResolve = false;
-                  opt.ToneMap = ToneMapMode.Neutral;
+                  
+                  opt.ToneMap = ToneMapMode.Aces;
                   opt.UseProfiler = false;
+                  opt.UseTransmission = true;
+
+                  opt.UseFxAA = false;
                   opt.UseDefaultIntermediate = true;
+                  opt.SampleCount = 1;
 
                   GlDebug.TrackBuffers = false;
+
+                  TriangleMesh.EnableCompression = false;
 
                   if (Driver == GraphicDriver.Angle)
                   {
                   }
 
+                  TypeUtils.Load<XrEngine.Media.Windows.Module>();
               })
               .UseOculus(opt =>
               {
-
+              })
+              .SetXrOptions(opt =>
+              {
+                  opt.UseSimmetricFov = true;
               })
               .SetAppOptions(opt =>
               {
                   opt.Driver = Driver;
+
               })
               //.UseSpaceWarp()
-              //.AddProfileOverlay()
               .EnableDebugNotRelease(sync: true)
-              .SetRenderQuality(2f, 1, useIntermediate: false)
+              .SetRenderQuality(1f, 1)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateGltfTest()
+              .CreateLightField()
+              //.CreateDnd()
               .Build();
     }
 }

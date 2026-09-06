@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text.RegularExpressions;
 using XrEngine;
 
 namespace XrEditor
@@ -55,13 +56,17 @@ namespace XrEditor
                 if (action == null)
                     continue;
 
-                var name = method.Name;
+                var name = action.Name ?? method.Name;
+
                 if (name.EndsWith("Async"))
                     name = name[..^5];
 
+                if (action.Name == null)
+                    name = Regex.Replace(name, @"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", " ");
+
                 var propView = new ActionView(() => method.Invoke(obj, null), EngineApp.Current.Dispatcher)
                 {
-                    DisplayName = method.Name
+                    DisplayName = name
                 };
 
                 actions.Add(propView);

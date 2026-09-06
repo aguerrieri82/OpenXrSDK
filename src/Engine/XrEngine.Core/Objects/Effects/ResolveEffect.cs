@@ -5,7 +5,9 @@ namespace XrEngine
     {
         None = 0,
         Normal = 1,
-        Neutral = 2
+        Neutral = 2,
+
+        Aces = 3
     }
 
     public partial class ResolveEffect : DynamicMaterial

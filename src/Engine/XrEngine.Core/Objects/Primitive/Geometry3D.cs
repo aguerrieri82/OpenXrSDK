@@ -10,12 +10,14 @@ namespace XrEngine
         protected HashSet<EngineObject> _hosts = [];
         protected VertexData[] _vertices;
         protected uint[] _indices;
+        private bool _isGpuLoaded;
 
         public Geometry3D()
         {
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
             Primitive = DrawPrimitive.Triangle;
+            VerticesRemap = Matrix4x4.Identity;
             _indices = [];
             _vertices = [];
 
@@ -76,7 +78,6 @@ namespace XrEngine
             }
         }
 
-
         public virtual void UpdateBounds()
         {
             _bounds = this.ComputeBounds(Matrix4x4.Identity);
@@ -91,7 +92,6 @@ namespace XrEngine
                     item.UpdateBounds();
             }
         }
-
 
         public Bounds3 Bounds
         {
@@ -113,6 +113,8 @@ namespace XrEngine
 
         public virtual void NotifyLoaded()
         {
+            _isGpuLoaded = true;
+
             if (!this.Is(EngineObjectFlags.GpuOnly))
                 return;
 
@@ -127,33 +129,33 @@ namespace XrEngine
                 foreach (var item in _components.OfType<IGeometryComponent>())
                     item.NotifyLoaded();
             }
-
         }
 
-        public Geometry3D Clone()
+        public override Geometry3D Clone(ObjectCloneFlags flags = ObjectCloneFlags.None)
         {
-            var result = Utils.CreateInstance<Geometry3D>(GetType());
-            result.Vertices = new VertexData[_vertices.Length];
-            Array.Copy(_vertices, result.Vertices, _vertices.Length);
-            result.Indices = new uint[_indices.Length];
-            Array.Copy(_indices, result.Indices, _indices.Length);
-            result.ActiveComponents = ActiveComponents;
-            result._bounds = _bounds;
-            result._boundsDirty = _boundsDirty;
+            return (Geometry3D)base.Clone(flags);
+        }
 
-            CloneWork(result);
+        protected override void CloneWork(EngineObject newObj, ObjectCloneFlags flags)
+        {
+            var geo = (Geometry3D)newObj;
 
-            return result;
+            geo.Vertices = new VertexData[_vertices.Length];
+            Array.Copy(_vertices, geo.Vertices, _vertices.Length);
+
+            geo.Indices = new uint[_indices.Length];
+            Array.Copy(_indices, geo.Indices, _indices.Length);
+
+            geo.ActiveComponents = ActiveComponents;
+            geo._bounds = _bounds;
+            geo._boundsDirty = _boundsDirty;
+
+            base.CloneWork(newObj, flags);
         }
 
         public void InvalidateBounds()
         {
             _boundsDirty = true;
-        }
-
-        protected virtual void CloneWork(Geometry3D result)
-        {
-
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;
@@ -172,6 +174,11 @@ namespace XrEngine
             set => _vertices = value;
         }
 
+        public bool IsGpuLoaded => _isGpuLoaded;
+
         public DrawPrimitive Primitive { get; set; }
+
+        public Matrix4x4 VerticesRemap { get; set; }
+
     }
 }
