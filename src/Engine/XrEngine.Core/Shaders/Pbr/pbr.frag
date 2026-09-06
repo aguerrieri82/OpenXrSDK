@@ -6,7 +6,7 @@
 #define TM_TEXTURE     3
 #define TM_TEXTURE_BK  4
 
-#if (defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY) || defined(USE_HEIGHT_MAP)) && defined(HAS_TANGENTS) 
+#if (defined(USE_TANGENTS) || defined(USE_NORMAL_MAP) || defined(USE_CLEARCOAT_NORMAL_MAP) || defined(USE_ANISOTROPY) || defined(USE_HEIGHT_MAP)) && defined(HAS_TANGENTS) 
 	#define HAS_TANGENT_BASIS
 	in mat3 fTangentBasis;
 #endif

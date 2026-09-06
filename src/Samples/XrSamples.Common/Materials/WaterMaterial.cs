@@ -32,9 +32,10 @@ namespace XrSamples
 
             var stateSlot = bld.GetTextureSlot(WaterStateSlot);
 
+            bld.AddFeature("USE_TANGENTS");
             bld.SetVsIncludes("[XrSamples.Common]Water/water_vertex.glsl");
             bld.SetFsIncludes("[XrSamples.Common]Water/water_pbr.glsl");
-            bld.SetVertexLocalTransform("applyWaterVertex(position, normal, aUv0);");
+            bld.SetVertexLocalTransform("applyWaterVertex(position, normal, tangent, aUv0);");
             bld.SetFragmentLoader("frag = loadWaterFragmentProperties();");
 
             bld.ExecuteAction((ctx, uniforms) =>
@@ -44,6 +45,8 @@ namespace XrSamples
                 uniforms.SetUniform("uWaterSize", WaterSize);
                 uniforms.SetUniform("uWaterTexelSize", new Vector2(1f / StateTexture.Width, 1f / StateTexture.Height));
                 uniforms.SetUniform("uWaterHeightScale", HeightScale);
+                uniforms.SetUniform("uBaseWaveHeight", BaseWaveHeight);
+                uniforms.SetUniform("uMicroWaveStrength", MicroWaveStrength);
                 uniforms.SetUniform("uWaterDepth", WaterDepth);
                 uniforms.SetUniform("uWaterTime", ctx.Time);
             });
@@ -56,6 +59,10 @@ namespace XrSamples
         public Vector2 WaterSize { get; set; }
 
         public float HeightScale { get; set; }
+
+        public float BaseWaveHeight { get; set; }
+
+        public float MicroWaveStrength { get; set; }
 
         public float WaterDepth { get; set; }
     }

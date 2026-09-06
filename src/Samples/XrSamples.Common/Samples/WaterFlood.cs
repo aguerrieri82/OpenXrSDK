@@ -12,7 +12,7 @@ namespace XrSamples
         [Sample("Water Flood")]
         public static XrEngineAppBuilder CreateWaterFlood(this XrEngineAppBuilder builder)
         {
-            const int simulationSize = 256;
+            const int simulationSize = 350;
             const int gridSize = 256;
             const float startLevel = 0.02f;
             const float floorThickness = 0.01f;
@@ -39,8 +39,11 @@ namespace XrSamples
             var settings = new WaterFloodSettings(material);
             settings.Apply();
 
+            var waterGrid = new Grid3D(new Size2I(gridSize, gridSize));
+            waterGrid.ComputeTangents();
+
             var water = scene.AddChild(new TriangleMesh(
-                new Grid3D(new Size2I(gridSize, gridSize)),
+                waterGrid,
                 material)
             {
                 Name = "Flood water",
@@ -81,15 +84,8 @@ namespace XrSamples
             };
 
             var waterLevel = startLevel;
-            var restartVersion = settings.RestartVersion;
             water.AddBehavior((_, ctx) =>
             {
-                if (restartVersion != settings.RestartVersion)
-                {
-                    restartVersion = settings.RestartVersion;
-                    waterLevel = startLevel;
-                }
-
                 if (!settings.PauseFlood)
                     waterLevel += settings.RiseSpeed * (float)ctx.DeltaTime;
 
@@ -106,13 +102,16 @@ namespace XrSamples
                 .UseApp(app)
                 .UseDefaultHDR()
                 .ConfigureSampleApp()
+                .UseFloorTeleport(scene)
                 .UseCameraRefraction(true)
                 .AddPanel(new WaterFloodSettingsPanel(settings))
                 .ConfigureApp(e =>
                 {
                     if (e.App.Renderer is OpenGLRender render)
                     {
-                        var simulation = new GlWaterSimulationPass(render, material);
+                        var player = scene.FindByName<Object3D>("Player")!;
+                        player.AddComponent(new WaterStepAudio());
+                        var simulation = new GlWaterSimulationPass(render, material, water, player);
                         settings.AttachSimulation(simulation);
                         render.AddPass(simulation, 0);
                     }
