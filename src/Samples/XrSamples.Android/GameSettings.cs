@@ -75,7 +75,7 @@ namespace XrSamples
                 UsePrimitiveBoundingBox = false,
                 ToneMap = ToneMapMode.Aces,
                 UseSharedSsbo = false,
-                UseMeshCompression = true,
+                UseMeshCompression = false,
                 UseProfileOverlay = false,
                 UseAsyncShaderCompile = true,
                 IsBenchmark = false

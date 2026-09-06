@@ -17,15 +17,15 @@ namespace XrSamples
             PauseFlood = false;
             WaveSpeed = 300f;
             Damping = 0.995f;
-            ImpactStrength = 0.3f;
+            ImpactStrength = 0f;
             RippleScale = 1f;
-            BaseWaveHeight = 0.012f;
-            MicroWaveStrength = 2.25f;
-            PlayerRadius = 0.16f;
-            PlayerStrength = 0.45f;
-            PlayerStepDistance = 0.52f;
-            HighFrequencyStrength = 0.35f;
-            HighFrequencyDamping = 0.9995f;
+            AmbientWaveHeight = 0.012f;
+            AmbientWaveScale = 1f;
+            PlayerDisturbanceRadius = 0.16f;
+            PlayerDisturbanceStrength = 5f;
+            WakeDetailStrength = 2.25f;
+            WakeDetailGeneration = 0.35f;
+            WakeDetailPersistence = 0.9995f;
             Roughness = 0.08f;
             Ior = 1.5f;
             Transmission = 1f;
@@ -40,8 +40,9 @@ namespace XrSamples
         public void Apply()
         {
             _material.HeightScale = RippleScale;
-            _material.BaseWaveHeight = BaseWaveHeight;
-            _material.MicroWaveStrength = MicroWaveStrength;
+            _material.AmbientWaveHeight = AmbientWaveHeight;
+            _material.AmbientWaveScale = AmbientWaveScale;
+            _material.WakeDetailStrength = WakeDetailStrength;
             _material.Roughness = Roughness;
             _material.Ior = Ior;
             _material.Transmission = Transmission;
@@ -51,11 +52,10 @@ namespace XrSamples
                 _simulation.WaveSpeed = WaveSpeed;
                 _simulation.Damping = Damping;
                 _simulation.RippleStrength = ImpactStrength;
-                _simulation.PlayerRadius = PlayerRadius;
-                _simulation.PlayerStrength = PlayerStrength;
-                _simulation.PlayerStepDistance = PlayerStepDistance;
-                _simulation.HighFrequencyStrength = HighFrequencyStrength;
-                _simulation.HighFrequencyDamping = HighFrequencyDamping;
+                _simulation.PlayerDisturbanceRadius = PlayerDisturbanceRadius;
+                _simulation.PlayerDisturbanceStrength = PlayerDisturbanceStrength;
+                _simulation.WakeDetailGeneration = WakeDetailGeneration;
+                _simulation.WakeDetailPersistence = WakeDetailPersistence;
             }
 
             _material.Invalidate();
@@ -80,19 +80,19 @@ namespace XrSamples
 
         public float RippleScale { get; set; }
 
-        public float BaseWaveHeight { get; set; }
+        public float AmbientWaveHeight { get; set; }
 
-        public float MicroWaveStrength { get; set; }
+        public float AmbientWaveScale { get; set; }
 
-        public float PlayerRadius { get; set; }
+        public float PlayerDisturbanceRadius { get; set; }
 
-        public float PlayerStrength { get; set; }
+        public float PlayerDisturbanceStrength { get; set; }
 
-        public float PlayerStepDistance { get; set; }
+        public float WakeDetailStrength { get; set; }
 
-        public float HighFrequencyStrength { get; set; }
+        public float WakeDetailGeneration { get; set; }
 
-        public float HighFrequencyDamping { get; set; }
+        public float WakeDetailPersistence { get; set; }
 
         public float Roughness { get; set; }
 
@@ -128,13 +128,13 @@ namespace XrSamples
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(10))
                     .AddText("Surface and player", s => s.FontSize(1.25f, Unit.Em))
-                    .AddInputRange("Base wave height (m)", 0f, 0.05f, binder.Prop(a => a.BaseWaveHeight))
-                    .AddInputRange("Micro-wave strength", 0f, 5f, binder.Prop(a => a.MicroWaveStrength))
-                    .AddInputRange("Player radius (m)", 0.05f, 0.4f, binder.Prop(a => a.PlayerRadius))
-                    .AddInputRange("Player impulse (m/s)", 0f, 2f, binder.Prop(a => a.PlayerStrength))
-                    .AddInputRange("Player step distance (m)", 0.2f, 1f, binder.Prop(a => a.PlayerStepDistance))
-                    .AddInputRange("High-frequency strength", 0f, 2f, binder.Prop(a => a.HighFrequencyStrength))
-                    .AddInputRange("High-frequency damping", 0.98f, 0.9999f, binder.Prop(a => a.HighFrequencyDamping))
+                    .AddInputRange("Ambient wave height (m)", 0f, 0.05f, binder.Prop(a => a.AmbientWaveHeight))
+                    .AddInputRange("Ambient wave scale", 0.5f, 2f, binder.Prop(a => a.AmbientWaveScale))
+                    .AddInputRange("Player disturbance radius (m)", 0.05f, 0.4f, binder.Prop(a => a.PlayerDisturbanceRadius))
+                    .AddInputRange("Player disturbance strength", 0f, 30f, binder.Prop(a => a.PlayerDisturbanceStrength))
+                    .AddInputRange("Wake detail strength", 0f, 5f, binder.Prop(a => a.WakeDetailStrength))
+                    .AddInputRange("Wake detail generation", 0f, 2f, binder.Prop(a => a.WakeDetailGeneration))
+                    .AddInputRange("Wake detail persistence", 0.98f, 1f, binder.Prop(a => a.WakeDetailPersistence))
                     .AddInputRange("Roughness", 0f, 0.5f, binder.Prop(a => a.Roughness))
                     .AddInputRange("IOR", 1f, 1.7f, binder.Prop(a => a.Ior))
                     .AddInputRange("Transmission", 0f, 1f, binder.Prop(a => a.Transmission))

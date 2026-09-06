@@ -404,6 +404,7 @@ namespace XrEngine.OpenXr
                         mesh.Material.UseDepth = occlude;
                         mesh.Material.WriteDepth = occlude;
                         mesh.Material.ReceiveShadows = receiveShadow;
+                        mesh.Material.WriteColor = receiveShadow;
 
                         e.App.ActiveScene!.AddChild(mesh);
                     });

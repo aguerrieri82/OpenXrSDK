@@ -12,8 +12,8 @@ namespace XrSamples
         [Sample("Water Flood")]
         public static XrEngineAppBuilder CreateWaterFlood(this XrEngineAppBuilder builder)
         {
-            const int simulationSize = 350;
-            const int gridSize = 256;
+            const int simulationSize = 300;
+            const int gridSize = 300;
             const float startLevel = 0.02f;
             const float floorThickness = 0.01f;
 
@@ -34,11 +34,11 @@ namespace XrSamples
             var material = new WaterMaterial(state)
             {
                 WaterSize = Vector2.One,
-                WaterDepth = startLevel
+                WaterDepth = startLevel,
             };
             var settings = new WaterFloodSettings(material);
             settings.Apply();
-
+             
             var waterGrid = new Grid3D(new Size2I(gridSize, gridSize));
             waterGrid.ComputeTangents();
 
@@ -50,22 +50,26 @@ namespace XrSamples
             });
 
             water.Flags |= EngineObjectFlags.NoFrustumCulling;
+            water.CompressionMode = MeshCompressionMode.Never;
 
             var sceneFactory = new DefaultSceneModelFactory();
             var sceneView = scene.AddChild(new OculusSceneView
             {
                 Factory = sceneFactory
             });
+
             var depthMaskMaterial = new DepthOnlyMaterial
             {
                 DoubleSided = true
             };
 
-            sceneFactory.AddMesh(depthMaskMaterial);
+            //sceneFactory.AddMesh(depthMaskMaterial);
             sceneFactory.AddWalls(depthMaskMaterial);
 
-            var floor = new TriangleMesh(new Cube3D(new Vector3(3, 3, floorThickness)));
-            floor.WorldOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2f);
+            var floor = new TriangleMesh(new Cube3D(new Vector3(3, 3, floorThickness)))
+            {
+                WorldOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2f)
+            };
 
             sceneView.SceneReady += (_, _) =>
             {
@@ -84,6 +88,7 @@ namespace XrSamples
             };
 
             var waterLevel = startLevel;
+
             water.AddBehavior((_, ctx) =>
             {
                 if (!settings.PauseFlood)
@@ -94,7 +99,7 @@ namespace XrSamples
 
                 var floorNormal = Vector3.Transform(Vector3.UnitZ,  floor.WorldOrientation);
 
-                water.WorldOrientation = floor.WorldOrientation;
+                water.WorldOrientation = floor.WorldOrientation; 
                 water.WorldPosition = floor.WorldPosition + floorNormal * (floorThickness * 0.5f + waterLevel);
             });
 
@@ -103,6 +108,8 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureSampleApp()
                 .UseFloorTeleport(scene)
+                .UseEnvironmentDepth()
+                //.UseEnvironmentMesh(100, receiveShadow: false)
                 .UseCameraRefraction(true)
                 .AddPanel(new WaterFloodSettingsPanel(settings))
                 .ConfigureApp(e =>

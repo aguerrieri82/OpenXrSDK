@@ -152,7 +152,7 @@ namespace XrSamples.Android.Activities
                     opt.UseFxAA = _settings.UseFxAA;
                     opt.UseRayCollider = _settings.UseRayCollider;
 
-                    opt.UseProfiler = true;
+                    opt.UseProfiler = false;
 
                     if (_settings.Msaa > 1)
                         opt.UseFxAA = false;

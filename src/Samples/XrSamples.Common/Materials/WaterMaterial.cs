@@ -21,7 +21,7 @@ namespace XrSamples
             WriteDepth = false;
             DoubleSided = true;
             CastShadows = false;
-            UseEnvDepth = false;
+            UseEnvDepth = true;
             Roughness = 0.08f;
             Metalness = 0f;
         }
@@ -45,8 +45,9 @@ namespace XrSamples
                 uniforms.SetUniform("uWaterSize", WaterSize);
                 uniforms.SetUniform("uWaterTexelSize", new Vector2(1f / StateTexture.Width, 1f / StateTexture.Height));
                 uniforms.SetUniform("uWaterHeightScale", HeightScale);
-                uniforms.SetUniform("uBaseWaveHeight", BaseWaveHeight);
-                uniforms.SetUniform("uMicroWaveStrength", MicroWaveStrength);
+                uniforms.SetUniform("uAmbientWaveHeight", AmbientWaveHeight);
+                uniforms.SetUniform("uAmbientWaveScale", AmbientWaveScale);
+                uniforms.SetUniform("uWakeDetailStrength", WakeDetailStrength);
                 uniforms.SetUniform("uWaterDepth", WaterDepth);
                 uniforms.SetUniform("uWaterTime", ctx.Time);
             });
@@ -60,9 +61,11 @@ namespace XrSamples
 
         public float HeightScale { get; set; }
 
-        public float BaseWaveHeight { get; set; }
+        public float AmbientWaveHeight { get; set; }
 
-        public float MicroWaveStrength { get; set; }
+        public float AmbientWaveScale { get; set; }
+
+        public float WakeDetailStrength { get; set; }
 
         public float WaterDepth { get; set; }
     }

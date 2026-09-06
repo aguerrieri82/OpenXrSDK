@@ -4,27 +4,28 @@ uniform int uWaterLayer;
 uniform vec2 uWaterSize;
 uniform vec2 uWaterTexelSize;
 uniform float uWaterHeightScale;
-uniform float uBaseWaveHeight;
+uniform float uAmbientWaveHeight;
+uniform float uAmbientWaveScale;
 uniform float uWaterTime;
 
 float sampleSimulationHeight(vec2 uv)
 {
     vec4 state = textureLod(uWaterState, vec3(clamp(uv, vec2(0.0), vec2(1.0)), float(uWaterLayer)), 0.0);
-    return state.r + state.b;
+    return state.r;
 }
 
-float sampleBaseWaveHeight(vec2 uv)
+float sampleAmbientWaveHeight(vec2 uv)
 {
     vec2 position = (uv - vec2(0.5)) * uWaterSize;
-    float wave0 = sin(dot(position, normalize(vec2(1.0, 0.31))) * 4.2 + uWaterTime * 1.15);
-    float wave1 = sin(dot(position, normalize(vec2(-0.37, 1.0))) * 6.8 + uWaterTime * 1.53 + 1.7);
-    float wave2 = sin(dot(position, normalize(vec2(0.71, -1.0))) * 10.5 + uWaterTime * 2.05 + 4.1);
-    return (wave0 * 0.52 + wave1 * 0.31 + wave2 * 0.17) * uBaseWaveHeight;
+    float wave0 = sin(dot(position, normalize(vec2(1.0, 0.31))) * 13.1 * uAmbientWaveScale + uWaterTime * 1.15);
+    float wave1 = sin(dot(position, normalize(vec2(-0.37, 1.0))) * 20.3 * uAmbientWaveScale + uWaterTime * 1.53 + 1.7);
+    float wave2 = sin(dot(position, normalize(vec2(0.71, -1.0))) * 33.1 * uAmbientWaveScale + uWaterTime * 2.05 + 4.1);
+    return (wave0 * 0.52 + wave1 * 0.31 + wave2 * 0.17) * uAmbientWaveHeight;
 }
 
 float sampleWaterHeight(vec2 uv)
 {
-    return sampleSimulationHeight(uv) * uWaterHeightScale + sampleBaseWaveHeight(uv);
+    return sampleSimulationHeight(uv) * uWaterHeightScale + sampleAmbientWaveHeight(uv);
 }
 
 void applyWaterVertex(inout vec3 position, inout vec3 normal, inout vec4 tangent, vec2 uv)

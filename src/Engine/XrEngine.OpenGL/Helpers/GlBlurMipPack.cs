@@ -194,6 +194,8 @@ namespace XrEngine.OpenGL
         private GlTexture? _texture;
         private TextureFormat _textureFormat;
         private uint _textureViewCount;
+        private uint _textureSourceWidth;
+        private uint _textureSourceHeight;
 
         private Rect2I _sourceRect;
 
@@ -258,7 +260,7 @@ namespace XrEngine.OpenGL
             var plan = GetPlan(sourceRect.Width, sourceRect.Height, dynamic, roughness);
             var viewCount = source.Target == TextureTarget.Texture2DArray ? source.Depth : 1u;
 
-            EnsureTexture(source, plan.TextureSize, viewCount);
+            EnsureTexture(source, viewCount);
 
 #if DEBUG
             _texture!.Clear(Color.Transparent);
@@ -664,7 +666,7 @@ namespace XrEngine.OpenGL
         }
 
         [MemberNotNull(nameof(_texture))]
-        private void EnsureTexture(GlTexture source, Size2I size, uint viewCount)
+        private void EnsureTexture(GlTexture source, uint viewCount)
         {
             var format = source.InternalFormat.ToTextureFormat();
 
@@ -673,15 +675,26 @@ namespace XrEngine.OpenGL
 
             if (_texture != null &&
                 _texture.Handle != 0 &&
-                _texture.Width == size.Width &&
-                _texture.Height == size.Height &&
                 _textureFormat == format &&
-                _textureViewCount == viewCount)
+                _textureViewCount == viewCount &&
+                _textureSourceWidth == source.Width &&
+                _textureSourceHeight == source.Height)
             {
                 return;
             }
 
-            _texture = GlTempAllocator.StaticTexture(_gl, size.Width, size.Height, viewCount, format, "blur");
+            _texture?.Dispose();
+
+            var size = GetMaximumTextureSize(source.Width, source.Height);
+
+            _texture = new GlTexture(_gl)
+            {
+                IsMutable = false,
+                MaxLevel = 0,
+                Target = viewCount > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
+            };
+
+            _texture.Allocate(size.Width, size.Height, viewCount, format);
 
             _texture.MinFilter = TextureMinFilter.Linear;
             _texture.MagFilter = TextureMagFilter.Linear;
@@ -690,6 +703,22 @@ namespace XrEngine.OpenGL
 
             _textureFormat = format;
             _textureViewCount = viewCount;
+            _textureSourceWidth = source.Width;
+            _textureSourceHeight = source.Height;
+        }
+
+        private Size2I GetMaximumTextureSize(uint width, uint height)
+        {
+            var dynamicPlan = BuildPlan(new PlanConfig(width, height, true, 0, _options));
+            var staticBuilder = new PlanBuilder();
+
+            AddRegion(staticBuilder, width, height);
+            AddRegion(staticBuilder, width, height);
+
+            var staticSize = BuildPack(staticBuilder, _options.AllocationBlock);
+            var side = Math.Max(Math.Max(dynamicPlan.TextureSize.Width, dynamicPlan.TextureSize.Height), Math.Max(staticSize.Width, staticSize.Height));
+
+            return new Size2I(side, side);
         }
 
         private void BuildLayout(GlTexture source, Plan plan, bool dynamic)
@@ -870,6 +899,11 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            _texture?.Dispose();
+            _texture = null;
+            _textureSourceWidth = 0;
+            _textureSourceHeight = 0;
+
             GC.SuppressFinalize(this);
         }
 

@@ -1,6 +1,6 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 
-// RG: primary height and velocity. BA: persistent high-frequency height and velocity.
+// RG: geometry height and velocity. BA: normal-only wake detail height and velocity.
 // The two array layers are the ping-pong states.
 layout(rgba16f, binding = 0) readonly uniform highp image2DArray uWaterStateIn;
 layout(rgba16f, binding = 1) writeonly uniform highp image2DArray uWaterStateOut;
@@ -12,13 +12,12 @@ uniform float uTime;
 uniform float uWaveSpeed;
 uniform float uDamping;
 uniform float uRippleStrength;
-uniform vec2 uPlayerUv;
-uniform vec2 uPlayerDirection;
-uniform vec2 uPlayerRadiusUv;
-uniform float uPlayerImpulse;
-uniform float uPlayerStrength;
-uniform float uHighFrequencyStrength;
-uniform float uHighFrequencyDamping;
+uniform vec2 uPlayerDisturbanceUv;
+uniform vec2 uPlayerDisturbanceRadiusUv;
+uniform float uPlayerDisturbanceMotion;
+uniform float uPlayerDisturbanceStrength;
+uniform float uWakeDetailGeneration;
+uniform float uWakeDetailPersistence;
 
 vec4 loadState(ivec2 pixel, ivec2 size)
 {
@@ -48,12 +47,29 @@ float impactRipple(vec2 uv, float period, float offset, float seed)
     return temporalPulse * spatialPulse;
 }
 
-float playerWake(vec2 uv)
+float persistentWakeRipple(vec2 uv, float period, float offset, float seed, float radius)
 {
-    vec2 delta = (uv - uPlayerUv) / max(uPlayerRadiusUv, vec2(0.0001));
+    float clock = uTime + offset;
+    float cycle = floor(clock / period);
+    float age = clock - cycle * period;
+    float randomX = hash11(cycle + seed);
+    vec2 center = vec2(randomX, hash11(cycle + seed + 19.19));
+    center = mix(vec2(0.08), vec2(0.92), center);
+
+    vec2 delta = (uv - center) / radius;
     float radius2 = dot(delta, delta);
-    float longitudinalOffset = dot(delta, uPlayerDirection);
-    return longitudinalOffset * exp(-radius2) * uPlayerImpulse;
+    float spatialPulse = (1.0 - radius2) * exp(-radius2);
+    float temporalPulse = exp(-pow(age / 0.065, 2.0));
+    float polarity = randomX < 0.5 ? -1.0 : 1.0;
+
+    return spatialPulse * temporalPulse * polarity;
+}
+
+float playerDisturbance(vec2 uv)
+{
+    vec2 delta = (uv - uPlayerDisturbanceUv) / max(uPlayerDisturbanceRadiusUv, vec2(0.0001));
+    float radius2 = dot(delta, delta);
+    return (radius2 - 1.0) * exp(-radius2) * uPlayerDisturbanceMotion;
 }
 
 void main()
@@ -67,30 +83,32 @@ void main()
     vec4 state = loadState(pixel, size);
     float height = state.r;
     float velocity = state.g;
-    float highHeight = state.b;
-    float highVelocity = state.a;
+    float wakeHeight = state.b;
+    float wakeVelocity = state.a;
 
     vec4 left = loadState(pixel + ivec2(-1, 0), size);
     vec4 right = loadState(pixel + ivec2(1, 0), size);
     vec4 down = loadState(pixel + ivec2(0, -1), size);
     vec4 up = loadState(pixel + ivec2(0, 1), size);
     float laplacian = left.r + right.r + down.r + up.r - 4.0 * height;
-    float highLaplacian = left.b + right.b + down.b + up.b - 4.0 * highHeight;
+    float wakeLaplacian = left.b + right.b + down.b + up.b - 4.0 * wakeHeight;
 
     vec2 uv = (vec2(pixel) + vec2(0.5)) / vec2(size);
     float source = impactRipple(uv, 1.7, 0.0, 3.7) + impactRipple(uv, 2.3, 0.9, 41.3) * 0.65;
+    float persistentWakeSource = persistentWakeRipple(uv, 0.29, 0.0, 83.1, 0.006) + persistentWakeRipple(uv, 0.37, 0.17, 137.7, 0.008) * 0.8;
+    float playerSource = playerDisturbance(uv);
 
     velocity += laplacian * uWaveSpeed * uDeltaTime;
     velocity += source * uRippleStrength * uDeltaTime * 30.0;
-    velocity += playerWake(uv) * uPlayerStrength;
+    velocity += playerSource * uPlayerDisturbanceStrength * uDeltaTime;
     velocity *= pow(uDamping, uDeltaTime * 60.0);
     height += velocity * uDeltaTime;
 
-    highVelocity += highLaplacian * uWaveSpeed * 0.4 * uDeltaTime;
-    highVelocity += source * uRippleStrength * uHighFrequencyStrength * uDeltaTime * 30.0;
-    highVelocity += playerWake(uv) * uPlayerStrength * uHighFrequencyStrength;
-    highVelocity *= pow(uHighFrequencyDamping, uDeltaTime * 60.0);
-    highHeight += highVelocity * uDeltaTime;
+    wakeVelocity += wakeLaplacian * uWaveSpeed * 0.4 * uDeltaTime;
+    wakeVelocity += source * uRippleStrength * uWakeDetailGeneration * uDeltaTime * 30.0;
+    wakeVelocity += persistentWakeSource * uWakeDetailGeneration * uDeltaTime * 0.25;
+    wakeVelocity *= pow(uWakeDetailPersistence, uDeltaTime * 60.0);
+    wakeHeight += wakeVelocity * uDeltaTime;
 
-    imageStore(uWaterStateOut, ivec3(pixel, uWriteLayer), vec4(height, velocity, highHeight, highVelocity));
+    imageStore(uWaterStateOut, ivec3(pixel, uWriteLayer), vec4(height, velocity, wakeHeight, wakeVelocity));
 }

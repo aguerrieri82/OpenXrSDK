@@ -15,7 +15,7 @@ if (options.Sweep)
 
     Console.WriteLine();
     Console.WriteLine("Disturbance-strength sweep at the current defaults");
-    Console.WriteLine("impact\tplayer\thigh\tstable\tfailure\tmax height\tmax velocity\troughness");
+    Console.WriteLine("impact\tplayer\twake\tstable\tfailure\tmax height\tmax velocity\troughness");
 
     foreach (var impactStrength in new[] { 0.3f, 0.7f, 1f, 2f, 4f, 8f })
     {
@@ -23,15 +23,15 @@ if (options.Sweep)
         PrintStrengthResult(Simulator.Run(options.Size, options.Frames, parameters, options.UseHalf));
     }
 
-    foreach (var playerStrength in new[] { 0.45f, 1f, 2f, 4f, 8f })
+    foreach (var playerStrength in new[] { 1f, 4f, 7f, 12f, 30f })
     {
-        var parameters = options.Parameters with { PlayerStrength = playerStrength };
+        var parameters = options.Parameters with { PlayerDisturbanceStrength = playerStrength };
         PrintStrengthResult(Simulator.Run(options.Size, options.Frames, parameters, options.UseHalf));
     }
 
-    foreach (var highFrequencyStrength in new[] { 0f, 0.35f, 0.7f, 1f, 2f })
+    foreach (var wakeDetailGeneration in new[] { 0f, 0.35f, 0.7f, 1f, 2f })
     {
-        var parameters = options.Parameters with { HighFrequencyStrength = highFrequencyStrength };
+        var parameters = options.Parameters with { WakeDetailGeneration = wakeDetailGeneration };
         PrintStrengthResult(Simulator.Run(options.Size, options.Frames, parameters, options.UseHalf));
     }
 }
@@ -48,12 +48,12 @@ static void PrintResult(Result result)
 
 static void PrintStrengthResult(Result result)
 {
-    Console.WriteLine(FormattableString.Invariant($"{result.Parameters.ImpactStrength:0.###}\t{result.Parameters.PlayerStrength:0.###}\t{result.Parameters.HighFrequencyStrength:0.###}\t{result.Stable}\t{result.FailureFrame}\t{result.MaxHeight:0.000000}\t{result.MaxVelocity:0.000000}\t{result.Roughness:0.000000}"));
+    Console.WriteLine(FormattableString.Invariant($"{result.Parameters.ImpactStrength:0.###}\t{result.Parameters.PlayerDisturbanceStrength:0.###}\t{result.Parameters.WakeDetailGeneration:0.###}\t{result.Stable}\t{result.FailureFrame}\t{result.MaxHeight:0.000000}\t{result.MaxVelocity:0.000000}\t{result.Roughness:0.000000}"));
 }
 
-readonly record struct Parameters(float DeltaTime, float WaveSpeed, float Damping, float ImpactStrength, float PlayerStrength, float WalkSpeed, float WaterWidth, float WaterHeight, float PlayerRadius, float PlayerStepDistance, float HighFrequencyStrength, float HighFrequencyDamping)
+readonly record struct Parameters(float DeltaTime, float WaveSpeed, float Damping, float ImpactStrength, float PlayerDisturbanceStrength, float WalkSpeed, float WaterWidth, float WaterHeight, float PlayerDisturbanceRadius, float WakeDetailGeneration, float WakeDetailPersistence)
 {
-    public static Parameters Defaults => new(1f / 72f, 300f, 0.995f, 0.3f, 0.45f, 1.2f, 5f, 3f, 0.16f, 0.52f, 0.35f, 0.9995f);
+    public static Parameters Defaults => new(1f / 72f, 300f, 0.995f, 0.3f, 7f, 1.2f, 5f, 3f, 0.16f, 0.35f, 0.9995f);
 }
 
 readonly record struct Result(Parameters Parameters, bool Stable, int FailureFrame, float MaxHeight, float MaxVelocity, float Roughness)
@@ -99,7 +99,7 @@ sealed class Options
             else if (name == "--impact-strength")
                 parameters = parameters with { ImpactStrength = ParseFloat(args[++index]) };
             else if (name == "--player-strength")
-                parameters = parameters with { PlayerStrength = ParseFloat(args[++index]) };
+                parameters = parameters with { PlayerDisturbanceStrength = ParseFloat(args[++index]) };
             else if (name == "--walk-speed")
                 parameters = parameters with { WalkSpeed = ParseFloat(args[++index]) };
             else if (name == "--water-width")
@@ -107,13 +107,11 @@ sealed class Options
             else if (name == "--water-height")
                 parameters = parameters with { WaterHeight = ParseFloat(args[++index]) };
             else if (name == "--player-radius")
-                parameters = parameters with { PlayerRadius = ParseFloat(args[++index]) };
-            else if (name == "--step-distance")
-                parameters = parameters with { PlayerStepDistance = ParseFloat(args[++index]) };
-            else if (name == "--high-strength")
-                parameters = parameters with { HighFrequencyStrength = ParseFloat(args[++index]) };
-            else if (name == "--high-damping")
-                parameters = parameters with { HighFrequencyDamping = ParseFloat(args[++index]) };
+                parameters = parameters with { PlayerDisturbanceRadius = ParseFloat(args[++index]) };
+            else if (name == "--wake-generation")
+                parameters = parameters with { WakeDetailGeneration = ParseFloat(args[++index]) };
+            else if (name == "--wake-persistence")
+                parameters = parameters with { WakeDetailPersistence = ParseFloat(args[++index]) };
             else
                 throw new ArgumentException($"Unknown argument: {name}");
         }
@@ -135,25 +133,23 @@ static class Simulator
         var count = size * size;
         var heightIn = new float[count];
         var velocityIn = new float[count];
-        var highHeightIn = new float[count];
-        var highVelocityIn = new float[count];
+        var wakeHeightIn = new float[count];
+        var wakeVelocityIn = new float[count];
         var heightOut = new float[count];
         var velocityOut = new float[count];
-        var highHeightOut = new float[count];
-        var highVelocityOut = new float[count];
+        var wakeHeightOut = new float[count];
+        var wakeVelocityOut = new float[count];
         var maxHeight = 0f;
         var maxVelocity = 0f;
         var failureFrame = -1;
         var time = 0f;
         var playerPosition = -parameters.WaterWidth * 0.4f;
         var playerDirection = 1f;
-        var playerDistance = 0f;
-        var playerWasMoving = false;
 
         for (var frame = 0; frame < frames; frame++)
         {
             var damping = MathF.Pow(parameters.Damping, parameters.DeltaTime * 60f);
-            var highDamping = MathF.Pow(parameters.HighFrequencyDamping, parameters.DeltaTime * 60f);
+            var wakePersistence = MathF.Pow(parameters.WakeDetailPersistence, parameters.DeltaTime * 60f);
             var firstImpact = CreateImpact(time, 1.7f, 0f, 3.7f);
             var secondImpact = CreateImpact(time, 2.3f, 0.9f, 41.3f);
             var playerDelta = parameters.WalkSpeed * parameters.DeltaTime * playerDirection;
@@ -165,20 +161,10 @@ static class Simulator
                 playerDirection = -playerDirection;
             }
 
-            playerDistance += MathF.Abs(playerDelta);
-
-            var triggerDistance = playerWasMoving ? parameters.PlayerStepDistance : 0.08f;
-            var playerImpulse = frame > 0 && playerDistance >= triggerDistance ? 1f : 0f;
-
-            if (playerImpulse > 0)
-            {
-                playerDistance = 0f;
-                playerWasMoving = true;
-            }
-
             var playerUvX = playerPosition / parameters.WaterWidth + 0.5f;
-            var playerRadiusUvX = parameters.PlayerRadius / parameters.WaterWidth;
-            var playerRadiusUvY = parameters.PlayerRadius / parameters.WaterHeight;
+            var playerRadiusUvX = parameters.PlayerDisturbanceRadius / parameters.WaterWidth;
+            var playerRadiusUvY = parameters.PlayerDisturbanceRadius / parameters.WaterHeight;
+            var playerMotion = frame > 0 ? Math.Clamp(parameters.WalkSpeed / 1.2f, 0f, 1f) : 0f;
 
             for (var y = 0; y < size; y++)
             {
@@ -187,45 +173,45 @@ static class Simulator
                     var index = y * size + x;
                     var height = heightIn[index];
                     var velocity = velocityIn[index];
-                    var highHeight = highHeightIn[index];
-                    var highVelocity = highVelocityIn[index];
+                    var wakeHeight = wakeHeightIn[index];
+                    var wakeVelocity = wakeVelocityIn[index];
                     var left = heightIn[y * size + Math.Max(x - 1, 0)];
                     var right = heightIn[y * size + Math.Min(x + 1, size - 1)];
                     var down = heightIn[Math.Max(y - 1, 0) * size + x];
                     var up = heightIn[Math.Min(y + 1, size - 1) * size + x];
                     var laplacian = left + right + down + up - 4f * height;
-                    var highLeft = highHeightIn[y * size + Math.Max(x - 1, 0)];
-                    var highRight = highHeightIn[y * size + Math.Min(x + 1, size - 1)];
-                    var highDown = highHeightIn[Math.Max(y - 1, 0) * size + x];
-                    var highUp = highHeightIn[Math.Min(y + 1, size - 1) * size + x];
-                    var highLaplacian = highLeft + highRight + highDown + highUp - 4f * highHeight;
+                    var wakeLeft = wakeHeightIn[y * size + Math.Max(x - 1, 0)];
+                    var wakeRight = wakeHeightIn[y * size + Math.Min(x + 1, size - 1)];
+                    var wakeDown = wakeHeightIn[Math.Max(y - 1, 0) * size + x];
+                    var wakeUp = wakeHeightIn[Math.Min(y + 1, size - 1) * size + x];
+                    var wakeLaplacian = wakeLeft + wakeRight + wakeDown + wakeUp - 4f * wakeHeight;
                     var uvX = (x + 0.5f) / size;
                     var uvY = (y + 0.5f) / size;
                     var source = SampleImpact(firstImpact, uvX, uvY) + SampleImpact(secondImpact, uvX, uvY) * 0.65f;
-                    var playerWake = SamplePlayerWake(uvX, uvY, playerUvX, playerRadiusUvX, playerRadiusUvY, playerDirection) * playerImpulse;
+                    var playerSource = SamplePlayerDisturbance(uvX, uvY, playerUvX, playerRadiusUvX, playerRadiusUvY) * playerMotion;
 
                     velocity += laplacian * parameters.WaveSpeed * parameters.DeltaTime;
                     velocity += source * parameters.ImpactStrength * parameters.DeltaTime * 30f;
-                    velocity += playerWake * parameters.PlayerStrength;
+                    velocity += playerSource * parameters.PlayerDisturbanceStrength * parameters.DeltaTime;
                     velocity *= damping;
                     height += velocity * parameters.DeltaTime;
 
-                    highVelocity += highLaplacian * parameters.WaveSpeed * 0.4f * parameters.DeltaTime;
-                    highVelocity += source * parameters.ImpactStrength * parameters.HighFrequencyStrength * parameters.DeltaTime * 30f;
-                    highVelocity += playerWake * parameters.PlayerStrength * parameters.HighFrequencyStrength;
-                    highVelocity *= highDamping;
-                    highHeight += highVelocity * parameters.DeltaTime;
+                    wakeVelocity += wakeLaplacian * parameters.WaveSpeed * 0.4f * parameters.DeltaTime;
+                    wakeVelocity += source * parameters.ImpactStrength * parameters.WakeDetailGeneration * parameters.DeltaTime * 30f;
+                    wakeVelocity += playerSource * parameters.PlayerDisturbanceStrength * parameters.WakeDetailGeneration * parameters.DeltaTime;
+                    wakeVelocity *= wakePersistence;
+                    wakeHeight += wakeVelocity * parameters.DeltaTime;
 
                     heightOut[index] = Store(height, useHalf);
                     velocityOut[index] = Store(velocity, useHalf);
-                    highHeightOut[index] = Store(highHeight, useHalf);
-                    highVelocityOut[index] = Store(highVelocity, useHalf);
-                    maxHeight = MathF.Max(maxHeight, MathF.Abs(heightOut[index] + highHeightOut[index]));
-                    maxVelocity = MathF.Max(maxVelocity, MathF.Max(MathF.Abs(velocityOut[index]), MathF.Abs(highVelocityOut[index])));
+                    wakeHeightOut[index] = Store(wakeHeight, useHalf);
+                    wakeVelocityOut[index] = Store(wakeVelocity, useHalf);
+                    maxHeight = MathF.Max(maxHeight, MathF.Abs(heightOut[index] + wakeHeightOut[index]));
+                    maxVelocity = MathF.Max(maxVelocity, MathF.Max(MathF.Abs(velocityOut[index]), MathF.Abs(wakeVelocityOut[index])));
                 }
             }
 
-            if (!AllFinite(heightOut, velocityOut, highHeightOut, highVelocityOut) || maxHeight > 1000f || maxVelocity > 1000f)
+            if (!AllFinite(heightOut, velocityOut, wakeHeightOut, wakeVelocityOut) || maxHeight > 1000f || maxVelocity > 1000f)
             {
                 failureFrame = frame;
                 break;
@@ -233,12 +219,12 @@ static class Simulator
 
             (heightIn, heightOut) = (heightOut, heightIn);
             (velocityIn, velocityOut) = (velocityOut, velocityIn);
-            (highHeightIn, highHeightOut) = (highHeightOut, highHeightIn);
-            (highVelocityIn, highVelocityOut) = (highVelocityOut, highVelocityIn);
+            (wakeHeightIn, wakeHeightOut) = (wakeHeightOut, wakeHeightIn);
+            (wakeVelocityIn, wakeVelocityOut) = (wakeVelocityOut, wakeVelocityIn);
             time += parameters.DeltaTime;
         }
 
-        var roughness = ComputeRoughness(heightIn, highHeightIn, size);
+        var roughness = ComputeRoughness(heightIn, wakeHeightIn, size);
         return new Result(parameters, failureFrame < 0, failureFrame, maxHeight, maxVelocity, roughness);
     }
 
@@ -261,13 +247,12 @@ static class Simulator
         return impact.TemporalPulse * spatialPulse;
     }
 
-    private static float SamplePlayerWake(float uvX, float uvY, float playerUvX, float playerRadiusUvX, float playerRadiusUvY, float playerDirection)
+    private static float SamplePlayerDisturbance(float uvX, float uvY, float playerUvX, float playerRadiusUvX, float playerRadiusUvY)
     {
         var deltaX = (uvX - playerUvX) / playerRadiusUvX;
         var deltaY = (uvY - 0.5f) / playerRadiusUvY;
         var radius2 = deltaX * deltaX + deltaY * deltaY;
-        var longitudinalOffset = deltaX * playerDirection;
-        return longitudinalOffset * MathF.Exp(-radius2);
+        return (radius2 - 1f) * MathF.Exp(-radius2);
     }
 
     private static float Store(float value, bool useHalf)
@@ -289,7 +274,7 @@ static class Simulator
         return true;
     }
 
-    private static float ComputeRoughness(float[] height, float[] highHeight, int size)
+    private static float ComputeRoughness(float[] height, float[] wakeHeight, int size)
     {
         var sum = 0d;
         var count = 0;
@@ -299,9 +284,9 @@ static class Simulator
             for (var x = 0; x < size - 1; x++)
             {
                 var index = y * size + x;
-                var value = height[index] + highHeight[index];
-                var deltaX = height[index + 1] + highHeight[index + 1] - value;
-                var deltaY = height[index + size] + highHeight[index + size] - value;
+                var value = height[index] + wakeHeight[index];
+                var deltaX = height[index + 1] + wakeHeight[index + 1] - value;
+                var deltaY = height[index + size] + wakeHeight[index + size] - value;
                 sum += deltaX * deltaX + deltaY * deltaY;
                 count += 2;
             }

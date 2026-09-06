@@ -943,6 +943,7 @@ namespace XrEngine.OpenGL
         public void Dispose()
         {
             _textureFilter?.Dispose();
+            _blurMipPack?.Dispose();
 
             foreach (var pass in _renderPasses)
                 pass.Dispose();
