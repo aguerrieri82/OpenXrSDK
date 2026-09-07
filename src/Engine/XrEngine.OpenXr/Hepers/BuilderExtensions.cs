@@ -388,10 +388,12 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder UseSpaceWarp(this XrEngineAppBuilder self, MotionVectorMode mode = MotionVectorMode.Shared)
         {
-            return self.SetGlOptions(opt =>
-            {
-                opt.MotionVectorMode = mode;
-            });
+            return self
+                .SetGlOptions(opt =>
+                 {
+                    opt.MotionVectorMode = mode;
+                 })
+                .UseProjDepth(XrProjDepthMode.DepthCopyImage);
         }
 
         public static XrEngineAppBuilder UseEnvironmentMesh(this XrEngineAppBuilder self, uint size = 300u, bool occlude = true, bool receiveShadow = true)

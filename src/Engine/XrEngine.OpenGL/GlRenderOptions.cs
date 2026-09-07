@@ -70,7 +70,7 @@ namespace XrEngine.OpenGL
             UseShaderPreprocessor = true;
             UseRayCollider = true;
             UseDefaultIntermediate = true;
-            UsePrimitiveBoundingBox = true;
+            UsePrimitiveBoundingBox = false;
             UseTransmission = true;
             ClipMode = ShaderClipMode.DepthClear;
 

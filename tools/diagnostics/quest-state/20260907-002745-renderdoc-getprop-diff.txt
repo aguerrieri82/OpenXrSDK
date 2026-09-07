@@ -1,0 +1,24 @@
+
+InputObject                                                                        SideIndicator
+-----------                                                                        -------------
+[cache_key.display_info]: [624145393067698882]                                     =>
+[cache_key.get_packages_for_uid]: [624145393067698868]                             =>
+[cache_key.is_compat_change_enabled]: [624145393067698858]                         =>
+[cache_key.is_interactive]: [624145393067698878]                                   =>
+[cache_key.package_info]: [624145393067698859]                                     =>
+[cache_key.system_server.account_user_data]: [624145393067698849]                  =>
+[debug.oculus.usepackagedvvl.org.renderdoc.renderdoccmd.arm32]: [1]                =>
+[debug.oculus.usepackagedvvl.org.renderdoc.renderdoccmd.arm64]: [1]                =>
+[debug.rdoc.IGNORE_LAYERS]: [0]                                                    =>
+[debug.rdoc.RENDERDOC_CAPOPTS]: [ababaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaa] =>
+[debug.vr.profiler]: [1]                                                           =>
+[debug.vulkan.layers]: [:]                                                         =>
+[init.svc.artd]: [stopped]                                                         =>
+[cache_key.display_info]: [624145393067698684]                                     <=
+[cache_key.get_packages_for_uid]: [624145393067698686]                             <=
+[cache_key.is_compat_change_enabled]: [624145393067698680]                         <=
+[cache_key.is_interactive]: [624145393067698670]                                   <=
+[cache_key.package_info]: [624145393067698687]                                     <=
+[cache_key.system_server.account_user_data]: [624145393067698645]                  <=
+
+

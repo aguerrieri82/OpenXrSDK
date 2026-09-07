@@ -12,8 +12,8 @@ namespace XrSamples
         [Sample("Water Flood")]
         public static XrEngineAppBuilder CreateWaterFlood(this XrEngineAppBuilder builder)
         {
-            const int simulationSize = 300;
-            const int gridSize = 300;
+            const int simulationSize = 256;
+            const int gridSize = 256;
             const float startLevel = 0.02f;
             const float floorThickness = 0.01f;
 

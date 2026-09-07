@@ -42,7 +42,7 @@ namespace XrSamples
             AudioPath = "Audio/audio_3756fcf5fd.mp3";
             TailPadding = 0.3f;
             FadeOutDuration = TailPadding;
-            Volume = 0.8f;
+            Volume = 1f;
             MinMovementSpeed = 0.12f;
             StartStepDistance = 0.08f;
             StepDistance = 0.52f;
@@ -154,8 +154,11 @@ namespace XrSamples
                 step = (step + Random.Shared.Next(1, _steps.Count)) % _steps.Count;
 
             var source = Play(_steps[step], _host.Forward);
+
             source.Gain = Volume;
             source.Pitch = 0.96f + Random.Shared.NextSingle() * 0.08f;
+            source.ReferenceDistance = 2f;
+            source.RolloffFactor = 0.25f;
 
             _lastStep = step;
             _distanceSinceStep = 0;

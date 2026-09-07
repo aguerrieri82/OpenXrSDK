@@ -16,6 +16,7 @@ namespace OpenAl.Framework
         public AlSourcePool(AL al)
         {
             _al = al;
+            Mode = AlSourcePoolMode.CreateNew;
         }
 
         public AlSource Get(AlBuffer buffer)

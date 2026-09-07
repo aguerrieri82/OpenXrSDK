@@ -6,6 +6,7 @@ namespace XrEngine.Audio
     public class AudioReceiver : Behavior<Object3D>
     {
         private AlListener? _listener;
+        private float _gain = 1;
 
         protected override void Start(RenderContext ctx)
         {
@@ -13,6 +14,7 @@ namespace XrEngine.Audio
 
             _listener = new AlListener(system.Device.Al);
 
+            Gain = _gain;
         }
 
         protected override void Update(RenderContext ctx)
@@ -31,7 +33,11 @@ namespace XrEngine.Audio
         public float Gain
         {
             get => _listener?.Gain ?? 0;
-            set => _listener!.Gain = value;
+            set
+            {
+                _listener?.Gain = value;
+                _gain = value;
+            }
         }
     }
 }
