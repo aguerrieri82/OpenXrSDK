@@ -21,6 +21,7 @@ namespace XrEngine
         protected Geometry3D? _geometry;
         protected Geometry3D? _originalGeometry;
         protected Bounds3 _localBounds;
+        protected MeshCompressionMode _compressionMode;
         internal bool _localBoundsDirty;
 
         public TriangleMesh()
@@ -219,11 +220,11 @@ namespace XrEngine
 
             var compressIndices = true;
 
-            if (CompressionMode == MeshCompressionMode.Always)
+            if (_compressionMode == MeshCompressionMode.Always)
             {
                 CompVertexType = typeof(CompVertexData);
             }
-            else if (CompressionMode == MeshCompressionMode.Never || _geometry.Vertices.Length < 128)
+            else if (_compressionMode == MeshCompressionMode.Never || _geometry.Vertices.Length < 128)
             {
                 CompVertexType = null;
                 CompIndexType = null;
@@ -339,6 +340,18 @@ namespace XrEngine
             }
         }
 
+        public MeshCompressionMode CompressionMode
+        {
+            get => _compressionMode;
+            set
+            {
+                if (_compressionMode == value)
+                    return;
+                _compressionMode = value;
+                UpdateCompression();
+            }
+        }
+
         public Geometry3D? OriginalGeometry => _originalGeometry;
 
         public IList<Material> Materials => _materials;
@@ -361,10 +374,8 @@ namespace XrEngine
 
         public Type? CompIndexType { get; set; }
 
-        public MeshCompressionMode CompressionMode { get; set; }
-
-
         public static bool EnableCompression = true;
+
 
         #region IVertexSource
 

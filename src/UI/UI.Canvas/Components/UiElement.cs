@@ -67,8 +67,6 @@ namespace CanvasUI
                 return;
             }
 
-            var hasFixedSize = ActualStyle.Width.HasValue && ActualStyle.Height.HasValue;
-
             var padding = ActualStyle.Padding.Value;
             var margin = ActualStyle.Margin.Value;
             var border = ActualStyle.Border.Value;
@@ -77,18 +75,15 @@ namespace CanvasUI
 
             ApplySizeLimit(ref measureRect);
 
-            if (!hasFixedSize)
-            {
-                ApplyOffset(ref measureRect, padding);
-                ApplyOffset(ref measureRect, border);
+            ApplyOffset(ref measureRect, padding);
+            ApplyOffset(ref measureRect, border);
 
-                measureRect.Size = MeasureWork(measureRect.Size);
+            measureRect.Size = MeasureWork(measureRect.Size);
 
-                ApplyOffset(ref measureRect, padding, -1);
-                ApplyOffset(ref measureRect, border, -1);
+            ApplyOffset(ref measureRect, padding, -1);
+            ApplyOffset(ref measureRect, border, -1);
 
-                ApplySizeLimit(ref measureRect);
-            }
+            ApplySizeLimit(ref measureRect);
 
             ApplyOffset(ref measureRect, margin, -1);
 
@@ -291,8 +286,27 @@ namespace CanvasUI
 
             DrawBox(canvas);
 
-            if (ActualStyle.OverflowX.Value == UiOverflow.Hidden && ActualStyle.OverflowY.Value == UiOverflow.Hidden)
-                canvas.ClipRect(_contentRect.ToSKRect());
+            var clipX = ActualStyle.OverflowX.Value == UiOverflow.Hidden;
+            var clipY = ActualStyle.OverflowY.Value == UiOverflow.Hidden;
+
+            if (clipX || clipY)
+            {
+                var clipRect = canvas.LocalClipBounds;
+
+                if (clipX)
+                {
+                    clipRect.Left = _contentRect.Left;
+                    clipRect.Right = _contentRect.Right;
+                }
+
+                if (clipY)
+                {
+                    clipRect.Top = _contentRect.Top;
+                    clipRect.Bottom = _contentRect.Bottom;
+                }
+
+                canvas.ClipRect(clipRect);
+            }
 
             DrawWork(canvas);
 
@@ -373,8 +387,8 @@ namespace CanvasUI
 
                 _isDirty = value;
 
-                if (_parent != null)
-                    _parent.IsDirty = true;
+                var parent = VisualParent;
+                parent?.IsDirty = true;
 
                 if (_isDirty)
                     OnNeedRedraw();
@@ -415,7 +429,7 @@ namespace CanvasUI
             set => SetValue(nameof(Name), value);
         }
 
-        [UiProperty]
+        [UiProperty(null, UiPropertyFlags.Layout)]
         public UiStyle Style
         {
             get => GetValue<UiStyle>(nameof(Style))!;

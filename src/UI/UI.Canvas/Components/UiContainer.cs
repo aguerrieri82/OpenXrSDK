@@ -61,10 +61,10 @@ namespace CanvasUI
 
             _children.Add(child);
 
-            _isDirty = true;
-            _isLayoutDirty = true;
-
             child.Parent = this;
+
+            InvalidateLayout();
+            IsDirty = true;
         }
 
         public void RemoveChild(UiElement child)
@@ -74,8 +74,8 @@ namespace CanvasUI
             if (child.Parent == this)
                 child.Parent = null;
 
-            _isDirty = true;
-            _isLayoutDirty = true;
+            InvalidateLayout();
+            IsDirty = true;
         }
 
         public void Clear()
@@ -85,8 +85,8 @@ namespace CanvasUI
 
             _children.Clear();
 
-            _isDirty = true;
-            _isLayoutDirty = true;
+            InvalidateLayout();
+            IsDirty = true;
         }
 
         public override void Dispose()

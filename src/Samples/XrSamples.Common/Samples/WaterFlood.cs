@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
@@ -20,37 +20,15 @@ namespace XrSamples
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
 
-            var state = new Texture2D
-            {
-                Name = "Water state",
-                WrapS = WrapMode.ClampToEdge,
-                WrapT = WrapMode.ClampToEdge,
-                MinFilter = ScaleFilter.Linear,
-                MagFilter = ScaleFilter.Linear,
-                NeverCompress = true
-            };
-            state.SetDescription(simulationSize, simulationSize, 2, TextureFormat.RgbaFloat16);
-
-            var material = new WaterMaterial(state)
-            {
-                WaterSize = Vector2.One,
-                WaterDepth = startLevel,
-            };
-            var settings = new WaterFloodSettings(material);
-            settings.Apply();
+            var settings = new WaterFloodSettings();
+            settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "water_flood_settings.json"));
              
-            var waterGrid = new Grid3D(new Size2I(gridSize, gridSize));
-            waterGrid.ComputeTangents();
-
-            var water = scene.AddChild(new TriangleMesh(
-                waterGrid,
-                material)
+            var water = scene.AddChild(new Water(simulationSize, gridSize)
             {
-                Name = "Flood water",
+                Name = "Flood water"
             });
-
-            water.Flags |= EngineObjectFlags.NoFrustumCulling;
-            water.CompressionMode = MeshCompressionMode.Never;
+            water.Material.WaterDepth = startLevel;
+            settings.Apply(water);
 
             var sceneFactory = new DefaultSceneModelFactory();
             var sceneView = scene.AddChild(new OculusSceneView
@@ -84,7 +62,7 @@ namespace XrSamples
                     return;
 
                 floor = detectedFloor;
-                material.WaterSize = floorInfo.Size;
+                water.Material.WaterSize = floorInfo.Size;
             };
 
             var waterLevel = startLevel;
@@ -95,38 +73,34 @@ namespace XrSamples
                     waterLevel += settings.RiseSpeed * (float)ctx.DeltaTime;
 
                 waterLevel = MathF.Min(settings.MaximumDepth, waterLevel);
-                material.WaterDepth = waterLevel;
+                water.Material.WaterDepth = waterLevel;
 
                 var floorNormal = Vector3.Transform(Vector3.UnitZ,  floor.WorldOrientation);
 
-                water.WorldOrientation = floor.WorldOrientation; 
+                water.WorldOrientation = floor.WorldOrientation;
                 water.WorldPosition = floor.WorldPosition + floorNormal * (floorThickness * 0.5f + waterLevel);
             });
+
+            var light = scene.FindByName<PointLight>("point-light-1")!;
+            light.IsVisible = true;
+            light.Transform.SetPositionY(1f);
+            light.Intensity = 2f;
 
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
                 .ConfigureSampleApp()
                 .UseFloorTeleport(scene)
-                //.UseEnvironmentDepth()
+                .UseEnvironmentDepth()
                 //.UseEnvironmentMesh(100, receiveShadow: false)
                 .UseCameraRefraction(true)
-                .AddPanel(new WaterFloodSettingsPanel(settings))
+                .AddPanel(new WaterFloodSettingsPanel(settings, water))
                 .ConfigureApp(e =>
                 {
                     if (e.App.Renderer is OpenGLRender render)
                     {
-                        var player = scene.FindByName<Object3D>("Player")!;
-                        player.AddComponent(new WaterStepAudio());
-                        var simulation = new GlWaterSimulationPass(render, material, water, player);
-                        settings.AttachSimulation(simulation);
-                        render.AddPass(simulation, 0);
+                        render.AddPass(new GlWaterSimulationPass(render, water), 0);
                     }
-                    var light = scene.FindByName<PointLight>("point-light-1");
-
-                    light!.IsVisible = true;
-                    light.Transform.SetPositionY(1f);
-                    light.Intensity = 2f;
                 });
         }
     }

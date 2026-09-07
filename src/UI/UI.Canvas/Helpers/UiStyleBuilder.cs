@@ -39,6 +39,12 @@ namespace CanvasUI
             return this;
         }
 
+        public readonly UiStyleBuilder Margin(float top = 0, float left = 0, float bottom = 0, float right = 0, Unit unit = Unit.Dp)
+        {
+            Style.Margin = UnitRectValue.Set(top, left, bottom, right, unit);
+            return this;
+        }
+
         public readonly UiStyleBuilder Margin(float vert, float hor, Unit unit = Unit.Dp)
         {
             Style.Margin = UnitRectValue.Axis(vert, hor, unit);

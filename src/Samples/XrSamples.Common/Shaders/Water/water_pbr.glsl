@@ -6,10 +6,10 @@ uniform int uWaterLayer;
 uniform vec2 uWaterSize;
 uniform vec2 uWaterTexelSize;
 uniform float uWaterDepth;
-uniform float uWaterHeightScale;
-uniform float uWakeDetailStrength;
+in float waterSurfaceHeight;
+uniform float uFineRippleNormalStrength;
 
-vec2 loadWakeDetailGradient(vec2 uv)
+vec2 loadFineRippleGradient(vec2 uv)
 {
     float left = textureLod(uWaterState, vec3(uv - vec2(uWaterTexelSize.x, 0.0), float(uWaterLayer)), 0.0).b;
     float right = textureLod(uWaterState, vec3(uv + vec2(uWaterTexelSize.x, 0.0), float(uWaterLayer)), 0.0).b;
@@ -18,7 +18,7 @@ vec2 loadWakeDetailGradient(vec2 uv)
     float dx = max(2.0 * uWaterTexelSize.x * uWaterSize.x, 0.0001);
     float dy = max(2.0 * uWaterTexelSize.y * uWaterSize.y, 0.0001);
 
-    return vec2((right - left) / dx, (up - down) / dy) * uWaterHeightScale * uWakeDetailStrength;
+    return vec2((right - left) / dx, (up - down) / dy) * uFineRippleNormalStrength;
 }
 
 vec3 applyWaterNormalDetail(vec3 normal, vec2 uv)
@@ -33,7 +33,7 @@ vec3 applyWaterNormalDetail(vec3 normal, vec2 uv)
     if (dot(bitangent, fTangentBasis[1]) < 0.0)
         bitangent = -bitangent;
 
-    vec2 gradient = loadWakeDetailGradient(uv);
+    vec2 gradient = loadFineRippleGradient(uv);
 
     return normalize(normal - tangent * gradient.x - bitangent * gradient.y);
 }
@@ -48,7 +48,7 @@ FragmentProperties loadWaterFragmentProperties()
 
     frag.normal = applyWaterNormalDetail(normalize(frag.normal), fUv);
 
-    float localDepth = max(uWaterDepth + state.r * uWaterHeightScale, 0.0);
+    float localDepth = max(uWaterDepth + waterSurfaceHeight, 0.0);
     frag.thickness = localDepth;
 
     frag.albedo = mix(frag.albedo, foamColor, foam * 0.22);

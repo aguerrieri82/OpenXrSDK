@@ -100,10 +100,10 @@ namespace XrEditor
               })
               //.UseSpaceWarp()
               .EnableDebugNotRelease(sync: true)
-              .SetRenderQuality(1f, 1)
+              .SetRenderQuality(1f, sampleCount: 2)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              //.CreateWaterFlood()
-              .CreateDnd()
+              .CreatePingPong()
+              //.CreateDnd()
               .Build();
     }
 }

@@ -1,12 +1,11 @@
-using OpenAl.Framework;
-using System.Numerics;
+﻿using OpenAl.Framework;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Media;
 
 namespace XrSamples
 {
-    public sealed class WaterStepAudio : AudioEmitter
+    public sealed class WaterStepAudio : Behavior<Water>
     {
         private static readonly (float Start, float End)[] StepRanges =
         [
@@ -26,16 +25,19 @@ namespace XrSamples
 
         private readonly List<AudioClip> _stepClips;
         private readonly List<AlBuffer> _steps;
-        private Vector2 _lastPosition;
+        private WaterInteraction _interaction = null!;
+        private AudioEmitter _emitter = null!;
+        private float _leftHandTime;
+        private float _rightHandTime;
         private float _distanceSinceStep;
         private float _nextStepDistance;
         private float _idleTime;
         private int _lastStep;
-        private bool _hasPosition;
         private bool _wasMoving;
 
         public WaterStepAudio()
         {
+            UpdatePriority = 2;
             _stepClips = [];
             _steps = [];
             _lastStep = -1;
@@ -43,12 +45,9 @@ namespace XrSamples
             TailPadding = 0.3f;
             FadeOutDuration = TailPadding;
             Volume = 1f;
-            MinMovementSpeed = 0.12f;
             StartStepDistance = 0.08f;
             StepDistance = 0.52f;
             StepDistanceVariation = 0.08f;
-
-            PrepareSteps();
         }
 
         private void PrepareSteps()
@@ -77,6 +76,12 @@ namespace XrSamples
 
         protected override void Start(RenderContext ctx)
         {
+            _interaction = _host.Interaction;
+            _emitter = _interaction.State.Player.EnsureComponent<AudioEmitter>();
+
+            if (_stepClips.Count == 0)
+                PrepareSteps();
+
             var al = _host.Scene!.Component<AudioSystem>().Device.Al;
 
             foreach (var clip in _stepClips)
@@ -92,25 +97,14 @@ namespace XrSamples
 
         protected override void Update(RenderContext ctx)
         {
-            var worldPosition = _host.WorldPosition;
-            var position = new Vector2(worldPosition.X, worldPosition.Z);
-
-            if (!_hasPosition)
-            {
-                _lastPosition = position;
-                _hasPosition = true;
-                return;
-            }
-
-            var distance = Vector2.Distance(position, _lastPosition);
             var deltaTime = MathF.Max((float)ctx.DeltaTime, 0.0001f);
-            var isTeleport = distance >= 0.5f;
-            var isMoving = !isTeleport && distance / deltaTime >= MinMovementSpeed;
+            var state = _interaction.State;
+            var isMoving = state.PlayerMotion > 0;
 
             if (isMoving)
             {
                 _idleTime = 0;
-                _distanceSinceStep += distance;
+                _distanceSinceStep += state.PlayerDistance;
 
                 if (!_wasMoving && _distanceSinceStep >= StartStepDistance)
                 {
@@ -133,17 +127,36 @@ namespace XrSamples
                 }
             }
 
-            if (isTeleport)
+            if (state.PlayerTeleported)
             {
                 _distanceSinceStep = 0;
                 _wasMoving = false;
             }
 
-            _lastPosition = position;
+            UpdateHand(state.LeftHandMotion, deltaTime, ref _leftHandTime);
+            UpdateHand(state.RightHandMotion, deltaTime, ref _rightHandTime);
             base.Update(ctx);
         }
 
+        private void UpdateHand(float motion, float deltaTime, ref float time)
+        {
+            time = MathF.Max(0, time - deltaTime);
+
+            if (motion > 0 && time == 0)
+            {
+                PlaySplash();
+                time = 0.3f;
+            }
+        }
+
         private void PlayStep()
+        {
+            PlaySplash();
+            _distanceSinceStep = 0;
+            _nextStepDistance = RandomStepDistance();
+        }
+
+        private void PlaySplash()
         {
             if (_steps.Count == 0)
                 return;
@@ -153,7 +166,7 @@ namespace XrSamples
             if (_steps.Count > 1 && step == _lastStep)
                 step = (step + Random.Shared.Next(1, _steps.Count)) % _steps.Count;
 
-            var source = Play(_steps[step], _host.Forward);
+            var source = _emitter.Play(_steps[step], _interaction.State.Player.Forward);
 
             source.Gain = Volume;
             source.Pitch = 0.96f + Random.Shared.NextSingle() * 0.08f;
@@ -161,8 +174,6 @@ namespace XrSamples
             source.RolloffFactor = 0.25f;
 
             _lastStep = step;
-            _distanceSinceStep = 0;
-            _nextStepDistance = RandomStepDistance();
         }
 
         private float RandomStepDistance()
@@ -176,6 +187,11 @@ namespace XrSamples
                 step.Dispose();
 
             _steps.Clear();
+            _distanceSinceStep = 0;
+            _idleTime = 0;
+            _wasMoving = false;
+            _leftHandTime = 0;
+            _rightHandTime = 0;
             base.Reset(onlySelf);
         }
 
@@ -186,8 +202,6 @@ namespace XrSamples
         public float FadeOutDuration { get; }
 
         public float Volume { get; set; }
-
-        public float MinMovementSpeed { get; set; }
 
         public float StartStepDistance { get; set; }
 

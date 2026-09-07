@@ -1376,11 +1376,31 @@ namespace XrEngine
 
             public void FrustumPlanes(Span<Plane> planes)
             {
-                var viewProj = self.IsStereo
-                    ? self.CenterView * self.SharedProjection
-                    : self.ViewProjection;
+                if (!self.IsStereo)
+                {
+                    self.ViewProjection.FrustumPlanes(planes);
+                    return;
+                }
 
-                viewProj.FrustumPlanes(planes);
+                var eyes = self.Eyes!;
+
+                (self.CenterView * self.SharedProjection).FrustumPlanes(planes);
+
+                var center = self.CenterWorldMatrix.Translation;
+                var offset0 = eyes[0].World.Translation - center;
+                var offset1 = eyes[1].World.Translation - center;
+
+                for (var i = 0; i < 6; i++)
+                {
+                    ref var plane = ref planes[i];
+
+                    var minOffset = MathF.Min(
+                        Vector3.Dot(plane.Normal, offset0),
+                        Vector3.Dot(plane.Normal, offset1));
+
+                    if (minOffset < 0)
+                        plane.D -= minOffset;
+                }
             }
         }
 

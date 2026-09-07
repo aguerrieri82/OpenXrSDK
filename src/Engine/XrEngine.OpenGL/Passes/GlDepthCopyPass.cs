@@ -54,7 +54,7 @@ namespace XrEngine.OpenGL
 
                 var glTex = curTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1);
 
-                _effect.Texture = glTex.ToEngineTexture();
+                _effect.Texture = (Texture2D)glTex.ToEngineTexture();
             }
 
             UseEffect(_effect);

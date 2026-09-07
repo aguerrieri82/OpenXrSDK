@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrMath;
 
@@ -8,9 +8,18 @@ namespace XrSamples
     {
         private static readonly ResourceSlot WaterStateSlot = new("WaterState");
 
-        public WaterMaterial(Texture2D stateTexture)
+        public WaterMaterial(uint simulationSize)
         {
-            StateTexture = stateTexture;
+            StateTexture = new Texture2D
+            {
+                Name = "Water state",
+                WrapS = WrapMode.ClampToEdge,
+                WrapT = WrapMode.ClampToEdge,
+                MinFilter = ScaleFilter.Linear,
+                MagFilter = ScaleFilter.Linear,
+                NeverCompress = true
+            };
+            StateTexture.SetDescription(simulationSize, simulationSize, 2, TextureFormat.RgbaFloat16);
 
             Color = new Color(0.025f, 0.22f, 0.32f, 0.58f);
             Alpha = AlphaMode.Opaque;
@@ -44,13 +53,16 @@ namespace XrSamples
                 uniforms.SetUniform("uWaterLayer", CurrentLayer);
                 uniforms.SetUniform("uWaterSize", WaterSize);
                 uniforms.SetUniform("uWaterTexelSize", new Vector2(1f / StateTexture.Width, 1f / StateTexture.Height));
-                uniforms.SetUniform("uWaterHeightScale", HeightScale);
-                uniforms.SetUniform("uAmbientWaveHeight", AmbientWaveHeight);
-                uniforms.SetUniform("uAmbientWaveScale", AmbientWaveScale);
-                uniforms.SetUniform("uWakeDetailStrength", WakeDetailStrength);
+                uniforms.SetUniform("uSurfaceHeightScale", SurfaceHeightScale);
+                uniforms.SetUniform("uFineRippleNormalStrength", FineRippleNormalStrength);
                 uniforms.SetUniform("uWaterDepth", WaterDepth);
-                uniforms.SetUniform("uWaterTime", ctx.Time);
             });
+        }
+
+        public override void Dispose()
+        {
+            StateTexture.Dispose();
+            base.Dispose();
         }
 
         public Texture2D StateTexture { get; }
@@ -59,13 +71,9 @@ namespace XrSamples
 
         public Vector2 WaterSize { get; set; }
 
-        public float HeightScale { get; set; }
+        public float SurfaceHeightScale { get; set; }
 
-        public float AmbientWaveHeight { get; set; }
-
-        public float AmbientWaveScale { get; set; }
-
-        public float WakeDetailStrength { get; set; }
+        public float FineRippleNormalStrength { get; set; }
 
         public float WaterDepth { get; set; }
     }

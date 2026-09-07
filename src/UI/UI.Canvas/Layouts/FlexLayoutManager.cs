@@ -95,15 +95,17 @@ namespace CanvasUI
 
             void NewRow(bool lastRow)
             {
-                if (curRow.Count > 0)
-                    items.Add(curRow);
+                if (curRow.Count == 0)
+                    return;
 
-                else if (items.Count > 0)
-                    curSize.Height -= gap.Y;
+                items.Add(curRow);
 
                 curRowSize.Width -= gap.X;
 
-                var occupyHeight = curRowSize.Height + gap.Y;
+                var occupyHeight = curRowSize.Height;
+
+                if (!lastRow)
+                    occupyHeight += gap.Y;
 
                 curSize.Width = Math.Max(curRowSize.Width, curSize.Width);
                 curSize.Height += occupyHeight;
@@ -123,8 +125,8 @@ namespace CanvasUI
             foreach (var child in lp.Children)
             {
                 result.Basis += child.Basis;
-                result.Shrink += child.Basis;
-                result.Grow += child.Basis;
+                result.Shrink += child.Shrink;
+                result.Grow += child.Grow;
             }
 
             var availWidthWithGap = availSize.Width - gap.X * (lp.Children.Length - 1);
@@ -163,12 +165,12 @@ namespace CanvasUI
 
             NewRow(true);
 
-            if (
+            if (items.Count > 0 && (
                 (result.Shrink > 0 && curSize.Width > availSize.Width) ||
                 (curSize.Width < availSize.Width && (
                     result.Grow > 0 ||
                     lp.JustifyContent == UiAlignment.SpaceBetween ||
-                    lp.JustifyContent == UiAlignment.SpaceAround)))
+                    lp.JustifyContent == UiAlignment.SpaceAround))))
 
                 curSize.Width = availSize.Width;
 
@@ -188,6 +190,9 @@ namespace CanvasUI
         static void Arrange(Rect2 finalRect, LayoutParams lp)
         {
             var measure = MeasureWork(finalRect.Size, lp, true);
+
+            if (measure.Items.Length == 0)
+                return;
 
             finalRect = Convert(finalRect, lp.Orientation);
 
@@ -209,13 +214,14 @@ namespace CanvasUI
                 else if (lp.AlignContent == UiAlignment.End)
                     curPos.Y += overflow.Y;
 
-                else if (lp.AlignContent == UiAlignment.SpaceBetween)
-                    gap.Y += overflow.X / measure.Items.Length - 1;
+                else if (lp.AlignContent == UiAlignment.SpaceBetween && measure.Items.Length > 1)
+                    gap.Y += overflow.Y / (measure.Items.Length - 1);
 
                 else if (lp.AlignContent == UiAlignment.SpaceAround)
                 {
-                    gap.Y = overflow.X / measure.Items.Length + 1;
-                    curPos.Y += gap.X;
+                    var space = overflow.Y / measure.Items.Length;
+                    gap.Y += space;
+                    curPos.Y += space / 2;
                 }
                 else if (lp.AlignContent == UiAlignment.Stretch)
                     throw new NotSupportedException();
@@ -224,6 +230,8 @@ namespace CanvasUI
             //Process rows
             foreach (var row in measure.Items)
             {
+                var rowGap = gap.X;
+
                 var rowSize = new Size2
                 {
                     Width = row.Sum(a => a.Width),
@@ -233,11 +241,11 @@ namespace CanvasUI
                 var rowShrink = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Shrink);
                 var rowGrow = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Grow);
 
-                overflow.X = finalRect.Width - (rowSize.Width + gap.X * (row.Length - 1));
+                overflow.X = finalRect.Width - (rowSize.Width + rowGap * (row.Length - 1));
 
                 curPos.X = finalRect.X;
 
-                if (overflow.X > 0 && rowShrink == 0 && rowGrow == 0)
+                if (overflow.X > 0 && rowGrow == 0)
                 {
                     if (lp.JustifyContent == UiAlignment.Center)
                         curPos.X += overflow.X / 2;
@@ -245,25 +253,27 @@ namespace CanvasUI
                     else if (lp.JustifyContent == UiAlignment.End)
                         curPos.X += overflow.X;
 
-                    else if (lp.JustifyContent == UiAlignment.SpaceBetween)
-                        gap.X = overflow.X / row.Length - 1;
+                    else if (lp.JustifyContent == UiAlignment.SpaceBetween && row.Length > 1)
+                        rowGap += overflow.X / (row.Length - 1);
 
                     else if (lp.JustifyContent == UiAlignment.SpaceAround)
                     {
-                        gap.X = overflow.X / row.Length + 1;
-                        curPos.X += gap.X;
+                        var space = overflow.X / row.Length;
+                        rowGap += space;
+                        curPos.X += space / 2;
                     }
                     else if (lp.JustifyContent == UiAlignment.Stretch)
                         throw new NotSupportedException();
                 }
+
+                if (rowShrink > 0 && overflow.X < 0)
+                    ShrinkRow(row, lp.Children, childIndex, -overflow.X);
 
                 for (var i = 0; i < row.Length; i++)
                 {
                     ref var childSize = ref row[i];
                     var child = lp.Children[childIndex];
 
-                    if (rowShrink > 0 && overflow.X < 0)
-                        childSize.Width += overflow.X * (child.Shrink / rowShrink);
                     if (rowGrow > 0 && overflow.X > 0)
                         childSize.Width += overflow.X * (child.Grow / rowGrow);
 
@@ -278,7 +288,7 @@ namespace CanvasUI
                     };
 
                     if (align == UiAlignment.Stretch)
-                        childRect.Height = finalRect.Height; //rowSize.Height;
+                        childRect.Height = lp.WrapMode == UiWrapMode.NoWrap ? finalRect.Height : rowSize.Height;
 
                     else if (align == UiAlignment.End)
                         childRect.Y += rowSize.Height - childSize.Height;
@@ -288,12 +298,12 @@ namespace CanvasUI
 
                     var newSize = child.Item.Arrange(Convert(childRect, lp.Orientation));
 
-                    curPos.X += childRect.Width + gap.X;
+                    curPos.X += childRect.Width + rowGap;
 
                     childIndex++;
                 }
 
-                curPos.X -= gap.X;
+                curPos.X -= rowGap;
 
                 //Debug.Assert(curPos.X == rowSize.Width);
 
@@ -303,6 +313,50 @@ namespace CanvasUI
             curPos.Y -= gap.Y;
 
             //Debug.Assert(curPos.Y == measure.FinalSize.Height);
+        }
+
+        static void ShrinkRow(Size2[] row, ChildParams[] children, int childIndex, float overflow)
+        {
+            while (overflow > 0)
+            {
+                var shrink = 0f;
+
+                for (var i = 0; i < row.Length; i++)
+                {
+                    if (row[i].Width > 0)
+                        shrink += children[childIndex + i].Shrink;
+                }
+
+                if (shrink <= 0)
+                    return;
+
+                var removed = 0f;
+
+                for (var i = 0; i < row.Length; i++)
+                {
+                    var factor = children[childIndex + i].Shrink;
+
+                    if (row[i].Width > 0 && factor > 0 && row[i].Width <= overflow * factor / shrink)
+                    {
+                        removed += row[i].Width;
+                        row[i].Width = 0;
+                    }
+                }
+
+                if (removed > 0)
+                {
+                    overflow -= removed;
+                    continue;
+                }
+
+                for (var i = 0; i < row.Length; i++)
+                {
+                    if (row[i].Width > 0)
+                        row[i].Width = Math.Max(0, row[i].Width - overflow * children[childIndex + i].Shrink / shrink);
+                }
+
+                return;
+            }
         }
 
         Size2 IUiLayoutManager.Measure(Size2 availSize, object? layoutParams)
@@ -319,6 +373,8 @@ namespace CanvasUI
 
         public object? ExtractLayoutParams(UiContainer container)
         {
+            var children = container.Children.Where(a => a.ActualStyle.Visibility != UiVisibility.Collapsed).ToArray();
+
             var result = new LayoutParams
             {
                 AlignContent = container.ActualStyle.AlignContent.Value,
@@ -327,13 +383,13 @@ namespace CanvasUI
                 JustifyContent = container.ActualStyle.JustifyContent.Value,
                 Orientation = container.ActualStyle.FlexDirection.Value,
                 WrapMode = container.ActualStyle.LayoutWrap.Value,
-                Children = new ChildParams[container.Children.Count],
+                Children = new ChildParams[children.Length],
                 Name = container.Name
             };
 
-            for (var i = 0; i < container.Children.Count; i++)
+            for (var i = 0; i < children.Length; i++)
             {
-                var child = container.Children[i];
+                var child = children[i];
 
                 result.Children[i] = new ChildParams
                 {

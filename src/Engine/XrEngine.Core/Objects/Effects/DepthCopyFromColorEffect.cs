@@ -42,11 +42,7 @@
             else
                 bld.AddFeature($"PRECISION mediump");
 
-            bld.ExecuteAction((_, up) =>
-            {
-                if (Texture != null)
-                    up.LoadTexture(Texture, TextureSlots.ProjDepth);
-            });
+            bld.LoadTexture(() => Texture, TextureSlots.ProjDepth);
 
             base.UpdateShaderMaterial(bld);
         }
@@ -55,7 +51,7 @@
 
         public int DepthLocation { get; set; }
 
-        public Texture? Texture { get; set; }
+        public Texture2D? Texture { get; set; }
 
         public string Channel { get; set; }
     }

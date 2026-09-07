@@ -1,69 +1,60 @@
-using CanvasUI;
+﻿using CanvasUI;
 using UI.Binding;
+using XrEngine;
 using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
 {
-    public sealed class WaterFloodSettings
+    public sealed class WaterFloodSettings : BaseAppSettings<Water>
     {
-        private readonly WaterMaterial _material;
-        private GlWaterSimulationPass? _simulation;
-
-        public WaterFloodSettings(WaterMaterial material)
+        public WaterFloodSettings()
         {
-            _material = material;
             MaximumDepth = 0.55f;
-            RiseSpeed = 0.0125f;
+            RiseSpeed = 0.012f;
             PauseFlood = false;
-            WaveSpeed = 300f;
-            Damping = 0.995f;
-            ImpactStrength = 0f;
-            RippleScale = 1f;
-            AmbientWaveHeight = 0.012f;
-            AmbientWaveScale = 1f;
+            SurfaceWaveSpeed = 300f;
+            SurfacePersistence = 0.995f;
+            BackgroundStrength = 0f;
+            SurfaceHeightScale = 1f;
+            BackgroundSpacing = 0.065f;
+            FineRippleSpacing = 0.008f;
+            FineRippleExcitationRate = 9.966f;
             PlayerDisturbanceRadius = 0.16f;
             PlayerDisturbanceStrength = 5f;
-            WakeDetailStrength = 2.25f;
-            WakeDetailGeneration = 0.35f;
-            WakeDetailPersistence = 0.9995f;
+            WalkingThreshold = 0.15f;
+            FineRippleNormalStrength = 0.277f;
+            FineRippleExcitation = 0.143f;
+            FineRipplePersistence = 0.98f;
             Roughness = 0.08f;
             Ior = 1.5f;
             Transmission = 1f;
         }
 
-        public void AttachSimulation(GlWaterSimulationPass simulation)
+        public override void Apply(Water water)
         {
-            _simulation = simulation;
-            Apply();
-        }
+            var material = water.Material;
+            var interaction = water.Interaction;
 
-        public void Apply()
-        {
-            _material.HeightScale = RippleScale;
-            _material.AmbientWaveHeight = AmbientWaveHeight;
-            _material.AmbientWaveScale = AmbientWaveScale;
-            _material.WakeDetailStrength = WakeDetailStrength;
-            _material.Roughness = Roughness;
-            _material.Ior = Ior;
-            _material.Transmission = Transmission;
+            material.SurfaceHeightScale = SurfaceHeightScale;
+            material.FineRippleNormalStrength = FineRippleNormalStrength;
+            material.Roughness = Roughness;
+            material.Ior = Ior;
+            material.Transmission = Transmission;
 
-            if (_simulation != null)
-            {
-                _simulation.WaveSpeed = WaveSpeed;
-                _simulation.Damping = Damping;
-                _simulation.RippleStrength = ImpactStrength;
-                _simulation.PlayerDisturbanceRadius = PlayerDisturbanceRadius;
-                _simulation.PlayerDisturbanceStrength = PlayerDisturbanceStrength;
-                _simulation.WakeDetailGeneration = WakeDetailGeneration;
-                _simulation.WakeDetailPersistence = WakeDetailPersistence;
-            }
+            water.SurfaceWaveSpeed = SurfaceWaveSpeed;
+            water.SurfacePersistence = SurfacePersistence;
+            water.BackgroundStrength = BackgroundStrength;
+            water.BackgroundSpacing = BackgroundSpacing;
+            water.FineRippleSpacing = FineRippleSpacing;
+            water.FineRippleExcitationRate = FineRippleExcitationRate;
+            water.FineRippleExcitation = FineRippleExcitation;
+            water.FineRipplePersistence = FineRipplePersistence;
 
-            _material.Invalidate();
-        }
+            interaction.PlayerDisturbanceRadius = PlayerDisturbanceRadius;
+            interaction.PlayerDisturbanceStrength = PlayerDisturbanceStrength;
+            interaction.WalkingThreshold = WalkingThreshold;
 
-        public void ResetSimulation()
-        {
-            _simulation?.RequestReset();
+            material.Invalidate();
         }
 
         public float MaximumDepth { get; set; }
@@ -72,27 +63,31 @@ namespace XrSamples
 
         public bool PauseFlood { get; set; }
 
-        public float WaveSpeed { get; set; }
+        public float SurfaceWaveSpeed { get; set; }
 
-        public float Damping { get; set; }
+        public float SurfacePersistence { get; set; }
 
-        public float ImpactStrength { get; set; }
+        public float BackgroundStrength { get; set; }
 
-        public float RippleScale { get; set; }
+        public float SurfaceHeightScale { get; set; }
 
-        public float AmbientWaveHeight { get; set; }
+        public float BackgroundSpacing { get; set; }
 
-        public float AmbientWaveScale { get; set; }
+        public float FineRippleSpacing { get; set; }
+
+        public float FineRippleExcitationRate { get; set; }
 
         public float PlayerDisturbanceRadius { get; set; }
 
         public float PlayerDisturbanceStrength { get; set; }
 
-        public float WakeDetailStrength { get; set; }
+        public float WalkingThreshold { get; set; }
 
-        public float WakeDetailGeneration { get; set; }
+        public float FineRippleNormalStrength { get; set; }
 
-        public float WakeDetailPersistence { get; set; }
+        public float FineRippleExcitation { get; set; }
+
+        public float FineRipplePersistence { get; set; }
 
         public float Roughness { get; set; }
 
@@ -104,10 +99,10 @@ namespace XrSamples
 
     public sealed class WaterFloodSettingsPanel : UIRoot
     {
-        public WaterFloodSettingsPanel(WaterFloodSettings settings)
+        public WaterFloodSettingsPanel(WaterFloodSettings settings, Water water)
         {
             var binder = new Binder<WaterFloodSettings>(settings);
-            binder.PropertyChanged += (_, _, _, _) => settings.Apply();
+            binder.PropertyChanged += (_, _, _, _) => settings.Apply(water);
 
             UiBuilder.From(this).Name("Water flood settings").AsColumn()
                 .Style(s => s
@@ -117,29 +112,37 @@ namespace XrSamples
                     .BackgroundColor("#050505D8"))
                 .BeginRow(s => s.ColGap(16).FlexGrow(1))
                 .BeginColumn(s => s.FlexBasis(1).RowGap(10))
-                    .AddText("Simulation", s => s.FontSize(1.25f, Unit.Em))
+                    .AddText("Flood and background", s => s.FontSize(1.25f, Unit.Em))
                     .AddInputRange("Maximum depth (m)", 0.05f, 1.5f, binder.Prop(a => a.MaximumDepth))
                     .AddInputRange("Rise speed (m/s)", 0f, 0.1f, binder.Prop(a => a.RiseSpeed))
-                    .AddInputRange("Wave speed", 20f, 600f, binder.Prop(a => a.WaveSpeed))
-                    .AddInputRange("Damping", 0.96f, 0.9999f, binder.Prop(a => a.Damping))
-                    .AddInputRange("Impact strength", 0f, 2f, binder.Prop(a => a.ImpactStrength))
-                    .AddInputRange("Ripple scale", 0f, 2f, binder.Prop(a => a.RippleScale))
+                    .AddInputRange("Surface wave speed", 20f, 600f, binder.Prop(a => a.SurfaceWaveSpeed))
+                    .AddInputRange("Surface wave persistence", 0.96f, 0.9999f, binder.Prop(a => a.SurfacePersistence))
+                    .AddInputRange("Background strength", 0f, 2f, binder.Prop(a => a.BackgroundStrength))
+                    .AddInputRange("Surface height scale", 0f, 2f, binder.Prop(a => a.SurfaceHeightScale))
+                    .AddInputRange("Background spacing (m)", 0.025f, 0.25f, binder.Prop(a => a.BackgroundSpacing))
                     .AddInput("Pause flood", new CheckBox(), binder.Prop(a => a.PauseFlood))
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(10))
-                    .AddText("Surface and player", s => s.FontSize(1.25f, Unit.Em))
-                    .AddInputRange("Ambient wave height (m)", 0f, 0.05f, binder.Prop(a => a.AmbientWaveHeight))
-                    .AddInputRange("Ambient wave scale", 0.5f, 2f, binder.Prop(a => a.AmbientWaveScale))
+                    .AddText("Fine ripples", s => s.FontSize(1.25f, Unit.Em))
+                    .AddInputRange("Spacing (m)", 0.008f, 0.08f, binder.Prop(a => a.FineRippleSpacing))
+                    .AddInputRange("Excitation rate (Hz)", 2f, 20f, binder.Prop(a => a.FineRippleExcitationRate))
+                    .AddInputRange("Normal strength", 0f, 5f, binder.Prop(a => a.FineRippleNormalStrength))
+                    .AddInputRange("Excitation", 0f, 2f, binder.Prop(a => a.FineRippleExcitation))
+                    .AddInputRange("Persistence", 0.98f, 1f, binder.Prop(a => a.FineRipplePersistence))
+                    .AddText("Interaction and appearance", s => s
+                            .Margin(top: 16)
+                            .FontSize(1.25f, Unit.Em))
+                    .AddInputRange("Walking threshold (m)", 0.02f, 0.4f, binder.Prop(a => a.WalkingThreshold))
                     .AddInputRange("Player disturbance radius (m)", 0.05f, 0.4f, binder.Prop(a => a.PlayerDisturbanceRadius))
                     .AddInputRange("Player disturbance strength", 0f, 30f, binder.Prop(a => a.PlayerDisturbanceStrength))
-                    .AddInputRange("Wake detail strength", 0f, 5f, binder.Prop(a => a.WakeDetailStrength))
-                    .AddInputRange("Wake detail generation", 0f, 2f, binder.Prop(a => a.WakeDetailGeneration))
-                    .AddInputRange("Wake detail persistence", 0.98f, 1f, binder.Prop(a => a.WakeDetailPersistence))
                     .AddInputRange("Roughness", 0f, 0.5f, binder.Prop(a => a.Roughness))
                     .AddInputRange("IOR", 1f, 1.7f, binder.Prop(a => a.Ior))
                     .AddInputRange("Transmission", 0f, 1f, binder.Prop(a => a.Transmission))
-                    .AddButton("Reset simulation", settings.ResetSimulation)
                 .EndChild()
+                .EndChild()
+                .BeginRow(s => s.JustifyContent(UiAlignment.End).ColGap(10))
+                    .AddButton("Save parameters", settings.Save, s => s.Padding(8, 16).BackgroundColor("#1565C0"))
+                    .AddButton("Reset simulation", water.ResetSimulation, s => s.Padding(8, 16).BackgroundColor("#1565C0"))
                 .EndChild();
         }
     }

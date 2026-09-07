@@ -1,68 +1,88 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 
-// RG: geometry height and velocity. BA: normal-only wake detail height and velocity.
+// RG: simulated background/contact height and velocity. BA: thin normal-detail height and velocity.
 // The two array layers are the ping-pong states.
 layout(rgba16f, binding = 0) readonly uniform highp image2DArray uWaterStateIn;
 layout(rgba16f, binding = 1) writeonly uniform highp image2DArray uWaterStateOut;
 
-uniform int uReadLayer;
-uniform int uWriteLayer;
-uniform float uDeltaTime;
-uniform float uTime;
-uniform float uWaveSpeed;
-uniform float uDamping;
-uniform float uRippleStrength;
-uniform vec2 uPlayerDisturbanceUv;
-uniform vec2 uPlayerDisturbanceRadiusUv;
-uniform float uPlayerDisturbanceMotion;
-uniform float uPlayerDisturbanceStrength;
-uniform float uWakeDetailGeneration;
-uniform float uWakeDetailPersistence;
+// Matches SimulationUniforms in GlWaterSimulationPass.
+layout(std140, binding = 0) uniform WaterSimulation
+{
+    int uReadLayer;
+    int uWriteLayer;
+    int uInitialize;
+    float uDeltaTime;
+    float uTime;
+    float uSurfaceWaveSpeed;
+    float uSurfaceDecay;
+    float uBackgroundStrength;
+    float uFineRippleExcitation;
+    float uFineRippleDecay;
+    float uSurfaceHeightScale;
+    float uBackgroundSpacing;
+    float uFineRippleSpacing;
+    float uFineRippleExcitationRate;
+    float uPlayerDisturbanceMotion;
+    float uPlayerDisturbanceStrength;
+    vec2 uWaterSize;
+    vec2 uLaplacianWeights;
+    vec2 uPlayerDisturbanceUv;
+    vec2 uPlayerDisturbanceRadiusUv;
+    vec4 uContacts[4];
+    vec4 uPreviousContacts[4];
+};
+float fieldHash(vec2 p)
+{
+    vec3 q = fract(vec3(p.xyx) * 0.1031);
+    q += dot(q, q.yzx + 33.33);
+    return fract((q.x + q.y) * q.z) * 2.0 - 1.0;
+}
+
+float fieldNoise(vec2 p)
+{
+    vec2 cell = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(fieldHash(cell), fieldHash(cell + vec2(1, 0)), f.x),
+               mix(fieldHash(cell + vec2(0, 1)), fieldHash(cell + vec2(1, 1)), f.x), f.y);
+}
+
+float backgroundField(vec2 uv)
+{
+    vec2 p = (uv - 0.5) * uWaterSize;
+    // Distributed, continuously advected energy: no point impacts or expanding rings.
+    return fieldNoise(p / uBackgroundSpacing + vec2(uTime * 0.31, -uTime * 0.23))
+         - fieldNoise(p / (uBackgroundSpacing * 1.6923) + vec2(-uTime * 0.19, uTime * 0.27) + 17.0);
+}
+
+float fineRippleField(vec2 uv)
+{
+    vec2 p = (uv - 0.5) * uWaterSize / uFineRippleSpacing;
+    float clock = uTime * uFineRippleExcitationRate;
+    float frame = floor(clock);
+    float blend = fract(clock);
+
+    // Short-lived, distributed excitation feeds travelling fine waves everywhere.
+    // Only the simulated state is rendered; there are no isolated impact centers.
+    vec2 seed = vec2(37.0, 61.0);
+    float current = fieldNoise(p + mod(frame, 4096.0) * seed);
+    float next = fieldNoise(p + mod(frame + 1.0, 4096.0) * seed);
+    // Time derivative of smooth noise: suppress slow forcing that would build broad waves.
+    return (next - current) * (6.0 * blend * (1.0 - blend));
+}
 
 vec4 loadState(ivec2 pixel, ivec2 size)
 {
-    return imageLoad(uWaterStateIn, ivec3(clamp(pixel, ivec2(0), size - ivec2(1)), uReadLayer));
-}
-
-float hash11(float value)
-{
-    return fract(sin(value * 127.1) * 43758.5453);
-}
-
-float impactRipple(vec2 uv, float period, float offset, float seed)
-{
-    float clock = uTime + offset;
-    float cycle = floor(clock / period);
-    float age = clock - cycle * period;
-
-    vec2 center = vec2(hash11(cycle + seed), hash11(cycle + seed + 19.19));
-    center = mix(vec2(0.12), vec2(0.88), center);
-
-    // A brief, compact displacement creates a travelling circular wave.
-    // Continuous forcing here produces the stationary dents used previously.
-    float temporalPulse = exp(-pow(age / 0.035, 2.0));
-    vec2 delta = uv - center;
-    float spatialPulse = exp(-dot(delta, delta) / (0.012 * 0.012));
-
-    return temporalPulse * spatialPulse;
-}
-
-float persistentWakeRipple(vec2 uv, float period, float offset, float seed, float radius)
-{
-    float clock = uTime + offset;
-    float cycle = floor(clock / period);
-    float age = clock - cycle * period;
-    float randomX = hash11(cycle + seed);
-    vec2 center = vec2(randomX, hash11(cycle + seed + 19.19));
-    center = mix(vec2(0.08), vec2(0.92), center);
-
-    vec2 delta = (uv - center) / radius;
-    float radius2 = dot(delta, delta);
-    float spatialPulse = (1.0 - radius2) * exp(-radius2);
-    float temporalPulse = exp(-pow(age / 0.065, 2.0));
-    float polarity = randomX < 0.5 ? -1.0 : 1.0;
-
-    return spatialPulse * temporalPulse * polarity;
+    pixel = clamp(pixel, ivec2(0), size - ivec2(1));
+    if (uInitialize != 0)
+    {
+        vec2 uv = (vec2(pixel) + 0.5) / vec2(size);
+        float background = backgroundField(uv) * 0.0004 * uBackgroundStrength;
+        vec2 finePosition = (uv - 0.5) * uWaterSize / uFineRippleSpacing;
+        float fine = fieldNoise(finePosition + vec2(13.0, 29.0)) * 0.0004 * uFineRippleExcitation;
+        return vec4(background, 0.0, fine, 0.0);
+    }
+    return imageLoad(uWaterStateIn, ivec3(pixel, uReadLayer));
 }
 
 float playerDisturbance(vec2 uv)
@@ -70,6 +90,34 @@ float playerDisturbance(vec2 uv)
     vec2 delta = (uv - uPlayerDisturbanceUv) / max(uPlayerDisturbanceRadiusUv, vec2(0.0001));
     float radius2 = dot(delta, delta);
     return (radius2 - 1.0) * exp(-radius2) * uPlayerDisturbanceMotion;
+}
+
+float handDisturbance(vec2 uv, float simulationHeight)
+{
+    vec2 p = (uv - 0.5) * uWaterSize;
+    float source = 0.0;
+    float surfaceHeight = simulationHeight * uSurfaceHeightScale;
+    for (int i = 0; i < 4; ++i)
+    {
+        float radius = uContacts[i].w;
+        if (radius <= 0.0 || uPreviousContacts[i].w < 0.015)
+            continue;
+        vec3 a = uPreviousContacts[i].xyz;
+        vec3 b = uContacts[i].xyz;
+        if (any(lessThan(p, min(a.xy, b.xy) - radius * 3.0)) ||
+            any(greaterThan(p, max(a.xy, b.xy) + radius * 3.0)))
+            continue;
+        // Find the closest point on the swept contact to this surface pixel.
+        vec3 segment = b - a;
+        float t = clamp(dot(vec3(p, surfaceHeight) - a, segment) / max(dot(segment, segment), 1e-8), 0.0, 1.0);
+        vec3 contact = mix(a, b, t);
+        float depthFade = 1.0 - smoothstep(radius, radius * 2.0, abs(contact.z - surfaceHeight));
+        vec2 delta = (p - contact.xy) / radius;
+        float r2 = dot(delta, delta);
+        if (r2 < 9.0)
+            source += (r2 - 1.0) * exp(-r2) * depthFade * uPreviousContacts[i].w;
+    }
+    return source;
 }
 
 void main()
@@ -83,32 +131,46 @@ void main()
     vec4 state = loadState(pixel, size);
     float height = state.r;
     float velocity = state.g;
-    float wakeHeight = state.b;
-    float wakeVelocity = state.a;
+    float fineHeight = state.b;
+    float fineVelocity = state.a;
 
     vec4 left = loadState(pixel + ivec2(-1, 0), size);
     vec4 right = loadState(pixel + ivec2(1, 0), size);
     vec4 down = loadState(pixel + ivec2(0, -1), size);
     vec4 up = loadState(pixel + ivec2(0, 1), size);
-    float laplacian = left.r + right.r + down.r + up.r - 4.0 * height;
-    float wakeLaplacian = left.b + right.b + down.b + up.b - 4.0 * wakeHeight;
+    // Preserve the existing tuning on square floors; equal physical speed on rectangular floors.
+    vec2 weights = uLaplacianWeights;
+    float laplacian = (left.r + right.r - 2.0 * height) * weights.x + (down.r + up.r - 2.0 * height) * weights.y;
+    float fineLaplacian = (left.b + right.b - 2.0 * fineHeight) * weights.x + (down.b + up.b - 2.0 * fineHeight) * weights.y;
 
     vec2 uv = (vec2(pixel) + vec2(0.5)) / vec2(size);
-    float source = impactRipple(uv, 1.7, 0.0, 3.7) + impactRipple(uv, 2.3, 0.9, 41.3) * 0.65;
-    float persistentWakeSource = persistentWakeRipple(uv, 0.29, 0.0, 83.1, 0.006) + persistentWakeRipple(uv, 0.37, 0.17, 137.7, 0.008) * 0.8;
+    float backgroundSource = 0.0;
+    float fineSource = 0.0;
+    if (uBackgroundStrength > 0.0)
+        backgroundSource = backgroundField(uv);
+    if (uFineRippleExcitation > 0.0)
+        fineSource = fineRippleField(uv);
     float playerSource = playerDisturbance(uv);
+    float handSource = 0.0;
+    if (uContacts[0].w + uContacts[1].w + uContacts[2].w + uContacts[3].w > 0.0)
+        handSource = handDisturbance(uv, height);
 
-    velocity += laplacian * uWaveSpeed * uDeltaTime;
-    velocity += source * uRippleStrength * uDeltaTime * 30.0;
+    velocity += laplacian * uSurfaceWaveSpeed * uDeltaTime;
+    velocity += backgroundSource * uBackgroundStrength * uDeltaTime * 0.035;
     velocity += playerSource * uPlayerDisturbanceStrength * uDeltaTime;
-    velocity *= pow(uDamping, uDeltaTime * 60.0);
+    velocity += handSource * 4.0 * uDeltaTime;
+    // Restoring terms prevent mean-height drift under continuous excitation.
+    velocity -= height * 4.0 * uDeltaTime;
+    velocity *= uSurfaceDecay;
     height += velocity * uDeltaTime;
 
-    wakeVelocity += wakeLaplacian * uWaveSpeed * 0.4 * uDeltaTime;
-    wakeVelocity += source * uRippleStrength * uWakeDetailGeneration * uDeltaTime * 30.0;
-    wakeVelocity += persistentWakeSource * uWakeDetailGeneration * uDeltaTime * 0.25;
-    wakeVelocity *= pow(uWakeDetailPersistence, uDeltaTime * 60.0);
-    wakeHeight += wakeVelocity * uDeltaTime;
+    fineVelocity += fineLaplacian * uSurfaceWaveSpeed * 0.4 * uDeltaTime;
+    fineVelocity += fineSource * uFineRippleExcitation * uDeltaTime * 0.12;
+    fineVelocity += (playerSource * 0.035 + handSource * 0.08) * uFineRippleExcitation * uDeltaTime;
+    // Bound low-frequency/mean drift under continuous forcing, including persistence = 1.
+    fineVelocity -= fineHeight * 4.0 * uDeltaTime;
+    fineVelocity *= uFineRippleDecay;
+    fineHeight += fineVelocity * uDeltaTime;
 
-    imageStore(uWaterStateOut, ivec3(pixel, uWriteLayer), vec4(height, velocity, wakeHeight, wakeVelocity));
+    imageStore(uWaterStateOut, ivec3(pixel, uWriteLayer), vec4(height, velocity, fineHeight, fineVelocity));
 }

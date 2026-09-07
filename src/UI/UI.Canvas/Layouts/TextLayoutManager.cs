@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using System.Globalization;
 using System.Numerics;
 using System.Text;
 using XrMath;
@@ -62,7 +63,7 @@ namespace CanvasUI
 
             var curLine = new StringBuilder();
 
-            var lastBreakPoint = -1;
+            float curWidth = 0;
 
             float curY = 0;
 
@@ -72,7 +73,7 @@ namespace CanvasUI
             {
                 curY += lp.LineSize;
 
-                if (curLine.Length > 0 && curLine[^1] == ' ')
+                while (curLine.Length > 0 && curLine[^1] == ' ')
                     curLine.Length--;
 
                 var newLine = new LayoutLine
@@ -85,7 +86,7 @@ namespace CanvasUI
 
                 lines.Add(newLine);
 
-                lastBreakPoint = -1;
+                curWidth = 0;
                 curLine.Length = 0;
 
                 result.CurrentSize.Width = MathF.Max(newLine.Width, result.CurrentSize.Width);
@@ -93,52 +94,55 @@ namespace CanvasUI
 
             while (i < text.Length)
             {
-                var c = text[i];
-
-                var isWhite = char.IsWhiteSpace(c);
-
-                switch (c)
+                if (text[i] == '\r')
                 {
-                    case '\n':
+                    i++;
+                    continue;
+                }
+
+                if (text[i] == '\n')
+                {
+                    NewLine();
+                    i++;
+                    continue;
+                }
+
+                var start = i;
+                var isWhite = char.IsWhiteSpace(text[i]);
+
+                if (lp.Wrap == UiTextWrap.BreakWord)
+                    i += StringInfo.GetNextTextElementLength(text[i..]);
+                else
+                {
+                    while (i < text.Length && text[i] != '\n' && text[i] != '\r' && text[i] != '\t')
+                    {
+                        if (lp.Wrap == UiTextWrap.Whitespaces && char.IsWhiteSpace(text[i]) != isWhite)
+                            break;
+
+                        i++;
+                    }
+                }
+
+                var part = text[start..i];
+
+                if (text[start] == '\t')
+                {
+                    part = "   ".AsSpan();
+                    i = start + 1;
+                }
+
+                if (lp.Wrap != UiTextWrap.NoWrap)
+                {
+                    var width = lp.Font.MeasureText(part);
+
+                    if (curLine.Length > 0 && curWidth + width > availSize.Width &&
+                        (lp.Wrap == UiTextWrap.BreakWord || !isWhite))
                         NewLine();
-                        break;
-                    case '\t':
-                        curLine.Append("   ");
-                        break;
-                    case '\r':
-                        break;
-                    default:
-                        curLine.Append(c);
-                        break;
+
+                    curWidth += width;
                 }
 
-                if (isWhite || lp.Wrap == UiTextWrap.BreakWord)
-                {
-                    var curWidth = lp.Font.MeasureText(curLine.ToString());
-
-                    if (curWidth > availSize.Width)
-                    {
-                        if (lp.Wrap == UiTextWrap.BreakWord)
-                            NewLine();
-                        else if (lp.Wrap == UiTextWrap.Whitespaces)
-                        {
-                            var missText = string.Empty;
-                            if (lastBreakPoint != -1)
-                            {
-                                missText = curLine.ToString().Substring(lastBreakPoint);
-                                curLine.Length = lastBreakPoint;
-                            }
-                            NewLine();
-                            curLine.Append(missText);
-                        }
-                    }
-                    else
-                    {
-                        lastBreakPoint = curLine.Length;
-                    }
-                }
-
-                i++;
+                curLine.Append(part);
             }
 
             if (curLine.Length > 0)
