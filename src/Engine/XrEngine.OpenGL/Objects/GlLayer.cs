@@ -381,10 +381,7 @@ namespace XrEngine.OpenGL
                 SortMaterials();
 
             if (_render.Options.FrustumCulling)
-            {
-                ctx.FrustumPlanes = camera.FrustumPlanes(ctx.FrustumPlanes, out var count);
-                ctx.FrustumPlanesCount = count;
-            }
+                camera.FrustumPlanes(ctx.FrustumPlanes);
 
             if (cameraChanged || frameChanged)
                 ComputeVisibility();
@@ -621,7 +618,7 @@ namespace XrEngine.OpenGL
             var ctx = _render.UpdateContext;
          
             var frustumCulling = _render.Options.FrustumCulling;
-            var frustumPlanes = ctx.FrustumPlanes.AsSpan(0, ctx.FrustumPlanesCount);
+            var frustumPlanes = ctx.FrustumPlanes.AsSpan();
 
             var totHidden = 0;
 
@@ -701,7 +698,7 @@ namespace XrEngine.OpenGL
         protected int ComputeVisibilityV2()
         {
             var ctx = _render.UpdateContext;
-            var frustumPlanes = ctx.FrustumPlanes.AsSpan(0, ctx.FrustumPlanesCount);
+            var frustumPlanes = ctx.FrustumPlanes.AsSpan();
 
             var totHidden = 0;
 

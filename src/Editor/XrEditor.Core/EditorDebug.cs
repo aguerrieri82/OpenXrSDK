@@ -19,7 +19,7 @@ namespace XrEditor
 
         public static readonly bool EnablePreview = false;
 
-        public static bool IsMultiView = true;
+        public static readonly bool IsMultiView = false;
 
 #if GLES
         public static readonly bool UseEs = true;

@@ -107,7 +107,7 @@ namespace XrEngine.OpenGL
 
             _objects.Clear();
 
-            _camera.FrustumPlanes(_cameraFrustum, out var _);
+            _camera.FrustumPlanes(_cameraFrustum);
 
             //_idsBuffer.ClearWrite();
             _idsBuffer.BindWrite(12);

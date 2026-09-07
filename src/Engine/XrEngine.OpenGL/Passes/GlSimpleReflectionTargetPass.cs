@@ -121,8 +121,7 @@ namespace XrEngine.OpenGL
                 return false;
 
             if (!_reflection.Host!.IsVisible ||
-                !_reflection.Host.WorldBounds.IntersectFrustum(ctx.FrustumPlanes
-                 .AsSpan(0, ctx.FrustumPlanesCount)))
+                !_reflection.Host.WorldBounds.IntersectFrustum(ctx.FrustumPlanes.AsSpan()))
             {
                 return false;
             }

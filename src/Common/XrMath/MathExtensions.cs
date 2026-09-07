@@ -85,23 +85,18 @@ namespace XrMath
                 return *(Matrix4x4*)result;
             }
 
-            public Matrix4x4 InterpolateWorldMatrix(Matrix4x4 matrix2, float t)
+            public Matrix4x4 InterpolateWorldMatrix(Matrix4x4 other, float t)
             {
-                // Extract position vectors
                 var position1 = new Vector3(self.M41, self.M42, self.M43);
-                var position2 = new Vector3(matrix2.M41, matrix2.M42, matrix2.M43);
+                var position2 = new Vector3(other.M41, other.M42, other.M43);
 
-                // Interpolate position
                 var interpolatedPosition = Vector3.Lerp(position1, position2, t);
 
-                // Extract rotation quaternions
                 var rotation1 = Quaternion.CreateFromRotationMatrix(self);
-                var rotation2 = Quaternion.CreateFromRotationMatrix(matrix2);
+                var rotation2 = Quaternion.CreateFromRotationMatrix(other);
 
-                // Interpolate rotation
                 var interpolatedRotation = Quaternion.Slerp(rotation1, rotation2, t);
 
-                // Recompose the interpolated matrix
                 var result = Matrix4x4.CreateFromQuaternion(interpolatedRotation);
                 result.M41 = interpolatedPosition.X;
                 result.M42 = interpolatedPosition.Y;
@@ -322,12 +317,6 @@ namespace XrMath
 
             public bool IntersectFrustum(in ReadOnlySpan<Plane> planes)
             {
-                if (planes.Length == 12)
-                {
-                    return self.IntersectFrustum(planes.Slice(0, 6)) ||
-                           self.IntersectFrustum(planes.Slice(6, 6));
-                }
-
                 for (var i = 0; i < planes.Length; i++)
                 {
                     var plane = planes[i];

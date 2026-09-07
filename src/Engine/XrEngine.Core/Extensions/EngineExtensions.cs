@@ -1374,26 +1374,13 @@ namespace XrEngine
                 return corners;
             }
 
-            public Plane[] FrustumPlanes(Plane[]? planes, out int count, bool fullStereo = true)
+            public void FrustumPlanes(Span<Plane> planes)
             {
-                var stereo = fullStereo && self.IsStereo && self.Eyes?.Length > 1;
+                var viewProj = self.IsStereo
+                    ? self.CenterView * self.SharedProjection
+                    : self.ViewProjection;
 
-                count = stereo ? 12 : 6;
-
-                if (planes == null || planes.Length < count)
-                    Array.Resize(ref planes, count);
-
-                if (stereo)
-                {
-                    Debug.Assert(self.Eyes != null);
-
-                    self.Eyes[0].ViewProj.FrustumPlanes(planes.AsSpan(0, 6));
-                    self.Eyes[1].ViewProj.FrustumPlanes(planes.AsSpan(6, 6));
-                }
-                else
-                    self.ViewProjection.FrustumPlanes(planes.AsSpan(0, 6));
-
-                return planes;
+                viewProj.FrustumPlanes(planes);
             }
         }
 

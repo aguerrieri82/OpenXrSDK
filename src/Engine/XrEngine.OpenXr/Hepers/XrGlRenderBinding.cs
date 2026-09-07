@@ -208,6 +208,7 @@ namespace XrEngine.OpenXr
             var eyes = camera.Eyes;
             var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();
 
+
             for (var i = 0; i < info.ProjViews.Length; i++)
             {
                 XrCameraTransform transform;
@@ -232,9 +233,19 @@ namespace XrEngine.OpenXr
                     depth->FarZ = camera.Far;
                 }
             }
+
+            camera.SharedProjection = XrCameraTransform.CreateProjection(info.SharedFov, camera.Near, camera.Far);
+            camera.CenterWorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
+
+            if (camera.IsMultiView)
+            {
+                camera.Projection = camera.SharedProjection;
+                camera.WorldMatrix = camera.CenterWorldMatrix;
+                camera.ActiveEye = -1;
+            }
         }
 
-        protected void UpdateClipRegion(ref RenderViewsInfo info, IGlRenderTargetFB renderTarget, int viewIndex)
+        protected static void UpdateClipRegion(ref RenderViewsInfo info, IGlRenderTargetFB renderTarget, int viewIndex)
         {
             if (info.Layer.UseSimmetricFov)
             {
@@ -284,9 +295,7 @@ namespace XrEngine.OpenXr
             {
                 var renderTarget = SetupRenderTarget(ref info, camera, 0);
 
-                camera.Projection = eyes[0].Projection;
-                camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
-                camera.ActiveEye = -1;
+
 
                 UpdateClipRegion(ref info, renderTarget, 0);
                 UpdateClipRegion(ref info, renderTarget, 1);

@@ -10,32 +10,37 @@ namespace OpenXr.Framework
 
         public Matrix4x4 World;
 
-        public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane, bool reverseUpDown = false)
+        public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane)
         {
-            return FromView(view.Pose.ToPose3(), view.Fov, nearPlane, farPlane, reverseUpDown);
+            return FromView(view.Pose.ToPose3(), view.Fov, nearPlane, farPlane);
         }
 
-        public static XrCameraTransform FromView(View view, float nearPlane, float farPlane, bool reverseUpDown = false)
+        public static XrCameraTransform FromView(View view, float nearPlane, float farPlane)
         {
-            return FromView(view.Pose.ToPose3(), view.Fov, nearPlane, farPlane, reverseUpDown);
+            return FromView(view.Pose.ToPose3(), view.Fov, nearPlane, farPlane);
         }
 
-        public static XrCameraTransform FromView(Pose3 pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
+        public static XrCameraTransform FromView(in Pose3 pose, Fovf fov, float nearPlane, float farPlane)
         {
             var result = new XrCameraTransform
             {
-                Projection = CreateProjectionFov(
-                       MathF.Tan(fov.AngleLeft),
-                       MathF.Tan(fov.AngleRight),
-                       MathF.Tan(reverseUpDown ? fov.AngleDown : fov.AngleUp),
-                       MathF.Tan(reverseUpDown ? fov.AngleUp : fov.AngleDown),
-                       nearPlane,
-                       farPlane),
+                Projection = CreateProjection(fov, nearPlane, farPlane),
 
                 World = pose.ToMatrix()
             };
 
             return result;
+        }
+
+        public static Matrix4x4 CreateProjection(Fovf fov, float nearPlane, float farPlane)
+        {
+            return CreateProjectionFov(
+                       MathF.Tan(fov.AngleLeft),
+                       MathF.Tan(fov.AngleRight),
+                       MathF.Tan(fov.AngleUp),
+                       MathF.Tan(fov.AngleDown),
+                       nearPlane,
+                       farPlane);
         }
 
         unsafe static Matrix4x4 CreateProjectionFov(float tanAngleLeft,

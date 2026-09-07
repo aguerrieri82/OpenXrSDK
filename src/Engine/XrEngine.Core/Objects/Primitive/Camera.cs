@@ -30,6 +30,8 @@ namespace XrEngine
         protected bool _projInverseDirty;
         protected float _near;
         protected float _far;
+        private Matrix4x4 _centerWorldMatrix;
+        private Matrix4x4 _centerView;
 
         public Camera()
             : this(true)
@@ -40,6 +42,7 @@ namespace XrEngine
         {
             if (!mustInit)
                 return;
+            SharedProjection = Matrix4x4.Identity;
             Near = 0.001f;
             Far = 10;
             Exposure = 1;
@@ -100,9 +103,12 @@ namespace XrEngine
             _proj = camera.Projection;
             _target = camera.Target;
             _viewSize = camera._viewSize;
+            _centerWorldMatrix = camera._centerWorldMatrix;
+            _centerView = camera._centerView;
 
             BackgroundColor = camera.BackgroundColor;
             Exposure = camera.Exposure;
+            SharedProjection = camera.SharedProjection;
             WorldMatrix = camera.WorldMatrix;
             Eyes = camera.Eyes;
             ActiveEye = camera.ActiveEye;
@@ -255,6 +261,20 @@ namespace XrEngine
                 _viewProjDirty = true;
             }
         }
+
+        public Matrix4x4 SharedProjection { get; set; }
+
+        public Matrix4x4 CenterWorldMatrix
+        {
+            get => _centerWorldMatrix;
+            set
+            {
+                _centerWorldMatrix = value;
+                _centerView = _centerWorldMatrix.Invert();
+            }
+        }
+
+        public Matrix4x4 CenterView => _centerView;
 
         public Matrix4x4 ViewInverse => WorldMatrix;
 

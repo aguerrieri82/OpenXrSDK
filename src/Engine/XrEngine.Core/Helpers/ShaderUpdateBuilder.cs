@@ -113,8 +113,6 @@ namespace XrEngine
 
         public Plane[] FrustumPlanes;
 
-        public int FrustumPlanesCount;
-
         public IShadowMapProvider? ShadowMapProvider;
 
         public IBloomProvider? BloomProvider;

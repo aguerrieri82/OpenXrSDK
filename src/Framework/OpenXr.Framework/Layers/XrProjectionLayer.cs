@@ -109,22 +109,20 @@ namespace OpenXr.Framework
 
             UseSimmetricFov = _xrApp.RenderOptions.UseSimmetricFov;
 
-            if (UseSimmetricFov)
-            {
-                var views = new View[2];
-                views[0].Type = StructureType.View;
-                views[1].Type = StructureType.View;
+            var views = new View[2];
 
-                var now = _xrApp.XrNow();
+            views[0].Type = StructureType.View;
+            views[1].Type = StructureType.View;
 
-                _xrApp.LocateViews(_xrApp.ReferenceSpace, now, views);
+            var now = _xrApp.XrNow();
 
-                var fovs = views.Select(a => a.Fov).ToArray();
+            _xrApp.LocateViews(_xrApp.ReferenceSpace, now, views);
 
-                _sharedFov = BuildSharedFov(fovs);
+            var fovs = views.Select(a => a.Fov).ToArray();
 
-                _sharedFovScale = GetSharedFovScale(fovs);
-            }
+            _sharedFov = BuildSharedFov(fovs);
+
+            _sharedFovScale = GetSharedFovScale(fovs);
 
             var options = _xrApp.RenderOptions;
 
