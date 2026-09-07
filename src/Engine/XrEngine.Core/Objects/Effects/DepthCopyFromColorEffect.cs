@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Numerics;
+
+namespace XrEngine
 {
     public class DepthCopyFromColorEffect : ShaderMaterial
     {
@@ -23,6 +25,7 @@
             WriteDepth = true;
             DepthLocation = 1;
             Channel = "r";
+            UvScale = Vector2.One;
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
@@ -34,6 +37,8 @@
                 bld.AddFeature($"USE_FETCH");
                 bld.AddExtension("GL_EXT_shader_framebuffer_fetch");
             }
+            else
+                bld.ExecuteAction((ctx, up) => up.SetUniform("uUvScale", UvScale));
 
             bld.AddFeature($"CHANNEL {Channel}");
 
@@ -46,6 +51,8 @@
 
             base.UpdateShaderMaterial(bld);
         }
+
+        public Vector2 UvScale { get; set; }
 
         public bool HighPrecision { get; set; }
 

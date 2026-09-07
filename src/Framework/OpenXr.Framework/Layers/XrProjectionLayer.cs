@@ -241,15 +241,12 @@ namespace OpenXr.Framework
 
                     var colorSwap = _colorSwaps[swIndex];
 
-                    //var colorBaseIndex = colorSwap.ArraySize == 4 ? 2u : 0u;
-                    var colorBaseIndex = 0u;
-
                     projView.Type = StructureType.CompositionLayerProjectionView;
                     projView.Next = null;
                     projView.SubImage.Swapchain = colorSwap;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                        projView.SubImage.ImageArrayIndex = colorBaseIndex + (uint)i;
+                        projView.SubImage.ImageArrayIndex = ColorBaseIndex + (uint)i;
                     else
                         projView.SubImage.ImageArrayIndex = 0;
 
@@ -358,6 +355,7 @@ namespace OpenXr.Framework
                 if (info.RenderedSize != null)
                     renderSize = info.RenderedSize.Value;
 
+
                 for (var i = 0; i < _projViews.Length; i++)
                 {
                     ref var view = ref _projViews[i];
@@ -455,7 +453,10 @@ namespace OpenXr.Framework
 
         public bool UseIntermediate { get; set; }
 
+        public uint ColorBaseIndex { get; set; }
+
         public bool UseDepth { get; protected set; }
+
 
     }
 }

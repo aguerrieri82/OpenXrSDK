@@ -19,6 +19,7 @@
     #endif
 
     in vec2 fUv;
+    uniform vec2 uUvScale;
 
 #endif
 
@@ -32,9 +33,9 @@ void main()
 #else
 
     #ifdef MULTI_VIEW
-        gl_FragDepth = 1.0 - texture(uImage, vec3(fUv, float(gl_ViewID_OVR))).CHANNEL;
+        gl_FragDepth = 1.0 - texture(uImage, vec3(fUv * uUvScale, float(gl_ViewID_OVR))).CHANNEL;
     #else
-        gl_FragDepth = 1.0 - texture(uImage, fUv).CHANNEL;
+        gl_FragDepth = 1.0 - texture(uImage, fUv * uUvScale).CHANNEL;
     #endif
 
 #endif

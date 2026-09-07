@@ -99,6 +99,8 @@ namespace XrEngine.OpenGL
                  ((ulong)depthTex << 2) |
                   (uint)(eyeIndex + 1);
 
+            var options = OpenGLRender.Current!.Options;
+
             if (!_targets.TryGetValue(targetId, out var target))
             {
                 GlTexture? glDepth = null;
@@ -118,7 +120,8 @@ namespace XrEngine.OpenGL
                     {
                         if (!_views.TryGetValue(colorTex, out var viewTexture))
                         {
-                            viewTexture = glColor.CreateView(0, 2);
+                            var isTail = (options.PostProcessSourceMode & PostProcessSourceMode.Tail) != 0;
+                            viewTexture = glColor.CreateView(isTail ? 2u : 0u, 2);
                             _views[colorTex] = viewTexture;
                         }
 
@@ -183,8 +186,8 @@ namespace XrEngine.OpenGL
                 {
                     var singleView = new GlTextureRenderTarget(_gl);
 
-                    var useRenderTarget = !OpenGLRender.Current!.Options.UseDepthPass &&
-                                          !OpenGLRender.Current!.Options.ContactShadow.Use;
+                    var useRenderTarget = !options.UseDepthPass &&
+                                          !options.ContactShadow.Use;
 
 
 #warning TEMPORARY DISABLED

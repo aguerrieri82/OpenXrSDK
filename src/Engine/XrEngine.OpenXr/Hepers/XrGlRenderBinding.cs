@@ -9,6 +9,7 @@ using OpenXr.Framework.Angle;
 using Silk.NET.OpenXR;
 using XrMath;
 using XrEngine.OpenGL;
+using Common.Interop;
 
 
 namespace XrEngine.OpenXr
@@ -80,6 +81,19 @@ namespace XrEngine.OpenXr
 
             projLayer.UseIntermediate = _renderer.Options.NeedPostProcess;
 
+            if (_renderer.Options.NeedPostProcess)
+            {
+                var mode = _renderer.Options.PostProcessSourceMode;
+                var isHead = (mode & PostProcessSourceMode.Head) != 0;
+                var isTail = (mode & PostProcessSourceMode.Tail) != 0;
+                var copy = (mode & PostProcessSourceMode.Copy) != 0;
+
+                if (copy)
+                    projLayer.ColorBaseIndex = isTail ? 2u : 0u;
+                else
+                    projLayer.ColorBaseIndex = isHead ? 2u : 0u;
+            }
+
             return projLayer;
         }
 
@@ -139,6 +153,8 @@ namespace XrEngine.OpenXr
                     renderTarget.RenderSize = new Size2I((uint)info.RenderedSize.Value.Width, (uint)info.RenderedSize.Value.Height);
                 else
                     renderTarget.RenderSize = new Size2I((uint)info.Color[0].Size.Width, (uint)info.Color[0].Size.Height);
+
+                MetaShit.ProjScale = (float)renderTarget.RenderSize.Width / info.Color[0].Size.Width;
             }
 
             return renderTarget;

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Common.Interop;
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -216,7 +217,7 @@ namespace XrEngine
                         BufferAccessMode.Read : BufferAccessMode.Write);
 
                     var size = new Vector2(ctx.CopyDepthImage.Width, ctx.CopyDepthImage.Height);
-                    var scale = size / ctx.PassCamera!.ViewSize.ToVector2();
+                    var scale = (size * MetaShit.ProjScale) / ctx.PassCamera!.ViewSize.ToVector2();
 
                     up.SetUniform("uDepthImageScale", scale);
                 });

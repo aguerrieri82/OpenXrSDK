@@ -11,6 +11,16 @@ namespace XrEngine.OpenGL
         High
     }
 
+    [Flags]
+    public enum PostProcessSourceMode
+    {
+        Head = 1,
+        Tail = 2,
+        Copy = 4,
+        Virtual = 8,
+        HeadCopy = Head | Copy
+    }
+
     public enum MotionVectorMode
     {
         None,
@@ -73,6 +83,7 @@ namespace XrEngine.OpenGL
             UsePrimitiveBoundingBox = false;
             UseTransmission = true;
             ClipMode = ShaderClipMode.DepthClear;
+            PostProcessSourceMode = PostProcessSourceMode.HeadCopy;
 
             ContactShadow = new()
             {
@@ -192,6 +203,10 @@ namespace XrEngine.OpenGL
 
         public bool UseFxAA { get; set; }
 
+        public PostProcessSourceMode PostProcessSourceMode { get; set; }
+
         public bool NeedPostProcess => UseFxAA;
+
+
     }
 }

@@ -357,7 +357,8 @@ namespace XrEngine.OpenGL
             {
                 _renderPasses.Add(new GlPostProcessPass(this)
                 {
-                    UseFxAA = _options.UseFxAA
+                    UseFxAA = _options.UseFxAA,
+                    SourceMode = _options.PostProcessSourceMode
                 });
             }
 

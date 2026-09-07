@@ -19,6 +19,7 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             _effect = new PostProcessEffect();
+            SourceMode = PostProcessSourceMode.Head;
         }
 
         public override void Render(GlUpdateContext ctx)
@@ -34,6 +35,14 @@ namespace XrEngine.OpenGL
             var color = sourceTarget.FrameBuffer.Color!;
 
             var realColor = color.IsView ? color.ParentTexture! : color;
+            var isHead = (SourceMode & PostProcessSourceMode.Head) != 0;
+            var isTail = (SourceMode & PostProcessSourceMode.Tail) != 0;
+            var sourceIndex = isTail ? 2u : 0u;
+            var destIndex = isHead ? 2u : 0u;
+            var copy = (SourceMode & PostProcessSourceMode.Copy) != 0;
+            var isVirtual = (SourceMode & PostProcessSourceMode.Virtual) != 0;
+
+            Debug.Assert(isHead != isTail);
 
             _effect.UseFxAA = UseFxAA;
  
@@ -61,16 +70,27 @@ namespace XrEngine.OpenGL
 
                 Debug.Assert(color.Depth > 1);
 
-                if (!_views.TryGetValue(realColor.Handle, out var viewTexture))
+                if (!_views.TryGetValue(realColor.Handle, out var destView))
                 {
-                    viewTexture = _effect.IsMultiView ? realColor.CreateView(2, 2) : color.CreateView(1, 1);
-                    _views[realColor.Handle] = viewTexture;
+                    if (!_effect.IsMultiView)
+                        throw new NotSupportedException();
+
+                    if (isVirtual)
+                        destView = realColor.CreateVirtualView(destIndex, 2);
+                    else
+                        destView = realColor.CreateView(destIndex, 2);
+
+                    _views[realColor.Handle] = destView;
                 }
 
                 _effect.Texture = color.ToEngineTexture();
-                _effect.BaseSourceIndex = color.IsView && color.ParentTexture == color ? color.ViewMinLayer : 0;
 
-                passTarget = _pool!.GetRenderTarget(viewTexture!.Handle, 0, sourceTarget.FrameBuffer.SampleCount, createDepth: false);
+                if (color.IsView)
+                    _effect.BaseSourceIndex = color.ParentTexture == color ? color.ViewMinLayer : 0;
+                else
+                    _effect.BaseSourceIndex = sourceIndex;
+
+                passTarget = _pool!.GetRenderTarget(destView!.Handle, 0, sourceTarget.FrameBuffer.SampleCount, createDepth: false);
             }
 
             passTarget?.Begin(ctx.MainCamera!);
@@ -81,14 +101,17 @@ namespace XrEngine.OpenGL
 
             passTarget?.End(false);
       
-            if (color.Depth == 4)
-                realColor.CopyTo(realColor, 0, 2, 0, 2);
+            if (realColor.Depth == 4 && copy)
+                realColor.CopyTo(realColor, 0, (int)destIndex, (int)sourceIndex, 2);
         }
 
         public override void Dispose()
         {
             foreach (var view in _views)
-                view.Value.Dispose();
+            {
+                if (view.Value.ParentTexture != view.Value)
+                    view.Value.Dispose();
+            }
             
             _views.Clear();
             
@@ -97,6 +120,8 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
+
+        public PostProcessSourceMode SourceMode { get; set; }
 
         public bool UseFxAA { get; set; }
     }
