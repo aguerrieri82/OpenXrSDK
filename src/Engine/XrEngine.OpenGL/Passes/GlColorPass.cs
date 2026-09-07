@@ -16,6 +16,8 @@ namespace XrEngine.OpenGL
         protected DepthClipEffect? _depthClipEffect;
         protected readonly ShaderMaterial _dummyMaterial;
 
+        protected bool _lastMultiView;
+
 #if GLES
         readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
 #endif
@@ -90,8 +92,13 @@ namespace XrEngine.OpenGL
                 
                 Debug.Assert(depthTex != null);
 
+                var camera = ctx.PassCamera!;
+
                 for (var i = 0; i < ctx.ClipRegions.Length; i++)
                 {
+                    if (!ctx.IsMultiView && camera.ActiveEye != i)
+                        continue;
+
                     var clip = ctx.ClipRegions[i];
 
                     Rect2I region;
@@ -137,6 +144,7 @@ namespace XrEngine.OpenGL
             }
 
             ctx.UseMotionVectors = false;
+            _lastMultiView = ctx.IsMultiView;
         }
 
         protected virtual bool CanDraw(DrawContent draw)
@@ -266,7 +274,7 @@ namespace XrEngine.OpenGL
                 ctx.Shader = shader.Key;
                 ctx.Stage = UpdateShaderStage.Shader;
 
-                progGlobal!.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
+                progGlobal!.UpdateProgram(ctx);
 
                 foreach (var material in shader.Value.SortedContent!)
                 {
@@ -295,7 +303,7 @@ namespace XrEngine.OpenGL
                     {
                         progInst = GetProgramInstance(_dummyMaterial);
                         ctx.Stage = UpdateShaderStage.Shader;
-                        progInst.Global.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
+                        progInst.Global.UpdateProgram(ctx);
                         ctx.Stage = UpdateShaderStage.Material;
                         ctx.Material = progInst.Material;
                         progChanged = UpdateProgram(ctx, progInst);
@@ -374,9 +382,8 @@ namespace XrEngine.OpenGL
 
             _renderer.PopGroup();
 
-            if (globalProgChangesCount > 0)
+            if (globalProgChangesCount > 0 && (_lastMultiView == ctx.IsMultiView))
                 Log.Debug(this, "Changes: {0}", globalProgChangesCount);
-
         }
 
         public bool WriteDepth { get; set; }

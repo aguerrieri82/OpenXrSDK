@@ -77,9 +77,6 @@ namespace XrEngine.OpenXr
                 return;
 
             if (XrPlatform.IsEditor)
-                return;
-
-            if (XrPlatform.IsEditor)
                 asLayer = true;
 
             if (asLayer)
@@ -90,6 +87,14 @@ namespace XrEngine.OpenXr
 
             e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
         });
+
+
+        public static XrEngineAppBuilder When(this XrEngineAppBuilder self, bool condition, Action<XrEngineAppBuilder> action)
+        {
+            if (condition)
+                action(self);
+            return self;
+        }
 
         public static XrEngineAppBuilder UseLeftController(this XrEngineAppBuilder self)
         {

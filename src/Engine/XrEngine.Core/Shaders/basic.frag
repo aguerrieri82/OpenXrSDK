@@ -1,5 +1,7 @@
 ﻿#include "Shared/uniforms.glsl"
 
+#include "Shared/position.glsl"
+
 in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
@@ -47,7 +49,7 @@ void main()
         diffuse = diffuse * texture(uTexture, fUv).rgb;
     #endif
 
-    vec3 viewDirection = normalize(uCamera.pos - fPos);
+    vec3 viewDirection = normalize(getViewPos() - fPos);
     vec3 reflectDirection = reflect(-lightDirection, norm);
     float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);

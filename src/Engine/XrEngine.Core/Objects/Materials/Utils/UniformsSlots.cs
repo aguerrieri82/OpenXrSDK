@@ -13,8 +13,6 @@
         public static readonly ResourceSlot Iridescence = new(8, nameof(Iridescence));
 
         public static readonly ResourceSlot BlurMip = new(9, nameof(BlurMip));
-        public static readonly ResourceSlot MultiView = new(10, nameof(MultiView));
-
         public static readonly SlotMask Reserved = ResourceSlot.FillMask(typeof(UniformsSlots));
     }
 }

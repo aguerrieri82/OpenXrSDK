@@ -108,7 +108,7 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureSampleApp()
                 .UseFloorTeleport(scene)
-                .UseEnvironmentDepth()
+                //.UseEnvironmentDepth()
                 //.UseEnvironmentMesh(100, receiveShadow: false)
                 .UseCameraRefraction(true)
                 .AddPanel(new WaterFloodSettingsPanel(settings))

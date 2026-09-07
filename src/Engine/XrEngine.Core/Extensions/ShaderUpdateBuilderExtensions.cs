@@ -43,6 +43,61 @@ namespace XrEngine
             {
                 self.SetSlot(name, () => code);
             }
+
+            public void LoadCameraBuffer()
+            {
+                self.LoadBuffer<CameraUniforms>((ctx, ref update) =>
+                {
+                    System.Diagnostics.Debug.Assert(ctx.PassCamera != null);
+
+                    var camera = ctx.PassCamera;
+
+                    update.Value = new CameraUniforms
+                    {
+                        Exposure = camera.Exposure,
+                        ActiveEye = camera.ActiveEye,
+                        ViewSize = camera.ViewSize,
+                        NearPlane = camera.Near,
+                        FarPlane = camera.Far,
+                        FrustumPlane1 = ctx.FrustumPlanes[0],
+                        FrustumPlane2 = ctx.FrustumPlanes[1],
+                        FrustumPlane3 = ctx.FrustumPlanes[2],
+                        FrustumPlane4 = ctx.FrustumPlanes[3],
+                        FrustumPlane5 = ctx.FrustumPlanes[4],
+                        FrustumPlane6 = ctx.FrustumPlanes[5],
+                        View = camera.View,
+                        Proj = camera.Projection
+                    };
+
+                    if (camera.Eyes == null)
+                    {
+                        update.Value.Eyes[0] = new CameraViewUniforms
+                        {
+                            ViewProj = camera.ViewProjection,
+                            Position = camera.WorldPosition,
+                            ViewProjInv = camera.ViewProjectionInverse
+                        };
+                    }
+                    else
+                    {
+                        for (var i = 0; i < 2; i++)
+                        {
+                            ref readonly var eye = ref camera.Eyes[i];
+                            update.Value.Eyes[i].ViewProj = eye.ViewProj;
+                            update.Value.Eyes[i].Position = eye.World.Translation;
+                            update.Value.Eyes[i].ViewProjInv = eye.ViewProjInv;
+                        }
+                    }
+
+                    var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
+                    if (light != null)
+                        update.Value.LightSpaceMatrix = light.Value;
+
+                    return true;
+
+                }, UniformsSlots.Camera, BufferStore.Shader);
+            }
         }
+
     }
 }

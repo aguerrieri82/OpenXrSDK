@@ -24,8 +24,6 @@ namespace XrEngine.OpenGL
 
         GlTexture? QueryTexture(FramebufferAttachment attachment);
 
-        IShaderHandler? ShaderHandler => null;
-
         GlRenderTargetFlags Flags { get; }
 
         int ShadingRate { get; set; }

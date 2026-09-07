@@ -1,9 +1,15 @@
 #include "consts.glsl"
 
-layout(std140, binding=0) uniform Camera
+struct CameraView
 {
 	mat4 viewProj;
-	vec3 pos;	
+	vec3 position;
+	mat4 viewProjInv;
+};
+
+layout(std140, binding=0) uniform Camera
+{
+	CameraView eyes[2];
 	float exposure;
 	mat4 lightSpaceMatrix;
 	int activeEye;
@@ -15,7 +21,6 @@ layout(std140, binding=0) uniform Camera
 	vec4 frustumPlanes[6];
 	mat4 view;
 	mat4 proj;
-	mat4 viewProjInv;
 } uCamera;
 
 struct ModellData 

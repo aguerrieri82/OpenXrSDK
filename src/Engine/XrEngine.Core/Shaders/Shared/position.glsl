@@ -1,101 +1,70 @@
 ﻿
-#ifdef MULTI_VIEW
-
-    #define NUM_VIEWS 2
+#ifdef CAMERA_UNIFORMS
     
-    #ifndef FRAGMENT_SHADER
+    #define ACTIVE_EYE uActiveEye
 
-        layout(num_views=NUM_VIEWS) in;
+    uniform vec3 uCameraPos;
+    uniform mat4 uViewProj;
+    uniform float uFarPlane;
+    uniform mat4 uViewProjInv;
 
-    #endif  
-
-    layout(std140, binding=10) uniform SceneMatrices
+    vec3 getViewPos()
     {
-        mat4 viewProj[NUM_VIEWS];
-        vec3 position[NUM_VIEWS];
-        mat4 viewProjInv[NUM_VIEWS];
-        float farPlane;
-    } uMatrices;
-
-    vec3 getViewPos() 
-    {
-        return uMatrices.position[gl_ViewID_OVR];   
+        return uCameraPos;
     }
 
-    mat4 getViewProj() 
+    mat4 getViewProj()
     {
-        return uMatrices.viewProj[gl_ViewID_OVR];   
+        return uViewProj;
+    }
+
+    float getFarPlane()
+    {
+        return uFarPlane;
     }
 
     mat4 getViewProjInv()
     {
-        return uMatrices.viewProjInv[gl_ViewID_OVR];
+        return uViewProjInv;
     }
-
-    float getFarPlane() 
-    {
-        return uMatrices.farPlane;
-    }
-
-    #define ACTIVE_EYE gl_ViewID_OVR
 
 #else
 
-    #ifdef CAMERA_UNIFORMS
+    #ifdef MULTI_VIEW
 
-        uniform vec3 uCameraPos;
-        uniform mat4 uViewProj;
-        uniform float uFarPlane;
-        uniform mat4 uViewProjInv;
+        #define NUM_VIEWS 2
 
-        vec3 getViewPos() 
-        {
-            return uCameraPos;   
-        }
+        #define ACTIVE_EYE gl_ViewID_OVR
 
-        mat4 getViewProj() 
-        {
-            return uViewProj;   
-        }
-
-        float getFarPlane() 
-        {
-            return uFarPlane;   
-        }
-
-        mat4 getViewProjInv()
-        {
-            return uViewProjInv;
-        }
-
-
-       #define ACTIVE_EYE uActiveEye
+        #ifndef FRAGMENT_SHADER
+            layout(num_views=NUM_VIEWS) in;
+        #endif
 
     #else
-
-        vec3 getViewPos() 
-        {
-            return uCamera.pos;   
-        }
-
-        mat4 getViewProj() 
-        {
-            return uCamera.viewProj;   
-        }
-
-        float getFarPlane() 
-        {
-            return uCamera.farPlane;   
-        }
-
-        mat4 getViewProjInv()
-        {
-            return uCamera.viewProjInv;
-        }
 
         #define ACTIVE_EYE uCamera.activeEye
 
     #endif
+
+    vec3 getViewPos()
+    {
+        return uCamera.eyes[ACTIVE_EYE].position;
+    }
+
+    mat4 getViewProj()
+    {
+        return uCamera.eyes[ACTIVE_EYE].viewProj;
+    }
+
+    float getFarPlane()
+    {
+        return uCamera.farPlane;
+    }
+
+    mat4 getViewProjInv()
+    {
+        return uCamera.eyes[ACTIVE_EYE].viewProjInv;
+    }
 
 #endif
 

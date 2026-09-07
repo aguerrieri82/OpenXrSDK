@@ -35,9 +35,6 @@ namespace XrEngine
 
         public ulong FeaturesHash;
 
-        public IShaderHandler?[]? ShaderHandlers;
-
-
     }
 
     public enum UpdateShaderStage

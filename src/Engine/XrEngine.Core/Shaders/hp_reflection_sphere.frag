@@ -1,5 +1,7 @@
 ﻿#include "Shared/uniforms.glsl"
 
+#include "Shared/position.glsl"
+
 in vec3 fPos;
 in vec3 fNormal;
 
@@ -61,7 +63,7 @@ vec2 sampleFish(vec2 polar, float fov)
 
 void main()
 {
-    vec3 cameraPos = uCamera.pos;
+    vec3 cameraPos = getViewPos();
 
 	vec3 viewDir = normalize(cameraPos - fPos);
 

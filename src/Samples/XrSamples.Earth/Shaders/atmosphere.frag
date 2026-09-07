@@ -2,6 +2,8 @@
 #include "Shared/uniforms.glsl"
 
 
+#include "Shared/position.glsl"
+
 // Existing uniforms
 uniform vec3 sphereCenter; 
 uniform float sphereRadius;
@@ -51,7 +53,7 @@ vec3 getWorldPosFromDepth(float depth, vec2 uv) {
 #endif
 
 void main() {
-    vec3 cameraPos = uCamera.pos;
+    vec3 cameraPos = getViewPos();
     
     #ifdef USE_DEPTH_CULL
         vec2 uv = gl_FragCoord.xy / vec2(uCamera.viewSize);

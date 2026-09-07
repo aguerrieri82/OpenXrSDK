@@ -1,6 +1,8 @@
 ﻿
 #include "Shared/uniforms.glsl"
 
+#include "Shared/position.glsl"
+
 uniform vec3 sphereCenter; 
 uniform float sphereRadius;
 uniform float haloWidth; 
@@ -48,7 +50,7 @@ vec3 getWorldPosFromDepth(float depth, vec2 uv) {
 
 void main() {
 
-    vec3 cameraPos = uCamera.pos;
+    vec3 cameraPos = getViewPos();
     
     #ifdef USE_DEPTH_CULL
 

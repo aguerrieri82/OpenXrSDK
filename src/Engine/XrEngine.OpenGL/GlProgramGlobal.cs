@@ -15,12 +15,19 @@ namespace XrEngine.OpenGL
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 return ctx.Pass is GlColorPass && (
+                       _tracker.IsChanged(() => ctx.IsMultiView) ||
                        _tracker.IsChanged(() => ctx.IsSrgbAutoEncode) ||
                        _tracker.IsChanged(() => ctx.IsSrgbTarget));
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+                if (bld.Context.IsMultiView)
+                {
+                    bld.AddExtension("GL_OVR_multiview2");
+                    bld.AddFeature("MULTI_VIEW");
+                }
+
                 if (bld.Context.Bugs.NvMultiViewClipBug)
                     bld.AddFeature("NV_MULTI_VIEW_CLIP_BUG");
 
@@ -49,7 +56,6 @@ namespace XrEngine.OpenGL
         protected readonly GlBufferArray<IGlBuffer> _bufferMap;
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
-        protected IShaderHandler?[] _lastGlobalHandler = [];
         protected ShaderUpdate? _shaderUpdate;
 
         protected ContextShaderHandler _contextHandler;
@@ -64,29 +70,22 @@ namespace XrEngine.OpenGL
             _contextHandler = new();
         }
 
-        public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
+        public void UpdateProgram(UpdateShaderContext ctx)
         {
             ctx.BufferProvider = this;
             ctx.LastGlobalUpdate = _shaderUpdate;
 
-            var handlersChanged = !_lastGlobalHandler.SequenceEqual(globalHandlers);
-
-            if (_shaderUpdate == null || handlersChanged)
+            if (_shaderUpdate == null)
             {
-                _lastGlobalHandler = globalHandlers;
-
                 _handlers = [];
 
                 if (Shader is IShaderHandler shaderHandler)
                     _handlers.Add(shaderHandler);
 
-                foreach (var handler in globalHandlers.Where(a => a != null))
-                    _handlers.Add(handler!);
-
                 _handlers.Add(_contextHandler);
             }
 
-            var needUpdate = _shaderUpdate == null || handlersChanged || _handlers.Any(a => a.NeedUpdateShader(ctx));
+            var needUpdate = _shaderUpdate == null || _handlers.Any(a => a.NeedUpdateShader(ctx));
 
             if (needUpdate)
             {
@@ -97,7 +96,6 @@ namespace XrEngine.OpenGL
 
                 _shaderUpdate = globalBuilder.Result;
                 _shaderUpdate.LightsHash = ctx.LightsHash;
-                _shaderUpdate.ShaderHandlers = globalHandlers;
                 _shaderUpdate.ShaderVersion = Shader.Version;
 
                 Version++;

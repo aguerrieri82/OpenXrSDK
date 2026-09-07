@@ -19,13 +19,15 @@ namespace XrEditor
 
         public static readonly bool EnablePreview = false;
 
+        public static bool IsMultiView = true;
+
 #if GLES
         public static readonly bool UseEs = true;
 #else
         public static readonly bool UseEs = false;
 #endif
 
-        public static readonly bool DisableDualRender = true;
+        public static readonly bool DisableDualRender = false;
 
         public static readonly bool UseDxHost = false;
 
@@ -41,8 +43,7 @@ namespace XrEditor
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
-             .UseMultiView()
-              //.UseStereo()
+              .When(IsMultiView, b => b.UseMultiView())
               .SetGlOptions(opt =>
               {
                   opt.UsePlanarReflection = true;
@@ -53,7 +54,7 @@ namespace XrEditor
                   opt.FloatPrecision = ShaderPrecision.High;
                   opt.IntPrecision = ShaderPrecision.High;
 
-                  opt.UseAsyncShaderCompile = true;
+                  opt.UseAsyncShaderCompile = !IsMultiView || DisableDualRender;
                   opt.UseShaderCache = true;
                   opt.UseShaderPreprocessor = true;
                   opt.UseSharedSsbo = true;
@@ -66,7 +67,7 @@ namespace XrEditor
                   opt.ShadowMap.UseShadowSampler = false;
 
                   opt.ContactShadow.Use = false;
-                  opt.ContactShadow.IsMultiView = false;
+                  opt.ContactShadow.IsMultiView = IsMultiView;
                   
                   opt.ToneMap = ToneMapMode.Aces;
                   opt.UseProfiler = false;
@@ -91,19 +92,18 @@ namespace XrEditor
               })
               .SetXrOptions(opt =>
               {
-                  opt.UseSimmetricFov = true;
+                  opt.UseSimmetricFov = false;
               })
               .SetAppOptions(opt =>
               {
                   opt.Driver = Driver;
-
               })
               //.UseSpaceWarp()
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, 1)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateWaterFlood()
-              //.CreateDnd()
+              //.CreateWaterFlood()
+              .CreateDnd()
               .Build();
     }
 }

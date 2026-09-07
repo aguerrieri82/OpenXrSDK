@@ -48,44 +48,51 @@ namespace XrEngine.OpenGL
         {
             Log.Info(this, "Building program {0}...", _handle);
 
-            var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
-            var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
-            var gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
-            var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
-            var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
-
-            UpdateSourceHash();
-
-            if (validateHash != null && !validateHash(_sourceHash))
-                return false;
-
-            if (cachePath == null || !TryReadCache(cachePath))
+            try
             {
-                Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource, _vSourceName);
-                Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource, _fSourceName);
 
-                if (gSource != null)
-                    Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource, _gSourceName);
+                var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
+                var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
+                var gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
+                var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
+                var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
 
-                if (tcSource != null)
-                    TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource, _tcSourceName);
+                UpdateSourceHash();
 
-                if (teSource != null)
-                    TessEval = GlShader.GetOrCreate(_gl, ShaderType.TessEvaluationShader, teSource, _teSourceName);
+                if (validateHash != null && !validateHash(_sourceHash))
+                    return false;
 
-                Create(Vertex, Fragment, Geometry?.Handle ?? 0, TessControl?.Handle ?? 0, TessEval?.Handle ?? 0);
+                if (cachePath == null || !TryReadCache(cachePath))
+                {
+                    Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource, _vSourceName);
+                    Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource, _fSourceName);
 
-                if (cachePath != null)
-                    WriteCache(cachePath);
+                    if (gSource != null)
+                        Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource, _gSourceName);
+
+                    if (tcSource != null)
+                        TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource, _tcSourceName);
+
+                    if (teSource != null)
+                        TessEval = GlShader.GetOrCreate(_gl, ShaderType.TessEvaluationShader, teSource, _teSourceName);
+
+                    Create(Vertex, Fragment, Geometry?.Handle ?? 0, TessControl?.Handle ?? 0, TessEval?.Handle ?? 0);
+
+                    if (cachePath != null)
+                        WriteCache(cachePath);
+                }
+
+                ClearCache();
+
+                Log.Debug(this, "Program built");
+
+                _isBuilt = true;
+                return true;
             }
-
-            ClearCache();
-
-            Log.Debug(this, "Program built");
-
-            _isBuilt = true;
-
-            return true;
+            catch
+            {
+                throw;
+            }
         }
 
         protected override void UpdateMeta(ProgramMeta meta)

@@ -99,7 +99,7 @@ namespace XrEngine.OpenGL
             ctx.Shader = instance.Material.Shader;
             ctx.Stage = UpdateShaderStage.Shader;
 
-            instance.Global!.UpdateProgram(ctx, GetRenderTarget()?.ShaderHandler);
+            instance.Global!.UpdateProgram(ctx);
 
             ctx.Stage = UpdateShaderStage.Material;
             ctx.Material = instance.Material;

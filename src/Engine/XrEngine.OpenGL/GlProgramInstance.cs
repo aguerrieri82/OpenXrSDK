@@ -125,6 +125,8 @@ namespace XrEngine.OpenGL
             if (!NeedUpdate && !Material.NeedUpdateShader(ctx))
                 return false;
 
+
+
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
@@ -237,6 +239,7 @@ namespace XrEngine.OpenGL
             };
 
             program.SetLabel(Material.GetType().Name);
+
 
             if (_useGeo)
             {

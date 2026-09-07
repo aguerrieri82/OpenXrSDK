@@ -424,8 +424,6 @@ namespace XrEngine.OpenGL
                         imgLight.NotifyIBLCreated();
 
                         _updateCtx.ImageLightVersion = imgLight.Panorama.Version;
-
-                        //ResetState();
                     }
                 }
 

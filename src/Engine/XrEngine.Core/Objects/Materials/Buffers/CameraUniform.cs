@@ -1,64 +1,76 @@
-﻿using System.Numerics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine
 {
-    [StructLayout(LayoutKind.Explicit, Size = 464)]
-    public struct CameraUniforms
+    [StructLayout(LayoutKind.Explicit, Size = 144)]
+    public struct CameraViewUniforms
     {
         [FieldOffset(0)]
-
         public Matrix4x4 ViewProj;
 
         [FieldOffset(64)]
-
         public Vector3 Position;
 
-        [FieldOffset(76)]
+        [FieldOffset(80)]
+        public Matrix4x4 ViewProjInv;
+    }
+
+    [InlineArray(2)]
+    public struct CameraViewsUniforms
+    {
+        private CameraViewUniforms _element0;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 624)]
+    public struct CameraUniforms
+    {
+        [FieldOffset(0)]
+        public CameraViewsUniforms Eyes;
+
+        [FieldOffset(288)]
         public float Exposure;
 
-        [FieldOffset(80)]
+        [FieldOffset(304)]
         public Matrix4x4 LightSpaceMatrix;
 
-        [FieldOffset(144)]
+        [FieldOffset(368)]
         public int ActiveEye;
 
-        [FieldOffset(152)]
+        [FieldOffset(376)]
         public Size2I ViewSize;
 
-        [FieldOffset(160)]
+        [FieldOffset(384)]
         public float NearPlane;
 
-        [FieldOffset(164)]
+        [FieldOffset(388)]
         public float FarPlane;
 
-        [FieldOffset(168)]
+        [FieldOffset(392)]
         public float DepthNoiseFactor;
 
-        [FieldOffset(172)]
+        [FieldOffset(396)]
         public float DepthNoiseDistance;
 
-        [FieldOffset(176)]
+        [FieldOffset(400)]
         public Plane FrustumPlane1;
-        [FieldOffset(192)]
+        [FieldOffset(416)]
         public Plane FrustumPlane2;
-        [FieldOffset(208)]
+        [FieldOffset(432)]
         public Plane FrustumPlane3;
-        [FieldOffset(224)]
+        [FieldOffset(448)]
         public Plane FrustumPlane4;
-        [FieldOffset(240)]
+        [FieldOffset(464)]
         public Plane FrustumPlane5;
-        [FieldOffset(256)]
+        [FieldOffset(480)]
         public Plane FrustumPlane6;
 
-        [FieldOffset(272)]
+        [FieldOffset(496)]
         public Matrix4x4 View;
 
-        [FieldOffset(336)]
+        [FieldOffset(560)]
         public Matrix4x4 Proj;
-
-        [FieldOffset(400)]
-        public Matrix4x4 ViewProjInv;
     }
 }
