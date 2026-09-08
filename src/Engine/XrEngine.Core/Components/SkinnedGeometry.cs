@@ -66,7 +66,7 @@ namespace XrEngine
                         Add(skin.JointIndices.W, i, vertices);
                 }
 
-                _jointBounds = new();
+                _jointBounds = [];
 
                 for (var i = 0; i < builders.Length; i++)
                 {

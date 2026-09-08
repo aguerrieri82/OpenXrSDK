@@ -221,8 +221,8 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgbAlphaS3TCDxt5Ext,
-                    TextureFormat.Rgb8 => InternalFormat.CompressedRgbaS3TCDxt5Ext,
+                    TextureFormat.SRgb8 or TextureFormat.SRgba8 => InternalFormat.CompressedSrgbAlphaS3TCDxt5Ext,
+                    TextureFormat.Rgb8 or TextureFormat.Rgba8 => InternalFormat.CompressedRgbaS3TCDxt5Ext,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
@@ -230,8 +230,8 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgbAlphaS3TCDxt1Ext,
-                    TextureFormat.Rgb8 => InternalFormat.CompressedRgbaS3TCDxt1Ext,
+                    TextureFormat.SRgb8 or TextureFormat.SRgba8 => InternalFormat.CompressedSrgbAlphaS3TCDxt1Ext,
+                    TextureFormat.Rgb8 or TextureFormat.Rgba8 => InternalFormat.CompressedRgbaS3TCDxt1Ext,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
@@ -239,8 +239,8 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.SRgb8 => InternalFormat.CompressedSrgbAlphaBptcUnormArb,
-                    TextureFormat.Rgb8 => InternalFormat.CompressedRgbaBptcUnormArb,
+                    TextureFormat.SRgb8 or TextureFormat.SRgba8 => InternalFormat.CompressedSrgbAlphaBptcUnormArb,
+                    TextureFormat.Rgb8 or TextureFormat.Rgba8 => InternalFormat.CompressedRgbaBptcUnormArb,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }

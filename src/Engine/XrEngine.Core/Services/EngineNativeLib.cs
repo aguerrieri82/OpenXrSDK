@@ -14,7 +14,9 @@ namespace XrEngine
             Bc4 = 4,
             Bc5 = 5,
             Bc6H = 6,
-            Bc7 = 7
+            Bc7 = 7,
+            Bc4Signed = 8,
+            Bc5Signed = 9
         }
 
         public enum BasisTextureFormat

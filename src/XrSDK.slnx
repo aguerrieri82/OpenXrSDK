@@ -239,6 +239,10 @@
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
+    <Project Path="Engine/XrEngine.OpenXr.Oculus/XrEngine.OpenXr.Oculus.csproj" Id="58bdc3b6-f270-42c8-b965-4fb18918e712">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.OpenXr.Windows/XrEngine.OpenXr.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />
@@ -285,6 +289,9 @@
     </Project>
   </Folder>
   <Folder Name="/Framework/">
+    <Project Path="Framework/Oculus.Platform/Oculus.Platform.csproj">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+    </Project>
     <Project Path="Framework/OpenAl.Framework/OpenAl.Framework.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />

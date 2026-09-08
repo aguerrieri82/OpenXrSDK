@@ -22,7 +22,7 @@ namespace XrEngine
     [StructLayout(LayoutKind.Sequential)]
     public struct MorphUniforms
     {
-        public const int MaxTargets = 60;
+        public const int MaxTargets = 180;
 
         public MorphTargetUniformArray Targets;
     }

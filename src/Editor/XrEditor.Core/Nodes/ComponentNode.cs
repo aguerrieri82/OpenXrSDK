@@ -1,4 +1,5 @@
 ﻿using UI.Binding;
+using XrEditor.Services;
 using XrEngine;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 
@@ -29,6 +30,7 @@ namespace XrEditor.Nodes
         protected virtual void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             var curType = _value.GetType();
+
             while (true)
             {
                 PropertyView.CreateProperties(_value, curType, curProps);
@@ -44,6 +46,19 @@ namespace XrEditor.Nodes
                 {
                     break;
                 }
+            }
+            var manager = Context.Require<PropertyEditorManager>();
+
+            var editor = manager.CreateEditor(_value.GetType(), [], null);
+
+            if (editor != null)
+            {
+                editor.Value = _value;
+
+                curProps.Add(new PropertyView
+                {
+                    Editor = editor,
+                });
             }
 
         }

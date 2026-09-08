@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\Oculus.Platform\Oculus.Platform.csproj" />
+    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+  </ItemGroup>
+
+</Project>

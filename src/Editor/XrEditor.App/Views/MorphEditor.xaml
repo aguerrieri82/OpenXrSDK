@@ -1,0 +1,25 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:comp="clr-namespace:XrEditor.Components"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:MorphEditor}">
+
+        <StackPanel Margin="-40 0 0 0" Orientation="Vertical" HorizontalAlignment="Stretch">
+
+            <ItemsControl ItemsSource="{Binding Weights}">
+                <ItemsControl.ItemTemplate>
+                    <ItemContainerTemplate>
+                        <DockPanel >
+                            <ContentPresenter VerticalAlignment="Center"  DockPanel.Dock="Right" Margin="0,10,0,0" Content="{Binding Editor}"/>
+                            <Label Margin="0,7,0,0" VerticalAlignment="Center"  Content="{Binding Name}"/>
+                        </DockPanel>
+                    </ItemContainerTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </DataTemplate>
+
+</ResourceDictionary>

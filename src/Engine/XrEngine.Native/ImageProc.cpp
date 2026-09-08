@@ -489,6 +489,40 @@ bool ConvertRgb32FToRgba16F(
 #endif
 }
 
+template<int Channels, bool Signed>
+static void DecodeBcChannels(const void* src, void* dst, int pitch)
+{
+    float values[16 * Channels];
+
+    if constexpr (Channels == 1)
+        bcdec_bc4_float(src, values, 4, Signed);
+    else
+        bcdec_bc5_float(src, values, 8, Signed);
+
+    for (int y = 0; y < 4; y++)
+    {
+        auto row = static_cast<uint8_t*>(dst) + y * pitch;
+
+        for (int x = 0; x < 4; x++)
+        {
+            auto pixel = row + x * 4;
+            pixel[0] = pixel[1] = pixel[2] = 0;
+            pixel[3] = 255;
+
+            for (int channel = 0; channel < Channels; channel++)
+            {
+                float value = values[(y * 4 + x) * Channels + channel];
+
+                // ImageDecodeBC returns RGBA8; map SNORM [-1, 1] to [0, 255].
+                if constexpr (Signed)
+                    value = value * 0.5f + 0.5f;
+
+                pixel[channel] = static_cast<uint8_t>(std::clamp(value, 0.0f, 1.0f) * 255.0f + 0.5f);
+            }
+        }
+    }
+}
+
 bool ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, uint8_t* dst)
 {
     if (!src || !dst || width <= 0 || height <= 0)
@@ -510,6 +544,31 @@ bool ImageDecodeBC(const uint8_t* src, int width, int height, BCFormat format, u
     case BCFormat::BC3:
         blockSize = BCDEC_BC3_BLOCK_SIZE;
         decode = bcdec_bc3;
+        break;
+
+    case BCFormat::BC2:
+        blockSize = BCDEC_BC2_BLOCK_SIZE;
+        decode = bcdec_bc2;
+        break;
+
+    case BCFormat::BC4:
+        blockSize = BCDEC_BC4_BLOCK_SIZE;
+        decode = DecodeBcChannels<1, false>;
+        break;
+
+    case BCFormat::BC4Signed:
+        blockSize = BCDEC_BC4_BLOCK_SIZE;
+        decode = DecodeBcChannels<1, true>;
+        break;
+
+    case BCFormat::BC5:
+        blockSize = BCDEC_BC5_BLOCK_SIZE;
+        decode = DecodeBcChannels<2, false>;
+        break;
+
+    case BCFormat::BC5Signed:
+        blockSize = BCDEC_BC5_BLOCK_SIZE;
+        decode = DecodeBcChannels<2, true>;
         break;
 
     case BCFormat::BC7:

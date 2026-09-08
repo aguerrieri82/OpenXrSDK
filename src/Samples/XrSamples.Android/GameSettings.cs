@@ -57,7 +57,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "DnD",
+               //  SampleName = "DnD",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,
@@ -68,7 +68,7 @@ namespace XrSamples
                 FrustumCulling = true,
                 TextureCompression = true,
                 ProjDepthMode = XrProjDepthMode.DepthCopyImage,
-                UseFxAA = false,
+                UseFxAA = true,
                 UseSimmetricFov = false,
                 UseDynamicResolution = false,
                 UseRayCollider = false,

@@ -9,11 +9,14 @@ namespace XrEngine
         public VertexComponent Component;
 
         public Vector3[] Values;
+
     }
 
     public struct MorphTarget
     {
         public MorphComponent[] Components;
+
+        public string? Name;
     }
 
     public enum MorphStorageType

@@ -43,7 +43,9 @@ enum class BCFormat : int32_t
     BC4 = 4,
     BC5 = 5,
     BC6H = 6,
-    BC7 = 7
+    BC7 = 7,
+    BC4Signed = 8,
+    BC5Signed = 9
 };
 
 

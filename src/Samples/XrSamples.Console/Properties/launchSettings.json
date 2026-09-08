@@ -1,12 +1,12 @@
 {
   "profiles": {
     "Console": {
-      "commandName": "Project",
-      "commandLineArgs": "android-benchmark",
-      "environmentVariables": {
-        "XR_LOADER_DEBUG": "warn"
-      },
-      "nativeDebugging": false
+        "commandName": "Project",
+        "commandLineArgs": "meta-avatar 8672967276120323",
+        "environmentVariables": {
+            "XR_LOADER_DEBUG": "warn"
+        },
+        "nativeDebugging": false
     },
     "ConsoleNative": {
       "commandName": "Project",

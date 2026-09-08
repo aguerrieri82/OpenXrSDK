@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using XrEngine.Animation;
+using XrEngine.Components;
 using XrMath;
 
 namespace XrEditor.Services
@@ -19,6 +20,7 @@ namespace XrEditor.Services
             Register(new TypedPropertyEditorFactory<string, TextEditor<string>>());
 
             Register(new TypedPropertyEditorFactory<IAnimation, AnimationEditor>());
+            Register(new TypedPropertyEditorFactory<MeshMorph, MorphEditor>());
 
             Register(new TextEditorFactory<Uri?>(a => string.IsNullOrWhiteSpace(a) ? null : new Uri(a)));
             Register(new TextEditorFactory<byte?>(a => string.IsNullOrWhiteSpace(a) ? null : byte.Parse(a)));

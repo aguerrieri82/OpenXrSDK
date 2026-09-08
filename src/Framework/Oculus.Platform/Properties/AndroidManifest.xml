@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:horizonos="http://schemas.horizonos/sdk">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <horizonos:uses-horizonos-supplement name="horizonos-supplement-hzplatformclientcore"
+                                    minSupplementVersion="1" targetSupplementVersion="1" />
+  <application />
+</manifest>
