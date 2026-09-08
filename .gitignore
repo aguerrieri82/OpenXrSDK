@@ -405,3 +405,4 @@ Makefile
 /libs/xrengine-physx-native/android-arm64/libPhysXFoundation.so
 /libs/xrengine-physx-native/android-arm64/libPhysXFoundation_64.so
 /libs/xrengine-physx-native/android-arm64/libPhysX_64.so
+/tools/skeleton_match
