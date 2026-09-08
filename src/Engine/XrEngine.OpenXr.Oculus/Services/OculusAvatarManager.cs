@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +8,12 @@ using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public partial class OculusAvatarManager : IDisposable
+    public class OculusAvatarManager : IDisposable
     {
         private readonly BlockingCollection<Action> _commands = new();
-        private readonly ConcurrentQueue<AvatarApi.ovrAvatar2Asset_Resource> _resources = new();
-        private readonly Dictionary<AvatarApi.ovrAvatar2Id, PrimitiveData> _primitives = new();
-        private readonly Dictionary<AvatarApi.ovrAvatar2Id, ImageData> _images = new();
+        private readonly ConcurrentQueue<AvatarApi.ovrAvatar2Asset_Resource> _resourceQueue = new();
+        private readonly OculusAvatarResources _resources = new();
+        private readonly OculusAvatarBuilder _builder;
         private readonly AvatarApi.ResourceDelegate _resourceCallback;
         private Thread? _thread;
         private bool _initialized;
@@ -26,6 +25,7 @@ namespace XrEngine.OpenXr.Oculus
         public OculusAvatarManager()
         {
             _resourceCallback = OnResource;
+            _builder = new OculusAvatarBuilder(_resources);
         }
 
         public Task LoginAsync(string accessToken)
@@ -40,11 +40,11 @@ namespace XrEngine.OpenXr.Oculus
 
                     var init = AvatarDefaults.CreateInitializeInfo(platform, "XrEngine");
                     init.resourceLoadCallback = _resourceCallback;
-                    Check(AvatarApi.ovrAvatar2_Initialize(in init));
+                    OculusAvatarResources.Check(AvatarApi.ovrAvatar2_Initialize(in init));
                     _initialized = true;
                 }
 
-                Check(AvatarDefaults.SetAccessToken(accessToken));
+                OculusAvatarResources.Check(AvatarDefaults.SetAccessToken(accessToken));
                 return true;
             });
         }
@@ -66,7 +66,7 @@ namespace XrEngine.OpenXr.Oculus
                 renderFilters = filters
             };
 
-            Check(AvatarApi.ovrAvatar2Entity_Create(in create, out _entity));
+            OculusAvatarResources.Check(AvatarApi.ovrAvatar2Entity_Create(in create, out _entity));
 
             try
             {
@@ -78,7 +78,7 @@ namespace XrEngine.OpenXr.Oculus
                     _entity, userId, AvatarApi.ovrAvatar2Graph.Oculus, settings, out _requestId);
 
                 if (result != AvatarApi.ovrAvatar2Result.Pending)
-                    Check(result);
+                    OculusAvatarResources.Check(result);
 
                 _load = new TaskCompletionSource<Avatar>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _loadTime.Restart();
@@ -141,9 +141,9 @@ namespace XrEngine.OpenXr.Oculus
 
                     try
                     {
-                        Check(AvatarApi.ovrAvatar2_Update(delta));
+                        OculusAvatarResources.Check(AvatarApi.ovrAvatar2_Update(delta));
                         ReadResources();
-                        Check(AvatarApi.ovrAvatar2Asset_GetLoadRequestInfo(_requestId, out var info));
+                        OculusAvatarResources.Check(AvatarApi.ovrAvatar2Asset_GetLoadRequestInfo(_requestId, out var info));
 
                         if (info.state == AvatarApi.ovrAvatar2LoadRequestState.Failed)
                             throw new InvalidOperationException($"Avatar load failed: {info.failedReason}, HTTP {info.responseCode}.");
@@ -156,7 +156,7 @@ namespace XrEngine.OpenXr.Oculus
 
                         if (info.state == AvatarApi.ovrAvatar2LoadRequestState.Success)
                         {
-                            var avatar = BuildAvatar();
+                            var avatar = _builder.Build(_entity);
                             var completion = _load;
                             ReleaseEntity();
                             _load = null;
@@ -180,46 +180,20 @@ namespace XrEngine.OpenXr.Oculus
                 if (_initialized)
                     AvatarApi.ovrAvatar2_Shutdown();
 
-                _primitives.Clear();
-                _images.Clear();
+                _resources.Clear();
                 GC.KeepAlive(_resourceCallback);
             }
         }
 
         private void OnResource(in AvatarApi.ovrAvatar2Asset_Resource resource, IntPtr context)
         {
-            _resources.Enqueue(resource);
+            _resourceQueue.Enqueue(resource);
         }
 
         private void ReadResources()
         {
-            while (_resources.TryDequeue(out var resource))
-            {
-                if (resource.status == AvatarApi.ovrAvatar2AssetStatus.ovrAvatar2AssetStatus_LoadFailed)
-                    throw new InvalidOperationException($"Avatar resource {resource.assetID} failed to load.");
-
-                if (resource.status != AvatarApi.ovrAvatar2AssetStatus.ovrAvatar2AssetStatus_Loaded &&
-                    resource.status != AvatarApi.ovrAvatar2AssetStatus.ovrAvatar2AssetStatus_Updated)
-                    continue;
-
-                try
-                {
-                    ReadImages(resource.assetID);
-                    Check(AvatarApi.ovrAvatar2Asset_GetPrimitiveCount(resource.assetID, out var count));
-
-                    for (uint i = 0; i < count; i++)
-                    {
-                        Check(AvatarApi.ovrAvatar2Asset_GetPrimitiveByIndex(resource.assetID, i, out var primitive));
-                        _primitives[primitive.id] = ReadPrimitive(primitive);
-                    }
-
-                    Check(AvatarApi.ovrAvatar2Asset_ResourceReadyToRender(resource.assetID));
-                }
-                finally
-                {
-                    AvatarApi.ovrAvatar2Asset_ReleaseResource(resource.assetID);
-                }
-            }
+            while (_resourceQueue.TryDequeue(out var resource))
+                _resources.Read(resource);
         }
 
         private void ReleaseEntity()
@@ -230,19 +204,12 @@ namespace XrEngine.OpenXr.Oculus
                 _entity = AvatarApi.ovrAvatar2EntityId.Invalid;
             }
 
-            while (_resources.TryDequeue(out var resource))
+            while (_resourceQueue.TryDequeue(out var resource))
             {
                 if (resource.status == AvatarApi.ovrAvatar2AssetStatus.ovrAvatar2AssetStatus_Loaded ||
                     resource.status == AvatarApi.ovrAvatar2AssetStatus.ovrAvatar2AssetStatus_Updated)
                     AvatarApi.ovrAvatar2Asset_ReleaseResource(resource.assetID);
             }
-
-        }
-
-        private static void Check(AvatarApi.ovrAvatar2Result result)
-        {
-            if (result != AvatarApi.ovrAvatar2Result.Success)
-                throw new InvalidOperationException($"Avatar SDK: {result}.");
         }
 
         public void Dispose()

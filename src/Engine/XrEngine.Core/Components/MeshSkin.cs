@@ -26,20 +26,23 @@ namespace XrEngine
                 _skinMatrices = new Matrix4x4[Joints.Length];
 
             HashBuilder.Instance.Reset();
+
             for (var i = 0; i < _skinMatrices.Length; i++)
             {
-                _skinMatrices[i] = Joints[i].InverseBindMatrix * Joints[i].WorldMatrix * _host.WorldMatrixInverse;
+                var inverseBind = InverseBindMatrices![i];
+
+                _skinMatrices[i] = inverseBind * Joints[i].WorldMatrix * _host.WorldMatrixInverse;
 
                 HashBuilder.Instance.Add(_skinMatrices[i]);
             }
 
             var curVer = (long)HashBuilder.Instance.Value();
+
             if (curVer != _skinMatricesVersion)
             {
                 _skinMatricesVersion = curVer;
                 _host.InvalidateLocalBounds();
             }
-
         }
 
         public Bounds3 GetLocalBounds()
@@ -69,6 +72,8 @@ namespace XrEngine
         }
 
         public Joint3D[]? Joints { get; set; }
+
+        public Matrix4x4[]? InverseBindMatrices { get; set; }
 
         public Matrix4x4[] SkinMatrices => _skinMatrices;
 

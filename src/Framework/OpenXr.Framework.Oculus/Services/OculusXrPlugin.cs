@@ -209,6 +209,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_EXT_hand_tracking_data_source");
             extensions.Add("XR_META_body_tracking_full_body");
+            extensions.Add(FBBodyTracking.ExtensionName);
 
             extensions.Add(METAHandTrackingWideMotionMode.ExtensionName);
             extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);

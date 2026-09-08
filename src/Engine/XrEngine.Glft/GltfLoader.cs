@@ -255,6 +255,8 @@ namespace XrEngine.Gltf
             public IList<Joint3D>? Joints;
 
             public Guid Id;
+
+            public Matrix4x4[]? InverseBindMatrices;
         }
 
         public struct GltfSamplerValue
@@ -1292,7 +1294,8 @@ namespace XrEngine.Gltf
                     curMesh.AddComponent(new MeshSkin()
                     {
                         Joints = skin.Joints?.ToArray() ?? [],
-                        SkinId = skin.Id
+                        SkinId = skin.Id,
+                        InverseBindMatrices = skin.InverseBindMatrices
                     });
                 }
 
@@ -1653,8 +1656,7 @@ namespace XrEngine.Gltf
 
             Debug.Assert(matrices != null && matrices.Length == skinObj.Joints.Count);
 
-            for (var i = 0; i < skinObj.Joints.Count; i++)
-                skinObj.Joints[i].InverseBindMatrix = matrices[i];
+            skinObj.InverseBindMatrices = matrices;
 
             _skins[skinId] = skinObj;
 

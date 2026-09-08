@@ -10,6 +10,7 @@ namespace OpenXr.Framework.Oculus
     {
         FBBodyTracking? _bodyTracking;
         private BodyTrackerFB _tracker;
+        private uint _jointCount;
         private bool _isActive;
         private BodyJointLocationFB[]? _joints;
         private long _time;
@@ -47,6 +48,9 @@ namespace OpenXr.Framework.Oculus
             _app.CheckResult(_bodyTracking!.CreateBodyTrackerFB(_app.Session, ref info, ref result), "CreateBodyTrackerFB");
 
             _tracker = result;
+            _jointCount = jointSet == BodyJointSetFB.FullBodyMeta
+                ? (uint)FullBodyJointMETA.CountMeta
+                : (uint)BodyJointFB.CountFB;
             _skeletonChanges = -1;
         }
 
@@ -55,7 +59,7 @@ namespace OpenXr.Framework.Oculus
             var result = new BodySkeletonFB()
             {
                 Type = StructureType.BodySkeletonFB,
-                JointCount = (uint)BodyJointFB.CountFB,
+                JointCount = _jointCount
             };
 
             var joints = new BodySkeletonJointFB[result.JointCount];
@@ -81,7 +85,7 @@ namespace OpenXr.Framework.Oculus
             var result = new BodyJointLocationsFB
             {
                 Type = StructureType.BodyJointLocationsFB,
-                JointCount = (uint)BodyJointFB.CountFB,
+                JointCount = _jointCount
             };
 
             var joints = new BodyJointLocationFB[result.JointCount];

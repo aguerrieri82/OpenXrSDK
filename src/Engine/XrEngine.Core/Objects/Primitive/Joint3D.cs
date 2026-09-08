@@ -98,8 +98,6 @@ namespace XrEngine
             _isSelected = isSelected;
         }
 
-        public Matrix4x4 InverseBindMatrix { get; set; }
-
         bool IDrawGizmos.IsEnabled => EnableGizmos;
 
         public bool EnableGizmos { get; set; }

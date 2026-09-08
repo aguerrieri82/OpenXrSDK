@@ -1,4 +1,5 @@
 ﻿using PhysX.Framework;
+using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Oculus;
@@ -20,15 +21,17 @@ namespace XrSamples
                 var platform = Context.Require<OculusPlatform>();
                 var avatar = Context.Require<OculusAvatarManager>();
 
-               // await platform.LoginAsync("test01_nvvjjf@tfbnw.net", "12345678", 8587954307993093);
+                // await platform.LoginAsync("test01_nvvjjf@tfbnw.net", "12345678", 8587954307993093);
 
                 await avatar.LoginAsync("OCAQBiOGnu8iqz2cOQvbjSYlRduVbfv0z5fNUf515QjPZBhCDD1pRup81gdSvMOUZAgkOTQABhmZApV0jj8fSeDknVV9U2xmet5Ib8gawpQZDZD");
-                
+
                 var obj = await avatar.LoadAsync("8672967276120323");
 
-                var mesh = obj.Children.OfType<TriangleMesh>().First();
-                var skin = mesh.Component<MeshSkin>();
-                var names = skin.Joints.Select(a => a.Name).ToArray();
+                var root = obj.FindByName<Joint3D>("root_joint")!;
+
+                var builder = new StringBuilder();
+                root.Print(builder);
+                Log.Info(obj, builder.ToString());
 
                 await EngineApp.MainThread;
 

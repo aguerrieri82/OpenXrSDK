@@ -1,11 +1,12 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-
+using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public class Avatar : Group3D
+    public partial class Avatar : Group3D
     {
         private static readonly Dictionary<FullBodyJointMETA, string> _bodyMap = new()
         {
@@ -89,37 +90,111 @@ namespace XrEngine.OpenXr.Oculus
             [FullBodyJointMETA.RightFootBallMeta] = "footBall_right_joint",
         };
 
-        XrBodyTrack _bodyTrack;
-        private XrApp? _xrApp;
+        protected XrBodyTrack? _bodyTrack;
+        protected XrApp? _xrApp;
+        protected Joint3D?[]? _bodyJoints;
+        protected int[] _jointUpdateOrder = [];
 
-        public Avatar()
-        {
+        protected BodySkeletonJointFB[]? _bodySkeleton;
+        protected Quaternion[]? _avatarBindWorldOrientations;
+        protected Quaternion[]? _trackingBindWorldOrientations;
+        protected Quaternion[]? _avatarBindLocalOrientations;
 
-        }
+        private static readonly Quaternion _bodyBasis =
+            Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI);
 
-        public override void Update(RenderContext ctx)
+        protected override void UpdateSelf(RenderContext ctx)
         {
             _xrApp ??= XrApp.Current;
 
-            if (_xrApp == null || !_xrApp.IsStarted)
-                return;
-
-            if (_bodyTrack == null)
+            if (_xrApp != null && _xrApp.IsStarted)
             {
-                _bodyTrack = new XrBodyTrack(_xrApp);
-                _bodyTrack.Create(BodyJointSetFB.FullBodyMeta);
+                if (_bodyTrack == null)
+                {
+                    _bodyTrack = new XrBodyTrack(_xrApp);
+                    _bodyTrack.Create(BodyJointSetFB.FullBodyMeta);
+
+                    BindBodyJoints();
+                }
+
+                var locations = _bodyTrack.LocateJoints(
+                    _xrApp.ReferenceSpace,
+                    _xrApp.FramePredictedDisplayTime);
+
+                if (_bodyTrack.IsActive)
+                    UpdateBodyJoints(locations);
             }
 
-            _bodyTrack.LocateJoints(_xrApp.ReferenceSpace, _xrApp.FramePredictedDisplayTime);
+            base.UpdateSelf(ctx);
 
-            if (_bodyTrack.IsActive)
+            if (DumpRuntimeDiagnosticsRequested && _bodyTrack?.IsActive == true)
             {
-
+                DumpRuntimeDiagnosticsRequested = false;
+                LogRuntimeDiagnostics(includeVertices: false);
             }
-
-            base.Update(ctx);
         }
 
-        
+        protected void BindBodyJoints()
+        {
+            CaptureDiagnosticBindPose();
+
+            var joints = this.Descendants()
+                .OfType<Joint3D>()
+                .ToDictionary(a => a.Name!);
+
+            var skeleton = _bodyTrack!.GetSkeleton();
+
+            _bodySkeleton = skeleton;
+            _bodyJoints = new Joint3D?[(int)FullBodyJointMETA.CountMeta];
+
+            _avatarBindWorldOrientations = new Quaternion[_bodyJoints.Length];
+            _trackingBindWorldOrientations = new Quaternion[_bodyJoints.Length];
+            _avatarBindLocalOrientations = new Quaternion[_bodyJoints.Length];
+
+            foreach (var item in _bodyMap)
+            {
+                if (!joints.TryGetValue(item.Value, out var joint))
+                    continue;
+
+                var index = (int)item.Key;
+
+                _bodyJoints[index] = joint;
+                _avatarBindWorldOrientations[index] = joint.WorldOrientation;
+                _trackingBindWorldOrientations[index] = skeleton[index].Pose.ToPose3().Orientation;
+                _avatarBindLocalOrientations[index] = joint.Transform.Orientation;
+            }
+
+            _jointUpdateOrder = Enumerable.Range(0, _bodyJoints.Length)
+                .Where(i => _bodyJoints[i] != null)
+                .OrderBy(i => _bodyJoints[i]!.Ancestors().Count())
+                .ToArray();
+        }
+
+        protected void UpdateBodyJoints(BodyJointLocationFB[] locations)
+        {
+            foreach (var i in _jointUpdateOrder)
+            {
+                var joint = _bodyJoints![i]!;
+                ref var location = ref locations[i];
+                var pose = location.Pose.ToPose3();
+
+                if ((location.LocationFlags & SpaceLocationFlags.OrientationValidBit) != 0)
+                {
+                    joint.WorldOrientation = Quaternion.Normalize(
+                        pose.Orientation * _bodyBasis);
+                }
+
+                if ((location.LocationFlags & SpaceLocationFlags.PositionValidBit) != 0)
+                    joint.WorldPosition = pose.Position;
+            }
+        }
+
+        public override void Dispose()
+        {
+            _bodyTrack?.Dispose();
+            _bodyTrack = null;
+
+            base.Dispose();
+        }
     }
 }
