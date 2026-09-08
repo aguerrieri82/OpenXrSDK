@@ -10,11 +10,11 @@
         <StackPanel Margin="-40 0 0 0" Orientation="Vertical" HorizontalAlignment="Stretch">
 
             <ItemsControl ItemsSource="{Binding Weights}">
-                <ItemsControl.ItemTemplate>
+                <ItemsControl.ItemTemplate> 
                     <ItemContainerTemplate>
                         <DockPanel >
                             <ContentPresenter VerticalAlignment="Center"  DockPanel.Dock="Right" Margin="0,10,0,0" Content="{Binding Editor}"/>
-                            <Label Margin="0,7,0,0" VerticalAlignment="Center"  Content="{Binding Name}"/>
+                            <Label Margin="0,7,0,0" VerticalAlignment="Center"  Content="{Binding DisplayName}"/>
                         </DockPanel>
                     </ItemContainerTemplate>
                 </ItemsControl.ItemTemplate>

@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
+
 using Common.Interop;
 using XrMath;
 using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public partial class OculusAvatar
+    public partial class OculusAvatarManager
     {
         private sealed class ImageData
         {

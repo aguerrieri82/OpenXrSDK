@@ -19,7 +19,9 @@ namespace XrEditor
             {
                 _host = host;
 
-                Name = name ?? "Weigth " + index;
+                DisplayName = index.ToString().PadRight(3, ' ') + ".  " + (name ?? "Weigth");
+                 
+                Name = name;
 
                 var property = new SimpleProperty<float>(
                     () => host.EditValue.Weights[index],
@@ -31,11 +33,16 @@ namespace XrEditor
 
                 Editor = new FloatEditor(property, 0, 1, 0.01f);
 
+                Index = index;
             }
 
             public FloatEditor Editor { get; }
 
-            public string Name { get;  }
+            public string DisplayName { get;  }
+
+            public string? Name { get; }
+
+            public int Index { get; }
         }
 
 
@@ -58,6 +65,8 @@ namespace XrEditor
 
             for (var i = 0; i < newValue.Weights.Length; i++)
                 Weights[i] = new WeightEditor(morphGeo.Targets[i].Name, i, this);
+
+            _weights = _weights.OrderBy(a => a.Name).ToArray();
 
             OnPropertyChanged(nameof(Weights));
         }

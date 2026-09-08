@@ -11,7 +11,7 @@ namespace XrEngine.OpenXr.Oculus
         public void Load()
         {
             Context.Implement<OculusPlatform>();
-            Context.Implement<OculusAvatar>();
+            Context.Implement<OculusAvatarManager>();
 
             // Embedded.Register(typeof(Module).Assembly);
         }

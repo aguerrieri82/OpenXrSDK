@@ -35,7 +35,7 @@ layout(std140, binding = 6) uniform MorphUniformBuffer
 
 #elif defined(USE_MORPH_TEXTURE)
 
-    layout(binding = 9) uniform sampler2D morphTexture;
+    layout(binding = MORPH_SLOT) uniform sampler2D morphTexture;
 
     ivec2 morphCoord;
 

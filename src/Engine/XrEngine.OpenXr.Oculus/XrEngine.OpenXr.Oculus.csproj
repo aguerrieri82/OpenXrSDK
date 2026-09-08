@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\Oculus.Platform\Oculus.Platform.csproj" />
-    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
   </ItemGroup>
 
 </Project>

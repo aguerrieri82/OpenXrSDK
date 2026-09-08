@@ -1,29 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net11.0;net11.0-android</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Platforms>AnyCPU;x64</Platforms>
-    <Nullable>disable</Nullable>
-    <IsTrimmable>false</IsTrimmable>
-    <Description>Meta Horizon Platform SDK 205 and Avatar SDK 40.0.1 native bindings for .NET, without Unity.</Description>
-  </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Tests\**" />
-    <EmbeddedResource Remove="Tests\**" />
-    <None Remove="Tests\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'android'">
-    <Content Include="Native\win-x64\*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-    <AndroidNativeLibrary Include="Native\android-arm64\*.so" Abi="arm64-v8a" />
-    <TrimmerRootAssembly Include="Oculus.Platform" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<IsTrimmable>false</IsTrimmable>
+		<Nullable>disable</Nullable>
+		<Description>Meta Horizon Platform SDK 205 and Avatar SDK 40.0.1 native bindings for .NET, without Unity.</Description>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="Native\win-x64\*.dll" Visible="False" UseLink="True" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'"> 
+		<AndroidNativeLibrary Include="Native\android-arm64\*.so" Abi="arm64-v8a" />
+		<TrimmerRootAssembly Include="Oculus.Platform" />
+	</ItemGroup>
 </Project>

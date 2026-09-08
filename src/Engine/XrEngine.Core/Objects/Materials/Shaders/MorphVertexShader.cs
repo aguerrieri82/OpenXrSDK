@@ -105,6 +105,7 @@ namespace XrEngine
                 bld.AddFeature("USE_MORPH_TEXTURE");
 
                 var texture = morphGeo.UpdateTexture();
+
                 textureWidth = texture.Width;
 
                 bld.LoadTexture(ctx => texture, TextureSlots.Morph);

@@ -5,8 +5,8 @@ using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    // Data not consumed by the engine's standard PBR shader, kept for a Meta-specific material adapter.
-    public class OculusAvatarMeshData : BaseComponent<TriangleMesh>
+
+    public class AvatarMeshData : BaseComponent<TriangleMesh>
     {
         public Vector4[] VertexColors = [];
         public Vector4[] OrmtColors = [];
@@ -15,9 +15,9 @@ namespace XrEngine.OpenXr.Oculus
         public List<OculusAvatarMaterialProperty> MaterialExtensions = [];
         public Dictionary<AvatarApi.ovrAvatar2Id, Texture2D> ExtensionTextures = [];
 
-        public OculusAvatarMeshData Copy()
+        public AvatarMeshData Copy()
         {
-            return new OculusAvatarMeshData
+            return new AvatarMeshData
             {
                 VertexColors = VertexColors,
                 OrmtColors = OrmtColors,

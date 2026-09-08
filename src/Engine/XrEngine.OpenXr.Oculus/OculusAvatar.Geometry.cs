@@ -8,7 +8,7 @@ using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public partial class OculusAvatar
+    public partial class OculusAvatarManager
     {
         private sealed class PrimitiveData
         {
@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr.Oculus
             public Geometry3D Geometry = null!;
             public AvatarApi.ovrAvatar2JointInfo[] Joints = [];
             public AvatarApi.ovrAvatar2MaterialTexture[] Textures = [];
-            public OculusAvatarMeshData Details = null!;
+            public AvatarMeshData Details = null!;
         }
 
         private delegate AvatarApi.ovrAvatar2Result ReadVertexBuffer(
@@ -93,7 +93,7 @@ namespace XrEngine.OpenXr.Oculus
             if (uv1.Length > 0)
                 geometry.ActiveComponents |= VertexComponent.UV1;
 
-            var details = new OculusAvatarMeshData
+            var details = new AvatarMeshData
             {
                 VertexColors = ReadBuffer<Vector4>(id, count, AvatarApi.ovrAvatar2VertexBuffer_GetColors, true),
                 OrmtColors = ReadBuffer<Vector4>(id, count, AvatarApi.ovrAvatar2VertexBuffer_GetColorsORMT, true),
@@ -258,12 +258,12 @@ namespace XrEngine.OpenXr.Oculus
 
             return DecodeName(name);
         }
-        private unsafe Group3D BuildAvatar()
+        private unsafe Avatar BuildAvatar()
         {
             Check(AvatarApi.ovrAvatar2Entity_GetPose(_entity, out var pose, out _));
             Check(AvatarApi.ovrAvatar2Render_QueryRenderState(_entity, out var render));
             
-            var group = new Group3D { Name = "Meta Avatar" };
+            var group = new Avatar { Name = "Meta Avatar" };
             
             SetTransform(group, render.rootTransform);
 
@@ -274,8 +274,14 @@ namespace XrEngine.OpenXr.Oculus
 
             for (int i = 0; i < joints.Length; i++)
             {
-                joints[i] = new Joint3D { Name = ReadNodeName(pose.nodeIds[i]), InverseBindMatrix = Matrix4x4.Identity };
+                joints[i] = new Joint3D 
+                {
+                    Name = ReadNodeName(pose.nodeIds[i]), 
+                    InverseBindMatrix = Matrix4x4.Identity 
+                };
+                
                 SetTransform(joints[i], pose.localTransforms[i]);
+                
                 jointNodes.Add(pose.nodeIds[i], joints[i]);
             }
 
@@ -311,16 +317,16 @@ namespace XrEngine.OpenXr.Oculus
                 if (primitive.Joints.Length > 0)
                 {
                     var palette = new Joint3D[primitive.Joints.Length];
+
                     for (int j = 0; j < palette.Length; j++)
                     {
                         var info = primitive.Joints[j];
                         var node = state.pose.nodeIds[info.jointIndex];
                         var joint = jointNodes[node];
 
-                        // Bind matrices belong to each mesh; identity children share the animated joint pose.
                         palette[j] = joint.AddChild(new Joint3D
                         {
-                            Name = mesh.Name + "." + joint.Name,
+                            Name = joint.Name,
                             InverseBindMatrix = ToMatrix(info.inverseBind),
                             EnableGizmos = false
                         });
@@ -338,8 +344,7 @@ namespace XrEngine.OpenXr.Oculus
                     fixed (float* pointer = weights)
                     {
                         var byteCount = (uint)weights.Length * sizeof(float);
-                        var result = AvatarApi.ovrAvatar2Render_GetMorphTargetWeights(
-                            _entity, state.id, (IntPtr)pointer, byteCount);
+                        var result = AvatarApi.ovrAvatar2Render_GetMorphTargetWeights(_entity, state.id, (IntPtr)pointer, byteCount);
                         Check(result);
                     }
 

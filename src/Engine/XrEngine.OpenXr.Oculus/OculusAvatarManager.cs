@@ -9,8 +9,7 @@ using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    // One instance, used as: await LoginAsync(...), await LoadAsync(...), Dispose().
-    public partial class OculusAvatar : IDisposable
+    public partial class OculusAvatarManager : IDisposable
     {
         private readonly BlockingCollection<Action> _commands = new();
         private readonly ConcurrentQueue<AvatarApi.ovrAvatar2Asset_Resource> _resources = new();
@@ -21,10 +20,10 @@ namespace XrEngine.OpenXr.Oculus
         private bool _initialized;
         private AvatarApi.ovrAvatar2EntityId _entity = AvatarApi.ovrAvatar2EntityId.Invalid;
         private AvatarApi.ovrAvatar2LoadRequestId _requestId;
-        private TaskCompletionSource<Group3D>? _load;
+        private TaskCompletionSource<Avatar>? _load;
         private readonly Stopwatch _loadTime = new();
 
-        public OculusAvatar()
+        public OculusAvatarManager()
         {
             _resourceCallback = OnResource;
         }
@@ -50,12 +49,12 @@ namespace XrEngine.OpenXr.Oculus
             });
         }
 
-        public Task<Group3D> LoadAsync(string userId)
+        public Task<Avatar> LoadAsync(string userId)
         {
             return InvokeAsync(() => BeginLoad(ulong.Parse(userId))).Unwrap();
         }
 
-        private Task<Group3D> BeginLoad(ulong userId)
+        private Task<Avatar> BeginLoad(ulong userId)
         {
             var filters = AvatarDefaults.FullBodyFilters;
             filters.lodFlags = AvatarApi.ovrAvatar2EntityLODFlags.LOD_0;
@@ -81,7 +80,7 @@ namespace XrEngine.OpenXr.Oculus
                 if (result != AvatarApi.ovrAvatar2Result.Pending)
                     Check(result);
 
-                _load = new TaskCompletionSource<Group3D>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _load = new TaskCompletionSource<Avatar>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _loadTime.Restart();
                 return _load.Task;
             }
@@ -251,6 +250,7 @@ namespace XrEngine.OpenXr.Oculus
             _commands.CompleteAdding();
             _thread?.Join();
             _commands.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

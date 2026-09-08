@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Text;
 
 namespace XrEngine
 {
@@ -79,6 +80,17 @@ namespace XrEngine
             canvas.DrawLine(p3, end);
 
             canvas.Restore();
+        }
+
+        public void Print(StringBuilder result, string indent = "")
+        {
+            result.AppendLine($"{indent}{Name}");
+
+            foreach (var child in Children)
+            {
+                if (child is Joint3D joint)
+                    joint.Print(result, indent + "  ");
+            }
         }
 
         void ISelectionHandler.OnSelected(Object3D obj, bool isSelected)
