@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Text;
+using XrEngine.Extensions;
 
 namespace XrEngine
 {
@@ -82,15 +83,13 @@ namespace XrEngine
             canvas.Restore();
         }
 
-        public void Print(StringBuilder result, string indent = "")
-        {
-            result.AppendLine($"{indent}{Name}");
 
-            foreach (var child in Children)
-            {
-                if (child is Joint3D joint)
-                    joint.Print(result, indent + "  ");
-            }
+        [Action]
+        public void PrintPose()
+        {
+            var builder = new StringBuilder();
+            this.PrintPose(builder);
+            Log.Warn(this, builder.ToString());
         }
 
         void ISelectionHandler.OnSelected(Object3D obj, bool isSelected)
