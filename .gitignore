@@ -370,7 +370,8 @@ Makefile
 
 
 #Build
-/dist/
+/dist/*
+!/dist/Templates/
 
 #other
 **/XrSamples.Common/Assets/
