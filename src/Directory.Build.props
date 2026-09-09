@@ -7,7 +7,7 @@
 		<WinVersion>windows10.0.26100.0</WinVersion>
 		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageVersion>0.3.0</PackageVersion>
+		<Version>0.7.0</Version>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
@@ -18,7 +18,6 @@
 		<OpenGL></OpenGL>
 		<AndroidPlatform>30</AndroidPlatform>
 		<IsAndroid>false</IsAndroid>
-		<PhysXRuntimeVersion Condition="'$(PhysXRuntimeVersion)' == ''">141</PhysXRuntimeVersion>
 		<NativeFolder>$(Configuration)</NativeFolder>
 		<NativePlatform>x64</NativePlatform>
 		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
@@ -30,12 +29,14 @@
 		<UseAngle>false</UseAngle>
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
+		<PackageOutputPath>$(SolutionDir)..\packages</PackageOutputPath>
 	</PropertyGroup>
 
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>full</DebugType>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(UseAngle)' == 'true'">

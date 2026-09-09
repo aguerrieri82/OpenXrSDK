@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(BulletLink)' != 'PreBuilt'">
-		<Content 
+		<Content PackagePath="runtimes/win-x64/native/" 
 			Include="..\XrEngine.Bullet.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
 			CopyToOutputDirectory="PreserveNewest" 
 			UseLink="True"

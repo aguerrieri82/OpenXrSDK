@@ -11,7 +11,7 @@
 
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content 
+		<Content PackagePath="runtimes/win-x64/native/" 
 			Include="..\XrEngine.Physics.Native\bin\$(NativePlatform)\$(NativeFolder)\xrengine-physx-native.dll" 
 			CopyToOutputDirectory="PreserveNewest" 
 			Link="xrengine-physx-native.dll" 

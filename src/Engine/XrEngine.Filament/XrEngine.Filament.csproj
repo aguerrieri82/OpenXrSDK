@@ -6,14 +6,14 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(FilamentLink)' != 'PreBuilt'">
-		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*"
+		<Content PackagePath="runtimes/win-x64/native/" Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*"
 				 UseLink="True"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(FilamentLink)' == 'PreBuilt'">
-		<Content Include="$(NativeLibsDir)filament-native\win-x64\$(NativeFolder)\*"
+		<Content PackagePath="runtimes/win-x64/native/" Include="$(NativeLibsDir)filament-native\win-x64\$(NativeFolder)\*"
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
 			     Visible="False"

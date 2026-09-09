@@ -11,7 +11,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<PackageReference Include="NAudio.Core" Version="2.3.0" />
-		<Content 
+		<Content PackagePath="runtimes/win-x64/native/" 
 			Include="sfizz_api.dll" 
 			Visible="False"
 			CopyToOutputDirectory="PreserveNewest" 

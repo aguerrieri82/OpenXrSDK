@@ -31,7 +31,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<ProjectReference Include="..\..\Engine\XrEngine.Browser.Windows\XrEngine.Browser.Windows.csproj" />
-		<Content Include="Assets/**/*" CopyToOutputDirectory="Never" />
+		<Content Pack="false" Include="Assets/**/*" CopyToOutputDirectory="Never" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

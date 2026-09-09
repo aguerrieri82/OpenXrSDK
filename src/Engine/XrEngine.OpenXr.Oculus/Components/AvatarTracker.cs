@@ -8,7 +8,7 @@ using System.Text;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public class AvatarTracker : Behavior<Avatar>
+    public class AvatarTracker : Behavior<Avatar>, IDisposable
     {
         private static readonly Dictionary<FullBodyJointMETA, string> _bodyMap = new()
         {
@@ -102,6 +102,7 @@ namespace XrEngine.OpenXr.Oculus
         public AvatarTracker()
         {
             BaseTransform = Matrix4x4.Identity;
+            ShowSkeleton = true;
         }
 
         protected override void Update(RenderContext ctx)
@@ -133,7 +134,7 @@ namespace XrEngine.OpenXr.Oculus
                         updateScheleton = true;
                     }
 
-                    if (updateScheleton)
+                    if (updateScheleton && ShowSkeleton)
                     {
                         _xrScheleton?.Remove();
                         _xrScheleton = _host.AddChild(_bodyTrack.Skeleton!.BuildScheleton("xr", out _xrScheletonMap));
@@ -143,22 +144,25 @@ namespace XrEngine.OpenXr.Oculus
                 }
 
                 if (_xrScheleton != null)
-                {
-                    for (var i = 0; i < locations.Length; i++)
-                    {
-                        var location = locations[i];
+                    FitScheleton(locations);
+            }
+        }
 
-                        var joint = _xrScheletonMap![i];
+        protected void FitScheleton(BodyJointLocationFB[] locations)
+        {
+            for (var i = 0; i < locations.Length; i++)
+            {
+                var location = locations[i];
 
-                        var pose = location.Pose.ToPose3();
+                var joint = _xrScheletonMap![i];
 
-                        if ((location.LocationFlags & SpaceLocationFlags.PositionValidBit) != 0)
-                            joint.WorldPosition = pose.Position;
+                var pose = location.Pose.ToPose3();
 
-                        if ((location.LocationFlags & SpaceLocationFlags.PositionValidBit) != 0)
-                            joint.WorldOrientation = pose.Orientation;
-                    }
-                }
+                if ((location.LocationFlags & SpaceLocationFlags.PositionValidBit) != 0)
+                    joint.WorldPosition = pose.Position;
+
+                if ((location.LocationFlags & SpaceLocationFlags.PositionValidBit) != 0)
+                    joint.WorldOrientation = pose.Orientation;
             }
         }
 
@@ -181,16 +185,6 @@ namespace XrEngine.OpenXr.Oculus
                 bodyJoints,
                 (int)FullBodyJointMETA.RootMeta,
                 _host.DescendantsOrSelfComponents<MeshSkin>().ToArray());
-
-        }
-
-        public void Dispose()
-        {
-            _bodyTrack?.Dispose();
-            _bodyTrack = null;
-            _bodyRetargeter = null;
-
-            GC.SuppressFinalize(this);
         }
 
 
@@ -204,6 +198,18 @@ namespace XrEngine.OpenXr.Oculus
                 material.FrontFace = FrontFaceDir.CW;
         }
 
+        public void Dispose()
+        {
+            _bodyTrack?.Dispose();
+            _bodyTrack = null;
+            _bodyRetargeter = null;
+
+            GC.SuppressFinalize(this);
+        }
+
+
         public Matrix4x4 BaseTransform { get; set; }
+
+        public bool ShowSkeleton { get; set; }
     }
 }

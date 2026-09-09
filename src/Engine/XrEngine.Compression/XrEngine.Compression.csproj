@@ -12,13 +12,13 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 
-		<Content Include="..\..\..\third-party\etcpak\bin\$(NativePlatform)\$(NativeFolder)\*" 
+		<Content PackagePath="runtimes/win-x64/native/" Include="..\..\..\third-party\etcpak\bin\$(NativePlatform)\$(NativeFolder)\*" 
 				 CopyToOutputDirectory="PreserveNewest" 
 				 UseLink="True"
 				 Visible="False"
 				 Link="%(Filename)%(Extension)" />
 		
-		<Content Include="..\..\..\libs\astcencoder-native\win-x64\*" 
+		<Content PackagePath="runtimes/win-x64/native/" Include="..\..\..\libs\astcencoder-native\win-x64\*" 
 				 CopyToOutputDirectory="PreserveNewest" 
 				 UseLink="True"
 				 Visible="False"

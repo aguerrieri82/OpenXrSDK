@@ -17,7 +17,12 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="Native\win-x64\*.dll" Visible="False" UseLink="True" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="Native\win-x64\*.dll" 
+				 Visible="False" 
+				 UseLink="True" 
+				 PackagePath="runtimes/win-x64/native/"
+				 Link="%(Filename)%(Extension)"
+				 CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'"> 

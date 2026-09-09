@@ -11,7 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="$(NativeLibsDir)openal\win-x64\*.dll"
+		<Content PackagePath="runtimes/win-x64/native/" Include="$(NativeLibsDir)openal\win-x64\*.dll"
 				 CopyToOutputDirectory="PreserveNewest"
 				 UseLink="True"
 			     Visible="False"

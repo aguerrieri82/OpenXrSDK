@@ -8,7 +8,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		
-		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" UseLink="True" Visible="False" Link="%(Filename)%(Extension)" />
+		<Content PackagePath="runtimes/win-x64/native/" Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" UseLink="True" Visible="False" Link="%(Filename)%(Extension)" />
 	
 	</ItemGroup>
 

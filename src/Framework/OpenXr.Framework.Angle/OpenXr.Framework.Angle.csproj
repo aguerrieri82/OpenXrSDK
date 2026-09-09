@@ -26,7 +26,7 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false' and '$(UseAngle)' == 'true' ">
 
-		<Content Visible="false" Include="$(NativeLibsDir)angle/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />
+		<Content PackagePath="runtimes/win-x64/native/" Visible="false" Include="$(NativeLibsDir)angle/win-x64/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" UseLink="True" />
 
 		<Content Visible="false" Include="$(NativeLibsDir)angle/win-x64/angledata/*" CopyToOutputDirectory="PreserveNewest" Link="angledata/%(Filename)%(Extension)" UseLink="True" />
 
