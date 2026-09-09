@@ -7,19 +7,32 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="Assets/**/*" UseLink="True" CopyToOutputDirectory="PreserveNewest" />
+		<Content 
+			PackageCopyToOutput="true" 
+			Include="Assets/**/*" 
+			UseLink="True" 
+			TargetPath="Assets\%(RecursiveDir)%(Filename)%(Extension)" 
+			PackageFlatten="false" 
+			CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Engine\XrEngine.Animation\XrEngine.Animation.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL.Wpf\XrEngine.OpenGL.Wpf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Angle\OpenXr.Framework.Angle.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+		<ProjectReference Include="..\..\UI\UI.Binding\UI.Binding.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsDev)' == 'true'">
 		<ProjectReference Include="..\..\Samples\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Dnd\XrSamples.Dnd.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Earth\XrSamples.Earth.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
-		<ProjectReference Include="..\..\UI\UI.Binding\UI.Binding.csproj" />
 	</ItemGroup>
 </Project>

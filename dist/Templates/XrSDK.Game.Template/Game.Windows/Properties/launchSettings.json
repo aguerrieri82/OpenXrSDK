@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Editor": {
+      "commandName": "Executable",
+      "executablePath": "$(TargetDir)XrEditor.exe",
+      "commandLineArgs": "-assembly $ext_safeprojectname$.Windows.dll -entry $ext_safeprojectname$.Windows::$ext_safeprojectname$.Windows.Builder -assets .",
+      "workingDirectory": "$(TargetDir)"
+    }
+  }
+}

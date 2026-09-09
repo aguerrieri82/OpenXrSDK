@@ -16,7 +16,9 @@
 
         IAssetStore FindStore(string name)
         {
-            return _stores.First(a => a.Contains(name));
+            var store = _stores.FirstOrDefault(a => a.Contains(name));
+            return store ??
+                throw new FileNotFoundException(string.Format("Cannot find asset '{0}", name));
         }
 
         public string GetPath(string name)
@@ -47,5 +49,7 @@
             store._stores.AddRange(paths.Select(a => new LocalAssetStore(a)));
             return store;
         }
+
+        public List<IAssetStore> Stores => _stores;
     }
 }

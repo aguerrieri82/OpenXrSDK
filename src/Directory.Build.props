@@ -30,6 +30,19 @@
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
 		<PackageOutputPath>$(SolutionDir)..\packages</PackageOutputPath>
+		<IsDev>true</IsDev>
+		<IsPacking>false</IsPacking>
+	</PropertyGroup>
+	
+	<Target Name="SetPackingFlag" BeforeTargets="Pack">
+		<PropertyGroup>
+			<IsPacking>true</IsPacking>
+		</PropertyGroup>
+	</Target>
+
+	<PropertyGroup Condition="'$(IsPacking)' == 'true'">
+		<IsDev>false</IsDev>
+		<PublishTrimmed>false</PublishTrimmed>
 	</PropertyGroup>
 
 
@@ -50,6 +63,10 @@
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(IsDev)' == 'true'">
+		<DefineConstants>$(DefineConstants);DEVELOPMENT</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,13 +1,24 @@
-﻿using XrEngine;
-using XrEngine.OpenGL;
+﻿
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
+using Windows.Data.Xml.Dom;
+using XrEngine;
 using XrEngine.OpenXr;
+
+#if DEVELOPMENT
+
 using XrSamples;
 using XrSamples.Dnd;
 using XrSamples.Graffiti;
+using XrEngine;
+using XrEngine.OpenGL;
+
+#endif
 
 namespace XrEditor
 {
-    public static class EditorDebug
+    public  static class EditorDebug
     {
         public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
@@ -15,7 +26,7 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
-        public static readonly int VSyncScale = 3;
+        public static readonly int VSyncScale = 1;
 
         public static readonly bool EnablePreview = false;
 
@@ -31,6 +42,9 @@ namespace XrEditor
 
         public static readonly bool UseDxHost = false;
 
+
+#if DEVELOPMENT
+
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
 
         public static readonly string StoragePath = Path.Combine(PersistentPath, "Storage");
@@ -41,6 +55,7 @@ namespace XrEditor
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
+
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               .When(IsMultiView, b => b.UseMultiView())
@@ -105,5 +120,58 @@ namespace XrEditor
               .CreateAvatar()
               //.CreateDnd()
               .Build();
+#else
+        public static readonly string PersistentPath = 
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XrEditor");
+
+        public static readonly string StoragePath = 
+            Path.Combine(PersistentPath, "Storage");
+
+        public static readonly List<string> AssetsPath = [];
+
+
+        public static XrEngineApp CreateApp()
+        {
+
+            var args = StartupArgs.Parse();
+
+            var assemblyPaths = new List<string>();
+
+            AssemblyLoadContext.Default.Resolving += (_, name) =>
+            {
+                foreach (var path in assemblyPaths)
+                {
+    
+                    var file = Path.Combine(path, $"{name.Name}.dll");
+
+                    if (File.Exists(file))
+                        return AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(file));
+                }
+                return null;
+            };
+
+            foreach (var assembly in args.Assemblies)
+            {
+                var fullPath = Path.GetFullPath(assembly);
+
+                var path = Path.GetDirectoryName(fullPath)!;
+                
+                args.Assets.Add(Path.Combine(path, "Assets"));
+
+                assemblyPaths.Add(path);
+                AppDomain.CurrentDomain.Load(Assembly.LoadFile(fullPath).GetName());
+            }
+
+            var store = MergedAssetStore.FromLocalPaths(args.Assets.Select(Path.GetFullPath).ToArray());
+
+            Context.Implement<IAssetStore>(store);
+
+            var builder = new XrEngineAppBuilder();
+
+            var app = AppEntryResolver.Build(args.Entry!, builder);
+
+            return app;
+        }
+#endif
     }
 }

@@ -1,0 +1,16 @@
+<VSTemplate Version="3.0.0" Type="ProjectGroup" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>XrSDK Game</Name>
+    <Description>An XrSDK game with shared code, Windows editor integration, and an Android application. Requires .NET 11 and the Android workload.</Description>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>XrGame</DefaultName>
+    <CreateNewFolder>true</CreateNewFolder>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectCollection>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Windows" CopyParameters="true">Game.Windows\Game.Windows.vstemplate</ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$" CopyParameters="true">Game\Game.vstemplate</ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Android" CopyParameters="true">Game.Android\Game.Android.vstemplate</ProjectTemplateLink>
+    </ProjectCollection>
+  </TemplateContent>
+</VSTemplate>

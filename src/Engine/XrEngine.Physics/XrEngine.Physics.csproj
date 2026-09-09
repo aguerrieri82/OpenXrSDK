@@ -22,8 +22,10 @@
 	<ItemGroup  Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)xrengine-physx-native\android-arm64\*.so" />
 	</ItemGroup>
-
-	<ItemGroup>
+	
+	<ItemGroup Condition="'$(IsPacking)' != 'true'">
 		<ProjectReference Include="..\XrEngine.Physics.Native\XrEngine.Physics.Native.vcxproj" />
 	</ItemGroup>
+
+
 </Project>

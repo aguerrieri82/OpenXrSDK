@@ -1,25 +1,33 @@
 ﻿using OpenXr.Framework;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
-using XrEngine.Media;
-using XrEngine.Media.FFmpeg;
 using XrEngine.OpenXr;
 
 namespace XrEditor
 {
     public partial class App : Application
     {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool SetDllDirectory(string lpPathName);
+
         private MainView? _main;
         private readonly WpfViewManager _viewManager;
         private readonly MainDispatcher _mainDispatcher;
 
         public App()
         {
+            Gpu.EnableNvAPi();
+
+            SetDllDirectory(Path.Combine(AppContext.BaseDirectory, "runtimes", "win-x64", "native"));
+
             DispatcherUnhandledException += (sender, e) =>
             {
                 Log.Warn(sender, e.Exception.Message);
@@ -28,8 +36,6 @@ namespace XrEditor
             };
 
             MsBuildPatcher.PatchVisualStudioLinks();
-
-            Gpu.EnableNvAPi();
 
             if (!EngineNativeLib.RdcIsAttached())
             {
@@ -49,9 +55,7 @@ namespace XrEditor
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IViewManager>(_viewManager);
             Context.Implement<IMainDispatcher>(_mainDispatcher);
-            Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(EditorDebug.AssetsPath));
-            Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
-            Context.Implement<IVideoCodec>(() => new FFmpegCodec());
+            Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(EditorDebug.AssetsPath.ToArray()));
             Context.Implement<IWindowManager>(() => new WpfWindowManager());
             Context.Implement<IClipboard>(() => new WpfClipboard());
             Context.Implement<IProgressLogger>(new NullProgressLogger());

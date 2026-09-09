@@ -15,8 +15,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\XrEngine.Bullet.Native\XrEngine.Bullet.Native.vcxproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsPacking)' != 'true'">
+		<ProjectReference Include="..\XrEngine.Bullet.Native\XrEngine.Bullet.Native.vcxproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

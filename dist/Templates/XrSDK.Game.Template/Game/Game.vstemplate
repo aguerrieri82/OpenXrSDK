@@ -1,0 +1,13 @@
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>XrSDK Game</Name>
+    <Description>XrSDK game project</Description>
+    <ProjectType>CSharp</ProjectType>
+    <Hidden>true</Hidden>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="Game.csproj" TargetFileName="$projectname$.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="Builder.cs">Builder.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

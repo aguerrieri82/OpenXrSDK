@@ -1,0 +1,55 @@
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>XrSDK Game.Android</Name>
+    <Description>XrSDK game project</Description>
+    <ProjectType>CSharp</ProjectType>
+    <Hidden>true</Hidden>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="Game.Android.csproj" TargetFileName="$projectname$.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="AndroidManifest.xml">AndroidManifest.xml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.cs">App.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Game.Android.csproj.user">Game.Android.csproj.user</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="GameActivity.cs">GameActivity.cs</ProjectItem>
+      <Folder Name="Resources" TargetFolderName="Resources">
+        <ProjectItem ReplaceParameters="false" TargetFileName="AboutResources.txt">AboutResources.txt</ProjectItem>
+        <Folder Name="layout" TargetFolderName="layout">
+          <ProjectItem ReplaceParameters="true" TargetFileName="activity_main.xml">activity_main.xml</ProjectItem>
+        </Folder>
+        <Folder Name="mipmap-anydpi-v26" TargetFolderName="mipmap-anydpi-v26">
+          <ProjectItem ReplaceParameters="true" TargetFileName="appicon_round.xml">appicon_round.xml</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="appicon.xml">appicon.xml</ProjectItem>
+        </Folder>
+        <Folder Name="mipmap-hdpi" TargetFolderName="mipmap-hdpi">
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_background.png">appicon_background.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_foreground.png">appicon_foreground.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon.png">appicon.png</ProjectItem>
+        </Folder>
+        <Folder Name="mipmap-mdpi" TargetFolderName="mipmap-mdpi">
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_background.png">appicon_background.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_foreground.png">appicon_foreground.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon.png">appicon.png</ProjectItem>
+        </Folder>
+        <Folder Name="mipmap-xhdpi" TargetFolderName="mipmap-xhdpi">
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_background.png">appicon_background.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_foreground.png">appicon_foreground.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon.png">appicon.png</ProjectItem>
+        </Folder>
+        <Folder Name="mipmap-xxhdpi" TargetFolderName="mipmap-xxhdpi">
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_background.png">appicon_background.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_foreground.png">appicon_foreground.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon.png">appicon.png</ProjectItem>
+        </Folder>
+        <Folder Name="mipmap-xxxhdpi" TargetFolderName="mipmap-xxxhdpi">
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_background.png">appicon_background.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon_foreground.png">appicon_foreground.png</ProjectItem>
+          <ProjectItem ReplaceParameters="false" TargetFileName="appicon.png">appicon.png</ProjectItem>
+        </Folder>
+        <Folder Name="values" TargetFolderName="values">
+          <ProjectItem ReplaceParameters="true" TargetFileName="ic_launcher_background.xml">ic_launcher_background.xml</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="strings.xml">strings.xml</ProjectItem>
+        </Folder>
+      </Folder>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

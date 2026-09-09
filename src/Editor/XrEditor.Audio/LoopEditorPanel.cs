@@ -1,10 +1,10 @@
 ﻿using CanvasUI.Components;
 using Fftw;
-using Newtonsoft.Json;
 using OpenAl.Framework;
 using System.ComponentModel;
 using System.IO;
 using System.Numerics;
+using System.Text.Json;
 using System.Windows.Controls;
 using XrEditor.Services;
 using XrEngine;
@@ -273,7 +273,7 @@ namespace XrEditor.Audio
                 _settings.Offset += _settings.Duration / 2;
             }
 
-            var json = JsonConvert.SerializeObject(slices);
+            var json = JsonSerializer.Serialize(slices);
 
             await UiThread;
 

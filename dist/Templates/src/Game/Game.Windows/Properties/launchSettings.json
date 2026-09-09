@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Editor": {
+      "commandName": "Executable",
+      "executablePath": "$(TargetDir)XrEditor.exe",
+      "commandLineArgs": "-assembly Game.Windows.dll -entry Game.Windows::Game.Windows.Builder -assets .",
+      "workingDirectory": "$(TargetDir)"
+    }
+  }
+}

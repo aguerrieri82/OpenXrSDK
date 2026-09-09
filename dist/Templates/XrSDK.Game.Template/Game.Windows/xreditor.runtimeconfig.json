@@ -1,0 +1,16 @@
+{
+  "runtimeOptions": {
+    "tfm": "net11.0",
+
+    "frameworks": [
+      {
+        "name": "Microsoft.NETCore.App",
+        "version": "11.0.0-preview.7.26381.103"
+      },
+      {
+        "name": "Microsoft.WindowsDesktop.App",
+        "version": "11.0.0-preview.7.26381.103"
+      }
+    ]
+  }
+}

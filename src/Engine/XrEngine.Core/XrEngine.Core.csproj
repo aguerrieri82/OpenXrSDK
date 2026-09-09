@@ -19,7 +19,12 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content PackagePath="runtimes/win-x64/native/" Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
+		<Content PackagePath="runtimes/win-x64/native/" 
+				 Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
+				 CopyToOutputDirectory="PreserveNewest" 
+				 Link="%(Filename)%(Extension)"
+				 Visible="False"
+				 UseLink="True" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
@@ -33,8 +38,11 @@
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
 	  <ProjectReference Include="..\TurboJpeg\TurboJpeg.csproj" />
-	  <ProjectReference Include="..\XrEngine.Native\XrEngine.Native.vcxproj" />
+
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(IsPacking)' != 'true'">
+		<ProjectReference Include="..\XrEngine.Native\XrEngine.Native.vcxproj" />
+	</ItemGroup>
 
 </Project>

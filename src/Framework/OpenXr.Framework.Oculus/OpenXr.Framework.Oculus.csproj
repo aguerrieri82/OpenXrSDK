@@ -21,6 +21,8 @@
 		<Content Include="Models/*" 
 				 Pack="true"
 				 PackagePath="contentFiles/any/$(CoreVersion)/Assets/Models/"
+				 TargetPath="Assets\%(RecursiveDir)%(Filename)%(Extension)" 
+				 PackageFlatten="false" 
 				 PackageCopyToOutput="true"
 				 Link="Assets/Models/%(Filename)%(Extension)" 
 				 UseLink="True" 

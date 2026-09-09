@@ -28,7 +28,8 @@
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)filament-native\android-arm64\*" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(FilamentLink)' != 'PreBuilt'">
+
+	<ItemGroup Condition="'$(FilamentLink)' != 'PreBuilt' AND '$(IsPacking)' != 'true'">
 		<ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />
 	</ItemGroup>
 

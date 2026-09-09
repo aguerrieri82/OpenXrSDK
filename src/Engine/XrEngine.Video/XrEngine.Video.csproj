@@ -1,14 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 
-  </PropertyGroup>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\UsbCamera.Native\UsbCamera.Native.vcxproj" />
-    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
-    <ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+		<ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
+	</ItemGroup>
 
+	<ItemGroup Condition="'$(IsPacking)' != 'true'">
+		<ProjectReference Include="..\UsbCamera.Native\UsbCamera.Native.vcxproj" />
+	</ItemGroup>
 
 </Project>

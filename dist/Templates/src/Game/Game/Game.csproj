@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net11.0;net11.0-android</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="XrEngine.OpenXr" Version="0.7.0" />
+		<PackageReference Include="OpenXr.Framework.Oculus" Version="0.7.0" />
+	</ItemGroup>
+
+</Project>

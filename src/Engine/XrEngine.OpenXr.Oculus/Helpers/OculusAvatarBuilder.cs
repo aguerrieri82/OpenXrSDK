@@ -61,7 +61,8 @@ namespace XrEngine.OpenXr.Oculus
 
                 var mesh = new TriangleMesh(primitive.Geometry, material)
                 {
-                    Name = primitive.Name
+                    Name = primitive.Name,
+                    CompressionMode = MeshCompressionMode.Never
                 };
 
                 SetTransform(mesh, primitive.Joints.Length > 0 ? state.skinningOrigin : state.localTransform);

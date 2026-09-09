@@ -6,8 +6,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\third-party\etcpak\EtcPack.vcxproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsPacking)' != 'true'">
+		<ProjectReference Include="..\..\..\third-party\etcpak\EtcPack.vcxproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
