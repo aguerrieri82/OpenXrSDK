@@ -44,7 +44,7 @@ namespace XrEngine
                 return;
 
             if (_parent != null && !_parent.WorldMatrix.IsIdentity)
-                _worldMatrix = _transform.Matrix * _parent!.WorldMatrix;
+                _worldMatrix = _transform.Matrix * _parent.WorldMatrix;
             else
                 _worldMatrix = _transform.Matrix;
 

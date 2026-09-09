@@ -3,10 +3,11 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine.OpenXr.Oculus.Helpers;
+using XrMath;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public partial class Avatar : Group3D
+    public class Avatar : Group3D
     {
         private static readonly Dictionary<FullBodyJointMETA, string> _bodyMap = new()
         {
@@ -93,8 +94,23 @@ namespace XrEngine.OpenXr.Oculus
         protected XrBodyTrack? _bodyTrack;
         protected XrApp? _xrApp;
         protected BodySkeletonRetargeter? _bodyRetargeter;
-        private Joint3D _xrScheleton;
-        private Dictionary<int, Joint3D> _xrMap;
+        protected Joint3D? _xrScheleton;
+        protected Dictionary<int, Joint3D>? _xrScheletonMap;
+
+        public Avatar()
+        {
+            BaseTransform = Matrix4x4.Identity;
+        }
+
+        public void Mirror(float distance)
+        {
+            BaseTransform = Matrix4x4.CreateTranslation(0, 0, distance) *
+               Matrix4x4.CreateScale(1, 1, -1) *
+               Matrix4x4.CreateTranslation(0, 0, -distance);
+
+            foreach (var material in this.MaterialsDeep<Material>())
+                material.FrontFace = FrontFaceDir.CW;
+        }
 
         protected override void UpdateSelf(RenderContext ctx)
         {
@@ -112,21 +128,26 @@ namespace XrEngine.OpenXr.Oculus
 
                 if (_bodyTrack.IsActive && _bodyTrack.Skeleton != null)
                 {
+                    bool updateScheleton = false;
+
                     if (_bodyRetargeter == null)
                     {
                         BindBody();
-
-                        _xrScheleton = AddChild(_bodyTrack.Skeleton!.BuildScheleton("xr", out _xrMap));
+                        updateScheleton = true;
                     }
                     else if (!_bodyRetargeter.IsBoundTo(_bodyTrack.Skeleton))
                     {
                         _bodyRetargeter.Rebind(_bodyTrack.Skeleton);
-
-                        _xrScheleton?.Remove();
-                        _xrScheleton = AddChild(_bodyTrack.Skeleton!.BuildScheleton("xr", out _xrMap));
+                        updateScheleton = true;
                     }
 
-                    _bodyRetargeter!.Update(locations, RootDelta);
+                    if (updateScheleton)
+                    {
+                        _xrScheleton?.Remove();
+                        _xrScheleton = AddChild(_bodyTrack.Skeleton!.BuildScheleton("xr", out _xrScheletonMap));
+                    }
+         
+                    _bodyRetargeter!.Update(locations, BaseTransform);
                 }
 
                 if (_xrScheleton != null)
@@ -135,7 +156,7 @@ namespace XrEngine.OpenXr.Oculus
                     {
                         var location = locations[i];
 
-                        var joint = _xrMap[i];
+                        var joint = _xrScheletonMap![i];
 
                         var pose = location.Pose.ToPose3();
                         
@@ -181,8 +202,6 @@ namespace XrEngine.OpenXr.Oculus
 
             base.Dispose();
         }
-
-        [Range(0, 1, 0.005f)]
-        public Vector3 RootDelta { get; set; }
+        public Matrix4x4 BaseTransform { get; set; }
     }
 }

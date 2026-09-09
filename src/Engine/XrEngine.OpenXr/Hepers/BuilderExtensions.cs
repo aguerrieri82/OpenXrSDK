@@ -455,9 +455,18 @@ namespace XrEngine.OpenXr
             if (!XrDevice.IsMetaQuest)
                 return self;
 
-            var options = new OculusXrPluginOptions();
-            configure?.Invoke(options);
-            self.Options.XrPlugins.Add(new OculusXrPlugin(options));
+            var plugin = self.Options.XrPlugins.OfType<OculusXrPlugin>().FirstOrDefault();
+
+            if (plugin == null)
+            {
+                var options = new OculusXrPluginOptions();
+                configure?.Invoke(options);
+                self.Options.XrPlugins.Add(new OculusXrPlugin(options));
+            }
+            else
+            {
+                configure?.Invoke(plugin.Options);
+            }
 
             return self;
         }

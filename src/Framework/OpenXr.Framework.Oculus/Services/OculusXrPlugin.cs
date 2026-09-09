@@ -57,7 +57,10 @@ namespace OpenXr.Framework.Oculus
 
         public bool UseBothHandAndControllers { get; set; }
 
+        public bool UseBodyTrack { get; set; }
+
         public HandTrackingFrequencyHintMETA HandTrackingFrequency { get; set; }
+
     }
 
     public partial class OculusXrPlugin : XrBasePlugin, IDisposable
@@ -208,14 +211,22 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_META_spatial_entity_discovery");
             extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_EXT_hand_tracking_data_source");
-            extensions.Add("XR_META_body_tracking_full_body");
-            extensions.Add(FBBodyTracking.ExtensionName);
 
             extensions.Add(METAHandTrackingWideMotionMode.ExtensionName);
             extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);
             extensions.Add(METAHandTrackingUnextrapolatedPoses.ExtensionName);
-            extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);
 
+            if (_options.UseBothHandAndControllers)
+                extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);
+
+            if (_options.UseBodyTrack)
+            {
+                if (_options.UseBothHandAndControllers)
+                    throw new NotSupportedException("XR_META_simultaneous_hands_and_controllers is not compatible with XR_FB_body_tracking");
+
+                extensions.Add("XR_META_body_tracking_full_body");
+                extensions.Add(FBBodyTracking.ExtensionName);
+            }
         }
 
         public unsafe override void OnInstanceCreated()
@@ -252,7 +263,10 @@ namespace OpenXr.Framework.Oculus
 
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
                 GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
+            }
 
+            if (_options.UseBothHandAndControllers)
+            {
                 _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrResumeSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrResumeSimultaneousHandsAndControllersTrackingMETA ");
                 ResumeSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<ResumeSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
 
@@ -277,7 +291,6 @@ namespace OpenXr.Framework.Oculus
 
                 SetHandTrackingFrequencyHint(_options.HandTrackingFrequency);
             }
-
         }
 
         public void SetColorSpace(ColorSpaceFB colorSpace)
@@ -1010,6 +1023,9 @@ namespace OpenXr.Framework.Oculus
             if (SetHandTrackingFrequencyHintMETA == null)
                 return;
 
+            if (_options.UseBothHandAndControllers && frequencyHint == HandTrackingFrequencyHintMETA.HighMeta)
+                throw new NotSupportedException("Fast Motion Mode not supporte when XR_META_simultaneous_hands_and_controllers is on");
+
             _app!.CheckResult(SetHandTrackingFrequencyHintMETA(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
         }
 
@@ -1167,6 +1183,5 @@ namespace OpenXr.Framework.Oculus
         }
 
         public OculusXrPluginOptions Options => _options;
-
     }
 }

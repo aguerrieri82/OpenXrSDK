@@ -1,6 +1,7 @@
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenXr.Oculus
 {
@@ -436,7 +437,6 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-
         private int DistanceTo(Joint3D child, Joint3D ancestor)
         {
             var depth = 0;
@@ -465,9 +465,9 @@ namespace XrEngine.OpenXr.Oculus
             return Quaternion.Normalize(new Quaternion(Vector3.Cross(from, to), 1 + dot));
         }
 
-        public void Update(BodyJointLocationFB[] locations, Vector3 rootDelta)
+        public void Update(BodyJointLocationFB[] locations, in Matrix4x4 baseTransform)
         {
-            if (locations.Length != _joints.Length || !Valid(rootDelta))
+            if (locations.Length != _joints.Length)
                 throw new ArgumentException("Invalid tracking frame or root offset.");
 
             foreach (var i in _order)
@@ -481,9 +481,7 @@ namespace XrEngine.OpenXr.Oculus
                 if ((location.LocationFlags & SpaceLocationFlags.OrientationValidBit) != 0 && Valid(pose.Orientation))
                     _orientations[i] = Quaternion.Normalize(pose.Orientation);
 
-                // Hold invalid components in reference space, even when parents move.
-                // WorldMatrix also removes old scales and bypasses position deadbands.
-                _joints[i].WorldMatrix = Pose(_positions[i] + rootDelta, _orientations[i]);
+                _joints[i].WorldMatrix = Pose(_positions[i], _orientations[i]) * baseTransform;
             }
         }
 

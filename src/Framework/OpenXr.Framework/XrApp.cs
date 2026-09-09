@@ -579,9 +579,9 @@ namespace OpenXr.Framework
             return _systemId;
         }
 
-        public void GetSystemProperties<T>(ref T other) where T : unmanaged
+        public void GetSystemProperties<T>(ref T sysProps) where T : unmanaged
         {
-            fixed (T* pProps = &other)
+            fixed (T* pProps = &sysProps)
             {
                 var result = new SystemProperties
                 {

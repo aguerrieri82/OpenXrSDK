@@ -41,6 +41,7 @@ namespace XrSamples.Android.Activities
         public GameActivity()
         {
             _permissions.Add("horizonos.permission.HEADSET_CAMERA");
+            _permissions.Add("com.oculus.permission.BODY_TRACKING");
         }
 
         protected override void OnLoad()

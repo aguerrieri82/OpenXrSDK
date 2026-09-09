@@ -52,6 +52,7 @@ namespace XrEngine.OpenGL
             Features.Clear();
             VertexArray = null;
             ActiveShadingRate = null;
+            FrontFace = null;
             TexturesSlots.Clear();
             BufferSlots.Clear();
 
@@ -135,6 +136,9 @@ namespace XrEngine.OpenGL
 
             for (var i = 0; i < SamplerSlots.Length; i++)
                 BindSampler(SamplerSlots[i], i, true);
+
+            if (FrontFace != null)
+                SetFrontFace(FrontFace.Value, true);
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -448,6 +452,16 @@ namespace XrEngine.OpenGL
             }
         }
 
+
+        private void SetFrontFace(FrontFaceDirection value, bool force = false)
+        {
+            if (FrontFace != value || force)
+            {
+                _gl.FrontFace(value);
+                FrontFace = value;
+            }
+        }
+
         public void SetCullFace(TriangleFace value, bool force = false)
         {
             if (CullFace != value || force)
@@ -712,6 +726,7 @@ namespace XrEngine.OpenGL
         public void ConfigureCaps(ShaderMaterial material)
         {
             SetCullFace(material.CullFront ? TriangleFace.Front : TriangleFace.Back);
+            SetFrontFace(material.FrontFace == FrontFaceDir.CCW ? FrontFaceDirection.Ccw : FrontFaceDirection.CW);
             SetUseDepth(material.UseDepth);
             SetWriteDepth(material.WriteDepth);
             SetDoubleSided(material.DoubleSided);
@@ -739,12 +754,15 @@ namespace XrEngine.OpenGL
             Commit();
         }
 
+
         public uint GetActiveTexture(TextureTarget target, int slot)
         {
             if (!TexturesSlots.TryGetValue(target, out var values))
                 return 0;
             return values[slot];
         }
+
+        public FrontFaceDirection? FrontFace;
 
         public float? ClearDepth;
 

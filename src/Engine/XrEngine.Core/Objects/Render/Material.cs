@@ -41,6 +41,12 @@ namespace XrEngine
         DynamicTargets,
     }
 
+    public enum FrontFaceDir
+    {
+        CCW,
+        CW
+    }
+
     public abstract partial class Material : EngineObject, IHosted, IMaterial
     {
         protected HashSet<EngineObject> _hosts = [];
@@ -145,6 +151,8 @@ namespace XrEngine
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;
+
+        public FrontFaceDir FrontFace { get; set; }
 
         public bool UseClipDistance { get; set; }
 

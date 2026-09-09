@@ -19,32 +19,28 @@ namespace XrSamples
             Task.Run(async () =>
             {
                 var platform = Context.Require<OculusPlatform>();
-                var avatar = Context.Require<OculusAvatarManager>();
-
+                var avatarManager = Context.Require<OculusAvatarManager>();
                 // await platform.LoginAsync("test01_nvvjjf@tfbnw.net", "12345678", 8587954307993093);
 
-                await avatar.LoginAsync("OCAQBiOGnu8iqz2cOQvbjSYlRduVbfv0z5fNUf515QjPZBhCDD1pRup81gdSvMOUZAgkOTQABhmZApV0jj8fSeDknVV9U2xmet5Ib8gawpQZDZD");
+                await avatarManager.LoginAsync("OCAQBiOGnu8iqz2cOQvbjSYlRduVbfv0z5fNUf515QjPZBhCDD1pRup81gdSvMOUZAgkOTQABhmZApV0jj8fSeDknVV9U2xmet5Ib8gawpQZDZD");
 
-                var obj = await avatar.LoadAsync("8672967276120323");
-
-                var root = obj.FindByName<Joint3D>("root_joint")!;
-
-                var builder = new StringBuilder();
-                root.Print(builder);
-                Log.Info(obj, builder.ToString());
+                var avatar = await avatarManager.LoadAsync("8672967276120323");
+                avatar.Mirror(1f);
 
                 await EngineApp.MainThread;
 
-                scene!.AddChild(obj);
+                scene!.AddChild(avatar);
             });
 
             return builder
                 .UseApp(app)
-                //.UseSceneModel(false, false)
-                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
-                .AddFloorShadow(4, false)
-                .UsePhysics(new PhysicsOptions())
-                .ConfigureSampleApp();
+                .UseDefaultHDR()
+                .UseOculus(opt =>
+                {
+                    opt.UseBodyTrack = true;
+                    opt.UseBothHandAndControllers = false;
+                })
+                .ConfigureSampleApp(useHands: false);
         }
     }
 }

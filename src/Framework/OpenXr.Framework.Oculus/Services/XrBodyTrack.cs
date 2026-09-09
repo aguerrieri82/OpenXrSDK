@@ -1,8 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace OpenXr.Framework.Oculus
 {
@@ -33,9 +31,36 @@ namespace OpenXr.Framework.Oculus
                 throw new NotSupportedException();
         }
 
+        public bool IsSupported(BodyJointSetFB jointSet)
+        {
+            if (jointSet == BodyJointSetFB.FullBodyMeta)
+            {
+                var fullProps = new SystemPropertiesBodyTrackingFullBodyMETA
+                {
+                    Type = StructureType.SystemPropertiesBodyTrackingFullBodyMeta
+                };
+
+                _app.GetSystemProperties(ref fullProps);
+
+                return fullProps.SupportsFullBodyTracking != 0;
+            }
+
+            var bodyProps = new SystemBodyTrackingPropertiesFB
+            {
+                Type = StructureType.SystemBodyTrackingPropertiesFB
+            };
+
+            _app.GetSystemProperties(ref bodyProps);
+
+            return bodyProps.SupportsBodyTracking != 0;
+        }
+
         public void Create(BodyJointSetFB jointSet)
         {
             Initialize();
+
+            if (!IsSupported(jointSet))
+                throw new Exception("Body tracking not supported");
 
             var info = new BodyTrackerCreateInfoFB()
             {
@@ -66,7 +91,7 @@ namespace OpenXr.Framework.Oculus
 
             fixed (BodySkeletonJointFB* pJoints = joints)
             {
-                result.Joints = pJoints;  
+                result.Joints = pJoints;
                 _app.CheckResult(_bodyTracking!.GetBodySkeletonFB(_tracker, ref result), "GetBodySkeletonFB");
             }
 

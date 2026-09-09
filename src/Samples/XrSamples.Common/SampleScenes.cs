@@ -338,10 +338,11 @@ namespace XrSamples
             return builder.AddPanel(new T());
         }
 
-        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true)
+        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true, bool useHands = true)
         {
             builder.AddXrRoot()
-                   .UseHands()
+                   .When(useHands, a=> a.UseHands())
+                   .When(usePt, a => a.AddPassthrough())
                    .UseLeftController()
                    .UseRightController()
                    .AddRightPointer()
@@ -351,15 +352,6 @@ namespace XrSamples
                        .AddAction(b => b.Left!.Haptic))
                    .UseRayCollider()
                    .UseGrabbers();
-
-            if (IsEditor)
-            {
-                //usePt = false;
-                Log.Error(builder, "Passtrhout not ADDED in editor");
-            }
-
-            if (usePt)
-                builder.AddPassthrough();
 
             return builder;
         }
