@@ -3,6 +3,7 @@ using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Oculus;
+using static Sfizz.SfzParser;
 
 namespace XrSamples
 {
@@ -15,17 +16,26 @@ namespace XrSamples
 
             var scene = app.ActiveScene;
 
-
             Task.Run(async () =>
             {
                 var platform = Context.Require<OculusPlatform>();
                 var avatarManager = Context.Require<OculusAvatarManager>();
-                // await platform.LoginAsync("test01_nvvjjf@tfbnw.net", "12345678", 8587954307993093);
 
-                await avatarManager.LoginAsync("OCAQBiOGnu8iqz2cOQvbjSYlRduVbfv0z5fNUf515QjPZBhCDD1pRup81gdSvMOUZAgkOTQABhmZApV0jj8fSeDknVV9U2xmet5Ib8gawpQZDZD");
+                if (XrPlatform.IsAndroid)
+                    await platform.LoginAsync("8587954307993093");
+                else
+                {
+                    await platform.LoginAsync("test01_nvvjjf@tfbnw.net", "12345678", 8587954307993093);
+                    //platform.Login("OCAQBiOGnu8iqz2cOQvbjSYlRduVbfv0z5fNUf515QjPZBhCDD1pRup81gdSvMOUZAgkOTQABhmZApV0jj8fSeDknVV9U2xmet5Ib8gawpQZDZD");
+                    //await platform.LoginAsync("8587954307993093");
+                }
+
+                await avatarManager.LoginAsync(platform.AccessToken ?? throw new InvalidOperationException());
 
                 var avatar = await avatarManager.LoadAsync("8672967276120323");
-                avatar.Mirror(1f);
+                var tracker = avatar.AddComponent<AvatarTracker>();
+
+                tracker.Mirror(1f);
 
                 await EngineApp.MainThread;
 

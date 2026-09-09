@@ -8,7 +8,11 @@ namespace Oculus.Platform;
 /// </summary>
 public static class StandaloneNative
 {
+#if __ANDROID__
+    private const string Library = "ovrplatformloader";
+#else
     private const string Library = "LibOVRPlatformImpl64_1";
+#endif
 
     [StructLayout(LayoutKind.Sequential)]
     public struct OculusInitParams
@@ -62,4 +66,20 @@ public static class StandaloneNative
 
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr ovr_Message_GetString(IntPtr message);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    public static extern int ovr_PlatformInitializeAndroid(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string appId,
+        IntPtr activityObject,
+        IntPtr jni);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    public static extern int ovr_PlatformInitializeWindows(
+    [MarshalAs(UnmanagedType.LPUTF8Str)] string appId);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_Error_GetMessage(IntPtr error);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_Error_GetDisplayableMessage(IntPtr error);
 }

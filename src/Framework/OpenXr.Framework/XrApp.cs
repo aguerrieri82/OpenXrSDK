@@ -227,13 +227,11 @@ namespace OpenXr.Framework
         long GetBootToMonotonicOffsetNs()
         {
 #if __ANDROID__
-
             var bootTime = Android.OS.SystemClock.ElapsedRealtimeNanos();
             var nanoTime = Java.Lang.JavaSystem.NanoTime();
             return nanoTime - bootTime;
 #else
             return 0;
-
 #endif
         }
 

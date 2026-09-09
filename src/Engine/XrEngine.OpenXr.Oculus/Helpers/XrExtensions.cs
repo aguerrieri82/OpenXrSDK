@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace XrEngine.OpenXr.Oculus.Helpers
+namespace XrEngine.OpenXr.Oculus
 {
     public static class XrExtensions
     {

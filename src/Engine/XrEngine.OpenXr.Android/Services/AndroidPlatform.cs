@@ -13,10 +13,13 @@ using XrEngine.OpenGL;
 using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
 using Silk.NET.OpenGLES.Extensions.EXT;
+using Silk.NET.OpenXR;
+using Android.Runtime;
+using Java.Interop;
 
 namespace XrEngine.OpenXr.Android
 {
-    public class AndroidPlatform : IXrEnginePlatform, IGlContextProvider
+    public class AndroidPlatform : IXrEnginePlatform, IGlContextProvider, IAndroidHost
     {
         [ThreadStatic]
         internal static IGlContext? _currentGlContext;
@@ -26,7 +29,9 @@ namespace XrEngine.OpenXr.Android
 #endif
 
         readonly Context2 _context;
-        private readonly DeviceInfo _info;
+        readonly DeviceInfo _info;
+        private readonly nint _jniEnv;
+
         VulkanDevice? _vkDevice;
 
         public AndroidPlatform(Context2 context)
@@ -39,6 +44,7 @@ namespace XrEngine.OpenXr.Android
             Context.Implement<IProgressLogger>(new AndroidProgressLogger());
             Context.Implement<ITimeLogger>(NullTimeLogger.Instance);
             Context.Implement<IGlContextProvider>(this);
+            Context.Implement<IAndroidHost>(this);
 
             _context = context;
 
@@ -47,11 +53,15 @@ namespace XrEngine.OpenXr.Android
                 Id = global::Android.Provider.Settings.Secure.GetString(context.ContentResolver, global::Android.Provider.Settings.Secure.AndroidId),
                 Name = global::Android.OS.Build.Model,
             };
+
+            _jniEnv = JNIEnv.Handle;
         }
+
+        nint IAndroidHost.NativeContext => ((IJavaObject)_context).Handle;
+        nint IAndroidHost.NativeJniEnv => JNIEnv.Handle;
 
         public XrApp CreateXrApp(IList<IXrPlugin> plugins)
         {
-
             return new XrApp(Context.Require<ILogger>(), [.. plugins, new AndroidXrPlugin(_context)]);
         }
 

@@ -1,9 +1,10 @@
+using global::Oculus.Platform;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using global::Oculus.Platform;
 
 namespace XrEngine.OpenXr.Oculus
 {
@@ -30,13 +31,13 @@ namespace XrEngine.OpenXr.Oculus
         private string? _accessToken;
         private bool _disposed;
 
-        public Task LoginAsync(string accessToken)
+        public string Login(string accessToken)
         {
             _accessToken = accessToken;
-            return Task.CompletedTask;
+            return accessToken;
         }
 
-        public async Task LoginAsync(string username, string password, ulong appId)
+        public async Task<string> LoginAsync(string username, string password, ulong appId)
         {
             var init = new StandaloneNative.OculusInitParams
             {
@@ -57,11 +58,31 @@ namespace XrEngine.OpenXr.Oculus
             _accessToken = await RequestAsync(
                 StandaloneNative.ovr_User_GetAccessToken,
                 ReadAccessToken).ConfigureAwait(false);
+
+            return _accessToken!;
         }
 
-        public Task LoginAsync(ulong appId)
+        public async Task<string> LoginAsync(string appId)
         {
-            return Task.FromException(new NotImplementedException());
+            int result;
+
+            if (XrPlatform.IsAndroid)
+            {
+                var host = Context.Require<IAndroidHost>();
+                result = StandaloneNative.ovr_PlatformInitializeAndroid(appId, host.NativeContext, host.NativeJniEnv);
+            }
+            else
+                result = StandaloneNative.ovr_PlatformInitializeWindows(appId);
+
+            if (result != 0)
+                throw new InvalidOperationException($"Oculus initialization failed: {result}.");
+
+
+            _accessToken = await RequestAsync(
+                StandaloneNative.ovr_User_GetAccessToken,
+                ReadAccessToken).ConfigureAwait(false);
+
+            return _accessToken!;
         }
 
         private static int ReadInitializationResult(IntPtr message)
@@ -171,6 +192,8 @@ namespace XrEngine.OpenXr.Oculus
                 {
                     var error = StandaloneNative.ovr_Message_GetError(message);
                     var code = StandaloneNative.ovr_Error_GetCode(error);
+                    var text = Marshal.PtrToStringUTF8(StandaloneNative.ovr_Error_GetMessage(error));
+
                     throw new InvalidOperationException($"Oculus Platform request failed: {code}.");
                 }
 
