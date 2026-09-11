@@ -46,6 +46,8 @@ namespace OpenXr.Framework
 
     }
 
+    public delegate void XrEventHandler(ref EventDataBuffer buffer);
+
     public unsafe class XrApp : IDisposable, IXrSession
     {
         const long DurationInfinite = 0x7fffffffffffffff;
@@ -1543,7 +1545,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected internal ulong StringToPath(string path)
+        public ulong StringToPath(string path)
         {
             ulong result = 0;
 
@@ -1552,7 +1554,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected internal string PathToString(ulong path)
+        public string PathToString(ulong path)
         {
             if (path == 0)
                 return string.Empty;
@@ -1801,6 +1803,8 @@ namespace OpenXr.Framework
                     }
 
                     PluginInvoke(p => p.HandleEvent(ref buffer));
+
+                    XrEvent?.Invoke(ref buffer);
                 }
                 catch (Exception ex)
                 {
@@ -1949,6 +1953,8 @@ namespace OpenXr.Framework
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;
 
+        public event XrEventHandler XrEvent;
+
         public XrAppState State => _state;
 
         public bool IsStarted => _state == XrAppState.Started;
@@ -1999,6 +2005,8 @@ namespace OpenXr.Framework
 
         public bool UseLocalSpace { get; set; }
 
+        public ITextInputProvider? TextInput { get; set; }
+
         public string? RuntimeName => _runtimeName;
 
         public string? LeftIntProfile => _leftIntProfile;
@@ -2008,5 +2016,7 @@ namespace OpenXr.Framework
         public bool IsMetaSimulator => _runtimeName == "Meta XR Simulator";
 
         public bool IsMetaLink => _runtimeName == "Oculus" && OperatingSystem.IsWindows();
+
+
     }
 }

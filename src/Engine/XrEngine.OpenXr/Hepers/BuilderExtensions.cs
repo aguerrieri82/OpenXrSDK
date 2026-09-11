@@ -471,6 +471,14 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder UseVirtualKeyboard(this XrEngineAppBuilder self)
+        {
+            return self.ConfigureApp(e =>
+            {
+                e.App.ActiveScene!.AddChild(new VirtualKeyboardView());
+            });
+        }
+
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)
         {
             if (XrPlatform.IsEditor)

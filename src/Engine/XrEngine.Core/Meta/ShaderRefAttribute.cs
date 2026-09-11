@@ -19,7 +19,7 @@
         MorphPosition = 0x800,
         MorphNormal = 0x1000,
         MorphTangent = 0x2000,
-
+        MorphUV0 = 0x4000,
     }
 
     [AttributeUsage(AttributeTargets.Field)]

@@ -4,6 +4,7 @@
     uint positionOfs;
     uint normalOfs;
     uint tangentOfs;
+    uint uv0Ofs;
 };
 
 layout(std140, binding = 6) uniform MorphUniformBuffer

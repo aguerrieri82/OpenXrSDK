@@ -11,5 +11,10 @@
         {
             return action();
         }
+
+        public void Post(Action action)
+        {
+            action();
+        }
     }
 }

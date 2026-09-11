@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="Shaders/**/*" />

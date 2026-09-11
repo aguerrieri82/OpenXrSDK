@@ -1,14 +1,21 @@
 ﻿namespace XrEngine.Gltf
 {
+    public delegate bool GltTextureLoaderDelegate(string url, Texture2D dest, out TextureData data);
+
     public class GltfLoaderOptions : IAssetLoaderOptions
     {
         public GltfLoaderOptions()
         {
             UseMips = true;
             ConvertColorTextureSRgb = true;
+            UseImageCache = true;
             DisableTangents = false;
             MaterialFactory = _ => new PbrMaterial();
         }
+
+        public GltTextureLoaderDelegate? TextureLoader { get; set; }
+
+        public Action<Geometry3D>? GeometryHandler { get; set; }
 
         public Func<int, PbrMaterial> MaterialFactory { get; set; }
 
@@ -31,6 +38,8 @@
         public bool TransmissionBkOnly { get; set; }
 
         public bool DisableSpecualar { get; set; }
+
+        public bool UseImageCache { get; set; }
 
         public static readonly GltfLoaderOptions Default = new();
     }

@@ -1,7 +1,6 @@
 ﻿
 using Common.Interop;
 using glTFLoader.Schema;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
@@ -35,17 +34,20 @@ namespace XrEngine.Gltf
         KHR_lights_punctual? _lightsRoot;
 
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
-        readonly ConcurrentDictionary<Image, TextureData> _images = [];
-        readonly ConcurrentDictionary<ulong, LoadTask<Texture2D>> _textures = [];
+        readonly Dictionary<Image, TextureData> _images = [];
+        readonly Dictionary<ulong, LoadTask<Texture2D>> _textures = [];
         readonly Dictionary<Mesh, Object3D> _meshes = [];
         readonly List<Task> _tasks = [];
-        readonly ConcurrentDictionary<int, byte[]> _buffers = [];
+        readonly Dictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
         readonly Dictionary<int, Object3D> _nodes = [];
         readonly Dictionary<Object3D, int> _objects = [];
         readonly Dictionary<int, GltfSkin> _skins = [];
         readonly HashSet<Object3D> _animTargets = [];
+
+        Stream? _stream;
+
         HashSet<int>? _animNodeIds;
         HashSet<int>? _jointNodesIds;
         MaterialVariantsHost? _variants;
@@ -72,6 +74,7 @@ namespace XrEngine.Gltf
             "KHR_node_visibility",
             "KHR_materials_anisotropy",
             "KHR_materials_pbrSpecularGlossiness" };
+
 
         #region STRUCTS
 
@@ -288,8 +291,20 @@ namespace XrEngine.Gltf
 
         protected byte[] LoadBuffer(int index)
         {
-            return _buffers.GetOrAdd(index,
-                index => glTFLoader.Interface.LoadBinaryBuffer(_model, index, _filePath));
+            lock (_buffers)
+            {
+                if (!_buffers.TryGetValue(index, out var buffer))
+                {
+                    if (_stream != null)
+                        buffer = glTFLoader.Interface.LoadBinaryBuffer(Clone(_stream));
+                    else
+                        buffer = glTFLoader.Interface.LoadBinaryBuffer(_model, index, _filePath);
+
+                    _buffers[index] = buffer;
+                }
+
+                return buffer;
+            }
 
         }
 
@@ -336,12 +351,12 @@ namespace XrEngine.Gltf
             return hash.Value();
         }
 
-        protected TextureData ProcessImage(int imgId, bool useSrgb = false)
+        protected TextureData ProcessImage(int imgId, Texture2D dest, bool useSrgb = false)
         {
             var img = _model!.Images[imgId];
 
-            return _images.GetOrAdd(img, img =>
-            {
+            TextureData CreateImage()
+            { 
                 Log.Info(this, "Loading image {0}", img.Uri);
 
                 try
@@ -358,6 +373,12 @@ namespace XrEngine.Gltf
                     }
                     else if (img.Uri != null)
                     {
+                        if (_options.TextureLoader != null)
+                        {
+                            if (_options.TextureLoader(img.Uri, dest, out var loaderTexData))
+                                return loaderTexData;
+                        }
+
                         var imgPath = _resourceResolver(Path.Join(_basePath!, img.Uri));
                         data = File.OpenRead(imgPath)
                             .ToMemory()
@@ -394,7 +415,12 @@ namespace XrEngine.Gltf
                 {
                     Log.Info(this, "Loading image {0} end", img.Uri);
                 }
-            });
+            }
+
+            if (_options.UseImageCache)
+                return _images.GetOrAdd(img, img => CreateImage());
+
+            return CreateImage();
         }
 
         protected LoadTask<T> Load<T>(T result, Action action)
@@ -454,7 +480,7 @@ namespace XrEngine.Gltf
 
                 return Load(texResult, () =>
                 {
-                    var data = ProcessImage(source.Value, useSrgb);
+                    var data = ProcessImage(source.Value, texResult, useSrgb);
 
                     AssignAsset(texResult, imageInfo.Name, "img", source.Value);
 
@@ -1176,24 +1202,36 @@ namespace XrEngine.Gltf
                     {
                         var acc = _model!.Accessors[attr.Value];
 
-                        Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                         Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
 
                         var morphComp = new MorphComponent
                         {
-                            Values = ConvertBuffer<Vector3>(acc)
+            
                         };
 
                         switch (attr.Key)
                         {
                             case "POSITION":
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 morphComp.Component = VertexComponent.MorphPosition;
+                                morphComp.Values = ConvertBuffer<Vector3>(acc);
                                 break;
                             case "NORMAL":
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 morphComp.Component = VertexComponent.MorphNormal;
+                                morphComp.Values = ConvertBuffer<Vector3>(acc);
                                 break;
                             case "TANGENT":
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
                                 morphComp.Component = VertexComponent.MorphTangent;
+                                morphComp.Values = ConvertBuffer<Vector3>(acc);
+                                break;
+                            case "TEXCOORD_0":
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
+                                morphComp.Component = VertexComponent.MorphUV0;
+                                morphComp.Values = ConvertBuffer<Vector2>(acc)
+                                                  .Select(a => new Vector3(a.X, a.Y, 0))
+                                                  .ToArray();
                                 break;
                             default:
                                 throw new NotSupportedException();
@@ -1321,6 +1359,14 @@ namespace XrEngine.Gltf
 
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name,
                         curMesh.Geometry.Vertices.Length * MarshalCache.SizeOf(typeof(VertexData)));
+
+                    if (curMesh.Geometry.TryComponent<MorphedGeometry>(out _))
+                    {
+                        foreach (var mat in curMesh.Materials)
+                            mat.UseMorph = true;
+
+                        curMesh.EnsureComponent<MeshMorph>();
+                    }
                 });
 
                 if (primitive.Material != null)
@@ -1328,7 +1374,8 @@ namespace XrEngine.Gltf
                     var mat = ProcessMaterial(primitive.Material.Value, node);
                     mat.Skin = SkinMode.Static;
                     mat.UseSkin = node?.Skin != null;
-                    mat.UseMorph = weights != null && weights.Length > 0;
+                    mat.UseMorph = (weights != null && weights.Length > 0);
+    
                     curMesh.Materials.Add(mat);
                 }
 
@@ -1721,6 +1768,8 @@ namespace XrEngine.Gltf
 
             AssignAsset(group, anim.Name, "anim", animId);
 
+            group.Allocate(anim.Channels.Length);
+
             foreach (var channel in anim.Channels)
             {
                 CheckExtensions(channel.Extensions);
@@ -1792,6 +1841,14 @@ namespace XrEngine.Gltf
                 {
                     MeshMorph[]? morphMeshes = null;
 
+                    var additiveWeightIndex = -1;
+
+                    if (channel.Extras is JsonElement extras &&
+                        extras.TryGetProperty("additiveWeightIndex", out var value))
+                    {
+                        additiveWeightIndex = value.GetInt32();
+                    }
+
                     group.Add(new StepAnimation<float[]>()
                     {
                         Steps = [.. sampler.Values.Select(a => new AnimationStep<float[]>
@@ -1805,8 +1862,17 @@ namespace XrEngine.Gltf
                         SetTarget = t =>
                         {
                             morphMeshes ??= [.. obj3d.ComponentsDeep<MeshMorph>()];
+
                             foreach (var meshMorph in morphMeshes)
-                                meshMorph.Weights = t.Value;
+                            {
+                                if (additiveWeightIndex < 0)
+                                    meshMorph.Weights = t.Value;
+                                else
+                                {
+                                    meshMorph.Weights[additiveWeightIndex] += t.Value[additiveWeightIndex];
+                                    meshMorph.InvalidateWeights();
+                                }
+                            }
                         }
                     });
                 }
@@ -1844,7 +1910,7 @@ namespace XrEngine.Gltf
             if (_model.Animations == null)
                 return [];
 
-            var result = new List<AnimationGroup>();
+            var result = new List<AnimationGroup>(_model.Animations.Length);
 
             int animId = 0;
             foreach (var anim in _model.Animations)
@@ -1884,9 +1950,44 @@ namespace XrEngine.Gltf
             _animNodeIds?.Clear();
             _animTargets.Clear();
             _objects.Clear();
+            _stream?.Dispose();
+
+            _stream = null;
             _variants = null;
 
             GC.SuppressFinalize(this);
+        }
+
+        static Stream Clone(Stream stream)
+        {
+            var result = new MemoryStream();
+            
+            if (stream.CanSeek)
+                stream.Position = 0;
+
+            stream.CopyTo(result);
+            result.Position = 0;
+            
+            return result;
+        }
+
+        internal void LoadModel(Stream stream, GltfLoaderOptions? options)
+        {
+            if (options != null)
+                _options = options;
+
+            if (stream is not MemoryStream)
+            {
+                _stream = new MemoryStream();
+                stream.CopyTo(_stream);
+                _stream.Position = 0;
+            }
+            else
+                _stream = stream;
+
+            _model = glTFLoader.Interface.LoadModel(Clone(_stream));
+
+            LoadModelWork();
         }
 
         internal void LoadModel(string filePath, GltfLoaderOptions? options)
@@ -1898,6 +1999,13 @@ namespace XrEngine.Gltf
             _filePath = filePath;
             _model = glTFLoader.Interface.LoadModel(filePath);
 
+            LoadModelWork();
+        }
+
+        void LoadModelWork()
+        {
+            Debug.Assert(_model != null);
+
             _animNodeIds = _model.Animations?
               .SelectMany(a => a.Channels)
               .Where(a => a.Target.Node != null)
@@ -1907,12 +2015,23 @@ namespace XrEngine.Gltf
             _jointNodesIds = _model.Skins?.SelectMany(a => a.Joints).ToHashSet() ?? [];
         }
 
+        public Object3D Load(Stream stream, GltfLoaderOptions options)
+        {
+            LoadModel(stream, options);
+
+            var result = LoadScene();
+
+            ExecuteLoadTasks();
+
+            return result;
+        }
+
         public Object3D Load(string filePath, GltfLoaderOptions options)
         {
             LoadModel(filePath, options);
-            
+
             var result = LoadScene();
-            
+
             ExecuteLoadTasks();
 
             if (string.IsNullOrWhiteSpace(result.Name))
@@ -2009,5 +2128,6 @@ namespace XrEngine.Gltf
         public glTFLoader.Schema.Gltf? Model => _model;
 
         public string? FilePath => _filePath;
+
     }
 }

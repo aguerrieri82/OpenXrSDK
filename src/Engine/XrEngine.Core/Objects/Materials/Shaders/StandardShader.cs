@@ -33,6 +33,8 @@ namespace XrEngine
             {
                 Debug.Assert(ctx.Model != null);
 
+                ctx.Model.EnsureTransformUpdate();
+
                 var curVersion = ctx.Model.Transform.Version;
 
                 var motVectActive = ctx.UseMotionVectors && ctx.MotionVectorProvider?.IsActive == true;

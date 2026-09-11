@@ -18,13 +18,12 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="Models/*" 
+		<Content Include="Models\*" 
 				 Pack="true"
-				 PackagePath="contentFiles/any/$(CoreVersion)/Assets/Models/"
-				 TargetPath="Assets\%(RecursiveDir)%(Filename)%(Extension)" 
+				 TargetPath="Assets\Models\%(Filename)%(Extension)" 
 				 PackageFlatten="false" 
 				 PackageCopyToOutput="true"
-				 Link="Assets/Models/%(Filename)%(Extension)" 
+				 Link="Assets\Models\%(Filename)%(Extension)" 
 				 UseLink="True" 
 				 CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>

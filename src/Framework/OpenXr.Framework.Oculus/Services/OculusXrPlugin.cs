@@ -1,4 +1,5 @@
 ﻿using Common.Interop;
+using OpenXr.Framework.Oculus.Structs;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.Maths;
@@ -211,6 +212,10 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_META_spatial_entity_discovery");
             extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_EXT_hand_tracking_data_source");
+            extensions.Add("XR_META_hand_tracking_microgestures");
+
+            extensions.Add(METAVirtualKeyboard.ExtensionName);
+            extensions.Add(FBRenderModel.ExtensionName);
 
             extensions.Add(METAHandTrackingWideMotionMode.ExtensionName);
             extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);

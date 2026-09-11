@@ -96,7 +96,7 @@ namespace XrEngine
                         buffer.Version = morphGeo.Host.Version;
                     }
 
-                    return false; //this is correct as FALSE
+                    return false;
 
                 }, BufferSlots.Morph, BufferStore.Model, BufferUsage.SSbo);
             }
@@ -144,6 +144,10 @@ namespace XrEngine
 
                     case VertexComponent.MorphTangent:
                         target.TangentOfs = offset;
+                        break;
+
+                    case VertexComponent.MorphUV0:
+                        target.Uv0Ofs = offset;
                         break;
 
                     default:
@@ -221,7 +225,7 @@ namespace XrEngine
         {
             var builder = new StringBuilder();
 
-            builder.AppendLine("void applyMorph(inout vec3 position, inout vec3 normal");
+            builder.AppendLine("void applyMorph(inout vec3 position, inout vec3 normal, inout vec2 uv0");
             builder.AppendLine("#ifdef HAS_TANGENTS");
             builder.AppendLine("    , inout vec3 tangent");
             builder.AppendLine("#endif");
@@ -267,6 +271,11 @@ namespace XrEngine
                             builder.AppendLine(
                                 $"{indent}tangent += morphFetch(uMorphTargets[{targetIndex}].tangentOfs) * uMorphTargets[{targetIndex}].weight;");
                             builder.AppendLine("#endif");
+                            break;
+
+                        case VertexComponent.MorphUV0:
+                            builder.AppendLine(
+                                $"{indent}uv0 += morphFetch(uMorphTargets[{targetIndex}].uv0Ofs).xy * uMorphTargets[{targetIndex}].weight;");
                             break;
 
                         default:

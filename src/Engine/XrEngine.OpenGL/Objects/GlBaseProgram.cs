@@ -379,10 +379,10 @@ namespace XrEngine.OpenGL
 
                 var isTexUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-                GlState.Current.LoadTexture(glText, slot, forceBinding);
-
                 if (isTexUpdate)
                     glText.Update(tex2d);
+
+                GlState.Current.LoadTexture(glText, slot, forceBinding);
             }
         }
 

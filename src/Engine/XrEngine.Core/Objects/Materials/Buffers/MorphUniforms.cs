@@ -4,13 +4,14 @@ using System.Runtime.InteropServices;
 namespace XrEngine
 {
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Size = 32)]
     public struct MorphTargetUniform
     {
         public float Weight;
         public uint PositionOfs;
         public uint NormalOfs;
         public uint TangentOfs;
+        public uint Uv0Ofs;
     }
 
     [InlineArray(MorphUniforms.MaxTargets)]

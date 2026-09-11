@@ -35,7 +35,7 @@ namespace XrEngine
 
         public MorphedGeometry()
         {
-            StorageType = MorphStorageType.Texture;
+            StorageType = MorphStorageType.Ssbo;
         }
 
         public unsafe void UpdateBuffer(IBuffer<Vector3> buffer)

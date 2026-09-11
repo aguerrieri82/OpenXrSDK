@@ -38,7 +38,7 @@ namespace XrEditor
         public static readonly bool UseEs = false;
 #endif
 
-        public static readonly bool DisableDualRender = false;
+        public static readonly bool DisableDualRender = true;
 
         public static readonly bool UseDxHost = false;
 
@@ -72,7 +72,7 @@ namespace XrEditor
                   opt.UseAsyncShaderCompile = !IsMultiView || DisableDualRender;
                   opt.UseShaderCache = true;
                   opt.UseShaderPreprocessor = true;
-                  opt.UseSharedSsbo = true;
+                  opt.UseSharedSsbo = false;
 
                   opt.Compression.Use = false;
                   opt.Compression.Format = TextureCompressionFormat.Etc2;
@@ -117,10 +117,15 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, sampleCount: 2)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateAvatar()
+              .CreateKeyboard()
               //.CreateDnd()
               .Build();
+
+
 #else
+
+
+
         public static readonly string PersistentPath = 
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XrEditor");
 

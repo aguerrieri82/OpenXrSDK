@@ -54,5 +54,10 @@ namespace OpenXr.Framework.Android
 
             return source.Task;
         }
+
+        public void Post(Action action)
+        {
+            _handler.Post(action);
+        }
     }
 }

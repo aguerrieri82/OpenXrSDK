@@ -9,6 +9,9 @@
 	  <EmbeddedResource Include="Shaders\**\*" />
 	</ItemGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\DrumsVR\src\DrumsVR.Game\DrumsVR.Game.csproj" />

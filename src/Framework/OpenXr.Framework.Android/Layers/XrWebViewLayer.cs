@@ -3,6 +3,7 @@ using Android.Graphics;
 using Android.OS;
 using Android.Util;
 using Android.Views;
+using Android.Views.InputMethods;
 using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
@@ -27,6 +28,15 @@ namespace OpenXr.Framework.Android
             public override void Draw(Canvas canvas)
             {
                 _layer.ScheduleDraw(base.Draw);
+            }
+
+            public override IInputConnection? OnCreateInputConnection(EditorInfo? outAttrs)
+            {
+                var result = base.OnCreateInputConnection(outAttrs);
+
+                _layer.SetInputConnection(result);
+
+                return result;
             }
         }
 
@@ -65,7 +75,7 @@ namespace OpenXr.Framework.Android
 
         class ChromeClient : WebChromeClient
         {
-            const string TAG = nameof(WebChromeClient);
+            const string TAG = nameof(ChromeClient);
 
             public override void OnPermissionRequest(PermissionRequest? request)
             {
@@ -205,6 +215,9 @@ namespace OpenXr.Framework.Android
         protected Vector2 _lastLayerSize;
         protected InputController _input;
 
+        private ITextInputProvider? _textInput;
+        private IInputConnection? _inputConnection;
+
         public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
             : base(getQuad)
         {
@@ -264,10 +277,114 @@ namespace OpenXr.Framework.Android
 
             layer.Size.Height *= -1;
 
+            UpdateTextInput();
+
             if (_webView != null)
                 _input.Update(_webView);
 
             return result;
+        }
+
+        private void UpdateTextInput()
+        {
+            var textInput = _xrApp?.TextInput;
+
+            if (_textInput == textInput)
+                return;
+
+            if (_textInput != null)
+            {
+                _textInput.Input -= OnTextInput;
+
+                if (_textInput.IsVisible)
+                    _textInput.Hide();
+            }
+
+            _textInput = textInput;
+
+            if (_textInput != null)
+            {
+                _textInput.Input += OnTextInput;
+
+                if (_inputConnection != null)
+                {
+                    UpdateTextContext();
+                    _textInput.Show();
+                }
+            }
+        }
+
+        private void SetInputConnection(IInputConnection? inputConnection)
+        {
+            _inputConnection = inputConnection;
+
+            if (_textInput == null)
+                return;
+
+            if (_inputConnection == null)
+            {
+                if (_textInput.IsVisible)
+                    _textInput.Hide();
+
+                return;
+            }
+
+            UpdateTextContext();
+            _textInput.Show();
+        }
+
+        private void OnTextInput(TextInputEvent input)
+        {
+            _ = _mainThread.ExecuteAsync(() =>
+            {
+                if (_inputConnection == null)
+                    return;
+
+                switch (input.Type)
+                {
+                    case TextInputEventType.CommitText:
+                        _inputConnection.CommitText(input.Text ?? "", 1);
+                        break;
+
+                    case TextInputEventType.Backspace:
+                        SendKey(Keycode.Del);
+                        break;
+
+                    case TextInputEventType.Enter:
+                        SendKey(Keycode.Enter);
+                        break;
+                }
+
+                //UpdateTextContext();
+            });
+        }
+
+        private void SendKey(Keycode key)
+        {
+            if (_inputConnection == null)
+                return;
+
+            _inputConnection.SendKeyEvent(new KeyEvent(KeyEventActions.Down, key));
+            _inputConnection.SendKeyEvent(new KeyEvent(KeyEventActions.Up, key));
+        }
+
+        private void UpdateTextContext()
+        {
+            if (_textInput == null || _inputConnection == null)
+                return;
+
+            try
+            {
+                var request = new ExtractedTextRequest();
+
+                var text = _inputConnection.GetExtractedText(request, 0);
+
+                _textInput.SetText(text?.Text?.ToString());
+            }
+            catch
+            {
+                _textInput.SetText("");
+            }
         }
 
         private string? GetWebViewVersion()

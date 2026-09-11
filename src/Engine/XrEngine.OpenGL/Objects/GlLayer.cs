@@ -349,6 +349,8 @@ namespace XrEngine.OpenGL
             var instanceShader = shaderMat.Shader as IInstanceShader;
 
             materialContent.UseInstanceDraw = _render.Options.UseInstanceDraw && instanceShader != null &&
+                                              !shaderMat.UseMorph &&
+                                              !shaderMat.UseSkin &&
                                               verContentList.Any(a => a.Contents.Count > 1);
 
 

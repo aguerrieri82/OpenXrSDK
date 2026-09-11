@@ -5,6 +5,8 @@
         Task<T> ExecuteAsync<T>(Func<T> action);
 
         Task<T> ExecuteAsync<T>(Func<Task<T>> action);
+
+        void Post(Action action);
     }
 
     public static class XrThreadExtensions

@@ -9,6 +9,9 @@
 		<UserSecretsId>130226c4-4660-4680-9632-051e005023d9</UserSecretsId>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>

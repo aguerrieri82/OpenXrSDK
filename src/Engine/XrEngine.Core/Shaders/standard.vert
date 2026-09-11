@@ -89,13 +89,14 @@ void main()
 
     vec3 position = aPosition;
     vec3 normal = aNormal;
-    
+    vec2 uv0 = aUv0;
+
     #ifdef HAS_TANGENTS
         vec4 tangent = aTangent;
     #endif
 
     #ifdef USE_MORPH
-        applyMorph(position, normal
+        applyMorph(position, normal, uv0
         #ifdef HAS_TANGENTS
             , tangent.xyz
         #endif
@@ -121,7 +122,7 @@ void main()
 	    fPos = pos.xyz; 
     #endif
 
-	fUv = aUv0;
+	fUv = uv0;
 
     #ifdef USE_CAMERA_POS
 	    fCameraPos = getViewPos();
@@ -136,7 +137,7 @@ void main()
     #endif
 
 	#ifdef HAS_TEX_TRANSFORM
-	    fUv = (vec3(aUv0.xy, 1) * HAS_TEX_TRANSFORM).xy;
+	    fUv = (vec3(uv0.xy, 1) * HAS_TEX_TRANSFORM).xy;
 	#endif
 
 	#ifdef USE_SHADOW_MAP

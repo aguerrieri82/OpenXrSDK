@@ -181,6 +181,11 @@
             return new Control(manager, this, host);
         }
 
+        public void Allocate(int capacity)
+        {
+            _animations.Capacity = capacity;
+        }
+
         public void Add(IAnimation animation)
         {
             _animations.Add(animation);
