@@ -51,13 +51,11 @@ namespace XrEngine
 
             bld.AddFeature($"MIRROR_MODE {(int)Mode}");
 
-            if (DoubleSided)
-                bld.AddFeature("DOUBLE_SIDED");
+            if (DoubleSided || CullFront)
+                bld.AddFeature("BACK_FACES");
 
             if (PlanarReflection.IsMultiView)
                 bld.AddFeature("PLANAR_REFLECTION_MV");
-
-           
 
             bld.LoadTexture(() =>
             {

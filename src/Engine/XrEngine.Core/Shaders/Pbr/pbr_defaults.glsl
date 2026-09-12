@@ -184,7 +184,7 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 
 		mat3 TBN = fTangentBasis;
 
-		#ifdef DOUBLE_SIDED
+		#ifdef BACK_FACES
 			if (!gl_FrontFacing)
 			{
 				TBN[0] = -TBN[0]; // Flip tangent.
@@ -204,7 +204,7 @@ vec3 loadFragmentNormal(out vec3 normalGeo)
 			N = normalize(fNormal);
 		#endif
 
-		#ifdef DOUBLE_SIDED
+		#ifdef BACK_FACES
 			if (!gl_FrontFacing)
 				N = -N;
 		#endif
@@ -547,7 +547,7 @@ vec3 loadClearCoatNormal()
 		
 		N *= vec3(uMaterial.clearCoatNormalScale, uMaterial.clearCoatNormalScale, 1.0);
 
-		#ifdef DOUBLE_SIDED
+		#ifdef BACK_FACES
 
 			if (!gl_FrontFacing)
 			{
@@ -568,7 +568,7 @@ vec3 loadClearCoatNormal()
 			N = normalize(fNormal);
 		#endif
 
-		#ifdef DOUBLE_SIDED
+		#ifdef BACK_FACES
 			if (!gl_FrontFacing)
 				N = -N;
 		#endif

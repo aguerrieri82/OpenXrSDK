@@ -76,6 +76,8 @@ namespace XrEngine
             _indices = indices.ToArray();
 
             ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0 | VertexComponent.Tangent;
+
+            NotifyChanged(ChangeType.Geometry);
         }
 
         public uint Subs { get; set; }

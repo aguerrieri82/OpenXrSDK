@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using XrMath.Entities;
 
 namespace XrMath
 {
@@ -1552,6 +1553,22 @@ namespace XrMath
                 offset = dist - (self.Radius + other.Radius);
 
                 return offset < 0;
+            }
+
+            public SphericalSection ToSphericalSection()
+            {
+                return new SphericalSection
+                {
+                    Pose = new Pose3
+                    {
+                        Position = self.Center,
+                        Orientation = Quaternion.Identity
+                    },
+                    Radius = self.Radius,
+                    HorizontalAngle = MathF.Tau,
+                    UpperVerticalAngle = MathF.PI / 2,
+                    LowerVerticalAngle = -MathF.PI / 2
+                };
             }
         }
 

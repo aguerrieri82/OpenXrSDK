@@ -100,6 +100,7 @@ namespace OpenXr.Framework.Android
             extensions.Add("XR_EXT_performance_settings");
             extensions.Add("XR_KHR_android_create_instance");
 
+
             var func = new PfnVoidFunction();
             _app!.CheckResult(_app.Xr.GetInstanceProcAddr(new Instance(), "xrInitializeLoaderKHR", &func), "Bind xrInitializeLoaderKHR");
             InitializeLoader = Marshal.GetDelegateForFunctionPointer<InitializeLoaderDelegate>(new nint(func.Handle));

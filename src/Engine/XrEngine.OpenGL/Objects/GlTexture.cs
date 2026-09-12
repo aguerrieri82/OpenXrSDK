@@ -226,6 +226,40 @@ namespace XrEngine.OpenGL
                 Log.Warn(this, "Verify returned 0 size");
         }
 
+        public void BlitTo(GlTexture dest, bool flipY = false)
+        {
+            OpenGLRender.Current!.PushGroup("Copy texture");
+
+            var gl = _gl;
+            var state = GlState.Current!;
+
+            var oldReadFb = state.GetActiveFrameBuffer(FramebufferTarget.ReadFramebuffer);
+            var oldDrawFb = state.GetActiveFrameBuffer(FramebufferTarget.DrawFramebuffer);
+
+            var readFb = GlTempAllocator.FrameBuffer(gl, "TEX_BLIT_READ");
+            var drawFb = GlTempAllocator.FrameBuffer(gl, "TEX_BLIT_DRAW");
+
+            readFb.Configure(this, null, 1);
+            drawFb.Configure(dest, null, 1);
+
+            readFb.BindRead(ReadBufferMode.ColorAttachment0);
+            drawFb.BindDraw(DrawBufferMode.ColorAttachment0);
+
+            var srcY0 = flipY ? (int)_height : 0;
+            var srcY1 = flipY ? 0 : (int)_height;
+
+            gl.BlitFramebuffer(
+                0, srcY0, (int)_width, srcY1,
+                0, 0, (int)dest.Width, (int)dest.Height,
+                ClearBufferMask.ColorBufferBit,
+                BlitFramebufferFilter.Nearest);
+
+            state.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, oldReadFb);
+            state.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, oldDrawFb);
+
+            OpenGLRender.Current.PopGroup();
+        }
+
         public void CopyTo(GlTexture dest, int srcDstLevel = 0, int srcLayer = 0, int dstLayer = 0, uint layersCount = 0)
         {
             if (layersCount == 0)

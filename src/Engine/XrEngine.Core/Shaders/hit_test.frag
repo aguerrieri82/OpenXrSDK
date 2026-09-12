@@ -10,6 +10,11 @@ void main()
    Ids.x = uDrawId;
    Ids.y = uint(gl_PrimitiveID);
 
-   Normal = normalize(fNormal);
+   vec3 normal = normalize(fNormal);
+
+	if (!gl_FrontFacing)
+		normal = -normal;
+
+   Normal = normal;
 
 }

@@ -83,9 +83,6 @@ namespace XrEngine
             _bounds = this.ComputeBounds(Matrix4x4.Identity);
             _boundsDirty = false;
 
-            foreach (var host in _hosts.OfType<TriangleMesh>())
-                host.InvalidateLocalBounds();
-
             if (_components != null)
             {
                 foreach (var item in _components.OfType<IGeometryComponent>())
@@ -106,7 +103,13 @@ namespace XrEngine
         protected override void OnChanged(ObjectChange change)
         {
             if (change.IsAny(ChangeType.Geometry))
+            {
                 _boundsDirty = true;
+
+                foreach (var host in _hosts.OfType<TriangleMesh>())
+                    host.InvalidateLocalBounds();
+            }
+
 
             base.OnChanged(change);
         }

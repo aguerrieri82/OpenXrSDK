@@ -534,7 +534,14 @@ namespace XrEngine
                 bld.AddFeature("TRANSPARENT");
 
             if (DoubleSided)
+            {
                 bld.AddFeature("DOUBLE_SIDED");
+                bld.AddFeature("BACK_FACES");
+            }
+            else if (CullFront)
+            {
+                bld.AddFeature("BACK_FACES");
+            }
 
             bld.LoadBuffer<MaterialUniforms>((ctx, ref update) =>
             {

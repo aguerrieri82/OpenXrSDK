@@ -18,7 +18,7 @@ void main()
 
 	    vec3 N = normalize(fNormal);
 
-		#ifdef DOUBLE_SIDED
+		#ifdef BACK_FACES
 			if (!gl_FrontFacing)
 				N = -N;
 		#endif

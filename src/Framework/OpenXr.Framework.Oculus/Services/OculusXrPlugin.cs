@@ -213,6 +213,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_EXT_hand_tracking_data_source");
             extensions.Add("XR_META_hand_tracking_microgestures");
+            extensions.Add("XR_FB_composition_layer_image_layout");
 
             extensions.Add(METAVirtualKeyboard.ExtensionName);
             extensions.Add(FBRenderModel.ExtensionName);

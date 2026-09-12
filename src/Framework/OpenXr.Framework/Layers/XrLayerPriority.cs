@@ -4,9 +4,9 @@
     {
         public const int Passthrough = 0;
 
-        public const int BaseQuods = 2;
+        public const int BaseGeometry = 2;
 
-        public const int UiQuods = 12;
+        public const int UiGeomeytry = 12;
 
         public const int Projection = 10;
     }

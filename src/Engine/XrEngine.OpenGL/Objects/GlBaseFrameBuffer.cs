@@ -136,6 +136,8 @@ namespace XrEngine.OpenGL
             _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
         }
 
+
+
         public void Invalidate(params InvalidateFramebufferAttachment[] attachments)
         {
             if (attachments.Length == 1 &&

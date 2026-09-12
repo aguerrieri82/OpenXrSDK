@@ -24,7 +24,7 @@ namespace OpenXr.Framework
 
             StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
 
-            Priority = XrLayerPriority.BaseQuods;
+            Priority = XrLayerPriority.BaseGeometry;
         }
 
         public unsafe override void Initialize(XrApp app, IList<string> extensions)

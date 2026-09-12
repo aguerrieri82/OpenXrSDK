@@ -37,6 +37,8 @@ namespace XrSamples
 
             var scene = new Scene3D();
 
+            scene.AddComponent<XrFrameCapture>();
+
             scene.AddComponent<AudioSystem>();
 
             scene.AddComponent<DebugGizmos>();

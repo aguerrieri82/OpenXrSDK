@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XrMath
 {
-    public class Cylinder3
+    public class Cylinder
     {
         public Pose3 Pose;
 

@@ -9,12 +9,16 @@ namespace XrEngine
         TopCap = 0x1,
         BottomCap = 0x2,
         Body = 0x4,
-        All = TopCap | BottomCap | Body
+        StartCut = 0x8,
+        EndCut = 0x10,
+
+        All = TopCap | BottomCap | Body | StartCut | EndCut
     }
 
     public enum UVMode
     {
         Normalized,
+        NormalizedSection,
         Size
     }
 
@@ -111,12 +115,16 @@ namespace XrEngine
             return this;
         }
 
-        public MeshBuilder AddCircle(Vector3 center, float radius, float subs, bool reverse = false, UVMode uvMode = UVMode.Normalized)
+        public MeshBuilder AddCircle(Vector3 center, float radius, float subs, bool reverse = false, UVMode uvMode = UVMode.Normalized, float angle = MathF.Tau)
         {
-            for (var i = 0; i < subs; i++)
+            var step = MathF.Tau / subs;
+            var count = (int)MathF.Ceiling(angle / step);
+
+            for (var i = 0; i < count; i++)
             {
-                var a1 = MathF.PI * 2 * i / subs;
-                var a2 = MathF.PI * 2 * (i + 1) / subs;
+                var a1 = step * i;
+                var a2 = MathF.Min(step * (i + 1), angle);
+
                 var v1 = center + new Vector3(MathF.Cos(a1), MathF.Sin(a1), 0) * radius;
                 var v2 = center + new Vector3(MathF.Cos(a2), MathF.Sin(a2), 0) * radius;
 
@@ -140,14 +148,15 @@ namespace XrEngine
                 else
                     AddTriangle(v1, center, v2, uv1, uv0, uv2);
             }
+
             return this;
         }
 
-        public MeshBuilder AddCylinder(Vector3 center, float radius, float height, float subs, UVMode uvMode)
+        public MeshBuilder AddCylinder(Vector3 center, float radius, float height, float subs, UVMode uvMode, float angle = MathF.Tau)
         {
             float u1, u2, vv1, vv2;
 
-            if (uvMode == UVMode.Normalized)
+            if (uvMode == UVMode.Normalized || uvMode == UVMode.NormalizedSection)
             {
                 vv1 = 0;
                 vv2 = 1;
@@ -158,10 +167,13 @@ namespace XrEngine
                 vv2 = height;
             }
 
-            for (var i = 0; i < subs; i++)
+            var step = MathF.Tau / subs;
+            var count = (int)MathF.Ceiling(angle / step);
+
+            for (var i = 0; i < count; i++)
             {
-                var a1 = MathF.PI * 2 * i / subs;
-                var a2 = MathF.PI * 2 * (i + 1) / subs;
+                var a1 = step * i;
+                var a2 = MathF.Min(step * (i + 1), angle);
 
                 var v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
                 var v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
@@ -171,8 +183,13 @@ namespace XrEngine
 
                 if (uvMode == UVMode.Normalized)
                 {
-                    u1 = a1 / (MathF.PI * 2);
-                    u2 = a2 / (MathF.PI * 2);
+                    u1 = a1 / MathF.Tau;
+                    u2 = a2 / MathF.Tau;
+                }
+                else if (uvMode == UVMode.NormalizedSection)
+                {
+                    u1 = a1 / angle;
+                    u2 = a2 / angle;
                 }
                 else
                 {

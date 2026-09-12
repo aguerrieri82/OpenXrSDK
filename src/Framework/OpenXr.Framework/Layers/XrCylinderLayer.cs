@@ -3,7 +3,7 @@ using XrMath;
 
 namespace OpenXr.Framework
 {
-    public delegate Cylinder3 GetCylinderDelegate();
+    public delegate Cylinder GetCylinderDelegate();
 
     public class XrCylinderLayer : XrBaseGeometryLayer<CompositionLayerCylinderKHR>
     {

@@ -47,7 +47,7 @@ namespace XrEngine.OpenXr
 
             var useAngle = OpenGLRender.Current!.Features.IsAngle;
 
-            var layer = _app.Layers.AddQuod(_host.BindToQuad(), RenderQuod, _host.PixelSize, XrLayerPriority.UiQuods);
+            var layer = _app.Layers.AddQuod(_host.BindToQuad(), RenderQuod, _host.PixelSize, XrLayerPriority.UiGeomeytry);
 
             _layers = [layer];
         }
