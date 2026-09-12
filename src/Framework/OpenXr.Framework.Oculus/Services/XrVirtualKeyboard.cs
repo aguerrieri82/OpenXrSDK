@@ -34,6 +34,7 @@ namespace OpenXr.Framework.Oculus
         private XrPoseInput? _rightAim;
         private XrBoolInput? _leftTrigger;
         private XrBoolInput? _rightTrigger;
+        private bool _isVisible;
 
         public XrVirtualKeyboard(XrApp app)
         {
@@ -102,7 +103,7 @@ namespace OpenXr.Framework.Oculus
                 var info = new VirtualKeyboardTextContextChangeInfoMETA
                 {
                     Type = StructureType.VirtualKeyboardTextContextChangeInfoMeta,
-                    TextContext = pText
+                    TextContext = pText,
                 };
 
                 _app.CheckResult(_keyExt!.ChangeVirtualKeyboardTextContextMETA!(_keyboard, ref info), "ChangeVirtualKeyboardTextContextMETA");
@@ -165,6 +166,8 @@ namespace OpenXr.Framework.Oculus
                 space.LocationType = locType;
 
             _app.CheckResult(_keyExt!.CreateVirtualKeyboardSpaceMETA!(_app.Session, _keyboard, ref space, ref _keyboardSpace), "CreateVirtualKeyboardSpaceMETA");
+            
+            _isVisible = true;
         }
 
         public MemoryStream LoadModel()
@@ -175,6 +178,9 @@ namespace OpenXr.Framework.Oculus
 
         public void SetVisible(bool visible)
         {
+            if (_isVisible == visible)
+                return;
+
             var info = new VirtualKeyboardModelVisibilitySetInfoMETA
             {
                 Type = StructureType.VirtualKeyboardModelVisibilitySetInfoMeta,
@@ -182,6 +188,8 @@ namespace OpenXr.Framework.Oculus
             };
 
             _app.CheckResult(_keyExt!.SetVirtualKeyboardModelVisibilityMETA!(_keyboard, ref info), "SetVirtualKeyboardModelVisibilityMETA");
+
+            _isVisible = visible;
         }
 
         public (Pose3 Pose, float Scale) GetLocation()
@@ -482,7 +490,6 @@ namespace OpenXr.Framework.Oculus
             Destroy();
             GC.SuppressFinalize(this);
         }
-
 
         public IXrVirtualKeyboardEventDispatcher? EventDispatcher { get; set; }
     }

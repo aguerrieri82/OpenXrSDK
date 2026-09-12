@@ -1,4 +1,5 @@
 ﻿using XrMath;
+using System.Numerics;
 
 namespace XrEngine
 {
@@ -145,16 +146,15 @@ namespace XrEngine
             {
                 foreach (var child in _children)
                 {
-                    if (force)
-                        child.UpdateBounds(true);
+                    child.UpdateBounds(force);
 
                     var childLocal = child.Feature<ILocalBounds>();
 
                     if (childLocal != null)
                     {
                         var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
-
-                        builder.Add(childLocalBounds);
+                        if (childLocalBounds.Size != Vector3.Zero)
+                            builder.Add(childLocalBounds);
                     }
                 }
             }

@@ -1,69 +1,46 @@
 ﻿using Android.Runtime;
 using Android.Views;
-using Common.Interop;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
+using Space = Silk.NET.OpenXR.Space;
 
 namespace OpenXr.Framework.Android
 {
-    public class XrAndroidSurfaceQuadLayer : XrBaseQuadLayer
+    public class XrAndroidSurfaceLayerSource : IGeometryLayerSource
     {
         protected Surface? _surface;
         protected KhrAndroidSurfaceSwapchain? _androidSurface;
         protected Extent2Di _size;
         protected SemaphoreSlim _surfaceLock = new(1, 1);
-        protected NativeStruct<CompositionLayerImageLayoutFB> _layerFlags;
         protected Swapchain _swapchain;
+        protected XrApp? _xrApp;
 
-        protected XrAndroidSurfaceQuadLayer(GetQuadDelegate getQuad)
-            : base(getQuad)
-        {
-
-        }
-
-        public XrAndroidSurfaceQuadLayer(Extent2Di size, GetQuadDelegate getQuad)
-            : this(getQuad)
+        public XrAndroidSurfaceLayerSource(Extent2Di size)
         {
             _size = size;
         }
 
-        public unsafe override void Initialize(XrApp app, IList<string> extensions)
+        public void Initialize(XrApp app, IList<string> extensions)
         {
+            _xrApp = app;
+
             extensions.Add(KhrAndroidSurfaceSwapchain.ExtensionName);
             extensions.Add("XR_FB_android_surface_swapchain_create");
-
-            var flags = app.Plugin<IXrGraphicDriver>().Flags;
-
-            if ((flags & XrGraphicDriverFlags.FlipAndroidSurfaceY) != 0)
-            {
-                extensions.Add("XR_FB_composition_layer_image_layout");
-
-                _layerFlags.Value = new CompositionLayerImageLayoutFB
-                {
-                    Type = StructureType.CompositionLayerImageLayoutFB,
-                    Flags = CompositionLayerImageLayoutFlagsFB.VerticalFlipBitFB,
-                    Next = null
-                };
-
-                StructChain.AddNextStruct(ref _header.ValueRef, _layerFlags.Pointer);
-            }
-
-            base.Initialize(app, extensions);
         }
 
-        public override void OnBeginFrame(Silk.NET.OpenXR.Space space, long displayTime)
+        public void OnBeginFrame(Space space, long displayTime)
         {
             _surfaceLock.Wait();
         }
 
-        public override void OnEndFrame()
+        public void OnEndFrame()
         {
             _surfaceLock.Release();
         }
 
-        public override void Create()
+        public SwapchainSubImage Create()
         {
-            _xrApp!.Xr.TryGetInstanceExtension<KhrAndroidSurfaceSwapchain>(null, _xrApp!.Instance, out _androidSurface);
+            _xrApp!.Xr.TryGetInstanceExtension<KhrAndroidSurfaceSwapchain>(null, _xrApp.Instance, out _androidSurface);
 
             var info = new SwapchainCreateInfo()
             {
@@ -71,15 +48,6 @@ namespace OpenXr.Framework.Android
                 Width = (uint)_size.Width,
                 Height = (uint)_size.Height,
             };
-
-            var fbInfo = new AndroidSurfaceSwapchainCreateInfoFB
-            {
-                Type = StructureType.AndroidSurfaceSwapchainCreateInfoFB,
-                CreateFlags = AndroidSurfaceSwapchainFlagsFB.None,
-                Next = null
-            };
-
-            //info.Next = &fbInfo;
 
             nint surfaceHandle = 0;
 
@@ -93,21 +61,26 @@ namespace OpenXr.Framework.Android
 
             _surface = Java.Lang.Object.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;
 
-            _header.ValueRef.SubImage.Swapchain = _swapchain;
-            _header.ValueRef.SubImage.ImageArrayIndex = 0;
-            _header.ValueRef.SubImage.ImageRect.Extent = _size;
-
-            _header.ValueRef.EyeVisibility = EyeVisibility.Both;
-            _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
+            return new SwapchainSubImage
+            {
+                Swapchain = _swapchain,
+                ImageArrayIndex = 0,
+                ImageRect =
+                {
+                    Extent = _size
+                }
+            };
         }
 
-        public override void Dispose()
+        public virtual bool Update(long predTime)
         {
-            _layerFlags.Dispose();
-            base.Dispose();
+            return true;
+        }
+
+        public void Destroy()
+        {
         }
 
         public Surface? Surface => _surface;
-
     }
 }

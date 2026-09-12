@@ -7,19 +7,21 @@ using Android.Views.InputMethods;
 using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Runtime.Versioning;
 using XrInteraction;
 using static Android.Views.MotionEvent;
 using static Android.Webkit.WebSettings;
 
 namespace OpenXr.Framework.Android
 {
-    public class XrWebViewLayer : XrAndroidSurfaceQuadLayer
+
+    public class XrWebViewLayerSource : XrAndroidSurfaceLayerSource
     {
         class WebView2 : WebView
         {
-            readonly XrWebViewLayer _layer;
+            readonly XrWebViewLayerSource _layer;
 
-            public WebView2(XrWebViewLayer layer)
+            public WebView2(XrWebViewLayerSource layer)
                 : base(layer._context)
             {
                 _layer = layer;
@@ -44,9 +46,9 @@ namespace OpenXr.Framework.Android
         {
             const string TAG = nameof(WebClient);
 
-            readonly XrWebViewLayer _layer;
+            readonly XrWebViewLayerSource _layer;
 
-            public WebClient(XrWebViewLayer layer)
+            public WebClient(XrWebViewLayerSource layer)
             {
                 _layer = layer;
             }
@@ -218,20 +220,16 @@ namespace OpenXr.Framework.Android
         private ITextInputProvider? _textInput;
         private IInputConnection? _inputConnection;
 
-        public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
-            : base(getQuad)
+        public XrWebViewLayerSource(Context context, Extent2Di size, ISurfaceInput surfaceInput)
+            : base(size)
         {
-            var quad = getQuad();
-
-            _size.Width = AlignToMultiple((int)(quad.Size.X * 1700), 32);
-            _size.Height = AlignToMultiple((int)(quad.Size.Y * 1700), 32);
-
             _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
             _context = context;
             _input = new InputController(surfaceInput, _mainThread);
 
             _ = _mainThread.ExecuteAsync(CreateWebView);
         }
+
 
         public static int AlignToMultiple(int number, int bitSize)
         {
@@ -248,17 +246,18 @@ namespace OpenXr.Framework.Android
         {
             if (_surface == null)
                 return;
+
             var newCanvas = _surface.LockHardwareCanvas();
+
             try
             {
                 if (newCanvas != null)
                 {
                     var scaleX = _size.Width / (float)_webView!.Width;
-                    var scaleY = _size.Height / (float)_webView!.Height;
+                    var scaleY = _size.Height / (float)_webView.Height;
 
                     newCanvas.DrawColor(global::Android.Graphics.Color.Transparent, PorterDuff.Mode.Clear!);
                     newCanvas.Translate(-_webView.ScrollX, -_webView.ScrollY);
-
                     newCanvas.Scale(scaleX, scaleY);
 
                     action(newCanvas);
@@ -271,18 +270,14 @@ namespace OpenXr.Framework.Android
             }
         }
 
-        protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, long predTime)
+        public override bool Update(long predTime)
         {
-            var result = base.Update(ref layer, ref views, predTime);
-
-            layer.Size.Height *= -1;
-
             UpdateTextInput();
 
             if (_webView != null)
                 _input.Update(_webView);
 
-            return result;
+            return base.Update(predTime);
         }
 
         private void UpdateTextInput()
@@ -373,18 +368,24 @@ namespace OpenXr.Framework.Android
             if (_textInput == null || _inputConnection == null)
                 return;
 
-            try
+            _mainThread.Post(() =>
             {
-                var request = new ExtractedTextRequest();
+                try
+                {
+                    var before = _inputConnection.GetTextBeforeCursor(2048, 0)?.ToString() ?? "";
+                    var selected = _inputConnection.GetSelectedText(0)?.ToString() ?? "";
+                    var after = _inputConnection.GetTextAfterCursor(2048, 0)?.ToString() ?? "";
 
-                var text = _inputConnection.GetExtractedText(request, 0);
+                    _textInput.SetText(before + selected + after);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn(this.GetType().Name, ex.ToString());
+                    _textInput.SetText("");
 
-                _textInput.SetText(text?.Text?.ToString());
-            }
-            catch
-            {
-                _textInput.SetText("");
-            }
+                }
+            });
+   
         }
 
         private string? GetWebViewVersion()

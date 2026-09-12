@@ -362,7 +362,7 @@ namespace XrEngine
                 return layer;
             }
 
-            public IEnumerable<Object3D> ObjectsWithComponent<TComp>() where TComp : IComponent
+            public IEnumerable<Object3D> ObjectsWithComponent<TComp>(bool onlyVisible = true) where TComp : IComponent
             {
                 var layer = self.Layers.OfType<ComponentLayer<TComp>>().FirstOrDefault();
                 if (layer == null)
@@ -371,7 +371,10 @@ namespace XrEngine
                     self.Layers.Add(layer);
                 }
 
-                return layer.Content.Cast<Object3D>();
+                var result = layer.Content.Cast<Object3D>();
+                if (onlyVisible)
+                    result = result.Where(a => a.IsVisible);
+                return result;
             }
 
             public IEnumerable<T> TypeLayerContent<T>() where T : Object3D

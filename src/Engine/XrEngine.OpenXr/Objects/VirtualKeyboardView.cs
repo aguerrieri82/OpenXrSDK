@@ -1,30 +1,31 @@
-﻿
-using Common.Interop;
+﻿using Common.Interop;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using XrEngine.Animation;
 using XrEngine.Gltf;
 using XrInteraction;
+using XrMath;
 
 namespace XrEngine.OpenXr
 {
     public class VirtualKeyboardView : Group3D, IXrVirtualKeyboardEventDispatcher, ITextInputProvider
     {
         event Action<TextInputEvent>? _textInput;
-
-        XrVirtualKeyboard? _keyboard;
-        XrApp? _xrApp;
-        private Object3D? _model;
-        private readonly Dictionary<ulong, Texture2D> _textureMap =[];
-        private AnimationManager? _animationManager;
-        private IReadOnlyList<IAnimation>? _animations;
-        bool _isInit;
-        bool _lastVisible;
+        protected XrVirtualKeyboard? _keyboard;
+        protected XrApp? _xrApp;
+        protected Object3D? _model;
+        protected readonly Dictionary<ulong, Texture2D> _textureMap = [];
+        protected AnimationManager? _animationManager;
+        protected IReadOnlyList<IAnimation>? _animations;
+        protected bool _isInit;
+        protected bool _lastVisible;
 
         public VirtualKeyboardView()
         {
             Name = "Keyboard Container";
+            Scale = 0.35f;
 
             Context.Implement<ITextInputProvider>(this);
         }
@@ -44,7 +45,8 @@ namespace XrEngine.OpenXr
             if (!_keyboard.IsSupported())
                 return false;
 
-            _keyboard.Create(isFar: false);
+            _keyboard.Create(Pose3.Identity);
+            _keyboard.SetVisible(false);
 
             using var stream = _keyboard.LoadModel();
 
@@ -71,13 +73,14 @@ namespace XrEngine.OpenXr
 
                     lock (_textureMap)
                         _textureMap[textureId] = tex;
- 
+
                     return true;
                 }
             });
 
             _model.Name = "Keyboard";
-
+            _model.IsVisible = false;
+      
             foreach (var mesh in _model.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 mesh.CompressionMode = MeshCompressionMode.Never;
@@ -85,7 +88,7 @@ namespace XrEngine.OpenXr
 
                 foreach (var mat in mesh.Materials)
                 {
-                    if (mat.Alpha == AlphaMode.Blend) 
+                    if (mat.Alpha == AlphaMode.Blend)
                     {
                         mat.UseDepth = false;
                         mat.WriteDepth = false;
@@ -98,7 +101,7 @@ namespace XrEngine.OpenXr
 
                 if (mesh.Name == "collision")
                     mesh.AddComponent<BoxCollider>();
-            }    
+            }
 
             AddChild(_model);
 
@@ -159,21 +162,19 @@ namespace XrEngine.OpenXr
                     control.Stop();
                 }
 
-                if (states.Length > 0)
-                    Log.Info(this, "States {0}", states.Length);
+                var isVisible = _model!.IsVisible;
 
-                if (_lastVisible != _model!.IsVisible)
+                if (_lastVisible != isVisible)
                 {
-                    _keyboard.SetVisible(_model.IsVisible);
-                    _lastVisible = _model.IsVisible;
+                    _keyboard.SetVisible(isVisible);
+                    _lastVisible = isVisible;
                 }
 
-                (var pose, var scale) = _keyboard.GetLocation();
-                
-                _model!.SetWorldPoseIfChanged(pose);
+                if (_model.Transform.Scale.X != Scale)
+                    _model.Transform.SetScale(Scale);
 
-                if (scale != _model!.Transform.Scale.X)
-                    _model.Transform.SetScale(scale);
+                if (isVisible)
+                    _keyboard.SetLocation(_model.GetWorldPose(), Scale);
 
             }
 
@@ -184,28 +185,51 @@ namespace XrEngine.OpenXr
 
         void IXrVirtualKeyboardEventDispatcher.OnCommitText(string text)
         {
-            _textInput?.Invoke(new TextInputEvent(TextInputEventType.CommitText, text));
+            _ = EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                _textInput?.Invoke(new TextInputEvent(TextInputEventType.CommitText, text));
+            });
         }
 
         void IXrVirtualKeyboardEventDispatcher.OnBackspace()
         {
-            _textInput?.Invoke(new TextInputEvent(TextInputEventType.Backspace));
+            _ = EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                _textInput?.Invoke(new TextInputEvent(TextInputEventType.Backspace));
+            });
         }
 
         void IXrVirtualKeyboardEventDispatcher.OnEnter()
         {
-            _textInput?.Invoke(new TextInputEvent(TextInputEventType.Enter));
+            _ = EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                _textInput?.Invoke(new TextInputEvent(TextInputEventType.Enter));
+            });
         }
 
         void IXrVirtualKeyboardEventDispatcher.OnShown()
         {
-            _model!.IsVisible = true;
-            _keyboard!.SetLocation(VirtualKeyboardLocationTypeMETA.DirectMeta);
+            _ = EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                Debug.Assert(_keyboard != null && _model != null);
+
+                /*
+                 (var pose, Scale) = _keyboard.GetLocation();
+                 _model.SetWorldPoseIfChanged(pose);
+                 */
+
+                _model.IsVisible = true;
+            });
         }
 
         void IXrVirtualKeyboardEventDispatcher.OnHidden()
         {
-            _model!.IsVisible = false;
+            _ = EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                Debug.Assert( _model != null);
+
+                _model.IsVisible = false;
+            });
         }
 
         #endregion
@@ -218,17 +242,16 @@ namespace XrEngine.OpenXr
             remove => _textInput -= value;
         }
 
-        bool ITextInputProvider.IsVisible => IsVisible;
+        bool ITextInputProvider.IsVisible => _model?.IsVisible ?? false;
 
         void ITextInputProvider.Show()
         {
-            _model?.IsVisible = true;
-
+            _keyboard?.SetVisible(true);
         }
 
         void ITextInputProvider.Hide()
         {
-            _model?.IsVisible = false;
+            _keyboard?.SetVisible(false);
         }
 
         void ITextInputProvider.SetText(string? text)
@@ -237,5 +260,8 @@ namespace XrEngine.OpenXr
         }
 
         #endregion
+
+
+        public float Scale { get; set; }
     }
 }

@@ -59,18 +59,38 @@ namespace OpenXr.Framework
             };
         }
 
-        public static XrTextureQuadLayer[] AddStereoQuod(this XrLayerManager manager, GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size, int priority = XrLayerPriority.BaseQuods)
+        public static XrQuadLayer AddQuod(this XrLayerManager manager, GetQuadDelegate getQuad, RenderGeometryLayerDelegate render, Size2I size, int priority = XrLayerPriority.BaseQuods)
         {
-            var eye0 = new XrTextureQuadLayer(getQuad, renderQuad, size);
-            var eye1 = new XrTextureQuadLayer(getQuad, renderQuad, size);
+            var source = new XrTextureLayerSource(render, size);
+            var layer = new XrQuadLayer(getQuad, source)
+            {
+                Priority = priority
+            };
 
+            manager.Add(layer);
+
+            return layer;
+        }
+
+        public static XrQuadLayer[] AddStereoQuod(this XrLayerManager manager, GetQuadDelegate getQuad, RenderGeometryLayerDelegate render, Size2I size, int priority = XrLayerPriority.BaseQuods)
+        {
             var swapchain = new XrSwapchain(XrApp.Current!, 2);
 
-            eye0.ConfigureStereo(swapchain, 0);
-            eye1.ConfigureStereo(swapchain, 1);
+            var source0 = new XrTextureLayerSource(render, size);
+            var source1 = new XrTextureLayerSource(render, size);
 
-            eye0.Priority = priority;
-            eye1.Priority = priority;
+            source0.ConfigureStereo(swapchain, 0);
+            source1.ConfigureStereo(swapchain, 1);
+
+            var eye0 = new XrQuadLayer(getQuad, source0)
+            {
+                Priority = priority
+            };
+
+            var eye1 = new XrQuadLayer(getQuad, source1)
+            {
+                Priority = priority
+            };
 
             manager.Add(eye0);
             manager.Add(eye1);

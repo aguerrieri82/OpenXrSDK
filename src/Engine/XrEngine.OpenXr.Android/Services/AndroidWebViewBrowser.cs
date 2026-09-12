@@ -27,11 +27,11 @@ namespace XrEngine.OpenXr.Android
 
     public class AndroidWebViewBrowser : IWebBrowser
     {
-        private readonly XrWebViewLayer _webViewLayer;
+        private readonly XrWebViewLayerSource _webViewLayer;
         private readonly BrowserInterface _interface;
         private bool _isInit;
 
-        public AndroidWebViewBrowser(XrWebViewLayer webViewLayer)
+        public AndroidWebViewBrowser(XrWebViewLayerSource webViewLayer)
         {
             _interface = new BrowserInterface(this);
             _webViewLayer = webViewLayer;

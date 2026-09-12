@@ -4,30 +4,29 @@ using XrMath;
 
 namespace OpenXr.Framework
 {
-    public unsafe delegate bool RenderQuadDelegate(QuadRenderData data, SwapchainImageBaseHeader* image, long predTime);
+    public unsafe delegate bool RenderGeometryLayerDelegate(GeometryRenderData data, SwapchainImageBaseHeader* image, long predTime);
 
-    public class QuadRenderData
+    public class GeometryRenderData
     {
         public XrSwapchain? Swapchain;
 
         public int Eye;
     }
 
-    public class XrTextureQuadLayer : XrBaseQuadLayer
+    public class XrTextureLayerSource : IGeometryLayerSource
     {
-        protected RenderQuadDelegate _renderQuad;
+        protected RenderGeometryLayerDelegate _render;
         protected Size2I _size;
         protected XrSwapchain? _swapchain;
-        protected QuadRenderData _data;
+        protected GeometryRenderData _data;
+        protected XrApp? _xrApp;
 
-
-        public XrTextureQuadLayer(GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size)
-            : base(getQuad)
+        public XrTextureLayerSource(RenderGeometryLayerDelegate render, Size2I size)
         {
-            _renderQuad = renderQuad;
+            _render = render;
             _size = size;
 
-            _data = new QuadRenderData
+            _data = new GeometryRenderData
             {
                 Eye = -1
             };
@@ -40,7 +39,12 @@ namespace OpenXr.Framework
             _data.Swapchain = swapchain;
         }
 
-        public override void Create()
+        public void Initialize(XrApp app, IList<string> extensions)
+        {
+            _xrApp = app;
+        }
+
+        public SwapchainSubImage Create()
         {
             Debug.Assert(_xrApp != null);
 
@@ -66,33 +70,26 @@ namespace OpenXr.Framework
                     SwapchainTarget.Quad);
             }
 
-            _header.ValueRef.SubImage.Swapchain = _swapchain;
-            _header.ValueRef.SubImage.ImageArrayIndex = _data.Eye == -1 ? 0 : (uint)_data.Eye;
-            _header.ValueRef.SubImage.ImageRect.Extent = extent;
-            _header.ValueRef.EyeVisibility = _data.Eye == -1 ? EyeVisibility.Both : (_data.Eye == 0 ? EyeVisibility.Left : EyeVisibility.Right);
-            _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
+            return new SwapchainSubImage
+            {
+                Swapchain = _swapchain,
+                ImageArrayIndex = _data.Eye == -1 ? 0 : (uint)_data.Eye,
+                ImageRect =
+                {
+                    Extent = extent
+                }
+            };
         }
 
-
-        protected unsafe override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
+        public unsafe bool Update(long predTime)
         {
-            Debug.Assert(_xrApp != null && _swapchain != null);
-
-            if (!base.Update(ref layer, ref views, predTime))
-                return false;
-
-#warning TODO: COPY THE OLD FRAME INSTEAD!
-
-            /*
-            if (!_renderQuad(null, new Size2I(), 0, _eye))
-                return false;
-            */
+            Debug.Assert(_swapchain != null);
 
             var image = _swapchain.AcquireImageAndWait();
 
             try
             {
-                return _renderQuad(_data, image, predTime);
+                return _render(_data, image, predTime);
             }
             finally
             {
@@ -100,11 +97,18 @@ namespace OpenXr.Framework
             }
         }
 
-        public override void Destroy()
+        public void OnBeginFrame(Space space, long displayTime)
+        {
+        }
+
+        public void OnEndFrame()
+        {
+        }
+
+        public void Destroy()
         {
             _swapchain?.Dispose();
             _swapchain = null;
-            base.Destroy();
         }
 
         public Size2I Size => _size;

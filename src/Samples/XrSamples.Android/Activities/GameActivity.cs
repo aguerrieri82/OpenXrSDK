@@ -34,7 +34,7 @@ namespace XrSamples.Android.Activities
     public class GameActivity : XrEngineActivity
     {
         private WebView? _webView;
-        private XrWebViewLayer? _webViewLayer;
+        private XrWebViewLayerSource? _webViewLayer;
         private GameSettings? _settings;
         private AndroidUsbCameraManager? _usbCameraManager;
 
@@ -97,7 +97,7 @@ namespace XrSamples.Android.Activities
 
         protected override void OnXrAppStarted(XrApp app)
         {
-            _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
+            _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayerSource>().FirstOrDefault();
 
             if (_webViewLayer != null)
             {

@@ -25,7 +25,7 @@ namespace XrSamples
             });
 
             //snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_094000_765");
-            snap.Load("D:\\Projects\\XrEditor\\DepthSnapshots\\20260619_080632_705");
+            snap.Load("D:\\Projects\\XrEditor\\Storage\\DepthSnapshots\\20260619_094000_765");
 
             return builder
                 .UseApp(app)

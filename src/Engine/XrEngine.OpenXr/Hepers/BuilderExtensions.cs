@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
+using System.Numerics;
 using XrEngine.Objects;
 using XrEngine.OpenGL;
 using XrEngine.Physics;
@@ -32,44 +33,49 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddWebUI(this XrEngineAppBuilder self,
             WebUIOptions options,
-            Action<IWebBrowser>? configure = null) => self.ConfigureApp(e =>
+            Action<IWebBrowser>? configure = null)
         {
-            var factory = Context.Require<IWebBrowserFactory>();
-
-            if (options.DestMesh == null)
+            return self.ConfigureApp(e =>
             {
+                var factory = Context.Require<IWebBrowserFactory>();
+                
                 var scene = e.App.ActiveScene;
 
-                options.DestMesh = scene!.AddChild(
-                    new UIWebPanel(
-                        e.Inputs!.Right.Button.AClick,
-                        (PerspectiveCamera)scene.ActiveCamera!));
-            }
+                if (options.DestMesh == null)
+                {
+                    options.DestMesh = scene!.AddChild(new UIWebPanel(
+                            e.Inputs!.Right.Button.AClick,
+                            (PerspectiveCamera)scene.ActiveCamera!));
+                }
 
-            var browser = factory.CreateBrowser(new WebBrowserOptions
-            {
-                DestMesh = options.DestMesh,
-                UseLocalUI = true,
-                LocalAssetsPath = options.AssetsPath
+                var browser = factory.CreateBrowser(new WebBrowserOptions
+                {
+                    DestMesh = options.DestMesh,
+                    UseLocalUI = true,
+                    LocalAssetsPath = options.AssetsPath
+                });
+
+                if (options.Bridges != null)
+                {
+                    var bridge = new WebBrowserBridge(browser);
+
+                    foreach (var obj in options.Bridges)
+                        bridge.Register(obj);
+
+                    Context.Implement(bridge);
+                }
+
+                if (!string.IsNullOrWhiteSpace(options.DevServer) && XrPlatform.IsEditor)
+                    browser.NavigateAsync(options.DevServer);
+                else
+                    browser.NavigateAsync("ui://main/");
+
+                configure?.Invoke(browser);
+
+                scene!.AddVirtualKeyboard(options.DestMesh);
             });
-
-            if (options.Bridges != null)
-            {
-                var bridge = new WebBrowserBridge(browser);
-
-                foreach (var obj in options.Bridges)
-                    bridge.Register(obj);
-
-                Context.Implement(bridge);
-            }
-
-            if (!string.IsNullOrWhiteSpace(options.DevServer) && XrPlatform.IsEditor)
-                browser.NavigateAsync(options.DevServer);
-            else
-                browser.NavigateAsync("ui://main/");
-
-            configure?.Invoke(browser);
-        });
+        }
+            
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool asLayer = false) => self.ConfigureApp(e =>
         {
@@ -471,12 +477,25 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-        public static XrEngineAppBuilder UseVirtualKeyboard(this XrEngineAppBuilder self)
+        public static void AddVirtualKeyboard(this Scene3D self, Object3D? anchor = null)
         {
-            return self.ConfigureApp(e =>
+            var keyboard = self.AddChild(new VirtualKeyboardView());
+
+            if (anchor != null)
             {
-                e.App.ActiveScene!.AddChild(new VirtualKeyboardView());
-            });
+                keyboard.AddComponent(new ObjectAnchor()
+                {
+                    Target = anchor,
+                    TargetEdge = BoxEdge.Bottom,
+                    SourceEdge = BoxEdge.Top,
+                    Orientation = Quaternion.CreateFromAxisAngle(-Vector3.UnitX, MathF.PI / 4f)
+                });
+            }
+        }
+
+        public static XrEngineAppBuilder UseVirtualKeyboard(this XrEngineAppBuilder self, Object3D? anchor = null)
+        {
+            return self.ConfigureApp(e => e.App.ActiveScene!.AddVirtualKeyboard(anchor));
         }
 
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)

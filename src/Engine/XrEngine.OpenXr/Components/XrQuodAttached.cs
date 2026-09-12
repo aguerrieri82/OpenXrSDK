@@ -16,7 +16,7 @@ namespace XrEngine.OpenXr
 {
     public class XrQuodAttached : Behavior<CanvasView3D>, IDisposable
     {
-        XrTextureQuadLayer[]? _layers;
+        XrQuadLayer[]? _layers;
         AngleVulkanContext? _vulkanCtx;
         readonly XrApp _app;
 
@@ -47,12 +47,7 @@ namespace XrEngine.OpenXr
 
             var useAngle = OpenGLRender.Current!.Features.IsAngle;
 
-            var layer = new XrTextureQuadLayer(_host.BindToQuad(), RenderQuod, _host.PixelSize)
-            {
-                Priority = XrLayerPriority.UiQuods,
-            };
-
-            _app.Layers.Add(layer);
+            var layer = _app.Layers.AddQuod(_host.BindToQuad(), RenderQuod, _host.PixelSize, XrLayerPriority.UiQuods);
 
             _layers = [layer];
         }
@@ -69,7 +64,7 @@ namespace XrEngine.OpenXr
 
         }
 
-        unsafe bool RenderQuod(QuadRenderData data, SwapchainImageBaseHeader* image, long predTime)
+        unsafe bool RenderQuod(GeometryRenderData data, SwapchainImageBaseHeader* image, long predTime)
         {
             Debug.Assert(_host != null);
 
@@ -101,7 +96,7 @@ namespace XrEngine.OpenXr
             return true;
         }
 
-        public XrTextureQuadLayer[]? Layers => _layers;
+        public XrQuadLayer[]? Layers => _layers;
 
     }
 }
