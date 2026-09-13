@@ -57,7 +57,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Keyboard",
+                SampleName = "Avatar",
                 Msaa = 1,
                 Scale = 1f,
                 DepthScale = 0.25f,

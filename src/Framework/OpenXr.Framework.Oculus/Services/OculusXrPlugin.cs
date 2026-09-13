@@ -222,6 +222,8 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);
             extensions.Add(METAHandTrackingUnextrapolatedPoses.ExtensionName);
 
+            extensions.Add(FBFaceTracking2.ExtensionName);
+
             if (_options.UseBothHandAndControllers)
                 extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);
 

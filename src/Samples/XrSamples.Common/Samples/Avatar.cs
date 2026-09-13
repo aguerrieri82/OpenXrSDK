@@ -1,6 +1,7 @@
 ﻿using PhysX.Framework;
 using System.Text;
 using XrEngine;
+using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Oculus;
 using static Sfizz.SfzParser;
@@ -34,6 +35,10 @@ namespace XrSamples
 
                 var avatar = await avatarManager.LoadAsync("8672967276120323");
                 var tracker = avatar.AddComponent<AvatarTracker>();
+                avatar.AddComponent(new AvatarFaceTrack
+                {
+                    UseApproximateMorphs = true,
+                });
 
                 tracker.Mirror(1f);
 

@@ -11,6 +11,7 @@
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	
 	<uses-permission android:name="com.oculus.permission.RENDER_MODEL" />
 	<uses-permission android:name="com.oculus.permission.BODY_TRACKING" />
@@ -18,15 +19,21 @@
 	<uses-permission android:name="com.oculus.permission.USE_SCENE" />
 	<uses-permission android:name="com.oculus.permission.USE_ANCHOR_API" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
-
+	<uses-permission android:name="com.oculus.permission.FACE_TRACKING" />
+	<uses-permission android:name="com.oculus.permission.EYE_TRACKING" />
+	
 	<uses-permission android:name="horizonos.permission.HEADSET_CAMERA"/>
 	<uses-permission android:name="horizonos.permission.USB_CAMERA"/>
+
+	<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
 
 	<uses-feature android:glEsVersion="0x00030001" android:required="true" />
 
 	<uses-feature android:name="oculus.software.vr.app.hybrid"/>
 	<uses-feature android:name="oculus.software.overlay_keyboard"  />
 	<uses-feature android:name="oculus.software.handtracking" />
+	<uses-feature android:name="oculus.software.face_tracking" android:required="true" />
+	<uses-feature android:name="oculus.software.eye_tracking" android:required="true" />
 	
 	<uses-feature android:name="com.oculus.software.body_tracking" />
 
@@ -34,6 +41,7 @@
 	<uses-feature android:name="com.oculus.feature.RENDER_MODEL" android:required="true" />
 	<uses-feature android:name="com.oculus.feature.PASSTHROUGH" />
 	<uses-feature android:name="com.oculus.feature.CONTEXTUAL_BOUNDARYLESS_APP" android:required="true" />
+	
 	<uses-feature android:name="com.oculus.experimental.enabled" android:required="true" />
 
 	<uses-feature android:name="android.hardware.camera2.any" android:required="true"/>
@@ -41,8 +49,8 @@
 	<uses-feature android:name="android.hardware.camera.external" android:required="false" />
 	<uses-feature android:name="android.hardware.camera" android:required="false" />
 	<uses-feature android:name="android.hardware.usb.host" android:required="false" />
+	
 
-	<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
 	
 	<queries>
 		<provider
