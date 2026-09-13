@@ -8,15 +8,17 @@
         "_ANGLE_DUMP_SPIRV": "1",
         "_DOTNET_JitDisasmOnlyOptimized": "1",
         "_DOTNET_JitDisasm": "*BufferRangeSlot*:Update",
-        "_DOTNET_JitStdOutFile": "d:\\jit.txt"
+        "_DOTNET_JitStdOutFile": "d:\\jit.txt",
+        "ALSOFT_LOGLEVEL": "3",
+        "ALSOFT_LOGFILE": "d:\\al.txt"
       }
     },
     "Native": {
       "commandName": "Project",
       "nativeDebugging": true,
       "environmentVariables": {
-        "_ALSOFT_LOGLEVEL": "3",
-        "_ALSOFT_LOGFILE": "d:\\al.txt"
+        "ALSOFT_LOGLEVEL": "3",
+        "ALSOFT_LOGFILE": "d:\\al.txt"
       }
     }
   }

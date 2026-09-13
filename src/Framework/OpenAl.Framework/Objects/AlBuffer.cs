@@ -86,7 +86,7 @@ namespace OpenAl.Framework
         public unsafe void Samples(uint sampleRate, InternalFormat internalFormat, uint samples, Channels channels, SampleType type, void* data)
         {
             var data2 = new Span<byte>(new byte[samples * 2 * 2]);
-            alBufferSamplesSOFT!(_handle, samples, (uint)internalFormat, samples, (uint)channels, (uint)type, &data2);
+            alBufferSamplesSOFT!(_handle, sampleRate, (uint)internalFormat, samples, (uint)channels, (uint)type, data);
             _al.CheckError("alBufferSamplesSOFT");
         }
 
@@ -108,7 +108,7 @@ namespace OpenAl.Framework
 
         public void SetData(AlAudioData data)
         {
-            SetData(data.Buffer!, data.Format!);
+            SetData(data.Buffer, data.Format);
         }
 
         protected BufferFormat GetBufferFormat(AlAudioFormat format)

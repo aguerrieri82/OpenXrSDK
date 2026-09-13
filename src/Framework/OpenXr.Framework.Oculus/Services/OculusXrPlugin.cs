@@ -210,10 +210,10 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
             extensions.Add("XR_META_recommended_layer_resolution");
             extensions.Add("XR_META_spatial_entity_discovery");
-            extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_EXT_hand_tracking_data_source");
             extensions.Add("XR_META_hand_tracking_microgestures");
             extensions.Add("XR_FB_composition_layer_image_layout");
+            extensions.Add("XR_FB_composition_layer_depth_test");
 
             extensions.Add(METAVirtualKeyboard.ExtensionName);
             extensions.Add(FBRenderModel.ExtensionName);
