@@ -13,11 +13,8 @@ using XrMath;
 using XrEngine.UI;
 using static XrEngine.Filament.FilamentLib;
 using System.Diagnostics;
-using OpenXr.Framework.Oculus;
 using Common.Interop;
-using OpenXr.Framework.Angle;
 using StructureType = Silk.NET.OpenXR.StructureType;
-using System.Reflection.Metadata.Ecma335;
 
 namespace XrEngine.OpenXr
 {

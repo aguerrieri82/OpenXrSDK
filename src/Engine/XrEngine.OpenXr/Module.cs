@@ -16,6 +16,8 @@ namespace XrEngine.OpenXr
 
             Context.Implement<IDepthPointProvider>(() => new GlDepthPointProvider(OpenGLRender.Current!.GL));
 
+            Context.Implement<IEnvRayCollider>(() => new OculusEnvRayCollider());
+
             Embedded.Register(typeof(Module).Assembly);
         }
 

@@ -30,11 +30,11 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                //.UseSceneModel(false, false)
-                .UseEnvironmentHDR("res://asset/Envs/Cannon_Exterior.hdr")
+                .UseDefaultHDR()
+                .EnableEnvRayCollider()
                 .AddFloorShadow(4, false)
                 .UsePhysics(new PhysicsOptions())
-                .ConfigureSampleApp();
+                .ConfigureSampleApp(showHit: true);
         }
     }
 }

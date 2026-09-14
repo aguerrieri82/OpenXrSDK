@@ -50,6 +50,13 @@ namespace OpenXr.Framework
 
     public unsafe class XrApp : IDisposable, IXrSession
     {
+        protected struct FutureWaitInfo
+        {
+            public FutureEXT Future;
+
+            public TaskCompletionSource TaskCompletionSource;
+        }
+
         const long DurationInfinite = 0x7fffffffffffffff;
 
         public bool CheckResult(Result result, string context)
@@ -96,6 +103,10 @@ namespace OpenXr.Framework
         protected KhrConvertTimespecTime? _convertTime;
         protected KhrWin32ConvertPerformanceCounterTime? _win32Time;
 
+        protected ExtFuture? _extFuture;
+
+        protected readonly List<FutureWaitInfo> _futures = [];
+
         protected XrAppState _state;
         protected bool _layersCreated;
         protected bool _isValid; //TODO rethink on _state
@@ -130,6 +141,7 @@ namespace OpenXr.Framework
             _extensions.Add("XR_EXT_hand_interaction");
             _extensions.Add("XR_KHR_composition_layer_equirect2");
             _extensions.Add("XR_KHR_composition_layer_equirect");
+            _extensions.Add(ExtFuture.ExtensionName);
 
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
@@ -444,6 +456,8 @@ namespace OpenXr.Framework
 
             _systemId = 0;
             _actionSet.Handle = 0;
+
+            _futures.Clear();
         }
 
         public virtual void Stop()
@@ -1069,11 +1083,62 @@ namespace OpenXr.Framework
                    _lastSessionState == SessionState.Synchronized;
         }
 
+
+        public Task WaitFutureAsync(FutureEXT future)
+        {
+            var info = new FutureWaitInfo
+            {
+                Future = future,
+                TaskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+
+            _futures.Add(info);
+
+            return info.TaskCompletionSource.Task;
+        }
+
+        protected void PollFutures()
+        {
+            for (var i = _futures.Count - 1; i >= 0; i--)
+            {
+                var future = _futures[i];
+
+                if (!PollFuture(future.Future))
+                    continue;
+
+                _futures.RemoveAt(i);
+                future.TaskCompletionSource.SetResult();
+            }
+        }
+
+        public bool PollFuture(FutureEXT future)
+        {
+            if (_extFuture == null && !_xr!.TryGetInstanceExtension(null, _instance, out _extFuture))
+                throw new NotSupportedException();
+
+            var info = new FuturePollInfoEXT
+            {
+                Future = future,
+                Type = StructureType.FuturePollInfoExt
+            };
+
+            var result = new FuturePollResultEXT
+            {
+                Type = StructureType.FuturePollResultExt
+            };
+
+            CheckResult(_extFuture!.PollFuture(_instance, ref info, ref result), "PollFuture");
+
+            return result.State == FutureStateEXT.ReadyExt;
+        }
+
         public bool RenderFrame(Space space)
         {
             AssertSessionCreated();
 
-            PoolEvents();
+            PollEvents();
+
+            PollFutures();
 
             if (!_isValid)
             {
@@ -1584,7 +1649,7 @@ namespace OpenXr.Framework
 
         #region EVENTS
 
-        public bool PoolEvents()
+        public bool PollEvents()
         {
             var buffer = new EventDataBuffer();
 
@@ -1843,5 +1908,7 @@ namespace OpenXr.Framework
         public event System.Action? BeginFrameEvent;
 
         public event System.Action? EndFrameEvent;
+
+    
     }
 }

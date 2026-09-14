@@ -340,7 +340,7 @@ namespace XrSamples
             return builder.AddPanel(new T());
         }
 
-        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true, bool useHands = true)
+        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true, bool useHands = true, bool showHit = false)
         {
             builder.AddXrRoot()
                    .When(useHands, a=> a.UseHands())
@@ -352,7 +352,7 @@ namespace XrSamples
                        .AddAction(b => b.Right!.Thumbstick)
                        .AddAction(b => b.Right!.Haptic)
                        .AddAction(b => b.Left!.Haptic))
-                   .UseRayCollider()
+                   .UseRayCollider(showHit: showHit)
                    .UseGrabbers();
 
             return builder;

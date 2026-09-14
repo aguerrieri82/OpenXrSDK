@@ -59,7 +59,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Geo Layers",
+                SampleName = "Bed",
                 Msaa = 1,
                 Scale = 1f,
                 ViewPlaneGrid = true,

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Numerics;
 using XrEngine.Interaction;
 using XrInteraction;
 using XrMath;
@@ -14,6 +15,7 @@ namespace XrEngine.OpenXr
         protected IRayHitTestSource? _hitTestSource;
         protected readonly RayView _rayView;
         protected readonly HitTargetView _hitView;
+        protected readonly IEnvRayCollider? _envRayCollider;
         protected readonly ConcurrentBag<Collision> _collisions = [];
 
         public RayPointerCollider()
@@ -21,6 +23,7 @@ namespace XrEngine.OpenXr
             _rayView = new RayView();
             _hitView = new HitTargetView();
             ShowHit = false;
+            Context.TryRequire(out _envRayCollider);
         }
 
         protected override void OnAttach()
@@ -100,11 +103,25 @@ namespace XrEngine.OpenXr
                 result = _collisions.FirstOrDefault(a => a.Distance == minDistance);
             }
 
+            if (result == null && _envRayCollider?.IsEnabled == true &&
+                _envRayCollider.CastRay(ray, 100f, out var envPose))
+            {
+                result = new Collision
+                {
+                    Point = envPose.Position,
+                    Normal = Vector3.UnitZ.Transform(envPose.Orientation),
+                    Distance = (envPose.Position - ray.Origin).Length()
+                };
+            }
+
             if (result != null)
             {
                 NotifyCollision(ctx, result);
 
-                _rayView.UpdateColor(new Color(0, 1, 0));
+                if (result.Object == null)
+                    _rayView.UpdateColor(new Color(0, 0, 1));
+                else
+                    _rayView.UpdateColor(new Color(0, 1, 0));
 
                 var mustUpdate = true;
 
@@ -122,7 +139,13 @@ namespace XrEngine.OpenXr
                         _hitView.WorldPosition = result.Point;
 
                     if (result.Normal != null)
-                        _hitView.Forward = result.Normal.Value.ToDirection(result.Object!.WorldMatrix);
+                    {
+                        if (result.Object != null)
+                            _hitView.Forward = result.Normal.Value.ToDirection(result.Object.WorldMatrix);
+                        else
+                            _hitView.Forward = result.Normal.Value;
+                    }
+                      
                 }
             }
             else

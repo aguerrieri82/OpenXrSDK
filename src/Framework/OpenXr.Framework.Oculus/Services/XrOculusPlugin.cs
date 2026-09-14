@@ -124,6 +124,7 @@ namespace OpenXr.Framework.Oculus
         protected NativeArray<HandTrackingDataSourceEXT>? _handsDataSources;
         protected NativeStruct<HandTrackingDataSourceInfoEXT> _handDataSourceInfo;
         protected XrPerformance? _performance;
+
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
         protected readonly OculusOptions _options;
@@ -183,6 +184,8 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBFaceTracking2.ExtensionName);
 
             extensions.Add(MetaPerformanceMetrics.ExtensionName);
+
+            extensions.Add(METAEnvironmentRaycast.ExtensionName);
 
             if (_options.UseBothHandAndControllers)
                 extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);

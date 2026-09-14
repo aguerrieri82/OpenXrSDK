@@ -208,12 +208,13 @@ namespace XrEngine.OpenXr
         public static XrEngineAppBuilder UseRayCollider(
             this XrEngineAppBuilder self,
             string pointerName = "RightController",
-            bool parallel = false) => self.ConfigureApp(e =>
+            bool parallel = false, bool showHit = false) => self.ConfigureApp(e =>
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
             var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider()
             {
+                ShowHit = showHit,
                 PointerName = pointerName,
                 ParallelColliders = parallel,
             });
@@ -380,6 +381,14 @@ namespace XrEngine.OpenXr
             self.Options.Driver = GraphicDriver.FilamentOpenGL;
             return self;
         }
+
+
+        public static XrEngineAppBuilder EnableEnvRayCollider(this XrEngineAppBuilder self)
+        {
+            Context.Require<IEnvRayCollider>().IsEnabled = true;
+            return self;
+        }
+
 
         public static XrEngineAppBuilder UseFilamentVulkan(this XrEngineAppBuilder self)
         {
