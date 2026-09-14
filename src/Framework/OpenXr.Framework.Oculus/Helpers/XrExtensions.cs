@@ -10,7 +10,7 @@ namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
-        private static OculusXrPlugin? _oculus;
+        private static XrOculusPlugin? _oculus;
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -26,7 +26,7 @@ namespace OpenXr.Framework
             if (predictedDisplayTime == 0)
                 predictedDisplayTime = layer.App.FramePredictedDisplayTime;
 
-            _oculus ??= layer.App.Plugin<OculusXrPlugin>();
+            _oculus ??= layer.App.Plugin<XrOculusPlugin>();
 
             if (!_oculus.Options.UseDynamicResolution)
                 return null;
@@ -45,7 +45,7 @@ namespace OpenXr.Framework
             return new Guid(new Span<byte>(uuid.Data, 16));
         }
 
-        public static IEnumerable<SpaceQueryResultFB> SpaceWithComponents(this OculusXrPlugin xrOculus, IEnumerable<SpaceQueryResultFB> spaces, params SpaceComponentTypeFB[] componets)
+        public static IEnumerable<SpaceQueryResultFB> SpaceWithComponents(this XrOculusPlugin xrOculus, IEnumerable<SpaceQueryResultFB> spaces, params SpaceComponentTypeFB[] componets)
         {
             foreach (var space in spaces)
             {
@@ -55,13 +55,13 @@ namespace OpenXr.Framework
             }
         }
 
-        public static async Task EnsureSpaceComponentAsync(this OculusXrPlugin xrOculus, Space space, SpaceComponentTypeFB component)
+        public static async Task EnsureSpaceComponentAsync(this XrOculusPlugin xrOculus, Space space, SpaceComponentTypeFB component)
         {
             if (!xrOculus.GetSpaceComponentEnabled(space, SpaceComponentTypeFB.LocatableFB))
                 await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
         }
 
-        public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
+        public static async Task<List<XrAnchor>> GetAnchorsAsync(this XrOculusPlugin xrOculus, XrAnchorFilter filter)
         {
             var result = new List<XrAnchor>();
 
@@ -119,7 +119,7 @@ namespace OpenXr.Framework
                     }
 
                     if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
-                        xrOculus.GetSpaceComponentEnabled(space.Space, OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
+                        xrOculus.GetSpaceComponentEnabled(space.Space, XrOculusPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
                     {
                         var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
                         item.Mesh = new Mesh3

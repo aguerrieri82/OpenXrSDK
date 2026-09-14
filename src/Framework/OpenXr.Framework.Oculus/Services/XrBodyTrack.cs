@@ -6,7 +6,10 @@ namespace OpenXr.Framework.Oculus
 {
     public class XrBodyTrack : IDisposable
     {
-        FBBodyTracking? _bodyTracking;
+        private FBBodyTracking? _bodyTracking;
+        private METABodyTrackingFidelity? _bodyTrackingFidelity;
+        private METABodyTrackingCalibration? _bodyTrackingCalibration;
+
         private BodyTrackerFB _tracker;
         private uint _jointCount;
         private bool _isActive;
@@ -15,6 +18,10 @@ namespace OpenXr.Framework.Oculus
         private float _confidence;
         private int _skeletonChanges = -1;
         private BodySkeletonJointFB[]? _skeleton;
+
+        private BodyTrackingFidelityMETA? _fidelity;
+        private BodyTrackingCalibrationStateMETA? _calibrationStatus;
+
         readonly XrApp _app;
 
         public XrBodyTrack(XrApp app)
@@ -29,6 +36,12 @@ namespace OpenXr.Framework.Oculus
 
             if (!_app.Xr.TryGetInstanceExtension<FBBodyTracking>(null, _app.Instance, out _bodyTracking))
                 throw new NotSupportedException();
+
+            if (_app.HasExtension(METABodyTrackingFidelity.ExtensionName))
+                _bodyTrackingFidelity = new METABodyTrackingFidelity(_app.Xr, _app.Instance);
+
+            if (_app.HasExtension(METABodyTrackingCalibration.ExtensionName))
+                _bodyTrackingCalibration = new METABodyTrackingCalibration(_app.Xr, _app.Instance);
         }
 
         public bool IsSupported(BodyJointSetFB jointSet)
@@ -53,6 +66,62 @@ namespace OpenXr.Framework.Oculus
             _app.GetSystemProperties(ref bodyProps);
 
             return bodyProps.SupportsBodyTracking != 0;
+        }
+
+        public bool IsFidelitySupported()
+        {
+            Initialize();
+
+            if (_bodyTrackingFidelity == null)
+                return false;
+
+            var props = new SystemPropertiesBodyTrackingFidelityMETA
+            {
+                Type = METABodyTrackingFidelity.TypeSystemPropertiesBodyTrackingFidelityMeta
+            };
+
+            _app.GetSystemProperties(ref props);
+
+            return props.SupportsBodyTrackingFidelity != 0;
+        }
+
+        public void RequestFidelity(BodyTrackingFidelityMETA fidelity)
+        {
+            _app.CheckResult(_bodyTrackingFidelity!.RequestBodyTrackingFidelityMETA(_tracker, fidelity), "RequestBodyTrackingFidelityMETA");
+        }
+
+        public void SuggestHeight(float bodyHeight)
+        {
+            var info = new BodyTrackingCalibrationInfoMETA
+            {
+                Type = StructureType.BodyTrackingCalibrationInfoMeta,
+                BodyHeight = bodyHeight
+            };
+
+            _app.CheckResult(_bodyTrackingCalibration!.SuggestBodyTrackingCalibrationOverrideMETA(_tracker, ref info), "SuggestBodyTrackingCalibrationOverrideMETA");
+        }
+
+        public void ResetCalibration()
+        {
+            _app.CheckResult(_bodyTrackingCalibration!.ResetBodyTrackingCalibrationMETA(_tracker), "ResetBodyTrackingCalibrationMETA");
+        }
+
+
+        public bool IsCalibrationSupported()
+        {
+            Initialize();
+
+            if (_bodyTrackingCalibration == null)
+                return false;
+
+            var props = new SystemPropertiesBodyTrackingCalibrationMETA
+            {
+                Type = StructureType.SystemPropertiesBodyTrackingCalibrationMeta
+            };
+
+            _app.GetSystemProperties(ref props);
+
+            return props.SupportsHeightOverride != 0;
         }
 
         public void Create(BodyJointSetFB jointSet)
@@ -113,6 +182,22 @@ namespace OpenXr.Framework.Oculus
                 JointCount = _jointCount
             };
 
+            var calibrationStatus = new BodyTrackingCalibrationStatusMETA
+            {
+                Type = StructureType.BodyTrackingCalibrationStatusMeta
+            };
+
+            var fidelityStatus = new BodyTrackingFidelityStatusMETA
+            {
+                Type = METABodyTrackingFidelity.TypeBodyTrackingFidelityStatusMeta
+            };
+
+            if (_bodyTrackingCalibration != null)
+                StructChain.AddNextStruct(ref result, &calibrationStatus);
+
+            if (_bodyTrackingFidelity != null)
+                StructChain.AddNextStruct(ref result, &fidelityStatus);
+
             var joints = new BodyJointLocationFB[result.JointCount];
 
             fixed (BodyJointLocationFB* pJoints = joints)
@@ -126,6 +211,12 @@ namespace OpenXr.Framework.Oculus
             _isActive = result.IsActive != 0;
             _time = result.Time;
             _confidence = result.Confidence;
+
+            if (_bodyTrackingCalibration != null)
+                _calibrationStatus = calibrationStatus.Status;
+
+            if (_bodyTrackingFidelity != null)
+                _fidelity = fidelityStatus.Fidelity;
 
             if (_skeletonChanges != result.SkeletonChangedCount)
             {
@@ -162,5 +253,10 @@ namespace OpenXr.Framework.Oculus
         public bool IsActive => _isActive;
 
         public BodyJointLocationFB[]? Joints => _joints;
+
+
+        public BodyTrackingFidelityMETA? Fidelity => _fidelity;
+
+        public BodyTrackingCalibrationStateMETA? CalibrationStatus => _calibrationStatus;
     }
 }

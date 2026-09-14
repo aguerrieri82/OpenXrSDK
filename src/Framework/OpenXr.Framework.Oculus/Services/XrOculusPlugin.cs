@@ -5,7 +5,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-
+using Silk.NET.OpenXR.Extensions.META;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -64,7 +64,7 @@ namespace OpenXr.Framework.Oculus
 
     }
 
-    public partial class OculusXrPlugin : XrBasePlugin, IDisposable
+    public partial class XrOculusPlugin : XrBasePlugin, IDisposable
     {
         public static readonly string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
 
@@ -156,6 +156,8 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntity? _spatial;
         protected FBSpatialEntityQuery? _spatialQuery;
         protected FBTriangleMesh? _mesh;
+
+
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
         protected NativeStruct<HandTrackingWideMotionModeInfoMETA> _handWideMotion;
         protected FBHapticPcm? _haptic;
@@ -168,17 +170,18 @@ namespace OpenXr.Framework.Oculus
         protected FBColorSpace? _colorSpace;
         protected NativeArray<HandTrackingDataSourceEXT>? _handsDataSources;
         protected NativeStruct<HandTrackingDataSourceInfoEXT> _handDataSourceInfo;
+        protected XrPerformance? _performance;
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
         protected readonly OculusXrPluginOptions _options;
 
-        public OculusXrPlugin()
+        public XrOculusPlugin()
             : this(new OculusXrPluginOptions())
         {
 
         }
 
-        public OculusXrPlugin(OculusXrPluginOptions options)
+        public XrOculusPlugin(OculusXrPluginOptions options)
         {
             _options = options;
         }
@@ -224,6 +227,8 @@ namespace OpenXr.Framework.Oculus
 
             extensions.Add(FBFaceTracking2.ExtensionName);
 
+            extensions.Add(MetaPerformanceMetrics.ExtensionName);
+
             if (_options.UseBothHandAndControllers)
                 extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);
 
@@ -234,6 +239,8 @@ namespace OpenXr.Framework.Oculus
 
                 extensions.Add("XR_META_body_tracking_full_body");
                 extensions.Add(FBBodyTracking.ExtensionName);
+                extensions.Add(METABodyTrackingFidelity.ExtensionName);
+                extensions.Add(METABodyTrackingCalibration.ExtensionName);
             }
         }
 
@@ -854,6 +861,7 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
+
         public void UpdateFoveation()
         {
             if (_options.Foavetion == null || !_options.Foavetion.Use)
@@ -1188,6 +1196,15 @@ namespace OpenXr.Framework.Oculus
             _handDataSourceInfo.Dispose();
 
             GC.SuppressFinalize(this);
+        }
+
+        public XrPerformance Performance
+        {
+            get
+            {
+                _performance ??= new(_app!);
+                return _performance;
+            }
         }
 
         public OculusXrPluginOptions Options => _options;

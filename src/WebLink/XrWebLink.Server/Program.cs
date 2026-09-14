@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IXrThread, XrCurrentThread>();
 builder.Services.AddSingleton(new XrApp(
     new XrVulkanGraphicDriver(new VulkanDevice()),
-    new OculusXrPlugin()));
+    new XrOculusPlugin()));
 builder.Services.AddOpenXrWebLink();
 
 var app = builder.Build();

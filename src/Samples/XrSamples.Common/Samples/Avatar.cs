@@ -1,10 +1,8 @@
-﻿using PhysX.Framework;
-using System.Text;
+﻿using OpenXr.Framework.Oculus;
 using XrEngine;
-using XrEngine.Components;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Oculus;
-using static Sfizz.SfzParser;
+
 
 namespace XrSamples
 {
@@ -15,7 +13,9 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
-            var scene = app.ActiveScene;
+            var scene = app.ActiveScene!;
+
+            scene.AddComponent<XrPerformanceQuery>();
 
             Task.Run(async () =>
             {
@@ -34,7 +34,11 @@ namespace XrSamples
                 await avatarManager.LoginAsync(platform.AccessToken ?? throw new InvalidOperationException());
 
                 var avatar = await avatarManager.LoadAsync("8672967276120323");
+                
                 var tracker = avatar.AddComponent<AvatarTracker>();
+                tracker.Height = 1.72f;
+                tracker.Fidelity = BodyTrackingFidelityMETA.HighMeta;
+
                 avatar.AddComponent(new AvatarFaceTrack
                 {
                     UseApproximateMorphs = true,

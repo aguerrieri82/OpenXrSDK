@@ -49,7 +49,7 @@ namespace XrEngine.OpenXr
         {
             _isSceneLoading = true;
 
-            var oculus = _app!.Plugin<OculusXrPlugin>();
+            var oculus = _app!.Plugin<XrOculusPlugin>();
 
             try
             {

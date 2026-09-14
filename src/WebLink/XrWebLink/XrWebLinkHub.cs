@@ -57,7 +57,7 @@ namespace XrWebLink
 
         public Task<List<XrAnchor>> GetAnchors(XrAnchorFilter filter)
         {
-            return _app.Plugin<OculusXrPlugin>().GetAnchorsAsync(filter);
+            return _app.Plugin<XrOculusPlugin>().GetAnchorsAsync(filter);
         }
     }
 }

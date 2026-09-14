@@ -22,7 +22,7 @@ namespace XrEngine.OpenXr
         }
 
         protected Pose3 _lastPose;
-        protected OculusXrPlugin? _oculus;
+        protected XrOculusPlugin? _oculus;
         protected readonly List<SpatialAnchor> _anchors = [];
         protected bool _isInit;
         protected List<(SpatialAnchor Anchor, float Distance)> _changedAnchors = [];
@@ -124,7 +124,7 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
-            _oculus ??= XrApp.Current.Plugin<OculusXrPlugin>();
+            _oculus ??= XrApp.Current.Plugin<XrOculusPlugin>();
 
             if (!_isInit)
             {

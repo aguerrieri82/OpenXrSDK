@@ -218,7 +218,7 @@ namespace OpenXr.Framework.Oculus
 
         public XrPassthroughMesh AddMesh(Mesh3 mesh, Space baseSpace, object? tag = null)
         {
-            var fbMesh = _xrApp!.Plugin<OculusXrPlugin>().CreateTriangleMesh(mesh.Indices!, mesh.Vertices!.Convert().To<Vector3f>());
+            var fbMesh = _xrApp!.Plugin<XrOculusPlugin>().CreateTriangleMesh(mesh.Indices!, mesh.Vertices!.Convert().To<Vector3f>());
 
             var info = new GeometryInstanceCreateInfoFB
             {

@@ -35,7 +35,7 @@ namespace XrEngine.OpenXr
         {
             if (_xrApp.IsStarted && !_isInit)
             {
-                if (!_xrApp.TryPlugin<OculusXrPlugin>(out var oculus))
+                if (!_xrApp.TryPlugin<XrOculusPlugin>(out var oculus))
                     return;
 
                 if (oculus != null)

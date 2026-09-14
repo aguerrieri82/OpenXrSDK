@@ -1,10 +1,7 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 namespace XrEngine.OpenXr.Oculus
 {
@@ -98,6 +95,8 @@ namespace XrEngine.OpenXr.Oculus
         protected BodySkeletonRetargeter? _bodyRetargeter;
         protected Joint3D? _xrScheleton;
         protected Dictionary<int, Joint3D>? _xrScheletonMap;
+        private float _height;
+        private BodyTrackingFidelityMETA? _fidelity;
 
         public AvatarTracker()
         {
@@ -111,10 +110,19 @@ namespace XrEngine.OpenXr.Oculus
 
             if (_xrApp != null && _xrApp.IsStarted)
             {
+                if (_xrApp.SessionState != SessionState.Focused)
+                    return;
+
                 if (_bodyTrack == null)
                 {
                     _bodyTrack = new XrBodyTrack(_xrApp);
                     _bodyTrack.Create(BodyJointSetFB.FullBodyMeta);
+
+                    if (_height > 0)
+                        _bodyTrack.SuggestHeight(_height);
+
+                    if (_fidelity != null)
+                        _bodyTrack.RequestFidelity(_fidelity.Value);
                 }
 
                 var locations = _bodyTrack.LocateJoints(_xrApp.ReferenceSpace, _xrApp.FramePredictedDisplayTime);
@@ -207,6 +215,39 @@ namespace XrEngine.OpenXr.Oculus
             GC.SuppressFinalize(this);
         }
 
+        [Action]
+        public void ResetCalibration()
+        {
+            _bodyTrack?.ResetCalibration();
+        }
+
+        public float Height
+        {
+            get => _height;
+            set
+            {
+                _height = value;
+                _bodyTrack?.SuggestHeight(value);
+            }
+        }
+
+        public BodyTrackingCalibrationStateMETA? CalibrationStatus => _bodyTrack?.CalibrationStatus;
+
+        public BodyTrackingFidelityMETA? Fidelity
+        {
+            get
+            {
+                if (_bodyTrack != null)
+                    return _bodyTrack.Fidelity;
+                return _fidelity;
+            }
+            set
+            {
+                _fidelity = value;
+                if (value != null)
+                    _bodyTrack?.RequestFidelity(value.Value);
+            }
+        }
 
         public Matrix4x4 BaseTransform { get; set; }
 

@@ -57,7 +57,7 @@ namespace XrSamples
                 .UseClickMoveFront(mesh)
                 .ConfigureApp(e =>
                 {
-                    var oculus = e.XrApp.Plugin<OculusXrPlugin>();
+                    var oculus = e.XrApp.Plugin<XrOculusPlugin>();
                     var isLoading = false;
                     var lastUpdate = new DateTime();
                     mesh.AddBehavior(async (_, _) =>
@@ -68,7 +68,7 @@ namespace XrSamples
                         isLoading = true;
                         try
                         {
-                            var anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
+                            var anchors = await e.XrApp.Plugin<XrOculusPlugin>().GetAnchorsAsync(new XrAnchorFilter
                             {
                                 Components = XrAnchorComponent.All
                             });

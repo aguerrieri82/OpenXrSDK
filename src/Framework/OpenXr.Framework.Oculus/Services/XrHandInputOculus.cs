@@ -25,7 +25,7 @@ namespace OpenXr.Framework.Oculus
 
     public unsafe class XrHandInputOculus : XrHandInput
     {
-        private readonly OculusXrPlugin _oculus;
+        private readonly XrOculusPlugin _oculus;
         private XrHandMesh? _mesh;
         private HandTrackingDataSourceEXT* _dataSources;
         private NativeStruct<HandTrackingDataSourceInfoEXT> _dataSourceInfo;
@@ -39,7 +39,7 @@ namespace OpenXr.Framework.Oculus
 
         public XrHandInputOculus(XrApp app) : base(app)
         {
-            _oculus = _app.Plugin<OculusXrPlugin>();
+            _oculus = _app.Plugin<XrOculusPlugin>();
             _velocities = new HandJointVelocityEXT[XR_HAND_JOINT_COUNT_EXT];
         }
 

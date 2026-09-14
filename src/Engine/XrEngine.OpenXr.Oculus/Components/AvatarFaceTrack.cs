@@ -21,6 +21,14 @@ namespace XrEngine.OpenXr.Oculus
 
         MeshMorph? _morph;
         Dictionary<string, int>? _targets;
+        readonly Dictionary<string, float> _morphWeights = new();
+        readonly List<CorrectiveMorph> _correctiveMorphs = new();
+
+        private class CorrectiveMorph
+        {
+            public string Name = "";
+            public string[] Drivers = Array.Empty<string>();
+        }
 
         Joint3D? _eyeLeft;
         Joint3D? _eyeRight;
@@ -72,7 +80,74 @@ namespace XrEngine.OpenXr.Oculus
             _tongueBase = _host.FindByName<Joint3D>("tongueBase_joint");
             _tongueTip = _host.FindByName<Joint3D>("tongueTip_joint");
 
+            BuildCorrectiveMappings();
             BuildSkinMappings();
+        }
+
+        private void BuildCorrectiveMappings()
+        {
+            _correctiveMorphs.Clear();
+
+            foreach (var name in _targets!.Keys)
+            {
+                if (!name.StartsWith("anim_", StringComparison.Ordinal))
+                    continue;
+
+                var parts = name.Substring(5).Split('_');
+                var suffix = parts[parts.Length - 1];
+                var hasSuffix = suffix == "L" || suffix == "R" ||
+                    suffix == "LT" || suffix == "RT" || suffix == "LB" || suffix == "RB" ||
+                    suffix == "T" || suffix == "B";
+                var driverCount = hasSuffix ? parts.Length - 1 : parts.Length;
+
+                if (driverCount < 2)
+                    continue;
+
+                var drivers = new string[driverCount];
+                var complete = true;
+                for (var i = 0; i < driverCount; i++)
+                {
+                    var driver = "anim_" + parts[i];
+                    if (hasSuffix && _targets.ContainsKey(driver + "_" + suffix))
+                        driver += "_" + suffix;
+                    else if (hasSuffix && suffix.Length == 2 && _targets.ContainsKey(driver + "_" + suffix[0]))
+                        driver += "_" + suffix[0];
+                    else if (hasSuffix && suffix.Length == 2 && _targets.ContainsKey(driver + "_" + suffix[1]))
+                        driver += "_" + suffix[1];
+                    else if (!_targets.ContainsKey(driver))
+                    {
+                        complete = false;
+                        break;
+                    }
+
+                    drivers[i] = driver;
+                }
+
+                if (complete)
+                    _correctiveMorphs.Add(new CorrectiveMorph { Name = name, Drivers = drivers });
+            }
+        }
+
+        private void UpdateCorrectiveMorphs()
+        {
+            // Legacy SDK combined shapes follow the product rule used by Unity Movement.
+            // Only use drivers written this frame; unsupported controls must not activate a corrective.
+            foreach (var corrective in _correctiveMorphs)
+            {
+                var value = 1f;
+                foreach (var driver in corrective.Drivers)
+                {
+                    if (!_morphWeights.TryGetValue(driver, out var weight))
+                    {
+                        value = 0;
+                        break;
+                    }
+
+                    value *= weight;
+                }
+
+                Set(corrective.Name, value);
+            }
         }
 
         private void BuildSkinMappings()
@@ -170,6 +245,9 @@ namespace XrEngine.OpenXr.Oculus
             if (_xrApp == null || !_xrApp.IsStarted)
                 return;
 
+            if (_xrApp.SessionState != SessionState.Focused)
+                return;
+
             if (_faceTrack == null)
             {
                 _faceTrack = new XrFaceTrack(_xrApp);
@@ -184,10 +262,18 @@ namespace XrEngine.OpenXr.Oculus
             if (weights == null || !_faceTrack.IsValid)
                 return;
 
+            // Clear only weights owned by this component, including disabled approximations.
+            foreach (var name in _morphWeights.Keys)
+                _morph.Weights[_targets[name]] = 0;
+            _morphWeights.Clear();
+
             UpdateDirectMorphs(weights);
 
             if (UseApproximateMorphs)
+            {
                 UpdateApproximateMorphs(weights);
+                UpdateCorrectiveMorphs();
+            }
 
             UpdateSkin(weights);
 
@@ -264,6 +350,12 @@ namespace XrEngine.OpenXr.Oculus
 
         private void UpdateApproximateMorphs(XrFaceWeight[] weights)
         {
+            // The legacy avatar splits each chin control into left and right halves.
+            Set("anim_chinRaiser_LT", weights, FaceExpression2FB.ChinRaiserTFB);
+            Set("anim_chinRaiser_RT", weights, FaceExpression2FB.ChinRaiserTFB);
+            Set("anim_chinRaiser_LB", weights, FaceExpression2FB.ChinRaiserBFB);
+            Set("anim_chinRaiser_RB", weights, FaceExpression2FB.ChinRaiserBFB);
+
             Set("anim_lipPressor",
                 MathF.Max(Get(weights, FaceExpression2FB.LipPressorLFB), Get(weights, FaceExpression2FB.LipPressorRFB)));
 
@@ -289,29 +381,6 @@ namespace XrEngine.OpenXr.Oculus
             Set("anim_lipsToward_LB", lipsToward);
             Set("anim_lipsToward_RB", lipsToward);
 
-            SetProduct("anim_jawDrop_lipCornerPuller_L", weights,
-                FaceExpression2FB.JawDropFB,
-                FaceExpression2FB.LipCornerPullerLFB);
-
-            SetProduct("anim_jawDrop_lipCornerPuller_R", weights,
-                FaceExpression2FB.JawDropFB,
-                FaceExpression2FB.LipCornerPullerRFB);
-
-            SetProduct("anim_cheekRaiser_noseWrinkler_L", weights,
-                FaceExpression2FB.CheekRaiserLFB,
-                FaceExpression2FB.NoseWrinklerLFB);
-
-            SetProduct("anim_cheekRaiser_noseWrinkler_R", weights,
-                FaceExpression2FB.CheekRaiserRFB,
-                FaceExpression2FB.NoseWrinklerRFB);
-
-            SetProduct("anim_cheekRaiser_lipCornerPuller_L", weights,
-                FaceExpression2FB.CheekRaiserLFB,
-                FaceExpression2FB.LipCornerPullerLFB);
-
-            SetProduct("anim_cheekRaiser_lipCornerPuller_R", weights,
-                FaceExpression2FB.CheekRaiserRFB,
-                FaceExpression2FB.LipCornerPullerRFB);
         }
 
         private void UpdateSkin(XrFaceWeight[] weights)
@@ -472,24 +541,19 @@ namespace XrEngine.OpenXr.Oculus
             Set(name, Get(weights, expression));
         }
 
-        private void SetProduct(
-            string name,
-            XrFaceWeight[] weights,
-            FaceExpression2FB a,
-            FaceExpression2FB b)
-        {
-            Set(name, Get(weights, a) * Get(weights, b));
-        }
-
         private void Set(string name, float value)
         {
             if (_targets!.TryGetValue(name, out var index))
+            {
                 _morph!.Weights[index] = value;
+                _morphWeights[name] = value;
+            }
         }
 
         private static float Get(XrFaceWeight[] weights, FaceExpression2FB expression)
         {
-            return weights[(int)expression].Weight;
+            var value = weights[(int)expression].Weight;
+            return float.IsFinite(value) ? Math.Clamp(value, 0, 1) : 0;
         }
     }
 }
