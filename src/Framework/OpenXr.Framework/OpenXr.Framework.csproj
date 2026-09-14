@@ -26,15 +26,12 @@
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content PackagePath="runtimes/win-x64/native/" Include="runtimes/win-x64/native/*" 
-				 CopyToOutputDirectory="PreserveNewest" 
-				 Link="%(Filename)%(Extension)" 
-				 Visible="False"
-				 UseLink="True" />
+		<Content PackagePath="runtimes/win-x64/native/" Include="runtimes/win-x64/native/*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Include="runtimes/android-arm64/native/*" Abi="arm64-v8a" />
+		<AndroidManifestOverlay Include="AndroidManifest.xml" />
 	</ItemGroup>
 
 </Project>

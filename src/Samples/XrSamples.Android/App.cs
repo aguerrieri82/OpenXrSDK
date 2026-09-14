@@ -7,10 +7,17 @@ using XrEngine.Media.Android;
 namespace XrSamples
 {
 
-    [Application(Debuggable = true, HardwareAccelerated = true)]
+    [Application(
+        Debuggable = true,
+        HardwareAccelerated = true,
+        UsesCleartextTraffic = true,
+        AllowBackup = false,
+        Icon = "@mipmap/appicon",
+        Label = "@string/app_name",
+        SupportsRtl = true)]
     [MetaData("com.oculus.intent.category.VR", Value = "dual")]
     [MetaData("com.oculus.supportedDevices", Value = "all")]
-    [MetaData("com.oculus.ossplash.background",Value = "passthrough-contextual")]
+    [MetaData("com.oculus.ossplash.background", Value = "passthrough-contextual")]
     public class App : Application
     {
         public App(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)

@@ -231,8 +231,6 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-        public BodyTrackingCalibrationStateMETA? CalibrationStatus => _bodyTrack?.CalibrationStatus;
-
         public BodyTrackingFidelityMETA? Fidelity
         {
             get
@@ -248,6 +246,7 @@ namespace XrEngine.OpenXr.Oculus
                     _bodyTrack?.RequestFidelity(value.Value);
             }
         }
+        public BodyTrackingCalibrationStateMETA? CalibrationStatus => _bodyTrack?.CalibrationStatus;
 
         public Matrix4x4 BaseTransform { get; set; }
 

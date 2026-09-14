@@ -1,10 +1,12 @@
-﻿using Android.Content;
+﻿using Android;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using Microsoft.Extensions.Logging;
 using XrInteraction;
+using static Android.Telephony.CarrierConfigManager;
 
 namespace OpenXr.Framework.Android
 {
@@ -32,9 +34,7 @@ namespace OpenXr.Framework.Android
         public XrActivity()
         {
             _permissions = [
-              "com.oculus.permission.USE_SCENE",
-              "android.permission.WRITE_EXTERNAL_STORAGE",
-              "android.permission.READ_EXTERNAL_STORAGE"
+              Manifest.Permission.ManageExternalStorage
             ];
 
         }
@@ -181,7 +181,12 @@ namespace OpenXr.Framework.Android
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
-            /*if (requestCode == PERMISSIONS_REQUEST && grantResults.All(a => a == Permission.Granted))*/
+            for (var i = 0; i < permissions.Length; i++)
+            {
+                if (grantResults[i] != Permission.Granted)
+                    Log.Warn(nameof(XrActivity), $"Permission not granted: {permissions[i]}");
+            }
+
             NextLoadStep();
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);

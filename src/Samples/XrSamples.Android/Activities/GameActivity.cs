@@ -1,8 +1,10 @@
+using Android;
 using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Text.Json;
@@ -40,11 +42,12 @@ namespace XrSamples.Android.Activities
 
         public GameActivity()
         {
-            _permissions.Add("horizonos.permission.HEADSET_CAMERA");
-            _permissions.Add("com.oculus.permission.EYE_TRACKING");
-            _permissions.Add("com.oculus.permission.BODY_TRACKING");
-            _permissions.Add("com.oculus.permission.FACE_TRACKING");
-            _permissions.Add("com.oculus.permission.RECORD_AUDIO");
+            _permissions.Add(Manifest.Permission.RecordAudio);
+            _permissions.Add(OculusPermissions.BodyTracking);
+            _permissions.Add(OculusPermissions.FaceTracking);
+            _permissions.Add(OculusPermissions.UseScene);
+            _permissions.Add(HorizonPermissions.HeadsetCamera);
+            
         }
 
         protected override void OnLoad()

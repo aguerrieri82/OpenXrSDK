@@ -18,18 +18,12 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="Models\*" 
-				 Pack="true"
-				 TargetPath="Assets\Models\%(Filename)%(Extension)" 
-				 PackageFlatten="false" 
-				 PackageCopyToOutput="true"
-				 Link="Assets\Models\%(Filename)%(Extension)" 
-				 UseLink="True" 
-				 CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="Models\*" Pack="true" TargetPath="Assets\Models\%(Filename)%(Extension)" PackageFlatten="false" PackageCopyToOutput="true" Link="Assets\Models\%(Filename)%(Extension)" UseLink="True" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidAsset Include="Models/*" Link="Models/%(Filename)%(Extension)" />
+		<AndroidManifestOverlay Include="AndroidManifest.xml" />
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -37,4 +31,6 @@
 		<Using Remove="Android.App" />
 		<Using Remove="Android" />
 	</ItemGroup>
+
+
 </Project>
