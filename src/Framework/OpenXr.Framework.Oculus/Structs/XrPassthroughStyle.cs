@@ -24,8 +24,8 @@ namespace OpenXr.Framework.Oculus
         public Color4f[]? ColorMap;
 
         public float LutWeight;
-        public PassthroughColorLutMETA? Lut;
-        public XrPassthroughInterpolatedLut? InterpolatedLut;
+        public PassthroughColorLutMETA? SourceLut;
+        public PassthroughColorLutMETA? TargetLut;
     }
 
     public struct XrPassthroughBcs
@@ -35,10 +35,4 @@ namespace OpenXr.Framework.Oculus
         public float Saturation;
     }
 
-    public struct XrPassthroughInterpolatedLut
-    {
-        public PassthroughColorLutMETA Source;
-        public PassthroughColorLutMETA Target;
-        public float Weight;
-    }
 }

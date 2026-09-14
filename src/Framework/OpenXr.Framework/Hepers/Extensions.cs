@@ -131,7 +131,7 @@ namespace OpenXr.Framework
         public static XrProjectionLayer AddProjection(this XrLayerManager manager, RenderViewDelegate renderView, bool useDepthSwapchain)
         {
             var layer = new XrProjectionLayer(renderView, useDepthSwapchain);
-            manager.List.Add(layer);
+            manager.Add(layer);
             return layer;
         }
 

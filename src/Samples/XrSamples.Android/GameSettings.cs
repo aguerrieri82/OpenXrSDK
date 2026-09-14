@@ -53,22 +53,25 @@ namespace XrSamples
 
         public bool IsBenchmark { get;  set; }
 
+        public bool ViewPlaneGrid { get; set; }
+
         public static GameSettings DnD()
         {
             return new GameSettings
             {
-                SampleName = "Passthrough Style",
+                SampleName = "Geo Layers",
                 Msaa = 1,
                 Scale = 1f,
+                ViewPlaneGrid = true,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 MotionVectorMode = MotionVectorMode.None,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = true,
+                TextureCompression = false,
                 ProjDepthMode = XrProjDepthMode.DepthCopyImage,
-                UseFxAA = true,
+                UseFxAA = false,
                 UseSimmetricFov = false,
                 UseDynamicResolution = false,
                 UseRayCollider = false,

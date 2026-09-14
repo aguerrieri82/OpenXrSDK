@@ -24,7 +24,6 @@ namespace XrEngine.OpenXr
 
         bool _xrMode;
 
-
         public unsafe XrScreenAttached(Texture2D texture)
         {
             _texture = texture;
@@ -36,6 +35,8 @@ namespace XrEngine.OpenXr
             _source = new XrTextureLayerSource(
                 RenderTexture,
                 new Size2I(texture.Width, texture.Height));
+
+            FlipY = true;
         }
 
         public XrScreenAttached(IGeometryLayerSource source)
@@ -80,7 +81,7 @@ namespace XrEngine.OpenXr
             _layer = new XrCylinderLayer(GetCylinder, _source)
             {
                 Priority = XrLayerPriority.UiGeomeytry,
-                FlipY = false
+                FlipY = FlipY && SupportNativeFlip
             };
 
             _app.Layers.Add(_layer);
@@ -92,7 +93,7 @@ namespace XrEngine.OpenXr
 
             if (_layer != null)
             {
-                _app?.Layers.List.Remove(_layer);
+                _app?.Layers.Remove(_layer);
                 _layer.Dispose();
                 _layer = null;
             }
@@ -151,7 +152,7 @@ namespace XrEngine.OpenXr
                 material.IsEnabled = false;
             }
 
-            _depthMaterial.IsEnabled = true;
+            _depthMaterial.IsEnabled = _layer!.Priority < XrLayerPriority.Projection;
         }
 
         private void DisableXrMode()
@@ -182,8 +183,15 @@ namespace XrEngine.OpenXr
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image;
 
-            _texture!.ToGlTexture().BlitTo(
-                GlTexture.Attach(OpenGLRender.Current.GL, glImage), true);
+
+            if (FlipY && !SupportNativeFlip)
+            {
+                _texture!.ToGlTexture().BlitTo(
+                    GlTexture.Attach(OpenGLRender.Current.GL, glImage), true);
+            }
+            else
+                _texture!.ToGlTexture().CopyTo(GlTexture.Attach(OpenGLRender.Current.GL, glImage));
+
             return true;
         }
 
@@ -208,6 +216,10 @@ namespace XrEngine.OpenXr
 
             GC.SuppressFinalize(this);
         }
+
+        protected bool SupportNativeFlip => !OperatingSystem.IsWindows();
+
+        public bool FlipY { get; set; }
 
         public XrCylinderLayer? Layer => _layer;
     }

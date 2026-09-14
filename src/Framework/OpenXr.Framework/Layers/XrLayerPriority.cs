@@ -6,8 +6,9 @@
 
         public const int BaseGeometry = 2;
 
+        public const int Projection = 10;
+
         public const int UiGeomeytry = 12;
 
-        public const int Projection = 10;
     }
 }

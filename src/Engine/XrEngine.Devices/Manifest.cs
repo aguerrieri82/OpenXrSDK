@@ -1,18 +1,21 @@
 ﻿#if __ANDROID__
 
+using Android;
+using Android.Content.PM;
+
 [assembly: UsesPermission("horizonos.permission.HEADSET_CAMERA")]
 [assembly: UsesPermission("horizonos.permission.USB_CAMERA")]
 [assembly: UsesPermission("horizonos.permission.CAMERA")]
 
-[assembly: UsesFeature("android.hardware.camera2.any", Required = false)]
-[assembly: UsesFeature("android.hardware.camera.external", Required = false)]
-[assembly: UsesFeature("android.hardware.camera", Required = false)]
-[assembly: UsesFeature("android.hardware.usb.host", Required = false)]
+[assembly: UsesFeature(PackageManager.FeatureCameraAny, Required = false)]
+[assembly: UsesFeature(PackageManager.FeatureCameraExternal, Required = false)]
+[assembly: UsesFeature(PackageManager.FeatureCamera, Required = false)]
+[assembly: UsesFeature(PackageManager.FeatureUsbHost, Required = false)]
 
 
-[assembly: UsesPermission("android.permission.BLUETOOTH")]
-[assembly: UsesPermission("android.permission.BLUETOOTH_ADMIN")]
-[assembly: UsesPermission("android.permission.BLUETOOTH_SCAN")]
-[assembly: UsesPermission("android.permission.BLUETOOTH_CONNECT")]
+[assembly: UsesPermission(Manifest.Permission.Bluetooth)]
+[assembly: UsesPermission(Manifest.Permission.BluetoothAdmin)]
+[assembly: UsesPermission(Manifest.Permission.BluetoothScan)]
+[assembly: UsesPermission(Manifest.Permission.BluetoothConnect)]
 
 #endif

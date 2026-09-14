@@ -83,7 +83,7 @@ namespace XrEngine.OpenGL
             UsePrimitiveBoundingBox = false;
             UseTransmission = true;
             ClipMode = ShaderClipMode.DepthClear;
-            PostProcessSourceMode = PostProcessSourceMode.Head;
+            PostProcessSourceMode = PostProcessSourceMode.HeadCopy;
 
             ContactShadow = new()
             {

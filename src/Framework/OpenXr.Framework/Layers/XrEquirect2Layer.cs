@@ -11,7 +11,7 @@ namespace OpenXr.Framework
         protected GetSphericalSectionDelegate _getSection;
 
         public XrEquirect2Layer(GetSphericalSectionDelegate getSection, IGeometryLayerSource source)
-            : base(source)
+            : base(source, false)
         {
             _getSection = getSection;
 

@@ -10,19 +10,22 @@ namespace OpenXr.Framework
         protected NativeStruct<CompositionLayerDepthTestFB> _depthTest;
         protected NativeStruct<CompositionLayerImageLayoutFB> _layerFlags;
 
-        protected unsafe XrBaseGeometryLayer(IGeometryLayerSource source)
+        protected unsafe XrBaseGeometryLayer(IGeometryLayerSource source, bool depthTest = true)
         {
             _source = source;
 
-            _depthTest.Value = new CompositionLayerDepthTestFB
+            if (depthTest)
             {
-                Type = StructureType.CompositionLayerDepthTestFB,
-                DepthMask = 0,
-                CompareOp = CompareOpFB.LessOrEqualFB,
-                Next = null
-            };
+                _depthTest.Value = new CompositionLayerDepthTestFB
+                {
+                    Type = StructureType.CompositionLayerDepthTestFB,
+                    DepthMask = 0,
+                    CompareOp = CompareOpFB.LessOrEqualFB,
+                    Next = null
+                };
 
-            StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
+                StructChain.AddNextStruct(ref _header.ValueRef, _depthTest.Pointer);
+            }
 
             Priority = XrLayerPriority.BaseGeometry;
         }

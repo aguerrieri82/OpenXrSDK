@@ -88,7 +88,7 @@ namespace XrEngine.OpenXr
             if (asLayer)
             {
                 if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
-                    e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
+                    e.XrApp.Layers.AddHead(new XrPassthroughLayer());
             }
 
             e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
@@ -516,7 +516,7 @@ namespace XrEngine.OpenXr
                 if (passTh == null)
                 {
                     passTh = new XrPassthroughLayer();
-                    e.XrApp.Layers.List.Insert(0, passTh);
+                    e.XrApp.Layers.AddHead(passTh);
                 }
 
                 var camera = e.App.ActiveScene?.ActiveCamera;

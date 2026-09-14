@@ -1,9 +1,10 @@
 ﻿#if __ANDROID__
 
+using Android;
 using Android.App;
 using OpenXr.Framework.Oculus;
 
-[assembly: UsesPermission("android.permission.RECORD_AUDIO")]
+[assembly: UsesPermission(Manifest.Permission.RecordAudio)]
 
 [assembly: UsesPermission(OculusPermissions.RenderModel)]
 [assembly: UsesPermission(OculusPermissions.BodyTracking)]
@@ -14,16 +15,16 @@ using OpenXr.Framework.Oculus;
 [assembly: UsesPermission(OculusPermissions.FaceTracking)]
 [assembly: UsesPermission(OculusPermissions.EyeTracking)]
 
-[assembly: UsesFeature("oculus.software.vr.app.hybrid")]
-[assembly: UsesFeature("oculus.software.overlay_keyboard")]
-[assembly: UsesFeature("oculus.software.handtracking")]
-[assembly: UsesFeature("oculus.software.face_tracking", Required = false)]
-[assembly: UsesFeature("oculus.software.eye_tracking", Required = false)]
-[assembly: UsesFeature("com.oculus.software.body_tracking")]
-[assembly: UsesFeature("com.oculus.feature.VIRTUAL_KEYBOARD", Required = false)]
-[assembly: UsesFeature("com.oculus.feature.RENDER_MODEL", Required = false)]
-[assembly: UsesFeature("com.oculus.feature.PASSTHROUGH")]
-[assembly: UsesFeature("com.oculus.feature.CONTEXTUAL_BOUNDARYLESS_APP", Required = false)]
-[assembly: UsesFeature("com.oculus.experimental.enabled", Required = false)]
+[assembly: UsesFeature(OculusFeatures.HybridApp)]
+[assembly: UsesFeature(OculusFeatures.OverlayKeyboard)]
+[assembly: UsesFeature(OculusFeatures.HandTracking)]
+[assembly: UsesFeature(OculusFeatures.FaceTracking)]
+[assembly: UsesFeature(OculusFeatures.EyeTracking)]
+[assembly: UsesFeature(OculusFeatures.BodyTracking)]
+[assembly: UsesFeature(OculusFeatures.VirtualKeyboard)]
+[assembly: UsesFeature(OculusFeatures.RenderModel)]
+[assembly: UsesFeature(OculusFeatures.Passthrough)]
+[assembly: UsesFeature(OculusFeatures.ContextualBoundarylessApp)]
+[assembly: UsesFeature(OculusFeatures.ExperimentalEnabled)]
 
 #endif

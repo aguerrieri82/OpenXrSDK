@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework;
 using PhysX.Framework;
+using System.Numerics;
 using System.Text;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -25,10 +26,12 @@ namespace XrSamples
             var screen = scene.AddChild(new CurvedScreen());
             screen.AddComponent(new XrScreenAttached(texture));
 
-
-            var sphere = scene.AddChild(new EquirectSphere());
-            sphere.AddComponent(new XrEquirectSphereAttached(texture2));
-
+            var sphere = scene.AddChild(new EquirectSphere(3));
+            sphere.WorldPosition = new Vector3(0, 1.3f, 0);
+            sphere.AddComponent(new XrEquirectSphereAttached(texture2)
+            {
+                
+            });
 
             return builder
                 .UseApp(app)

@@ -187,8 +187,10 @@ namespace XrSamples.Android.Activities
             if ((_settings.Driver == GraphicDriver.OpenGL || _settings.Driver == GraphicDriver.Angle) && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa)
-                   .RemovePlaneGrid();
+            builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa);
+
+            if (!_settings.ViewPlaneGrid)
+                builder.RemovePlaneGrid();
 
             if (_settings.UseProfileOverlay) 
                 builder.AddProfileOverlay();

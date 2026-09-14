@@ -4,6 +4,7 @@ using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using XrEngine.OpenGL;
 using XrMath;
 using XrMath.Entities;
@@ -18,7 +19,7 @@ namespace XrEngine.OpenXr
         readonly Dictionary<Material, bool> _materialStates = [];
 
         XrApp? _app;
-        XrEquirectLayer? _layer;
+        IXrLayer? _layer;
         TextureMaterial? _textureMaterial;
         DepthOnlyMaterial? _depthMaterial;
         AngleVulkanContext? _vulkanCtx;
@@ -37,6 +38,8 @@ namespace XrEngine.OpenXr
             _source = new XrTextureLayerSource(
                 RenderTexture,
                 new Size2I(texture.Width, texture.Height));
+
+            FlipY = true;
         }
 
         public XrEquirectSphereAttached(IGeometryLayerSource source)
@@ -72,18 +75,31 @@ namespace XrEngine.OpenXr
                     AttachXr(app);
             }
 
-            SetXrMode(_app?.IsStarted == true);
+            SetXrMode(_app?.IsStarted == true && _layer != null);
         }
 
         private void AttachXr(XrApp app)
         {
             _app = app;
 
-            _layer = new XrEquirectLayer(GetSection, _source)
+            if (app.HasExtension("XR_KHR_composition_layer_equirect2") && !OperatingSystem.IsWindows())
             {
-                Priority = XrLayerPriority.UiGeomeytry,
-                FlipY = false
-            };
+                _layer = new XrEquirect2Layer(GetSection, _source)
+                {
+                    Priority = XrLayerPriority.BaseGeometry,
+                    FlipY = FlipY && SupportNativeFlip
+                };
+            }
+            else if (app.HasExtension("XR_KHR_composition_layer_equirect"))
+            {
+                _layer = new XrEquirectLayer(GetSection, _source)
+                {
+                    Priority = XrLayerPriority.BaseGeometry,
+                    FlipY = FlipY && SupportNativeFlip
+                };
+            }
+            else
+                return;
 
             _app.Layers.Add(_layer);
         }
@@ -94,7 +110,7 @@ namespace XrEngine.OpenXr
 
             if (_layer != null)
             {
-                _app?.Layers.List.Remove(_layer);
+                _app?.Layers.Remove(_layer);
                 _layer.Dispose();
                 _layer = null;
             }
@@ -105,7 +121,6 @@ namespace XrEngine.OpenXr
         private SphericalSection GetSection()
         {
             Debug.Assert(_host != null);
-
 
             var orientation = Quaternion.Normalize(
                 Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2) *
@@ -182,8 +197,13 @@ namespace XrEngine.OpenXr
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image;
 
-            _texture!.ToGlTexture().BlitTo(
-                GlTexture.Attach(OpenGLRender.Current.GL, glImage), true);
+            if (FlipY && !SupportNativeFlip)
+            {
+                _texture!.ToGlTexture().BlitTo(
+                    GlTexture.Attach(OpenGLRender.Current.GL, glImage), true);
+            }
+            else
+                _texture!.ToGlTexture().CopyTo(GlTexture.Attach(OpenGLRender.Current.GL, glImage));
 
             return true;
         }
@@ -210,6 +230,11 @@ namespace XrEngine.OpenXr
             GC.SuppressFinalize(this);
         }
 
-        public XrEquirectLayer? Layer => _layer;
+        protected bool SupportNativeFlip => !OperatingSystem.IsWindows();
+
+        public IXrLayer? Layer => _layer;
+
+
+        public bool FlipY { get; set; }
     }
 }

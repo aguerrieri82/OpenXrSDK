@@ -22,13 +22,13 @@ namespace OpenXr.Framework.Oculus
         private FBPassthrough? _passthrough;
         private PassthroughFB _ptInstance;
         private PassthroughLayerFB _ptLayer;
-        private bool _isStarted;
         private readonly List<XrPassthroughMesh> _meshes = [];
         private readonly XrEnvironmentDepth _envDepth;
         private EnvironmentDepthImageMETA? _depthImage;
         private METAPassthroughColorLut? _colorLut;
         private readonly List<XrColorLut> _colorLuts = [];
 
+        private bool _isStarted;
         private bool _removeHand;
 
         public XrPassthroughLayer()
@@ -42,7 +42,6 @@ namespace OpenXr.Framework.Oculus
         {
 
             extensions.Add(FBPassthrough.ExtensionName);
-            extensions.Add(FBPassthroughKeyboardHands.ExtensionName);
             extensions.Add(METAEnvironmentDepth.ExtensionName);
             extensions.Add(METAPassthroughColorLut.ExtensionName);
 
@@ -147,12 +146,10 @@ namespace OpenXr.Framework.Oculus
             base.Destroy();
         }
 
-
         public override void Create()
         {
             if (!IsEnabled)
                 return;
-
 
             var caps = GetPtCapabilities();
 
@@ -272,13 +269,13 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        public unsafe void SetStyle(XrPassthroughStyle value)
+        public unsafe void SetStyle(in XrPassthroughStyle value)
         {
-            PassthroughBrightnessContrastSaturationFB bcs = default;
-            PassthroughColorMapLutMETA lut = default;
-            PassthroughColorMapInterpolatedLutMETA interpolatedLut = default;
-            PassthroughColorMapMonoToMonoFB monoMap = default;
-            PassthroughColorMapMonoToRgbaFB colorMap = default;
+            PassthroughBrightnessContrastSaturationFB bcs;
+            PassthroughColorMapLutMETA lut;
+            PassthroughColorMapInterpolatedLutMETA interpolatedLut;
+            PassthroughColorMapMonoToMonoFB monoMap;
+            PassthroughColorMapMonoToRgbaFB colorMap;
 
             var style = new PassthroughStyleFB
             {
@@ -293,7 +290,10 @@ namespace OpenXr.Framework.Oculus
                 if (value.MonoMap.Length != 256)
                     throw new ArgumentException("MonoMap must contain 256 elements", nameof(value));
 
-                monoMap.Type = StructureType.PassthroughColorMapMonoToMonoFB;
+                monoMap = new PassthroughColorMapMonoToMonoFB
+                {
+                    Type = StructureType.PassthroughColorMapMonoToMonoFB
+                };
 
                 value.MonoMap.CopyTo(new Span<byte>(monoMap.TextureColorMap, 256));
 
@@ -305,7 +305,10 @@ namespace OpenXr.Framework.Oculus
                 if (value.ColorMap.Length != 256)
                     throw new ArgumentException("ColorMap must contain 256 elements", nameof(value));
 
-                colorMap.Type = StructureType.PassthroughColorMapMonoToRgbaFB;
+                colorMap = new PassthroughColorMapMonoToRgbaFB()
+                {
+                    Type = StructureType.PassthroughColorMapMonoToRgbaFB
+                };
 
                 value.ColorMap.CopyTo(colorMap.TextureColorMap.AsSpan());
 
@@ -325,29 +328,28 @@ namespace OpenXr.Framework.Oculus
                 StructChain.AddNextStruct(ref style, &bcs);
             }
 
-            if (value.Lut is { } lutValue)
-            {
-                lut = new PassthroughColorMapLutMETA
-                {
-                    Type = StructureType.PassthroughColorMapLutMeta,
-                    ColorLut = lutValue,
-                    Weight = value.LutWeight
-                };
-
-                StructChain.AddNextStruct(ref style, &lut);
-            }
-
-            if (value.InterpolatedLut is { } interpolatedValue)
+            if (value.SourceLut != null && value.TargetLut != null)
             {
                 interpolatedLut = new PassthroughColorMapInterpolatedLutMETA
                 {
                     Type = StructureType.PassthroughColorMapInterpolatedLutMeta,
-                    SourceColorLut = interpolatedValue.Source,
-                    TargetColorLut = interpolatedValue.Target,
-                    Weight = interpolatedValue.Weight
+                    SourceColorLut = value.SourceLut.Value,
+                    TargetColorLut = value.TargetLut.Value,
+                    Weight = value.LutWeight
                 };
 
                 StructChain.AddNextStruct(ref style, &interpolatedLut);
+            }
+            else if (value.SourceLut != null)
+            {
+                lut = new PassthroughColorMapLutMETA
+                {
+                    Type = StructureType.PassthroughColorMapLutMeta,
+                    ColorLut = value.SourceLut.Value,
+                    Weight = value.LutWeight
+                };
+
+                StructChain.AddNextStruct(ref style, &lut);
             }
 
             _xrApp!.CheckResult(_passthrough!.PassthroughLayerSetStyleFB(_ptLayer, ref style), "PassthroughLayerSetStyleFB");

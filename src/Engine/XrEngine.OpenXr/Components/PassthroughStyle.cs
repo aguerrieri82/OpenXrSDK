@@ -6,14 +6,13 @@ namespace XrEngine.OpenXr
 {
     public class PassthroughStyle : Behavior<Scene3D>
     {
-        ColorLut? _lastLut;
-        XrColorLut? _xrLut;
-        private XrPassthroughLayer? _layer;
+        readonly Dictionary<ColorLut, XrColorLut> _xrLuts = [];
 
-        public PassthroughStyle()
-        {
-            LutWeight = 1f;
-        }
+        XrPassthroughLayer? _layer;
+        ColorLut? _lut;
+        ColorLut? _targetLut;
+        float _lutWeight = 1f;
+        bool _styleDirty = true;
 
         protected override void Update(RenderContext ctx)
         {
@@ -22,35 +21,100 @@ namespace XrEngine.OpenXr
             if (_layer == null || !_layer.IsEnabled)
                 return;
 
-            if (_lastLut != Lut)
+            if (_styleDirty)
             {
-                _xrLut?.Dispose();
-
-                if (Lut != null)
-                {
-                    _xrLut = _layer.CreateColorLut(
-                        (uint)Lut.Resolution,
-                        PassthroughColorLutChannelsMETA.RgbMeta,
-                        Lut.BuildData());
-                }
-                else
-                    _xrLut = null;
+                SyncLuts();
 
                 _layer.SetStyle(new XrPassthroughStyle
                 {
-                    Lut = _xrLut?.Handle,
-                    LutWeight = LutWeight
+                    SourceLut = GetXrLut(_lut),
+                    TargetLut = GetXrLut(_targetLut),
+                    LutWeight = _lutWeight
                 });
 
-                _lastLut = Lut;
+                _styleDirty = false;
             }
 
             base.Update(ctx);
         }
 
-        public ColorLut? Lut { get; set; }
+        private void SyncLuts()
+        {
+            var active = new HashSet<ColorLut>();
 
-        [Range(0,1, 0.01f)]
-        public float LutWeight { get; set; }
+            if (_lut != null)
+                active.Add(_lut);
+
+            if (_targetLut != null)
+                active.Add(_targetLut);
+
+            foreach (var lut in active)
+            {
+                if (!_xrLuts.ContainsKey(lut))
+                    _xrLuts[lut] = CreateXrLut(lut);
+            }
+
+            foreach (var lut in _xrLuts.Keys.Where(x => !active.Contains(x)).ToArray())
+            {
+                _xrLuts[lut].Dispose();
+                _xrLuts.Remove(lut);
+            }
+        }
+
+        private XrColorLut CreateXrLut(ColorLut lut)
+        {
+            return _layer!.CreateColorLut(
+                (uint)lut.Resolution,
+                PassthroughColorLutChannelsMETA.RgbMeta,
+                lut.BuildData());
+        }
+
+        private PassthroughColorLutMETA? GetXrLut(ColorLut? lut)
+        {
+            if (lut == null)
+                return null;
+
+            return _xrLuts[lut];
+        }
+
+        public ColorLut? Lut
+        {
+            get => _lut;
+            set
+            {
+                if (_lut == value)
+                    return;
+
+                _lut = value;
+                _styleDirty = true;
+            }
+        }
+
+        public ColorLut? TargetLut
+        {
+            get => _targetLut;
+            set
+            {
+                if (_targetLut == value)
+                    return;
+
+                _targetLut = value;
+                _styleDirty = true;
+            }
+        }
+
+        [Range(0, 1, 0.01f)]
+        public float LutWeight
+        {
+            get => _lutWeight;
+            set
+            {
+                if (_lutWeight == value)
+                    return;
+
+                _lutWeight = value;
+                _styleDirty = true;
+            }
+        }
     }
 }

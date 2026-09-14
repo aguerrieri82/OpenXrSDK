@@ -17,7 +17,7 @@ namespace OpenXr.Framework
         public static XrSpaceWarpProjectionLayer AddProjectionSpaceWarp(this XrLayerManager manager, RenderViewDelegate renderView, IXrMotionVectorProvider provider)
         {
             var layer = new XrSpaceWarpProjectionLayer(renderView, provider);
-            manager.List.Add(layer);
+            manager.Add(layer);
             return layer;
         }
 

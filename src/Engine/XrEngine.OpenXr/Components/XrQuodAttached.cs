@@ -32,7 +32,7 @@ namespace XrEngine.OpenXr
 
             foreach (var layer in _layers)
             {
-                _app.Layers.List.Remove(layer);
+                _app.Layers.Remove(layer);
                 layer.Dispose();
             }
 

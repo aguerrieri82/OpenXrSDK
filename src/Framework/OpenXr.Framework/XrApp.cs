@@ -156,7 +156,6 @@ namespace OpenXr.Framework
             {
                 if (_xr == null)
                 {
-                    //_xr = XR.GetApi();
                     _xr = new XR(XR.CreateDefaultContext(new OpenXRLibraryNameContainer2().GetLibraryNames()));
 
                     PluginInvoke(a => a.Initialize(this, _extensions));
@@ -487,7 +486,7 @@ namespace OpenXr.Framework
 
         #region INSTANCE & SYSTEM
 
-        protected IList<string> GetSupportedExtensions()
+        public IList<string> GetSupportedExtensions()
         {
             uint propCount = 0;
             CheckResult(_xr!.EnumerateInstanceExtensionProperties((byte*)null, 0, &propCount, null), "EnumerateInstanceExtensionProperties");
